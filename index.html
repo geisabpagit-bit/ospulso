@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:,">
+    <title>MedentIA - Automatización Inteligente Clínica</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="css/medentia_master.css" rel="stylesheet" />
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    <!-- HEADER -->
+    <header class="navbar navbar-expand-lg">
+        <div class="logo">
+            <img src="img/logo_medentia.png" alt="MedentIA Logo" style="height: 38px;"
+                onerror="this.onerror=null; this.style.display='none';" />
+            <span>MedentIA</span>
+        </div>
+        <nav class="menu d-none d-lg-flex">
+            <a href="#inicio">Inicio</a>
+            <a href="#caracteristicas">Características</a>
+            <a href="#testimonios">Testimonios</a>
+        </nav>
+        <div class="acciones d-none d-lg-flex">
+            <a href="#login" class="btn-outline">Iniciar Sesión</a>
+            <a href="auth/registro.pl" class="btn-primary">Regístrate</a>
+        </div>
+        <!-- Mobile Toggle -->
+        <button class="d-lg-none btn-mobile-toggle" type="button" id="openMobileMenu">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+    </header>
+
+    <!-- Mobile Sidebar Menu -->
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <button class="btn-close-sidebar" id="closeMobileMenu">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="sidebar-body">
+            <div class="nav-links-container">
+                <a href="#inicio" class="sidebar-nav-link active">INICIO</a>
+                <a href="#caracteristicas" class="sidebar-nav-link">CARACTERÍSTICAS</a>
+                <a href="#testimonios" class="sidebar-nav-link">TESTIMONIOS</a>
+                <a href="#login" class="sidebar-nav-link">INICIAR SESIÓN</a>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-bottom">
+                <a href="auth/registro.pl" class="btn-solicitar-cita-mobile text-white">Regístrate</a>
+            </div>
+        </div>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- HERO -->
+    <section id="inicio" class="hero">
+        <div class="hero-texto">
+            <h1>Impulsa tu clínica con <br />Automatización Inteligente</h1>
+            <p>Optimiza procesos y mejora la atención con nuestra plataforma líder en inteligencia clínica.</p>
+            <div class="hero-botones">
+                <a href="#login" class="btn-success">Solicitar Demo Gratis</a>
+                <a href="auth/registro.pl" class="btn-outline">¿Nuevo en MedentIA? Empieza tu transformación clínica hoy</a>
+            </div>
+        </div>
+        <div class="hero-imagen">
+            <img src="img/logo_medentia.png" alt="Doctor interactuando con panel clínico"
+                onerror="this.onerror=null; this.style.display='none';" />
+            <button class="btn-video" onclick="alert('Funcionalidad de video de demostración próximamente')">▶ Ver cómo
+                funciona</button>
+        </div>
+    </section>
+
+    <!-- ESTADÍSTICAS -->
+    <section id="caracteristicas" class="estadisticas">
+        <div class="stat">
+            <h3>+500</h3>
+            <p>Clínicas Automatizadas</p>
+        </div>
+        <div class="stat">
+            <h3>20h</h3>
+            <p>Ahorro semanal promedio</p>
+        </div>
+        <div class="stat">
+            <h3>🔒</h3>
+            <p>Encriptación de Grado Clínico</p>
+        </div>
+    </section>
+
+    <!-- TESTIMONIOS -->
+    <section id="testimonios" class="testimonios">
+        <h2>Lo que dicen nuestros clientes</h2>
+        <div class="cards">
+            <article>
+                <p>“MedentIA transformó nuestra gestión, ahora somos mucho más eficientes.”</p>
+                <span>María Gutiérrez, Clínica Sanitas</span>
+            </article>
+            <article>
+                <p>“Reducimos el tiempo administrativo a la mitad gracias a MedentIA.”</p>
+                <span>Dr. Javier López, Centro Médico Vida</span>
+            </article>
+            <article>
+                <p>“Una herramienta indispensable para nuestra clínica.”</p>
+                <span>Clínica SaludPlus</span>
+            </article>
+        </div>
+        <div class="logos-clientes">
+            <span class="logo-client-item">MediCorp</span>
+            <span class="logo-client-item">Salud Integral</span>
+            <span class="logo-client-item">FisioPlus</span>
+        </div>
+    </section>
+
+    <!-- LOGIN -->
+    <section id="login" class="login">
+        <h2>Inicia Sesión en MedentIA</h2>
+        <div class="login-card-container">
+            <div class="login-card shadow-premium border-0">
+                <div class="login-header-premium text-center">
+                    <div class="icon-pulse-container mb-2">
+                        <i class="bi bi-shield-lock-fill text-navy fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold text-navy mb-0">Bienvenido a MedentIA</h5>
+                    <p class="text-navy-50 small mb-0">Identifícate para continuar</p>
+                </div>
+
+                <div class="card-body p-3 p-md-4">
+                    <form id="loginForm" action="auth/acceso.pl" method="POST" novalidate>
+                        <div class="form-floating mb-1">
+                            <input type="email" class="form-control" id="email" name="h_correo" placeholder="Email"
+                                autocomplete="username" required />
+                            <label for="email"><i class="bi bi-envelope me-2"></i>Correo electrónico</label>
+                        </div>
+                        <div id="emailFeedback" class="form-text mt-1 px-1 mb-2">Introduce tu correo para verificar la
+                            cuenta.</div>
+
+                        <div class="form-floating mb-3 position-relative">
+                            <input type="password" class="form-control" id="password" name="h_clave" placeholder="Clave"
+                                autocomplete="current-password" required />
+                            <label for="password"><i class="bi bi-key me-2"></i>Contraseña</label>
+                            <button type="button" class="btn-toggle-pass-inline" id="togglePassword">
+                                <i class="bi bi-eye text-muted"></i>
+                            </button>
+                        </div>
+
+                        <div id="passwordHelp" class="form-text text-center px-2 mb-3 text-muted"
+                            style="font-size: 0.75rem;">
+                            * El botón se activará al ingresar un correo registrado y al menos 4 caracteres en la
+                            contraseña.
+                        </div>
+
+                        <button type="submit" class="btn btn-medentia-action w-100 fw-bold py-2 mb-3 shadow"
+                            id="loginSubmitBtn" disabled>
+                            INICIAR SESIÓN
+                        </button>
+
+                        <div class="auth-extra-links text-center pt-4 border-top">
+                            <div class="d-flex flex-column gap-3">
+                                <a href="auth/registro.pl" class="btn-skeuo-raised register-btn-fix">
+                                    <i class="bi bi-plus-circle-fill me-2"></i>¿Nuevo en MedentIA? <strong>Empieza tu transformación clínica hoy</strong>
+                                </a>
+                                <a href="#" class="btn-skeuo-raised forgot-btn-fix" data-bs-toggle="modal"
+                                    data-bs-target="#forgotPasswordModal">
+                                    <i class="bi bi-question-circle me-2"></i>¿Olvidaste tu contraseña?
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-3 opacity-75">
+                <p class="x-small text-navy fw-medium mb-0">
+                    <i class="bi bi-patch-check-fill text-cyan me-1"></i>
+                    Encriptación de Grado Clínico
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-column">
+                <h4>Recursos</h4>
+                <a href="#caracteristicas">Características</a>
+                <a href="#casos">Casos de Éxito</a>
+                <a href="#soporte">Soporte</a>
+            </div>
+            <div class="footer-column">
+                <h4>Empresa</h4>
+                <a href="#nosotros">Sobre Nosotros</a>
+                <a href="#blog">Blog</a>
+                <a href="#contacto">Contacto</a>
+            </div>
+            <div class="footer-column">
+                <h4>Síguenos</h4>
+                <a href="#">Facebook</a>
+                <a href="#">Twitter</a>
+                <a href="#">LinkedIn</a>
+            </div>
+            <div class="footer-column newsletter">
+                <h4>Suscríbete a nuestro Newsletter</h4>
+                <input type="email" placeholder="Tu correo electrónico" class="form-control" />
+                <button class="btn btn-success w-100 mt-2">Suscribirme</button>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 MedentIA. Encriptación de Grado Clínico | Privacidad | Términos</p>
+        </div>
+    </footer>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="text-center">
+            <div class="spinner-border text-white" style="width: 3rem; height: 3rem;" role="status"></div>
+            <p class="text-white mt-3 fw-medium">Verificando credenciales...</p>
+        </div>
+    </div>
+
+    <!-- Modal Recuperar Contraseña (Diamond Refactor) -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg"
+                style="border-radius: 2.5rem; overflow: hidden; border: 1px solid var(--md-green-medical) !important;">
+                <div class="login-header-premium text-start py-4 px-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h4 class="fw-bold text-navy mb-0">
+                            <i class="bi bi-key-fill me-2"></i>Recuperar Contraseña
+                        </h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-navy-50 small mb-4">
+                        Ingresa el correo electrónico asociado a tu cuenta. Te enviaremos un enlace para restablecer tu
+                        contraseña.
+                    </p>
+                    <form id="recoverPasswordForm">
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="recoveryEmail" name="h_correo_recuperacion"
+                                placeholder="name@example.com" autocomplete="email" required
+                                style="border: 2px solid #e2e8f0; border-radius: 1.25rem;">
+                            <label for="recoveryEmail"><i class="bi bi-envelope me-2"></i>Correo electrónico</label>
+                        </div>
+                        <div id="recoveryMessage" class="small mt-2 px-1"></div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal"
+                        style="border-radius: 1rem; font-weight: 600;">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4 py-2" id="btnRecoverPassword"
+                        style="border-radius: 1rem; font-weight: 700; background: var(--md-blue-medical); border: none; box-shadow: 0 5px 15px rgba(18,74,158,0.2);">Enviar
+                        enlace</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="https://wa.me/525643555072" target="_blank" class="btn-whatsapp-global">
+        <i class="bi bi-whatsapp"></i>
+    </a>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/indexLogic.js"></script>
+
+    <script>
+        // Lógica Sidebar Móvil
+        const openBtn = document.getElementById('openMobileMenu');
+        const closeBtn = document.getElementById('closeMobileMenu');
+        const sidebar = document.getElementById('mobileSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+        }
+
+        if (openBtn) openBtn.addEventListener('click', toggleSidebar);
+        if (closeBtn) closeBtn.addEventListener('click', toggleSidebar);
+        if (overlay) overlay.addEventListener('click', toggleSidebar);
+
+        // Cerrar al hacer click en links
+        document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+            link.addEventListener('click', toggleSidebar);
+        });
+    </script>
+</body>
+
+</html>
