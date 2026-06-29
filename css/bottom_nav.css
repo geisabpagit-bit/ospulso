@@ -1,0 +1,98 @@
+/* SDM Premium Bottom Nav - Diamond Edition */
+.sdm-main-bottom-nav { 
+    position: fixed !important; 
+    bottom: 10px !important; /* Dock flotante con margen mínimo */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 96% !important; /* Margen mínimo izquierda y derecha */
+    max-width: 600px !important;
+    height: 65px !important; /* Fallback para navegadores antiguos */
+    height: calc(65px + env(safe-area-inset-bottom, 0px)) !important; 
+    background: rgba(255, 255, 255, 0.85) !important; /* Blanco traslúcido (Glassmorphism) */
+    backdrop-filter: blur(25px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+    border: 1px solid #19B7A5 !important; /* Borde de color verde clínico */
+    border-radius: 12px !important; /* Rounded más pequeño */
+    display: flex !important; 
+    justify-content: space-around !important; 
+    align-items: center !important; 
+    z-index: 5500 !important; /* Por encima de todo excepto modales (7000) */
+    box-shadow: 0 4px 15px rgba(16, 48, 112, 0.08) !important; /* Sombra ligera */
+    padding-bottom: 0px !important; /* Fallback */
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    box-sizing: border-box !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.main-tab-item { 
+    display: flex !important; 
+    flex-direction: column !important; 
+    align-items: center !important; 
+    color: #103070 !important; /* Azul marino institucional para inactivos */
+    text-decoration: none !important; 
+    font-size: 0.65rem !important; 
+    font-weight: 700 !important; 
+    flex: 1 !important; 
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    border: none !important;
+    background: none !important;
+    padding: 6px 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+}
+
+.main-tab-item i { 
+    font-size: 1.35rem !important; 
+    margin-bottom: 2px !important;
+    color: #103070 !important; /* Azul marino institucional */
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s !important;
+}
+
+.main-tab-item:hover {
+    color: #19B7A5 !important; /* Cambio de color a verde clínico en hover */
+    transform: translateY(-2px) scale(1.08) !important; /* Animación de acercamiento/zoom */
+}
+.main-tab-item:hover i {
+    color: #19B7A5 !important;
+    transform: scale(1.12) !important;
+}
+
+.main-tab-item.active { 
+    color: #19B7A5 !important; /* Verde clínico premium de agenda_diamond.css */
+    font-weight: 800 !important;
+}
+
+.main-tab-item.active i { 
+    color: #19B7A5 !important; 
+    transform: translateY(-3px) scale(1.12) !important;
+    filter: drop-shadow(0 2px 6px rgba(25, 183, 165, 0.3)) !important;
+}
+
+/* Indicador de píldora activa */
+.main-tab-item::after {
+    content: '';
+    width: 0;
+    height: 3px;
+    background: #19B7A5;
+    border-radius: 4px;
+    margin-top: 3px;
+    transition: width 0.3s ease, box-shadow 0.3s ease;
+}
+
+.main-tab-item.active::after {
+    width: 20px;
+    box-shadow: 0 0 6px #19B7A5;
+}
+
+/* Ajuste de main para no quedar tapado por el nav flotante */
+body { 
+    padding-bottom: calc(95px + env(safe-area-inset-bottom, 0px)) !important; 
+}
+
+/* Habilitado para verse en todo el proyecto en cualquier resolución */
+/*
+@media (min-width: 992px) {
+    .sdm-main-bottom-nav { display: none !important; }
+    body { padding-bottom: 0 !important; }
+}
+*/
