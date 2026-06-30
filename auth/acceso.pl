@@ -119,11 +119,10 @@ sub render_cuenta_pendiente {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificación Requerida | MedentIA</title>
+    <title>Verificación Requerida | OSPulso</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/medentia_master.css">
-    <link rel="stylesheet" href="../css/indexFirst.css">
     <style>
         .pending-card {
             max-width: 480px;
@@ -170,8 +169,8 @@ sub render_cuenta_pendiente {
                         <rect x="75" y="35" width="50" height="50" rx="10" fill="#124A9E"></rect>
                         <path d="M100 45V75M85 60H115" stroke="white" stroke-width="8" stroke-linecap="round"></path>
                     </g>
-                    <text x="150" y="82" font-family="Outfit" font-weight="800" font-size="64" fill="#0A2A66">Medent</text>
-                    <text x="410" y="82" font-family="Outfit" font-weight="800" font-size="64" fill="#18D1E6">IA</text>
+                    <text x="150" y="82" font-family="Outfit" font-weight="800" font-size="64" fill="#0A2A66">OS</text>
+                    <text x="260" y="82" font-family="Outfit" font-weight="800" font-size="64" fill="#18D1E6">Pulso</text>
                 </svg>
             </a>
             <a href="../index.html" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">
