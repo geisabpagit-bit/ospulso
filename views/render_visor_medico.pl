@@ -80,8 +80,8 @@ print <<HTML;
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght\@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- MedentOs Master CSS -->
-    <link rel="stylesheet" href="../css/medentia_master.css?v=$^T">
+    <!-- OSPulso Master CSS -->
+    <link rel="stylesheet" href="../css/ospulso_master.css?v=$^T">
     <!-- Visor MÃ©dico Estructural CSS -->
     <link rel="stylesheet" href="../css/visor_medico.css?v=$^T">
     

@@ -24,10 +24,10 @@ print <<'HTML';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedentIA | Registro Diamond Edition</title>
+    <title>OSPulso | Registro Diamond Edition</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../css/medentia_master.css" rel="stylesheet">
+    <link href="../css/ospulso_master.css" rel="stylesheet">
     <style>
         /* Ajustes específicos para el Registro Diamond */
         .registration-container {

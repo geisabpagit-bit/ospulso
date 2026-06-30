@@ -28,9 +28,8 @@ sub render_acceso_denegado {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     
-    <!-- MedentIA Design System -->
-    <link rel="stylesheet" href="../css/medentia_master.css">
-    <link rel="stylesheet" href="../css/indexFirst.css">
+    <!-- OSPulso Design System -->
+    <link rel="stylesheet" href="../css/ospulso_master.css">
     
     <style>
         .error-card {

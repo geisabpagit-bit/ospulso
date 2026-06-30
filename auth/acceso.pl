@@ -122,7 +122,7 @@ sub render_cuenta_pendiente {
     <title>Verificación Requerida | OSPulso</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/medentia_master.css">
+    <link rel="stylesheet" href="../css/ospulso_master.css">
     <style>
         .pending-card {
             max-width: 480px;

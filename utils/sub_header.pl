@@ -35,9 +35,8 @@ sub render_header {
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
-    <!-- MedentIA Design System -->
-    <link rel="stylesheet" href="../css/medentia_master.css">
-    <link rel="stylesheet" href="../css/main_v3.css?v=1.0.MedentIA">
+    <!-- OSPulso Design System -->
+    <link rel="stylesheet" href="../css/ospulso_master.css">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>

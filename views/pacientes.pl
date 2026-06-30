@@ -69,7 +69,7 @@ if ($regs) {
 }
 
 print <<HTML;
-<link rel="stylesheet" href="../css/medentia_master.css">
+<link rel="stylesheet" href="../css/ospulso_master.css">
 <link rel="stylesheet" href="../css/tabla_pacientes.css">
 
 <div class="container-fluid p-0 p-md-3">
