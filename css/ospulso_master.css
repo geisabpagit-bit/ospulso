@@ -453,26 +453,66 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--md-blue-deep) !important;
 }
 
-.avatar-circle {
+.ospulso-avatar {
     width: 38px !important;
     height: 38px !important;
     border-radius: 50% !important;
-    display: flex !important;
+    display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: var(--bg-medentia-gradient) !important;
+    background: var(--bg-ospulso-gradient) !important;
     color: white !important;
     font-size: 1.1rem !important;
     box-shadow: var(--shadow-sm) !important;
 }
 
+.ospulso-avatar-lg {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.25rem !important;
+}
+
+.ospulso-avatar i {
+    color: white !important;
+}
+
 .ui-autocomplete {
     z-index: 10500 !important;
-    border-radius: 12px !important;
+    border-radius: var(--radius-md) !important;
     box-shadow: var(--shadow-lg) !important;
-    border: 1px solid var(--md-gray-soft) !important;
-    background: white !important;
+    border: 1px solid rgba(10, 42, 102, 0.08) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
     font-family: var(--font-secondary) !important;
+    padding: 0.5rem 0 !important;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.ui-menu-item {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.ui-menu-item-wrapper {
+    padding: 0.6rem 1.2rem !important;
+    color: var(--md-blue-deep) !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+    background: transparent !important;
+    cursor: pointer !important;
+}
+
+.ui-menu-item-wrapper.ui-state-active, 
+.ui-menu-item-wrapper:hover {
+    background: var(--azul-suave) !important;
+    color: var(--md-blue-medical) !important;
+    border-radius: 8px !important;
+    margin: 0 0.4rem !important;
 }
 
 .navbar-brand span { 
@@ -492,6 +532,7 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: var(--radius-lg) !important;
     box-shadow: var(--shadow-lg) !important;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    z-index: 1050 !important;
 }
 
 .user-aura-card {
@@ -499,19 +540,6 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: var(--radius-md) !important;
     padding: 1.25rem !important;
     border: 1px solid var(--md-gray-soft) !important;
-    box-shadow: var(--shadow-sm) !important;
-}
-
-.avatar-aura {
-    width: 48px !important; 
-    height: 48px !important; 
-    border-radius: 50% !important;
-    background: var(--bg-medentia-gradient) !important;
-    color: white !important; 
-    display: flex !important; 
-    align-items: center !important; 
-    justify-content: center !important;
-    font-size: 1.2rem !important; 
     box-shadow: var(--shadow-sm) !important;
 }
 

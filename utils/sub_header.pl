@@ -106,7 +106,7 @@ HTML
                         <span class="d-block plus-jakarta fw-bold" style="font-size:0.75rem; line-height:1">$usuario</span>
                         <span class="d-block text-secondary fw-bold" style="font-size:0.55rem; letter-spacing:0.5px">$role_label</span>
                     </div>
-                    <div class="avatar-circle shadow-sm">
+                    <div class="ospulso-avatar shadow-sm">
                         <i class="bi bi-person-fill"></i>
                     </div>
                 </button>
@@ -126,7 +126,7 @@ HTML
                 <!-- Perfil Card Bento -->
                 <div class="user-aura-card mb-4">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="avatar-aura">
+                        <div class="ospulso-avatar ospulso-avatar-lg">
                             <i class="bi bi-person-fill"></i>
                         </div>
                         <div class="text-truncate">

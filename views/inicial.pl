@@ -15,7 +15,6 @@ use lib "$FindBin::Bin/..";
 # 1. Carga Segura de Componentes
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
-require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
 require File::Spec->catfile($FindBin::Bin, 'render_dashboard_principal.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'render_error_sesion.pl');
@@ -44,7 +43,6 @@ if ($session_ok) {
 
     render_dashboard_principal(role => $role, id_medico => $id_medico);
     render_bottom_nav('inicio');
-    render_footer(role => $role);
 
 } else {
     # Los scripts de error ya imprimen sus cabeceras
