@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data:,">
-    <title>OSPulso - El Sistema Operativo para Clínicas Modernas</title>
+    <title>OSPulso - Automatización Inteligente Clínica</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="css/ospulso_master.css" rel="stylesheet" />
@@ -21,9 +21,9 @@
         </div>
         <nav class="menu d-none d-lg-flex">
             <a href="#inicio">Producto</a>
-            <a href="#como-funciona">Cómo funciona</a>
-            <a href="#demo">Demo</a>
-            <a href="#planes">Precio</a>
+            <a href="#funciones">Funciones</a>
+            <a href="#planes">Planes</a>
+            <a href="#faq">FAQ</a>
         </nav>
         <div class="acciones d-none d-lg-flex">
             <a href="#" class="btn-outline" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
@@ -45,9 +45,9 @@
         <div class="sidebar-body">
             <div class="nav-links-container">
                 <a href="#inicio" class="sidebar-nav-link active">PRODUCTO</a>
-                <a href="#como-funciona" class="sidebar-nav-link">CÓMO FUNCIONA</a>
-                <a href="#demo" class="sidebar-nav-link">DEMO</a>
-                <a href="#planes" class="sidebar-nav-link">PRECIO</a>
+                <a href="#funciones" class="sidebar-nav-link">FUNCIONES</a>
+                <a href="#planes" class="sidebar-nav-link">PLANES</a>
+                <a href="#faq" class="sidebar-nav-link">FAQ</a>
                 <a href="#" class="sidebar-nav-link" data-bs-toggle="modal" data-bs-target="#loginModal" onclick="toggleSidebar();">INICIAR SESIÓN</a>
             </div>
 
@@ -64,192 +64,244 @@
     <section id="inicio" class="hero">
         <div class="hero-texto">
             <h1>El Sistema Operativo <br />para Clínicas Modernas.</h1>
-            <p>La V1 no debe intentar decirlo todo. Debe vender una sola idea: OSPulso convierte el caos operativo de una clínica en orden inteligente.</p>
+            <p>Optimiza procesos y mejora la atención con nuestra plataforma líder en inteligencia clínica.</p>
             <div class="hero-botones">
-                <a href="auth/registro.pl" class="btn-success">Comienza tu transformación hoy</a>
-                <a href="#demo" class="btn-outline">Ver OSPulso en Acción</a>
+                <a href="auth/registro.pl" class="btn-success">Solicitar Demo Gratis</a>
+                <a href="#" class="btn-outline" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
             </div>
         </div>
         <div class="hero-imagen">
             <img src="img/logo_medentia.png" alt="Doctor interactuando con panel clínico"
                 onerror="this.onerror=null; this.style.display='none';" />
-            <button class="btn-video" onclick="alert('Funcionalidad de video de demostración próximamente')">▶ Ver cómo funciona</button>
+            <button class="btn-video" onclick="alert('Funcionalidad de video de demostración próximamente')">▶ Ver cómo
+                funciona</button>
         </div>
     </section>
 
-    <!-- EL PROBLEMA -->
+    <!-- PROBLEMA -->
     <section id="problema" class="py-5 bg-white text-center">
         <div class="container" style="max-width: 900px;">
             <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold mb-3">El Desafío Clínico</span>
             <h2 class="fw-bold text-navy mb-4">¿Tu clínica consume más tiempo administrativo que clínico?</h2>
-            <p class="lead text-muted">Hojas de Excel duplicadas, agendas de papel desgastadas, citas duplicadas u olvidadas y expedientes clínicos incompletos que representan un riesgo ante una auditoría. El caos operativo te cuesta dinero, tiempo y tranquilidad.</p>
+            <p class="lead text-muted">Sabemos lo frustrante que es lidiar con agendas saturadas, expedientes desorganizados y tareas repetitivas que te alejan de tus pacientes. OSPulso llega para eliminar el caos administrativo de raíz.</p>
             <div class="row mt-5 g-4 text-start">
                 <div class="col-md-4">
                     <div class="p-4 border rounded-4 bg-light shadow-sm h-100">
                         <div class="fs-1 mb-2">⏳</div>
                         <h5 class="fw-bold text-navy">Pérdida de Tiempo</h5>
-                        <p class="small text-muted mb-0">Horas invertidas en confirmación manual de citas y tareas mecánicas repetitivas.</p>
+                        <p class="small text-muted mb-0">Horas invertidas en confirmación de citas y tareas mecánicas.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="p-4 border rounded-4 bg-light shadow-sm h-100">
                         <div class="fs-1 mb-2">📁</div>
                         <h5 class="fw-bold text-navy">Caos de Archivos</h5>
-                        <p class="small text-muted mb-0">Expedientes clínicos difíciles de buscar, fragmentados o incompletos.</p>
+                        <p class="small text-muted mb-0">Expedientes clínicos difíciles de buscar o incompletos.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="p-4 border rounded-4 bg-light shadow-sm h-100">
                         <div class="fs-1 mb-2">📉</div>
-                        <h5 class="fw-bold text-navy">Fuga de Ingresos</h5>
-                        <p class="small text-muted mb-0">Pérdida de pacientes por falta de seguimiento y control presupuestario.</p>
+                        <h5 class="fw-bold text-navy">Falta de Control</h5>
+                        <p class="small text-muted mb-0">Pérdida de pacientes por falta de seguimiento oportuno.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- LA SOLUCIÓN -->
-    <section id="solucion" class="py-5 bg-light text-center">
-        <div class="container" style="max-width: 900px;">
-            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold mb-3">La Solución</span>
-            <h2 class="fw-bold text-navy mb-4">OSPulso: El Sistema Operativo para Clínicas Modernas</h2>
-            <p class="lead text-muted">Conectamos a tus médicos, recepcionistas y pacientes en un único entorno digital normativo. OSPulso convierte el caos operativo en rentabilidad y orden inteligente desde el primer mes.</p>
+    <!-- CÓMO FUNCIONA -->
+    <section id="como-funciona" class="py-5 bg-light text-center">
+        <div class="container" style="max-width: 1000px;">
+            <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold mb-3">Simplicidad Pura</span>
+            <h2 class="fw-bold text-navy mb-5">Comienza en 3 Simples Pasos</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="position-relative h-100">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle fw-bold fs-4 mb-3" style="width: 50px; height: 50px;">1</div>
+                        <h5 class="fw-bold text-navy">Regístrate en Minutos</h5>
+                        <p class="text-muted">Crea la cuenta de tu consultorio o clínica de forma segura y sin complicaciones.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="position-relative h-100">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle fw-bold fs-4 mb-3" style="width: 50px; height: 50px;">2</div>
+                        <h5 class="fw-bold text-navy">Configura tus Datos</h5>
+                        <p class="text-muted">Agrega tu catálogo de servicios, horarios de atención y profesionales médicos.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="position-relative h-100">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle fw-bold fs-4 mb-3" style="width: 50px; height: 50px;">3</div>
+                        <h5 class="fw-bold text-navy">Automatiza tu Operación</h5>
+                        <p class="text-muted">Gestiona expedientes, visualiza estudios y controla tu agenda de forma inteligente.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- LOS 3 PILARES -->
-    <section id="pilares" class="py-5 bg-white">
+    <!-- BENEFICIOS -->
+    <section id="beneficios" class="py-5 bg-white">
         <div class="container" style="max-width: 1100px;">
             <div class="text-center mb-5">
-                <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold mb-3">Arquitectura de Operación</span>
-                <h2 class="fw-bold text-navy">Los 3 Pilares del Éxito Clínico</h2>
+                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold mb-3">Valor Real</span>
+                <h2 class="fw-bold text-navy">Los Beneficios de Elegir OSPulso</h2>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-start gap-3 p-4 border rounded-4 bg-light h-100">
+                        <div class="fs-2 text-success">🚀</div>
+                        <div>
+                            <h5 class="fw-bold text-navy">Productividad Incrementada</h5>
+                            <p class="text-muted mb-0">Reduce hasta un 40% del tiempo invertido en administración clínica diaria.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-start gap-3 p-4 border rounded-4 bg-light h-100">
+                        <div class="fs-2 text-success">🎯</div>
+                        <div>
+                            <h5 class="fw-bold text-navy">Precisión en Diagnósticos</h5>
+                            <p class="text-muted mb-0">Acceso inmediato a expedientes clínicos completos y visores especializados.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-start gap-3 p-4 border rounded-4 bg-light h-100">
+                        <div class="fs-2 text-success">💎</div>
+                        <div>
+                            <h5 class="fw-bold text-navy">Experiencia de Usuario Premium</h5>
+                            <p class="text-muted mb-0">Interfaz intuitiva, fluida y con glassmorphism diseñada para médicos modernos.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-start gap-3 p-4 border rounded-4 bg-light h-100">
+                        <div class="fs-2 text-success">🔒</div>
+                        <div>
+                            <h5 class="fw-bold text-navy">Seguridad de la Información</h5>
+                            <p class="text-muted mb-0">Copias de seguridad automáticas y encriptación de datos bajo grado clínico.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CASOS REALES -->
+    <section id="testimonios" class="testimonios py-5 bg-light">
+        <div class="container" style="max-width: 1100px;">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold mb-3">Casos Reales</span>
+                <h2 class="fw-bold text-navy">La Experiencia de Médicos Reales</h2>
+            </div>
+            <div class="cards">
+                <article class="p-4 border rounded-4 bg-white shadow-sm">
+                    <p class="fst-italic text-muted">“OSPulso transformó nuestra gestión, ahora somos mucho más eficientes.”</p>
+                    <span class="fw-bold text-navy d-block mt-3">María Gutiérrez, Clínica Sanitas</span>
+                </article>
+                <article class="p-4 border rounded-4 bg-white shadow-sm">
+                    <p class="fst-italic text-muted">“Reducimos el tiempo administrativo a la mitad gracias a OSPulso.”</p>
+                    <span class="fw-bold text-navy d-block mt-3">Dr. Javier López, Centro Médico Vida</span>
+                </article>
+                <article class="p-4 border rounded-4 bg-white shadow-sm">
+                    <p class="fst-italic text-muted">“Una herramienta indispensable para nuestra clínica.”</p>
+                    <span class="fw-bold text-navy d-block mt-3">Clínica SaludPlus</span>
+                </article>
+            </div>
+            <div class="logos-clientes mt-4 text-center">
+                <span class="logo-client-item mx-3 fw-bold text-secondary">MediCorp</span>
+                <span class="logo-client-item mx-3 fw-bold text-secondary">Salud Integral</span>
+                <span class="logo-client-item mx-3 fw-bold text-secondary">FisioPlus</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- MÓDULOS -->
+    <section id="funciones" class="py-5 bg-white">
+        <div class="container" style="max-width: 1100px;">
+            <div class="text-center mb-5">
+                <span class="badge bg-info-subtle text-info px-3 py-2 rounded-pill fw-bold mb-3">Plataforma Todo en Uno</span>
+                <h2 class="fw-bold text-navy">Nuestros Módulos Clave</h2>
             </div>
             <div class="row g-4">
                 <div class="col-md-4">
-                    <div class="p-4 border rounded-4 bg-light h-100">
-                        <div class="fs-2 text-primary mb-3">📅</div>
-                        <h5 class="fw-bold text-navy">1. Flujo de Pacientes & Agenda</h5>
-                        <p class="text-muted mb-0">Agenda inteligente, libre de fricciones, que reduce las ausencias de pacientes y optimiza los tiempos del personal médico.</p>
+                    <div class="p-4 border rounded-4 text-center shadow-sm h-100">
+                        <div class="fs-1 mb-2">📅</div>
+                        <h5 class="fw-bold text-navy">Agenda Médica Inteligente</h5>
+                        <p class="text-muted small mb-0">Control dinámico de citas, filtros rápidos y recordatorios automatizados.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="p-4 border rounded-4 bg-light h-100">
-                        <div class="fs-2 text-primary mb-3">🩺</div>
-                        <h5 class="fw-bold text-navy">2. Expediente Clínico Normativo</h5>
-                        <p class="text-muted mb-0">Expediente médico digital e integral que cumple estrictamente con normativas clínicas vigentes y protege a tu consultorio ante cualquier riesgo legal.</p>
+                    <div class="p-4 border rounded-4 text-center shadow-sm h-100">
+                        <div class="fs-1 mb-2">🩺</div>
+                        <h5 class="fw-bold text-navy">Expediente Clínico Digital</h5>
+                        <p class="text-muted small mb-0">Historiales de consultas, recetas, diagnósticos y evolución clínica estructurada.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="p-4 border rounded-4 bg-light h-100">
-                        <div class="fs-2 text-primary mb-3">📊</div>
-                        <h5 class="fw-bold text-navy">3. Finanzas & Métricas Claras</h5>
-                        <p class="text-muted mb-0">Toma el control absoluto de tu negocio con reportes automáticos de facturación, presupuestos emitidos e ingresos generados.</p>
+                    <div class="p-4 border rounded-4 text-center shadow-sm h-100">
+                        <div class="fs-1 mb-2">🖼️</div>
+                        <h5 class="fw-bold text-navy">Visor Médico DICOM</h5>
+                        <p class="text-muted small mb-0">Carga y visualización de radiografías y estudios directamente en la nube.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- DEMO PEPITO -->
-    <section id="demo" class="py-5 bg-light text-center">
-        <div class="container" style="max-width: 900px;">
-            <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold mb-3">Experiencia Interactiva</span>
-            <h2 class="fw-bold text-navy mb-3">Prueba OSPulso en un Clic</h2>
-            <p class="text-muted mb-5">Prueba la velocidad y simplicidad del sistema. Escribe <strong>"pepito"</strong> en el buscador de abajo para abrir su expediente clínico normativo en tiempo real.</p>
-            <div class="search-demo-container mx-auto p-4 border rounded-5 bg-white shadow-lg" style="max-width: 600px;">
-                <div class="input-group mb-2">
-                    <span class="input-group-text bg-white border-end-0" style="border-radius: 1rem 0 0 1rem; border: 2px solid #e2e8f0;"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" id="demoSearchInput" class="form-control border-start-0 py-3" placeholder="Escribe 'pepito' aquí..." style="border-radius: 0 1rem 1rem 0; border: 2px solid #e2e8f0; font-weight: 500;">
-                </div>
-                <div id="demoResultCard" class="d-none mt-4 text-start p-4 border rounded-4 animate__animated animate__fadeIn" style="background: var(--md-white-clinical); border: 1.5px solid var(--md-teal-clinical) !important;">
-                    <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
-                        <div>
-                            <h5 class="fw-bold text-navy mb-1"><i class="bi bi-person-circle text-primary me-2"></i>José "Pepito" Hernández</h5>
-                            <span class="badge bg-success-subtle text-success">Cita Confirmada hoy a las 16:00</span>
-                        </div>
-                        <span class="text-muted small">ID: #89422</span>
-                    </div>
-                    <div class="row g-3 small">
-                        <div class="col-sm-6">
-                            <strong>Diagnóstico (CIE-10):</strong><br>
-                            <span class="text-muted">K02.1 - Caries de la dentina</span>
-                        </div>
-                        <div class="col-sm-6">
-                            <strong>Cumplimiento Normativo (NOM-004):</strong><br>
-                            <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Expediente 100% completo</span>
-                        </div>
-                        <div class="col-sm-12">
-                            <strong>Impacto en Finanzas/Métricas:</strong><br>
-                            <span class="text-primary"><i class="bi bi-graph-up-arrow me-1"></i>Presupuesto: $1,200 MXN | Saldo Pendiente: $0 MXN</span>
-                        </div>
-                    </div>
-                </div>
-                <div id="demoErrorMessage" class="d-none mt-3 text-danger small">Escribe exactamente "pepito" para ver la simulación en vivo.</div>
+    <!-- SEGURIDAD -->
+    <section id="seguridad" class="py-5 bg-light text-center">
+        <div class="container" style="max-width: 800px;">
+            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold mb-3">Protección Total</span>
+            <h2 class="fw-bold text-navy mb-4">Seguridad de Nivel Hospitalario</h2>
+            <p class="text-muted mb-4">Utilizamos encriptación SSL de 256 bits, respaldos diarios redundantes en múltiples ubicaciones de servidores y cumplimiento total de normativas de salud para proteger la privacidad de tus pacientes.</p>
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                <span class="fw-bold text-navy"><i class="bi bi-shield-fill-check text-success me-2"></i>SSL Encriptado</span>
+                <span class="fw-bold text-navy"><i class="bi bi-cloud-arrow-up-fill text-success me-2"></i>Respaldos Diarios</span>
+                <span class="fw-bold text-navy"><i class="bi bi-lock-fill text-success me-2"></i>Cumplimiento de Privacidad</span>
             </div>
         </div>
     </section>
 
-    <!-- CONFIANZA -->
-    <section id="confianza" class="py-5 bg-white text-center">
-        <div class="container" style="max-width: 900px;">
-            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold mb-3">Seguridad & Cumplimiento</span>
-            <h2 class="fw-bold text-navy mb-4">Seguridad de Nivel Hospitalario y Trazabilidad Estricta</h2>
-            <p class="text-muted mb-5">Operamos bajo los más altos estándares tecnológicos para garantizar que tu práctica clínica esté protegida ante cualquier auditoría gubernamental o legal.</p>
-            <div class="row g-4 text-start">
-                <div class="col-md-3">
-                    <div class="p-3 border rounded-3 bg-light text-center h-100">
-                        <h6 class="fw-bold text-navy mb-2">Cumplimiento NOM</h6>
-                        <p class="x-small text-muted mb-0">Alineación estricta a la norma de expediente clínico electrónico.</p>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="p-3 border rounded-3 bg-light text-center h-100">
-                        <h6 class="fw-bold text-navy mb-2">Interoperabilidad HL7</h6>
-                        <p class="x-small text-muted mb-0">Arquitectura de intercambio seguro de datos clínicos.</p>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="p-3 border rounded-3 bg-light text-center h-100">
-                        <h6 class="fw-bold text-navy mb-2">CIE-10 Integrado</h6>
-                        <p class="x-small text-muted mb-0">Codificación internacional de enfermedades integrada.</p>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="p-3 border rounded-3 bg-light text-center h-100">
-                        <h6 class="fw-bold text-navy mb-2">Migración Segura</h6>
-                        <p class="x-small text-muted mb-0">Cargamos y resguardamos tu base de datos histórica de forma segura.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- PRICING -->
-    <section id="planes" class="py-5 bg-light text-center">
-        <div class="container" style="max-width: 900px;">
+    <!-- PLANES -->
+    <section id="planes" class="py-5 bg-white">
+        <div class="container" style="max-width: 1100px;">
             <div class="text-center mb-5">
-                <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill fw-bold mb-3">Tarifas Transparentes</span>
-                <h2 class="fw-bold text-navy">Un Único Plan con Todo Ilimitado</h2>
-                <p class="text-muted">No cobramos por usuario o por cita; pagas por transformar tu clínica en una infraestructura ordenada.</p>
+                <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill fw-bold mb-3">Suscripciones</span>
+                <h2 class="fw-bold text-navy">Planes Adaptados a tu Crecimiento</h2>
             </div>
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="p-5 border border-primary rounded-5 shadow bg-white position-relative">
-                        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2">Infraestructura Completa</span>
-                        <h3 class="fw-bold text-navy mt-2">Tarifa Plana OSPulso</h3>
-                        <p class="text-muted small">Médicos, asistentes, recepcionistas y pacientes ilimitados.</p>
-                        <h1 class="fw-bold text-navy my-4">$999 <span class="fs-6 text-muted">MXN / mes</span></h1>
-                        <ul class="list-unstyled text-start mb-4">
-                            <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i>Agenda y Flujos Inteligentes</li>
-                            <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i>Expedientes Clínicos Normativos</li>
-                            <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i>Control de Pagos, Cuentas y Deudas</li>
-                            <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i>Capacitación Básica del Personal</li>
-                        </ul>
-                        <div class="p-3 bg-light rounded-4 text-start mb-4 small" style="border: 1px dashed #cbd5e1;">
-                            <strong>* Setup Fee Único ($1,500 MXN):</strong> Incluye la migración segura de todos tus datos históricos desde Excel y configuración personalizada del entorno.
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-4">
+                    <div class="p-4 border rounded-4 shadow-sm text-center bg-light h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="fw-bold text-navy">Básico</h5>
+                            <p class="text-muted small">Ideal para consultorios independientes</p>
+                            <h2 class="fw-bold text-navy my-4">$499 <span class="fs-6 text-muted">/ mes</span></h2>
+                            <ul class="list-unstyled text-start mb-4">
+                                <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>1 Profesional Médico</li>
+                                <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Agenda y Expedientes</li>
+                                <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Soporte Estándar</li>
+                            </ul>
                         </div>
-                        <a href="auth/registro.pl" class="btn btn-primary w-100 py-3 text-white fw-bold" style="border-radius: 12px;">Comenzar ahora</a>
+                        <a href="auth/registro.pl" class="btn btn-outline-primary w-100 py-2" style="border-radius: 12px;">Comenzar</a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-4 border border-primary rounded-4 shadow position-relative text-center bg-white h-100 d-flex flex-column justify-content-between" style="transform: scale(1.03);">
+                        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2">Recomendado</span>
+                        <div>
+                            <h5 class="fw-bold text-navy mt-2">Clínica</h5>
+                            <p class="text-muted small">Perfecto para clínicas medianas</p>
+                            <h2 class="fw-bold text-navy my-4">$999 <span class="fs-6 text-muted">/ mes</span></h2>
+                            <ul class="list-unstyled text-start mb-4">
+                                <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Hasta 5 Profesionales</li>
+                                <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Agenda, Expedientes e Imágenes</li>
+                                <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Soporte Prioritario</li>
+                            </ul>
+                        </div>
+                        <a href="auth/registro.pl" class="btn btn-primary w-100 py-2 text-white" style="border-radius: 12px;">Comenzar</a>
                     </div>
                 </div>
             </div>
@@ -257,7 +309,7 @@
     </section>
 
     <!-- FAQ -->
-    <section id="faq" class="py-5 bg-white">
+    <section id="faq" class="py-5 bg-light">
         <div class="container" style="max-width: 800px;">
             <div class="text-center mb-5">
                 <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill fw-bold mb-3">Preguntas Frecuentes</span>
@@ -267,24 +319,24 @@
                 <div class="accordion-item border-0 mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden;">
                     <h2 class="accordion-header">
                         <button class="accordion-button fw-bold text-navy bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                            ¿Cuánto cuesta realmente empezar?
+                            ¿Cómo se protegen los expedientes médicos?
                         </button>
                     </h2>
                     <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
                         <div class="accordion-body bg-white text-muted">
-                            La suscripción mensual tiene una tarifa plana de $999 MXN. Requerimos un Setup Fee único inicial de $1,500 MXN para realizar la carga segura de tu información y migrar tu Excel actual sin riesgos de pérdida de datos.
+                            Todos los expedientes están encriptados y almacenados en servidores de la más alta seguridad clínica, cumpliendo las regulaciones de protección de datos de salud en todo momento.
                         </div>
                     </div>
                 </div>
                 <div class="accordion-item border-0 mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden;">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed fw-bold text-navy bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                            ¿Qué pasa con la curva de aprendizaje del personal?
+                            ¿Puedo importar mis datos existentes?
                         </button>
                     </h2>
                     <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                         <div class="accordion-body bg-white text-muted">
-                            Nuestra interfaz intuitiva está diseñada para ser fácil de usar por recepcionistas y médicos. Incluimos sesiones guiadas de soporte continuo para que la adopción sea fluida y sin fricciones desde el Día 1.
+                            Sí, nuestro equipo técnico te apoyará a realizar la migración y carga masiva de tus pacientes actuales a OSPulso sin costo adicional en cualquiera de nuestros planes de suscripción.
                         </div>
                     </div>
                 </div>
@@ -292,15 +344,12 @@
         </div>
     </section>
 
-    <!-- CTA FINAL -->
+    <!-- CTA -->
     <section class="py-5 text-center text-white bg-primary position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--md-blue-deep) 0%, var(--md-blue-medical) 100%) !important;">
         <div class="container py-4 position-relative" style="z-index: 2; max-width: 700px;">
-            <h2 class="fw-bold mb-3">Elimina el caos de tu clínica hoy</h2>
-            <p class="lead mb-4 opacity-75">Obtén un cálculo inmediato del retorno de inversión o agenda una demo personalizada con nuestro equipo.</p>
-            <div class="d-flex flex-wrap justify-content-center gap-3">
-                <a href="auth/registro.pl" class="btn btn-light text-primary fw-bold px-4 py-3 rounded-pill shadow-lg hover-scale">Comenzar Gratis</a>
-                <a href="https://wa.me/525643555072" target="_blank" class="btn btn-outline-light fw-bold px-4 py-3 rounded-pill">Contactar a Soporte</a>
-            </div>
+            <h2 class="fw-bold mb-3">Transforma la gestión de tu clínica hoy</h2>
+            <p class="lead mb-4 opacity-75">Únete a cientos de profesionales médicos que ya han automatizado sus consultorios con OSPulso.</p>
+            <a href="auth/registro.pl" class="btn btn-light text-primary fw-bold px-4 py-3 rounded-pill shadow-lg hover-scale">Empezar ahora gratis</a>
         </div>
     </section>
 
@@ -444,27 +493,6 @@
         document.querySelectorAll('.sidebar-nav-link').forEach(link => {
             link.addEventListener('click', toggleSidebar);
         });
-
-        // Lógica de simulación de Demo Pepito
-        const demoInput = document.getElementById('demoSearchInput');
-        const demoResult = document.getElementById('demoResultCard');
-        const demoError = document.getElementById('demoErrorMessage');
-
-        if (demoInput) {
-            demoInput.addEventListener('input', function() {
-                const val = demoInput.value.toLowerCase().trim();
-                if (val === 'pepito') {
-                    demoResult.classList.remove('d-none');
-                    demoError.classList.add('d-none');
-                } else if (val.length > 0) {
-                    demoResult.classList.add('d-none');
-                    demoError.classList.remove('d-none');
-                } else {
-                    demoResult.classList.add('d-none');
-                    demoError.classList.add('d-none');
-                }
-            });
-        }
     </script>
 </body>
 
