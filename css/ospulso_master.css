@@ -19,6 +19,9 @@
     --md-accent: #00C2FF;         /* Cyan de Acento (CTA) */
     --azul-suave: #e8f3ff;         /* Azul Suave */
 
+    --bg-medentia-gradient: linear-gradient(135deg, var(--md-blue-deep), var(--md-blue-medical));
+    --bg-ospulso-gradient: linear-gradient(135deg, var(--md-blue-deep), var(--md-blue-medical));
+
     /* --- Semántica de Colores --- */
     --primary: var(--md-blue-deep);
     --secondary: var(--md-blue-medical);
