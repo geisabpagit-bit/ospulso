@@ -26,7 +26,7 @@ sub render_header {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>$titulo | MedentIA Diamond</title>
+    <title>$titulo | OSPulso Diamond</title>
 
     <!-- Libs Core -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -79,14 +79,14 @@ HTML
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">
                 <a class="navbar-brand d-flex align-items-center gap-2 m-0" href="inicial.pl" title="Inicio">
-                    <img src="../img/logo_medentia.png" alt="MedentIA" style="height: 38px;">
+                    <img src="../img/logo_medentia.png" alt="OSPulso" style="height: 38px;" onerror="this.onerror=null; this.style.display='none';">
                 </a>
                 
-                <a href="pacientes.pl" class="d-flex align-items-center text-white text-decoration-none fw-semibold opacity-75 hover-opacity-100" style="transition:0.2s;">
+                <a href="pacientes.pl" class="d-flex align-items-center nav-link-item text-decoration-none">
                     <i class="bi bi-people me-2"></i>Pacientes
                 </a>
                 
-                <a href="agenda_main.pl" class="d-flex align-items-center text-white text-decoration-none fw-semibold opacity-75 hover-opacity-100" style="transition:0.2s;">
+                <a href="agenda_main.pl" class="d-flex align-items-center nav-link-item text-decoration-none">
                     <i class="bi bi-calendar3 me-2"></i>Agenda
                 </a>
             </div>
@@ -102,11 +102,11 @@ HTML
             <!-- 2. Perfil (Alineado a la derecha en móvil) -->
             <div class="profile-trigger-container">
                 <button class="btn user-dropdown border-0 d-flex align-items-center gap-2 py-1 px-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sdmSidebar">
-                    <div class="text-end me-1 d-none d-sm-block">
-                        <span class="d-block text-white plus-jakarta fw-bold" style="font-size:0.75rem; line-height:1">$usuario</span>
-                        <span class="d-block text-white-50 fw-bold" style="font-size:0.55rem; letter-spacing:0.5px">$role_label</span>
+                    <div class="text-end me-1 d-none d-sm-block profile-info-text">
+                        <span class="d-block plus-jakarta fw-bold" style="font-size:0.75rem; line-height:1">$usuario</span>
+                        <span class="d-block text-secondary fw-bold" style="font-size:0.55rem; letter-spacing:0.5px">$role_label</span>
                     </div>
-                    <div class="avatar-circle shadow-sm bg-white text-primary">
+                    <div class="avatar-circle shadow-sm">
                         <i class="bi bi-person-fill"></i>
                     </div>
                 </button>

@@ -399,9 +399,77 @@ h1, h2, h3, h4, h5, h6 {
    8. Sistema de Cabecera y Menú Lateral (Aura Sidebar & Navbar) - lo llama: sub_header.pl
    ========================================================================== */
 .sdm-navbar {
-    background: var(--md-blue-deep) !important;
-    border-bottom: 3px solid var(--md-cyan-ia) !important;
-    box-shadow: var(--shadow-md) !important;
+    background: rgba(232, 243, 255, 0.96) !important;
+    backdrop-filter: blur(15px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(10, 42, 102, 0.08) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.sdm-navbar .navbar-brand {
+    color: var(--md-blue-deep) !important;
+}
+
+.sdm-navbar .nav-link-item {
+    color: var(--md-blue-deep) !important;
+    font-weight: 600 !important;
+    opacity: 0.8 !important;
+    transition: all 0.2s ease !important;
+}
+
+.sdm-navbar .nav-link-item:hover {
+    color: var(--md-cyan-ia) !important;
+    opacity: 1 !important;
+}
+
+.sdm-search-input {
+    background: white !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 12px !important;
+    padding: 0.5rem 1rem 0.5rem 2.5rem !important;
+    color: var(--md-text-primary) !important;
+    width: 100% !important;
+    transition: all 0.3s ease !important;
+}
+
+.sdm-search-input:focus {
+    outline: none !important;
+    border-color: var(--md-cyan-ia) !important;
+    box-shadow: 0 0 0 3px rgba(24, 209, 230, 0.15) !important;
+}
+
+.search-icon {
+    position: absolute !important;
+    left: 1rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: var(--md-text-secondary) !important;
+}
+
+.profile-info-text span {
+    color: var(--md-blue-deep) !important;
+}
+
+.avatar-circle {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: var(--bg-medentia-gradient) !important;
+    color: white !important;
+    font-size: 1.1rem !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.ui-autocomplete {
+    z-index: 10500 !important;
+    border-radius: 12px !important;
+    box-shadow: var(--shadow-lg) !important;
+    border: 1px solid var(--md-gray-soft) !important;
+    background: white !important;
+    font-family: var(--font-secondary) !important;
 }
 
 .navbar-brand span { 
