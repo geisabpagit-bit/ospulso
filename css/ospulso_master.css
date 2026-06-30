@@ -831,6 +831,31 @@ h1, h2, h3, h4, h5, .nav-link-react, .sidebar-nav-link, .btn-skeuo-raised {
     z-index: 9998;
 }
 
+.btn-back-to-top {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 55px;
+    height: 55px;
+    background: var(--md-blue-deep);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white !important;
+    font-size: 1.5rem;
+    text-decoration: none !important;
+    box-shadow: var(--shadow-md);
+    z-index: 9998;
+    transition: all 0.3s ease;
+}
+
+.btn-back-to-top:hover {
+    transform: translateY(-5px);
+    background: var(--md-blue-medical);
+}
+
 .login-card-container {
     max-width: 400px;
     width: 100%;
