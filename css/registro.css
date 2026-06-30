@@ -1,0 +1,294 @@
+/* =========================================
+   SISTEMA DE DISEÑO: EXPEDIENTE CLÍNICO
+   Color Principal: #0d3b66 (Azul Marino)
+   ========================================= */
+
+:root {
+    --brand-dark: #0d3b66;      /* Color Base */
+    --brand-medium: #1a4a7a;    /* Escala arriba */
+    --brand-accent: #092c4d;    /* Escala abajo */
+    --brand-light: #f0f4f8;     /* Fondo de página */
+    --white: #ffffff;
+    --med-gray: #64748b;
+    --soft-border: #e2e8f0;
+}
+
+/* 1. Estilos Base */
+body {
+    background-color: var(--brand-light);
+    color: #334155;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+}
+
+/* 2. Animaciones */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animation-fadeIn {
+    animation: slideUp 0.5s ease-out forwards;
+}
+
+/* 3. Cards Estilo "Medical" */
+.card-medical {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(13, 59, 102, 0.1);
+    background: var(--white);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    opacity: 0; /* Inicial para la animación */
+    animation: slideUp 0.6s ease forwards;
+}
+
+/* Header Uniforme */
+.card-header-med {
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--white);
+    border: none;
+}
+
+.bg-brand-primary { background-color: var(--brand-dark) !important; }
+.bg-brand-secondary { background-color: var(--brand-medium) !important; }
+.bg-brand-accent { background-color: var(--brand-accent) !important; }
+
+/* 4. Formuarios (Floating Labels) */
+.form-floating > .form-control {
+    border: 1px solid var(--soft-border);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.form-floating > .form-control:focus {
+    border-color: var(--brand-medium);
+    box-shadow: 0 0 0 0.25rem rgba(13, 59, 102, 0.1);
+}
+
+.form-floating > label {
+    color: var(--med-gray);
+    font-weight: 500;
+}
+
+.form-floating > label i {
+    color: var(--brand-dark);
+    margin-right: 8px;
+}
+
+/* 5. Componentes de Interfaz */
+.btn-primary {
+    background-color: var(--brand-dark);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--brand-medium);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 59, 102, 0.2);
+}
+
+.badge {
+    padding: 0.5em 0.8em;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.bg-soft-success { background-color: #dcfce7; color: #15803d; }
+.bg-soft-primary { background-color: #e0f2fe; color: #0369a1; }
+
+/* 6. Utilidades de Expediente */
+.scroll-area {
+    max-height: 450px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--med-gray) transparent;
+}
+
+.scroll-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+    background: var(--soft-border);
+    border-radius: 10px;
+}
+
+.cita-row {
+    transition: background 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.cita-row:hover {
+    background-color: #f8fafc;
+    border-left-color: var(--brand-dark);
+}
+
+/* 7. Modo Impresión (Reporte) */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    body {
+        background-color: white !important;
+        padding: 0;
+    }
+    .card-medical {
+        box-shadow: none;
+        border: 1px solid #eee;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    .card-header-med {
+        background-color: #f1f5f9 !important;
+        color: black !important;
+        border-bottom: 2px solid var(--brand-dark);
+    }
+}
+
+/* Animación para las alertas de correo */
+@keyframes alertFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-animate {
+    animation: alertFadeIn 0.4s ease-out forwards;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: none;
+    border-radius: 8px;
+}
+/* Animación con Scroll Fade y Sombra Dinámica */
+@keyframes alertFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-animate {
+    animation: alertFadeIn 0.4s ease-out forwards;
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+/* Animación con Scroll Fade */
+@keyframes alertFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-animate {
+    animation: alertFadeIn 0.3s ease-out forwards;
+    border-radius: 8px; /* Mismo radio que tus inputs */
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 12px 15px;
+    border: 1px solid; /* Contorno sólido fino */
+}
+
+/* Colores de contorno suave (simulando focus de input) */
+.alert-warning.alert-animate {
+    background-color: #fffbeb; /* Amarillo muy claro */
+    border-color: #fcd34d;     /* Contorno amarillo suave */
+    color: #92400e;            /* Texto ocre para legibilidad */
+}
+
+.alert-success.alert-animate {
+    background-color: #f0fdf4; /* Verde muy claro */
+    border-color: #86efac;     /* Contorno verde suave */
+    color: #166534;            /* Texto verde oscuro */
+}
+
+.alert-danger.alert-animate {
+    background-color: #fef2f2; /* Rojo muy claro */
+    border-color: #fca5a5;     /* Contorno rojo suave */
+    color: #991b1b;
+}
+
+/* Iconos con el color del texto */
+.alert-animate i {
+    opacity: 0.8;
+}
+
+/* Ajustes de Responsividad Avanzada 2024-2025 */
+
+/* 1. Contenedor Fluido */
+.card-medical {
+    width: 95%; /* Margen de seguridad en móviles */
+    margin: 1rem auto;
+    /* Ajuste dinámico del padding */
+    padding: clamp(1rem, 3vw, 2.5rem); 
+}
+
+/* 2. Tablets (iPad Air/Pro, Tab S9) - Breakpoint > 768px */
+@media (min-width: 768px) {
+    .card-medical {
+        max-width: 600px; /* Ancho ideal para lectura en tablet */
+    }
+    
+    /* En tablets las filas se mantienen gemelas para no alargar el scroll */
+    .row.g-2 > div {
+        margin-bottom: 0;
+    }
+}
+
+/* 3. Smartphones Pequeños (A partir de 400px) */
+@media (max-width: 480px) {
+    /* Bajamos un poco el tamaño de fuente para evitar saltos de línea feos */
+    .card-header-med h4 {
+        font-size: 1.15rem;
+    }
+
+    /* Forzamos que los campos de contraseña se apilen solo si es MUY pequeño */
+    .col-md-6 {
+        width: 100%;
+    }
+
+    /* Reducimos el padding interno para ganar espacio de lectura */
+    .card-body {
+        padding: 1.2rem !important;
+    }
+
+    /* Botón más alto para facilitar el toque con el pulgar (UX Mobile) */
+    .btn-lg {
+        padding: 1rem !important;
+        font-size: 1rem;
+    }
+}
+
+/* 4. Optimización de Inputs para Tablets */
+.form-control {
+    height: clamp(55px, 6vh, 65px); /* Altura táctil ergonómica */
+}

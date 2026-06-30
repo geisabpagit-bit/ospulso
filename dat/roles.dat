@@ -1,0 +1,7 @@
+# Formato: ROL|PUEDE_BUSCAR(1/0)|ENLACE_1|ENLACE_2|ENLACE_N...
+
+Administrador Global|1|clinicas|usuarios|reportes|tecnico|sync_google|pacientes|agenda|finanzas
+Medico|1|pacientes|agenda|finanzas
+Recepcionista|0|agenda|finanzas
+Paciente|0|mis_citas|mi_historial
+Soporte|1|sync_google|pacientes|agenda|reportes

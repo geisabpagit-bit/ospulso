@@ -1,0 +1,55 @@
+:root {
+    --brand-dark: #0d3b66;      /* Color base */
+    --brand-medium: #1a4a7a;    /* Escala arriba */
+    --brand-light: #f0f4f8;     /* Fondo suave */
+    --brand-accent: #092c4d;    /* Escala abajo */
+}
+
+body { background-color: var(--brand-light); color: #334155; font-family: 'Inter', sans-serif; }
+
+/* Animación de entrada para los cards */
+.card-medical {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(13, 59, 102, 0.08);
+    background: #fff;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideUp 0.5s ease forwards;
+}
+
+@keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Headers uniformes en escala de azul */
+.card-header-med {
+    padding: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 12px 12px 0 0 !important;
+    color: white;
+}
+
+.bg-brand-primary { background-color: var(--brand-dark); }
+.bg-brand-secondary { background-color: var(--brand-medium); }
+.bg-brand-accent { background-color: var(--brand-accent); }
+
+/* Estilo para los Floating Labels en modo edición */
+.form-floating > .form-control:focus, 
+.form-floating > .form-control:not(:placeholder-shown) {
+    padding-top: 1.625rem;
+    padding-bottom: 0.625rem;
+}
+
+/* Scroll del historial personalizado */
+.scroll-area {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.scroll-area::-webkit-scrollbar { width: 6px; }
+.scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }

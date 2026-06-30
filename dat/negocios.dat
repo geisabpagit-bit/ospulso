@@ -1,0 +1,3 @@
+ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia
+1|REINA MADRE ARAGÓN|0|1|2026-04-20|2027-04-20|CONSTITUCIÓN DE LA REPUBLICA 221|5585266020|success@test.com|https://ejemplo.com/logo.png|HFA141006NK2|Reina Madre Aragón|1|1|07500|CIUDAD DE MÉXICO|GUSTAVO A. MADERO|La Pradera|DFSMP024701|0|19.4801118|-99.0655802
+2|Clinica Garay Dental Care 2|1|1|2026-04-20|2027-04-20|Av. Central 2|12345678| [EMAIL_ADDRESS]"|https://ejemplo.com/logo.png|RFC123456789|Clinica Garay Dental Care|2|2|07500|CIUDAD DE MÉXICO|GUSTAVO A. MADERO|La Pradera

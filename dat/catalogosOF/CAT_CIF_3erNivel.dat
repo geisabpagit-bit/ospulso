@@ -1,0 +1,1095 @@
+CODIGO!DESCRIPCION
+b1100!Nivel de Conciencia
+b1101!Continuidad de la conciencia
+b1102!Cualidad de la conciencia
+b1103!Regulacion de los estados de vigilia
+b1108!Funciones de la conciencia, otras especificadas
+b1109!Funciones de la conciencia, no especificadas
+b1140!Orientación respecto al tiempo
+b1141!Orientación respecto al espacio
+b1142!Orientación respecto a la persona
+b1143!Orientación respecto a los objetos
+b1144!Orientación respecto al espacio
+b1148!Funciones de la orientación, otras especificadas
+b1149!Funciones de la orientación, no especificadas
+b1250!Adaptibilidad
+b1251!Responsabilidad
+b1252!Nivel de actividad
+b1253!Predictibilidad
+b1254!Persistencia
+b1255!Abordabilidad
+b1258!Predisposición y funcionamiento intra-personal, otras especificadas
+b1259!Predisposición y funcionamiento intra-personal, no especificadas
+b1260!Extroversión
+b1261!Amabilidad
+b1262!Responsabilidad
+b1263!Estabilidad psíquica
+b1264!Disposición a vivir nuevas experiencias
+b1265!Optimismo
+b1266!Confianza
+b1267!Ser digno de confianza
+b1268!Funciones del temperamento y la personalidad, otras especificadas
+b1269!Funciones del temperamento y la personalidad, no especificadas
+b1300!Nivel de energía
+b1301!Motivación
+b1302!Apetito
+b1303!Ansia "Craving"
+b1304!Control de los impulsos
+b1308!Funciones relacionadas con la energía y los impulsos, otras especificadas
+b1309!Funciones relacionadas con la energía y los impulsos, no especificadas
+b1340!Cantidad del sueño
+b1341!Comienzo del sueño
+b1342!Mantenimiento del sueño
+b1343!Calidad del sueño
+b1344!Funciones del ciclo del sueño
+b1348!Funciones del sueño, otras especificadas
+b1349!Funciones del sueño, no especificadas
+b1400!Mantenimiento de la atención
+b1401!Cambios en la atención
+b1402!División de la atención
+b1403!Compartir la atención
+b1408!Funciones de la atención, otras especificadas
+b1409!Funciones de la atención, no especificadas
+b1440!Memoria a corto plazo
+b1441!Memoria a largo plazo
+b1442!Recuperación y procesamiento de la información de la memoria
+b1448!Funciones de la memoria, otras especificadas
+b1449!Funciones de la memoria, no especificadas
+b1470!Control psicomotor
+b1471!Cualidad de las funciones psicomotoras
+b1472!Organización de las funciones psicomotoras
+b1473!Dominancia manual
+b1474!Dominancia lateral
+b1478!Funciones psicomotoras, otras especificadas
+b1479!Funciones psicomotoras, no especificadas
+b1520!Adecuación de la emoción
+b1521!Regulación de la emoción
+b1522!Rango de la emoción
+b1528!Funciones emocionales, otras especificadas
+b1529!Funciones emocionales, no especificadas
+b1560!Percepción auditiva
+b1561!Percepción visual
+b1562!Percepción olfativa
+b1563!Percepción gustativa
+b1564!Percepción táctil
+b1565!Percepción visoespacial
+b1568!Funciones de la percepción, otras especificadas
+b1569!Funciones de la percepción, no especificadas
+b1600!Flujo del pensamiento
+b1601!Forma del pensamiento
+b1602!Contenido del pensamiento
+b1603!Control del pensamiento
+b1608!Funciones del pensamiento, otras especificadas
+b1609!Funciones del pensamiento, no especificadas
+b1640!Abstracción
+b1641!Organización y planificación
+b1642!Manejo del tiempo
+b1643!Flexibilidad cognitiva
+b1644!Instrospección "Insight"
+b1645!Juicio
+b1646!Resolución de problemas
+b1648!Funciones cognitivas superiores, otras especificadas
+b1649!Funciones cognitivas superiores, no especificadas
+b1670!Recepción del lenguaje
+b1671!Expresión del lenguaje
+b1672!Funciones integradoras del lenguaje
+b1678!Funciones mentales del lenguaje, otras especificadas
+b1679!Funciones mentales del lenguaje, no especificadas
+b1720!Cálculo simple
+b1721!Cálculo complejo
+b1728!Funciones relacionadas con el cálculo, otras especificadas
+b1729!Funciones relacionadas con el cálculo, no especificadas
+b1800!Experiencias de uno mismo
+b1801!Imagen corporal
+b1802!Experiencia del tiempo
+b1808!Experiencias relacionadas con uno mismo y con el tiempo
+b1809!Experiencias relacionadas con uno mismo y con el tiempo, no especificadas
+b2100!Funciones de la agudeza  visual
+b2101!Funciones del campo visual
+b2102!Calidad de la visión
+b2108!Funciones visuales, otras especificadas
+b2109!Funciones visuales, no  especificadas
+b2150!Funciones de los músculos internos del ojo
+b2151!Funciones del párpado
+b2152!Funciones de los músculos externos del ojo
+b2153!Funciones de las glándulas lacrimales
+b2158!Funciones de las estructuras adyacentes al ojo, otras especificadas
+b2159!Funciones de las estructuras adyacentes al ojo, no especificadas
+b2300!Detección de sonidos
+b2301!Discriminación de sonidos
+b2302!Localización de la fuente de sonido
+b2303!Lateralización del sonido
+b2304!Discriminación del habla
+b2308!Funciones auditivas, otras especificadas
+b2309!Funciones auditivas, no especificadas
+b2350!Función vestibular relacionadas con la posición
+b2351!Función vestibular relacionada con el equilibrio
+b2352!Función vestibular relacionada con el movimiento
+b2358!Función vestibular, otras especificadas
+b2359!Función vestibular, no especificadas
+b2400!Zumbido en los oídos o tinnitus
+b2401!Mareo
+b2402!Sensación de caerse
+b2403!Náusea asociada con el mareo y el vértigo
+b2404!Irritación en el oído
+b2405!Presión auditiva
+b2408!Sensaciones relacionadas con la audición y con la función vestibular, otras especificadas
+b2409!Sensaciones relacionadas con la audición y con la función vestibular, no especificadas
+b2700!Sensibilidad a la temperatura
+b2701!Sensibilidad a la vibración
+b2702!Sensibilidad a la presión
+b2703!Sensibilidad a estímulos nocivos
+b2708!Funciones sensoriales relacionadas con la temperatura y otros estímulos, otras especificadas
+b2709!Funciones sensoriales relacionadas con la temperatura y otros estímulos, no especificadas
+b2800!Dolor generalizado
+b2801!Dolor en una parte del cuerpo
+b2802!Dolor en múltiples partes del cuerpo
+b2803!Dolor irradiado en un dermatoma
+b2804!Dolor irradiado en un segmento o región
+b3100!Producción de la voz
+b3101!Calidad de la voz
+b3108!Funciones de la voz, otras especificadas
+b3109!Funciones de la voz, no especificadas
+b3300!Fluidez del habla
+b3301!Ritmo del habla
+b3302!Velocidad del habla
+b3303!Melodía del habla
+b3308!Funciones relacionadas con la fluidez y el ritmo del habla, otras especificadas
+b3309!Funciones relacionadas con la fluidez y el ritmo del habla, no especificadas
+b3400!Producción de notas
+b3401!Producción de un rango de sonidos
+b3408!Funciones alternativas de vocalización, otras especificadas
+b3409!Funciones alternativas de vocalización, no especificadas
+b4100!Frecuencia cardiaca
+b4101!Ritmo cardiaco
+b4102!Fuerza de contracción de los músculos ventriculares
+b4103!Volumen de sangre que llega al corazón
+b4108!Funciones del corazón, otras especificadas
+b4109!Funciones del corazón, no especificadas
+b4150!Funciones de las arterias
+b4151!Funciones de los capilares
+b4152!Funciones de las venas
+b4158!Funciones de los vasos sanguíneos, otras especificadas
+b4159!Funciones de los vasos sanguíneos, no  especificadas
+b4200!Aumento de la presión arterial
+b4201!Descenso de la presión arterial
+b4202!Mantenimiento de la presión arterial
+b4208!Funciones de la presión arterial, otras especificadas
+b4209!Funciones de la presión arterial, no  especificadas
+b4300!Producción de sangre
+b4301!Funciones sanguíneas relacionadas con el transporte de oxígeno
+b4302!Funciones sanguíneas relacionadas con el transporte metabólico
+b4303!Funciones relacionadas con la coagulación
+b4308!Funciones del sistema hematológico, otras especificadas
+b4309!Funciones del sistema hematológico, no especificadas
+b4350!Respuesta inmune
+b4351!Reacciones de hipersensibilidad
+b4352!Funciones de los vasos linfáticos
+b4353!Funciones de los nódulos linfáticos
+b4358!Funciones del sistema inmunológico, otras especificadas
+b4359!Funciones del sistema inmunológico, no especificadas
+b4400!Frecuencia respiratoria
+b4401!Ritmo respiratorio
+b4402!Profundidad de la respiración
+b4408!Funciones respiratorias, otras especificadas
+b4409!Funciones respiratorias, no especificadas
+b4450!Funciones de los músculos torácicos respiratorios
+b4451!Funciones del diafragma
+b4452!Funciones de los músculos respiratorias accesorios
+b4458!Funciones de los músculos respiratorias, otras especificadas
+b4459!Funciones de los músculos respiratorias, no  especificadas
+b4500!Producción de moco en vías aereas
+b4501!Transporte de moco de vías areas
+b4508!Funciones respiratorias adicionales, otras especificadas
+b4509!Funciones respiratorias adicionales, no especificadas
+b4550!Resistencia física general
+b4551!Capacidad aeróbica
+b4552!Fatigabilidad
+b4558!Funciones relacionadas con la tolerancia al ejercicio, otras especificadas
+b4559!Funciones relacionadas con la tolerancia al ejercicio, no  especificadas
+b5100!Succión
+b5101!Morder
+b5102!Masticación
+b5103!Manipulación de la comida en la boca
+b5104!Salivación
+b5105!Tragar
+b5106!Vómito
+b5107!Rumiación
+b5108!Funciones relacionadas con la ingestión, otras especificadas
+b5109!Funciones relacionadas con la ingestión, no  especificadas
+b5150!Transporte de comida a través del estómago y los intestinos
+b5151!Degradación de la comida
+b5152!Absorción de nutrientes
+b5153!Tolerancia a la comida
+b5158!Funciones relacionadas con la digestión, otras especificadas
+b5159!Funciones relacionadas con la digestión, no especificadas
+b5250!Eliminación de heces
+b5251!Consistencia fecal
+b5252!Frecuencia de la defecación
+b5253!Continencia fecal
+b5254!Flatulencia
+b5258!Funciones relacionadas con la defecación, otras especificadas
+b5259!Funciones relacionadas con la defecación, no especificadas
+b5350!Sensación de náusea
+b5351!Sensación de estar hinchado
+b5352!Sensación de calambres abdominales
+b5358!Sensaciones asociadas con el sistema digestivo, otras especificadas
+b5359!Sensaciones asociadas con el sistema digestivo, no especificadas
+b5400!Tasa de metabolismo basal
+b5401!Metabolismo de los carbohidratos
+b5402!Metabolismo de las proteínas
+b5403!Metabolismo de las grasas
+b5408!Funciones metabólicas generales, otras especificadas
+b5409!Funciones metabólicas generales, no especificadas
+b5450!Balance hídrico
+b5451!Balance mineral
+b5452!Balance electrolítico
+b5458!Funciones relacionadas con el balance hídrico, mineral y electrolítico, otras especificadas
+b5459!Funciones relacionadas con el balance hídrico, mineral y electrolítico, no especificadas
+b5500!Temperatura corporal
+b5501!Mantenimiento de la temperatura corporal
+b5508!Funciones termorreguladoras, otras especificadas
+b5509!Funciones termorreguladoras, no especificadas
+b5550!Funciones relacionadas con la pubertad
+b6100!Filtración de orina
+b6101!Recogida de orina
+b6108!Funciones relacionadas con la excreción urinaria, otras especificadas
+b6109!Funciones relacionadas con la excreción urinaria, no especificadas
+b6200!Orinar
+b6201!Frecuencia de micción
+b6202!Continencia urinaria
+b6208!Funciones urinarias, otras especificadas
+b6209!Funciones urinarias, no  especificadas
+b6400!Funciones de la fase de excitación sexual
+b6401!Funciones de la fase de preparación  sexual
+b6402!Funciones de la fase orgásmica
+b6403!Funciones de la fase de resolución sexual
+b6408!Funciones sexuales, otras especificadas
+b6409!Funciones sexuales, no especificadas
+b6500!Regularidad del ciclo menstrual
+b6501!Intervalo entre menstruaciones
+b6502!Cantidad de sangrado menstrual
+b6503!Inicio de la menstruación
+b6508!Funciones relacionadas con la menstruación, otras especificadas
+b6509!Funciones relacionadas con la menstruación, no especificadas
+b6600!Funciones relacionadas con la fertilidad
+b6601!Funciones relacionadas con el embarazo
+b6602!Funciones relacionadas con el parto
+b6603!Lactancia
+b6608!Funciones relacionadas con la procreación, otras especificadas
+b6609!Funciones relacionadas con la procreación, no especificadas
+b6700!Malestar asociado con el acto sexual
+b6701!Malestar asociado con el ciclo menstrual
+b6702!Malestar asociado con la menopausia
+b6703!Funciones genitales
+b6708!Sensaciones relacionadas con las funciones genitales y reproductoras, otras especificadas
+b6709!Sensaciones relacionadas con las funciones genitales y reproductoras, no especificadas
+b7100!Movilidad de una sola articulación
+b7101!Movilidad de varias articulaciones
+b7102!Movilidad generalizada de las articulaciones
+b7108!Funciones relacionadas con la movilidad de las articulaciones, otras especificadas
+b7109!Funciones relacionadas con la movilidad de las articulaciones, no especificadas
+b7150!Estabilidad de una sola articulación
+b7151!Estabilidad de varias articulaciones
+b7152!Estabilidad generalizada de las articulaciones
+b7158!Funciones relacionadas con la estabilidad de las articulaciones, otras especificadas
+b7159!Funciones relacionadas con la estabilidad de las articulaciones, no especificadas
+b7200!Movilidad de la escápula
+b7201!Movilidad de la pelvis
+b7202!Movilidad de los huesos carpianos
+b7203!Movilidad de los huesos tarsianos
+b7208!Funciones relacionadas con la movilidad de los huesos, otras especificadas
+b7209!Funciones relacionadas con la movilidad de los huesos, no especificadas
+b7300!Fuerza de músculos aislados o de grupos de músculos
+b7301!Fuerza de los músculos de una extremidad
+b7302!Fuerza de los músculos de un lado del cuerpo
+b7303!Fuerza de los músculos de la mitad inferior del cuerpo
+b7304!Fuerza de los músculos de todas las extremidades
+b5305!Fuerza de los músculos del tronco
+b7306!Fuerza de los músculos de todo el cuerpo
+b7308!Funciones relacionadas con la fuerza muscular, otras especificadas
+b7309!Funciones relacionadas con la fuerza muscular, no especificadas
+b7350!Tono de músculos aislados y grupos de músculos
+b7351!Tono de los músculos de una extremidad
+b7352!Tono de los músculos de un lado del cuerpo
+b7353!Tono de los músculos de la mitad inferior del cuerpo
+b7354!Tono de los músculos de todas las extremidades
+b7355!Tono de los músculos del tronco
+b7356!Tono de todos los músculos del cuerpo
+b7358!Funciones relacionadas con el tono muscular, otras especificadas
+b7359!Funciones relacionadas con el tono muscular, no especificadas
+b7400!Resistencia de músculos aislados
+b7401!Resistencia de grupos de músculos
+b7402!Resistencia de todos los músculos del cuerpo
+b7408!Funciones relacionadas con la resistencia muscular, otras especificadas
+b7409!Funciones relacionadas con la resistencia muscular, no especificadas
+b7500!Reflejo de extensión motora
+b7501!Reflejos generados por estímulos nocivos
+b7502!Reflejos generados por otros estímulos exteroceptivos
+b7508!Funciones relacionadas con los reflejos motores, otras especificadas
+b7509!Funciones relacionadas con los reflejos motores, no especificadas
+b7600!Control de movimientos voluntarios simples
+b7601!Control de movimientos voluntarios complejos
+b7602!Coordinación de movimientos voluntarios
+b7603!Funciones de apoyo del brazo o la pierna
+b7608!Funciones relacionadas con el control de los movimientos voluntarios, otras especificadas
+b7609!Funciones relacionadas con el control de los movimientos voluntarios, no especificadas
+b7610!Movimientos generales
+b7611!Movimientos espontáneos especificos
+b7618!Funciones relacionadas con los movimientos espontáneos,otras especificadas
+b7619!Funciones relacionadas con los movimientos espontáneos, no especificadas
+b7650!Contracciones involuntarias de los músculos
+b7651!Temblor
+b7652!Tics y manierismos
+b7653!Estereotipos y perseverancia motora
+b7658!Funciones relacionadas con los movimientos involuntarios, otras especificadas
+b7659!Funciones relacionadas con los movimientos involuntarios, no especificadas
+b7800!Sensación de rigidez muscular
+b7801!Sensación de espasmo muscular
+b7808!Sensaciones relacionadas con los músculos y las funciones del movimiento, otras especificadas
+b7809!Sensaciones relacionadas con los músculos y las funciones del movimiento, no especificadas
+s1100!Estructura de los lóbulos corticales
+s1101!Estructura del cerebro medio
+s1102!Estructura del diencéfalo
+s1103!Ganglios basales y estructuras relacionadas
+s1104!Estructura del cerebro
+s1105!Estructura del tronco cerebral
+s1106!Estructura de los nervios craneales
+s1107!Estructura de la sustancia blanca
+s1108!Estructura del cerebro, otra especificada
+s1109!Estructura del cerebro, no especificada
+s1200!Estructura de la médula espinal
+s1201!Nervios espinales
+s1208!Estructura de la médula espinal y estructuras relacionadas, otra especificada
+s1209!Estructura de la médula espinal y estructuras relacionadas, no especificada
+s2200!Conjuntiva, esclerótica, coroides
+s2201!Cornea
+s2202!Iris
+s2203!Retina
+s2204!Cristalino
+s2205!Humor vítreo
+s2208!Estructura del globo ocular, otra especificada
+s2209!Estructura del globo ocular, no especificada
+s2300!Glándulas lacrimales y estructuras relacionadas
+s2301!Pestañas
+s2302!Cejas
+s2303!Músculos oculares externos
+s2308!Estructuras alrededor del ojo, otras especificadas
+s2309!Estructuras alrededor del ojo, no especificadas
+s2500!Membrana timpánica
+s2501!Trompa de Eustaquio
+s2502!Huesecillos
+s2508!Estructura del oído medio, otra especificada
+s2509!Estructura del oído medio, no especificada
+s2600!Cóclea
+s2601!Laberinto vestibular
+s2602!Conductos semicirculares
+s2603!Conducto auditivo interno
+s2608!Estructura del oído interno, otra especificada
+s2609!Estructura del oído interno, no especificada
+s3100!Nariz externa
+s3101!Tabique nasal
+s3102!Fosas nasales
+s3108!Estructura de la nariz, otra especificada
+s3109!Estructura de la nariz, no especificada
+s3200!Dientes
+s3201!Encías
+s3202!Estructura del paladar
+s3203!Lengua
+s3204!Estructura de los labios
+s3205!Surco subnasal (Philtrum)
+s3208!Estructura de la boca, otra especificada
+s3209!Estructura de la boca, no especificada
+s3300!Nasofaringe
+s3301!Orofaringe
+s3308!Estructura de la faringe, otra especificada
+s3309!Estructura de la faringe, no especificada
+s3400!Cuerdas vocales
+s3408!Estructura de la laringe, otra especificada
+s3409!Estructura de la laringe, no especificada
+s4100!Corazón
+s4101!Arterias
+s4102!Venas
+s4103!Capilares
+s4108!Estructuras del sistema cardiovascular, otras especificadas
+s4109!Estructuras del sistema cardiovascular, no especificadas
+s4200!Vasos linfáticos
+s4201!Nódulos linfáticos
+s4202!Timo
+s4203!Bazo
+s4204!Médula ósea
+s4208!Estructura del sistema inmunológico, otra especificada
+s4209!Estructura del sistema inmunológico, no especificada
+s4300!Tráquea
+s4301!Pulmones
+s4302!Caja torácica
+s4303!Músculos de la respiración
+s4308!Estructura del sistema respiratorio, otra especificada
+s4309!Estructura del sistema respiratorio, no  especificada
+s5400!Intestino delgado
+s5401!Intestino grueso
+s5408!Estructura del intestino, otra especificada
+s5409!Estructura del intestino, no especificada
+s5800!Glándula hipófisis
+s5801!Glándula tiroides
+s5802!Glándula paratiroides
+s5803!Glándula adrenal
+s5808!Estructura de las glándulas endocrinas, otra especificada
+s5809!Estructura de las glándulas endocrinas, no especificada
+s6100!Riñones
+s6101!Uréteres
+s6102!Vejiga urinaria
+s6103!Uretra
+s6108!Estructura del sistema urinario, otra especificada
+s6109!Estructura del sistema urinario, no especificada
+s6300!Ovarios
+s6301!Estructura del útero
+s6302!Mama y pezón
+s6303!Estructura de la vagina y genitales externos
+s6304!Testículos
+s6305!Estructura del pene
+s6306!Próstata
+s6308!Estructuras del sistema reproductor, otras especificadas
+s6309!Estructuras del sistema reproductor, no  especificadas
+s7100!Huesos del cráneo
+s7101!Huesos de la cara
+s7102!Huesos de la región del cuello
+s7103!Articulaciones de la cabeza y de la región del cuello
+s7104!Músculos de la cabeza y de la región del cuello
+s7105!Ligamentos y fascias de la cabeza y de la región del cuello
+s7108!Estructura de la cabeza y de la región del cuello, otra especificada
+s7109!Estructura de la cabeza y de la región del cuello, no especificada
+s7200!Huesos de la región del hombro
+s7201!Articulaciones de la región del hombro
+s7202!Músculos de la región del hombro
+s7203!Ligamentos y fascias de la región del hombro
+s7208!Estructura de la región del hombro, otra especificada
+s7209!Estructura de la región del hombro, no especificada
+s7300!Estructura del brazo
+s7301!Estructura del antebrazo
+s7302!Estructura de la mano
+s7308!Estructura de la extremidad superior, otra especificada
+s7309!Estructura de la extremidad superior, no especificada
+s7400!Huesos de la región pélvica
+s7401!Articulaciones de la región pélvica
+s7402!Músculos de la región pélvica
+s7403!Ligamentos y fascias de la región pélvica
+s7408!Estructura de la región pélvica, otra especificada
+s7409!Estructura de la región pélvica, no especificada
+s7500!Estructura del muslo
+s7501!Estructura de la pierna
+s7502!Estructura del tobillo y pie
+s7508!Estructura de la extremidad inferior, otra especificada
+s7509!Estructura de la extremidad inferior, no especificada
+s7600!Estructura de la columna vertebral
+s7601!Músculos del tronco
+s7602!Ligamentos y fascias del tronco
+s7608!Estructura del tronco, otra especificada
+s7609!Estructura del tronco, no especificada
+s7700!Huesos
+s7701!Articulaciones
+s7702!Músculos
+s7703!Ligamentos extra-articulares, fascias, aponeurosis extramuscular, septums, bursas, no especificado
+s7708!Estructuras musculoesqueléticas adicionales relacionadas con el movimiento, otras especificadas
+s7709!Estructuras musculoesqueléticas adicionales relacionadas con el movimiento, no especificadas
+s8100!Piel de la cabeza y de la región del cuello
+s8101!Piel de la región del hombro
+s8102!Piel de la extremidad superior
+s8103!Piel de la región pélvica
+s8104!Piel de la extremidad inferior
+s8105!Piel del tronco y espalda
+s8108!Estructura de áreas de la piel, otra especificada
+s8109!Estructura de áreas de la piel, no especificada
+s8200!Glándulas sudoríparas
+s8201!Glándulas sebáceas
+s8208!Estructura de las glándulas de la piel, otra especificada
+s8209!Estructura de las glándulas de la piel, no especificada
+s8300!Uña de los dedos de las manos
+s8301!Uñas de los dedos de los pies
+s8308!Estructuras de las uñas, otras especificadas
+s8309!Estructuras de las uñas, no especificadas
+s8400!Vello corporal
+s8401!Vello facial
+s8402!Vello axilar
+s8403!Vello púbico
+s8408!Estructura de pelo, otra especificada
+s8409!Estructura del pelo, no esoecificada
+d1200!Chupar
+d1201!Tocar
+d1202!Oler
+d1203!Saborear
+d1310!Aprender mediante acciones simples con objetos sencillos
+d1311!Aprender mediante acciones que relacionan dos o más objetos
+d1312!Aprender mediante acciones con dos o más objetos teniendo en cuenta sus características especificas
+d1313!Aprendizaje mediante el juego simbolico
+d1314!Aprendizaje mediante juegos simulados
+d1318!Aprendizaje mediante acciones con objetos, otro especificado
+d1319!Aprendizaje mediante acciones con objetos, no especificado
+d1330!Adquirir palabras simples o significados simbolicos
+d1331!Combinar palabras para crear frases
+d1332!Adquirir la sintaxis
+d1338!Adquirir el lenguaje, otro especificado
+d1339!Adquirir el lenguaje, no especificado
+d1370!Adquirir conceptos básicos
+d1371!Adquirir conceptos complejos
+d1378!Adquisición de conceptos, otros especificados
+d1379!Adquisición de conceptos, no especificados
+d1400!Adquisición de habilidades para reconocer símbolos incluidas figuras, iconos, caracteres y letras y palabras
+d1401!Adquisición de habilidades para pronunciar palabras escritas
+d1402!Adquisisción de habilidades para entender palabras y frases escritas
+d1408!Aprender a leer, otro especificado
+d1409!Aprender a leer, no especificado
+d1450!Adquirir habilidades para utilizar utensilios de escritura
+d1451!Adquirir habilidades para escribir símbolos, caracteres y letras
+d1452!Adquirir habilidades para escribir palabras y frases
+d1458!Aprender a escribir, otro especificado
+d1459!Aprender a escribir, otro no especificado
+d1500!Adquirir habilidades para utilizar reconocer números, y signos y símbolos aritméticos
+d1501!Adquirir de habilidades numéricas tales como contar u ordenar
+d1502!Adquirir habilidades para la realización de operaciones básicas
+d1508!Aprender a calcular, otro especificado
+d1509!Aprender a calcular, otro no especificado
+d1550!Adquisición de habilidades básicas
+d1551!Adquisición de habilidades complejas
+d1558!Adquisición de habilidades, otras especificadas
+d1559!Adquisición de habilidades, no especificadas
+d1600!Centrar la atención hacia el tacto, la cara o la voz humana
+d1601!Centrar la atención hacia cambios en el entorno
+d1608!Centrar la atención, otra especificada
+d1609!Centrar la atención, no especificada
+d1630!Imitar
+d1631!Especular
+d1632!Hipotetizar
+d1638!Pensar, otro especificado
+d1639!Pensar, otro no especificado
+d1660!Utilizar habilidades generales y estrategias propias del proceso de lectura
+d1661!Comprensión del lenguaje escrito
+d1668!Leer, otro especificado
+d1669!Leer, otro no especificado
+d1700!Utilizar habilidades generales y estrategias propias del proceso de escritura
+d1701!Utilizar convenciones gramaticales en las composiciones escritas
+d1702!Utilizar habilidades generales y estrategias para completar composiciones
+d1708!Escribir, otro especificado
+d1709!Escribir, otro no especificado
+d1720!Utilizar habilidades y estrategias simples propias del proceso del cálculo
+d1721!Utilizar habilidades y estrategias complejas propias del proceso del cálculo
+d1728!Calcular, otro especificado
+d1729!Calcular, otro no especificado
+d1750!Resolver problemas simples
+d1751!Resolver problemas complejos
+d1758!Resolver problemas, otro especificado
+d1759!Resolver problemas, no especificado
+d2100!Llevar a cabo una tarea sencilla
+d2101!Llevar a cabo una tarea compleja
+d2102!Llevar a cabo una única tarea independientemente
+d2103!Llevar a cabo una única tarea en grupo
+d2104!Completar una tarea sencilla
+d2105!Completar una tarea compleja
+d2108!Llevar a cabo una única tarea, otra especificada
+d2109!Llevar a cabo una única tarea, no especificada
+d2200!Realizar múltiples tareas
+d2201!Completar múltiples tareas
+d2202!Llevar a cabo múltiples tareas independientemente
+d2203!Llevar a cabo múltiples tareas en un grupo
+d2204!Completar multiples tareas independientemente
+d2205!Completar múltiples tareas en grupo
+d2208!Llevar a cabo múltiples tareas, otro especificado
+d2209!Llevar a cabo múltiples tareas,  otro no especificado
+d2300!Seguir rutinas
+d2301!Dirigir la rutina diaria
+d2302!Completar la rutina diaria
+d2303!Dirigir el propio nivel de actividad
+d2304!Dirigir cambios en la rutina diaria
+d2305!Dirigir el propio tiempo
+d2306!Adaptarse a las demandas horarias
+d2308!Llevar a cabo rutinas diarias, otro especificado
+d2309!Llevar a cabo rutinas diarias, otro no especificado
+d2400!Manejo de responsabilidades
+d2401!Manejo del estrés
+d2402!Manejo de crisis
+d2408!Manejo del estrés y otras demandas psicológicas, otra especificada
+d2409!Manejo del estrés y otras demandas psicológicas, no especificada
+d2500!Aceptar novedades
+d2501!Responder a las demandas
+d2502!Abordabilidad hacia personas o situaciones
+d2503!Actuar de modo previsible
+d2504!Adaptar el nivel de actividad
+d2508!Manejo del comportamiento propio, otra especificada
+d2809!Manejo del comportamiento propio, no especificada
+d3100!Respuesta a la voz humana
+d3101!Comprensión de mensajes hablados simples
+d3102!Comprensión de mensajes hablados complejos
+d3108!Comunicación-recepción de mensajes hablados, otro especificada
+d3109!Comunicación-recepción de mensajes hablados, no especificada
+d3150!Comunicación-recepción de gestos corporales
+d3151!Comunicación-recepción de señales y símbolos
+d3152!Comunicación-recepción de dibujos y fotografías
+d3158!Comunicación-recepción de mensajes no verbales, otro especificado
+d3159!Comunicación-recepción de mensajes no verbales, no especificado
+d3350!Producción de lenguaje corporal
+d3351!Producción de señales y símbolos
+d3352!Producción de dibujos y fotografías
+d3358!Producción de mensajes no verbales, otro especificado
+d3359!Producción de mensajes no verbales, no especificado
+d3500!Iniciar una conversación
+d3501!Mantener una conversación
+d3502!Finalizar una conversación
+d3503!Conversar con una sola persona
+d3504!Conversar con muchas personas
+d3508!Conversación, otro especificado
+d3509!Conversación, no especificado
+d3550!Discusión con una sola persona
+d3551!Discusión con muchas personas
+d3558!Discusión, otro especificado
+d3559!Discusión, no especificado
+d3600!Utilización de dispositivos de telecomunicación
+d3601!Utilización de dispositivos para escribir
+d3602!Utilización de técnicas de comunicación
+d3608!Utilización de técnicas de comunicación, otros especificados
+d3609!Utilización de técnicas de comunicación, otros no especificados
+d4100!Tumbarse
+d4101!Ponerse en cuclillas
+d4102!Ponerse de rodillas
+d4103!Sentarse
+d4104!Ponerse de pie
+d4105!Inclinarse
+d4106!Cambiar el centro de gravedad del cuerpo
+d4107!Rodar
+d4108!Cambiar las posturas corporales básicas, otras especificadas
+d4109!Cambiar las posturas corporales básicas, no especificadas
+d4150!Permanecer acostado
+d4151!Permanecer en cuclillas
+d4152!Permanecer de rodillas
+d4153!Permanecer sentado
+d4154!Permanecer de pie
+d4155!Mantener la posición de la cabeza
+d4158!Mantener la posición del cuerpo, otra especificada
+d4159!Mantener la posición del cuerpo, no especificada
+d4200!Transferir el propio cuerpo mientras se está sentado
+d4201!Transferir el propio cuerpo mientras se está acostado
+d4208!Transferir el propio cuerpo, otro especificado
+d4209!Transferir el propio cuerpo, no especificado
+d4300!Levantar objetos
+d4301!Llevar objetos en las manos
+d4302!Llevar objetos en los brazos
+d4303!Llevar objetos en los hombros, cadera y espalda
+d4304!Llevar objetos en la cabeza
+d4305!Posar objetos
+d4308!Levantar y llevar objetos, otras especificadas
+d4309!Levantar y llevara objetos, no especificadas
+d4350!Empujar con las extremidades inferiores
+d4351!Dar patadas/patear
+d4358!Mover objetos con las extremidades inferiores, otras especificadas
+d4359!Mover objetos con las extremidades inferiores, no especificadas
+d4400!Recoger objetos
+d4401!Agarrar
+d4402!Manipular
+d4403!Soltar
+d4408!Uso fino de la mano, otro especificado
+d4409!Uso fino de la mano, no especificado
+d4450!Tirar/halar
+d4451!Empujar
+d4452!Alcanzar
+d4453!Girar o torcer las manos o los brazos
+d4454!Lanzar
+d4455!Atrapar
+d4458!Uso de la mano y el brazo, otro especificado
+d4459!Uso de la mano y el brazo, no especificado
+d4500!Andar distancias cortas
+d4501!Andar distancias largas
+d4502!Andar sobre diferentes superficies
+d4503!Andar sorteando obstáculos
+d4508!Andar, otro especificado
+d4509!Andar, no especificado
+d4550!Arrastrarse
+d4551!Trepar
+d4552!Correr
+d4553!Saltar
+d4554!Nadar
+d4555!Escabullirse y rodar
+d4556!Caminar arrastrando los pies
+d4558!Desplazarse por el entorno, otra especificada
+desempeño/realización!Desplazarse por el entorno, no especificada
+d4600!Desplazarse dentro de la casa
+d4601!Desplazarse dentro de edificios que no son la propia vivienda
+d4602!Desplazarse fuera del hogar y de otros edificios
+d4608!Desplazarse por distintos lugares, otro especificado
+d4609!Desplazarse por distintos lugares, no especificado
+d4700!Utilización de vehículos de tracción humana
+d4701!Utilización de un medio de transporte con motor
+d4702!Utilización de transporte público con motor
+d4703!Utilización de humanos para el transporte
+d4708!Utilización de medios de transporte, otro especificado
+d4709!Utilización de medios de transporte, no especificado
+d4750!Medios de transporte de tracción humana
+d4751!Vehículos con motor
+d4752!Vehículos de tracción animal
+d4758!Conducción, otro especificado
+d4759!Conducción, no especificado
+d5100!Lavar partes individuales del cuerpo
+d5101!Lavar todo el cuerpo
+d5102!Secarse
+d5108!Lavarse, otro especificado
+d5109!Lavarse, no especificado
+d5200!Cuidado de la piel
+d5201!Cuidado de los dientes
+d5202!Cuidado del pelo
+d5203!Cuidado de las uñas de las manos
+d5204!Cuidado de las uñas de los pies
+d5205!Cuidado de la naríz
+d5208!Cuidado de partes del cuerpo, otro especificado
+d5209!Cuidado de partes del cuerpo, no especificado
+d5300!Regulación de la micción
+d5301!Regulación de la defecación
+d5302!Cuidado menstrual
+d5308!Higiene personal relacionada con los procesos de excreción, otro especificado
+d5309!Higiene personal relacionada con los procesos de excreción, no especificado
+d5400!Ponerse la ropa
+d5401!Quitarse la ropa
+d5402!Ponerse calzado
+d5403!Quitarse calzado
+d5404!Elección de vestimenta adecuada
+d5408!Vestirse, otro especificado
+d5409!Vestirse, no especificado
+d5500!Indicar la necesidad de comer
+d5501!Llevar a cabo adecuadamente las tareas relacionadas con comer
+d5508!Comer, otro especificado
+d5509!Comer, no especificado
+d5600!Indicar necesidad de beber
+d5601!Llevar a cabo el amamantamiento
+d5602!Llevar a cabo la toma de biberones
+d5608!Beber, otro especificado
+d5609!Beber, no especificado
+d5700!Asegurar el propio bienestar físico
+d5701!Control de la dieta y la forma física
+d5702!Mantenimiento de la salud
+d5708!Cuidado de la propia salud, otro especificado
+d5709!Cuidado de la propia salud, no especificado
+d6100!Comprar un lugar para vivir
+d6101!Alquilar un lugar para vivir
+d6102!Amueblar un lugar para vivir
+d6108!Adquisición de un lugar para vivir, otro especificado
+d6109!Adquisición de un lugar para vivir, otro no especificado
+d6200!Comprar
+d6201!Recolectar bienes para satisfacer las necesidades diarias
+d6208!Adquisición de bienes y servicios, otro especificado
+d6209!Adquisición de bienes y servicios, no  especificado
+d6300!Preparar comidas sencillas
+d6301!Preparar comidas complicadas
+d6302!Ayudar a prepara comidas
+d6308!Preparar comidas, otro especificado
+d6309!Preparar comidas, no especificado
+d6400!Lavar y secar ropa
+d6401!Limpiar la zona de cocina y los utensilios
+d6402!Limpieza de la vivienda
+d6403!Utilización de aparatos domésticos
+d6404!Almacenado de productos para satisfacer las necesidades diarias
+d6405!Eliminación de la basura
+d6406!Ayudar con los quehaceres de la casa
+d6408!Realizar  los quehaceres de la casa, otro especificado
+d6409!Realizar  los quehaceres de la casa, no especificado
+d6500!Hacer y remendar ropas
+d6501!Mantenimiento de la vivienda y de los muebles
+d6502!Mantenimiento de los aparatos domésticos
+d6503!Mantenimiento de vehículos
+d6504!Mantenimiento de los dispositivos de ayuda
+d6505!Cuidado de las plantas, interiores y exteriores
+d6506!Cuidado de los animales
+d6507!Ayudar en el cuidado de los objetos del hogar
+d6508!Cuidado de los objetos del hogar, otro especificado
+d6509!Cuidado de los objetos del hogar, no especificado
+d6600!Ayudar a los demás en el autocuidado
+d6601!Ayudar a los demás a desplazarse
+d6602!Ayudar a los demás en la comunicación
+d6603!Ayudar a los demás  en las relaciones interpersonales
+d6604!Ayudar a los demás en la nutrición
+d6605!Ayudar a los demás en el mantenimiento de la salud
+d6606!Ayudar en asistir a otros
+d6608!Ayudar a los demás, otro especificado
+d6609!Ayudar a los demás, no especificado
+d7100!Respeto y afecto en las relaciones
+d7101!Aprecio en las relaciones
+d7102!Tolerancia en las relaciones
+d7103!Actitud crítica en las relaciones
+d7104!Indicios sociales en las relaciones
+d7105!Contacto físico en las relaciones
+d7106!Diferenciación de personas de la familia
+d7108!Interacciones interpersonales básicas, otras especificadas
+d7109!Interacciones interpersonales básicas, no especificadas
+d7200!Establecer relaciones
+d7201!Finalizar relaciones
+d7202!Regulación del comportamiento en las interacciones
+d7203!Interactuar de acuerdo a las reglas sociales
+d7204!Mantener la distancia social
+d7208!Interacciones interpersonales complejas, otras especificadas
+d7209!Interacciones interpersonales complejas, no especificadas
+d7400!Relacionarse con personas en posición de autoridad
+d7401!Relacionarse con subordinados
+d7402!Relaciones entre iguales
+d7408!Relaciones formales, otra especificada
+d7409!Relaciones formales, otra no especificada
+d7500!Relaciones informales con amigos
+d7501!Relaciones informales con vecinos
+d7502!Relaciones informales con conocidos
+d7503!Relaciones informales con compañeros de vivienda
+d7504!Relaciones informales con iguales
+d7508!Relaciones sociales informales, otras especificadas
+d7509!Relaciones sociales informales, no especificadas
+d7600!Relaciones padre-hijo
+d7601!Relaciones hijo-padre
+d7602!Relaciones fraternales
+d7603!Relaciones con otros familiares
+d7608!Relaciones familiares, otras especificadas
+d7609!Relaciones familiares, no especificadas
+d7700!Relaciones sentimentales
+d7701!Relaciones conyugales
+d7702!Relaciones sexuales
+d7708!Relaciones íntimas, otras especificadas
+d7709!Relaciones íntimas, no especificadas
+d8150!Incorporarse al programa de educación preescolar o a alguno de sus niveles
+d8151!Mantenerse en el programa de educación preescolar
+d8152!Porgresar en el programa de educación preescolar
+d8153!Finalizar el programa de educación preescolar
+d8158!Educación preescolar, otra especificada
+d8159!Educación preescolar, no especificada
+d8200!Incorporarse al programa educativo o a alguno de sus niveles
+d8201!Mantenerse en el programa educativo
+d8202!Progresar en el programa educativo
+d8203!Finalizar el programa educativo o niveles escolares
+d8208!Educación escolar, otra especificada
+d8209!Educación escolar, no especificada
+d8250!Incorporarse a los programas de formación profesional o a alguno de sus niveles
+d8251!Mantenerse en el programa de formación profesional
+d8252!Progresar en el programa de formación profesional
+d8253!Finalizar el programa de formación profesional
+d8258!Formación profesional, otra especificada
+d8259!Formación profesional no especificada
+d8300!Incorporarse al programa de educación superior a alguno de sus niveles
+d8301!Mantenerse en el programa de educación superior
+d8302!Progresar en el programa de educación superior
+d8303!Finalizar el programa de educación superior
+d8308!Educación superior, otra especificada
+d8309!Educación superior, no especificada
+d8450!Buscar trabajo
+d8451!Mantener un trabajo
+d8452!Finalizar un trabajo
+d8458!Conseguir, mantener y finalizar un trabajo, otros especificados
+d8459!Conseguir, mantener y finalizar un trabajo, no especificados
+d8500!Trabajo como autónomo
+d8501!Trabajo a tiempo parcial
+d8502!Trabajo a jornada completa
+d8508!Trabajo remunerado, otro especificado
+d8509!Trabajo remunerado, no especificado
+d8700!Recursos económicos personales
+d8701!Derechos sobre economía pública
+d8708!Autosuficiencia económica, otra especificada
+d8709!Autosuficiencia económica, no especificada
+d8800!Juego en solitario
+d8801!Espectador del juego
+d8802!Juego paralelo
+d8803!Juego cooperativo
+d8808!Participación en el juego, otra especificada
+d8809!Participación en el juego, no especificada
+d9100!Asociaciones informales
+d9101!Asociaciones formales
+d9102!Ceremonias
+d9103!Vida comunitaria informal
+d9108!Vida comunitaria, otra especificada
+d9109!Vida comunitaria, no especificada
+d9200!Juego
+d9201!Deportes
+d9202!Arte y cultura
+d9203!Manualidades
+d9204!Aficiones
+d9205!Socialización
+d9208!Tiempo libre y ocio, otro especificado
+d9209!Tiempo libre y ocio, no especificado
+d9300!Religión organizada
+d9301!Espiritualidad
+d9308!Religión y espiritualidad, otro especificado
+d9309!Religión y espiritualidad, no especificado
+e1100!Comida
+e1101!Medicamentos
+e1108!Productos o sustancias para el consumo personal, otros especificados
+e1109!Productos o sustancias para el consumo personal, no especificados
+e1150!Productos y tecnología generales para uso personal en la vida diaria
+e1151!Productos y tecnología  de ayuda para uso personal en la vida diaria
+e1152!Productos y tecnología utilizados para el juego
+e1158!Productos y tecnología para uso personal en la vida diaria, otros especificados
+e1159!Productos y tecnología para uso personal en la vida diaria, no especificados
+e1200!Productos y tecnología generales para la movilidad  y el transporte personal en espacios cerrados y abiertos
+e1201!Productos y tecnología  de ayuda para la movilidad y el transporte personal en espacios cerrados y abiertos
+e1208!Productos y tecnología para la movilidad  y el transporte personal en espacios cerrados y abiertos, otros especificados
+e1209!Productos y tecnología para la movilidad  y el transporte personal en espacios cerrados y abiertos, no especificados
+e1250!Productos y tecnología generales para la comunicación
+e1251!Productos y tecnología de ayuda  para la comunicación
+e1258!Productos y tecnología para la comunicación, otros especificados
+e1259!Productos y tecnología para la comunicación, no especificados
+e1300!Productos y tecnología generales para la educación
+e1301!Productos y tecnología de ayuda  para la educación
+e1308!Productos y tecnología para la educación, otros especificados
+e1309!Productos y tecnología para la educación, no especificados
+e1350!Productos y tecnología generales para el empleo
+e1351!Productos y tecnología de ayuda  para el empleo
+e1358!Productos y tecnología para el empleo, otros especificados
+e1359!Productos y tecnología para el empleo, no  especificados
+e1400!Productos y tecnología generales para las actividades culturales, recreativas y deportivas
+e1401!Productos y tecnología de ayuda  para las actividades culturales, recreativas y deportivas
+e1408!Productos y tecnología para las actividades culturales, recreativas y deportivas, otros especificados
+e1409!Productos y tecnología para las actividades culturales, recreativas y deportivas, no especificados
+e1450!Productos y tecnología generales para la práctica religiosa y la vida espiritual
+e1451!Productos y tecnología de ayuda para la práctica religiosa y la vida espiritual
+e1458!Productos y tecnología para la práctica religiosa y la vida espiritual, otros especificados
+e1459!Productos y tecnología para la práctica religiosa y la vida espiritual, no especificados
+e1500!Diseño, construcción, materiales de construcción y tecnología arquitectónica para entradas y salidas de edificios de uso público
+e1501!Diseño, construcción, materiales de construcción y tecnología arquitectónica para conseguir el acceso a las instalaciones dentro de  edificios de uso público
+e1502!Diseño, construcción, materiales de construcción y tecnología arquitectónica para indicar caminos, rutas y señalar lugares en  edificios de uso público
+e1503!Diseño, construcción, materiales de construcción y tecnología arquitectónica para garantizar la seguridad física de las personas en ediciios de uso público
+e1508!Diseño, construcción, materiales de construcción y tecnología arquitectónica para edificios de uso público, otros especificados
+e1509!Diseño, construcción, materiales de construcción y tecnología arquitectónica para edificios de uso público, no especificados
+e1550!Diseño, construcción, materiales de construcción y tecnología arquitectónica para entradas y salidas de edificios de uso privado
+e1551!Diseño, construcción, materiales de construcción y tecnología arquitectónica para conseguir el acceso a las instalaciones dentro de  edificios de uso privado
+e1552!Diseño, construcción, materiales de construcción y tecnología arquitectónica para indicar caminos, rutas y señalar lugares en  edificios de uso privado
+e1553!Diseño, contrucción, materiales de construcción y tecnología arquitectónica para garantizar la seguridad física de las personas en edificios de uso privado
+e1558!Diseño, construcción, materiales de construcción y tecnología arquitectónica para edificios de uso privado, otros especificados
+e1559!Diseño, construcción, materiales de construcción y tecnología arquitectónica para edificios de uso privado, no especificados
+e1600!Productos y tecnología relacionados con el uso/ explotación de zonas rurales
+e1601!Productos y tecnología relacionados con el uso/ explotación de zonas suburbanas
+e1602!Productos y tecnología relacionados con el uso/ explotación de zonas urbanas
+e1603!Productos y tecnología de parques, zonas protegidas y reservas naturales
+e1608!Productos y tecnología relacionados con el uso/ explotación del suelo, otros especificados
+e1609!Productos y tecnología relacionados con el uso/ explotación del suelo, no especificados
+e1650!Pertenencias financieras
+e1651!Pertenencias tangibles
+e1652!Pertenencias intangibles
+e1658!Pertenencias, otras especificadas
+e1659!Pertenencias, no especificadas
+e2100!Formaciones geológicas
+e2101!Configuración hidrológica
+e2108!Geografía física, otros especificados
+e2109!Geografía física, no especificados
+e2150!Cambio demográfico
+e2151!Densidad de población
+e2158!Población, otros especificados
+e2159!Población, no especificados
+e2200!Plantas
+e2201!Animales
+e2208!Flora y fauna, otros especificados
+e2209!Flora y fauna, no especificados
+e2250!Temperatura
+e2251!Humedad
+e2252!Presión atmosférica
+e2253!Precipitaciones
+e2254!Viento
+e2255!Variaciones estacionales
+e2258!Clima, otros especificados
+e2259!Clima, no especificados
+e2400!Intensidad de la luz
+e2401!Cualidad de la luz
+e2408!Luz, otros especificados
+e2409!Luz, no especificados
+e2450!Ciclos día/noche
+e2451!Ciclos lunares
+e2458!Cambios relacionados con el paso del tiempo, otros especificados
+e2459!Cambios relacionados con el paso del tiempo, no especificados
+e2500!Intensidad del sonido
+e2501!Cualidad del sonido
+e2508!Sonido, otro especificado
+e2509!Sonido, no especificado
+e2600!Cualidad del aire en espacios cerrados
+e2601!Cualidad del aire en espacios abiertos
+e2608!Cualidad del aire, otros especificados
+e2609!Cualidad del aire, no especificados
+e5100!Servicios de producción de artículos de consumo
+e5101!Sistemas de producción de artículos de consumo
+e5102!Políticas de producción de artículos de consumo
+e5108!Servicios, sistemas y políticas de producción de artículos de consumo, otros especificados
+e5109!Servicios, sistemas y políticas de producción de artículos de consumo, no especificados
+e5150!Servicios de arquitectura y construcción
+e5151!Sistemas de arquitectura y construcción
+e5152!Políticas de arquitectura y construcción
+e5158!Servicios, sistemas y políticas de producción de arquitectura y construcción, otros especificados
+e5159!Servicios, sistemas y políticas de producción de arquitectura y construcción, no especificados
+e5200!Servicios de planificación de los espacios abiertos
+e5201!Sistemas de planificación de los espacios abiertos
+e5202!Políticas de planificación de los espacios abiertos
+e5208!Servicios, sistemas y políticas de planificación de los espacios abiertos, otros especificados
+e5209!Servicios, sistemas y políticas de planificación de los espacios abiertos, no especificados
+e5250!Servicios de vivienda
+e5251!Sistemas de vivienda
+e5252!Políticas de vivienda
+e5258!Servicios, sistemas y políticas de vivienda, otros especificados
+e5259!Servicios, sistemas y políticas de vivienda, no especificados
+e5300!Servicios de utilidad pública
+e5301!Sistemas de utilidad pública
+e5302!Políticas de utilidad pública
+e5308!Servicios, sistemas y políticas de utilidad pública, otros especificados
+e5309!Servicios, sistemas y políticas de utilidad pública, no especificados
+e5350!Servicios de comunicación
+e5351!Sistemas de comunicación
+e5352!Políticas de comunicación
+e5358!Servicios, sistemas y políticas de comunicación, otros especificados
+e5359!Servicios, sistemas y políticas de comunicación, no especificados
+e5400!Servicios de transporte
+e5401!Sistemas de transporte
+e5402!Políticas de transporte
+e5408!Servicios, sistemas y políticas de transporte, otros especificados
+e5409!Servicios, sistemas y políticas de transporte, no especificados
+e5450!Servicios de protección civil
+e5451!Sistemas de protección civil
+e5452!Políticas de protección civil
+e5458!Servicios, sistemas y políticas de protección civil, otros especificados
+e5459!Servicios, sistemas y políticas de protección civil, no especificados
+e5500!Servicios legales
+e5501!Sistemas legales
+e5502!Políticas legales
+e5508!Servicios, sistemas y políticas legales, otros especificados
+e5509!Servicios, sistemas y políticas legales, no especificados
+e5550!Servicios de asociación y organización
+e5551!Sistemas de asociación y organización
+e5552!Políticas de asociación y organización
+e5558!Servicios, sistemas y políticas de asociación y organización, otros especificados
+e5559!Servicios, sistemas y políticas de asociación y organización, no especificados
+e5600!Servicios de medios de comunicación
+e5601!Sistemas de comunicación
+e5602!Políticas de medios de comunicación
+e5608!Servicios, sistemas y políticas de medios de comunicación
+e5609!Servicios, sistemas y políticas de medios de comunicación no especificados
+e5650!Servicios económicos
+e5651!Sistemas económicos
+e5652!Políticas económicas
+e5658!Servicios, sistemas y políticas económicas, otros especificados
+e5659!Servicios, sistemas y políticas económicas, no especificados
+e5700!Servicios de seguridad social
+e5701!Sistemas de seguridad social
+e5702!Políticas de seguridad social
+e5708!Servicios, sistemas y políticas de seguridad social, otros especificados
+e5709!Servicios, sistemas y políticas de seguridad social, no especificados
+e5750!Servicios de apoyo social general
+e5751!Sistemas de apoyo social general
+e5752!Políticas de apoyo social general
+e5758!Servicios, sistemas y políticas de apoyo social general, otros especificados
+e5759!Servicios, sistemas y políticas de apoyo social general, no  especificados
+e5800!Servicios sanitarios
+e5801!Sistemas sanitarios
+e5802!Políticas sanitarias
+e5808!Servicios, sistemas y políticas sanitarias, otros especificados
+e5809!Servicios, sistemas y políticas sanitarias, otros especificados
+e5850!Servicios de educación y formación
+e5851!Sistemas de educación y formación
+e5852!Políticas de educación y formación
+e5853!Servicios de educación y formacion especial
+e5854!Sistemas de educación y formación especial
+e5855!Políticas de educación y formación especial
+e5858!Servicios, sistemas y políticas de educación y formación, otros especificados
+e5859!Servicios, sistemas y políticas de educación y formación, no especificados
+e5900!Servicios laborales y de empleo
+e5901!Sistemas laborales y de empleo
+e5902!Políticas laborales y de empleo
+e5908!Servicios, sistemas y políticas laborales y de empleo, otros especificados
+e5909!Servicios, sistemas y políticas laborales y de empleo, no especificados
+e5950!Servicios de gobierno
+e5951!Sistemas de gobierno
+e5952!Políticas de gobierno
+e5958!Servicios, sistemas y políticas de gobierno, otras especificadas
+e5959!Servicios, sistemas y políticas de gobierno, no especificadas

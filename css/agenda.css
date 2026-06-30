@@ -1,0 +1,897 @@
+/* ============================================================
+   1. RESET Y CONFIGURACIÓN GLOBAL
+   ============================================================ */
+.agenda-main {
+  margin-left: 260px;
+  /* mismo ancho que el sidebar */
+  padding: 0 16px;
+}
+
+.agenda-contenedor * {
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+.agenda-contenedor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+
+/* ============================================================
+   2. ESTRUCTURA DE LA AGENDA (LAYOUT)
+   ============================================================ */
+
+/* Marco exterior de la agenda */
+.agenda-grid-wrapper {
+  width: 100%;
+  border: 1px solid #dee2e6;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Contenedor con scroll vertical para las horas */
+.agenda-scroll {
+  max-height: 650px;
+  /* Altura máxima antes de mostrar scroll */
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #f8f9fa;
+}
+
+/* Contenedor de columnas (horas + slots) */
+.agenda-scroll-container {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* Columna de horas (lado izquierdo) */
+.agenda-horas-col {
+  width: 80px;
+  background-color: #ffffff;
+  border-right: 1px solid #dee2e6;
+  flex-shrink: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Columna de slots/citas (lado derecho) */
+.agenda-slots-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  /* Evita desbordamiento horizontal en flex */
+}
+
+/* Filas de hora y slot: deben quedar alineadas verticalmente
+   1 slot (30 min) = 48px de alto
+*/
+.agenda-hora-row,
+.agenda-slot-row {
+  height: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+
+/* ============================================================
+   3. CELDAS Y CONTENIDO
+   ============================================================ */
+
+/* Celdas base: reset de padding/margin/border para alinear todo */
+.agenda-hora-cell,
+.agenda-slot-cell {
+  padding: 0;
+  margin: 0;
+  border: none;
+  position: relative;
+  flex: 1;
+  padding: 4px 8px;
+  display: flex;
+  align-items: stretch;
+  /* importante para que el bloque se estire */
+}
+
+/* Celda de hora (texto de la hora) */
+.agenda-hora-cell {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6c757d;
+  background-color: #fcfcfc;
+}
+
+/* Celda de slot (contenedor de cita o disponible) */
+.agenda-slot-cell {
+  position: relative;
+  flex: 1;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+}
+
+/* Slot disponible (sin cita) */
+.agenda-slot-disponible {
+  width: 100%;
+  height: 100%;
+  background-color: #d5f59b;
+  border: 1px dashed #11411b;
+  border-radius: 6px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #adb5bd;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.agenda-slot-disponible:hover {
+  border-color: #0d6efd;
+  background-color: #f0f7ff;
+  color: #0d6efd;
+  transform: translateY(-1px);
+}
+
+/* Bloque de cita existente
+   - Se ajusta en altura desde Perl con style="height: Npx;"
+   - 1 slot (30 min) = 48px → N = slots * 48
+*/
+.agenda-cita-bloque {
+
+  width: 99%;
+  /* Ocupa todo el ancho del slot */
+  min-height: 48px;
+  /* Al menos un slot de alto */
+  position: absolute;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  top: 0;
+  left: 8px;
+  right: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border-left: 4px solid #0d6efd;
+  /* Indicador de color lateral */
+  border-bottom: 2px solid #0f5132;
+  /* Línea que marca el fin visual */
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  animation: fadeInUp 0.3s ease;
+}
+
+.agenda-cita-bloque:hover {
+  filter: brightness(0.95);
+  transform: scale(1.01);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+/* ============================================================
+   4. ESTADOS Y BOTONES
+   ============================================================ */
+
+/* Botón para crear cita en slot disponible */
+.agenda-btn-crear {
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+/* Botón eliminar dentro del bloque de cita */
+.agenda-btn-eliminar {
+  position: absolute;
+  bottom: -22px;
+  right: 14px;
+  z-index: 2;
+  font-size: 1rem;
+  padding: 2px 2px 2px 2px;
+  line-height: 1;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Estados visuales de cita según estado */
+.agenda-cita-estado-programada {
+  background: #e8f0fe;
+  border: 1px solid #c5d3f6;
+  border-left-width: 4px;
+}
+
+.agenda-cita-estado-confirmada {
+  background: #d1f7e0;
+  border: 1px solid #9be7c4;
+  border-left-width: 4px;
+}
+
+.agenda-cita-estado-cancelada {
+  background: #ffe5e5;
+  border: 1px solid #ffb3b3;
+  border-left-width: 4px;
+}
+
+.agenda-cita-estado-realizada {
+  background: #e5ffe8;
+  border: 1px solid #b3ffbf;
+  border-left-width: 4px;
+}
+
+
+/* ============================================================
+   5. ANIMACIONES Y RESPONSIVE
+   ============================================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modo móvil / pantallas pequeñas */
+@media (max-width: 576px) {
+  .agenda-horas-col {
+    width: 60px;
+  }
+
+  .agenda-hora-cell {
+    font-size: 0.7rem;
+  }
+
+  .agenda-slot-disponible span {
+    display: none;
+    /* Oculta texto "Disponible" en móvil */
+  }
+
+  .agenda-slot-disponible::before {
+    content: '+';
+    font-weight: bold;
+  }
+
+  .agenda-scroll {
+    max-height: 70vh;
+  }
+
+  /* Más espacio vertical para dedos en móvil */
+  .agenda-hora-row,
+  .agenda-slot-row {
+    height: 50px;
+    min-height: 50px;
+  }
+
+  .agenda-cita-bloque {
+    font-size: 0.8rem;
+    padding: 4px 4px;
+  }
+
+  .agenda-btn-eliminar {
+    position: absolute;
+    bottom: -20px;
+    right: 10px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Fila de la hora actual (resaltado) */
+.agenda-fila-actual {
+  background-color: #fff9e6 !important;
+  /* Fondo naranja muy claro */
+  position: relative;
+  border-left: 4px solid #ffc107 !important;
+  /* Indicador lateral amarillo/ámbar */
+  transition: all 0.5s ease;
+}
+
+/* Punto y animación para marcar la hora actual en la columna de hora */
+.agenda-fila-actual .agenda-hora-cell::before {
+  content: "•";
+  color: #ffc107;
+  margin-right: 4px;
+  font-size: 1.2rem;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+/* HEADER FIJO ESTILO GOOGLE CALENDAR */
+.agenda-header-fixed {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #ffffff;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 768px) {
+  .agenda-header-fixed {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 8px;
+  }
+
+  .agenda-header-fixed>div {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .agenda-header-fixed h4 {
+    font-size: 1rem;
+    margin-bottom: 0;
+  }
+
+  .agenda-header-fixed .btn,
+  .agenda-header-fixed input[type="date"] {
+    font-size: 0.75rem;
+    padding: 4px 6px;
+    min-width: auto;
+    flex: 1 1 auto;
+  }
+
+  .agenda-header-fixed .btn-group {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .agenda-header-fixed .btn-group .btn {
+    flex: 1 1 30%;
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 400px) {
+  .agenda-header-fixed {
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 6px;
+  }
+
+  .agenda-header-fixed .fila-compacta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .agenda-header-fixed h4 {
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .agenda-header-fixed .btn,
+  .agenda-header-fixed input[type="date"] {
+    font-size: 0.7rem;
+    padding: 4px 6px;
+    flex: 1 1 auto;
+    min-width: 60px;
+  }
+
+  .agenda-header-fixed .btn-group .btn {
+    padding: 4px;
+    font-size: 0.7rem;
+    flex: 1 1 28%;
+    min-width: 50px;
+  }
+
+  .agenda-header-fixed .btn i {
+    margin: 0;
+  }
+}
+
+
+
+
+
+/* ================================
+   MENÚ LATERAL ESTILO GOOGLE CALENDAR
+   ================================ */
+
+.agenda-sidebar {
+  position: fixed;
+  top: 70px;
+  /* debajo del header fijo */
+  left: 0;
+  width: 260px;
+  height: calc(100vh - 70px);
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  padding: 16px;
+  overflow-y: auto;
+  z-index: 40;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-section {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sidebar-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6c757d;
+  margin-bottom: 6px;
+}
+
+/* Mini calendario */
+.mini-calendario-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.mini-calendario-grid div {
+  text-align: center;
+  padding: 6px 0;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.mini-calendario-grid div:hover {
+  background: #e7f1ff;
+}
+
+.mini-dia-actual {
+  background: #0d6efd !important;
+  color: white !important;
+}
+
+.mini-dia-seleccionado {
+  background: #cfe2ff !important;
+  color: #084298 !important;
+}
+
+/* Responsive: en móvil se oculta y se vuelve offcanvas */
+/* Móvil */
+@media (max-width: 768px) {
+  .agenda-sidebar {
+    left: -260px;
+  }
+
+  .agenda-sidebar.open {
+    left: 0;
+  }
+
+  .agenda-main {
+    margin-left: 0;
+  }
+
+  .agenda-header-fixed {
+    margin-left: 0;
+  }
+}
+
+
+/* Modal personalizado */
+#modalCita .modal-content {
+  border-radius: 0.75rem;
+  border: none;
+  box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.15);
+}
+
+/* Header */
+#modalCita .modal-header {
+  border-bottom: none;
+  background: linear-gradient(135deg, #0d6efd, #0a58ca);
+}
+
+/* Footer */
+#modalCita .modal-footer {
+  border-top: none;
+}
+
+/* Botones */
+#modalCita .btn-primary {
+  background-color: #0d6efd;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+#modalCita .btn-outline-secondary {
+  border-radius: 0.5rem;
+}
+
+/* Inputs flotantes */
+.form-floating>.form-control:focus,
+.form-floating>.form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
+}
+
+/* Alertas */
+#cita_alerta {
+  font-size: 0.9rem;
+}
+
+/* ============================================================
+   LISTADOS DE CITAS (agenda_vista_list.pl)
+   ============================================================ */
+
+/* Contenedor general del listado */
+.agenda-listado {
+  margin-top: 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+}
+
+/* Encabezado por día */
+.agenda-list-dia {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #0d6efd;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 4px;
+}
+
+/* Lista de citas */
+.agenda-list-group {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Item de cita */
+.agenda-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+  background-color: #fafafa;
+}
+
+.agenda-list-item:hover {
+  background-color: #f0f7ff;
+  border-color: #cfe2ff;
+  transform: translateY(-1px);
+}
+
+/* Información de cita */
+.agenda-list-info {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.agenda-list-info strong {
+  color: #0d6efd;
+  margin-right: 6px;
+}
+
+/* Botones de acción */
+.agenda-list-actions .btn {
+  margin-left: 4px;
+}
+
+/* Estados visuales */
+.agenda-list-item.programada {
+  border-left: 4px solid #0d6efd;
+}
+
+.agenda-list-item.confirmada {
+  border-left: 4px solid #198754;
+}
+
+.agenda-list-item.cancelada {
+  border-left: 4px solid #dc3545;
+}
+
+.agenda-list-item.realizada {
+  border-left: 4px solid #20c997;
+}
+
+
+/* ============================================================
+   BOTONES TOGGLE DE VISTAS (Listado vs Vista)
+   ============================================================ */
+
+/* Estado: Listado */
+.vista-toggle[data-state="listado"] {
+  background-color: #f8f9fa;
+  color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.vista-toggle[data-state="listado"]:hover {
+  background-color: #e7f1ff;
+  color: #0a58ca;
+}
+
+/* Estado: Vista */
+.vista-toggle[data-state="vista"] {
+  background-color: #0d6efd;
+  color: #fff;
+  border-color: #0d6efd;
+}
+
+.vista-toggle[data-state="vista"]:hover {
+  background-color: #0a58ca;
+  color: #fff;
+}
+
+
+/* Contenedor semanal responsivo */
+.agenda-semana {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.agenda-dia {
+  min-width: 250px;
+  /* en móvil se ve como tarjeta scrollable */
+  flex: 1;
+}
+
+/* Estados de citas */
+.agenda-cita-programada {
+  background-color: #f8f9fa;
+}
+
+.agenda-cita-confirmada {
+  background-color: #d1e7dd;
+}
+
+.agenda-cita-cancelada {
+  background-color: #f8d7da;
+}
+
+.agenda-cita-realizada {
+  background-color: #cff4fc;
+}
+
+.agenda-cita {
+  font-size: 0.9rem;
+  border-left: 4px solid transparent;
+}
+
+.agenda-cita-programada {
+  border-left-color: #6c757d;
+}
+
+.agenda-cita-confirmada {
+  border-left-color: #198754;
+}
+
+.agenda-cita-cancelada {
+  border-left-color: #dc3545;
+}
+
+.agenda-cita-realizada {
+  border-left-color: #0dcaf0;
+}
+
+.agenda-dia-header {
+  font-size: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Estructura del Contenedor */
+.calendar-main-container {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Grid Responsivo (7 columnas) */
+.calendar-grid-header,
+.calendar-grid-body {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+/* En móviles permitimos scroll si es necesario, o reducimos tamaño */
+@media (max-width: 768px) {
+
+  .calendar-grid-header,
+  .calendar-grid-body {
+    grid-template-columns: repeat(7, minmax(50px, 1fr));
+  }
+
+  .calendar-dia {
+    min-height: 80px !important;
+  }
+
+  .cita-hora {
+    display: none;
+  }
+
+  /* Oculta hora en móviles para ahorrar espacio */
+}
+
+@media (max-width: 380px) {
+  .calendar-grid-body {
+    display: flexbox;
+    overflow-x: auto;
+  }
+
+  .calendar-dia {
+    min-width: 20px;
+    flex: 0 0 auto;
+  }
+}
+
+/* Cabecera de días */
+.day-name {
+  padding: 12px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #5f6368;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Celda de Día */
+.calendar-dia {
+  min-height: 120px;
+  border-right: 1px solid #f1f3f4;
+  border-bottom: 1px solid #f1f3f4;
+  padding: 4px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.calendar-dia:hover {
+  background: #f8f9fa;
+}
+
+.calendar-dia:nth-child(7n) {
+  border-right: none;
+}
+
+.dia-fuera {
+  background: #fafafa;
+  color: #b0b0b0;
+}
+
+/* Número del día */
+.num-dia {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: center;
+}
+
+.num-dia span {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.dia-hoy .num-dia span {
+  background-color: #1a73e8;
+  color: #fff;
+}
+
+/* Chips de Citas */
+.agenda-cita-chip {
+  font-size: 0.7rem;
+  margin-bottom: 2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  gap: 4px;
+  border-left: 3px solid transparent;
+}
+
+.cita-hora {
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+/* Colores por Estado (UX Semántica) */
+.chip-programada {
+  background: #e8f0fe;
+  color: #1967d2;
+  border-left-color: #1a73e8;
+}
+
+.chip-confirmada {
+  background: #e6f4ea;
+  color: #137333;
+  border-left-color: #1e8e3e;
+}
+
+.chip-cancelada {
+  background: #fce8e6;
+  color: #c5221f;
+  border-left-color: #d93025;
+  text-decoration: line-through;
+}
+
+.chip-realizada {
+  background: #f1f3f4;
+  color: #3c4043;
+  border-left-color: #5f6368;
+}
+
+.more-citas {
+  background: #f1f3f4;
+  border-radius: 4px;
+  padding: 2px 4px;
+  display: inline-block;
+}
+
+.calendar-dia:hover,
+.calendar-dia:focus {
+  background: #f8f9fa;
+  outline: none;
+}
+
+/* Quitar subrayado y heredar color en enlaces de calendario */
+.no-link-style {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  /* asegura que el enlace se comporte como bloque */
+}
+
+.no-link-style:hover {
+  text-decoration: none;
+  color: inherit;
+  background-color: #c7f8c8;
+  /* gris claro neutro en lugar de verde */
+}
+
+/* Ajuste para botón de agregar cita */
+.calendar-dia .btn-outline-success {
+  padding: 2px 6px;
+  font-size: 0.75rem;
+}

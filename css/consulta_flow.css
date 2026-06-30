@@ -1,0 +1,215 @@
+/* css/consulta_flow.css */
+/* Estilos para el Wizard Clínico SDM Diamond */
+
+.wizard-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding-bottom: 100px;
+}
+
+/* Barra Superior de Progreso */
+.wizard-progress-bar {
+    background: #e2e8f0;
+    border-radius: 20px;
+    height: 12px;
+    width: 100%;
+    margin-bottom: 2rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.wizard-progress-fill {
+    background: linear-gradient(90deg, var(--md-blue-light) 0%, var(--md-blue-deep) 100%);
+    height: 100%;
+    width: 0%;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 20px;
+}
+
+/* Navegación Lateral / Stepper Horizontal */
+.wizard-stepper {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    position: relative;
+    padding: 0 10px;
+}
+
+.wizard-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    cursor: not-allowed;
+    opacity: 0.5;
+    transition: all 0.3s;
+}
+
+.wizard-step.active {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.wizard-step.completed {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.wizard-step-icon {
+    width: 40px;
+    height: 40px;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.5rem auto;
+    font-size: 1.2rem;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s;
+}
+
+.wizard-step.active .wizard-step-icon {
+    background: var(--md-teal-clinical);
+    color: white;
+    border-color: var(--md-teal-clinical);
+    box-shadow: 0 0 0 4px rgba(25, 183, 165, 0.1);
+}
+
+.wizard-step.completed .wizard-step-icon {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+.wizard-step-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.wizard-step.active .wizard-step-label {
+    color: var(--md-teal-clinical);
+}
+
+.wizard-step.completed .wizard-step-label {
+    color: #10b981;
+}
+
+/* Formularios Modulares (MedentIA Diamond Armor) */
+.wizard-panel {
+    background: #ffffff;
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(10, 42, 102, 0.05);
+    border: 2px solid var(--md-teal-clinical);
+    display: none;
+    animation: fadeIn 0.4s ease;
+    backdrop-filter: blur(10px);
+}
+
+.wizard-panel.active {
+    display: block;
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(15px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+/* Elementos de Formulario Diamond */
+.wizard-label {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--md-blue-deep);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.wizard-input {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 0.8rem 1.2rem;
+    width: 100%;
+    transition: all 0.3s;
+    font-weight: 600;
+    color: var(--md-blue-deep);
+}
+
+.wizard-input:focus {
+    outline: none;
+    border-color: var(--md-teal-clinical);
+    box-shadow: 0 0 0 4px rgba(25, 183, 165, 0.15);
+    background: white;
+}
+
+.wizard-input.is-invalid {
+    border-color: #ef4444;
+    background: #fef2f2;
+}
+
+.wizard-btn-next {
+    background: var(--md-blue-deep);
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 2rem;
+    font-weight: 800;
+    transition: all 0.3s;
+}
+
+.wizard-btn-next:hover {
+    background: var(--md-blue-light);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(45, 96, 219, 0.2);
+}
+
+.wizard-btn-prev {
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 2rem;
+    font-weight: 800;
+    transition: all 0.3s;
+}
+
+.wizard-btn-prev:hover {
+    background: #e2e8f0;
+    color: var(--md-blue-deep);
+}
+
+/* Indicador de Autosave */
+.autosave-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--md-navy);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s;
+    z-index: 1000;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.autosave-indicator.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Campos requeridos asterisco */
+.req-star {
+    color: #ef4444;
+    margin-left: 3px;
+}

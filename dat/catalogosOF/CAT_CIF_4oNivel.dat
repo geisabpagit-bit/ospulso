@@ -1,0 +1,182 @@
+CODIGO!DESCRIPCION
+b11420!Orientación respecto a uno mismo
+b11421!Orientación respecto a los demás
+b11428!Funciones de la orientación respecto a la persona, otras especificadas
+b11429!Funciones de la orientación respecto a la persona, no especificadas
+b16700!Recepción del lenguaje oral
+b16701!Recepción del lenguaje escrito
+b16702!Recepción del lenguaje de signos
+b16703!Recepción del lenguaje gestual
+b16708!Recepción del lenguaje, otras especificadas
+b16709!Recepción del lenguaje, no especificas
+b16710!Expresión del lenguaje oral
+b16711!Expresión del lenguaje escrito
+b16712!Expresión de lenguaje de signos
+b16713!Espresión del lenguaje gestual
+b16718!Expresión de lenguaje, otras especificadas
+b16719!Expresión de lenguaje, no especificadas
+b21000!Agudeza binocular a larga distancia
+b21001!Agudeza monocular a larga distancia
+b21002!Agudeza binocular a corta distancia
+b21003!Agudeza monocular a corta distancia
+b21008!Funciones de la agudeza visual, otras especificadas
+b21009!Funciones de la agudeza visual, no  especificadas
+b21020!Sensibilidad a la luz
+b21021!Visión en color
+b21022!Sensibilidad al contraste
+b21023!Calidad de la imagen visual
+b21028!Calidad de la visión, otra especificada
+b21029!Calidad de la visión, no  especificada
+b28010!Dolor en la cabeza y el cuello
+b28011!Dolor en el pecho
+b28012!Dolor en el estómago o en el abdomen
+b28013!Dolor en la espalda
+b28014!Dolor en una extremidad superior
+b28015!Dolor en una extremidad inferior
+b28016!Dolor en las articulaciones
+b28018!Dolor en una parte del cuerpo, otra especificada
+b28019!Dolor en una parte del cuerpo, no especificada
+b43500!Respuesta inmune específica
+b43501!Respuesta inmune no específica
+b43508!Respuesta inmune, otra especificada
+b43509!Respuesta inmune, no especificada
+b51050!Deglución oral
+b51051!Deglución faríngea
+b51052!Deglución esofágica
+b51058!Tragar, otras especificadas
+b51059!Tragar, no especificadas
+b51060!Regurgitación
+b54500!Retención de agua
+b54501!Mantenimiento del balance hídrico
+b54508!Funciones relacionadas con el balance hídrico, otras especificadas
+b54509!Funciones relacionadas con el balance hídrico, no especificadas
+b55500!Desarrollo del vello corporal y púbico
+b55501!Desarrollo de las mamas y los pezones
+b55502!Desarrollo del pene, los testiculos y el escroto
+b55508!Funciones puberales, otras especificadas
+b55509!Funciones puberales, no especificadas
+s11000!Lóbulo frontal
+s11001!Lóbulo temporal
+s11002!Lóbulo parietal
+s11003!Lóbulo occipital
+s11008!Estructura de los lóbulos corticales, otra especificada
+s11009!Estructura de los lóbulos corticales, no especificada
+s11050!Bulbo raquídeo
+s11051!Puente (protuberancia)
+s11058!Estructura del tronco cerebral, otra especificada
+s11059!Estructura del tronco cerebral, no especificada
+s11070!Cuerpo calloso
+s11078!Estructura de la sustancia blanca, otras especificada
+s11079!Estructura de la sustancia blanca, no especificada
+s12000!Médula espinal cervical
+s12001!Médula espinal torácica
+s12002!Médula espinal lumbosacra
+s12003!Médula Cola de caballo
+s12008!Estructura de la médula espinal, otra especificada
+s12009!Estructura de la médula espinal, no especificada
+s32000!Dentición primaria
+s32001!Dentición permanente
+s32008!Estructura de los dientes, otra especificada
+s32009!Estructura de los dientes, no especificada
+s32020!Paladar duro
+s32021!Paladar blando
+s32040!Labio superior
+s32041!Labio inferior
+s41000!Aurículas
+s41001!Ventrículos
+s41008!Estructura del corazón, otra especificada
+s41009!Estructura del corazón, no especificada
+s43010!Árbol bronquial
+s43011!Alvéolos
+s43018!Estructura de los pulmones, otra especificada
+s43019!Estructura de los pulmones, no especificada
+s43030!Músculos intercostales
+s43031!Diafragma
+s43038!Músculos de la respiración, otro especificado
+s43039!Músculos de la respiración, no especificado
+s63010!Cuerpo del útero
+s63011!Cuello del útero
+s63012!Trompas de Falopio
+s63018!Estructura del útero, otra especificada
+s63019!Estructura del útero, no especificada
+s63030!Clítoris
+s63031!Labios mayores
+s63032!Labios menores
+s63033!Canal vaginal
+s63050!Glande del pene
+s63051!Cuerpo esponjoso del pene
+s63058!Estructura del pene, otra especificada
+s63059!Estructura del pene, no especificada
+s71000!Suturas
+s71001!Fontanelas
+s71002!Estructura de los huesos del craneo, otra especificada
+s71003!Estructura de los huesos del craneo, no especificada
+s73000!Huesos del brazo
+s73001!Articulación del codo
+s73002!Músculos del brazo
+s73003!Ligamentos y fascias del brazo
+s73008!Estructuras del brazo, otra especificada
+s73009!Estructuras del brazo, no especificada
+s73010!Huesos del antebrazo
+s73011!Articulación de la muñeca
+s73012!Músculos del antebrazo
+s73013!Ligamentos y fascias del antebrazo
+s73018!Estructura del antebrazo, otra especificada
+s73019!Estructura del antebrazo, no especificada
+s73020!Huesos de la mano
+s73021!Articulaciones de la mano y de los dedos
+s73022!Músculos de la mano
+s73023!Ligamento  y fascias de la mano
+s73028!Estructura de la mano, otra especificada
+s73029!Estructura de la mano, no especificada
+s75000!Huesos del muslo
+s75001!Articulación de la cadera
+s75002!Músculos del muslo
+s75003!Ligamentos y fascias del muslo
+s75008!Estructura del muslo, otra especificada
+s75009!Estructura del muslo, no especificada
+s75010!Huesos de la pierna
+s75011!Articulación de la rodilla
+s75012!Músculos de la pierna
+s75013!Ligamentos y fascias de la pierna
+s75018!Estructura de la pierna, otra especificada
+s75019!Estructura de la pierna, no especificada
+s75020!Huesos del tobillo y pie
+s75021!Articulaciones del tobillo y del dedo del pie
+s75022!Músculos del tobillo y del pie
+s75023!Ligamentos y fascias del tobillo y del pie
+s75028!Estructura del tobillo y pie, otra especificada
+s75029!Estructura del tobillo y pie, no especificada
+s76000!Columna vertebral cervical
+s76001!Columna vertebral torácica
+s76002!Columna vertebral lumbar
+s76003!Columna vertebral sacra
+s76004!Coxis
+s76008!Estructura de la columna vertebral, otra especificada
+s76009!Estructura de la columna vertebral, no especificada
+d53000!Indicar la necesidad de micción
+d53001!Indicar la necesidad de micción de manera apropiada
+d53008!Indicar la necesidad de micción, otra especificada
+d53009!Indicar la necesidad de micción, no especificada
+pueden usarse con y sin dispostivos de ayuda o ayuda de terceras personas, y de acuerdo con la siguiente escala!Indicar la necesidad de defecación
+Clasificación Internacional del Funcionamiento, de la Discapacidad y de la Salud, Versión para la Infancia y Adolescencia  (CIF-IA) CALIFICADORES!Indicar la necesidad de defecación de manera aporpiada
+FUNCIONES CORPORALES!Indicar la necesidad de defecación, otra especificada
+d4559!Indicar la necesidad de defecación, no especificada
+d57020!Control de medicaciones y seguimiento de consejos saludables
+d57021!Búsqueda de consejo asistencia de cuidadores o profesionales
+d57022!Evitar riesgos del abuso de drogas o alcohol
+d57028!Mantenimiento de la salud, otra especificada
+d57029!Mantenimiento de la salud, no especificada
+d71040!Iniciar interacciones sociales
+d71041!Mantener interacciones sociales
+d71048!Indicios sociales en las relaciones, otra especificada
+d71049!Indicios sociales en las relaciones, no especificada
+e11520!Productos y tecnología utilizados para el juego
+e11521!Productos y tecnoogía utilizados para el juego
+e11528!Productos y tecnología utilizados para el juego, otra especificada
+e11529!Productos y tecnología utilizados para el juego, no especificada
+e57500!Cuidado informal de niños o adultos por parte de la familia o amigos
+e57501!Cuidado diario de la familia proporcionado en la casa del proveedor del servicio
+e57502!Centro de servicios para el cuidado de niños o adultos lucrativo o no lucrativo
+e57508!Servicios de apoyo social general, otra especificada
+e57509!Servicios de apoyo social general, no especificada

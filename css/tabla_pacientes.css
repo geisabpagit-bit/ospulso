@@ -1,0 +1,181 @@
+/*
+ * MedentIA - Clinical Intelligence Core
+ * Estilos específicos para Tabla de Pacientes y Botones Animados
+ * Basado en Bootstrap 5.x
+ */
+
+:root {
+    --medentia-primary: #0a2a66;
+    --medentia-secondary: #18d1e6;
+    --medentia-surface: #faf8fe;
+    --medentia-border: #dad9df;
+    --medentia-text-main: #102a43;
+    --medentia-text-secondary: #486581;
+    --medentia-success: #19b7a5;
+    --medentia-danger: #dc3545;
+    --medentia-warning: #ffc107;
+}
+
+/* Contenedor de la Tabla (Diamond Armor) */
+.medentia-table-container {
+    background: var(--medentia-surface);
+    border-radius: 0.75rem;
+    border: 2px solid var(--medentia-success);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.table-medentia {
+    margin-bottom: 0;
+    vertical-align: middle;
+}
+
+/* Encabezado */
+.table-medentia thead th {
+    background-color: var(--medentia-primary);
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    border: none;
+    white-space: nowrap;
+}
+
+/* Cuerpo de la Tabla */
+.table-medentia tbody td {
+    padding: 1.25rem 1.5rem;
+    color: var(--medentia-text-main);
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(218, 217, 223, 0.5);
+    font-family: 'Inter', sans-serif;
+}
+
+.table-medentia tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table-medentia tbody tr:hover td {
+    background-color: rgba(244, 243, 249, 0.5);
+}
+
+/* Tipografía de Contenido */
+.patient-name {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: var(--medentia-primary);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.patient-info-sub {
+    font-size: 0.8125rem;
+    color: var(--medentia-text-secondary);
+    line-height: 1.4;
+}
+
+/* Badges de Estatus */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35em 1em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 50rem;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.status-active {
+    background-color: rgba(25, 183, 165, 0.1);
+    color: var(--medentia-success);
+    border-color: rgba(25, 183, 165, 0.3);
+}
+
+.status-pending {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #856404;
+    border-color: rgba(255, 193, 7, 0.3);
+}
+
+/* Botones de Acción Premium */
+.action-btn-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.action-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #64748b;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    cursor: pointer;
+    padding: 0;
+}
+
+.action-btn i,
+.action-btn svg {
+    font-size: 1.1rem;
+    color: var(--medentia-success) !important;
+    transition: all 0.3s ease;
+}
+
+/* Efecto Glassmorphism Hover (Equivalente a Sub-links) */
+.action-btn:hover {
+    background: rgba(24, 209, 230, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(24, 209, 230, 0.15);
+    color: var(--medentia-primary);
+    transform: scale(1.05) translateX(2px);
+    box-shadow: 0 4px 12px rgba(24, 209, 230, 0.1);
+    z-index: 1;
+}
+
+.action-btn:hover i,
+.action-btn:hover svg {
+    color: var(--medentia-primary) !important;
+    transform: scale(1.1);
+}
+
+.action-btn-delete i {
+    color: var(--medentia-danger) !important;
+}
+
+.action-btn-delete:hover {
+    background: rgba(220, 53, 69, 0.08);
+    border: 1px solid rgba(220, 53, 69, 0.15);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.1);
+}
+
+.action-btn-delete:hover i {
+    color: var(--medentia-danger) !important;
+}
+
+/* Utilidades de Alineación DataTables */
+.medentia-dt-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--medentia-border);
+}
+
+.medentia-pagination {
+    display: flex;
+    gap: 0.25rem;
+    padding: 1rem 1.5rem;
+    justify-content: flex-end;
+    background-color: #ffffff;
+}

@@ -1,0 +1,14 @@
+CALIFICADOR!DESCRIPCION
+0 NO hay barrera!(ninguna, insignificante,…)
+1 Barrera LIGERA!(poca,escasa,…)
+2 Barrera MODERADA!(media,regular,…)
+3 Barrera GRAVE!(mucha,extrema,…)
+4 Barrera COMPLETA!(total,…)
++0 NO hay facilitador!(ninguna, insignificante,…)
++1 Facilitador LIGERO!(poco,escaso,…)
++2 Facilitador MODERADO!(medio,regular,…)
++3 Facilitador SUSTANCIAL!(mucho,extrema,…)
++4 Facilitador COMPLETO!(total,…)
+8!barrera, no especificada
++8!facilitador, sin especificar
+9!no aplicable

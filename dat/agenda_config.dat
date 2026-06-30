@@ -1,0 +1,11 @@
+horario_inicio=08:00
+horario_fin=18:00
+horario_comida_inicio=14:00
+horario_comida_fin=16:00
+intervalo_minutos=30
+dias_habiles=1,2,3,4,5
+max_citas_por_hora=2
+permitir_citas_sabado=0
+permitir_citas_domingo=0
+festivos=2026-05-01,2026-05-05,2026-05-10,2026-05-15,2026-05-20,2026-05-25,2026-05-30
+permitir_citas_mismo_dia_paciente=1

@@ -1,0 +1,271 @@
+/* css/pacientes_spa.css */
+/* Equivalencia de Tailwind a Vanilla CSS para el Módulo Visual Premium de Pacientes */
+
+.cs-avatar-lg {
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 4px solid #f0f4f7;
+}
+
+.cs-status-active {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    background-color: #006c49;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.cs-expediente-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(11, 28, 48, 0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.cs-circle-decoration {
+    position: absolute;
+    top: -64px;
+    right: -64px;
+    width: 128px;
+    height: 128px;
+    background-color: rgba(0, 74, 198, 0.05); /* primary/5 */
+    border-radius: 50%;
+}
+
+.cs-btn-gradient {
+    background: linear-gradient(to right, #004ac6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 12px 24px;
+    box-shadow: 0 10px 15px -3px rgba(0, 74, 198, 0.2);
+    transition: transform 0.2s;
+}
+.cs-btn-gradient:hover {
+    transform: scale(0.95);
+    color: #ffffff;
+}
+
+.cs-btn-icon-light {
+    background-color: #dce9ff;
+    color: #003ea8;
+    border-radius: 12px;
+    border: none;
+    padding: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+.cs-btn-icon-light:hover {
+    transform: scale(0.95);
+}
+.cs-btn-icon-solid {
+    background-color: #004ac6;
+    color: white;
+    border-radius: 12px;
+    border: none;
+    padding: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 15px -3px rgba(0, 74, 198, 0.2);
+    transition: transform 0.2s;
+}
+.cs-btn-icon-solid:hover {
+    transform: scale(0.95);
+}
+
+.cs-sidebar-box {
+    background-color: #eff4ff;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.cs-icon-sq {
+    width: 32px;
+    height: 32px;
+    background-color: white;
+    color: #2563eb;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timeline-item {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    display: flex;
+    gap: 16px;
+    transition: box-shadow 0.2s;
+    margin-bottom: 16px;
+}
+.timeline-item:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.timeline-date-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+}
+
+.timeline-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(0, 74, 198, 0.1);
+    color: #004ac6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.timeline-line {
+    width: 2px;
+    background-color: #f1f5f9;
+    flex-grow: 1;
+    margin: 8px 0;
+}
+
+.cs-badge-soft {
+    background-color: #dce9ff;
+    color: #003ea8;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.cs-offcanvas-wide {
+    width: 100% !important;
+    max-width: 900px !important;
+    border-left: none !important;
+}
+@media (max-width: 768px) {
+    .cs-offcanvas-wide { max-width: 100% !important; }
+}
+
+/* ---- PACIENTES DASHBOARD (LISTADO BENTO) ---- */
+.cs-bento-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+@media (min-width: 768px) { .cs-bento-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .cs-bento-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.cs-bento-card {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border-bottom: 3px solid rgba(0, 74, 198, 0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.cs-bento-title {
+    color: #434655;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    font-family: 'Inter', sans-serif;
+}
+.cs-bento-value {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #0b1c30;
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+}
+.cs-bento-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Modificadores para DataTables y Tabla */
+.cs-table-container {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+}
+.cs-table-container table.dataTable {
+    border-collapse: collapse !important;
+    width: 100% !important;
+}
+.cs-table-container table.dataTable thead th {
+    background-color: rgba(239, 244, 255, 0.8) !important;
+    color: #434655 !important;
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    padding: 1rem !important;
+    border-bottom: none !important;
+}
+.cs-table-row:hover {
+    background-color: #eff4ff !important;
+    transition: background-color 0.2s ease;
+}
+.cs-table-row td {
+    padding: 1rem !important;
+    vertical-align: middle;
+    border-bottom: 1px solid #eff4ff !important;
+}
+.cs-avatar-mini {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(0, 74, 198, 0.1);
+    color: #004ac6;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+}
+div.dataTables_wrapper div.dataTables_filter input {
+    border-radius: 0.75rem !important;
+    border: 1px solid #c3c6d7 !important;
+    padding: 0.5rem 1rem !important;
+    background-color: #f8f9ff !important;
+    margin-left: 0.5em !important;
+    outline: none !important;
+}
+div.dataTables_wrapper div.dataTables_filter input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(0, 74, 198, 0.2) !important;
+}
+div.dataTables_wrapper div.dataTables_paginate {
+    margin-top: 1rem;
+}
+div.dataTables_wrapper div.dataTables_info {
+    font-size: 0.875rem;
+    color: #737686;
+    font-weight: 500;
+}

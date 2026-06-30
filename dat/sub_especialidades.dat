@@ -1,0 +1,80 @@
+ID_ESPE| ID_SUBESPECIALIDAD| ESP_NOMBRE_SUBESPECIALIDAD
+0|0.1|Medicina del dolor
+0|0.2|Cuidados paliativos
+0|0.3|Terapia intensiva
+1|1.1|Cirugía laparoscópica
+1|1.2|Cirugía hepatobiliar
+1|1.3|Cirugía bariátrica
+2|2.1|Cardiología clínica
+2|2.2|Endocrinología
+2|2.3|Gastroenterología
+2|2.4|Hematología
+2|2.5|Nefrología
+2|2.6|Neumología
+2|2.7|Reumatología
+3|3.1|Cardiología pediátrica
+3|3.2|Hematología pediátrica
+3|3.3|Nefrología pediátrica
+3|3.4|Neumología pediátrica
+3|3.5|Neurología pediátrica
+3|3.6|Oncología pediátrica
+4|4.1|Medicina materno-fetal
+4|4.2|Uroginecología
+4|4.3|Endocrinología ginecológica
+4|4.4|Oncología ginecológica
+6|6.1|Psiquiatría infantil
+6|6.2|Psiquiatría geriátrica
+6|6.3|Adicciones
+7|7.1|Dermatología pediátrica
+7|7.2|Dermatooncología
+7|7.3|Cirugía dermatológica
+9|9.1|Retina
+9|9.2|Glaucoma
+9|9.3|Oftalmología pediátrica
+9|9.4|Cirugía refractiva
+10|10.1|Radiología intervencionista
+10|10.2|Neurorradiología
+10|10.3|Imagenología pediátrica
+11|11.1|Ortopedia pediátrica
+11|11.2|Cirugía articular
+11|11.3|Columna vertebral
+12|12.1|Urología pediátrica
+12|12.2|Urooncología
+12|12.3|Endourología
+13|13.1|Epileptología
+13|13.2|Neurología vascular
+13|13.3|Neuroinmunología
+15|15.1|Cardiología intervencionista
+15|15.2|Electrofisiología
+15|15.3|Cardiología pediátrica
+17|17.1|Hepatología
+17|17.2|Endoscopia terapéutica
+17|17.3|Gastroenterología pediátrica
+18|18.1|Hematología pediátrica
+18|18.2|Trasplante de médula ósea
+19|19.1|Oncología pediátrica
+19|19.2|Hematooncología
+20|20.1|Cirugía oncológica pediátrica
+20|20.2|Oncología de mama
+21|21.1|Cirugía estética
+21|21.2|Cirugía craneofacial
+21|21.3|Cirugía de mano
+22|22.1|Rehabilitación neurológica
+22|22.2|Rehabilitación pediátrica
+22|22.3|Medicina física
+23|23.1|Algología
+23|23.2|Cuidados paliativos pediátricos
+24|24.1|Imagen molecular
+24|24.2|Terapia metabólica
+25|25.1|Genética clínica
+25|25.2|Genómica aplicada
+26|26.1|Medicina paliativa geriátrica
+26|26.2|Psicogeriatría
+100|100.1|Ortodoncia
+100|100.2|Endodoncia
+100|100.3|Periodoncia
+100|100.4|Odontopediatría
+100|100.5|Cirugía Maxilofacial
+100|100.6|Prótesis bucal
+100|100.7|Implantología
+100|100.8|Patología bucal

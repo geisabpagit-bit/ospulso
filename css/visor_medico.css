@@ -1,0 +1,404 @@
+/* 
+   Visor Medico - Layout Estructural
+   Adaptado para el sistema MedentIA Premium
+*/
+
+:root {
+    --visor-header-height: 70px;
+    --visor-sidebar-width: 320px;
+    --visor-toolbar-height: 60px;
+    
+    /* Variables de Herencia MedentIA */
+    --visor-bg: var(--bg-main, #F8FBFF);
+    --visor-border: var(--border-color, #D9E2EC);
+    --visor-text: var(--md-text-primary, #102A43);
+    --visor-sidebar: #ffffff;
+    --visor-primary: var(--primary, #0A2A66);
+    --visor-canvas-bg: #000000; /* Siempre negro para diagnostico */
+}
+
+body.visor-mode {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--visor-bg);
+    color: var(--visor-text);
+    font-family: var(--font-secondary, sans-serif);
+}
+
+.visor-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+/* Header */
+.visor-header {
+    height: var(--visor-header-height);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    box-shadow: var(--shadow-sm, 0 2px 4px rgba(0,0,0,0.1));
+    z-index: 20;
+}
+
+/* Body */
+.visor-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Sidebars */
+.visor-sidebar-left,
+.visor-sidebar-right {
+    width: var(--visor-sidebar-width);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    background-color: var(--md-aqua-soft, #f0fdfa);
+}
+.visor-sidebar-left {
+    border-right: 2px solid var(--md-teal-border, #5eead4);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+}
+.visor-sidebar-right {
+    border-right: none;
+    border-left: 2px solid var(--md-teal-border, #5eead4);
+    overflow: hidden;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+}
+.visor-sidebar-left h6,
+.visor-sidebar-right h6 {
+    color: var(--md-teal-dark, #115e59) !important;
+    font-family: 'Poppins', sans-serif;
+}
+.visor-sidebar-left .btn-outline-secondary,
+.visor-sidebar-right .btn-outline-secondary {
+    color: var(--md-teal-dark, #115e59);
+    border-color: var(--md-teal-border, #5eead4);
+    background-color: #fff;
+    transition: all 0.2s ease;
+}
+.visor-sidebar-left .btn-outline-secondary:hover, .visor-sidebar-left .btn-outline-secondary.active,
+.visor-sidebar-right .btn-outline-secondary:hover, .visor-sidebar-right .btn-outline-secondary.active {
+    background-color: var(--md-teal-border, #5eead4);
+    color: var(--md-teal-dark, #115e59);
+}
+
+.visor-sidebar-left.collapsed {
+    transform: translateX(-100%);
+    position: absolute;
+    height: 100%;
+}
+.visor-sidebar-right.collapsed {
+    transform: translateX(100%);
+    position: absolute;
+    right: 0;
+    height: 100%;
+}
+
+/* Main Canvas */
+.visor-main {
+    flex: 1;
+    background: var(--visor-bg);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Toolbar Integrada en Navbar (Super Toolbar) */
+.visor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    flex-wrap: nowrap;
+}
+
+.visor-toolbar .vr {
+    width: 2px;
+    background-color: rgba(0,0,0,0.1);
+    height: 30px;
+    margin: 0 0.25rem;
+}
+
+.tool-btn {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md, 8px);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tool-btn:hover { 
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    transform: scale(1.08);
+}
+.tool-btn.active {
+    background: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(255,255,255,0.4);
+    animation: pulse-active 2s infinite;
+}
+
+@keyframes pulse-active {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+
+/* Canvas Area */
+.canvas-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: var(--visor-canvas-bg);
+    border-radius: var(--radius-md, 12px);
+    margin: 1rem;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+}
+
+.dicom-overlay {
+    position: absolute;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    font-family: var(--font-mono, monospace);
+    pointer-events: none;
+    padding: 1rem;
+    z-index: 5;
+}
+.dicom-overlay.top-left { top: 0; left: 0; }
+.dicom-overlay.top-right { top: 0; right: 0; text-align: right; }
+.dicom-overlay.bottom-left { bottom: 0; left: 0; }
+.dicom-overlay.bottom-right { bottom: 0; right: 0; text-align: right; }
+
+/* Series Thumbnails (Vertical Sidebar) */
+.series-nav-vertical {
+    display: flex;
+    flex-wrap: wrap;
+}
+.series-thumb-btn {
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm, 8px);
+    background: #000;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.series-thumb-btn:hover {
+    border-color: rgba(255,255,255,0.3);
+}
+.series-thumb-btn.active {
+    border-color: var(--visor-accent);
+}
+
+/* Presets Bar */
+.series-thumb-btn .img-count {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: var(--md-blue-deep);
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: var(--radius-full);
+}
+
+/* Tool Grid (Right Sidebar) */
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    padding: 1rem;
+}
+
+.tool-grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0.5rem;
+    border: 1px solid var(--visor-border);
+    border-radius: var(--radius-md, 12px);
+    background: var(--visor-bg);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    color: var(--visor-text);
+}
+.tool-grid-item:hover { 
+    background: #ffffff; 
+    border-color: var(--md-cyan-ia);
+    box-shadow: var(--shadow-sm);
+}
+.tool-grid-item.active { 
+    border-color: var(--md-green-medical, #00b894); 
+    color: var(--md-green-medical, #00b894); 
+    background: rgba(0, 184, 148, 0.05);
+}
+.tool-grid-item[data-tool="borrar"] {
+    color: #e3342f;
+}
+.tool-grid-item[data-tool="borrar"]:hover {
+    background: #fdf2f2;
+    border-color: #e3342f;
+}
+
+/* Custom Sliders MedentIA Style */
+.medentia-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--md-gray-soft);
+    border-radius: 3px;
+    outline: none;
+    margin: 10px 0;
+}
+.medentia-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--visor-primary);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s;
+}
+.medentia-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: var(--md-cyan-ia);
+}
+
+/* Presets Bar */
+.presets-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem;
+    background: var(--visor-sidebar);
+    border-top: 1px solid var(--visor-border);
+    flex-wrap: wrap;
+}
+.preset-btn {
+    border-radius: 20px;
+    padding: 0.3rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid var(--visor-border);
+    background: #fff;
+    color: var(--visor-text);
+    transition: 0.2s;
+}
+.preset-btn:hover {
+    border-color: var(--visor-primary);
+    color: var(--visor-primary);
+    background: var(--visor-bg);
+}
+
+/* Footer */
+.visor-footer {
+    height: 35px;
+    background: var(--visor-sidebar);
+    border-top: 1px solid var(--visor-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    font-size: 0.75rem;
+    color: var(--md-text-secondary);
+}
+
+/* Scrollbar styling */
+.visor-sidebar-left ::-webkit-scrollbar,
+.visor-sidebar-right ::-webkit-scrollbar {
+    width: 6px;
+}
+.visor-sidebar-left ::-webkit-scrollbar-track,
+.visor-sidebar-right ::-webkit-scrollbar-track {
+    background: transparent;
+}
+.visor-sidebar-left ::-webkit-scrollbar-thumb,
+.visor-sidebar-right ::-webkit-scrollbar-thumb {
+    background-color: var(--visor-border);
+    border-radius: 10px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 991px) {
+    .visor-sidebar-left, .visor-sidebar-right { display: none; }
+    
+    .canvas-container {
+        margin: 0;
+        border-radius: 0;
+    }
+    
+    .visor-toolbar { 
+        padding: 0.5rem;
+    }
+    
+    .visor-mobile-nav {
+        display: flex;
+        height: 60px;
+        background: var(--visor-sidebar);
+        border-top: 1px solid var(--visor-border);
+    }
+    
+    .mobile-nav-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+        color: var(--md-text-secondary);
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+    .mobile-nav-btn.active { color: var(--visor-primary); font-weight: bold; }
+    .mobile-nav-btn i { font-size: 1.2rem; }
+    
+    .visor-footer { display: none; }
+}
+@media (min-width: 992px) {
+    .visor-mobile-nav { display: none; }
+}
+
+/* --- Reglas de Impresión --- */
+@media print {
+    body { background: white !important; }
+    .visor-layout, .visor-mobile-nav, .modal { display: none !important; }
+    #print-template { display: block !important; position: absolute; top: 0; left: 0; width: 100%; z-index: 9999; background: white; color: black; font-family: sans-serif; padding: 20px; }
+}
+
+#series-thumbnails-container::-webkit-scrollbar { display: none; }
+

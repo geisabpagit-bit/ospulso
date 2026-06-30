@@ -1,0 +1,4 @@
+# Formato: CLAVE_SUBMENU|ARCHIVO_DESTINO|TÍTULO|DESCRIPCIÓN|ICONO_BS|COLOR_BS
+# Rutas actualizadas a v1.6.0 modular
+
+cat_config|views/manage_config.pl|Catálogos globales|Administración de datos Maestros y Tablas Generales.|bi-gear-fill|danger
