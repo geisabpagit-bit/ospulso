@@ -974,23 +974,20 @@ h1, h2, h3, h4, h5, .nav-link-react, .sidebar-nav-link, .btn-skeuo-raised {
 .navbar .logo-overlay-container {
     position: relative;
     z-index: 10005;
-    background: #ffffff !important;
-    padding: 8px 18px !important;
-    border-radius: 18px !important;
-    box-shadow: 0 10px 30px rgba(10, 42, 102, 0.15) !important;
-    border: 1px solid rgba(18, 74, 158, 0.08) !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    margin-top: -5px !important;
-    margin-bottom: -22px !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     text-decoration: none !important;
 }
 
 .navbar .logo-overlay-container:hover {
-    transform: translateY(2px) scale(1.03) !important;
-    box-shadow: 0 15px 35px rgba(10, 42, 102, 0.22) !important;
+    transform: scale(1.05) !important;
 }
 
 .navbar .menu {
