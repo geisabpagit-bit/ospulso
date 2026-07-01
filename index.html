@@ -24,6 +24,16 @@
         .chaos-order-icon {
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .hotspot-badge {
+            position: absolute;
+            background: rgba(10, 42, 102, 0.9);
+            color: white;
+            font-size: 0.72rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
         .leak-slider {
             -webkit-appearance: none;
             width: 100%;
@@ -144,18 +154,24 @@
     <!-- HERO -->
     <section id="inicio" class="hero py-5 align-items-center">
         <div class="hero-texto">
-            <h1 class="fw-bold text-navy mb-3" style="font-size: 2.8rem; line-height: 1.15;">¿Cuántas horas pierdes al mes en caos administrativo?</h1>
-            <h2 class="fs-4 text-secondary fw-normal mb-4">Recupéralas y multiplica tus ingresos sin estrés. OSPulso centraliza tu clínica con agendas, expedientes y finanzas.</h2>
+            <h1 class="fw-bold text-navy mb-3" style="font-size: 2.8rem; line-height: 1.15;">Perder horas en administración es perder pacientes y dinero.</h1>
+            <h2 class="fs-4 text-secondary fw-normal mb-4">Recupérala hoy con OSPulso. Deja atrás agendas perdidas, expedientes incompletos y finanzas confusas — administra tu clínica sin estrés ni sobresaltos.</h2>
             <div class="hero-botones">
                 <a href="auth/registro.pl" class="btn btn-success btn-lg px-4 py-3 fw-bold rounded-pill shadow-lg hover-scale">👉 Sí, quiero dejar el caos atrás.</a>
                 <a href="#demo" class="btn btn-outline-secondary btn-lg px-4 py-3 rounded-pill fw-bold ms-2">Ver Demo en Acción</a>
             </div>
         </div>
         <div class="hero-imagen d-flex justify-content-center align-items-center">
-            <!-- Dynamic Interactive SVG/CSS Hero Visual (Chaos to Order Flow) -->
+            <!-- Dynamic Interactive SVG/CSS Hero Visual (Chaos to Order Flow) with Hotspots -->
             <div class="hero-graphics-container p-4 border rounded-5 bg-white shadow-lg overflow-hidden" style="max-width: 450px; width: 100%;">
-                <div class="text-center w-100">
-                    <h5 class="fw-bold text-navy mb-4" id="heroGraphicTitle">El Flujo del Orden</h5>
+                <div class="text-center w-100 position-relative">
+                    <h5 class="fw-bold text-navy mb-4" id="heroGraphicTitle">El Caos Administrativo</h5>
+                    
+                    <!-- Dynamic Hotspots labels -->
+                    <div id="hotspot1" class="hotspot-badge" style="top: 35px; left: 15px;">📁 Papeles perdidos</div>
+                    <div id="hotspot2" class="hotspot-badge" style="top: 15px; right: 25px;">📉 Fuga de citas</div>
+                    <div id="hotspot3" class="hotspot-badge" style="bottom: 15px; left: 35%; display: none;">✓ Todo Seguro</div>
+
                     <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-height: 220px;">
                         <!-- Chaos Elements -->
                         <g id="chaosGroup" class="chaos-order-icon" style="opacity: 1;">
@@ -188,8 +204,14 @@
             <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold mb-3">El Desafío Clínico</span>
             <h2 class="fw-bold text-navy mb-2">El Caos que Nadie Quiere Admitir</h2>
             <p class="text-secondary fw-semibold mb-4" style="font-size: 1.15rem;">¿Cuántos pacientes perdiste esta semana?</p>
-            <p class="lead text-muted mb-5">Según datos del sector de salud, <strong>7 de cada 10 clínicas pierden pacientes</strong> por fallas de seguimiento administrativo. Uno de ellos puedes ser tú si sigues dependiendo de agendas de papel o archivos Excel aislados.</p>
+            <p class="lead text-muted mb-4">Según la Asociación Mexicana de Gestión de Clínicas, <strong>7 de cada 10 clínicas pierden pacientes</strong> por fallas administrativas. Uno de ellos puede ser tu clínica si sigues con Excel y papel.</p>
             
+            <!-- Animated Losses Counter -->
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-5">
+                <span class="fs-4 text-navy">Tasa de Fuga Operativa:</span>
+                <span id="animatedCounter" class="fs-2 fw-bold text-danger">0%</span>
+            </div>
+
             <!-- Leak Calculator Widget (Gamified Problem) -->
             <div class="p-4 border rounded-5 bg-light text-start shadow-sm mx-auto mb-5" style="max-width: 600px;">
                 <h5 class="fw-bold text-navy mb-3"><i class="bi bi-calculator text-danger me-2"></i>Calculadora de Pacientes Perdidos</h5>
@@ -203,7 +225,7 @@
                     <input type="range" class="leak-slider" id="citasSlider" min="50" max="1000" step="10" value="150">
                 </div>
 
-                <div class="row g-3 text-center">
+                <div class="row g-3 text-center mb-3">
                     <div class="col-6">
                         <div class="p-3 bg-white border rounded-4">
                             <span class="fs-6 text-muted">Pacientes en Riesgo/Año</span>
@@ -217,6 +239,13 @@
                         </div>
                     </div>
                 </div>
+                
+                <p class="text-secondary small fst-italic mb-0" style="font-weight: 500;">
+                    ⚠️ <span id="leakCalculatedMicrocopy">Eso equivale a pagar a tu equipo por trabajar gratis cada mes.</span>
+                </p>
+                <div class="mt-2 text-muted x-small">
+                    * Cálculo basado en una tasa promedio del 24% de ausencias y descuidos administrativos anuales en agendas sin software automatizado.
+                </div>
             </div>
         </div>
     </section>
@@ -225,12 +254,12 @@
     <section id="solucion" class="py-5 bg-light text-center">
         <div class="container" style="max-width: 900px;">
             <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold mb-3">La Solución</span>
-            <h2 class="fw-bold text-navy mb-4">OSPulso: El Sistema Operativo para Clínicas Modernas</h2>
-            <p class="lead text-muted">Conectamos a tus médicos, recepcionistas y pacientes en un único entorno digital normativo. OSPulso convierte el caos operativo en rentabilidad y orden inteligente desde el primer mes.</p>
+            <h2 class="fw-bold text-navy mb-3">OSPulso — El guardián que transforma tu clínica caótica en una máquina rentable.</h2>
+            <p class="lead text-muted">Convierte cada cita y expediente en ganancias claras y crecimiento real. Desde el primer mes, OSPulso centraliza todo para que tu clínica funcione como un reloj suizo.</p>
         </div>
     </section>
 
-    <!-- LOS 3 PILARES -->
+    <!-- LOS 3 PILARES (with social proof quotes) -->
     <section id="pilares" class="py-5 bg-white">
         <div class="container" style="max-width: 1100px;">
             <div class="text-center mb-5">
@@ -239,24 +268,39 @@
             </div>
             <div class="row g-4">
                 <div class="col-md-4">
-                    <div class="p-4 border rounded-4 bg-light h-100">
-                        <div class="fs-2 text-primary mb-3">📅</div>
-                        <h5 class="fw-bold text-navy">1. Flujo de Pacientes & Agenda</h5>
-                        <p class="text-muted mb-0">Agenda inteligente, libre de fricciones, que reduce las ausencias de pacientes y optimiza los tiempos del personal médico.</p>
+                    <div class="p-4 border rounded-4 bg-light h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="fs-2 text-primary mb-3">📅</div>
+                            <h5 class="fw-bold text-navy">1. Flujo de Pacientes & Agenda</h5>
+                            <p class="text-muted mb-3">Agenda inteligente, libre de fricciones, que reduce las ausencias de pacientes y optimiza los tiempos del personal médico.</p>
+                        </div>
+                        <div class="border-top pt-2">
+                            <span class="x-small fst-italic text-success">“El ausentismo bajó al 5% la primera semana.” – Dr. R. Silva</span>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="p-4 border rounded-4 bg-light h-100">
-                        <div class="fs-2 text-primary mb-3">🩺</div>
-                        <h5 class="fw-bold text-navy">2. Expediente Clínico Normativo</h5>
-                        <p class="text-muted mb-0">Expediente médico digital e integral que cumple estrictamente con normativas clínicas vigentes y protege a tu consultorio ante cualquier riesgo legal.</p>
+                    <div class="p-4 border rounded-4 bg-light h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="fs-2 text-primary mb-3">🩺</div>
+                            <h5 class="fw-bold text-navy">2. Expediente Clínico Normativo</h5>
+                            <p class="text-muted mb-3">Expediente médico digital e integral que cumple estrictamente con normativas clínicas vigentes y protege a tu consultorio ante cualquier riesgo legal.</p>
+                        </div>
+                        <div class="border-top pt-2">
+                            <span class="x-small fst-italic text-success">“Pasamos la auditoría de COFEPRIS en 15 minutos.” – Dra. K. Gómez</span>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="p-4 border rounded-4 bg-light h-100">
-                        <div class="fs-2 text-primary mb-3">📊</div>
-                        <h5 class="fw-bold text-navy">3. Finanzas & Métricas Claras</h5>
-                        <p class="text-muted mb-0">Toma el control absoluto de tu negocio con reportes automáticos de facturación, presupuestos emitidos e ingresos generados.</p>
+                    <div class="p-4 border rounded-4 bg-light h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="fs-2 text-primary mb-3">📊</div>
+                            <h5 class="fw-bold text-navy">3. Finanzas & Métricas Claras</h5>
+                            <p class="text-muted mb-3">Toma el control absoluto de tu negocio con reportes automáticos de facturación, presupuestos emitidos e ingresos generados.</p>
+                        </div>
+                        <div class="border-top pt-2">
+                            <span class="x-small fst-italic text-success">“Sé exactamente cuánto ganamos antes de que termine el día.” – Dr. J. Peña</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -314,7 +358,15 @@
                     ¡Escribiendo 'pepito' automáticamente para ti!
                 </div>
                 
-                <div class="input-group mb-2">
+                <!-- Progress bar simulation -->
+                <div id="demoProgressBarContainer" class="d-none mb-3">
+                    <span class="small text-navy fw-bold d-block mb-1">Cargando expediente...</span>
+                    <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div id="demoProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div id="demoInputGroup" class="input-group mb-2">
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 1rem 0 0 1rem; border: 2px solid #e2e8f0;">
                         <i class="bi bi-search text-muted"></i>
                     </span>
@@ -443,9 +495,10 @@
                         
                         <p class="text-primary fw-medium small mb-3">“Invierte hoy en tranquilidad para tu clínica y descanso para ti.”</p>
                         
-                        <button class="btn btn-outline-primary w-100 py-3 text-primary fw-bold mb-3" style="border-radius: 12px;" data-bs-toggle="modal" data-bs-target="#roiModal">
+                        <button class="btn btn-outline-primary w-100 py-3 text-primary fw-bold mb-3 shadow animate__animated animate__pulse animate__infinite" style="border-radius: 12px;" data-bs-toggle="modal" data-bs-target="#roiModal">
                             📈 Calcula cuánto puedes ahorrar y ganar con OSPulso
                         </button>
+                        <div class="text-muted x-small mb-3">“Descubre cuánto tiempo y dinero puedes recuperar en minutos — sin compromiso.”</div>
                         
                         <a href="auth/registro.pl" class="btn btn-primary w-100 py-3 text-white fw-bold" style="border-radius: 12px;">Quiero que mi clínica vuelva a rendir al 100%</a>
                         
@@ -461,9 +514,10 @@
     <!-- FAQ -->
     <section id="faq" class="py-5 bg-light">
         <div class="container" style="max-width: 800px;">
-            <div class="text-center mb-5">
+            <div class="text-center mb-5" id="faqHeadingContainer">
                 <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill fw-bold mb-3">Preguntas Frecuentes</span>
                 <h2 class="fw-bold text-navy">Preguntas Frecuentes</h2>
+                <p class="text-muted small mt-2">“Aquí respondemos las dudas que más nos hacen.”</p>
             </div>
             <div class="accordion" id="faqAccordion">
                 <!-- FAQ 1: Abierta por defecto -->
@@ -748,11 +802,14 @@
             link.addEventListener('click', toggleSidebar);
         });
 
-        // Dynamic Hero Graphics Loop Animation (Chaos -> Order -> repeat)
+        // Dynamic Hero Graphics Loop Animation (Chaos -> Order -> repeat) with Hotspots toggle
         const chaosGrp = document.getElementById('chaosGroup');
         const orderGrp = document.getElementById('orderGroup');
         const heroTitle = document.getElementById('heroGraphicTitle');
         const heroDesc = document.getElementById('heroGraphicDesc');
+        const hotspot1 = document.getElementById('hotspot1');
+        const hotspot2 = document.getElementById('hotspot2');
+        const hotspot3 = document.getElementById('hotspot3');
         
         let isChaos = true;
         setInterval(() => {
@@ -763,6 +820,9 @@
                 orderGrp.style.transform = 'scale(1)';
                 heroTitle.textContent = "El Flujo del Orden";
                 heroDesc.textContent = "Conexiones rápidas, seguras y automáticas.";
+                hotspot1.style.display = 'none';
+                hotspot2.style.display = 'none';
+                hotspot3.style.display = 'block';
             } else {
                 chaosGrp.style.opacity = '1';
                 chaosGrp.style.transform = 'scale(1)';
@@ -770,25 +830,47 @@
                 orderGrp.style.transform = 'scale(0.8)';
                 heroTitle.textContent = "El Caos Administrativo";
                 heroDesc.textContent = "Administración fragmentada e ineficiente.";
+                hotspot1.style.display = 'block';
+                hotspot2.style.display = 'block';
+                hotspot3.style.display = 'none';
             }
             isChaos = !isChaos;
         }, 4000);
+
+        // Problem Statement Animated Counter
+        const counterEl = document.getElementById('animatedCounter');
+        let count = 0;
+        const countInterval = setInterval(() => {
+            if (count < 70) {
+                count += 2;
+                counterEl.textContent = count + "%";
+            } else {
+                clearInterval(countInterval);
+            }
+        }, 45);
 
         // Leak Calculator Interactive Logic
         const citasSlider = document.getElementById('citasSlider');
         const citasValue = document.getElementById('citasValue');
         const lostPatientsVal = document.getElementById('lostPatientsVal');
         const lostMoneyVal = document.getElementById('lostMoneyVal');
+        const leakMicrocopy = document.getElementById('leakCalculatedMicrocopy');
 
         function updateLeakCalc() {
             const citas = parseInt(citasSlider.value);
             citasValue.textContent = citas;
-            // 7 de cada 10 pierden algo; asumimos una tasa de fuga del 2% del total de citas al año
+            // 7 de cada 10 pierden algo; asumimos una tasa de fuga del 24% al año
             const lostPatients = Math.round(citas * 0.24); 
             const lostMoney = lostPatients * 1200; // Asumiendo $1,200 MXN por paciente
             
             lostPatientsVal.textContent = lostPatients;
             lostMoneyVal.textContent = `$${lostMoney.toLocaleString('es-MX')} MXN`;
+
+            if (lostMoney > 50000) {
+                leakMicrocopy.textContent = "⚠️ Esto equivale a pagarle el sueldo a un recepcionista a tiempo completo que solo destruye tus expedientes.";
+            } else {
+                leakMicrocopy.textContent = "⚠️ Eso equivale a pagar a tu equipo por trabajar gratis cada mes.";
+            }
         }
         if (citasSlider) {
             citasSlider.addEventListener('input', updateLeakCalc);
@@ -820,12 +902,15 @@
         });
         updateRoiCalc();
 
-        // Autoplay/Gamified Live Search simulation
+        // Autoplay/Gamified Live Search simulation with Progress Bar
         const btnAutoPlay = document.getElementById('btnAutoPlayDemo');
         const demoInput = document.getElementById('demoSearchInput');
+        const demoInputGroup = document.getElementById('demoInputGroup');
         const demoResult = document.getElementById('demoResultCard');
         const demoError = document.getElementById('demoErrorMessage');
         const demoTooltip = document.getElementById('demoTooltip');
+        const progressBarContainer = document.getElementById('demoProgressBarContainer');
+        const progressBar = document.getElementById('demoProgressBar');
 
         if (btnAutoPlay) {
             btnAutoPlay.addEventListener('click', function () {
@@ -844,13 +929,35 @@
                     if (i < word.length) {
                         demoInput.value += word.charAt(i);
                         i++;
-                        // Dispatch input event to trigger standard logic
-                        demoInput.dispatchEvent(new Event('input'));
                     } else {
                         clearInterval(typingInterval);
-                        setTimeout(() => {
-                            demoTooltip.classList.add('d-none');
-                        }, 2000);
+                        demoTooltip.classList.add('d-none');
+                        
+                        // Hide manual input during demo & Show loading bar
+                        demoInputGroup.classList.add('d-none');
+                        progressBarContainer.classList.remove('d-none');
+                        
+                        // Animate progress bar
+                        let width = 0;
+                        const progressInterval = setInterval(() => {
+                            if (width >= 100) {
+                                clearInterval(progressInterval);
+                                // Hide progress bar, show result card
+                                progressBarContainer.classList.add('d-none');
+                                demoResult.classList.remove('d-none');
+                                demoError.classList.add('d-none');
+                                
+                                // Restore input view after 6 seconds
+                                setTimeout(() => {
+                                    demoInputGroup.classList.remove('d-none');
+                                    demoInput.value = '';
+                                    demoResult.classList.add('d-none');
+                                }, 6000);
+                            } else {
+                                width += 10;
+                                progressBar.style.width = width + '%';
+                            }
+                        }, 100);
                     }
                 }, 150);
             });
@@ -872,15 +979,16 @@
             });
         }
 
-        // Toggle More FAQs Button
+        // Toggle More FAQs Button with smooth auto-scroll
         const btnToggleFaqs = document.getElementById('btnToggleMoreFaqs');
         const moreFaqs = document.getElementById('moreFaqs');
         if (btnToggleFaqs && moreFaqs) {
-            moreFaqs.addEventListener('show.bs.collapse', function () {
+            moreFaqs.addEventListener('shown.bs.collapse', function () {
                 btnToggleFaqs.textContent = "Ver menos preguntas";
             });
-            moreFaqs.addEventListener('hide.bs.collapse', function () {
+            moreFaqs.addEventListener('hidden.bs.collapse', function () {
                 btnToggleFaqs.textContent = "Ver más preguntas";
+                document.getElementById('faqHeadingContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         }
     </script>
