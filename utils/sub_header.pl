@@ -82,8 +82,8 @@ HTML
                     <div class="d-flex align-items-center justify-content-center" style="text-shadow: 0 2px 4px rgba(10, 42, 102, 0.15);">
                         <span style="color: var(--md-blue-deep);">Os</span><span style="color: var(--md-green-medical);">Pulso</span>
                     </div>
-                    <svg class="ekg-pulse animate__animated animate__pulse animate__infinite animate__slower" viewBox="0 0 100 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 170px; height: 12px; margin-top: -2px;">
-                        <path d="M0 10H55L60 3L67 17L73 1L78 13L82 10H100" stroke="var(--md-green-medical)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                    <svg class="ekg-pulse animate__animated animate__pulse animate__infinite animate__slower" viewBox="0 0 100 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 190px; height: 12px; margin-top: -8px;">
+                        <path d="M0 10H75L78 3L83 17L87 1L90 13L92 10H100" stroke="var(--md-green-medical)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </a>
                 
