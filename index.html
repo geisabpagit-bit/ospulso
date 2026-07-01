@@ -628,20 +628,20 @@
                 <div class="modal-body p-4">
                     <form action="auth/login.pl" method="POST" id="premiumLoginForm">
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="floatingEmail" name="h_correo"
+                            <input type="email" class="form-control" id="email" name="h_correo"
                                 placeholder="nombre@clinica.com" autocomplete="email" required
                                 style="border: 2px solid #e2e8f0; border-radius: 1.25rem;">
-                            <label for="floatingEmail"><i class="bi bi-envelope me-2"></i>Correo electrónico</label>
-                            <div id="emailServerMsg" class="small mt-1 px-1"></div>
+                            <label for="email"><i class="bi bi-envelope me-2"></i>Correo electrónico</label>
+                            <div id="emailFeedback" class="form-text mt-1 text-muted">Ingresa tu correo para verificar la cuenta.</div>
                         </div>
 
                         <div class="form-floating mb-3 position-relative">
-                            <input type="password" class="form-control" id="floatingPassword" name="h_password"
+                            <input type="password" class="form-control" id="password" name="h_password"
                                 placeholder="Contraseña" autocomplete="current-password" required
                                 style="border: 2px solid #e2e8f0; border-radius: 1.25rem; padding-right: 3.5rem;">
-                            <label for="floatingPassword"><i class="bi bi-key-fill me-2"></i>Contraseña</label>
+                            <label for="password"><i class="bi bi-key-fill me-2"></i>Contraseña</label>
                             <button type="button" class="btn btn-outline-secondary position-absolute end-0 top-50 translate-middle-y border-0 me-2"
-                                id="togglePasswordBtn" style="border-radius: 50%; width: 2.5rem; height: 2.5rem; z-index: 10;">
+                                id="togglePassword" style="border-radius: 50%; width: 2.5rem; height: 2.5rem; z-index: 10;">
                                 <i class="bi bi-eye-slash-fill" id="eyeIcon"></i>
                             </button>
                         </div>
@@ -690,21 +690,22 @@
                     <p class="text-navy-50 small mb-4">
                         Ingresa el correo electrónico asociado a tu cuenta. Te enviaremos un enlace para restablecer tu contraseña.
                     </p>
-                    <form id="recoverPasswordForm">
+                    <form id="recoverForm">
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="recoveryEmail" name="h_correo_recuperacion"
+                            <input type="email" class="form-control" id="recoverEmail" name="h_correo_recuperacion"
                                 placeholder="name@example.com" autocomplete="email" required
                                 style="border: 2px solid #e2e8f0; border-radius: 1.25rem;">
-                            <label for="recoveryEmail"><i class="bi bi-envelope me-2"></i>Correo electrónico</label>
+                            <label for="recoverEmail"><i class="bi bi-envelope me-2"></i>Correo electrónico</label>
+                            <div id="emailValidationFeedback" class="form-text mt-1 text-muted">Ingresa tu correo para verificar la cuenta.</div>
                         </div>
-                        <div id="recoveryMessage" class="small mt-2 px-1"></div>
+                        <div id="recoverMessage" class="small mt-2 px-1"></div>
                     </form>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
                     <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal"
                         onclick="$('#loginModal').modal('show');"
                         style="border-radius: 1rem; font-weight: 600;">Cancelar</button>
-                    <button type="button" class="btn btn-primary px-4 py-2" id="btnRecoverPassword"
+                    <button type="button" class="btn btn-primary px-4 py-2" id="sendRecoveryLinkBtn" disabled
                         style="border-radius: 1rem; font-weight: 700; background: var(--md-blue-medical); border: none; box-shadow: 0 5px 15px rgba(18,74,158,0.2);">Enviar enlace</button>
                 </div>
             </div>
@@ -723,6 +724,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/indexLogic.js"></script>
+    <script src="js/validarCorreoLogin.js"></script>
+    <script src="js/loginScript.js"></script>
 
     <script>
         // Lógica Sidebar Móvil
