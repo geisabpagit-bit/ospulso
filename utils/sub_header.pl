@@ -78,11 +78,11 @@ HTML
             
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">
-                <a class="navbar-brand d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" href="../index.html" title="Inicio" style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.8rem; letter-spacing: -1.2px; line-height: 1;">
-                    <div class="d-flex align-items-center justify-content-center" style="text-shadow: 0 0 10px rgba(16, 185, 129, 0.35);">
+                <a class="navbar-brand d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" href="../index.html" title="Inicio" style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 2.2rem; letter-spacing: -1.5px; line-height: 0.95;">
+                    <div class="d-flex align-items-center justify-content-center" style="text-shadow: 0 3px 6px rgba(10, 42, 102, 0.22), 0 0 12px rgba(16, 185, 129, 0.4);">
                         <span style="color: var(--md-blue-deep);">Os</span><span style="color: var(--md-green-medical);">Pulso</span>
                     </div>
-                    <svg class="ekg-pulse animate__animated animate__pulse animate__infinite animate__slower" viewBox="0 0 100 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100px; height: 12px; margin-top: 2px;">
+                    <svg class="ekg-pulse animate__animated animate__pulse animate__infinite animate__slower" viewBox="0 0 100 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 120px; height: 12px; margin-top: -2px;">
                         <path d="M0 10H30L35 3L42 17L48 1L53 13L57 10H100" stroke="var(--md-green-medical)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.6));" />
                     </svg>
                 </a>
