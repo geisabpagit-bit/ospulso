@@ -24,12 +24,12 @@ print <<'HTML';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSPulso | Registro Diamond Edition</title>
+    <title>OSPulso | Registro de Clínica</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../css/ospulso_master.css" rel="stylesheet">
     <style>
-        /* Ajustes específicos para el Registro Diamond */
+        /* Ajustes específicos para el Registro OSPulso */
         .registration-container {
             max-width: 480px;
             width: 100%;
@@ -41,7 +41,7 @@ print <<'HTML';
                 padding: 0 10px !important;
             }
             .login-card {
-                border-radius: 1.5rem !important;
+                border-radius: 20px !important;
             }
             main {
                 padding-left: 5px !important;
@@ -50,8 +50,8 @@ print <<'HTML';
             }
         }
         .form-control:focus {
-            border-color: var(--md-green-medical);
-            box-shadow: 0 0 0 0.25rem rgba(0, 184, 148, 0.1);
+            border-color: #00C4C4;
+            box-shadow: 0 0 0 0.25rem rgba(0, 196, 196, 0.1);
         }
     </style>
 </head>
@@ -59,17 +59,23 @@ print <<'HTML';
 
     <!-- HEADER -->
     <header class="navbar navbar-expand-lg">
-        <div class="logo">
-            <img src="../img/logo_medentia.png" alt="MedentIA Logo" style="height: 38px;" onerror="this.onerror=null; this.style.display='none';" />
-            <span>MedentIA</span>
-        </div>
+        <a href="../index.html" class="logo text-decoration-none d-flex align-items-center justify-content-center" style="margin-bottom: -10px;">
+            <svg class="ospulso-logo-svg" viewBox="0 0 165 50" xmlns="http://www.w3.org/2000/svg" style="height: 55px; width: auto; overflow: visible;">
+                <text x="0" y="32" font-family="'Outfit', sans-serif" font-weight="900" font-size="28" letter-spacing="0.5">
+                    <tspan fill="#0A2A66">Os</tspan><tspan fill="#00C4C4">Pulso</tspan>
+                </text>
+                <path class="ekg-line-anim" d="M0 40 H115 L121 22 L128 42 L134 6 L141 34 L146 40 H160" stroke="#00C4C4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            </svg>
+            <span class="d-none d-md-inline-block text-secondary small border-start ps-3 ms-2 align-self-center py-1 fw-medium" style="font-size: 0.72rem; letter-spacing: 0.5px;">Sistema Operativo para Clínicas Modernas</span>
+        </a>
         <nav class="menu d-none d-lg-flex">
-            <a href="../index.html#inicio">Inicio</a>
-            <a href="../index.html#caracteristicas">Características</a>
-            <a href="../index.html#testimonios">Testimonios</a>
+            <a href="../index.html#inicio">Producto</a>
+            <a href="../index.html#problema">El Reto</a>
+            <a href="../index.html#demo">Demo Interactiva</a>
+            <a href="../index.html#planes">Planes</a>
         </nav>
         <div class="acciones d-none d-lg-flex">
-            <a href="../index.html#login" class="btn-outline">Iniciar Sesión</a>
+            <a href="../index.html" class="btn-outline">Iniciar Sesión</a>
             <a href="registro.pl" class="btn-primary">Regístrate</a>
         </div>
         <!-- Mobile Toggle -->
@@ -87,10 +93,11 @@ print <<'HTML';
         </div>
         <div class="sidebar-body">
             <div class="nav-links-container">
-                <a href="../index.html#inicio" class="sidebar-nav-link active">INICIO</a>
-                <a href="../index.html#caracteristicas" class="sidebar-nav-link">CARACTERÍSTICAS</a>
-                <a href="../index.html#testimonios" class="sidebar-nav-link">TESTIMONIOS</a>
-                <a href="../index.html#login" class="sidebar-nav-link">INICIAR SESIÓN</a>
+                <a href="../index.html#inicio" class="sidebar-nav-link active">Producto</a>
+                <a href="../index.html#problema" class="sidebar-nav-link">El Reto</a>
+                <a href="../index.html#demo" class="sidebar-nav-link">Demo Interactiva</a>
+                <a href="../index.html#planes" class="sidebar-nav-link">Planes</a>
+                <a href="../index.html" class="sidebar-nav-link">Iniciar Sesión</a>
             </div>
 
             <div class="sidebar-divider"></div>
@@ -104,26 +111,26 @@ print <<'HTML';
 
     <main class="flex-grow-1 d-flex align-items-center justify-content-center px-2 mt-5 pt-5">
         <div class="registration-container animate-entrance">
-            <div class="login-card shadow-premium border-0" style="border: 1px solid var(--md-green-medical) !important;">
+            <div class="login-card shadow-premium border-0" style="border-radius: 20px; overflow: hidden; border: 1px solid var(--md-green-medical) !important; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(25px);">
                 <div class="login-header-premium text-center">
-                    <div class="icon-pulse-container">
-                        <i class="bi bi-hospital-fill text-navy fs-2"></i>
+                    <div class="icon-pulse-container" style="background: rgba(0, 196, 196, 0.1); width: 60px; height: 60px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 15px;">
+                        <i class="bi bi-shield-check text-primary fs-3"></i>
                     </div>
-                    <h5 class="fw-bold text-navy mb-0">Crea tu Consultorio</h5>
-                    <p class="text-navy-50 small mb-0">Diamond Edition | Gestión Inteligente</p>
+                    <h5 class="fw-bold text-navy mb-1">Comienza con OSPulso</h5>
+                    <p class="text-navy-50 small mb-0">Menos administración. Más medicina.</p>
                 </div>
 
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form method="POST" action="../api/guardar_cliente.pl" id="formRegistro">
                         <div id="alertContainer"></div>
 
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="h_admin_nombre" name="h_admin_nombre" placeholder="Nombre" required>
+                            <input type="text" class="form-control" id="h_admin_nombre" name="h_admin_nombre" placeholder="Nombre" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
                             <label for="h_admin_nombre"><i class="bi bi-person-badge me-2"></i>Nombre del Especialista</label>
                         </div>
 
                         <div class="form-floating mb-2">
-                            <input type="email" class="form-control" id="h_admin_correo" name="h_admin_correo" placeholder="Email" required>
+                            <input type="email" class="form-control" id="h_admin_correo" name="h_admin_correo" placeholder="Email" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
                             <label for="h_admin_correo"><i class="bi bi-envelope-at me-2"></i>Correo Electrónico</label>
                         </div>
                         <div id="emailInfo" class="small mb-3 px-1" style="min-height: 20px;"></div>
@@ -131,19 +138,19 @@ print <<'HTML';
                         <div class="row g-2 mb-4">
                             <div class="col-6">
                                 <div class="form-floating">
-                                    <input type="password" class="form-control" id="h_admin_clave" name="h_admin_clave" placeholder="Clave" required>
+                                    <input type="password" class="form-control" id="h_admin_clave" name="h_admin_clave" placeholder="Clave" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
                                     <label for="h_admin_clave"><i class="bi bi-lock me-2"></i>Contraseña</label>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="form-floating">
-                                    <input type="password" class="form-control" id="h_admin_clave_confirm" name="h_admin_clave_confirm" placeholder="Confirma" required>
+                                    <input type="password" class="form-control" id="h_admin_clave_confirm" name="h_admin_clave_confirm" placeholder="Confirma" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
                                     <label for="h_admin_clave_confirm"><i class="bi bi-shield-check me-2"></i>Confirmar</label>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="p-3 bg-light rounded-4 mb-4" style="border: 1px dashed #cbd5e1;">
+                        <div class="p-3 bg-light rounded-4 mb-4" style="border-radius: 12px; border: 1px dashed #cbd5e1;">
                             <div class="form-check form-switch px-0 d-flex align-items-center justify-content-between">
                                 <label class="form-check-label fw-bold text-navy small" for="consent_calendar">
                                     <i class="bi bi-google me-2 text-primary"></i>Google Calendar Sync
@@ -156,8 +163,8 @@ print <<'HTML';
                             </div>
                         </div>
 
-                        <button type="submit" class="btn-medentia-action w-100 shadow-lg py-3">
-                            <i class="bi bi-rocket-takeoff-fill me-2"></i>Finalizar Registro
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-lg" style="border-radius: 12px; background: var(--md-blue-medical); border: none;">
+                            Quiero que mi clínica vuelva a rendir al 100%
                         </button>
                     </form>
                 </div>
@@ -165,8 +172,11 @@ print <<'HTML';
         </div>
     </main>
 
-    <footer class="text-center py-4">
-        <p class="text-navy-50 small mb-0 opacity-50">GEISABPA &copy; 2026 | Blindaje Diamante</p>
+    <!-- FOOTER -->
+    <footer style="background: rgba(232, 243, 255, 0.96) !important; backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important; color: var(--md-blue-deep) !important; padding: 2rem 0 !important; margin-top: auto; border-top: 1px solid rgba(10, 42, 102, 0.08) !important;">
+        <div class="container text-center">
+            <p class="mb-0 small fw-semibold">GEISABPA &copy; 2026 | OSPulso es una marca registrada de Plataformas Digitales de México.</p>
+        </div>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -212,6 +222,8 @@ print <<'HTML';
                     e.preventDefault();
                     alert('Las contraseñas no coinciden.');
                 }
+            });
+
             // Lógica Sidebar Móvil
             const openBtn = document.getElementById('openMobileMenu');
             const closeBtn = document.getElementById('closeMobileMenu');
