@@ -78,12 +78,12 @@ HTML
             
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">
-                <a class="navbar-brand d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" href="../index.html" title="Inicio" style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 2.6rem; letter-spacing: 0.5px; line-height: 0.95;">
-                    <div class="d-flex align-items-center justify-content-center" style="text-shadow: 0 2px 4px rgba(10, 42, 102, 0.15);">
-                        <span style="color: var(--md-blue-deep);">Os</span><span style="color: var(--md-green-medical);">Pulso</span>
-                    </div>
-                    <svg class="ekg-pulse animate__animated animate__pulse animate__infinite animate__slower" viewBox="0 0 100 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 190px; height: 12px; margin-top: -8px;">
-                        <path d="M0 10H75L78 3L83 17L87 1L90 13L92 10H100" stroke="var(--md-green-medical)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                <a class="navbar-brand d-flex align-items-center justify-content-center m-0 text-decoration-none" href="../index.html" title="Inicio" style="margin-bottom: -10px;">
+                    <svg class="ospulso-logo-svg" viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg" style="height: 55px; width: auto; overflow: visible;">
+                        <text x="0" y="32" font-family="'Outfit', sans-serif" font-weight="900" font-size="28" letter-spacing="0.5">
+                            <tspan fill="#0A2A66">Os</tspan><tspan fill="#10b981">Pulso</tspan>
+                        </text>
+                        <path class="ekg-line-anim" d="M0 40 H115 L121 22 L128 42 L134 6 L141 34 L146 40 H200" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
                     </svg>
                 </a>
                 
