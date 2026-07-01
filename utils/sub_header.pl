@@ -78,8 +78,8 @@ HTML
             
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">
-                <a class="navbar-brand d-flex align-items-center gap-2 m-0" href="../index.html" title="Inicio">
-                    <img src="../imgs/logoOspulsoV.png" alt="OSPulso Logo" style="height: 52px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.style.display='none';">
+                <a class="navbar-brand d-flex align-items-center gap-2 m-0 text-decoration-none" href="../index.html" title="Inicio" style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.8rem; letter-spacing: -0.5px; line-height: 1;">
+                    <span style="color: var(--md-blue-deep);">Os</span><span style="color: var(--md-green-medical);">Pulso</span>
                 </a>
                 
                 <a href="pacientes.pl" class="d-flex align-items-center nav-link-item text-decoration-none">
