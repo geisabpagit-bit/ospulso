@@ -45,7 +45,7 @@ print $q->header(-type => 'text/html', -charset => 'UTF-8');
 render_header(
     usuario     => $usuario, 
     role        => $role, 
-    titulo      => "Directorio Clínico - SDM",
+    titulo      => "Directorio Clínico - OSPulso",
     skip_header => 1
 );
 
@@ -151,7 +151,7 @@ print <<'HTML';
 
 
 <!-- Offcanvas de Resumen Responsivo -->
-<div class="offcanvas offcanvas-end shadow-lg border-0" tabindex="-1" id="expedienteCanvas" style="max-width: 100%; width: 550px; border-left: 4px solid #19B7A5 !important;">
+<div class="offcanvas offcanvas-end shadow-lg border-0" tabindex="-1" id="expedienteCanvas" style="max-width: 100%; width: 550px; border-left: 4px solid var(--md-blue-deep) !important; border-top-left-radius: 20px; border-bottom-left-radius: 20px;">
   <div class="offcanvas-header border-bottom bg-light">
     <h5 class="fw-black m-0 plus-jakarta"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Resumen de Expediente</h5>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
@@ -334,9 +334,24 @@ print <<'HTML';
     });
 
     function confirmBorrar(id) {
-        if(confirm("¿Seguro que desea eliminar al paciente ID " + id + "?")) { 
-            window.location.href = 'pacientes.pl?delete_id=' + id; 
-        }
+        Swal.fire({
+            title: '¿Eliminar paciente?',
+            text: "Esta acción no se puede deshacer y borrará permanentemente sus datos.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#486581',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            background: '#ffffff',
+            customClass: {
+                popup: 'rounded-4 shadow-lg'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'pacientes.pl?delete_id=' + id;
+            }
+        });
     }
 </script>
 HTML
