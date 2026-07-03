@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 use CGI;
-use JSON qw(encode_json decode_json);
+use JSON::PP;
 use FindBin;
 use File::Spec;
 use lib "$FindBin::Bin/..";
@@ -18,7 +18,7 @@ my $session_data = check_session($q);
 print $q->header(-type => 'application/json; charset=UTF-8');
 
 unless ($session_data->{session_ok}) {
-    print encode_json({ ok => JSON::false, msg => 'Sesión expirada' });
+    print JSON::PP->new->utf8(0)->encode({ ok => JSON::PP::false, msg => 'Sesión expirada' });
     exit;
 }
 
@@ -28,25 +28,27 @@ my $id_medico   = $session_data->{id_medico} || $q->param('id_medico') || 'DOC-0
 my $step        = $q->param('current_step') || 0;
 
 if (!$id_paciente) {
-    print encode_json({ ok => JSON::false, msg => 'Falta id_paciente' });
+    print JSON::PP->new->utf8(0)->encode({ ok => JSON::PP::false, msg => 'Falta id_paciente' });
     exit;
 }
 
 # Recopilar todos los parámetros en un payload
 my %payload;
 foreach my $p ($q->param) {
-    $payload{$p} = $q->param($p);
+    my $val = $q->param($p);
+    utf8::decode($val) if !utf8::is_utf8($val);
+    $payload{$p} = $val;
 }
 # Decodificar medicamentos_json si existe
 if ($payload{medicamentos_json}) {
-    eval { $payload{medicamentos} = decode_json($payload{medicamentos_json}); };
+    eval { $payload{medicamentos} = JSON::PP->new->utf8(0)->decode($payload{medicamentos_json}); };
 }
 
 my $draft_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consulta_draft.dat');
 
 # Estructura del draft: id_draft|id_paciente|id_cita|id_medico|current_step|payload_json|timestamp
 my $id_draft = "DRAFT-$id_paciente"; 
-my $json_str = encode_json(\%payload);
+my $json_str = JSON::PP->new->utf8(1)->encode(\%payload);
 $json_str =~ s/\r|\n/\\n/g; # Escapar saltos de línea
 my $now = time();
 
@@ -81,8 +83,8 @@ if (!$encontrado) {
 
 utils::db_manager::actualizar_archivo($draft_file, $cabecera, \@nuevas_lineas);
 
-print encode_json({
-    ok => JSON::true,
+print JSON::PP->new->utf8(0)->encode({
+    ok => JSON::PP::true,
     msg => 'Borrador guardado',
     step => $step,
     timestamp => scalar localtime
