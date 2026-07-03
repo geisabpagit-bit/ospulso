@@ -9,11 +9,11 @@
     --visor-toolbar-height: 60px;
     
     /* Variables de Herencia MedentIA */
-    --visor-bg: var(--bg-main, #F8FBFF);
-    --visor-border: var(--border-color, #D9E2EC);
-    --visor-text: var(--md-text-primary, #102A43);
-    --visor-sidebar: #ffffff;
-    --visor-primary: var(--primary, #0A2A66);
+    --visor-bg: #0f172a; /* Slate 900 */
+    --visor-border: #1e293b; /* Slate 800 */
+    --visor-text: #f8fafc; /* Slate 50 */
+    --visor-sidebar: #020617; /* Slate 950 */
+    --visor-primary: var(--md-cyan-ia);
     --visor-canvas-bg: #000000; /* Siempre negro para diagnostico */
 }
 
@@ -62,34 +62,34 @@ body.visor-mode {
     flex-direction: column;
     z-index: 10;
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    background-color: var(--md-aqua-soft, #f0fdfa);
+    background-color: var(--visor-sidebar);
 }
 .visor-sidebar-left {
-    border-right: 2px solid var(--md-teal-border, #5eead4);
-    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+    border-right: 1px solid var(--visor-border);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
 }
 .visor-sidebar-right {
     border-right: none;
-    border-left: 2px solid var(--md-teal-border, #5eead4);
+    border-left: 1px solid var(--visor-border);
     overflow: hidden;
-    box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+    box-shadow: -2px 0 10px rgba(0,0,0,0.2);
 }
 .visor-sidebar-left h6,
 .visor-sidebar-right h6 {
-    color: var(--md-teal-dark, #115e59) !important;
-    font-family: 'Poppins', sans-serif;
+    color: var(--md-cyan-ia) !important;
+    font-family: var(--font-primary, sans-serif);
 }
 .visor-sidebar-left .btn-outline-secondary,
 .visor-sidebar-right .btn-outline-secondary {
-    color: var(--md-teal-dark, #115e59);
-    border-color: var(--md-teal-border, #5eead4);
-    background-color: #fff;
+    color: var(--md-cyan-ia);
+    border-color: var(--visor-border);
+    background-color: transparent;
     transition: all 0.2s ease;
 }
 .visor-sidebar-left .btn-outline-secondary:hover, .visor-sidebar-left .btn-outline-secondary.active,
 .visor-sidebar-right .btn-outline-secondary:hover, .visor-sidebar-right .btn-outline-secondary.active {
-    background-color: var(--md-teal-border, #5eead4);
-    color: var(--md-teal-dark, #115e59);
+    background-color: var(--md-cyan-ia);
+    color: #000;
 }
 
 .visor-sidebar-left.collapsed {
@@ -141,7 +141,7 @@ body.visor-mode {
     align-items: center;
     justify-content: center;
     border: 1px solid transparent;
-    border-radius: var(--radius-md, 8px);
+    border-radius: var(--radius-md, 12px);
     background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
     cursor: pointer;
@@ -180,7 +180,7 @@ body.visor-mode {
     justify-content: center;
     overflow: hidden;
     background-color: var(--visor-canvas-bg);
-    border-radius: var(--radius-md, 12px);
+    border-radius: var(--radius-lg, 20px);
     margin: 1rem;
     box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
 }
@@ -255,14 +255,14 @@ body.visor-mode {
     color: var(--visor-text);
 }
 .tool-grid-item:hover { 
-    background: #ffffff; 
+    background: var(--visor-sidebar); 
     border-color: var(--md-cyan-ia);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 0 10px rgba(24, 209, 230, 0.2);
 }
 .tool-grid-item.active { 
-    border-color: var(--md-green-medical, #00b894); 
-    color: var(--md-green-medical, #00b894); 
-    background: rgba(0, 184, 148, 0.05);
+    border-color: var(--md-cyan-ia); 
+    color: var(--md-cyan-ia); 
+    background: rgba(24, 209, 230, 0.1);
 }
 .tool-grid-item[data-tool="borrar"] {
     color: #e3342f;
