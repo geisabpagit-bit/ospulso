@@ -1,0 +1,8 @@
+id_cita|id_medico|id_paciente|fecha|hora_ini|hora_fin|motivo|notas|estado|event_id
+1001|2|22|2026-05-03|10:00|11:00|Limpieza Profunda||Realizada|ev1
+1002|2|23|2026-05-04|11:00|12:00|Extracción||Realizada|ev2
+1003|2|24|2026-05-05|09:00|10:00|Valoración inicial||Confirmada|ev3
+1004|2|9999|2026-05-05|13:00|14:00|Revisión de brackets||Programada|ev4
+1005|2|22|2026-05-06|10:00|11:00|Tratamiento de conducto||Programada|ev5
+1006|2|23|2026-05-08|15:00|16:00|Blanqueamiento||Programada|ev6
+1007|2|24|2026-05-12|11:00|12:00|Cita de seguimiento||Programada|ev7

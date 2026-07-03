@@ -1694,6 +1694,17 @@ const VisorApp = {
 
 
 
+    limpiarVisorContext: function() {
+        if(this.cornerstoneElement) {
+            cornerstone.disable(this.cornerstoneElement);
+            this.cornerstoneElement.innerHTML = '';
+            cornerstone.enable(this.cornerstoneElement);
+        }
+        $('#info-paciente').text('');
+        $('#info-estudio').text('');
+        $('#info-fecha').text('');
+    },
+
     eliminarEstudioVisor: function(id) {
         console.log("[DEBUG] eliminarEstudioVisor invocado para id:", id);
         if (!id) {
@@ -1716,7 +1727,8 @@ cancelButtonText: 'Cancelar'
                     console.log("[DEBUG] Respuesta server delete_estudio:", res.data);
                     if(res.data.ok) {
                         Swal.fire('Eliminado', 'El estudio ha sido borrado.', 'success').then(() => {
-                            location.reload();
+                            this.limpiarVisorContext();
+                            this.loadEstudios();
                         });
                     } else {
                         console.error("[DEBUG] Server devolvio error:", res.data.msg);
@@ -1762,11 +1774,13 @@ cancelButtonText: 'Cancelar'
                                         let firstImg = targetEstudio.imagenes[0].ruta.replace(/\\/g, '/');
                                         this.loadSerie(firstImg, null);
                                     } else {
-                                        location.reload();
+                                        this.limpiarVisorContext();
+                                        this.loadEstudios();
                                     }
                                 });
                             } else {
-                                location.reload();
+                                this.limpiarVisorContext();
+                                this.loadEstudios();
                             }
                         });
                     } else {

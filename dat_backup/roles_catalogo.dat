@@ -1,0 +1,6 @@
+# Formato: ROL|SUB_ENLACE_1|SUB_ENLACE_2|...
+# La clave ROL debe coincidir con los roles de usuarios.dat
+
+Administrador Global|cat_odontologos|cat_servicios|cat_clinicas|cat_config
+Soporte|cat_odontologos|cat_servicios|cat_config
+Tecnico Mantenimiento|cat_servicios|cat_config

@@ -116,7 +116,21 @@ function crearCita() {
                 console.log(resp.msg);
                 return;
             }
-            window.location.reload();
+            if (typeof loadContext === 'function') {
+                loadContext();
+            } else if (typeof renderGrid === 'function') {
+                renderGrid();
+            } else {
+                window.location.reload();
+            }
+            // Cerrar el modal de bootstrap
+            if (typeof bootstrap !== 'undefined') {
+                let modalEl = document.getElementById('modalCita');
+                if(modalEl) {
+                    let modal = bootstrap.Modal.getInstance(modalEl);
+                    if(modal) modal.hide();
+                }
+            }
         })
         .catch(() => mostrarError("Error de comunicación con el servidor"));
 }
@@ -137,7 +151,21 @@ function actualizarCita() {
                 console.log(resp.msg);
                 return;
             }
-            window.location.reload();
+            if (typeof loadContext === 'function') {
+                loadContext();
+            } else if (typeof renderGrid === 'function') {
+                renderGrid();
+            } else {
+                window.location.reload();
+            }
+            // Cerrar el modal de bootstrap
+            if (typeof bootstrap !== 'undefined') {
+                let modalEl = document.getElementById('modalCita');
+                if(modalEl) {
+                    let modal = bootstrap.Modal.getInstance(modalEl);
+                    if(modal) modal.hide();
+                }
+            }
         })
         .catch(() => mostrarError("Error de comunicación con el servidor"));
 }
@@ -150,7 +178,13 @@ window.eliminarCita = function(idCita) {
         .then(r => r.json())
         .then(data => {
             if (data.ok) {
-                location.reload();
+                if (typeof loadContext === 'function') {
+                    loadContext();
+                } else if (typeof renderGrid === 'function') {
+                    renderGrid();
+                } else {
+                    window.location.reload();
+                }
             } else {
                 alert("Error: " + data.msg);
             }

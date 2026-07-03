@@ -1,0 +1,15 @@
+# Formato: CLAVE_MENU|ARCHIVO_DESTINO|TÍTULO|DESCRIPCIÓN|ICONO_BS|COLOR_BS
+# NOTA: Rutas actualizadas a arquitectura modular v1.6.0
+
+dashboard|views/inicial.pl|Visión General|Resumen de citas y métricas.|bi-speedometer2|info|
+admin_global|views/admin_global.pl|Admin Global|Gestión de licencias y servidores.|bi-globe|info|
+clinicas|views/manage_clinicas.pl|Gestión de Clínicas|Agregar, modificar y desactivar sucursales.|bi-building-gear|info|
+usuarios|views/administracion_usuarios.pl|Gestión de Usuarios|Administrar el personal de la clínica.|bi-people-fill|info|
+reportes|views/reportes.pl|Reportes y Análisis|Generar informes financieros y de actividad.|bi-file-bar-chart|info|
+agenda|views/agenda_main.pl|Agenda Dinámica|Gestión interactiva SPA de todas las citas y calendarios.|bi-calendar-week|info|
+pacientes|views/pacientes.pl|Pacientes|PHI Acceso Información de Salud Protegida.|bi-clipboard-pulse|info|
+finanzas|views/estado_cuenta.pl|Finanzas|Procesar pagos y generar facturas.|bi-cash|info|
+mis_citas|views/mis_citas.pl|Mis Citas|Ver y gestionar citas personales.|bi-calendar-event|info|
+mi_historial|views/mi_expediente.pl|Mi Historial|Revisar historial médico personal.|bi-journal-medical|info|
+tecnico|views/administracion_catalogo.pl|Catálogos y Mantenimiento|Catálogos y mantenimiento del sistema.|bi-tools|info|
+sync_google|sync_google_handler.pl|Sincronización Google|Vincular o renovar acceso a Google Calendar.|bi-google|primary|

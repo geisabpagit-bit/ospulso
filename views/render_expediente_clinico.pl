@@ -688,8 +688,10 @@ HTML
                                 .then(res => {
                                     if(res.data.ok) {
                                         Swal.fire('Eliminado', 'El estudio ha sido borrado.', 'success').then(() => {
-                                            window.location.hash = '#tab7';
-                                            window.location.reload();
+                                            // Remove row locally instead of reload
+                                            let dt = $('#estudiosTable').DataTable();
+                                            let row = $('button[onclick="eliminarEstudio(\''+id+'\')"]').closest('tr');
+                                            if (row.length) dt.row(row).remove().draw();
                                         });
                                     } else {
                                         Swal.fire('Error', res.data.msg, 'error');
@@ -719,8 +721,8 @@ HTML
                                 .then(res => {
                                     if(res.data.ok) {
                                         Swal.fire('Actualizado', 'La descripción ha sido cambiada.', 'success').then(() => {
-                                            window.location.hash = '#tab7';
-                                            window.location.reload();
+                                            let td = $('button[onclick="editarEstudio(\''+id+'\', \''+descActual+'\')"]').closest('tr').find('td').eq(1);
+                                            if(td.length) td.text(result.value);
                                         });
                                     } else {
                                         Swal.fire('Error', res.data.msg, 'error');

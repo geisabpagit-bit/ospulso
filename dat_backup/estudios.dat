@@ -1,0 +1,5 @@
+id_estudio|id_paciente|fecha|modalidad|descripcion|ruta|size
+1|23|2026-05-01|RX|Radiografía de tórax|/estudios/23/rx_torax.png|245KB
+2|23|2026-05-03|MRI|Resonancia magnética cerebral|/estudios/23/mri_cerebro.dcm|3.2MB
+3|23|2026-05-05|CT|Tomografía abdominal|/estudios/23/ct_abdomen.dcm|5.8MB
+4|23|2026-05-07|US|Ultrasonido abdominal|/estudios/23/us_abdomen.jpg|1.1MB

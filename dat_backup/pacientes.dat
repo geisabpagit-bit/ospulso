@@ -1,0 +1,5 @@
+ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO
+22|2|Gerson Valencia Villegas|GEVV030219123|GEVV03021912312321|israel.garay@gmail.com|2003-02-09|Masculino|Estudiante||mexa|O+|5565439115|
+23|2|Abby Massiel Garay Villegas|GAVAM12060911|GAVAM1206091111111|pamela.villegas81@gmail.com|2012-06-08|Femenino|Estudiante|Soltero||A+|55-12345-5678|
+24|2|Isidro Benavides Martínez||123456789012345678|correo@gmail.com|1975-05-31|Masculino|maestro|Soltero|mex|B+|55-3142-2575|
+9999|2|José Álvarez|ÁLJ920101XX0|ÁLVJ920101HDFRRN09|jose.alvarez@example.com|
