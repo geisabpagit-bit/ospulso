@@ -305,8 +305,8 @@ sub render_expediente_completo {
                 </div>
             </div>
 
-            <div class="odontograma-container card-medentia-aura p-5 mb-4 overflow-auto border-0">
-                <div id="odontograma-svg-container" class="text-center">
+            <div class="odontograma-container card-medentia-aura p-5 mb-4 overflow-auto border-0" style="border-radius: 20px; overflow: hidden !important;">
+                <div id="odontograma-svg-container" class="text-center" style="min-width: 800px;">
                     <!-- El mapa dental se cargará aquí vía JS -->
                     <div class="py-5 text-muted opacity-50"><div class="spinner-border text-primary mb-3"></div><br>Iniciando Mapa Dental...</div>
                 </div>
@@ -992,10 +992,10 @@ HTML
             </div>
 
             <div class="soap-history">
-                <div class="soap-entry card-medentia-aura p-4 mb-4 border-0">
+                <div class="soap-entry card-medentia-aura p-4 mb-4 border-0 shadow-sm" style="border-radius: 20px;">
                     <span class="soap-date d-block fw-black mb-3" style="color: var(--md-teal-clinical); font-size: 1.1rem;">Sesion de Hoy - @{[scalar localtime]}</span>
                     <div class="row">
-                        <div class="col-md-6 border-end">
+                        <div class="col-md-6 border-md-end border-bottom border-md-bottom-0 pb-3 pb-md-0 mb-3 mb-md-0">
                             <p class="small text-muted fw-bold mb-1 uppercase">Subjetivo / Objetivo</p>
                             <p class="mb-0 fw-bold" style="color: var(--md-blue-deep);">Paciente refiere ligero dolor en pieza 14 al contacto con fr&iacute;o. Se observa caries grado II en cara oclusal.</p>
                         </div>
@@ -1005,7 +1005,7 @@ HTML
                         </div>
                     </div>
                 </div>
-                <div class="soap-entry card-medentia-aura p-4 mb-4 border-0 opacity-75 grayscale">
+                <div class="soap-entry card-medentia-aura p-4 mb-4 border-0 opacity-75 grayscale shadow-sm" style="border-radius: 20px;">
                     <span class="soap-date d-block fw-black mb-2" style="color: var(--md-teal-clinical); font-size: 1.1rem;">22/03/2026 - Consulta General</span>
                     <p class="mb-0 fw-bold" style="color: var(--md-blue-deep);">Limpieza dental profunda realizada con &eacute;xito. Enc&iacute;as sanas, se recomienda seguimiento en 6 meses.</p>
                 </div>
