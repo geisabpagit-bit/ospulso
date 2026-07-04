@@ -145,6 +145,7 @@ function renderSmartSlots(date) {
 
 $(document).ready(function() {
     initClock();
+    loadFormMetadata();
     loadContext();
     
     // Selector Duración (Diamond Edition Refactor)
@@ -214,6 +215,60 @@ function setupAutocomplete() {
 // Aliases para compatibilidad con versiones previas de citas.pl
 function navigateDate(offset) { moveDate(offset); }
 function navigateToday() { goToday(); }
+
+function loadFormMetadata() {
+    $.get('../api/citas_crud.pl', { accion: 'get_form_metadata' }, function(res) {
+        if (res.ok) {
+            const currentMedId = $("#f_medico").val() || '2';
+            
+            // Profesionales
+            if (res.medicos && res.medicos.length > 0) {
+                // Ordenar alfabéticamente
+                res.medicos.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                
+                const selMed = $("#f_medico_select");
+                selMed.empty();
+                
+                // Mover el current al inicio
+                let defaultMed = res.medicos.find(m => String(m.id) === String(currentMedId));
+                if (defaultMed) {
+                    selMed.append(`<option value="${defaultMed.id}" selected>${defaultMed.nombre} (Actual)</option>`);
+                }
+                
+                res.medicos.forEach(m => {
+                    if (String(m.id) !== String(currentMedId)) {
+                        selMed.append(`<option value="${m.id}">${m.nombre}</option>`);
+                    }
+                });
+            }
+            
+            // Sucursales
+            if (res.sucursales && res.sucursales.length > 0) {
+                const selSuc = $("#f_sucursal");
+                selSuc.empty();
+                res.sucursales.forEach(s => {
+                    let text = s.nombre;
+                    if (s.tipo === 'Matriz') text += ' (Matriz)';
+                    selSuc.append(`<option value="${s.id}">${text}</option>`);
+                });
+            }
+        }
+    });
+}
+
+function actualizarAgendaDestino() {
+    // Si la recepcionista cambia de médico al agendar, recargamos sus citas para colisiones
+    const destId = $("#f_medico_select").val();
+    if (!destId) return;
+    $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: destId }, function(res) {
+        if (res.ok) {
+            appointments = res.data;
+            // No sobreescribimos agendaConfig si queremos mantener las horas del médico original,
+            // pero si la jornada del otro es distinta, convendría sobreescribir. Por ahora actualizamos colisiones.
+            renderSlots($("#f_fecha").val());
+        }
+    });
+}
 
 function loadContext() {
     const idMed = $("#f_medico").val() || '2';
@@ -677,7 +732,10 @@ function renderMobileDayList() {
         const hi = a.start.split('T')[1].substring(0, 5);
         const hf = a.end.split('T')[1].substring(0, 5);
         const status = a.extendedProps.estado || 'Programada';
-        const color = status === 'Confirmada' ? '#10b981' : (status === 'Cancelada' ? '#ef4444' : '#103070');
+        let color = a.color;
+        if (!color) {
+            color = status === 'Confirmada' ? '#10b981' : (status === 'Cancelada' ? '#ef4444' : '#103070');
+        }
         
         const card = $(`
             <div class="mob-apt-card" style="border-left-color: ${color}" onclick="abrirModalCita('${a.id}')">
@@ -764,7 +822,7 @@ function saveCita() {
         return;
     }
 
-    const dataStr = f.serialize() + "&id_medico=" + $("#f_medico").val();
+    const dataStr = f.serialize();
     
     $.post('../api/citas_crud.pl', dataStr, function(res) {
         if (res && res.ok) { 
@@ -1130,6 +1188,9 @@ function abrirModalNuevaCita(f, h, idP, nomP) {
 
     $("#f_motivo").val(''); 
     $("#f_estado").val('Programada'); 
+    $("#f_prioridad").val('Normal');
+    $("#f_color").val('#3b82f6');
+    $("#f_consultorio").prop("selectedIndex", 0);
     renderSlots(targetF);
     const m = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCita'));
     m.show();
@@ -1149,6 +1210,12 @@ function abrirModalCita(id) {
     $("#f_hf").val(hf);
     $("#f_motivo").val(a.extendedProps.motivo); 
     $("#f_estado").val(a.extendedProps.estado || 'Programada'); 
+    if(a.color) $("#f_color").val(a.color); else $("#f_color").val('#3b82f6');
+    if(a.extendedProps.prioridad) $("#f_prioridad").val(a.extendedProps.prioridad); else $("#f_prioridad").val('Normal');
+    if(a.extendedProps.id_medico) $("#f_medico_select").val(a.extendedProps.id_medico);
+    if(a.extendedProps.sucursal) $("#f_sucursal").val(a.extendedProps.sucursal);
+    if(a.extendedProps.consultorio) $("#f_consultorio").val(a.extendedProps.consultorio);
+    
     $("#modalCitaTitle").text(`GESTIÓN DE CITAS / EDITAR CITA`);
 
     // Bloqueo de Paciente en modo Edición

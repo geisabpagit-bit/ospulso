@@ -101,6 +101,7 @@ if    ($accion eq 'create')     { crear_cita($citas, $q); }
 elsif ($accion eq 'update')     { actualizar_cita($citas, $q); }
 elsif ($accion eq 'delete')     { eliminar_cita($citas, $q); }
 elsif ($accion eq 'save_config') { guardar_config_medico($q); }
+elsif ($accion eq 'get_form_metadata') { obtener_metadatos_formulario($q); }
 elsif ($accion eq 'get_events') { enviar_eventos_oficial($citas); }
 
 # --- MOTOR DE PERSISTENCIA ---
@@ -120,7 +121,9 @@ sub cargar_citas {
                     id_cita => $f[0], id_medico => $f[1], id_paciente => $f[2], 
                     fecha => $f[3], hora_ini => $f[4], hora_fin => $f[5], 
                     motivo => $f[6] // '', notas => $f[7] // '', 
-                    estado => $f[8] // 'Programada', event_id => $f[9] // '' 
+                    estado => $f[8] // 'Programada', event_id => $f[9] // '',
+                    color => $f[10] // '', prioridad => $f[11] // 'Normal',
+                    sucursal => $f[12] // '', consultorio => $f[13] // ''
                 };
             }
             close $fh;
@@ -138,7 +141,8 @@ sub guardar_citas {
         print $fh join('|', 
             $c->{id_cita}, $c->{id_medico}, $c->{id_paciente}, $c->{fecha}, 
             $c->{hora_ini}, $c->{hora_fin}, $c->{motivo}, $c->{notas}, 
-            $c->{estado}, $c->{event_id}
+            $c->{estado}, $c->{event_id}, $c->{color}, $c->{prioridad},
+            $c->{sucursal}, $c->{consultorio}
         ) . "\n";
     }
     close $fh;
@@ -166,7 +170,9 @@ sub crear_cita {
     push @$arr, { 
         id_cita => time, id_medico => $id_m, id_paciente => $pac_id, 
         fecha => $fec, hora_ini => $hi, hora_fin => $hf, 
-        motivo => $query->param('motivo'), notas => '', estado => 'Programada', event_id => $gid // '' 
+        motivo => $query->param('motivo'), notas => '', estado => 'Programada', event_id => $gid // '',
+        color => $query->param('color') // '', prioridad => $query->param('prioridad') // 'Normal',
+        sucursal => $query->param('sucursal') // '', consultorio => $query->param('consultorio') // ''
     };
     
     guardar_citas($arr);
@@ -190,12 +196,16 @@ sub actualizar_cita {
         if ($c->{id_cita} eq $id_c) {
             my $pac_nom = obtener_nombre_paciente($query->param('id_paciente'));
             my $gid = google_sync_event($c->{event_id}, $id_m, $pac_nom, $fec, $hi, $hf, $query->param('motivo'));
-            
             $c->{fecha} = $fec; 
             $c->{hora_ini} = $hi; 
             $c->{hora_fin} = $hf; 
             $c->{motivo} = $query->param('motivo'); 
             $c->{estado} = $query->param('estado') // $c->{estado};
+            $c->{id_medico} = $query->param('id_medico') // $c->{id_medico};
+            $c->{color} = $query->param('color') // $c->{color};
+            $c->{prioridad} = $query->param('prioridad') // $c->{prioridad};
+            $c->{sucursal} = $query->param('sucursal') // $c->{sucursal};
+            $c->{consultorio} = $query->param('consultorio') // $c->{consultorio};
             $c->{event_id} = $gid if $gid;
             $found = 1; last;
         }
@@ -285,12 +295,16 @@ sub enviar_eventos_oficial {
             title => obtener_nombre_paciente($c->{id_paciente}),
             start => "$c->{fecha}T$c->{hora_ini}:00",
             end => "$c->{fecha}T$c->{hora_fin}:00",
+            color => $c->{color} || '#3b82f6', # Azul premium por defecto si no tiene
             extendedProps => {
                 id_paciente => $c->{id_paciente},
                 id_medico => $c->{id_medico},
                 motivo => $c->{motivo},
                 estado => $c->{estado},
-                event_id => $c->{event_id}
+                event_id => $c->{event_id},
+                prioridad => $c->{prioridad},
+                sucursal => $c->{sucursal},
+                consultorio => $c->{consultorio}
             }
         };
     }
@@ -475,5 +489,54 @@ sub responder_json {
     print "Content-Type: application/json; charset=UTF-8\n\n";
     binmode STDOUT, ":raw";
     print encode_json({ ok => $ok, msg => $msg }); exit;
+}
+
+sub obtener_metadatos_formulario {
+    my ($q) = @_;
+    my @medicos;
+    my @sucursales;
+    
+    # 1. Cargar Médicos
+    my $file_usu = "$dirname/../dat/usuarios.dat";
+    if (-e $file_usu && open my $fh, '<:encoding(UTF-8)', $file_usu) {
+        my $cnt = 0;
+        while (my $line = <$fh>) {
+            $cnt++;
+            $line =~ s/\R//g;
+            next if $cnt == 1 || $line =~ /^\s*$/;
+            my @f = split(/!/, $line);
+            next unless scalar(@f) >= 6;
+            if ($f[4] == 1 && $f[5] =~ /Medico/i) {
+                push @medicos, { id => $f[0], nombre => $f[1] };
+            }
+        }
+        close $fh;
+    }
+    
+    # 2. Cargar Sucursales (Matriz e Hijas)
+    my $file_neg = "$dirname/../dat/negocios.dat";
+    if (-e $file_neg && open my $fh, '<:encoding(UTF-8)', $file_neg) {
+        my $cnt = 0;
+        while (my $line = <$fh>) {
+            $cnt++;
+            $line =~ s/\R//g;
+            next if $cnt == 1 || $line =~ /^\s*$/;
+            my @f = split(/\|/, $line);
+            next unless scalar(@f) >= 3;
+            if ($f[3] == 1) { # Activo
+                my $tipo = ($f[2] == 0) ? "Matriz" : "Sucursal";
+                push @sucursales, { id => $f[0], nombre => $f[1], tipo => $tipo };
+            }
+        }
+        close $fh;
+    }
+    
+    my %res = (
+        ok => 1,
+        medicos => \@medicos,
+        sucursales => \@sucursales
+    );
+    print $q->header(-type => 'application/json', -charset => 'utf-8');
+    print to_json(\%res, { utf8 => 0 });
 }
 1;

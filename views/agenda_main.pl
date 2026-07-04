@@ -195,8 +195,12 @@ print <<HTML;
       .dur-bar-premium .btn { border-radius: 20px !important; margin: 0 2px; border: 1px solid rgba(59, 130, 246, 0.2) !important; background-color: #ffffff; color: #64748b; font-weight: 600; font-size: 0.75rem; transition: all 0.2s; }
       .dur-bar-premium .btn.active { background-color: var(--md-blue-medical) !important; color: #ffffff !important; border-color: var(--md-blue-medical) !important; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); transform: scale(1.05); z-index: 2; }
       .dur-bar-premium .btn:hover:not(.active) { background-color: #f0f7ff; color: #1e293b; }
-      #modalCita .slot-grid-compact { grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)) !important; gap: 6px !important; padding: 8px !important; }
-      #modalCita .btn-slot { font-size: 0.65rem !important; padding: 4px 0 !important; border-radius: 8px !important; }
+      #modalCita .slot-grid-compact { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; gap: 8px !important; padding: 12px !important; }
+      #modalCita .btn-slot { font-size: 0.70rem !important; padding: 6px 0 !important; border-radius: 8px !important; background-color: #dcfce7 !important; color: #166534 !important; border: 1px solid #bbf7d0 !important; font-weight: 700; }
+      #modalCita .btn-slot:hover:not(:disabled) { background-color: #bbf7d0 !important; border-color: #86efac !important; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(22, 101, 52, 0.15); }
+      #modalCita .btn-slot.active { background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); }
+      #modalCita .slot-lunch { background-color: #fee2e2 !important; color: #991b1b !important; border-color: #fecaca !important; }
+      #modalCita .slot-busy { background-color: #fef9c3 !important; color: #854d0e !important; border-color: #fde047 !important; }
     </style>
     <div class="modal fade" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -233,6 +237,58 @@ print <<HTML;
                                     <label for="f_motivo">MOTIVO / OBSERVACIONES</label>
                                 </div>
 
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="form-floating floating-label-premium">
+                                            <select name="id_medico" id="f_medico_select" class="form-select fw-bold" onchange="actualizarAgendaDestino()"></select>
+                                            <label for="f_medico_select">PROFESIONAL</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-floating floating-label-premium">
+                                            <select name="sucursal" id="f_sucursal" class="form-select fw-bold"></select>
+                                            <label for="f_sucursal">SUCURSAL</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-4">
+                                        <div class="form-floating floating-label-premium">
+                                            <select name="consultorio" id="f_consultorio" class="form-select fw-bold">
+                                                <option value="Consultorio 1">Cons. 1</option>
+                                                <option value="Consultorio 2">Cons. 2</option>
+                                                <option value="Consultorio 3">Cons. 3</option>
+                                                <option value="Consultorio 4">Cons. 4</option>
+                                                <option value="Virtual">Virtual</option>
+                                            </select>
+                                            <label for="f_consultorio">LUGAR</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-floating floating-label-premium">
+                                            <select name="color" id="f_color" class="form-select fw-bold">
+                                                <option value="#3b82f6" style="background:#3b82f6;color:white;">Azul</option>
+                                                <option value="#ef4444" style="background:#ef4444;color:white;">Rojo</option>
+                                                <option value="#10b981" style="background:#10b981;color:white;">Verde</option>
+                                                <option value="#f59e0b" style="background:#f59e0b;color:white;">Naranja</option>
+                                                <option value="#8b5cf6" style="background:#8b5cf6;color:white;">Púrpura</option>
+                                                <option value="#ec4899" style="background:#ec4899;color:white;">Rosa</option>
+                                            </select>
+                                            <label for="f_color">COLOR</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-floating floating-label-premium">
+                                            <select name="prioridad" id="f_prioridad" class="form-select fw-bold">
+                                                <option value="Baja">Baja</option>
+                                                <option value="Normal" selected>Normal</option>
+                                                <option value="Alta">Alta</option>
+                                                <option value="Urgente">Urgente</option>
+                                            </select>
+                                            <label for="f_prioridad">PRIORIDAD</label>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="row g-2 mb-3">
                                     <div class="col-6">
                                         <div class="form-floating floating-label-premium">
@@ -384,7 +440,7 @@ print <<HTML;
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/agenda_spa_new.js?v=4.0.2_Premium"></script>
+    <script src="../js/agenda_spa_new.js?v=4.0.3_Premium"></script>
 </body>
 </html>
 HTML
