@@ -153,10 +153,10 @@ Los Canvas/Offcanvas tipo "Resumen de Expediente" dejan de ser apilamientos vert
 - **Formato**: Ajuste automático de columnas y celdas limpias sin bordes innecesarios.
 
 ## 8. Protocolo de Superposición (Stacking Context Fix)
-Para evitar que los modales queden "detrás" del fondo oscuro (backdrop) en contenedores con animaciones o filtros, se aplica el **DOM Teleportation Protocol**:
-- **Acción**: Antes de mostrar cualquier modal crítico (`modalCargo`, `modalAbono`, `modalMensaje`), el script debe verificar si el elemento es hijo directo del `body`.
-- **Implementación**: `if (modalEl.parentElement !== document.body) document.body.appendChild(modalEl);`
-- **Z-Index Standard**: Modales (7000), Backdrops (6900).
+Para evitar que los modales queden atrapados por el stacking context de etiquetas como `<main>` o queden debajo de navbars con z-index extremadamente altos (10000+), se aplica el **DOM Teleportation Protocol**:
+- **Acción**: Antes de inicializar cualquier modal crítico, el script DEBE extraer el modal de su contenedor original y anexarlo directamente a la raíz del documento.
+- **Implementación**: `document.body.appendChild(modalEl);`
+- **Z-Index Standard (Dominio Absoluto)**: Modales (105000), Backdrops (104900). Esto garantiza que el modal superpondrá a cualquier menú superior (`sticky-top`) o inferior.
 
 ## 9. Diamond Clinical Dashboard (v3.8.0)
 - **Navegación Sidebar (Mobile)**: Menú lateral con efecto `backdrop-filter: blur(30px)` y ancho adaptativo de 290px.

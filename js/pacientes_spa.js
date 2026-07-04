@@ -184,16 +184,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalTitle.textContent = "Expediente: " + perfilNombre;
             }
 
+            // Inyectar CSS Premium si no existe
+            if (!document.getElementById('bentoPremiumStyles')) {
+                var style = document.createElement('style');
+                style.id = 'bentoPremiumStyles';
+                style.innerHTML = `
+                    .bento-action-btn { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid rgba(59, 130, 246, 0.12) !important; border-radius: 16px !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-decoration: none; color: #1e293b; }
+                    .bento-action-btn:hover { transform: translateY(-3px) scale(1.02) !important; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15) !important; border-color: rgba(59, 130, 246, 0.4) !important; background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%); color: #0A2A66; }
+                    .bento-action-btn i { transition: transform 0.3s ease; }
+                    .bento-action-btn:hover i { transform: scale(1.15); }
+                    .paciente-info-bento { background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%) !important; border: 1px solid rgba(59, 130, 246, 0.2) !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08) !important; transition: transform 0.3s ease; }
+                    .paciente-info-bento:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.12) !important; }
+                    .kpi-card-bento { border: 1px solid rgba(59, 130, 246, 0.15) !important; border-radius: 12px !important; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.03); position: relative; overflow: hidden; transition: all 0.3s ease; }
+                    .kpi-card-bento:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+                    .kpi-card-bento::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; }
+                    .kpi-card-bento.cargos::before { background-color: #3b82f6; }
+                    .kpi-card-bento.abonos::before { background-color: #10b981; }
+                    .kpi-card-bento.saldo::before { background-color: #8b5cf6; }
+                `;
+                document.head.appendChild(style);
+            }
+
             contenido.innerHTML = 
-                  '<div class="row m-0">' +
+                  '<div class="row m-0" style="animation: fadeIn 0.4s ease-out;">' +
                     '<!-- Columna Izquierda: Paciente y Finanzas -->' +
                     '<div class="col-lg-5 col-12 p-0 pe-lg-3">' +
                         '<!-- Datos del Paciente -->' +
-                        '<div class="paciente-info-bento mb-2 d-flex align-items-center bg-white p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0;">' +
-                          '<img src="https://ui-avatars.com/api/?name=' + nombreCoded + '&background=0d1e3d&color=fff&size=40&bold=true" alt="Paciente" width="40" height="40" class="shadow-sm me-2" style="border-radius: 50%;">' +
+                        '<div class="paciente-info-bento mb-2 d-flex align-items-center p-2" style="border-radius: 16px;">' +
+                          '<img src="https://ui-avatars.com/api/?name=' + nombreCoded + '&background=0A2A66&color=fff&size=40&bold=true" alt="Paciente" width="44" height="44" class="shadow-sm me-3" style="border-radius: 50%; border: 2px solid #fff;">' +
                           '<div class="overflow-hidden">' +
-                            '<h6 class="text-truncate mb-0 fw-bold" title="' + perfilNombre.replace(/'/g, "&apos;") + '" style="font-size: 0.95rem; color: #0d1e3d; font-family: var(--font-primary, sans-serif);">' + perfilNombre + '</h6>' +
-                            '<small class="fw-bold" style="font-size: 0.75rem; color: #10b981;"><i class="bi bi-person-check-fill me-1"></i>ID: ' + perfilId + ' &bull; Activo</small>' +
+                            '<h6 class="text-truncate mb-0 fw-bold" title="' + perfilNombre.replace(/'/g, "&apos;") + '" style="font-size: 1rem; color: #0d1e3d; font-family: var(--font-primary, sans-serif); letter-spacing: -0.3px;">' + perfilNombre + '</h6>' +
+                            '<small class="fw-bold" style="font-size: 0.75rem; color: #10b981;"><i class="bi bi-shield-check me-1"></i>ID: ' + perfilId + ' &bull; Activo</small>' +
                           '</div>' +
                         '</div>' +
                         
@@ -201,20 +222,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         '<div class="row g-2 mb-3 mb-lg-0 flex-nowrap">' +
                           '<div class="col-4">' +
                             '<div class="kpi-card-bento cargos p-2 h-100">' +
-                                '<h6 style="font-size: 0.6rem; margin-bottom: 2px;">CARGOS</h6>' +
-                                '<h5 style="font-size: 0.85rem; margin-bottom: 0;">$' + cvCargos + '</h5>' +
+                                '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">CARGOS</h6>' +
+                                '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvCargos + '</h5>' +
                             '</div>' +
                           '</div>' +
                           '<div class="col-4">' +
                             '<div class="kpi-card-bento abonos p-2 h-100">' +
-                                '<h6 style="font-size: 0.6rem; margin-bottom: 2px;">ABONOS</h6>' +
-                                '<h5 style="font-size: 0.85rem; margin-bottom: 0;">$' + cvAbonos + '</h5>' +
+                                '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">ABONOS</h6>' +
+                                '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvAbonos + '</h5>' +
                             '</div>' +
                           '</div>' +
                           '<div class="col-4">' +
                             '<div class="kpi-card-bento saldo p-2 h-100">' +
-                                '<h6 style="font-size: 0.6rem; margin-bottom: 2px;">SALDO</h6>' +
-                                '<h5 style="font-size: 0.85rem; margin-bottom: 0;">$' + cvSaldo + '</h5>' +
+                                '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">SALDO</h6>' +
+                                '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvSaldo + '</h5>' +
                             '</div>' +
                           '</div>' +
                         '</div>' +
@@ -225,28 +246,28 @@ document.addEventListener('DOMContentLoaded', function() {
                         '<!-- Barra de Herramientas (Bento Grid) -->' +
                         '<div class="row g-2 mb-2">' +
                           '<div class="col-4">' +
-                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-folder2-open fs-5 mb-1 text-primary"></i> <span style="font-size: 0.6rem; font-weight: 700;">EXPEDIENTE</span></a>' +
+                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">EXPEDIENTE</span></a>' +
                           '</div>' +
                           '<div class="col-4">' +
-                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-cash-stack fs-5 mb-1 text-success"></i> <span style="font-size: 0.6rem; font-weight: 700;">FINANZAS</span></a>' +
+                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">FINANZAS</span></a>' +
                           '</div>' +
                           '<div class="col-4">' +
-                            '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-calendar-plus fs-5 mb-1" style="color: var(--md-blue-medical);"></i> <span style="font-size: 0.6rem; font-weight: 700;">CITA</span></a>' +
+                            '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">CITA</span></a>' +
                           '</div>' +
                           '<div class="col-4">' +
-                            '<button type="button" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; transition: transform 0.2s;"><i class="bi bi-envelope fs-5 mb-1 text-warning"></i> <span style="font-size: 0.6rem; font-weight: 700;">CORREO</span></button>' +
+                            '<button type="button" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 border-0 bg-transparent p-0" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><div class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">CORREO</span></div></button>' +
                           '</div>' +
                           '<div class="col-4">' +
-                            '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-whatsapp fs-5 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.6rem; font-weight: 700;">WHATSAPP</span></a>' +
+                            '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">WHATSAPP</span></a>' +
                           '</div>' +
                           '<div class="col-4">' +
-                            '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-printer fs-5 mb-1 text-secondary"></i> <span style="font-size: 0.6rem; font-weight: 700;">IMPRIMIR</span></a>' +
+                            '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-printer fs-4 mb-1 text-secondary"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">IMPRIMIR</span></a>' +
                           '</div>' +
                         '</div>' +
 
                         '<!-- Historial de Consultas -->' +
-                        '<div class="d-flex justify-content-between align-items-center mt-2 mb-1">' +
-                            '<h6 class="fw-bold mb-0" style="color: var(--md-blue-deep); font-family: var(--font-primary); font-size: 0.85rem;">Consultas Previas</h6>' +
+                        '<div class="d-flex justify-content-between align-items-center mt-3 mb-2">' +
+                            '<h6 class="fw-bold mb-0" style="color: #0A2A66; font-family: var(--font-primary); font-size: 0.9rem; letter-spacing: -0.2px;"><i class="bi bi-clock-history me-1 text-primary"></i> Consultas Previas</h6>' +
                             '<div class="d-flex gap-2">' +
                                 '<button class="btn btn-sm btn-light border rounded-circle shadow-sm" onclick="document.getElementById(\'carruselHistorial\').scrollBy({left:-200, behavior:\'smooth\'})" title="Deslizar Izquierda" style="width: 26px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="bi bi-chevron-left" style="font-size: 0.7rem;"></i></button>' +
                                 '<button class="btn btn-sm btn-light border rounded-circle shadow-sm" onclick="document.getElementById(\'carruselHistorial\').scrollBy({left:200, behavior:\'smooth\'})" title="Deslizar Derecha" style="width: 26px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i></button>' +
