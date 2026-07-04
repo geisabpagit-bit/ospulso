@@ -100,26 +100,26 @@ foreach my $p (@list) {
 
     print <<ROW;
                 <tr>
-                    <td class="fw-bold text-muted ps-4">
+                    <td class="fw-bold text-muted ps-4" data-label="ID">
                         $display_id
                     </td>
-                    <td>
+                    <td data-label="PACIENTE">
                         <span class="patient-name">$nombre</span>
                         <span class="patient-info-sub d-block mt-1"><i class="bi bi-person-badge me-1"></i>$curp</span>
                     </td>
-                    <td>
+                    <td data-label="CONTACTO">
                         <div class="patient-info-sub d-flex flex-column gap-1">
                             <span><i class="bi bi-telephone text-muted me-2"></i>$telefono</span>
                             <span><i class="bi bi-envelope text-muted me-2"></i>$correo</span>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="F. NAC / SEXO">
                         <div class="patient-info-sub d-flex flex-column gap-1">
                             <span><i class="bi bi-calendar3 text-muted me-2"></i>$fecha_nac</span>
                             <span class="text-uppercase"><i class="bi bi-gender-ambiguous text-muted me-2"></i>$sexo</span>
                         </div>
                     </td>
-                    <td class="text-end pe-4">
+                    <td class="text-end pe-4" data-label="ACCIONES">
                         <div class="action-btn-group justify-content-end">
                             <button class="action-btn btn-expediente" data-id="$p->{id}" title="Resumen">
                                 <i class="bi bi-eye"></i>

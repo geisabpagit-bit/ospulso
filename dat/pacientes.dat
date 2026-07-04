@@ -1,1 +1,6 @@
 ID_PACIENTE|ID_MEDICO|NOMBRE_COMPLETO|RFC|CURP|CORREO|FECHA_NACIMIENTO|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO
+1|1|Ana Lopez|LOPA800101XYZ|LOPA800101MDFABC01|ana.lopez@example.com|1980-01-01|Femenino|Contadora|Casada|Mexicana|O+|5551234567
+2|1|Carlos Ruiz|RUCA900202XYZ|RUCA900202HDFABC02|carlos.ruiz@example.com|1990-02-02|Masculino|Ingeniero|Soltero|Mexicana|A-|5552345678
+3|1|Maria Garcia|GARM750303XYZ|GARM750303MDFABC03|maria.garcia@example.com|1975-03-03|Femenino|Profesora|Divorciada|Mexicana|B+|5553456789
+4|1|Jose Martinez|MAJO850404XYZ|MAJO850404HDFABC04|jose.martinez@example.com|1985-04-04|Masculino|Arquitecto|Casado|Mexicana|AB+|5554567890
+5|1|Laura Sanchez|SALA950505XYZ|SALA950505MDFABC05|laura.sanchez@example.com|1995-05-05|Femenino|Estudiante|Soltera|Mexicana|O-|5555678901
