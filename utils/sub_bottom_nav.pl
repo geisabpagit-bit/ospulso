@@ -11,7 +11,7 @@ sub render_bottom_nav {
     <!-- SDM Premium Bottom Navigation (Item 3.3 Style Guide) -->
     <link rel="stylesheet" href="../css/bottom_nav.css?v=1778173537">
     
-    <nav class="sdm-main-bottom-nav animate__animated animate__slideInUp">
+    <nav class="sdm-main-bottom-nav d-md-none animate__animated animate__slideInUp">
         <a href="inicial.pl" class="main-tab-item @{[$active eq 'inicio' ? 'active' : '']}">
             <i class="bi bi-house-door"></i>
             <span>Inicio</span>

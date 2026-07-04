@@ -92,14 +92,7 @@ HTML
                     </svg>
                     <span class="d-none d-lg-inline-block text-secondary small border-start ps-3 ms-2 align-self-center py-1 fw-medium" style="font-size: 0.72rem; letter-spacing: 0.5px;">Sistema Operativo para Clínicas Modernas</span>
                 </a>
-                
-                <a href="pacientes.pl" class="d-flex align-items-center nav-link-item text-decoration-none">
-                    <i class="bi bi-people me-2"></i>Pacientes
-                </a>
-                
-                <a href="agenda_main.pl" class="d-flex align-items-center nav-link-item text-decoration-none">
-                    <i class="bi bi-calendar3 me-2"></i>Agenda
-                </a>
+
             </div>
 
             <!-- 1. Buscador (Alineado a la izquierda en móvil) -->
@@ -156,16 +149,16 @@ HTML
                     </div>
                 </div>
 
-                <!-- Navegación móvil (visible solo en pantallas pequeñas) -->
-                <a href="pacientes.pl" class="aura-nav-link d-md-none">
+                <!-- Navegación General (Command Center) -->
+                <a href="pacientes.pl" class="aura-nav-link">
                     <i class="bi bi-people"></i>
                     <span>Pacientes</span>
                 </a>
-                <a href="agenda_main.pl" class="aura-nav-link d-md-none">
+                <a href="agenda_main.pl" class="aura-nav-link">
                     <i class="bi bi-calendar3"></i>
                     <span>Agenda</span>
                 </a>
-                <div class="my-2 d-md-none"><hr class="border-primary opacity-10 m-0"></div>
+                <div class="my-2"><hr class="border-primary opacity-10 m-0"></div>
 
                 <a href="../views/perfil.pl" class="aura-nav-link">
                     <i class="bi bi-person-gear"></i>
