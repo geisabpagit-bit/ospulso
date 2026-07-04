@@ -161,7 +161,10 @@ print <<'HTML';
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <!-- Modal de Resumen Blindado -->
-<div class="modal fade" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 1060 !important;">
+<style>
+  .modal-backdrop.show { z-index: 104900 !important; }
+</style>
+<div class="modal fade" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 105000 !important;">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content rounded-4 border-0 shadow-lg p-0" style="overflow: hidden !important; background-color: #f8f9fa;">
       <!-- Cabecera manual (Sin la clase modal-header para evitar bugs de CSS) -->
@@ -203,7 +206,7 @@ print <<'HTML';
 </script>
 
 <!-- Scripts Específicos para Pacientes SPA -->
-<script src="../js/pacientes_spa.js?v=20260703_2350"></script>
+<script src="../js/pacientes_spa.js?v=20260703_2355"></script>
 
 <script>
     $(document).ready(function() {
