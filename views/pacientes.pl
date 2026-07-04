@@ -144,28 +144,7 @@ print <<'HTML';
 </div>
 
 
-<style>
-  /* Forzar z-index ultra-alto para el backdrop y el modal */
-  .modal-backdrop { z-index: 9000 !important; }
-  .modal { z-index: 9010 !important; }
-</style>
-<!-- Modal de Resumen Limpio (Refactor) -->
-<div class="modal fade" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg mt-5">
-    <div class="modal-content rounded-4 border-0 shadow-lg">
-      <div class="modal-header px-4 py-3 border-0" style="background-color: var(--md-blue-deep); border-radius: 1rem 1rem 0 0;">
-        <h5 class="fw-bold mb-0 text-white d-flex align-items-center" id="expedienteModalLabel">
-            <i class="bi bi-person-lines-fill me-2" style="color: var(--md-cyan-ia);"></i> 
-            <span id="modalHeaderTitle">Resumen de Expediente</span>
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-3 p-md-4" id="expedienteContenido" style="background-color: #f8f9fa;">
-         <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <!-- Scripts y Librerías de Exportación (Regla 4.3) -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
@@ -365,5 +344,30 @@ HTML
 
 print "</main>\n";
 render_bottom_nav('pacientes');
+
+print <<'MODAL_HTML';
+<style>
+  .modal-backdrop { z-index: 1040 !important; }
+  .modal { z-index: 1055 !important; }
+</style>
+<!-- Modal de Resumen movido FUERA de main para evitar clipping de z-index con sub_header.pl -->
+<div class="modal fade" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg mt-5">
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header px-4 py-3 border-0" style="background-color: var(--md-blue-deep); border-radius: 1rem 1rem 0 0;">
+        <h5 class="fw-bold mb-0 text-white d-flex align-items-center" id="expedienteModalLabel">
+            <i class="bi bi-person-lines-fill me-2" style="color: var(--md-cyan-ia);"></i> 
+            <span id="modalHeaderTitle">Resumen de Expediente</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3 p-md-4" id="expedienteContenido" style="background-color: #f8f9fa;">
+         <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
+      </div>
+    </div>
+  </div>
+</div>
+MODAL_HTML
+
 print "</body></html>\n";
 1;
