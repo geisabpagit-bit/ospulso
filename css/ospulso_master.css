@@ -1450,3 +1450,15 @@ footer {
     }
 }
 
+/* Fix overlapping floating buttons with mobile sticky CTA */
+@media (max-width: 991px) {
+    .btn-whatsapp-global {
+        bottom: 80px; /* Push above sticky CTA */
+        transform: scale(0.9);
+        right: 15px;
+    }
+    .btn-back-to-top {
+        display: none !important; /* Hide on mobile to reduce clutter */
+    }
+}
+
