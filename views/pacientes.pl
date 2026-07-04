@@ -160,21 +160,19 @@ print <<'HTML';
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
-<!-- Modal de Resumen movido a la posición solicitada -->
-<style>
-  .modal-backdrop { z-index: 1040 !important; }
-  .modal { z-index: 1055 !important; }
-</style>
-<div class="modal fade" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg mt-5">
-    <div class="modal-content rounded-4 border-0 shadow-lg" style="overflow: visible !important;">
-      <div class="modal-header px-4 py-3 border-0" style="background-color: #0A2A66 !important; border-radius: 1rem 1rem 0 0; display: flex !important; visibility: visible !important; opacity: 1 !important;">
+<!-- Modal de Resumen Blindado -->
+<div class="modal fade" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 1060 !important;">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg p-0" style="overflow: hidden !important; background-color: #f8f9fa;">
+      <!-- Cabecera manual (Sin la clase modal-header para evitar bugs de CSS) -->
+      <div class="p-3 px-4 d-flex justify-content-between align-items-center w-100" style="background-color: #0A2A66 !important; border-bottom: 1px solid rgba(0,0,0,0.05);">
         <h5 class="fw-bold mb-0 text-white d-flex align-items-center" id="expedienteModalLabel">
             <i class="bi bi-person-lines-fill me-2" style="color: #00C4C4 !important;"></i> 
             <span id="modalHeaderTitle">Resumen de Expediente</span>
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+      <!-- Fin Cabecera -->
       <div class="modal-body p-3 p-md-4" id="expedienteContenido" style="background-color: #f8f9fa;">
          <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
       </div>
@@ -205,7 +203,7 @@ print <<'HTML';
 </script>
 
 <!-- Scripts Específicos para Pacientes SPA -->
-<script src="../js/pacientes_spa.js?v=20260703_2325"></script>
+<script src="../js/pacientes_spa.js?v=20260703_2340"></script>
 
 <script>
     $(document).ready(function() {
