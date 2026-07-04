@@ -185,63 +185,74 @@ print <<HTML;
 
     <!-- MODAL CITAS -->
     <div class="modal fade" id="modalCita" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
                 <div class="modal-header text-white p-3 border-0" style="background: var(--md-blue-deep) !important;">
                     <h6 class="modal-title fw-black small text-uppercase mb-0" id="modalCitaTitle">GESTIÓN DE CITA</h6>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-3">
+                <div class="modal-body p-4">
                     <form id="formCita">
                         <input type="hidden" name="id_cita" id="f_id_cita">
                         <input type="hidden" name="id_paciente" id="f_id_paciente">
                         <input type="hidden" name="accion" id="f_accion" value="create">
-                        
-                        <div class="mb-2 position-relative">
-                            <label class="small text-muted fw-bold mb-1">PACIENTE <span class="fw-normal text-lowercase">(autocompletado)</span></label>
-                            <input type="text" id="f_paciente" class="form-control form-control-sm bg-light border-0 pe-4" placeholder="Buscar paciente..." required style="border-radius: 6px;">
-                            <i class="bi bi-search position-absolute end-0 translate-middle-y me-2 text-muted" style="top: 32px;"></i>
-                        </div>
+                        <input type="hidden" name="hora_ini" id="f_hi">
+                        <input type="hidden" name="hora_fin" id="f_hf">
 
-                        <div class="row g-2 mb-2">
-                            <div class="col-7">
-                                <label class="small text-muted fw-bold mb-1">FECHA</label>
-                                <input type="date" name="fecha" id="f_fecha" class="form-control form-control-sm bg-light border-0" onchange="renderSlots(this.value)" style="border-radius: 6px;">
+                        <div class="row g-4">
+                            <!-- Columna Izquierda: Datos Básicos -->
+                            <div class="col-md-6 border-end-md">
+                                <div class="mb-3 position-relative">
+                                    <label class="small text-muted fw-bold mb-1">PACIENTE <span class="fw-normal text-lowercase">(autocompletado)</span></label>
+                                    <input type="text" id="f_paciente" class="form-control form-control-sm bg-light border-0 pe-4" placeholder="Buscar paciente..." required style="border-radius: 6px; padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                    <i class="bi bi-search position-absolute end-0 translate-middle-y me-2 text-muted" style="top: 35px;"></i>
+                                </div>
+
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="small text-muted fw-bold mb-1">FECHA</label>
+                                        <input type="date" name="fecha" id="f_fecha" class="form-control form-control-sm bg-light border-0" onchange="renderSlots(this.value)" style="border-radius: 6px; padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small text-muted fw-bold mb-1">ESTADO</label>
+                                        <select name="estado" id="f_estado" class="form-select form-select-sm bg-light border-0 fw-bold" style="border-radius: 6px; padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                            <option value="Programada">Programada</option>
+                                            <option value="Confirmada">Confirmada</option>
+                                            <option value="Atendida">Atendida</option>
+                                            <option value="Cancelada">Cancelada</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="small fw-bold text-muted mb-1 d-block">DURACIÓN</label>
+                                    <div class="btn-group w-100 shadow-sm btn-group-sm" id="btn-group-duracion">
+                                        <!-- Generado dinámicamente por JS -->
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-5">
-                                <label class="small text-muted fw-bold mb-1">ESTADO</label>
-                                <select name="estado" id="f_estado" class="form-select form-select-sm bg-light border-0 fw-bold" style="border-radius: 6px;">
-                                    <option value="Programada">Programada</option>
-                                    <option value="Confirmada">Confirmada</option>
-                                    <option value="Atendida">Atendida</option>
-                                    <option value="Cancelada">Cancelada</option>
-                                </select>
+
+                            <!-- Columna Derecha: Horarios y Motivo -->
+                            <div class="col-md-6 d-flex flex-column">
+                                <div class="mb-3 flex-grow-1">
+                                    <label class="small fw-bold text-muted mb-1 d-block">HORARIOS</label>
+                                    <div id="slots-container" class="slot-grid-compact p-2 bg-light w-100 h-100" style="min-height: 140px; max-height: 180px; overflow-y: auto; border-radius: 6px;"></div>
+                                </div>
+
+                                <div class="mb-0">
+                                    <label class="small fw-bold text-muted mb-1">MOTIVO / OBSERVACIONES</label>
+                                    <textarea name="motivo" id="f_motivo" class="form-control form-control-sm bg-light border-0" style="height: 55px; border-radius: 6px;" placeholder="Detalles de la cita..."></textarea>
+                                </div>
                             </div>
-                        </div>
+                        </div> <!-- end row -->
 
-                        <div class="mb-2">
-                            <label class="small fw-bold text-muted mb-1 d-block">DURACIÓN</label>
-                            <div class="btn-group w-100 shadow-sm btn-group-sm" id="btn-group-duracion">
-                                <!-- Generado dinámicamente por JS (renderDuracionButtons) -->
-                            </div>
-                        </div>
+                        <hr class="border-primary opacity-10 my-4">
 
-                        <div class="mb-2">
-                            <label class="small fw-bold text-muted mb-1 d-block">HORARIOS</label>
-                            <div id="slots-container" class="slot-grid-compact p-2 bg-light" style="max-height: 120px; overflow-y: auto; border-radius: 6px;"></div>
-                            <input type="hidden" name="hora_ini" id="f_hi">
-                            <input type="hidden" name="hora_fin" id="f_hf">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="small fw-bold text-muted mb-1">MOTIVO / OBSERVACIONES</label>
-                            <textarea name="motivo" id="f_motivo" class="form-control form-control-sm bg-light border-0" style="height: 50px; border-radius: 6px;" placeholder="Detalles de la cita..."></textarea>
-                        </div>
-
-                        <div class="d-grid gap-2 mt-2">
-                            <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-success btn-sm fw-bold shadow-sm border-0 d-none" style="border-radius: 8px;">TOMAR CITA E IR A CONSULTA</button>
-                            <button type="button" onclick="saveCita()" class="btn btn-primary btn-sm fw-bold shadow-sm border-0" style="border-radius: 8px; background: var(--md-blue-medical);">GUARDAR CITA</button>
-                            <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger btn-sm border-0 fw-bold d-none">ELIMINAR CITA</button>
+                        <!-- Acciones Principales -->
+                        <div class="d-flex flex-column flex-md-row justify-content-end gap-2">
+                            <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger btn-sm border-0 fw-bold d-none px-4 order-3 order-md-1">ELIMINAR CITA</button>
+                            <button type="button" onclick="saveCita()" class="btn btn-primary btn-sm fw-bold shadow-sm border-0 px-4 order-1 order-md-2" style="border-radius: 8px; background: var(--md-blue-medical);">GUARDAR CITA</button>
+                            <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-success btn-sm fw-bold shadow-sm border-0 d-none px-4 order-2 order-md-3" style="border-radius: 8px;">TOMAR CITA E IR A CONSULTA</button>
                         </div>
                     </form>
                 </div>

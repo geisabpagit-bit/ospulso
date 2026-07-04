@@ -187,15 +187,26 @@ document.addEventListener('DOMContentLoaded', function() {
                       '</div>' +
                     '</div>' +
 
-                    '<!-- Barra de Herramientas -->' +
-                    '<div class="toolbar-operativa mb-3 d-flex flex-wrap justify-content-center" style="gap: 0.35rem; padding: 0.5rem;">' +
-                      '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-folder2-open d-block mb-1 fs-6"></i> Expediente</a>' +
-                      '<a href="estado_cuenta.pl?id=' + perfilId + '" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-cash-stack d-block mb-1 fs-6"></i> Finanzas</a>' +
-                      '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="btn-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-calendar-plus d-block mb-1 fs-6"></i> Nueva Cita</a>' +
-                      '<button type="button" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-envelope d-block mb-1 fs-6"></i> Correo</button>' +
-                      '<a href="tel:' + perfilTelefono + '" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-telephone d-block mb-1 fs-6"></i> Llamar</a>' +
-                      '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-whatsapp d-block mb-1 fs-6"></i> WhatsApp</a>' +
-                      '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-printer d-block mb-1 fs-6"></i> Imprimir</a>' +
+                    '<!-- Barra de Herramientas (Bento Grid) -->' +
+                    '<div class="row g-2 mb-3 px-1">' +
+                      '<div class="col-4">' +
+                        '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.65rem; font-weight: 700;">EXPEDIENTE</span></a>' +
+                      '</div>' +
+                      '<div class="col-4">' +
+                        '<a href="estado_cuenta.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.65rem; font-weight: 700;">FINANZAS</span></a>' +
+                      '</div>' +
+                      '<div class="col-4">' +
+                        '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: var(--md-blue-medical);"></i> <span style="font-size: 0.65rem; font-weight: 700;">CITA</span></a>' +
+                      '</div>' +
+                      '<div class="col-4">' +
+                        '<button type="button" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; transition: transform 0.2s;"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.65rem; font-weight: 700;">CORREO</span></button>' +
+                      '</div>' +
+                      '<div class="col-4">' +
+                        '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.65rem; font-weight: 700;">WHATSAPP</span></a>' +
+                      '</div>' +
+                      '<div class="col-4">' +
+                        '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-printer fs-4 mb-1 text-secondary"></i> <span style="font-size: 0.65rem; font-weight: 700;">IMPRIMIR</span></a>' +
+                      '</div>' +
                     '</div>' +
 
                     '<!-- Historial de Consultas -->' +
