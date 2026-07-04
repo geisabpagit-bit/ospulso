@@ -651,7 +651,7 @@ HTML
                 <h5 class="fw-bold text-navy mb-3">Hemos creado un espacio aislado y seguro para ti.</h5>
                 <p class="text-muted mb-4">Todo está configurado para que operes con fricción cero. Tu agenda está limpia, tus indicadores en cero y estás listo para registrar tu primer paciente o agendar tu primera cita.</p>
                 <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <a href="../views/render_consultas.pl" class="btn btn-primary btn-lg rounded-pill px-4 fw-bold shadow-sm"><i class="bi bi-person-plus-fill me-2"></i>Registrar Paciente</a>
+                    <a href="../views/crud_paciente.pl" class="btn btn-primary btn-lg rounded-pill px-4 fw-bold shadow-sm"><i class="bi bi-person-plus-fill me-2"></i>Registrar Paciente</a>
                     <a href="../views/agenda_main.pl" class="btn btn-outline-primary btn-lg rounded-pill px-4 fw-bold bg-white"><i class="bi bi-calendar-check me-2"></i>Ver mi Agenda</a>
                 </div>
             </div>

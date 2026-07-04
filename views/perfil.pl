@@ -55,13 +55,15 @@ if ($session_ok) {
             $target_email =~ s/^\s+|\s+$//g; # Trim corregido
 
             if ($c_email eq $target_email) {
+                my $extra = $c[6] // '';
+                my ($id_empresa) = split /:/, $extra;
                 $user_data = {
                     id         => $c[0],
                     nombre     => $c[1],
                     correo     => $c[2],
                     activo     => $c[4],
                     rol        => $c[5],
-                    id_negocio => $c[6]
+                    id_negocio => $id_empresa
                 };
                 last;
             }

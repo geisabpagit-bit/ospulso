@@ -78,8 +78,8 @@ HTML
     if ($show_nav) {
         my $role_label = uc($role);
         print <<HTML;
-    <nav class="navbar sdm-navbar p-2 sticky-top">
-        <div class="container-fluid px-lg-4 d-flex align-items-center justify-content-between flex-nowrap">
+    <nav class="navbar sdm-navbar p-2 sticky-top flex-column align-items-stretch">
+        <div class="container-fluid px-lg-4 d-flex align-items-center justify-content-between flex-nowrap w-100">
             
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">
@@ -122,6 +122,15 @@ HTML
                     </div>
                 </button>
             </div>
+        </div>
+        <!-- Navegación Breadcrumb debajo del logo/navbar principal -->
+        <div class="container-fluid px-lg-4 mt-1 d-none d-md-block">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb m-0 plus-jakarta fw-semibold" style="font-size: 0.75rem;">
+                    <li class="breadcrumb-item"><a href="inicial.pl" class="text-decoration-none text-muted"><i class="bi bi-house-door-fill me-1"></i>Inicio</a></li>
+                    <li class="breadcrumb-item active text-primary" aria-current="page">$titulo</li>
+                </ol>
+            </nav>
         </div>
     </nav>
 
@@ -177,13 +186,6 @@ HTML
 
     print <<HTML;
     <main class="container-fluid px-lg-4 py-4">
-        <!-- Navegación Breadcrumb -->
-        <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb m-0 plus-jakarta fw-semibold" style="font-size: 0.85rem;">
-                <li class="breadcrumb-item"><a href="inicial.pl" class="text-decoration-none text-muted"><i class="bi bi-house-door-fill me-1"></i>Inicio</a></li>
-                <li class="breadcrumb-item active text-primary" aria-current="page">$titulo</li>
-            </ol>
-        </nav>
 HTML
 }
 1;

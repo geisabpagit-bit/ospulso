@@ -31,7 +31,8 @@ binmode(STDOUT, ":encoding(UTF-8)");
 render_header(
     usuario => $sd->{usuario},
     role    => $sd->{role},
-    titulo  => "SDM - Expediente del Paciente"
+    titulo  => "SDM - Expediente del Paciente",
+    skip_header => 1
 );
 
 print <<'HTML';
