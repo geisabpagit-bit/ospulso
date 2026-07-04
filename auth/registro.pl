@@ -46,7 +46,7 @@ print <<'HTML';
             main {
                 padding-left: 5px !important;
                 padding-right: 5px !important;
-                margin-top: 5rem !important;
+                margin-top: 1rem !important;
             }
         }
         .form-control:focus {
@@ -109,9 +109,9 @@ print <<'HTML';
     </div>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <main class="flex-grow-1 d-flex align-items-center justify-content-center px-2 mt-5 pt-5">
+    <main class="flex-grow-1 d-flex align-items-center justify-content-center px-2 mt-3 pt-2">
         <div class="registration-container animate-entrance">
-            <div class="login-card shadow-premium border-0" style="border-radius: 20px; overflow: hidden; border: 1px solid var(--md-green-medical) !important; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(25px);">
+            <div class="login-card shadow-lg" style="border-radius: 20px; overflow: hidden; border: 1.5px solid var(--md-teal-clinical) !important; background: var(--md-white-clinical); backdrop-filter: blur(25px);">
                 <div class="login-header-premium text-center">
                     <div class="icon-pulse-container" style="background: rgba(0, 196, 196, 0.1); width: 60px; height: 60px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 15px;">
                         <i class="bi bi-shield-check text-primary fs-3"></i>
@@ -135,14 +135,14 @@ print <<'HTML';
                         </div>
                         <div id="emailInfo" class="small mb-3 px-1" style="min-height: 20px;"></div>
 
-                        <div class="row g-2 mb-4">
-                            <div class="col-6">
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-6">
                                 <div class="form-floating">
                                     <input type="password" class="form-control" id="h_admin_clave" name="h_admin_clave" placeholder="Clave" autocomplete="new-password" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
                                     <label for="h_admin_clave"><i class="bi bi-lock me-2"></i>Contraseña</label>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-12 col-md-6">
                                 <div class="form-floating">
                                     <input type="password" class="form-control" id="h_admin_clave_confirm" name="h_admin_clave_confirm" placeholder="Confirma" autocomplete="new-password" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
                                     <label for="h_admin_clave_confirm"><i class="bi bi-shield-check me-2"></i>Confirmar</label>
@@ -150,8 +150,8 @@ print <<'HTML';
                             </div>
                         </div>
 
-                        <div class="row g-2 mb-4">
-                            <div class="col-4">
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-4">
                                 <div class="form-floating">
                                     <select class="form-select" id="tipo_unidad" name="tipo_unidad" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
                                         <option value="Privado">Privado</option>
@@ -160,7 +160,7 @@ print <<'HTML';
                                     <label for="tipo_unidad"><i class="bi bi-building me-2"></i>Tipo Unidad</label>
                                 </div>
                             </div>
-                            <div class="col-8">
+                            <div class="col-12 col-md-8">
                                 <div class="form-floating">
                                     <input type="text" class="form-control" id="h_admin_negocio" name="h_admin_negocio" placeholder="Nombre Clínica" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
                                     <label for="h_admin_negocio"><i class="bi bi-hospital me-2"></i>Nombre de la Clínica / Unidad</label>
