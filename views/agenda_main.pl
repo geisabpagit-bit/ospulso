@@ -186,6 +186,7 @@ print <<HTML;
     <!-- MODAL CITAS (Aura Premium & Z-Index Guard) -->
     <style>
       .modal-backdrop.show { z-index: 104900 !important; }
+      .ui-autocomplete { z-index: 105001 !important; }
       .bento-action-btn { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid rgba(59, 130, 246, 0.3) !important; border-radius: 12px !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-decoration: none; color: #1e293b; }
       .bento-action-btn:hover { transform: translateY(-3px) scale(1.02) !important; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15) !important; border-color: rgba(59, 130, 246, 0.6) !important; background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%); color: #0A2A66; }
       .floating-label-premium label { font-size: 0.65rem !important; text-transform: uppercase; color: #64748b; font-weight: 700; padding: 1rem 0.75rem; }
@@ -194,6 +195,8 @@ print <<HTML;
       .dur-bar-premium .btn { border-radius: 20px !important; margin: 0 2px; border: 1px solid rgba(59, 130, 246, 0.2) !important; background-color: #ffffff; color: #64748b; font-weight: 600; font-size: 0.75rem; transition: all 0.2s; }
       .dur-bar-premium .btn.active { background-color: var(--md-blue-medical) !important; color: #ffffff !important; border-color: var(--md-blue-medical) !important; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); transform: scale(1.05); z-index: 2; }
       .dur-bar-premium .btn:hover:not(.active) { background-color: #f0f7ff; color: #1e293b; }
+      #modalCita .slot-grid-compact { grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)) !important; gap: 6px !important; padding: 8px !important; }
+      #modalCita .btn-slot { font-size: 0.65rem !important; padding: 4px 0 !important; border-radius: 8px !important; }
     </style>
     <div class="modal fade" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -224,6 +227,11 @@ print <<HTML;
                                     <label for="f_paciente">PACIENTE <span class="fw-normal text-lowercase">(autocompletado)</span></label>
                                     <i class="bi bi-search position-absolute end-0 translate-middle-y me-3 text-muted" style="top: 50%;"></i>
                                 </div>
+                                
+                                <div class="form-floating mb-3 floating-label-premium">
+                                    <textarea name="motivo" id="f_motivo" class="form-control" placeholder="Detalles de la cita..." style="height: 60px;"></textarea>
+                                    <label for="f_motivo">MOTIVO / OBSERVACIONES</label>
+                                </div>
 
                                 <div class="row g-2 mb-3">
                                     <div class="col-6">
@@ -245,7 +253,7 @@ print <<HTML;
                                     </div>
                                 </div>
 
-                                <div class="mb-2">
+                                <div class="mb-0">
                                     <label class="small fw-bold text-muted mb-2 d-block" style="font-size: 0.65rem; padding-left: 0.75rem;">DURACIÓN</label>
                                     <div class="btn-group w-100 dur-bar-premium" id="btn-group-duracion">
                                         <!-- Generado dinámicamente por JS -->
@@ -253,16 +261,11 @@ print <<HTML;
                                 </div>
                             </div>
 
-                            <!-- Columna Derecha: Horarios y Motivo -->
+                            <!-- Columna Derecha: Horarios -->
                             <div class="col-md-6 d-flex flex-column">
-                                <div class="mb-3 flex-grow-1">
+                                <div class="mb-0 flex-grow-1 d-flex flex-column">
                                     <label class="small fw-bold text-muted mb-2 d-block" style="font-size: 0.65rem; padding-left: 0.75rem;">HORARIOS DISPONIBLES</label>
-                                    <div id="slots-container" class="slot-grid-compact p-2 w-100 h-100" style="min-height: 140px; max-height: 180px; overflow-y: auto; border-radius: 1rem; background-color: #f8fafc; border: 1px solid rgba(59,130,246,0.1);"></div>
-                                </div>
-
-                                <div class="form-floating floating-label-premium">
-                                    <textarea name="motivo" id="f_motivo" class="form-control" placeholder="Detalles de la cita..." style="height: 60px;"></textarea>
-                                    <label for="f_motivo">MOTIVO / OBSERVACIONES</label>
+                                    <div id="slots-container" class="slot-grid-compact p-2 w-100 flex-grow-1" style="min-height: 250px; overflow-y: auto; border-radius: 1rem; background-color: #f8fafc; border: 1px solid rgba(59,130,246,0.1);"></div>
                                 </div>
                             </div>
                         </div> <!-- end row -->
