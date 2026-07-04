@@ -754,21 +754,29 @@ h1, h2, h3, h4, h5, .nav-link-react, .sidebar-nav-link, .btn-skeuo-raised {
 .btn-close-sidebar:active { transform: scale(0.9); }
 
 .sidebar-nav-link {
-    display: block;
-    font-size: 2rem;
-    font-weight: 900;
+    display: flex;
+    align-items: center;
+    font-size: 1.15rem;
+    font-weight: 600;
     color: var(--md-blue-deep);
     text-decoration: none !important;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 0.5rem;
+    border-radius: 12px;
     opacity: 0;
     transform: translateX(20px);
-    transition: 0.4s;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mobile-sidebar.open .sidebar-nav-link {
     opacity: 1;
     transform: translateX(0);
+}
+
+.mobile-sidebar.open .sidebar-nav-link:hover {
+    background: rgba(24, 209, 230, 0.08);
+    color: var(--md-teal-clinical);
+    transform: translateX(5px);
 }
 
 .mobile-sidebar.open .sidebar-nav-link:nth-child(1) { transition-delay: 0.1s; }
@@ -867,6 +875,14 @@ h1, h2, h3, h4, h5, .nav-link-react, .sidebar-nav-link, .btn-skeuo-raised {
     box-shadow: 0 20px 50px rgba(10, 42, 102, 0.08);
     border: 1px solid var(--md-green-medical) !important;
     overflow: hidden;
+}
+
+.modal {
+    z-index: 10500 !important;
+}
+
+.modal-backdrop {
+    z-index: 10400 !important;
 }
 
 .login-header-premium {
@@ -1003,7 +1019,6 @@ h1, h2, h3, h4, h5, .nav-link-react, .sidebar-nav-link, .btn-skeuo-raised {
 }
 
 .navbar .menu {
-    display: flex !important;
     gap: 20px !important;
 }
 
@@ -1020,7 +1035,6 @@ h1, h2, h3, h4, h5, .nav-link-react, .sidebar-nav-link, .btn-skeuo-raised {
 }
 
 .navbar .acciones {
-    display: flex !important;
     gap: 15px !important;
 }
 
