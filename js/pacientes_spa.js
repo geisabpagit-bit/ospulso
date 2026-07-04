@@ -154,6 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
             var perfilTelefono = perfil.telefono || '';
 
             contenido.innerHTML = 
+                '<div class="modal-header px-4 py-3" style="background-color: var(--md-blue-deep) !important; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex !important; align-items: center; justify-content: space-between;">' +
+                  '<h5 class="fw-bold mb-0 plus-jakarta d-flex align-items-center" style="color: white !important;"><i class="bi bi-person-lines-fill me-2 fs-4" style="color: var(--md-cyan-ia) !important;"></i> Resumen de Expediente</h5>' +
+                  '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                '</div>' +
                 '<div class="container-fluid py-3" style="background-color: var(--bg-main) !important; font-size: 0.75rem;">' +
                   '<div class="row">' +
                     '<!-- Columna Izquierda: Paciente y Finanzas -->' +

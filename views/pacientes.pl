@@ -153,11 +153,7 @@ print <<'HTML';
 <div class="modal fade" id="expedienteModal" tabindex="-1" aria-hidden="true">
   <!-- Removido modal-dialog-scrollable para evitar clipping. Margen top mt-4 para móviles, mt-md-5 para desktop -->
   <div class="modal-dialog modal-lg mt-4 mt-md-5">
-    <div class="modal-content rounded-4 shadow-lg border-0" style="border: 1.5px solid var(--md-teal-clinical) !important; background: var(--md-white-clinical);">
-      <div class="modal-header px-4 py-3" style="background-color: var(--md-blue-deep) !important; border-top-left-radius: 1rem; border-top-right-radius: 1rem; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex !important; visibility: visible !important; opacity: 1 !important;">
-        <h5 class="fw-bold mb-0 plus-jakarta d-flex align-items-center" style="color: white !important;"><i class="bi bi-person-lines-fill me-2 fs-4" style="color: var(--md-cyan-ia) !important;"></i> Resumen de Expediente</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
+    <div class="modal-content rounded-4 shadow-lg border-0" style="border: 1.5px solid var(--md-teal-clinical) !important; background: var(--md-white-clinical); overflow: hidden !important;">
       <div class="modal-body p-0" id="expedienteContenido">
          <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
       </div>
