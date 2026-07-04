@@ -150,9 +150,15 @@ print <<'HTML';
 </div>
 
 
+<style>
+  /* Forzar z-index ultra-alto para el backdrop y el modal */
+  .modal-backdrop { z-index: 9000 !important; }
+  .modal { z-index: 9010 !important; }
+</style>
 <!-- Modal de Resumen Responsivo (Reemplazo del Offcanvas) -->
-<div class="modal fade" id="expedienteModal" tabindex="-1" aria-hidden="true" style="z-index: 7000 !important;">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+<div class="modal fade" id="expedienteModal" tabindex="-1" aria-hidden="true">
+  <!-- Removido modal-dialog-centered y agregado mt-4 para evitar que choque con el nav superior en pantallas pequeñas -->
+  <div class="modal-dialog modal-dialog-scrollable modal-lg mt-4 mt-md-5">
     <div class="modal-content rounded-4 shadow-lg border-0" style="border: 1.5px solid var(--md-teal-clinical) !important; background: var(--md-white-clinical);">
       <div class="modal-header border-bottom px-4 py-3" style="background: #f8fafc; border-top-left-radius: inherit; border-top-right-radius: inherit;">
         <h5 class="fw-bold text-navy mb-0 plus-jakarta d-flex align-items-center"><i class="bi bi-person-lines-fill text-primary me-2 fs-4"></i> Resumen de Expediente</h5>
