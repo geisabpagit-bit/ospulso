@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var modalEl = document.getElementById('expedienteModal');
     var bModal = null;
     if (modalEl) {
+        // [SDM FIX] Mover el modal físicamente a la raíz del <body> 
+        // para escapar del stacking context de <main> y permitir que cubra el navbar
+        document.body.appendChild(modalEl);
         bModal = new bootstrap.Modal(modalEl);
     }
     var contenido = document.getElementById('expedienteContenido');

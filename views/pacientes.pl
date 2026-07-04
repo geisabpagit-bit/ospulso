@@ -203,7 +203,7 @@ print <<'HTML';
 </script>
 
 <!-- Scripts Específicos para Pacientes SPA -->
-<script src="../js/pacientes_spa.js?v=20260703_2340"></script>
+<script src="../js/pacientes_spa.js?v=20260703_2350"></script>
 
 <script>
     $(document).ready(function() {
