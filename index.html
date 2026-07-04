@@ -73,12 +73,25 @@
             </div>
         </div>
         <div class="hero-imagen d-flex justify-content-center align-items-center">
-            <!-- Dynamic Interactive SVG/CSS Hero Visual (Chaos to Order Flow) with Hotspots -->
-            <div class="hero-graphics-container p-0 border rounded-5 shadow-lg overflow-hidden position-relative" style="max-width: 450px; width: 100%; border: 1.5px solid var(--md-teal-clinical) !important; background: white; display: flex;">
-                <img src="img/caos_administrativo_hero.png" alt="Caos Administrativo" class="img-fluid w-100" style="object-fit: cover;">
-                <div class="position-absolute bottom-0 w-100 p-4" style="background: linear-gradient(to top, rgba(10, 42, 102, 0.95) 10%, transparent);">
-                    <h5 class="fw-bold text-white mb-1" id="heroGraphicTitle" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">El Caos Administrativo</h5>
-                    <p class="small text-white-50 mb-0 fw-semibold" id="heroGraphicDesc" style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Administración fragmentada e ineficiente.</p>
+            <!-- Carousel for Chaos vs Order -->
+            <div id="heroCarousel" class="carousel carousel-fade slide hero-graphics-container p-0 border rounded-5 shadow-lg overflow-hidden position-relative" data-bs-ride="carousel" data-bs-interval="3000" style="max-width: 450px; width: 100%; border: 1.5px solid var(--md-teal-clinical) !important; background: white;">
+                <div class="carousel-inner h-100">
+                    <!-- Slide 1: Caos -->
+                    <div class="carousel-item active h-100">
+                        <img src="img/caos_administrativo_hero.png" class="d-block w-100 img-fluid" alt="Caos Administrativo" style="object-fit: cover;">
+                        <div class="position-absolute top-0 w-100 p-4 text-center" style="background: linear-gradient(to bottom, rgba(255,255,255,0.9) 20%, transparent);">
+                            <h5 class="fw-bold text-navy mb-1">El Caos Administrativo</h5>
+                            <p class="small text-secondary mb-0 fw-semibold">Administración fragmentada e ineficiente.</p>
+                        </div>
+                    </div>
+                    <!-- Slide 2: Orden -->
+                    <div class="carousel-item h-100">
+                        <img src="img/orden_clinico_hero.png" class="d-block w-100 img-fluid" alt="Orden Clínico con OSPulso" style="object-fit: cover;">
+                        <div class="position-absolute top-0 w-100 p-4 text-center" style="background: linear-gradient(to bottom, rgba(255,255,255,0.9) 20%, transparent);">
+                            <h5 class="fw-bold mb-1" style="color: var(--md-teal-clinical);">El Orden Clínico</h5>
+                            <p class="small text-secondary mb-0 fw-semibold">Eficiencia, claridad y control total en cada consulta.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -143,15 +156,7 @@
             <h2 class="fw-bold text-navy mb-3">OSPulso — El guardián que transforma tu clínica caótica en una máquina rentable.</h2>
             <p class="lead text-muted mb-5">Convierte cada cita y expediente en ganancias claras y crecimiento real. Desde el primer mes, OSPulso centraliza todo para que tu clínica funcione como un reloj suizo.</p>
             
-            <div class="d-flex justify-content-center align-items-center mt-4">
-                <div class="hero-graphics-container p-0 border rounded-5 shadow-lg overflow-hidden position-relative" style="max-width: 700px; width: 100%; border: 1.5px solid var(--md-teal-clinical) !important; background: white; display: flex;">
-                    <img src="img/orden_clinico_hero.png" alt="Orden Clínico con OSPulso" class="img-fluid w-100" style="object-fit: cover;">
-                    <div class="position-absolute bottom-0 w-100 p-4 text-start" style="background: linear-gradient(to top, rgba(0, 196, 196, 0.95) 10%, transparent);">
-                        <h5 class="fw-bold text-white mb-1" style="text-shadow: 0 2px 4px rgba(0,0,0,0.4);">El Orden Clínico</h5>
-                        <p class="small text-white-50 mb-0 fw-semibold" style="text-shadow: 0 1px 3px rgba(0,0,0,0.4);">Eficiencia, claridad y control total en cada consulta.</p>
-                    </div>
-                </div>
-            </div>
+
         </div>
     </section>
 
