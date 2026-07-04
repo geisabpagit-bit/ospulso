@@ -150,14 +150,18 @@ print <<'HTML';
 </div>
 
 
-<!-- Offcanvas de Resumen Responsivo -->
-<div class="offcanvas offcanvas-end shadow-lg border-0" tabindex="-1" id="expedienteCanvas" style="max-width: 100%; width: 385px; border-left: 4px solid var(--md-blue-deep) !important; border-top-left-radius: 20px; border-bottom-left-radius: 20px; z-index: 6000 !important;">
-  <div class="offcanvas-header border-bottom bg-light">
-    <h5 class="fw-black m-0 plus-jakarta"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Resumen de Expediente</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-  </div>
-  <div class="offcanvas-body p-0 bg-white" id="expedienteContenido">
-     <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Cargando datos...</div>
+<!-- Modal de Resumen Responsivo (Reemplazo del Offcanvas) -->
+<div class="modal fade" id="expedienteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg border-0" style="border: 1.5px solid var(--md-teal-clinical) !important; background: var(--md-white-clinical);">
+      <div class="modal-header border-bottom px-4 py-3" style="background: #f8fafc; border-top-left-radius: inherit; border-top-right-radius: inherit;">
+        <h5 class="fw-bold text-navy mb-0 plus-jakarta d-flex align-items-center"><i class="bi bi-person-lines-fill text-primary me-2 fs-4"></i> Resumen de Expediente</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0" id="expedienteContenido">
+         <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
+      </div>
+    </div>
   </div>
 </div>
 

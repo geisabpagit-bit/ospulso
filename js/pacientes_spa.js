@@ -1,10 +1,10 @@
 // js/pacientes_spa.js
 
 document.addEventListener('DOMContentLoaded', function() {
-    var canvasEl = document.getElementById('expedienteCanvas');
-    var bCanvas = null;
-    if (canvasEl) {
-        bCanvas = new bootstrap.Offcanvas(canvasEl);
+    var modalEl = document.getElementById('expedienteModal');
+    var bModal = null;
+    if (modalEl) {
+        bModal = new bootstrap.Modal(modalEl);
     }
     var contenido = document.getElementById('expedienteContenido');
 
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 '</div>';
         }
         
-        if (bCanvas) bCanvas.show();
+        if (bModal) bModal.show();
 
         var timestamp = new Date().getTime();
         var url = '../api/pacientes_api.pl?accion=get_perfil&id=' + encodeURIComponent(idPaciente) + '&_t=' + timestamp;
@@ -157,11 +157,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 '<div class="d-flex flex-column" style="background-color: var(--bg-main) !important; padding: 1rem; font-size: 0.75rem;">' +
 
                     '<!-- Datos del Paciente -->' +
-                    '<div class="paciente-info-bento mb-3">' +
-                      '<img src="https://ui-avatars.com/api/?name=' + nombreCoded + '&background=0d1e3d&color=fff&size=45&bold=true" alt="Paciente" width="45" height="45" class="shadow-sm">' +
+                    '<div class="paciente-info-bento mb-3 d-flex align-items-center bg-white p-3 shadow-sm" style="border-radius: 16px; border: 1px solid #e2e8f0;">' +
+                      '<img src="https://ui-avatars.com/api/?name=' + nombreCoded + '&background=0d1e3d&color=fff&size=50&bold=true" alt="Paciente" width="50" height="50" class="shadow-sm me-3" style="border-radius: 50%;">' +
                       '<div class="overflow-hidden">' +
-                        '<h6 class="text-truncate mb-0" title="' + perfilNombre + '" style="font-size: 0.9rem;">' + perfilNombre + '</h6>' +
-                        '<small style="font-size: 0.75rem;">ID: ' + perfilId + ' &bull; Activo</small>' +
+                        '<h6 class="text-truncate mb-1 fw-bold" title="' + perfilNombre.replace(/'/g, "&apos;") + '" style="font-size: 1.05rem; color: #0d1e3d; font-family: var(--font-primary, sans-serif);">' + perfilNombre + '</h6>' +
+                        '<small class="fw-bold" style="font-size: 0.8rem; color: #10b981;"><i class="bi bi-person-check-fill me-1"></i>ID: ' + perfilId + ' &bull; Activo</small>' +
                       '</div>' +
                     '</div>' +
 

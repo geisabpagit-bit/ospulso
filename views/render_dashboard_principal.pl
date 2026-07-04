@@ -498,8 +498,8 @@ HTML
                             <h4>$c->{nombre_paciente}</h4>
                             <p>$c->{motivo} • Consultorio Principal</p>
                         </div>
-                        <button class="details-link" onclick="window.location.href='../views/agenda_main.pl'">
-                            Ver detalle <span class="material-icons" style="font-size:1rem;">chevron_right</span>
+                        <button class="btn btn-sm btn-light w-100 mt-2 d-flex align-items-center justify-content-center text-primary shadow-sm" style="border-radius: 12px; font-weight: 700;" onclick="window.location.href='../views/agenda_main.pl'">
+                            Ver detalle <span class="material-icons ms-1" style="font-size:1.1rem;">chevron_right</span>
                         </button>
                     </li>
                 };
