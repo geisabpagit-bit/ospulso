@@ -1,4 +1,4 @@
-#!C:\xampp\perl\bin\perl.exe
+#!/usr/bin/perl
 use cPanelUserConfig;
 use strict;
 use warnings;

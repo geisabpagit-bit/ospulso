@@ -138,13 +138,13 @@ print <<'HTML';
                         <div class="row g-2 mb-4">
                             <div class="col-6">
                                 <div class="form-floating">
-                                    <input type="password" class="form-control" id="h_admin_clave" name="h_admin_clave" placeholder="Clave" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
+                                    <input type="password" class="form-control" id="h_admin_clave" name="h_admin_clave" placeholder="Clave" autocomplete="new-password" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
                                     <label for="h_admin_clave"><i class="bi bi-lock me-2"></i>Contraseña</label>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="form-floating">
-                                    <input type="password" class="form-control" id="h_admin_clave_confirm" name="h_admin_clave_confirm" placeholder="Confirma" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
+                                    <input type="password" class="form-control" id="h_admin_clave_confirm" name="h_admin_clave_confirm" placeholder="Confirma" autocomplete="new-password" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
                                     <label for="h_admin_clave_confirm"><i class="bi bi-shield-check me-2"></i>Confirmar</label>
                                 </div>
                             </div>
