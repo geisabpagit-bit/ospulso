@@ -63,8 +63,8 @@ my $clave_hash  = sha256_hex($clave);
 # Asegurar salto de línea previo si es necesario (Protocolo de Integridad)
 preparar_archivo_para_anexo($archivo_usuarios);
 
-# 5. Guardar Usuario - Estado 0 = PENDIENTE
-my $linea = join('!', $registro_id, $nombre, $correo, $clave_hash, 0, 'Medico', '') . "\n";
+# 5. Guardar Usuario - Estado 0 = PENDIENTE, enlazado a Negocio 1 por defecto
+my $linea = join('!', $registro_id, $nombre, $correo, $clave_hash, 0, 'Medico', '1:') . "\n";
 open(my $out, '>>:encoding(UTF-8)', $archivo_usuarios) or die "Error al guardar: $!";
 print $out $linea;
 close($out);
