@@ -149,12 +149,18 @@ print <<'HTML';
   .modal-backdrop { z-index: 9000 !important; }
   .modal { z-index: 9010 !important; }
 </style>
-<!-- Modal de Resumen Responsivo (Reemplazo del Offcanvas) -->
-<div class="modal fade" id="expedienteModal" tabindex="-1" aria-hidden="true">
-  <!-- Removido modal-dialog-scrollable para evitar clipping. Margen top mt-4 para móviles, mt-md-5 para desktop -->
-  <div class="modal-dialog modal-lg mt-4 mt-md-5">
-    <div class="modal-content rounded-4 shadow-lg border-0" style="border: 1.5px solid var(--md-teal-clinical) !important; background: var(--md-white-clinical); overflow: hidden !important;">
-      <div class="modal-body p-0" id="expedienteContenido">
+<!-- Modal de Resumen Limpio (Refactor) -->
+<div class="modal fade" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 1055;">
+  <div class="modal-dialog modal-lg mt-5">
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header px-4 py-3 border-0" style="background-color: var(--md-blue-deep); border-radius: 1rem 1rem 0 0;">
+        <h5 class="fw-bold mb-0 text-white d-flex align-items-center" id="expedienteModalLabel">
+            <i class="bi bi-person-lines-fill me-2" style="color: var(--md-cyan-ia);"></i> 
+            <span id="modalHeaderTitle">Resumen de Expediente</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3 p-md-4" id="expedienteContenido" style="background-color: #f8f9fa;">
          <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
       </div>
     </div>
