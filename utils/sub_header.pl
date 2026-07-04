@@ -83,7 +83,7 @@ HTML
             
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">
-                <a class="navbar-brand d-flex align-items-center justify-content-center m-0 text-decoration-none" href="../index.html" title="Inicio" style="margin-bottom: -10px;">
+                <a class="navbar-brand d-flex align-items-center justify-content-center m-0 text-decoration-none" href="inicial.pl" title="Inicio" style="margin-bottom: -10px;">
                     <svg class="ospulso-logo-svg" viewBox="0 0 165 50" xmlns="http://www.w3.org/2000/svg" style="height: 55px; width: auto; overflow: visible;">
                         <text x="0" y="32" font-family="'Outfit', sans-serif" font-weight="900" font-size="28" letter-spacing="0.5">
                             <tspan fill="#0A2A66">Os</tspan><tspan fill="#00C4C4">Pulso</tspan>
@@ -147,6 +147,17 @@ HTML
                     </div>
                 </div>
 
+                <!-- Navegación móvil (visible solo en pantallas pequeñas) -->
+                <a href="pacientes.pl" class="aura-nav-link d-md-none">
+                    <i class="bi bi-people"></i>
+                    <span>Pacientes</span>
+                </a>
+                <a href="agenda_main.pl" class="aura-nav-link d-md-none">
+                    <i class="bi bi-calendar3"></i>
+                    <span>Agenda</span>
+                </a>
+                <div class="my-2 d-md-none"><hr class="border-primary opacity-10 m-0"></div>
+
                 <a href="../views/perfil.pl" class="aura-nav-link">
                     <i class="bi bi-person-gear"></i>
                     <span>Editar Perfil</span>
@@ -166,6 +177,13 @@ HTML
 
     print <<HTML;
     <main class="container-fluid px-lg-4 py-4">
+        <!-- Navegación Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb m-0 plus-jakarta fw-semibold" style="font-size: 0.85rem;">
+                <li class="breadcrumb-item"><a href="inicial.pl" class="text-decoration-none text-muted"><i class="bi bi-house-door-fill me-1"></i>Inicio</a></li>
+                <li class="breadcrumb-item active text-primary" aria-current="page">$titulo</li>
+            </ol>
+        </nav>
 HTML
 }
 1;
