@@ -93,9 +93,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Función Renderer que inyecta la Maqueta Premium Diamond Edition
     function renderExpediente(perfil, historial) {
         try {
-            // Validar datos antes de renderizar para evitar crashes (Puntos 3 y 4)
+            console.warn("=== [SDM DEBUG] INICIANDO RENDER EXPEDIENTE ===");
+            console.log("1. Perfil recibido:", perfil);
+            
+            var modalEl = document.getElementById('expedienteModal');
+            console.log("2. Elemento modal encontrado?", !!modalEl);
+            if(modalEl) {
+                var headerEl = modalEl.querySelector('.modal-header');
+                console.log("3. modal-header encontrado?", !!headerEl, headerEl);
+                if(headerEl) {
+                    console.log("3a. Altura del header:", headerEl.offsetHeight, "Visibilidad:", window.getComputedStyle(headerEl).visibility, "Display:", window.getComputedStyle(headerEl).display, "Z-index:", window.getComputedStyle(headerEl).zIndex);
+                    console.log("3b. HTML del header:", headerEl.innerHTML);
+                } else {
+                    console.error("CRÍTICO: No se encontró .modal-header dentro del modal!");
+                    // Vamos a volcar el HTML completo del modal para ver qué diablos hay
+                    console.log("HTML del modal completo:", modalEl.innerHTML);
+                }
+            }
+            
+            var contenido = document.getElementById('expedienteContenido');
+            console.log("4. expedienteContenido encontrado?", !!contenido);
+
             if (!perfil) {
-                throw new Error("Datos de perfil inválidos o inexistentes");
+                if (contenido) contenido.innerHTML = '<div class="alert alert-danger">Error: No se pudo cargar el expediente.</div>';
+                console.error("=== [SDM DEBUG] FALLO: PERFIL NULO ===");
+                return;
             }
 
             var hoy = new Date();

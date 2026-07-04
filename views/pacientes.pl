@@ -185,7 +185,7 @@ print <<'HTML';
 </script>
 
 <!-- Scripts Específicos para Pacientes SPA -->
-<script src="../js/pacientes_spa.js?v=20260703_2302"></script>
+<script src="../js/pacientes_spa.js?v=20260703_2315"></script>
 
 <script>
     $(document).ready(function() {
