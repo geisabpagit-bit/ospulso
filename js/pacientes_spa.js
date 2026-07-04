@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var perfilTelefono = perfil.telefono || '';
 
             contenido.innerHTML = 
-                '<div class="d-flex flex-column" style="background-color: var(--bg-main) !important; padding: 1.25rem; font-size: 0.85rem;">' +
+                '<div class="d-flex flex-column" style="background-color: var(--bg-main) !important; padding: 1rem; font-size: 0.75rem;">' +
 
                     '<!-- Datos del Paciente -->' +
                     '<div class="paciente-info-bento mb-3">' +
@@ -188,14 +188,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     '</div>' +
 
                     '<!-- Barra de Herramientas -->' +
-                    '<div class="toolbar-operativa mb-3" style="gap: 0.35rem; padding: 0.75rem;">' +
-                      '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="btn-outline-primary-medentia btn-toolbar-medentia" style="font-size: 0.75rem; padding: 0.35rem;"><i class="bi bi-folder2-open"></i> Expediente</a>' +
-                      '<a href="estado_cuenta.pl?id=' + perfilId + '" class="btn-outline-primary-medentia btn-toolbar-medentia" style="font-size: 0.75rem; padding: 0.35rem;"><i class="bi bi-cash-stack"></i> Finanzas</a>' +
-                      '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="btn-primary-medentia btn-toolbar-medentia" style="font-size: 0.75rem; padding: 0.35rem;"><i class="bi bi-calendar-plus"></i> Nueva Cita</a>' +
-                      '<button type="button" class="btn-outline-primary-medentia btn-toolbar-medentia" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')" style="font-size: 0.75rem; padding: 0.35rem;"><i class="bi bi-envelope"></i> Correo</button>' +
-                      '<a href="tel:' + perfilTelefono + '" class="btn-outline-primary-medentia btn-toolbar-medentia" style="font-size: 0.75rem; padding: 0.35rem;"><i class="bi bi-telephone"></i> Llamar</a>' +
-                      '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="btn-outline-primary-medentia btn-toolbar-medentia" style="font-size: 0.75rem; padding: 0.35rem;"><i class="bi bi-whatsapp"></i> WhatsApp</a>' +
-                      '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="btn-outline-primary-medentia btn-toolbar-medentia" style="font-size: 0.75rem; padding: 0.35rem;"><i class="bi bi-printer"></i> Imprimir</a>' +
+                    '<div class="toolbar-operativa mb-3 d-flex flex-wrap justify-content-center" style="gap: 0.35rem; padding: 0.5rem;">' +
+                      '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-folder2-open d-block mb-1 fs-6"></i> Expediente</a>' +
+                      '<a href="estado_cuenta.pl?id=' + perfilId + '" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-cash-stack d-block mb-1 fs-6"></i> Finanzas</a>' +
+                      '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="btn-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-calendar-plus d-block mb-1 fs-6"></i> Nueva Cita</a>' +
+                      '<button type="button" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-envelope d-block mb-1 fs-6"></i> Correo</button>' +
+                      '<a href="tel:' + perfilTelefono + '" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-telephone d-block mb-1 fs-6"></i> Llamar</a>' +
+                      '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-whatsapp d-block mb-1 fs-6"></i> WhatsApp</a>' +
+                      '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="btn-outline-primary-medentia btn-toolbar-medentia flex-fill text-center" style="font-size: 0.7rem; padding: 0.35rem;"><i class="bi bi-printer d-block mb-1 fs-6"></i> Imprimir</a>' +
                     '</div>' +
 
                     '<!-- Historial de Consultas -->' +

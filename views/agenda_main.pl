@@ -191,63 +191,57 @@ print <<HTML;
                     <h6 class="modal-title fw-black small text-uppercase mb-0" id="modalCitaTitle">GESTIÓN DE CITA</h6>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-3">
                     <form id="formCita">
                         <input type="hidden" name="id_cita" id="f_id_cita">
                         <input type="hidden" name="id_paciente" id="f_id_paciente">
                         <input type="hidden" name="accion" id="f_accion" value="create">
                         
-                        <div class="position-relative mb-2">
-                            <div class="form-floating">
-                                <input type="text" id="f_paciente" class="form-control border-0 bg-light pe-5" placeholder="Paciente" required style="border-radius: 8px;">
-                                <label>PACIENTE <span class="text-muted text-lowercase ms-1 fw-normal" style="font-size:0.75rem;">(autocompletado)</span></label>
-                            </div>
-                            <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+                        <div class="mb-2 position-relative">
+                            <label class="small text-muted fw-bold mb-1">PACIENTE <span class="fw-normal text-lowercase">(autocompletado)</span></label>
+                            <input type="text" id="f_paciente" class="form-control form-control-sm bg-light border-0 pe-4" placeholder="Buscar paciente..." required style="border-radius: 6px;">
+                            <i class="bi bi-search position-absolute end-0 translate-middle-y me-2 text-muted" style="top: 32px;"></i>
                         </div>
 
                         <div class="row g-2 mb-2">
                             <div class="col-7">
-                                <div class="form-floating">
-                                    <input type="date" name="fecha" id="f_fecha" class="form-control border-0 bg-light" onchange="renderSlots(this.value)" style="border-radius: 8px;">
-                                    <label>FECHA</label>
-                                </div>
+                                <label class="small text-muted fw-bold mb-1">FECHA</label>
+                                <input type="date" name="fecha" id="f_fecha" class="form-control form-control-sm bg-light border-0" onchange="renderSlots(this.value)" style="border-radius: 6px;">
                             </div>
                             <div class="col-5">
-                                <div class="form-floating">
-                                    <select name="estado" id="f_estado" class="form-select border-0 bg-light fw-bold" style="border-radius: 8px;">
-                                        <option value="Programada">Programada</option>
-                                        <option value="Confirmada">Confirmada</option>
-                                        <option value="Atendida">Atendida</option>
-                                        <option value="Cancelada">Cancelada</option>
-                                    </select>
-                                    <label>ESTADO</label>
-                                </div>
+                                <label class="small text-muted fw-bold mb-1">ESTADO</label>
+                                <select name="estado" id="f_estado" class="form-select form-select-sm bg-light border-0 fw-bold" style="border-radius: 6px;">
+                                    <option value="Programada">Programada</option>
+                                    <option value="Confirmada">Confirmada</option>
+                                    <option value="Atendida">Atendida</option>
+                                    <option value="Cancelada">Cancelada</option>
+                                </select>
                             </div>
                         </div>
 
                         <div class="mb-2">
                             <label class="small fw-bold text-muted mb-1 d-block">DURACIÓN</label>
-                            <div class="btn-group w-100 shadow-sm" id="btn-group-duracion">
+                            <div class="btn-group w-100 shadow-sm btn-group-sm" id="btn-group-duracion">
                                 <!-- Generado dinámicamente por JS (renderDuracionButtons) -->
                             </div>
                         </div>
 
                         <div class="mb-2">
                             <label class="small fw-bold text-muted mb-1 d-block">HORARIOS</label>
-                            <div id="slots-container" class="slot-grid-compact p-2 bg-light" style="max-height: 120px; overflow-y: auto; border-radius: 8px;"></div>
+                            <div id="slots-container" class="slot-grid-compact p-2 bg-light" style="max-height: 120px; overflow-y: auto; border-radius: 6px;"></div>
                             <input type="hidden" name="hora_ini" id="f_hi">
                             <input type="hidden" name="hora_fin" id="f_hf">
                         </div>
 
-                        <div class="form-floating mb-2">
-                            <textarea name="motivo" id="f_motivo" class="form-control border-0 bg-light" style="height: 60px; border-radius: 8px;" placeholder="Motivo"></textarea>
-                            <label>MOTIVO / OBSERVACIONES</label>
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted mb-1">MOTIVO / OBSERVACIONES</label>
+                            <textarea name="motivo" id="f_motivo" class="form-control form-control-sm bg-light border-0" style="height: 50px; border-radius: 6px;" placeholder="Detalles de la cita..."></textarea>
                         </div>
 
-                        <div class="d-grid gap-2 mt-3">
-                            <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-success py-3 fw-bold shadow-sm border-0 d-none" style="border-radius: 12px;">TOMAR CITA E IR A CONSULTA</button>
-                            <button type="button" onclick="saveCita()" class="btn btn-primary py-3 fw-bold shadow-sm border-0" style="border-radius: 12px; background: var(--md-blue-medical);">GUARDAR CITA</button>
-                            <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger border-0 fw-bold d-none">ELIMINAR CITA</button>
+                        <div class="d-grid gap-2 mt-2">
+                            <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-success btn-sm fw-bold shadow-sm border-0 d-none" style="border-radius: 8px;">TOMAR CITA E IR A CONSULTA</button>
+                            <button type="button" onclick="saveCita()" class="btn btn-primary btn-sm fw-bold shadow-sm border-0" style="border-radius: 8px; background: var(--md-blue-medical);">GUARDAR CITA</button>
+                            <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger btn-sm border-0 fw-bold d-none">ELIMINAR CITA</button>
                         </div>
                     </form>
                 </div>
