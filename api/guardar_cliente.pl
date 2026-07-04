@@ -136,7 +136,7 @@ sub enviar_correo_activacion {
         my $msg = MIME::Lite->new(
             From    => "administracion\@ospulso.pdigitalesm.com",
             To      => $eml,
-            Subject => 'Activa tu cuenta de MedentIA Diamond',
+            Subject => 'Activa tu cuenta de OsPulso',
             Type    => 'text/html',
             Data    => $html
         );
