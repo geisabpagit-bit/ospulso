@@ -181,9 +181,25 @@ sub render_cuenta_pendiente {
     <main class="flex-grow-1 d-flex align-items-center justify-content-center px-3 mt-5 pt-5">
         <div class="pending-card bg-white animate__animated animate__fadeInUp">
             <div class="pending-header">
-                <div class="pending-icon"><i class="bi bi-envelope-check"></i></div>
+                <div class="mb-3">
+                    <svg viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="height: 60px;">
+                        <g>
+                            <path d="M40 60C40 43.4315 53.4315 30 70 30" stroke="#124A9E" stroke-width="6" stroke-linecap="round"></path>
+                            <circle cx="40" cy="60" r="4" fill="#18D1E6"></circle>
+                            <path d="M40 60C40 76.5685 53.4315 90 70 90" stroke="#124A9E" stroke-width="6" stroke-linecap="round"></path>
+                            <circle cx="70" cy="30" r="4" fill="#18D1E6"></circle>
+                            <circle cx="70" cy="90" r="4" fill="#18D1E6"></circle>
+                            <path d="M55 45H40" stroke="#124A9E" stroke-width="4"></path>
+                            <path d="M55 75H40" stroke="#124A9E" stroke-width="4"></path>
+                            <rect x="75" y="35" width="50" height="50" rx="10" fill="#124A9E"></rect>
+                            <path d="M100 45V75M85 60H115" stroke="white" stroke-width="8" stroke-linecap="round"></path>
+                        </g>
+                        <text x="150" y="82" font-family="Outfit, sans-serif" font-weight="800" font-size="64" fill="#0A2A66">OS</text>
+                        <text x="260" y="82" font-family="Outfit, sans-serif" font-weight="800" font-size="64" fill="#18D1E6">Pulso</text>
+                    </svg>
+                </div>
                 <h3 class="fw-bold text-navy mb-2">Verificación Requerida</h3>
-                <p class="text-muted small mb-0">Software Dental Mexicano | Diamond Edition</p>
+                <p class="text-muted small mb-0">Sistema Operativo para Clínicas Modernas</p>
             </div>
             <div class="card-body p-4 text-center">
                 <p class="fs-6 text-navy">Cuenta activa pero pendiente de validación.</p>

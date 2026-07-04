@@ -99,11 +99,28 @@ sub enviar_correo_activacion {
         <body style="font-family: Arial, sans-serif; color: #0A2A66;">
             <div style="max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden;">
                 <div style="background: #124A9E; padding: 20px; text-align: center; color: white;">
-                    <h2>¡Bienvenido a MedentIA!</h2>
+                    <div style="margin-bottom: 15px;">
+                        <svg viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="height: 40px;">
+                            <g>
+                                <path d="M40 60C40 43.4315 53.4315 30 70 30" stroke="#124A9E" stroke-width="6" stroke-linecap="round"></path>
+                                <circle cx="40" cy="60" r="4" fill="#18D1E6"></circle>
+                                <path d="M40 60C40 76.5685 53.4315 90 70 90" stroke="#124A9E" stroke-width="6" stroke-linecap="round"></path>
+                                <circle cx="70" cy="30" r="4" fill="#18D1E6"></circle>
+                                <circle cx="70" cy="90" r="4" fill="#18D1E6"></circle>
+                                <path d="M55 45H40" stroke="#124A9E" stroke-width="4"></path>
+                                <path d="M55 75H40" stroke="#124A9E" stroke-width="4"></path>
+                                <rect x="75" y="35" width="50" height="50" rx="10" fill="#124A9E"></rect>
+                                <path d="M100 45V75M85 60H115" stroke="white" stroke-width="8" stroke-linecap="round"></path>
+                            </g>
+                            <text x="150" y="82" font-family="Arial, sans-serif" font-weight="800" font-size="64" fill="#ffffff">OS</text>
+                            <text x="260" y="82" font-family="Arial, sans-serif" font-weight="800" font-size="64" fill="#18D1E6">Pulso</text>
+                        </svg>
+                    </div>
+                    <h2 style="margin:0; font-size: 1.2rem; font-weight: 500;">Sistema Operativo para Clínicas Modernas</h2>
                 </div>
                 <div style="padding: 30px; line-height: 1.6;">
                     <p>Hola <strong>$nom</strong>,</p>
-                    <p>Gracias por unirte a la Agencia de Inteligencia Clínica más avanzada. Para activar tu consultorio y comenzar a operar, haz clic en el siguiente botón:</p>
+                    <p>Gracias por unirte a OsPulso. Para activar tu unidad, haz clic en el siguiente botón:</p>
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="$link" style="background: #00b894; color: white; padding: 12px 25px; text-decoration: none; border-radius: 10px; font-weight: bold;">Activar mi Cuenta</a>
                     </div>
