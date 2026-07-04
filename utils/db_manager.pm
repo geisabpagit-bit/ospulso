@@ -17,6 +17,7 @@ our @EXPORT_OK = qw(
     obtener_nuevo_id
     eliminar_registro
     verificar_estado_negocio
+    crear_nuevo_negocio
 );
 
 use FindBin;
@@ -229,6 +230,60 @@ sub verificar_estado_negocio {
     }
 
     return $resultado;
+}
+
+# -------------------------------------------------------------------
+# CREAR NUEVO NEGOCIO MULTI-TENANT
+# -------------------------------------------------------------------
+sub crear_nuevo_negocio {
+    my ($nombre_negocio, $correo_contacto, $tipo_unidad) = @_;
+    my $NEGOCIOS_FILE = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+    
+    my $registros = leer_tabla($NEGOCIOS_FILE, '\|');
+    my $max_id = 0;
+    foreach my $r (@$registros) {
+        $max_id = $r->[0] if $r->[0] > $max_id;
+    }
+    my $nuevo_id = $max_id + 1;
+    
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+    my $hoy_str = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
+    
+    # 30 días de trial
+    my $fin_time = time() + (30 * 24 * 60 * 60);
+    my ($fsec,$fmin,$fhour,$fmday,$fmon,$fyear) = localtime($fin_time);
+    my $fin_str = sprintf("%04d-%02d-%02d", $fyear + 1900, $fmon + 1, $fmday);
+    
+    # Construir línea. razonsocial = $tipo_unidad temporalmente
+    my @campos = (
+        $nuevo_id,         # 0 ID
+        $nombre_negocio,   # 1 NOMBRE_NEGOCIO
+        0,                 # 2 ID_MATRIZ
+        1,                 # 3 Activo
+        $hoy_str,          # 4 inicio
+        $fin_str,          # 5 fin
+        "",                # 6 domicilio
+        "",                # 7 telefono
+        $correo_contacto,  # 8 contacto_email
+        "",                # 9 logo_url
+        "",                # 10 rfc
+        $tipo_unidad,      # 11 razon_social
+        "",                # 12 id_tienda
+        "",                # 13 id_vendedor
+        "",                # 14 codigo_postal
+        "",                # 15 entidad
+        "",                # 16 municipio
+        "",                # 17 colonia
+        "",                # 18 clues
+        "",                # 19 extension
+        "",                # 20 latitud
+        ""                 # 21 longitud
+    );
+    
+    my $linea = join('|', @campos);
+    guardar_registro($NEGOCIOS_FILE, $linea);
+    
+    return $nuevo_id;
 }
 
 1;

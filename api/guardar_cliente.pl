@@ -13,7 +13,7 @@ use Digest::SHA qw(sha256_hex);
 use Digest::MD5 qw(md5_hex);
 use Encode qw(decode_utf8);
 use MIME::Lite;
-use utils::db_manager qw(leer_tabla actualizar_archivo obtener_nuevo_id);
+use utils::db_manager qw(leer_tabla actualizar_archivo obtener_nuevo_id crear_nuevo_negocio);
 
 # --- PROTOCOLO 11.2: Forzar UTF-8 ---
 binmode(STDOUT, ":utf8");
@@ -38,10 +38,12 @@ my $nombre     = decode_utf8($q->param('h_admin_nombre') // '');
 my $correo     = decode_utf8($q->param('h_admin_correo') // '');
 my $clave      = $q->param('h_admin_clave') // '';
 my $clave_conf = $q->param('h_admin_clave_confirm') // '';
+my $tipo_uni   = decode_utf8($q->param('tipo_unidad') // 'Privado');
+my $nom_neg    = decode_utf8($q->param('h_admin_negocio') // 'Clínica Nueva');
 my $consent    = $q->param('consent_calendar') // '';
 
 # 3. Validaciones
-unless ($nombre && $correo && $clave) {
+unless ($nombre && $correo && $clave && $nom_neg) {
     print_error("Campos incompletos.", $q, $titulo_error);
     exit;
 }
@@ -60,11 +62,14 @@ if (registro_existe($archivo_usuarios, $correo)) {
 my $registro_id = obtener_nuevo_id($archivo_contador);
 my $clave_hash  = sha256_hex($clave);
 
+# Creación de Negocio Multi-Tenant
+my $nuevo_id_negocio = crear_nuevo_negocio($nom_neg, $correo, $tipo_uni);
+
 # Asegurar salto de línea previo si es necesario (Protocolo de Integridad)
 preparar_archivo_para_anexo($archivo_usuarios);
 
-# 5. Guardar Usuario - Estado 0 = PENDIENTE, enlazado a Negocio 1 por defecto
-my $linea = join('!', $registro_id, $nombre, $correo, $clave_hash, 0, 'Medico', '1:') . "\n";
+# 5. Guardar Usuario - Estado 0 = PENDIENTE, enlazado al nuevo Negocio
+my $linea = join('!', $registro_id, $nombre, $correo, $clave_hash, 0, 'Medico', "$nuevo_id_negocio:") . "\n";
 open(my $out, '>>:encoding(UTF-8)', $archivo_usuarios) or die "Error al guardar: $!";
 print $out $linea;
 close($out);

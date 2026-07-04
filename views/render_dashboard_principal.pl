@@ -629,8 +629,46 @@ HTML
                 </div>
             </div>
         </div>
+        </div>
     </div>
 </div>
 HTML
+
+    if ($t_pac == 0 && $role eq 'Medico') {
+        print <<HTML;
+<!-- MODAL DE BIENVENIDA MULTI-TENANT (Día 1) -->
+<div class="modal fade" id="welcomeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow-lg" style="overflow:hidden;">
+            <div class="modal-header border-0 bg-primary text-white" style="background: linear-gradient(135deg, #0A2A66 0%, #00C4C4 100%); padding: 2rem;">
+                <h4 class="modal-title fw-black"><i class="bi bi-stars me-2"></i>¡Bienvenido a OSPulso, tu clínica está lista!</h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 p-md-5 text-center bg-light">
+                <div class="mb-4">
+                    <img src="../assets/img/hero_mockup.png" alt="OSPulso Dashboard" class="img-fluid rounded-4 shadow-sm" style="max-height: 200px; object-fit: cover;" onerror="this.style.display='none'">
+                </div>
+                <h5 class="fw-bold text-navy mb-3">Hemos creado un espacio aislado y seguro para ti.</h5>
+                <p class="text-muted mb-4">Todo está configurado para que operes con fricción cero. Tu agenda está limpia, tus indicadores en cero y estás listo para registrar tu primer paciente o agendar tu primera cita.</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="../views/render_consultas.pl" class="btn btn-primary btn-lg rounded-pill px-4 fw-bold shadow-sm"><i class="bi bi-person-plus-fill me-2"></i>Registrar Paciente</a>
+                    <a href="../views/agenda_main.pl" class="btn btn-outline-primary btn-lg rounded-pill px-4 fw-bold bg-white"><i class="bi bi-calendar-check me-2"></i>Ver mi Agenda</a>
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center bg-light pb-4">
+                <a href="../views/perfil.pl" class="text-muted small text-decoration-none"><i class="bi bi-gear-fill me-1"></i>Configurar detalles avanzados de la clínica (Opcional)</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+        welcomeModal.show();
+    });
+</script>
+HTML
+    }
+
 }
 1;

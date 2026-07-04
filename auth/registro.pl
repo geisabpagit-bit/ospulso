@@ -150,6 +150,24 @@ print <<'HTML';
                             </div>
                         </div>
 
+                        <div class="row g-2 mb-4">
+                            <div class="col-4">
+                                <div class="form-floating">
+                                    <select class="form-select" id="tipo_unidad" name="tipo_unidad" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
+                                        <option value="Privado">Privado</option>
+                                        <option value="Público">Público</option>
+                                    </select>
+                                    <label for="tipo_unidad"><i class="bi bi-building me-2"></i>Tipo Unidad</label>
+                                </div>
+                            </div>
+                            <div class="col-8">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="h_admin_negocio" name="h_admin_negocio" placeholder="Nombre Clínica" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
+                                    <label for="h_admin_negocio"><i class="bi bi-hospital me-2"></i>Nombre de la Clínica / Unidad</label>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="p-3 bg-light rounded-4 mb-4" style="border-radius: 12px; border: 1px dashed #cbd5e1;">
                             <div class="form-check form-switch px-0 d-flex align-items-center justify-content-between">
                                 <label class="form-check-label fw-bold text-navy small" for="consent_calendar">
