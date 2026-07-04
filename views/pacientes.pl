@@ -150,7 +150,7 @@ print <<'HTML';
   .modal { z-index: 9010 !important; }
 </style>
 <!-- Modal de Resumen Limpio (Refactor) -->
-<div class="modal fade" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 1055;">
+<div class="modal fade" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg mt-5">
     <div class="modal-content rounded-4 border-0 shadow-lg">
       <div class="modal-header px-4 py-3 border-0" style="background-color: var(--md-blue-deep); border-radius: 1rem 1rem 0 0;">
@@ -205,7 +205,8 @@ print <<'HTML';
     })();
 </script>
 
-<script src="../js/pacientes_spa.js"></script>
+<!-- Scripts Específicos para Pacientes SPA -->
+<script src="../js/pacientes_spa.js?v=20260703_2302"></script>
 
 <script>
     $(document).ready(function() {
