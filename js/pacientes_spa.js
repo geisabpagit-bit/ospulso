@@ -154,72 +154,79 @@ document.addEventListener('DOMContentLoaded', function() {
             var perfilTelefono = perfil.telefono || '';
 
             contenido.innerHTML = 
-                '<div class="d-flex flex-column" style="background-color: var(--bg-main) !important; padding: 1rem; font-size: 0.75rem;">' +
-
-                    '<!-- Datos del Paciente -->' +
-                    '<div class="paciente-info-bento mb-3 d-flex align-items-center bg-white p-3 shadow-sm" style="border-radius: 16px; border: 1px solid #e2e8f0;">' +
-                      '<img src="https://ui-avatars.com/api/?name=' + nombreCoded + '&background=0d1e3d&color=fff&size=50&bold=true" alt="Paciente" width="50" height="50" class="shadow-sm me-3" style="border-radius: 50%;">' +
-                      '<div class="overflow-hidden">' +
-                        '<h6 class="text-truncate mb-1 fw-bold" title="' + perfilNombre.replace(/'/g, "&apos;") + '" style="font-size: 1.05rem; color: #0d1e3d; font-family: var(--font-primary, sans-serif);">' + perfilNombre + '</h6>' +
-                        '<small class="fw-bold" style="font-size: 0.8rem; color: #10b981;"><i class="bi bi-person-check-fill me-1"></i>ID: ' + perfilId + ' &bull; Activo</small>' +
-                      '</div>' +
-                    '</div>' +
-
-                    '<!-- KPI Cards -->' +
-                    '<div class="row g-2 mb-3 flex-nowrap">' +
-                      '<div class="col-4">' +
-                        '<div class="kpi-card-bento cargos px-2 py-3">' +
-                            '<h6 style="font-size: 0.65rem;">CARGOS</h6>' +
-                            '<h5 style="font-size: 0.95rem;">$' + cvCargos + '</h5>' +
+                '<div class="container-fluid py-3" style="background-color: var(--bg-main) !important; font-size: 0.75rem;">' +
+                  '<div class="row">' +
+                    '<!-- Columna Izquierda: Paciente y Finanzas -->' +
+                    '<div class="col-lg-5 col-12">' +
+                        '<!-- Datos del Paciente -->' +
+                        '<div class="paciente-info-bento mb-2 d-flex align-items-center bg-white p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0;">' +
+                          '<img src="https://ui-avatars.com/api/?name=' + nombreCoded + '&background=0d1e3d&color=fff&size=40&bold=true" alt="Paciente" width="40" height="40" class="shadow-sm me-2" style="border-radius: 50%;">' +
+                          '<div class="overflow-hidden">' +
+                            '<h6 class="text-truncate mb-0 fw-bold" title="' + perfilNombre.replace(/'/g, "&apos;") + '" style="font-size: 0.95rem; color: #0d1e3d; font-family: var(--font-primary, sans-serif);">' + perfilNombre + '</h6>' +
+                            '<small class="fw-bold" style="font-size: 0.75rem; color: #10b981;"><i class="bi bi-person-check-fill me-1"></i>ID: ' + perfilId + ' &bull; Activo</small>' +
+                          '</div>' +
                         '</div>' +
-                      '</div>' +
-                      '<div class="col-4">' +
-                        '<div class="kpi-card-bento abonos px-2 py-3">' +
-                            '<h6 style="font-size: 0.65rem;">ABONOS</h6>' +
-                            '<h5 style="font-size: 0.95rem;">$' + cvAbonos + '</h5>' +
-                        '</div>' +
-                      '</div>' +
-                      '<div class="col-4">' +
-                        '<div class="kpi-card-bento saldo px-2 py-3">' +
-                            '<h6 style="font-size: 0.65rem;">SALDO</h6>' +
-                            '<h5 style="font-size: 0.95rem;">$' + cvSaldo + '</h5>' +
-                        '</div>' +
-                      '</div>' +
-                    '</div>' +
-
-                    '<!-- Barra de Herramientas (Bento Grid) -->' +
-                    '<div class="row g-2 mb-3 px-1">' +
-                      '<div class="col-4">' +
-                        '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.65rem; font-weight: 700;">EXPEDIENTE</span></a>' +
-                      '</div>' +
-                      '<div class="col-4">' +
-                        '<a href="estado_cuenta.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.65rem; font-weight: 700;">FINANZAS</span></a>' +
-                      '</div>' +
-                      '<div class="col-4">' +
-                        '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: var(--md-blue-medical);"></i> <span style="font-size: 0.65rem; font-weight: 700;">CITA</span></a>' +
-                      '</div>' +
-                      '<div class="col-4">' +
-                        '<button type="button" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; transition: transform 0.2s;"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.65rem; font-weight: 700;">CORREO</span></button>' +
-                      '</div>' +
-                      '<div class="col-4">' +
-                        '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.65rem; font-weight: 700;">WHATSAPP</span></a>' +
-                      '</div>' +
-                      '<div class="col-4">' +
-                        '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-printer fs-4 mb-1 text-secondary"></i> <span style="font-size: 0.65rem; font-weight: 700;">IMPRIMIR</span></a>' +
-                      '</div>' +
-                    '</div>' +
-
-                    '<!-- Historial de Consultas -->' +
-                    '<div class="d-flex justify-content-between align-items-center mb-3">' +
-                        '<h6 class="fw-bold mb-0" style="color: var(--md-blue-deep); font-family: var(--font-primary);">Historial de Consultas</h6>' +
-                        '<div class="d-flex gap-2">' +
-                            '<button class="btn btn-sm btn-light border rounded-circle shadow-sm" onclick="document.getElementById(\'carruselHistorial\').scrollBy({left:-250, behavior:\'smooth\'})" title="Deslizar Izquierda" style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="bi bi-chevron-left"></i></button>' +
-                            '<button class="btn btn-sm btn-light border rounded-circle shadow-sm" onclick="document.getElementById(\'carruselHistorial\').scrollBy({left:250, behavior:\'smooth\'})" title="Deslizar Derecha" style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="bi bi-chevron-right"></i></button>' +
+                        
+                        '<!-- KPI Cards -->' +
+                        '<div class="row g-2 mb-3 mb-lg-0 flex-nowrap">' +
+                          '<div class="col-4">' +
+                            '<div class="kpi-card-bento cargos p-2 h-100">' +
+                                '<h6 style="font-size: 0.6rem; margin-bottom: 2px;">CARGOS</h6>' +
+                                '<h5 style="font-size: 0.85rem; margin-bottom: 0;">$' + cvCargos + '</h5>' +
+                            '</div>' +
+                          '</div>' +
+                          '<div class="col-4">' +
+                            '<div class="kpi-card-bento abonos p-2 h-100">' +
+                                '<h6 style="font-size: 0.6rem; margin-bottom: 2px;">ABONOS</h6>' +
+                                '<h5 style="font-size: 0.85rem; margin-bottom: 0;">$' + cvAbonos + '</h5>' +
+                            '</div>' +
+                          '</div>' +
+                          '<div class="col-4">' +
+                            '<div class="kpi-card-bento saldo p-2 h-100">' +
+                                '<h6 style="font-size: 0.6rem; margin-bottom: 2px;">SALDO</h6>' +
+                                '<h5 style="font-size: 0.85rem; margin-bottom: 0;">$' + cvSaldo + '</h5>' +
+                            '</div>' +
+                          '</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="historial-consultas-h" id="carruselHistorial">' +
-                        historialHtml +
+
+                    '<!-- Columna Derecha: Acciones e Historial -->' +
+                    '<div class="col-lg-7 col-12">' +
+                        '<!-- Barra de Herramientas (Bento Grid) -->' +
+                        '<div class="row g-2 mb-2">' +
+                          '<div class="col-4">' +
+                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-folder2-open fs-5 mb-1 text-primary"></i> <span style="font-size: 0.6rem; font-weight: 700;">EXPEDIENTE</span></a>' +
+                          '</div>' +
+                          '<div class="col-4">' +
+                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-cash-stack fs-5 mb-1 text-success"></i> <span style="font-size: 0.6rem; font-weight: 700;">FINANZAS</span></a>' +
+                          '</div>' +
+                          '<div class="col-4">' +
+                            '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-calendar-plus fs-5 mb-1" style="color: var(--md-blue-medical);"></i> <span style="font-size: 0.6rem; font-weight: 700;">CITA</span></a>' +
+                          '</div>' +
+                          '<div class="col-4">' +
+                            '<button type="button" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; transition: transform 0.2s;"><i class="bi bi-envelope fs-5 mb-1 text-warning"></i> <span style="font-size: 0.6rem; font-weight: 700;">CORREO</span></button>' +
+                          '</div>' +
+                          '<div class="col-4">' +
+                            '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-whatsapp fs-5 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.6rem; font-weight: 700;">WHATSAPP</span></a>' +
+                          '</div>' +
+                          '<div class="col-4">' +
+                            '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b; text-decoration: none; transition: transform 0.2s;"><i class="bi bi-printer fs-5 mb-1 text-secondary"></i> <span style="font-size: 0.6rem; font-weight: 700;">IMPRIMIR</span></a>' +
+                          '</div>' +
+                        '</div>' +
+
+                        '<!-- Historial de Consultas -->' +
+                        '<div class="d-flex justify-content-between align-items-center mt-2 mb-1">' +
+                            '<h6 class="fw-bold mb-0" style="color: var(--md-blue-deep); font-family: var(--font-primary); font-size: 0.85rem;">Consultas Previas</h6>' +
+                            '<div class="d-flex gap-2">' +
+                                '<button class="btn btn-sm btn-light border rounded-circle shadow-sm" onclick="document.getElementById(\'carruselHistorial\').scrollBy({left:-200, behavior:\'smooth\'})" title="Deslizar Izquierda" style="width: 26px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="bi bi-chevron-left" style="font-size: 0.7rem;"></i></button>' +
+                                '<button class="btn btn-sm btn-light border rounded-circle shadow-sm" onclick="document.getElementById(\'carruselHistorial\').scrollBy({left:200, behavior:\'smooth\'})" title="Deslizar Derecha" style="width: 26px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i></button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="historial-consultas-h pb-2" id="carruselHistorial">' +
+                            historialHtml +
+                        '</div>' +
                     '</div>' +
+                  '</div>' +
                 '</div>';
         } catch (renderError) {
             console.error("[SDM UI Error Boundary] Error en renderExpediente:", renderError);
