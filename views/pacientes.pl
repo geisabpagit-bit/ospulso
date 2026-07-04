@@ -127,12 +127,6 @@ foreach my $p (@list) {
                             <a href="render_expediente_clinico.pl?id=$p->{id}" class="action-btn" title="Expediente">
                                 <i class="bi bi-journal-medical"></i>
                             </a>
-                            <a href="estado_cuenta.pl?id=$p->{id}" class="action-btn" title="Finanzas">
-                                <i class="bi bi-wallet2"></i>
-                            </a>
-                            <a href="agenda_main.pl?id_paciente=$p->{id}" class="action-btn" title="Cita">
-                                <i class="bi bi-calendar-plus"></i>
-                            </a>
                             <button onclick="confirmBorrar('$p->{id}')" class="action-btn action-btn-delete" title="Eliminar">
                                 <i class="bi bi-trash"></i>
                             </button>
@@ -157,12 +151,12 @@ print <<'HTML';
 </style>
 <!-- Modal de Resumen Responsivo (Reemplazo del Offcanvas) -->
 <div class="modal fade" id="expedienteModal" tabindex="-1" aria-hidden="true">
-  <!-- Removido modal-dialog-centered y agregado mt-4 para evitar que choque con el nav superior en pantallas pequeñas -->
-  <div class="modal-dialog modal-dialog-scrollable modal-lg mt-4 mt-md-5">
+  <!-- Removido modal-dialog-scrollable para evitar clipping. Margen top mt-4 para móviles, mt-md-5 para desktop -->
+  <div class="modal-dialog modal-lg mt-4 mt-md-5">
     <div class="modal-content rounded-4 shadow-lg border-0" style="border: 1.5px solid var(--md-teal-clinical) !important; background: var(--md-white-clinical);">
-      <div class="modal-header border-bottom px-4 py-3" style="background: #f8fafc; border-top-left-radius: inherit; border-top-right-radius: inherit;">
-        <h5 class="fw-bold text-navy mb-0 plus-jakarta d-flex align-items-center"><i class="bi bi-person-lines-fill text-primary me-2 fs-4"></i> Resumen de Expediente</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div class="modal-header px-4 py-3" style="background-color: var(--md-blue-deep) !important; border-top-left-radius: 1rem; border-top-right-radius: 1rem; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex !important; visibility: visible !important; opacity: 1 !important;">
+        <h5 class="fw-bold mb-0 plus-jakarta d-flex align-items-center" style="color: white !important;"><i class="bi bi-person-lines-fill me-2 fs-4" style="color: var(--md-cyan-ia) !important;"></i> Resumen de Expediente</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-0" id="expedienteContenido">
          <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
