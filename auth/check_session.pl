@@ -45,10 +45,15 @@ sub check_session {
 
             # --- BLINDAJE DIAMANTE: Verificar Suscripción en Tiempo Real ---
             if ($rol ne 'Administrador Global') {
-                my $id_negocio = $session->param('id_empresa') || $idm || 0;
+                my $id_negocio = $session->param('id_empresa') || 0;
+                
+                # Debug en log de Apache
+                warn "[DEBUG OSPulso] Validando sesión. UID: $uid, Rol: $rol, ID_Negocio: $id_negocio, ID_Medico: $idm\n";
+
                 if ($id_negocio) {
                     my $biz = verificar_estado_negocio($id_negocio);
                     if (!$biz->{activo}) {
+                        warn "[DEBUG OSPulso] Acceso bloqueado por negocio inactivo (ID_Negocio: $id_negocio)\n";
                         $session_ok = 0; # Invalidar acceso si el negocio no está activo
                     }
                 }
