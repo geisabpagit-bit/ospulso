@@ -295,6 +295,7 @@ sub render_dashboard_principal {
     \@media (max-width: 576px) {
         .app-container {
             padding: 10px !important; /* Optimizar espacio horizontal */
+            padding-bottom: 90px !important; /* Evitar que el bottom_nav tape el contenido */
         }
         .dash-kpi-card {
             padding: 1rem !important;

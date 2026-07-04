@@ -128,13 +128,13 @@ HTML
     </nav>
 
     <!-- Sidebar Offcanvas Premium v3 (Aura Glass Design) -->
-    <div class="offcanvas offcanvas-end aura-sidebar-menu" tabindex="-1" id="sdmSidebar" aria-labelledby="sdmSidebarLabel">
-        <div class="p-4 text-end">
+    <div class="offcanvas offcanvas-end aura-sidebar-menu" tabindex="-1" id="sdmSidebar" aria-labelledby="sdmSidebarLabel" style="width: 340px;">
+        <div class="p-4 text-end pb-0">
             <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         
-        <div class="offcanvas-body p-4 pt-0 d-flex flex-column">
-            <div class="nav flex-column gap-2">
+        <div class="offcanvas-body p-4 pt-3 d-flex flex-column">
+            <div class="nav flex-column gap-2 h-100">
                 
                 <!-- Perfil Card Bento -->
                 <div class="user-aura-card mb-4">
@@ -165,12 +165,13 @@ HTML
                     <span>Editar Perfil</span>
                 </a>
 
-                <div class="my-2"><hr class="border-primary opacity-10 m-0"></div>
-
-                <a href="javascript:void(0)" onclick="confirmLogout()" class="aura-nav-link text-danger">
-                    <i class="bi bi-power"></i>
-                    <span>Cerrar Sesi&oacute;n</span>
-                </a>
+                <div class="mt-auto">
+                    <hr class="border-primary opacity-10 my-3">
+                    <a href="javascript:void(0)" onclick="confirmLogout()" class="aura-nav-link text-danger">
+                        <i class="bi bi-power"></i>
+                        <span>Cerrar Sesi&oacute;n</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>

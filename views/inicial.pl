@@ -34,7 +34,7 @@ if ($session_ok) {
 
     render_header(
         usuario     => $usuario,
-        titulo      => 'Inicio - Software Dental Mexicano',
+        titulo      => 'OsPulso',
         ruta_logout => '../auth/cerrar_sesion.pl',
         role        => $role,
         id_medico   => $id_medico,
