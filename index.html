@@ -74,36 +74,11 @@
         </div>
         <div class="hero-imagen d-flex justify-content-center align-items-center">
             <!-- Dynamic Interactive SVG/CSS Hero Visual (Chaos to Order Flow) with Hotspots -->
-            <div class="hero-graphics-container p-4 border rounded-5 bg-white shadow-lg overflow-hidden" style="max-width: 450px; width: 100%;">
-                <div class="text-center w-100 position-relative">
-                    <h5 class="fw-bold text-navy mb-4" id="heroGraphicTitle">El Caos Administrativo</h5>
-                    
-                    <!-- Dynamic Hotspots labels -->
-                    <div id="hotspot1" class="hotspot-badge" style="top: 35px; left: 15px;">📁 Papeles perdidos</div>
-                    <div id="hotspot2" class="hotspot-badge" style="top: 15px; right: 25px;">📉 Fuga de citas</div>
-                    <div id="hotspot3" class="hotspot-badge" style="bottom: 15px; left: 35%; display: none;">✓ Todo Seguro</div>
-
-                    <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-height: 220px;">
-                        <!-- Chaos Elements -->
-                        <g id="chaosGroup" class="chaos-order-icon" style="opacity: 1;">
-                            <circle cx="50" cy="60" r="18" fill="#fecaca" />
-                            <text x="50" y="65" font-size="16" text-anchor="middle">📁</text>
-                            <circle cx="150" cy="40" r="15" fill="#fecaca" />
-                            <text x="150" y="45" font-size="14" text-anchor="middle"> Excel </text>
-                            <circle cx="100" cy="90" r="16" fill="#fecaca" />
-                            <text x="100" y="95" font-size="14" text-anchor="middle">⚠️</text>
-                            <path d="M50 60 Q 100 30 150 40" stroke="#f87171" stroke-width="2" stroke-dasharray="4" fill="none" />
-                            <path d="M100 90 Q 50 80 50 60" stroke="#f87171" stroke-width="2" stroke-dasharray="4" fill="none" />
-                        </g>
-                        <!-- Order Elements -->
-                        <g id="orderGroup" class="chaos-order-icon" style="opacity: 0; transform: scale(0.9); transform-origin: 100px 60px;">
-                            <rect x="20" y="25" width="160" height="70" rx="10" fill="#ccfbf1" stroke="#00C4C4" stroke-width="2" />
-                            <text x="100" y="50" font-size="12" font-weight="bold" fill="#0A2A66" text-anchor="middle">Agenda & Expedientes</text>
-                            <path d="M40 70 H160" stroke="#00C4C4" stroke-width="3" stroke-linecap="round" />
-                            <text x="100" y="85" font-size="10" fill="#00C4C4" font-weight="bold" text-anchor="middle">✓ Todo en su lugar</text>
-                        </g>
-                    </svg>
-                    <p class="small text-muted mt-3 mb-0" id="heroGraphicDesc">Administración fragmentada e ineficiente.</p>
+            <div class="hero-graphics-container p-0 border rounded-5 shadow-lg overflow-hidden position-relative" style="max-width: 450px; width: 100%; border: 1.5px solid var(--md-teal-clinical) !important; background: white; display: flex;">
+                <img src="img/caos_administrativo_hero.png" alt="Caos Administrativo" class="img-fluid w-100" style="object-fit: cover;">
+                <div class="position-absolute bottom-0 w-100 p-4" style="background: linear-gradient(to top, rgba(10, 42, 102, 0.95) 10%, transparent);">
+                    <h5 class="fw-bold text-white mb-1" id="heroGraphicTitle" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">El Caos Administrativo</h5>
+                    <p class="small text-white-50 mb-0 fw-semibold" id="heroGraphicDesc" style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Administración fragmentada e ineficiente.</p>
                 </div>
             </div>
         </div>

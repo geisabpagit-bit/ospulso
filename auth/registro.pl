@@ -48,6 +48,12 @@ print <<'HTML';
                 padding-right: 5px !important;
                 margin-top: 1rem !important;
             }
+            .form-floating > label {
+                font-size: 0.85rem !important;
+            }
+            .form-control::placeholder {
+                font-size: 0.85rem !important;
+            }
         }
         .form-control:focus {
             border-color: #00C4C4;
@@ -162,8 +168,8 @@ print <<'HTML';
                             </div>
                             <div class="col-12 col-md-8">
                                 <div class="form-floating">
-                                    <input type="text" class="form-control" id="h_admin_negocio" name="h_admin_negocio" placeholder="Nombre Clínica" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
-                                    <label for="h_admin_negocio"><i class="bi bi-hospital me-2"></i>Nombre de la Clínica / Unidad</label>
+                                    <input type="text" class="form-control" id="h_admin_negocio" name="h_admin_negocio" placeholder="Nombre de la Clinica" required style="border: 2px solid #e2e8f0; border-radius: 8px;">
+                                    <label for="h_admin_negocio"><i class="bi bi-hospital me-2"></i>Nombre de la Clinica</label>
                                 </div>
                             </div>
                         </div>
