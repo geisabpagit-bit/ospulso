@@ -526,7 +526,8 @@ HTML
         function iniciarVinculacionGoogle() {
             const clientId = "771205596556-64bfspdvs27aqogeot9mdelgvmqm4n7u.apps.googleusercontent.com";
             const idMed = "$id_medico"; 
-            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=\${clientId}&redirect_uri=https://sdm.pdigitalesm.com/auth/oauth_callback.pl&response_type=code&scope=https://www.googleapis.com/auth/calendar.events&access_type=offline&prompt=consent&state=\${idMed}`;
+            const redirectUri = encodeURIComponent(window.location.origin + '/auth/oauth_callback.pl');
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=\${clientId}&redirect_uri=\${redirectUri}&response_type=code&scope=https://www.googleapis.com/auth/calendar.events&access_type=offline&prompt=consent&state=\${idMed}`;
             window.open(authUrl, 'GoogleAuth', 'width=600,height=700');
         }
         </script>

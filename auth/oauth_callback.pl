@@ -23,7 +23,8 @@ my $error = $q->param('error') // '';
 
 my $client_id     = "771205596556-64bfspdvs27aqogeot9mdelgvmqm4n7u.apps.googleusercontent.com";
 my $client_secret = "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";
-my $redirect_uri  = "https://sdm.pdigitalesm.com/auth/oauth_callback.pl";
+my $host          = $ENV{'HTTP_HOST'} || 'ospulso.pdigitalesm.com';
+my $redirect_uri  = "https://$host/auth/oauth_callback.pl";
 my $tokens_file   = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tokens_google.dat');
 
 # print $q->header(-type => 'text/html', -charset => 'UTF-8'); # ELIMINADO: Rompe redirecciones

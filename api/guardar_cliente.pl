@@ -75,7 +75,8 @@ enviar_correo_activacion($nombre, $correo, $registro_id);
 # 7. Redirección Inteligente
 if ($consent) {
     my $client_id    = "771205596556-64bfspdvs27aqogeot9mdelgvmqm4n7u.apps.googleusercontent.com";
-    my $redirect_uri = "https://sdm.pdigitalesm.com/auth/oauth_callback.pl";
+    my $host         = $ENV{'HTTP_HOST'} || 'ospulso.pdigitalesm.com';
+    my $redirect_uri = "https://$host/auth/oauth_callback.pl";
     my $scope        = "https://www.googleapis.com/auth/calendar";
     my $auth_url     = "https://accounts.google.com/o/oauth2/v2/auth?client_id=$client_id&redirect_uri=$redirect_uri&response_type=code&scope=$scope&access_type=offline&prompt=consent&state=$registro_id";
     print $q->redirect($auth_url);
@@ -90,7 +91,8 @@ exit;
 sub enviar_correo_activacion {
     my ($nom, $eml, $id) = @_;
     my $token = md5_hex($id . $eml);
-    my $link  = "https://sdm.pdigitalesm.com/auth/correo_verificado_reg.pl?id=$id&token=$token";
+    my $host  = $ENV{'HTTP_HOST'} || 'ospulso.pdigitalesm.com';
+    my $link  = "https://$host/auth/correo_verificado_reg.pl?id=$id&token=$token";
 
     my $html = qq{
         <html>
@@ -115,7 +117,7 @@ sub enviar_correo_activacion {
     eval {
         # PROTOCOLO 13: SIEMPRE escapar el @ como \@
         my $msg = MIME::Lite->new(
-            From    => "administracion\@sdm.pdigitalesm.com",
+            From    => "administracion\@ospulso.pdigitalesm.com",
             To      => $eml,
             Subject => 'Activa tu cuenta de MedentIA Diamond',
             Type    => 'text/html',

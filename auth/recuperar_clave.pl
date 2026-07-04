@@ -83,9 +83,10 @@ sub enviar_correo_recuperacion {
     }
     
     # 3. Construir URL y Contenido del Email
-    my $url_recuperacion = "https://sdm.pdigitalesm.com/auth/cambiar_clave.pl?token=$token";
+    my $host = $ENV{'HTTP_HOST'} || 'ospulso.pdigitalesm.com';
+    my $url_recuperacion = "https://$host/auth/cambiar_clave.pl?token=$token";
     
-    my $from = 'administracion@sdm.pdigitalesm.com';
+    my $from = 'administracion@ospulso.pdigitalesm.com';
     my $to = $correo;
     my $subject = encode_utf8("Recuperación de Contraseña - Software Dental Mexicano"); 
     
