@@ -189,14 +189,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 var style = document.createElement('style');
                 style.id = 'bentoPremiumStyles';
                 style.innerHTML = `
-                    .bento-action-btn { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid rgba(59, 130, 246, 0.12) !important; border-radius: 16px !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-decoration: none; color: #1e293b; }
-                    .bento-action-btn:hover { transform: translateY(-3px) scale(1.02) !important; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15) !important; border-color: rgba(59, 130, 246, 0.4) !important; background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%); color: #0A2A66; }
+                    .bento-action-btn { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid rgba(59, 130, 246, 0.3) !important; border-radius: 16px !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-decoration: none; color: #1e293b; }
+                    .bento-action-btn:hover { transform: translateY(-3px) scale(1.02) !important; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15) !important; border-color: rgba(59, 130, 246, 0.6) !important; background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%); color: #0A2A66; }
                     .bento-action-btn i { transition: transform 0.3s ease; }
                     .bento-action-btn:hover i { transform: scale(1.15); }
-                    .paciente-info-bento { background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%) !important; border: 1px solid rgba(59, 130, 246, 0.2) !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08) !important; transition: transform 0.3s ease; }
-                    .paciente-info-bento:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.12) !important; }
-                    .kpi-card-bento { border: 1px solid rgba(59, 130, 246, 0.15) !important; border-radius: 12px !important; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.03); position: relative; overflow: hidden; transition: all 0.3s ease; }
-                    .kpi-card-bento:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+                    .paciente-info-bento { background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%) !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08) !important; transition: transform 0.3s ease; }
+                    .paciente-info-bento:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.12) !important; border-color: rgba(59, 130, 246, 0.6) !important; }
+                    .kpi-card-bento { border: 1px solid rgba(59, 130, 246, 0.3) !important; border-radius: 12px !important; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.03); position: relative; overflow: hidden; transition: all 0.3s ease; }
+                    .kpi-card-bento:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); border-color: rgba(59, 130, 246, 0.6) !important; }
                     .kpi-card-bento::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; }
                     .kpi-card-bento.cargos::before { background-color: #3b82f6; }
                     .kpi-card-bento.abonos::before { background-color: #10b981; }
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">CITA</span></a>' +
                           '</div>' +
                           '<div class="col-4">' +
-                            '<button type="button" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 border-0 bg-transparent p-0" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><div class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">CORREO</span></div></button>' +
+                            '<button type="button" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">CORREO</span></button>' +
                           '</div>' +
                           '<div class="col-4">' +
                             '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">WHATSAPP</span></a>' +

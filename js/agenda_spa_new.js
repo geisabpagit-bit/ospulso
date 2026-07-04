@@ -1521,3 +1521,11 @@ function guardarAjustes() {
         }
     });
 }
+
+// [SDM FIX] DOM Teleportation Protocol para evadir secuestros de z-index en moviles
+document.addEventListener('DOMContentLoaded', function() {
+    var modalCita = document.getElementById('modalCita');
+    if (modalCita) {
+        document.body.appendChild(modalCita);
+    }
+});

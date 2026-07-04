@@ -183,15 +183,32 @@ print <<HTML;
         </main>
     </div>
 
-    <!-- MODAL CITAS -->
-    <div class="modal fade" id="modalCita" tabindex="-1" aria-hidden="true">
+    <!-- MODAL CITAS (Aura Premium & Z-Index Guard) -->
+    <style>
+      .modal-backdrop.show { z-index: 104900 !important; }
+      .bento-action-btn { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid rgba(59, 130, 246, 0.3) !important; border-radius: 12px !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-decoration: none; color: #1e293b; }
+      .bento-action-btn:hover { transform: translateY(-3px) scale(1.02) !important; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15) !important; border-color: rgba(59, 130, 246, 0.6) !important; background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%); color: #0A2A66; }
+      .floating-label-premium label { font-size: 0.65rem !important; text-transform: uppercase; color: #64748b; font-weight: 700; padding: 1rem 0.75rem; }
+      .floating-label-premium .form-control, .floating-label-premium .form-select { border-radius: 1rem; background-color: #f8fafc; border: 1px solid transparent; transition: all 0.2s; box-shadow: none; }
+      .floating-label-premium .form-control:focus, .floating-label-premium .form-select:focus { background-color: #ffffff; border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+      .dur-bar-premium .btn { border-radius: 20px !important; margin: 0 2px; border: 1px solid rgba(59, 130, 246, 0.2) !important; background-color: #ffffff; color: #64748b; font-weight: 600; font-size: 0.75rem; transition: all 0.2s; }
+      .dur-bar-premium .btn.active { background-color: var(--md-blue-medical) !important; color: #ffffff !important; border-color: var(--md-blue-medical) !important; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); transform: scale(1.05); z-index: 2; }
+      .dur-bar-premium .btn:hover:not(.active) { background-color: #f0f7ff; color: #1e293b; }
+    </style>
+    <div class="modal fade" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-                <div class="modal-header text-white p-3 border-0" style="background: var(--md-blue-deep) !important;">
-                    <h6 class="modal-title fw-black small text-uppercase mb-0" id="modalCitaTitle">GESTIÓN DE CITA</h6>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-content border-0 shadow-lg p-0" style="border-radius: 20px; overflow: hidden !important; background-color: #f8f9fa;">
+                
+                <!-- Cabecera manual -->
+                <div class="p-3 px-4 d-flex justify-content-between align-items-center w-100" style="background-color: var(--md-blue-deep) !important; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                    <h6 class="fw-bold mb-0 text-white d-flex align-items-center">
+                        <i class="bi bi-calendar-check me-2" style="color: #00C4C4 !important;"></i> 
+                        <span id="modalCitaTitle">GESTIÓN DE CITA</span>
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
+                
+                <div class="modal-body p-3 p-md-4" style="background-color: #ffffff;">
                     <form id="formCita">
                         <input type="hidden" name="id_cita" id="f_id_cita">
                         <input type="hidden" name="id_paciente" id="f_id_paciente">
@@ -202,31 +219,35 @@ print <<HTML;
                         <div class="row g-4">
                             <!-- Columna Izquierda: Datos Básicos -->
                             <div class="col-md-6 border-end-md">
-                                <div class="mb-3 position-relative">
-                                    <label class="small text-muted fw-bold mb-1">PACIENTE <span class="fw-normal text-lowercase">(autocompletado)</span></label>
-                                    <input type="text" id="f_paciente" class="form-control form-control-sm bg-light border-0 pe-4" placeholder="Buscar paciente..." required style="border-radius: 6px; padding-top: 0.5rem; padding-bottom: 0.5rem;">
-                                    <i class="bi bi-search position-absolute end-0 translate-middle-y me-2 text-muted" style="top: 35px;"></i>
+                                <div class="form-floating mb-3 floating-label-premium position-relative">
+                                    <input type="text" id="f_paciente" class="form-control pe-4" placeholder="Buscar paciente..." required>
+                                    <label for="f_paciente">PACIENTE <span class="fw-normal text-lowercase">(autocompletado)</span></label>
+                                    <i class="bi bi-search position-absolute end-0 translate-middle-y me-3 text-muted" style="top: 50%;"></i>
                                 </div>
 
                                 <div class="row g-2 mb-3">
                                     <div class="col-6">
-                                        <label class="small text-muted fw-bold mb-1">FECHA</label>
-                                        <input type="date" name="fecha" id="f_fecha" class="form-control form-control-sm bg-light border-0" onchange="renderSlots(this.value)" style="border-radius: 6px; padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                        <div class="form-floating floating-label-premium">
+                                            <input type="date" name="fecha" id="f_fecha" class="form-control" placeholder="Fecha" onchange="renderSlots(this.value)">
+                                            <label for="f_fecha">FECHA</label>
+                                        </div>
                                     </div>
                                     <div class="col-6">
-                                        <label class="small text-muted fw-bold mb-1">ESTADO</label>
-                                        <select name="estado" id="f_estado" class="form-select form-select-sm bg-light border-0 fw-bold" style="border-radius: 6px; padding-top: 0.5rem; padding-bottom: 0.5rem;">
-                                            <option value="Programada">Programada</option>
-                                            <option value="Confirmada">Confirmada</option>
-                                            <option value="Atendida">Atendida</option>
-                                            <option value="Cancelada">Cancelada</option>
-                                        </select>
+                                        <div class="form-floating floating-label-premium">
+                                            <select name="estado" id="f_estado" class="form-select fw-bold">
+                                                <option value="Programada">Programada</option>
+                                                <option value="Confirmada">Confirmada</option>
+                                                <option value="Atendida">Atendida</option>
+                                                <option value="Cancelada">Cancelada</option>
+                                            </select>
+                                            <label for="f_estado">ESTADO</label>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="mb-2">
-                                    <label class="small fw-bold text-muted mb-1 d-block">DURACIÓN</label>
-                                    <div class="btn-group w-100 shadow-sm btn-group-sm" id="btn-group-duracion">
+                                    <label class="small fw-bold text-muted mb-2 d-block" style="font-size: 0.65rem; padding-left: 0.75rem;">DURACIÓN</label>
+                                    <div class="btn-group w-100 dur-bar-premium" id="btn-group-duracion">
                                         <!-- Generado dinámicamente por JS -->
                                     </div>
                                 </div>
@@ -235,24 +256,24 @@ print <<HTML;
                             <!-- Columna Derecha: Horarios y Motivo -->
                             <div class="col-md-6 d-flex flex-column">
                                 <div class="mb-3 flex-grow-1">
-                                    <label class="small fw-bold text-muted mb-1 d-block">HORARIOS</label>
-                                    <div id="slots-container" class="slot-grid-compact p-2 bg-light w-100 h-100" style="min-height: 140px; max-height: 180px; overflow-y: auto; border-radius: 6px;"></div>
+                                    <label class="small fw-bold text-muted mb-2 d-block" style="font-size: 0.65rem; padding-left: 0.75rem;">HORARIOS DISPONIBLES</label>
+                                    <div id="slots-container" class="slot-grid-compact p-2 w-100 h-100" style="min-height: 140px; max-height: 180px; overflow-y: auto; border-radius: 1rem; background-color: #f8fafc; border: 1px solid rgba(59,130,246,0.1);"></div>
                                 </div>
 
-                                <div class="mb-0">
-                                    <label class="small fw-bold text-muted mb-1">MOTIVO / OBSERVACIONES</label>
-                                    <textarea name="motivo" id="f_motivo" class="form-control form-control-sm bg-light border-0" style="height: 55px; border-radius: 6px;" placeholder="Detalles de la cita..."></textarea>
+                                <div class="form-floating floating-label-premium">
+                                    <textarea name="motivo" id="f_motivo" class="form-control" placeholder="Detalles de la cita..." style="height: 60px;"></textarea>
+                                    <label for="f_motivo">MOTIVO / OBSERVACIONES</label>
                                 </div>
                             </div>
                         </div> <!-- end row -->
 
-                        <hr class="border-primary opacity-10 my-4">
+                        <hr class="opacity-10 my-4" style="border-color: rgba(59, 130, 246, 0.2);">
 
                         <!-- Acciones Principales -->
                         <div class="d-flex flex-column flex-md-row justify-content-end gap-2">
-                            <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger btn-sm border-0 fw-bold d-none px-4 order-3 order-md-1">ELIMINAR CITA</button>
-                            <button type="button" onclick="saveCita()" class="btn btn-primary btn-sm fw-bold shadow-sm border-0 px-4 order-1 order-md-2" style="border-radius: 8px; background: var(--md-blue-medical);">GUARDAR CITA</button>
-                            <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-success btn-sm fw-bold shadow-sm border-0 d-none px-4 order-2 order-md-3" style="border-radius: 8px;">TOMAR CITA E IR A CONSULTA</button>
+                            <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger border-0 fw-bold d-none px-4 order-3 order-md-1" style="border-radius: 12px;">ELIMINAR CITA</button>
+                            <button type="button" onclick="saveCita()" class="bento-action-btn fw-bold px-4 order-1 order-md-2" style="background: linear-gradient(180deg, var(--md-blue-medical) 0%, #124A9E 100%); color: white; border: none !important;"><i class="bi bi-save me-1"></i> GUARDAR CITA</button>
+                            <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="bento-action-btn fw-bold d-none px-4 order-2 order-md-3" style="background: linear-gradient(180deg, #10b981 0%, #059669 100%); color: white; border: none !important;"><i class="bi bi-person-check me-1"></i> TOMAR E IR A CONSULTA</button>
                         </div>
                     </form>
                 </div>
@@ -360,7 +381,7 @@ print <<HTML;
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/agenda_spa_new.js?v=4.0.1_Final_Rebuilt"></script>
+    <script src="../js/agenda_spa_new.js?v=4.0.2_Premium"></script>
 </body>
 </html>
 HTML
