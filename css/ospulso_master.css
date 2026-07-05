@@ -1463,16 +1463,18 @@ footer {
 }
 
 
-/* Hero Immersive Redesign */
+/* Hero WOW Immersive Redesign */
 .hero-immersive {
-    background-image: url('../img/orden_clinico_hero.png');
+    background-image: url('../img/hero_parallax_bg.png');
     background-size: cover;
-    background-position: center right;
+    background-position: center;
     background-repeat: no-repeat;
-    min-height: 80vh;
+    background-attachment: fixed; /* Parallax effect */
+    min-height: 85vh;
     width: 100%;
     position: relative;
     padding-bottom: 3rem;
+    overflow: hidden;
 }
 
 .hero-glass-card {
@@ -1487,8 +1489,55 @@ footer {
     box-shadow: 0 20px 40px rgba(10, 42, 102, 0.08);
 }
 
+/* Magnetic Pulse Button */
+.btn-magnetic-pulse {
+    animation: pulseGlow 2.5s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(0, 196, 196, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(0, 196, 196, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 196, 196, 0); }
+}
+
 .hover-glow:hover {
     box-shadow: 0 0 20px rgba(0, 196, 196, 0.6) !important;
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.02);
     transition: all 0.3s ease;
+}
+
+/* Floating Orbs */
+.floating-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+    z-index: 1;
+    pointer-events: none;
+    animation: floatOrb 10s infinite alternate ease-in-out;
+}
+.orb-teal {
+    background: var(--md-teal-clinical);
+    width: 350px; height: 350px;
+    top: -50px; left: -100px;
+}
+.orb-navy {
+    background: var(--md-blue-deep);
+    width: 450px; height: 450px;
+    bottom: -150px; right: 15%;
+    animation-duration: 15s;
+    animation-delay: -5s;
+}
+@keyframes floatOrb {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(60px) scale(1.1); }
+}
+
+/* Staggered Reveal Animations */
+.reveal-1 { opacity: 0; animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; animation-delay: 0.1s; }
+.reveal-2 { opacity: 0; animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; animation-delay: 0.4s; }
+.reveal-3 { opacity: 0; animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; animation-delay: 0.7s; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
 }
