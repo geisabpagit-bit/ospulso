@@ -1595,6 +1595,20 @@ footer {
     transform: translateY(-2px);
 }
 
+.btn-premium-outline {
+    background: transparent;
+    border: 2px solid var(--md-teal-clinical);
+    color: var(--md-blue-deep) !important;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+.btn-premium-outline:hover {
+    background: var(--md-teal-clinical);
+    color: white !important;
+    box-shadow: 0 8px 15px rgba(0, 196, 196, 0.3);
+    transform: translateY(-2px);
+}
+
 /* Fix Magnetic Pulse */
 .btn-magnetic-pulse {
     animation: premiumPulseGlow 2.5s infinite cubic-bezier(0.66, 0, 0, 1) !important;
