@@ -1541,3 +1541,90 @@ footer {
     from { opacity: 0; transform: translateY(40px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* =========================================
+   PREMIUM REFACTOR: SUPER NITIDEZ Y BOTONES
+   ========================================= */
+
+/* Global Anti-aliasing for Super Nitidez */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Premium Buttons */
+.btn-premium-primary {
+    background: linear-gradient(135deg, var(--md-teal-clinical), #12908f);
+    color: white !important;
+    border: none;
+    box-shadow: 0 8px 15px rgba(0, 196, 196, 0.2);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+.btn-premium-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, #12908f, var(--md-blue-deep));
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.4s ease;
+}
+.btn-premium-primary:hover::before {
+    opacity: 1;
+}
+.btn-premium-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    transition: all 0.3s ease;
+}
+
+.btn-premium-secondary {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    color: var(--md-blue-deep) !important;
+    box-shadow: 0 8px 15px rgba(10, 42, 102, 0.05);
+    transition: all 0.3s ease;
+}
+.btn-premium-secondary:hover {
+    background: white;
+    box-shadow: 0 12px 20px rgba(10, 42, 102, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Fix Magnetic Pulse */
+.btn-magnetic-pulse {
+    animation: premiumPulseGlow 2.5s infinite cubic-bezier(0.66, 0, 0, 1) !important;
+}
+@keyframes premiumPulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(0, 196, 196, 0.7) !important; }
+    70% { box-shadow: 0 0 0 20px rgba(0, 196, 196, 0) !important; }
+    100% { box-shadow: 0 0 0 0 rgba(0, 196, 196, 0) !important; }
+}
+
+/* Scroll Reveal Classes */
+.scroll-reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Premium Panel for Cards */
+.premium-panel {
+    background: white;
+    border: none !important;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 40px rgba(10, 42, 102, 0.04) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.premium-panel:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 30px 60px rgba(10, 42, 102, 0.08) !important;
+}
