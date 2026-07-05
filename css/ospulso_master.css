@@ -1642,3 +1642,43 @@ footer {
     transform: translateY(-5px);
     box-shadow: 0 30px 60px rgba(10, 42, 102, 0.08) !important;
 }
+
+/* Glass Navbar */
+.glass-navbar {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 30px rgba(10, 42, 102, 0.05);
+}
+
+/* Base Parallax Sections */
+.parallax-section {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+}
+.parallax-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+}
+.parallax-overlay-navy::before {
+    background: rgba(10, 42, 102, 0.85); /* Deep Navy Overlay */
+}
+.parallax-overlay-teal::before {
+    background: rgba(0, 196, 196, 0.7); /* Teal Overlay */
+}
+.parallax-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Demo Gradient Background */
+.demo-gradient-bg {
+    background: linear-gradient(135deg, var(--md-blue-deep) 0%, #0e5e8e 100%);
+    color: white;
+}

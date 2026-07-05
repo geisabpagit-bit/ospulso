@@ -14,7 +14,7 @@
 
 <body class="d-flex flex-column min-vh-100" style="padding-bottom: 70px;">
     <!-- HEADER -->
-    <header class="navbar navbar-expand-lg">
+    <header class="navbar navbar-expand-lg fixed-top glass-navbar py-2 px-3">
         <a href="index.html" class="logo text-decoration-none d-flex align-items-center justify-content-center" style="margin-bottom: -10px;">
             <svg class="ospulso-logo-svg" viewBox="0 0 165 50" xmlns="http://www.w3.org/2000/svg" style="height: 55px; width: auto; overflow: visible;">
                 <text x="0" y="32" font-family="'Outfit', sans-serif" font-weight="900" font-size="28" letter-spacing="0.5">
@@ -30,9 +30,9 @@
             <a href="#demo">Demo Interactiva</a>
             <a href="#planes">Planes</a>
         </nav>
-        <div class="acciones d-none d-lg-flex">
-            <a href="#" class="btn-outline" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
-            <a href="auth/registro.pl" class="btn-primary">Regístrate</a>
+        <div class="acciones d-none d-lg-flex gap-2">
+            <a href="#" class="btn btn-premium-secondary fw-bold px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
+            <a href="auth/registro.pl" class="btn btn-premium-primary fw-bold px-4 rounded-pill">Regístrate</a>
         </div>
         <!-- Mobile Toggle -->
         <button class="d-lg-none btn-mobile-toggle" type="button" id="openMobileMenu">
@@ -137,13 +137,11 @@
     </section>
 
     <!-- LA SOLUCIÓN -->
-    <section id="solucion" class="py-5 bg-light text-center scroll-reveal">
-        <div class="container" style="max-width: 900px;">
-            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold mb-3">La Solución</span>
-            <h2 class="fw-bold text-navy mb-3">OSPulso — El guardián que transforma tu clínica caótica en una máquina rentable.</h2>
-            <p class="lead text-muted mb-5">Convierte cada cita y expediente en ganancias claras y crecimiento real. Desde el primer mes, OSPulso centraliza todo para que tu clínica funcione como un reloj suizo.</p>
-            
-
+    <section id="solucion" class="py-5 text-center scroll-reveal parallax-section parallax-overlay-navy" style="background-image: url('img/solucion_bg.png'); min-height: 50vh; display: flex; align-items: center;">
+        <div class="container parallax-content" style="max-width: 900px;">
+            <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold mb-4 shadow">La Solución</span>
+            <h2 class="fw-bold text-white mb-4" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">OSPulso — El guardián que transforma tu clínica caótica en una máquina rentable.</h2>
+            <p class="lead text-light mb-0" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Convierte cada cita y expediente en ganancias claras y crecimiento real. Desde el primer mes, OSPulso centraliza todo para que tu clínica funcione como un reloj suizo.</p>
         </div>
     </section>
 
@@ -196,18 +194,18 @@
     </section>
 
     <!-- DEMO PEPITO (Gamified and Autoplay search) -->
-    <section id="demo" class="py-5 bg-light text-center position-relative">
+    <section id="demo" class="py-5 text-center position-relative demo-gradient-bg">
         <div class="container" style="max-width: 900px;">
-            <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold mb-3">Experiencia Interactiva</span>
-            <h2 class="fw-bold text-navy mb-3">Prueba OSPulso en un Clic</h2>
-            <p class="text-muted mb-4">Haz clic y mira cómo OSPulso organiza tu clínica en segundos — sin escribir nada.</p>
+            <span class="badge bg-light text-primary px-3 py-2 rounded-pill fw-bold mb-3 shadow-sm">Experiencia Interactiva</span>
+            <h2 class="fw-bold text-white mb-3">Prueba OSPulso en un Clic</h2>
+            <p class="text-light mb-4">Haz clic y mira cómo OSPulso organiza tu clínica en segundos — sin escribir nada.</p>
             
             <!-- Autoplay Trigger Button -->
             <div class="d-flex justify-content-center gap-3 mb-4 flex-wrap">
-                <button id="btnAutoPlayDemo" class="btn btn-primary btn-lg px-4 py-3 fw-bold shadow-lg animate__animated animate__pulse animate__infinite" style="border-radius: 12px;">
+                <button id="btnAutoPlayDemo" class="btn btn-premium-primary btn-lg px-4 py-3 fw-bold btn-magnetic-pulse" style="border-radius: 12px;">
                     👉 Ver Demo Real (Llenar Ejemplo)
                 </button>
-                <a href="https://wa.me/525643555072" target="_blank" class="btn btn-outline-primary btn-lg px-4 py-3 fw-bold d-inline-flex align-items-center gap-2" style="border-radius: 12px;">
+                <a href="https://wa.me/525643555072" target="_blank" class="btn btn-premium-secondary btn-lg px-4 py-3 fw-bold d-inline-flex align-items-center gap-2" style="border-radius: 12px;">
                     Agenda Demo Personalizada <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
@@ -355,19 +353,19 @@
     </section>
 
     <!-- PRICING -->
-    <section id="planes" class="py-5 bg-white text-center">
-        <div class="container" style="max-width: 900px;">
+    <section id="planes" class="py-5 text-center scroll-reveal parallax-section parallax-overlay-teal" style="background-image: url('img/cta_bg.png'); min-height: 60vh; display: flex; align-items: center;">
+        <div class="container parallax-content" style="max-width: 900px;">
             <div class="text-center mb-5">
-                <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill fw-bold mb-3">Tarifas Transparentes</span>
-                <h2 class="fw-bold text-navy">Una tarifa fija, ilimitada y sin sorpresas — solo preocúpate por crecer.</h2>
-                <p class="text-secondary fw-semibold mt-2">“La inversión que tu clínica merece — sin sorpresas, sin dolores de cabeza.”</p>
-                <p class="text-success fw-bold small mt-1">🎁 Promoción de lanzamiento: Setup Fee Gratis para los primeros 10 clientes.</p>
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3 shadow">Tarifas Transparentes</span>
+                <h2 class="fw-bold text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Una tarifa fija, ilimitada y sin sorpresas — solo preocúpate por crecer.</h2>
+                <p class="text-light fw-semibold mt-2" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">“La inversión que tu clínica merece — sin sorpresas, sin dolores de cabeza.”</p>
+                <p class="text-white fw-bold small mt-1">🎁 Promoción de lanzamiento: Setup Fee Gratis para los primeros 10 clientes.</p>
             </div>
             
             <div class="row justify-content-center g-4">
-                <div class="col-md-6">
-                    <div class="p-5 border border-primary rounded-5 shadow bg-white position-relative">
-                        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2">Infraestructura Completa</span>
+                <div class="col-md-7">
+                    <div class="p-5 premium-panel position-relative">
+                        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2 shadow">Infraestructura Completa</span>
                         <h3 class="fw-bold text-navy mt-2">Tarifa Plana OSPulso</h3>
                         <p class="text-muted small">Médicos, asistentes, recepcionistas y pacientes ilimitados.</p>
                         <h1 class="fw-bold text-navy my-4">$999 <span class="fs-6 text-muted">MXN / mes</span></h1>
