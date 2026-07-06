@@ -1682,3 +1682,68 @@ footer {
     background: linear-gradient(135deg, var(--md-blue-deep) 0%, #0e5e8e 100%);
     color: white;
 }
+
+/* Holographic Modules CSS */
+.holo-card {
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+.holo-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent, rgba(24, 209, 230, 0.15), transparent);
+    transform: rotate(0deg);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.holo-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 196, 196, 0.2), 0 0 20px rgba(0, 196, 196, 0.1);
+    border-color: rgba(0, 196, 196, 0.5) !important;
+}
+
+.holo-card:hover::before {
+    opacity: 1;
+    animation: rotateHolo 4s linear infinite;
+}
+
+.holo-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.5s ease;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1rem;
+    border: 2px solid transparent;
+}
+
+.holo-card:hover .holo-img {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 196, 196, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+@keyframes rotateHolo {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.holo-card > * {
+    position: relative;
+    z-index: 1;
+}
