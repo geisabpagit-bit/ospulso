@@ -1747,3 +1747,26 @@ footer {
     position: relative;
     z-index: 1;
 }
+
+@keyframes floatHolo {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); filter: drop-shadow(0 15px 20px rgba(24, 209, 230, 0.4)); }
+    100% { transform: translateY(0px); }
+}
+
+.holo-carousel-img {
+    animation: floatHolo 6s ease-in-out infinite;
+    max-height: 400px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+}
+
+.carousel-control-prev, .carousel-control-next {
+    width: 5%;
+    z-index: 10;
+}
+
+.carousel-indicators [data-bs-target] {
+    background-color: var(--md-teal-clinical);
+}
