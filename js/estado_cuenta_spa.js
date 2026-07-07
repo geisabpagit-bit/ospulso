@@ -85,13 +85,13 @@ function actualizarPieChart(cargos, abonos) {
 
     const ctx = canvas.getContext('2d');
     
-    // Metallic Crimson (Cargos)
-    const gradRed = ctx.createLinearGradient(0, 0, 160, 160);
-    gradRed.addColorStop(0, '#fca5a5');    // highlight top-left
-    gradRed.addColorStop(0.2, '#ef4444');  // bright
-    gradRed.addColorStop(0.5, '#b91c1c');  // core
-    gradRed.addColorStop(0.8, '#7f1d1d');  // shadow
-    gradRed.addColorStop(1, '#f87171');    // rim reflection
+    // Metallic Gold (Cargos)
+    const gradGold = ctx.createLinearGradient(0, 0, 160, 160);
+    gradGold.addColorStop(0, '#fef08a');    // highlight top-left
+    gradGold.addColorStop(0.2, '#eab308');  // bright
+    gradGold.addColorStop(0.5, '#a16207');  // core
+    gradGold.addColorStop(0.8, '#713f12');  // shadow
+    gradGold.addColorStop(1, '#fde047');    // rim reflection
 
     // Metallic Emerald/Teal (Abonos)
     const gradGreen = ctx.createLinearGradient(0, 160, 160, 0);
@@ -161,7 +161,7 @@ function actualizarPieChart(cargos, abonos) {
                 labels: ['Cargos', 'Abonos'],
                 datasets: [{
                     data: [cargos, abonos],
-                    backgroundColor: [gradRed, gradGreen],
+                    backgroundColor: [gradGold, gradGreen],
                     borderColor: [borderGrad, borderGrad],
                     borderWidth: 4,
                     hoverOffset: 6

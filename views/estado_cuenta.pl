@@ -3,6 +3,7 @@ use cPanelUserConfig;
 use strict;
 use warnings;
 use utf8;
+use open qw(:std :utf8);
 use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use FindBin;
@@ -152,7 +153,7 @@ print <<HTML;
                             <div class="d-flex flex-column gap-3 w-100" id="pieCustomLegend">
                                 <div class="d-flex align-items-center justify-content-between w-100">
                                     <div class="d-flex align-items-center gap-2">
-                                        <div style="width: 10px; height: 10px; border-radius: 50%; background: #dc2626; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
+                                        <div style="width: 10px; height: 10px; border-radius: 50%; background: #eab308; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
                                         <span class="text-muted fw-bold" style="font-size: 0.75rem;">Cargos</span>
                                     </div>
                                     <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legCargos">\$0</span>
