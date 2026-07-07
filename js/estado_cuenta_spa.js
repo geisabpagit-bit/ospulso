@@ -947,7 +947,10 @@ window.filtrarSubcategorias3 = function() {
 window.renderGastos = async function() {
     try {
         const tbody = document.getElementById('tbodyGastos');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>';
+        if ($.fn.DataTable && $.fn.DataTable.isDataTable('#tablaGastos')) {
+            $('#tablaGastos').DataTable().destroy();
+        }
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>';
         
         const res = await fetch('../api/finanzas_api.pl', {
             method: 'POST',
@@ -1162,7 +1165,26 @@ window.abrirModalCategorias = function() {
     const el = document.getElementById('modalCategorias');
     if (!el) return;
     $(el).appendTo('body');
+    
+    // Ocultar modalGasto para evitar problemas de z-index
+    const modalGastoEl = document.getElementById('modalGasto');
+    let gastoHidden = false;
+    if (modalGastoEl && modalGastoEl.classList.contains('show')) {
+        const mg = bootstrap.Modal.getInstance(modalGastoEl);
+        if (mg) mg.hide();
+        gastoHidden = true;
+    }
+    
     new bootstrap.Modal(el).show();
+    
+    if (gastoHidden) {
+        // Al cerrar categorias, reabrir gastos
+        el.addEventListener('hidden.bs.modal', function handler() {
+            new bootstrap.Modal(modalGastoEl).show();
+            el.removeEventListener('hidden.bs.modal', handler);
+        });
+    }
+    
     document.getElementById('mg_nombre').value = '';
     document.getElementById('mg_nivel').value = '1';
     cambiarNivelGestion();
