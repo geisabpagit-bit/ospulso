@@ -233,6 +233,9 @@ print <<HTML;
       #modalCita .btn-slot.active { background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); }
       #modalCita .slot-lunch { background-color: #fee2e2 !important; color: #991b1b !important; border-color: #fecaca !important; }
       #modalCita .slot-busy { background-color: #fef9c3 !important; color: #854d0e !important; border-color: #fde047 !important; }
+      @media (min-width: 768px) {
+          .border-md-end-soft { border-right: 1px solid var(--md-gray-soft) !important; }
+      }
     </style>
     <div class="modal fade modal-diamond" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -337,13 +340,13 @@ print <<HTML;
                         <div class="row g-4 mt-1">
                             <div class="col-md-12 p-3" style="background-color: var(--md-white-clinical); border-radius: 1rem; border: 1px solid var(--md-gray-soft);">
                                 <div class="row">
-                                    <div class="col-md-3 border-end">
+                                    <div class="col-md-3 border-bottom border-md-0 pb-3 pb-md-0 mb-3 mb-md-0 pe-md-3 border-md-end-soft">
                                         <label class="small fw-bold text-muted mb-3 d-block text-uppercase" style="letter-spacing: 1px;">Duración</label>
-                                        <div class="d-flex flex-column gap-2 dur-bar-premium" id="btn-group-duracion">
+                                        <div class="d-flex flex-row flex-md-column flex-wrap gap-2 dur-bar-premium" id="btn-group-duracion">
                                             <!-- Generado dinámicamente por JS -->
                                         </div>
                                     </div>
-                                    <div class="col-md-9 d-flex flex-column pl-3">
+                                    <div class="col-md-9 d-flex flex-column ps-md-3">
                                         <label class="small fw-bold text-muted mb-3 d-block text-uppercase" style="letter-spacing: 1px;">Horarios Disponibles</label>
                                         <div id="slots-container" class="slot-grid-compact w-100 flex-grow-1" style="min-height: 200px; max-height: 250px; overflow-y: auto;"></div>
                                     </div>

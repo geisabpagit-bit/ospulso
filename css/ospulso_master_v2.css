@@ -253,11 +253,32 @@
 
 /* --- Selectores Desplegables Teal --- */
 .form-select {
-    border-radius: 12px;
+    border-radius: 12px !important;
+    border: 1px solid rgba(20, 184, 166, 0.3) !important;
     transition: all 0.3s ease;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2314b8a6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
 }
 .form-select:focus {
     border-color: #14b8a6 !important;
     box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15) !important;
-    border-radius: 12px;
+    border-radius: 12px !important;
+    outline: none !important;
+}
+/* Intentamos forzar estilos en la lista desplegable nativa (sujeto a soporte del navegador) */
+.form-select option {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    padding: 12px !important;
+    border: 1px solid rgba(20, 184, 166, 0.2) !important;
+    border-radius: 8px !important;
+}
+.form-select option:checked, .form-select option:hover {
+    background-color: #14b8a6 !important;
+    color: #ffffff !important;
 }
