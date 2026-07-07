@@ -74,16 +74,16 @@ print <<HTML;
 
 <div class="container-fluid p-0 p-md-3">
     <!-- Tabla / Lista de Pacientes -->
-    <div class="v2-table-container shadow-premium">
+    <div class="rounded-4 shadow-sm bg-white mb-4">
         <div class="table-responsive">
-            <table id="tablaPacientes" class="table v2-table w-100 m-0 border-0">
+            <table id="tablaPacientes" class="table table-diamond w-100 m-0 border-0">
                 <thead>
                     <tr>
-                        <th class="ps-4 py-3">ID</th>
-                        <th class="py-3">NOMBRE COMPLETO</th>
-                        <th class="py-3">CONTACTO</th>
-                        <th class="py-3">F. NAC / SEXO</th>
-                        <th class="text-end pe-4 py-3">ACCIONES</th>
+                        <th class="ps-4 py-3 border-top-0">ID</th>
+                        <th class="py-3 border-top-0">NOMBRE COMPLETO</th>
+                        <th class="py-3 border-top-0">CONTACTO</th>
+                        <th class="py-3 border-top-0">F. NAC / SEXO</th>
+                        <th class="text-end pe-4 py-3 border-top-0">ACCIONES</th>
                     </tr>
                 </thead>
                 <tbody class="border-0">
@@ -121,14 +121,14 @@ foreach my $p (@list) {
                     </td>
                     <td class="text-end pe-4" data-label="ACCIONES">
                         <div class="d-flex justify-content-end gap-2">
-                            <button class="v2-btn-outline btn-expediente" data-id="$p->{id}" title="Resumen">
-                                <i class="bi bi-eye"></i>
+                            <button class="btn p-0 border-0 btn-expediente" data-id="$p->{id}" title="Resumen">
+                                <div class="icon-container-acrylic"><i class="bi bi-eye"></i></div>
                             </button>
-                            <a href="render_expediente_clinico.pl?id=$p->{id}" class="v2-btn-outline" title="Expediente">
-                                <i class="bi bi-journal-medical"></i>
+                            <a href="render_expediente_clinico.pl?id=$p->{id}" class="text-decoration-none" title="Expediente">
+                                <div class="icon-container-acrylic"><i class="bi bi-journal-medical"></i></div>
                             </a>
-                            <button onclick="confirmBorrar('$p->{id}')" class="action-btn action-btn-delete" title="Eliminar">
-                                <i class="bi bi-trash"></i>
+                            <button onclick="confirmBorrar('$p->{id}')" class="btn p-0 border-0 action-btn-delete" title="Eliminar">
+                                <div class="icon-container-acrylic text-danger border-danger border-opacity-25" style="background: rgba(220, 53, 69, 0.05);"><i class="bi bi-trash"></i></div>
                             </button>
                         </div>
                     </td>
@@ -164,19 +164,17 @@ print <<'HTML';
 <style>
   .modal-backdrop.show { z-index: 104900 !important; }
 </style>
-<div class="modal fade" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 105000 !important;">
+<div class="modal fade modal-diamond" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 105000 !important;">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0 shadow-lg p-0" style="overflow: hidden !important; background-color: #f8f9fa;">
-      <!-- Cabecera manual (Sin la clase modal-header para evitar bugs de CSS) -->
-      <div class="p-3 px-4 d-flex justify-content-between align-items-center w-100" style="background-color: #0A2A66 !important; border-bottom: 1px solid rgba(0,0,0,0.05);">
-        <h5 class="fw-bold mb-0 text-white d-flex align-items-center" id="expedienteModalLabel">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center" id="expedienteModalLabel">
             <i class="bi bi-person-lines-fill me-2" style="color: #00C4C4 !important;"></i> 
             <span id="modalHeaderTitle">Resumen de Expediente</span>
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <!-- Fin Cabecera -->
-      <div class="modal-body p-3 p-md-4" id="expedienteContenido" style="background-color: #f8f9fa;">
+      <div class="modal-body" id="expedienteContenido">
          <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
       </div>
     </div>

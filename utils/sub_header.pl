@@ -79,7 +79,7 @@ HTML
     if ($show_nav) {
         my $role_label = uc($role);
         print <<HTML;
-    <nav class="navbar sdm-navbar p-2 sticky-top flex-column align-items-stretch">
+    <nav class="navbar sdm-navbar glass-navbar p-2 sticky-top flex-column align-items-stretch">
         <div class="container-fluid px-lg-4 d-flex align-items-center justify-content-between flex-nowrap w-100">
             
             <!-- Navigation: Solo Desktop -->
@@ -99,7 +99,7 @@ HTML
             <!-- 1. Buscador (Alineado a la izquierda en móvil) -->
             <div class="search-container flex-grow-1 mx-md-auto" style="max-width: 550px;">
                 <div class="position-relative">
-                    <input type="text" id="globalSearch" class="sdm-search-input" placeholder="Buscar expediente...">
+                    <input type="text" id="globalSearch" class="sdm-search-input search-pill" placeholder="Buscar expediente...">
                     <i class="bi bi-search search-icon"></i>
                 </div>
             </div>

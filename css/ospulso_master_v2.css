@@ -1,169 +1,170 @@
 /* 
-  OSPULSO MASTER V2
-  Hoja de estilos estricta para la migración progresiva del Legacy SaaS a la estética Diamond Sync.
-  Proporciona variables universales, utilidades de glassmorphism y overrides de Bootstrap para componentes core.
+   💎 OSPulso Diamond - SaaS Botox UI (v2.0)
+   Clases específicas para inyectar el diseño de la Landing Page en el SaaS Legacy.
 */
 
-:root {
-    /* --- Paleta Oficial Diamond Sync --- */
-    --md-blue-deep: #0A2A66;      /* Azul Profundo */
-    --md-blue-medical: #124A9E;   /* Azul Médico */
-    --md-cyan-ia: #18D1E6;        /* Cyan IA */
-    --md-green-medical: #00b894;  /* Verde Médico Fuerte */
-    --md-teal-clinical: #19B7A5;  /* Teal Clínico */
-    --md-white-clinical: #F8FBFF; /* Blanco Clínico */
-    --md-gray-soft: #D9E2EC;      /* Gris Suave UI */
-    --md-text-primary: #102A43;   /* Texto Principal */
-    --md-text-secondary: #486581; /* Texto Secundario */
-    --md-accent: #00C2FF;         /* Cyan de Acento (CTA) */
-    
-    /* Gradientes */
-    --bg-medentia-gradient: linear-gradient(135deg, var(--md-blue-deep), var(--md-blue-medical));
-    --bg-glassmorphism: rgba(255, 255, 255, 0.85);
-    
-    /* Tipografía */
-    --font-primary: 'Plus Jakarta Sans', sans-serif;
-    --font-secondary: 'Outfit', sans-serif;
+/* --- Tipografía Estricta --- */
+.font-primary { font-family: 'Outfit', sans-serif !important; }
+.font-secondary { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+.font-mono { font-family: 'Space Mono', monospace !important; }
+
+/* --- Bordes y Sombras Modernas --- */
+.rounded-4 { border-radius: 1rem !important; }
+.rounded-5 { border-radius: 1.5rem !important; }
+.shadow-sm { box-shadow: 0 2px 10px rgba(10, 42, 102, 0.05) !important; }
+.shadow-md { box-shadow: 0 10px 25px rgba(10, 42, 102, 0.08) !important; }
+
+/* --- Glassmorphism para el Navbar (sub_header.pl) --- */
+.glass-navbar {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid rgba(10, 42, 102, 0.08) !important;
 }
 
-/* --- OVERRIDES GLOBALES --- */
-body {
-    font-family: var(--font-primary) !important;
-    background-color: #F4F7F9 !important; /* Fondo suave y moderno */
-    color: var(--md-text-primary);
-}
-
-/* --- UTILIDADES VISUALES (Diamond) --- */
-
-/* Sombras Suaves (Modern SaaS) */
-.shadow-premium {
-    box-shadow: 0 10px 40px rgba(10, 42, 102, 0.08) !important;
-}
-.shadow-sm-premium {
-    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.05) !important;
-}
-
-/* Glassmorphism */
-.glass-panel {
-    background: var(--bg-glassmorphism) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-}
-
-/* Bordes y Formas */
-.rounded-premium {
-    border-radius: 1.25rem !important;
-}
-.rounded-pill-premium {
+/* Modificando la barra de búsqueda superior */
+.search-pill {
     border-radius: 50rem !important;
-}
-
-/* --- REDISEÑO DEL NAVBAR LEGACY --- */
-.navbar.sdm-navbar {
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-    box-shadow: 0 4px 20px rgba(10, 42, 102, 0.05) !important;
-    padding: 0.8rem 1rem !important;
-}
-
-/* Inputs de Búsqueda Global en Navbar */
-.navbar .search-container input {
-    border-radius: 50rem !important;
-    padding-left: 2.5rem !important;
-    border: 1px solid #e2e8f0 !important;
-    background: #f8fafc !important;
-    color: var(--md-text-primary) !important;
-}
-.navbar .search-container input::placeholder {
-    color: var(--md-text-secondary) !important;
-}
-.navbar .search-container input:focus {
-    background: #fff !important;
-    box-shadow: 0 0 0 0.25rem rgba(24, 209, 230, 0.15) !important;
-}
-.navbar .search-container i.bi-search {
-    color: var(--md-text-secondary) !important;
-    z-index: 10;
-}
-.navbar .search-container input:focus + i.bi-search {
-    color: var(--md-blue-deep) !important;
-}
-
-/* --- COMPONENTES DE VISTA (Ej. Pacientes) --- */
-.v2-card {
-    background: #ffffff;
-    border-radius: 1.25rem;
-    border: 1px solid #eef2f6;
-    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.03);
+    background-color: var(--md-white-clinical, #F8FBFF) !important;
+    border: 1px solid var(--md-gray-soft, #D9E2EC) !important;
+    padding-left: 20px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02) !important;
     transition: all 0.3s ease;
 }
-.v2-card:hover {
-    box-shadow: 0 8px 24px rgba(10, 42, 102, 0.08);
+.search-pill:focus {
+    background-color: #fff !important;
+    border-color: var(--md-cyan-ia, #18D1E6) !important;
+    box-shadow: 0 0 0 3px rgba(24, 209, 230, 0.2) !important;
 }
 
-.v2-btn-primary {
-    background: var(--md-blue-deep);
-    color: white;
+/* --- Botones Premium --- */
+.btn-premium-primary {
+    background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66), var(--md-blue-medical, #124A9E));
+    color: white !important;
     border: none;
-    border-radius: 0.75rem;
+    border-radius: 50rem !important; /* Pill */
+    padding: 10px 24px;
     font-weight: 600;
-    padding: 0.6rem 1.2rem;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(10, 42, 102, 0.15);
 }
-.v2-btn-primary:hover {
-    background: var(--md-blue-medical);
-    color: white;
+.btn-premium-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(18, 74, 158, 0.3);
+    box-shadow: 0 8px 25px rgba(10, 42, 102, 0.25);
+    background: linear-gradient(135deg, var(--md-blue-medical, #124A9E), var(--md-blue-deep, #0A2A66));
 }
 
-.v2-btn-outline {
-    background: transparent;
-    color: var(--md-blue-deep);
-    border: 2px solid var(--md-blue-deep);
-    border-radius: 0.75rem;
+.btn-holo-acrylic {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--md-blue-deep, #0A2A66);
+    border-radius: 12px !important;
     font-weight: 600;
-    padding: 0.5rem 1.2rem;
+    transition: all 0.3s ease;
+}
+.btn-holo-acrylic:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Estilos para la Tabla (pacientes.pl) --- */
+.table-diamond {
+    background: white;
+    border-radius: 1rem !important;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(10, 42, 102, 0.06) !important;
+    border: 1px solid rgba(10, 42, 102, 0.05) !important;
+}
+.table-diamond thead th {
+    background-color: var(--md-white-clinical, #F8FBFF) !important;
+    color: var(--md-text-secondary, #486581) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 15px 20px !important;
+    border-bottom: 2px solid var(--md-gray-soft, #D9E2EC) !important;
+    border-top: none !important;
+}
+.table-diamond tbody td {
+    padding: 15px 20px !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid var(--md-gray-soft, #D9E2EC) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    color: var(--md-text-primary, #102A43) !important;
+    font-size: 0.95rem !important;
+}
+.table-diamond tbody tr {
+    transition: all 0.2s ease !important;
+}
+.table-diamond tbody tr:hover {
+    background-color: #fcfdfe !important;
+    transform: scale(1.001) !important;
+}
+
+/* Iconos de Tabla */
+.icon-container-acrylic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(10, 42, 102, 0.04);
+    color: var(--md-blue-deep, #0A2A66);
+    border: 1px solid rgba(10, 42, 102, 0.05);
     transition: all 0.2s ease;
 }
-.v2-btn-outline:hover {
-    background: var(--md-blue-deep);
+.table-diamond tbody tr:hover .icon-container-acrylic {
+    background: var(--md-blue-deep, #0A2A66);
     color: white;
+    box-shadow: 0 4px 10px rgba(10, 42, 102, 0.2);
 }
 
-/* Tablas Modernas */
-.v2-table-container {
-    background: #fff;
-    border-radius: 1.25rem;
-    overflow: hidden;
-    border: 1px solid #eef2f6;
-    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.03);
+/* Modal Botox */
+.modal-diamond .modal-content {
+    border: none !important;
+    border-radius: 20px !important;
+    box-shadow: 0 25px 50px -12px rgba(10, 42, 102, 0.25) !important;
+    overflow: hidden !important;
 }
-.v2-table th {
-    background: #f8fafc !important;
-    color: var(--md-text-secondary);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid #eef2f6;
-    padding: 1rem;
+.modal-diamond .modal-header {
+    background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66), var(--md-blue-medical, #124A9E)) !important;
+    color: white !important;
+    border-bottom: none !important;
+    padding: 20px 25px !important;
 }
-.v2-table td {
-    padding: 1rem;
-    vertical-align: middle;
-    border-bottom: 1px solid #eef2f6;
-    color: var(--md-text-primary);
+.modal-diamond .modal-title {
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 1.25rem !important;
+    color: white !important;
 }
-
-/* Badges */
-.v2-badge-active {
-    background-color: #ecfdf5;
-    color: #10b981;
-    font-weight: 700;
-    border-radius: 50rem;
-    padding: 0.35em 0.85em;
-    font-size: 0.75rem;
+.modal-diamond .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%) !important;
+    opacity: 0.8 !important;
+}
+.modal-diamond .modal-body {
+    padding: 25px !important;
+    background: var(--md-white-clinical, #F8FBFF) !important;
+}
+.modal-diamond .form-control, .modal-diamond .form-select {
+    border-radius: 10px !important;
+    border: 1px solid var(--md-gray-soft, #D9E2EC) !important;
+    padding: 12px 15px !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.modal-diamond .form-control:focus, .modal-diamond .form-select:focus {
+    border-color: var(--md-cyan-ia, #18D1E6) !important;
+    box-shadow: 0 0 0 3px rgba(24, 209, 230, 0.15) !important;
+}
+.modal-diamond .form-label {
+    font-weight: 600 !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    font-size: 0.9rem !important;
+    margin-bottom: 6px !important;
 }
