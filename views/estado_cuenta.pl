@@ -300,7 +300,13 @@ print <<HTML;
                             <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted small"></i>
                             <input type="text" id="buscadorCatalogo" class="form-control form-control-sm ps-4 py-2 rounded-pill shadow-sm border-0" placeholder="Buscar en catálogo..." onkeyup="filtrarCatalogo()">
                         </div>
-                        <div id="divCatalogo" class="row g-2 overflow-auto" style="max-height: 150px; padding: 2px;"></div>
+                        <div class="table-responsive border rounded bg-white shadow-sm" style="max-height: 180px; overflow-y: auto;">
+                            <table class="table table-hover table-sm align-middle mb-0">
+                                <tbody id="tablaCatalogo">
+                                    <!-- AJAX rellena esto -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     <div class="col-lg-5">
                        <div class="bento-card p-3 border-0 shadow-md h-100 d-flex flex-column" style="background: #f8fafc;">

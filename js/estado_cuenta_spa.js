@@ -370,23 +370,19 @@ async function cargarCatalogo() {
 }
 
 function renderCatalogoGUI(f = '') {
-    const div = document.getElementById('divCatalogo'); if(!div) return;
-    div.innerHTML = '';
+    const tbody = document.getElementById('tablaCatalogo'); if(!tbody) return;
+    tbody.innerHTML = '';
     const filtered = catalogoMaster.filter(i => (i.nombre||'').toLowerCase().includes(f.toLowerCase()));
     
     filtered.forEach(it => {
-        div.insertAdjacentHTML('beforeend', `
-            <div class="col-12 col-md-6 mb-2">
-                <div class="card h-100 border-0 shadow-sm hover-shadow transition-all" onclick="agregarAlCarrito('${it.id}')" style="cursor:pointer; border-radius:1.2rem; background:#ffffff;">
-                    <div class="card-body p-3 d-flex justify-content-between align-items-center">
-                        <div class="text-truncate">
-                            <p class="fw-bold text-dark m-0 small text-truncate" title="${it.nombre}">${it.nombre}</p>
-                            <p class="text-primary fw-bold m-0 small tracking-tighter">${formatter.format(it.precio)}</p>
-                        </div>
-                        <div class="btn btn-sm btn-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width:28px; height:28px; border:none;"><i class="bi bi-plus" style="font-size:1.2rem;"></i></div>
-                    </div>
-                </div>
-            </div>`);
+        tbody.insertAdjacentHTML('beforeend', `
+            <tr style="cursor:pointer;" onclick="agregarAlCarrito('${it.id}')" class="hover-shadow">
+                <td class="fw-bold text-dark small" title="${it.nombre}">${it.nombre}</td>
+                <td class="text-primary fw-bold text-end small">${formatter.format(it.precio)}</td>
+                <td class="text-center" style="width: 40px;">
+                    <div class="btn btn-sm btn-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width:24px; height:24px; padding:0; border:none;"><i class="bi bi-plus" style="font-size:1rem;"></i></div>
+                </td>
+            </tr>`);
     });
 }
 
