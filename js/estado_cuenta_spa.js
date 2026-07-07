@@ -1145,3 +1145,179 @@ window.renderIngresos = async function() {
     }
 }
 
+
+// ==========================================
+// SPA: GESTION DINAMICA DE CATEGORIAS
+// ==========================================
+window.abrirModalCategorias = function() {
+    const el = document.getElementById('modalCategorias');
+    if (!el) return;
+    $(el).appendTo('body');
+    new bootstrap.Modal(el).show();
+    document.getElementById('mg_nombre').value = '';
+    document.getElementById('mg_nivel').value = '1';
+    cambiarNivelGestion();
+}
+
+window.cambiarNivelGestion = function() {
+    const n = document.getElementById('mg_nivel').value;
+    const parentCol = document.getElementById('mg_parent_col');
+    const parentSelect = document.getElementById('mg_parent');
+    const parentLabel = document.getElementById('mg_parent_label');
+    
+    parentSelect.innerHTML = '<option value="">Seleccione...</option>';
+    
+    if (n === '1') {
+        parentCol.style.display = 'none';
+        renderListaCategorias();
+    } else if (n === '2') {
+        parentCol.style.display = 'block';
+        parentLabel.innerText = "Categoría Principal (Padre)";
+        catGastos.forEach(c => {
+            parentSelect.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+        });
+        renderListaCategorias();
+    } else if (n === '3') {
+        parentCol.style.display = 'block';
+        parentLabel.innerText = "Subcategoría Nivel 2 (Padre)";
+        subcatGastos.forEach(s => {
+            // Find parent cat name
+            const parent = catGastos.find(c => c.id == s.id_cat);
+            const parentName = parent ? parent.nombre : '';
+            parentSelect.innerHTML += `<option value="${s.id}">${parentName} > ${s.nombre}</option>`;
+        });
+        renderListaCategorias();
+    }
+}
+
+window.renderListaCategorias = function() {
+    const n = document.getElementById('mg_nivel').value;
+    const pId = document.getElementById('mg_parent').value;
+    const tbody = document.getElementById('tbodyCategorias');
+    
+    tbody.innerHTML = '';
+    
+    let arr = [];
+    if (n === '1') {
+        arr = catGastos;
+    } else if (n === '2') {
+        if (!pId) { tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Seleccione un padre</td></tr>'; return; }
+        arr = subcatGastos.filter(x => x.id_cat == pId);
+    } else if (n === '3') {
+        if (!pId) { tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Seleccione un padre</td></tr>'; return; }
+        arr = subcat3Gastos.filter(x => x.id_subcat == pId);
+    }
+    
+    if (arr.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay registros</td></tr>';
+        return;
+    }
+    
+    arr.forEach(item => {
+        tbody.innerHTML += `
+            <tr>
+                <td class="fw-medium">${item.nombre}</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-danger border-0" onclick="borrarCategoria('${item.id}', '${n}')"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+window.agregarCategoria = async function() {
+    const n = document.getElementById('mg_nivel').value;
+    const pId = document.getElementById('mg_parent').value;
+    const nombre = document.getElementById('mg_nombre').value.trim();
+    
+    if (!nombre) {
+        Swal.fire('Atención', 'Ingrese un nombre', 'warning');
+        return;
+    }
+    if (n !== '1' && !pId) {
+        Swal.fire('Atención', 'Debe seleccionar un padre', 'warning');
+        return;
+    }
+    
+    const btn = document.getElementById('btn_add_cat');
+    const oldHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    
+    try {
+        const params = new URLSearchParams({
+            action: 'add_categoria',
+            nivel: n,
+            parent_id: pId,
+            nombre: nombre
+        });
+        
+        const res = await fetch('../api/finanzas_api.pl', {
+            method: 'POST',
+            body: params
+        });
+        const d = await res.json();
+        if (d.success) {
+            document.getElementById('mg_nombre').value = '';
+            // Recargar datos core
+            await cargarCategoriasGastos();
+            // Actualizar select de Formulario Principal
+            if (n === '1') {
+                const s = document.getElementById('cat_gasto');
+                if (s) { s.value = ''; s.dispatchEvent(new Event('change')); }
+            } else if (n === '2') {
+                const s = document.getElementById('subcat_gasto');
+                if (s) { s.value = ''; s.dispatchEvent(new Event('change')); }
+            }
+            // Repintar modal actual
+            cambiarNivelGestion();
+            document.getElementById('mg_parent').value = pId; // Restaurar sel
+            renderListaCategorias();
+        } else {
+            Swal.fire('Error', d.message, 'error');
+        }
+    } catch(e) {
+        Swal.fire('Error', 'Error de red', 'error');
+    }
+    btn.disabled = false;
+    btn.innerHTML = oldHtml;
+}
+
+window.borrarCategoria = async function(id, nivel) {
+    const { isConfirmed } = await Swal.fire({
+        title: '¿Borrar categoría?',
+        text: 'Se verificará que no existan gastos asociados.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, borrar',
+        cancelButtonText: 'Cancelar'
+    });
+    
+    if (!isConfirmed) return;
+    
+    try {
+        const params = new URLSearchParams({ action: 'delete_categoria', id: id, nivel: nivel });
+        const res = await fetch('../api/finanzas_api.pl', { method: 'POST', body: params });
+        const d = await res.json();
+        
+        if (d.success) {
+            const pId = document.getElementById('mg_parent').value;
+            await cargarCategoriasGastos();
+            if (nivel === '1') {
+                const s = document.getElementById('cat_gasto');
+                if (s) { s.value = ''; s.dispatchEvent(new Event('change')); }
+            } else if (nivel === '2') {
+                const s = document.getElementById('subcat_gasto');
+                if (s) { s.value = ''; s.dispatchEvent(new Event('change')); }
+            }
+            cambiarNivelGestion();
+            document.getElementById('mg_parent').value = pId;
+            renderListaCategorias();
+            Swal.fire('Borrado', 'Categoría eliminada', 'success');
+        } else {
+            Swal.fire('Error', d.message, 'error');
+        }
+    } catch(e) {
+        Swal.fire('Error', 'Error de red', 'error');
+    }
+}

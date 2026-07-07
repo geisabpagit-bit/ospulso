@@ -1,0 +1,1 @@
+use strict; use JSON; use FindBin; use lib "  /.\; use utils::db_manager qw(leer_tabla); my @cat = leer_tabla(\dat/categorias.dat\); my @cat_map = map { { id => ->[0], nombre => ->[1], desc => ->[2] } } @cat; print encode_json(\@cat_map);

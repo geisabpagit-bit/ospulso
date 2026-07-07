@@ -386,9 +386,14 @@ print <<'PAGE_HTML';
 <div class="modal fade" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105000;">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-            <div class="modal-header border-0 pb-0">
+            <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
                 <h5 class="fw-bold plus-jakarta text-dark m-0"><i class="bi bi-cash-stack text-danger me-2"></i>Registrar Gasto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle text-muted" onclick="abrirModalCategorias()" title="Gestionar Categorías">
+                        <i class="bi bi-gear-fill"></i>
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
             </div>
             <div class="modal-body">
                 <form id="formGasto">
@@ -432,6 +437,57 @@ print <<'PAGE_HTML';
                     </div>
                     <button type="submit" class="btn w-100 rounded-pill fw-bold text-white shadow-sm" style="background: var(--md-blue-medical);">Guardar Gasto</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Gestión de Categorías -->
+<div class="modal fade" id="modalCategorias" tabindex="-1" aria-hidden="true" style="z-index: 105010;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold plus-jakarta text-dark m-0"><i class="bi bi-gear-fill text-secondary me-2"></i>Gestión de Categorías</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-5">
+                        <label class="small text-muted fw-bold mb-1">Nivel</label>
+                        <select id="mg_nivel" class="form-select bg-light border-0 diamond-input-armor" onchange="cambiarNivelGestion()">
+                            <option value="1">1. Categoría Principal</option>
+                            <option value="2">2. Subcategoría</option>
+                            <option value="3">3. Detalle (Nivel 3)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-7" id="mg_parent_col" style="display:none;">
+                        <label class="small text-muted fw-bold mb-1" id="mg_parent_label">Padre</label>
+                        <select id="mg_parent" class="form-select bg-light border-0 diamond-input-armor" onchange="renderListaCategorias()">
+                            <option value="">Seleccione...</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="input-group mb-4 shadow-sm" style="border-radius: 1rem; overflow: hidden;">
+                    <input type="text" id="mg_nombre" class="form-control bg-light border-0" placeholder="Nombre de la nueva categoría..." style="padding: 0.75rem 1rem;">
+                    <button class="btn fw-bold px-4 text-white" type="button" style="background: var(--md-blue-medical);" onclick="agregarCategoria()" id="btn_add_cat">
+                        <i class="bi bi-plus-lg me-1"></i>Añadir
+                    </button>
+                </div>
+                
+                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="text-muted small sticky-top bg-white">
+                            <tr>
+                                <th>Nombre</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyCategorias">
+                            <!-- JS populate -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
