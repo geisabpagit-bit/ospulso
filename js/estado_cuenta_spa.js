@@ -335,14 +335,21 @@ function refrescarGUICarrito() {
     carritoApp.forEach((c, i) => {
         const st = c.precio * c.cantidad; total += st;
         uli.insertAdjacentHTML('beforeend', `
-            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 d-flex justify-content-between align-items-center">
-                <div class="lh-sm">
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                <div class="lh-sm flex-grow-1">
                     <span class="fw-black text-slate-800 d-block mb-1 text-xs uppercase">${c.nombre}</span>
-                    <small class="text-slate-400 fw-bold">${c.cantidad} x ${formatter.format(c.precio)}</small>
+                    <small class="text-slate-400 fw-bold">${formatter.format(c.precio)} c/u</small>
                 </div>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="fw-black text-primary">${formatter.format(st)}</span>
-                    <button class="btn btn-sm btn-white text-danger border shadow-sm rounded-xl p-2" onclick="removeCartItem(${i})"><i class="bi bi-trash"></i></button>
+                <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 flex-wrap">
+                    <div class="d-flex align-items-center gap-2 bg-white rounded-pill px-2 py-1 border shadow-sm">
+                        <button class="btn btn-sm btn-light rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;" onclick="updateCartItemQty(${i}, -1)"><i class="bi bi-dash"></i></button>
+                        <span class="fw-bold px-2 text-sm">${c.cantidad}</span>
+                        <button class="btn btn-sm btn-light rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;" onclick="updateCartItemQty(${i}, 1)"><i class="bi bi-plus"></i></button>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-black text-primary d-inline-block text-end" style="min-width: 70px;">${formatter.format(st)}</span>
+                        <button class="btn btn-sm btn-white text-danger border shadow-sm rounded-xl p-2" onclick="removeCartItem(${i})"><i class="bi bi-trash"></i></button>
+                    </div>
                 </div>
             </div>`);
     });
@@ -353,6 +360,27 @@ function refrescarGUICarrito() {
 }
 
 function removeCartItem(idx) { carritoApp.splice(idx, 1); refrescarGUICarrito(); }
+
+function updateCartItemQty(idx, delta) {
+    if (carritoApp[idx].cantidad + delta <= 0) {
+        Swal.fire({
+            title: '¿Eliminar ítem?',
+            text: "¿Deseas quitar este concepto del cargo?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, quitar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                removeCartItem(idx);
+            }
+        });
+    } else {
+        carritoApp[idx].cantidad += delta;
+        refrescarGUICarrito();
+    }
+}
 
 async function procesarCarrito() {
     if(carritoApp.length === 0) return;
