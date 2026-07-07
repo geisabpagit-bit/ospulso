@@ -38,7 +38,7 @@ sub check_session {
         my $uid  = $session->param('uid')      || '';
         my $unm  = $session->param('usuario')  || '';
         my $rol  = $session->param('role')     || 'Invitado';
-        my $idm  = $session->param('id_medico') || '';
+        my $idm  = $session->param('id_medico') || $session->param('id_registro') || '';
 
         if ($uid && $unm) {
             $session_ok = 1;
