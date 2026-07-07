@@ -69,14 +69,14 @@ if ($regs) {
 }
 
 print <<HTML;
-<link rel="stylesheet" href="../css/ospulso_master.css">
+<link rel="stylesheet" href="../css/ospulso_master_v2.css">
 <link rel="stylesheet" href="../css/tabla_pacientes.css">
 
 <div class="container-fluid p-0 p-md-3">
     <!-- Tabla / Lista de Pacientes -->
-    <div class="medentia-table-container">
+    <div class="v2-table-container shadow-premium">
         <div class="table-responsive">
-            <table id="tablaPacientes" class="table table-medentia w-100 m-0 border-0">
+            <table id="tablaPacientes" class="table v2-table w-100 m-0 border-0">
                 <thead>
                     <tr>
                         <th class="ps-4 py-3">ID</th>
@@ -120,11 +120,11 @@ foreach my $p (@list) {
                         </div>
                     </td>
                     <td class="text-end pe-4" data-label="ACCIONES">
-                        <div class="action-btn-group justify-content-end">
-                            <button class="action-btn btn-expediente" data-id="$p->{id}" title="Resumen">
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="v2-btn-outline" data-id="$p->{id}" title="Resumen">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <a href="render_expediente_clinico.pl?id=$p->{id}" class="action-btn" title="Expediente">
+                            <a href="render_expediente_clinico.pl?id=$p->{id}" class="v2-btn-outline" title="Expediente">
                                 <i class="bi bi-journal-medical"></i>
                             </a>
                             <button onclick="confirmBorrar('$p->{id}')" class="action-btn action-btn-delete" title="Eliminar">

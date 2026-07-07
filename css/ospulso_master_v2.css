@@ -1,0 +1,170 @@
+/* 
+  OSPULSO MASTER V2
+  Hoja de estilos estricta para la migración progresiva del Legacy SaaS a la estética Diamond Sync.
+  Proporciona variables universales, utilidades de glassmorphism y overrides de Bootstrap para componentes core.
+*/
+
+:root {
+    /* --- Paleta Oficial Diamond Sync --- */
+    --md-blue-deep: #0A2A66;      /* Azul Profundo */
+    --md-blue-medical: #124A9E;   /* Azul Médico */
+    --md-cyan-ia: #18D1E6;        /* Cyan IA */
+    --md-green-medical: #00b894;  /* Verde Médico Fuerte */
+    --md-teal-clinical: #19B7A5;  /* Teal Clínico */
+    --md-white-clinical: #F8FBFF; /* Blanco Clínico */
+    --md-gray-soft: #D9E2EC;      /* Gris Suave UI */
+    --md-text-primary: #102A43;   /* Texto Principal */
+    --md-text-secondary: #486581; /* Texto Secundario */
+    --md-accent: #00C2FF;         /* Cyan de Acento (CTA) */
+    
+    /* Gradientes */
+    --bg-medentia-gradient: linear-gradient(135deg, var(--md-blue-deep), var(--md-blue-medical));
+    --bg-glassmorphism: rgba(255, 255, 255, 0.85);
+    
+    /* Tipografía */
+    --font-primary: 'Plus Jakarta Sans', sans-serif;
+    --font-secondary: 'Outfit', sans-serif;
+}
+
+/* --- OVERRIDES GLOBALES --- */
+body {
+    font-family: var(--font-primary) !important;
+    background-color: #F4F7F9 !important; /* Fondo suave y moderno */
+    color: var(--md-text-primary);
+}
+
+/* --- UTILIDADES VISUALES (Diamond) --- */
+
+/* Sombras Suaves (Modern SaaS) */
+.shadow-premium {
+    box-shadow: 0 10px 40px rgba(10, 42, 102, 0.08) !important;
+}
+.shadow-sm-premium {
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.05) !important;
+}
+
+/* Glassmorphism */
+.glass-panel {
+    background: var(--bg-glassmorphism) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Bordes y Formas */
+.rounded-premium {
+    border-radius: 1.25rem !important;
+}
+.rounded-pill-premium {
+    border-radius: 50rem !important;
+}
+
+/* --- REDISEÑO DEL NAVBAR LEGACY --- */
+.navbar.sdm-navbar {
+    background: var(--bg-medentia-gradient) !important;
+    border-bottom: none !important;
+    box-shadow: 0 4px 20px rgba(10, 42, 102, 0.15) !important;
+    padding: 0.8rem 1rem !important;
+}
+
+/* Inputs de Búsqueda Global en Navbar */
+.navbar .search-container input {
+    border-radius: 50rem !important;
+    padding-left: 2.5rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    backdrop-filter: blur(5px);
+}
+.navbar .search-container input::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+.navbar .search-container input:focus {
+    background: #fff !important;
+    color: var(--md-text-primary) !important;
+    box-shadow: 0 0 0 0.25rem rgba(24, 209, 230, 0.25) !important;
+}
+.navbar .search-container i.bi-search {
+    color: rgba(255, 255, 255, 0.7) !important;
+    z-index: 10;
+}
+.navbar .search-container input:focus + i.bi-search {
+    color: var(--md-blue-deep) !important;
+}
+
+/* --- COMPONENTES DE VISTA (Ej. Pacientes) --- */
+.v2-card {
+    background: #ffffff;
+    border-radius: 1.25rem;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.03);
+    transition: all 0.3s ease;
+}
+.v2-card:hover {
+    box-shadow: 0 8px 24px rgba(10, 42, 102, 0.08);
+}
+
+.v2-btn-primary {
+    background: var(--md-blue-deep);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    transition: all 0.2s ease;
+}
+.v2-btn-primary:hover {
+    background: var(--md-blue-medical);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(18, 74, 158, 0.3);
+}
+
+.v2-btn-outline {
+    background: transparent;
+    color: var(--md-blue-deep);
+    border: 2px solid var(--md-blue-deep);
+    border-radius: 0.75rem;
+    font-weight: 600;
+    padding: 0.5rem 1.2rem;
+    transition: all 0.2s ease;
+}
+.v2-btn-outline:hover {
+    background: var(--md-blue-deep);
+    color: white;
+}
+
+/* Tablas Modernas */
+.v2-table-container {
+    background: #fff;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.03);
+}
+.v2-table th {
+    background: #f8fafc !important;
+    color: var(--md-text-secondary);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #eef2f6;
+    padding: 1rem;
+}
+.v2-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #eef2f6;
+    color: var(--md-text-primary);
+}
+
+/* Badges */
+.v2-badge-active {
+    background-color: #ecfdf5;
+    color: #10b981;
+    font-weight: 700;
+    border-radius: 50rem;
+    padding: 0.35em 0.85em;
+    font-size: 0.75rem;
+}
