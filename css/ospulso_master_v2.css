@@ -239,3 +239,19 @@
     font-size: 0.9rem !important;
     margin-bottom: 6px !important;
 }
+
+/* --- Fix Z-Index SweetAlert2 --- */
+.swal2-container { 
+    z-index: 106000 !important; 
+}
+
+/* --- Selectores Desplegables Teal --- */
+.form-select {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+.form-select:focus {
+    border-color: #14b8a6 !important;
+    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15) !important;
+    border-radius: 12px;
+}
