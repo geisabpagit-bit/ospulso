@@ -106,7 +106,7 @@
     transform: scale(1.001) !important;
 }
 
-/* Iconos de Tabla */
+/* Iconos de Tabla (Acrílico independiente) */
 .icon-container-acrylic {
     display: inline-flex;
     align-items: center;
@@ -119,10 +119,81 @@
     border: 1px solid rgba(10, 42, 102, 0.05);
     transition: all 0.2s ease;
 }
-.table-diamond tbody tr:hover .icon-container-acrylic {
-    background: var(--md-blue-deep, #0A2A66);
-    color: white;
+/* Efecto hover SÓLO al pasar sobre el icono, no sobre la fila completa */
+.icon-container-acrylic:hover {
+    background: var(--md-blue-deep, #0A2A66) !important;
+    color: white !important;
     box-shadow: 0 4px 10px rgba(10, 42, 102, 0.2);
+}
+/* Para el botón de eliminar, color rojo al hover */
+.action-btn-delete:hover .icon-container-acrylic {
+    background: var(--md-danger, #dc3545) !important;
+    color: white !important;
+    border-color: #dc3545 !important;
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+}
+
+/* ---------------------------------------------------
+ * RESPONSIVIDAD: Transformación de Tabla a Cards
+ * --------------------------------------------------- */
+@media (max-width: 768px) {
+    .table-diamond thead {
+        display: none;
+    }
+    .table-diamond, 
+    .table-diamond tbody, 
+    .table-diamond tr, 
+    .table-diamond td {
+        display: block;
+        width: 100%;
+    }
+    .table-diamond tr {
+        background-color: #ffffff !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 12px rgba(10,42,102,0.08) !important;
+        margin-bottom: 1.5rem !important;
+        padding: 1rem !important;
+        border: 1px solid var(--md-gray-soft, #D9E2EC) !important;
+        position: relative;
+    }
+    .table-diamond tbody td {
+        border-bottom: none !important;
+        padding: 0.5rem 0 !important;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    .table-diamond tbody td.text-end {
+        text-align: left !important;
+    }
+    .table-diamond tbody td::before {
+        content: attr(data-label);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--md-text-secondary, #486581);
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    .patient-info-sub {
+        display: block !important;
+    }
+    .patient-info-sub span {
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+    .table-diamond tbody td:last-child {
+        border-top: 1px dashed rgba(10, 42, 102, 0.15) !important;
+        margin-top: 0.5rem;
+        padding-top: 1rem !important;
+    }
+    .d-flex.justify-content-end.gap-2 {
+        width: 100%;
+        justify-content: flex-start !important;
+        flex-wrap: wrap;
+    }
 }
 
 /* Modal Botox */

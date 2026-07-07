@@ -54,15 +54,26 @@ sub render_header {
 
     <script>
     \$(document).ready(function() {
-        if (typeof \$.ui !== 'undefined') {
-            const acConfig = {
-                source: "../api/autocomplete_pacientes.pl",
-                minLength: 2,
-                select: function(e, ui) { 
-                    if(ui.item.id) window.location.href = "../views/render_expediente_clinico.pl?id=" + ui.item.id; 
-                }
-            };
-            if (\$("#globalSearch").length) \$("#globalSearch").autocomplete(acConfig);
+        if (\$("#globalSearch").length) {
+            // Si estamos en pacientes.pl o agenda y existe tablaPacientes, usar filtro de DataTables
+            if (\$('#tablaPacientes').length) {
+                \$("#globalSearch").on('keyup', function() {
+                    try {
+                        var table = \$('#tablaPacientes').DataTable();
+                        table.search(this.value).draw();
+                    } catch(e) { console.error("DataTables no inicializado aún", e); }
+                });
+            } else if (typeof \$.ui !== 'undefined') {
+                // Autocomplete estándar para el resto del sistema
+                const acConfig = {
+                    source: "../api/autocomplete_pacientes.pl",
+                    minLength: 2,
+                    select: function(e, ui) { 
+                        if(ui.item.id) window.location.href = "../views/render_expediente_clinico.pl?id=" + ui.item.id; 
+                    }
+                };
+                \$("#globalSearch").autocomplete(acConfig);
+            }
         }
     });
 
