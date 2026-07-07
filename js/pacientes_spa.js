@@ -189,10 +189,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 var style = document.createElement('style');
                 style.id = 'bentoPremiumStyles';
                 style.innerHTML = `
-                    .bento-action-btn { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid rgba(59, 130, 246, 0.3) !important; border-radius: 16px !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-decoration: none; color: #1e293b; }
-                    .bento-action-btn:hover { transform: translateY(-3px) scale(1.02) !important; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15) !important; border-color: rgba(59, 130, 246, 0.6) !important; background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%); color: #0A2A66; }
-                    .bento-action-btn i { transition: transform 0.3s ease; }
-                    .bento-action-btn:hover i { transform: scale(1.15); }
+                                          .bento-action-btn { background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.2)) !important; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.8) !important; border-radius: 16px !important; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; box-shadow: 0 8px 32px 0 rgba(10, 42, 102, 0.07), inset 0 0 10px rgba(255, 255, 255, 0.5) !important; text-decoration: none; color: #0A2A66 !important; position: relative; overflow: hidden; }
+                      .bento-action-btn::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); transform: rotate(30deg) translateY(-50%); transition: all 0.5s ease; opacity: 0; pointer-events: none; }
+                      .bento-action-btn:hover { transform: translateY(-4px) !important; box-shadow: 0 15px 40px 0 rgba(10, 42, 102, 0.12), inset 0 0 15px rgba(255, 255, 255, 0.8) !important; border-color: rgba(24, 209, 230, 0.5) !important; }
+                      .bento-action-btn:hover::before { opacity: 1; transform: rotate(30deg) translateY(50%); }
+                      .bento-action-btn i { transition: transform 0.3s ease; }
+                      .bento-action-btn:hover i { transform: scale(1.15); }
                     .paciente-info-bento { background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%) !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08) !important; transition: transform 0.3s ease; }
                     .paciente-info-bento:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.12) !important; border-color: rgba(59, 130, 246, 0.6) !important; }
                     .kpi-card-bento { border: 1px solid rgba(59, 130, 246, 0.3) !important; border-radius: 12px !important; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.03); position: relative; overflow: hidden; transition: all 0.3s ease; }
