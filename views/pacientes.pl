@@ -121,7 +121,7 @@ foreach my $p (@list) {
                     </td>
                     <td class="text-end pe-4" data-label="ACCIONES">
                         <div class="d-flex justify-content-end gap-2">
-                            <button class="v2-btn-outline" data-id="$p->{id}" title="Resumen">
+                            <button class="v2-btn-outline btn-expediente" data-id="$p->{id}" title="Resumen">
                                 <i class="bi bi-eye"></i>
                             </button>
                             <a href="render_expediente_clinico.pl?id=$p->{id}" class="v2-btn-outline" title="Expediente">

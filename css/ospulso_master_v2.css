@@ -61,9 +61,10 @@ body {
 
 /* --- REDISEÑO DEL NAVBAR LEGACY --- */
 .navbar.sdm-navbar {
-    background: var(--bg-medentia-gradient) !important;
-    border-bottom: none !important;
-    box-shadow: 0 4px 20px rgba(10, 42, 102, 0.15) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 4px 20px rgba(10, 42, 102, 0.05) !important;
     padding: 0.8rem 1rem !important;
 }
 
@@ -71,21 +72,19 @@ body {
 .navbar .search-container input {
     border-radius: 50rem !important;
     padding-left: 2.5rem !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: #fff !important;
-    backdrop-filter: blur(5px);
+    border: 1px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+    color: var(--md-text-primary) !important;
 }
 .navbar .search-container input::placeholder {
-    color: rgba(255, 255, 255, 0.7) !important;
+    color: var(--md-text-secondary) !important;
 }
 .navbar .search-container input:focus {
     background: #fff !important;
-    color: var(--md-text-primary) !important;
-    box-shadow: 0 0 0 0.25rem rgba(24, 209, 230, 0.25) !important;
+    box-shadow: 0 0 0 0.25rem rgba(24, 209, 230, 0.15) !important;
 }
 .navbar .search-container i.bi-search {
-    color: rgba(255, 255, 255, 0.7) !important;
+    color: var(--md-text-secondary) !important;
     z-index: 10;
 }
 .navbar .search-container input:focus + i.bi-search {
