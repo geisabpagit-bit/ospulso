@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const loginForm = document.getElementById('loginForm');
         const loginCard = document.querySelector('.login-card');
         const overlay = document.getElementById('loadingOverlay');
-        const loadingText = overlay.querySelector('p'); // El párrafo dentro del overlay
+        const loadingText = overlay ? overlay.querySelector('p') : null;
 
         // Frases personalizadas para el consultorio
         const dentalQuotes = [
