@@ -1030,16 +1030,47 @@ h1, h2, h3, h4, h5, .nav-link-react, .sidebar-nav-link, .btn-skeuo-raised {
     gap: 20px !important;
 }
 
+/* Impactful Animated Menu Items */
+.navbar .menu {
+    position: relative;
+    gap: 1.5rem !important;
+    align-items: center;
+}
+
 .navbar .menu a {
     text-decoration: none !important;
     color: var(--md-blue-deep) !important;
-    font-weight: 600 !important;
-    font-size: 0.9rem !important;
-    transition: color 0.3s !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    position: relative;
+    padding: 0.4rem 0.2rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.navbar .menu a::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--md-teal-clinical), #18d1e6);
+    border-radius: 5px;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    box-shadow: 0 0 10px rgba(0, 196, 196, 0.6);
 }
 
 .navbar .menu a:hover {
-    color: var(--md-cyan-ia) !important;
+    color: var(--md-teal-clinical) !important;
+    text-shadow: 0 0 15px rgba(0, 196, 196, 0.3);
+    transform: translateY(-2px);
+}
+
+.navbar .menu a:hover::before {
+    width: 100%;
+    opacity: 1;
 }
 
 .navbar .acciones {
