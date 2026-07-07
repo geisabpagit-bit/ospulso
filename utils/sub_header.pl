@@ -65,10 +65,12 @@ sub render_header {
                 });
             } else if (typeof \$.ui !== 'undefined') {
                 // Autocomplete estándar para el resto del sistema
+                console.log("Inicializando autocomplete para #globalSearch");
                 const acConfig = {
                     source: "../api/autocomplete_pacientes.pl",
                     minLength: 2,
                     select: function(e, ui) { 
+                        console.log("Autocomplete seleccionado:", ui.item);
                         if(ui.item.id) {
                             if (window.location.pathname.indexOf('estado_cuenta.pl') !== -1) {
                                 window.location.href = "../views/estado_cuenta.pl?id=" + ui.item.id;

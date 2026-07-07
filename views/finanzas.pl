@@ -24,7 +24,7 @@ print <<HTML;
     <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
         <div>
             <h2 class="fw-bold plus-jakarta m-0" style="color: var(--md-text-primary);">Finanzas</h2>
-            <p class="text-muted m-0">Control total de ingresos, facturaciÃ³n y cuentas por cobrar.</p>
+            <p class="text-muted m-0">Control total de ingresos, facturación y cuentas por cobrar.</p>
         </div>
         <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end" style="max-width: 400px;">
             <a href="estado_cuenta.pl" id="btnCargosAbonos" class="btn btn-primary rounded-pill fw-bold text-nowrap px-4 shadow-sm" style="display: none;"><i class="bi bi-cash-stack me-2"></i>Cargos y Abonos</a>
@@ -59,14 +59,14 @@ print <<HTML;
                 <span class="text-success fw-bold" style="font-size: 0.7rem;">+8% <span class="text-muted fw-normal">vs mes anterior</span></span>
             </div>
         </div>
-        <!-- FacturaciÃ³n del Mes -->
+        <!-- Facturación del Mes -->
         <div class="col-md-3 col-6">
             <div class="bento-card border-0 shadow-sm bg-white h-100 p-3" style="border-radius: 16px;">
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #93c5fd, #60a5fa, #2563eb); color: white; font-size: 1.1rem;">
                         <i class="bi bi-file-earmark-text"></i>
                     </div>
-                    <span class="fw-bold text-muted" style="font-size: 0.75rem;">FacturaciÃ³n del Mes</span>
+                    <span class="fw-bold text-muted" style="font-size: 0.75rem;">Facturación del Mes</span>
                 </div>
                 <h4 class="fw-bold plus-jakarta mb-1" id="kpiFacturacion">\$0.00</h4>
                 <span class="text-success fw-bold" style="font-size: 0.7rem;">+12% <span class="text-muted fw-normal">vs mes anterior</span></span>
@@ -93,27 +93,27 @@ print <<HTML;
         <a href="#" class="text-decoration-none fw-bold text-muted pb-2">Ingresos</a>
         <a href="#" class="text-decoration-none fw-bold text-muted pb-2">Gastos</a>
         <a href="#" class="text-decoration-none fw-bold text-muted pb-2">Cuentas por Cobrar</a>
-        <a href="#" class="text-decoration-none fw-bold text-muted pb-2">FacturaciÃ³n</a>
+        <a href="#" class="text-decoration-none fw-bold text-muted pb-2">Facturación</a>
         <a href="#" class="text-decoration-none fw-bold text-muted pb-2">Reportes</a>
     </div>
 
     <!-- Resumen View (Evolucion, Categoria) -->
     <div class="row g-4 mb-4">
-        <!-- EvoluciÃ³n de Ingresos -->
+        <!-- Evolución de Ingresos -->
         <div class="col-lg-7">
             <div class="bento-card border-0 shadow-sm bg-white h-100 p-4" style="border-radius: 20px;">
-                <h6 class="fw-bold plus-jakarta mb-4 text-dark">EvoluciÃ³n de Ingresos</h6>
+                <h6 class="fw-bold plus-jakarta mb-4 text-dark">Evolución de Ingresos</h6>
                 <div style="height: 250px; width: 100%;">
                     <canvas id="lineEvolucionIngresos"></canvas>
                 </div>
             </div>
         </div>
         
-        <!-- Ingresos por CategorÃ­a (Dona) -->
+        <!-- Ingresos por Categoría (Dona) -->
         <div class="col-lg-5">
             <div class="bento-card border-0 shadow-sm bg-white h-100 p-4 d-flex flex-column justify-content-center" style="border-radius: 20px;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h6 class="fw-bold plus-jakarta m-0 text-dark">Ingresos por CategorÃ­a</h6>
+                    <h6 class="fw-bold plus-jakarta m-0 text-dark">Ingresos por Categoría</h6>
                     <select class="form-select form-select-sm w-auto rounded-pill text-muted fw-bold bg-light border-0"><option>Este Mes</option></select>
                 </div>
                 
@@ -176,7 +176,6 @@ print <<HTML;
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="../js/estado_cuenta_spa.js?v=$^T"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => { 
