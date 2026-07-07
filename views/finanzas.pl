@@ -1,4 +1,4 @@
-﻿#!/usr/bin/perl
+#!/usr/bin/perl
 use cPanelUserConfig;
 use strict;
 use warnings;
@@ -9,8 +9,8 @@ use CGI::Carp qw(fatalsToBrowser);
 use FindBin;
 use lib $FindBin::Bin . '/..';
 
-require '../auth/check_session.pl';
-require '../utils/sub_header.pl';
+require "$FindBin::Bin/../auth/check_session.pl";
+require "$FindBin::Bin/../utils/sub_header.pl";
 use utils::db_manager qw(leer_tabla);
 
 my $q = CGI->new;
