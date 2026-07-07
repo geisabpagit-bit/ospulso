@@ -85,28 +85,68 @@ function actualizarPieChart(cargos, abonos) {
 
     const ctx = canvas.getContext('2d');
     
-    const gradRed = ctx.createLinearGradient(0, 0, 0, 160);
-    gradRed.addColorStop(0, '#f87171');
-    gradRed.addColorStop(0.5, '#dc2626');
-    gradRed.addColorStop(1, '#991b1b');
+    // Metallic Crimson (Cargos)
+    const gradRed = ctx.createLinearGradient(0, 0, 160, 160);
+    gradRed.addColorStop(0, '#fca5a5');    // highlight top-left
+    gradRed.addColorStop(0.2, '#ef4444');  // bright
+    gradRed.addColorStop(0.5, '#b91c1c');  // core
+    gradRed.addColorStop(0.8, '#7f1d1d');  // shadow
+    gradRed.addColorStop(1, '#f87171');    // rim reflection
 
-    const gradGreen = ctx.createLinearGradient(0, 0, 0, 160);
-    gradGreen.addColorStop(0, '#34d399');
-    gradGreen.addColorStop(0.5, '#10b981');
-    gradGreen.addColorStop(1, '#065f46');
+    // Metallic Emerald/Teal (Abonos)
+    const gradGreen = ctx.createLinearGradient(0, 160, 160, 0);
+    gradGreen.addColorStop(0, '#6ee7b7');
+    gradGreen.addColorStop(0.2, '#10b981');
+    gradGreen.addColorStop(0.5, '#047857');
+    gradGreen.addColorStop(0.8, '#064e3b');
+    gradGreen.addColorStop(1, '#34d399');
 
-    const shadowPlugin = {
-        id: 'shadowPlugin',
+    // Bevel Gradient for Border (3D Extrusion illusion)
+    const borderGrad = ctx.createLinearGradient(0, 0, 0, 160);
+    borderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.85)'); // light top rim
+    borderGrad.addColorStop(0.2, 'rgba(255, 255, 255, 0.3)');
+    borderGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0.15)');
+    borderGrad.addColorStop(1, 'rgba(0, 0, 0, 0.7)'); // dark bottom rim
+
+    const premium3DPlugin = {
+        id: 'premium3DPlugin',
         beforeDraw: (chart) => {
             const chartCtx = chart.ctx;
             chartCtx.save();
-            chartCtx.shadowColor = 'rgba(0, 0, 0, 0.25)';
-            chartCtx.shadowBlur = 10;
-            chartCtx.shadowOffsetX = 4;
-            chartCtx.shadowOffsetY = 6;
+            // Deep drop shadow for floating 3D effect
+            chartCtx.shadowColor = 'rgba(10, 42, 102, 0.35)';
+            chartCtx.shadowBlur = 18;
+            chartCtx.shadowOffsetX = 6;
+            chartCtx.shadowOffsetY = 12;
         },
         afterDraw: (chart) => {
             chart.ctx.restore();
+            // Draw a specular gloss overlay for the glass/metallic look
+            if (!chart.getDatasetMeta(0).data[0]) return;
+            const chartCtx = chart.ctx;
+            const x = chart.chartArea.left + chart.chartArea.width / 2;
+            const y = chart.chartArea.top + chart.chartArea.height / 2;
+            const outerRadius = chart.getDatasetMeta(0).data[0].outerRadius;
+            const innerRadius = chart.getDatasetMeta(0).data[0].innerRadius;
+            
+            chartCtx.save();
+            chartCtx.beginPath();
+            chartCtx.arc(x, y, outerRadius, 0, Math.PI * 2);
+            chartCtx.arc(x, y, innerRadius, 0, Math.PI * 2, true);
+            chartCtx.closePath();
+            chartCtx.clip();
+            
+            // Glossy diagonal reflection
+            const gloss = chartCtx.createLinearGradient(x - outerRadius, y - outerRadius, x + outerRadius, y + outerRadius);
+            gloss.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+            gloss.addColorStop(0.35, 'rgba(255, 255, 255, 0.05)');
+            gloss.addColorStop(0.5, 'rgba(255, 255, 255, 0)');
+            gloss.addColorStop(0.7, 'rgba(0, 0, 0, 0.05)');
+            gloss.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+            
+            chartCtx.fillStyle = gloss;
+            chartCtx.fill();
+            chartCtx.restore();
         }
     };
 
@@ -116,28 +156,34 @@ function actualizarPieChart(cargos, abonos) {
     } else {
         pieChartInstance = new Chart(ctx, {
             type: 'doughnut',
-            plugins: [shadowPlugin],
+            plugins: [premium3DPlugin],
             data: {
                 labels: ['Cargos', 'Abonos'],
                 datasets: [{
                     data: [cargos, abonos],
                     backgroundColor: [gradRed, gradGreen],
-                    borderColor: ['#fca5a5', '#6ee7b7'],
-                    borderWidth: 1,
-                    hoverOffset: 4
+                    borderColor: [borderGrad, borderGrad],
+                    borderWidth: 4,
+                    hoverOffset: 6
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '75%',
-                layout: { padding: 10 },
+                cutout: '72%',
+                layout: { padding: 12 },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
+                        backgroundColor: 'rgba(10, 42, 102, 0.9)',
+                        titleFont: { size: 14, family: "'Plus Jakarta Sans', sans-serif" },
+                        bodyFont: { size: 13, weight: 'bold', family: "'Plus Jakarta Sans', sans-serif" },
+                        padding: 12,
+                        cornerRadius: 8,
+                        boxPadding: 6,
                         callbacks: {
                             label: function(context) {
-                                return context.label + ': ' + formatter.format(context.raw);
+                                return ' ' + context.label + ': ' + formatter.format(context.raw);
                             }
                         }
                     }
