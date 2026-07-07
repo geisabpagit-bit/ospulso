@@ -62,10 +62,9 @@ if ($accion eq 'get_catalogo') {
             my @v = split /\|/, $line;
             # Estructura: ID_OS|ID_MOV|ID_PAC|TIPO|CONCEPTO|BASE|IVA|TOTAL|FECHA|ID_MED|NOTAS
             if (@v >= 9) {
-                # Filtrar por id_p si se proporciona, sino incluir todos
                 if (!$id_p || $v[2] eq $id_p) {
                     my $tot = $v[7] + 0;
-                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $v[3], concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2] };
+                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $v[3], concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], alias => ($v[11] || '') };
                     if ($v[3] =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; } 
                     else { $saldo_total -= $tot; $abonos_sum += $tot; }
                 }
@@ -86,6 +85,7 @@ if ($accion eq 'get_catalogo') {
     my $pay = scalar($q->param('payload')) || '[]';
     my $items = eval { $json_engine->decode($pay) } || [];
     my $iva_f = (scalar($q->param('aplica_iva')) || '0') eq '1' ? 1 : 0;
+    my $alias_os = scalar($q->param('alias')) || '';
     my $t = time();
     my @lt = localtime($t);
     my $f = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $lt[5]+1900, $lt[4]+1, $lt[3], $lt[2], $lt[1], $lt[0]);
@@ -134,8 +134,8 @@ if ($accion eq 'get_catalogo') {
         my $base = $it->{precio} * ($it->{cantidad} || 1);
         my $iva = $iva_f ? ($base * 0.16) : 0;
         my $total = $base + $iva; $id_mov++;
-        # ID_OS|ID_MOV|ID_PAC|TIPO|CONCEPTO|BASE|IVA|TOTAL|FECHA|ID_MED|NOTAS
-        print $fh "$id_os|$id_mov|$id_p|Cargo|$it->{nombre}|$base|$iva|$total|$f|$id_m_req|\n";
+        # ID_OS|ID_MOV|ID_PAC|TIPO|CONCEPTO|BASE|IVA|TOTAL|FECHA|ID_MED|NOTAS|ALIAS
+        print $fh "$id_os|$id_mov|$id_p|Cargo|$it->{nombre}|$base|$iva|$total|$f|$id_m_req||$alias_os\n";
     }
     close $fh;
     responder({ success => 1, os => $id_os });
@@ -144,6 +144,7 @@ if ($accion eq 'get_catalogo') {
     my $m = scalar($q->param('monto')) || 0; $m += 0;
     my $met = scalar($q->param('metodo')) || 'Efectivo';
     my $not = scalar($q->param('notas')) || '';
+    my $alias_os = scalar($q->param('alias')) || '';
     my $t = time();
     my @lt = localtime($t);
     my $f = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $lt[5]+1900, $lt[4]+1, $lt[3], $lt[2], $lt[1], $lt[0]);
@@ -183,8 +184,8 @@ if ($accion eq 'get_catalogo') {
     my $ec_file = File::Spec->catfile($dat_path, 'estado_cuenta.dat');
 
     open(my $fh, ">>:encoding(UTF-8)", $ec_file);
-    # ID_OS|ID_MOV|ID_PAC|TIPO|CONCEPTO|BASE|IVA|TOTAL|FECHA|ID_MED|NOTAS
-    print $fh "$id_os|$id_mov|$id_p|Abono|Pago con $met|0|0|$m|$f|$id_m_req|$not\n";
+    # ID_OS|ID_MOV|ID_PAC|TIPO|CONCEPTO|BASE|IVA|TOTAL|FECHA|ID_MED|NOTAS|ALIAS
+    print $fh "$id_os|$id_mov|$id_p|Abono|Pago con $met|0|0|$m|$f|$id_m_req|$not|$alias_os\n";
     close $fh;
     responder({ success => 1, folio => $id_os });
 

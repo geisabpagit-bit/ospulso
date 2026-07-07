@@ -257,21 +257,13 @@ print <<HTML;
             <div class="bento-card border-0 shadow-sm h-100">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="fw-bold plus-jakarta m-0">Movimientos Recientes</h4>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">Filtrar</button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Todos</a></li>
-                            <li><a class="dropdown-item" href="#">Solo Cargos</a></li>
-                            <li><a class="dropdown-item" href="#">Solo Abonos</a></li>
-                        </ul>
-                    </div>
                 </div>
 
                 <div class="table-responsive d-print-block d-none d-lg-block">
-                    <table class="table table-hover align-middle mb-0">
+                    <table id="dtEdoCuenta" class="table table-hover align-middle mb-0 table-medentia" style="border: 2px solid var(--md-teal-bright, #00C4C4) !important; border-radius: 12px; overflow: hidden; width: 100%;">
                         <thead class="bg-light">
                             <tr>
-                                <th class="ps-4 py-3 small fw-bold text-muted uppercase tracking-wider">Folio / OS</th>
+                                <th class="ps-4 py-3 small fw-bold text-muted uppercase tracking-wider">Alias / OS</th>
                                 <th class="py-3 small fw-bold text-muted uppercase tracking-wider">Fecha</th>
                                 <th class="py-3 small fw-bold text-muted uppercase tracking-wider">Concepto</th>
                                 <th class="py-3 text-end small fw-bold text-muted uppercase tracking-wider">Cargos</th>
@@ -334,6 +326,10 @@ print <<HTML;
             <div class="modal-body bg-light p-4">
                 <div class="row g-4">
                     <div class="col-lg-7">
+                        <div class="mb-3">
+                            <label class="kpi-label">Alias / Referencia Corta (Opcional)</label>
+                            <input type="text" id="alias_os_cargo" class="form-control" maxlength="25" placeholder="Ej. Anticipo Brackets">
+                        </div>
                         <div class="bento-card p-4 mb-4 border-0 shadow-sm">
                             <label class="kpi-label">Entrada Manual</label>
                             <div class="input-group">
@@ -377,6 +373,10 @@ print <<HTML;
             </div>
             <div class="modal-body p-4">
                 <input type="hidden" id="notasAbono" value="">
+                <div class="mb-3">
+                    <label class="kpi-label">Alias / Referencia Corta (Opcional)</label>
+                    <input type="text" id="alias_os_abono" class="form-control" maxlength="25" placeholder="Ej. Pago Quincenal">
+                </div>
                 <div class="p-4 bg-success-subtle rounded-4 text-center mb-4">
                     <span class="kpi-label text-success">Monto del Pago</span>
                     <div class="input-group mt-2">
@@ -399,6 +399,10 @@ print <<HTML;
     </div>
 </div>
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="../js/estado_cuenta_spa.js?v=$^T"></script>
 <script>

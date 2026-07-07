@@ -72,12 +72,16 @@ function renderHistorial(historial) {
     // Intentar renderizar en modo Tabla
     const tb = document.getElementById('tbEdoCuenta');
     if (tb) {
+        if ($.fn.DataTable && $.fn.DataTable.isDataTable('#dtEdoCuenta')) {
+            $('#dtEdoCuenta').DataTable().destroy();
+        }
         tb.innerHTML = historial.length ? '' : '<tr><td colspan="6" class="text-center py-5 text-muted fw-bold">Sin movimientos.</td></tr>';
         historial.forEach(m => {
             const isC = m.tipo === 'Cargo';
+            const display_os = m.alias ? m.alias : m.id_os;
             tb.insertAdjacentHTML('beforeend', `
                 <tr>
-                    <td class="ps-4 small text-primary fw-bold">${m.id_os}</td>
+                    <td class="ps-4 small text-primary fw-bold" title="OS: ${m.id_os}">${display_os}</td>
                     <td class="small text-muted fw-bold">${m.fecha}</td>
                     <td><div class="d-flex align-items-center gap-3">
                         <div class="btn btn-sm ${isC?'btn-light text-danger':'btn-light text-success'} rounded-3" style="width:35px; height:35px; display:flex; align-items:center; justify-content:center;">
@@ -98,6 +102,18 @@ function renderHistorial(historial) {
                     </td>
                 </tr>`);
         });
+        
+        if (historial.length && $.fn.DataTable) {
+            $('#dtEdoCuenta').DataTable({
+                destroy: true,
+                language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json" },
+                order: [[1, "desc"]],
+                paging: true,
+                info: true,
+                searching: true,
+                responsive: true
+            });
+        }
     }
 
     // Intentar renderizar en modo Bento
@@ -114,7 +130,7 @@ function renderHistorial(historial) {
                         </div>
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge bg-primary-subtle text-primary border-0 rounded-pill px-2 py-1" style="font-size:0.6rem;">${m.id_os}</span>
+                                <span class="badge bg-primary-subtle text-primary border-0 rounded-pill px-2 py-1" style="font-size:0.6rem;" title="OS: ${m.id_os}">${display_os}</span>
                                 <span class="text-muted small" style="font-size:0.6rem;">• ${m.fecha}</span>
                             </div>
                             <p class="fw-bold text-dark mb-0 tracking-tight">${m.concepto}</p>
@@ -226,6 +242,8 @@ async function procesarCarrito() {
         fd.append('id_os_manual', windowActiveOS || '');
         const cf = document.getElementById('checkFactura');
         fd.append('aplica_iva', (cf && cf.checked) ? '1' : '0');
+        const aliasIn = document.getElementById('alias_os_cargo');
+        fd.append('alias', aliasIn ? aliasIn.value : '');
         fd.append('payload', JSON.stringify(carritoApp));
         const res = await fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: fd });
         const json = await res.json();
@@ -245,6 +263,8 @@ async function abrirModalAbono() {
     document.getElementById('modalAbonoTitle').innerText = 'Registrar Abono Global';
     document.getElementById('montoAbono').value = '';
     document.getElementById('notasAbono').value = '';
+    const aliasIn = document.getElementById('alias_os_abono');
+    if (aliasIn) aliasIn.value = '';
     const m = bootstrap.Modal.getOrCreateInstance(modalEl);
     m.show();
 }
@@ -284,6 +304,9 @@ function procesarAbono() {
     fd.append('monto', val);
     fd.append('metodo', met);
     fd.append('notas', not);
+    
+    const aliasIn = document.getElementById('alias_os_abono');
+    fd.append('alias', aliasIn ? aliasIn.value : '');
 
     fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: fd })
         .then(r => r.json())
@@ -354,6 +377,8 @@ function abrirModalCargo() {
     document.getElementById('modalCargoTitle').innerHTML = '<i class="bi bi-cart-plus me-3"></i>Nueva Orden de Servicio';
     carritoApp = [];
     refrescarGUICarrito();
+    const aliasIn = document.getElementById('alias_os_cargo');
+    if (aliasIn) aliasIn.value = '';
     const el = document.getElementById('modalCargo');
     if (!el) return console.error("Modal Cargo no encontrado");
     const m = new bootstrap.Modal(el);
