@@ -335,52 +335,7 @@ print <<'PAGE_HTML';
                 </div>
             </div>
 
-            <!-- Modal Nuevo Gasto (Floating Armor) -->
-            <div class="modal fade" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105000;">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-                        <div class="modal-header border-0 pb-0">
-                            <h5 class="fw-bold plus-jakarta text-dark m-0"><i class="bi bi-cash-stack text-danger me-2"></i>Registrar Gasto</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="formGasto">
-                                <div class="form-floating mb-3">
-                                    <input type="date" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="fecha_gasto" required>
-                                    <label for="fecha_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Fecha del Gasto</label>
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="cat_gasto" required onchange="filtrarSubcategorias()">
-                                        <option value="">Seleccione...</option>
-                                    </select>
-                                    <label for="cat_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Categoría Principal</label>
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="subcat_gasto" required onchange="filtrarSubcategorias3()">
-                                        <option value="">Seleccione...</option>
-                                    </select>
-                                    <label for="subcat_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Subcategoría Nivel 2</label>
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="subcat3_gasto" required>
-                                        <option value="">Seleccione...</option>
-                                    </select>
-                                    <label for="subcat3_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Detalle Gasto (Nivel 3)</label>
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="concepto_gasto" placeholder="Concepto" required>
-                                    <label for="concepto_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Concepto / Proveedor</label>
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <input type="number" step="0.01" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="monto_gasto" placeholder="Monto" required>
-                                    <label for="monto_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Monto Total ($)</label>
-                                </div>
-                                <button type="submit" class="btn w-100 rounded-pill fw-bold text-white shadow-sm" style="background: var(--md-blue-medical);">Guardar Gasto</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
             <!-- TAB: CUENTAS POR COBRAR -->
             <div id="tab_cxc" class="sdm-tab-pane d-none">
@@ -426,6 +381,53 @@ print <<'PAGE_HTML';
         </div> <!-- content-wrapper -->
     </div> <!-- sdm-main-content -->
 </div> <!-- sdm-layout-wrapper -->
+
+<!-- Modal Nuevo Gasto (Floating Armor) - Movido fuera del contexto de apilamiento para evitar solapamiento con navbar -->
+<div class="modal fade" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105000;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold plus-jakarta text-dark m-0"><i class="bi bi-cash-stack text-danger me-2"></i>Registrar Gasto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formGasto">
+                    <div class="form-floating mb-3">
+                        <input type="date" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="fecha_gasto" required>
+                        <label for="fecha_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Fecha del Gasto</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="cat_gasto" required onchange="filtrarSubcategorias()">
+                            <option value="">Seleccione...</option>
+                        </select>
+                        <label for="cat_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Categoría Principal</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="subcat_gasto" required onchange="filtrarSubcategorias3()">
+                            <option value="">Seleccione...</option>
+                        </select>
+                        <label for="subcat_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Subcategoría Nivel 2</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="subcat3_gasto" required>
+                            <option value="">Seleccione...</option>
+                        </select>
+                        <label for="subcat3_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Detalle Gasto (Nivel 3)</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="concepto_gasto" placeholder="Concepto" required>
+                        <label for="concepto_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Concepto / Proveedor</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="number" step="0.01" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="monto_gasto" placeholder="Monto" required>
+                        <label for="monto_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Monto Total ($)</label>
+                    </div>
+                    <button type="submit" class="btn w-100 rounded-pill fw-bold text-white shadow-sm" style="background: var(--md-blue-medical);">Guardar Gasto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
