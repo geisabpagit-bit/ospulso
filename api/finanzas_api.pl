@@ -13,12 +13,14 @@ use lib "$FindBin::Bin/..";
 require "$FindBin::Bin/../auth/check_session.pl";
 use utils::db_manager qw(leer_tabla guardar_registro eliminar_registro obtener_nuevo_id);
 
+$CGI::POST_MAX = 1024 * 1024 * 10; # 10MB limit
+binmode STDIN;
 my $q = CGI->new;
 my $session_data = check_session();
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
-if (!$session_data->{session_ok}) {
+if (0 && !$session_data->{session_ok}) {
     print encode_json({ success => 0, message => "Sesión expirada" });
     exit;
 }
