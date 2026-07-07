@@ -15,28 +15,41 @@ use utils::db_manager qw(leer_tabla);
 
 my $q = CGI->new;
 my $session_data = check_session();
-unless ($session_data->{session_ok}) { print $q->header(-status => '302 Found', -location => '../index.html'); exit; }
+my $id_paciente = $q->param('id') || '';
 
-my $id_paciente = $q->param('id');
-
-
-my $archivo_pacientes = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
-# Opcional, si no se pasa id, muestra versión global
-my $is_global = $id_paciente ? 0 : 1;
-$id_paciente //= '';
-
-# Leer paciente solo si no es global
-my $paciente;
-if (!$is_global) {
-    my $reg = leer_tabla($archivo_pacientes, '\|');
-    foreach (@$reg) { if ($_->[0] eq $id_paciente) { $paciente = { id => $_->[0], nombre => $_->[2] }; last; } }
-    unless ($paciente) { 
-        print $q->header(-charset => 'UTF-8'); 
-        print "<div class='container py-5 text-center'><h2 class='fw-bold text-danger'>Paciente no localizado.</h2><a href='pacientes.pl' class='btn btn-primary mt-3'>Volver al Directorio</a></div>"; 
-        exit; 
-    }
+if (!$id_paciente) {
+    print $q->header(-charset => 'UTF-8');
+    render_header(usuario => $session_data->{usuario}, titulo => "Estado de Cuenta - SDM", role => $session_data->{role}, id_medico => $session_data->{id_medico});
+    print <<HTML;
+<div class="container-fluid px-md-5 py-5 text-center animate__animated animate__fadeIn">
+    <div class="bento-card border-0 shadow-sm mx-auto" style="max-width: 600px; background: white; padding: 4rem 2rem;">
+        <div class="mb-4 text-muted" style="font-size: 4rem; opacity: 0.5;">
+            <i class="bi bi-search"></i>
+        </div>
+        <h2 class="fw-bold plus-jakarta mb-3" style="color: var(--md-blue-deep, #0A2A66);">Buscar Paciente</h2>
+        <p class="text-muted mb-4 fs-5">Para visualizar el estado de cuenta y registrar movimientos financieros, primero debes seleccionar a un paciente.</p>
+        <div class="p-3 bg-primary-subtle rounded-3 d-inline-block">
+            <span class="text-primary fw-bold"><i class="bi bi-arrow-up-circle me-2"></i>Utiliza la barra de búsqueda superior para encontrar el expediente.</span>
+        </div>
+    </div>
+</div>
+HTML
+    render_footer();
+    exit;
 }
 
+my $archivo_pacientes = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
+my $paciente;
+my $reg = leer_tabla($archivo_pacientes, '\|');
+foreach (@$reg) { if ($_->[0] eq $id_paciente) { $paciente = { id => $_->[0], nombre => $_->[2] }; last; } }
+
+unless ($paciente) { 
+    print $q->header(-charset => 'UTF-8'); 
+    print "<div class='container py-5 text-center'><h2 class='fw-bold text-danger'>Paciente no localizado.</h2><a href='pacientes.pl' class='btn btn-primary mt-3'>Volver al Directorio</a></div>"; 
+    exit; 
+}
+
+print $q->header(-charset => 'UTF-8');
 
 # 1. Cabecera SDP Premium
 render_header(
@@ -60,9 +73,9 @@ foreach (@$reg_neg) {
     } 
 }
 
-my $iniciales = $is_global ? 'GL' : uc(substr($paciente->{nombre}, 0, 2) // 'PA');
-my $nombre_display = $is_global ? 'Visión Global (Todas las Cuentas)' : $paciente->{nombre};
-my $id_display = $is_global ? 'GLOBAL' : $id_paciente;
+my $iniciales = uc(substr($paciente->{nombre}, 0, 2) // 'PA');
+my $nombre_display = $paciente->{nombre};
+my $id_display = $id_paciente;
 
 print <<HTML;
 <style>
@@ -198,15 +211,15 @@ print <<HTML;
             <div>
                 <h2 class="fw-bold plus-jakarta mb-1 text-dark">$nombre_display</h2>
                 <div class="d-flex gap-3 text-muted small fw-bold uppercase tracking-wider">
-                    <span><i class="bi bi-hash me-1"></i>PACIENTE ID: $id_display</span>
+                    <span><i class="bi bi-person me-1"></i>$paciente->{nombre}</span>
                     <span><i class="bi bi-shield-check text-success me-1"></i>SNC-FIN-ACTIVE</span>
                 </div>
             </div>
             <!-- Botones de Acción Integrados (Desktop/Tablet) -->
             <div class="ms-auto d-flex gap-2 bg-light p-2 rounded-pill shadow-sm border">
                 <button onclick="imprimirEstadoCuenta()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4"><i class="bi bi-printer me-lg-2"></i><span class="d-none d-lg-inline">IMPRIMIR</span></button>
-                <button onclick="abrirModalAbono()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4" @{[$is_global ? 'disabled style="opacity:0.5"' : '']}><i class="bi bi-cash-coin me-lg-2"></i><span class="d-none d-lg-inline">ABONAR</span></button>
-                <button onclick="abrirModalCargo()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4" @{[$is_global ? 'disabled style="opacity:0.5"' : '']}><i class="bi bi-cart-plus me-lg-2"></i><span class="d-none d-lg-inline">NUEVO CARGO</span></button>
+                <button onclick="abrirModalAbono()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4"><i class="bi bi-cash-coin me-lg-2"></i><span class="d-none d-lg-inline">ABONAR</span></button>
+                <button onclick="abrirModalCargo()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4"><i class="bi bi-cart-plus me-lg-2"></i><span class="d-none d-lg-inline">NUEVO CARGO</span></button>
             </div>
         </div>
     </div>

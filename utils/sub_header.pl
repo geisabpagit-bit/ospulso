@@ -69,7 +69,13 @@ sub render_header {
                     source: "../api/autocomplete_pacientes.pl",
                     minLength: 2,
                     select: function(e, ui) { 
-                        if(ui.item.id) window.location.href = "../views/render_expediente_clinico.pl?id=" + ui.item.id; 
+                        if(ui.item.id) {
+                            if (window.location.pathname.indexOf('estado_cuenta.pl') !== -1) {
+                                window.location.href = "../views/estado_cuenta.pl?id=" + ui.item.id;
+                            } else {
+                                window.location.href = "../views/render_expediente_clinico.pl?id=" + ui.item.id; 
+                            }
+                        }
                     }
                 };
                 \$("#globalSearch").autocomplete(acConfig);
