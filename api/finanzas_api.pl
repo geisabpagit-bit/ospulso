@@ -27,13 +27,13 @@ my $action = $q->param('action') || '';
 
 if ($action eq 'get_cxc') {
     # Cuentas por Cobrar: se recorre estado_cuenta.dat y pacientes.dat
-    my @pacientes_raw = leer_tabla("$FindBin::Bin/../dat/pacientes.dat");
+    my @pacientes_raw = @{ leer_tabla("$FindBin::Bin/../dat/pacientes.dat") };
     my %nombres_pacientes;
     for my $p (@pacientes_raw) {
         $nombres_pacientes{$p->[0]} = "$p->[1] $p->[2]";
     }
 
-    my @movimientos_raw = leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat");
+    my @movimientos_raw = @{ leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat") };
     
     my %saldos;
     for my $mov (@movimientos_raw) {
@@ -72,12 +72,12 @@ if ($action eq 'get_cxc') {
     print encode_json({ success => 1, data => \@cxc });
 }
 elsif ($action eq 'get_gastos') {
-    my @gastos_raw = leer_tabla("$FindBin::Bin/../dat/gastos.dat");
+    my @gastos_raw = @{ leer_tabla("$FindBin::Bin/../dat/gastos.dat") };
     
     # We need to map category names for convenience
-    my @cat = leer_tabla("$FindBin::Bin/../dat/categorias.dat");
-    my @subcat = leer_tabla("$FindBin::Bin/../dat/sub_categoria.dat");
-    my @subcat3 = leer_tabla("$FindBin::Bin/../dat/sub_categoria_nivel3.dat");
+    my @cat = @{ leer_tabla("$FindBin::Bin/../dat/categorias.dat") };
+    my @subcat = @{ leer_tabla("$FindBin::Bin/../dat/sub_categoria.dat") };
+    my @subcat3 = @{ leer_tabla("$FindBin::Bin/../dat/sub_categoria_nivel3.dat") };
     
     my %c_map = map { $_->[0] => $_->[1] } @cat;
     my %s_map = map { $_->[0] => $_->[2] } @subcat;
@@ -139,8 +139,8 @@ elsif ($action eq 'delete_gasto') {
     }
 }
 elsif ($action eq 'get_ingresos') {
-    my @movimientos_raw = leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat");
-    my @pacientes_raw = leer_tabla("$FindBin::Bin/../dat/pacientes.dat");
+    my @movimientos_raw = @{ leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat") };
+    my @pacientes_raw = @{ leer_tabla("$FindBin::Bin/../dat/pacientes.dat") };
     
     my %nombres;
     for my $p (@pacientes_raw) {
@@ -170,9 +170,9 @@ elsif ($action eq 'get_ingresos') {
     print encode_json({ success => 1, data => \@ingresos });
 }
 elsif ($action eq 'get_categorias_gastos') {
-    my @cat = leer_tabla("$FindBin::Bin/../dat/categorias.dat");
-    my @subcat = leer_tabla("$FindBin::Bin/../dat/sub_categoria.dat");
-    my @subcat3 = leer_tabla("$FindBin::Bin/../dat/sub_categoria_nivel3.dat");
+    my @cat = @{ leer_tabla("$FindBin::Bin/../dat/categorias.dat") };
+    my @subcat = @{ leer_tabla("$FindBin::Bin/../dat/sub_categoria.dat") };
+    my @subcat3 = @{ leer_tabla("$FindBin::Bin/../dat/sub_categoria_nivel3.dat") };
     
     my @cat_map = map { { id => $_->[0], nombre => $_->[1], desc => $_->[2] } } @cat;
     my @subcat_map = map { { id => $_->[0], id_cat => $_->[1], nombre => $_->[2], desc => $_->[3] } } @subcat;
