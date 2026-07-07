@@ -725,7 +725,3 @@ function renderEvolucionIngresosGlobal() {
         }
     });
 }
-
-
-}
-
