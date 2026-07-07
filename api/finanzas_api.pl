@@ -97,6 +97,8 @@ elsif ($action eq 'get_gastos') {
             id_subcat3 => $id_subcat3,
             concepto => $g->[5],
             monto => $g->[6],
+            proveedor => $g->[7] || '',
+            factura_path => $g->[8] || '',
             cat_nombre => $c_map{$id_cat} || 'N/A',
             subcat_nombre => $s_map{$id_subcat} || 'N/A',
             subcat3_nombre => $s3_map{$id_subcat3} || 'N/A'
@@ -110,6 +112,31 @@ elsif ($action eq 'get_gastos') {
 elsif ($action eq 'save_gasto') {
     my $id_gasto = $q->param('id_gasto') || '';
     
+    # Manejar subida de archivo factura
+    my $factura_file = $q->upload('factura_file');
+    my $factura_path = "";
+    if ($factura_file) {
+        my $filename = $q->param('factura_file');
+        my ($ext) = $filename =~ /(\.[^.]+)$/;
+        $ext = lc($ext || '');
+        my $new_filename = time() . "_" . int(rand(10000)) . $ext;
+        
+        my $upload_dir = "$FindBin::Bin/../uploads";
+        mkdir $upload_dir unless -d $upload_dir;
+        $upload_dir .= "/facturas";
+        mkdir $upload_dir unless -d $upload_dir;
+        
+        my $save_path = "$upload_dir/$new_filename";
+        if (open(my $out_fh, '>', $save_path)) {
+            binmode $out_fh;
+            while (my $bytesread = read($factura_file, my $buffer, 1024)) {
+                print $out_fh $buffer;
+            }
+            close $out_fh;
+            $factura_path = "uploads/facturas/$new_filename";
+        }
+    }
+    
     if (!$id_gasto) {
         my $nuevo_id = obtener_nuevo_id("$FindBin::Bin/../dat/id_gasto.counter");
         my $linea = join("|", 
@@ -119,7 +146,9 @@ elsif ($action eq 'save_gasto') {
             $q->param('id_subcat') || '',
             $q->param('id_subcat3') || '',
             $q->param('concepto') || '',
-            $q->param('monto') || 0
+            $q->param('monto') || 0,
+            $q->param('proveedor') || '',
+            $factura_path
         );
         open my $fh, '>>:encoding(UTF-8)', "$FindBin::Bin/../dat/gastos.dat" or die $!;
         print $fh "$linea\n";

@@ -959,14 +959,19 @@ window.renderGastos = async function() {
         if (data.success && tbody) {
             let html = '';
             data.data.forEach(g => {
+                const facturaBtn = g.factura_path ? 
+                    `<a href="../${g.factura_path}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill me-1" title="Ver Factura"><i class="bi bi-file-earmark-pdf"></i></a>` : 
+                    '';
                 html += `<tr>
                     <td class="text-muted small">${g.fecha || ''}</td>
                     <td>
                         <span class="fw-bold" style="color: var(--md-blue-deep);">${g.cat_nombre}</span><br>
                         <small class="text-muted">${g.subcat_nombre} > ${g.subcat3_nombre}</small>
                     </td>
-                    <td class="fw-bold text-dark">${g.concepto}</td>
+                    <td class="fw-bold text-dark">${g.proveedor || '-'}</td>
+                    <td class="text-muted">${g.concepto}</td>
                     <td class="fw-bold text-danger">${formatter.format(g.monto)}</td>
+                    <td class="text-center">${facturaBtn}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarGasto('${g.id_gasto}')"><i class="bi bi-trash"></i></button>
                     </td>
@@ -1025,20 +1030,24 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.disabled = true;
             btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Guardando...';
             
-            const payload = new URLSearchParams({
-                action: 'save_gasto',
-                fecha: document.getElementById('fecha_gasto').value,
-                id_cat: document.getElementById('cat_gasto').value,
-                id_subcat: document.getElementById('subcat_gasto').value,
-                id_subcat3: document.getElementById('subcat3_gasto').value,
-                concepto: document.getElementById('concepto_gasto').value,
-                monto: document.getElementById('monto_gasto').value
-            });
+            const payload = new FormData();
+            payload.append('action', 'save_gasto');
+            payload.append('fecha', document.getElementById('fecha_gasto').value);
+            payload.append('id_cat', document.getElementById('cat_gasto').value);
+            payload.append('id_subcat', document.getElementById('subcat_gasto').value);
+            payload.append('id_subcat3', document.getElementById('subcat3_gasto').value);
+            payload.append('proveedor', document.getElementById('proveedor_gasto').value);
+            payload.append('concepto', document.getElementById('concepto_gasto').value);
+            payload.append('monto', document.getElementById('monto_gasto').value);
+            
+            const fileInput = document.getElementById('factura_gasto');
+            if (fileInput && fileInput.files.length > 0) {
+                payload.append('factura_file', fileInput.files[0]);
+            }
             
             try {
                 const res = await fetch('../api/finanzas_api.pl', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: payload
                 });
                 const data = await res.json();

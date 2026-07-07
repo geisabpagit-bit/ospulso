@@ -322,8 +322,10 @@ print <<'PAGE_HTML';
                                 <tr>
                                     <th>Fecha</th>
                                     <th>Categoría / Sub</th>
-                                    <th>Concepto / Proveedor</th>
+                                    <th>Proveedor</th>
+                                    <th>Concepto</th>
                                     <th>Monto</th>
+                                    <th>Factura</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -427,13 +429,33 @@ print <<'PAGE_HTML';
                             </div>
                         </div>
                     </div>
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="concepto_gasto" placeholder="Concepto" required>
-                        <label for="concepto_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Concepto / Proveedor</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="proveedor_gasto" placeholder="Proveedor" required>
+                                <label for="proveedor_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Proveedor</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="concepto_gasto" placeholder="Concepto" required>
+                                <label for="concepto_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Concepto / Descripción</label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-floating mb-3">
-                        <input type="number" step="0.01" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="monto_gasto" placeholder="Monto" required>
-                        <label for="monto_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Monto Total ($)</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" step="0.01" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="monto_gasto" placeholder="Monto" required>
+                                <label for="monto_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Monto Total ($)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="factura_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b; margin-left: 0.75rem;">Adjuntar Factura (Opcional)</label>
+                                <input type="file" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem; padding-top: 0.65rem; padding-bottom: 0.65rem;" id="factura_gasto" accept=".pdf,.png,.jpg,.jpeg">
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="btn w-100 rounded-pill fw-bold text-white shadow-sm" style="background: var(--md-blue-medical);">Guardar Gasto</button>
                 </form>
