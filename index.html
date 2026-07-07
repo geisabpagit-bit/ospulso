@@ -99,11 +99,15 @@
     </section>
 
     <!-- ECOSISTEMA MODULAR INTEGRADO -->
-    <section id="modulos" class="py-5 bg-light position-relative" style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-        <div class="container" style="max-width: 1200px;">
+    <section id="modulos" class="py-5 position-relative" style="background-color: var(--md-white-clinical); border-bottom: 1px solid rgba(0,0,0,0.05);">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-teal" style="top: 20%; left: -5%; opacity: 0.3;"></div>
+        <div class="floating-orb orb-navy" style="bottom: 10%; right: -5%; opacity: 0.3;"></div>
+
+        <div class="container position-relative z-2" style="max-width: 1200px;">
             <div class="text-center mb-5 scroll-reveal">
                 <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold mb-3">Tecnología de Grado Empresarial</span>
-                <h2 class="fw-bold text-navy">Módulos Modulares Integrados</h2>
+                <h2 class="fw-bold text-navy">Módulos Integrados y escalables</h2>
                 <p class="text-muted">Un ecosistema diseñado para conectar cada proceso de tu clínica sin fisuras.</p>
             </div>
             
@@ -217,13 +221,13 @@
                 </div>
                 
                 <!-- Controles -->
-                <button class="carousel-control-prev" type="button" data-bs-target="#modulesCarousel" data-bs-slide="prev" style="width: 8%; opacity: 1;">
+                <button class="carousel-control-prev" type="button" data-bs-target="#modulesCarousel" data-bs-slide="prev" style="width: 50px; left: 20px; opacity: 1; z-index: 10;">
                     <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                         <i class="bi bi-chevron-left text-navy fs-4" aria-hidden="true"></i>
                     </div>
                     <span class="visually-hidden">Anterior</span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#modulesCarousel" data-bs-slide="next" style="width: 8%; opacity: 1;">
+                <button class="carousel-control-next" type="button" data-bs-target="#modulesCarousel" data-bs-slide="next" style="width: 50px; right: 20px; opacity: 1; z-index: 10;">
                     <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                         <i class="bi bi-chevron-right text-navy fs-4" aria-hidden="true"></i>
                     </div>
@@ -244,21 +248,25 @@
     </section>
 
     <!-- EL PROBLEMA (Storytelling & Data) -->
-    <section id="problema" class="py-5 bg-white text-center">
-        <div class="container" style="max-width: 900px;">
+    <section id="problema" class="py-5 text-center position-relative demo-gradient-bg">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-teal" style="top: 10%; left: 5%;"></div>
+        <div class="floating-orb orb-navy" style="bottom: 10%; right: 10%;"></div>
+        
+        <div class="container position-relative z-2" style="max-width: 900px;">
             <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold mb-3 scroll-reveal">El Desafío Clínico</span>
-            <h2 class="fw-bold text-navy mb-2 scroll-reveal">El Caos que Nadie Quiere Admitir</h2>
-            <p class="text-secondary fw-semibold mb-4 scroll-reveal" style="font-size: 1.15rem;">¿Cuántos pacientes perdiste esta semana?</p>
-            <p class="lead text-muted mb-4 scroll-reveal">Según la Asociación Mexicana de Gestión de Clínicas, <strong>7 de cada 10 clínicas pierden pacientes</strong> por fallas administrativas. Uno de ellos puede ser tu clínica si sigues con Excel y papel.</p>
+            <h2 class="fw-bold text-white mb-2 scroll-reveal">El Caos que Nadie Quiere Admitir</h2>
+            <p class="text-light fw-semibold mb-4 scroll-reveal" style="font-size: 1.15rem;">¿Cuántos pacientes perdiste esta semana?</p>
+            <p class="lead text-white opacity-75 mb-4 scroll-reveal">Según la Asociación Mexicana de Gestión de Clínicas, <strong>7 de cada 10 clínicas pierden pacientes</strong> por fallas administrativas. Uno de ellos puede ser tu clínica si sigues con Excel y papel.</p>
             
             <!-- Animated Losses Counter -->
             <div class="d-flex justify-content-center align-items-center gap-2 mb-5 scroll-reveal">
-                <span class="fs-4 text-navy">Tasa de Fuga Operativa:</span>
+                <span class="fs-4 text-white">Tasa de Fuga Operativa:</span>
                 <span id="animatedCounter" class="fs-2 fw-bold text-danger">0%</span>
             </div>
 
             <!-- Leak Calculator Widget (Gamified Problem) -->
-            <div class="p-4 rounded-5 premium-panel text-start mx-auto mb-5 scroll-reveal" style="max-width: 600px;">
+            <div class="p-4 rounded-5 holo-card text-start mx-auto mb-5 scroll-reveal" style="max-width: 600px;">
                 <h5 class="fw-bold text-navy mb-3"><i class="bi bi-calculator text-danger me-2"></i>Calculadora de Pacientes Perdidos</h5>
                 <p class="small text-muted mb-4">Mueve la barra para estimar cuántos pacientes e ingresos podrías estar perdiendo por fallas operativas menores:</p>
                 
@@ -368,13 +376,13 @@
                 </div>
                 
                 <!-- Controles -->
-                <button class="carousel-control-prev" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="prev" style="width: 8%; opacity: 1;">
+                <button class="carousel-control-prev" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="prev" style="width: 50px; left: 20px; opacity: 1; z-index: 10;">
                     <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                         <i class="bi bi-chevron-left text-navy fs-4" aria-hidden="true"></i>
                     </div>
                     <span class="visually-hidden">Anterior</span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="next" style="width: 8%; opacity: 1;">
+                <button class="carousel-control-next" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="next" style="width: 50px; right: 20px; opacity: 1; z-index: 10;">
                     <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                         <i class="bi bi-chevron-right text-navy fs-4" aria-hidden="true"></i>
                     </div>
@@ -434,7 +442,7 @@
                 </button>
             </div>
 
-            <div class="search-demo-container mx-auto p-4 border rounded-5 bg-white shadow-lg position-relative" style="max-width: 600px;">
+            <div class="search-demo-container mx-auto p-4 rounded-5 holo-card position-relative" style="max-width: 600px;">
                 <!-- Tooltip guide -->
                 <div id="demoTooltip" class="tooltip-custom d-none" style="top: -45px; left: 50%; transform: translateX(-50%);">
                     ¡Escribiendo 'pepito' automáticamente para ti!
@@ -583,7 +591,7 @@
                 <!-- Plan 2: Clínica Profesional -->
                 <div class="col-md-6 col-lg-5">
                     <div class="p-5 premium-panel holo-card h-100 d-flex flex-column position-relative" style="border: 2px solid var(--md-teal-clinical) !important; z-index: 2;">
-                        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2 shadow" style="font-size: 0.85rem;">⭐ Recomendado</span>
+                        <span class="position-absolute badge btn-pill-unify btn-magnetic-pulse bg-primary px-3 py-2 shadow" style="font-size: 0.85rem; top: -12px; left: 50%; transform: translateX(-50%); z-index: 10;">⭐ Recomendado</span>
                         <h3 class="fw-bold text-navy mt-2">Clínica Profesional</h3>
                         <p class="text-muted small">Para clínicas en crecimiento.</p>
                         <h1 class="fw-bold text-navy my-4">$729.64 <span class="fs-6 text-muted">MXN / mes</span></h1>
@@ -607,8 +615,12 @@
     </section>
 
     <!-- FAQ -->
-    <section id="faq" class="py-5 bg-light">
-        <div class="container" style="max-width: 800px;">
+    <section id="faq" class="py-5 position-relative" style="background-color: var(--md-white-clinical);">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-navy" style="top: -5%; right: -5%; opacity: 0.5;"></div>
+        <div class="floating-orb orb-teal" style="bottom: 5%; left: 0; opacity: 0.5;"></div>
+        
+        <div class="container position-relative z-2" style="max-width: 800px;">
             <div class="text-center mb-5" id="faqHeadingContainer">
                 <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill fw-bold mb-3">Preguntas Frecuentes</span>
                 <h2 class="fw-bold text-navy">Preguntas Frecuentes</h2>
@@ -616,41 +628,41 @@
             </div>
             <div class="accordion" id="faqAccordion">
                 <!-- FAQ 1: Abierta por defecto -->
-                <div class="accordion-item border-0 mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                <div class="accordion-item faq-holo-item mb-3" style="border-radius: 12px; overflow: hidden;">
                     <h2 class="accordion-header">
-                        <button class="accordion-button fw-bold text-navy bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                        <button class="accordion-button fw-bold text-navy" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
                             ¿Miedo a soltar tu viejo Excel? 😱
                         </button>
                     </h2>
                     <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body bg-white text-muted">
+                        <div class="accordion-body text-muted">
                             Tranquilo, soltar duele, pero crecer lo cura todo. Te acompañaremos en cada paso de manera segura; hacemos la migración por ti. Sin dramas, ¡solo soluciones rápidas!
                         </div>
                     </div>
                 </div>
                 <!-- FAQ 2: Abierta por defecto -->
-                <div class="accordion-item border-0 mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                <div class="accordion-item faq-holo-item mb-3" style="border-radius: 12px; overflow: hidden;">
                     <h2 class="accordion-header">
-                        <button class="accordion-button fw-bold text-navy bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                        <button class="accordion-button fw-bold text-navy" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
                             ¿Puedo usarlo desde mi smartphone tomando café? ☕
                         </button>
                     </h2>
                     <div id="faq2" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body bg-white text-muted">
+                        <div class="accordion-body text-muted">
                             ¡Claro! OSPulso vive en la nube y cabe en tu bolsillo. Gestiona tu agenda y revisa finanzas mientras te tomas ese americano. Cero estrés.
                         </div>
                     </div>
                 </div>
                 <!-- FAQs ocultas bajo botón "Ver más" -->
                 <div id="moreFaqs" class="collapse">
-                    <div class="accordion-item border-0 mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                    <div class="accordion-item faq-holo-item mb-3" style="border-radius: 12px; overflow: hidden;">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed fw-bold text-navy bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
                                 ¿Tengo que amarrarme a un contrato largo? 🔒
                             </button>
                         </h2>
                         <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body bg-white text-muted">
+                            <div class="accordion-body text-muted">
                                 ¡Para nada! Sin letras chiquitas ni plazos forzosos. Queremos que te quedes por lo mucho que ahorras mes a mes, no por un papel firmado.
                             </div>
                         </div>
@@ -1121,3 +1133,4 @@
     </script>
 </body>
 </html>
+

@@ -1774,3 +1774,10 @@ footer {
 /* Unify Pill Buttons */
 .btn-pill-unify { border-radius: 12px !important; }
 
+
+/* FAQ Holo Item */
+.faq-holo-item { background: rgba(255, 255, 255, 0.9) !important; backdrop-filter: blur(10px); border: 1px solid rgba(24, 209, 230, 0.3) !important; border-radius: 12px !important; overflow: hidden; transition: all 0.3s ease; }
+.faq-holo-item:hover { box-shadow: 0 10px 20px rgba(0, 196, 196, 0.1); transform: translateY(-2px); }
+.faq-holo-item .accordion-button { background: transparent !important; box-shadow: none !important; }
+.faq-holo-item .accordion-body { background: transparent !important; }
+
