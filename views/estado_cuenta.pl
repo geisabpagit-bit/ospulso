@@ -78,7 +78,7 @@ my $nombre_display = $paciente->{nombre};
 my $id_display = $id_paciente;
 
 print <<HTML;
-<div class="container-fluid px-md-5 py-4 animate__animated animate__fadeIn">
+<div class="container py-4 px-2 px-md-4 animate__animated animate__fadeIn" style="max-width: 1000px; overflow-x: hidden;">
 
     <!-- Header de Impresión Profesional -->
     <div class="print-header">
@@ -115,9 +115,9 @@ print <<HTML;
             </div>
             <!-- Acciones Desktop -->
             <div class="d-none d-md-flex gap-2">
-                <button onclick="imprimirEstadoCuenta()" class="btn btn-sm btn-light fw-bold rounded-pill shadow-sm text-dark px-3"><i class="bi bi-printer me-2"></i>Imprimir</button>
-                <button onclick="abrirModalAbono()" class="btn btn-sm btn-success fw-bold rounded-pill shadow-sm px-3"><i class="bi bi-cash-coin me-2"></i>Abonar</button>
-                <button onclick="abrirModalCargo()" class="btn btn-sm btn-primary fw-bold rounded-pill shadow-sm px-3"><i class="bi bi-cart-plus me-2"></i>Nuevo Cargo</button>
+                <button onclick="imprimirEstadoCuenta()" class="btn btn-premium-outline btn-pill-unify shadow-sm px-3 py-2"><i class="bi bi-printer me-2"></i>Imprimir</button>
+                <button onclick="abrirModalAbono()" class="btn btn-premium-outline btn-pill-unify shadow-sm px-3 py-2"><i class="bi bi-cash-coin me-2"></i>Abonar</button>
+                <button onclick="abrirModalCargo()" class="btn btn-premium-outline btn-pill-unify shadow-sm px-3 py-2"><i class="bi bi-cart-plus me-2"></i>Nuevo Cargo</button>
             </div>
         </div>
     </div>

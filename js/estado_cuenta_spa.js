@@ -241,40 +241,64 @@ function renderHistorial(historial) {
         }
     }
 
-    // Intentar renderizar en modo Bento
+    // Intentar renderizar en modo Bento (Agrupado por OS/Alias)
     const container = document.getElementById('bentoTransactionsContainer');
     if (container) {
         container.innerHTML = historial.length ? '' : '<div class="p-5 text-center text-muted fw-bold small">No se encontraron movimientos registrados.</div>';
+        
+        const grouped = {};
         historial.forEach(m => {
-            const isC = m.tipo === 'Cargo';
             const display_os = m.alias ? m.alias : m.id_os;
-            container.insertAdjacentHTML('beforeend', `
-                <div class="bento-card p-3 border shadow-sm d-flex justify-content-between align-items-center animate__animated animate__fadeInUp" style="border-radius:1.5rem;">
+            if (!grouped[display_os]) grouped[display_os] = [];
+            grouped[display_os].push(m);
+        });
+
+        Object.keys(grouped).forEach(os_key => {
+            const txs = grouped[os_key];
+            const real_os = txs[0].id_os;
+            const alias = txs[0].alias || '';
+            
+            let htmlTxs = txs.map(m => {
+                const isC = m.tipo === 'Cargo';
+                return `
+                <div class="d-flex justify-content-between align-items-center p-2 rounded-3 border border-slate-100" style="background: var(--md-white-clinical);">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-4 d-flex align-items-center justify-content-center shadow-sm ${isC?'bg-danger-subtle text-danger':'bg-success-subtle text-success'}" style="width:50px; height:50px;">
-                            <i class="bi ${isC?'bi-receipt-cutoff':'bi-cash-stack'}" style="font-size:1.5rem;"></i>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm ${isC?'bg-danger-subtle text-danger':'bg-success-subtle text-success'}" style="width:32px; height:32px;">
+                            <i class="bi ${isC?'bi-receipt':'bi-cash-coin'}" style="font-size:1rem;"></i>
                         </div>
                         <div>
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge bg-primary-subtle text-primary border-0 rounded-pill px-2 py-1" style="font-size:0.6rem;" title="OS: ${m.id_os}">${display_os}</span>
-                                <span class="text-muted small" style="font-size:0.6rem;">• ${m.fecha}</span>
-                            </div>
-                            <p class="fw-bold text-dark mb-0 tracking-tight">${m.concepto}</p>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="small fw-bold uppercase tracking-wider ${isC?'text-danger':'text-success'}" style="font-size:0.6rem;">${m.tipo}</span>
-                            </div>
+                            <p class="mb-0 fw-bold text-dark lh-1" style="font-size: 0.85rem;">${m.concepto}</p>
+                            <small class="text-muted" style="font-size: 0.65rem;">${m.fecha}</small>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center gap-4">
-                        <div class="text-end">
-                            <p class="fw-bold h5 mb-0 tracking-tighter ${isC?'text-dark':'text-success'}">${isC?'':'-'}${formatter.format(m.total)}</p>
+                    <div class="text-end d-flex align-items-center gap-2">
+                        <span class="fw-black ${isC?'text-dark':'text-success'}">${isC?'':'-'}${formatter.format(m.total)}</span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-link text-muted p-0 ms-1" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 12px; font-size: 0.85rem;">
+                                ${isC ? `<li><a class="dropdown-item" href="#" onclick="abrirModalAbonoContextual(${m.total}, '${m.concepto.replace(/'/g, "\\'")}', '${m.id_os}', '${m.alias || ''}')"><i class="bi bi-cash-coin me-2 text-success"></i>Abonar</a></li>` : ''}
+                                <li><a class="dropdown-item" href="#" onclick="prepararEdicion('${m.id_mov}', '${m.concepto.replace(/'/g, "\\'")}', '${m.total}')"><i class="bi bi-pencil me-2 text-muted"></i>Editar</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="eliminarMovimiento('${m.id_mov}')"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
+                            </ul>
                         </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.insertAdjacentHTML('beforeend', `
+                <div class="bento-card p-3 border shadow-sm mb-3 animate__animated animate__fadeInUp" style="border-radius:1.5rem;">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
+                        <span class="badge bg-primary-subtle text-primary border-0 rounded-pill px-3 py-2 fw-bold text-start text-wrap lh-sm" style="font-size:0.8rem; letter-spacing: -0.2px;">
+                            <i class="bi bi-folder2-open me-2"></i>${os_key}
+                        </span>
                         <div class="d-flex gap-2">
-                            ${isC ? `<button onclick="abrirModalAbonoContextual(${m.total}, '${m.concepto.replace(/'/g, "\\'")}', '${m.id_os}', '${m.alias || ''}')" class="btn btn-sm btn-light border-0"><i class="bi bi-cash-coin text-success"></i></button>` : ''}
-                            ${isC ? `<button onclick="abrirModalCargoConOS('${m.id_os}', '${m.alias || ''}')" class="btn btn-sm btn-light border-0"><i class="bi bi-folder-plus text-primary"></i></button>` : ''}
-                            <button onclick="prepararEdicion('${m.id_mov}', '${m.concepto.replace(/'/g, "\\'")}', '${m.total}')" class="btn btn-sm btn-light border-0"><i class="bi bi-pencil text-muted"></i></button>
-                            <button onclick="eliminarMovimiento('${m.id_mov}')" class="btn btn-sm btn-light border-0"><i class="bi bi-trash text-danger"></i></button>
+                            <button onclick="imprimirOS('${real_os}')" class="btn btn-sm btn-light border shadow-sm rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;"><i class="bi bi-printer text-dark me-1"></i>Imprimir</button>
+                            <button onclick="abrirModalCargoConOS('${real_os}', '${alias}')" class="btn btn-sm btn-primary shadow-sm rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
                         </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        ${htmlTxs}
                     </div>
                 </div>`);
         });
