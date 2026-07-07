@@ -384,7 +384,7 @@ print <<'PAGE_HTML';
 
 <!-- Modal Nuevo Gasto (Floating Armor) - Movido fuera del contexto de apilamiento para evitar solapamiento con navbar -->
 <div class="modal fade" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105000;">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
             <div class="modal-header border-0 pb-0">
                 <h5 class="fw-bold plus-jakarta text-dark m-0"><i class="bi bi-cash-stack text-danger me-2"></i>Registrar Gasto</h5>
@@ -396,23 +396,31 @@ print <<'PAGE_HTML';
                         <input type="date" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="fecha_gasto" required>
                         <label for="fecha_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Fecha del Gasto</label>
                     </div>
-                    <div class="form-floating mb-3">
-                        <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="cat_gasto" required onchange="filtrarSubcategorias()">
-                            <option value="">Seleccione...</option>
-                        </select>
-                        <label for="cat_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Categoría Principal</label>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="subcat_gasto" required onchange="filtrarSubcategorias3()">
-                            <option value="">Seleccione...</option>
-                        </select>
-                        <label for="subcat_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Subcategoría Nivel 2</label>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="subcat3_gasto" required>
-                            <option value="">Seleccione...</option>
-                        </select>
-                        <label for="subcat3_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Detalle Gasto (Nivel 3)</label>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-floating mb-3">
+                                <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="cat_gasto" required onchange="filtrarSubcategorias()">
+                                    <option value="">Seleccione...</option>
+                                </select>
+                                <label for="cat_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Categoría Principal</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4" id="col_subcat_gasto" style="display:none;">
+                            <div class="form-floating mb-3">
+                                <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="subcat_gasto" onchange="filtrarSubcategorias3()">
+                                    <option value="">Seleccione...</option>
+                                </select>
+                                <label for="subcat_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Subcategoría Nivel 2</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4" id="col_subcat3_gasto" style="display:none;">
+                            <div class="form-floating mb-3">
+                                <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="subcat3_gasto">
+                                    <option value="">Seleccione...</option>
+                                </select>
+                                <label for="subcat3_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Detalle Gasto (Nivel 3)</label>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-floating mb-3">
                         <input type="text" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="concepto_gasto" placeholder="Concepto" required>

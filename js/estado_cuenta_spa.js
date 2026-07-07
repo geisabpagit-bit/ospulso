@@ -895,29 +895,53 @@ window.filtrarSubcategorias = function() {
     const idCat = document.getElementById('cat_gasto').value;
     const subcatSelect = document.getElementById('subcat_gasto');
     const subcat3Select = document.getElementById('subcat3_gasto');
+    const colSub = document.getElementById('col_subcat_gasto');
+    const colSub3 = document.getElementById('col_subcat3_gasto');
     
     subcatSelect.innerHTML = '<option value="">Seleccione...</option>';
     subcat3Select.innerHTML = '<option value="">Seleccione...</option>';
     
-    if (!idCat) return;
+    if (!idCat) {
+        colSub.style.display = 'none';
+        colSub3.style.display = 'none';
+        return;
+    }
     
     const filtradas = subcatGastos.filter(s => s.id_cat === idCat);
-    filtradas.forEach(s => {
-        subcatSelect.innerHTML += `<option value="${s.id}">${s.nombre}</option>`;
-    });
+    if (filtradas.length > 0) {
+        colSub.style.display = 'block';
+        filtradas.forEach(s => {
+            subcatSelect.innerHTML += `<option value="${s.id}">${s.nombre}</option>`;
+        });
+        subcatSelect.innerHTML += `<option value="0">Ninguna</option>`;
+    } else {
+        colSub.style.display = 'none';
+        subcatSelect.value = '';
+    }
+    colSub3.style.display = 'none';
 }
 
 window.filtrarSubcategorias3 = function() {
     const idSub = document.getElementById('subcat_gasto').value;
     const subcat3Select = document.getElementById('subcat3_gasto');
+    const colSub3 = document.getElementById('col_subcat3_gasto');
     
     subcat3Select.innerHTML = '<option value="">Seleccione...</option>';
-    if (!idSub) return;
+    if (!idSub || idSub === "0") {
+        colSub3.style.display = 'none';
+        return;
+    }
     
     const filtradas = subcat3Gastos.filter(s => s.id_subcat === idSub);
-    filtradas.forEach(s => {
-        subcat3Select.innerHTML += `<option value="${s.id}">${s.nombre}</option>`;
-    });
+    if (filtradas.length > 0) {
+        colSub3.style.display = 'block';
+        filtradas.forEach(s => {
+            subcat3Select.innerHTML += `<option value="${s.id}">${s.nombre}</option>`;
+        });
+        subcat3Select.innerHTML += `<option value="0">Ninguna</option>`;
+    } else {
+        colSub3.style.display = 'none';
+    }
 }
 
 window.renderGastos = async function() {
@@ -980,7 +1004,16 @@ window.abrirModalGasto = async function() {
     if (form) form.reset();
     document.getElementById('fecha_gasto').value = new Date().toISOString().split('T')[0];
     const el = document.getElementById('modalGasto');
-    if (el) new bootstrap.Modal(el).show();
+    if (el) {
+        // Garantizar que escape de contextos de apilamiento en DOM
+        $(el).appendTo('body');
+        
+        // Reiniciar visibilidad de columnas
+        document.getElementById('col_subcat_gasto').style.display = 'none';
+        document.getElementById('col_subcat3_gasto').style.display = 'none';
+        
+        new bootstrap.Modal(el).show();
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

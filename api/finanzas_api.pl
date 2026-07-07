@@ -27,19 +27,20 @@ my $action = $q->param('action') || '';
 
 if ($action eq 'get_cxc') {
     # Cuentas por Cobrar: se recorre estado_cuenta.dat y pacientes.dat
-    my @pacientes = leer_tabla("$FindBin::Bin/../dat/pacientes.dat", ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno']);
+    my @pacientes_raw = leer_tabla("$FindBin::Bin/../dat/pacientes.dat");
     my %nombres_pacientes;
-    for my $p (@pacientes) {
-        $nombres_pacientes{$p->{id_paciente}} = "$p->{nombre} $p->{apellido_paterno}";
+    for my $p (@pacientes_raw) {
+        $nombres_pacientes{$p->[0]} = "$p->[1] $p->[2]";
     }
 
-    my @movimientos = leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat", ['id_movimiento', 'id_paciente', 'id_os', 'fecha', 'tipo', 'concepto', 'cargo', 'abono', 'saldo_restante']);
+    my @movimientos_raw = leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat");
     
     my %saldos;
-    for my $mov (@movimientos) {
-        my $id_paciente = $mov->{id_paciente};
-        my $cargo = $mov->{cargo} || 0;
-        my $abono = $mov->{abono} || 0;
+    for my $mov (@movimientos_raw) {
+        my $id_paciente = $mov->[1];
+        my $cargo = $mov->[6] || 0;
+        my $abono = $mov->[7] || 0;
+        my $fecha = $mov->[3] || '';
         
         if (!exists $saldos{$id_paciente}) {
             $saldos{$id_paciente} = {
@@ -55,8 +56,8 @@ if ($action eq 'get_cxc') {
         $saldos{$id_paciente}{cargos_acumulados} += $cargo;
         $saldos{$id_paciente}{abonos_acumulados} += $abono;
         # Update latest date if this is newer
-        if ($mov->{fecha} gt $saldos{$id_paciente}{ultimo_movimiento}) {
-            $saldos{$id_paciente}{ultimo_movimiento} = $mov->{fecha};
+        if ($fecha gt $saldos{$id_paciente}{ultimo_movimiento}) {
+            $saldos{$id_paciente}{ultimo_movimiento} = $fecha;
         }
     }
     
@@ -71,21 +72,35 @@ if ($action eq 'get_cxc') {
     print encode_json({ success => 1, data => \@cxc });
 }
 elsif ($action eq 'get_gastos') {
-    my @gastos = leer_tabla("$FindBin::Bin/../dat/gastos.dat", ['id_gasto', 'fecha', 'id_cat', 'id_subcat', 'id_subcat3', 'concepto', 'monto']);
+    my @gastos_raw = leer_tabla("$FindBin::Bin/../dat/gastos.dat");
     
     # We need to map category names for convenience
-    my @cat = leer_tabla("$FindBin::Bin/../dat/categorias.dat", ['id', 'nombre', 'desc']);
-    my @subcat = leer_tabla("$FindBin::Bin/../dat/sub_categoria.dat", ['id', 'id_cat', 'nombre', 'desc']);
-    my @subcat3 = leer_tabla("$FindBin::Bin/../dat/sub_categoria_nivel3.dat", ['id', 'id_subcat', 'nombre']);
+    my @cat = leer_tabla("$FindBin::Bin/../dat/categorias.dat");
+    my @subcat = leer_tabla("$FindBin::Bin/../dat/sub_categoria.dat");
+    my @subcat3 = leer_tabla("$FindBin::Bin/../dat/sub_categoria_nivel3.dat");
     
-    my %c_map = map { $_->{id} => $_->{nombre} } @cat;
-    my %s_map = map { $_->{id} => $_->{nombre} } @subcat;
-    my %s3_map = map { $_->{id} => $_->{nombre} } @subcat3;
+    my %c_map = map { $_->[0] => $_->[1] } @cat;
+    my %s_map = map { $_->[0] => $_->[2] } @subcat;
+    my %s3_map = map { $_->[0] => $_->[2] } @subcat3;
     
-    for my $g (@gastos) {
-        $g->{cat_nombre} = $c_map{$g->{id_cat}} || 'N/A';
-        $g->{subcat_nombre} = $s_map{$g->{id_subcat}} || 'N/A';
-        $g->{subcat3_nombre} = $s3_map{$g->{id_subcat3}} || 'N/A';
+    my @gastos;
+    for my $g (@gastos_raw) {
+        my $id_cat = $g->[2] || '';
+        my $id_subcat = $g->[3] || '';
+        my $id_subcat3 = $g->[4] || '';
+        
+        push @gastos, {
+            id_gasto => $g->[0],
+            fecha => $g->[1],
+            id_cat => $id_cat,
+            id_subcat => $id_subcat,
+            id_subcat3 => $id_subcat3,
+            concepto => $g->[5],
+            monto => $g->[6],
+            cat_nombre => $c_map{$id_cat} || 'N/A',
+            subcat_nombre => $s_map{$id_subcat} || 'N/A',
+            subcat3_nombre => $s3_map{$id_subcat3} || 'N/A'
+        };
     }
     
     # Sort by fecha desc
@@ -124,19 +139,30 @@ elsif ($action eq 'delete_gasto') {
     }
 }
 elsif ($action eq 'get_ingresos') {
-    my @movimientos = leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat", ['id_movimiento', 'id_paciente', 'id_os', 'fecha', 'tipo', 'concepto', 'cargo', 'abono', 'saldo_restante']);
-    my @pacientes = leer_tabla("$FindBin::Bin/../dat/pacientes.dat", ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno']);
+    my @movimientos_raw = leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat");
+    my @pacientes_raw = leer_tabla("$FindBin::Bin/../dat/pacientes.dat");
     
     my %nombres;
-    for my $p (@pacientes) {
-        $nombres{$p->{id_paciente}} = "$p->{nombre} $p->{apellido_paterno}";
+    for my $p (@pacientes_raw) {
+        $nombres{$p->[0]} = "$p->[1] $p->[2]";
     }
     
     my @ingresos;
-    for my $m (@movimientos) {
-        if ($m->{abono} > 0) {
-            $m->{paciente_nombre} = $nombres{$m->{id_paciente}} || 'Desconocido';
-            push @ingresos, $m;
+    for my $m (@movimientos_raw) {
+        my $abono = $m->[7] || 0;
+        if ($abono > 0) {
+            push @ingresos, {
+                id_movimiento => $m->[0],
+                id_paciente => $m->[1],
+                id_os => $m->[2],
+                fecha => $m->[3],
+                tipo => $m->[4],
+                concepto => $m->[5],
+                cargo => $m->[6] || 0,
+                abono => $abono,
+                saldo_restante => $m->[8] || 0,
+                paciente_nombre => $nombres{$m->[1]} || 'Desconocido'
+            };
         }
     }
     
@@ -144,11 +170,15 @@ elsif ($action eq 'get_ingresos') {
     print encode_json({ success => 1, data => \@ingresos });
 }
 elsif ($action eq 'get_categorias_gastos') {
-    my @cat = leer_tabla("$FindBin::Bin/../dat/categorias.dat", ['id', 'nombre', 'desc']);
-    my @subcat = leer_tabla("$FindBin::Bin/../dat/sub_categoria.dat", ['id', 'id_cat', 'nombre', 'desc']);
-    my @subcat3 = leer_tabla("$FindBin::Bin/../dat/sub_categoria_nivel3.dat", ['id', 'id_subcat', 'nombre']);
+    my @cat = leer_tabla("$FindBin::Bin/../dat/categorias.dat");
+    my @subcat = leer_tabla("$FindBin::Bin/../dat/sub_categoria.dat");
+    my @subcat3 = leer_tabla("$FindBin::Bin/../dat/sub_categoria_nivel3.dat");
     
-    print encode_json({ success => 1, categorias => \@cat, subcategorias => \@subcat, subcategorias3 => \@subcat3 });
+    my @cat_map = map { { id => $_->[0], nombre => $_->[1], desc => $_->[2] } } @cat;
+    my @subcat_map = map { { id => $_->[0], id_cat => $_->[1], nombre => $_->[2], desc => $_->[3] } } @subcat;
+    my @subcat3_map = map { { id => $_->[0], id_subcat => $_->[1], nombre => $_->[2] } } @subcat3;
+    
+    print encode_json({ success => 1, categorias => \@cat_map, subcategorias => \@subcat_map, subcategorias3 => \@subcat3_map });
 }
 else {
     print encode_json({ success => 0, message => "Acción desconocida" });
