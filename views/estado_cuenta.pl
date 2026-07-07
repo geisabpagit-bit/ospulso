@@ -45,7 +45,6 @@ if (!$id_paciente) {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="../js/estado_cuenta_spa.js?v=$^T"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => { 
@@ -359,10 +358,8 @@ print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="../js/estado_cuenta_spa.js?v=$^T"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => { 
