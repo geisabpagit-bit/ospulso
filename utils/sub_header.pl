@@ -73,7 +73,7 @@ sub render_header {
                             if (window.location.pathname.indexOf('estado_cuenta.pl') !== -1) {
                                 window.location.href = "../views/estado_cuenta.pl?id=" + ui.item.id;
                             } else if (window.location.pathname.indexOf('finanzas.pl') !== -1) {
-                                window.location.href = "../views/finanzas.pl?id=" + ui.item.id;
+                                window.location.href = "../views/estado_cuenta.pl?id=" + ui.item.id;
                             } else {
                                 window.location.href = "../views/render_expediente_clinico.pl?id=" + ui.item.id; 
                             }
