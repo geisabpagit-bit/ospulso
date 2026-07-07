@@ -44,8 +44,8 @@
             <a href="#planes">Planes</a>
         </nav>
         <div class="acciones d-none d-lg-flex gap-2">
-            <a href="#" class="btn btn-premium-secondary fw-bold px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
-            <a href="auth/registro.pl" class="btn btn-premium-primary fw-bold px-4 rounded-pill">Regístrate</a>
+            <a href="#" class="btn btn-premium-secondary fw-bold px-4 btn-pill-unify btn-magnetic-pulse" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
+            <a href="auth/registro.pl" class="btn btn-premium-primary fw-bold px-4 btn-pill-unify btn-magnetic-pulse">Regístrate</a>
         </div>
         <!-- Mobile Toggle -->
         <button class="d-lg-none btn-mobile-toggle" type="button" id="openMobileMenu">
@@ -89,8 +89,8 @@
                         <h1 class="fw-bold text-navy mb-3 reveal-1" style="font-size: 2.8rem; line-height: 1.15;">¡No dejes que el caos administre tu clínica!</h1>
                         <h2 class="fs-4 text-secondary fw-normal mb-4 reveal-2">Recupérala hoy con OSPulso. Deja atrás agendas perdidas, expedientes incompletos y finanzas confusas — administra tu clínica sin estrés ni sobresaltos.</h2>
                         <div class="d-flex flex-column flex-md-row gap-3 reveal-3">
-                            <a href="auth/registro.pl" class="btn btn-premium-primary btn-lg fw-bold rounded-pill btn-magnetic-pulse w-100 w-md-auto text-center" style="font-size: 1.1rem; padding: 14px 30px;">👉 ¡Empieza gratis y siente la diferencia!</a>
-                            <a href="#demo" class="btn btn-premium-secondary btn-lg rounded-pill fw-bold w-100 w-md-auto text-center" style="font-size: 1.1rem; padding: 14px 30px;">Ver Demo en Acción</a>
+                            <a href="auth/registro.pl" class="btn btn-premium-primary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse btn-magnetic-pulse w-100 w-md-auto text-center" style="font-size: 1.1rem; padding: 14px 30px;">👉 ¡Empieza gratis y siente la diferencia!</a>
+                            <a href="#demo" class="btn btn-premium-secondary btn-lg btn-pill-unify btn-magnetic-pulse fw-bold w-100 w-md-auto text-center" style="font-size: 1.1rem; padding: 14px 30px;">Ver Demo en Acción</a>
                         </div>
                     </div>
                 </div>
@@ -217,12 +217,16 @@
                 </div>
                 
                 <!-- Controles -->
-                <button class="carousel-control-prev" type="button" data-bs-target="#modulesCarousel" data-bs-slide="prev">
-                    <i class="bi bi-chevron-left text-navy fs-1" aria-hidden="true"></i>
+                <button class="carousel-control-prev" type="button" data-bs-target="#modulesCarousel" data-bs-slide="prev" style="width: 8%; opacity: 1;">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-left text-navy fs-4" aria-hidden="true"></i>
+                    </div>
                     <span class="visually-hidden">Anterior</span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#modulesCarousel" data-bs-slide="next">
-                    <i class="bi bi-chevron-right text-navy fs-1" aria-hidden="true"></i>
+                <button class="carousel-control-next" type="button" data-bs-target="#modulesCarousel" data-bs-slide="next" style="width: 8%; opacity: 1;">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-right text-navy fs-4" aria-hidden="true"></i>
+                    </div>
                     <span class="visually-hidden">Siguiente</span>
                 </button>
                 <div class="carousel-indicators" style="bottom: -15px;">
@@ -307,45 +311,79 @@
                 <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold mb-3">Arquitectura de Operación</span>
                 <h2 class="fw-bold text-navy">Los 3 Pilares del Éxito Clínico</h2>
             </div>
-            <div class="row g-4">
-                <div class="col-md-4 scroll-reveal">
-                    <div class="p-4 premium-panel h-100 d-flex flex-column justify-content-between">
-                        <div class="text-center">
-                            <img src="img/holo/pilar_agenda.png" alt="Agenda Anti-Colisión" class="holo-img">
-                            <h5 class="fw-bold text-navy">1. Agenda Inteligente (Anti-Colisión)</h5>
-                            <p class="text-muted mb-3">Sistema reactivo que evita traslapes de citas en tiempo real. Olvídate del estrés, reduce las ausencias y mantén al equipo fluyendo.</p>
-                        </div>
-                        <div class="border-top pt-3 d-flex align-items-center">
-                            <img src="https://i.pravatar.cc/150?u=silva" alt="Dr. R. Silva" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--md-teal-clinical);">
-                            <span class="x-small fst-italic text-success lh-sm">“El ausentismo bajó al 5% la primera semana.”<br><strong class="text-muted">Dr. R. Silva</strong></span>
+            <div id="pilaresCarousel" class="carousel slide shadow-premium rounded-5 overflow-hidden holo-card" data-bs-ride="carousel" data-bs-interval="4000" style="border: 1px solid rgba(0, 196, 196, 0.3);">
+                <div class="carousel-inner bg-white">
+                    
+                    <!-- 1 -->
+                    <div class="carousel-item active">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/pilar_agenda.png" alt="Agenda Anti-Colisión" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">1. Agenda Inteligente (Anti-Colisión)</h3>
+                                <p class="text-muted fs-5 mb-4">Sistema reactivo que evita traslapes de citas en tiempo real. Olvídate del estrés, reduce las ausencias y mantén al equipo fluyendo.</p>
+                                <div class="border-top pt-4 d-flex align-items-center justify-content-center justify-content-md-start">
+                                    <img src="https://i.pravatar.cc/150?u=silva" alt="Dr. R. Silva" class="rounded-circle me-3" width="50" height="50" style="border: 2px solid var(--md-teal-clinical);">
+                                    <span class="small fst-italic text-success lh-sm">“El ausentismo bajó al 5% la primera semana.”<br><strong class="text-muted">Dr. R. Silva</strong></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    
+                    <!-- 2 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/pilar_expediente.png" alt="Expediente Clínico" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">2. Expediente Clínico v5.0 (NOM)</h3>
+                                <p class="text-muted fs-5 mb-4">Registros médicos siempre organizados y listos. Notas, diagnósticos y recetas seguras que cumplen estrictamente con la normativa legal (CIE-10).</p>
+                                <div class="border-top pt-4 d-flex align-items-center justify-content-center justify-content-md-start">
+                                    <img src="https://i.pravatar.cc/150?u=gomez" alt="Dra. K. Gómez" class="rounded-circle me-3" width="50" height="50" style="border: 2px solid var(--md-teal-clinical);">
+                                    <span class="small fst-italic text-success lh-sm">“Pasamos la auditoría de COFEPRIS en 15 minutos.”<br><strong class="text-muted">Dra. K. Gómez</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 3 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/pilar_finanzas.png" alt="Finanzas Diamond Sync" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">3. Finanzas Diamond Sync</h3>
+                                <p class="text-muted fs-5 mb-4">Toma el control financiero total de tu clínica. Automatiza tus reportes de facturación, ingresos y cajas sin necesidad de ser contador.</p>
+                                <div class="border-top pt-4 d-flex align-items-center justify-content-center justify-content-md-start">
+                                    <img src="https://i.pravatar.cc/150?u=pena" alt="Dr. J. Peña" class="rounded-circle me-3" width="50" height="50" style="border: 2px solid var(--md-teal-clinical);">
+                                    <span class="small fst-italic text-success lh-sm">“Sé exactamente cuánto ganamos antes de irme a casa.”<br><strong class="text-muted">Dr. J. Peña</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="col-md-4 scroll-reveal">
-                    <div class="p-4 premium-panel h-100 d-flex flex-column justify-content-between">
-                        <div class="text-center">
-                            <img src="img/holo/pilar_expediente.png" alt="Expediente Clínico" class="holo-img">
-                            <h5 class="fw-bold text-navy">2. Expediente Clínico v5.0 (NOM)</h5>
-                            <p class="text-muted mb-3">Registros médicos siempre organizados y listos. Notas, diagnósticos y recetas seguras que cumplen estrictamente con la normativa legal (CIE-10).</p>
-                        </div>
-                        <div class="border-top pt-3 d-flex align-items-center">
-                            <img src="https://i.pravatar.cc/150?u=gomez" alt="Dra. K. Gómez" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--md-teal-clinical);">
-                            <span class="x-small fst-italic text-success lh-sm">“Pasamos la auditoría de COFEPRIS en 15 minutos.”<br><strong class="text-muted">Dra. K. Gómez</strong></span>
-                        </div>
+                
+                <!-- Controles -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="prev" style="width: 8%; opacity: 1;">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-left text-navy fs-4" aria-hidden="true"></i>
                     </div>
-                </div>
-                <div class="col-md-4 scroll-reveal">
-                    <div class="p-4 premium-panel h-100 d-flex flex-column justify-content-between">
-                        <div class="text-center">
-                            <img src="img/holo/pilar_finanzas.png" alt="Finanzas Diamond Sync" class="holo-img">
-                            <h5 class="fw-bold text-navy">3. Finanzas Diamond Sync</h5>
-                            <p class="text-muted mb-3">Toma el control financiero total de tu clínica. Automatiza tus reportes de facturación, ingresos y cajas sin necesidad de ser contador.</p>
-                        </div>
-                        <div class="border-top pt-3 d-flex align-items-center">
-                            <img src="https://i.pravatar.cc/150?u=pena" alt="Dr. J. Peña" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--md-teal-clinical);">
-                            <span class="x-small fst-italic text-success lh-sm">“Sé exactamente cuánto ganamos antes de irme a casa.”<br><strong class="text-muted">Dr. J. Peña</strong></span>
-                        </div>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="next" style="width: 8%; opacity: 1;">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-right text-navy fs-4" aria-hidden="true"></i>
                     </div>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
+                <div class="carousel-indicators" style="bottom: -15px;">
+                    <button type="button" data-bs-target="#pilaresCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#pilaresCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#pilaresCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
                 </div>
             </div>
         </div>
@@ -544,7 +582,7 @@
 
                 <!-- Plan 2: Clínica Profesional -->
                 <div class="col-md-6 col-lg-5">
-                    <div class="p-5 premium-panel holo-card h-100 d-flex flex-column position-relative" style="transform: scale(1.03); border: 2px solid var(--md-teal-clinical) !important; z-index: 2;">
+                    <div class="p-5 premium-panel holo-card h-100 d-flex flex-column position-relative" style="border: 2px solid var(--md-teal-clinical) !important; z-index: 2;">
                         <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2 shadow" style="font-size: 0.85rem;">⭐ Recomendado</span>
                         <h3 class="fw-bold text-navy mt-2">Clínica Profesional</h3>
                         <p class="text-muted small">Para clínicas en crecimiento.</p>
@@ -621,7 +659,7 @@
             </div>
             
             <div class="text-center mt-4">
-                <button class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold" id="btnToggleMoreFaqs" data-bs-toggle="collapse" data-bs-target="#moreFaqs">
+                <button class="btn btn-outline-secondary px-4 py-2 btn-pill-unify btn-magnetic-pulse fw-bold" id="btnToggleMoreFaqs" data-bs-toggle="collapse" data-bs-target="#moreFaqs">
                     Ver más preguntas
                 </button>
             </div>
@@ -635,8 +673,8 @@
             <h2 class="fw-bold mb-3">¿Listo para transformar tu clínica?</h2>
             <p class="lead mb-4 opacity-75">No dejes para mañana los pacientes que puedes atender (y cobrar) hoy. ¡Agenda una demo y siente la diferencia!</p>
             <div class="d-flex flex-wrap justify-content-center gap-3">
-                <a href="#demo" class="btn btn-light text-primary fw-bold px-4 py-3 rounded-pill shadow-lg hover-scale">Siente la diferencia (Demo)</a>
-                <a href="https://wa.me/525643555072" target="_blank" class="btn btn-outline-light fw-bold px-4 py-3 rounded-pill">Contactar a Soporte</a>
+                <a href="#demo" class="btn btn-light text-primary fw-bold px-4 py-3 btn-pill-unify btn-magnetic-pulse shadow-lg hover-scale">Siente la diferencia (Demo)</a>
+                <a href="https://wa.me/525643555072" target="_blank" class="btn btn-outline-light fw-bold px-4 py-3 btn-pill-unify btn-magnetic-pulse">Contactar a Soporte</a>
             </div>
         </div>
     </section>
@@ -675,7 +713,7 @@
     <!-- MOBILE STICKY BAR -->
     <div class="mobile-sticky-cta d-lg-none d-flex align-items-center justify-content-between">
         <span class="small fw-bold text-navy">¿Listo para el orden?</span>
-        <a href="auth/registro.pl" class="btn btn-success fw-bold px-3 py-2 rounded-pill shadow" style="font-size: 0.85rem;">Comenzar Gratis</a>
+        <a href="auth/registro.pl" class="btn btn-success fw-bold px-3 py-2 btn-pill-unify btn-magnetic-pulse shadow" style="font-size: 0.85rem;">Comenzar Gratis</a>
     </div>
 
     <!-- ROI Calculator Modal -->
