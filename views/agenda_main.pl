@@ -224,10 +224,10 @@ print <<HTML;
       .floating-label-premium label { font-size: 0.65rem !important; text-transform: uppercase; color: #64748b; font-weight: 700; padding: 1rem 0.75rem; }
       .floating-label-premium .form-control, .floating-label-premium .form-select { border-radius: 1rem; background-color: #f8fafc; border: 1px solid transparent; transition: all 0.2s; box-shadow: none; }
       .floating-label-premium .form-control:focus, .floating-label-premium .form-select:focus { background-color: #ffffff; border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-      .dur-bar-premium .btn { border-radius: 20px !important; margin: 0 2px; border: 1px solid rgba(59, 130, 246, 0.2) !important; background-color: #ffffff; color: #64748b; font-weight: 600; font-size: 0.75rem; transition: all 0.2s; }
+      .dur-bar-premium .btn { border-radius: 12px !important; margin: 0; border: 1px solid rgba(59, 130, 246, 0.2) !important; background-color: #ffffff; color: #64748b; font-weight: 600; font-size: 0.85rem; padding: 10px 0; transition: all 0.2s; }
       .dur-bar-premium .btn.active { background-color: var(--md-blue-medical) !important; color: #ffffff !important; border-color: var(--md-blue-medical) !important; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); transform: scale(1.05); z-index: 2; }
       .dur-bar-premium .btn:hover:not(.active) { background-color: #f0f7ff; color: #1e293b; }
-      #modalCita .slot-grid-compact { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; gap: 8px !important; padding: 12px !important; }
+      #modalCita .slot-grid-compact { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; gap: 10px !important; padding: 12px !important; }
       #modalCita .btn-slot { font-size: 0.70rem !important; padding: 6px 0 !important; border-radius: 8px !important; background-color: #dcfce7 !important; color: #166534 !important; border: 1px solid #bbf7d0 !important; font-weight: 700; }
       #modalCita .btn-slot:hover:not(:disabled) { background-color: #bbf7d0 !important; border-color: #86efac !important; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(22, 101, 52, 0.15); }
       #modalCita .btn-slot.active { background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); }
@@ -255,98 +255,101 @@ print <<HTML;
                         <input type="hidden" name="hora_ini" id="f_hi">
                         <input type="hidden" name="hora_fin" id="f_hf">
 
-                        <div class="row g-4">
-                            <!-- Columna Izquierda: Datos Básicos -->
-                            <div class="col-md-6 border-end-md">
-                                <div class="form-floating mb-3 floating-label-premium position-relative">
+                        <div class="row g-3">
+                            <!-- Sección Principal (Top) -->
+                            <div class="col-md-8">
+                                <div class="form-floating floating-label-premium position-relative">
                                     <input type="text" id="f_paciente" class="form-control pe-4" placeholder="Buscar paciente..." required>
                                     <label for="f_paciente">PACIENTE <span class="fw-normal text-lowercase">(autocompletado)</span></label>
                                     <i class="bi bi-search position-absolute end-0 translate-middle-y me-3 text-muted" style="top: 50%;"></i>
                                 </div>
-                                
-                                <div class="form-floating mb-3 floating-label-premium">
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating floating-label-premium">
+                                    <input type="date" name="fecha" id="f_fecha" class="form-control" placeholder="Fecha" onchange="renderSlots(this.value)">
+                                    <label for="f_fecha">FECHA DE LA CITA</label>
+                                </div>
+                            </div>
+                            
+                            <!-- Segunda Fila -->
+                            <div class="col-md-12">
+                                <div class="form-floating floating-label-premium">
                                     <textarea name="motivo" id="f_motivo" class="form-control" placeholder="Detalles de la cita..." style="height: 60px;"></textarea>
                                     <label for="f_motivo">MOTIVO / OBSERVACIONES</label>
                                 </div>
+                            </div>
+                            
+                            <!-- Tercera Fila: Configuraciones Menores -->
+                            <div class="col-md-4">
+                                <div class="form-floating floating-label-premium">
+                                    <select name="id_medico" id="f_medico_select" class="form-select fw-bold" onchange="actualizarAgendaDestino()">
+                                        $html_medicos
+                                    </select>
+                                    <label for="f_medico_select">PROFESIONAL</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating floating-label-premium">
+                                    <select name="sucursal" id="f_sucursal" class="form-select fw-bold">
+                                        $html_sucursal
+                                    </select>
+                                    <label for="f_sucursal">SUCURSAL</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating floating-label-premium">
+                                    <select name="consultorio" id="f_consultorio" class="form-select fw-bold">
+                                        <option value="Consultorio 1">Cons. 1</option>
+                                        <option value="Consultorio 2">Cons. 2</option>
+                                        <option value="Consultorio 3">Cons. 3</option>
+                                        <option value="Consultorio 4">Cons. 4</option>
+                                        <option value="Virtual">Virtual</option>
+                                    </select>
+                                    <label for="f_consultorio">LUGAR</label>
+                                </div>
+                            </div>
+                            
+                            <!-- Cuarta Fila: Estado y Prioridad -->
+                            <div class="col-md-6">
+                                <div class="form-floating floating-label-premium">
+                                    <select name="estado" id="f_estado" class="form-select fw-bold">
+                                        <option value="Programada">Programada</option>
+                                        <option value="Confirmada">Confirmada</option>
+                                        <option value="Atendida">Atendida</option>
+                                        <option value="Cancelada">Cancelada</option>
+                                    </select>
+                                    <label for="f_estado">ESTADO</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating floating-label-premium">
+                                    <select name="prioridad" id="f_prioridad" class="form-select fw-bold">
+                                        <option value="Baja">Baja</option>
+                                        <option value="Normal" selected>Normal</option>
+                                        <option value="Alta">Alta</option>
+                                        <option value="Urgente">Urgente</option>
+                                    </select>
+                                    <label for="f_prioridad">PRIORIDAD</label>
+                                </div>
+                            </div>
+                        </div>
 
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <div class="form-floating floating-label-premium">
-                                            <select name="id_medico" id="f_medico_select" class="form-select fw-bold" onchange="actualizarAgendaDestino()">
-                                                $html_medicos
-                                            </select>
-                                            <label for="f_medico_select">PROFESIONAL</label>
+                        <div class="row g-4 mt-1">
+                            <div class="col-md-12 p-3" style="background-color: var(--md-white-clinical); border-radius: 1rem; border: 1px solid var(--md-gray-soft);">
+                                <div class="row">
+                                    <div class="col-md-3 border-end">
+                                        <label class="small fw-bold text-muted mb-3 d-block text-uppercase" style="letter-spacing: 1px;">Duración</label>
+                                        <div class="d-flex flex-column gap-2 dur-bar-premium" id="btn-group-duracion">
+                                            <!-- Generado dinámicamente por JS -->
                                         </div>
                                     </div>
-                                    <div class="col-6">
-                                        <div class="form-floating floating-label-premium">
-                                            <select name="sucursal" id="f_sucursal" class="form-select fw-bold">
-                                                $html_sucursal
-                                            </select>
-                                            <label for="f_sucursal">SUCURSAL</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                    <div class="col-6">
-                                        <div class="form-floating floating-label-premium">
-                                            <select name="consultorio" id="f_consultorio" class="form-select fw-bold">
-                                                <option value="Consultorio 1">Cons. 1</option>
-                                                <option value="Consultorio 2">Cons. 2</option>
-                                                <option value="Consultorio 3">Cons. 3</option>
-                                                <option value="Consultorio 4">Cons. 4</option>
-                                                <option value="Virtual">Virtual</option>
-                                            </select>
-                                            <label for="f_consultorio">LUGAR</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="form-floating floating-label-premium">
-                                            <select name="prioridad" id="f_prioridad" class="form-select fw-bold">
-                                                <option value="Baja">Baja</option>
-                                                <option value="Normal" selected>Normal</option>
-                                                <option value="Alta">Alta</option>
-                                                <option value="Urgente">Urgente</option>
-                                            </select>
-                                            <label for="f_prioridad">PRIORIDAD</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <div class="form-floating floating-label-premium">
-                                            <input type="date" name="fecha" id="f_fecha" class="form-control" placeholder="Fecha" onchange="renderSlots(this.value)">
-                                            <label for="f_fecha">FECHA</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="form-floating floating-label-premium">
-                                            <select name="estado" id="f_estado" class="form-select fw-bold">
-                                                <option value="Programada">Programada</option>
-                                                <option value="Confirmada">Confirmada</option>
-                                                <option value="Atendida">Atendida</option>
-                                                <option value="Cancelada">Cancelada</option>
-                                            </select>
-                                            <label for="f_estado">ESTADO</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mb-0">
-                                    <label class="small fw-bold text-muted mb-2 d-block" style="font-size: 0.65rem; padding-left: 0.75rem;">DURACIÓN</label>
-                                    <div class="btn-group w-100 dur-bar-premium" id="btn-group-duracion">
-                                        <!-- Generado dinámicamente por JS -->
+                                    <div class="col-md-9 d-flex flex-column pl-3">
+                                        <label class="small fw-bold text-muted mb-3 d-block text-uppercase" style="letter-spacing: 1px;">Horarios Disponibles</label>
+                                        <div id="slots-container" class="slot-grid-compact w-100 flex-grow-1" style="min-height: 200px; max-height: 250px; overflow-y: auto;"></div>
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Columna Derecha: Horarios -->
-                            <div class="col-md-6 d-flex flex-column">
-                                <div class="mb-0 flex-grow-1 d-flex flex-column">
-                                    <label class="small fw-bold text-muted mb-2 d-block" style="font-size: 0.65rem; padding-left: 0.75rem;">HORARIOS DISPONIBLES</label>
-                                    <div id="slots-container" class="slot-grid-compact p-2 w-100 flex-grow-1" style="min-height: 250px; overflow-y: auto; border-radius: 1rem; background-color: #f8fafc; border: 1px solid rgba(59,130,246,0.1);"></div>
-                                </div>
-                            </div>
-                        </div> <!-- end row -->
+                        </div>
 
                         <hr class="opacity-10 my-4" style="border-color: rgba(59, 130, 246, 0.2);">
 
@@ -363,7 +366,7 @@ print <<HTML;
     </div>
 
     <!-- MODAL AJUSTES -->
-    <div class="modal fade" id="modalAjustes" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
                 <div class="modal-header border-0 pb-0">
