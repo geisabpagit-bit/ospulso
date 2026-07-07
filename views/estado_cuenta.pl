@@ -212,7 +212,6 @@ print <<HTML;
                 <h2 class="fw-bold plus-jakarta mb-1 text-dark">$nombre_display</h2>
                 <div class="d-flex gap-3 text-muted small fw-bold uppercase tracking-wider">
                     <span><i class="bi bi-person me-1"></i>$paciente->{nombre}</span>
-                    <span><i class="bi bi-shield-check text-success me-1"></i>SNC-FIN-ACTIVE</span>
                 </div>
             </div>
             <!-- Botones de Acción Integrados (Desktop/Tablet) -->
@@ -239,21 +238,8 @@ print <<HTML;
 
                 <div class="bento-card border-0 shadow-sm bg-white">
                     <span class="kpi-label mb-3">Resumen Consolidado</span>
-                    <div class="d-flex flex-column gap-3">
-                        <div class="d-flex justify-content-between align-items-end">
-                            <span class="small fw-bold text-muted">TOTAL CARGOS</span>
-                            <span id="ecCargos" class="fw-bold text-danger">\$0.00</span>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-danger" style="width: 100%"></div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-end">
-                            <span class="small fw-bold text-muted">TOTAL ABONOS</span>
-                            <span id="ecAbonos" class="fw-bold text-success">\$0.00</span>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-success" style="width: 100%"></div>
-                        </div>
+                    <div class="d-flex flex-column gap-3 justify-content-center align-items-center" style="position: relative; height: 180px; width: 100%;">
+                        <canvas id="pieResumenConsolidado"></canvas>
                     </div>
                 </div>
 
@@ -332,16 +318,29 @@ print <<HTML;
 <div class="modal fade" id="modalCargo" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content overflow-hidden">
-            <div class="modal-header bg-navy text-white py-4 px-4 border-0" style="background: var(--sdm-navy);">
-                <h4 class="modal-title fw-bold plus-jakarta" id="modalCargoTitle"><i class="bi bi-cart-plus me-3"></i>Cat&aacute;logo de Servicios</h4>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header border-0 pb-3" style="background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66) 0%, var(--md-teal-bright, #00C4C4) 100%);">
+                <h4 class="modal-title fw-bold plus-jakarta text-white" id="modalCargoTitle"><i class="bi bi-cart-plus me-3"></i>Nueva Orden de Servicio</h4>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body bg-light p-4">
+            <div class="modal-body p-4" style="background: #f8fafc;">
                 <div class="row g-4">
                     <div class="col-lg-7">
-                        <div class="mb-3">
+                        <div class="bento-card p-4 mb-4 border-0 shadow-sm" style="background: white;">
+                            <label class="kpi-label mb-3">Aplica para:</label>
+                            <div class="d-flex gap-4 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="aplica_para" id="aplica_presupuesto" value="Presupuesto">
+                                    <label class="form-check-label fw-bold text-muted" for="aplica_presupuesto">Presupuesto</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="aplica_para" id="aplica_consulta" value="Consulta" checked>
+                                    <label class="form-check-label fw-bold text-muted" for="aplica_consulta">Consulta</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bento-card p-4 mb-4 border-0 shadow-sm" style="background: white;">
                             <label class="kpi-label">Alias / Referencia Corta (Opcional)</label>
-                            <input type="text" id="alias_os_cargo" class="form-control" maxlength="25" placeholder="Ej. Anticipo Brackets">
+                            <input type="text" id="alias_os_cargo" class="form-control mt-2" maxlength="25" placeholder="Ej. Anticipo Brackets">
                         </div>
                         <div class="bento-card p-4 mb-4 border-0 shadow-sm">
                             <label class="kpi-label">Entrada Manual</label>
@@ -412,6 +411,7 @@ print <<HTML;
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>

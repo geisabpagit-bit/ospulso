@@ -6,6 +6,7 @@ let catalogoMaster = [];
 let carritoApp = [];
 let windowActiveOS = null;
 let currentSaldoTotal = 0;
+let pieChartInstance = null;
 
 async function initModuloFinanciero(id, modo, idMed) {
     idPacienteGlobal = id;
@@ -61,10 +62,40 @@ async function cargarHistorialCuentas() {
                 }
             }
         }
+        
+        actualizarPieChart(res.cargos || 0, res.abonos || 0);
 
         renderHistorial(res.historial || []);
     } catch (e) {
         console.error("Fallo financiero:", e);
+    }
+}
+
+function actualizarPieChart(cargos, abonos) {
+    const ctx = document.getElementById('pieResumenConsolidado');
+    if (!ctx) return;
+    if (pieChartInstance) {
+        pieChartInstance.data.datasets[0].data = [cargos, abonos];
+        pieChartInstance.update();
+    } else {
+        pieChartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Cargos', 'Abonos'],
+                datasets: [{
+                    data: [cargos, abonos],
+                    backgroundColor: ['#dc2626', '#10b981'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+                }
+            }
+        });
     }
 }
 
@@ -244,6 +275,8 @@ async function procesarCarrito() {
         fd.append('aplica_iva', (cf && cf.checked) ? '1' : '0');
         const aliasIn = document.getElementById('alias_os_cargo');
         fd.append('alias', aliasIn ? aliasIn.value : '');
+        const apIn = document.querySelector('input[name="aplica_para"]:checked');
+        fd.append('aplica_para', apIn ? apIn.value : '');
         fd.append('payload', JSON.stringify(carritoApp));
         const res = await fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: fd });
         const json = await res.json();

@@ -86,6 +86,7 @@ if ($accion eq 'get_catalogo') {
     my $items = eval { $json_engine->decode($pay) } || [];
     my $iva_f = (scalar($q->param('aplica_iva')) || '0') eq '1' ? 1 : 0;
     my $alias_os = scalar($q->param('alias')) || '';
+    my $aplica_para = scalar($q->param('aplica_para')) || 'Consulta';
     my $t = time();
     my @lt = localtime($t);
     my $f = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $lt[5]+1900, $lt[4]+1, $lt[3], $lt[2], $lt[1], $lt[0]);
@@ -135,7 +136,7 @@ if ($accion eq 'get_catalogo') {
         my $iva = $iva_f ? ($base * 0.16) : 0;
         my $total = $base + $iva; $id_mov++;
         # ID_OS|ID_MOV|ID_PAC|TIPO|CONCEPTO|BASE|IVA|TOTAL|FECHA|ID_MED|NOTAS|ALIAS
-        print $fh "$id_os|$id_mov|$id_p|Cargo|$it->{nombre}|$base|$iva|$total|$f|$id_m_req||$alias_os\n";
+        print $fh "$id_os|$id_mov|$id_p|Cargo|$it->{nombre}|$base|$iva|$total|$f|$id_m_req|$aplica_para|$alias_os\n";
     }
     close $fh;
     responder({ success => 1, os => $id_os });
