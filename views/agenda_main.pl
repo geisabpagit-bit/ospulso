@@ -233,7 +233,7 @@ print <<HTML;
       #modalCita .btn-slot.active { background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); }
       #modalCita .slot-lunch { background-color: #fee2e2 !important; color: #991b1b !important; border-color: #fecaca !important; }
       #modalCita .slot-busy { background-color: #fef9c3 !important; color: #854d0e !important; border-color: #fde047 !important; }
-      @media (min-width: 768px) {
+      \@media (min-width: 768px) {
           .border-md-end-soft { border-right: 1px solid var(--md-gray-soft) !important; }
       }
     </style>
