@@ -103,13 +103,13 @@ print <<HTML;
 
     /* Botones Institucionales */
     .btn-sdm-primary {
-        background: var(--sdm-primary) !important;
+        background: var(--md-teal-bright, #00C4C4) !important;
         color: white !important;
         border: none !important;
         transition: all 0.3s ease;
     }
     .btn-sdm-primary:hover {
-        background: var(--sdm-navy) !important;
+        background: var(--md-blue-medical, #124A9E) !important;
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(13, 30, 61, 0.2);
     }
@@ -146,7 +146,7 @@ print <<HTML;
         border: none;
         padding: 10px;
     }
-    .dock-item:active { transform: scale(0.9); color: var(--sdm-navy); }
+    .dock-item:active { transform: scale(0.9); color: var(--md-blue-deep, #0A2A66); }
     .dock-fab {
         width: 60px;
         height: 60px;
@@ -172,21 +172,12 @@ print <<HTML;
     }
 </style>
 <div class="container-fluid px-md-5 py-4 animate__animated animate__fadeIn">
-    <!-- Breadcrumb -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="pacientes.pl" class="text-decoration-none text-muted fw-bold">Pacientes</a></li>
-                <li class="breadcrumb-item active fw-bold text-primary" aria-current="page">Estado de Cuenta</li>
-            </ol>
-        </nav>
-    </div>
 
     <!-- Header de Impresión Profesional -->
     <div class="print-header">
         <div class="d-flex justify-content-between align-items-end">
             <div>
-                <h1 class="fw-bold plus-jakarta mb-1" style="color: var(--sdm-navy);">$negocio->{nombre}</h1>
+                <h1 class="fw-bold plus-jakarta mb-1" style="color: var(--md-blue-deep, #0A2A66);">$negocio->{nombre}</h1>
                 <p class="mb-0 text-muted small fw-bold">
                     <i class="bi bi-geo-alt me-1"></i>$negocio->{domicilio} | 
                     <i class="bi bi-telephone me-1"></i>$negocio->{telefono} | 
@@ -201,9 +192,9 @@ print <<HTML;
     </div>
 
     <!-- Paciente Header Card -->
-    <div class="bento-card mb-4 border-0 shadow-sm" style="background: white; border-left: 6px solid var(--sdm-navy) !important;">
+    <div class="bento-card mb-4 border-0 shadow-sm" style="background: white; border-left: 6px solid var(--md-blue-deep, #0A2A66) !important;">
         <div class="d-flex align-items-center gap-4">
-            <div class="bg-primary text-white rounded-4 d-flex align-items-center justify-content-center shadow" style="width:70px; height:70px; font-size:1.8rem; font-weight:800;">$iniciales</div>
+            <div class="text-white rounded-4 d-flex align-items-center justify-content-center shadow-lg" style="width:75px; height:75px; font-size:2rem; font-weight:800; background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66), var(--md-blue-medical, #124A9E)); border: 2px solid rgba(255,255,255,0.2);">$iniciales</div>
             <div>
                 <h2 class="fw-bold plus-jakarta mb-1 text-dark">$nombre_display</h2>
                 <div class="d-flex gap-3 text-muted small fw-bold uppercase tracking-wider">
