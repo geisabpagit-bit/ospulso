@@ -17,8 +17,8 @@ my $session_data = check_session();
 my $id_paciente = $q->param('id') || '';
 
 if (!$id_paciente) {
-    print $q->header(-charset => 'UTF-8');
-    render_header(usuario => $session_data->{usuario}, titulo => "Estado de Cuenta - SDM", role => $session_data->{role}, id_medico => $session_data->{id_medico});
+    print "Content-Type: text/html; charset=UTF-8\n\n";
+    render_header(usuario => $session_data->{usuario}, titulo => "Estado de Cuenta - SDM", role => $session_data->{role}, id_medico => $session_data->{id_medico}, skip_header => 1);
     print <<HTML;
 <div class="container-fluid px-md-5 py-5 text-center animate__animated animate__fadeIn">
     <div class="bento-card border-0 shadow-sm mx-auto" style="max-width: 600px; background: white; padding: 4rem 2rem;">
@@ -32,8 +32,9 @@ if (!$id_paciente) {
         </div>
     </div>
 </div>
+</body>
+</html>
 HTML
-    render_footer();
     exit;
 }
 
@@ -43,8 +44,9 @@ my $reg = leer_tabla($archivo_pacientes, '\|');
 foreach (@$reg) { if ($_->[0] eq $id_paciente) { $paciente = { id => $_->[0], nombre => $_->[2] }; last; } }
 
 unless ($paciente) { 
-    print $q->header(-charset => 'UTF-8'); 
-    print "<div class='container py-5 text-center'><h2 class='fw-bold text-danger'>Paciente no localizado.</h2><a href='pacientes.pl' class='btn btn-primary mt-3'>Volver al Directorio</a></div>"; 
+    print "Content-Type: text/html; charset=UTF-8\n\n";
+    render_header(usuario => $session_data->{usuario}, titulo => "Estado de Cuenta - SDM", role => $session_data->{role}, id_medico => $session_data->{id_medico}, skip_header => 1);
+    print "<div class='container py-5 text-center'><h2 class='fw-bold text-danger'>Paciente no localizado.</h2><a href='pacientes.pl' class='btn btn-primary mt-3'>Volver al Directorio</a></div></body></html>"; 
     exit; 
 }
 
@@ -75,112 +77,6 @@ my $nombre_display = $paciente->{nombre};
 my $id_display = $id_paciente;
 
 print <<HTML;
-<style>
-    .print-header { display: none; }
-
-    \@media print {
-        .navbar, .btn, .dropdown, .modal, .bi, .btn-close, .col-lg-4, #btnLiquidarTodo, .financial-dock, .top-actions-desktop, .breadcrumb { display: none !important; }
-        body { background: white !important; padding: 0 !important; color: black !important; }
-        .bento-card { border: none !important; box-shadow: none !important; padding: 10px 0 !important; width: 100% !important; }
-        
-        /* Ocultar columna acciones */
-        #tbEdoCuenta tr td:last-child, 
-        table thead tr th:last-child { display: none !important; }
-
-        /* Forzar visibilidad total de la tabla y su contenido */
-        #bentoTransactionsContainer { display: none !important; }
-        .table-responsive { display: block !important; overflow: visible !important; width: 100% !important; }
-        table { display: table !important; width: 100% !important; font-size: 8pt !important; border-collapse: collapse !important; color: black !important; }
-        thead { display: table-header-group !important; }
-        tbody { display: table-row-group !important; }
-        tfoot { display: table-footer-group !important; font-weight: bold !important; border-top: 2px solid #000 !important; }
-        
-        tr { page-break-inside: avoid !important; border-bottom: 1px solid #eee !important; }
-        td, th { color: black !important; background: transparent !important; }
-
-        .d-none-print { display: none !important; }
-        .container-fluid { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
-        
-        .print-header { 
-            display: block !important; 
-            border-bottom: 3px solid #000 !important; 
-            padding-bottom: 15px;
-            margin-bottom: 25px; 
-            color: black !important;
-        }
-        .print-header h1 { color: black !important; margin-bottom: 5px; }
-    }
-
-    /* Botones Institucionales */
-    .btn-sdm-primary {
-        background: var(--md-teal-bright, #00C4C4) !important;
-        color: white !important;
-        border: none !important;
-        transition: all 0.3s ease;
-    }
-    .btn-sdm-primary:hover {
-        background: var(--md-blue-medical, #124A9E) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(13, 30, 61, 0.2);
-    }
-    .btn-sdm-primary i { color: white !important; }
-
-    /* DOCK FINANCIERO MOBILE */
-    .financial-dock {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        right: 20px;
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 2rem;
-        height: 70px;
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        z-index: 1050;
-        padding: 0 10px;
-    }
-    .dock-item {
-        color: #64748b;
-        font-size: 1.4rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        background: none;
-        border: none;
-        padding: 10px;
-    }
-    .dock-item:active { transform: scale(0.9); color: var(--md-blue-deep, #0A2A66); }
-    .dock-fab {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #0d1e3d 0%, #1e40af 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white !important;
-        font-size: 1.8rem;
-        margin-top: -40px;
-        box-shadow: 0 10px 20px rgba(13, 30, 61, 0.3);
-        border: 4px solid white;
-    }
-    .dock-fab:active { transform: scale(0.9) translateY(5px); }
-
-    \@media (max-width: 768px) {
-        .top-actions-desktop { display: none !important; }
-        body { padding-bottom: 100px !important; }
-    }
-    \@media (min-width: 769px) {
-        .financial-dock { display: none !important; }
-    }
-</style>
 <div class="container-fluid px-md-5 py-4 animate__animated animate__fadeIn">
 
     <!-- Header de Impresión Profesional -->
@@ -201,21 +97,26 @@ print <<HTML;
         </div>
     </div>
 
-    <!-- Paciente Header Card -->
-    <div class="bento-card mb-4 border-0 shadow-sm" style="background: white; border-left: 6px solid var(--md-blue-deep, #0A2A66) !important;">
-        <div class="d-flex align-items-center gap-4">
-            <div class="text-white rounded-4 d-flex align-items-center justify-content-center shadow-lg" style="width:75px; height:75px; font-size:2rem; font-weight:800; background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66), var(--md-blue-medical, #124A9E)); border: 2px solid rgba(255,255,255,0.2);">$iniciales</div>
-            <div>
-                <h2 class="fw-bold plus-jakarta mb-1 text-dark">$nombre_display</h2>
-                <div class="d-flex gap-3 text-muted small fw-bold uppercase tracking-wider">
-                    <span><i class="bi bi-person me-1"></i>$paciente->{nombre}</span>
+    <!-- Paciente Header Compacto -->
+    <div class="diamond-header-compact d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3 w-100">
+            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow border border-2 border-white" style="width: 50px; height: 50px; font-size: 1.3rem; background: linear-gradient(135deg, var(--md-teal-bright, #00C4C4), #047857); color: white;">
+                $iniciales
+            </div>
+            <div class="profile-hero text-start text-white flex-grow-1">
+                <h4 class="text-truncate m-0 fw-bold" style="letter-spacing: -0.5px; font-family: 'Plus Jakarta Sans', sans-serif;">$nombre_display</h4>
+                <div class="d-flex align-items-center gap-3 mt-1">
+                    <span class="badge bg-light text-dark rounded-pill shadow-sm" style="font-size: 0.75rem;"><i class="bi bi-person-badge me-1"></i>$id_display</span>
+                    <a href="https://wa.me/521" target="_blank" class="text-decoration-none text-white opacity-75" title="Contactar por WhatsApp">
+                        <i class="bi bi-whatsapp" style="color: #25D366;"></i> WhatsApp
+                    </a>
                 </div>
             </div>
-            <!-- Botones de Acción Integrados (Desktop/Tablet) -->
-            <div class="ms-auto d-flex gap-2 bg-light p-2 rounded-pill shadow-sm border">
-                <button onclick="imprimirEstadoCuenta()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4"><i class="bi bi-printer me-lg-2"></i><span class="d-none d-lg-inline">IMPRIMIR</span></button>
-                <button onclick="abrirModalAbono()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4"><i class="bi bi-cash-coin me-lg-2"></i><span class="d-none d-lg-inline">ABONAR</span></button>
-                <button onclick="abrirModalCargo()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4"><i class="bi bi-cart-plus me-lg-2"></i><span class="d-none d-lg-inline">NUEVO CARGO</span></button>
+            <!-- Acciones Desktop -->
+            <div class="d-none d-md-flex gap-2">
+                <button onclick="imprimirEstadoCuenta()" class="btn btn-sm btn-light fw-bold rounded-pill shadow-sm text-dark px-3"><i class="bi bi-printer me-2"></i>Imprimir</button>
+                <button onclick="abrirModalAbono()" class="btn btn-sm btn-success fw-bold rounded-pill shadow-sm px-3"><i class="bi bi-cash-coin me-2"></i>Abonar</button>
+                <button onclick="abrirModalCargo()" class="btn btn-sm btn-primary fw-bold rounded-pill shadow-sm px-3"><i class="bi bi-cart-plus me-2"></i>Nuevo Cargo</button>
             </div>
         </div>
     </div>

@@ -387,3 +387,100 @@
     color: #0A2A66; 
     transform: rotate(-15deg); 
 }
+
+/* --- Estado Cuenta y Header Compacto --- */
+.diamond-header-compact {
+    background: linear-gradient(165deg, #040c1f 0%, #0d1e3d 100%);
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 1.5rem;
+    color: white;
+}
+.btn-sdm-primary {
+    background: var(--md-teal-bright, #00C4C4) !important;
+    color: white !important;
+    border: none !important;
+    transition: all 0.3s ease;
+}
+.btn-sdm-primary:hover {
+    background: var(--md-blue-medical, #124A9E) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(13, 30, 61, 0.2);
+}
+.btn-sdm-primary i { color: white !important; }
+
+.financial-dock {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 2rem;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    z-index: 1050;
+    padding: 0 10px;
+}
+.dock-item {
+    color: #64748b;
+    font-size: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    background: none;
+    border: none;
+    padding: 10px;
+}
+.dock-item:active { transform: scale(0.9); color: var(--md-blue-deep, #0A2A66); }
+.dock-fab {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #0d1e3d 0%, #1e40af 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white !important;
+    font-size: 1.8rem;
+    margin-top: -40px;
+    box-shadow: 0 10px 20px rgba(13, 30, 61, 0.3);
+    border: 4px solid white;
+}
+.dock-fab:active { transform: scale(0.9) translateY(5px); }
+.print-header { display: none; }
+
+@media print {
+    .print-header { display: block !important; border-bottom: 3px solid #000 !important; padding-bottom: 15px; margin-bottom: 25px; color: black !important; }
+    .print-header h1 { color: black !important; margin-bottom: 5px; }
+    .navbar, .btn, .dropdown, .modal, .bi, .btn-close, .col-lg-4, #btnLiquidarTodo, .financial-dock, .top-actions-desktop, .breadcrumb, .diamond-header-compact { display: none !important; }
+    body { background: white !important; padding: 0 !important; color: black !important; }
+    .bento-card { border: none !important; box-shadow: none !important; padding: 10px 0 !important; width: 100% !important; }
+    #tbEdoCuenta tr td:last-child, table thead tr th:last-child { display: none !important; }
+    #bentoTransactionsContainer { display: none !important; }
+    .table-responsive { display: block !important; overflow: visible !important; width: 100% !important; }
+    table { display: table !important; width: 100% !important; font-size: 8pt !important; border-collapse: collapse !important; color: black !important; }
+    thead { display: table-header-group !important; }
+    tbody { display: table-row-group !important; }
+    tfoot { display: table-footer-group !important; font-weight: bold !important; border-top: 2px solid #000 !important; }
+    tr { page-break-inside: avoid !important; border-bottom: 1px solid #eee !important; }
+    td, th { color: black !important; background: transparent !important; }
+    .d-none-print { display: none !important; }
+    .container-fluid { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+}
+
+@media (max-width: 768px) {
+    .top-actions-desktop { display: none !important; }
+    body { padding-bottom: 100px !important; }
+    .diamond-header-compact { border-radius: 0 !important; padding: 1rem !important; }
+}
+@media (min-width: 769px) {
+    .financial-dock { display: none !important; }
+}

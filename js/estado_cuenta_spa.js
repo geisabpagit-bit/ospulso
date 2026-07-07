@@ -247,6 +247,7 @@ function renderHistorial(historial) {
         container.innerHTML = historial.length ? '' : '<div class="p-5 text-center text-muted fw-bold small">No se encontraron movimientos registrados.</div>';
         historial.forEach(m => {
             const isC = m.tipo === 'Cargo';
+            const display_os = m.alias ? m.alias : m.id_os;
             container.insertAdjacentHTML('beforeend', `
                 <div class="bento-card p-3 border shadow-sm d-flex justify-content-between align-items-center animate__animated animate__fadeInUp" style="border-radius:1.5rem;">
                     <div class="d-flex align-items-center gap-3">
