@@ -934,6 +934,110 @@
         </div>
     </div>
 
+        <!-- Modal Demo Paciente Interactivo -->
+    <div class="modal fade" id="demoPatientModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem; overflow: hidden; background: #f8fafc;">
+                <!-- Header Navy -->
+                <div class="modal-header text-white px-4 py-3" style="background: var(--md-navy-clinical); border-bottom: none;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-person-lines-fill me-2 text-info"></i> Expediente: <span id="demoModalNameHeader">Ana Lopez</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                
+                <div class="modal-body p-4 p-md-5">
+                    <div class="row g-4">
+                        <!-- Left Column -->
+                        <div class="col-lg-5">
+                            <div class="bg-white rounded-4 p-4 shadow-sm border mb-4 d-flex align-items-center">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold me-3 shadow-sm" style="width: 65px; height: 65px; font-size: 1.8rem; background: var(--md-navy-clinical);" id="demoModalInitials">
+                                    AL
+                                </div>
+                                <div>
+                                    <h4 class="fw-bold text-navy mb-1" id="demoModalName">Ana Lopez</h4>
+                                    <span class="text-success small fw-bold"><i class="bi bi-shield-check"></i> ID: <span id="demoModalId">1</span> • Activo</span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 gap-md-3 text-center">
+                                <div class="flex-fill bg-white rounded-4 p-3 shadow-sm border" style="border-top: 4px solid var(--md-teal-clinical) !important;">
+                                    <div class="text-muted small fw-bold mb-1">CARGOS</div>
+                                    <div class="fw-bold fs-5 text-navy">$0.00</div>
+                                </div>
+                                <div class="flex-fill bg-white rounded-4 p-3 shadow-sm border" style="border-top: 4px solid #10b981 !important;">
+                                    <div class="text-muted small fw-bold mb-1">ABONOS</div>
+                                    <div class="fw-bold fs-5 text-success">$0.00</div>
+                                </div>
+                                <div class="flex-fill bg-white rounded-4 p-3 shadow-sm border" style="border-top: 4px solid #8b5cf6 !important;">
+                                    <div class="text-muted small fw-bold mb-1">SALDO</div>
+                                    <div class="fw-bold fs-5 text-navy">$0.00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column (Actions) -->
+                        <div class="col-lg-7">
+                            <div class="row g-3 mb-4">
+                                <div class="col-6 col-md-4">
+                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-folder2-open fs-3 text-primary d-block mb-1"></i>
+                                        <span class="small fw-bold">EXPEDIENTE</span>
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-cash-stack fs-3 text-success d-block mb-1"></i>
+                                        <span class="small fw-bold">FINANZAS</span>
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-calendar-plus fs-3 d-block mb-1" style="color: #8b5cf6;"></i>
+                                        <span class="small fw-bold">CITA</span>
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-envelope-paper fs-3 text-warning d-block mb-1"></i>
+                                        <span class="small fw-bold">CORREO</span>
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-whatsapp fs-3 text-success d-block mb-1"></i>
+                                        <span class="small fw-bold">WHATSAPP</span>
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-printer fs-3 text-secondary d-block mb-1"></i>
+                                        <span class="small fw-bold">IMPRIMIR</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Historial (Consultas Previas) -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-navy fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i> Consultas Previas</h6>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle" disabled><i class="bi bi-chevron-left"></i></button>
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle" disabled><i class="bi bi-chevron-right"></i></button>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-4 p-3 shadow-sm border d-inline-block" style="border-left: 4px solid var(--md-teal-clinical) !important; min-width: 200px;">
+                                <div class="fw-bold text-navy mb-1">Primera Vez</div>
+                                <div class="text-muted small mb-2">04 JUL • 09:00</div>
+                                <span class="badge bg-success rounded-pill px-3">Realizado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Modal Iniciar Sesión (Diamond Refactor) -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

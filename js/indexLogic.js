@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const passInput = document.getElementById('password');
         const loginBtn = document.getElementById('loginSubmitBtn');
         const feedbackDiv = document.getElementById('emailFeedback');
-        const loginForm = document.getElementById('loginForm');
+        const loginForm = document.getElementById('premiumLoginForm');
         const loginCard = document.querySelector('.login-card');
         const overlay = document.getElementById('loadingOverlay');
         const loadingText = overlay ? overlay.querySelector('p') : null;
