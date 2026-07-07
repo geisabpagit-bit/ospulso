@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     
     <!-- SEO Meta Tags -->
     <title>OSPulso - El Sistema Operativo para Clínicas Modernas</title>
@@ -1332,30 +1332,34 @@
                             row.style.alignItems = 'center';
                         });
 
-                        // Override huge padding (p-5) dynamically on mobile
+                        // Override huge padding (p-5, p-4) dynamically on mobile which contain !important
                         const cols = document.querySelectorAll('.carousel.holo-card .carousel-item .col-md-6');
                         cols.forEach(col => {
-                            col.style.padding = '0.5rem 1rem'; // Reduced padding
+                            col.classList.remove('p-5', 'p-4');
+                            col.classList.add('p-2', 'px-4'); // px-4 protects text from chevron overlap
                         });
                         
                         // Scale images proportionally (approx 45% of available height)
                         const imgs = document.querySelectorAll('.carousel.holo-card .holo-carousel-img');
                         imgs.forEach(img => {
-                            img.style.maxHeight = (targetHeight * 0.45) + 'px';
-                            img.style.width = 'auto';
-                            img.style.objectFit = 'contain';
+                            img.style.setProperty('max-height', (targetHeight * 0.45) + 'px', 'important');
+                            img.style.setProperty('width', 'auto', 'important');
+                            img.style.setProperty('object-fit', 'contain', 'important');
+                            img.style.setProperty('margin-bottom', '10px', 'important');
                         });
                         
                         // Slightly reduce text sizes inside carousels for mobile
                         const titles = document.querySelectorAll('.carousel.holo-card h3, .carousel.holo-card h4');
                         titles.forEach(title => {
-                            title.style.fontSize = '1.2rem';
-                            title.style.marginBottom = '0.5rem';
+                            title.style.setProperty('font-size', '1.1rem', 'important');
+                            title.style.setProperty('margin-bottom', '0.5rem', 'important');
+                            title.style.setProperty('line-height', '1.2', 'important');
                         });
                         const texts = document.querySelectorAll('.carousel.holo-card p');
                         texts.forEach(text => {
-                            text.style.fontSize = '0.85rem';
-                            text.style.marginBottom = '0';
+                            text.style.setProperty('font-size', '0.85rem', 'important');
+                            text.style.setProperty('margin-bottom', '0', 'important');
+                            text.style.setProperty('line-height', '1.3', 'important');
                         });
                     }
                 } else {
@@ -1374,26 +1378,33 @@
                         row.style.flexDirection = '';
                     });
 
+                    // We re-add p-5 to modulesCarousel/pilaresCarousel and p-4 to demoCarousel
+                    // by removing our mobile overrides (though technically a reload on resize is rare, we do our best)
                     const cols = document.querySelectorAll('.carousel.holo-card .carousel-item .col-md-6');
                     cols.forEach(col => {
-                        col.style.padding = '';
+                        col.classList.remove('p-2', 'px-4');
+                        // Simplistic fallback: add p-4 universally for desktop if resized up
+                        col.classList.add('p-4'); 
                     });
 
                     const imgs = document.querySelectorAll('.carousel.holo-card .holo-carousel-img');
                     imgs.forEach(img => {
                         img.style.maxHeight = ''; 
                         img.style.width = '';
+                        img.style.marginBottom = '';
                     });
                     
                     const titles = document.querySelectorAll('.carousel.holo-card h3, .carousel.holo-card h4');
                     titles.forEach(title => {
                         title.style.fontSize = '';
                         title.style.marginBottom = '';
+                        title.style.lineHeight = '';
                     });
                     const texts = document.querySelectorAll('.carousel.holo-card p');
                     texts.forEach(text => {
                         text.style.fontSize = '';
                         text.style.marginBottom = '';
+                        text.style.lineHeight = '';
                     });
                 }
             }
