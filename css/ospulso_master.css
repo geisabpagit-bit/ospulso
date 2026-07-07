@@ -1781,3 +1781,9 @@ footer {
 .faq-holo-item .accordion-button { background: transparent !important; box-shadow: none !important; }
 .faq-holo-item .accordion-body { background: transparent !important; }
 
+
+/* Premium Chevrons for Carousels */
+.premium-chevron-prev, .premium-chevron-next { position: absolute !important; top: 50% !important; transform: translateY(-50%) !important; width: 50px !important; height: 50px !important; opacity: 1 !important; z-index: 20 !important; }
+.premium-chevron-prev { left: 20px !important; right: auto !important; }
+.premium-chevron-next { right: 20px !important; left: auto !important; }
+

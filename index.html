@@ -89,8 +89,8 @@
                         <h1 class="fw-bold text-navy mb-3 reveal-1" style="font-size: 2.8rem; line-height: 1.15;">¡No dejes que el caos administre tu clínica!</h1>
                         <h2 class="fs-4 text-secondary fw-normal mb-4 reveal-2">Recupérala hoy con OSPulso. Deja atrás agendas perdidas, expedientes incompletos y finanzas confusas — administra tu clínica sin estrés ni sobresaltos.</h2>
                         <div class="d-flex flex-column flex-md-row gap-3 reveal-3">
-                            <a href="auth/registro.pl" class="btn btn-premium-primary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse btn-magnetic-pulse w-100 w-md-auto text-center" style="font-size: 1.1rem; padding: 14px 30px;">👉 ¡Empieza gratis y siente la diferencia!</a>
-                            <a href="#demo" class="btn btn-premium-secondary btn-lg btn-pill-unify btn-magnetic-pulse fw-bold w-100 w-md-auto text-center" style="font-size: 1.1rem; padding: 14px 30px;">Ver Demo en Acción</a>
+                            <a href="auth/registro.pl" class="btn btn-premium-primary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse w-100 w-md-auto text-center" style="font-size: 1.1rem; padding: 14px 30px;">👉 ¡Empieza gratis y siente la diferencia!</a>
+                            <a href="#demo" class="btn btn-premium-secondary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse w-100 w-md-auto text-center" style="font-size: 1.1rem; padding: 14px 30px;">Ver Demo en Acción</a>
                         </div>
                     </div>
                 </div>
@@ -221,13 +221,13 @@
                 </div>
                 
                 <!-- Controles -->
-                <button class="carousel-control-prev" type="button" data-bs-target="#modulesCarousel" data-bs-slide="prev" style="width: 50px; left: 20px; opacity: 1; z-index: 10;">
+                <button class="carousel-control-prev premium-chevron-prev" type="button" data-bs-target="#modulesCarousel" data-bs-slide="prev">
                     <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                         <i class="bi bi-chevron-left text-navy fs-4" aria-hidden="true"></i>
                     </div>
                     <span class="visually-hidden">Anterior</span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#modulesCarousel" data-bs-slide="next" style="width: 50px; right: 20px; opacity: 1; z-index: 10;">
+                <button class="carousel-control-next premium-chevron-next" type="button" data-bs-target="#modulesCarousel" data-bs-slide="next">
                     <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                         <i class="bi bi-chevron-right text-navy fs-4" aria-hidden="true"></i>
                     </div>
@@ -304,11 +304,17 @@
     </section>
 
     <!-- LA SOLUCIÓN -->
-    <section id="solucion" class="py-5 text-center scroll-reveal parallax-section parallax-overlay-navy" style="background-image: url('img/solucion_bg.png'); min-height: 50vh; display: flex; align-items: center;">
-        <div class="container parallax-content" style="max-width: 900px;">
-            <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold mb-4 shadow">La Solución</span>
-            <h2 class="fw-bold text-white mb-4" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">OSPulso — El guardián que transforma tu clínica caótica en una máquina rentable.</h2>
-            <p class="lead text-light mb-0" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Convierte cada cita y expediente en ganancias claras y crecimiento real. Desde el primer mes, OSPulso centraliza todo para que tu clínica funcione como un reloj suizo.</p>
+    <section id="solucion" class="py-5 text-center scroll-reveal parallax-section position-relative overflow-hidden" style="background: var(--bg-ospulso-gradient); min-height: 50vh; display: flex; align-items: center;">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-teal" style="top: 10%; right: 10%; opacity: 0.4;"></div>
+        <div class="floating-orb orb-navy" style="bottom: 10%; left: 10%; opacity: 0.4;"></div>
+        
+        <div class="container position-relative z-2" style="max-width: 900px;">
+            <div class="holo-card p-5 rounded-5" style="background: rgba(10, 42, 102, 0.4) !important; border: 1px solid rgba(24, 209, 230, 0.3) !important;">
+                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold mb-4 shadow">La Solución</span>
+                <h2 class="fw-bold text-white mb-4">OSPulso — El guardián que transforma tu clínica caótica en una máquina rentable.</h2>
+                <p class="lead text-light mb-0 opacity-75">Convierte cada cita y expediente en ganancias claras y crecimiento real. Desde el primer mes, OSPulso centraliza todo para que tu clínica funcione como un reloj suizo.</p>
+            </div>
         </div>
     </section>
 
@@ -376,13 +382,13 @@
                 </div>
                 
                 <!-- Controles -->
-                <button class="carousel-control-prev" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="prev" style="width: 50px; left: 20px; opacity: 1; z-index: 10;">
+                <button class="carousel-control-prev premium-chevron-prev" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="prev">
                     <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                         <i class="bi bi-chevron-left text-navy fs-4" aria-hidden="true"></i>
                     </div>
                     <span class="visually-hidden">Anterior</span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="next" style="width: 50px; right: 20px; opacity: 1; z-index: 10;">
+                <button class="carousel-control-next premium-chevron-next" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="next">
                     <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                         <i class="bi bi-chevron-right text-navy fs-4" aria-hidden="true"></i>
                     </div>
@@ -415,29 +421,57 @@
             </div>
 
             <!-- Mini Carousel of Screens -->
-            <div id="demoCarousel" class="carousel slide mx-auto mb-5 holo-card rounded-4 p-4" data-bs-ride="carousel" style="max-width: 600px;">
+            <div id="demoCarousel" class="carousel slide mx-auto mb-5 holo-card rounded-5 p-0 overflow-hidden" data-bs-ride="carousel" data-bs-interval="3500" style="max-width: 900px; border: 1px solid rgba(0, 196, 196, 0.3);">
                 <div class="carousel-inner">
+                    <!-- 1 -->
                     <div class="carousel-item active">
-                        <div class="py-3 text-center">
-                            <span class="fs-1">📅</span>
-                            <h5 class="fw-bold text-navy mt-3">Así se ve tu agenda sin caos</h5>
-                            <p class="text-muted small px-3 mb-0">Visualiza citas por colores, estados de confirmación y gestiona el tiempo de tus médicos en segundos.</p>
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-4" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/agenda.png" alt="Agenda Inteligente" class="holo-carousel-img img-fluid" style="max-height: 280px;">
+                            </div>
+                            <div class="col-md-6 p-4 text-center text-md-start">
+                                <h4 class="fw-bold text-navy mb-3">Así se ve tu agenda sin caos</h4>
+                                <p class="text-muted fs-6">Visualiza citas por colores, estados de confirmación y gestiona el tiempo de tus médicos en segundos.</p>
+                            </div>
                         </div>
                     </div>
+                    <!-- 2 -->
                     <div class="carousel-item">
-                        <div class="py-3 text-center">
-                            <span class="fs-1">🩺</span>
-                            <h5 class="fw-bold text-navy mt-3">Expedientes listos en segundos</h5>
-                            <p class="text-muted small px-3 mb-0">Accede al historial clínico completo, recetas previas y archivos DICOM de tu paciente al instante.</p>
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-4" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/expediente.png" alt="Expediente Clínico" class="holo-carousel-img img-fluid" style="max-height: 280px;">
+                            </div>
+                            <div class="col-md-6 p-4 text-center text-md-start">
+                                <h4 class="fw-bold text-navy mb-3">Expedientes listos en segundos</h4>
+                                <p class="text-muted fs-6">Accede al historial clínico completo, recetas previas y archivos de tu paciente al instante.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 3 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-4" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/caja.png" alt="Finanzas" class="holo-carousel-img img-fluid" style="max-height: 280px;">
+                            </div>
+                            <div class="col-md-6 p-4 text-center text-md-start">
+                                <h4 class="fw-bold text-navy mb-3">Corte de caja sin errores</h4>
+                                <p class="text-muted fs-6">Cobros exactos, facturación rápida y reportes financieros automáticos al final del día.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#demoCarousel" data-bs-slide="prev" style="filter: invert(1);">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                
+                <!-- Controles -->
+                <button class="carousel-control-prev premium-chevron-prev" type="button" data-bs-target="#demoCarousel" data-bs-slide="prev">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-left text-navy fs-4" aria-hidden="true"></i>
+                    </div>
                     <span class="visually-hidden">Anterior</span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#demoCarousel" data-bs-slide="next" style="filter: invert(1);">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <button class="carousel-control-next premium-chevron-next" type="button" data-bs-target="#demoCarousel" data-bs-slide="next">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-right text-navy fs-4" aria-hidden="true"></i>
+                    </div>
                     <span class="visually-hidden">Siguiente</span>
                 </button>
             </div>
@@ -679,14 +713,19 @@
     </section>
 
     <!-- CTA FINAL -->
-    <section class="py-5 text-center text-white bg-primary position-relative overflow-hidden"
-        style="background: linear-gradient(135deg, var(--md-blue-deep) 0%, var(--md-blue-medical) 100%) !important;">
-        <div class="container py-4 position-relative" style="z-index: 2; max-width: 700px;">
-            <h2 class="fw-bold mb-3">¿Listo para transformar tu clínica?</h2>
-            <p class="lead mb-4 opacity-75">No dejes para mañana los pacientes que puedes atender (y cobrar) hoy. ¡Agenda una demo y siente la diferencia!</p>
-            <div class="d-flex flex-wrap justify-content-center gap-3">
-                <a href="#demo" class="btn btn-light text-primary fw-bold px-4 py-3 btn-pill-unify btn-magnetic-pulse shadow-lg hover-scale">Siente la diferencia (Demo)</a>
-                <a href="https://wa.me/525643555072" target="_blank" class="btn btn-outline-light fw-bold px-4 py-3 btn-pill-unify btn-magnetic-pulse">Contactar a Soporte</a>
+    <section class="py-5 text-center demo-gradient-bg position-relative overflow-hidden">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-teal" style="top: 20%; left: 10%; opacity: 0.5;"></div>
+        <div class="floating-orb orb-navy" style="bottom: 20%; right: 10%; opacity: 0.5;"></div>
+
+        <div class="container py-4 position-relative z-2" style="max-width: 800px;">
+            <div class="holo-card p-5 rounded-5 shadow-premium text-white" style="background: rgba(255, 255, 255, 0.05) !important;">
+                <h2 class="fw-bold mb-3">¿Listo para transformar tu clínica?</h2>
+                <p class="lead mb-4 opacity-75">No dejes para mañana los pacientes que puedes atender (y cobrar) hoy. ¡Agenda una demo y siente la diferencia!</p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="#demo" class="btn btn-premium-primary fw-bold px-4 py-3 btn-pill-unify btn-magnetic-pulse shadow-lg">Siente la diferencia (Demo)</a>
+                    <a href="https://wa.me/525643555072" target="_blank" class="btn btn-outline-light fw-bold px-4 py-3 btn-pill-unify btn-magnetic-pulse">Contactar a Soporte</a>
+                </div>
             </div>
         </div>
     </section>
