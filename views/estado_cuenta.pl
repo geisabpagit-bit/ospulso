@@ -19,7 +19,7 @@ my $id_paciente = $q->param('id') || '';
 
 if (!$id_paciente) {
     print "Content-Type: text/html; charset=UTF-8\n\n";
-    render_header(usuario => $session_data->{usuario}, titulo => "Estado de Cuenta - SDM", role => $session_data->{role}, id_medico => $session_data->{id_medico}, skip_header => 1);
+    render_header(usuario => $session_data->{usuario}, titulo => "OsPulso - Detalle financiero por paciente", role => $session_data->{role}, id_medico => $session_data->{id_medico}, skip_header => 1);
     print <<HTML;
 <div class="container py-4 px-2 px-md-4 animate__animated animate__fadeIn" style="max-width: 1200px; overflow-x: hidden;">
     
@@ -64,7 +64,7 @@ foreach (@$reg) { if ($_->[0] eq $id_paciente) { $paciente = { id => $_->[0], no
 
 unless ($paciente) { 
     print "Content-Type: text/html; charset=UTF-8\n\n";
-    render_header(usuario => $session_data->{usuario}, titulo => "Estado de Cuenta - SDM", role => $session_data->{role}, id_medico => $session_data->{id_medico}, skip_header => 1);
+    render_header(usuario => $session_data->{usuario}, titulo => "OsPulso - Detalle financiero por paciente", role => $session_data->{role}, id_medico => $session_data->{id_medico}, skip_header => 1);
     print "<div class='container py-5 text-center'><h2 class='fw-bold text-danger'>Paciente no localizado.</h2><a href='pacientes.pl' class='btn btn-primary mt-3'>Volver al Directorio</a></div></body></html>"; 
     exit; 
 }
@@ -72,7 +72,7 @@ unless ($paciente) {
 # 1. Cabecera SDP Premium
 render_header(
     usuario => $session_data->{usuario}, 
-    titulo => "Estado de Cuenta - SDM", 
+    titulo => "OsPulso - Detalle financiero por paciente", 
     role => $session_data->{role}, 
     id_medico => $session_data->{id_medico}
 );
