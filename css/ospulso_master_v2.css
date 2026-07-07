@@ -341,3 +341,49 @@
     background-color: #14b8a6 !important;
     color: #ffffff !important;
 }
+
+/* --- Premium Bento UI (Finanzas & Ajustes) --- */
+.bento-card { 
+    background: #ffffff; 
+    border-radius: 20px; 
+    padding: 1.5rem; 
+    transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); 
+    border: 1px solid rgba(10, 42, 102, 0.05); 
+}
+.bento-card:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 12px 30px rgba(10, 42, 102, 0.08) !important; 
+}
+.kpi-card { 
+    position: relative; 
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+}
+.kpi-label { 
+    font-size: 0.85rem; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    color: #64748b; 
+    letter-spacing: 1px; 
+    margin-bottom: 0.5rem; 
+    display: block; 
+}
+.kpi-value { 
+    font-size: 2.2rem; 
+    font-weight: 800; 
+    color: #0A2A66; 
+    margin: 0; 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+    line-height: 1; 
+}
+.kpi-icon { 
+    position: absolute; 
+    right: -15px; 
+    bottom: -20px; 
+    font-size: 6rem; 
+    opacity: 0.04; 
+    color: #0A2A66; 
+    transform: rotate(-15deg); 
+}
