@@ -21,7 +21,7 @@ if (!$id_paciente) {
     print "Content-Type: text/html; charset=UTF-8\n\n";
     render_header(usuario => $session_data->{usuario}, titulo => "Estado de Cuenta - SDM", role => $session_data->{role}, id_medico => $session_data->{id_medico}, skip_header => 1);
     print <<HTML;
-<div class="container py-4 px-2 px-md-4 animate__animated animate__fadeIn" style="max-width: 1000px; overflow-x: hidden;">
+<div class="container py-4 px-2 px-md-4 animate__animated animate__fadeIn" style="max-width: 1200px; overflow-x: hidden;">
     
     <div class="row justify-content-center">
         <!-- Búsqueda -->
@@ -97,7 +97,7 @@ my $nombre_display = $paciente->{nombre};
 my $id_display = $id_paciente;
 
 print <<HTML;
-<div class="container py-4 px-2 px-md-4 animate__animated animate__fadeIn" style="max-width: 1000px; overflow-x: hidden;">
+<div class="container py-4 px-2 px-md-4 animate__animated animate__fadeIn" style="max-width: 1200px; overflow-x: hidden;">
 
     <!-- Header de Impresión Profesional -->
     <div class="print-header">
