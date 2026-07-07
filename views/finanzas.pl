@@ -16,6 +16,12 @@ use utils::db_manager qw(leer_tabla);
 
 my $q = CGI->new;
 my $session_data = check_session();
+
+if (!$session_data->{session_ok}) {
+    print $q->redirect(-uri => '../auth/login.pl');
+    exit;
+}
+
 my $id_paciente = $q->param('id') || '';
 
 print $q->header(-type => 'text/html', -charset => 'UTF-8');

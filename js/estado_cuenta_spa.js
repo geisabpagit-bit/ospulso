@@ -887,6 +887,10 @@ async function cargarCategoriasGastos(force = false) {
                     catSelect.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
                 });
             }
+        } else {
+            if (data.message === 'Sesión expirada') {
+                window.location.reload();
+            }
         }
     } catch (e) { console.error("Error cargando categorías de gastos", e); }
 }
@@ -1002,8 +1006,17 @@ window.renderGastos = async function() {
                     destroy: true
                 });
             }
+        } else if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${data.message || 'Error al cargar'}</td></tr>`;
+            if (data.message === 'Sesión expirada') {
+                window.location.reload();
+            }
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+        const tbody = document.getElementById('tbodyGastos');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error de red</td></tr>';
+    }
 }
 
 window.abrirModalGasto = async function() {
@@ -1148,6 +1161,11 @@ window.renderIngresos = async function() {
                     responsive: true,
                     destroy: true
                 });
+            }
+        } else if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${data.message || 'Error al cargar'}</td></tr>`;
+            if (data.message === 'Sesión expirada') {
+                window.location.reload();
             }
         }
     } catch (e) {
