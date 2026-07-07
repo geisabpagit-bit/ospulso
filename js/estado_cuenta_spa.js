@@ -93,16 +93,36 @@ async function cargarHistorialCuentas() {
                     const badgeStr = isAbono ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Pagado</span>' : '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Pendiente</span>';
                     
                     html += `<tr>
-                        <td class="text-muted">\${h.fecha.substring(0, 10)}</td>
-                        <td class="fw-bold text-dark">\${h.concepto}</td>
-                        <td class="text-muted small">OS/2024/\${h.id_os.toString().padStart(4,'0')}</td>
-                        <td class="fw-bold" style="color: var(--md-blue-deep);">\${h.alias || h.id_paciente}</td>
-                        <td class="fw-bold text-dark">\${formatter.format(h.total)}</td>
-                        <td>\${badgeStr}</td>
+                        <td class="text-muted">${h.fecha.substring(0, 10)}</td>
+                        <td class="fw-bold text-dark">${h.concepto}</td>
+                        <td class="text-muted small">OS/2024/${h.id_os.toString().padStart(4,'0')}</td>
+                        <td class="fw-bold" style="color: var(--md-blue-deep);">${h.alias || h.id_paciente}</td>
+                        <td class="fw-bold text-dark">${formatter.format(h.total)}</td>
+                        <td>${badgeStr}</td>
                     </tr>`;
                 }
                 if(limit === 0) html = '<tr><td colspan="6" class="text-center text-muted py-4">No hay transacciones registradas.</td></tr>';
                 tbody.innerHTML = html;
+                
+                if ($.fn.DataTable) {
+                    if ($.fn.DataTable.isDataTable('#tablaResumenIngresos')) {
+                        $('#tablaResumenIngresos').DataTable().destroy();
+                    }
+                    $('#tablaResumenIngresos').DataTable({
+                        dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                        buttons: [
+                            { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
+                            { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
+                            { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' },
+                            { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
+                        ],
+                        language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json" },
+                        order: [[0, "desc"]],
+                        pageLength: 10,
+                        responsive: true,
+                        destroy: true
+                    });
+                }
             }
 
             // Mostrar botón de Cargos y Abonos si hay id_paciente seleccionado
