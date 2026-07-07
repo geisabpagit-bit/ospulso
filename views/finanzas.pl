@@ -16,8 +16,6 @@ use utils::db_manager qw(leer_tabla);
 my $q = CGI->new;
 my $session_data = check_session();
 my $id_paciente = $q->param('id') || '';
-
-print "Content-Type: text/html; charset=UTF-8\n\n";
 render_header(usuario => $session_data->{usuario}, titulo => "Finanzas - SDM", role => $session_data->{role}, id_medico => $session_data->{id_medico});
 print <<HTML;
 <div class="container py-4 px-2 px-md-4 animate__animated animate__fadeIn" style="max-width: 1200px; overflow-x: hidden;">
@@ -28,11 +26,7 @@ print <<HTML;
             <h2 class="fw-bold plus-jakarta m-0" style="color: var(--md-text-primary);">Finanzas</h2>
             <p class="text-muted m-0">Control total de ingresos, facturaciÃ³n y cuentas por cobrar.</p>
         </div>
-        <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 400px;">
-            <div class="input-group shadow-sm" style="border-radius: 50rem;">
-                <span class="input-group-text bg-white border-end-0 rounded-start-pill text-muted" style="padding-left: 1rem;"><i class="bi bi-search"></i></span>
-                <input type="text" id="dashboardPatientSearch" class="form-control border-start-0 rounded-end-pill" placeholder="Buscar paciente para filtrar..." style="box-shadow: none;">
-            </div>
+        <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end" style="max-width: 400px;">
             <a href="estado_cuenta.pl" id="btnCargosAbonos" class="btn btn-primary rounded-pill fw-bold text-nowrap px-4 shadow-sm" style="display: none;"><i class="bi bi-cash-stack me-2"></i>Cargos y Abonos</a>
         </div>
     </div>

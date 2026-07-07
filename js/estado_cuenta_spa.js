@@ -12,43 +12,10 @@ async function initModuloFinanciero(id, modo, idMed) {
     idPacienteGlobal = id;
     idMedicoGlobal = idMed || 'SISTEMA';
     await cargarHistorialCuentas();
-    // Cargar catálogo siempre que se inicialice el módulo, ya que ambos modos pueden usar modales
+    // Cargar catÃ¡logo siempre que se inicialice el mÃ³dulo, ya que ambos modos pueden usar modales
     await cargarCatalogo();
 
-    // Iniciar autocomplete de dashboard si existe
-    if ($.fn.autocomplete && document.getElementById('dashboardPatientSearch')) {
-        $("#dashboardPatientSearch").autocomplete({
-            source: "../api/autocomplete_pacientes.pl",
-            minLength: 2,
-            select: function(event, ui) {
-                idPacienteGlobal = ui.item.id;
-                $("#dashboardPatientSearch").val(ui.item.value);
-                cargarHistorialCuentas();
-                return false;
-            }
-        });
-        
-        $("<style>")
-            .prop("type", "text/css")
-            .html(`
-                .ui-autocomplete {
-                    z-index: 10000 !important;
-                    background: white;
-                    border: none;
-                    border-radius: 12px;
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-                    padding: 8px;
-                    font-family: 'Plus Jakarta Sans', sans-serif;
-                }
-                .ui-menu-item-wrapper { padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; }
-                .ui-menu-item-wrapper:hover, .ui-state-active {
-                    background: #f1f5f9 !important;
-                    color: #0f172a !important;
-                    border: none !important;
-                }
-            `)
-            .appendTo("head");
-    }
+    
 }
 
 async function cargarHistorialCuentas() {
@@ -66,7 +33,7 @@ async function cargarHistorialCuentas() {
         if (document.getElementById('ecCargos')) document.getElementById('ecCargos').innerText = formatter.format(res.cargos || 0);
         if (document.getElementById('ecAbonos')) document.getElementById('ecAbonos').innerText = formatter.format(res.abonos || 0);
         
-        // Actualizar Footer de Tabla e Impresión
+        // Actualizar Footer de Tabla e ImpresiÃ³n
         if (document.getElementById('tfCargos')) document.getElementById('tfCargos').innerText = formatter.format(res.cargos || 0);
         if (document.getElementById('tfAbonos')) document.getElementById('tfAbonos').innerText = formatter.format(res.abonos || 0);
         if (document.getElementById('printDate')) {
@@ -74,7 +41,7 @@ async function cargarHistorialCuentas() {
             document.getElementById('printDate').innerText = now.toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) + ' ' + now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
         }
 
-        // Mostrar/Ocultar botón de liquidar
+        // Mostrar/Ocultar botÃ³n de liquidar
         const btnL = document.getElementById('btnLiquidarTodo');
         if(btnL) btnL.style.display = currentSaldoTotal > 0 ? 'block' : 'none';
 
@@ -83,7 +50,7 @@ async function cargarHistorialCuentas() {
             sl.innerText = formatter.format(res.saldo || 0);
             const card = document.getElementById('ecSaldoCard');
             if (card) {
-                // Estilo dinámico basado en saldo
+                // Estilo dinÃ¡mico basado en saldo
                 if (res.saldo > 0) {
                     if (card.classList.contains('kpi-card')) {
                         card.style.borderColor = "#dc2626";
@@ -138,7 +105,7 @@ async function cargarHistorialCuentas() {
                 tbody.innerHTML = html;
             }
 
-            // Mostrar botón de Cargos y Abonos si hay id_paciente seleccionado
+            // Mostrar botÃ³n de Cargos y Abonos si hay id_paciente seleccionado
             const btnCargos = document.getElementById('btnCargosAbonos');
             if (btnCargos) {
                 if (idPacienteGlobal) {
@@ -149,7 +116,7 @@ async function cargarHistorialCuentas() {
                 }
             }
 
-            // Disparar render de gráfica de línea
+            // Disparar render de grÃ¡fica de lÃ­nea
             if(typeof renderEvolucionIngresosGlobal === 'function') renderEvolucionIngresosGlobal();
         }
 
@@ -307,8 +274,8 @@ function renderHistorial(historial) {
                     <td class="text-center">
                         <div class="d-flex gap-1 justify-content-center">
                             <button onclick="imprimirOS('${m.id_os}')" title="Imprimir Recibo" class="btn btn-sm btn-outline-dark border-0"><i class="bi bi-printer"></i></button>
-                            ${isC ? `<button onclick="abrirModalAbonoContextual(${m.total}, '${m.concepto.replace(/'/g, "\\'")}', '${m.id_os}', '${m.alias || ''}')" title="Abonar a este ítem" class="btn btn-sm btn-outline-success border-0"><i class="bi bi-cash-coin"></i></button>` : ''}
-                            ${isC ? `<button onclick="abrirModalCargoConOS('${m.id_os}', '${m.alias || ''}')" title="Agregar ítem a esta OS" class="btn btn-sm btn-outline-primary border-0"><i class="bi bi-folder-plus"></i></button>` : ''}
+                            ${isC ? `<button onclick="abrirModalAbonoContextual(${m.total}, '${m.concepto.replace(/'/g, "\\'")}', '${m.id_os}', '${m.alias || ''}')" title="Abonar a este Ã­tem" class="btn btn-sm btn-outline-success border-0"><i class="bi bi-cash-coin"></i></button>` : ''}
+                            ${isC ? `<button onclick="abrirModalCargoConOS('${m.id_os}', '${m.alias || ''}')" title="Agregar Ã­tem a esta OS" class="btn btn-sm btn-outline-primary border-0"><i class="bi bi-folder-plus"></i></button>` : ''}
                             <button onclick="prepararEdicion('${m.id_mov}', '${m.concepto.replace(/'/g, "\\'")}', '${m.total}')" class="btn btn-sm btn-outline-secondary border-0"><i class="bi bi-pencil"></i></button>
                             <button onclick="eliminarMovimiento('${m.id_mov}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>
                         </div>
@@ -427,7 +394,7 @@ function filtrarCatalogo() { renderCatalogoGUI(document.getElementById('buscador
 
 function agregarCargoManual() {
     const n = document.getElementById('manual_nombre'), p = document.getElementById('manual_precio');
-    if(!n.value || !p.value) return Swal.fire("Aviso", "Indique descripción y precio", "warning");
+    if(!n.value || !p.value) return Swal.fire("Aviso", "Indique descripciÃ³n y precio", "warning");
     const id = 'MAN-'+Date.now();
     carritoApp.push({ id, nombre: n.value, precio: parseFloat(p.value), cantidad: 1 });
     n.value = ''; p.value = ''; refrescarGUICarrito();
@@ -442,7 +409,7 @@ function agregarAlCarrito(id) {
 
 function refrescarGUICarrito() {
     const uli = document.getElementById('listaCarrito'); if(!uli) return;
-    uli.innerHTML = carritoApp.length === 0 ? '<div class="text-center p-10 text-slate-300 font-bold small">El carrito está vacío.</div>' : '';
+    uli.innerHTML = carritoApp.length === 0 ? '<div class="text-center p-10 text-slate-300 font-bold small">El carrito estÃ¡ vacÃ­o.</div>' : '';
     let total = 0;
     carritoApp.forEach((c, i) => {
         const st = c.precio * c.cantidad; total += st;
@@ -476,13 +443,13 @@ function removeCartItem(idx) { carritoApp.splice(idx, 1); refrescarGUICarrito();
 function updateCartItemQty(idx, delta) {
     if (carritoApp[idx].cantidad + delta <= 0) {
         Swal.fire({
-            title: '¿Eliminar ítem?',
-            text: "¿Deseas quitar este concepto del cargo?",
+            title: 'Â¿Eliminar Ã­tem?',
+            text: "Â¿Deseas quitar este concepto del cargo?",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc2626',
             cancelButtonColor: '#64748b',
-            confirmButtonText: 'Sí, quitar'
+            confirmButtonText: 'SÃ­, quitar'
         }).then((result) => {
             if (result.isConfirmed) {
                 removeCartItem(idx);
@@ -519,7 +486,7 @@ async function procesarCarrito() {
             const m = bootstrap.Modal.getInstance(document.getElementById('modalCargo'));
             if (m) m.hide();
             await cargarHistorialCuentas();
-            Swal.fire("Éxito", "Cargo registrado correctamente", "success");
+            Swal.fire("Ã‰xito", "Cargo registrado correctamente", "success");
         }
     } catch(e) { console.error(e); }
     btn.disabled = false; btn.innerHTML = oldText;
@@ -573,7 +540,7 @@ function procesarAbono() {
     const met = document.getElementById('metodoAbono').value;
     const not = document.getElementById('notasAbono').value;
     
-    if(!val || parseFloat(val) <= 0) return Swal.fire("Atención", "Ingrese un monto válido", "warning");
+    if(!val || parseFloat(val) <= 0) return Swal.fire("AtenciÃ³n", "Ingrese un monto vÃ¡lido", "warning");
 
     const fd = new FormData();
     fd.append('accion', 'add_abono');
@@ -590,7 +557,7 @@ function procesarAbono() {
         .then(r => r.json())
         .then(data => {
             if(data.success) {
-                Swal.fire("Éxito", "Abono registrado correctamente", "success");
+                Swal.fire("Ã‰xito", "Abono registrado correctamente", "success");
                 bootstrap.Modal.getInstance(document.getElementById('modalAbono')).hide();
                 cargarHistorialCuentas(); // Refresco inmediato
             }
@@ -608,7 +575,7 @@ function imprimirOS(id_os) {
         if (!r.innerText.includes(id_os)) r.classList.add('d-none-print');
     });
     
-    // 2. Lanzar impresión
+    // 2. Lanzar impresiÃ³n
     window.print();
     
     // 3. Restaurar visibilidad
@@ -616,7 +583,7 @@ function imprimirOS(id_os) {
 }
 
 function eliminarMovimiento(id) {
-    Swal.fire({ title: '¿Eliminar registro?', text: "Esta acción no se puede deshacer.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', cancelButtonColor: '#64748b', confirmButtonText: 'Sí, borrar' }).then((result) => {
+    Swal.fire({ title: 'Â¿Eliminar registro?', text: "Esta acciÃ³n no se puede deshacer.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', cancelButtonColor: '#64748b', confirmButtonText: 'SÃ­, borrar' }).then((result) => {
         if (result.isConfirmed) {
             fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: new URLSearchParams({accion: 'delete_movimiento', id_mov: id}), credentials: 'same-origin' })
             .then(r => r.json()).then(res => { if(res.success) { cargarHistorialCuentas(); Swal.fire("Eliminado", "El registro ha sido borrado", "success"); } });
@@ -639,14 +606,14 @@ function prepararEdicion(id, concepto, total) {
         if (r.isConfirmed) {
             const fd = new URLSearchParams({ accion: 'update_movimiento', id_mov: id, concepto: r.value.c, monto: r.value.m });
             fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' }).then(r => r.json()).then(res => { 
-                if(res.success) { cargarHistorialCuentas(); Swal.fire("Actualizado", "Registro modificado con éxito", "success"); } 
+                if(res.success) { cargarHistorialCuentas(); Swal.fire("Actualizado", "Registro modificado con Ã©xito", "success"); } 
             });
         }
     });
 }
 
 /** 
- * INTERFAZ DE ACTIVACIÓN DE MODALES
+ * INTERFAZ DE ACTIVACIÃ“N DE MODALES
  * Estas funciones son llamadas desde views/estado_cuenta.pl
  */
 
@@ -757,5 +724,8 @@ function renderEvolucionIngresosGlobal() {
             }
         }
     });
+}
+
+
 }
 
