@@ -157,7 +157,7 @@ print <<'PAGE_HTML';
                 <div class="row g-3 mb-4">
                     <!-- Ingresos Totales -->
                     <div class="col-md-3 col-6">
-                        <div class="bento-card border-0 shadow-sm bg-white h-100 p-3" style="border-radius: 16px;">
+                        <div class="bento-card h-100">
                             <div class="d-flex align-items-center gap-2 mb-3">
                                 <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #fef08a, #eab308, #a16207); color: white; font-size: 1.1rem;">
                                     <i class="bi bi-currency-dollar"></i>
@@ -170,7 +170,7 @@ print <<'PAGE_HTML';
                     </div>
                     <!-- Cuentas por Cobrar -->
                     <div class="col-md-3 col-6">
-                        <div class="bento-card border-0 shadow-sm bg-white h-100 p-3" style="border-radius: 16px;">
+                        <div class="bento-card h-100">
                             <div class="d-flex align-items-center gap-2 mb-3">
                                 <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #60a5fa, #3b82f6, #1e3a8a); color: white; font-size: 1.1rem;">
                                     <i class="bi bi-wallet2"></i>
@@ -183,7 +183,7 @@ print <<'PAGE_HTML';
                     </div>
                     <!-- Facturación del Mes -->
                     <div class="col-md-3 col-6">
-                        <div class="bento-card border-0 shadow-sm bg-white h-100 p-3" style="border-radius: 16px;">
+                        <div class="bento-card h-100">
                             <div class="d-flex align-items-center gap-2 mb-3">
                                 <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #93c5fd, #60a5fa, #2563eb); color: white; font-size: 1.1rem;">
                                     <i class="bi bi-file-earmark-text"></i>
@@ -196,7 +196,7 @@ print <<'PAGE_HTML';
                     </div>
                     <!-- Eficiencia de Cobro -->
                     <div class="col-md-3 col-6">
-                        <div class="bento-card border-0 shadow-sm bg-white h-100 p-3" style="border-radius: 16px;">
+                        <div class="bento-card h-100">
                             <div class="d-flex align-items-center gap-2 mb-3">
                                 <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #fef08a, #eab308, #a16207); color: white; font-size: 1.1rem;">
                                     <i class="bi bi-percent"></i>
@@ -211,7 +211,7 @@ print <<'PAGE_HTML';
 
                 <div class="row g-4 mb-4">
                     <div class="col-lg-7">
-                        <div class="bento-card border-0 shadow-sm bg-white h-100 p-4" style="border-radius: 20px;">
+                        <div class="bento-card h-100">
                             <h6 class="fw-bold plus-jakarta mb-4 text-dark">Evolución de Ingresos</h6>
                             <div style="height: 250px; width: 100%;">
                                 <canvas id="lineEvolucionIngresos"></canvas>
@@ -220,7 +220,7 @@ print <<'PAGE_HTML';
                     </div>
                     
                     <div class="col-lg-5">
-                        <div class="bento-card border-0 shadow-sm bg-white h-100 p-4 d-flex flex-column justify-content-center" style="border-radius: 20px;">
+                        <div class="bento-card h-100 d-flex flex-column justify-content-center">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h6 class="fw-bold plus-jakarta m-0 text-dark">Ingresos por Categoría</h6>
                                 <select class="form-select form-select-sm w-auto rounded-pill text-muted fw-bold bg-light border-0"><option>Este Mes</option></select>
@@ -258,7 +258,7 @@ print <<'PAGE_HTML';
                 </div>
 
                 <!-- Resumen de Ingresos (Table) -->
-                <div class="bento-card border-0 shadow-sm bg-white p-4 mb-5" style="border-radius: 20px;">
+                <div class="bento-card mb-5">
                     <h6 class="fw-bold plus-jakarta mb-4 text-dark">Resumen de Ingresos Recientes</h6>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0" id="tablaResumenIngresos">
@@ -285,7 +285,7 @@ print <<'PAGE_HTML';
 
             <!-- TAB: INGRESOS -->
             <div id="tab_ingresos" class="sdm-tab-pane d-none">
-                <div class="bento-card border-0 shadow-sm bg-white p-4" style="border-radius: 20px;">
+                <div class="bento-card">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h4 class="fw-bold plus-jakarta m-0 text-dark">Historial de Ingresos</h4>
@@ -313,7 +313,7 @@ print <<'PAGE_HTML';
 
             <!-- TAB: GASTOS -->
             <div id="tab_gastos" class="sdm-tab-pane d-none">
-                <div class="bento-card border-0 shadow-sm bg-white p-4" style="border-radius: 20px;">
+                <div class="bento-card">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h4 class="fw-bold plus-jakarta m-0 text-dark">Control de Egresos</h4>
@@ -347,7 +347,7 @@ print <<'PAGE_HTML';
 
             <!-- TAB: CUENTAS POR COBRAR -->
             <div id="tab_cxc" class="sdm-tab-pane d-none">
-                <div class="bento-card border-0 shadow-sm bg-white p-4" style="border-radius: 20px;">
+                <div class="bento-card">
                     <h4 class="fw-bold plus-jakarta mb-4 text-dark">Cuentas por Cobrar (CxC)</h4>
                     <p class="text-muted">Pacientes con saldos pendientes. Calculado en tiempo real.</p>
                     <div class="table-responsive mt-3">
@@ -372,7 +372,7 @@ print <<'PAGE_HTML';
 
             <!-- TAB: FACTURACION -->
             <div id="tab_facturacion" class="sdm-tab-pane d-none">
-                <div class="bento-card border-0 shadow-sm bg-white p-4" style="border-radius: 20px;">
+                <div class="bento-card">
                     <h4 class="fw-bold plus-jakarta mb-4 text-dark">Facturación Electrónica (PAC SAT)</h4>
                     <p class="text-muted">Pronto: Emisión de CFDI 4.0 conectado a PAC.</p>
                 </div>
@@ -380,7 +380,7 @@ print <<'PAGE_HTML';
 
             <!-- TAB: REPORTES -->
             <div id="tab_reportes" class="sdm-tab-pane d-none">
-                <div class="bento-card border-0 shadow-sm bg-white p-4" style="border-radius: 20px;">
+                <div class="bento-card">
                     <h4 class="fw-bold plus-jakarta mb-4 text-dark">Reportes Financieros (P&L)</h4>
                     <p class="text-muted">Pronto: Generador de estados de resultados y exportación a PDF/Excel.</p>
                 </div>
@@ -393,7 +393,7 @@ print <<'PAGE_HTML';
 <!-- Modal Nuevo Gasto (Floating Armor) - Movido fuera del contexto de apilamiento para evitar solapamiento con navbar -->
 <div class="modal fade modal-diamond" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+        <div class="modal-content border-0 shadow-lg">
             <div class="modal-header">
                 <h5 class="modal-title d-flex align-items-center m-0">
                     <i class="bi bi-cash-stack me-2" style="color: #00C4C4 !important;"></i>
@@ -408,65 +408,65 @@ print <<'PAGE_HTML';
             </div>
             <div class="modal-body">
                 <form id="formGasto">
-                    <div class="form-floating mb-3">
-                        <input type="date" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="fecha_gasto" required>
-                        <label for="fecha_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Fecha del Gasto</label>
+                    <div class="mb-3">
+                        <label for="fecha_gasto" class="form-label">Fecha del Gasto</label>
+                        <input type="date" class="form-control" id="fecha_gasto" required>
                     </div>
                     <div class="row">
                         <div class="col-md-4">
-                            <div class="form-floating mb-3">
-                                <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="cat_gasto" required onchange="filtrarSubcategorias()">
+                            <div class="mb-3">
+                                <label for="cat_gasto" class="form-label">Categoría Principal</label>
+                                <select class="form-select" id="cat_gasto" required onchange="filtrarSubcategorias()">
                                     <option value="">Seleccione...</option>
                                 </select>
-                                <label for="cat_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Categoría Principal</label>
                             </div>
                         </div>
                         <div class="col-md-4" id="col_subcat_gasto" style="display:none;">
-                            <div class="form-floating mb-3">
-                                <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="subcat_gasto" onchange="filtrarSubcategorias3()">
+                            <div class="mb-3">
+                                <label for="subcat_gasto" class="form-label">Subcategoría Nivel 2</label>
+                                <select class="form-select" id="subcat_gasto" onchange="filtrarSubcategorias3()">
                                     <option value="">Seleccione...</option>
                                 </select>
-                                <label for="subcat_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Subcategoría Nivel 2</label>
                             </div>
                         </div>
                         <div class="col-md-4" id="col_subcat3_gasto" style="display:none;">
-                            <div class="form-floating mb-3">
-                                <select class="form-select bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="subcat3_gasto">
+                            <div class="mb-3">
+                                <label for="subcat3_gasto" class="form-label">Detalle Gasto (Nivel 3)</label>
+                                <select class="form-select" id="subcat3_gasto">
                                     <option value="">Seleccione...</option>
                                 </select>
-                                <label for="subcat3_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Detalle Gasto (Nivel 3)</label>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="form-floating mb-3">
-                                <input type="text" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="proveedor_gasto" placeholder="Proveedor" required>
-                                <label for="proveedor_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Proveedor</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-floating mb-3">
-                                <input type="text" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="concepto_gasto" placeholder="Concepto" required>
-                                <label for="concepto_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Concepto / Descripción</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-floating mb-3">
-                                <input type="number" step="0.01" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem;" id="monto_gasto" placeholder="Monto" required>
-                                <label for="monto_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b;">Monto Total ($)</label>
+                            <div class="mb-3">
+                                <label for="proveedor_gasto" class="form-label">Proveedor</label>
+                                <input type="text" class="form-control" id="proveedor_gasto" placeholder="Ingresa el proveedor" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="factura_gasto" style="font-size: 0.65rem; text-transform: uppercase; color: #64748b; margin-left: 0.75rem;">Adjuntar Factura (Opcional)</label>
-                                <input type="file" class="form-control bg-light border-0 diamond-input-armor" style="border-radius: 1rem; padding-top: 0.65rem; padding-bottom: 0.65rem;" id="factura_gasto" accept=".pdf,.png,.jpg,.jpeg">
+                                <label for="concepto_gasto" class="form-label">Concepto / Descripción</label>
+                                <input type="text" class="form-control" id="concepto_gasto" placeholder="Describe el gasto" required>
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn w-100 rounded-pill fw-bold text-white shadow-sm" style="background: var(--md-blue-medical);">Guardar Gasto</button>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="monto_gasto" class="form-label">Monto Total ($)</label>
+                                <input type="number" step="0.01" class="form-control" id="monto_gasto" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="factura_gasto" class="form-label">Adjuntar Factura (Opcional)</label>
+                                <input type="file" class="form-control" id="factura_gasto" accept=".pdf,.png,.jpg,.jpeg">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn w-100 rounded-pill fw-bold text-white shadow-sm mt-2" style="background: var(--md-blue-medical);">Guardar Gasto</button>
                 </form>
             </div>
         </div>
@@ -476,7 +476,7 @@ print <<'PAGE_HTML';
 <!-- Modal Gestión de Categorías -->
 <div class="modal fade modal-diamond" id="modalCategorias" tabindex="-1" aria-hidden="true" style="z-index: 105050 !important;">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+        <div class="modal-content border-0 shadow-lg">
             <div class="modal-header">
                 <h5 class="modal-title d-flex align-items-center m-0">
                     <i class="bi bi-gear-fill me-2" style="color: #00C4C4 !important;"></i>
@@ -487,23 +487,23 @@ print <<'PAGE_HTML';
             <div class="modal-body">
                 <div class="row mb-3">
                     <div class="col-md-5">
-                        <label class="small text-muted fw-bold mb-1">Nivel</label>
-                        <select id="mg_nivel" class="form-select bg-light border-0 diamond-input-armor" onchange="cambiarNivelGestion()">
+                        <label class="form-label">Nivel</label>
+                        <select id="mg_nivel" class="form-select" onchange="cambiarNivelGestion()">
                             <option value="1">1. Categoría Principal</option>
                             <option value="2">2. Subcategoría</option>
                             <option value="3">3. Detalle (Nivel 3)</option>
                         </select>
                     </div>
                     <div class="col-md-7" id="mg_parent_col" style="display:none;">
-                        <label class="small text-muted fw-bold mb-1" id="mg_parent_label">Padre</label>
-                        <select id="mg_parent" class="form-select bg-light border-0 diamond-input-armor" onchange="renderListaCategorias()">
+                        <label class="form-label" id="mg_parent_label">Padre</label>
+                        <select id="mg_parent" class="form-select" onchange="renderListaCategorias()">
                             <option value="">Seleccione...</option>
                         </select>
                     </div>
                 </div>
                 
-                <div class="input-group mb-4 shadow-sm" style="border-radius: 1rem; overflow: hidden;">
-                    <input type="text" id="mg_nombre" class="form-control bg-light border-0" placeholder="Nombre de la nueva categoría..." style="padding: 0.75rem 1rem;">
+                <div class="input-group mb-4 shadow-sm" style="border-radius: 10px; overflow: hidden; border: 1px solid var(--md-gray-soft);">
+                    <input type="text" id="mg_nombre" class="form-control border-0" placeholder="Nombre de la nueva categoría...">
                     <button class="btn fw-bold px-4 text-white" type="button" style="background: var(--md-blue-medical);" onclick="agregarCategoria()" id="btn_add_cat">
                         <i class="bi bi-plus-lg me-1"></i>Añadir
                     </button>
