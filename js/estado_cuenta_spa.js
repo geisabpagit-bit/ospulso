@@ -561,20 +561,76 @@ function procesarAbono() {
 }
 
 function imprimirEstadoCuenta() {
-    window.print();
+    const rows = document.querySelectorAll('#tbEdoCuenta tr');
+    if(rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes('Sin movimientos'))) {
+        window.print(); return;
+    }
+    
+    const osMap = new Map();
+    rows.forEach(r => {
+        const td = r.querySelector('td.ps-4');
+        if(td) {
+            const id_os = td.getAttribute('title').replace('OS: ', '').trim();
+            const display = td.innerText.trim();
+            if(id_os) osMap.set(id_os, display);
+        }
+    });
+    
+    if(osMap.size === 0) {
+        window.print(); return;
+    }
+    
+    let optionsHtml = `<option value="ALL">🖨️ Historial Completo del Paciente</option>`;
+    osMap.forEach((display, id_os) => {
+        optionsHtml += `<option value="${id_os}">${display} (${id_os})</option>`;
+    });
+    
+    Swal.fire({
+        title: 'Reporte de Estado de Cuenta',
+        html: `
+            <p class="text-muted small mb-3">Selecciona si deseas imprimir todo el estado de cuenta, o aislar un agrupamiento específico (OS / Alias).</p>
+            <select id="sw_print_os" class="form-select form-select-lg rounded-3 shadow-sm border-0 bg-light fw-bold text-dark">
+                ${optionsHtml}
+            </select>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="bi bi-printer me-2"></i>Imprimir Reporte',
+        confirmButtonColor: '#174975',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if(result.isConfirmed) {
+            const selection = document.getElementById('sw_print_os').value;
+            if(selection === 'ALL') {
+                window.print();
+            } else {
+                imprimirOS(selection);
+            }
+        }
+    });
 }
 
 function imprimirOS(id_os) {
-    // 1. Filtrar visualmente la tabla (solo lo que coincida con la OS)
     const rows = document.querySelectorAll('#tbEdoCuenta tr');
+    let hasMatch = false;
     rows.forEach(r => {
-        if (!r.innerText.includes(id_os)) r.classList.add('d-none-print');
+        const td = r.querySelector('td.ps-4');
+        if(td) {
+            const rowOs = td.getAttribute('title').replace('OS: ', '').trim();
+            if(rowOs !== id_os) {
+                r.classList.add('d-none-print');
+            } else {
+                r.classList.remove('d-none-print');
+                hasMatch = true;
+            }
+        }
     });
     
-    // 2. Lanzar impresión
-    window.print();
+    if(hasMatch) {
+        window.print();
+    } else {
+        Swal.fire("Aviso", "No se encontraron movimientos para imprimir en esta OS.", "info");
+    }
     
-    // 3. Restaurar visibilidad
     rows.forEach(r => r.classList.remove('d-none-print'));
 }
 
