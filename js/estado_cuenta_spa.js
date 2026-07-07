@@ -101,7 +101,7 @@ async function cargarHistorialCuentas() {
                         <td>${badgeStr}</td>
                     </tr>`;
                 }
-                if(limit === 0) html = '<tr><td colspan="6" class="text-center text-muted py-4">No hay transacciones registradas.</td></tr>';
+                if(limit === 0) html = '';
                 tbody.innerHTML = html;
                 
                 if ($.fn.DataTable) {
@@ -275,7 +275,7 @@ function renderHistorial(historial) {
         if ($.fn.DataTable && $.fn.DataTable.isDataTable('#dtEdoCuenta')) {
             $('#dtEdoCuenta').DataTable().destroy();
         }
-        tb.innerHTML = historial.length ? '' : '<tr><td colspan="6" class="text-center py-5 text-muted fw-bold">Sin movimientos.</td></tr>';
+        tb.innerHTML = '';
         historial.forEach(m => {
             const isC = m.tipo === 'Cargo';
             const display_os = m.alias ? m.alias : m.id_os;
@@ -828,7 +828,7 @@ window.renderCxC = async function() {
             });
             
             if (data.data.length === 0) {
-                html = '<tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-check-circle text-success fs-3 d-block mb-2"></i>No hay pacientes con cuentas por cobrar. ¡Excelente!</td></tr>';
+                html = '';
             }
             
             tbody.innerHTML = html;
@@ -865,8 +865,8 @@ window.renderCxC = async function() {
 let catGastos = [], subcatGastos = [], subcat3Gastos = [];
 let categoriasGastosCargadas = false;
 
-async function cargarCategoriasGastos() {
-    if (categoriasGastosCargadas) return;
+async function cargarCategoriasGastos(force = false) {
+    if (categoriasGastosCargadas && !force) return;
     try {
         const res = await fetch('../api/finanzas_api.pl', {
             method: 'POST',
@@ -974,7 +974,7 @@ window.renderGastos = async function() {
             });
             
             if (data.data.length === 0) {
-                html = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-inbox d-block fs-3 mb-2"></i>No hay gastos registrados.</td></tr>';
+                html = '';
             }
             
             tbody.innerHTML = html;
@@ -1116,7 +1116,7 @@ window.renderIngresos = async function() {
             });
             
             if (data.data.length === 0) {
-                html = '<tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-inbox d-block fs-3 mb-2"></i>No hay abonos registrados.</td></tr>';
+                html = '';
             }
             
             tbody.innerHTML = html;
@@ -1145,6 +1145,76 @@ window.renderIngresos = async function() {
     }
 }
 
+
+// ==========================================
+// SPA: GESTION DINAMICA DE CATEGORIAS
+// ==========================================
+window.abrirModalCategorias = function() {
+    const el = document.getElementById('modalCategorias');
+    if (!el) return;
+    $(el).appendTo('body');
+    new bootstrap.Modal(el).show();
+    document.getElementById('mg_nombre').value = '';
+    document.getElementById('mg_nivel').value = '1';
+    cambiarNivelGestion();
+}
+
+window.cambiarNivelGestion = function() {
+    const n = document.getElementById('mg_nivel').value;
+    const parentCol = document.getElementById('mg_parent_col');
+    const parentSelect = document.getElementById('mg_parent');
+    const parentLabel = document.getElementById('mg_parent_label');
+    
+    parentSelect.innerHTML = '<option value="">Seleccione...</option>';
+    
+    if (n === '1') {
+        parentCol.style.display = 'none';
+        renderListaCategorias();
+    } else if (n === '2') {
+        parentCol.style.display = 'block';
+        parentLabel.innerText = "Categoría Principal (Padre)";
+        catGastos.forEach(c => {
+            parentSelect.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+        });
+        renderListaCategorias();
+    } else if (n === '3') {
+        parentCol.style.display = 'block';
+        parentLabel.innerText = "Subcategoría Nivel 2 (Padre)";
+        subcatGastos.forEach(s => {
+            // Find parent cat name
+            const parent = catGastos.find(c => c.id == s.id_cat);
+            const parentName = parent ? parent.nombre : '';
+            parentSelect.innerHTML += `<option value="${s.id}">${parentName} > ${s.nombre}</option>`;
+        });
+        renderListaCategorias();
+    }
+}
+
+window.renderListaCategorias = function() {
+    const n = document.getElementById('mg_nivel').value;
+    const pId = document.getElementById('mg_parent').value;
+    const tbody = document.getElementById('tbodyCategorias');
+    
+    tbody.innerHTML = '';
+    
+    let arr = [];
+    if (n === '1') {
+        arr = catGastos;
+    } else if (n === '2') {
+        if (!pId) { tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Seleccione un padre</td></tr>'; return; }
+        arr = subcatGastos.filter(x => x.id_cat == pId);
+    } else if (n === '3') {
+        if (!pId) { tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Seleccione un padre</td></tr>'; return; }
+        arr = subcat3Gastos.filter(x => x.id_subcat == pId);
+    }
+    
+    if (arr.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay registros</td></tr>';
+        return;
+    }
+    
+    arr.forEach(item => {
+        tbody.innerHTML += `
 
 // ==========================================
 // SPA: GESTION DINAMICA DE CATEGORIAS
@@ -1259,9 +1329,7 @@ window.agregarCategoria = async function() {
         const d = await res.json();
         if (d.success) {
             document.getElementById('mg_nombre').value = '';
-            // Recargar datos core
-            await cargarCategoriasGastos();
-            // Actualizar select de Formulario Principal
+            await cargarCategoriasGastos(true);
             if (n === '1') {
                 const s = document.getElementById('cat_gasto');
                 if (s) { s.value = ''; s.dispatchEvent(new Event('change')); }
@@ -1269,9 +1337,8 @@ window.agregarCategoria = async function() {
                 const s = document.getElementById('subcat_gasto');
                 if (s) { s.value = ''; s.dispatchEvent(new Event('change')); }
             }
-            // Repintar modal actual
             cambiarNivelGestion();
-            document.getElementById('mg_parent').value = pId; // Restaurar sel
+            document.getElementById('mg_parent').value = pId;
             renderListaCategorias();
         } else {
             Swal.fire('Error', d.message, 'error');
@@ -1302,7 +1369,7 @@ window.borrarCategoria = async function(id, nivel) {
         
         if (d.success) {
             const pId = document.getElementById('mg_parent').value;
-            await cargarCategoriasGastos();
+            await cargarCategoriasGastos(true);
             if (nivel === '1') {
                 const s = document.getElementById('cat_gasto');
                 if (s) { s.value = ''; s.dispatchEvent(new Event('change')); }
