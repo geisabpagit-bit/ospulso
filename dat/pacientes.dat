@@ -23,4 +23,4 @@ ID_PACIENTE|ID_MEDICO|NOMBRE_COMPLETO|RFC|CURP|CORREO|FECHA_NACIMIENTO|SEXO|OCUP
 22|1|Alejandro Rodriguez|XXXX803452XXX|XXXX305291XXXXXX00|alejandro@example.com|1985-01-21|Femenino|Arquitecto|Soltero|Mexicana|A+|5573574045
 23|1|Patricia Gomez|XXXX293465XXX|XXXX573679XXXXXX00|patricia@example.com|1972-08-04|Masculino|Maestro|Viudo|Mexicana|B-|5531259425
 24|1|Patricia Hernandez|XXXX598489XXX|XXXX867302XXXXXX00|patricia@example.com|1975-04-19|Masculino|Arquitecto|Divorciado|Mexicana|B-|5563359620
-25|1|Pedro Gomez|XXXX504383XXX|XXXX333085XXXXXX00|pedro@example.com|1991-03-17|Masculino|Abogado|Divorciado|Mexicana|AB+|5574361925
+25|1|Pedro Gomez|XXXX504383XXX|XXXX333085XXXXXX00|pedro@example.com|1991-03-17|Masculino|Abogado|Divorciado|Mexicana|AB+|5574361925
