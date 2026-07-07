@@ -12,48 +12,48 @@ sub render_bottom_nav {
     <link rel="stylesheet" href="../css/bottom_nav.css?v=1778173537">
     
     <nav class="sdm-main-bottom-nav d-md-none animate__animated animate__slideInUp">
-        <a href="inicial.pl" class="main-tab-item @{[$active eq 'inicio' ? 'active' : '']}">
+        <a href="inicial.pl" class="main-tab-item @{[$active eq 'inicio' ? 'active' : '']}" title="Inicio">
             <i class="bi bi-house-door"></i>
             <span>Inicio</span>
         </a>
         
         @{[ 
             $active eq 'agenda' ? qq(
-                <button onclick="abrirModalNuevaCita()" class="main-tab-item">
-                    <i class="bi bi-plus-circle-fill text-primary" style="font-size: 2rem;"></i>
-                    <span>Nueva Cita</span>
-                </button>
-                <a href="pacientes.pl" class="main-tab-item">
+                <a href="pacientes.pl" class="main-tab-item" title="Pacientes">
                     <i class="bi bi-people"></i>
                     <span>Pacientes</span>
                 </a>
-                <button onclick="abrirModalAjustes()" class="main-tab-item">
+                <button onclick="abrirModalNuevaCita()" class="main-tab-item dock-fab" title="Nueva Cita">
+                    <i class="bi bi-calendar-plus"></i>
+                    <span>Nueva Cita</span>
+                </button>
+                <button onclick="abrirModalAjustes()" class="main-tab-item" title="Ajustes">
                     <i class="bi bi-gear-fill"></i>
                     <span>Ajustes</span>
                 </button>
             ) : $active eq 'pacientes' ? qq(
-                <a href="crud_paciente.pl" class="main-tab-item">
-                    <i class="bi bi-person-plus-fill text-primary" style="font-size: 2rem;"></i>
-                    <span>Nuevo</span>
-                </a>
-                <a href="agenda_main.pl" class="main-tab-item">
+                <a href="agenda_main.pl" class="main-tab-item" title="Citas">
                     <i class="bi bi-calendar3"></i>
                     <span>Citas</span>
                 </a>
-                <a href="ajustes.pl" class="main-tab-item">
+                <a href="crud_paciente.pl" class="main-tab-item dock-fab" title="Nuevo Paciente">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span>Nuevo</span>
+                </a>
+                <a href="ajustes.pl" class="main-tab-item" title="Ajustes">
                     <i class="bi bi-sliders"></i>
                     <span>Ajustes</span>
                 </a>
             ) : qq(
-                <a href="agenda_main.pl" class="main-tab-item">
+                <a href="agenda_main.pl" class="main-tab-item @{[$active eq 'agenda' ? 'active' : '']}" title="Citas">
                     <i class="bi bi-calendar3"></i>
                     <span>Citas</span>
                 </a>
-                <a href="pacientes.pl" class="main-tab-item">
+                <a href="pacientes.pl" class="main-tab-item @{[$active eq 'pacientes' ? 'active' : '']}" title="Pacientes">
                     <i class="bi bi-people"></i>
                     <span>Pacientes</span>
                 </a>
-                <a href="ajustes.pl" class="main-tab-item">
+                <a href="ajustes.pl" class="main-tab-item @{[$active eq 'ajustes' ? 'active' : '']}" title="Ajustes">
                     <i class="bi bi-sliders"></i>
                     <span>Ajustes</span>
                 </a>
