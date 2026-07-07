@@ -891,7 +891,7 @@ async function cargarCategoriasGastos(force = false) {
             
             const catSelect = document.getElementById('cat_gasto');
             if (catSelect) {
-                catSelect.innerHTML = '<option value="">Seleccione...</option>';
+                catSelect.innerHTML = '<option value="">Sin Categoría</option>';
                 catGastos.forEach(c => {
                     catSelect.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
                 });
@@ -986,11 +986,22 @@ window.renderGastos = async function() {
                 const facturaBtn = g.factura_path ? 
                     `<a href="../${g.factura_path}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill me-1" title="Ver Factura"><i class="bi bi-file-earmark-pdf"></i></a>` : 
                     '';
+                
+                let subCatsText = '';
+                if (g.subcat_nombre !== 'N/A' && g.subcat_nombre) {
+                    subCatsText = g.subcat_nombre;
+                    if (g.subcat3_nombre !== 'N/A' && g.subcat3_nombre) {
+                        subCatsText += ' > ' + g.subcat3_nombre;
+                    }
+                }
+                const subCatsHtml = subCatsText ? `<small class="text-muted">${subCatsText}</small>` : '';
+                const catHtml = g.cat_nombre !== 'N/A' && g.cat_nombre ? g.cat_nombre : 'Sin Categoría';
+
                 html += `<tr>
                     <td class="text-muted small">${g.fecha || ''}</td>
                     <td>
-                        <span class="fw-bold" style="color: var(--md-blue-deep);">${g.cat_nombre}</span><br>
-                        <small class="text-muted">${g.subcat_nombre} > ${g.subcat3_nombre}</small>
+                        <span class="fw-bold" style="color: var(--md-blue-deep);">${catHtml}</span><br>
+                        ${subCatsHtml}
                     </td>
                     <td class="fw-bold text-dark">${g.proveedor || '-'}</td>
                     <td class="text-muted">${g.concepto}</td>
@@ -1201,28 +1212,40 @@ window.abrirModalCategorias = function() {
     if (!el) return;
     $(el).appendTo('body');
     
-    // Ocultar modalGasto para evitar problemas de z-index
-    const modalGastoEl = document.getElementById('modalGasto');
-    let gastoHidden = false;
-    if (modalGastoEl && modalGastoEl.classList.contains('show')) {
-        const mg = bootstrap.Modal.getInstance(modalGastoEl);
-        if (mg) mg.hide();
-        gastoHidden = true;
-    }
-    
-    new bootstrap.Modal(el).show();
-    
-    if (gastoHidden) {
-        // Al cerrar categorias, reabrir gastos
-        el.addEventListener('hidden.bs.modal', function handler() {
-            new bootstrap.Modal(modalGastoEl).show();
-            el.removeEventListener('hidden.bs.modal', handler);
-        });
-    }
-    
     document.getElementById('mg_nombre').value = '';
     document.getElementById('mg_nivel').value = '1';
     cambiarNivelGestion();
+    
+    const modalGastoEl = document.getElementById('modalGasto');
+    
+    const reabrirGastoHandler = function() {
+        el.removeEventListener('hidden.bs.modal', reabrirGastoHandler);
+        if (modalGastoEl) {
+            const mg = bootstrap.Modal.getInstance(modalGastoEl) || new bootstrap.Modal(modalGastoEl);
+            mg.show();
+        }
+    };
+    
+    if (modalGastoEl && modalGastoEl.classList.contains('show')) {
+        const mg = bootstrap.Modal.getInstance(modalGastoEl);
+        if (mg) {
+            const onHidden = function() {
+                modalGastoEl.removeEventListener('hidden.bs.modal', onHidden);
+                const mc = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+                mc.show();
+                el.addEventListener('hidden.bs.modal', reabrirGastoHandler);
+            };
+            modalGastoEl.addEventListener('hidden.bs.modal', onHidden);
+            mg.hide();
+        } else {
+            const mc = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+            mc.show();
+            el.addEventListener('hidden.bs.modal', reabrirGastoHandler);
+        }
+    } else {
+        const mc = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+        mc.show();
+    }
 }
 
 window.cambiarNivelGestion = function() {

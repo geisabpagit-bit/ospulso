@@ -391,11 +391,14 @@ print <<'PAGE_HTML';
 </div> <!-- sdm-layout-wrapper -->
 
 <!-- Modal Nuevo Gasto (Floating Armor) - Movido fuera del contexto de apilamiento para evitar solapamiento con navbar -->
-<div class="modal fade" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105000;">
+<div class="modal fade modal-diamond" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-            <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold plus-jakarta text-dark m-0"><i class="bi bi-cash-stack text-danger me-2"></i>Registrar Gasto</h5>
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center m-0">
+                    <i class="bi bi-cash-stack me-2" style="color: #00C4C4 !important;"></i>
+                    <span>Registrar Gasto</span>
+                </h5>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-sm btn-light rounded-circle text-muted" onclick="abrirModalCategorias()" title="Gestionar Categorías">
                         <i class="bi bi-gear-fill"></i>
@@ -471,11 +474,14 @@ print <<'PAGE_HTML';
 </div>
 
 <!-- Modal Gestión de Categorías -->
-<div class="modal fade" id="modalCategorias" tabindex="-1" aria-hidden="true" style="z-index: 105010;">
+<div class="modal fade modal-diamond" id="modalCategorias" tabindex="-1" aria-hidden="true" style="z-index: 105050 !important;">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="fw-bold plus-jakarta text-dark m-0"><i class="bi bi-gear-fill text-secondary me-2"></i>Gestión de Categorías</h5>
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center m-0">
+                    <i class="bi bi-gear-fill me-2" style="color: #00C4C4 !important;"></i>
+                    <span>Gestión de Categorías</span>
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
