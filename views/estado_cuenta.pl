@@ -449,7 +449,7 @@ print <<HTML;
     });
 </script>
 HTML
-
+print <<HTML;
 </body>
 </html>
 HTML
