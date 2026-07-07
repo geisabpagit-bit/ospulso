@@ -65,6 +65,48 @@ async function cargarHistorialCuentas() {
         
         actualizarPieChart(res.cargos || 0, res.abonos || 0);
 
+        // Nuevos KPIs Globales (Solo si no hay paciente seleccionado)
+        if (!idPacienteGlobal) {
+            const eIT = document.getElementById('kpiIngresosTotales');
+            const eCC = document.getElementById('kpiCuentasCobrar');
+            const eF = document.getElementById('kpiFacturacion');
+            const eEC = document.getElementById('kpiEficiencia');
+
+            if (eIT) eIT.innerText = formatter.format(res.cargos || 0);
+            if (eCC) eCC.innerText = formatter.format(res.saldo || 0);
+            if (eF) eF.innerText = formatter.format(res.cargos || 0); // Igualado temporalmente a cargos
+            if (eEC) {
+                let eff = res.cargos > 0 ? (res.abonos / res.cargos * 100) : 0;
+                eEC.innerText = eff.toFixed(1) + '%';
+            }
+
+            const tbody = document.getElementById('tbodyResumenIngresos');
+            if (tbody) {
+                let html = '';
+                const limit = Math.min((res.historial || []).length, 10);
+                for(let i=0; i<limit; i++) {
+                    const h = res.historial[i];
+                    // Si es Abono se asume Pagado. Si es Cargo se asume Pendiente (solo representativo para la demo UI)
+                    const isAbono = h.tipo.toLowerCase().includes('abono');
+                    const badgeStr = isAbono ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Pagado</span>' : '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Pendiente</span>';
+                    
+                    html += `<tr>
+                        <td class="text-muted">\${h.fecha.substring(0, 10)}</td>
+                        <td class="fw-bold text-dark">\${h.concepto}</td>
+                        <td class="text-muted small">OS/2024/\${h.id_os.toString().padStart(4,'0')}</td>
+                        <td class="fw-bold" style="color: var(--md-blue-deep);">\${h.alias || h.id_paciente}</td>
+                        <td class="fw-bold text-dark">\${formatter.format(h.total)}</td>
+                        <td>\${badgeStr}</td>
+                    </tr>`;
+                }
+                if(limit === 0) html = '<tr><td colspan="6" class="text-center text-muted py-4">No hay transacciones registradas.</td></tr>';
+                tbody.innerHTML = html;
+            }
+
+            // Disparar render de gr√°fica de l√≠nea
+            if(typeof renderEvolucionIngresosGlobal === 'function') renderEvolucionIngresosGlobal();
+        }
+
         renderHistorial(res.historial || []);
     } catch (e) {
         console.error("Fallo financiero:", e);
@@ -595,3 +637,79 @@ function abrirModalCargoConOS(id_os, alias) {
     const m = new bootstrap.Modal(el);
     m.show();
 }
+
+let lineChartInstance = null;
+function renderEvolucionIngresosGlobal() {
+    const canvas = document.getElementById("lineEvolucionIngresos");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    
+    if (lineChartInstance) lineChartInstance.destroy();
+
+    const gradBlue = ctx.createLinearGradient(0, 0, 0, 250);
+    gradBlue.addColorStop(0, "rgba(59, 130, 246, 0.4)");
+    gradBlue.addColorStop(1, "rgba(59, 130, 246, 0.0)");
+
+    const gradGold = ctx.createLinearGradient(0, 0, 0, 250);
+    gradGold.addColorStop(0, "rgba(234, 179, 8, 0.4)");
+    gradGold.addColorStop(1, "rgba(234, 179, 8, 0.0)");
+
+    lineChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
+            datasets: [
+                {
+                    label: "Este AÒo",
+                    data: [80000, 150000, 220000, 190000, 260000, 290000],
+                    borderColor: "#2563eb",
+                    backgroundColor: gradBlue,
+                    borderWidth: 3,
+                    pointBackgroundColor: "#fff",
+                    pointBorderColor: "#2563eb",
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: "AÒo Anterior",
+                    data: [60000, 110000, 130000, 120000, 170000, 180000],
+                    borderColor: "#eab308",
+                    backgroundColor: gradGold,
+                    borderWidth: 3,
+                    borderDash: [5, 5],
+                    pointBackgroundColor: "#fff",
+                    pointBorderColor: "#eab308",
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: "top",
+                    align: "start",
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 8,
+                        font: { family: "sans-serif", weight: "bold", size: 11 }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: "rgba(0,0,0,0.04)" } }
+            }
+        }
+    });
+}
+
