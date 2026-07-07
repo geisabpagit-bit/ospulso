@@ -1810,3 +1810,12 @@ footer {
 .pricing-title-responsive { font-size: 3rem; color: var(--md-blue-deep); }
 @media (max-width: 576px) { .pricing-title-responsive { font-size: 2.2rem; } }
 
+
+/* Premium Accordion FAQ */
+.accordion-premium .accordion-item { background: var(--md-white-clinical); transition: all 0.3s ease; }
+.accordion-premium .accordion-item:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 196, 196, 0.15) !important; }
+.accordion-premium .accordion-button { background: transparent; padding: 1.25rem 1.5rem; box-shadow: none !important; }
+.accordion-premium .accordion-button:not(.collapsed) { color: var(--md-teal-clinical); background: rgba(0, 196, 196, 0.05); }
+.accordion-premium .accordion-button::after { background-size: 1rem; transition: transform 0.3s ease; }
+.accordion-premium .accordion-body { padding: 0 1.5rem 1.5rem 1.5rem; line-height: 1.6; }
+
