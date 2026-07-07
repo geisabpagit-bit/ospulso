@@ -1303,6 +1303,54 @@
             });
         });
     </script>
+    <!-- Unify Carousel Heights for Mobile -->
+    <script>
+        window.addEventListener('load', () => {
+            function unifyCarouselHeights() {
+                if (window.innerWidth < 768) {
+                    const demoCarousel = document.getElementById('demoCarousel');
+                    if (demoCarousel) {
+                        // Obtain height of demoCarousel and reduce by 5%
+                        const targetHeight = demoCarousel.offsetHeight * 0.95;
+                        
+                        // Apply to all holo-card carousels
+                        const carousels = document.querySelectorAll('.carousel.holo-card .carousel-inner');
+                        carousels.forEach(inner => {
+                            inner.style.height = targetHeight + 'px';
+                            // Use flexbox to center content vertically within the new height
+                            inner.style.display = 'flex';
+                            inner.style.alignItems = 'center';
+                            inner.style.overflowY = 'auto'; // Prevent clipping
+                        });
+                        
+                        // Also normalize image heights slightly so they don't break the layout
+                        const imgs = document.querySelectorAll('.carousel.holo-card .holo-carousel-img');
+                        imgs.forEach(img => {
+                            img.style.maxHeight = '250px';
+                        });
+                    }
+                } else {
+                    // Reset for desktop
+                    const carousels = document.querySelectorAll('.carousel.holo-card .carousel-inner');
+                    carousels.forEach(inner => {
+                        inner.style.height = 'auto';
+                        inner.style.display = 'block';
+                        inner.style.overflowY = 'visible';
+                    });
+                    
+                    const imgs = document.querySelectorAll('.carousel.holo-card .holo-carousel-img');
+                    imgs.forEach(img => {
+                        img.style.maxHeight = ''; // reset inline style
+                    });
+                }
+            }
+
+            // Run on load and on resize
+            unifyCarouselHeights();
+            window.addEventListener('resize', unifyCarouselHeights);
+        });
+    </script>
 </body>
+
 </html>
 
