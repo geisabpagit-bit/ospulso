@@ -54,7 +54,9 @@ if (!-e $archivo_usuarios) {
                 $response->{exists} = 1;
                 
                 # Verificar suscripción del negocio asociado
-                my $id_negocio = $campos->[6] // 0; # ID_negocio está en índice 6
+                my $extra = $campos->[6] // '';
+                my ($id_negocio, $id_sucursal) = split /:/, $extra;
+                $id_negocio //= 0;
                 if ($id_negocio) {
                     my $biz = verificar_estado_negocio($id_negocio);
                     $response->{business_active} = $biz->{activo};
