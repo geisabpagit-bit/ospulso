@@ -49,8 +49,6 @@ unless ($paciente) {
     exit; 
 }
 
-print $q->header(-charset => 'UTF-8');
-
 # 1. Cabecera SDP Premium
 render_header(
     usuario => $session_data->{usuario}, 
@@ -322,51 +320,51 @@ print <<HTML;
                 <h4 class="modal-title fw-bold plus-jakarta text-white" id="modalCargoTitle"><i class="bi bi-cart-plus me-3"></i>Nueva Orden de Servicio</h4>
                 <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4" style="background: #f8fafc;">
-                <div class="row g-4">
+            <div class="modal-body p-3" style="background: #f8fafc;">
+                <div class="row g-3">
                     <div class="col-lg-7">
-                        <div class="bento-card p-4 mb-4 border-0 shadow-sm" style="background: white;">
-                            <label class="kpi-label mb-3">Aplica para:</label>
-                            <div class="d-flex gap-4 mb-3">
+                        <div class="bento-card p-3 mb-2 border-0 shadow-sm" style="background: white;">
+                            <label class="kpi-label mb-2">Aplica para:</label>
+                            <div class="d-flex gap-4">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="aplica_para" id="aplica_presupuesto" value="Presupuesto">
-                                    <label class="form-check-label fw-bold text-muted" for="aplica_presupuesto">Presupuesto</label>
+                                    <label class="form-check-label fw-bold text-muted small" for="aplica_presupuesto">Presupuesto</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="aplica_para" id="aplica_consulta" value="Consulta" checked>
-                                    <label class="form-check-label fw-bold text-muted" for="aplica_consulta">Consulta</label>
+                                    <label class="form-check-label fw-bold text-muted small" for="aplica_consulta">Consulta</label>
                                 </div>
                             </div>
                         </div>
-                        <div class="bento-card p-4 mb-4 border-0 shadow-sm" style="background: white;">
+                        <div class="bento-card p-3 mb-2 border-0 shadow-sm" style="background: white;">
                             <label class="kpi-label">Alias / Referencia Corta (Opcional)</label>
-                            <input type="text" id="alias_os_cargo" class="form-control mt-2" maxlength="25" placeholder="Ej. Anticipo Brackets">
+                            <input type="text" id="alias_os_cargo" class="form-control form-control-sm mt-1" maxlength="25" placeholder="Ej. Anticipo Brackets">
                         </div>
-                        <div class="bento-card p-4 mb-4 border-0 shadow-sm">
-                            <label class="kpi-label">Entrada Manual</label>
-                            <div class="input-group">
+                        <div class="bento-card p-3 mb-2 border-0 shadow-sm">
+                            <label class="kpi-label mb-1">Entrada Manual</label>
+                            <div class="input-group input-group-sm">
                                 <input type="text" id="manual_nombre" class="form-control" placeholder="Concepto (ej. Consulta General)">
                                 <span class="input-group-text">\$</span>
-                                <input type="number" id="manual_precio" class="form-control" style="max-width: 120px;" placeholder="0.00">
-                                <button onclick="agregarCargoManual()" class="btn btn-primary px-4"><i class="bi bi-plus-lg"></i></button>
+                                <input type="number" id="manual_precio" class="form-control" style="max-width: 90px;" placeholder="0.00">
+                                <button onclick="agregarCargoManual()" class="btn btn-primary px-3"><i class="bi bi-plus-lg"></i></button>
                             </div>
                         </div>
-                        <div class="mb-3 position-relative">
-                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                            <input type="text" id="buscadorCatalogo" class="form-control ps-5 py-3 rounded-pill shadow-sm border-0" placeholder="Buscar en el catálogo dental..." onkeyup="filtrarCatalogo()">
+                        <div class="mb-2 position-relative">
+                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted small"></i>
+                            <input type="text" id="buscadorCatalogo" class="form-control form-control-sm ps-4 py-2 rounded-pill shadow-sm border-0" placeholder="Buscar en catálogo..." onkeyup="filtrarCatalogo()">
                         </div>
-                        <div id="divCatalogo" class="row g-2 overflow-auto" style="max-height: 450px; padding: 5px;"></div>
+                        <div id="divCatalogo" class="row g-2 overflow-auto" style="max-height: 150px; padding: 2px;"></div>
                     </div>
                     <div class="col-lg-5">
-                       <div class="bento-card p-4 border-0 shadow-md h-100 d-flex flex-column" style="background: #f8fafc;">
-                          <h6 class="kpi-label text-primary">Resumen del Cargo</h6>
-                          <div id="listaCarrito" class="flex-grow-1 d-flex flex-column gap-2 overflow-auto mb-4" style="max-height: 350px;"></div>
-                          <div class="p-4 bg-white rounded-4 border shadow-sm">
-                             <div class="d-flex justify-content-between align-items-center mb-3">
+                       <div class="bento-card p-3 border-0 shadow-md h-100 d-flex flex-column" style="background: #f8fafc;">
+                          <h6 class="kpi-label text-primary mb-2">Resumen del Cargo</h6>
+                          <div id="listaCarrito" class="flex-grow-1 d-flex flex-column gap-2 overflow-auto mb-2" style="max-height: 150px;"></div>
+                          <div class="p-3 bg-white rounded-4 border shadow-sm mt-auto">
+                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="small fw-bold text-muted">TOTAL CARGO</span>
-                                <span class="h2 fw-bold text-primary m-0" id="carritoTotal">\$0.00</span>
+                                <span class="h4 fw-bold text-primary m-0" id="carritoTotal">\$0.00</span>
                              </div>
-                             <button class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow" id="btnProcesarCargo" onclick="procesarCarrito()">PROCESAR CARGO</button>
+                             <button class="btn btn-primary btn-sm w-100 py-2 fw-bold rounded-3 shadow" id="btnProcesarCargo" onclick="procesarCarrito()">PROCESAR CARGO</button>
                           </div>
                        </div>
                     </div>

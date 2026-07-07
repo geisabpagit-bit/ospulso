@@ -125,9 +125,9 @@ function renderHistorial(historial) {
                     <td class="text-center">
                         <div class="d-flex gap-1 justify-content-center">
                             <button onclick="imprimirOS('${m.id_os}')" title="Imprimir Recibo" class="btn btn-sm btn-outline-dark border-0"><i class="bi bi-printer"></i></button>
-                            ${isC ? `<button onclick="abrirModalAbonoContextual(${m.total}, '${m.concepto}', '${m.id_os}')" title="Abonar a este ítem" class="btn btn-sm btn-outline-success border-0"><i class="bi bi-cash-coin"></i></button>` : ''}
-                            ${isC ? `<button onclick="abrirModalCargoConOS('${m.id_os}')" title="Agregar ítem a esta OS" class="btn btn-sm btn-outline-primary border-0"><i class="bi bi-folder-plus"></i></button>` : ''}
-                            <button onclick="prepararEdicion('${m.id_mov}', '${m.concepto}', '${m.total}')" class="btn btn-sm btn-outline-secondary border-0"><i class="bi bi-pencil"></i></button>
+                            ${isC ? `<button onclick="abrirModalAbonoContextual(${m.total}, '${m.concepto.replace(/'/g, "\\'")}', '${m.id_os}', '${m.alias || ''}')" title="Abonar a este ítem" class="btn btn-sm btn-outline-success border-0"><i class="bi bi-cash-coin"></i></button>` : ''}
+                            ${isC ? `<button onclick="abrirModalCargoConOS('${m.id_os}', '${m.alias || ''}')" title="Agregar ítem a esta OS" class="btn btn-sm btn-outline-primary border-0"><i class="bi bi-folder-plus"></i></button>` : ''}
+                            <button onclick="prepararEdicion('${m.id_mov}', '${m.concepto.replace(/'/g, "\\'")}', '${m.total}')" class="btn btn-sm btn-outline-secondary border-0"><i class="bi bi-pencil"></i></button>
                             <button onclick="eliminarMovimiento('${m.id_mov}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>
                         </div>
                     </td>
@@ -175,9 +175,9 @@ function renderHistorial(historial) {
                             <p class="fw-bold h5 mb-0 tracking-tighter ${isC?'text-dark':'text-success'}">${isC?'':'-'}${formatter.format(m.total)}</p>
                         </div>
                         <div class="d-flex gap-2">
-                            ${isC ? `<button onclick="abrirModalAbonoContextual(${m.total}, '${m.concepto}', '${m.id_os}')" class="btn btn-sm btn-light border-0"><i class="bi bi-cash-coin text-success"></i></button>` : ''}
-                            ${isC ? `<button onclick="abrirModalCargoConOS('${m.id_os}')" class="btn btn-sm btn-light border-0"><i class="bi bi-folder-plus text-primary"></i></button>` : ''}
-                            <button onclick="prepararEdicion('${m.id_mov}', '${m.concepto}', '${m.total}')" class="btn btn-sm btn-light border-0"><i class="bi bi-pencil text-muted"></i></button>
+                            ${isC ? `<button onclick="abrirModalAbonoContextual(${m.total}, '${m.concepto.replace(/'/g, "\\'")}', '${m.id_os}', '${m.alias || ''}')" class="btn btn-sm btn-light border-0"><i class="bi bi-cash-coin text-success"></i></button>` : ''}
+                            ${isC ? `<button onclick="abrirModalCargoConOS('${m.id_os}', '${m.alias || ''}')" class="btn btn-sm btn-light border-0"><i class="bi bi-folder-plus text-primary"></i></button>` : ''}
+                            <button onclick="prepararEdicion('${m.id_mov}', '${m.concepto.replace(/'/g, "\\'")}', '${m.total}')" class="btn btn-sm btn-light border-0"><i class="bi bi-pencil text-muted"></i></button>
                             <button onclick="eliminarMovimiento('${m.id_mov}')" class="btn btn-sm btn-light border-0"><i class="bi bi-trash text-danger"></i></button>
                         </div>
                     </div>
@@ -297,17 +297,27 @@ async function abrirModalAbono() {
     document.getElementById('montoAbono').value = '';
     document.getElementById('notasAbono').value = '';
     const aliasIn = document.getElementById('alias_os_abono');
-    if (aliasIn) aliasIn.value = '';
+    if (aliasIn) {
+        aliasIn.value = 'ABONO GLOBAL';
+        aliasIn.setAttribute('disabled', 'disabled');
+        aliasIn.setAttribute('readonly', 'readonly');
+    }
     const m = bootstrap.Modal.getOrCreateInstance(modalEl);
     m.show();
 }
 
-function abrirModalAbonoContextual(monto, concepto, id_os) {
+function abrirModalAbonoContextual(monto, concepto, id_os, alias) {
     const modalEl = document.getElementById('modalAbono');
     if (modalEl && modalEl.parentElement !== document.body) document.body.appendChild(modalEl);
     document.getElementById('modalAbonoTitle').innerHTML = `<i class="bi bi-cash-coin me-2"></i>Liquidar: <span class="text-success">${concepto}</span>`;
     document.getElementById('montoAbono').value = monto;
     document.getElementById('notasAbono').value = `Pago de: ${concepto} (OS: ${id_os})`;
+    const aliasIn = document.getElementById('alias_os_abono');
+    if (aliasIn) {
+        aliasIn.value = alias || id_os;
+        aliasIn.setAttribute('disabled', 'disabled');
+        aliasIn.setAttribute('readonly', 'readonly');
+    }
     const m = bootstrap.Modal.getOrCreateInstance(modalEl);
     m.show();
 }
@@ -411,18 +421,28 @@ function abrirModalCargo() {
     carritoApp = [];
     refrescarGUICarrito();
     const aliasIn = document.getElementById('alias_os_cargo');
-    if (aliasIn) aliasIn.value = '';
+    if (aliasIn) {
+        aliasIn.value = '';
+        aliasIn.removeAttribute('disabled');
+        aliasIn.removeAttribute('readonly');
+    }
     const el = document.getElementById('modalCargo');
     if (!el) return console.error("Modal Cargo no encontrado");
     const m = new bootstrap.Modal(el);
     m.show();
 }
 
-function abrirModalCargoConOS(id_os) {
+function abrirModalCargoConOS(id_os, alias) {
     windowActiveOS = id_os;
     document.getElementById('modalCargoTitle').innerHTML = `<i class="bi bi-plus-circle-dotted me-3"></i>Agregar a OS: <span class="text-primary">${id_os}</span>`;
     carritoApp = [];
     refrescarGUICarrito();
+    const aliasIn = document.getElementById('alias_os_cargo');
+    if (aliasIn) {
+        aliasIn.value = alias || id_os;
+        aliasIn.setAttribute('disabled', 'disabled');
+        aliasIn.setAttribute('readonly', 'readonly');
+    }
     const el = document.getElementById('modalCargo');
     if (!el) return console.error("Modal Cargo no encontrado");
     const m = new bootstrap.Modal(el);
