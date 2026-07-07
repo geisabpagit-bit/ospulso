@@ -873,7 +873,16 @@ async function cargarCategoriasGastos(force = false) {
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: new URLSearchParams({ action: 'get_categorias_gastos' })
         });
-        const data = await res.json();
+        
+        let data;
+        try {
+            data = await res.clone().json();
+        } catch(e) {
+            const rawText = await res.text();
+            console.error("GET CATEGORIAS FAILED TO PARSE JSON. RAW RESPONSE:", rawText);
+            throw e;
+        }
+        
         if (data.success) {
             catGastos = data.categorias;
             subcatGastos = data.subcategorias;
@@ -961,7 +970,15 @@ window.renderGastos = async function() {
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: new URLSearchParams({ action: 'get_gastos' })
         });
-        const data = await res.json();
+        
+        let data;
+        try {
+            data = await res.clone().json();
+        } catch(e) {
+            const rawText = await res.text();
+            console.error("GET GASTOS FAILED TO PARSE JSON. RAW RESPONSE:", rawText);
+            throw e;
+        }
         
         if (data.success && tbody) {
             let html = '';
