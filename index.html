@@ -1317,16 +1317,45 @@
                         const carousels = document.querySelectorAll('.carousel.holo-card .carousel-inner');
                         carousels.forEach(inner => {
                             inner.style.height = targetHeight + 'px';
-                            // Use flexbox to center content vertically within the new height
                             inner.style.display = 'flex';
                             inner.style.alignItems = 'center';
-                            inner.style.overflowY = 'auto'; // Prevent clipping
+                            inner.style.overflow = 'hidden'; // Ensure no scrollbars
+                        });
+
+                        // Adjust layout and padding for mobile to prevent clipping
+                        const carouselRows = document.querySelectorAll('.carousel.holo-card .carousel-item .row');
+                        carouselRows.forEach(row => {
+                            row.style.height = '100%';
+                            row.style.display = 'flex';
+                            row.style.flexDirection = 'column';
+                            row.style.justifyContent = 'center';
+                            row.style.alignItems = 'center';
+                        });
+
+                        // Override huge padding (p-5) dynamically on mobile
+                        const cols = document.querySelectorAll('.carousel.holo-card .carousel-item .col-md-6');
+                        cols.forEach(col => {
+                            col.style.padding = '0.5rem 1rem'; // Reduced padding
                         });
                         
-                        // Also normalize image heights slightly so they don't break the layout
+                        // Scale images proportionally (approx 45% of available height)
                         const imgs = document.querySelectorAll('.carousel.holo-card .holo-carousel-img');
                         imgs.forEach(img => {
-                            img.style.maxHeight = '250px';
+                            img.style.maxHeight = (targetHeight * 0.45) + 'px';
+                            img.style.width = 'auto';
+                            img.style.objectFit = 'contain';
+                        });
+                        
+                        // Slightly reduce text sizes inside carousels for mobile
+                        const titles = document.querySelectorAll('.carousel.holo-card h3, .carousel.holo-card h4');
+                        titles.forEach(title => {
+                            title.style.fontSize = '1.2rem';
+                            title.style.marginBottom = '0.5rem';
+                        });
+                        const texts = document.querySelectorAll('.carousel.holo-card p');
+                        texts.forEach(text => {
+                            text.style.fontSize = '0.85rem';
+                            text.style.marginBottom = '0';
                         });
                     }
                 } else {
@@ -1335,17 +1364,40 @@
                     carousels.forEach(inner => {
                         inner.style.height = 'auto';
                         inner.style.display = 'block';
-                        inner.style.overflowY = 'visible';
+                        inner.style.overflow = 'visible';
                     });
                     
+                    const carouselRows = document.querySelectorAll('.carousel.holo-card .carousel-item .row');
+                    carouselRows.forEach(row => {
+                        row.style.height = '';
+                        row.style.display = '';
+                        row.style.flexDirection = '';
+                    });
+
+                    const cols = document.querySelectorAll('.carousel.holo-card .carousel-item .col-md-6');
+                    cols.forEach(col => {
+                        col.style.padding = '';
+                    });
+
                     const imgs = document.querySelectorAll('.carousel.holo-card .holo-carousel-img');
                     imgs.forEach(img => {
-                        img.style.maxHeight = ''; // reset inline style
+                        img.style.maxHeight = ''; 
+                        img.style.width = '';
+                    });
+                    
+                    const titles = document.querySelectorAll('.carousel.holo-card h3, .carousel.holo-card h4');
+                    titles.forEach(title => {
+                        title.style.fontSize = '';
+                        title.style.marginBottom = '';
+                    });
+                    const texts = document.querySelectorAll('.carousel.holo-card p');
+                    texts.forEach(text => {
+                        text.style.fontSize = '';
+                        text.style.marginBottom = '';
                     });
                 }
             }
 
-            // Run on load and on resize
             unifyCarouselHeights();
             window.addEventListener('resize', unifyCarouselHeights);
         });
