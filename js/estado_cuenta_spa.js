@@ -22,7 +22,7 @@ async function cargarHistorialCuentas() {
         formData.append('accion', 'get_historial');
         formData.append('id_paciente', idPacienteGlobal);
         
-        const response = await fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: formData });
+        const response = await fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: formData, credentials: 'same-origin' });
         if (!response.ok) throw new Error("Error en servidor");
         const res = await response.json();
 
@@ -283,7 +283,7 @@ function renderHistorial(historial) {
 
 async function cargarCatalogo() {
     try {
-        const res = await fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: new URLSearchParams({accion: 'get_catalogo'}) });
+        const res = await fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: new URLSearchParams({accion: 'get_catalogo'}), credentials: 'same-origin' });
         const data = await res.json();
         catalogoMaster = [...(data.servicios||[]), ...(data.productos||[])];
         renderCatalogoGUI();
@@ -373,7 +373,7 @@ async function procesarCarrito() {
         const apIn = document.querySelector('input[name="aplica_para"]:checked');
         fd.append('aplica_para', apIn ? apIn.value : '');
         fd.append('payload', JSON.stringify(carritoApp));
-        const res = await fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: fd });
+        const res = await fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' });
         const json = await res.json();
         if(json.success) {
             const m = bootstrap.Modal.getInstance(document.getElementById('modalCargo'));
@@ -446,7 +446,7 @@ function procesarAbono() {
     const aliasIn = document.getElementById('alias_os_abono');
     fd.append('alias', aliasIn ? aliasIn.value : '');
 
-    fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: fd })
+    fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' })
         .then(r => r.json())
         .then(data => {
             if(data.success) {
@@ -478,7 +478,7 @@ function imprimirOS(id_os) {
 function eliminarMovimiento(id) {
     Swal.fire({ title: '¿Eliminar registro?', text: "Esta acción no se puede deshacer.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', cancelButtonColor: '#64748b', confirmButtonText: 'Sí, borrar' }).then((result) => {
         if (result.isConfirmed) {
-            fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: new URLSearchParams({accion: 'delete_movimiento', id_mov: id}) })
+            fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: new URLSearchParams({accion: 'delete_movimiento', id_mov: id}), credentials: 'same-origin' })
             .then(r => r.json()).then(res => { if(res.success) { cargarHistorialCuentas(); Swal.fire("Eliminado", "El registro ha sido borrado", "success"); } });
         }
     });
@@ -498,7 +498,7 @@ function prepararEdicion(id, concepto, total) {
     }).then((r) => {
         if (r.isConfirmed) {
             const fd = new URLSearchParams({ accion: 'update_movimiento', id_mov: id, concepto: r.value.c, monto: r.value.m });
-            fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: fd }).then(r => r.json()).then(res => { 
+            fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' }).then(r => r.json()).then(res => { 
                 if(res.success) { cargarHistorialCuentas(); Swal.fire("Actualizado", "Registro modificado con éxito", "success"); } 
             });
         }

@@ -11,15 +11,15 @@ use File::Spec;
 # Protocolo SDA-11.1: Rutas Absolutas Dinámicas
 my $dat_path = File::Spec->catdir($FindBin::Bin, '..', 'dat');
 
+my $q = CGI->new;
 require "$FindBin::Bin/../auth/check_session.pl";
-my $session_data = check_session();
+my $session_data = check_session($q);
 unless ($session_data->{session_ok}) {
-    print CGI->new->header(-type => 'application/json', -status => '401 Unauthorized');
+    print $q->header(-type => 'application/json', -status => '401 Unauthorized');
     print JSON::PP->new->utf8(1)->encode({ error => "Sesión inválida o expirada" });
     exit;
 }
 
-my $q = CGI->new;
 my $accion = $q->param('accion') || '';
 my $id_p = $q->param('id_paciente') || '';
 my $id_m_req = $q->param('id_medico') || 'SISTEMA';
