@@ -26,6 +26,7 @@ my $is_global = $id_paciente ? 0 : 1;
 $id_paciente //= '';
 
 # Leer paciente solo si no es global
+my $paciente;
 if (!$is_global) {
     my $reg = leer_tabla($archivo_pacientes, '\|');
     foreach (@$reg) { if ($_->[0] eq $id_paciente) { $paciente = { id => $_->[0], nombre => $_->[2] }; last; } }
