@@ -20,33 +20,65 @@ print $q->header(-type => 'text/html', -charset => 'UTF-8');
 render_header(usuario => $sd->{usuario}, role => $sd->{role}, titulo => 'Configuración - SDM', skip_header => 1);
 
 print <<HTML;
-<div class="container py-5">
+<div class="container py-5 animate__animated animate__fadeIn">
+    <!-- Breadcrumb -->
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="inicial.pl" class="text-decoration-none text-muted fw-bold">Inicio</a></li>
+                <li class="breadcrumb-item active fw-bold text-primary" aria-current="page">Ajustes Generales</li>
+            </ol>
+        </nav>
+    </div>
+
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header bg-navy text-white p-4" style="background:#103070">
-                    <h4 class="m-0 fw-bold">Configuración del Sistema</h4>
-                </div>
-                <div class="card-body p-5 text-center">
-                    <div class="display-1 text-muted mb-4"><i class="bi bi-gear-wide-connected"></i></div>
-                    <h3>Panel de Control</h3>
-                    <p class="text-muted">Módulo en proceso de integración v3.1.6</p>
-                    <hr class="my-4 opacity-10">
-                    <div class="list-group text-start">
-                        <a href="#" class="list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-person-gear me-3"></i>Perfil de Usuario</span>
-                            <i class="bi bi-chevron-right small text-muted"></i>
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-shield-check me-3"></i>Seguridad</span>
-                            <i class="bi bi-chevron-right small text-muted"></i>
-                        </a>
-                        <a href="../auth/cerrar_sesion.pl" class="list-group-item list-group-item-action p-3 text-danger d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-power me-3"></i>Cerrar Sesión</span>
-                        </a>
+        <div class="col-lg-8">
+            <!-- Bento Header -->
+            <div class="bento-card mb-4 border-0 shadow-sm" style="background: white; border-left: 6px solid var(--md-blue-deep) !important;">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="bg-primary text-white rounded-4 d-flex align-items-center justify-content-center shadow" style="width:70px; height:70px; font-size:2.5rem;">
+                        <i class="bi bi-gear-fill"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold plus-jakarta mb-1 text-dark">Configuraci&oacute;n del Sistema</h2>
+                        <div class="d-flex gap-3 text-muted small fw-bold uppercase tracking-wider">
+                            <span><i class="bi bi-shield-check text-success me-1"></i>V3.6 PREMIUM READY</span>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Bento List -->
+            <div class="bento-card border-0 shadow-sm p-4 bg-white mb-4">
+                <h5 class="fw-bold plus-jakarta text-dark mb-4"><i class="bi bi-grid me-2 text-primary"></i>Panel de Control</h5>
+                
+                <div class="list-group list-group-flush border-0">
+                    <a href="perfil.pl" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 p-3 mb-2 bg-light rounded-4 fw-medium text-secondary">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-white p-2 rounded-3 shadow-sm text-primary"><i class="bi bi-person-gear"></i></div>
+                            <span>Mi Perfil de Usuario</span>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 p-3 mb-2 bg-light rounded-4 fw-medium text-secondary">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-white p-2 rounded-3 shadow-sm text-info"><i class="bi bi-shield-lock"></i></div>
+                            <span>Seguridad y Accesos</span>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a href="../auth/cerrar_sesion.pl" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 p-3 bg-danger-subtle rounded-4 fw-bold text-danger">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-white p-2 rounded-3 shadow-sm text-danger"><i class="bi bi-power"></i></div>
+                            <span>Cerrar Sesi&oacute;n</span>
+                        </div>
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>

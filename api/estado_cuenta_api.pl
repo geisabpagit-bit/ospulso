@@ -51,7 +51,6 @@ if ($accion eq 'get_catalogo') {
     responder({ servicios => \@s, productos => \@p });
 
 } elsif ($accion eq 'get_historial') {
-    unless ($id_p) { responder({ error => "ID no proporcionado" }); }
     my @h = (); 
     my ($saldo_total, $cargos_sum, $abonos_sum) = (0, 0, 0);
     my $ec_file = File::Spec->catfile($dat_path, 'estado_cuenta.dat');
@@ -62,11 +61,14 @@ if ($accion eq 'get_catalogo') {
             chomp $line;
             my @v = split /\|/, $line;
             # Estructura: ID_OS|ID_MOV|ID_PAC|TIPO|CONCEPTO|BASE|IVA|TOTAL|FECHA|ID_MED|NOTAS
-            if (@v >= 9 && $v[2] eq $id_p) {
-                my $tot = $v[7] + 0;
-                push @h, { id_os => $v[0], id_mov => $v[1], tipo => $v[3], concepto => $v[4], total => $tot, fecha => $v[8] };
-                if ($v[3] =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; } 
-                else { $saldo_total -= $tot; $abonos_sum += $tot; }
+            if (@v >= 9) {
+                # Filtrar por id_p si se proporciona, sino incluir todos
+                if (!$id_p || $v[2] eq $id_p) {
+                    my $tot = $v[7] + 0;
+                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $v[3], concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2] };
+                    if ($v[3] =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; } 
+                    else { $saldo_total -= $tot; $abonos_sum += $tot; }
+                }
             }
         }
         close $fh;

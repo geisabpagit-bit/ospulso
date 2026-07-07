@@ -18,18 +18,24 @@ my $session_data = check_session();
 unless ($session_data->{session_ok}) { print $q->header(-status => '302 Found', -location => '../index.html'); exit; }
 
 my $id_paciente = $q->param('id');
-unless ($id_paciente) { print $q->redirect('pacientes.pl'); exit; }
+
 
 my $archivo_pacientes = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
-my $paciente;
-my $reg = leer_tabla($archivo_pacientes, '\|');
-foreach (@$reg) { if ($_->[0] eq $id_paciente) { $paciente = { id => $_->[0], nombre => $_->[2] }; last; } }
+# Opcional, si no se pasa id, muestra versión global
+my $is_global = $id_paciente ? 0 : 1;
+$id_paciente //= '';
 
-unless ($paciente) { 
-    print $q->header(-charset => 'UTF-8'); 
-    print "<div class='container py-5 text-center'><h2 class='fw-bold text-danger'>Paciente no localizado.</h2><a href='pacientes.pl' class='btn btn-primary mt-3'>Volver al Directorio</a></div>"; 
-    exit; 
+# Leer paciente solo si no es global
+if (!$is_global) {
+    my $reg = leer_tabla($archivo_pacientes, '\|');
+    foreach (@$reg) { if ($_->[0] eq $id_paciente) { $paciente = { id => $_->[0], nombre => $_->[2] }; last; } }
+    unless ($paciente) { 
+        print $q->header(-charset => 'UTF-8'); 
+        print "<div class='container py-5 text-center'><h2 class='fw-bold text-danger'>Paciente no localizado.</h2><a href='pacientes.pl' class='btn btn-primary mt-3'>Volver al Directorio</a></div>"; 
+        exit; 
+    }
 }
+
 
 # 1. Cabecera SDP Premium
 render_header(
@@ -53,7 +59,9 @@ foreach (@$reg_neg) {
     } 
 }
 
-my $iniciales = uc(substr($paciente->{nombre}, 0, 2) // 'PA');
+my $iniciales = $is_global ? 'GL' : uc(substr($paciente->{nombre}, 0, 2) // 'PA');
+my $nombre_display = $is_global ? 'Visión Global (Todas las Cuentas)' : $paciente->{nombre};
+my $id_display = $is_global ? 'GLOBAL' : $id_paciente;
 
 print <<HTML;
 <style>
@@ -196,17 +204,17 @@ print <<HTML;
         <div class="d-flex align-items-center gap-4">
             <div class="bg-primary text-white rounded-4 d-flex align-items-center justify-content-center shadow" style="width:70px; height:70px; font-size:1.8rem; font-weight:800;">$iniciales</div>
             <div>
-                <h2 class="fw-bold plus-jakarta mb-1 text-dark">$paciente->{nombre}</h2>
+                <h2 class="fw-bold plus-jakarta mb-1 text-dark">$nombre_display</h2>
                 <div class="d-flex gap-3 text-muted small fw-bold uppercase tracking-wider">
-                    <span><i class="bi bi-hash me-1"></i>PACIENTE ID: $id_paciente</span>
+                    <span><i class="bi bi-hash me-1"></i>PACIENTE ID: $id_display</span>
                     <span><i class="bi bi-shield-check text-success me-1"></i>SNC-FIN-ACTIVE</span>
                 </div>
             </div>
             <!-- Botones de Acción Integrados (Desktop/Tablet) -->
             <div class="ms-auto d-flex gap-2 bg-light p-2 rounded-pill shadow-sm border">
                 <button onclick="imprimirEstadoCuenta()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4"><i class="bi bi-printer me-lg-2"></i><span class="d-none d-lg-inline">IMPRIMIR</span></button>
-                <button onclick="abrirModalAbono()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4"><i class="bi bi-cash-coin me-lg-2"></i><span class="d-none d-lg-inline">ABONAR</span></button>
-                <button onclick="abrirModalCargo()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4"><i class="bi bi-cart-plus me-lg-2"></i><span class="d-none d-lg-inline">NUEVO CARGO</span></button>
+                <button onclick="abrirModalAbono()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4" @{[$is_global ? 'disabled style="opacity:0.5"' : '']}><i class="bi bi-cash-coin me-lg-2"></i><span class="d-none d-lg-inline">ABONAR</span></button>
+                <button onclick="abrirModalCargo()" class="btn btn-sdm-primary fw-bold rounded-pill px-3 px-lg-4" @{[$is_global ? 'disabled style="opacity:0.5"' : '']}><i class="bi bi-cart-plus me-lg-2"></i><span class="d-none d-lg-inline">NUEVO CARGO</span></button>
             </div>
         </div>
     </div>
