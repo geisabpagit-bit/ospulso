@@ -28,20 +28,50 @@
 <body class="d-flex flex-column min-vh-100" style="padding-bottom: 70px;">
     <!-- Video Preloader -->
     <div id="pagePreloader" style="padding: 0; background: #000;">
-        <video autoplay muted playsinline loop style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
+        <video id="preloaderVideoEl" autoplay muted playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
             <source src="https://ospulso.pdigitalesm.com/video/hero_video_2.mp4" type="video/mp4">
         </video>
         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 20, 50, 0.3); z-index: 1;"></div>
     </div>
     
     <script>
-        window.addEventListener('load', () => {
-            const preloader = document.getElementById('pagePreloader');
-            if (preloader) {
+        document.addEventListener("DOMContentLoaded", () => {
+            let isLoaded = false;
+            let isVideoEnded = false;
+
+            function hidePreloader() {
+                if (isLoaded && isVideoEnded) {
+                    const preloader = document.getElementById('pagePreloader');
+                    if (preloader && !preloader.classList.contains('hidden')) {
+                        preloader.classList.add('hidden');
+                        setTimeout(() => preloader.style.display = 'none', 800);
+                    }
+                }
+            }
+
+            window.addEventListener('load', () => {
+                isLoaded = true;
+                hidePreloader();
+                
+                // Fallback de seguridad (12s máximo por si el video se traba)
                 setTimeout(() => {
-                    preloader.classList.add('hidden');
-                    setTimeout(() => preloader.style.display = 'none', 800);
-                }, 500);
+                    isVideoEnded = true;
+                    hidePreloader();
+                }, 12000);
+            });
+
+            const heroVideo = document.getElementById('preloaderVideoEl');
+            if (heroVideo) {
+                heroVideo.addEventListener('ended', () => {
+                    isVideoEnded = true;
+                    hidePreloader();
+                });
+                heroVideo.addEventListener('error', () => {
+                    isVideoEnded = true;
+                    hidePreloader();
+                });
+            } else {
+                isVideoEnded = true;
             }
         });
     </script>
