@@ -72,27 +72,75 @@ async function cargarHistorialCuentas() {
 }
 
 function actualizarPieChart(cargos, abonos) {
-    const ctx = document.getElementById('pieResumenConsolidado');
-    if (!ctx) return;
+    const canvas = document.getElementById('pieResumenConsolidado');
+    if (!canvas) return;
+    
+    // Update custom HTML legend
+    const lc = document.getElementById('legCargos');
+    const la = document.getElementById('legAbonos');
+    const pv = document.getElementById('pieCenterVal');
+    if(lc) lc.innerText = formatter.format(cargos);
+    if(la) la.innerText = formatter.format(abonos);
+    if(pv) pv.innerText = formatter.format(currentSaldoTotal);
+
+    const ctx = canvas.getContext('2d');
+    
+    const gradRed = ctx.createLinearGradient(0, 0, 0, 160);
+    gradRed.addColorStop(0, '#f87171');
+    gradRed.addColorStop(0.5, '#dc2626');
+    gradRed.addColorStop(1, '#991b1b');
+
+    const gradGreen = ctx.createLinearGradient(0, 0, 0, 160);
+    gradGreen.addColorStop(0, '#34d399');
+    gradGreen.addColorStop(0.5, '#10b981');
+    gradGreen.addColorStop(1, '#065f46');
+
+    const shadowPlugin = {
+        id: 'shadowPlugin',
+        beforeDraw: (chart) => {
+            const chartCtx = chart.ctx;
+            chartCtx.save();
+            chartCtx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+            chartCtx.shadowBlur = 10;
+            chartCtx.shadowOffsetX = 4;
+            chartCtx.shadowOffsetY = 6;
+        },
+        afterDraw: (chart) => {
+            chart.ctx.restore();
+        }
+    };
+
     if (pieChartInstance) {
         pieChartInstance.data.datasets[0].data = [cargos, abonos];
         pieChartInstance.update();
     } else {
         pieChartInstance = new Chart(ctx, {
-            type: 'pie',
+            type: 'doughnut',
+            plugins: [shadowPlugin],
             data: {
                 labels: ['Cargos', 'Abonos'],
                 datasets: [{
                     data: [cargos, abonos],
-                    backgroundColor: ['#dc2626', '#10b981'],
-                    borderWidth: 0
+                    backgroundColor: [gradRed, gradGreen],
+                    borderColor: ['#fca5a5', '#6ee7b7'],
+                    borderWidth: 1,
+                    hoverOffset: 4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                cutout: '75%',
+                layout: { padding: 10 },
                 plugins: {
-                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + formatter.format(context.raw);
+                            }
+                        }
+                    }
                 }
             }
         });

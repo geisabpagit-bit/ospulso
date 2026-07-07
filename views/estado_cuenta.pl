@@ -10,7 +10,6 @@ use lib $FindBin::Bin . '/..';
 
 require '../auth/check_session.pl';
 require '../utils/sub_header.pl';
-require '../utils/sub_footer.pl';
 use utils::db_manager qw(leer_tabla);
 
 my $q = CGI->new;
@@ -234,10 +233,38 @@ print <<HTML;
                     <i class="bi bi-wallet2 kpi-icon"></i>
                 </div>
 
-                <div class="bento-card border-0 shadow-sm bg-white">
-                    <span class="kpi-label mb-3">Resumen Consolidado</span>
-                    <div class="d-flex flex-column gap-3 justify-content-center align-items-center" style="position: relative; height: 180px; width: 100%;">
-                        <canvas id="pieResumenConsolidado"></canvas>
+                <div class="bento-card border-0 shadow-lg bg-white" style="border-radius: 20px;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold plus-jakarta text-dark m-0" style="font-size: 1.1rem;">Resumen Consolidado</span>
+                        <button class="btn btn-sm bg-light rounded-pill border px-3 fw-bold shadow-sm" style="font-size: 0.75rem; color: #475569;"><i class="bi bi-calendar3 me-1"></i> Global</button>
+                    </div>
+                    
+                    <div class="row align-items-center g-0">
+                        <div class="col-6 position-relative" style="height: 160px;">
+                            <canvas id="pieResumenConsolidado"></canvas>
+                            <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
+                                <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterVal" style="font-size: 1.1rem;">\$0</h5>
+                                <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Saldo</span>
+                            </div>
+                        </div>
+                        <div class="col-6 ps-2">
+                            <div class="d-flex flex-column gap-3 w-100" id="pieCustomLegend">
+                                <div class="d-flex align-items-center justify-content-between w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width: 10px; height: 10px; border-radius: 50%; background: #dc2626; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
+                                        <span class="text-muted fw-bold" style="font-size: 0.75rem;">Cargos</span>
+                                    </div>
+                                    <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legCargos">\$0</span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
+                                        <span class="text-muted fw-bold" style="font-size: 0.75rem;">Abonos</span>
+                                    </div>
+                                    <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legAbonos">\$0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -423,5 +450,7 @@ print <<HTML;
 </script>
 HTML
 
-render_footer();
+</body>
+</html>
+HTML
 1;
