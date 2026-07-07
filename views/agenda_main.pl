@@ -15,6 +15,7 @@ require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
+use utils::db_manager qw(leer_tabla);
 
 my $sd = check_session();
 my $q  = $sd->{q};
@@ -28,6 +29,37 @@ unless ($sd->{session_ok}) {
 my $usuario   = $sd->{usuario};
 my $role      = $sd->{role};
 my $id_medico = $sd->{id_medico};
+my $id_negocio = $sd->{session} ? $sd->{session}->param('id_empresa') : '';
+
+my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+
+my $usuarios = leer_tabla($archivo_usuarios, '!');
+my @medicos;
+if ($usuarios) {
+    foreach my $u (@$usuarios) {
+        if ($u->[5] eq 'Medico' && $u->[6] =~ /^$id_negocio:/) {
+            push @medicos, { id => $u->[0], nombre => $u->[1] };
+        }
+    }
+}
+my $html_medicos = '';
+foreach my $m (@medicos) {
+    my $sel = ($m->{id} eq $id_medico) ? 'selected' : '';
+    $html_medicos .= qq(<option value="$m->{id}" $sel>$m->{nombre}</option>\n);
+}
+
+my $negocios = leer_tabla($archivo_negocios, '\|');
+my $nombre_sucursal = 'Clínica Principal';
+if ($negocios) {
+    foreach my $n (@$negocios) {
+        if ($n->[0] eq $id_negocio) {
+            $nombre_sucursal = $n->[1];
+            last;
+        }
+    }
+}
+my $html_sucursal = qq(<option value="$nombre_sucursal" selected>$nombre_sucursal</option>);
 
 # 1. Cabecera Corporativa
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
@@ -202,20 +234,20 @@ print <<HTML;
       #modalCita .slot-lunch { background-color: #fee2e2 !important; color: #991b1b !important; border-color: #fecaca !important; }
       #modalCita .slot-busy { background-color: #fef9c3 !important; color: #854d0e !important; border-color: #fde047 !important; }
     </style>
-    <div class="modal fade" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
+    <div class="modal fade modal-diamond" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg p-0" style="border-radius: 20px; overflow: hidden !important; background-color: #f8f9fa;">
+            <div class="modal-content">
                 
                 <!-- Cabecera manual -->
-                <div class="p-3 px-4 d-flex justify-content-between align-items-center w-100" style="background-color: var(--md-blue-deep) !important; border-bottom: 1px solid rgba(0,0,0,0.05);">
-                    <h6 class="fw-bold mb-0 text-white d-flex align-items-center">
+                <div class="modal-header">
+                    <h5 class="modal-title d-flex align-items-center">
                         <i class="bi bi-calendar-check me-2" style="color: #00C4C4 !important;"></i> 
                         <span id="modalCitaTitle">GESTIÓN DE CITA</span>
-                    </h6>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 
-                <div class="modal-body p-3 p-md-4" style="background-color: #ffffff;">
+                <div class="modal-body p-3 p-md-4">
                     <form id="formCita">
                         <input type="hidden" name="id_cita" id="f_id_cita">
                         <input type="hidden" name="id_paciente" id="f_id_paciente">
@@ -240,19 +272,22 @@ print <<HTML;
                                 <div class="row g-2 mb-3">
                                     <div class="col-6">
                                         <div class="form-floating floating-label-premium">
-                                            <select name="id_medico" id="f_medico_select" class="form-select fw-bold" onchange="actualizarAgendaDestino()"></select>
+                                            <select name="id_medico" id="f_medico_select" class="form-select fw-bold" onchange="actualizarAgendaDestino()">
+                                                $html_medicos
+                                            </select>
                                             <label for="f_medico_select">PROFESIONAL</label>
                                         </div>
                                     </div>
                                     <div class="col-6">
                                         <div class="form-floating floating-label-premium">
-                                            <select name="sucursal" id="f_sucursal" class="form-select fw-bold"></select>
+                                            <select name="sucursal" id="f_sucursal" class="form-select fw-bold">
+                                                $html_sucursal
+                                            </select>
                                             <label for="f_sucursal">SUCURSAL</label>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row g-2 mb-3">
-                                    <div class="col-4">
+                                    <div class="col-6">
                                         <div class="form-floating floating-label-premium">
                                             <select name="consultorio" id="f_consultorio" class="form-select fw-bold">
                                                 <option value="Consultorio 1">Cons. 1</option>
@@ -264,20 +299,7 @@ print <<HTML;
                                             <label for="f_consultorio">LUGAR</label>
                                         </div>
                                     </div>
-                                    <div class="col-4">
-                                        <div class="form-floating floating-label-premium">
-                                            <select name="color" id="f_color" class="form-select fw-bold">
-                                                <option value="#3b82f6" style="background:#3b82f6;color:white;">Azul</option>
-                                                <option value="#ef4444" style="background:#ef4444;color:white;">Rojo</option>
-                                                <option value="#10b981" style="background:#10b981;color:white;">Verde</option>
-                                                <option value="#f59e0b" style="background:#f59e0b;color:white;">Naranja</option>
-                                                <option value="#8b5cf6" style="background:#8b5cf6;color:white;">Púrpura</option>
-                                                <option value="#ec4899" style="background:#ec4899;color:white;">Rosa</option>
-                                            </select>
-                                            <label for="f_color">COLOR</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
+                                    <div class="col-6">
                                         <div class="form-floating floating-label-premium">
                                             <select name="prioridad" id="f_prioridad" class="form-select fw-bold">
                                                 <option value="Baja">Baja</option>
@@ -329,10 +351,10 @@ print <<HTML;
                         <hr class="opacity-10 my-4" style="border-color: rgba(59, 130, 246, 0.2);">
 
                         <!-- Acciones Principales -->
-                        <div class="d-flex flex-column flex-md-row justify-content-end gap-2">
-                            <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger border-0 fw-bold d-none px-4 order-3 order-md-1" style="border-radius: 12px;">ELIMINAR CITA</button>
-                            <button type="button" onclick="saveCita()" class="bento-action-btn fw-bold px-4 order-1 order-md-2" style="background: linear-gradient(180deg, var(--md-blue-medical) 0%, #124A9E 100%); color: white; border: none !important;"><i class="bi bi-save me-1"></i> GUARDAR CITA</button>
-                            <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="bento-action-btn fw-bold d-none px-4 order-2 order-md-3" style="background: linear-gradient(180deg, #10b981 0%, #059669 100%); color: white; border: none !important;"><i class="bi bi-person-check me-1"></i> TOMAR E IR A CONSULTA</button>
+                        <div class="d-flex flex-column flex-md-row justify-content-end gap-2 mt-4">
+                            <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger fw-bold d-none px-4 order-3 order-md-1 rounded-pill">ELIMINAR CITA</button>
+                            <button type="button" onclick="saveCita()" class="btn btn-premium-primary fw-bold px-4 order-1 order-md-2"><i class="bi bi-save me-1"></i> GUARDAR CITA</button>
+                            <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-success fw-bold d-none px-4 order-2 order-md-3 rounded-pill" style="background: linear-gradient(135deg, #10b981, #059669); border:none;"><i class="bi bi-person-check me-1"></i> TOMAR CITA</button>
                         </div>
                     </form>
                 </div>

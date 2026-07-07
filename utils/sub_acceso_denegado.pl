@@ -118,8 +118,8 @@ sub render_acceso_denegado {
                 <div class="error-icon">
                     <i class="bi bi-shield-lock"></i>
                 </div>
-                <h3 class="fw-bold text-navy mb-2">Acceso denegado</h3>
-                <p class="text-muted small mb-0">Software Dental Mexicano | Diamond Edition</p>
+                <h3 class="fw-bold text-navy mb-2">OsPulso</h3>
+                <p class="text-muted small mb-0 fw-bold">Acceso denegado</p>
             </div>
             <div class="card-body p-4 text-center">
                 <p class="fs-6 text-navy mb-4">$mensaje</p>

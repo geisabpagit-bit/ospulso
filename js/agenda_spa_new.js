@@ -150,10 +150,9 @@ $(document).ready(function() {
     
     // Selector Duración (Diamond Edition Refactor)
     $(document).on('click', '.btn-dur', function() {
-        $(".btn-dur").removeClass('btn-primary active').addClass('btn-outline-primary');
-        $(this).addClass('btn-primary active').removeClass('btn-outline-primary');
-        
-        let val = $(this).data('v');
+        $(".btn-dur").removeClass('active');
+        $(this).addClass('active');
+        const val = $(this).attr('data-v');
         duracionCita = isNaN(val) ? val : parseInt(val);
         
         console.info("Duración Seleccionada:", duracionCita);
@@ -296,10 +295,10 @@ function renderDuracionButtons() {
     else if(val2 === 90) l2 = '1h 30m';
     else if(val2 === 120) l2 = '2h';
     
-    g.append(`<button type="button" class="btn btn-outline-primary btn-dur active" data-v="${int}">${l1}</button>`);
-    g.append(`<button type="button" class="btn btn-outline-primary btn-dur" data-v="${val2}">${l2}</button>`);
-    g.append(`<button type="button" class="btn btn-outline-primary btn-dur" data-v="rest">RESTO</button>`);
-    g.append(`<button type="button" class="btn btn-outline-primary btn-dur" data-v="all">DÍA</button>`);
+    g.append(`<button type="button" class="btn btn-dur active" data-v="${int}">${l1}</button>`);
+    g.append(`<button type="button" class="btn btn-dur" data-v="${val2}">${l2}</button>`);
+    g.append(`<button type="button" class="btn btn-dur" data-v="rest">RESTO</button>`);
+    g.append(`<button type="button" class="btn btn-dur" data-v="all">DÍA</button>`);
 }
 
 

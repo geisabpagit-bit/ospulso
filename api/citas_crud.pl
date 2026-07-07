@@ -171,7 +171,7 @@ sub crear_cita {
         id_cita => time, id_medico => $id_m, id_paciente => $pac_id, 
         fecha => $fec, hora_ini => $hi, hora_fin => $hf, 
         motivo => $query->param('motivo'), notas => '', estado => 'Programada', event_id => $gid // '',
-        color => $query->param('color') // '', prioridad => $query->param('prioridad') // 'Normal',
+        color => '', prioridad => $query->param('prioridad') // 'Normal',
         sucursal => $query->param('sucursal') // '', consultorio => $query->param('consultorio') // ''
     };
     
@@ -202,7 +202,6 @@ sub actualizar_cita {
             $c->{motivo} = $query->param('motivo'); 
             $c->{estado} = $query->param('estado') // $c->{estado};
             $c->{id_medico} = $query->param('id_medico') // $c->{id_medico};
-            $c->{color} = $query->param('color') // $c->{color};
             $c->{prioridad} = $query->param('prioridad') // $c->{prioridad};
             $c->{sucursal} = $query->param('sucursal') // $c->{sucursal};
             $c->{consultorio} = $query->param('consultorio') // $c->{consultorio};
