@@ -14,6 +14,41 @@ async function initModuloFinanciero(id, modo, idMed) {
     await cargarHistorialCuentas();
     // Cargar catálogo siempre que se inicialice el módulo, ya que ambos modos pueden usar modales
     await cargarCatalogo();
+
+    // Iniciar autocomplete de dashboard si existe
+    if ($.fn.autocomplete && document.getElementById('dashboardPatientSearch')) {
+        $("#dashboardPatientSearch").autocomplete({
+            source: "../api/autocomplete_pacientes.pl",
+            minLength: 2,
+            select: function(event, ui) {
+                idPacienteGlobal = ui.item.id;
+                $("#dashboardPatientSearch").val(ui.item.value);
+                cargarHistorialCuentas();
+                return false;
+            }
+        });
+        
+        $("<style>")
+            .prop("type", "text/css")
+            .html(`
+                .ui-autocomplete {
+                    z-index: 10000 !important;
+                    background: white;
+                    border: none;
+                    border-radius: 12px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                    padding: 8px;
+                    font-family: 'Plus Jakarta Sans', sans-serif;
+                }
+                .ui-menu-item-wrapper { padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; }
+                .ui-menu-item-wrapper:hover, .ui-state-active {
+                    background: #f1f5f9 !important;
+                    color: #0f172a !important;
+                    border: none !important;
+                }
+            `)
+            .appendTo("head");
+    }
 }
 
 async function cargarHistorialCuentas() {
@@ -65,8 +100,8 @@ async function cargarHistorialCuentas() {
         
         actualizarPieChart(res.cargos || 0, res.abonos || 0);
 
-        // Nuevos KPIs Globales (Solo si no hay paciente seleccionado)
-        if (!idPacienteGlobal) {
+        // Actualizar KPIs de Finanzas Dashboard (si existen en el DOM)
+        if (document.getElementById('kpiIngresosTotales')) {
             const eIT = document.getElementById('kpiIngresosTotales');
             const eCC = document.getElementById('kpiCuentasCobrar');
             const eF = document.getElementById('kpiFacturacion');
@@ -101,6 +136,17 @@ async function cargarHistorialCuentas() {
                 }
                 if(limit === 0) html = '<tr><td colspan="6" class="text-center text-muted py-4">No hay transacciones registradas.</td></tr>';
                 tbody.innerHTML = html;
+            }
+
+            // Mostrar botón de Cargos y Abonos si hay id_paciente seleccionado
+            const btnCargos = document.getElementById('btnCargosAbonos');
+            if (btnCargos) {
+                if (idPacienteGlobal) {
+                    btnCargos.href = 'estado_cuenta.pl?id=' + idPacienteGlobal;
+                    btnCargos.style.display = 'inline-block';
+                } else {
+                    btnCargos.style.display = 'none';
+                }
             }
 
             // Disparar render de gráfica de línea
@@ -660,7 +706,7 @@ function renderEvolucionIngresosGlobal() {
             labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
             datasets: [
                 {
-                    label: "Este A�o",
+                    label: "Este A\xF1o",
                     data: [80000, 150000, 220000, 190000, 260000, 290000],
                     borderColor: "#2563eb",
                     backgroundColor: gradBlue,
@@ -674,7 +720,7 @@ function renderEvolucionIngresosGlobal() {
                     tension: 0.4
                 },
                 {
-                    label: "A�o Anterior",
+                    label: "A\xF1o Anterior",
                     data: [60000, 110000, 130000, 120000, 170000, 180000],
                     borderColor: "#eab308",
                     backgroundColor: gradGold,

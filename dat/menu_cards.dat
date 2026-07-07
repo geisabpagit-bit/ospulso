@@ -8,7 +8,7 @@ usuarios|views/administracion_usuarios.pl|Gestión de Usuarios|Administrar el pe
 reportes|views/reportes.pl|Reportes y Análisis|Generar informes financieros y de actividad.|bi-file-bar-chart|info|
 agenda|views/agenda_main.pl|Agenda Dinámica|Gestión interactiva SPA de todas las citas y calendarios.|bi-calendar-week|info|
 pacientes|views/pacientes.pl|Pacientes|PHI Acceso Información de Salud Protegida.|bi-clipboard-pulse|info|
-finanzas|views/estado_cuenta.pl|Finanzas|Procesar pagos y generar facturas.|bi-cash|info|
+finanzas|views/finanzas.pl|Finanzas|Dashboard financiero y estado de cuenta global.|bi-cash|info|
 mis_citas|views/mis_citas.pl|Mis Citas|Ver y gestionar citas personales.|bi-calendar-event|info|
 mi_historial|views/mi_expediente.pl|Mi Historial|Revisar historial médico personal.|bi-journal-medical|info|
 tecnico|views/administracion_catalogo.pl|Catálogos y Mantenimiento|Catálogos y mantenimiento del sistema.|bi-tools|info|
