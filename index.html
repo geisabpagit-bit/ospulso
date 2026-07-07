@@ -23,7 +23,44 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link href="css/ospulso_master.css" rel="stylesheet" />
+    <style>
+        .btn-holo-acrylic {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.2)) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.8) !important;
+            box-shadow: 0 8px 32px 0 rgba(10, 42, 102, 0.07), inset 0 0 10px rgba(255, 255, 255, 0.5) !important;
+            border-radius: 1.25rem !important;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-holo-acrylic::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(30deg) translateY(-50%);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+        .btn-holo-acrylic:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px 0 rgba(10, 42, 102, 0.12), inset 0 0 15px rgba(255, 255, 255, 0.8) !important;
+            border-color: rgba(24, 209, 230, 0.5) !important;
+        }
+        .btn-holo-acrylic:hover::before {
+            opacity: 1;
+            transform: rotate(30deg) translateY(50%);
+        }
+        
+        /* Modificar el fondo del modal-body para que el glassmorphism resalte */
+        #demoPatientModal .modal-body {
+            background: radial-gradient(circle at top right, #e0f2f1 0%, #f8fafc 60%) !important;
+        }
+    </style>
 </head>
+
 
 <body class="d-flex flex-column min-vh-100" style="padding-bottom: 70px;">
     <!-- Responsive Hybrid Preloader -->
@@ -987,37 +1024,37 @@
                         <div class="col-lg-7">
                             <div class="row g-3 mb-4">
                                 <div class="col-6 col-md-4">
-                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
                                         <i class="bi bi-folder2-open fs-3 text-primary d-block mb-1"></i>
                                         <span class="small fw-bold">EXPEDIENTE</span>
                                     </button>
                                 </div>
                                 <div class="col-6 col-md-4">
-                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
                                         <i class="bi bi-cash-stack fs-3 text-success d-block mb-1"></i>
                                         <span class="small fw-bold">FINANZAS</span>
                                     </button>
                                 </div>
                                 <div class="col-6 col-md-4">
-                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
                                         <i class="bi bi-calendar-plus fs-3 d-block mb-1" style="color: #8b5cf6;"></i>
                                         <span class="small fw-bold">CITA</span>
                                     </button>
                                 </div>
                                 <div class="col-6 col-md-4">
-                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
                                         <i class="bi bi-envelope-paper fs-3 text-warning d-block mb-1"></i>
                                         <span class="small fw-bold">CORREO</span>
                                     </button>
                                 </div>
                                 <div class="col-6 col-md-4">
-                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
                                         <i class="bi bi-whatsapp fs-3 text-success d-block mb-1"></i>
                                         <span class="small fw-bold">WHATSAPP</span>
                                     </button>
                                 </div>
                                 <div class="col-6 col-md-4">
-                                    <button class="btn btn-white w-100 py-3 shadow-sm border rounded-4 hover-lift text-navy bg-white" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
                                         <i class="bi bi-printer fs-3 text-secondary d-block mb-1"></i>
                                         <span class="small fw-bold">IMPRIMIR</span>
                                     </button>
