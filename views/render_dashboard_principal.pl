@@ -28,6 +28,12 @@ sub render_dashboard_principal {
     my %args = @_;
     my $id_medico = $args{id_medico};
     my $role = $args{role} || 'Visitante';
+    my $usuario = $args{usuario} || 'Usuario';
+    
+    my $iniciales = '';
+    my @nombres = split(/\s+/, $usuario);
+    $iniciales .= uc(substr($nombres[0], 0, 1)) if @nombres > 0;
+    $iniciales .= uc(substr($nombres[1], 0, 1)) if @nombres > 1;
 
     # Rutas de datos
     my $dat_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
@@ -340,61 +346,38 @@ sub render_dashboard_principal {
     }
 </style>
 
-<div class="animate-fade-in py-2">
-
-    <!-- =======================================================================
-         DASHBOARD MOBILE (v3.6.0 PREMIUM REFACTORED)
-         ======================================================================= -->
-    <div class="app-container d-md-none">
-        
-        <!-- Sección: KPIs Rápidos (MedentIA Edition) -->
-        <div class="row g-3 mb-4">
-            <div class="col-6">
-                <div class="dash-kpi-card bg-med-blue h-100">
-                    <span class="kpi-label-medentia">Citas Hoy</span>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h2 class="kpi-value-medentia counter-up m-0" data-value="$citas_hoy_count">$citas_hoy_count</h2>
-                        <i class="bi bi-calendar-check text-primary fs-2"></i>
-                    </div>
-                </div>
+<link rel="stylesheet" href="../css/expediente_completo.css?v=$^T">
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('moduleSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (sidebar) sidebar.classList.toggle('show');
+        if (overlay) overlay.classList.toggle('show');
+    }
+    function toggleDesktopSidebar() {
+        const sidebar = document.getElementById('moduleSidebar');
+        if(sidebar) sidebar.classList.toggle('compact');
+    }
+</script>
+<div class="sdm-layout-wrapper animate__animated animate__fadeIn">
+    <!-- Sidebar Left -->
+    <nav class="diamond-sidebar" id="moduleSidebar">
+        <div class="sidebar-brand">
+            <div class="avatar-diamond d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; font-size: 1.2rem; border-width: 2px;">$iniciales</div>
+            <div class="sidebar-brand-text lh-1">
+                <h5 class="m-0 fw-black text-dark">OSPulso</h5>
+                <small class="text-muted fw-bold" style="font-size: 0.6rem;">DIAMOND v3.8.0</small>
             </div>
-            <div class="col-6">
-                <div class="dash-kpi-card bg-med-teal h-100">
-                    <span class="kpi-label-medentia">Pacientes</span>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h2 class="kpi-value-medentia counter-up m-0" data-value="$t_pac">$t_pac</h2>
-                        <i class="bi bi-people text-teal-clinical fs-2" style="color: var(--md-teal-clinical);"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="dash-kpi-card bg-med-cyan h-100">
-                    <span class="kpi-label-medentia">Cargos</span>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h2 class="kpi-value-medentia counter-up m-0" data-value="$val_cargos_f" data-is-k="true">$str_cargos_k</h2>
-                        <i class="bi bi-wallet2 text-cyan fs-2"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="dash-kpi-card bg-med-deep h-100">
-                    <span class="kpi-label-medentia">Abonos</span>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h2 class="kpi-value-medentia counter-up m-0" data-value="$val_abonos_f" data-is-k="true">$str_abonos_k</h2>
-                        <i class="bi bi-cash-stack text-blue-deep fs-2" style="color: var(--md-blue-deep);"></i>
-                    </div>
-                </div>
-            </div>
+            <button class="btn btn-light rounded-circle p-2 shadow-sm d-lg-none ms-auto" onclick="toggleSidebar()"><i class="bi bi-x-lg"></i></button>
+            <button class="btn-sidebar-toggle d-none d-lg-flex ms-auto" onclick="toggleDesktopSidebar()"><i class="bi bi-layout-sidebar text-muted"></i></button>
         </div>
 
-        <!-- Sección: Módulos de Gestión -->
-        <section class="management-grid" aria-labelledby="mgmt-title">
-            <h2 id="mgmt-title" class="section-title-v2 mb-3">$tit_modulos</h2>
-            <div class="grid-container">
+        <div class="sidebar-menu flex-grow-1 mt-3 px-2">
+            <a href="inicial.pl" class="sub-link active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                <i class="bi bi-grid-1x2-fill text-primary me-2" style="font-size:1.2rem;"></i> Dashboard
+            </a>
 HTML
 
-
-    # Icon Mapping for Material Icons with Colors (Jerarquía Visual)
     my %module_styles = (
         'agenda'      => { icon => 'calendar_month', bg => 'var(--calendar-bg)', color => 'var(--calendar-event)' },
         'pacientes'   => { icon => 'groups',         bg => 'var(--surface-secondary)', color => 'var(--icon-purple)' },
@@ -419,197 +402,102 @@ HTML
         my $style = $module_styles{$mod_key} || { icon => 'grid_view', bg => 'var(--surface-blue)', color => 'var(--primary-blue)' };
 
         print qq{
-            <a href="$href" $onclick class="mgmt-card">
-                <div class="icon-wrapper" style="background: $style->{bg}; color: $style->{color};">
-                    <span class="material-icons">$style->{icon}</span>
-                </div>
-                <div class="card-content">
-                    <h3>$m->{title}</h3>
-                    <p>$m->{desc}</p>
-                </div>
-                <div class="action-btn">
-                    <span class="material-icons">chevron_right</span>
-                </div>
+            <a href="$href" $onclick class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> $m->{title}
             </a>
         };
     }
 
-
     print <<HTML;
-            </div>
-        </section>
-
-        <!-- Sección: Próximas Citas con Timeline -->
-        <section class="appointments-section" aria-labelledby="appt-title">
-            <header class="section-header">
-                <h2 id="appt-title">$tit_citas</h2>
-                <a href="../views/agenda_main.pl" class="text-link" style="text-decoration:none;">Ver Agenda</a>
-            </header>
-
-            <div class="timeline-container">
-HTML
-
-
-    if (@proximas_citas == 0) {
-        print qq{<div class="bg-white rounded-4 p-4 text-center border shadow-sm"><p class="text-muted small fw-bold m-0">Sin citas en los pr&oacute;ximos 7 d&iacute;as.</p></div>};
-    } else {
-        # Agrupar por fecha
-        my %citas_por_fecha = ();
-        my @fechas_ordenadas = ();
-        foreach my $c (@proximas_citas) {
-            if (!$citas_por_fecha{$c->{fecha}}) {
-                push @fechas_ordenadas, $c->{fecha};
-            }
-            push @{$citas_por_fecha{$c->{fecha}}}, $c;
-        }
-
-        foreach my $fecha (@fechas_ordenadas) {
-            my $display_date = ($fecha eq $hoy_str) ? 'Hoy' : $fecha;
-            # Formatear fecha legible si no es hoy
-            if ($display_date ne 'Hoy') {
-                my ($y, $m, $d) = split(/-/, $fecha);
-                my @meses = (qw(Ene Feb Mar Abr May Jun Jul Ago Sep Oct Nov Dic));
-                $display_date = "$d " . ($meses[$m-1] || "");
-            }
-
-            print qq{
-                <div class="day-group">
-                    <div class="date-header">
-                        <span class="dot-indicator"></span>
-                        <time datetime="$fecha">$display_date</time>
-                    </div>
-                    <ul class="appointment-list">
-            };
-
-            foreach my $c (@{$citas_por_fecha{$fecha}}) {
-                my $hora_limpia = $c->{hora};
-                my ($h, $m) = split(/:/, $hora_limpia);
-                my $ampm = ($h >= 12) ? 'PM' : 'AM'; $h = $h % 12; $h = 12 if $h == 0;
-                my $hora_fm = sprintf("%02d:%02d %s", $h, $m, $ampm);
-                my $badge_text = $c->{estado} || 'Pendiente';
-
-                print qq{
-                    <li class="appointment-item">
-                        <div class="time-slot">
-                            <span class="time"><span class="material-icons" style="font-size:1.1rem; color:#6C67C0;">schedule</span> $hora_fm</span>
-                            <span class="badge confirmed">$badge_text</span>
-                        </div>
-                        <div class="patient-info">
-                            <h4>$c->{nombre_paciente}</h4>
-                            <p>$c->{motivo} • Consultorio Principal</p>
-                        </div>
-                        <button class="btn btn-sm btn-light w-100 mt-2 d-flex align-items-center justify-content-center text-primary shadow-sm" style="border-radius: 12px; font-weight: 700;" onclick="window.location.href='../views/agenda_main.pl'">
-                            Ver detalle <span class="material-icons ms-1" style="font-size:1.1rem;">chevron_right</span>
-                        </button>
-                    </li>
-                };
-            }
-
-            print "</ul></div>";
-        }
-    }
-
-
-    print <<HTML;
-            </div>
-        </section>
+        </div>
         
-        <button class="fab-btn-v2 pulse-fab" onclick="window.location.href='../views/render_consultas.pl'" title="Consulta">
-            <span class="material-icons">medical_services</span>
-        </button>
-    </div>
+        <div class="p-3 sidebar-footer">
+            <a href="../auth/cerrar_sesion.pl" class="btn btn-danger w-100 rounded-pill fw-bold d-flex justify-content-center align-items-center"><i class="bi bi-box-arrow-right me-2"></i><span class="sidebar-text">Salir</span></a>
+        </div>
+    </nav>
 
-    <!-- =======================================================================
-         DASHBOARD DESKTOP
-         ======================================================================= -->
-    <div class="dash-container-desktop d-none d-md-block">
-        <script>
-        function iniciarVinculacionGoogle() {
-            const clientId = "771205596556-64bfspdvs27aqogeot9mdelgvmqm4n7u.apps.googleusercontent.com";
-            const idMed = "$id_medico"; 
-            const redirectUri = encodeURIComponent(window.location.origin + '/auth/oauth_callback.pl');
-            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=\${clientId}&redirect_uri=\${redirectUri}&response_type=code&scope=https://www.googleapis.com/auth/calendar.events&access_type=offline&prompt=consent&state=\${idMed}`;
-            window.open(authUrl, 'GoogleAuth', 'width=600,height=700');
-        }
-        </script>
+    <!-- Overlay para cerrar el menú en móvil -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-        <div class="row g-4 mb-5 animate__animated animate__fadeIn">
-            <div class="col-sm-6 col-lg-3">
-                <div class="dash-kpi-card bg-med-blue h-100">
-                    <span class="kpi-label-medentia">Citas Hoy</span>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h2 class="kpi-value-medentia counter-up m-0" data-value="$citas_hoy_count">$citas_hoy_count</h2>
-                        <i class="bi bi-calendar-check text-primary fs-2"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-lg-3">
-                <div class="dash-kpi-card bg-med-teal h-100">
-                    <span class="kpi-label-medentia">Pacientes Registrados</span>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h2 class="kpi-value-medentia counter-up m-0" data-value="$t_pac">$t_pac</h2>
-                        <i class="bi bi-people text-teal-clinical fs-2" style="color: var(--md-teal-clinical);"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-lg-3">
-                <div class="dash-kpi-card bg-med-cyan h-100">
-                    <span class="kpi-label-medentia">Cargos del Mes</span>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h2 class="kpi-value-medentia counter-up m-0" data-value="$val_cargos_f" data-is-k="true">$str_cargos_k</h2>
-                        <i class="bi bi-wallet2 text-cyan fs-2"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-lg-3">
-                <div class="dash-kpi-card bg-med-deep h-100">
-                    <span class="kpi-label-medentia">Abonos Recibidos</span>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h2 class="kpi-value-medentia counter-up m-0" data-value="$val_abonos_f" data-is-k="true">$str_abonos_k</h2>
-                        <i class="bi bi-cash-stack text-blue-deep fs-2" style="color: var(--md-blue-deep);"></i>
-                    </div>
+    <!-- Main Content -->
+    <div class="sdm-main-content">
+        <!-- Header Compacto -->
+        <div class="diamond-header-compact d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-menu-toggle-inline d-lg-none" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="profile-hero text-start">
+                    <h4 class="text-truncate m-0 text-white fw-bold" style="max-width: 60vw; letter-spacing: -0.5px;">Hola, $usuario</h4>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <h5 class="plus-jakarta fw-black mb-4">$tit_modulos</h5>
-                <div class="row g-3">
-HTML
+        <div class="sdm-content mt-4">
+            <!-- Google Auth Script -->
+            <script>
+            function iniciarVinculacionGoogle() {
+                const clientId = "771205596556-64bfspdvs27aqogeot9mdelgvmqm4n7u.apps.googleusercontent.com";
+                const idMed = "$id_medico"; 
+                const redirectUri = encodeURIComponent(window.location.origin + '/auth/oauth_callback.pl');
+                const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=\${clientId}&redirect_uri=\${redirectUri}&response_type=code&scope=https://www.googleapis.com/auth/calendar.events&access_type=offline&prompt=consent&state=\${idMed}`;
+                window.open(authUrl, 'GoogleAuth', 'width=600,height=700');
+            }
+            </script>
 
-
-    foreach my $mod_key (@allowed_modules) {
-        $mod_key =~ s/^\s+|\s+$//g;
-        next unless $menu_registry{$mod_key};
-        my $m = $menu_registry{$mod_key};
-        my $u = $m->{url} || '#';
-        my $href = ($u =~ /^#|sync_google_handler/) ? "#" : "../$u";
-        my $onclick = ($u eq 'sync_google_handler.pl') ? "onclick='iniciarVinculacionGoogle(); return false;'" : "";
-        
-        my $style = $module_styles{$mod_key} || { icon => 'grid_view', bg => 'var(--surface-blue)', color => 'var(--primary-blue)' };
-
-        print qq{
-            <div class="col-md-6">
-                <a href="$href" $onclick class="cs-action-card interactive-scale" style="display:flex; align-items:center; gap:1rem; padding:1.25rem; background:white; border-radius:1.25rem; border:2px solid #19B7A5; text-decoration:none; transition:0.3s; margin-bottom:1rem;">
-                    <div style="width:45px; height:45px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.25rem; background: $style->{bg}; color: $style->{color};"><span class="material-icons" style="font-size:1.4rem;">$style->{icon}</span></div>
-                    <div><span class="d-block fw-bold text-dark">$m->{title}</span><small class="text-muted">$m->{desc}</small></div>
-                </a>
-            </div>};
-    }
-
-
-    print <<HTML;
+            <!-- Sección: KPIs Rápidos -->
+            <div class="row g-4 mb-4 animate__animated animate__fadeIn">
+                <div class="col-6 col-lg-3">
+                    <div class="dash-kpi-card bg-med-blue h-100">
+                        <span class="kpi-label-medentia">Citas Hoy</span>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h2 class="kpi-value-medentia counter-up m-0" data-value="$citas_hoy_count">$citas_hoy_count</h2>
+                            <i class="bi bi-calendar-check text-primary fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="dash-kpi-card bg-med-teal h-100">
+                        <span class="kpi-label-medentia">Pacientes</span>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h2 class="kpi-value-medentia counter-up m-0" data-value="$t_pac">$t_pac</h2>
+                            <i class="bi bi-people text-teal-clinical fs-2" style="color: var(--md-teal-clinical);"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="dash-kpi-card bg-med-cyan h-100">
+                        <span class="kpi-label-medentia">Cargos</span>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h2 class="kpi-value-medentia counter-up m-0" data-value="$val_cargos_f" data-is-k="true">$str_cargos_k</h2>
+                            <i class="bi bi-wallet2 text-cyan fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="dash-kpi-card bg-med-deep h-100">
+                        <span class="kpi-label-medentia">Abonos</span>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h2 class="kpi-value-medentia counter-up m-0" data-value="$val_abonos_f" data-is-k="true">$str_abonos_k</h2>
+                            <i class="bi bi-cash-stack text-blue-deep fs-2" style="color: var(--md-blue-deep);"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-4">
-                <h5 class="plus-jakarta fw-black mb-4">$tit_citas</h5>
-                <div class="bg-white rounded-4 p-3" style="border: 2px solid #19B7A5; min-height:350px">
+
+            <!-- Sección: Próximas Citas con Timeline -->
+            <div class="row g-4">
+                <div class="col-12 col-lg-8 offset-lg-2">
+                    <h5 class="plus-jakarta fw-black mb-4">$tit_citas</h5>
+                    <div class="bg-white rounded-4 p-4 shadow-sm" style="border: 2px solid #19B7A5; min-height: 350px;">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <p class="text-muted m-0 small fw-bold">ACTIVIDAD PROGRAMADA RECIENTE</p>
+                            <a href="../views/agenda_main.pl" class="btn btn-sm btn-outline-primary rounded-pill px-3">Ver Agenda Completa</a>
+                        </div>
 HTML
 
-
     if (@proximas_citas == 0) {
-        print '<div class="text-center py-5"><p class="text-muted small fw-bold">Sin actividad programada.</p></div>';
+        print '<div class="text-center py-5"><p class="text-muted small fw-bold">Sin actividad programada en los próximos 7 días.</p></div>\n';
     } else {
         foreach my $cita (@proximas_citas) {
             my $bCol = ($cita->{estado} =~ /Confirmada/i) ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary';
@@ -621,20 +509,24 @@ HTML
                         <div class="d-flex gap-2 align-items-center"><span class="badge bg-light text-muted" style="font-size:0.6rem;">$date_label</span><small class="text-muted fw-semibold" style="font-size:0.7rem;"><i class="bi bi-clock me-1"></i>$cita->{hora}</small></div>
                     </div>
                     <div class="text-end"><span class="badge $bCol rounded-pill border-0 px-3 py-2 fw-bold" style="font-size:0.6rem;">$cita->{estado}</span></div>
-                </div>};
+                </div>\n};
         }
     }
 
-
     print <<HTML;
+                    </div>
                 </div>
             </div>
-        </div>
+            
+            <!-- Botón flotante para Consulta Express móvil -->
+            <button class="fab-btn-v2 pulse-fab d-lg-none" onclick="window.location.href='../views/render_consultas.pl'" title="Consulta">
+                <span class="material-icons">medical_services</span>
+            </button>
+            
         </div>
     </div>
 </div>
 HTML
-
     if ($t_pac == 0 && $role eq 'Medico') {
         print <<HTML;
 <!-- MODAL DE BIENVENIDA MULTI-TENANT (Día 1) -->

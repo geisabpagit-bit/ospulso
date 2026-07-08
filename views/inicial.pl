@@ -41,7 +41,7 @@ if ($session_ok) {
         skip_header => 1
     );
 
-    render_dashboard_principal(role => $role, id_medico => $id_medico);
+    render_dashboard_principal(role => $role, id_medico => $id_medico, usuario => $usuario);
     render_bottom_nav('inicio');
 
 } else {
