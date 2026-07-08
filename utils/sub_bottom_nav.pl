@@ -32,7 +32,7 @@ sub render_bottom_nav {
                     <span>Ajustes</span>
                 </button>
             ) : $active eq 'pacientes' ? qq(
-                <a href="agenda_vista_mensual.pl" class="main-tab-item" title="Citas">
+                <a href="agenda_main.pl" class="main-tab-item" title="Citas">
                     <i class="bi bi-calendar3"></i>
                     <span>Citas</span>
                 </a>
@@ -45,7 +45,7 @@ sub render_bottom_nav {
                     <span>Ajustes</span>
                 </a>
             ) : qq(
-                <a href="agenda_vista_mensual.pl" class="main-tab-item @{[$active eq 'agenda' ? 'active' : '']}" title="Citas">
+                <a href="agenda_main.pl" class="main-tab-item @{[$active eq 'agenda' ? 'active' : '']}" title="Citas">
                     <i class="bi bi-calendar3"></i>
                     <span>Citas</span>
                 </a>

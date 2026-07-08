@@ -176,9 +176,9 @@ HTML
                     <i class="bi bi-people"></i>
                     <span>Pacientes</span>
                 </a>
-                <a href="agenda_vista_mensual.pl" class="aura-nav-link">
+                <a href="agenda_main.pl" class="aura-nav-link">
                     <i class="bi bi-calendar3"></i>
-                    <span>Agenda Dinámica</span>
+                    <span>Agenda</span>
                 </a>
                 <div class="my-2"><hr class="border-primary opacity-10 m-0"></div>
 
@@ -201,7 +201,7 @@ HTML
     }
 
     print <<HTML;
-    <main class="container-fluid px-lg-4 pt-0 pb-4">
+    <main class="container-fluid px-lg-4 pt-1 pb-4">
 HTML
 }
 1;
