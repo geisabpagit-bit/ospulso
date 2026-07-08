@@ -13,6 +13,7 @@ use open qw(:std :utf8);
 use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
 use utils::db_manager qw(leer_tabla);
@@ -83,7 +84,16 @@ print <<HTML;
     </script>
 
     <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.2.0">
+HTML
 
+utils::sub_sidebar::render_sidebar(
+    usuario => $usuario,
+    role => $role,
+    id_medico => $id_medico,
+    pagina_actual => 'agenda'
+);
+
+print <<HTML;
     <div class="main-container-agenda">
         <header class="agenda-header sticky-top animate__animated animate__fadeInDown">
             <div class="container-fluid">
@@ -469,6 +479,9 @@ print <<HTML;
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/agenda_spa_new.js?v=4.0.3_Premium"></script>
+HTML
+utils::sub_sidebar::render_sidebar_footer();
+print <<HTML;
 </body>
 </html>
 HTML

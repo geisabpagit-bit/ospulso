@@ -13,6 +13,7 @@ use open qw(:std :utf8);
 use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
 use utils::db_manager qw(leer_tabla eliminar_registro);
@@ -71,7 +72,16 @@ if ($regs) {
 print <<HTML;
 <link rel="stylesheet" href="../css/ospulso_master_v2.css">
 <link rel="stylesheet" href="../css/tabla_pacientes.css">
+HTML
 
+utils::sub_sidebar::render_sidebar(
+    usuario => $usuario,
+    role => $role,
+    id_medico => $id_medico,
+    pagina_actual => 'pacientes'
+);
+
+print <<HTML;
 <div class="container-fluid p-0 p-md-3">
     <!-- Tabla / Lista de Pacientes -->
     <div class="rounded-4 shadow-sm bg-white mb-4">
