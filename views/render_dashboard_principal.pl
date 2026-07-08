@@ -323,6 +323,7 @@ sub render_dashboard_principal {
 </style>
 
 HTML
+    print <<HTML;
             <!-- Google Auth Script -->
             <script>
             function iniciarVinculacionGoogle() {
