@@ -54,6 +54,14 @@ if ($accion eq 'get_catalogo') {
     my @h = (); 
     my ($saldo_total, $cargos_sum, $abonos_sum, $presupuestos_sum) = (0, 0, 0, 0);
     my $ec_file = File::Spec->catfile($dat_path, 'estado_cuenta.dat');
+    my $pac_file = File::Spec->catfile($dat_path, 'pacientes.dat');
+    
+    my %nombres;
+    if (-e $pac_file) {
+        open(my $fh_p, "<:encoding(UTF-8)", $pac_file); <$fh_p>;
+        while (my $lp = <$fh_p>) { chomp $lp; my @vp = split /\|/, $lp; $nombres{$vp[0]} = $vp[1]; }
+        close $fh_p;
+    }
     
     if (-e $ec_file) {
         open(my $fh, "<:encoding(UTF-8)", $ec_file); <$fh>;
@@ -67,7 +75,8 @@ if ($accion eq 'get_catalogo') {
                     my $notas = $v[10] || '';
                     my $is_presupuesto = ($tipo =~ /Cargo/i && $notas =~ /Presupuesto/i) ? 1 : 0;
                     
-                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $tipo, concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], alias => ($v[11] || ''), is_presupuesto => $is_presupuesto };
+                    my $nom_pac = $nombres{$v[2]} || "Paciente Desconocido";
+                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $tipo, concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], paciente_nombre => $nom_pac, alias => ($v[11] || ''), is_presupuesto => $is_presupuesto };
                     
                     if ($is_presupuesto) {
                         $presupuestos_sum += $tot;

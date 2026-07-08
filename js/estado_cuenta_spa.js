@@ -111,7 +111,7 @@ async function cargarHistorialCuentas() {
                         <td class="text-muted">${h.fecha.substring(0, 10)}</td>
                         <td class="fw-bold text-dark">${h.concepto}</td>
                         <td class="text-muted small">OS/2024/${h.id_os.toString().padStart(4,'0')}</td>
-                        <td class="fw-bold" style="color: var(--md-blue-deep);">${h.alias || h.id_paciente}</td>
+                        <td class="fw-bold" style="color: var(--md-blue-deep);">${h.alias || h.paciente_nombre}</td>
                         <td class="fw-bold text-dark">${formatter.format(h.total)}</td>
                         <td>${badgeStr}</td>
                     </tr>`;

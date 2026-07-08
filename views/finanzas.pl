@@ -146,12 +146,7 @@ print <<'PAGE_HTML';
             
             <!-- TAB: RESUMEN (Actual Dashboard) -->
             <div id="tab_resumen" class="sdm-tab-pane">
-                <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
-                    <div>
-                        <h2 class="fw-bold plus-jakarta m-0" style="color: var(--md-text-primary);">Dashboard</h2>
-                        <p class="text-muted m-0">Vista global del estado financiero.</p>
-                    </div>
-                </div>
+
 
                 <!-- 4 KPI Cards -->
                 <div class="row g-3 mb-4">
@@ -287,7 +282,7 @@ print <<'PAGE_HTML';
                 <div class="bento-card mb-5">
                     <h6 class="fw-bold plus-jakarta mb-4 text-dark">Resumen de Ingresos Recientes</h6>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" id="tablaResumenIngresos">
+                        <table class="table table-hover align-middle mb-0 table-diamond" id="tablaResumenIngresos">
                             <thead class="text-muted small">
                                 <tr>
                                     <th class="border-0">Fecha</th>
@@ -320,7 +315,7 @@ print <<'PAGE_HTML';
                     </div>
                     
                     <div class="table-responsive mt-3">
-                        <table class="table table-hover align-middle" id="tablaIngresos">
+                        <table class="table table-hover align-middle table-diamond" id="tablaIngresos">
                             <thead class="text-muted small">
                                 <tr>
                                     <th>Fecha</th>
@@ -349,7 +344,7 @@ print <<'PAGE_HTML';
                     </div>
                     
                     <div class="table-responsive mt-3">
-                        <table class="table table-hover align-middle" id="tablaGastos">
+                        <table class="table table-hover align-middle table-diamond" id="tablaGastos">
                             <thead class="text-muted small">
                                 <tr>
                                     <th>Fecha</th>
@@ -377,7 +372,7 @@ print <<'PAGE_HTML';
                     <h4 class="fw-bold plus-jakarta mb-4 text-dark">Cuentas por Cobrar (CxC)</h4>
                     <p class="text-muted">Pacientes con saldos pendientes. Calculado en tiempo real.</p>
                     <div class="table-responsive mt-3">
-                        <table class="table table-hover align-middle" id="tablaCxC">
+                        <table class="table table-hover align-middle table-diamond" id="tablaCxC">
                             <thead class="text-muted small">
                                 <tr>
                                     <th>Paciente</th>

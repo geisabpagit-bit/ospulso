@@ -484,3 +484,10 @@
 @media (min-width: 769px) {
     .financial-dock { display: none !important; }
 }
+
+/* Estilos personalizados para DataTables (Diamond Theme) */
+.dataTables_wrapper .dataTables_filter input, .dataTables_wrapper .dataTables_length select { border-radius: 20px; border: 1px solid var(--md-gray-200); padding: 5px 15px; outline: none; transition: all 0.2s ease; }
+.dataTables_wrapper .dataTables_filter input:focus, .dataTables_wrapper .dataTables_length select:focus { border-color: var(--md-blue-primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.dataTables_wrapper .dataTables_paginate .paginate_button { border-radius: 8px !important; border: none !important; margin: 0 2px; }
+.dataTables_wrapper .dataTables_paginate .paginate_button.current { background: var(--md-blue-primary) !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) { background: var(--md-blue-light) !important; color: var(--md-blue-deep) !important; }
