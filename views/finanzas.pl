@@ -244,33 +244,33 @@ print <<'PAGE_HTML';
                     <div class="col-lg-5">
                         <div class="bento-card h-100 d-flex flex-column justify-content-center">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h6 class="fw-bold plus-jakarta m-0 text-dark">Ingresos por Categoría</h6>
-                                <select class="form-select form-select-sm w-auto rounded-pill text-muted fw-bold bg-light border-0"><option>Este Mes</option></select>
+                                <h6 class="fw-bold plus-jakarta m-0 text-dark">Ingresos vs Egresos</h6>
+                                <select class="form-select form-select-sm w-auto rounded-pill text-muted fw-bold bg-light border-0"><option>Histórico</option></select>
                             </div>
                             
                             <div class="row align-items-center g-0">
                                 <div class="col-6 position-relative" style="height: 160px;">
-                                    <canvas id="pieResumenConsolidado"></canvas>
+                                    <canvas id="pieResumenFinanzas"></canvas>
                                     <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
-                                        <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterVal" style="font-size: 1.1rem;">$0</h5>
+                                        <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValFinanzas" style="font-size: 1.1rem;">$0</h5>
                                         <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Total</span>
                                     </div>
                                 </div>
                                 <div class="col-6 ps-2">
-                                    <div class="d-flex flex-column gap-3 w-100" id="pieCustomLegend">
-                                        <div class="d-flex align-items-center justify-content-between w-100">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div style="width: 10px; height: 10px; border-radius: 50%; background: #eab308; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
-                                                <span class="text-muted fw-bold" style="font-size: 0.75rem;">Cargos</span>
-                                            </div>
-                                            <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legCargos">$0</span>
-                                        </div>
+                                    <div class="d-flex flex-column gap-3 w-100">
                                         <div class="d-flex align-items-center justify-content-between w-100">
                                             <div class="d-flex align-items-center gap-2">
                                                 <div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
-                                                <span class="text-muted fw-bold" style="font-size: 0.75rem;">Abonos</span>
+                                                <span class="text-muted fw-bold" style="font-size: 0.75rem;">Ingresos</span>
                                             </div>
-                                            <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legAbonos">$0</span>
+                                            <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legIngresosFinanzas">$0</span>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between w-100">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
+                                                <span class="text-muted fw-bold" style="font-size: 0.75rem;">Egresos</span>
+                                            </div>
+                                            <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legEgresosFinanzas">$0</span>
                                         </div>
                                     </div>
                                 </div>

@@ -1149,9 +1149,10 @@ window.abrirModalGasto = async function() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function attachFinanzasListeners() {
     const formGasto = document.getElementById('formGasto');
-    if (formGasto) {
+    if (formGasto && !formGasto.dataset.listenerAttached) {
+        formGasto.dataset.listenerAttached = 'true';
         formGasto.addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = formGasto.querySelector('button[type="submit"]');
@@ -1195,7 +1196,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-});
+}
+document.addEventListener("DOMContentLoaded", attachFinanzasListeners);
+document.addEventListener("spa:contentLoaded", attachFinanzasListeners);
 
 window.eliminarGasto = function(id) {
     Swal.fire({
@@ -1526,7 +1529,60 @@ window.cargarDashboardKPIs = function() {
                         let eff = cargos_totales > 0 ? (dash.ingresos / cargos_totales * 100) : 0;
                         eEC.innerText = eff.toFixed(1) + '%';
                     }
+                    if (typeof actualizarPieChartDashboard === 'function') {
+                        actualizarPieChartDashboard(dash.ingresos || 0, dash.gastos || 0);
+                    }
+                    if (typeof renderEvolucionIngresosGlobal === 'function') {
+                        renderEvolucionIngresosGlobal();
+                    }
                 }
             });
     }
 };
+
+let pieFinanzasInstance = null;
+function actualizarPieChartDashboard(ingresos, egresos) {
+    const canvas = document.getElementById('pieResumenFinanzas');
+    if (!canvas) return;
+    
+    if (pieFinanzasInstance) {
+        pieFinanzasInstance.destroy();
+    }
+    
+    const centerVal = document.getElementById('pieCenterValFinanzas');
+    if(centerVal) centerVal.innerText = formatter.format(ingresos + egresos);
+    
+    const legIngresos = document.getElementById('legIngresosFinanzas');
+    const legEgresos = document.getElementById('legEgresosFinanzas');
+    if(legIngresos) legIngresos.innerText = formatter.format(ingresos);
+    if(legEgresos) legEgresos.innerText = formatter.format(egresos);
+    
+    const ctx = canvas.getContext('2d');
+    pieFinanzasInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Ingresos', 'Egresos'],
+            datasets: [{
+                data: [ingresos, egresos],
+                backgroundColor: ['#10b981', '#ef4444'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + formatter.format(context.raw);
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
