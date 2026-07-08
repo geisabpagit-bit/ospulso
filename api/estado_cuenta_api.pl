@@ -52,7 +52,7 @@ if ($accion eq 'get_catalogo') {
 
 } elsif ($accion eq 'get_historial') {
     my @h = (); 
-    my ($saldo_total, $cargos_sum, $abonos_sum) = (0, 0, 0);
+    my ($saldo_total, $cargos_sum, $abonos_sum, $presupuestos_sum) = (0, 0, 0, 0);
     my $ec_file = File::Spec->catfile($dat_path, 'estado_cuenta.dat');
     
     if (-e $ec_file) {
@@ -60,13 +60,21 @@ if ($accion eq 'get_catalogo') {
         while (my $line = <$fh>) {
             chomp $line;
             my @v = split /\|/, $line;
-            # Estructura: ID_OS|ID_MOV|ID_PAC|TIPO|CONCEPTO|BASE|IVA|TOTAL|FECHA|ID_MED|NOTAS
             if (@v >= 9) {
                 if (!$id_p || $v[2] eq $id_p) {
                     my $tot = $v[7] + 0;
-                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $v[3], concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], alias => ($v[11] || '') };
-                    if ($v[3] =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; } 
-                    else { $saldo_total -= $tot; $abonos_sum += $tot; }
+                    my $tipo = $v[3] || '';
+                    my $notas = $v[10] || '';
+                    my $is_presupuesto = ($tipo =~ /Cargo/i && $notas =~ /Presupuesto/i) ? 1 : 0;
+                    
+                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $tipo, concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], alias => ($v[11] || ''), is_presupuesto => $is_presupuesto };
+                    
+                    if ($is_presupuesto) {
+                        $presupuestos_sum += $tot;
+                    } else {
+                        if ($tipo =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; } 
+                        else { $saldo_total -= $tot; $abonos_sum += $tot; }
+                    }
                 }
             }
         }
@@ -78,7 +86,8 @@ if ($accion eq 'get_catalogo') {
         historial => \@h_sorted, 
         saldo => $saldo_total, 
         cargos => $cargos_sum, 
-        abonos => $abonos_sum 
+        abonos => $abonos_sum,
+        presupuestos => $presupuestos_sum
     });
 
 } elsif ($accion eq 'add_cargo') {

@@ -67,20 +67,35 @@ async function cargarHistorialCuentas() {
         
         actualizarPieChart(res.cargos || 0, res.abonos || 0);
 
-        // Actualizar KPIs de Finanzas Dashboard (si existen en el DOM)
+        // Actualizar KPIs de Finanzas Dashboard
         if (document.getElementById('kpiIngresosTotales')) {
-            const eIT = document.getElementById('kpiIngresosTotales');
-            const eCC = document.getElementById('kpiCuentasCobrar');
-            const eF = document.getElementById('kpiFacturacion');
-            const eEC = document.getElementById('kpiEficiencia');
-
-            if (eIT) eIT.innerText = formatter.format(res.cargos || 0);
-            if (eCC) eCC.innerText = formatter.format(res.saldo || 0);
-            if (eF) eF.innerText = formatter.format(res.cargos || 0); // Igualado temporalmente a cargos
-            if (eEC) {
-                let eff = res.cargos > 0 ? (res.abonos / res.cargos * 100) : 0;
-                eEC.innerText = eff.toFixed(1) + '%';
-            }
+            // Obtener las cifras reales y exactas desde finanzas_api (Global)
+            fetch('../api/finanzas_api.pl', { method: 'POST', body: new URLSearchParams({action: 'get_dashboard'}), credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(dash => {
+                    if (dash.success) {
+                        const eIT = document.getElementById('kpiIngresosTotales');
+                        const eCC = document.getElementById('kpiCuentasCobrar');
+                        const eF = document.getElementById('kpiFacturacion');
+                        const eEC = document.getElementById('kpiEficiencia');
+                        const eEgresos = document.getElementById('kpiTotalEgresos');
+                        const ePresupuestos = document.getElementById('kpiPresupuestosActivos');
+                        
+                        if (eIT) eIT.innerText = formatter.format(dash.ingresos || 0);
+                        if (eCC) eCC.innerText = formatter.format(dash.cxc || 0);
+                        if (eEgresos) eEgresos.innerText = formatter.format(dash.gastos || 0);
+                        if (ePresupuestos) ePresupuestos.innerText = formatter.format(dash.presupuestos || 0);
+                        
+                        // CFDI: Temporalmente igualado a ingresos cobrados
+                        if (eF) eF.innerText = formatter.format(dash.ingresos || 0);
+                        
+                        if (eEC) {
+                            let cargos_totales = (dash.ingresos || 0) + (dash.cxc || 0);
+                            let eff = cargos_totales > 0 ? (dash.ingresos / cargos_totales * 100) : 0;
+                            eEC.innerText = eff.toFixed(1) + '%';
+                        }
+                    }
+                });
 
             const tbody = document.getElementById('tbodyResumenIngresos');
             if (tbody) {

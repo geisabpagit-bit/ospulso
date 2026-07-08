@@ -3,7 +3,6 @@ use cPanelUserConfig;
 use strict;
 use warnings;
 use utf8;
-use open qw(:std :utf8);
 use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use JSON qw(decode_json encode_json);
@@ -39,10 +38,16 @@ if ($action eq 'get_cxc') {
     
     my %saldos;
     for my $mov (@movimientos_raw) {
-        my $id_paciente = $mov->[1];
-        my $cargo = $mov->[6] || 0;
-        my $abono = $mov->[7] || 0;
-        my $fecha = $mov->[3] || '';
+        my $id_paciente = $mov->[2];
+        my $tipo = $mov->[3] || '';
+        my $notas = $mov->[10] || '';
+        
+        # Ignorar Presupuestos
+        next if $tipo eq 'Cargo' && $notas =~ /Presupuesto/i;
+        
+        my $cargo = ($tipo eq 'Cargo') ? ($mov->[7] || 0) : 0;
+        my $abono = ($tipo eq 'Abono') ? ($mov->[7] || 0) : 0;
+        my $fecha = $mov->[8] || '';
         
         if (!exists $saldos{$id_paciente}) {
             $saldos{$id_paciente} = {
@@ -180,25 +185,71 @@ elsif ($action eq 'get_ingresos') {
     
     my @ingresos;
     for my $m (@movimientos_raw) {
-        my $abono = $m->[7] || 0;
-        if ($abono > 0) {
+        my $tipo = $m->[3] || '';
+        my $notas = $m->[10] || '';
+        my $total = $m->[7] || 0;
+        
+        # Ignorar presupuestos en ingresos
+        next if $tipo eq 'Cargo' && $notas =~ /Presupuesto/i;
+        
+        if ($total > 0) {
             push @ingresos, {
-                id_movimiento => $m->[0],
-                id_paciente => $m->[1],
-                id_os => $m->[2],
-                fecha => $m->[3],
-                tipo => $m->[4],
-                concepto => $m->[5],
-                cargo => $m->[6] || 0,
-                abono => $abono,
-                saldo_restante => $m->[8] || 0,
-                paciente_nombre => $nombres{$m->[1]} || 'Desconocido'
+                id_movimiento => $m->[1],
+                id_paciente => $m->[2],
+                id_os => $m->[0],
+                fecha => $m->[8],
+                tipo => $tipo,
+                concepto => $m->[4],
+                cargo => ($tipo eq 'Cargo') ? $total : 0,
+                abono => ($tipo eq 'Abono') ? $total : 0,
+                paciente_nombre => $nombres{$m->[2]} || 'Desconocido'
             };
         }
     }
     
     @ingresos = sort { $b->{fecha} cmp $a->{fecha} } @ingresos;
     print encode_json({ success => 1, data => \@ingresos });
+}
+elsif ($action eq 'get_dashboard') {
+    # 1. Ingresos y CxC
+    my @movs = @{ leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat") };
+    my ($ingresos_totales, $cxc, $presupuestos) = (0, 0, 0);
+    my %saldos;
+    for my $m (@movs) {
+        my $id_pac = $m->[2];
+        my $tipo = $m->[3] || '';
+        my $notas = $m->[10] || '';
+        my $total = $m->[7] || 0;
+        
+        if ($tipo eq 'Cargo' && $notas =~ /Presupuesto/i) {
+            $presupuestos += $total;
+            next;
+        }
+        
+        $saldos{$id_pac} ||= { cargo => 0, abono => 0 };
+        if ($tipo eq 'Cargo') { $saldos{$id_pac}{cargo} += $total; }
+        if ($tipo eq 'Abono') { $saldos{$id_pac}{abono} += $total; $ingresos_totales += $total; }
+    }
+    
+    for my $id (keys %saldos) {
+        my $pend = $saldos{$id}{cargo} - $saldos{$id}{abono};
+        $cxc += $pend if $pend > 0;
+    }
+    
+    # 2. Egresos
+    my @gastos_raw = @{ leer_tabla("$FindBin::Bin/../dat/gastos.dat") };
+    my $egresos_totales = 0;
+    for my $g (@gastos_raw) {
+        $egresos_totales += ($g->[6] || 0);
+    }
+    
+    print encode_json({
+        success => 1,
+        ingresos => $ingresos_totales,
+        cxc => $cxc,
+        gastos => $egresos_totales,
+        presupuestos => $presupuestos
+    });
 }
 elsif ($action eq 'get_categorias_gastos') {
     my @cat = @{ leer_tabla("$FindBin::Bin/../dat/categorias.dat") };
