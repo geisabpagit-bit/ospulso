@@ -89,67 +89,7 @@ sub render_expediente_completo {
     print <<HTML;
 <link rel="stylesheet" href="../css/expediente_completo.css?v=$^T">
 
-<script>
-    let odontogramaInit = false;
 
-    function toggleSidebar() {
-        const sidebar = document.getElementById('moduleSidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        if (sidebar) sidebar.classList.toggle('show');
-        if (overlay) overlay.classList.toggle('show');
-    }
-
-    function swTab(id, b) {
-        if (window.innerWidth <= 991) {
-            // Solo auto-cerrar en móvil si hizo clic en un sub-link final, no en un botón padre
-            if(b && b.classList.contains('sub-link')){
-                const sidebar = document.getElementById('moduleSidebar');
-                const overlay = document.getElementById('sidebarOverlay');
-                if (sidebar && sidebar.classList.contains('show')) toggleSidebar();
-            }
-        }
-
-        document.querySelectorAll('.sdm-tab-sec').forEach(s => s.classList.add('d-none'));
-        const target = document.getElementById(id);
-        if(target) target.classList.remove('d-none');
-
-        // Manejar active state solo en sub-links para la nueva estructura anidada
-        if (b && b.classList.contains('sub-link')) {
-            document.querySelectorAll('.sub-link').forEach(n => n.classList.remove('active'));
-            b.classList.add('active');
-        }
-        
-        if (id === 'tab6' && !odontogramaInit && typeof initOdontograma === 'function') {
-            setTimeout(() => {
-                initOdontograma('odontograma-svg-container', '$d->{id_paciente}');
-                odontogramaInit = true;
-            }, 100);
-        }
-
-        if(b && b.classList.contains('sub-link')){
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }
-    
-    // Switch to tab if hash is present on load
-    document.addEventListener('DOMContentLoaded', function() {
-        const hash = window.location.hash;
-        if (hash) {
-            const tabId = hash.substring(1);
-            const targetBtn = document.querySelector('.sub-link[onclick*="swTab(\\'' + tabId + '\\'"]');
-            if(targetBtn) {
-                swTab(tabId, targetBtn);
-            }
-        }
-    });
-</script>
-
-<script>
-    function toggleDesktopSidebar() {
-        const sidebar = document.getElementById('moduleSidebar');
-        if(sidebar) sidebar.classList.toggle('compact');
-    }
-</script>
 <div class="sdm-layout-wrapper animate__animated animate__fadeIn">
     <!-- Sidebar Left -->
     <nav class="diamond-sidebar" id="moduleSidebar">
@@ -238,6 +178,66 @@ sub render_expediente_completo {
 
     <!-- Main Content -->
     <div class="sdm-main-content">
+<script>
+    let odontogramaInit = false;
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('moduleSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (sidebar) sidebar.classList.toggle('show');
+        if (overlay) overlay.classList.toggle('show');
+    }
+
+    function swTab(id, b) {
+        if (window.innerWidth <= 991) {
+            // Solo auto-cerrar en móvil si hizo clic en un sub-link final, no en un botón padre
+            if(b && b.classList.contains('sub-link')){
+                const sidebar = document.getElementById('moduleSidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (sidebar && sidebar.classList.contains('show')) toggleSidebar();
+            }
+        }
+
+        document.querySelectorAll('.sdm-tab-sec').forEach(s => s.classList.add('d-none'));
+        const target = document.getElementById(id);
+        if(target) target.classList.remove('d-none');
+
+        // Manejar active state solo en sub-links para la nueva estructura anidada
+        if (b && b.classList.contains('sub-link')) {
+            document.querySelectorAll('.sub-link').forEach(n => n.classList.remove('active'));
+            b.classList.add('active');
+        }
+        
+        if (id === 'tab6' && !odontogramaInit && typeof initOdontograma === 'function') {
+            setTimeout(() => {
+                initOdontograma('odontograma-svg-container', '$d->{id_paciente}');
+                odontogramaInit = true;
+            }, 100);
+        }
+
+        if(b && b.classList.contains('sub-link')){
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+    
+    // Switch to tab if hash is present on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash;
+        if (hash) {
+            const tabId = hash.substring(1);
+            const targetBtn = document.querySelector('.sub-link[onclick*="swTab(\\'' + tabId + '\\'"]');
+            if(targetBtn) {
+                swTab(tabId, targetBtn);
+            }
+        }
+    });
+</script>
+<script>
+    function toggleDesktopSidebar() {
+        const sidebar = document.getElementById('moduleSidebar');
+        if(sidebar) sidebar.classList.toggle('compact');
+    }
+</script>
         <!-- Header Compacto -->
         <div class="diamond-header-compact d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">

@@ -262,16 +262,16 @@ function initPacientesSpa() {
                         '<!-- Barra de Herramientas (Bento Grid) -->' +
                         '<div class="row g-2 mb-2">' +
                           '<div class="col-3">' +
-                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">EXPEDIENTE</span></a>' +
+                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">EXPEDIENTE</span></a>' +
                           '</div>' +
                           '<div class="col-3">' +
-                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">FINANZAS</span></a>' +
+                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">FINANZAS</span></a>' +
                           '</div>' +
                           '<div class="col-3">' +
-                            '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CITA</span></a>' +
+                            '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CITA</span></a>' +
                           '</div>' +
                           '<div class="col-3">' +
-                            '<a href="render_consultas.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-heart-pulse fs-4 mb-1 text-danger"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CONSULTA</span></a>' +
+                            '<a href="render_consultas.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-heart-pulse fs-4 mb-1 text-danger"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CONSULTA</span></a>' +
                           '</div>' +
                           '<div class="col-4">' +
                             '<button type="button" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 border-0 bg-transparent" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CORREO</span></button>' +
@@ -322,41 +322,48 @@ document.addEventListener('spa:contentLoaded', initPacientesSpa);
 
 // --- Modal Dinámico de Envío de Email CRM ---
 window.abrirModalCorreoSpa = function(correoBase, nombreBase, idPaciente) {
+    // Cerrar expediente modal si está abierto
+    var mExpediente = document.getElementById('expedienteModal');
+    if (mExpediente) {
+        var bsExp = bootstrap.Modal.getInstance(mExpediente);
+        if (bsExp) bsExp.hide();
+    }
+
     if(!document.getElementById('modalCorreoSpaContainer')) {
         var modalHtml = 
-            '<div class="modal fade" id="modalCorreoSpaContainer" tabindex="-1" aria-labelledby="modalCorreoSpaLabel" aria-hidden="true" style="z-index: 1060;">' +
+            '<div class="modal fade modal-diamond" id="modalCorreoSpaContainer" tabindex="-1" aria-labelledby="modalCorreoSpaLabel" aria-hidden="true" style="z-index: 106000 !important;">' +
                 '<div class="modal-dialog modal-dialog-centered modal-lg">' +
-                    '<div class="modal-content border-0 shadow-lg rounded-4">' +
-                        '<div class="modal-header fw-bold text-white" style="background-color: #174975; border-top-left-radius: 1rem; border-top-right-radius: 1rem;">' +
-                            '<h5 class="modal-title" id="modalCorreoSpaLabel"><i class="bi bi-envelope-paper-fill me-2"></i> Redactar Correo a Paciente</h5>' +
-                            '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                    '<div class="modal-content border-0 shadow-lg">' +
+                        '<div class="modal-header fw-bold">' +
+                            '<h5 class="modal-title d-flex align-items-center" id="modalCorreoSpaLabel"><i class="bi bi-envelope-paper-fill me-2" style="color: #f59e0b !important;"></i> Redactar Correo a Paciente</h5>' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
                         '</div>' +
                         '<div class="modal-body p-4 bg-light">' +
                             '<form id="formCorreoCrm" enctype="multipart/form-data">' +
                                 '<div class="row g-3 mb-3">' +
                                     '<div class="col-md-6">' +
                                         '<label class="form-label text-muted fw-bold small text-uppercase">Destinatario (Para)</label>' +
-                                        '<input type="email" class="form-control bg-white shadow-sm border-0" id="crmInputTo" name="para" required readonly>' +
+                                        '<input type="email" class="form-control bg-white shadow-sm border-0 rounded-3" id="crmInputTo" name="para" required readonly>' +
                                         '<input type="hidden" id="crmInputIdPaciente" name="id_paciente">' +
                                     '</div>' +
                                     '<div class="col-md-6">' +
                                         '<label class="form-label text-muted fw-bold small text-uppercase">Asunto</label>' +
-                                        '<input type="text" class="form-control shadow-sm border-0" name="asunto" id="crmInputSubject" required>' +
+                                        '<input type="text" class="form-control shadow-sm border-0 rounded-3" name="asunto" id="crmInputSubject" required>' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="mb-3">' +
                                     '<label class="form-label text-muted fw-bold small text-uppercase">Cuerpo del Mensaje (Soporta HTML)</label>' +
-                                    '<textarea class="form-control shadow-sm border-0" name="cuerpo" rows="4" required></textarea>' +
+                                    '<textarea class="form-control shadow-sm border-0 rounded-3" name="cuerpo" rows="4" required></textarea>' +
                                 '</div>' +
                                 '<div class="mb-1">' +
                                     '<label class="form-label text-muted fw-bold small text-uppercase"><i class="bi bi-paperclip"></i> Adjuntar Archivos (PDF, XLS, DOC... max 5MB)</label>' +
-                                    '<input type="file" class="form-control shadow-sm border-0" name="adjuntos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">' +
+                                    '<input type="file" class="form-control shadow-sm border-0 rounded-3" name="adjuntos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">' +
                                 '</div>' +
                             '</form>' +
                         '</div>' +
                         '<div class="modal-footer bg-light border-0">' +
                             '<button type="button" class="btn btn-secondary rounded-pill fw-bold border-0 shadow-sm" data-bs-dismiss="modal">Cancelar</button>' +
-                            '<button type="button" class="btn btn-primary rounded-pill fw-bold shadow-sm px-4" id="btnEnviarCorreoCrm" style="background-color: #174975;">' +
+                            '<button type="button" class="btn btn-primary rounded-pill fw-bold shadow-sm px-4" id="btnEnviarCorreoCrm">' +
                                 '<i class="bi bi-send-fill me-2"></i> Enviar Correo' +
                             '</button>' +
                         '</div>' +

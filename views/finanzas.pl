@@ -32,46 +32,7 @@ print <<'PAGE_HTML';
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
 
-<script>
-    function toggleSidebar() {
-        const sidebar = document.getElementById('moduleSidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        if (sidebar) sidebar.classList.toggle('show');
-        if (overlay) overlay.classList.toggle('show');
-    }
-    function toggleDesktopSidebar() {
-        const sidebar = document.getElementById('moduleSidebar');
-        if(sidebar) sidebar.classList.toggle('compact');
-    }
-    function swTab(tabId, btnElement) {
-        // Ocultar todos los tabs
-        document.querySelectorAll('.sdm-tab-pane').forEach(el => el.classList.add('d-none'));
-        const target = document.getElementById(tabId);
-        if(target) target.classList.remove('d-none');
-        
-        // Actualizar visualmente los botones del sidebar
-        if(btnElement) {
-            document.querySelectorAll('.sidebar-menu .sub-link').forEach(el => el.classList.remove('active'));
-            btnElement.classList.add('active');
-            
-            // Auto cerrar en móvil
-            if(window.innerWidth < 992) {
-                toggleSidebar();
-            }
-        }
-        
-        // Render triggers si aplica
-        if(tabId === 'tab_cxc') {
-            if(typeof window.renderCxC === 'function') window.renderCxC();
-        }
-        if(tabId === 'tab_gastos') {
-            if(typeof window.renderGastos === 'function') window.renderGastos();
-        }
-        if(tabId === 'tab_ingresos') {
-            if(typeof window.renderIngresos === 'function') window.renderIngresos();
-        }
-    }
-</script>
+
 
 <div class="sdm-layout-wrapper animate__animated animate__fadeIn">
     <!-- Sidebar Left -->
@@ -130,6 +91,46 @@ print <<'PAGE_HTML';
 
     <!-- Main Content -->
     <div class="sdm-main-content">
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('moduleSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (sidebar) sidebar.classList.toggle('show');
+        if (overlay) overlay.classList.toggle('show');
+    }
+    function toggleDesktopSidebar() {
+        const sidebar = document.getElementById('moduleSidebar');
+        if(sidebar) sidebar.classList.toggle('compact');
+    }
+    function swTab(tabId, btnElement) {
+        // Ocultar todos los tabs
+        document.querySelectorAll('.sdm-tab-pane').forEach(el => el.classList.add('d-none'));
+        const target = document.getElementById(tabId);
+        if(target) target.classList.remove('d-none');
+        
+        // Actualizar visualmente los botones del sidebar
+        if(btnElement) {
+            document.querySelectorAll('.sidebar-menu .sub-link').forEach(el => el.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            // Auto cerrar en móvil
+            if(window.innerWidth < 992) {
+                toggleSidebar();
+            }
+        }
+        
+        // Render triggers si aplica
+        if(tabId === 'tab_cxc') {
+            if(typeof window.renderCxC === 'function') window.renderCxC();
+        }
+        if(tabId === 'tab_gastos') {
+            if(typeof window.renderGastos === 'function') window.renderGastos();
+        }
+        if(tabId === 'tab_ingresos') {
+            if(typeof window.renderIngresos === 'function') window.renderIngresos();
+        }
+    }
+</script>
         <!-- Header Compacto -->
         <div class="diamond-header-compact d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">
