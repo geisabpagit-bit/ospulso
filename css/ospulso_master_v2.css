@@ -509,3 +509,26 @@
 #tablaGastos tbody tr td { color: var(--md-danger) !important; }
 .tr-ingreso, .tr-ingreso td { color: var(--md-success) !important; }
 .tr-egreso, .tr-egreso td { color: var(--md-danger) !important; }
+
+
+/* Sidebar Compact Mode */
+.diamond-sidebar.compact {
+    width: 80px !important;
+}
+.diamond-sidebar.compact .sidebar-brand .avatar-diamond {
+    margin: 0 auto;
+}
+.diamond-sidebar.compact .sidebar-text {
+    display: none !important;
+}
+.diamond-sidebar.compact .sub-link {
+    justify-content: center !important;
+    padding: 0.75rem !important;
+}
+.diamond-sidebar.compact .sub-link i,
+.diamond-sidebar.compact .sub-link .material-icons {
+    margin-right: 0 !important;
+}
+.diamond-sidebar.compact .sidebar-footer {
+    padding: 1rem !important;
+}

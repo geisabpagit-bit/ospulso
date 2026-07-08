@@ -127,7 +127,15 @@ sub render_dashboard_principal {
     my $tit_modulos = "M&oacute;dulos de Gesti&oacute;n";
     my $tit_citas   = "Pr&oacute;ximas citas";
 
+    utils::sub_sidebar::render_sidebar(
+        usuario => $usuario,
+        role => $role,
+        id_medico => $id_medico,
+        pagina_actual => 'dashboard'
+    );
     print <<HTML;
+        <div class="sdm-content mt-4">
+
     <script>
     function animateValue(obj, start, end, duration, isK) {
         let startTimestamp = null;
@@ -315,14 +323,6 @@ sub render_dashboard_principal {
 </style>
 
 HTML
-    utils::sub_sidebar::render_sidebar(
-        usuario => $usuario,
-        role => $role,
-        id_medico => $id_medico,
-        pagina_actual => 'dashboard'
-    );
-    print <<HTML;
-        <div class="sdm-content mt-4">
             <!-- Google Auth Script -->
             <script>
             function iniciarVinculacionGoogle() {
