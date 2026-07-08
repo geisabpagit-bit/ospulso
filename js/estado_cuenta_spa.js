@@ -7,6 +7,7 @@ let carritoApp = [];
 let windowActiveOS = null;
 let currentSaldoTotal = 0;
 let pieChartInstance = null;
+let piePresupuestosInstance = null;
 
 async function initModuloFinanciero(id, modo, idMed) {
     idPacienteGlobal = id;
@@ -66,6 +67,7 @@ async function cargarHistorialCuentas() {
         }
         
         actualizarPieChart(res.cargos || 0, res.abonos || 0);
+        actualizarPieChartPresupuestos(res.presupuestos || 0);
 
         // Actualizar KPIs de Finanzas Dashboard
         if (typeof window.cargarDashboardKPIs === 'function') {
@@ -267,6 +269,54 @@ function actualizarPieChart(cargos, abonos) {
                         callbacks: {
                             label: function(context) {
                                 return ' ' + context.label + ': ' + formatter.format(context.raw);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function actualizarPieChartPresupuestos(presupuestos) {
+    const legPre = document.getElementById('legPresupuestos');
+    const pieVal = document.getElementById('pieCenterValPresupuestos');
+    if (legPre) legPre.innerText = formatter.format(presupuestos);
+    if (pieVal) pieVal.innerText = formatter.format(presupuestos);
+
+    const ctx = document.getElementById('piePresupuestos');
+    if (!ctx) return;
+
+    if (piePresupuestosInstance) {
+        piePresupuestosInstance.data.datasets[0].data = [presupuestos, presupuestos === 0 ? 1 : 0];
+        piePresupuestosInstance.update();
+    } else {
+        piePresupuestosInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Presupuestos', 'Vacío'],
+                datasets: [{
+                    data: [presupuestos, presupuestos === 0 ? 1 : 0],
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#e2e8f0'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.label === 'Vacío') return 'Sin presupuestos activos';
+                                let val = context.raw || 0;
+                                return context.label + ': ' + formatter.format(val);
                             }
                         }
                     }

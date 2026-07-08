@@ -188,10 +188,32 @@ print <<HTML;
                     </div>
                 </div>
 
-                <div class="bento-card border-0 shadow-sm bg-primary text-white">
-                    <h5 class="fw-bold mb-3">&iquest;Dudas?</h5>
-                    <p class="small opacity-75 mb-4">Puedes conciliar los pagos directamente con el m&eacute;dico asignado o el administrador del sistema dental.</p>
-                    <button class="btn btn-light btn-sm w-100 fw-bold rounded-3">SOLICITAR AUDITOR&Iacute;A</button>
+                <div class="bento-card border-0 shadow-lg bg-white mt-4" style="border-radius: 20px;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold plus-jakarta text-dark m-0" style="font-size: 1.1rem;">Presupuestos</span>
+                        <button class="btn btn-sm bg-light rounded-pill border px-3 fw-bold shadow-sm" style="font-size: 0.75rem; color: #475569;"><i class="bi bi-file-earmark-medical me-1"></i> Global</button>
+                    </div>
+                    
+                    <div class="row align-items-center g-0">
+                        <div class="col-6 position-relative" style="height: 160px;">
+                            <canvas id="piePresupuestos"></canvas>
+                            <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
+                                <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValPresupuestos" style="font-size: 1.1rem;">$0</h5>
+                                <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Total</span>
+                            </div>
+                        </div>
+                        <div class="col-6 ps-2">
+                            <div class="d-flex flex-column gap-3 w-100" id="pieCustomLegendPresupuestos">
+                                <div class="d-flex align-items-center justify-content-between w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
+                                        <span class="text-muted fw-bold" style="font-size: 0.75rem;">Presupuestos</span>
+                                    </div>
+                                    <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legPresupuestos">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
