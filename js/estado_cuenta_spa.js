@@ -124,6 +124,24 @@ async function cargarHistorialCuentas() {
                         $('#tablaResumenIngresos').DataTable().destroy();
                     }
                     $('#tablaResumenIngresos').DataTable({
+                        scrollY: '400px',
+                        scrollX: true,
+                        scrollCollapse: true,
+                        footerCallback: function(row, data, start, end, display) {
+                            var api = this.api();
+                            var intVal = function(i) {
+                                return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                            };
+                            var total = api.column(4, { page: 'current' }).data().reduce(function(a, b) {
+                                // Extract the number from HTML like <td class="fw-bold...">$1,200.00</td>
+                                // DataTables data() might contain raw HTML if rendered via mRender, but here data is HTML string.
+                                // Actually, data is an array of strings per column.
+                                var val = typeof b === 'string' ? b.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') : b;
+                                return intVal(a) + intVal(val);
+                            }, 0);
+                            var el = document.getElementById('tfootResumenMonto');
+                            if(el) el.innerHTML = formatter.format(total);
+                        },
                         dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                         buttons: [
                             { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
@@ -320,6 +338,9 @@ function renderHistorial(historial) {
         
         if (historial.length && $.fn.DataTable) {
             $('#dtEdoCuenta').DataTable({
+                scrollY: '400px',
+                scrollX: true,
+                scrollCollapse: true,
                 destroy: true,
                 language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json" },
                 order: [[1, "desc"]],
@@ -854,6 +875,19 @@ window.renderCxC = async function() {
                     $('#tablaCxC').DataTable().destroy();
                 }
                 $('#tablaCxC').DataTable({
+                    scrollY: '400px',
+                    scrollX: true,
+                    scrollCollapse: true,
+                    footerCallback: function(row, data, start, end, display) {
+                        var api = this.api();
+                        var intVal = function(i) { return typeof i === 'string' ? i.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0; };
+                        var cargos = api.column(2, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
+                        var abonos = api.column(3, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
+                        var saldo = api.column(4, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
+                        var eC = document.getElementById('tfootCxCCargos'); if(eC) eC.innerHTML = formatter.format(cargos);
+                        var eA = document.getElementById('tfootCxCAbonos'); if(eA) eA.innerHTML = formatter.format(abonos);
+                        var eS = document.getElementById('tfootCxCSaldo'); if(eS) eS.innerHTML = formatter.format(saldo);
+                    },
                     dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                     buttons: [
                         { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
@@ -1037,6 +1071,16 @@ window.renderGastos = async function() {
             if ($.fn.DataTable) {
                 if ($.fn.DataTable.isDataTable('#tablaGastos')) $('#tablaGastos').DataTable().destroy();
                 $('#tablaGastos').DataTable({
+                    scrollY: '400px',
+                    scrollX: true,
+                    scrollCollapse: true,
+                    footerCallback: function(row, data, start, end, display) {
+                        var api = this.api();
+                        var intVal = function(i) { return typeof i === 'string' ? i.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0; };
+                        var total = api.column(4, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
+                        var el = document.getElementById('tfootGastosMonto');
+                        if(el) el.innerHTML = formatter.format(total);
+                    },
                     dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                     buttons: [
                         { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
@@ -1192,6 +1236,16 @@ window.renderIngresos = async function() {
             if ($.fn.DataTable) {
                 if ($.fn.DataTable.isDataTable('#tablaIngresos')) $('#tablaIngresos').DataTable().destroy();
                 $('#tablaIngresos').DataTable({
+                    scrollY: '400px',
+                    scrollX: true,
+                    scrollCollapse: true,
+                    footerCallback: function(row, data, start, end, display) {
+                        var api = this.api();
+                        var intVal = function(i) { return typeof i === 'string' ? i.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0; };
+                        var total = api.column(3, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
+                        var el = document.getElementById('tfootIngresosAbono');
+                        if(el) el.innerHTML = formatter.format(total);
+                    },
                     dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                     buttons: [
                         { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },

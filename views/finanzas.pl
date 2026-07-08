@@ -282,7 +282,7 @@ print <<'PAGE_HTML';
                 <div class="bento-card mb-5">
                     <h6 class="fw-bold plus-jakarta mb-4 text-dark">Resumen de Ingresos Recientes</h6>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 table-diamond" id="tablaResumenIngresos">
+                        <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0 table-diamond" id="tablaResumenIngresos">
                             <thead class="text-muted small">
                                 <tr>
                                     <th class="border-0">Fecha</th>
@@ -296,6 +296,13 @@ print <<'PAGE_HTML';
                             <tbody id="tbodyResumenIngresos">
                                 <!-- JS fills this -->
                             </tbody>
+                            <tfoot class="bg-light fw-bold">
+                                <tr>
+                                    <td colspan="4" class="text-end">Total:</td>
+                                    <td id="tfootResumenMonto"></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                     <div class="text-center mt-4">
@@ -315,7 +322,7 @@ print <<'PAGE_HTML';
                     </div>
                     
                     <div class="table-responsive mt-3">
-                        <table class="table table-hover align-middle table-diamond" id="tablaIngresos">
+                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond" id="tablaIngresos">
                             <thead class="text-muted small">
                                 <tr>
                                     <th>Fecha</th>
@@ -327,6 +334,12 @@ print <<'PAGE_HTML';
                             <tbody id="tbodyIngresos">
                                 <tr><td colspan="4" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
                             </tbody>
+                            <tfoot class="bg-light fw-bold">
+                                <tr>
+                                    <td colspan="3" class="text-end">Total:</td>
+                                    <td id="tfootIngresosAbono"></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -344,7 +357,7 @@ print <<'PAGE_HTML';
                     </div>
                     
                     <div class="table-responsive mt-3">
-                        <table class="table table-hover align-middle table-diamond" id="tablaGastos">
+                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond" id="tablaGastos">
                             <thead class="text-muted small">
                                 <tr>
                                     <th>Fecha</th>
@@ -357,8 +370,15 @@ print <<'PAGE_HTML';
                                 </tr>
                             </thead>
                             <tbody id="tbodyGastos">
-                                <tr><td colspan="5" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
+                                <tr><td colspan="7" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
                             </tbody>
+                            <tfoot class="bg-light fw-bold">
+                                <tr>
+                                    <td colspan="4" class="text-end">Total Gastos:</td>
+                                    <td id="tfootGastosMonto"></td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -372,7 +392,7 @@ print <<'PAGE_HTML';
                     <h4 class="fw-bold plus-jakarta mb-4 text-dark">Cuentas por Cobrar (CxC)</h4>
                     <p class="text-muted">Pacientes con saldos pendientes. Calculado en tiempo real.</p>
                     <div class="table-responsive mt-3">
-                        <table class="table table-hover align-middle table-diamond" id="tablaCxC">
+                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond" id="tablaCxC">
                             <thead class="text-muted small">
                                 <tr>
                                     <th>Paciente</th>
@@ -386,6 +406,15 @@ print <<'PAGE_HTML';
                             <tbody id="tbodyCxC">
                                 <tr><td colspan="6" class="text-center text-muted">Cargando...</td></tr>
                             </tbody>
+                            <tfoot class="bg-light fw-bold">
+                                <tr>
+                                    <td colspan="2" class="text-end">Totales:</td>
+                                    <td id="tfootCxCCargos"></td>
+                                    <td id="tfootCxCAbonos"></td>
+                                    <td id="tfootCxCSaldo"></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>

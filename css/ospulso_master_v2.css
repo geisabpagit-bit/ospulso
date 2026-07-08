@@ -491,3 +491,13 @@
 .dataTables_wrapper .dataTables_paginate .paginate_button { border-radius: 8px !important; border: none !important; margin: 0 2px; }
 .dataTables_wrapper .dataTables_paginate .paginate_button.current { background: var(--md-blue-primary) !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) { background: var(--md-blue-light) !important; color: var(--md-blue-deep) !important; }
+
+/* Estilos compactos e conos de color para DataTables (Diamond Theme) */
+.table-diamond.table-sm { font-size: 0.85rem; }
+.table-diamond.table-sm td, .table-diamond.table-sm th { padding: 0.5rem 0.5rem; }
+.table-diamond i.bi { margin-right: 4px; }
+.table-diamond i.bi-person-circle, .table-diamond i.bi-person-fill { color: var(--md-blue-primary) !important; }
+.table-diamond i.bi-cash-coin, .table-diamond i.bi-currency-dollar { color: var(--md-success) !important; }
+.table-diamond i.bi-exclamation-circle, .table-diamond i.bi-exclamation-triangle { color: var(--md-danger) !important; }
+.table-diamond i.bi-file-earmark-pdf { color: var(--md-danger) !important; }
+.table-diamond tfoot td { font-size: 0.95rem; font-weight: bold; background-color: var(--md-gray-50) !important; border-top: 2px solid var(--md-gray-300); }
