@@ -300,7 +300,8 @@ function initPacientesSpa() {
                         '<p class="mb-0 small">Ocurrió un error al procesar el expediente en este navegador. Detalle: ' + renderError.message + '</p>' +
                     '</div>';
             }
-        });
+        }
+    });
         window._pacientesSpaEventAttached = true;
     }
 }

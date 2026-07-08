@@ -51,7 +51,14 @@ async function loadPage(url, push = true) {
         
         // Actualizar Contenido Principal
         const newMain = doc.querySelector('.sdm-main-content');
+        
+        let scriptsToExecute = [];
         if (newMain && mainContent) {
+            // Extraer scripts antes de inyectar para evitar falsos positivos de "exists"
+            const scripts = newMain.querySelectorAll('script');
+            scriptsToExecute = Array.from(scripts);
+            scripts.forEach(s => s.remove());
+            
             mainContent.innerHTML = newMain.innerHTML;
             mainContent.style.opacity = '1';
         } else {
@@ -81,8 +88,6 @@ async function loadPage(url, push = true) {
 
         // Procesar Scripts del nuevo contenido
         // En SPA, los <script> inyectados vía innerHTML no se ejecutan. Hay que recrearlos.
-        const scripts = mainContent.querySelectorAll('script');
-        
         const executeScriptsSequentially = async (scriptsList) => {
             for (const oldScript of scriptsList) {
                 const newScript = document.createElement('script');
@@ -118,7 +123,7 @@ async function loadPage(url, push = true) {
             }
         };
         
-        await executeScriptsSequentially(scripts);
+        await executeScriptsSequentially(scriptsToExecute);
         
         if (push) {
             history.pushState({ spa: true }, "", url);
