@@ -146,7 +146,7 @@ sub render_dashboard_principal {
         };
         window.requestAnimationFrame(step);
     }
-    document.addEventListener("DOMContentLoaded", function() {
+    function initDashboardCounters() {
         setTimeout(function() {
             const counters = document.querySelectorAll(".counter-up");
             counters.forEach(function(el) {
@@ -157,7 +157,14 @@ sub render_dashboard_principal {
                 }
             });
         }, 300);
-    });
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener("DOMContentLoaded", initDashboardCounters);
+    } else {
+        initDashboardCounters();
+    }
+    document.addEventListener("spa:contentLoaded", initDashboardCounters);
     </script>
 <style>
     /* MedentIA Bento Dashboard v1.0 (Diamond Armor Style) */

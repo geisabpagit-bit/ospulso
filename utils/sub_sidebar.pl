@@ -77,6 +77,7 @@ sub render_sidebar {
     
     print <<HTML;
 <link rel="stylesheet" href="../css/expediente_completo.css?v=$^T">
+<script src="../js/spa_router.js?v=$^T" defer></script>
 <script>
     function toggleSidebar() {
         const sidebar = document.getElementById('moduleSidebar');
@@ -128,6 +129,16 @@ HTML
                 <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> $m->{title}
             </a>
         };
+
+        if ($mod_key eq 'agenda') {
+            my $ajustes_href = ($pagina_actual eq 'agenda') ? "#" : "../views/agenda_main.pl?open_settings=1";
+            my $ajustes_onclick = ($pagina_actual eq 'agenda') ? "onclick='abrirModalAjustes(); return false;'" : "";
+            print qq{
+                <a href="$ajustes_href" $ajustes_onclick class="sub-link ms-4 text-start text-decoration-none d-flex align-items-center mb-2" style="font-size: 0.85rem; opacity: 0.85;">
+                    <i class="bi bi-gear-fill me-2 text-secondary" style="font-size:1rem;"></i> Ajustes
+                </a>
+            };
+        }
     }
 
     print <<HTML;

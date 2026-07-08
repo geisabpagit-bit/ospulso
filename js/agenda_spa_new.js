@@ -1,3 +1,13 @@
+document.addEventListener('spa:contentLoaded', function() {
+    if (document.querySelector('.main-container-agenda')) {
+        if (typeof initClock === 'function') initClock();
+        if (typeof loadFormMetadata === 'function') loadFormMetadata();
+        if (typeof loadContext === 'function') loadContext();
+        if (window.location.search.includes('open_settings=1')) {
+            if (typeof abrirModalAjustes === 'function') setTimeout(abrirModalAjustes, 300);
+        }
+    }
+});
 // --- SDM AGENDA SPA ENGINE v1.5.0 [Estable 2026-04-14 16:35] ---
 const CrystalToast = typeof Swal !== 'undefined' ? Swal.mixin({
     toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, 
@@ -148,6 +158,10 @@ $(document).ready(function() {
     loadFormMetadata();
     loadContext();
     
+    if (window.location.search.includes('open_settings=1')) {
+        if (typeof abrirModalAjustes === 'function') setTimeout(abrirModalAjustes, 300);
+    }
+
     // Selector Duración (Diamond Edition Refactor)
     $(document).on('click', '.btn-dur', function() {
         $(".btn-dur").removeClass('active');

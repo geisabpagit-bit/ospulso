@@ -1,6 +1,8 @@
 // js/pacientes_spa.js
 
-document.addEventListener('DOMContentLoaded', function() {
+function initPacientesSpa() {
+    if (!document.getElementById('tablaPacientes')) return;
+
     var modalEl = document.getElementById('expedienteModal');
     var bModal = null;
     if (modalEl) {
@@ -433,7 +435,14 @@ window.abrirModalCorreoSpa = function(correoBase, nombreBase, idPaciente) {
                     '</ul>' +
                    '</div>',
             confirmButtonColor: '#174975'
-        });
+        }
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPacientesSpa);
+} else {
+    initPacientesSpa();
+}
+document.addEventListener('spa:contentLoaded', initPacientesSpa);
+
         btnSubmit.innerHTML = originalText;
         btnSubmit.disabled = false;
     }
