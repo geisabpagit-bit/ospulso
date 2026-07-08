@@ -18,6 +18,8 @@ document.addEventListener('spa:contentLoaded', function() {
             document.querySelectorAll('body > #modalAjustes').forEach(m => { if (m !== modalAjustes) m.remove(); });
             document.body.appendChild(modalAjustes);
         }
+        
+        switchView('mes');
     }
 });
 // --- SDM AGENDA SPA ENGINE v1.5.0 [Estable 2026-04-14 16:35] ---

@@ -34,7 +34,12 @@ function initPacientesSpa() {
                 '</div>';
         }
         
-        if (bModal) bModal.show();
+        // Use the current DOM element to prevent referencing removed modals
+        var currentModalEl = document.getElementById('expedienteModal');
+        if (currentModalEl) {
+            var currentBModal = bootstrap.Modal.getInstance(currentModalEl) || new bootstrap.Modal(currentModalEl);
+            currentBModal.show();
+        }
 
         var timestamp = new Date().getTime();
         var url = '../api/pacientes_api.pl?accion=get_perfil&id=' + encodeURIComponent(idPaciente) + '&_t=' + timestamp;
@@ -463,6 +468,6 @@ window.abrirModalCorreoSpa = function(correoBase, nombreBase, idPaciente) {
     document.getElementById('crmInputSubject').value = "Información Importante de su Clínica";
     
     var modalEl = document.getElementById('modalCorreoSpaContainer');
-    var bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-    bsModal.show();
+    var bModalCorreo = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    bModalCorreo.show();
 };

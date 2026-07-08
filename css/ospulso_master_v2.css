@@ -518,12 +518,14 @@
 .diamond-sidebar.compact .sidebar-brand .avatar-diamond {
     margin: 0 auto;
 }
-.diamond-sidebar.compact .sidebar-text {
+.diamond-sidebar.compact .sidebar-text,
+.diamond-sidebar.compact .user-details {
     display: none !important;
 }
 .diamond-sidebar.compact .sub-link {
     justify-content: center !important;
     padding: 0.75rem !important;
+    margin-left: 0 !important;
 }
 .diamond-sidebar.compact .sub-link i,
 .diamond-sidebar.compact .sub-link .material-icons {

@@ -375,15 +375,19 @@ HTML
                 </div>
             </div>
 
-            <!-- Sección: Próximas Citas -->
-            <div class="row mb-5">
-                <div class="col-12">
+            <!-- Sección: Próximas Citas con Timeline -->
+            <div class="row g-4">
+                <div class="col-12 col-lg-8 offset-lg-2">
                     <h5 class="plus-jakarta fw-black mb-4">$tit_citas</h5>
-                    <div class="bg-white rounded-4 p-3 shadow-sm" style="border: 2px solid #19B7A5; min-height:200px">
+                    <div class="bg-white rounded-4 p-4 shadow-sm" style="border: 2px solid #19B7A5; min-height: 350px;">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <p class="text-muted m-0 small fw-bold">ACTIVIDAD PROGRAMADA RECIENTE</p>
+                            <a href="../views/agenda_main.pl" class="btn btn-sm btn-outline-primary rounded-pill px-3">Ver Agenda Completa</a>
+                        </div>
 HTML
 
     if (@proximas_citas == 0) {
-        print '<div class="text-center py-5"><p class="text-muted small fw-bold">Sin actividad programada en los próximos 7 días.</p></div>';
+        print '<div class="text-center py-5"><p class="text-muted small fw-bold">Sin actividad programada en los próximos 7 días.</p></div>\n';
     } else {
         foreach my $cita (@proximas_citas) {
             my $bCol = ($cita->{estado} =~ /Confirmada/i) ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary';
@@ -395,7 +399,7 @@ HTML
                         <div class="d-flex gap-2 align-items-center"><span class="badge bg-light text-muted" style="font-size:0.6rem;">$date_label</span><small class="text-muted fw-semibold" style="font-size:0.7rem;"><i class="bi bi-clock me-1"></i>$cita->{hora}</small></div>
                     </div>
                     <div class="text-end"><span class="badge $bCol rounded-pill border-0 px-3 py-2 fw-bold" style="font-size:0.6rem;">$cita->{estado}</span></div>
-                </div>};
+                </div>\n};
         }
     }
 

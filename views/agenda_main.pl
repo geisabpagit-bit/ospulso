@@ -478,7 +478,7 @@ print <<HTML;
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/agenda_spa_new.js?v=4.0.3_Premium"></script>
+    <script src="../js/agenda_spa_new.js?v=20260707_0018"></script>
 HTML
 utils::sub_sidebar::render_sidebar_footer();
 print <<HTML;
