@@ -10,17 +10,20 @@ use CGI::Session;
 use CGI::Carp qw(fatalsToBrowser warningsToBrowser);
 use Time::Piece;
 use Time::Seconds; 
-use lib '.';
+use FindBin;
+use lib "$FindBin::Bin/..";
 use JSON;
 use POSIX qw(strftime);
 use utils::db_manager qw(leer_tabla);
 
+use File::Spec;
+
 # Dependencias del sistema
-require '../auth/check_session.pl';
-require '../utils/sub_header.pl';
-require '../utils/sub_footer.pl';
-require '../utils/sub_navfixgo.pl';
-require '../api/sub_agenda_utils.pl';  
+require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_navfixgo.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'api', 'sub_agenda_utils.pl');  
 
 # Ejecución principal
 main(); 
