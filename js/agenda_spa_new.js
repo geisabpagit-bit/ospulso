@@ -6,6 +6,12 @@ document.addEventListener('spa:contentLoaded', function() {
         if (window.location.search.includes('open_settings=1')) {
             if (typeof abrirModalAjustes === 'function') setTimeout(abrirModalAjustes, 300);
         }
+        
+        // [SDM FIX] DOM Teleportation Protocol
+        var modalCita = document.getElementById('modalCita');
+        if (modalCita) document.body.appendChild(modalCita);
+        var modalAjustes = document.getElementById('modalAjustes');
+        if (modalAjustes) document.body.appendChild(modalAjustes);
     }
 });
 // --- SDM AGENDA SPA ENGINE v1.5.0 [Estable 2026-04-14 16:35] ---
@@ -1607,5 +1613,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var modalCita = document.getElementById('modalCita');
     if (modalCita) {
         document.body.appendChild(modalCita);
+    }
+    var modalAjustes = document.getElementById('modalAjustes');
+    if (modalAjustes) {
+        document.body.appendChild(modalAjustes);
     }
 });

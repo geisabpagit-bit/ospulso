@@ -298,7 +298,14 @@ function initPacientesSpa() {
             }
         }
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPacientesSpa);
+} else {
+    initPacientesSpa();
+}
+document.addEventListener('spa:contentLoaded', initPacientesSpa);
 
 // --- Modal Dinámico de Envío de Email CRM ---
 window.abrirModalCorreoSpa = function(correoBase, nombreBase, idPaciente) {
@@ -435,13 +442,7 @@ window.abrirModalCorreoSpa = function(correoBase, nombreBase, idPaciente) {
                     '</ul>' +
                    '</div>',
             confirmButtonColor: '#174975'
-        }
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPacientesSpa);
-} else {
-    initPacientesSpa();
-}
-document.addEventListener('spa:contentLoaded', initPacientesSpa);
+        });
 
         btnSubmit.innerHTML = originalText;
         btnSubmit.disabled = false;
