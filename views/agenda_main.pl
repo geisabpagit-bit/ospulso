@@ -269,31 +269,27 @@ print <<HTML;
                         <input type="hidden" name="hora_fin" id="f_hf">
 
                         <div class="row g-3">
-                            <!-- Sección Principal (Top) -->
-                            <div class="col-md-8">
+                            <!-- Primera Fila -->
+                            <div class="col-md-3">
                                 <div class="form-floating floating-label-premium position-relative">
                                     <input type="text" id="f_paciente" class="form-control pe-4" placeholder="Buscar paciente..." required>
-                                    <label for="f_paciente">PACIENTE <span class="fw-normal text-lowercase">(autocompletado)</span></label>
+                                    <label for="f_paciente">PACIENTE <span class="fw-normal text-lowercase">(auto)</span></label>
                                     <i class="bi bi-search position-absolute end-0 translate-middle-y me-3 text-muted" style="top: 50%;"></i>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-floating floating-label-premium">
                                     <input type="date" name="fecha" id="f_fecha" class="form-control" placeholder="Fecha" onchange="renderSlots(this.value)">
                                     <label for="f_fecha">FECHA DE LA CITA</label>
                                 </div>
                             </div>
-                            
-                            <!-- Segunda Fila -->
-                            <div class="col-md-12">
+                            <div class="col-md-3">
                                 <div class="form-floating floating-label-premium">
-                                    <textarea name="motivo" id="f_motivo" class="form-control" placeholder="Detalles de la cita..." style="height: 60px;"></textarea>
+                                    <input type="text" name="motivo" id="f_motivo" class="form-control" placeholder="Detalles de la cita...">
                                     <label for="f_motivo">MOTIVO / OBSERVACIONES</label>
                                 </div>
                             </div>
-                            
-                            <!-- Tercera Fila: Configuraciones Menores -->
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-floating floating-label-premium">
                                     <select name="id_medico" id="f_medico_select" class="form-select fw-bold" onchange="actualizarAgendaDestino()">
                                         $html_medicos
@@ -301,7 +297,9 @@ print <<HTML;
                                     <label for="f_medico_select">PROFESIONAL</label>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+
+                            <!-- Segunda Fila -->
+                            <div class="col-md-3">
                                 <div class="form-floating floating-label-premium">
                                     <select name="sucursal" id="f_sucursal" class="form-select fw-bold">
                                         $html_sucursal
@@ -309,7 +307,7 @@ print <<HTML;
                                     <label for="f_sucursal">SUCURSAL</label>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-floating floating-label-premium">
                                     <select name="consultorio" id="f_consultorio" class="form-select fw-bold">
                                         <option value="Consultorio 1">Cons. 1</option>
@@ -321,9 +319,7 @@ print <<HTML;
                                     <label for="f_consultorio">LUGAR</label>
                                 </div>
                             </div>
-                            
-                            <!-- Cuarta Fila: Estado y Prioridad -->
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <div class="form-floating floating-label-premium">
                                     <select name="estado" id="f_estado" class="form-select fw-bold">
                                         <option value="Programada">Programada</option>
@@ -334,7 +330,7 @@ print <<HTML;
                                     <label for="f_estado">ESTADO</label>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <div class="form-floating floating-label-premium">
                                     <select name="prioridad" id="f_prioridad" class="form-select fw-bold">
                                         <option value="Baja">Baja</option>
@@ -379,88 +375,95 @@ print <<HTML;
     </div>
 
     <!-- MODAL AJUSTES -->
-    <div class="modal fade" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
+    <div class="modal fade modal-diamond" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="fw-black text-uppercase tracking-wider m-0" style="color: var(--md-blue-deep) !important;">Ajustes de Agenda</h5>
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header fw-bold">
+                    <h5 class="modal-title d-flex align-items-center"><i class="bi bi-gear-fill me-2" style="color: #6366f1 !important;"></i> AJUSTES DE AGENDA</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 bg-light">
                     <form id="formAjustes">
                         <div class="row g-3">
                             <div class="col-6">
-                                <div class="form-floating mb-3">
-                                    <input type="time" class="form-control" id="adj_h_ini" name="h_ini" required>
-                                    <label>Inicio Jornada</label>
+                                <div class="form-floating mb-2">
+                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_h_ini" name="h_ini" required>
+                                    <label class="text-muted fw-bold small text-uppercase">Inicio Jornada</label>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="form-floating mb-3">
-                                    <input type="time" class="form-control" id="adj_h_fin" name="h_fin" required>
-                                    <label>Fin Jornada</label>
+                                <div class="form-floating mb-2">
+                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_h_fin" name="h_fin" required>
+                                    <label class="text-muted fw-bold small text-uppercase">Fin Jornada</label>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="form-floating mb-3">
-                                    <input type="time" class="form-control" id="adj_c_ini" name="c_ini" required>
-                                    <label>Inicio Comida</label>
+                                <div class="form-floating mb-2">
+                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_ini" name="c_ini" required>
+                                    <label class="text-muted fw-bold small text-uppercase">Inicio Comida</label>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="form-floating mb-3">
-                                    <input type="time" class="form-control" id="adj_c_fin" name="c_fin" required>
-                                    <label>Fin Comida</label>
+                                <div class="form-floating mb-2">
+                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_fin" name="c_fin" required>
+                                    <label class="text-muted fw-bold small text-uppercase">Fin Comida</label>
                                 </div>
                             </div>
-                            <div class="col-12">
-                                <label class="small fw-bold text-muted mb-2 d-block">Días Laborales</label>
-                                <div class="d-flex flex-wrap gap-2 mb-3">
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="1" id="d1"> <label class="form-check-label" for="d1">Lun</label>
+                            <div class="col-12 mt-4">
+                                <label class="small fw-bold text-muted mb-2 d-block text-uppercase">Días Laborales</label>
+                                <div class="d-flex flex-wrap gap-2 mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                    <div class="form-check form-check-inline m-0 me-2">
+                                        <input class="form-check-input adj-dia" type="checkbox" value="1" id="d1"> <label class="form-check-label small fw-bold" for="d1">Lun</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="2" id="d2"> <label class="form-check-label" for="d2">Mar</label>
+                                    <div class="form-check form-check-inline m-0 me-2">
+                                        <input class="form-check-input adj-dia" type="checkbox" value="2" id="d2"> <label class="form-check-label small fw-bold" for="d2">Mar</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="3" id="d3"> <label class="form-check-label" for="d3">Mié</label>
+                                    <div class="form-check form-check-inline m-0 me-2">
+                                        <input class="form-check-input adj-dia" type="checkbox" value="3" id="d3"> <label class="form-check-label small fw-bold" for="d3">Mié</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="4" id="d4"> <label class="form-check-label" for="d4">Jue</label>
+                                    <div class="form-check form-check-inline m-0 me-2">
+                                        <input class="form-check-input adj-dia" type="checkbox" value="4" id="d4"> <label class="form-check-label small fw-bold" for="d4">Jue</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="5" id="d5"> <label class="form-check-label" for="d5">Vie</label>
+                                    <div class="form-check form-check-inline m-0 me-2">
+                                        <input class="form-check-input adj-dia" type="checkbox" value="5" id="d5"> <label class="form-check-label small fw-bold" for="d5">Vie</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="6" id="d6"> <label class="form-check-label" for="d6">Sáb</label>
+                                    <div class="form-check form-check-inline m-0 me-2">
+                                        <input class="form-check-input adj-dia" type="checkbox" value="6" id="d6"> <label class="form-check-label small fw-bold" for="d6">Sáb</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="0" id="d0"> <label class="form-check-label" for="d0">Dom</label>
+                                    <div class="form-check form-check-inline m-0 me-2">
+                                        <input class="form-check-input adj-dia" type="checkbox" value="0" id="d0"> <label class="form-check-label small fw-bold" for="d0">Dom</label>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-12">
-                                <div class="form-floating mb-3">
-                                    <select class="form-select" id="adj_int" name="int">
+                            <div class="col-12 mt-3">
+                                <div class="form-floating mb-2">
+                                    <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_int" name="int">
                                         <option value="15">15 minutos</option>
                                         <option value="30">30 minutos</option>
                                         <option value="45">45 minutos</option>
                                         <option value="60">60 minutos</option>
                                     </select>
-                                    <label>Intervalo de Slots</label>
+                                    <label class="text-muted fw-bold small text-uppercase">Intervalo de Slots</label>
                                 </div>
                             </div>
-                            <div class="col-12">
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="adj_fest" name="festivos" placeholder="YYYY-MM-DD, ...">
-                                    <label>Festivos Personales</label>
+                            <div class="col-12 mt-3">
+                                <label class="small fw-bold text-muted mb-2 d-block text-uppercase">Festivos Personales</label>
+                                <div class="input-group mb-2 shadow-sm rounded-3">
+                                    <input type="date" class="form-control border-0" id="adj_fest_picker">
+                                    <button type="button" class="btn btn-primary px-3 fw-bold border-0" style="background-color: #6366f1;" onclick="var f = document.getElementById('adj_fest'); var p = document.getElementById('adj_fest_picker'); if(p.value){ f.value = f.value ? f.value + ',' + p.value : p.value; p.value = ''; }"><i class="bi bi-plus-lg"></i> Agregar</button>
+                                </div>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control shadow-sm border-0 rounded-3" id="adj_fest" name="festivos" placeholder="YYYY-MM-DD, ...">
+                                    <label class="text-muted fw-bold small text-uppercase">Fechas Seleccionadas</label>
                                 </div>
                             </div>
-                        </div>
-                        <div class="d-grid mt-3">
-                            <button type="button" onclick="guardarAjustes()" class="btn btn-primary py-3 fw-bold shadow-sm border-0" style="border-radius: 12px; background: var(--md-blue-medical);">GUARDAR PREFERENCIAS</button>
                         </div>
                     </form>
+                </div>
+                <div class="modal-footer bg-light border-0 pt-0">
+                    <button type="button" onclick="guardarAjustes()" class="btn btn-primary w-100 py-3 fw-bold shadow-sm border-0 rounded-pill" style="background: #6366f1;">
+                        <i class="bi bi-save me-2"></i> GUARDAR PREFERENCIAS
+                    </button>
                 </div>
             </div>
         </div>

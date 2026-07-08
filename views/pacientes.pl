@@ -134,9 +134,6 @@ foreach my $p (@list) {
                             <button class="btn p-0 border-0 btn-expediente" data-id="$p->{id}" title="Resumen">
                                 <div class="icon-container-acrylic"><i class="bi bi-eye"></i></div>
                             </button>
-                            <a href="render_expediente_clinico.pl?id=$p->{id}" class="text-decoration-none" title="Expediente">
-                                <div class="icon-container-acrylic"><i class="bi bi-journal-medical"></i></div>
-                            </a>
                             <button onclick="confirmBorrar('$p->{id}')" class="btn p-0 border-0 action-btn-delete" title="Eliminar">
                                 <div class="icon-container-acrylic text-danger border-danger border-opacity-25" style="background: rgba(220, 53, 69, 0.05);"><i class="bi bi-trash"></i></div>
                             </button>

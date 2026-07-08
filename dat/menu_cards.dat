@@ -6,7 +6,7 @@ admin_global|views/admin_global.pl|Admin Global|Gestión de licencias y servidor
 clinicas|views/manage_clinicas.pl|Gestión de Clínicas|Agregar, modificar y desactivar sucursales.|bi-building-gear|info|
 usuarios|views/administracion_usuarios.pl|Gestión de Usuarios|Administrar el personal de la clínica.|bi-people-fill|info|
 reportes|views/reportes.pl|Reportes y Análisis|Generar informes financieros y de actividad.|bi-file-bar-chart|info|
-agenda|views/agenda_main.pl|Agenda Dinámica|Gestión interactiva SPA de todas las citas y calendarios.|bi-calendar-week|info|
+agenda|views/agenda_vista_mensual.pl|Agenda Dinámica|Gestión interactiva SPA de todas las citas y calendarios.|bi-calendar-week|info|
 pacientes|views/pacientes.pl|Pacientes|PHI Acceso Información de Salud Protegida.|bi-clipboard-pulse|info|
 finanzas|views/finanzas.pl|Finanzas|Dashboard financiero y estado de cuenta global.|bi-cash|info|
 mis_citas|views/mis_citas.pl|Mis Citas|Ver y gestionar citas personales.|bi-calendar-event|info|
