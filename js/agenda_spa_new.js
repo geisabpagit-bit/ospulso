@@ -19,7 +19,7 @@ document.addEventListener('spa:contentLoaded', function() {
             document.body.appendChild(modalAjustes);
         }
         
-        switchView('mes');
+        switchView('calendario');
     }
 });
 // --- SDM AGENDA SPA ENGINE v1.5.0 [Estable 2026-04-14 16:35] ---
