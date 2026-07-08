@@ -9,9 +9,15 @@ document.addEventListener('spa:contentLoaded', function() {
         
         // [SDM FIX] DOM Teleportation Protocol
         var modalCita = document.getElementById('modalCita');
-        if (modalCita) document.body.appendChild(modalCita);
+        if (modalCita) {
+            document.querySelectorAll('body > #modalCita').forEach(m => { if (m !== modalCita) m.remove(); });
+            document.body.appendChild(modalCita);
+        }
         var modalAjustes = document.getElementById('modalAjustes');
-        if (modalAjustes) document.body.appendChild(modalAjustes);
+        if (modalAjustes) {
+            document.querySelectorAll('body > #modalAjustes').forEach(m => { if (m !== modalAjustes) m.remove(); });
+            document.body.appendChild(modalAjustes);
+        }
     }
 });
 // --- SDM AGENDA SPA ENGINE v1.5.0 [Estable 2026-04-14 16:35] ---
@@ -24,7 +30,7 @@ const CrystalToast = typeof Swal !== 'undefined' ? Swal.mixin({
 let selectedDate = new Date();
 let appointments = [];
 let agendaConfig = {};
-let currentView = 'dia';
+let currentView = 'mes';
 let duracionCita = 30;
 let tableInstance = null;
 let draggedId = null;

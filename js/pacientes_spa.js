@@ -6,15 +6,19 @@ function initPacientesSpa() {
     var modalEl = document.getElementById('expedienteModal');
     var bModal = null;
     if (modalEl) {
+        // Eliminar modales previos en el body para evitar duplicados en SPA
+        var oldModals = document.querySelectorAll('body > #expedienteModal');
+        oldModals.forEach(function(m) { if (m !== modalEl) m.remove(); });
+        
         // [SDM FIX] Mover el modal físicamente a la raíz del <body> 
-        // para escapar del stacking context de <main> y permitir que cubra el navbar
         document.body.appendChild(modalEl);
         bModal = new bootstrap.Modal(modalEl);
     }
     var contenido = document.getElementById('expedienteContenido');
 
     // Delegar eventos a los botones de la tabla
-    document.body.addEventListener('click', function(e) {
+    if (!window._pacientesSpaEventAttached) {
+        document.body.addEventListener('click', function(e) {
         var btn = e.target.closest('.btn-expediente');
         if (!btn) return;
 
@@ -296,7 +300,8 @@ function initPacientesSpa() {
                         '<p class="mb-0 small">Ocurrió un error al procesar el expediente en este navegador. Detalle: ' + renderError.message + '</p>' +
                     '</div>';
             }
-        }
+        });
+        window._pacientesSpaEventAttached = true;
     }
 }
 

@@ -374,7 +374,37 @@ HTML
                     </div>
                 </div>
             </div>
+
+            <!-- Sección: Próximas Citas -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <h5 class="plus-jakarta fw-black mb-4">$tit_citas</h5>
+                    <div class="bg-white rounded-4 p-3 shadow-sm" style="border: 2px solid #19B7A5; min-height:200px">
+HTML
+
+    if (@proximas_citas == 0) {
+        print '<div class="text-center py-5"><p class="text-muted small fw-bold">Sin actividad programada en los próximos 7 días.</p></div>';
+    } else {
+        foreach my $cita (@proximas_citas) {
+            my $bCol = ($cita->{estado} =~ /Confirmada/i) ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary';
+            my $date_label = ($cita->{fecha} eq $hoy_str) ? 'Hoy' : substr($cita->{fecha}, 5);
+            print qq{
+                <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-4 mb-3 shadow-sm interactive-scale" style="border: 1px solid rgba(25, 183, 165, 0.4);">
+                    <div style="flex-grow:1">
+                        <span class="d-block fw-bold text-navy mb-1" style="font-size:0.85rem;">$cita->{nombre_paciente}</span>
+                        <div class="d-flex gap-2 align-items-center"><span class="badge bg-light text-muted" style="font-size:0.6rem;">$date_label</span><small class="text-muted fw-semibold" style="font-size:0.7rem;"><i class="bi bi-clock me-1"></i>$cita->{hora}</small></div>
+                    </div>
+                    <div class="text-end"><span class="badge $bCol rounded-pill border-0 px-3 py-2 fw-bold" style="font-size:0.6rem;">$cita->{estado}</span></div>
+                </div>};
+        }
+    }
+
+    print <<HTML;
+                    </div>
+                </div>
+            </div>
             
+
             <!-- Botón flotante para Consulta Express móvil -->
             <button class="fab-btn-v2 pulse-fab d-lg-none" onclick="window.location.href='../views/render_consultas.pl'" title="Consulta">
                 <span class="material-icons">medical_services</span>

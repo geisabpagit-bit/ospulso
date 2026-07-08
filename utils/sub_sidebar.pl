@@ -152,7 +152,7 @@ HTML
     <!-- Main Content -->
     <div class="sdm-main-content">
         <!-- Header Compacto -->
-        <div class="diamond-header-compact d-flex justify-content-between align-items-center">
+        <div class="diamond-header-compact d-flex justify-content-between align-items-center bg-transparent border-0 shadow-none pt-3 pb-0">
             <div class="d-flex align-items-center gap-3">
                 <button class="btn btn-menu-toggle-inline d-lg-none" onclick="toggleSidebar()">
                     <i class="bi bi-list"></i>
