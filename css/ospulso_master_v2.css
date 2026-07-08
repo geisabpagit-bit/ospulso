@@ -501,3 +501,11 @@
 .table-diamond i.bi-exclamation-circle, .table-diamond i.bi-exclamation-triangle { color: var(--md-danger) !important; }
 .table-diamond i.bi-file-earmark-pdf { color: var(--md-danger) !important; }
 .table-diamond tfoot td { font-size: 0.95rem; font-weight: bold; background-color: var(--md-gray-50) !important; border-top: 2px solid var(--md-gray-300); }
+
+/* Colores de filas financieras */
+#tablaIngresos tbody tr { color: var(--md-success) !important; }
+#tablaIngresos tbody tr td { color: var(--md-success) !important; }
+#tablaGastos tbody tr { color: var(--md-danger) !important; }
+#tablaGastos tbody tr td { color: var(--md-danger) !important; }
+.tr-ingreso, .tr-ingreso td { color: var(--md-success) !important; }
+.tr-egreso, .tr-egreso td { color: var(--md-danger) !important; }

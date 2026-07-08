@@ -68,110 +68,85 @@ async function cargarHistorialCuentas() {
         actualizarPieChart(res.cargos || 0, res.abonos || 0);
 
         // Actualizar KPIs de Finanzas Dashboard
-        if (document.getElementById('kpiIngresosTotales')) {
-            // Obtener las cifras reales y exactas desde finanzas_api (Global)
-            fetch('../api/finanzas_api.pl', { method: 'POST', body: new URLSearchParams({action: 'get_dashboard'}), credentials: 'same-origin' })
-                .then(r => r.json())
-                .then(dash => {
-                    if (dash.success) {
-                        const eIT = document.getElementById('kpiIngresosTotales');
-                        const eCC = document.getElementById('kpiCuentasCobrar');
-                        const eF = document.getElementById('kpiFacturacion');
-                        const eEC = document.getElementById('kpiEficiencia');
-                        const eEgresos = document.getElementById('kpiTotalEgresos');
-                        const ePresupuestos = document.getElementById('kpiPresupuestosActivos');
-                        
-                        if (eIT) eIT.innerText = formatter.format(dash.ingresos || 0);
-                        if (eCC) eCC.innerText = formatter.format(dash.cxc || 0);
-                        if (eEgresos) eEgresos.innerText = formatter.format(dash.gastos || 0);
-                        if (ePresupuestos) ePresupuestos.innerText = formatter.format(dash.presupuestos || 0);
-                        
-                        // CFDI: Temporalmente igualado a ingresos cobrados
-                        if (eF) eF.innerText = formatter.format(dash.ingresos || 0);
-                        
-                        if (eEC) {
-                            let cargos_totales = (dash.ingresos || 0) + (dash.cxc || 0);
-                            let eff = cargos_totales > 0 ? (dash.ingresos / cargos_totales * 100) : 0;
-                            eEC.innerText = eff.toFixed(1) + '%';
-                        }
-                    }
-                });
-
-            const tbody = document.getElementById('tbodyResumenIngresos');
-            if (tbody) {
-                let html = '';
-                const limit = Math.min((res.historial || []).length, 10);
-                for(let i=0; i<limit; i++) {
-                    const h = res.historial[i];
-                    // Si es Abono se asume Pagado. Si es Cargo se asume Pendiente (solo representativo para la demo UI)
-                    const isAbono = h.tipo.toLowerCase().includes('abono');
-                    const badgeStr = isAbono ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Pagado</span>' : '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Pendiente</span>';
-                    
-                    html += `<tr>
-                        <td class="text-muted">${h.fecha.substring(0, 10)}</td>
-                        <td class="fw-bold text-dark">${h.concepto}</td>
-                        <td class="text-muted small">OS/2024/${h.id_os.toString().padStart(4,'0')}</td>
-                        <td class="fw-bold" style="color: var(--md-blue-deep);">${h.alias || h.paciente_nombre}</td>
-                        <td class="fw-bold text-dark">${formatter.format(h.total)}</td>
-                        <td>${badgeStr}</td>
-                    </tr>`;
-                }
-                if(limit === 0) html = '';
-                tbody.innerHTML = html;
-                
-                if ($.fn.DataTable) {
-                    if ($.fn.DataTable.isDataTable('#tablaResumenIngresos')) {
-                        $('#tablaResumenIngresos').DataTable().destroy();
-                    }
-                    $('#tablaResumenIngresos').DataTable({
-                        scrollY: '400px',
-                        scrollX: true,
-                        scrollCollapse: true,
-                        footerCallback: function(row, data, start, end, display) {
-                            var api = this.api();
-                            var intVal = function(i) {
-                                return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
-                            };
-                            var total = api.column(4, { page: 'current' }).data().reduce(function(a, b) {
-                                // Extract the number from HTML like <td class="fw-bold...">$1,200.00</td>
-                                // DataTables data() might contain raw HTML if rendered via mRender, but here data is HTML string.
-                                // Actually, data is an array of strings per column.
-                                var val = typeof b === 'string' ? b.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') : b;
-                                return intVal(a) + intVal(val);
-                            }, 0);
-                            var el = document.getElementById('tfootResumenMonto');
-                            if(el) el.innerHTML = formatter.format(total);
-                        },
-                        dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
-                        buttons: [
-                            { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
-                            { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
-                            { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' },
-                            { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
-                        ],
-                        language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json" },
-                        order: [[0, "desc"]],
-                        pageLength: 10,
-                        responsive: true,
-                        destroy: true
-                    });
-                }
-            }
-
-            // Mostrar botón de Cargos y Abonos si hay id_paciente seleccionado
-            const btnCargos = document.getElementById('btnCargosAbonos');
-            if (btnCargos) {
-                if (idPacienteGlobal) {
-                    btnCargos.href = 'estado_cuenta.pl?id=' + idPacienteGlobal;
-                    btnCargos.style.display = 'inline-block';
-                } else {
-                    btnCargos.style.display = 'none';
-                }
-            }
-
-            // Disparar render de gráfica de línea
-            if(typeof renderEvolucionIngresosGlobal === 'function') renderEvolucionIngresosGlobal();
+        if (typeof window.cargarDashboardKPIs === 'function') {
+            window.cargarDashboardKPIs();
         }
+
+        const tbody = document.getElementById('tbodyResumenIngresos');
+        if (tbody) {
+            let html = '';
+            const limit = Math.min((res.historial || []).length, 10);
+            for(let i=0; i<limit; i++) {
+                const h = res.historial[i];
+                // Si es Abono se asume Pagado. Si es Cargo se asume Pendiente (solo representativo para la demo UI)
+                const isAbono = h.tipo.toLowerCase().includes('abono');
+                const badgeStr = isAbono ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Pagado</span>' : '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Pendiente</span>';
+                const rowColorClass = isAbono ? 'tr-ingreso' : 'tr-egreso';
+                
+                html += `<tr class="${rowColorClass}">
+                    <td class="text-muted">${h.fecha.substring(0, 10)}</td>
+                    <td class="fw-bold text-dark">${h.concepto}</td>
+                    <td class="text-muted small">OS/2024/${h.id_os.toString().padStart(4,'0')}</td>
+                    <td class="fw-bold" style="color: var(--md-blue-deep);">${h.alias || h.paciente_nombre}</td>
+                    <td class="fw-bold text-dark">${formatter.format(h.total)}</td>
+                    <td>${badgeStr}</td>
+                </tr>`;
+            }
+            if(limit === 0) html = '';
+            tbody.innerHTML = html;
+            
+            if ($.fn.DataTable) {
+                if ($.fn.DataTable.isDataTable('#tablaResumenIngresos')) {
+                    $('#tablaResumenIngresos').DataTable().destroy();
+                }
+                $('#tablaResumenIngresos').DataTable({
+                    scrollY: '400px',
+                    scrollX: true,
+                    scrollCollapse: true,
+                    footerCallback: function(row, data, start, end, display) {
+                        var api = this.api();
+                        var intVal = function(i) {
+                            return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                        };
+                        var total = api.column(4, { page: 'current' }).data().reduce(function(a, b) {
+                            // Extract the number from HTML like <td class="fw-bold...">$1,200.00</td>
+                            // DataTables data() might contain raw HTML if rendered via mRender, but here data is HTML string.
+                            // Actually, data is an array of strings per column.
+                            var val = typeof b === 'string' ? b.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') : b;
+                            return intVal(a) + intVal(val);
+                        }, 0);
+                        var el = document.getElementById('tfootResumenMonto');
+                        if(el) el.innerHTML = formatter.format(total);
+                    },
+                    dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                    buttons: [
+                        { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
+                        { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
+                        { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' },
+                        { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
+                    ],
+                    language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json" },
+                    order: [[0, "desc"]],
+                    pageLength: 10,
+                    responsive: true,
+                    destroy: true
+                });
+            }
+        }
+
+        // Mostrar botón de Cargos y Abonos si hay id_paciente seleccionado
+        const btnCargos = document.getElementById('btnCargosAbonos');
+        if (btnCargos) {
+            if (idPacienteGlobal) {
+                btnCargos.href = 'estado_cuenta.pl?id=' + idPacienteGlobal;
+                btnCargos.style.display = 'inline-block';
+            } else {
+                btnCargos.style.display = 'none';
+            }
+        }
+
+        // Disparar render de gráfica de línea
+        if(typeof renderEvolucionIngresosGlobal === 'function') renderEvolucionIngresosGlobal();
 
         renderHistorial(res.historial || []);
     } catch (e) {
@@ -1157,6 +1132,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.success) {
                     bootstrap.Modal.getInstance(document.getElementById('modalGasto')).hide();
                     renderGastos();
+                    if (typeof window.cargarDashboardKPIs === 'function') window.cargarDashboardKPIs();
                     Swal.fire({icon: 'success', title: 'Éxito', text: data.message, timer: 1500, showConfirmButton: false});
                 } else {
                     Swal.fire({icon: 'error', title: 'Error', text: data.message});
@@ -1191,8 +1167,9 @@ window.eliminarGasto = function(id) {
                 });
                 const data = await res.json();
                 if (data.success) {
-                    Swal.fire({icon: 'success', title: 'Eliminado', text: data.message, timer: 1500, showConfirmButton: false});
                     renderGastos();
+                    if (typeof window.cargarDashboardKPIs === 'function') window.cargarDashboardKPIs();
+                    Swal.fire({icon: 'success', title: 'Eliminado', text: data.message, timer: 1500, showConfirmButton: false});
                 } else {
                     Swal.fire({icon: 'error', title: 'Error', text: data.message});
                 }
@@ -1476,3 +1453,30 @@ window.borrarCategoria = async function(id, nivel) {
         Swal.fire('Error', 'Error de red', 'error');
     }
 }
+
+window.cargarDashboardKPIs = function() {
+    if (document.getElementById('kpiIngresosTotales')) {
+        fetch('../api/finanzas_api.pl', { method: 'POST', body: new URLSearchParams({action: 'get_dashboard'}), credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(dash => {
+                if (dash.success) {
+                    const eIT = document.getElementById('kpiIngresosTotales');
+                    const eCC = document.getElementById('kpiCuentasCobrar');
+                    const eF = document.getElementById('kpiFacturacion');
+                    const eEC = document.getElementById('kpiEficiencia');
+                    const eEgresos = document.getElementById('kpiTotalEgresos');
+                    const ePresupuestos = document.getElementById('kpiPresupuestosActivos');
+                    if (eIT) eIT.innerText = formatter.format(dash.ingresos || 0);
+                    if (eCC) eCC.innerText = formatter.format(dash.cxc || 0);
+                    if (eEgresos) eEgresos.innerText = formatter.format(dash.gastos || 0);
+                    if (ePresupuestos) ePresupuestos.innerText = formatter.format(dash.presupuestos || 0);
+                    if (eF) eF.innerText = formatter.format(dash.ingresos || 0);
+                    if (eEC) {
+                        let cargos_totales = (dash.ingresos || 0) + (dash.cxc || 0);
+                        let eff = cargos_totales > 0 ? (dash.ingresos / cargos_totales * 100) : 0;
+                        eEC.innerText = eff.toFixed(1) + '%';
+                    }
+                }
+            });
+    }
+};

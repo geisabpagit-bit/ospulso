@@ -157,12 +157,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     var fh_corta = cita.fecha_corta ? cita.fecha_corta.replace('<br/>', ' ') : 'N/A';
                     var motivo = cita.motivo || 'Sin motivo';
                     var hora = cita.hora || 'N/A';
+                    var btnConsulta = '';
+                    if (labelEstado === 'Pendiente' || labelEstado === 'Programada') {
+                        btnConsulta = '<div class="mt-2"><a href="render_consultas.pl?id=' + (perfil.id||'') + '" class="btn btn-sm btn-outline-primary rounded-pill w-100" style="font-size: 0.65rem;"><i class="bi bi-box-arrow-in-right me-1"></i>Ir a Consulta</a></div>';
+                    }
 
                     historialHtml += 
                         '<div class="card-consulta">' +
                           '<h6 title="' + motivo + '">' + motivo + '</h6>' +
                           '<small>' + fh_corta + ' &bull; ' + hora + '</small>' +
                           '<div class="mt-2"><span class="badge ' + badgeClass + ' rounded-pill">' + labelEstado + '</span></div>' +
+                          btnConsulta +
                         '</div>';
                 });
             }
@@ -243,33 +248,36 @@ document.addEventListener('DOMContentLoaded', function() {
                         '</div>' +
                     '</div>' +
 
-                    '<!-- Columna Derecha: Acciones e Historial -->' +
-                    '<div class="col-lg-7 col-12">' +
-                        '<!-- Barra de Herramientas (Bento Grid) -->' +
-                        '<div class="row g-2 mb-2">' +
-                          '<div class="col-4">' +
-                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">EXPEDIENTE</span></a>' +
-                          '</div>' +
-                          '<div class="col-4">' +
-                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">FINANZAS</span></a>' +
-                          '</div>' +
-                          '<div class="col-4">' +
-                            '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">CITA</span></a>' +
-                          '</div>' +
-                          '<div class="col-4">' +
-                            '<button type="button" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2" data-bs-toggle="modal" data-bs-target="#modalCorreoSpaContainer" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">CORREO</span></button>' +
-                          '</div>' +
-                          '<div class="col-4">' +
-                            '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">WHATSAPP</span></a>' +
-                          '</div>' +
-                          '<div class="col-4">' +
-                            '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-printer fs-4 mb-1 text-secondary"></i> <span style="font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;">IMPRIMIR</span></a>' +
-                          '</div>' +
-                        '</div>' +
+                    <!-- Columna Derecha: Acciones e Historial -->
+                    <div class="col-lg-7 col-12">
+                        <!-- Barra de Herramientas (Bento Grid) -->
+                        <div class="row g-2 mb-2">
+                          <div class="col-3">
+                            <a href="render_expediente_clinico.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">EXPEDIENTE</span></a>
+                          </div>
+                          <div class="col-3">
+                            <a href="estado_cuenta.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">FINANZAS</span></a>
+                          </div>
+                          <div class="col-3">
+                            <a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CITA</span></a>
+                          </div>
+                          <div class="col-3">
+                            <a href="render_consultas.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-heart-pulse fs-4 mb-1 text-danger"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CONSULTA</span></a>
+                          </div>
+                          <div class="col-4">
+                            <button type="button" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 border-0 bg-transparent" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CORREO</span></button>
+                          </div>
+                          <div class="col-4">
+                            <a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">WHATSAPP</span></a>
+                          </div>
+                          <div class="col-4">
+                            <a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-printer fs-4 mb-1 text-secondary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">IMPRIMIR</span></a>
+                          </div>
+                        </div>
 
-                        '<!-- Historial de Consultas -->' +
-                        '<div class="d-flex justify-content-between align-items-center mt-3 mb-2">' +
-                            '<h6 class="fw-bold mb-0" style="color: #0A2A66; font-family: var(--font-primary); font-size: 0.9rem; letter-spacing: -0.2px;"><i class="bi bi-clock-history me-1 text-primary"></i> Consultas Previas</h6>' +
+                        <!-- Historial de Consultas -->
+                        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+                            <h6 class="fw-bold mb-0" style="color: #0A2A66; font-family: var(--font-primary); font-size: 0.9rem; letter-spacing: -0.2px;"><i class="bi bi-clock-history me-1 text-primary"></i> Consultas</h6> +
                             '<div class="d-flex gap-2">' +
                                 '<button class="btn btn-sm btn-light border rounded-circle shadow-sm" onclick="document.getElementById(\'carruselHistorial\').scrollBy({left:-200, behavior:\'smooth\'})" title="Deslizar Izquierda" style="width: 26px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="bi bi-chevron-left" style="font-size: 0.7rem;"></i></button>' +
                                 '<button class="btn btn-sm btn-light border rounded-circle shadow-sm" onclick="document.getElementById(\'carruselHistorial\').scrollBy({left:200, behavior:\'smooth\'})" title="Deslizar Derecha" style="width: 26px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i></button>' +
@@ -434,10 +442,12 @@ window.abrirModalCorreoSpa = function(correoBase, nombreBase, idPaciente) {
     }
 
     // Config Inicial del modal al abrirse
-    document.getElementById('crmInputTo').value = correoBase || '';
-    document.getElementById('crmInputIdPaciente').value = idPaciente || '';
-    document.getElementById('crmInputSubject').value = 'Resultados e Información Clínica de ' + (nombreBase || 'Paciente');
-    var modalContainer = document.getElementById('modalCorreoSpaContainer');
-    var bsModal = bootstrap.Modal.getInstance(modalContainer) || new bootstrap.Modal(modalContainer);
+    document.getElementById('crmInputTo').value = correoBase;
+    document.getElementById('crmInputIdPaciente').value = idPaciente;
+    document.getElementById('formCorreoCrm').reset();
+    document.getElementById('crmInputSubject').value = "Información Importante de su Clínica";
+    
+    var modalEl = document.getElementById('modalCorreoSpaContainer');
+    var bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
     bsModal.show();
 };
