@@ -134,8 +134,7 @@ sub render_dashboard_principal {
         pagina_actual => 'dashboard'
     );
     print <<HTML;
-        <div class="sdm-content mt-4">
-
+        <!-- Dashboard Content -->
     <script>
     function animateValue(obj, start, end, duration, isK) {
         let startTimestamp = null;

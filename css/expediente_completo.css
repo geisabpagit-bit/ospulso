@@ -223,7 +223,7 @@ body {
     min-height: 80px;
 }
 
-.sdm-content { padding: 1.5rem 3rem 5rem 3rem; }
+.sdm-content { padding: 0.5rem 1.5rem 5rem 1.5rem; }
 
 /* Botón Premium */
 .btn-premium-gold {
