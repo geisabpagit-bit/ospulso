@@ -301,8 +301,10 @@ function initPacientesSpa() {
                     '</div>';
             }
         }
-    });
-        window._pacientesSpaEventAttached = true;
+    }
+    
+    // Set flag inside initPacientesSpa, outside the event listener
+    window._pacientesSpaEventAttached = true;
     }
 }
 
