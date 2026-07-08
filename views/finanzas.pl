@@ -438,9 +438,7 @@ print <<'PAGE_HTML';
             </div>
 
         </div> <!-- content-wrapper -->
-    </div> <!-- sdm-main-content -->
-</div> <!-- sdm-layout-wrapper -->
-
+    
 <!-- Modal Nuevo Gasto (Floating Armor) - Movido fuera del contexto de apilamiento para evitar solapamiento con navbar -->
 <div class="modal fade modal-diamond" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -591,10 +589,16 @@ print <<'PAGE_HTML';
 <script src="../js/estado_cuenta_spa.js?v=4"></script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => { 
-        initModuloFinanciero('', 'bento', ''); 
-    });
+    function bootFinanzas() {
+        if(typeof initModuloFinanciero === 'function') {
+            initModuloFinanciero('', 'bento', ''); 
+        }
+    }
+    document.addEventListener("DOMContentLoaded", bootFinanzas);
+    document.addEventListener("spa:contentLoaded", bootFinanzas);
 </script>
+    </div> <!-- sdm-main-content -->
+</div> <!-- sdm-layout-wrapper -->
 PAGE_HTML
 
 render_bottom_nav('finanzas');
