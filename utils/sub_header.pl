@@ -43,6 +43,7 @@ sub render_header {
     <!-- OSPulso Design System -->
     <link rel="stylesheet" href="../css/ospulso_master.css">
     <link rel="stylesheet" href="../css/ospulso_master_v2.css">
+    <link rel="stylesheet" href="../css/theme_acrilico.css">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>

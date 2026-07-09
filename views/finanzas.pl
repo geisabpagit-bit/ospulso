@@ -149,91 +149,55 @@ print <<'PAGE_HTML';
             <div id="tab_resumen" class="sdm-tab-pane">
 
 
-                <!-- 4 KPI Cards -->
-                <div class="row g-3 mb-4">
+                <!-- KPI Cards Acrílicos -->
+                <div class="kpi-grid mb-4">
                     <!-- Ingresos Totales -->
-                    <div class="col-lg-4 col-6">
-                        <div class="bento-card h-100">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669, #047857); color: white; font-size: 1.1rem;">
-                                    <i class="bi bi-cash-stack"></i>
-                                </div>
-                                <span class="fw-bold text-muted" style="font-size: 0.75rem;">Ingresos Reales</span>
-                            </div>
-                            <h4 class="fw-bold plus-jakarta mb-1" id="kpiIngresosTotales">$0.00</h4>
-                            <span class="text-success fw-bold" style="font-size: 0.7rem;">(Cobrado)</span>
-                        </div>
+                    <div class="kpi-acrilico">
+                        <div class="kpi-icono" style="color: #10b981;"><i class="bi bi-cash-stack"></i></div>
+                        <div class="kpi-titulo">Ingresos Reales</div>
+                        <div class="kpi-valor" id="kpiIngresosTotales">$0.00</div>
+                        <div class="kpi-subtexto text-success fw-bold">(Cobrado)</div>
                     </div>
                     <!-- Total Egresos -->
-                    <div class="col-lg-4 col-6">
-                        <div class="bento-card h-100">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #ef4444, #dc2626, #b91c1c); color: white; font-size: 1.1rem;">
-                                    <i class="bi bi-graph-down-arrow"></i>
-                                </div>
-                                <span class="fw-bold text-muted" style="font-size: 0.75rem;">Total Gastos</span>
-                            </div>
-                            <h4 class="fw-bold plus-jakarta mb-1" id="kpiTotalEgresos">$0.00</h4>
-                            <span class="text-danger fw-bold" style="font-size: 0.7rem;">(Pagado)</span>
-                        </div>
+                    <div class="kpi-acrilico">
+                        <div class="kpi-icono" style="color: #ef4444;"><i class="bi bi-graph-down-arrow"></i></div>
+                        <div class="kpi-titulo">Total Gastos</div>
+                        <div class="kpi-valor" id="kpiTotalEgresos">$0.00</div>
+                        <div class="kpi-subtexto text-danger fw-bold">(Pagado)</div>
                     </div>
                     <!-- Cuentas por Cobrar -->
-                    <div class="col-lg-4 col-6">
-                        <div class="bento-card h-100">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #fef08a, #eab308, #a16207); color: white; font-size: 1.1rem;">
-                                    <i class="bi bi-wallet2"></i>
-                                </div>
-                                <span class="fw-bold text-muted" style="font-size: 0.75rem;">Cuentas por Cobrar</span>
-                            </div>
-                            <h4 class="fw-bold plus-jakarta mb-1" id="kpiCuentasCobrar">$0.00</h4>
-                            <span class="text-warning fw-bold" style="font-size: 0.7rem;">(Pendiente)</span>
-                        </div>
+                    <div class="kpi-acrilico">
+                        <div class="kpi-icono" style="color: #eab308;"><i class="bi bi-wallet2"></i></div>
+                        <div class="kpi-titulo">Cuentas por Cobrar</div>
+                        <div class="kpi-valor" id="kpiCuentasCobrar">$0.00</div>
+                        <div class="kpi-subtexto text-warning fw-bold">(Pendiente)</div>
                     </div>
                     <!-- Presupuestos Activos -->
-                    <div class="col-lg-4 col-6">
-                        <div class="bento-card h-100">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #a78bfa, #8b5cf6, #6d28d9); color: white; font-size: 1.1rem;">
-                                    <i class="bi bi-clipboard-data"></i>
-                                </div>
-                                <span class="fw-bold text-muted" style="font-size: 0.75rem;">Presupuestado</span>
-                            </div>
-                            <h4 class="fw-bold plus-jakarta mb-1" id="kpiPresupuestosActivos">$0.00</h4>
-                            <span class="text-muted fw-bold" style="font-size: 0.7rem;">(Cotizaciones)</span>
-                        </div>
+                    <div class="kpi-acrilico">
+                        <div class="kpi-icono" style="color: #8b5cf6;"><i class="bi bi-clipboard-data"></i></div>
+                        <div class="kpi-titulo">Presupuestado</div>
+                        <div class="kpi-valor" id="kpiPresupuestosActivos">$0.00</div>
+                        <div class="kpi-subtexto text-muted fw-bold">(Cotizaciones)</div>
                     </div>
                     <!-- Facturación del Mes -->
-                    <div class="col-lg-4 col-6">
-                        <div class="bento-card h-100">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #93c5fd, #60a5fa, #2563eb); color: white; font-size: 1.1rem;">
-                                    <i class="bi bi-file-earmark-text"></i>
-                                </div>
-                                <span class="fw-bold text-muted" style="font-size: 0.75rem;">Facturación del Mes</span>
-                            </div>
-                            <h4 class="fw-bold plus-jakarta mb-1" id="kpiFacturacion">$0.00</h4>
-                            <span class="text-primary fw-bold" style="font-size: 0.7rem;">(CFDI)</span>
-                        </div>
+                    <div class="kpi-acrilico">
+                        <div class="kpi-icono" style="color: #3b82f6;"><i class="bi bi-file-earmark-text"></i></div>
+                        <div class="kpi-titulo">Facturación del Mes</div>
+                        <div class="kpi-valor" id="kpiFacturacion">$0.00</div>
+                        <div class="kpi-subtexto text-primary fw-bold">(CFDI)</div>
                     </div>
                     <!-- Eficiencia de Cobro -->
-                    <div class="col-lg-4 col-6">
-                        <div class="bento-card h-100">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <div class="shadow-sm d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #34d399, #10b981, #059669); color: white; font-size: 1.1rem;">
-                                    <i class="bi bi-percent"></i>
-                                </div>
-                                <span class="fw-bold text-muted" style="font-size: 0.75rem;">Eficiencia de Cobro</span>
-                            </div>
-                            <h4 class="fw-bold plus-jakarta mb-1" id="kpiEficiencia">0%</h4>
-                            <span class="text-success fw-bold" style="font-size: 0.7rem;">(Tasa Real)</span>
-                        </div>
+                    <div class="kpi-acrilico">
+                        <div class="kpi-icono" style="color: #059669;"><i class="bi bi-percent"></i></div>
+                        <div class="kpi-titulo">Eficiencia de Cobro</div>
+                        <div class="kpi-valor" id="kpiEficiencia">0%</div>
+                        <div class="kpi-subtexto text-success fw-bold">(Tasa Real)</div>
                     </div>
                 </div>
 
                 <div class="row g-4 mb-4">
                     <div class="col-lg-7">
-                        <div class="bento-card h-100">
+                        <div class="card-acrilico h-100">
                             <h6 class="fw-bold plus-jakarta mb-4 text-dark">Evolución de Ingresos</h6>
                             <div style="height: 250px; width: 100%;">
                                 <canvas id="lineEvolucionIngresos"></canvas>
@@ -242,7 +206,7 @@ print <<'PAGE_HTML';
                     </div>
                     
                     <div class="col-lg-5">
-                        <div class="bento-card h-100 d-flex flex-column justify-content-center">
+                        <div class="card-acrilico h-100 d-flex flex-column justify-content-center">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h6 class="fw-bold plus-jakarta m-0 text-dark">Ingresos vs Egresos</h6>
                                 <select class="form-select form-select-sm w-auto rounded-pill text-muted fw-bold bg-light border-0"><option>Histórico</option></select>

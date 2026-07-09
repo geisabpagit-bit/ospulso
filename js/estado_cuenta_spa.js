@@ -171,20 +171,16 @@ function actualizarPieChart(cargos, abonos) {
     const ctx = canvas.getContext('2d');
     
     // Metallic Gold (Cargos)
-    const gradGold = ctx.createLinearGradient(0, 0, 160, 160);
-    gradGold.addColorStop(0, '#fef08a');    // highlight top-left
-    gradGold.addColorStop(0.2, '#eab308');  // bright
-    gradGold.addColorStop(0.5, '#a16207');  // core
-    gradGold.addColorStop(0.8, '#713f12');  // shadow
-    gradGold.addColorStop(1, '#fde047');    // rim reflection
+    const gradGold = ctx.createLinearGradient(0, 0, 0, 160);
+    gradGold.addColorStop(0, '#FFD700');
+    gradGold.addColorStop(0.5, '#FFB300');
+    gradGold.addColorStop(1, '#8B7500');
 
-    // Metallic Emerald/Teal (Abonos)
-    const gradGreen = ctx.createLinearGradient(0, 160, 160, 0);
-    gradGreen.addColorStop(0, '#6ee7b7');
-    gradGreen.addColorStop(0.2, '#10b981');
-    gradGreen.addColorStop(0.5, '#047857');
-    gradGreen.addColorStop(0.8, '#064e3b');
-    gradGreen.addColorStop(1, '#34d399');
+    // Metallic Green (Abonos)
+    const gradGreen = ctx.createLinearGradient(0, 0, 0, 160);
+    gradGreen.addColorStop(0, '#00FF7F');
+    gradGreen.addColorStop(0.5, '#007A3D');
+    gradGreen.addColorStop(1, '#003D1F');
 
     // Bevel Gradient for Border (3D Extrusion illusion)
     const borderGrad = ctx.createLinearGradient(0, 0, 0, 160);
@@ -1558,21 +1554,83 @@ function actualizarPieChartDashboard(ingresos, egresos) {
     if(legEgresos) legEgresos.innerText = formatter.format(egresos);
     
     const ctx = canvas.getContext('2d');
+    
+    // Metallic Green (Ingresos)
+    const gradVerde = ctx.createLinearGradient(0, 0, 0, 160);
+    gradVerde.addColorStop(0, '#00FF7F');
+    gradVerde.addColorStop(0.5, '#007A3D');
+    gradVerde.addColorStop(1, '#003D1F');
+    
+    // Metallic Red (Egresos)
+    const gradRojo = ctx.createLinearGradient(0, 0, 0, 160);
+    gradRojo.addColorStop(0, '#FF4D4D');
+    gradRojo.addColorStop(0.5, '#A63A3A');
+    gradRojo.addColorStop(1, '#5C0000');
+
+    // Bevel Gradient for Border
+    const borderGrad = ctx.createLinearGradient(0, 0, 0, 160);
+    borderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+    borderGrad.addColorStop(0.2, 'rgba(255, 255, 255, 0.3)');
+    borderGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0.15)');
+    borderGrad.addColorStop(1, 'rgba(0, 0, 0, 0.7)');
+
+    const dashboard3DPlugin = {
+        id: 'dashboard3DPlugin',
+        beforeDraw: (chart) => {
+            const chartCtx = chart.ctx;
+            chartCtx.save();
+            chartCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+            chartCtx.shadowBlur = 18;
+            chartCtx.shadowOffsetX = 0;
+            chartCtx.shadowOffsetY = 10;
+        },
+        afterDraw: (chart) => {
+            chart.ctx.restore();
+            if (!chart.getDatasetMeta(0).data[0]) return;
+            const chartCtx = chart.ctx;
+            const x = chart.chartArea.left + chart.chartArea.width / 2;
+            const y = chart.chartArea.top + chart.chartArea.height / 2;
+            const outerRadius = chart.getDatasetMeta(0).data[0].outerRadius;
+            const innerRadius = chart.getDatasetMeta(0).data[0].innerRadius;
+            
+            chartCtx.save();
+            chartCtx.beginPath();
+            chartCtx.arc(x, y, outerRadius, 0, Math.PI * 2);
+            chartCtx.arc(x, y, innerRadius, 0, Math.PI * 2, true);
+            chartCtx.closePath();
+            chartCtx.clip();
+            
+            const gloss = chartCtx.createLinearGradient(x - outerRadius, y - outerRadius, x + outerRadius, y + outerRadius);
+            gloss.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+            gloss.addColorStop(0.35, 'rgba(255, 255, 255, 0.05)');
+            gloss.addColorStop(0.5, 'rgba(255, 255, 255, 0)');
+            gloss.addColorStop(0.7, 'rgba(0, 0, 0, 0.05)');
+            gloss.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+            
+            chartCtx.fillStyle = gloss;
+            chartCtx.fill();
+            chartCtx.restore();
+        }
+    };
+
     pieFinanzasInstance = new Chart(ctx, {
         type: 'doughnut',
+        plugins: [dashboard3DPlugin],
         data: {
             labels: ['Ingresos', 'Egresos'],
             datasets: [{
                 data: [ingresos, egresos],
-                backgroundColor: ['#10b981', '#ef4444'],
-                borderWidth: 0,
-                hoverOffset: 4
+                backgroundColor: [gradVerde, gradRojo],
+                borderColor: [borderGrad, borderGrad],
+                borderWidth: 4,
+                hoverOffset: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '75%',
+            cutout: '72%',
+            layout: { padding: 12 },
             plugins: {
                 legend: { display: false },
                 tooltip: {
