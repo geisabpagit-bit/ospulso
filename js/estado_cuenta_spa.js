@@ -194,40 +194,77 @@ function actualizarPieChart(cargos, abonos) {
         beforeDraw: (chart) => {
             const chartCtx = chart.ctx;
             chartCtx.save();
-            // Deep drop shadow for floating 3D effect
-            chartCtx.shadowColor = 'rgba(10, 42, 102, 0.35)';
-            chartCtx.shadowBlur = 18;
-            chartCtx.shadowOffsetX = 6;
-            chartCtx.shadowOffsetY = 12;
+            // Sombra base suave
+            chartCtx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            chartCtx.shadowBlur = 20;
+            chartCtx.shadowOffsetX = 0;
+            chartCtx.shadowOffsetY = 15;
         },
         afterDraw: (chart) => {
             chart.ctx.restore();
-            // Draw a specular gloss overlay for the glass/metallic look
             if (!chart.getDatasetMeta(0).data[0]) return;
-            const chartCtx = chart.ctx;
+            const ctx = chart.ctx;
             const x = chart.chartArea.left + chart.chartArea.width / 2;
             const y = chart.chartArea.top + chart.chartArea.height / 2;
             const outerRadius = chart.getDatasetMeta(0).data[0].outerRadius;
             const innerRadius = chart.getDatasetMeta(0).data[0].innerRadius;
             
-            chartCtx.save();
-            chartCtx.beginPath();
-            chartCtx.arc(x, y, outerRadius, 0, Math.PI * 2);
-            chartCtx.arc(x, y, innerRadius, 0, Math.PI * 2, true);
-            chartCtx.closePath();
-            chartCtx.clip();
+            ctx.save();
             
-            // Glossy diagonal reflection
-            const gloss = chartCtx.createLinearGradient(x - outerRadius, y - outerRadius, x + outerRadius, y + outerRadius);
-            gloss.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
-            gloss.addColorStop(0.35, 'rgba(255, 255, 255, 0.05)');
-            gloss.addColorStop(0.5, 'rgba(255, 255, 255, 0)');
-            gloss.addColorStop(0.7, 'rgba(0, 0, 0, 0.05)');
-            gloss.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+            // 1. Efecto Extrusión/Bisel Exterior (Outer Bevel)
+            ctx.beginPath();
+            ctx.arc(x, y, outerRadius - 2, 0, Math.PI * 2);
+            ctx.lineWidth = 6;
+            const outerBevelGrad = ctx.createLinearGradient(x, y - outerRadius, x, y + outerRadius);
+            outerBevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)'); // Luz arriba
+            outerBevelGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.2)');
+            outerBevelGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.2)');
+            outerBevelGrad.addColorStop(1, 'rgba(0, 0, 0, 0.8)'); // Sombra abajo
+            ctx.strokeStyle = outerBevelGrad;
+            ctx.globalCompositeOperation = 'overlay';
+            ctx.stroke();
+
+            // 2. Efecto Extrusión/Bisel Interior (Inner Bevel)
+            ctx.beginPath();
+            ctx.arc(x, y, innerRadius + 2, 0, Math.PI * 2);
+            ctx.lineWidth = 6;
+            const innerBevelGrad = ctx.createLinearGradient(x, y - innerRadius, x, y + innerRadius);
+            innerBevelGrad.addColorStop(0, 'rgba(0, 0, 0, 0.8)'); // Sombra arriba
+            innerBevelGrad.addColorStop(0.3, 'rgba(0, 0, 0, 0.2)');
+            innerBevelGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.2)');
+            innerBevelGrad.addColorStop(1, 'rgba(255, 255, 255, 0.9)'); // Luz abajo
+            ctx.strokeStyle = innerBevelGrad;
+            ctx.stroke();
+
+            ctx.globalCompositeOperation = 'source-over';
+
+            // 3. Brillo Especular Superior (Glossy Highlight)
+            ctx.beginPath();
+            ctx.arc(x, y, outerRadius, Math.PI, Math.PI * 2);
+            ctx.arc(x, y, innerRadius, Math.PI * 2, Math.PI, true);
+            ctx.closePath();
             
-            chartCtx.fillStyle = gloss;
-            chartCtx.fill();
-            chartCtx.restore();
+            const glossTop = ctx.createLinearGradient(x, y - outerRadius, x, y);
+            glossTop.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+            glossTop.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
+            glossTop.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = glossTop;
+            ctx.fill();
+
+            // 4. Reflejo Secundario Inferior
+            ctx.beginPath();
+            ctx.arc(x, y, outerRadius, 0, Math.PI);
+            ctx.arc(x, y, innerRadius, Math.PI, 0, true);
+            ctx.closePath();
+            
+            const glossBottom = ctx.createLinearGradient(x, y, x, y + outerRadius);
+            glossBottom.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            glossBottom.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
+            glossBottom.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+            ctx.fillStyle = glossBottom;
+            ctx.fill();
+
+            ctx.restore();
         }
     };
 
@@ -1579,37 +1616,79 @@ function actualizarPieChartDashboard(ingresos, egresos) {
         beforeDraw: (chart) => {
             const chartCtx = chart.ctx;
             chartCtx.save();
-            chartCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-            chartCtx.shadowBlur = 18;
+            // Sombra base suave
+            chartCtx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            chartCtx.shadowBlur = 20;
             chartCtx.shadowOffsetX = 0;
-            chartCtx.shadowOffsetY = 10;
+            chartCtx.shadowOffsetY = 15;
         },
         afterDraw: (chart) => {
             chart.ctx.restore();
             if (!chart.getDatasetMeta(0).data[0]) return;
-            const chartCtx = chart.ctx;
+            const ctx = chart.ctx;
             const x = chart.chartArea.left + chart.chartArea.width / 2;
             const y = chart.chartArea.top + chart.chartArea.height / 2;
             const outerRadius = chart.getDatasetMeta(0).data[0].outerRadius;
             const innerRadius = chart.getDatasetMeta(0).data[0].innerRadius;
+            const thickness = outerRadius - innerRadius;
+
+            ctx.save();
             
-            chartCtx.save();
-            chartCtx.beginPath();
-            chartCtx.arc(x, y, outerRadius, 0, Math.PI * 2);
-            chartCtx.arc(x, y, innerRadius, 0, Math.PI * 2, true);
-            chartCtx.closePath();
-            chartCtx.clip();
+            // 1. Efecto Extrusión/Bisel Exterior (Outer Bevel)
+            ctx.beginPath();
+            ctx.arc(x, y, outerRadius - 2, 0, Math.PI * 2);
+            ctx.lineWidth = 6;
+            const outerBevelGrad = ctx.createLinearGradient(x, y - outerRadius, x, y + outerRadius);
+            outerBevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)'); // Luz arriba
+            outerBevelGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.2)');
+            outerBevelGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.2)');
+            outerBevelGrad.addColorStop(1, 'rgba(0, 0, 0, 0.8)'); // Sombra abajo
+            ctx.strokeStyle = outerBevelGrad;
+            ctx.globalCompositeOperation = 'overlay';
+            ctx.stroke();
+
+            // 2. Efecto Extrusión/Bisel Interior (Inner Bevel)
+            ctx.beginPath();
+            ctx.arc(x, y, innerRadius + 2, 0, Math.PI * 2);
+            ctx.lineWidth = 6;
+            const innerBevelGrad = ctx.createLinearGradient(x, y - innerRadius, x, y + innerRadius);
+            innerBevelGrad.addColorStop(0, 'rgba(0, 0, 0, 0.8)'); // Sombra arriba (dentro del hueco)
+            innerBevelGrad.addColorStop(0.3, 'rgba(0, 0, 0, 0.2)');
+            innerBevelGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.2)');
+            innerBevelGrad.addColorStop(1, 'rgba(255, 255, 255, 0.9)'); // Luz abajo (reflejo en la pared interior)
+            ctx.strokeStyle = innerBevelGrad;
+            ctx.stroke();
+
+            // Restaurar modo de fusión para los brillos directos
+            ctx.globalCompositeOperation = 'source-over';
+
+            // 3. Brillo Especular Superior (Glossy Highlight)
+            ctx.beginPath();
+            ctx.arc(x, y, outerRadius, Math.PI, Math.PI * 2);
+            ctx.arc(x, y, innerRadius, Math.PI * 2, Math.PI, true);
+            ctx.closePath();
             
-            const gloss = chartCtx.createLinearGradient(x - outerRadius, y - outerRadius, x + outerRadius, y + outerRadius);
-            gloss.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
-            gloss.addColorStop(0.35, 'rgba(255, 255, 255, 0.05)');
-            gloss.addColorStop(0.5, 'rgba(255, 255, 255, 0)');
-            gloss.addColorStop(0.7, 'rgba(0, 0, 0, 0.05)');
-            gloss.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+            const glossTop = ctx.createLinearGradient(x, y - outerRadius, x, y);
+            glossTop.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+            glossTop.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
+            glossTop.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = glossTop;
+            ctx.fill();
+
+            // 4. Reflejo Secundario Inferior
+            ctx.beginPath();
+            ctx.arc(x, y, outerRadius, 0, Math.PI);
+            ctx.arc(x, y, innerRadius, Math.PI, 0, true);
+            ctx.closePath();
             
-            chartCtx.fillStyle = gloss;
-            chartCtx.fill();
-            chartCtx.restore();
+            const glossBottom = ctx.createLinearGradient(x, y, x, y + outerRadius);
+            glossBottom.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            glossBottom.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
+            glossBottom.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+            ctx.fillStyle = glossBottom;
+            ctx.fill();
+
+            ctx.restore();
         }
     };
 
