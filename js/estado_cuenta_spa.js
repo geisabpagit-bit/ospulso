@@ -216,10 +216,10 @@ function actualizarPieChart(cargos, abonos) {
             ctx.arc(x, y, outerRadius - 2, 0, Math.PI * 2);
             ctx.lineWidth = 6;
             const outerBevelGrad = ctx.createLinearGradient(x, y - outerRadius, x, y + outerRadius);
-            outerBevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)'); // Luz arriba
-            outerBevelGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.2)');
-            outerBevelGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.2)');
-            outerBevelGrad.addColorStop(1, 'rgba(0, 0, 0, 0.8)'); // Sombra abajo
+            outerBevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.5)'); // Reducido de 0.9 para colores más vivos
+            outerBevelGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.1)');
+            outerBevelGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
+            outerBevelGrad.addColorStop(1, 'rgba(0, 0, 0, 0.6)'); 
             ctx.strokeStyle = outerBevelGrad;
             ctx.globalCompositeOperation = 'overlay';
             ctx.stroke();
@@ -229,10 +229,10 @@ function actualizarPieChart(cargos, abonos) {
             ctx.arc(x, y, innerRadius + 2, 0, Math.PI * 2);
             ctx.lineWidth = 6;
             const innerBevelGrad = ctx.createLinearGradient(x, y - innerRadius, x, y + innerRadius);
-            innerBevelGrad.addColorStop(0, 'rgba(0, 0, 0, 0.8)'); // Sombra arriba
-            innerBevelGrad.addColorStop(0.3, 'rgba(0, 0, 0, 0.2)');
-            innerBevelGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.2)');
-            innerBevelGrad.addColorStop(1, 'rgba(255, 255, 255, 0.9)'); // Luz abajo
+            innerBevelGrad.addColorStop(0, 'rgba(0, 0, 0, 0.6)'); 
+            innerBevelGrad.addColorStop(0.3, 'rgba(0, 0, 0, 0.1)');
+            innerBevelGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.1)');
+            innerBevelGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)'); 
             ctx.strokeStyle = innerBevelGrad;
             ctx.stroke();
 
@@ -245,8 +245,8 @@ function actualizarPieChart(cargos, abonos) {
             ctx.closePath();
             
             const glossTop = ctx.createLinearGradient(x, y - outerRadius, x, y);
-            glossTop.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-            glossTop.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
+            glossTop.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+            glossTop.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
             glossTop.addColorStop(1, 'rgba(255, 255, 255, 0)');
             ctx.fillStyle = glossTop;
             ctx.fill();
@@ -288,7 +288,7 @@ function actualizarPieChart(cargos, abonos) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '72%',
+                cutout: '58%',
                 layout: { padding: 12 },
                 plugins: {
                     legend: { display: false },
@@ -1639,10 +1639,10 @@ function actualizarPieChartDashboard(ingresos, egresos) {
             ctx.arc(x, y, outerRadius - 2, 0, Math.PI * 2);
             ctx.lineWidth = 6;
             const outerBevelGrad = ctx.createLinearGradient(x, y - outerRadius, x, y + outerRadius);
-            outerBevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)'); // Luz arriba
-            outerBevelGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.2)');
-            outerBevelGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.2)');
-            outerBevelGrad.addColorStop(1, 'rgba(0, 0, 0, 0.8)'); // Sombra abajo
+            outerBevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.5)'); // Reducido de 0.9 para más saturación de color
+            outerBevelGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.1)');
+            outerBevelGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
+            outerBevelGrad.addColorStop(1, 'rgba(0, 0, 0, 0.6)'); // Sombra abajo
             ctx.strokeStyle = outerBevelGrad;
             ctx.globalCompositeOperation = 'overlay';
             ctx.stroke();
@@ -1652,10 +1652,10 @@ function actualizarPieChartDashboard(ingresos, egresos) {
             ctx.arc(x, y, innerRadius + 2, 0, Math.PI * 2);
             ctx.lineWidth = 6;
             const innerBevelGrad = ctx.createLinearGradient(x, y - innerRadius, x, y + innerRadius);
-            innerBevelGrad.addColorStop(0, 'rgba(0, 0, 0, 0.8)'); // Sombra arriba (dentro del hueco)
-            innerBevelGrad.addColorStop(0.3, 'rgba(0, 0, 0, 0.2)');
-            innerBevelGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.2)');
-            innerBevelGrad.addColorStop(1, 'rgba(255, 255, 255, 0.9)'); // Luz abajo (reflejo en la pared interior)
+            innerBevelGrad.addColorStop(0, 'rgba(0, 0, 0, 0.6)'); // Sombra arriba (dentro del hueco)
+            innerBevelGrad.addColorStop(0.3, 'rgba(0, 0, 0, 0.1)');
+            innerBevelGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.1)');
+            innerBevelGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)'); // Luz abajo (reflejo en la pared interior)
             ctx.strokeStyle = innerBevelGrad;
             ctx.stroke();
 
@@ -1669,8 +1669,8 @@ function actualizarPieChartDashboard(ingresos, egresos) {
             ctx.closePath();
             
             const glossTop = ctx.createLinearGradient(x, y - outerRadius, x, y);
-            glossTop.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-            glossTop.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
+            glossTop.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+            glossTop.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
             glossTop.addColorStop(1, 'rgba(255, 255, 255, 0)');
             ctx.fillStyle = glossTop;
             ctx.fill();
@@ -1708,7 +1708,7 @@ function actualizarPieChartDashboard(ingresos, egresos) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '72%',
+            cutout: '58%',
             layout: { padding: 12 },
             plugins: {
                 legend: { display: false },
