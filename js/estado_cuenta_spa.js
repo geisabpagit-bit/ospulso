@@ -213,30 +213,28 @@ function actualizarPieChart(cargos, abonos) {
             
             // 1. Efecto Extrusión/Bisel Exterior (Outer Bevel)
             ctx.beginPath();
-            ctx.arc(x, y, outerRadius - 2, 0, Math.PI * 2);
-            ctx.lineWidth = 6;
+            ctx.arc(x, y, outerRadius - 1, 0, Math.PI * 2);
+            ctx.lineWidth = 4;
             const outerBevelGrad = ctx.createLinearGradient(x, y - outerRadius, x, y + outerRadius);
-            outerBevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.5)'); // Reducido de 0.9 para colores más vivos
-            outerBevelGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.1)');
-            outerBevelGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
-            outerBevelGrad.addColorStop(1, 'rgba(0, 0, 0, 0.6)'); 
+            outerBevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+            outerBevelGrad.addColorStop(0.2, 'rgba(255, 255, 255, 0)');
+            outerBevelGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0)');
+            outerBevelGrad.addColorStop(1, 'rgba(0, 0, 0, 0.5)'); 
             ctx.strokeStyle = outerBevelGrad;
-            ctx.globalCompositeOperation = 'overlay';
+            ctx.globalCompositeOperation = 'source-over';
             ctx.stroke();
 
             // 2. Efecto Extrusión/Bisel Interior (Inner Bevel)
             ctx.beginPath();
-            ctx.arc(x, y, innerRadius + 2, 0, Math.PI * 2);
-            ctx.lineWidth = 6;
+            ctx.arc(x, y, innerRadius + 1, 0, Math.PI * 2);
+            ctx.lineWidth = 4;
             const innerBevelGrad = ctx.createLinearGradient(x, y - innerRadius, x, y + innerRadius);
-            innerBevelGrad.addColorStop(0, 'rgba(0, 0, 0, 0.6)'); 
-            innerBevelGrad.addColorStop(0.3, 'rgba(0, 0, 0, 0.1)');
-            innerBevelGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.1)');
-            innerBevelGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)'); 
+            innerBevelGrad.addColorStop(0, 'rgba(0, 0, 0, 0.5)'); 
+            innerBevelGrad.addColorStop(0.2, 'rgba(0, 0, 0, 0)');
+            innerBevelGrad.addColorStop(0.8, 'rgba(255, 255, 255, 0)');
+            innerBevelGrad.addColorStop(1, 'rgba(255, 255, 255, 0.85)'); 
             ctx.strokeStyle = innerBevelGrad;
             ctx.stroke();
-
-            ctx.globalCompositeOperation = 'source-over';
 
             // 3. Brillo Especular Superior (Glossy Highlight)
             ctx.beginPath();
@@ -245,9 +243,9 @@ function actualizarPieChart(cargos, abonos) {
             ctx.closePath();
             
             const glossTop = ctx.createLinearGradient(x, y - outerRadius, x, y);
-            glossTop.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
-            glossTop.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
-            glossTop.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            glossTop.addColorStop(0, 'rgba(255, 255, 255, 0.7)'); // Destello fuerte arriba
+            glossTop.addColorStop(0.2, 'rgba(255, 255, 255, 0.1)'); // Corte brusco (metálico)
+            glossTop.addColorStop(0.3, 'rgba(255, 255, 255, 0)');
             ctx.fillStyle = glossTop;
             ctx.fill();
 
@@ -1636,31 +1634,28 @@ function actualizarPieChartDashboard(ingresos, egresos) {
             
             // 1. Efecto Extrusión/Bisel Exterior (Outer Bevel)
             ctx.beginPath();
-            ctx.arc(x, y, outerRadius - 2, 0, Math.PI * 2);
-            ctx.lineWidth = 6;
+            ctx.arc(x, y, outerRadius - 1, 0, Math.PI * 2);
+            ctx.lineWidth = 4;
             const outerBevelGrad = ctx.createLinearGradient(x, y - outerRadius, x, y + outerRadius);
-            outerBevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.5)'); // Reducido de 0.9 para más saturación de color
-            outerBevelGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.1)');
-            outerBevelGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
-            outerBevelGrad.addColorStop(1, 'rgba(0, 0, 0, 0.6)'); // Sombra abajo
+            outerBevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.85)'); // Resplandor metálico puro
+            outerBevelGrad.addColorStop(0.2, 'rgba(255, 255, 255, 0)');
+            outerBevelGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0)');
+            outerBevelGrad.addColorStop(1, 'rgba(0, 0, 0, 0.5)'); 
             ctx.strokeStyle = outerBevelGrad;
-            ctx.globalCompositeOperation = 'overlay';
+            ctx.globalCompositeOperation = 'source-over';
             ctx.stroke();
 
             // 2. Efecto Extrusión/Bisel Interior (Inner Bevel)
             ctx.beginPath();
-            ctx.arc(x, y, innerRadius + 2, 0, Math.PI * 2);
-            ctx.lineWidth = 6;
+            ctx.arc(x, y, innerRadius + 1, 0, Math.PI * 2);
+            ctx.lineWidth = 4;
             const innerBevelGrad = ctx.createLinearGradient(x, y - innerRadius, x, y + innerRadius);
-            innerBevelGrad.addColorStop(0, 'rgba(0, 0, 0, 0.6)'); // Sombra arriba (dentro del hueco)
-            innerBevelGrad.addColorStop(0.3, 'rgba(0, 0, 0, 0.1)');
-            innerBevelGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.1)');
-            innerBevelGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)'); // Luz abajo (reflejo en la pared interior)
+            innerBevelGrad.addColorStop(0, 'rgba(0, 0, 0, 0.5)'); 
+            innerBevelGrad.addColorStop(0.2, 'rgba(0, 0, 0, 0)');
+            innerBevelGrad.addColorStop(0.8, 'rgba(255, 255, 255, 0)');
+            innerBevelGrad.addColorStop(1, 'rgba(255, 255, 255, 0.85)'); 
             ctx.strokeStyle = innerBevelGrad;
             ctx.stroke();
-
-            // Restaurar modo de fusión para los brillos directos
-            ctx.globalCompositeOperation = 'source-over';
 
             // 3. Brillo Especular Superior (Glossy Highlight)
             ctx.beginPath();
@@ -1669,9 +1664,9 @@ function actualizarPieChartDashboard(ingresos, egresos) {
             ctx.closePath();
             
             const glossTop = ctx.createLinearGradient(x, y - outerRadius, x, y);
-            glossTop.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
-            glossTop.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
-            glossTop.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            glossTop.addColorStop(0, 'rgba(255, 255, 255, 0.7)'); // Destello fuerte arriba
+            glossTop.addColorStop(0.2, 'rgba(255, 255, 255, 0.1)'); // Corte brusco (metálico)
+            glossTop.addColorStop(0.3, 'rgba(255, 255, 255, 0)');
             ctx.fillStyle = glossTop;
             ctx.fill();
 

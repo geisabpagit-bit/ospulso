@@ -213,21 +213,21 @@ print <<'PAGE_HTML';
                             </div>
                             
                             <div class="row align-items-center g-0">
-                                <div class="col-6 position-relative" style="height: 160px;">
+                                <div class="col-5 position-relative" style="height: 160px;">
                                     <canvas id="pieResumenFinanzas"></canvas>
                                     <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
                                         <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValFinanzas" style="font-size: 1.1rem;">$0</h5>
                                         <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Total</span>
                                     </div>
                                 </div>
-                                <div class="col-6 ps-2">
-                                    <div class="d-flex flex-column w-100 ps-2">
+                                <div class="col-7 ps-3">
+                                    <div class="d-flex flex-column w-100">
                                         <!-- Ingresos -->
                                         <div class="d-flex align-items-center mb-3">
-                                            <div style="width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(to bottom, #00FF7F, #007A3D, #003D1F); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 12px; flex-shrink: 0;"></div>
+                                            <div style="width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(to bottom, #00FF7F, #007A3D, #003D1F); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 10px; flex-shrink: 0;"></div>
                                             <div class="d-flex align-items-baseline gap-2">
-                                                <span class="fw-bold text-dark plus-jakarta" style="font-size: 1.15rem; line-height: 1; color: #1a202c !important;" id="legIngresosFinanzas">$0.00</span>
-                                                <span class="text-muted" style="font-size: 0.75rem;">Ingresos</span>
+                                                <span class="fw-bold text-dark plus-jakarta text-truncate" style="font-size: 1.05rem; line-height: 1; color: #1a202c !important; max-width: 90px;" id="legIngresosFinanzas">$0.00</span>
+                                                <span class="text-muted" style="font-size: 0.7rem;">Ingresos</span>
                                             </div>
                                         </div>
                                         
@@ -235,10 +235,10 @@ print <<'PAGE_HTML';
                                         
                                         <!-- Egresos -->
                                         <div class="d-flex align-items-center mb-3">
-                                            <div style="width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(to bottom, #FF4D4D, #A63A3A, #5C0000); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 12px; flex-shrink: 0;"></div>
+                                            <div style="width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(to bottom, #FF4D4D, #A63A3A, #5C0000); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 10px; flex-shrink: 0;"></div>
                                             <div class="d-flex align-items-baseline gap-2">
-                                                <span class="fw-bold text-dark plus-jakarta" style="font-size: 1.15rem; line-height: 1; color: #1a202c !important;" id="legEgresosFinanzas">$0.00</span>
-                                                <span class="text-muted" style="font-size: 0.75rem;">Egresos</span>
+                                                <span class="fw-bold text-dark plus-jakarta text-truncate" style="font-size: 1.05rem; line-height: 1; color: #1a202c !important; max-width: 90px;" id="legEgresosFinanzas">$0.00</span>
+                                                <span class="text-muted" style="font-size: 0.7rem;">Egresos</span>
                                             </div>
                                         </div>
                                     </div>
