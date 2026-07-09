@@ -221,20 +221,25 @@ print <<'PAGE_HTML';
                                     </div>
                                 </div>
                                 <div class="col-6 ps-2">
-                                    <div class="d-flex flex-column gap-3 w-100">
-                                        <div class="d-flex align-items-center justify-content-between w-100">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
-                                                <span class="text-muted fw-bold" style="font-size: 0.75rem;">Ingresos</span>
+                                    <div class="d-flex flex-column w-100 ps-2">
+                                        <!-- Ingresos -->
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div style="width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(to bottom, #00FF7F, #007A3D, #003D1F); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 12px; flex-shrink: 0;"></div>
+                                            <div class="d-flex align-items-baseline gap-2">
+                                                <span class="fw-bold text-dark plus-jakarta" style="font-size: 1.15rem; line-height: 1; color: #1a202c !important;" id="legIngresosFinanzas">$0.00</span>
+                                                <span class="text-muted" style="font-size: 0.75rem;">Ingresos</span>
                                             </div>
-                                            <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legIngresosFinanzas">$0</span>
                                         </div>
-                                        <div class="d-flex align-items-center justify-content-between w-100">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
-                                                <span class="text-muted fw-bold" style="font-size: 0.75rem;">Egresos</span>
+                                        
+                                        <div style="height: 1px; width: 100%; background: linear-gradient(90deg, rgba(0,0,0,0.05), rgba(0,0,0,0.15), rgba(0,0,0,0)); margin-bottom: 12px;"></div>
+                                        
+                                        <!-- Egresos -->
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div style="width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(to bottom, #FF4D4D, #A63A3A, #5C0000); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 12px; flex-shrink: 0;"></div>
+                                            <div class="d-flex align-items-baseline gap-2">
+                                                <span class="fw-bold text-dark plus-jakarta" style="font-size: 1.15rem; line-height: 1; color: #1a202c !important;" id="legEgresosFinanzas">$0.00</span>
+                                                <span class="text-muted" style="font-size: 0.75rem;">Egresos</span>
                                             </div>
-                                            <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legEgresosFinanzas">$0</span>
                                         </div>
                                     </div>
                                 </div>
