@@ -156,8 +156,11 @@ print <<HTML;
     </main>
 </div>
 
+<style>
+  .modal-backdrop.show { z-index: 104900 !important; }
+</style>
 <!-- Modal: Alta Ejecutivo -->
-<div class="modal fade" id="modalAltaEjecutivo" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+<div class="modal fade modal-diamond" id="modalAltaEjecutivo" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-0 pb-0">
