@@ -180,119 +180,107 @@ print <<HTML;
                     <h4 class="fw-black mb-0"><i class="bi bi-building-add me-2"></i>Configurador SaaS - Nueva Organización</h4>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
-                    
-                    <div class="row g-4">
-                        <!-- Columna Izquierda: Datos Core -->
-                        <div class="col-12 col-lg-5 border-end-lg pe-lg-4">
-                            
-                            <div class="dimension-section">
-                                <h6 class="dimension-title"><i class="bi bi-person-badge text-primary me-2"></i>A. Entidad Jurídica</h6>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">Nombre Comercial</label>
-                                    <input type="text" class="form-control bg-white shadow-sm border-0 rounded-3" name="nombre_org" required placeholder="Ej: Clínicas Salud Total">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">RFC (Opcional)</label>
-                                    <input type="text" class="form-control bg-white shadow-sm border-0 rounded-3" name="rfc_org" placeholder="ABC123456T89">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">Naturaleza Jurídica</label>
-                                    <select class="form-select bg-white shadow-sm border-0 rounded-3" name="naturaleza_juridica" required>
-                                        <option value="Privado" selected>Privado</option>
-                                        <option value="Público">Público</option>
-                                        <option value="Mixto">Mixto</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="dimension-section">
-                                <h6 class="dimension-title"><i class="bi bi-shield-lock text-primary me-2"></i>B. Dueño de la Plataforma</h6>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">Nombre Completo</label>
-                                    <input type="text" class="form-control bg-white shadow-sm border-0 rounded-3" name="nombre_admin" required placeholder="Ej: Dr. Roberto Gómez">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">Correo Electrónico (Login)</label>
-                                    <input type="email" class="form-control bg-white shadow-sm border-0 rounded-3" name="correo_admin" required placeholder="director\@saludtotal.com">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">Contraseña Inicial</label>
-                                    <input type="password" class="form-control bg-white shadow-sm border-0 rounded-3" name="clave_admin" required placeholder="••••••••">
-                                </div>
-                            </div>
-
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-3">
+                        <!-- Entidad -->
+                        <div class="col-12">
+                            <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-building me-2"></i>Entidad y Administrador</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Nombre Comercial</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" name="nombre_org" required placeholder="Clínicas Salud Total">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Naturaleza Jurídica</label>
+                            <select class="form-select form-select-sm shadow-sm" name="naturaleza_juridica" required>
+                                <option value="Privado">Privado</option>
+                                <option value="Público">Público</option>
+                                <option value="Mixto">Mixto</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">RFC (Opcional)</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" name="rfc_org" placeholder="ABC123456T89">
+                        </div>
+                        
+                        <!-- Dueño -->
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Nombre Administrador</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" name="nombre_admin" required placeholder="Ej: Dr. Roberto Gómez">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Correo Electrónico (Login)</label>
+                            <input type="email" class="form-control form-control-sm shadow-sm" name="correo_admin" required placeholder="admin@clinica.com">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Contraseña Inicial</label>
+                            <input type="password" class="form-control form-control-sm shadow-sm" name="clave_admin" required placeholder="••••••••">
                         </div>
 
-                        <!-- Columna Derecha: Dimensiones SaaS -->
-                        <div class="col-12 col-lg-7">
-                            
-                            <div class="dimension-section">
-                                <h6 class="dimension-title"><i class="bi bi-diagram-3 text-primary me-2"></i>C. Dimensión Operativa</h6>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold text-muted">Tipo de Organización</label>
-                                        <select class="form-select bg-white shadow-sm border-0 rounded-3" name="tipo_organizacion" required>
-                                            <option value="Consultorio Individual">Consultorio Individual</option>
-                                            <option value="Consultorio Compartido">Consultorio Compartido</option>
-                                            <option value="Clínica" selected>Clínica</option>
-                                            <option value="Hospital">Hospital</option>
-                                            <option value="Cadena">Cadena</option>
-                                            <option value="Universidad">Universidad</option>
-                                            <option value="Gobierno">Gobierno</option>
-                                            <option value="Laboratorio">Laboratorio</option>
-                                            <option value="Imagenología">Imagenología</option>
-                                            <option value="Otro">Otro</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold text-muted">¿Reporta a Institución Pública?</label>
-                                        <select class="form-select bg-white shadow-sm border-0 rounded-3" id="selectReportaInstitucion" name="reporta_institucion" required>
-                                            <option value="No" selected>No</option>
-                                            <option value="Sí">Sí</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12 d-none" id="cajaInstituciones">
-                                        <label class="form-label small fw-bold text-muted">Seleccione Institución(es)</label>
-                                        <div class="check-grid bg-white p-3 shadow-sm border-0 rounded-3">
-                                            <div class="form-check"><input class="form-check-input" type="checkbox" name="institucion[]" value="SIS" id="inst1"><label class="form-check-label small" for="inst1">SIS</label></div>
-                                            <div class="form-check"><input class="form-check-input" type="checkbox" name="institucion[]" value="IMSS" id="inst2"><label class="form-check-label small" for="inst2">IMSS</label></div>
-                                            <div class="form-check"><input class="form-check-input" type="checkbox" name="institucion[]" value="ISSSTE" id="inst3"><label class="form-check-label small" for="inst3">ISSSTE</label></div>
-                                            <div class="form-check"><input class="form-check-input" type="checkbox" name="institucion[]" value="IMSS Bienestar" id="inst4"><label class="form-check-label small" for="inst4">IMSS Bienestar</label></div>
-                                            <div class="form-check"><input class="form-check-input" type="checkbox" name="institucion[]" value="Secretaría Estatal" id="inst5"><label class="form-check-label small" for="inst5">Secretaría Estatal</label></div>
-                                            <div class="form-check"><input class="form-check-input" type="checkbox" name="institucion[]" value="PEMEX" id="inst6"><label class="form-check-label small" for="inst6">PEMEX</label></div>
-                                            <div class="form-check"><input class="form-check-input" type="checkbox" name="institucion[]" value="SEDENA" id="inst7"><label class="form-check-label small" for="inst7">SEDENA</label></div>
-                                            <div class="form-check"><input class="form-check-input" type="checkbox" name="institucion[]" value="SEMAR" id="inst8"><label class="form-check-label small" for="inst8">SEMAR</label></div>
-                                            <div class="form-check"><input class="form-check-input" type="checkbox" name="institucion[]" value="Universidad" id="inst9"><label class="form-check-label small" for="inst9">Universidad</label></div>
-                                            <div class="form-check"><input class="form-check-input" type="checkbox" name="institucion[]" value="Otro" id="inst10"><label class="form-check-label small" for="inst10">Otro</label></div>
-                                        </div>
-                                    </div>
+                        <!-- C. Operación -->
+                        <div class="col-12 mt-4">
+                            <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-diagram-3 me-2"></i>Operación y Reportes</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Tipo de Organización</label>
+                            <select class="form-select form-select-sm shadow-sm" name="tipo_organizacion" required>
+                                <option value="Consultorio Individual">Consultorio Individual</option>
+                                <option value="Consultorio Compartido">Consultorio Compartido</option>
+                                <option value="Clínica" selected>Clínica</option>
+                                <option value="Hospital">Hospital</option>
+                                <option value="Cadena">Cadena</option>
+                                <option value="Universidad">Universidad</option>
+                                <option value="Gobierno">Gobierno</option>
+                                <option value="Laboratorio">Laboratorio</option>
+                                <option value="Imagenología">Imagenología</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">¿Reporta a Institución Pública?</label>
+                            <select class="form-select form-select-sm shadow-sm" id="selectReportaInstitucion" name="reporta_institucion" required>
+                                <option value="No" selected>No</option>
+                                <option value="Sí">Sí</option>
+                            </select>
+                        </div>
+                        <div class="col-12 d-none" id="cajaInstituciones">
+                            <div class="bg-white p-3 border rounded shadow-sm">
+                                <label class="form-label small fw-bold text-muted mb-2">Seleccione Institución(es)</label>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="form-check m-0"><input class="form-check-input" type="checkbox" name="institucion[]" value="SIS" id="inst1"><label class="form-check-label small" for="inst1">SIS</label></div>
+                                    <div class="form-check m-0"><input class="form-check-input" type="checkbox" name="institucion[]" value="IMSS" id="inst2"><label class="form-check-label small" for="inst2">IMSS</label></div>
+                                    <div class="form-check m-0"><input class="form-check-input" type="checkbox" name="institucion[]" value="ISSSTE" id="inst3"><label class="form-check-label small" for="inst3">ISSSTE</label></div>
+                                    <div class="form-check m-0"><input class="form-check-input" type="checkbox" name="institucion[]" value="IMSS Bienestar" id="inst4"><label class="form-check-label small" for="inst4">IMSS Bienestar</label></div>
+                                    <div class="form-check m-0"><input class="form-check-input" type="checkbox" name="institucion[]" value="Secretaría Estatal" id="inst5"><label class="form-check-label small" for="inst5">Secretaría Estatal</label></div>
+                                    <div class="form-check m-0"><input class="form-check-input" type="checkbox" name="institucion[]" value="PEMEX" id="inst6"><label class="form-check-label small" for="inst6">PEMEX</label></div>
+                                    <div class="form-check m-0"><input class="form-check-input" type="checkbox" name="institucion[]" value="SEDENA" id="inst7"><label class="form-check-label small" for="inst7">SEDENA</label></div>
+                                    <div class="form-check m-0"><input class="form-check-input" type="checkbox" name="institucion[]" value="SEMAR" id="inst8"><label class="form-check-label small" for="inst8">SEMAR</label></div>
+                                    <div class="form-check m-0"><input class="form-check-input" type="checkbox" name="institucion[]" value="Universidad" id="inst9"><label class="form-check-label small" for="inst9">Universidad</label></div>
+                                    <div class="form-check m-0"><input class="form-check-input" type="checkbox" name="institucion[]" value="Otro" id="inst10"><label class="form-check-label small" for="inst10">Otro</label></div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="dimension-section">
-                                <h6 class="dimension-title"><i class="bi bi-box-seam text-primary me-2"></i>D. Capacidades SaaS Requeridas</h6>
-                                <p class="small text-muted mb-3">Selecciona los módulos a activar para el Tenant.</p>
-                                <div class="check-grid">
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Expediente Clínico" id="cap1" checked><label class="form-check-label fw-bold" for="cap1">Expediente Clínico</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Agenda" id="cap2" checked><label class="form-check-label fw-bold" for="cap2">Agenda</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Imagenología" id="cap3"><label class="form-check-label fw-bold" for="cap3">Imagenología</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Inventario" id="cap4"><label class="form-check-label fw-bold" for="cap4">Inventario</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Facturación" id="cap5"><label class="form-check-label fw-bold" for="cap5">Facturación</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Telemedicina" id="cap6"><label class="form-check-label fw-bold" for="cap6">Telemedicina</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="CRM" id="cap7"><label class="form-check-label fw-bold" for="cap7">CRM</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Interoperabilidad SIS" id="cap8"><label class="form-check-label fw-bold text-primary" for="cap8">Interop. SIS</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Interoperabilidad FHIR" id="cap9"><label class="form-check-label fw-bold text-primary" for="cap9">Interop. FHIR</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="HL7" id="cap10"><label class="form-check-label fw-bold text-primary" for="cap10">HL7</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="DICOM" id="cap11"><label class="form-check-label fw-bold text-primary" for="cap11">DICOM</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Exportación CSV" id="cap12"><label class="form-check-label fw-bold" for="cap12">Exportación CSV</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="capacidades[]" value="API REST" id="cap13"><label class="form-check-label fw-bold text-primary" for="cap13">API REST</label></div>
-                                </div>
+                        <!-- D. Capacidades -->
+                        <div class="col-12 mt-4">
+                            <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-box-seam me-2"></i>Capacidades SaaS Requeridas</h6>
+                            <div class="row g-2 bg-white p-3 border rounded shadow-sm m-0">
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Expediente Clínico" id="cap1" checked><label class="form-check-label small" for="cap1">Expediente Clínico</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Agenda" id="cap2" checked><label class="form-check-label small" for="cap2">Agenda</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Imagenología" id="cap3"><label class="form-check-label small" for="cap3">Imagenología</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Inventario" id="cap4"><label class="form-check-label small" for="cap4">Inventario</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Facturación" id="cap5"><label class="form-check-label small" for="cap5">Facturación</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Telemedicina" id="cap6"><label class="form-check-label small" for="cap6">Telemedicina</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="CRM" id="cap7"><label class="form-check-label small" for="cap7">CRM</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Interoperabilidad SIS" id="cap8"><label class="form-check-label small text-primary fw-bold" for="cap8">Interop. SIS</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Interoperabilidad FHIR" id="cap9"><label class="form-check-label small text-primary fw-bold" for="cap9">Interop. FHIR</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="HL7" id="cap10"><label class="form-check-label small text-primary fw-bold" for="cap10">HL7</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="DICOM" id="cap11"><label class="form-check-label small text-primary fw-bold" for="cap11">DICOM</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Exportación CSV" id="cap12"><label class="form-check-label small" for="cap12">Exportación CSV</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="API REST" id="cap13"><label class="form-check-label small text-primary fw-bold" for="cap13">API REST</label></div></div>
                             </div>
-
                         </div>
                     </div>
-
                 </div>
                 <div class="modal-footer border-0 p-4 bg-light rounded-bottom-4">
                     <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
