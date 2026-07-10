@@ -163,9 +163,9 @@ print <<HTML;
 <div class="modal fade modal-diamond" id="modalAltaUsuario" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <h5 class="fw-black text-dark"><i class="bi bi-person-plus-fill text-primary me-2"></i>Añadir Colaborador</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
+                <h5 class="fw-black mb-0"><i class="bi bi-person-plus-fill me-2"></i>Añadir Colaborador</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <form id="form-alta-usuario">

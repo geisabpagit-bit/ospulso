@@ -172,12 +172,12 @@ print <<HTML;
 <div class="modal fade modal-diamond" id="modalAltaOrganizacion" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <h4 class="fw-black text-dark"><i class="bi bi-building-add text-primary me-2"></i>Configurador SaaS - Nueva Organización</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
+                <h4 class="fw-black mb-0"><i class="bi bi-building-add me-2"></i>Configurador SaaS - Nueva Organización</h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4">
-                <form id="form-alta-organizacion">
+            <form id="form-alta-organizacion">
+                <div class="modal-body p-4">
                     
                     <div class="row g-4">
                         <!-- Columna Izquierda: Datos Core -->
@@ -290,13 +290,13 @@ print <<HTML;
                         </div>
                     </div>
 
-            </div>
-            <div class="modal-footer border-0 p-4 bg-light rounded-bottom-4">
-                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" id="btn-submit-org">
-                    <i class="bi bi-cloud-check-fill me-2"></i>Desplegar Tenant y Enviar Accesos
-                </button>
-            </div>
+                </div>
+                <div class="modal-footer border-0 p-4 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" id="btn-submit-org">
+                        <i class="bi bi-cloud-check-fill me-2"></i>Desplegar Tenant y Enviar Accesos
+                    </button>
+                </div>
             </form>
         </div>
     </div>
