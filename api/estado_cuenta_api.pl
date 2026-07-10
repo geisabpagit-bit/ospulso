@@ -56,10 +56,27 @@ if ($accion eq 'get_catalogo') {
     my $ec_file = File::Spec->catfile($dat_path, 'estado_cuenta.dat');
     my $pac_file = File::Spec->catfile($dat_path, 'pacientes.dat');
     
-    my %nombres;
+    my $mi_org = $session_data->{id_empresa} || 'X';
+    my $rol = $session_data->{role};
+
     if (-e $pac_file) {
         open(my $fh_p, "<:encoding(UTF-8)", $pac_file); <$fh_p>;
-        while (my $lp = <$fh_p>) { chomp $lp; my @vp = split /\|/, $lp; $nombres{$vp[0]} = $vp[1]; }
+        while (my $lp = <$fh_p>) { 
+            chomp $lp; 
+            my @vp = split /\|/, $lp; 
+            my $tenant_pac = $vp[13] // '';
+            my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
+            
+            my $es_mi_tenant = 0;
+            if ($rol eq 'Administrador Global') { $es_mi_tenant = 1; }
+            elsif ($org_pac && $org_pac eq $mi_org) { $es_mi_tenant = 1; }
+            elsif (!$org_pac && ($rol =~ /Administrador Organizacion|Soporte/i || $vp[1] eq $id_m_req)) { $es_mi_tenant = 1; }
+            
+            if ($es_mi_tenant) {
+                # vp[2] es el Nombre del Paciente
+                $nombres{$vp[0]} = $vp[2]; 
+            }
+        }
         close $fh_p;
     }
     
@@ -70,12 +87,14 @@ if ($accion eq 'get_catalogo') {
             my @v = split /\|/, $line;
             if (@v >= 9) {
                 if (!$id_p || $v[2] eq $id_p) {
+                    my $nom_pac = $nombres{$v[2]};
+                    next unless $nom_pac; # Blindaje Multi-Tenant Activo: Si no es mi paciente, ignoro la transaccion
+                    
                     my $tot = $v[7] + 0;
                     my $tipo = $v[3] || '';
                     my $notas = $v[10] || '';
                     my $is_presupuesto = ($tipo =~ /Cargo/i && $notas =~ /Presupuesto/i) ? 1 : 0;
                     
-                    my $nom_pac = $nombres{$v[2]} || "Paciente Desconocido";
                     push @h, { id_os => $v[0], id_mov => $v[1], tipo => $tipo, concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], paciente_nombre => $nom_pac, alias => ($v[11] || ''), is_presupuesto => $is_presupuesto };
                     
                     if ($is_presupuesto) {

@@ -74,6 +74,8 @@ if ($input->{accion} eq 'crear') {
     # Creación e Inyección
     my $id_paciente = obtener_nuevo_id('../dat/contador_pacientes.dat');
 
+    my $extra_tenant = ($session_data->{id_empresa} // '0') . ":" . ($session_data->{id_sucursal} // '0');
+
     my $nueva_linea = join("|",
         $id_paciente,
         $id_medico,
@@ -87,7 +89,8 @@ if ($input->{accion} eq 'crear') {
         $input->{estado_civil} // '',
         $input->{nacionalidad} // '',
         $input->{tipo_sangre} // '',
-        $input->{telefono} // ''
+        $input->{telefono} // '',
+        $extra_tenant
     ) . "|";
 
     guardar_registro('../dat/pacientes.dat', $nueva_linea);
@@ -121,7 +124,8 @@ if ($input->{accion} eq 'crear') {
                 $input->{estado_civil} // '',
                 $input->{nacionalidad} // '',
                 $input->{tipo_sangre} // '',
-                $input->{telefono} // ''
+                $input->{telefono} // '',
+                $r->[13] // (($session_data->{id_empresa} // '0') . ":" . ($session_data->{id_sucursal} // '0'))
             ) . "|";
         } else {
             push @nuevos_registros, join("|", @$r);

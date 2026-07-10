@@ -55,7 +55,27 @@ my @list;
 if ($regs) {
     foreach my $r (@$regs) {
         next if @$r < 6;
-        if ($role =~ /Administrador|Soporte|Recepcionista/i || $r->[1] eq $id_medico) {
+        # Extraer Tenant del Paciente (Indice 13)
+        my $tenant_pac = $r->[13] // '';
+        my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
+        
+        my $mi_org = $sd->{id_empresa} || 'X';
+        my $es_mi_tenant = 0;
+        
+        # Administrador Global ve todo
+        if ($role eq 'Administrador Global') {
+            $es_mi_tenant = 1;
+        } 
+        # Si tiene tenant y coincide con la Org actual
+        elsif ($org_pac && $org_pac eq $mi_org) {
+            $es_mi_tenant = 1;
+        } 
+        # Lógica Legacy (para pacientes viejos sin tenant guardado)
+        elsif (!$org_pac && ($role =~ /Administrador Organizacion|Soporte/i || $r->[1] eq $id_medico)) {
+            $es_mi_tenant = 1;
+        }
+
+        if ($es_mi_tenant) {
             push @list, { 
                 id        => $r->[0], 
                 nombre    => $r->[2], 
