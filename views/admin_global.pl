@@ -193,6 +193,9 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
+    // Mover modal al body para evitar problemas de z-index
+    document.body.appendChild(document.getElementById('modalAltaEjecutivo'));
+    
     document.getElementById('form-alta-ejecutivo').addEventListener('submit', function(e) {
         e.preventDefault();
         const fd = new FormData(this);
