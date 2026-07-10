@@ -145,13 +145,13 @@ print <<HTML;
 <!-- Modal: Alta Sucursal -->
 <div class="modal fade modal-diamond" id="modalAltaSucursal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
-                <h5 class="fw-black mb-0"><i class="bi bi-shop me-2"></i>Añadir Nueva Sucursal</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <form id="form-alta-sucursal">
+        <form id="form-alta-sucursal" class="w-100">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
+                    <h5 class="fw-black mb-0"><i class="bi bi-shop me-2"></i>Añadir Nueva Sucursal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted">Nombre de la Sucursal</label>
                         <input type="text" class="form-control form-control-lg bg-light border-0 rounded-3" name="nombre_sucursal" required placeholder="Ej: Sucursal Norte">
@@ -167,9 +167,9 @@ print <<HTML;
                     <button type="submit" class="btn btn-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-sucursal">
                         <i class="bi bi-plus-circle me-2"></i>Registrar Sucursal
                     </button>
-                </form>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 

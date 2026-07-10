@@ -165,13 +165,13 @@ print <<HTML;
 <!-- Modal: Alta Ejecutivo -->
 <div class="modal fade modal-diamond" id="modalAltaEjecutivo" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
-                <h5 class="fw-black mb-0"><i class="bi bi-person-plus me-2"></i>Alta de Ejecutivo</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <form id="form-alta-ejecutivo">
+        <form id="form-alta-ejecutivo" class="w-100">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
+                    <h5 class="fw-black mb-0"><i class="bi bi-person-plus me-2"></i>Alta de Ejecutivo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted">Nombre Completo</label>
                         <input type="text" class="form-control form-control-lg bg-light border-0 rounded-3" name="nombre" required placeholder="Ej: Maria Lopez">
@@ -187,9 +187,9 @@ print <<HTML;
                     <button type="submit" class="btn btn-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-ejecutivo">
                         Registrar en el Sistema
                     </button>
-                </form>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 

@@ -171,12 +171,12 @@ print <<HTML;
 <!-- Modal: Alta Organización -->
 <div class="modal fade modal-diamond" id="modalAltaOrganizacion" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
-                <h4 class="fw-black mb-0"><i class="bi bi-building-add me-2"></i>Configurador SaaS - Nueva Organización</h4>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="form-alta-organizacion">
+        <form id="form-alta-organizacion" class="w-100">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
+                    <h4 class="fw-black mb-0"><i class="bi bi-building-add me-2"></i>Configurador SaaS - Nueva Organización</h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
                 <div class="modal-body p-4">
                     
                     <div class="row g-4">
@@ -297,8 +297,8 @@ print <<HTML;
                         <i class="bi bi-cloud-check-fill me-2"></i>Desplegar Tenant y Enviar Accesos
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </div>
 
