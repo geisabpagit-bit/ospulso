@@ -70,6 +70,9 @@ print <<HTML;
                     <h2 class="fw-black mb-0"><i class="bi bi-globe me-2"></i>Administrador Global</h2>
                     <p class="text-white-50 small mb-0 mt-1">Gestión de Roles, Servidores y Fuerza de Ventas</p>
                 </div>
+                <button class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="hardResetDB()">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Hard Reset DB
+                </button>
             </div>
         </header>
 
@@ -229,6 +232,46 @@ print <<HTML;
             btn.innerHTML = 'Registrar en el Sistema';
         });
     });
+
+    function hardResetDB() {
+        Swal.fire({
+            title: '¿Peligro Inminente!',
+            text: 'Estás a punto de borrar TODA la base de datos operativa y resetear el sistema. Esto no se puede deshacer. ¿Proceder?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, PURGAR TODO',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Purgando Base de Datos...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                fetch('../api/hard_reset_db_api.pl')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire(
+                            '¡Base de Datos Purgada!',
+                            'El sistema está en blanco. El Administrador Global ha sido reinstaurado.',
+                            'success'
+                        ).then(() => {
+                            window.location.href = '../index.html'; // Obliga a reingresar
+                        });
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    Swal.fire('Error', 'Fallo de red al intentar resetear.', 'error');
+                });
+            }
+        });
+    }
 </script>
 </body>
 </html>
