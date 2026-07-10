@@ -59,7 +59,7 @@ sub check_session {
                 }
             }
 
-            %user_data = ( uid => $uid, correo_login => $uid, usuario => $unm, role => $rol, id_medico => $idm, session => $session, q => $q );
+            %user_data = ( uid => $uid, correo_login => $uid, usuario => $unm, role => $rol, id_medico => $idm, session => $session, q => $q, id_empresa => $session->param('id_empresa') || 0, id_sucursal => $session->param('id_sucursal') || 0 );
         }
     }
 
