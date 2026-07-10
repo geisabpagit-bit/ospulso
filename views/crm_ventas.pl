@@ -210,7 +210,7 @@ print <<HTML;
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-bold">Correo Electrónico (Login)</label>
-                            <input type="email" class="form-control form-control-sm shadow-sm" name="correo_admin" required placeholder="admin@clinica.com">
+                            <input type="email" class="form-control form-control-sm shadow-sm" name="correo_admin" required placeholder="admin\@clinica.com">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-bold">Contraseña Inicial</label>

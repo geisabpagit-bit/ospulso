@@ -181,7 +181,7 @@ print <<HTML;
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-muted">Correo Electrónico</label>
+                            <label class="form-label small fw-bold text-muted">Correo Electrónico (Login)</label>
                             <input type="email" class="form-control form-control-lg bg-light border-0 rounded-3" name="correo" required placeholder="maria\@clinica.com">
                         </div>
                         <div class="col-6">
