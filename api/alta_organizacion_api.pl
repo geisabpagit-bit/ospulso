@@ -28,6 +28,12 @@ my $id_vendedor = $sd->{id_usuario};
 
 my $nombre_org   = $q->param('nombre_org')   // '';
 my $rfc_org      = $q->param('rfc_org')      // '';
+my $naturaleza_juridica = $q->param('naturaleza_juridica') // '';
+my $tipo_organizacion   = $q->param('tipo_organizacion') // '';
+my $reporta_institucion = $q->param('reporta_institucion') // '';
+my @instituciones = $q->multi_param('institucion[]');
+my @capacidades   = $q->multi_param('capacidades[]');
+
 my $nombre_admin = $q->param('nombre_admin') // '';
 my $correo_admin = lc($q->param('correo_admin') // '');
 my $clave_admin  = $q->param('clave_admin')  // '';
@@ -37,13 +43,14 @@ $nombre_admin =~ s/^\s+|\s+$//g;
 $correo_admin =~ s/^\s+|\s+$//g;
 $clave_admin  =~ s/^\s+|\s+$//g;
 
-if (!$nombre_org || !$nombre_admin || !$correo_admin || !$clave_admin) {
+if (!$nombre_org || !$nombre_admin || !$correo_admin || !$clave_admin || !$tipo_organizacion || !$naturaleza_juridica) {
     print encode_json({ status => 'error', message => 'Faltan datos obligatorios.' });
     exit;
 }
 
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+my $archivo_config   = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
 
 # Validar que el correo no exista en usuarios
 my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
@@ -106,11 +113,24 @@ my $registro_usuario = join("!",
     $extra_multi_tenant
 );
 
+# --- Paso 3: Guardar Configuración SaaS (negocios_config.dat) ---
+my @config_lines = ();
+push @config_lines, "$id_org|TIPO_ORGANIZACION|$tipo_organizacion";
+push @config_lines, "$id_org|NATURALEZA_JURIDICA|$naturaleza_juridica";
+push @config_lines, "$id_org|REPORTE_INSTITUCION|$reporta_institucion";
+foreach my $inst (@instituciones) {
+    push @config_lines, "$id_org|INSTITUCION|$inst";
+}
+foreach my $cap (@capacidades) {
+    push @config_lines, "$id_org|CAPACIDAD|$cap";
+}
+
 # --- Escribir a archivos ---
 eval {
+    use Fcntl qw(:flock);
+
     # Guardar Negocio
     open(my $fh_neg, '>>:utf8', $archivo_negocios) or die "negocios: $!";
-    use Fcntl qw(:flock);
     flock($fh_neg, 2);
     print $fh_neg "$registro_negocio\n";
     close($fh_neg);
@@ -120,6 +140,14 @@ eval {
     flock($fh_usr, 2);
     print $fh_usr "$registro_usuario\n";
     close($fh_usr);
+
+    # Guardar Configuración SaaS
+    open(my $fh_cfg, '>>:utf8', $archivo_config) or die "configuracion: $!";
+    flock($fh_cfg, 2);
+    foreach my $linea (@config_lines) {
+        print $fh_cfg "$linea\n";
+    }
+    close($fh_cfg);
 };
 
 if ($@) {
