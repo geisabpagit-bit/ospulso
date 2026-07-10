@@ -60,7 +60,7 @@ print <<HTML;
 <!-- Inyectar Layout General -->
 <div class="d-flex w-100 h-100 bg-light">
 HTML
-render_sidebar($role);
+utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario);
 print <<HTML;
     <main class="flex-grow-1" style="margin-left: var(--sidebar-width); margin-bottom: 70px; overflow-y: auto;">
         <!-- TOPBAR -->
