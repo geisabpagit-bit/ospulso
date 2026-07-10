@@ -159,8 +159,11 @@ print <<HTML;
     </main>
 </div>
 
+<style>
+  .modal-backdrop.show { z-index: 104900 !important; }
+</style>
 <!-- Modal: Alta Usuario -->
-<div class="modal fade modal-diamond" id="modalAltaUsuario" tabindex="-1" aria-hidden="true">
+<div class="modal fade modal-diamond" id="modalAltaUsuario" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-dialog-centered">
         <form id="form-alta-usuario" class="w-100">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -219,8 +222,6 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
-    document.body.appendChild(document.getElementById('modalAltaUsuario'));
-
     document.getElementById('form-alta-usuario').addEventListener('submit', function(e) {
         e.preventDefault();
         const fd = new FormData(this);

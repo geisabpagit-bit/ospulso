@@ -305,8 +305,6 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
-    document.body.appendChild(document.getElementById('modalAltaOrganizacion'));
-
     // Toggle Instituciones
     document.getElementById('selectReportaInstitucion').addEventListener('change', function() {
         if(this.value === 'Sí') {
