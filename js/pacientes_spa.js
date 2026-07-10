@@ -189,6 +189,7 @@ function initPacientesSpa() {
             var cvCargos = formatMonedaSeguro(perfil.cargos);
             var cvAbonos = formatMonedaSeguro(perfil.abonos);
             var cvSaldo = formatMonedaSeguro(perfil.saldo);
+            var cvPresupuestos = formatMonedaSeguro(perfil.presupuestos);
 
             var perfilId = perfil.id || 'N/A';
             var perfilCorreo = perfil.correo || 'No registrado';
@@ -213,12 +214,8 @@ function initPacientesSpa() {
                       .bento-action-btn:hover i { transform: scale(1.15); }
                     .paciente-info-bento { background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%) !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08) !important; transition: transform 0.3s ease; }
                     .paciente-info-bento:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.12) !important; border-color: rgba(59, 130, 246, 0.6) !important; }
-                    .kpi-card-bento { border: 1px solid rgba(59, 130, 246, 0.3) !important; border-radius: 12px !important; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.03); position: relative; overflow: hidden; transition: all 0.3s ease; }
-                    .kpi-card-bento:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); border-color: rgba(59, 130, 246, 0.6) !important; }
-                    .kpi-card-bento::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; }
-                    .kpi-card-bento.cargos::before { background-color: #3b82f6; }
-                    .kpi-card-bento.abonos::before { background-color: #10b981; }
-                    .kpi-card-bento.saldo::before { background-color: #8b5cf6; }
+                    .kpi-btn-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
+                    .kpi-btn-hover:hover { transform: translateY(-4px); box-shadow: 0 15px 30px rgba(0,0,0,0.15) !important; }
                 `;
                 document.head.appendChild(style);
             }
@@ -237,23 +234,29 @@ function initPacientesSpa() {
                         '</div>' +
                         
                         '<!-- KPI Cards -->' +
-                        '<div class="row g-2 mb-3 mb-lg-0 flex-nowrap">' +
-                          '<div class="col-4">' +
-                            '<div class="kpi-card-bento cargos p-2 h-100">' +
+                        '<div class="row g-2 mb-3 mb-lg-0 flex-wrap">' +
+                          '<div class="col-6">' +
+                            '<div class="kpi-acrilico p-2 h-100 d-flex flex-column align-items-center justify-content-center m-0" style="width: 100%;">' +
                                 '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">CARGOS</h6>' +
                                 '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvCargos + '</h5>' +
                             '</div>' +
                           '</div>' +
-                          '<div class="col-4">' +
-                            '<div class="kpi-card-bento abonos p-2 h-100">' +
+                          '<div class="col-6">' +
+                            '<div class="kpi-acrilico p-2 h-100 d-flex flex-column align-items-center justify-content-center m-0" style="width: 100%;">' +
                                 '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">ABONOS</h6>' +
                                 '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvAbonos + '</h5>' +
                             '</div>' +
                           '</div>' +
-                          '<div class="col-4">' +
-                            '<div class="kpi-card-bento saldo p-2 h-100">' +
+                          '<div class="col-6">' +
+                            '<div class="kpi-acrilico p-2 h-100 d-flex flex-column align-items-center justify-content-center m-0" style="width: 100%;">' +
                                 '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">SALDO</h6>' +
                                 '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvSaldo + '</h5>' +
+                            '</div>' +
+                          '</div>' +
+                          '<div class="col-6">' +
+                            '<div class="kpi-acrilico p-2 h-100 d-flex flex-column align-items-center justify-content-center m-0" style="width: 100%;">' +
+                                '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">PRESUPUESTOS</h6>' +
+                                '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvPresupuestos + '</h5>' +
                             '</div>' +
                           '</div>' +
                         '</div>' +
@@ -261,26 +264,26 @@ function initPacientesSpa() {
                     '<div class="col-lg-7 col-12">' +
                         '<!-- Barra de Herramientas (Bento Grid) -->' +
                         '<div class="row g-2 mb-2">' +
-                          '<div class="col-3">' +
-                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">EXPEDIENTE</span></a>' +
-                          '</div>' +
-                          '<div class="col-3">' +
-                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">FINANZAS</span></a>' +
-                          '</div>' +
-                          '<div class="col-3">' +
-                            '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CITA</span></a>' +
-                          '</div>' +
-                          '<div class="col-3">' +
-                            '<a href="render_consultas.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-heart-pulse fs-4 mb-1 text-danger"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CONSULTA</span></a>' +
+                          '<div class="col-4">' +
+                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">EXPEDIENTE</span></a>' +
                           '</div>' +
                           '<div class="col-4">' +
-                            '<button type="button" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 border-0 bg-transparent" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">CORREO</span></button>' +
+                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">FINANZAS</span></a>' +
                           '</div>' +
                           '<div class="col-4">' +
-                            '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">WHATSAPP</span></a>' +
+                            '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CITA</span></a>' +
                           '</div>' +
-                          '<div class="col-4">' +
-                            '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="bento-action-btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2"><i class="bi bi-printer fs-4 mb-1 text-secondary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px;">IMPRIMIR</span></a>' +
+                          '<div class="col-3">' +
+                            '<a href="render_consultas.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-heart-pulse fs-4 mb-1 text-danger"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CONSULTA</span></a>' +
+                          '</div>' +
+                          '<div class="col-3">' +
+                            '<button type="button" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 border-0 bg-transparent text-decoration-none" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CORREO</span></button>' +
+                          '</div>' +
+                          '<div class="col-3">' +
+                            '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">WHATSAPP</span></a>' +
+                          '</div>' +
+                          '<div class="col-3">' +
+                            '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none"><i class="bi bi-printer fs-4 mb-1 text-secondary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">IMPRIMIR</span></a>' +
                           '</div>' +
                         '</div>' +
                         '<!-- Historial de Consultas -->' +

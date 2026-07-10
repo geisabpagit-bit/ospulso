@@ -56,17 +56,25 @@ if ($accion eq 'get_perfil') {
     
     if ($perfil) {
         # Cargar métricas financieras
-        my ($saldo_total, $cargos_sum, $abonos_sum) = (0, 0, 0);
+        my ($saldo_total, $cargos_sum, $abonos_sum, $presupuestos_sum) = (0, 0, 0, 0);
         my $ec_file = '../dat/estado_cuenta.dat';
         if (-e $ec_file) {
             open(my $fh, "<:encoding(UTF-8)", $ec_file); <$fh>;
             while (my $line = <$fh>) {
                 chomp $line;
                 my @v = split /\|/, $line;
-                if (@v >= 9 && $v[2] eq $id_paciente) {
+                if (@v >= 11 && $v[2] eq $id_paciente) {
                     my $tot = $v[7] + 0;
-                    if ($v[3] =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; } 
-                    else { $saldo_total -= $tot; $abonos_sum += $tot; }
+                    my $tipo = $v[3] || '';
+                    my $notas = $v[10] || '';
+                    my $is_presupuesto = ($tipo =~ /Cargo/i && $notas =~ /Presupuesto/i) ? 1 : 0;
+                    
+                    if ($is_presupuesto) {
+                        $presupuestos_sum += $tot;
+                    } else {
+                        if ($tipo =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; } 
+                        else { $saldo_total -= $tot; $abonos_sum += $tot; }
+                    }
                 }
             }
             close $fh;
@@ -74,6 +82,7 @@ if ($accion eq 'get_perfil') {
         $perfil->{saldo} = $saldo_total;
         $perfil->{cargos} = $cargos_sum;
         $perfil->{abonos} = $abonos_sum;
+        $perfil->{presupuestos} = $presupuestos_sum;
 
         # Obtener Historial Médico
         my $citas_db = leer_tabla('../dat/citas.dat', '\|');
