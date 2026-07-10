@@ -140,7 +140,7 @@ function initPacientesSpa() {
             var historialHtml = '';
             if (!historial || historial.length === 0) {
                 historialHtml = 
-                    '<div class="text-center text-muted p-5 w-100 bg-white shadow-sm" style="border-radius: var(--radius-md);">' +
+                    '<div class="card-medentia-aura border-0 text-center text-muted p-5 w-100">' +
                     '<i class="bi bi-clipboard2-x d-block mb-3 text-cyan" style="font-size: 2.5rem;"></i>' +
                     '<span class="font-secondary">No hay historial de citas clínicas.</span>' +
                     '</div>';
@@ -186,10 +186,10 @@ function initPacientesSpa() {
             var perfilNombre = perfil.nombre || 'Paciente Sin Nombre';
             var nombreCoded = encodeURIComponent(perfilNombre);
             
-            var cvCargos = formatMonedaSeguro(perfil.cargos);
-            var cvAbonos = formatMonedaSeguro(perfil.abonos);
-            var cvSaldo = formatMonedaSeguro(perfil.saldo);
-            var cvPresupuestos = formatMonedaSeguro(perfil.presupuestos);
+            var cvCargos = formatMonedaSeguro(perfil.cargos).split('.')[0];
+            var cvAbonos = formatMonedaSeguro(perfil.abonos).split('.')[0];
+            var cvSaldo = formatMonedaSeguro(perfil.saldo).split('.')[0];
+            var cvPresupuestos = formatMonedaSeguro(perfil.presupuestos || 0).split('.')[0];
 
             var perfilId = perfil.id || 'N/A';
             var perfilCorreo = perfil.correo || 'No registrado';
@@ -238,25 +238,25 @@ function initPacientesSpa() {
                           '<div class="col-6">' +
                             '<div class="kpi-acrilico p-2 h-100 text-start d-flex flex-column justify-content-center m-0" style="width: 100%;">' +
                                 '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Cargos</span>' +
-                                '<h4 class="m-0 fw-bold" style="color: var(--md-blue-deep); font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvCargos + '</h4>' +
+                                '<h4 class="m-0 fw-bold text-end" style="color: var(--md-blue-deep); font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvCargos + '</h4>' +
                             '</div>' +
                           '</div>' +
                           '<div class="col-6">' +
                             '<div class="kpi-acrilico p-2 h-100 text-start d-flex flex-column justify-content-center m-0" style="width: 100%;">' +
                                 '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Abonos</span>' +
-                                '<h4 class="m-0 text-success fw-bold" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvAbonos + '</h4>' +
+                                '<h4 class="m-0 text-success fw-bold text-end" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvAbonos + '</h4>' +
                             '</div>' +
                           '</div>' +
                           '<div class="col-6">' +
                             '<div class="kpi-acrilico p-2 h-100 text-start d-flex flex-column justify-content-center m-0" style="width: 100%;">' +
                                 '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Saldo</span>' +
-                                '<h3 class="fw-black text-danger m-0" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvSaldo + '</h3>' +
+                                '<h3 class="fw-black text-danger m-0 text-end" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvSaldo + '</h3>' +
                             '</div>' +
                           '</div>' +
                           '<div class="col-6">' +
                             '<div class="kpi-acrilico p-2 h-100 text-start d-flex flex-column justify-content-center m-0" style="width: 100%;">' +
                                 '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Presupuestos</span>' +
-                                '<h4 class="m-0 fw-bold text-dark" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvPresupuestos + '</h4>' +
+                                '<h4 class="m-0 fw-bold text-dark text-end" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvPresupuestos + '</h4>' +
                             '</div>' +
                           '</div>' +
                         '</div>' +
@@ -277,7 +277,7 @@ function initPacientesSpa() {
                             '<a href="render_consultas.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-heart-pulse fs-4 mb-1 text-danger"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CONSULTA</span></a>' +
                           '</div>' +
                           '<div class="col-3">' +
-                            '<button type="button" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 border-0 bg-transparent text-decoration-none" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CORREO</span></button>' +
+                            '<button type="button" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CORREO</span></button>' +
                           '</div>' +
                           '<div class="col-3">' +
                             '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">WHATSAPP</span></a>' +
