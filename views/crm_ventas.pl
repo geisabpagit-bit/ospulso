@@ -164,13 +164,16 @@ print <<HTML;
 
 <style>
   .modal-backdrop.show { z-index: 104900 !important; }
+  @media (min-width: 992px) { 
+      #modalAltaOrganizacion { padding-left: 280px !important; } 
+  }
   .dimension-section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
   .dimension-title { font-weight: 800; color: #1e293b; margin-bottom: 1rem; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px; }
   .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
 </style>
 <!-- Modal: Alta Organización -->
 <div class="modal fade modal-diamond" id="modalAltaOrganizacion" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
-    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
         <form id="form-alta-organizacion" class="w-100">
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
@@ -305,6 +308,8 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
+    document.body.appendChild(document.getElementById('modalAltaOrganizacion'));
+
     // Toggle Instituciones
     document.getElementById('selectReportaInstitucion').addEventListener('change', function() {
         if(this.value === 'Sí') {
