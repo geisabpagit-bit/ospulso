@@ -13,3 +13,4 @@ mis_citas|views/mis_citas.pl|Mis Citas|Ver y gestionar citas personales.|bi-cale
 mi_historial|views/mi_expediente.pl|Mi Historial|Revisar historial médico personal.|bi-journal-medical|info|
 tecnico|views/administracion_catalogo.pl|Catálogos y Mantenimiento|Catálogos y mantenimiento del sistema.|bi-tools|info|
 sync_google|sync_google_handler.pl|Sincronización Google|Vincular o renovar acceso a Google Calendar.|bi-google|primary|
+crm_ventas|views/crm_ventas.pl|CRM Ventas|Plataforma Comercial para Alta de Organizaciones.|bi-briefcase-fill|primary|
