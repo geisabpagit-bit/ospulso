@@ -236,27 +236,27 @@ function initPacientesSpa() {
                         '<!-- KPI Cards -->' +
                         '<div class="row g-2 mb-3 mb-lg-0 flex-wrap">' +
                           '<div class="col-6">' +
-                            '<div class="kpi-acrilico p-2 h-100 d-flex flex-column align-items-center justify-content-center m-0" style="width: 100%;">' +
-                                '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">CARGOS</h6>' +
-                                '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvCargos + '</h5>' +
+                            '<div class="kpi-acrilico p-2 h-100 text-start d-flex flex-column justify-content-center m-0" style="width: 100%;">' +
+                                '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Cargos</span>' +
+                                '<h4 class="m-0 fw-bold" style="color: var(--md-blue-deep); font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvCargos + '</h4>' +
                             '</div>' +
                           '</div>' +
                           '<div class="col-6">' +
-                            '<div class="kpi-acrilico p-2 h-100 d-flex flex-column align-items-center justify-content-center m-0" style="width: 100%;">' +
-                                '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">ABONOS</h6>' +
-                                '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvAbonos + '</h5>' +
+                            '<div class="kpi-acrilico p-2 h-100 text-start d-flex flex-column justify-content-center m-0" style="width: 100%;">' +
+                                '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Abonos</span>' +
+                                '<h4 class="m-0 text-success fw-bold" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvAbonos + '</h4>' +
                             '</div>' +
                           '</div>' +
                           '<div class="col-6">' +
-                            '<div class="kpi-acrilico p-2 h-100 d-flex flex-column align-items-center justify-content-center m-0" style="width: 100%;">' +
-                                '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">SALDO</h6>' +
-                                '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvSaldo + '</h5>' +
+                            '<div class="kpi-acrilico p-2 h-100 text-start d-flex flex-column justify-content-center m-0" style="width: 100%;">' +
+                                '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Saldo</span>' +
+                                '<h3 class="fw-black text-danger m-0" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvSaldo + '</h3>' +
                             '</div>' +
                           '</div>' +
                           '<div class="col-6">' +
-                            '<div class="kpi-acrilico p-2 h-100 d-flex flex-column align-items-center justify-content-center m-0" style="width: 100%;">' +
-                                '<h6 class="text-muted fw-bold" style="font-size: 0.55rem; margin-bottom: 2px; letter-spacing: 0.5px;">PRESUPUESTOS</h6>' +
-                                '<h5 class="fw-bold" style="font-size: 0.85rem; margin-bottom: 0; color: #1e293b;">$' + cvPresupuestos + '</h5>' +
+                            '<div class="kpi-acrilico p-2 h-100 text-start d-flex flex-column justify-content-center m-0" style="width: 100%;">' +
+                                '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Presupuestos</span>' +
+                                '<h4 class="m-0 fw-bold text-dark" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvPresupuestos + '</h4>' +
                             '</div>' +
                           '</div>' +
                         '</div>' +
