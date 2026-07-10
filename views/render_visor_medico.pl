@@ -171,7 +171,7 @@ print <<HTML;
                                 <i class="bi bi-person"></i>
                             </div>
                             <div>
-                                <div class="fw-bold lh-1" style="font-size: 0.85rem; color: var(--visor-text);">$paciente->{nombre}</div>
+                                <div class="fw-bold text-dark lh-1" style="font-size: 0.85rem;">$paciente->{nombre}</div>
                                 <div class="text-muted small">ID: $paciente->{id_paciente}</div>
                             </div>
                         </div>
@@ -180,24 +180,24 @@ print <<HTML;
                         </button>
                     </div>
                     <div class="collapse" id="collapsePatientInfo">
-                        <div class="p-2 mt-2 small shadow-sm border border-secondary rounded-3" style="background-color: var(--visor-bg);">
-                            <table class="table table-sm table-borderless m-0 text-white">
-                                <tr><td class="text-muted py-0">Nac:</td><td class="fw-bold text-end py-0" style="color: var(--visor-text);">$paciente->{f_nac}</td></tr>
-                                <tr><td class="text-muted py-0">Sexo:</td><td class="fw-bold text-end py-0" style="color: var(--visor-text);">$paciente->{sexo}</td></tr>
+                        <div class="card-medentia-aura p-2 mt-2 small border-0 rounded-3">
+                            <table class="table table-sm table-borderless m-0">
+                                <tr><td class="text-muted py-0">Nac:</td><td class="fw-bold text-end text-dark py-0">$paciente->{f_nac}</td></tr>
+                                <tr><td class="text-muted py-0">Sexo:</td><td class="fw-bold text-end text-dark py-0">$paciente->{sexo}</td></tr>
                             </table>
                         </div>
                     </div>
                 </div>
 
                 <!-- Buscador Avanzado -->
-                <div class="p-3 border-bottom sticky-top" style="background-color: var(--visor-sidebar);">
+                <div class="p-3 border-bottom sticky-top bg-white">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="fw-black m-0 text-uppercase" style="font-size: 0.8rem; color: var(--visor-primary);">ESTUDIOS</h6>
-                        <button class="btn btn-sm btn-link text-decoration-none p-0" style="color: var(--visor-text);" data-bs-toggle="modal" data-bs-target="#modalBusquedaAvanzada"><i class="bi bi-sliders me-1"></i>Filtros</button>
+                        <button class="btn btn-sm btn-link text-decoration-none p-0 text-dark" data-bs-toggle="modal" data-bs-target="#modalBusquedaAvanzada"><i class="bi bi-sliders me-1"></i>Filtros</button>
                     </div>
                     <div class="input-group input-group-sm shadow-sm rounded-2">
-                        <span class="input-group-text border-end-0 border-secondary" style="background-color: var(--visor-bg);"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" class="form-control border-start-0 ps-0 border-secondary text-white" style="background-color: var(--visor-bg);" placeholder="Buscar estudios..." id="search-estudios" list="lista-estudios">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control bg-white border-start-0 ps-0 text-dark" placeholder="Buscar estudios..." id="search-estudios" list="lista-estudios">
                         <datalist id="lista-estudios"></datalist>
                     </div>
                 </div>

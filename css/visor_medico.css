@@ -8,11 +8,11 @@
     --visor-sidebar-width: 320px;
     --visor-toolbar-height: 60px;
     
-    /* Variables de Herencia MedentIA */
-    --visor-bg: #0f172a; /* Slate 900 */
-    --visor-border: #1e293b; /* Slate 800 */
-    --visor-text: #f8fafc; /* Slate 50 */
-    --visor-sidebar: #020617; /* Slate 950 */
+    /* Variables de Herencia MedentIA (Acrílico Premium) */
+    --visor-bg: #f8fafc; /* Slate 50 (Fondo General) */
+    --visor-border: #e2e8f0; /* Slate 200 */
+    --visor-text: #1e293b; /* Slate 800 (Texto oscuro) */
+    --visor-sidebar: #ffffff; /* Blanco acrilico */
     --visor-primary: var(--md-cyan-ia);
     --visor-canvas-bg: #000000; /* Siempre negro para diagnostico */
 }
