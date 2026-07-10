@@ -164,7 +164,7 @@ print <<HTML;
 
 <style>
   .modal-backdrop.show { z-index: 104900 !important; }
-  @media (min-width: 992px) { 
+  \@media (min-width: 992px) { 
       #modalAltaOrganizacion { padding-left: 280px !important; } 
   }
   .dimension-section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }

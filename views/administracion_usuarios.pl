@@ -161,7 +161,7 @@ print <<HTML;
 
 <style>
   .modal-backdrop.show { z-index: 104900 !important; }
-  @media (min-width: 992px) { 
+  \@media (min-width: 992px) { 
       #modalAltaUsuario { padding-left: 280px !important; } 
   }
 </style>
