@@ -153,63 +153,63 @@ print <<HTML;
                     <i class="bi bi-wallet2 kpi-icon"></i>
                 </div>
 
-                <div class="bento-card border-0 shadow-lg bg-white" style="border-radius: 20px;">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="card-acrilico mb-4" style="padding: 24px; text-align: center;">
+                    <div class="d-flex justify-content-between align-items-center mb-3 w-100">
                         <span class="fw-bold plus-jakarta text-dark m-0" style="font-size: 1.1rem;">Resumen Consolidado</span>
                         <button class="btn btn-sm bg-light rounded-pill border px-3 fw-bold shadow-sm" style="font-size: 0.75rem; color: #475569;"><i class="bi bi-calendar3 me-1"></i> Global</button>
                     </div>
                     
-                    <div class="row align-items-center g-0">
-                        <div class="col-6 position-relative" style="height: 160px;">
+                    <div class="d-flex flex-column align-items-center g-0">
+                        <div class="position-relative mb-4" style="height: 180px; width: 100%;">
                             <canvas id="pieResumenConsolidado"></canvas>
                             <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
                                 <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterVal" style="font-size: 1.1rem;">\$0</h5>
                                 <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Saldo</span>
                             </div>
                         </div>
-                        <div class="col-6 ps-2">
-                            <div class="d-flex flex-column gap-3 w-100" id="pieCustomLegend">
-                                <div class="d-flex align-items-center justify-content-between w-100">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div style="width: 10px; height: 10px; border-radius: 50%; background: #eab308; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
-                                        <span class="text-muted fw-bold" style="font-size: 0.75rem;">Cargos</span>
-                                    </div>
-                                    <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legCargos">\$0</span>
+                        <div class="d-flex justify-content-center gap-4 w-100" id="pieCustomLegend">
+                            <!-- Cargos (Amarillo) -->
+                            <div class="d-flex align-items-center">
+                                <div style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(to bottom, #FBBF24, #B45309, #78350F); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 8px; flex-shrink: 0;"></div>
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="text-muted" style="font-size: 0.7rem;">Cargos</span>
+                                    <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legCargos">\$0</span>
                                 </div>
-                                <div class="d-flex align-items-center justify-content-between w-100">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
-                                        <span class="text-muted fw-bold" style="font-size: 0.75rem;">Abonos</span>
-                                    </div>
-                                    <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legAbonos">\$0</span>
+                            </div>
+                            
+                            <!-- Abonos (Verde) -->
+                            <div class="d-flex align-items-center">
+                                <div style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(to bottom, #00FF7F, #007A3D, #003D1F); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 8px; flex-shrink: 0;"></div>
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="text-muted" style="font-size: 0.7rem;">Abonos</span>
+                                    <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legAbonos">\$0</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="bento-card border-0 shadow-lg bg-white mt-4" style="border-radius: 20px;">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="card-acrilico mb-4" style="padding: 24px; text-align: center;">
+                    <div class="d-flex justify-content-between align-items-center mb-3 w-100">
                         <span class="fw-bold plus-jakarta text-dark m-0" style="font-size: 1.1rem;">Presupuestos</span>
                         <button class="btn btn-sm bg-light rounded-pill border px-3 fw-bold shadow-sm" style="font-size: 0.75rem; color: #475569;"><i class="bi bi-file-earmark-medical me-1"></i> Global</button>
                     </div>
                     
-                    <div class="row align-items-center g-0">
-                        <div class="col-6 position-relative" style="height: 160px;">
+                    <div class="d-flex flex-column align-items-center g-0">
+                        <div class="position-relative mb-4" style="height: 180px; width: 100%;">
                             <canvas id="piePresupuestos"></canvas>
                             <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
                                 <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValPresupuestos" style="font-size: 1.1rem;">$0</h5>
                                 <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Total</span>
                             </div>
                         </div>
-                        <div class="col-6 ps-2">
-                            <div class="d-flex flex-column gap-3 w-100" id="pieCustomLegendPresupuestos">
-                                <div class="d-flex align-items-center justify-content-between w-100">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div style="width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);"></div>
-                                        <span class="text-muted fw-bold" style="font-size: 0.75rem;">Presupuestos</span>
-                                    </div>
-                                    <span class="fw-bold text-dark" style="font-size: 0.75rem;" id="legPresupuestos">$0</span>
+                        <div class="d-flex justify-content-center gap-4 w-100" id="pieCustomLegendPresupuestos">
+                            <!-- Presupuestos (Azul) -->
+                            <div class="d-flex align-items-center">
+                                <div style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(to bottom, #60A5FA, #2563EB, #1E3A8A); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 8px; flex-shrink: 0;"></div>
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="text-muted" style="font-size: 0.7rem;">Presupuestos</span>
+                                    <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legPresupuestos">$0</span>
                                 </div>
                             </div>
                         </div>

@@ -212,34 +212,30 @@ print <<'PAGE_HTML';
                                 <select class="form-select form-select-sm w-auto rounded-pill text-muted fw-bold bg-light border-0"><option>Histórico</option></select>
                             </div>
                             
-                            <div class="row align-items-center g-0">
-                                <div class="col-5 position-relative" style="height: 160px;">
+                            <div class="d-flex flex-column align-items-center g-0">
+                                <div class="position-relative mb-4" style="height: 180px; width: 100%;">
                                     <canvas id="pieResumenFinanzas"></canvas>
                                     <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
                                         <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValFinanzas" style="font-size: 1.1rem;">$0</h5>
                                         <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Total</span>
                                     </div>
                                 </div>
-                                <div class="col-7 ps-3">
-                                    <div class="d-flex flex-column w-100">
-                                        <!-- Ingresos -->
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div style="width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(to bottom, #00FF7F, #007A3D, #003D1F); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 10px; flex-shrink: 0;"></div>
-                                            <div class="d-flex align-items-baseline gap-2">
-                                                <span class="fw-bold text-dark plus-jakarta text-truncate" style="font-size: 1.05rem; line-height: 1; color: #1a202c !important; max-width: 90px;" id="legIngresosFinanzas">$0.00</span>
-                                                <span class="text-muted" style="font-size: 0.7rem;">Ingresos</span>
-                                            </div>
+                                <div class="d-flex justify-content-center gap-4 w-100">
+                                    <!-- Ingresos -->
+                                    <div class="d-flex align-items-center">
+                                        <div style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(to bottom, #00FF7F, #007A3D, #003D1F); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 8px; flex-shrink: 0;"></div>
+                                        <div class="d-flex align-items-baseline gap-1">
+                                            <span class="text-muted" style="font-size: 0.7rem;">Ingresos</span>
+                                            <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legIngresosFinanzas">$0.00</span>
                                         </div>
-                                        
-                                        <div style="height: 1px; width: 100%; background: linear-gradient(90deg, rgba(0,0,0,0.05), rgba(0,0,0,0.15), rgba(0,0,0,0)); margin-bottom: 12px;"></div>
-                                        
-                                        <!-- Egresos -->
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div style="width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(to bottom, #FF4D4D, #A63A3A, #5C0000); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 10px; flex-shrink: 0;"></div>
-                                            <div class="d-flex align-items-baseline gap-2">
-                                                <span class="fw-bold text-dark plus-jakarta text-truncate" style="font-size: 1.05rem; line-height: 1; color: #1a202c !important; max-width: 90px;" id="legEgresosFinanzas">$0.00</span>
-                                                <span class="text-muted" style="font-size: 0.7rem;">Egresos</span>
-                                            </div>
+                                    </div>
+                                    
+                                    <!-- Egresos -->
+                                    <div class="d-flex align-items-center">
+                                        <div style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(to bottom, #FF4D4D, #A63A3A, #5C0000); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 8px; flex-shrink: 0;"></div>
+                                        <div class="d-flex align-items-baseline gap-1">
+                                            <span class="text-muted" style="font-size: 0.7rem;">Egresos</span>
+                                            <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legEgresosFinanzas">$0.00</span>
                                         </div>
                                     </div>
                                 </div>

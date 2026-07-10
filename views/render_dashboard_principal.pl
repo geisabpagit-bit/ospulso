@@ -337,39 +337,39 @@ HTML
             <!-- Sección: KPIs Rápidos -->
             <div class="row g-4 mb-4 animate__animated animate__fadeIn">
                 <div class="col-6 col-lg-3">
-                    <div class="dash-kpi-card bg-med-blue h-100">
-                        <span class="kpi-label-medentia">Citas Hoy</span>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <h2 class="kpi-value-medentia counter-up m-0" data-value="$citas_hoy_count">$citas_hoy_count</h2>
-                            <i class="bi bi-calendar-check text-primary fs-2"></i>
+                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="kpi-title">Citas Hoy</span>
+                            <h2 class="kpi-value counter-up m-0" data-value="$citas_hoy_count">$citas_hoy_count</h2>
                         </div>
+                        <i class="bi bi-calendar-check text-primary fs-2 kpi-icon" style="opacity: 0.8;"></i>
                     </div>
                 </div>
                 <div class="col-6 col-lg-3">
-                    <div class="dash-kpi-card bg-med-teal h-100">
-                        <span class="kpi-label-medentia">Pacientes</span>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <h2 class="kpi-value-medentia counter-up m-0" data-value="$t_pac">$t_pac</h2>
-                            <i class="bi bi-people text-teal-clinical fs-2" style="color: var(--md-teal-clinical);"></i>
+                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="kpi-title">Pacientes</span>
+                            <h2 class="kpi-value counter-up m-0" data-value="$t_pac">$t_pac</h2>
                         </div>
+                        <i class="bi bi-people fs-2 kpi-icon" style="color: var(--md-teal-clinical); opacity: 0.8;"></i>
                     </div>
                 </div>
                 <div class="col-6 col-lg-3">
-                    <div class="dash-kpi-card bg-med-cyan h-100">
-                        <span class="kpi-label-medentia">Cargos</span>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <h2 class="kpi-value-medentia counter-up m-0" data-value="$val_cargos_f" data-is-k="true">$str_cargos_k</h2>
-                            <i class="bi bi-wallet2 text-cyan fs-2"></i>
+                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="kpi-title">Cargos</span>
+                            <h2 class="kpi-value counter-up m-0" data-value="$val_cargos_f" data-is-k="true">$str_cargos_k</h2>
                         </div>
+                        <i class="bi bi-wallet2 text-cyan fs-2 kpi-icon" style="opacity: 0.8;"></i>
                     </div>
                 </div>
                 <div class="col-6 col-lg-3">
-                    <div class="dash-kpi-card bg-med-deep h-100">
-                        <span class="kpi-label-medentia">Abonos</span>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <h2 class="kpi-value-medentia counter-up m-0" data-value="$val_abonos_f" data-is-k="true">$str_abonos_k</h2>
-                            <i class="bi bi-cash-stack text-blue-deep fs-2" style="color: var(--md-blue-deep);"></i>
+                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="kpi-title">Abonos</span>
+                            <h2 class="kpi-value counter-up m-0" data-value="$val_abonos_f" data-is-k="true">$str_abonos_k</h2>
                         </div>
+                        <i class="bi bi-cash-stack fs-2 kpi-icon" style="color: var(--md-blue-deep); opacity: 0.8;"></i>
                     </div>
                 </div>
             </div>
