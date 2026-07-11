@@ -66,7 +66,6 @@ if ($regs_negocios) {
     }
 }
 
-print <<HTML;
 utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_actual => 'crm_ventas');
 print <<HTML;
         <!-- TOPBAR -->

@@ -102,6 +102,19 @@ utils::sub_sidebar::render_sidebar(
 );
 
 print <<HTML;
+        <!-- TOPBAR -->
+        <header class="bg-medentia-gradient text-white p-4 shadow-sm" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 2rem;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-black mb-0"><i class="bi bi-people me-2"></i>Directorio de Pacientes</h2>
+                    <p class="text-white-50 small mb-0 mt-1">Gestión integral de expedientes clínicos</p>
+                </div>
+                <a href="crud_paciente.pl" class="btn btn-light rounded-pill px-4 fw-bold shadow-sm">
+                    <i class="bi bi-person-plus-fill text-primary me-2"></i>Agregar nuevo paciente
+                </a>
+            </div>
+        </header>
+
 <div class="container-fluid p-0 p-md-3">
     <!-- Tabla / Lista de Pacientes -->
     <div class="rounded-4 shadow-sm bg-white mb-4">
