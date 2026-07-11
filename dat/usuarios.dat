@@ -1,3 +1,5 @@
 id!nombre!correo!clave!activo!rol!ID_negocio
 1!Administrador Global!admin@ospulso.com!240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9!1!Administrador Global!0:0
-1006182824!pamela villegas!pam@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Ejecutivo Ventas!0:0
+981813118!pamela  villegas!pam@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Ejecutivo Ventas!0:0
+213358016!fraca!fran@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Administrador Organizacion!539579:0
+239634007!doctor uno!doc1@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Medico!539579:342544

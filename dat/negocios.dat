@@ -1,1 +1,3 @@
 ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud
+539579|guada|0|1|2026-07-10|2027-07-10|||fran@gmail.com||asdasqe1231|||981813118||||||||
+342544|suc norte|539579|1|2026-07-10|2099-12-31|123123|123123123||||||||||||||
