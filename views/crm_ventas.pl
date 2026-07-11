@@ -83,7 +83,7 @@ print <<HTML;
 
         <!-- CONTAINER -->
         <div class="container-fluid px-4 pb-5">
-            <div class="row g-4">
+            <div class="row g-4" id="contenedorTarjetasPrincipales">
                 
                 <!-- CARD: CREAR ORGANIZACION -->
                 <div class="col-12 col-xl-4">
@@ -95,7 +95,7 @@ print <<HTML;
                             <h4 class="fw-bold text-dark mb-2">Venta de Licencia</h4>
                             <p class="text-muted small mb-4">Registra una nueva Organización o Cadena de Clínicas en el sistema (Crea el entorno y el usuario dueño).</p>
                             
-                            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm w-100 mt-auto" data-bs-toggle="modal" data-bs-target="#modalAltaOrganizacion">
+                            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm w-100 mt-auto" onclick="mostrarFormularioSaaS()">
                                 <i class="bi bi-plus-circle me-2"></i>Registrar Organización
                             </button>
                         </div>
@@ -157,31 +157,21 @@ print <<HTML;
                     </div>
                 </div>
 
-            </div>
-        </div>
-    </main>
-</div>
+            </div> <!-- Fin row g-4 contenedorTarjetasPrincipales -->
 
-<style>
-  .modal-backdrop.show { z-index: 104900 !important; }
-  \@media (min-width: 992px) { 
-      #modalAltaOrganizacion { padding-left: 280px !important; } 
-  }
-  .dimension-section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-  .dimension-title { font-weight: 800; color: #1e293b; margin-bottom: 1rem; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px; }
-  .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
-</style>
-<!-- Modal: Alta Organización -->
-<div class="modal fade modal-diamond" id="modalAltaOrganizacion" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
-    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-        <form id="form-alta-organizacion" class="w-100">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
-                    <h4 class="fw-black mb-0"><i class="bi bi-building-add me-2"></i>Configurador SaaS - Nueva Organización</h4>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4 bg-light">
-                    <div class="row g-3">
+            <!-- CONTENEDOR FORMULARIO (Oculto por defecto) -->
+            <div class="row d-none" id="contenedorFormularioSaaS">
+                <div class="col-12">
+                    <form id="form-alta-organizacion" class="w-100">
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center">
+                                <h4 class="fw-black mb-0"><i class="bi bi-building-add me-2"></i>Configurador SaaS - Nueva Organización</h4>
+                                <button type="button" class="btn btn-sm btn-light rounded-pill fw-bold shadow-sm px-3" onclick="ocultarFormularioSaaS()">
+                                    <i class="bi bi-arrow-left me-1"></i>Volver
+                                </button>
+                            </div>
+                            <div class="card-body p-4 bg-light">
+                                <div class="row g-3">
                         <!-- Entidad -->
                         <div class="col-12">
                             <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-building me-2"></i>Entidad y Administrador</h6>
@@ -281,22 +271,34 @@ print <<HTML;
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer border-0 p-4 bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" id="btn-submit-org">
-                        <i class="bi bi-cloud-check-fill me-2"></i>Desplegar Tenant y Enviar Accesos
-                    </button>
+                                </div>
+                            </div>
+                            <div class="card-footer border-0 p-4 bg-light rounded-bottom-4 text-end">
+                                <button type="button" class="btn btn-light fw-bold px-4 me-2" onclick="ocultarFormularioSaaS()">Cancelar</button>
+                                <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" id="btn-submit-org">
+                                    <i class="bi bi-cloud-check-fill me-2"></i>Desplegar Tenant y Enviar Accesos
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </form>
-    </div>
+        </div> <!-- Fin container-fluid -->
+    </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
-    document.body.appendChild(document.getElementById('modalAltaOrganizacion'));
+    function mostrarFormularioSaaS() {
+        document.getElementById('contenedorTarjetasPrincipales').classList.add('d-none');
+        document.getElementById('contenedorFormularioSaaS').classList.remove('d-none');
+    }
+
+    function ocultarFormularioSaaS() {
+        document.getElementById('contenedorFormularioSaaS').classList.add('d-none');
+        document.getElementById('contenedorTarjetasPrincipales').classList.remove('d-none');
+    }
 
     // Toggle Instituciones
     document.getElementById('selectReportaInstitucion').addEventListener('change', function() {
