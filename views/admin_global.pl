@@ -50,7 +50,7 @@ my @ejecutivos = ();
 if ($regs) {
     foreach my $r (@$regs) {
         next if @$r < 7;
-        if ($r->[5] eq 'Ejecutivo Ventas') {
+        if ($r->[5] eq 'Ejecutivo Ventas' && $r->[4] eq '1') {
             push @ejecutivos, { id => $r->[0], nombre => $r->[1], correo => $r->[2] };
         }
     }
@@ -88,9 +88,9 @@ print <<HTML;
                                 <i class="bi bi-person-badge"></i>
                             </div>
                             <h4 class="fw-bold text-dark mb-2">Fuerza de Ventas</h4>
-                            <p class="text-muted small mb-4">Registra un nuevo Ejecutivo de Ventas. Ellos tendrán acceso al CRM Comercial para registrar Organizaciones.</p>
+                            <p class="text-muted small mb-4">Registra un nuevo Ejecutivo de Ventas directamente en la tabla usando edición en línea. Ellos tendrán acceso al CRM Comercial.</p>
                             
-                            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm w-100 mt-auto" data-bs-toggle="modal" data-bs-target="#modalAltaEjecutivo">
+                            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm w-100 mt-auto" onclick="agregarFilaInline()">
                                 <i class="bi bi-plus-circle me-2"></i>Nuevo Ejecutivo
                             </button>
                         </div>
@@ -105,11 +105,12 @@ print <<HTML;
                         </div>
                         <div class="card-body p-4">
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle border-bottom">
+                                <table class="table table-hover align-middle border-bottom" id="tablaEjecutivos">
                                     <thead class="table-light">
                                         <tr>
                                             <th class="small text-muted fw-bold border-0 text-uppercase">Nombre</th>
                                             <th class="small text-muted fw-bold border-0 text-uppercase">Correo</th>
+                                            <th class="small text-muted fw-bold border-0 text-uppercase">Contraseña</th>
                                             <th class="small text-muted fw-bold border-0 text-uppercase">Acciones</th>
                                         </tr>
                                     </thead>
@@ -119,18 +120,12 @@ HTML
 if (@ejecutivos) {
     foreach my $e (@ejecutivos) {
         print <<HTML;
-                                        <tr>
+                                        <tr data-id="$$e{id}">
+                                            <td class="editable-cell" data-field="nombre">$$e{nombre}</td>
+                                            <td class="editable-cell" data-field="correo">$$e{correo}</td>
+                                            <td class="editable-cell text-muted" data-field="clave"><em>Oculta (Click para cambiar)</em></td>
                                             <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center fw-bold me-3" style="width: 40px; height: 40px;">
-                                                        <i class="bi bi-person-fill"></i>
-                                                    </div>
-                                                    <span class="fw-bold text-dark">$$e{nombre}</span>
-                                                </div>
-                                            </td>
-                                            <td class="text-muted small">$$e{correo}</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-danger rounded-pill"><i class="bi bi-trash"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger rounded-pill btn-borrar-inline"><i class="bi bi-trash"></i></button>
                                             </td>
                                         </tr>
 HTML
@@ -156,84 +151,185 @@ print <<HTML;
 
             </div>
         </div>
-    </main>
-</div>
-
-<style>
-  .modal-backdrop.show { z-index: 104900 !important; }
-  \@media (min-width: 992px) { 
-      #modalAltaEjecutivo { padding-left: 280px !important; } 
-  }
+    </main><style>
+  .editable-cell { cursor: pointer; transition: background-color 0.2s; }
+  .editable-cell:hover { background-color: #f1f5f9; outline: 1px dashed #cbd5e1; }
+  .editing-input { width: 100%; border: 1px solid #3b82f6; border-radius: 4px; padding: 4px 8px; outline: none; }
+  .new-row-highlight { background-color: #f0fdf4 !important; }
 </style>
-<!-- Modal: Alta Ejecutivo -->
-<div class="modal fade modal-diamond" id="modalAltaEjecutivo" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
-    <div class="modal-dialog modal-dialog-centered">
-        <form id="form-alta-ejecutivo" class="w-100">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
-                    <h5 class="fw-black mb-0"><i class="bi bi-person-plus me-2"></i>Alta de Ejecutivo</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Nombre Completo</label>
-                        <input type="text" class="form-control form-control-lg bg-light border-0 rounded-3" name="nombre" required placeholder="Ej: Maria Lopez">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Correo Electrónico (Acceso)</label>
-                        <input type="email" class="form-control form-control-lg bg-light border-0 rounded-3" name="correo" required placeholder="maria\@ospulso.com">
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold text-muted">Contraseña Temporal</label>
-                        <input type="password" class="form-control form-control-lg bg-light border-0 rounded-3" name="clave" required placeholder="••••••••">
-                    </div>
-                    <button type="submit" class="btn btn-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-ejecutivo">
-                        Registrar en el Sistema
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+
 <script>
-    document.body.appendChild(document.getElementById('modalAltaEjecutivo'));
+    let dtEjecutivos;
 
-    document.getElementById('form-alta-ejecutivo').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const fd = new FormData(this);
-        const btn = document.getElementById('btn-submit-ejecutivo');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando...';
+    \$(document).ready(function() {
+        dtEjecutivos = \$('#tablaEjecutivos').DataTable({
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+            dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+            ordering: false,
+            paging: false
+        });
 
-        fetch('../api/alta_ejecutivo_api.pl', {
-            method: 'POST',
-            body: fd
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Ejecutivo Registrado!',
-                    text: 'El ejecutivo ya puede iniciar sesión en OSPulso.',
-                    confirmButtonColor: '#18D1E6'
-                }).then(() => location.reload());
-            } else {
-                Swal.fire('Error', data.message || 'Error desconocido.', 'error');
-                btn.disabled = false;
-                btn.innerHTML = 'Registrar en el Sistema';
+        // Inline Editing - Click to Edit
+        \$('#tablaEjecutivos tbody').on('click', '.editable-cell', function(e) {
+            e.stopPropagation();
+            if (\$(this).find('input').length > 0) return; // Ya está en modo edición
+
+            const \$cell = \$(this);
+            let currentText = \$cell.text().trim();
+            if (currentText.includes('Oculta')) currentText = '';
+
+            const field = \$cell.data('field');
+            const type = (field === 'clave') ? 'password' : 'text';
+            
+            const \$input = \$('<input>', {
+                type: type,
+                class: 'editing-input',
+                value: currentText,
+                placeholder: (field === 'clave') ? 'Nueva contraseña' : ''
+            });
+
+            \$cell.html(\$input);
+            \$input.focus();
+
+            // Guardar al perder el foco o Enter
+            \$input.on('blur keydown', function(e) {
+                if (e.type === 'keydown' && e.which !== 13) return; // Si es tecla y no es Enter, salir
+                
+                const newValue = \$(this).val().trim();
+                const \$row = \$cell.closest('tr');
+                const id = \$row.data('id');
+                const isNew = \$row.hasClass('new-row-highlight');
+
+                if (isNew) {
+                    // Solo restaurar texto si es nuevo (el guardado se hace global)
+                    \$cell.html(newValue === '' && field === 'clave' ? '<em>Oculta</em>' : newValue);
+                    if(e.type === 'keydown') \$input.trigger('blur'); // Evitar bucle si es Enter
+                    return;
+                }
+
+                // Guardado API (Update)
+                const fd = new FormData();
+                fd.append('action', 'edit');
+                fd.append('id', id);
+                // Si estoy editando un campo, los demás deben permanecer
+                const currentName = \$row.find('td[data-field="nombre"]').text().trim();
+                const currentEmail = \$row.find('td[data-field="correo"]').text().trim();
+                
+                let sendName = (field === 'nombre') ? newValue : currentName;
+                let sendEmail = (field === 'correo') ? newValue : currentEmail;
+                let sendClave = (field === 'clave') ? newValue : '';
+
+                fd.append('nombre', sendName);
+                fd.append('correo', sendEmail);
+                fd.append('clave', sendClave);
+
+                fetch('../api/crud_ejecutivos_api.pl', { method: 'POST', body: fd })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        \$cell.html(field === 'clave' ? '<em class="text-muted">Oculta</em>' : newValue);
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                        \$cell.html(currentText || '<em class="text-muted">Oculta</em>'); // Revertir
+                    }
+                }).catch(() => \$cell.html(currentText));
+            });
+        });
+
+        // Borrar Registro (Soft Delete)
+        \$('#tablaEjecutivos tbody').on('click', '.btn-borrar-inline', function() {
+            const \$row = \$(this).closest('tr');
+            const id = \$row.data('id');
+            const isNew = \$row.hasClass('new-row-highlight');
+
+            if (isNew) {
+                dtEjecutivos.row(\$row).remove().draw();
+                return;
             }
-        })
-        .catch(err => {
-            console.error(err);
-            Swal.fire('Error', 'Falla en la red al registrar ejecutivo.', 'error');
-            btn.disabled = false;
-            btn.innerHTML = 'Registrar en el Sistema';
+
+            Swal.fire({
+                title: '¿Eliminar Ejecutivo?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Sí, borrar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const fd = new FormData();
+                    fd.append('action', 'remove');
+                    fd.append('id', id);
+                    fetch('../api/crud_ejecutivos_api.pl', { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            dtEjecutivos.row(\$row).remove().draw();
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    });
+                }
+            });
         });
     });
+
+    // Añadir Fila (Create)
+    function agregarFilaInline() {
+        const html = `
+            <tr data-id="new" class="new-row-highlight">
+                <td class="editable-cell" data-field="nombre"><input type="text" class="editing-input form-control-sm" placeholder="Nombre completo"></td>
+                <td class="editable-cell" data-field="correo"><input type="text" class="editing-input form-control-sm" placeholder="Correo"></td>
+                <td class="editable-cell" data-field="clave"><input type="password" class="editing-input form-control-sm" placeholder="Contraseña"></td>
+                <td>
+                    <button class="btn btn-sm btn-success rounded-pill btn-save-new"><i class="bi bi-check-lg"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill btn-borrar-inline"><i class="bi bi-x"></i></button>
+                </td>
+            </tr>
+        `;
+        
+        \$('#tablaEjecutivos tbody').prepend(html);
+        
+        \$('#tablaEjecutivos tbody .btn-save-new').first().on('click', function() {
+            const \$row = \$(this).closest('tr');
+            const nombre = \$row.find('td[data-field="nombre"] input').val();
+            const correo = \$row.find('td[data-field="correo"] input').val();
+            const clave  = \$row.find('td[data-field="clave"] input').val();
+
+            if(!nombre || !correo || !clave) {
+                Swal.fire('Atención', 'Todos los campos son obligatorios.', 'warning');
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('action', 'create');
+            fd.append('nombre', nombre);
+            fd.append('correo', correo);
+            fd.append('clave', clave);
+
+            fetch('../api/crud_ejecutivos_api.pl', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Actualizar fila para modo lectura
+                    \$row.removeClass('new-row-highlight');
+                    \$row.attr('data-id', data.id);
+                    \$row.find('td[data-field="nombre"]').html(nombre);
+                    \$row.find('td[data-field="correo"]').html(correo);
+                    \$row.find('td[data-field="clave"]').html('<em class="text-muted">Oculta</em>');
+                    \$row.find('td:last-child').html('<button class="btn btn-sm btn-outline-danger rounded-pill btn-borrar-inline"><i class="bi bi-trash"></i></button>');
+                    
+                    Swal.fire('¡Éxito!', 'Ejecutivo guardado', 'success');
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            });
+        });
+    }
 
     function hardResetDB() {
         Swal.fire({
