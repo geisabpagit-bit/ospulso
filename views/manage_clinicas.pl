@@ -63,12 +63,8 @@ if ($regs_negocios) {
     }
 }
 
+utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_actual => 'clinicas');
 print <<HTML;
-<div class="d-flex w-100 h-100 bg-light">
-HTML
-utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario);
-print <<HTML;
-    <main class="flex-grow-1" style="margin-left: var(--sidebar-width); margin-bottom: 70px; overflow-y: auto;">
         <!-- TOPBAR -->
         <header class="bg-medentia-gradient text-white p-4 shadow-sm" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 2rem;">
             <div class="d-flex justify-content-between align-items-center">
@@ -139,8 +135,9 @@ print <<HTML;
                 </div>
             </div>
         </div>
-    </main>
-</div>
+HTML
+utils::sub_sidebar::render_sidebar_footer();
+print <<HTML;
 
 <style>
   .modal-backdrop.show { z-index: 104900 !important; }

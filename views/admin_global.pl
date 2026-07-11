@@ -56,7 +56,6 @@ if ($regs) {
     }
 }
 
-print <<HTML;
 utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_actual => 'admin_global');
 print <<HTML;
         <!-- TOPBAR -->
