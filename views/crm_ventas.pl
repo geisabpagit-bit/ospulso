@@ -67,12 +67,8 @@ if ($regs_negocios) {
 }
 
 print <<HTML;
-<!-- Inyectar Layout General -->
-<div class="d-flex w-100 h-100 bg-light">
-HTML
-utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario);
+utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_actual => 'crm_ventas');
 print <<HTML;
-    <main class="flex-grow-1" style="margin-left: var(--sidebar-width); margin-bottom: 70px; overflow-y: auto;">
         <!-- TOPBAR -->
         <header class="bg-medentia-gradient text-white p-4 shadow-sm" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 2rem;">
             <div class="d-flex justify-content-between align-items-center">
@@ -284,8 +280,9 @@ print <<HTML;
                 </div>
             </div>
         </div> <!-- Fin container-fluid -->
-    </main>
-</div>
+HTML
+utils::sub_sidebar::render_sidebar_footer();
+print <<HTML;
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.js">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>

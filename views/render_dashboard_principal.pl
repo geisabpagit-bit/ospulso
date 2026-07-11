@@ -386,7 +386,7 @@ HTML
 HTML
 
     if (@proximas_citas == 0) {
-        print '<div class="text-center py-5"><p class="text-muted small fw-bold">Sin actividad programada en los próximos 7 días.</p></div>\n';
+        print '<div class="text-center py-5"><p class="text-muted small fw-bold">Sin actividad programada en los próximos 7 días.</p></div>';
     } else {
         foreach my $cita (@proximas_citas) {
             my $bCol = ($cita->{estado} =~ /Confirmada/i) ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary';
