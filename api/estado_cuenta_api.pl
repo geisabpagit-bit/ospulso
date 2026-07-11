@@ -55,6 +55,7 @@ if ($accion eq 'get_catalogo') {
     my ($saldo_total, $cargos_sum, $abonos_sum, $presupuestos_sum) = (0, 0, 0, 0);
     my $ec_file = File::Spec->catfile($dat_path, 'estado_cuenta.dat');
     my $pac_file = File::Spec->catfile($dat_path, 'pacientes.dat');
+    my %nombres = ();
     
     my $mi_org = $session_data->{id_empresa} || 'X';
     my $rol = $session_data->{role};
