@@ -296,16 +296,26 @@ print <<HTML;
                     <div class="col-md-6">
                         <div class="bento-card p-3 h-100" style="border-radius: 12px;">
                             <label class="kpi-label">Aplica para</label>
-                            <div class="d-flex gap-4 mt-1">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="aplica_para" id="aplica_cotizacion" value="Cotizacion">
-                                    <label class="form-check-label fw-bold small" style="color: var(--md-text-secondary, #486581);" for="aplica_cotizacion">Cotización</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="aplica_para" id="aplica_consulta" value="Consulta" checked>
-                                    <label class="form-check-label fw-bold small" style="color: var(--md-text-secondary, #486581);" for="aplica_consulta">Consulta</label>
-                                </div>
+                        <div class="d-flex gap-4 mt-1">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="aplica_para" id="aplica_cotizacion" value="Consulta">
+                                <label class="form-check-label fw-bold small" style="color: var(--md-text-secondary, #486581);" for="aplica_cotizacion">Cotizaci&oacute;n</label>
                             </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="aplica_para" id="aplica_consulta" value="Consulta" checked>
+                                <label class="form-check-label fw-bold small" style="color: var(--md-text-secondary, #486581);" for="aplica_consulta">Consulta</label>
+                            </div>
+                        </div>
+                        <!-- Selector de cotizacion (aparece al elegir radio Cotizacion) -->
+                        <div id="panelSelCotizacion" class="mt-2 d-none">
+                            <label class="kpi-label mb-1">Cargar desde cotizaci&oacute;n guardada</label>
+                            <select id="selectCotizacionCargo" class="form-select form-select-sm rounded-3 shadow-sm border-0"
+                                onchange="if(this.value) { window._cargarCotizacionEnCarrito(this.value); }">
+                                <option value="">-- Selecciona una cotizaci&oacute;n --</option>
+                            </select>
+                            <small class="text-muted d-block mt-1"><i class="bi bi-info-circle me-1"></i>Los conceptos se cargar&aacute;n en el carrito. Puedes editar antes de procesar.</small>
+                        </div>
+
                         </div>
                     </div>
                     <div class="col-md-6">

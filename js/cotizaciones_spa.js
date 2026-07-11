@@ -179,6 +179,7 @@ window.borrarCotizacion = function(idCot, nombre) {
                 if (res.status === 'ok') {
                     Swal.fire({ icon: 'success', title: 'Eliminada', timer: 1200, showConfirmButton: false });
                     _cargarListaCotizaciones();
+                    _notificarKpisCotizaciones();
                 } else {
                     Swal.fire('Error', res.message || 'No se pudo eliminar.', 'error');
                 }
@@ -224,6 +225,7 @@ window.guardarCotizacion = function() {
                 if (el) { var bsM = bootstrap.Modal.getInstance(el); if (bsM) bsM.hide(); }
                 Swal.fire({ icon: 'success', title: cotEditandoId ? 'Cotización actualizada' : 'Cotización guardada', timer: 1400, showConfirmButton: false });
                 _cargarListaCotizaciones();
+                _notificarKpisCotizaciones();
                 cotEditandoId = null;
             } else {
                 Swal.fire('Error', res.message || 'No se pudo guardar.', 'error');
@@ -469,7 +471,106 @@ function _inyectarModalCotizaciones() {
 }
 
 // ─────────────────────────────────────────────
-// 9. UTILIDADES
+// 9. NOTIFICAR KPIs TRAS CAMBIO DE COTIZACIÓN
+// ─────────────────────────────────────────────
+function _notificarKpisCotizaciones() {
+    // 1. Recalcular total del paciente y actualizar KPI en modal expediente
+    if (cotPacienteId) {
+        var fd = new URLSearchParams();
+        fd.append('accion', 'get_lista');
+        fd.append('id_paciente', cotPacienteId);
+        fetch('../api/cotizaciones_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                var total = (res.cotizaciones || []).reduce(function(acc, c) {
+                    return acc + (parseFloat(c.total) || 0);
+                }, 0);
+
+                // Actualizar KPI en modal expediente del paciente
+                var kpiEl = document.getElementById('kpiModalCotizaciones');
+                if (kpiEl) {
+                    var formatted = Math.floor(total).toLocaleString('es-MX');
+                    kpiEl.textContent = '$' + formatted;
+                }
+
+                // Actualizar gráfico de Cotizaciones en estado_cuenta (si está abierto)
+                if (typeof actualizarPieChartCotizaciones === 'function') {
+                    actualizarPieChartCotizaciones(total);
+                }
+
+                // Actualizar select de cotizaciones en modal de cargo (si está abierto)
+                if (document.getElementById('selectCotizacionCargo')) {
+                    _cargarSelectCotizaciones();
+                }
+            })
+            .catch(function(e) { console.warn('[Cotizaciones] notificar error:', e); });
+    }
+
+    // 2. Refrescar dashboard de Finanzas (si está activo)
+    if (typeof window.cargarDashboardKPIs === 'function') {
+        window.cargarDashboardKPIs();
+    }
+
+    // 3. Refrescar historial de estado_cuenta (si módulo financiero está activo)
+    if (typeof cargarHistorialCuentas === 'function' &&
+        typeof idPacienteGlobal !== 'undefined' && idPacienteGlobal) {
+        cargarHistorialCuentas();
+    }
+}
+
+// Exponer para uso externo
+window._notificarKpisCotizaciones = _notificarKpisCotizaciones;
+
+// Cargar opciones en el select de cotizaciones del modal de cargo
+window._cargarSelectCotizaciones = function() {
+    var sel = document.getElementById('selectCotizacionCargo');
+    if (!sel || !cotPacienteId) return;
+    sel.innerHTML = '<option value="">-- Selecciona una cotización --</option>';
+    var fd = new URLSearchParams();
+    fd.append('accion', 'get_lista');
+    fd.append('id_paciente', cotPacienteId);
+    fetch('../api/cotizaciones_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            (res.cotizaciones || []).forEach(function(c) {
+                var opt = document.createElement('option');
+                opt.value = c.id_cot;
+                opt.textContent = c.nombre + ' — ' + formatter.format(c.total);
+                sel.appendChild(opt);
+            });
+        });
+};
+
+// Cargar items de una cotización en el carrito de la OS
+window._cargarCotizacionEnCarrito = function(idCot) {
+    if (!idCot) return;
+    var fd = new URLSearchParams();
+    fd.append('accion', 'get_detalle');
+    fd.append('id_cot', idCot);
+    fetch('../api/cotizaciones_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (res.status !== 'ok' || !res.items) return;
+            // carritoApp es la variable global de estado_cuenta_spa.js
+            if (typeof carritoApp === 'undefined') return;
+            carritoApp.length = 0; // limpiar carrito
+            res.items.forEach(function(it) {
+                carritoApp.push({
+                    id: 'COT-' + Date.now() + '-' + Math.random(),
+                    nombre: it.concepto,
+                    precio: parseFloat(it.precio) || 0,
+                    cantidad: parseInt(it.cantidad) || 1
+                });
+            });
+            if (typeof refrescarGUICarrito === 'function') {
+                refrescarGUICarrito();
+            }
+        })
+        .catch(function(e) { console.warn('[Cotizaciones] carga items error:', e); });
+};
+
+// ─────────────────────────────────────────────
+// 10. UTILIDADES
 // ─────────────────────────────────────────────
 function _escHTML(str) {
     return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');

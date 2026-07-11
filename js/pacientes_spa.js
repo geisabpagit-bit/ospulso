@@ -256,7 +256,7 @@ function initPacientesSpa() {
                           '<div class="col-6">' +
                             '<div class="kpi-acrilico p-2 h-100 text-start d-flex flex-column justify-content-center m-0" style="width: 100%;">' +
                                 '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Cotizaciones</span>' +
-                                '<h4 class="m-0 fw-bold text-dark text-end" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvPresupuestos + '</h4>' +
+                                '<h4 id="kpiModalCotizaciones" class="m-0 fw-bold text-dark text-end" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvPresupuestos + '</h4>' +
                             '</div>' +
                           '</div>' +
                         '</div>' +

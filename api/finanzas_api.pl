@@ -211,43 +211,58 @@ elsif ($action eq 'get_ingresos') {
     print encode_json({ success => 1, data => \@ingresos });
 }
 elsif ($action eq 'get_dashboard') {
-    # 1. Ingresos y CxC
+    # 1. Ingresos y CxC (desde estado_cuenta.dat)
     my @movs = @{ leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat") };
-    my ($ingresos_totales, $cxc, $cotizaciones) = (0, 0, 0);
+    my ($ingresos_totales, $cxc) = (0, 0);
     my %saldos;
     for my $m (@movs) {
         my $id_pac = $m->[2];
-        my $tipo = $m->[3] || '';
-        my $notas = $m->[10] || '';
-        my $total = $m->[7] || 0;
-        
-        if ($tipo eq 'Cargo' && $notas =~ /Presupuesto|Cotizacion/i) {
-            $cotizaciones += $total;
-            next;
-        }
-        
+        my $tipo   = $m->[3] || '';
+        my $notas  = $m->[10] || '';
+        my $total  = $m->[7] || 0;
+
+        # Excluir entradas legadas tipo cotizacion/presupuesto del balance
+        next if $tipo eq 'Cargo' && $notas =~ /Presupuesto|Cotizacion/i;
+
         $saldos{$id_pac} ||= { cargo => 0, abono => 0 };
         if ($tipo eq 'Cargo') { $saldos{$id_pac}{cargo} += $total; }
         if ($tipo eq 'Abono') { $saldos{$id_pac}{abono} += $total; $ingresos_totales += $total; }
     }
-    
+
     for my $id (keys %saldos) {
         my $pend = $saldos{$id}{cargo} - $saldos{$id}{abono};
         $cxc += $pend if $pend > 0;
     }
-    
+
     # 2. Egresos
     my @gastos_raw = @{ leer_tabla("$FindBin::Bin/../dat/gastos.dat") };
     my $egresos_totales = 0;
     for my $g (@gastos_raw) {
         $egresos_totales += ($g->[6] || 0);
     }
-    
+
+    # 3. Cotizaciones: total global desde cotizaciones.dat (fuente canonica)
+    my $cotizaciones = 0;
+    my $cot_dat = "$FindBin::Bin/../dat/cotizaciones.dat";
+    if (-e $cot_dat) {
+        open(my $fhc, '<:encoding(UTF-8)', $cot_dat);
+        <$fhc>; # saltar cabecera
+        while (my $cline = <$fhc>) {
+            chomp $cline;
+            next if $cline =~ /^\s*$/;
+            my @cv = split /\|/, $cline, -1;
+            # ID_COT|ID_PACIENTE|NOMBRE|TOTAL|FECHA|ID_MEDICO
+            next unless scalar(@cv) >= 4;
+            $cotizaciones += ($cv[3] + 0);
+        }
+        close $fhc;
+    }
+
     print encode_json({
-        success => 1,
-        ingresos => $ingresos_totales,
-        cxc => $cxc,
-        gastos => $egresos_totales,
+        success      => 1,
+        ingresos     => $ingresos_totales,
+        cxc          => $cxc,
+        gastos       => $egresos_totales,
         cotizaciones => $cotizaciones
     });
 }

@@ -56,7 +56,7 @@ if ($accion eq 'get_perfil') {
     
     if ($perfil) {
         # Cargar métricas financieras
-        my ($saldo_total, $cargos_sum, $abonos_sum, $cotizaciones_sum) = (0, 0, 0, 0);
+        my ($saldo_total, $cargos_sum, $abonos_sum) = (0, 0, 0);
         my $ec_file = '../dat/estado_cuenta.dat';
         if (-e $ec_file) {
             open(my $fh, "<:encoding(UTF-8)", $ec_file); <$fh>;
@@ -70,11 +70,9 @@ if ($accion eq 'get_perfil') {
                     my $is_cotizacion = ($tipo =~ /Cargo/i && $notas =~ /Presupuesto|Cotizacion/i) ? 1 : 0;
                     
                     if ($is_cotizacion) {
-                        $cotizaciones_sum += $tot;
-                    } else {
-                        if ($tipo =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; } 
-                        else { $saldo_total -= $tot; $abonos_sum += $tot; }
-                    }
+                        # Cargo legado tipo presupuesto — excluir del balance real
+                    } elsif ($tipo =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; }
+                    else { $saldo_total -= $tot; $abonos_sum += $tot; }
                 }
             }
             close $fh;
@@ -82,6 +80,23 @@ if ($accion eq 'get_perfil') {
         $perfil->{saldo} = $saldo_total;
         $perfil->{cargos} = $cargos_sum;
         $perfil->{abonos} = $abonos_sum;
+        # Cotizaciones desde cotizaciones.dat (fuente canónica)
+        my $cot_file_path = '../dat/cotizaciones.dat';
+        my $cotizaciones_sum = 0;
+        if (-e $cot_file_path) {
+            open(my $fhc, '<:encoding(UTF-8)', $cot_file_path);
+            <$fhc>; # saltar cabecera
+            while (my $cline = <$fhc>) {
+                chomp $cline;
+                my @cv = split /\|/, $cline, -1;
+                # ID_COT|ID_PACIENTE|NOMBRE|TOTAL|FECHA|ID_MEDICO
+                next unless @cv >= 4;
+                if ($cv[1] eq $id_paciente) {
+                    $cotizaciones_sum += ($cv[3] + 0);
+                }
+            }
+            close $fhc;
+        }
         $perfil->{cotizaciones} = $cotizaciones_sum;
 
         # Obtener Historial Médico

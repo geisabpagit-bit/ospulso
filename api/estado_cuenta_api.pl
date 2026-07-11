@@ -52,7 +52,7 @@ if ($accion eq 'get_catalogo') {
 
 } elsif ($accion eq 'get_historial') {
     my @h = (); 
-    my ($saldo_total, $cargos_sum, $abonos_sum, $cotizaciones_sum) = (0, 0, 0, 0);
+    my ($saldo_total, $cargos_sum, $abonos_sum) = (0, 0, 0);
     my $ec_file = File::Spec->catfile($dat_path, 'estado_cuenta.dat');
     my $pac_file = File::Spec->catfile($dat_path, 'pacientes.dat');
     my %nombres = ();
@@ -94,14 +94,12 @@ if ($accion eq 'get_catalogo') {
                     my $tot = $v[7] + 0;
                     my $tipo = $v[3] || '';
                     my $notas = $v[10] || '';
-                    my $is_cotizacion = ($tipo =~ /Cargo/i && $notas =~ /Presupuesto|Cotizacion/i) ? 1 : 0;
+                    my $is_legacy_cot = ($tipo =~ /Cargo/i && $notas =~ /Presupuesto|Cotizacion/i) ? 1 : 0;
                     
-                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $tipo, concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], paciente_nombre => $nom_pac, alias => ($v[11] || ''), is_cotizacion => $is_cotizacion };
+                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $tipo, concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], paciente_nombre => $nom_pac, alias => ($v[11] || '') };
                     
-                    if ($is_cotizacion) {
-                        $cotizaciones_sum += $tot;
-                    } else {
-                        if ($tipo =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; } 
+                    unless ($is_legacy_cot) {
+                        if ($tipo =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; }
                         else { $saldo_total -= $tot; $abonos_sum += $tot; }
                     }
                 }
@@ -111,11 +109,30 @@ if ($accion eq 'get_catalogo') {
     }
     my @h_sorted = sort { ($b->{id_mov} || 0) <=> ($a->{id_mov} || 0) } @h;
     
-    responder({ 
-        historial => \@h_sorted, 
-        saldo => $saldo_total, 
-        cargos => $cargos_sum, 
-        abonos => $abonos_sum,
+    # Cotizaciones: leer desde cotizaciones.dat (fuente canónica)
+    my $cot_file = File::Spec->catfile($dat_path, 'cotizaciones.dat');
+    my $cotizaciones_sum = 0;
+    if (-e $cot_file) {
+        open(my $fhc, '<:encoding(UTF-8)', $cot_file);
+        <$fhc>; # saltar cabecera
+        while (my $cline = <$fhc>) {
+            chomp $cline;
+            next if $cline =~ /^\s*$/;
+            my @cv = split /\|/, $cline, -1;
+            # ID_COT|ID_PACIENTE|NOMBRE|TOTAL|FECHA|ID_MEDICO
+            next unless @cv >= 4;
+            if (!$id_p || $cv[1] eq $id_p) {
+                $cotizaciones_sum += ($cv[3] + 0);
+            }
+        }
+        close $fhc;
+    }
+
+    responder({
+        historial   => \@h_sorted,
+        saldo       => $saldo_total,
+        cargos      => $cargos_sum,
+        abonos      => $abonos_sum,
         cotizaciones => $cotizaciones_sum
     });
 
