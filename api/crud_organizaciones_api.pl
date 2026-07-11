@@ -15,7 +15,7 @@ require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 use utils::db_manager qw(leer_tabla actualizar_archivo);
 
 my $sd = check_session();
-my $q  = $CGI::Q || CGI->new;
+my $q  = $sd->{q};
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 

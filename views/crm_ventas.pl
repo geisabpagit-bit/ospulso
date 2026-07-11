@@ -80,6 +80,11 @@ print <<HTML;
                     <h2 class="fw-black mb-0"><i class="bi bi-briefcase-fill me-2"></i>CRM Ventas Corporativo</h2>
                     <p class="text-white-50 small mb-0 mt-1">Gestión de Nuevas Organizaciones y Licencias</p>
                 </div>
+                <div>
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold shadow-sm" onclick="mostrarFormularioSaaS()">
+                        <i class="bi bi-plus-circle me-2 text-primary"></i><span class="text-primary">Registrar Organización</span>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -87,25 +92,8 @@ print <<HTML;
         <div class="container-fluid px-4 pb-5">
             <div class="row g-4" id="contenedorTarjetasPrincipales">
                 
-                <!-- CARD: CREAR ORGANIZACION -->
-                <div class="col-12 col-xl-4">
-                    <div class="card card-medentia-aura border-0 h-100 shadow-sm">
-                        <div class="card-body p-4 d-flex flex-column align-items-center text-center">
-                            <div class="kpi-icon-box bg-primary text-white shadow-sm mb-3" style="width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                                <i class="bi bi-hospital"></i>
-                            </div>
-                            <h4 class="fw-bold text-dark mb-2">Venta de Licencia</h4>
-                            <p class="text-muted small mb-4">Registra una nueva Organización o Cadena de Clínicas en el sistema (Crea el entorno y el usuario dueño).</p>
-                            
-                            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm w-100 mt-auto" onclick="mostrarFormularioSaaS()">
-                                <i class="bi bi-plus-circle me-2"></i>Registrar Organización
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- LISTA DE ORGANIZACIONES -->
-                <div class="col-12 col-xl-8">
+                <div class="col-12">
                     <div class="card card-medentia-aura border-0 h-100 shadow-sm">
                         <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
                             <h5 class="fw-bold text-dark"><i class="bi bi-building text-primary me-2"></i>Mis Clientes (Organizaciones)</h5>
