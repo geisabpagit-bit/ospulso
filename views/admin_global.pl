@@ -279,7 +279,7 @@ print <<HTML;
     });
 
     // Añadir Fila (Create)
-    function agregarFilaInline() {
+    window.agregarFilaInline = function() {
         const html = `
             <tr data-id="new" class="new-row-highlight">
                 <td class="editable-cell" data-field="nombre"><input type="text" class="editing-input form-control-sm" placeholder="Nombre completo"></td>
@@ -329,9 +329,9 @@ print <<HTML;
                 }
             });
         });
-    }
+    };
 
-    function hardResetDB() {
+    window.hardResetDB = function() {
         Swal.fire({
             title: '¿Peligro Inminente!',
             text: 'Estás a punto de borrar TODA la base de datos operativa y resetear el sistema. Esto no se puede deshacer. ¿Proceder?',

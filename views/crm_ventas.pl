@@ -204,7 +204,7 @@ print <<HTML;
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-bold">Contraseña Inicial</label>
-                            <input type="password" class="form-control form-control-sm shadow-sm" name="clave_admin" required placeholder="••••••••">
+                            <input type="password" class="form-control form-control-sm shadow-sm" name="clave_admin" required placeholder="••••••••" autocomplete="new-password">
                         </div>
 
                         <!-- C. Operación -->
@@ -290,15 +290,15 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
-    function mostrarFormularioSaaS() {
+    window.mostrarFormularioSaaS = function() {
         document.getElementById('contenedorTarjetasPrincipales').classList.add('d-none');
         document.getElementById('contenedorFormularioSaaS').classList.remove('d-none');
-    }
+    };
 
-    function ocultarFormularioSaaS() {
+    window.ocultarFormularioSaaS = function() {
         document.getElementById('contenedorFormularioSaaS').classList.add('d-none');
         document.getElementById('contenedorTarjetasPrincipales').classList.remove('d-none');
-    }
+    };
 
     // Toggle Instituciones
     document.getElementById('selectReportaInstitucion').addEventListener('change', function() {
