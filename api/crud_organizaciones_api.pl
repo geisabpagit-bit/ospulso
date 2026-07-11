@@ -24,7 +24,7 @@ if (!$sd->{session_ok} || ($sd->{role} ne 'Ejecutivo Ventas' && $sd->{role} ne '
     exit;
 }
 
-my $id_vendedor = $sd->{id_usuario};
+my $id_vendedor = $sd->{id_medico};
 my $action = $q->param('action') || 'create';
 
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');

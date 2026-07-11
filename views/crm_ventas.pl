@@ -26,7 +26,7 @@ unless ($sd->{session_ok}) {
 
 my $usuario    = $sd->{usuario};
 my $role       = $sd->{role};
-my $id_usuario = $sd->{id_usuario}; # ID del usuario activo (Ejecutivo de ventas)
+my $id_usuario = $sd->{id_medico}; # ID del usuario activo (Ejecutivo de ventas)
 
 # Seguridad: Sólo Ejecutivo de Ventas (o Admin Global para revisar)
 if ($role ne 'Ejecutivo Ventas' && $role ne 'Administrador Global') {
@@ -283,7 +283,7 @@ HTML
 utils::sub_sidebar::render_sidebar_footer();
 print <<HTML;
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.js">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
