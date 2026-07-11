@@ -245,6 +245,7 @@ print <<'HTML';
 
 <!-- Scripts Específicos para Pacientes SPA -->
 <script src="../js/pacientes_spa.js?v=20260707_0017"></script>
+<script src="../js/cotizaciones_spa.js?v=20260711_0001"></script>
 
 <script>
     $(document).ready(function() {

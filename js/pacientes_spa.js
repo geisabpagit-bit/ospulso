@@ -285,6 +285,9 @@ function initPacientesSpa() {
                           '<div class="col-3">' +
                             '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none"><i class="bi bi-printer fs-4 mb-1 text-secondary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">IMPRIMIR</span></a>' +
                           '</div>' +
+                          '<div class="col-3">' +
+                            '<button type="button" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 border-0" onclick="abrirModalCotizaciones(\'' + perfilId + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\')"><i class="bi bi-file-earmark-text fs-4 mb-1" style="color:#f59e0b;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">COTIZACIÓN</span></button>' +
+                          '</div>' +
                         '</div>' +
                         '<!-- Historial de Consultas -->' +
                         '<div class="d-flex justify-content-between align-items-center mt-3 mb-2">' +
