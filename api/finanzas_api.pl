@@ -42,8 +42,8 @@ if ($action eq 'get_cxc') {
         my $tipo = $mov->[3] || '';
         my $notas = $mov->[10] || '';
         
-        # Ignorar Presupuestos
-        next if $tipo eq 'Cargo' && $notas =~ /Presupuesto/i;
+        # Ignorar Cotizaciones (no son ingresos reales)
+        next if $tipo eq 'Cargo' && $notas =~ /Presupuesto|Cotizacion/i;
         
         my $cargo = ($tipo eq 'Cargo') ? ($mov->[7] || 0) : 0;
         my $abono = ($tipo eq 'Abono') ? ($mov->[7] || 0) : 0;
@@ -189,8 +189,8 @@ elsif ($action eq 'get_ingresos') {
         my $notas = $m->[10] || '';
         my $total = $m->[7] || 0;
         
-        # Ignorar presupuestos en ingresos
-        next if $tipo eq 'Cargo' && $notas =~ /Presupuesto/i;
+        # Ignorar cotizaciones en ingresos (no son ingresos reales)
+        next if $tipo eq 'Cargo' && $notas =~ /Presupuesto|Cotizacion/i;
         
         if ($total > 0) {
             push @ingresos, {
@@ -213,7 +213,7 @@ elsif ($action eq 'get_ingresos') {
 elsif ($action eq 'get_dashboard') {
     # 1. Ingresos y CxC
     my @movs = @{ leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat") };
-    my ($ingresos_totales, $cxc, $presupuestos) = (0, 0, 0);
+    my ($ingresos_totales, $cxc, $cotizaciones) = (0, 0, 0);
     my %saldos;
     for my $m (@movs) {
         my $id_pac = $m->[2];
@@ -221,8 +221,8 @@ elsif ($action eq 'get_dashboard') {
         my $notas = $m->[10] || '';
         my $total = $m->[7] || 0;
         
-        if ($tipo eq 'Cargo' && $notas =~ /Presupuesto/i) {
-            $presupuestos += $total;
+        if ($tipo eq 'Cargo' && $notas =~ /Presupuesto|Cotizacion/i) {
+            $cotizaciones += $total;
             next;
         }
         
@@ -248,7 +248,7 @@ elsif ($action eq 'get_dashboard') {
         ingresos => $ingresos_totales,
         cxc => $cxc,
         gastos => $egresos_totales,
-        presupuestos => $presupuestos
+        cotizaciones => $cotizaciones
     });
 }
 elsif ($action eq 'get_categorias_gastos') {

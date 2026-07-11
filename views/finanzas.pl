@@ -172,12 +172,12 @@ print <<'PAGE_HTML';
                         <div class="kpi-valor" id="kpiCuentasCobrar">$0.00</div>
                         <div class="kpi-subtexto text-warning fw-bold">(Pendiente)</div>
                     </div>
-                    <!-- Presupuestos Activos -->
+                    <!-- Cotizaciones Activas -->
                     <div class="kpi-acrilico">
-                        <div class="kpi-icono" style="color: #8b5cf6;"><i class="bi bi-clipboard-data"></i></div>
-                        <div class="kpi-titulo">Presupuestado</div>
+                        <div class="kpi-icono" style="color: #f59e0b;"><i class="bi bi-file-earmark-text"></i></div>
+                        <div class="kpi-titulo">Cotizado</div>
                         <div class="kpi-valor" id="kpiPresupuestosActivos">$0.00</div>
-                        <div class="kpi-subtexto text-muted fw-bold">(Cotizaciones)</div>
+                        <div class="kpi-subtexto text-warning fw-bold">(Cotizaciones)</div>
                     </div>
                     <!-- Facturación del Mes -->
                     <div class="kpi-acrilico">

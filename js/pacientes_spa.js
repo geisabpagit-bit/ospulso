@@ -189,7 +189,7 @@ function initPacientesSpa() {
             var cvCargos = formatMonedaSeguro(perfil.cargos).split('.')[0];
             var cvAbonos = formatMonedaSeguro(perfil.abonos).split('.')[0];
             var cvSaldo = formatMonedaSeguro(perfil.saldo).split('.')[0];
-            var cvPresupuestos = formatMonedaSeguro(perfil.presupuestos || 0).split('.')[0];
+            var cvPresupuestos = formatMonedaSeguro(perfil.cotizaciones || 0).split('.')[0];
 
             var perfilId = perfil.id || 'N/A';
             var perfilCorreo = perfil.correo || 'No registrado';

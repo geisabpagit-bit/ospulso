@@ -52,7 +52,7 @@ if ($accion eq 'get_catalogo') {
 
 } elsif ($accion eq 'get_historial') {
     my @h = (); 
-    my ($saldo_total, $cargos_sum, $abonos_sum, $presupuestos_sum) = (0, 0, 0, 0);
+    my ($saldo_total, $cargos_sum, $abonos_sum, $cotizaciones_sum) = (0, 0, 0, 0);
     my $ec_file = File::Spec->catfile($dat_path, 'estado_cuenta.dat');
     my $pac_file = File::Spec->catfile($dat_path, 'pacientes.dat');
     my %nombres = ();
@@ -94,12 +94,12 @@ if ($accion eq 'get_catalogo') {
                     my $tot = $v[7] + 0;
                     my $tipo = $v[3] || '';
                     my $notas = $v[10] || '';
-                    my $is_presupuesto = ($tipo =~ /Cargo/i && $notas =~ /Presupuesto/i) ? 1 : 0;
+                    my $is_cotizacion = ($tipo =~ /Cargo/i && $notas =~ /Presupuesto|Cotizacion/i) ? 1 : 0;
                     
-                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $tipo, concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], paciente_nombre => $nom_pac, alias => ($v[11] || ''), is_presupuesto => $is_presupuesto };
+                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $tipo, concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], paciente_nombre => $nom_pac, alias => ($v[11] || ''), is_cotizacion => $is_cotizacion };
                     
-                    if ($is_presupuesto) {
-                        $presupuestos_sum += $tot;
+                    if ($is_cotizacion) {
+                        $cotizaciones_sum += $tot;
                     } else {
                         if ($tipo =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; } 
                         else { $saldo_total -= $tot; $abonos_sum += $tot; }
@@ -116,7 +116,7 @@ if ($accion eq 'get_catalogo') {
         saldo => $saldo_total, 
         cargos => $cargos_sum, 
         abonos => $abonos_sum,
-        presupuestos => $presupuestos_sum
+        cotizaciones => $cotizaciones_sum
     });
 
 } elsif ($accion eq 'add_cargo') {

@@ -7,7 +7,7 @@ let carritoApp = [];
 let windowActiveOS = null;
 let currentSaldoTotal = 0;
 let pieChartInstance = null;
-let piePresupuestosInstance = null;
+let pieCotizacionesInstance = null;
 
 async function initModuloFinanciero(id, modo, idMed) {
     idPacienteGlobal = id;
@@ -67,7 +67,7 @@ async function cargarHistorialCuentas() {
         }
         
         actualizarPieChart(res.cargos || 0, res.abonos || 0);
-        actualizarPieChartPresupuestos(res.presupuestos || 0);
+        actualizarPieChartCotizaciones(res.cotizaciones || 0);
 
         // Actualizar KPIs de Finanzas Dashboard
         if (typeof window.cargarDashboardKPIs === 'function') {
@@ -309,27 +309,27 @@ function actualizarPieChart(cargos, abonos) {
     }
 }
 
-function actualizarPieChartPresupuestos(presupuestos) {
-    const legPre = document.getElementById('legPresupuestos');
-    const pieVal = document.getElementById('pieCenterValPresupuestos');
-    if (legPre) legPre.innerText = formatter.format(presupuestos);
-    if (pieVal) pieVal.innerText = formatter.format(presupuestos);
+function actualizarPieChartCotizaciones(cotizaciones) {
+    const legCot = document.getElementById('legCotizaciones');
+    const pieVal = document.getElementById('pieCenterValCotizaciones');
+    if (legCot) legCot.innerText = formatter.format(cotizaciones);
+    if (pieVal) pieVal.innerText = formatter.format(cotizaciones);
 
-    const ctx = document.getElementById('piePresupuestos');
+    const ctx = document.getElementById('pieCotizaciones');
     if (!ctx) return;
 
-    if (piePresupuestosInstance) {
-        piePresupuestosInstance.data.datasets[0].data = [presupuestos, presupuestos === 0 ? 1 : 0];
-        piePresupuestosInstance.update();
+    if (pieCotizacionesInstance) {
+        pieCotizacionesInstance.data.datasets[0].data = [cotizaciones, cotizaciones === 0 ? 1 : 0];
+        pieCotizacionesInstance.update();
     } else {
-        piePresupuestosInstance = new Chart(ctx, {
+        pieCotizacionesInstance = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Presupuestos', 'Vacío'],
+                labels: ['Cotizaciones', 'Vacío'],
                 datasets: [{
-                    data: [presupuestos, presupuestos === 0 ? 1 : 0],
+                    data: [cotizaciones, cotizaciones === 0 ? 1 : 0],
                     backgroundColor: [
-                        '#3b82f6',
+                        '#F59E0B',
                         '#e2e8f0'
                     ],
                     borderWidth: 0,
@@ -345,7 +345,7 @@ function actualizarPieChartPresupuestos(presupuestos) {
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                if (context.label === 'Vacío') return 'Sin presupuestos activos';
+                                if (context.label === 'Vacío') return 'Sin cotizaciones activas';
                                 let val = context.raw || 0;
                                 return context.label + ': ' + formatter.format(val);
                             }
@@ -1549,11 +1549,12 @@ window.cargarDashboardKPIs = function() {
                     const eF = document.getElementById('kpiFacturacion');
                     const eEC = document.getElementById('kpiEficiencia');
                     const eEgresos = document.getElementById('kpiTotalEgresos');
-                    const ePresupuestos = document.getElementById('kpiPresupuestosActivos');
+                    const eCotizaciones = document.getElementById('kpiPresupuestosActivos');
+                    
                     if (eIT) eIT.innerText = formatter.format(dash.ingresos || 0);
+                    if (eCotizaciones) eCotizaciones.innerText = formatter.format(dash.cotizaciones || 0);
                     if (eCC) eCC.innerText = formatter.format(dash.cxc || 0);
                     if (eEgresos) eEgresos.innerText = formatter.format(dash.gastos || 0);
-                    if (ePresupuestos) ePresupuestos.innerText = formatter.format(dash.presupuestos || 0);
                     if (eF) eF.innerText = formatter.format(dash.ingresos || 0);
                     if (eEC) {
                         let cargos_totales = (dash.ingresos || 0) + (dash.cxc || 0);

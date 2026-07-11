@@ -191,25 +191,25 @@ print <<HTML;
 
                 <div class="card-acrilico mb-4" style="padding: 24px; text-align: center;">
                     <div class="d-flex justify-content-between align-items-center mb-3 w-100">
-                        <span class="fw-bold plus-jakarta text-dark m-0" style="font-size: 1.1rem;">Presupuestos</span>
-                        <button class="btn btn-sm bg-light rounded-pill border px-3 fw-bold shadow-sm" style="font-size: 0.75rem; color: #475569;"><i class="bi bi-file-earmark-medical me-1"></i> Global</button>
+                        <span class="fw-bold plus-jakarta text-dark m-0" style="font-size: 1.1rem;">Cotizaciones</span>
+                        <button class="btn btn-sm bg-light rounded-pill border px-3 fw-bold shadow-sm" style="font-size: 0.75rem; color: #475569;"><i class="bi bi-file-earmark-text me-1"></i> Global</button>
                     </div>
                     
                     <div class="d-flex flex-column align-items-center g-0">
                         <div class="position-relative mb-4" style="height: 180px; width: 100%;">
-                            <canvas id="piePresupuestos"></canvas>
+                            <canvas id="pieCotizaciones"></canvas>
                             <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
-                                <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValPresupuestos" style="font-size: 1.1rem;">$0</h5>
+                                <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValCotizaciones" style="font-size: 1.1rem;">$0</h5>
                                 <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Total</span>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-center gap-4 w-100" id="pieCustomLegendPresupuestos">
-                            <!-- Presupuestos (Azul) -->
+                        <div class="d-flex justify-content-center gap-4 w-100" id="pieCustomLegendCotizaciones">
+                            <!-- Cotizaciones (Amarillo-Naranja) -->
                             <div class="d-flex align-items-center">
-                                <div style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(to bottom, #60A5FA, #2563EB, #1E3A8A); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 8px; flex-shrink: 0;"></div>
+                                <div style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(to bottom, #FCD34D, #F59E0B, #B45309); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 8px; flex-shrink: 0;"></div>
                                 <div class="d-flex align-items-baseline gap-1">
-                                    <span class="text-muted" style="font-size: 0.7rem;">Presupuestos</span>
-                                    <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legPresupuestos">$0</span>
+                                    <span class="text-muted" style="font-size: 0.7rem;">Cotizaciones</span>
+                                    <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legCotizaciones">$0</span>
                                 </div>
                             </div>
                         </div>
@@ -298,8 +298,8 @@ print <<HTML;
                             <label class="kpi-label">Aplica para</label>
                             <div class="d-flex gap-4 mt-1">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="aplica_para" id="aplica_presupuesto" value="Presupuesto">
-                                    <label class="form-check-label fw-bold small" style="color: var(--md-text-secondary, #486581);" for="aplica_presupuesto">Presupuesto</label>
+                                    <input class="form-check-input" type="radio" name="aplica_para" id="aplica_cotizacion" value="Cotizacion">
+                                    <label class="form-check-label fw-bold small" style="color: var(--md-text-secondary, #486581);" for="aplica_cotizacion">Cotización</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="aplica_para" id="aplica_consulta" value="Consulta" checked>
