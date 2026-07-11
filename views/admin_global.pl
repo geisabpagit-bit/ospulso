@@ -131,14 +131,7 @@ if (@ejecutivos) {
 HTML
     }
 } else {
-    print <<HTML;
-                                        <tr>
-                                            <td colspan="3" class="text-center py-4 text-muted">
-                                                <i class="bi bi-inbox fs-3 d-block mb-2 text-black-50"></i>
-                                                Aún no hay Ejecutivos registrados en el sistema.
-                                            </td>
-                                        </tr>
-HTML
+    # DataTables will handle the empty state automatically.
 }
 
 print <<HTML;
@@ -233,12 +226,16 @@ print <<HTML;
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        \$cell.html(field === 'clave' ? '<em class="text-muted">Oculta</em>' : newValue);
+                        // DataTables internal update
+                        let newHtml = field === 'clave' ? '<em class="text-muted">Oculta</em>' : newValue;
+                        dtEjecutivos.cell(\$cell).data(newHtml).draw(false);
                     } else {
                         Swal.fire('Error', data.message, 'error');
-                        \$cell.html(currentText || '<em class="text-muted">Oculta</em>'); // Revertir
+                        dtEjecutivos.cell(\$cell).data(currentText || '<em class="text-muted">Oculta</em>').draw(false);
                     }
-                }).catch(() => \$cell.html(currentText));
+                }).catch(() => {
+                    dtEjecutivos.cell(\$cell).data(currentText).draw(false);
+                });
             });
         });
 
@@ -280,22 +277,21 @@ print <<HTML;
 
     // Añadir Fila (Create)
     window.agregarFilaInline = function() {
-        const html = `
-            <tr data-id="new" class="new-row-highlight">
-                <td class="editable-cell" data-field="nombre"><input type="text" class="editing-input form-control-sm" placeholder="Nombre completo"></td>
-                <td class="editable-cell" data-field="correo"><input type="text" class="editing-input form-control-sm" placeholder="Correo"></td>
-                <td class="editable-cell" data-field="clave"><input type="password" class="editing-input form-control-sm" placeholder="Contraseña"></td>
-                <td>
-                    <button class="btn btn-sm btn-success rounded-pill btn-save-new"><i class="bi bi-check-lg"></i></button>
-                    <button class="btn btn-sm btn-outline-secondary rounded-pill btn-borrar-inline"><i class="bi bi-x"></i></button>
-                </td>
-            </tr>
-        `;
+        const trNode = dtEjecutivos.row.add([
+            '<input type="text" class="editing-input form-control-sm" placeholder="Nombre completo">',
+            '<input type="text" class="editing-input form-control-sm" placeholder="Correo">',
+            '<input type="password" class="editing-input form-control-sm" placeholder="Contraseña">',
+            '<button class="btn btn-sm btn-success rounded-pill btn-save-new"><i class="bi bi-check-lg"></i></button> <button class="btn btn-sm btn-outline-secondary rounded-pill btn-borrar-inline"><i class="bi bi-x"></i></button>'
+        ]).draw(false).node();
+
+        const \$row = \$(trNode);
+        \$row.addClass('new-row-highlight').attr('data-id', 'new');
+        \$row.find('td:eq(0)').addClass('editable-cell').attr('data-field', 'nombre');
+        \$row.find('td:eq(1)').addClass('editable-cell').attr('data-field', 'correo');
+        \$row.find('td:eq(2)').addClass('editable-cell').attr('data-field', 'clave');
         
-        \$('#tablaEjecutivos tbody').prepend(html);
-        
-        \$('#tablaEjecutivos tbody .btn-save-new').first().on('click', function() {
-            const \$row = \$(this).closest('tr');
+        \$row.find('.btn-save-new').on('click', function() {
+            const btn = \$(this);
             const nombre = \$row.find('td[data-field="nombre"] input').val();
             const correo = \$row.find('td[data-field="correo"] input').val();
             const clave  = \$row.find('td[data-field="clave"] input').val();
@@ -304,6 +300,8 @@ print <<HTML;
                 Swal.fire('Atención', 'Todos los campos son obligatorios.', 'warning');
                 return;
             }
+
+            btn.prop('disabled', true);
 
             const fd = new FormData();
             fd.append('action', 'create');
@@ -315,18 +313,24 @@ print <<HTML;
             .then(r => r.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // Actualizar fila para modo lectura
                     \$row.removeClass('new-row-highlight');
                     \$row.attr('data-id', data.id);
-                    \$row.find('td[data-field="nombre"]').html(nombre);
-                    \$row.find('td[data-field="correo"]').html(correo);
-                    \$row.find('td[data-field="clave"]').html('<em class="text-muted">Oculta</em>');
-                    \$row.find('td:last-child').html('<button class="btn btn-sm btn-outline-danger rounded-pill btn-borrar-inline"><i class="bi bi-trash"></i></button>');
+                    
+                    dtEjecutivos.row(\$row).data([
+                        nombre,
+                        correo,
+                        '<em class="text-muted">Oculta (Click para cambiar)</em>',
+                        '<button class="btn btn-sm btn-outline-danger rounded-pill btn-borrar-inline"><i class="bi bi-trash"></i></button>'
+                    ]).draw(false);
                     
                     Swal.fire('¡Éxito!', 'Ejecutivo guardado', 'success');
                 } else {
+                    btn.prop('disabled', false);
                     Swal.fire('Error', data.message, 'error');
                 }
+            }).catch(err => {
+                btn.prop('disabled', false);
+                Swal.fire('Error', 'Error de red', 'error');
             });
         });
     };
