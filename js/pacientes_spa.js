@@ -255,7 +255,7 @@ function initPacientesSpa() {
                           '</div>' +
                           '<div class="col-6">' +
                             '<div class="kpi-acrilico p-2 h-100 text-start d-flex flex-column justify-content-center m-0" style="width: 100%;">' +
-                                '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Presupuestos</span>' +
+                                '<span class="small fw-bold text-muted text-uppercase mb-1 d-block" style="font-size: 0.65rem;">Cotizaciones</span>' +
                                 '<h4 class="m-0 fw-bold text-dark text-end" style="font-family: var(--font-primary, sans-serif); letter-spacing: -0.5px;">$' + cvPresupuestos + '</h4>' +
                             '</div>' +
                           '</div>' +
@@ -263,30 +263,34 @@ function initPacientesSpa() {
                     '</div>' +
                     '<div class="col-lg-7 col-12">' +
                         '<!-- Barra de Herramientas (Bento Grid) -->' +
+                        '<!-- Fila 1: COTIZACIÓN | CITA | CONSULTA | EXPEDIENTE -->' +
                         '<div class="row g-2 mb-2">' +
-                          '<div class="col-4">' +
-                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">EXPEDIENTE</span></a>' +
+                          '<div class="col-3">' +
+                            '<button type="button" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 border-0" onclick="abrirModalCotizaciones(\'' + perfilId + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\')"><i class="bi bi-file-earmark-text fs-4 mb-1" style="color:#f59e0b;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">COTIZACIÓN</span></button>' +
                           '</div>' +
-                          '<div class="col-4">' +
-                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">FINANZAS</span></a>' +
-                          '</div>' +
-                          '<div class="col-4">' +
+                          '<div class="col-3">' +
                             '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CITA</span></a>' +
                           '</div>' +
                           '<div class="col-3">' +
                             '<a href="render_consultas.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-heart-pulse fs-4 mb-1 text-danger"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CONSULTA</span></a>' +
                           '</div>' +
                           '<div class="col-3">' +
-                            '<button type="button" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CORREO</span></button>' +
+                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">EXPEDIENTE</span></a>' +
+                          '</div>' +
+                        '</div>' +
+                        '<!-- Fila 2: FINANZAS | WHATSAPP | CORREO | IMPRIMIR -->' +
+                        '<div class="row g-2 mb-2">' +
+                          '<div class="col-3">' +
+                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">FINANZAS</span></a>' +
                           '</div>' +
                           '<div class="col-3">' +
                             '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">WHATSAPP</span></a>' +
                           '</div>' +
                           '<div class="col-3">' +
-                            '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none"><i class="bi bi-printer fs-4 mb-1 text-secondary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">IMPRIMIR</span></a>' +
+                            '<button type="button" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="abrirModalCorreoSpa(\'' + perfilCorreo + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\', \'' + perfilId + '\')"><i class="bi bi-envelope fs-4 mb-1 text-warning"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CORREO</span></button>' +
                           '</div>' +
                           '<div class="col-3">' +
-                            '<button type="button" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 border-0" onclick="abrirModalCotizaciones(\'' + perfilId + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\')"><i class="bi bi-file-earmark-text fs-4 mb-1" style="color:#f59e0b;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">COTIZACIÓN</span></button>' +
+                            '<a href="imprime_ficha_identificacion.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none"><i class="bi bi-printer fs-4 mb-1 text-secondary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">IMPRIMIR</span></a>' +
                           '</div>' +
                         '</div>' +
                         '<!-- Historial de Consultas -->' +
