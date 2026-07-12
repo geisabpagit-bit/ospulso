@@ -12,6 +12,7 @@ use Time::Local;
 
 use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 use utils::db_manager qw(leer_tabla actualizar_archivo);
 
 my $sd = check_session();
@@ -116,6 +117,10 @@ if ($action eq 'create') {
         print encode_json({ status => 'error', message => 'Error: ' . $@ });
         exit;
     }
+
+    # Crear catalogo de servicios y productos para la nueva organizacion
+    catalogo_org_utils::crear_catalogo_org_desde_global($id_org);
+
     print encode_json({ status => 'success', id_organizacion => $id_org });
     exit;
 }

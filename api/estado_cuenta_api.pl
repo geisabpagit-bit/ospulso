@@ -13,6 +13,7 @@ my $dat_path = File::Spec->catdir($FindBin::Bin, '..', 'dat');
 
 my $q = CGI->new;
 require "$FindBin::Bin/../auth/check_session.pl";
+require "$FindBin::Bin/../utils/catalogo_org_utils.pl";
 my $session_data = check_session($q);
 unless ($session_data->{session_ok}) {
     print $q->header(-type => 'application/json', -status => '401 Unauthorized');
@@ -35,17 +36,46 @@ sub responder {
 
 if ($accion eq 'get_catalogo') {
     my @s = (); my @p = ();
-    my $serv_file = File::Spec->catfile($dat_path, 'servicios.dat');
-    my $prod_file = File::Spec->catfile($dat_path, 'productos.dat');
+
+    # Resolver catalogo de la organizacion del usuario
+    my $id_empresa = $session_data->{id_empresa} || 0;
+    my $id_raiz = $id_empresa
+        ? catalogo_org_utils::resolver_id_raiz_catalogo($id_empresa)
+        : 0;
+
+    my ($serv_file, $prod_file);
+    if ($id_raiz) {
+        my $rutas = catalogo_org_utils::obtener_rutas_catalogo($id_raiz);
+        $serv_file = $rutas->{servicios};
+        $prod_file = $rutas->{productos};
+        # Si no existen aun, semillarlos desde el global (idempotente)
+        unless (-e $serv_file && -e $prod_file) {
+            catalogo_org_utils::crear_catalogo_org_desde_global($id_raiz);
+        }
+    }
+
+    # Fallback al catalogo global si no hay archivos de org
+    $serv_file = File::Spec->catfile($dat_path, 'servicios.dat')
+        unless $serv_file && -e $serv_file;
+    $prod_file = File::Spec->catfile($dat_path, 'productos.dat')
+        unless $prod_file && -e $prod_file;
 
     if (-e $serv_file) {
         open(my $fh, "<:encoding(UTF-8)", $serv_file); <$fh>;
-        while (<$fh>) { chomp; my @c = split /\|/; push @s, { id => "S-$c[0]", nombre => $c[1], precio => $c[2] }; }
+        while (<$fh>) {
+            chomp; next if /^\s*$/;
+            my @c = split /\|/, $_, -1;
+            push @s, { id => "S-$c[0]", nombre => $c[1], precio => $c[2]+0 };
+        }
         close $fh;
     }
     if (-e $prod_file) {
         open(my $fh, "<:encoding(UTF-8)", $prod_file); <$fh>;
-        while (<$fh>) { chomp; my @c = split /\|/; push @p, { id => "P-$c[0]", nombre => $c[1], precio => $c[2] }; }
+        while (<$fh>) {
+            chomp; next if /^\s*$/;
+            my @c = split /\|/, $_, -1;
+            push @p, { id => "P-$c[0]", nombre => $c[1], precio => $c[2]+0 };
+        }
         close $fh;
     }
     responder({ servicios => \@s, productos => \@p });
