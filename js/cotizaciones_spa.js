@@ -524,22 +524,36 @@ window._notificarKpisCotizaciones = _notificarKpisCotizaciones;
 // Cargar opciones en el select de cotizaciones del modal de cargo
 window._cargarSelectCotizaciones = function() {
     var sel = document.getElementById('selectCotizacionCargo');
-    if (!sel || !cotPacienteId) return;
+    if (!sel) return;
+    // Usar cotPacienteId (expediente) o idPacienteGlobal (estado_cuenta directo)
+    var pid = cotPacienteId ||
+              (typeof idPacienteGlobal !== 'undefined' ? idPacienteGlobal : null);
+    if (!pid) {
+        sel.innerHTML = '<option value="">-- Sin paciente activo --</option>';
+        return;
+    }
     sel.innerHTML = '<option value="">-- Selecciona una cotización --</option>';
     var fd = new URLSearchParams();
     fd.append('accion', 'get_lista');
-    fd.append('id_paciente', cotPacienteId);
+    fd.append('id_paciente', pid);
     fetch('../api/cotizaciones_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' })
         .then(function(r) { return r.json(); })
         .then(function(res) {
-            (res.cotizaciones || []).forEach(function(c) {
+            var lista = res.cotizaciones || [];
+            if (lista.length === 0) {
+                sel.innerHTML = '<option value="">-- Sin cotizaciones guardadas --</option>';
+                return;
+            }
+            lista.forEach(function(c) {
                 var opt = document.createElement('option');
                 opt.value = c.id_cot;
-                opt.textContent = c.nombre + ' — ' + formatter.format(c.total);
+                opt.textContent = c.nombre + ' \u2014 ' + formatter.format(c.total);
                 sel.appendChild(opt);
             });
-        });
+        })
+        .catch(function(e) { console.warn('[Cotizaciones] cargar select error:', e); });
 };
+
 
 // Cargar items de una cotización en el carrito de la OS
 window._cargarCotizacionEnCarrito = function(idCot) {

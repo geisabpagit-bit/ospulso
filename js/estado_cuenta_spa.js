@@ -792,6 +792,7 @@ function abrirModalCargo() {
         aliasIn.removeAttribute('disabled');
         aliasIn.removeAttribute('readonly');
     }
+    _initRadioCotizacion();
     const el = document.getElementById('modalCargo');
     if (!el) return console.error("Modal Cargo no encontrado");
     const m = new bootstrap.Modal(el);
@@ -809,10 +810,62 @@ function abrirModalCargoConOS(id_os, alias) {
         aliasIn.setAttribute('disabled', 'disabled');
         aliasIn.setAttribute('readonly', 'readonly');
     }
+    _initRadioCotizacion();
     const el = document.getElementById('modalCargo');
     if (!el) return console.error("Modal Cargo no encontrado");
     const m = new bootstrap.Modal(el);
     m.show();
+}
+
+/**
+ * Inicializa el comportamiento del radio "Cotizacion" en el modal de cargo.
+ * - Al seleccionar Cotizacion: muestra selector y carga lista desde cotizaciones_api.
+ * - Al seleccionar Consulta: oculta el selector y limpia el carrito.
+ * Idempotente: usa data-cot-init para no registrar listeners duplicados.
+ */
+function _initRadioCotizacion() {
+    // Resetear radio a Consulta al abrir
+    const radConsulta = document.getElementById('aplica_consulta');
+    const radCot      = document.getElementById('aplica_cotizacion');
+    const panel       = document.getElementById('panelSelCotizacion');
+    const sel         = document.getElementById('selectCotizacionCargo');
+    if (radConsulta) radConsulta.checked = true;
+    if (panel) panel.classList.add('d-none');
+    if (sel) sel.value = '';
+
+    // Evitar registrar el listener mas de una vez
+    if (radCot && !radCot.dataset.cotInit) {
+        radCot.dataset.cotInit = '1';
+        radCot.addEventListener('change', function() {
+            if (!this.checked) return;
+            if (panel) panel.classList.remove('d-none');
+
+            // Delegar carga al modulo cotizaciones_spa.js
+            // cotPacienteId es la variable global de cotizaciones_spa.js
+            var pid = (typeof cotPacienteId !== 'undefined') ? cotPacienteId : null;
+            if (!pid) {
+                // Intentar obtenerlo de la URL o del modulo financiero
+                pid = (typeof idPacienteGlobal !== 'undefined') ? idPacienteGlobal : null;
+            }
+
+            if (pid && typeof window._cargarSelectCotizaciones === 'function') {
+                // Sobreescribir cotPacienteId temporalmente si se abre desde estado_cuenta
+                if (typeof cotPacienteId !== 'undefined') { cotPacienteId = pid; }
+                window._cargarSelectCotizaciones();
+            } else if (sel) {
+                sel.innerHTML = '<option value="">-- Sin cotizaciones disponibles --</option>';
+            }
+        });
+    }
+
+    if (radConsulta && !radConsulta.dataset.cotInit) {
+        radConsulta.dataset.cotInit = '1';
+        radConsulta.addEventListener('change', function() {
+            if (!this.checked) return;
+            if (panel) panel.classList.add('d-none');
+            if (sel) sel.value = '';
+        });
+    }
 }
 
 let lineChartInstance = null;
