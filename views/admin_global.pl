@@ -78,7 +78,7 @@ print <<HTML;
                     <p class="text-white-50 small mb-0 mt-1">Gestión de Roles, Servidores y Fuerza de Ventas</p>
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" onclick="prepararNuevoEjecutivo()">
+                    <button class="btn btn-blue-deep rounded-pill px-4 fw-bold shadow-sm" onclick="prepararNuevoEjecutivo()">
                         <i class="bi bi-person-plus-fill me-2"></i>Añadir Ejecutivo
                     </button>
                     <button class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="hardResetDB()">
@@ -93,7 +93,7 @@ print <<HTML;
             
             <!-- Contenedor del Formulario Inline (Alta/Edición de Ejecutivo) -->
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
-                <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader">
+                <div class="card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader" style="background-color: var(--md-blue-deep) !important;">
                     <h5 class="fw-black mb-0" id="formTitle"><i class="bi bi-person-plus-fill me-2"></i>Añadir Ejecutivo de Ventas</h5>
                     <button type="button" class="btn-close btn-close-white" onclick="toggleFormulario()"></button>
                 </div>
@@ -118,7 +118,7 @@ print <<HTML;
                         </div>
                         <div class="mt-4 d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-light fw-bold px-4" onclick="toggleFormulario()">Cancelar</button>
-                            <button type="submit" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" id="btn-submit-form">
+                            <button type="submit" class="btn btn-blue-deep rounded-pill px-4 fw-bold shadow-sm" id="btn-submit-form">
                                 <i class="bi bi-person-check me-2"></i>Guardar Ejecutivo
                             </button>
                         </div>
@@ -276,6 +276,20 @@ HTML
 utils::sub_sidebar::render_sidebar_footer();
 print <<HTML;
 
+<style>
+  .btn-blue-deep {
+      background-color: var(--md-blue-deep) !important;
+      color: #ffffff !important;
+      border: none !important;
+      transition: all 0.2s ease-in-out;
+  }
+  .btn-blue-deep:hover {
+      background-color: var(--md-blue-medical) !important;
+      color: #ffffff !important;
+      opacity: 0.9;
+  }
+</style>
+
 <!-- Scripts y Librerías de DataTables -->
 <link class="datatables-css" rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
@@ -326,7 +340,7 @@ print <<HTML;
         document.getElementById('passwordLabel').innerText = 'Contraseña Inicial';
         
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Añadir Ejecutivo de Ventas';
-        document.getElementById('formHeader').className = 'card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        document.getElementById('formHeader').className = 'card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
@@ -343,7 +357,7 @@ print <<HTML;
         document.getElementById('passwordLabel').innerText = 'Nueva Contraseña (Opcional)';
         
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Ejecutivo de Ventas';
-        document.getElementById('formHeader').className = 'card-header border-0 bg-navy text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        document.getElementById('formHeader').className = 'card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
