@@ -35,7 +35,12 @@ if ($role ne 'Administrador Organizacion') {
     exit;
 }
 
-print $q->header(-type => 'text/html', -charset => 'UTF-8');
+print $q->header(
+    -type => 'text/html',
+    -charset => 'UTF-8',
+    -cache_control => 'no-store, no-cache, must-revalidate, max-age=0',
+    -pragma => 'no-cache'
+);
 render_header(
     usuario     => $usuario, 
     role        => $role, 
@@ -128,7 +133,7 @@ print <<HTML;
                             </div>
                             <div class="col-12 col-md-6" id="passwordFieldContainer">
                                 <label class="form-label small fw-bold text-muted" id="passwordLabel">Contraseña Inicial</label>
-                                <input type="password" class="form-control form-control-sm shadow-sm" id="form_clave" name="clave" placeholder="••••••••">
+                                <input type="password" class="form-control form-control-sm shadow-sm" id="form_clave" name="clave" placeholder="••••••••" autocomplete="new-password">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label small fw-bold text-muted">Rol Operativo</label>
