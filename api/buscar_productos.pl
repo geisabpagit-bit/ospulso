@@ -6,18 +6,28 @@ use warnings;
 use utf8;
 use JSON::PP qw(encode_json decode_json);
 use lib '..';
+require File::Spec->catfile('..', 'auth', 'check_session.pl');
+require File::Spec->catfile('..', 'utils', 'catalogo_org_utils.pl');
 
 my $q = CGI->new;
+my $sd = check_session($q);
 print $q->header(-type => 'application/json; charset=UTF-8');
+
+unless ($sd->{session_ok}) {
+    print encode_json({ ok => JSON::PP::false, msg => "Sesión inválida" });
+    exit;
+}
 
 # Parámetro de búsqueda
 my $term = lc($q->param('term') || '');
 
-# Ruta al archivo de productos
-my $file = '../dat/productos.dat';
+# Ruta al archivo de productos de la organización
+my $id_empresa = $sd->{id_empresa};
+my $rutas = catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
+my $file = $rutas->{productos};
 
 open my $fh, '<:encoding(UTF-8)', $file or do {
-    print encode_json({ ok => JSON::false, msg => "No se pudo abrir $file" });
+    print encode_json({ ok => JSON::PP::false, msg => "No se pudo abrir $file" });
     exit;
 };
 
@@ -48,4 +58,4 @@ while (my $line = <$fh>) {
 }
 close $fh;
 
-print encode_json({ ok => JSON::true, results => \@results });
+print encode_json({ ok => JSON::PP::true, results => \@results });

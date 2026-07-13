@@ -65,6 +65,8 @@ sub render_sidebar {
         'finanzas'    => { icon => 'payments',       bg => 'var(--surface-info)', color => 'var(--income)' },
         'clinicas'    => { icon => 'domain',         bg => 'var(--surface-blue)', color => 'var(--primary-blue)' },
         'usuarios'    => { icon => 'person_add',     bg => 'var(--surface-secondary)', color => 'var(--icon-purple)' },
+        'servicios'   => { icon => 'medical_services',bg => 'var(--surface-info)', color => 'var(--confirmation)' },
+        'productos'   => { icon => 'inventory_2',    bg => 'var(--surface-warn)', color => 'var(--alert)' },
         'reportes'    => { icon => 'analytics',      bg => 'var(--surface-info)', color => 'var(--confirmation)' },
         'tecnico'     => { icon => 'build',          bg => 'var(--surface-warn)', color => 'var(--alert)' },
         'sync_google' => { icon => 'sync',           bg => 'var(--calendar-bg)', color => 'var(--calendar-event)' },
