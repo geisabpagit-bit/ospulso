@@ -18,7 +18,7 @@ my $q  = $sd->{q};
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
-if (!$sd->{session_ok} || $sd->{role} ne 'Administrador Global') {
+unless ($sd->{session_ok} && $sd->{role} eq 'Administrador Global') {
     print encode_json({ status => 'error', message => 'Acceso denegado.' });
     exit;
 }
@@ -154,7 +154,83 @@ elsif ($action eq 'remove') {
     }
     exit;
 }
+elsif ($action eq 'reactivate') {
+    if (!$id) {
+        print encode_json({ status => 'error', message => 'ID obligatorio.' });
+        exit;
+    }
+    
+    my @nuevas_lineas;
+    my $encontrado = 0;
+    
+    if ($regs) {
+        foreach my $r (@$regs) {
+            next if @$r < 7;
+            if ($r->[0] eq $id && $r->[5] eq 'Ejecutivo Ventas') {
+                $r->[4] = '1'; # Reactivate
+                $encontrado = 1;
+            }
+            push @nuevas_lineas, join("!", @$r);
+        }
+    }
+    
+    if (!$encontrado) {
+        print encode_json({ status => 'error', message => 'Ejecutivo no encontrado.' });
+        exit;
+    }
+    
+    eval {
+        my $header = "id!nombre!correo!clave!activo!rol!ID_negocio";
+        actualizar_archivo($archivo_usuarios, $header, \@nuevas_lineas);
+    };
+    
+    if ($@) {
+        print encode_json({ status => 'error', message => 'Error al reactivar: ' . $@ });
+    } else {
+        print encode_json({ status => 'success' });
+    }
+    exit;
+}
+elsif ($action eq 'delete_permanent') {
+    if (!$id) {
+        print encode_json({ status => 'error', message => 'ID obligatorio.' });
+        exit;
+    }
+    
+    my @nuevas_lineas;
+    my $encontrado = 0;
+    
+    if ($regs) {
+        foreach my $r (@$regs) {
+            next if @$r < 7;
+            if ($r->[0] eq $id && $r->[5] eq 'Ejecutivo Ventas') {
+                $encontrado = 1;
+                # No push to nuevas_lineas (eliminar físicamente)
+            } else {
+                push @nuevas_lineas, join("!", @$r);
+            }
+        }
+    }
+    
+    if (!$encontrado) {
+        print encode_json({ status => 'error', message => 'Ejecutivo no encontrado.' });
+        exit;
+    }
+    
+    eval {
+        my $header = "id!nombre!correo!clave!activo!rol!ID_negocio";
+        actualizar_archivo($archivo_usuarios, $header, \@nuevas_lineas);
+    };
+    
+    if ($@) {
+        print encode_json({ status => 'error', message => 'Error al eliminar permanentemente: ' . $@ });
+    } else {
+        print encode_json({ status => 'success' });
+    }
+    exit;
+}
 else {
     print encode_json({ status => 'error', message => 'Acción no válida.' });
     exit;
 }
+1;

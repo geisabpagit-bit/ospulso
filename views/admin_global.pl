@@ -48,15 +48,22 @@ render_header(
     skip_header => 1
 );
 
-# Leer Usuarios Actuales (para ver los ejecutivos de ventas activos)
+# Leer Usuarios Actuales (para ver los ejecutivos de ventas activos e inactivos)
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $regs = leer_tabla($archivo_usuarios, '!');
 my @ejecutivos = ();
+my @ejecutivos_inactivos = ();
+
 if ($regs) {
     foreach my $r (@$regs) {
         next if @$r < 7;
-        if ($r->[5] eq 'Ejecutivo Ventas' && $r->[4] eq '1') {
-            push @ejecutivos, { id => $r->[0], nombre => $r->[1], correo => $r->[2] };
+        if ($r->[5] eq 'Ejecutivo Ventas') {
+            my $item = { id => $r->[0], nombre => $r->[1], correo => $r->[2] };
+            if ($r->[4] eq '1') {
+                push @ejecutivos, $item;
+            } else {
+                push @ejecutivos_inactivos, $item;
+            }
         }
     }
 }
@@ -119,64 +126,147 @@ print <<HTML;
                 </div>
             </div>
 
-            <!-- LISTA DE EJECUTIVOS -->
-            <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
-                    <h5 class="fw-bold text-dark"><i class="bi bi-list-stars text-primary me-2"></i>Ejecutivos de Ventas Activos</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" id="tablaEjecutivos">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="small text-muted fw-bold border-0 text-uppercase">Nombre</th>
-                                    <th class="small text-muted fw-bold border-0 text-uppercase">Correo Electrónico</th>
-                                    <th class="small text-muted fw-bold border-0 text-uppercase text-end">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+            <!-- Pestañas de Navegación -->
+            <ul class="nav nav-pills mb-4 gap-2" id="execTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active rounded-pill fw-bold px-4" id="activos-tab" data-bs-toggle="pill" data-bs-target="#tab-activos" type="button" role="tab">
+                        <i class="bi bi-person-check-fill me-2"></i>Ejecutivos Activos
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill fw-bold px-4 position-relative" id="inactivos-tab" data-bs-toggle="pill" data-bs-target="#tab-inactivos" type="button" role="tab">
+                        <i class="bi bi-person-x-fill me-2"></i>Inactivos / Papelera
+HTML
+if (@ejecutivos_inactivos) {
+    my $count = scalar(@ejecutivos_inactivos);
+    print qq|                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">$count</span>\n|;
+}
+print <<HTML;
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="execTabsContent">
+                <!-- PANEL: ACTIVOS -->
+                <div class="tab-pane fade show active" id="tab-activos" role="tabpanel">
+                    <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="tablaEjecutivos">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="small text-muted fw-bold border-0 text-uppercase">Nombre</th>
+                                            <th class="small text-muted fw-bold border-0 text-uppercase">Correo Electrónico</th>
+                                            <th class="small text-muted fw-bold border-0 text-uppercase text-end">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
 HTML
 
 if (@ejecutivos) {
     foreach my $e (@ejecutivos) {
         print <<HTML;
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
-                                                <i class="bi bi-person-badge"></i>
-                                            </div>
-                                            <span class="fw-bold text-dark">$$e{nombre}</span>
-                                        </div>
-                                    </td>
-                                    <td class="text-muted small fw-bold">$$e{correo}</td>
-                                    <td class="text-end pe-4">
-                                        <div class="d-flex justify-content-end gap-2">
-                                            <button onclick="abrirFormEditar('$$e{id}', '$$e{nombre}', '$$e{correo}')" class="btn p-0 border-0 btn-expediente" title="Editar">
-                                                <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
-                                            </button>
-                                            <button onclick="confirmBorrar('$$e{id}')" class="btn p-0 border-0 action-btn-delete" title="Eliminar">
-                                                <div class="icon-container-acrylic text-danger border-danger border-opacity-25" style="background: rgba(220, 53, 69, 0.05);"><i class="bi bi-person-x"></i></div>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                                                        <i class="bi bi-person-badge"></i>
+                                                    </div>
+                                                    <span class="fw-bold text-dark">$$e{nombre}</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-muted small fw-bold">$$e{correo}</td>
+                                            <td class="text-end pe-4">
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button onclick="abrirFormEditar('$$e{id}', '$$e{nombre}', '$$e{correo}')" class="btn p-0 border-0 btn-expediente" title="Editar">
+                                                        <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
+                                                    </button>
+                                                    <button onclick="confirmDesactivar('$$e{id}')" class="btn p-0 border-0 action-btn-delete" title="Desactivar / Papelera">
+                                                        <div class="icon-container-acrylic text-danger border-danger border-opacity-25" style="background: rgba(220, 53, 69, 0.05);"><i class="bi bi-person-x"></i></div>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
 HTML
     }
 } else {
     print <<HTML;
-                                <tr>
-                                    <td colspan="3" class="text-center py-5 text-muted">
-                                        <i class="bi bi-people display-4 d-block mb-3 text-black-50 opacity-50"></i>
-                                        <p class="mb-0 fw-bold fs-5">Sin ejecutivos de ventas registrados.</p>
-                                    </td>
-                                </tr>
+                                        <tr>
+                                            <td colspan="3" class="text-center py-5 text-muted">
+                                                <i class="bi bi-people display-4 d-block mb-3 text-black-50 opacity-50"></i>
+                                                <p class="mb-0 fw-bold fs-5">Sin ejecutivos de ventas activos.</p>
+                                            </td>
+                                        </tr>
 HTML
 }
 
 print <<HTML;
-                            </tbody>
-                        </table>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL: INACTIVOS -->
+                <div class="tab-pane fade" id="tab-inactivos" role="tabpanel">
+                    <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="tablaEjecutivosInactivos">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="small text-muted fw-bold border-0 text-uppercase">Nombre</th>
+                                            <th class="small text-muted fw-bold border-0 text-uppercase">Correo Electrónico</th>
+                                            <th class="small text-muted fw-bold border-0 text-uppercase text-end">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+HTML
+
+if (@ejecutivos_inactivos) {
+    foreach my $e (@ejecutivos_inactivos) {
+        print <<HTML;
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center opacity-75">
+                                                    <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                                                        <i class="bi bi-person-x"></i>
+                                                    </div>
+                                                    <span class="fw-bold text-muted">$$e{nombre}</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-muted small fw-bold">$$e{correo}</td>
+                                            <td class="text-end pe-4">
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button onclick="confirmReactivar('$$e{id}')" class="btn p-0 border-0 btn-expediente" title="Reactivar">
+                                                        <div class="icon-container-acrylic text-success" style="background: rgba(25, 135, 84, 0.05); border-color: rgba(25, 135, 84, 0.25);"><i class="bi bi-arrow-counterclockwise"></i></div>
+                                                    </button>
+                                                    <button onclick="confirmEliminarDefinitivo('$$e{id}')" class="btn p-0 border-0 action-btn-delete" title="Eliminar Permanentemente">
+                                                        <div class="icon-container-acrylic text-danger" style="background: rgba(220, 53, 69, 0.1); border-color: rgba(220, 53, 69, 0.4);"><i class="bi bi-trash-fill"></i></div>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+HTML
+    }
+} else {
+    print <<HTML;
+                                        <tr>
+                                            <td colspan="3" class="text-center py-5 text-muted">
+                                                <i class="bi bi-trash3 display-4 d-block mb-3 text-black-50 opacity-50"></i>
+                                                <p class="mb-0 fw-bold fs-5">La papelera está vacía.</p>
+                                                <p class="small text-muted">Aquí aparecerán los ejecutivos inactivos.</p>
+                                            </td>
+                                        </tr>
+HTML
+}
+
+print <<HTML;
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -187,17 +277,27 @@ utils::sub_sidebar::render_sidebar_footer();
 print <<HTML;
 
 <!-- Scripts y Librerías de DataTables -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link class="datatables-css" rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 
 <script>
     let dtEjecutivos;
+    let dtEjecutivosInactivos;
 
     \$(document).ready(function() {
         if (\$('#tablaEjecutivos').length && \$('#tablaEjecutivos tbody tr td').length > 1) {
             dtEjecutivos = \$('#tablaEjecutivos').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                ordering: true,
+                paging: true
+            });
+        }
+
+        if (\$('#tablaEjecutivosInactivos').length && \$('#tablaEjecutivosInactivos tbody tr td').length > 1) {
+            dtEjecutivosInactivos = \$('#tablaEjecutivosInactivos').DataTable({
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
                 ordering: true,
@@ -286,22 +386,86 @@ print <<HTML;
         });
     });
 
-    // Eliminar Ejecutivo (Soft Delete)
-    function confirmBorrar(id) {
+    // Desactivar Ejecutivo (Soft Delete)
+    function confirmDesactivar(id) {
         Swal.fire({
-            title: '¿Eliminar Ejecutivo?',
-            text: "El usuario ya no podrá iniciar sesión en el CRM.",
+            title: '¿Desactivar Ejecutivo?',
+            text: "El usuario ya no podrá iniciar sesión en el CRM y pasará a la papelera.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Sí, Eliminar',
+            confirmButtonText: 'Sí, Desactivar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
                 const fd = new FormData();
                 fd.append('id', id);
                 fd.append('action', 'remove');
+                fetch('../api/crud_ejecutivos_api.pl', {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                });
+            }
+        })
+    }
+
+    // Reactivar Ejecutivo
+    function confirmReactivar(id) {
+        Swal.fire({
+            title: '¿Reactivar Ejecutivo?',
+            text: "El usuario volverá a la lista activa y podrá iniciar sesión en el CRM.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, Reactivar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('id', id);
+                fd.append('action', 'reactivate');
+                fetch('../api/crud_ejecutivos_api.pl', {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                });
+            }
+        })
+    }
+
+    // Eliminar permanentemente (Borrado físico)
+    function confirmEliminarDefinitivo(id) {
+        Swal.fire({
+            title: '¿Eliminar Permanentemente?',
+            text: "Esta acción borrará de forma física al Ejecutivo de la base de datos. No se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, BORRAR FÍSICAMENTE',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('id', id);
+                fd.append('action', 'delete_permanent');
                 fetch('../api/crud_ejecutivos_api.pl', {
                     method: 'POST',
                     body: fd
