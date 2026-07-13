@@ -13,6 +13,11 @@ sub render_header {
     my $skip    = $args{skip_header} // 0;
     my $show_nav = $args{show_nav_content} // 1;
 
+    my $iniciales = '';
+    my @nombres = split(/\s+/, $usuario);
+    $iniciales .= uc(substr($nombres[0], 0, 1)) if @nombres > 0;
+    $iniciales .= uc(substr($nombres[1], 0, 1)) if @nombres > 1;
+
     my $puede_buscar = 0;
     my $roles_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'roles.dat');
     if (-e $roles_file) {
@@ -156,8 +161,8 @@ $search_html
                         <span class="d-block plus-jakarta fw-bold" style="font-size:0.75rem; line-height:1">$usuario</span>
                         <span class="d-block text-secondary fw-bold" style="font-size:0.55rem; letter-spacing:0.5px">$role_label</span>
                     </div>
-                    <div class="ospulso-avatar shadow-sm">
-                        <i class="bi bi-person-fill"></i>
+                    <div class="avatar-diamond d-flex align-items-center justify-content-center shadow-sm" style="width: 38px; height: 38px; font-size: 0.9rem; border-width: 2px;">
+                        $iniciales
                     </div>
                 </button>
             </div>
@@ -173,8 +178,8 @@ $search_html
         </div>
     </nav>
 
-    <!-- Sidebar Offcanvas Premium v3 (Aura Glass Design) -->
-    <div class="offcanvas offcanvas-end aura-sidebar-menu" tabindex="-1" id="sdmSidebar" aria-labelledby="sdmSidebarLabel" style="width: 340px;">
+    <!-- Sidebar Offcanvas Premium v3 (Diamond Style) -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="sdmSidebar" aria-labelledby="sdmSidebarLabel" style="width: 280px; background: #ffffff; z-index: 5000;">
         <div class="p-4 text-end pb-0">
             <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
@@ -183,40 +188,33 @@ $search_html
             <div class="nav flex-column gap-2 h-100">
                 
                 <!-- Perfil Card Bento -->
-                <div class="user-aura-card mb-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="ospulso-avatar ospulso-avatar-lg">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
-                        <div class="text-truncate">
-                            <span class="d-block fw-bold text-dark text-truncate" style="font-size: 1rem;">$usuario</span>
-                            <span class="d-block text-primary small text-uppercase fw-bold" style="letter-spacing: 1px; font-size: 0.6rem;">$role_label</span>
-                        </div>
+                <div class="sidebar-brand mb-4 px-2">
+                    <div class="avatar-diamond d-flex align-items-center justify-content-center mb-3" style="width: 55px; height: 55px; font-size: 1.5rem; border-width: 2px; margin: 0 auto;">$iniciales</div>
+                    <div class="text-center">
+                        <span class="sidebar-text d-block fw-bold" style="font-size: 1.1rem; color: #0A2A66;">$usuario</span>
+                        <span class="d-block text-primary small text-uppercase fw-bold mt-1" style="letter-spacing: 1px; font-size: 0.65rem;">$role_label</span>
                     </div>
                 </div>
 
-                <!-- Navegación General (Command Center) -->
-                <a href="pacientes.pl" class="aura-nav-link">
-                    <i class="bi bi-people"></i>
-                    <span>Pacientes</span>
-                </a>
-                <a href="agenda_main.pl" class="aura-nav-link">
-                    <i class="bi bi-calendar3"></i>
-                    <span>Agenda</span>
-                </a>
-                <div class="my-2"><hr class="border-primary opacity-10 m-0"></div>
+                <div class="sidebar-menu flex-grow-1 px-2 mt-2">
+                    <!-- Navegación General (Solo móvil) -->
+                    <div class="d-md-none mb-3">
+                        <a href="pacientes.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                            <span class="material-icons me-2" style="font-size:1.2rem; color: var(--icon-purple, #6f42c1)">groups</span> <span class="sidebar-text">Pacientes</span>
+                        </a>
+                        <a href="agenda_main.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                            <span class="material-icons me-2" style="font-size:1.2rem; color: var(--calendar-event, #0ea5e9)">calendar_month</span> <span class="sidebar-text">Agenda</span>
+                        </a>
+                        <hr class="border-primary opacity-10 my-3">
+                    </div>
 
-                <a href="../views/perfil.pl" class="aura-nav-link">
-                    <i class="bi bi-person-gear"></i>
-                    <span>Editar Perfil</span>
-                </a>
-
-                <div class="mt-auto">
-                    <hr class="border-primary opacity-10 my-3">
-                    <a href="javascript:void(0)" onclick="confirmLogout()" class="aura-nav-link text-danger">
-                        <i class="bi bi-power"></i>
-                        <span>Cerrar Sesi&oacute;n</span>
+                    <a href="../views/perfil.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                        <span class="material-icons me-2" style="font-size:1.2rem; color: var(--primary-blue, #0d6efd)">person</span> <span class="sidebar-text">Editar Perfil</span>
                     </a>
+                </div>
+
+                <div class="mt-auto sidebar-footer">
+                    <a href="javascript:void(0)" onclick="confirmLogout()" class="btn btn-danger w-100 rounded-pill fw-bold d-flex justify-content-center align-items-center"><i class="bi bi-box-arrow-right me-2"></i><span class="sidebar-text">Cerrar Sesión</span></a>
                 </div>
             </div>
         </div>
