@@ -93,8 +93,8 @@ print <<HTML;
                     <h2 class="fw-black mb-0"><i class="bi bi-people-fill me-2"></i>Gestión de Personal</h2>
                     <p class="text-white-50 small mb-0 mt-1">Directorio de Médicos, Recepcionistas y Auxiliares</p>
                 </div>
-                <button class="btn btn-light rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAltaUsuario">
-                    <i class="bi bi-person-plus-fill text-primary me-2"></i>Añadir Personal
+                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAltaUsuario">
+                    <i class="bi bi-person-plus-fill me-2"></i>Añadir Personal
                 </button>
             </div>
         </header>
@@ -229,7 +229,7 @@ if (!@mis_sucursales) {
 print <<HTML;
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-usuario">
+                    <button type="submit" class="btn btn-sdm-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-usuario">
                         <i class="bi bi-person-check me-2"></i>Crear Cuenta
                     </button>
                 </div>
@@ -283,7 +283,7 @@ foreach my $suc (@mis_sucursales) {
 print <<HTML;
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-edit">
+                    <button type="submit" class="btn btn-sdm-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-edit">
                         <i class="bi bi-save me-2"></i>Guardar Cambios
                     </button>
                 </div>
@@ -292,8 +292,6 @@ print <<HTML;
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 

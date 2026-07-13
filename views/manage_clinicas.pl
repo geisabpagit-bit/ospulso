@@ -72,8 +72,8 @@ print <<HTML;
                     <h2 class="fw-black mb-0"><i class="bi bi-building-gear me-2"></i>Gestión de Sucursales</h2>
                     <p class="text-white-50 small mb-0 mt-1">Configuración de clínicas y sedes físicas</p>
                 </div>
-                <button class="btn btn-light rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAltaSucursal">
-                    <i class="bi bi-plus-circle text-primary me-2"></i>Nueva Sucursal
+                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAltaSucursal">
+                    <i class="bi bi-plus-circle me-2"></i>Nueva Sucursal
                 </button>
             </div>
         </header>
@@ -167,7 +167,7 @@ print <<HTML;
                         <label class="form-label small fw-bold text-muted">Domicilio</label>
                         <input type="text" class="form-control form-control-lg bg-light border-0 rounded-3" name="domicilio" placeholder="Av. Siempre Viva 742">
                     </div>
-                    <button type="submit" class="btn btn-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-sucursal">
+                    <button type="submit" class="btn btn-sdm-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-sucursal">
                         <i class="bi bi-plus-circle me-2"></i>Registrar Sucursal
                     </button>
                 </div>
@@ -176,8 +176,6 @@ print <<HTML;
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
     document.body.appendChild(document.getElementById('modalAltaSucursal'));
 
