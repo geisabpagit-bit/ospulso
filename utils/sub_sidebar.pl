@@ -166,6 +166,7 @@ HTML
 
     foreach my $mod_key (@allowed_modules) {
         $mod_key =~ s/^\s+|\s+$//g;
+        next if $mod_key eq 'crm_ventas' && $role eq 'Administrador Global';
         next unless $menu_registry{$mod_key};
         my $m = $menu_registry{$mod_key};
         my $u = $m->{url} || '#';
@@ -190,6 +191,35 @@ HTML
                 </a>
             };
         }
+    }
+
+    # Renderizar módulo colapsable "Ventas" para el Administrador Global
+    if ($role eq 'Administrador Global') {
+        my $ventas_active = ($pagina_actual eq 'crm_ventas' || $pagina_actual eq 'admin_ejecutivos') ? 'show' : '';
+        my $collapsed_class = ($ventas_active eq 'show') ? '' : 'collapsed';
+        my $crm_active = ($pagina_actual eq 'crm_ventas') ? 'active' : '';
+        my $ejec_active = ($pagina_actual eq 'admin_ejecutivos') ? 'active' : '';
+        
+        print qq{
+            <div class="mb-1">
+                <a class="sub-link w-100 text-start text-decoration-none d-flex align-items-center justify-content-between $collapsed_class" 
+                   data-bs-toggle="collapse" href="#menuVentas" role="button" aria-expanded="false" style="outline: none;">
+                    <span class="d-flex align-items-center">
+                        <span class="material-icons me-2" style="font-size:1.2rem; color: var(--primary-blue)">briefcase</span>
+                        <span class="sidebar-text fw-bold">Ventas</span>
+                    </span>
+                    <i class="bi bi-chevron-down small text-muted sidebar-text ms-auto"></i>
+                </a>
+                <div class="collapse $ventas_active" id="menuVentas">
+                    <a href="../views/crm_ventas.pl" class="sub-link $crm_active w-100 text-start text-decoration-none d-flex align-items-center mb-1 ps-4" style="font-size:0.9rem;">
+                        <span class="material-icons me-2" style="font-size:1.1rem; color: var(--primary-blue)">store</span> <span class="sidebar-text">CRM Ventas</span>
+                    </a>
+                    <a href="../views/admin_ejecutivos.pl" class="sub-link $ejec_active w-100 text-start text-decoration-none d-flex align-items-center mb-1 ps-4" style="font-size:0.9rem;">
+                        <span class="material-icons me-2" style="font-size:1.1rem; color: var(--primary-blue)">people</span> <span class="sidebar-text">Ejecutivos</span>
+                    </a>
+                </div>
+            </div>
+        };
     }
 
     print <<HTML;
