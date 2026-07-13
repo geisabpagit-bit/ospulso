@@ -13,6 +13,36 @@ sub render_header {
     my $skip    = $args{skip_header} // 0;
     my $show_nav = $args{show_nav_content} // 1;
 
+    my $puede_buscar = 0;
+    my $roles_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'roles.dat');
+    if (-e $roles_file) {
+        if (open(my $fh_r, '<:encoding(UTF-8)', $roles_file)) {
+            while (<$fh_r>) {
+                chomp;
+                next if /^\s*(#|$)/;
+                my @cols = split /\|/;
+                if ($cols[0] eq $role) {
+                    $puede_buscar = $cols[1] || 0;
+                    last;
+                }
+            }
+            close $fh_r;
+        }
+    }
+    
+    my $search_html = '';
+    if ($puede_buscar) {
+        $search_html = <<'SEARCH_HTML';
+            <!-- 1. Buscador (Alineado a la izquierda en móvil) -->
+            <div class="search-container flex-grow-1 mx-md-auto" style="max-width: 550px;">
+                <div class="position-relative">
+                    <input type="text" id="globalSearch" class="sdm-search-input search-pill" placeholder="Buscar expediente...">
+                    <i class="bi bi-search search-icon"></i>
+                </div>
+            </div>
+SEARCH_HTML
+    }
+
     # 1. Control de cabeceras CGI (Protocolo 11.2)
     # Solo imprimimos el header HTTP si NO se solicita omitirlo
     if (!$skip) {
@@ -118,14 +148,7 @@ HTML
 
             </div>
 
-            <!-- 1. Buscador (Alineado a la izquierda en móvil) -->
-            <div class="search-container flex-grow-1 mx-md-auto" style="max-width: 550px;">
-                <div class="position-relative">
-                    <input type="text" id="globalSearch" class="sdm-search-input search-pill" placeholder="Buscar expediente...">
-                    <i class="bi bi-search search-icon"></i>
-                </div>
-            </div>
-
+$search_html
             <!-- 2. Perfil (Alineado a la derecha en móvil) -->
             <div class="profile-trigger-container">
                 <button class="btn user-dropdown border-0 d-flex align-items-center gap-2 py-1 px-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sdmSidebar">

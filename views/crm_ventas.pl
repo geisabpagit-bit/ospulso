@@ -76,8 +76,8 @@ print <<HTML;
                     <p class="text-white-50 small mb-0 mt-1">Gestión de Nuevas Organizaciones y Licencias</p>
                 </div>
                 <div>
-                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold shadow-sm" onclick="mostrarFormularioSaaS()">
-                        <i class="bi bi-plus-circle me-2 text-primary"></i><span class="text-primary">Registrar Organización</span>
+                    <button type="button" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" onclick="mostrarFormularioSaaS()">
+                        <i class="bi bi-plus-circle me-2"></i><span>Registrar Organización</span>
                     </button>
                 </div>
             </div>
@@ -157,14 +157,14 @@ print <<HTML;
                     <form id="form-alta-organizacion" class="w-100">
                         <input type="hidden" name="action" id="action_org" value="create">
                         <input type="hidden" name="id_org" id="id_org_edit" value="">
-                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card border-0 shadow-sm rounded-4 mb-4 modal-diamond">
                             <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center">
                                 <h4 class="fw-black mb-0" id="tituloSaaS"><i class="bi bi-building-add me-2"></i>Configurador SaaS - Nueva Organización</h4>
                                 <button type="button" class="btn btn-sm btn-light rounded-pill fw-bold shadow-sm px-3" onclick="ocultarFormularioSaaS()">
                                     <i class="bi bi-arrow-left me-1"></i>Volver
                                 </button>
                             </div>
-                            <div class="card-body p-4 bg-light">
+                            <div class="card-body p-4 bg-light form-sdm-container">
                                 <div class="row g-3">
                         <!-- Entidad -->
                         <div class="col-12">
@@ -270,7 +270,7 @@ print <<HTML;
                             </div>
                             <div class="card-footer border-0 p-4 bg-light rounded-bottom-4 text-end">
                                 <button type="button" class="btn btn-light fw-bold px-4 me-2" onclick="ocultarFormularioSaaS()">Cancelar</button>
-                                <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" id="btn-submit-org">
+                                <button type="submit" class="btn btn-sdm-primary rounded-pill px-5 fw-bold shadow-sm" id="btn-submit-org">
                                     <i class="bi bi-cloud-check-fill me-2"></i><span id="txt-submit-org">Desplegar Tenant y Enviar Accesos</span>
                                 </button>
                             </div>
@@ -328,7 +328,7 @@ print <<HTML;
         fd.append('action', 'read');
         fd.append('id_org', id);
         
-        fetch('../api/crud_organizaciones_api.pl', { method: 'POST', body: fd })
+        fetch('../api/crud_organizaciones_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' })
         .then(r => r.json())
         .then(data => {
             Swal.close();
@@ -390,7 +390,7 @@ print <<HTML;
                 fd.append('action', 'remove');
                 fd.append('id_org', id);
                 
-                fetch('../api/crud_organizaciones_api.pl', { method: 'POST', body: fd })
+                fetch('../api/crud_organizaciones_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(data => {
                     if(data.status === 'success') {
@@ -422,7 +422,8 @@ print <<HTML;
 
         fetch('../api/crud_organizaciones_api.pl', {
             method: 'POST',
-            body: fd
+            body: fd,
+            credentials: 'same-origin'
         })
         .then(res => res.json())
         .then(data => {
