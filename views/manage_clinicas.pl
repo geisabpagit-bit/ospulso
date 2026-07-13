@@ -72,13 +72,45 @@ print <<HTML;
                     <h2 class="fw-black mb-0"><i class="bi bi-building-gear me-2"></i>Gestión de Sucursales</h2>
                     <p class="text-white-50 small mb-0 mt-1">Configuración de clínicas y sedes físicas</p>
                 </div>
-                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAltaSucursal">
+                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" onclick="toggleFormulario()">
                     <i class="bi bi-plus-circle me-2"></i>Nueva Sucursal
                 </button>
             </div>
         </header>
 
         <div class="container-fluid px-4 pb-5">
+            <!-- Contenedor del Formulario Inline -->
+            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
+                <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-black mb-0"><i class="bi bi-shop me-2"></i>Añadir Nueva Sucursal</h5>
+                    <button type="button" class="btn-close btn-close-white" onclick="toggleFormulario()"></button>
+                </div>
+                <div class="card-body p-4 bg-light rounded-bottom-4">
+                    <form id="form-alta-sucursal" class="form-sdm-container">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Nombre de la Sucursal</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" name="nombre_sucursal" required placeholder="Ej: Sucursal Norte">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Teléfono Principal</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" name="telefono" placeholder="555-1234">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted">Domicilio</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" name="domicilio" placeholder="Av. Siempre Viva 742">
+                            </div>
+                        </div>
+                        <div class="mt-4 d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-light fw-bold px-4" onclick="toggleFormulario()">Cancelar</button>
+                            <button type="submit" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" id="btn-submit-sucursal">
+                                <i class="bi bi-plus-circle me-2"></i>Registrar Sucursal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                     <div class="table-responsive">
@@ -137,47 +169,19 @@ print <<HTML;
         </div>
 HTML
 utils::sub_sidebar::render_sidebar_footer();
+
 print <<HTML;
-
-<style>
-  .modal-backdrop.show { z-index: 104900 !important; }
-  \@media (min-width: 992px) { 
-      #modalAltaSucursal { padding-left: 280px !important; } 
-  }
-</style>
-<!-- Modal: Alta Sucursal -->
-<div class="modal fade modal-diamond" id="modalAltaSucursal" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
-    <div class="modal-dialog modal-dialog-centered">
-        <form id="form-alta-sucursal" class="w-100">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
-                    <h5 class="fw-black mb-0"><i class="bi bi-shop me-2"></i>Añadir Nueva Sucursal</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Nombre de la Sucursal</label>
-                        <input type="text" class="form-control form-control-lg bg-light border-0 rounded-3" name="nombre_sucursal" required placeholder="Ej: Sucursal Norte">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Teléfono Principal</label>
-                        <input type="text" class="form-control form-control-lg bg-light border-0 rounded-3" name="telefono" placeholder="555-1234">
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold text-muted">Domicilio</label>
-                        <input type="text" class="form-control form-control-lg bg-light border-0 rounded-3" name="domicilio" placeholder="Av. Siempre Viva 742">
-                    </div>
-                    <button type="submit" class="btn btn-sdm-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-sucursal">
-                        <i class="bi bi-plus-circle me-2"></i>Registrar Sucursal
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
-    document.body.appendChild(document.getElementById('modalAltaSucursal'));
+    function toggleFormulario() {
+        const container = document.getElementById('formContainer');
+        if (container.classList.contains('d-none')) {
+            container.classList.remove('d-none');
+            container.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            container.classList.add('d-none');
+        }
+    }
 
     document.getElementById('form-alta-sucursal').addEventListener('submit', function(e) {
         e.preventDefault();

@@ -73,13 +73,56 @@ print <<HTML;
                     <h2 class="fw-black mb-0"><i class="bi bi-box-seam me-2"></i>Catálogo de Productos</h2>
                     <p class="text-white-50 small mb-0 mt-1">Gestión de insumos y productos para cotizaciones</p>
                 </div>
-                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalProducto" onclick="prepararNuevoProducto()">
+                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" onclick="prepararNuevoProducto()">
                     <i class="bi bi-plus-circle me-2"></i>Nuevo Producto
                 </button>
             </div>
         </header>
 
         <div class="container-fluid px-4 pb-5">
+            <!-- Contenedor del Formulario Inline (Alta/Edición) -->
+            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
+                <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader">
+                    <h5 class="modal-title fw-black mb-0" id="formTitle"><i class="bi bi-box-seam me-2"></i>Nuevo Producto</h5>
+                    <button type="button" class="btn-close btn-close-white" onclick="toggleFormulario()"></button>
+                </div>
+                <div class="card-body p-4 bg-light rounded-bottom-4">
+                    <form id="form-producto" class="form-sdm-container">
+                        <input type="hidden" name="action" id="action_prod" value="create">
+                        <input type="hidden" name="id_producto" id="id_producto_edit" value="">
+                        
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold">Nombre del Producto</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" name="nombre" id="in_nombre" required placeholder="Ej. Resina 3M">
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label small fw-bold">Precio Unitario (\$)</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm shadow-sm" name="precio" id="in_precio" required placeholder="Ej. 150.00">
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label small fw-bold">Stock Inicial</label>
+                                <input type="number" class="form-control form-control-sm shadow-sm" name="cantidad" id="in_cant" required placeholder="Ej. 10">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Presentación</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" name="presentacion" id="in_pres" placeholder="Ej. Caja con 10 piezas">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Descripción (Opcional)</label>
+                                <textarea class="form-control form-control-sm shadow-sm" name="descripcion" id="in_desc" rows="2" placeholder="Breve descripción..."></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-4 d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-light fw-bold px-4" onclick="toggleFormulario()">Cancelar</button>
+                            <button type="submit" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm">
+                                <i class="bi bi-save me-2"></i>Guardar Producto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                     <div class="table-responsive">
@@ -108,6 +151,10 @@ if (@mis_productos) {
         my $badge_stock = $cant > 5 ? 'bg-info bg-opacity-10 text-info' : 'bg-warning bg-opacity-10 text-warning';
         $badge_stock = 'bg-danger bg-opacity-10 text-danger' if $cant <= 0;
 
+        my $nombre_esc = $nombre; $nombre_esc =~ s/'/\\'/g;
+        my $pres_esc = $pres; $pres_esc =~ s/'/\\'/g;
+        my $desc_esc = $desc; $desc_esc =~ s/'/\\'/g;
+
         print <<HTML;
                                 <tr>
                                     <td>
@@ -118,7 +165,7 @@ if (@mis_productos) {
                                     <td class="text-center"><span class="badge $badge_stock px-3 py-2 rounded-pill fw-bold">$cant u.</span></td>
                                     <td><span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold">\$ $precio</span></td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-light text-primary rounded-pill me-1" onclick="editarProducto('$id_prd', '$nombre', '$precio', '$cant', '$pres', '$desc')"><i class="bi bi-pencil"></i></button>
+                                        <button class="btn btn-sm btn-light text-primary rounded-pill me-1" onclick="editarProducto('$id_prd', '$nombre_esc', '$precio', '$cant', '$pres_esc', '$desc_esc')"><i class="bi bi-pencil"></i></button>
                                         <button class="btn btn-sm btn-light text-danger rounded-pill" onclick="eliminarProducto('$id_prd')"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
@@ -142,59 +189,22 @@ print <<HTML;
                 </div>
             </div>
         </div>
-
-        <!-- Modal Producto -->
-        <div class="modal fade" id="modalProducto" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg rounded-4 modal-diamond">
-                    <div class="modal-header border-0 bg-primary bg-gradient text-white pt-4 pb-3 px-4 rounded-top-4">
-                        <h5 class="modal-title fw-black" id="tituloModalProducto"><i class="bi bi-box-seam me-2"></i>Nuevo Producto</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form id="form-producto" class="form-sdm-container">
-                        <input type="hidden" name="action" id="action_prod" value="create">
-                        <input type="hidden" name="id_producto" id="id_producto_edit" value="">
-                        <div class="modal-body p-4 bg-light">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Nombre del Producto</label>
-                                    <input type="text" class="form-control form-control-sm shadow-sm" name="nombre" id="in_nombre" required placeholder="Ej. Resina 3M">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold">Precio Unitario (\$)</label>
-                                    <input type="number" step="0.01" class="form-control form-control-sm shadow-sm" name="precio" id="in_precio" required placeholder="Ej. 150.00">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold">Stock Inicial</label>
-                                    <input type="number" class="form-control form-control-sm shadow-sm" name="cantidad" id="in_cant" required placeholder="Ej. 10">
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Presentación</label>
-                                    <input type="text" class="form-control form-control-sm shadow-sm" name="presentacion" id="in_pres" placeholder="Ej. Caja con 10 piezas">
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Descripción (Opcional)</label>
-                                    <textarea class="form-control form-control-sm shadow-sm" name="descripcion" id="in_desc" rows="2" placeholder="Breve descripción..."></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer border-0 p-4 bg-light rounded-bottom-4">
-                            <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm">
-                                <i class="bi bi-save me-2"></i>Guardar Producto
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
 HTML
 utils::sub_sidebar::render_sidebar_footer();
 print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
+    function toggleFormulario() {
+        const container = document.getElementById('formContainer');
+        if (container.classList.contains('d-none')) {
+            container.classList.remove('d-none');
+            container.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            container.classList.add('d-none');
+        }
+    }
+
     function prepararNuevoProducto() {
         document.getElementById('action_prod').value = 'create';
         document.getElementById('id_producto_edit').value = '';
@@ -203,7 +213,12 @@ print <<HTML;
         document.getElementById('in_cant').value = '';
         document.getElementById('in_pres').value = '';
         document.getElementById('in_desc').value = '';
-        document.getElementById('tituloModalProducto').innerHTML = '<i class="bi bi-box-seam me-2"></i>Nuevo Producto';
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-box-seam me-2"></i>Nuevo Producto';
+        document.getElementById('formHeader').className = 'card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        
+        const container = document.getElementById('formContainer');
+        container.classList.remove('d-none');
+        container.scrollIntoView({ behavior: 'smooth' });
     }
 
     function editarProducto(id, nombre, precio, cant, pres, desc) {
@@ -214,9 +229,12 @@ print <<HTML;
         document.getElementById('in_cant').value = cant;
         document.getElementById('in_pres').value = pres;
         document.getElementById('in_desc').value = desc;
-        document.getElementById('tituloModalProducto').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar Producto';
-        var myModal = new bootstrap.Modal(document.getElementById('modalProducto'));
-        myModal.show();
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar Producto';
+        document.getElementById('formHeader').className = 'card-header border-0 bg-navy text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        
+        const container = document.getElementById('formContainer');
+        container.classList.remove('d-none');
+        container.scrollIntoView({ behavior: 'smooth' });
     }
 
     document.getElementById('form-producto').addEventListener('submit', function(e) {

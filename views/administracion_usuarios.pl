@@ -93,13 +93,72 @@ print <<HTML;
                     <h2 class="fw-black mb-0"><i class="bi bi-people-fill me-2"></i>Gestión de Personal</h2>
                     <p class="text-white-50 small mb-0 mt-1">Directorio de Médicos, Recepcionistas y Auxiliares</p>
                 </div>
-                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAltaUsuario">
+                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" onclick="prepararNuevoUsuario()">
                     <i class="bi bi-person-plus-fill me-2"></i>Añadir Personal
                 </button>
             </div>
         </header>
 
         <div class="container-fluid px-4 pb-5">
+            <!-- Contenedor del Formulario Inline (Alta/Edición) -->
+            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
+                <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader">
+                    <h5 class="fw-black mb-0" id="formTitle"><i class="bi bi-person-plus-fill me-2"></i>Añadir Colaborador</h5>
+                    <button type="button" class="btn-close btn-close-white" onclick="toggleFormulario()"></button>
+                </div>
+                <div class="card-body p-4 bg-light rounded-bottom-4">
+                    <form id="form-usuario" class="form-sdm-container">
+                        <input type="hidden" name="id_usuario_edit" id="form_id_usuario" value="">
+                        <input type="hidden" name="action" id="form_action" value="create">
+                        
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Nombre Completo</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_nombre" name="nombre" required placeholder="Ej: Dra. María López">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Correo Electrónico (Login)</label>
+                                <input type="email" class="form-control form-control-sm shadow-sm" id="form_correo" name="correo" required placeholder="maria\@clinica.com">
+                            </div>
+                            <div class="col-12 col-md-6" id="passwordFieldContainer">
+                                <label class="form-label small fw-bold text-muted" id="passwordLabel">Contraseña Inicial</label>
+                                <input type="password" class="form-control form-control-sm shadow-sm" id="form_clave" name="clave" placeholder="••••••••">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Rol Operativo</label>
+                                <select class="form-select form-select-sm shadow-sm" id="form_rol" name="rol" required>
+                                    <option value="Medico">Médico (Acceso a Expedientes)</option>
+                                    <option value="Recepcionista">Recepcionista (Agenda y Pagos)</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Asignar a Sucursal</label>
+                                <select class="form-select form-select-sm shadow-sm" id="form_id_sucursal" name="id_sucursal" required>
+                                    <option value="" disabled selected>Selecciona una sede...</option>
+HTML
+
+foreach my $suc (@mis_sucursales) {
+    print qq|                                    <option value="$suc->{id}">$suc->{nombre}</option>\n|;
+}
+
+if (!@mis_sucursales) {
+    print qq|                                    <option value="" disabled>! PRIMERO DEBES CREAR UNA SUCURSAL</option>\n|;
+}
+
+print <<HTML;
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4 d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-light fw-bold px-4" onclick="toggleFormulario()">Cancelar</button>
+                            <button type="submit" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" id="btn-submit-form">
+                                <i class="bi bi-person-check me-2"></i>Guardar Colaborador
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                     <div class="table-responsive">
@@ -134,7 +193,7 @@ if (@mi_personal) {
                                     <td class="text-muted small fw-bold">$$per{sucursal}</td>
                                     <td class="text-end pe-4" data-label="ACCIONES">
                                         <div class="d-flex justify-content-end gap-2">
-                                            <button onclick="abrirModalEditar('$$per{id}', '$$per{nombre}', '$$per{correo}', '$$per{rol}', '$$per{id_suc}')" class="btn p-0 border-0 btn-expediente" title="Editar">
+                                            <button onclick="abrirFormEditar('$$per{id}', '$$per{nombre}', '$$per{correo}', '$$per{rol}', '$$per{id_suc}')" class="btn p-0 border-0 btn-expediente" title="Editar">
                                                 <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
                                             </button>
                                             <button onclick="confirmBorrar('$$per{id}')" class="btn p-0 border-0 action-btn-delete" title="Desactivar">
@@ -169,128 +228,12 @@ utils::sub_sidebar::render_sidebar_footer();
 print <<HTML;
 
 <style>
-  .modal-backdrop.show { z-index: 104900 !important; }
-  \@media (min-width: 992px) { 
-      #modalAltaUsuario { padding-left: 280px !important; } 
-      #modalEditarUsuario { padding-left: 280px !important; } 
-  }
   .export-toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 </style>
 
 <!-- Scripts y Librerías de Exportación (DataTables) -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
-
-<!-- Modal: Alta Usuario -->
-<div class="modal fade modal-diamond" id="modalAltaUsuario" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
-    <div class="modal-dialog modal-dialog-centered">
-        <form id="form-alta-usuario" class="w-100">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4">
-                    <h5 class="fw-black mb-0"><i class="bi bi-person-plus-fill me-2"></i>Añadir Colaborador</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Nombre Completo</label>
-                        <input type="text" class="form-control form-control-lg bg-light border-0 rounded-3" name="nombre" required placeholder="Ej: Dra. María López">
-                    </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-muted">Correo Electrónico (Login)</label>
-                            <input type="email" class="form-control form-control-lg bg-light border-0 rounded-3" name="correo" required placeholder="maria\@clinica.com">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-muted">Contraseña Inicial</label>
-                            <input type="password" class="form-control form-control-lg bg-light border-0 rounded-3" name="clave" required placeholder="••••••••">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Rol Operativo</label>
-                        <select class="form-select form-select-lg bg-light border-0 rounded-3" name="rol" required>
-                            <option value="Medico">Médico (Acceso a Expedientes)</option>
-                            <option value="Recepcionista">Recepcionista (Agenda y Pagos)</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold text-muted">Asignar a Sucursal</label>
-                        <select class="form-select form-select-lg bg-light border-0 rounded-3" name="id_sucursal" required>
-                            <option value="" disabled selected>Selecciona una sede...</option>
-HTML
-
-foreach my $suc (@mis_sucursales) {
-    print qq|                            <option value="$suc->{id}">$suc->{nombre}</option>\n|;
-}
-
-if (!@mis_sucursales) {
-    print qq|                            <option value="" disabled>! PRIMERO DEBES CREAR UNA SUCURSAL</option>\n|;
-}
-
-print <<HTML;
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-sdm-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-usuario">
-                        <i class="bi bi-person-check me-2"></i>Crear Cuenta
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal: Editar Usuario -->
-<div class="modal fade modal-diamond" id="modalEditarUsuario" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
-    <div class="modal-dialog modal-dialog-centered">
-        <form id="form-editar-usuario" class="w-100">
-            <input type="hidden" name="id_usuario_edit" id="edit_id_usuario">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 bg-navy text-white py-3 px-4 rounded-top-4" style="background-color: var(--sdm-navy);">
-                    <h5 class="fw-black mb-0"><i class="bi bi-pencil-square me-2"></i>Editar Colaborador</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Nombre Completo</label>
-                        <input type="text" class="form-control form-control-lg bg-light border-0 rounded-3" id="edit_nombre" name="nombre" required>
-                    </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-muted">Correo Electrónico</label>
-                            <input type="email" class="form-control form-control-lg bg-light border-0 rounded-3" id="edit_correo" name="correo" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-muted">Nueva Contraseña (Opcional)</label>
-                            <input type="password" class="form-control form-control-lg bg-light border-0 rounded-3" name="clave" placeholder="••••••••">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Rol Operativo</label>
-                        <select class="form-select form-select-lg bg-light border-0 rounded-3" id="edit_rol" name="rol" required>
-                            <option value="Medico">Médico (Acceso a Expedientes)</option>
-                            <option value="Recepcionista">Recepcionista (Agenda y Pagos)</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold text-muted">Sucursal Asignada</label>
-                        <select class="form-select form-select-lg bg-light border-0 rounded-3" id="edit_id_sucursal" name="id_sucursal" required>
-                            <option value="" disabled>Selecciona una sede...</option>
-HTML
-
-foreach my $suc (@mis_sucursales) {
-    print qq|                            <option value="$suc->{id}">$suc->{nombre}</option>\n|;
-}
-
-print <<HTML;
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-sdm-primary rounded-pill py-3 w-100 fw-bold shadow-sm" id="btn-submit-edit">
-                        <i class="bi bi-save me-2"></i>Guardar Cambios
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
@@ -306,17 +249,65 @@ print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
-    document.body.appendChild(document.getElementById('modalAltaUsuario'));
-    document.body.appendChild(document.getElementById('modalEditarUsuario'));
+    function toggleFormulario() {
+        const container = document.getElementById('formContainer');
+        if (container.classList.contains('d-none')) {
+            container.classList.remove('d-none');
+            container.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            container.classList.add('d-none');
+        }
+    }
 
-    document.getElementById('form-alta-usuario').addEventListener('submit', function(e) {
+    function prepararNuevoUsuario() {
+        document.getElementById('form_action').value = 'create';
+        document.getElementById('form_id_usuario').value = '';
+        document.getElementById('form_nombre').value = '';
+        document.getElementById('form_correo').value = '';
+        document.getElementById('form_clave').value = '';
+        document.getElementById('form_clave').required = true;
+        document.getElementById('passwordLabel').innerText = 'Contraseña Inicial';
+        document.getElementById('form_rol').value = 'Medico';
+        document.getElementById('form_id_sucursal').value = '';
+        
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Añadir Colaborador';
+        document.getElementById('formHeader').className = 'card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        
+        const container = document.getElementById('formContainer');
+        container.classList.remove('d-none');
+        container.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function abrirFormEditar(id, nombre, correo, rol, id_sucursal) {
+        document.getElementById('form_action').value = 'update';
+        document.getElementById('form_id_usuario').value = id;
+        document.getElementById('form_nombre').value = nombre;
+        document.getElementById('form_correo').value = correo;
+        document.getElementById('form_clave').value = '';
+        document.getElementById('form_clave').required = false;
+        document.getElementById('passwordLabel').innerText = 'Nueva Contraseña (Opcional)';
+        document.getElementById('form_rol').value = rol;
+        document.getElementById('form_id_sucursal').value = id_sucursal;
+        
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Colaborador';
+        document.getElementById('formHeader').className = 'card-header border-0 bg-navy text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        
+        const container = document.getElementById('formContainer');
+        container.classList.remove('d-none');
+        container.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    document.getElementById('form-usuario').addEventListener('submit', function(e) {
         e.preventDefault();
         const fd = new FormData(this);
-        const btn = document.getElementById('btn-submit-usuario');
+        const action = document.getElementById('form_action').value;
+        const btn = document.getElementById('btn-submit-form');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creando...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
 
-        fetch('../api/alta_usuario_api.pl', {
+        const apiUrl = (action === 'create') ? '../api/alta_usuario_api.pl' : '../api/editar_usuario_api.pl';
+
+        fetch(apiUrl, {
             method: 'POST',
             body: fd
         })
@@ -325,60 +316,21 @@ print <<HTML;
             if (data.status === 'success') {
                 Swal.fire({
                     icon: 'success',
-                    title: '¡Usuario Creado!',
-                    text: 'El colaborador ya puede iniciar sesión.',
+                    title: '¡Guardado!',
+                    text: 'El perfil del colaborador ha sido guardado.',
                     confirmButtonColor: '#18D1E6'
                 }).then(() => location.reload());
             } else {
                 Swal.fire('Error', data.message || 'Ocurrió un error.', 'error');
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-person-check me-2"></i>Crear Cuenta';
+                btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Colaborador';
             }
         })
         .catch(err => {
             console.error(err);
             Swal.fire('Error', 'Falla de conexión.', 'error');
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-person-check me-2"></i>Crear Cuenta';
-        });
-    });
-
-    // Edición de Usuario
-    function abrirModalEditar(id, nombre, correo, rol, id_sucursal) {
-        document.getElementById('edit_id_usuario').value = id;
-        document.getElementById('edit_nombre').value = nombre;
-        document.getElementById('edit_correo').value = correo;
-        document.getElementById('edit_rol').value = rol;
-        document.getElementById('edit_id_sucursal').value = id_sucursal;
-        var myModal = new bootstrap.Modal(document.getElementById('modalEditarUsuario'));
-        myModal.show();
-    }
-
-    document.getElementById('form-editar-usuario').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const fd = new FormData(this);
-        const btn = document.getElementById('btn-submit-edit');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
-
-        fetch('../api/editar_usuario_api.pl', {
-            method: 'POST',
-            body: fd
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Actualizado!',
-                    text: 'El perfil ha sido guardado.',
-                    confirmButtonColor: '#18D1E6'
-                }).then(() => location.reload());
-            } else {
-                Swal.fire('Error', data.message || 'Ocurrió un error.', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Cambios';
-            }
+            btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Colaborador';
         });
     });
 
@@ -460,13 +412,11 @@ print <<HTML;
                     ]
                 }
             });
-            // Ocultar buscador nativo y moverlo al header si quisieramos
         }
     });
 </script>
 </body>
 </html>
 HTML
-
-render_bottom_nav('usuarios');
-1;
+utils::sub_bottom_nav::render_bottom_nav(role => $role);
+print $q->end_html;

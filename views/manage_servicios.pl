@@ -71,13 +71,48 @@ print <<HTML;
                     <h2 class="fw-black mb-0"><i class="bi bi-heart-pulse me-2"></i>Catálogo de Servicios</h2>
                     <p class="text-white-50 small mb-0 mt-1">Gestión de precios y descripciones para cotizaciones</p>
                 </div>
-                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalServicio" onclick="prepararNuevoServicio()">
+                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" onclick="prepararNuevoServicio()">
                     <i class="bi bi-plus-circle me-2"></i>Nuevo Servicio
                 </button>
             </div>
         </header>
 
         <div class="container-fluid px-4 pb-5">
+            <!-- Contenedor del Formulario Inline (Alta/Edición) -->
+            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
+                <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader">
+                    <h5 class="modal-title fw-black mb-0" id="formTitle"><i class="bi bi-heart-pulse me-2"></i>Nuevo Servicio</h5>
+                    <button type="button" class="btn-close btn-close-white" onclick="toggleFormulario()"></button>
+                </div>
+                <div class="card-body p-4 bg-light rounded-bottom-4">
+                    <form id="form-servicio" class="form-sdm-container">
+                        <input type="hidden" name="action" id="action_serv" value="create">
+                        <input type="hidden" name="id_servicio" id="id_servicio_edit" value="">
+                        
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold">Nombre del Servicio</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" name="nombre" id="in_nombre" required placeholder="Ej. Consulta Especialista">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold">Precio Unitario (\$)</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm shadow-sm" name="precio" id="in_precio" required placeholder="Ej. 800.00">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Descripción (Opcional)</label>
+                                <textarea class="form-control form-control-sm shadow-sm" name="descripcion" id="in_desc" rows="2" placeholder="Breve descripción del servicio"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-4 d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-light fw-bold px-4" onclick="toggleFormulario()">Cancelar</button>
+                            <button type="submit" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm">
+                                <i class="bi bi-save me-2"></i>Guardar Servicio
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                     <div class="table-responsive">
@@ -99,13 +134,16 @@ if (@mis_servicios) {
         my $nombre = $srv->{nombre};
         my $desc = $srv->{descripcion};
         my $precio = $srv->{precio};
+        # Escapamos las comillas simples para pasarlas de forma segura a JS
+        my $nombre_esc = $nombre; $nombre_esc =~ s/'/\\'/g;
+        my $desc_esc = $desc; $desc_esc =~ s/'/\\'/g;
         print <<HTML;
                                 <tr>
                                     <td><span class="fw-bold text-dark"><i class="bi bi-clipboard-check text-primary me-2"></i>$nombre</span></td>
                                     <td><span class="text-muted small">$desc</span></td>
                                     <td><span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold">\$ $precio</span></td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-light text-primary rounded-pill me-1" onclick="editarServicio('$id_srv', '$nombre', '$precio', '$desc')"><i class="bi bi-pencil"></i></button>
+                                        <button class="btn btn-sm btn-light text-primary rounded-pill me-1" onclick="editarServicio('$id_srv', '$nombre_esc', '$precio', '$desc_esc')"><i class="bi bi-pencil"></i></button>
                                         <button class="btn btn-sm btn-light text-danger rounded-pill" onclick="eliminarServicio('$id_srv')"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
@@ -129,58 +167,34 @@ print <<HTML;
                 </div>
             </div>
         </div>
-
-        <!-- Modal Servicio -->
-        <div class="modal fade" id="modalServicio" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg rounded-4 modal-diamond">
-                    <div class="modal-header border-0 bg-primary bg-gradient text-white pt-4 pb-3 px-4 rounded-top-4">
-                        <h5 class="modal-title fw-black" id="tituloModalServicio"><i class="bi bi-heart-pulse me-2"></i>Nuevo Servicio</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form id="form-servicio" class="form-sdm-container">
-                        <input type="hidden" name="action" id="action_serv" value="create">
-                        <input type="hidden" name="id_servicio" id="id_servicio_edit" value="">
-                        <div class="modal-body p-4 bg-light">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Nombre del Servicio</label>
-                                    <input type="text" class="form-control form-control-sm shadow-sm" name="nombre" id="in_nombre" required placeholder="Ej. Consulta Especialista">
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Precio Unitario (\$)</label>
-                                    <input type="number" step="0.01" class="form-control form-control-sm shadow-sm" name="precio" id="in_precio" required placeholder="Ej. 800.00">
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Descripción (Opcional)</label>
-                                    <textarea class="form-control form-control-sm shadow-sm" name="descripcion" id="in_desc" rows="2" placeholder="Breve descripción del servicio"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer border-0 p-4 bg-light rounded-bottom-4">
-                            <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm">
-                                <i class="bi bi-save me-2"></i>Guardar Servicio
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
 HTML
 utils::sub_sidebar::render_sidebar_footer();
 print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
+    function toggleFormulario() {
+        const container = document.getElementById('formContainer');
+        if (container.classList.contains('d-none')) {
+            container.classList.remove('d-none');
+            container.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            container.classList.add('d-none');
+        }
+    }
+
     function prepararNuevoServicio() {
         document.getElementById('action_serv').value = 'create';
         document.getElementById('id_servicio_edit').value = '';
         document.getElementById('in_nombre').value = '';
         document.getElementById('in_precio').value = '';
         document.getElementById('in_desc').value = '';
-        document.getElementById('tituloModalServicio').innerHTML = '<i class="bi bi-heart-pulse me-2"></i>Nuevo Servicio';
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-heart-pulse me-2"></i>Nuevo Servicio';
+        document.getElementById('formHeader').className = 'card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        
+        const container = document.getElementById('formContainer');
+        container.classList.remove('d-none');
+        container.scrollIntoView({ behavior: 'smooth' });
     }
 
     function editarServicio(id, nombre, precio, desc) {
@@ -189,9 +203,12 @@ print <<HTML;
         document.getElementById('in_nombre').value = nombre;
         document.getElementById('in_precio').value = precio;
         document.getElementById('in_desc').value = desc;
-        document.getElementById('tituloModalServicio').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar Servicio';
-        var myModal = new bootstrap.Modal(document.getElementById('modalServicio'));
-        myModal.show();
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar Servicio';
+        document.getElementById('formHeader').className = 'card-header border-0 bg-navy text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        
+        const container = document.getElementById('formContainer');
+        container.classList.remove('d-none');
+        container.scrollIntoView({ behavior: 'smooth' });
     }
 
     document.getElementById('form-servicio').addEventListener('submit', function(e) {
