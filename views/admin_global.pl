@@ -35,7 +35,12 @@ if ($role ne 'Administrador Global') {
     exit;
 }
 
-print $q->header(-type => 'text/html', -charset => 'UTF-8');
+print $q->header(
+    -type => 'text/html',
+    -charset => 'UTF-8',
+    -cache_control => 'no-store, no-cache, must-revalidate, max-age=0',
+    -pragma => 'no-cache'
+);
 render_header(
     usuario     => $usuario, 
     role        => $role, 
@@ -43,7 +48,7 @@ render_header(
     skip_header => 1
 );
 
-# Leer Usuarios Actuales (para ver los ejecutivos de ventas)
+# Leer Usuarios Actuales (para ver los ejecutivos de ventas activos)
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $regs = leer_tabla($archivo_usuarios, '!');
 my @ejecutivos = ();
@@ -65,89 +70,124 @@ print <<HTML;
                     <h2 class="fw-black mb-0"><i class="bi bi-globe me-2"></i>Administrador Global</h2>
                     <p class="text-white-50 small mb-0 mt-1">Gestión de Roles, Servidores y Fuerza de Ventas</p>
                 </div>
-                <button class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="hardResetDB()">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Hard Reset DB
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" onclick="prepararNuevoEjecutivo()">
+                        <i class="bi bi-person-plus-fill me-2"></i>Añadir Ejecutivo
+                    </button>
+                    <button class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="hardResetDB()">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Hard Reset DB
+                    </button>
+                </div>
             </div>
         </header>
 
         <!-- CONTAINER -->
         <div class="container-fluid px-4 pb-5">
-            <div class="row g-4">
-                
-                <!-- CARD: CREAR EJECUTIVO -->
-                <div class="col-12 col-xl-4">
-                    <div class="card card-medentia-aura border-0 h-100 shadow-sm">
-                        <div class="card-body p-4 d-flex flex-column align-items-center text-center">
-                            <div class="kpi-icon-box bg-primary text-white shadow-sm mb-3" style="width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                                <i class="bi bi-person-badge"></i>
+            
+            <!-- Contenedor del Formulario Inline (Alta/Edición de Ejecutivo) -->
+            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
+                <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader">
+                    <h5 class="fw-black mb-0" id="formTitle"><i class="bi bi-person-plus-fill me-2"></i>Añadir Ejecutivo de Ventas</h5>
+                    <button type="button" class="btn-close btn-close-white" onclick="toggleFormulario()"></button>
+                </div>
+                <div class="card-body p-4 bg-light rounded-bottom-4">
+                    <form id="form-ejecutivo" class="form-sdm-container">
+                        <input type="hidden" name="id" id="form_id_ejecutivo" value="">
+                        <input type="hidden" name="action" id="form_action" value="create">
+                        
+                        <div class="row g-3">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-bold text-muted">Nombre Completo</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_nombre" name="nombre" required placeholder="Ej: Pamela Villegas">
                             </div>
-                            <h4 class="fw-bold text-dark mb-2">Fuerza de Ventas</h4>
-                            <p class="text-muted small mb-4">Registra un nuevo Ejecutivo de Ventas directamente en la tabla usando edición en línea. Ellos tendrán acceso al CRM Comercial.</p>
-                            
-                            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm w-100 mt-auto" onclick="agregarFilaInline()">
-                                <i class="bi bi-plus-circle me-2"></i>Nuevo Ejecutivo
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-bold text-muted">Correo Electrónico (Login)</label>
+                                <input type="email" class="form-control form-control-sm shadow-sm" id="form_correo" name="correo" required placeholder="correo\@correo.com">
+                            </div>
+                            <div class="col-12 col-md-4" id="passwordFieldContainer">
+                                <label class="form-label small fw-bold text-muted" id="passwordLabel">Contraseña Inicial</label>
+                                <input type="password" class="form-control form-control-sm shadow-sm" id="form_clave" name="clave" placeholder="••••••••" autocomplete="new-password">
+                            </div>
+                        </div>
+                        <div class="mt-4 d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-light fw-bold px-4" onclick="toggleFormulario()">Cancelar</button>
+                            <button type="submit" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" id="btn-submit-form">
+                                <i class="bi bi-person-check me-2"></i>Guardar Ejecutivo
                             </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
-                
-                <!-- LISTA DE EJECUTIVOS -->
-                <div class="col-12 col-xl-8">
-                    <div class="card card-medentia-aura border-0 h-100 shadow-sm">
-                        <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
-                            <h5 class="fw-bold text-dark"><i class="bi bi-list-stars text-primary me-2"></i>Ejecutivos de Ventas Activos</h5>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle border-bottom" id="tablaEjecutivos">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="small text-muted fw-bold border-0 text-uppercase">Nombre</th>
-                                            <th class="small text-muted fw-bold border-0 text-uppercase">Correo</th>
-                                            <th class="small text-muted fw-bold border-0 text-uppercase">Contraseña</th>
-                                            <th class="small text-muted fw-bold border-0 text-uppercase">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+            </div>
+
+            <!-- LISTA DE EJECUTIVOS -->
+            <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
+                    <h5 class="fw-bold text-dark"><i class="bi bi-list-stars text-primary me-2"></i>Ejecutivos de Ventas Activos</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="tablaEjecutivos">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="small text-muted fw-bold border-0 text-uppercase">Nombre</th>
+                                    <th class="small text-muted fw-bold border-0 text-uppercase">Correo Electrónico</th>
+                                    <th class="small text-muted fw-bold border-0 text-uppercase text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 HTML
 
 if (@ejecutivos) {
     foreach my $e (@ejecutivos) {
         print <<HTML;
-                                        <tr data-id="$$e{id}">
-                                            <td class="editable-cell" data-field="nombre">$$e{nombre}</td>
-                                            <td class="editable-cell" data-field="correo">$$e{correo}</td>
-                                            <td class="editable-cell text-muted" data-field="clave"><em>Oculta (Click para cambiar)</em></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-danger rounded-pill btn-borrar-inline"><i class="bi bi-trash"></i></button>
-                                            </td>
-                                        </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                                                <i class="bi bi-person-badge"></i>
+                                            </div>
+                                            <span class="fw-bold text-dark">$$e{nombre}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted small fw-bold">$$e{correo}</td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button onclick="abrirFormEditar('$$e{id}', '$$e{nombre}', '$$e{correo}')" class="btn p-0 border-0 btn-expediente" title="Editar">
+                                                <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
+                                            </button>
+                                            <button onclick="confirmBorrar('$$e{id}')" class="btn p-0 border-0 action-btn-delete" title="Eliminar">
+                                                <div class="icon-container-acrylic text-danger border-danger border-opacity-25" style="background: rgba(220, 53, 69, 0.05);"><i class="bi bi-person-x"></i></div>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
 HTML
     }
 } else {
-    # DataTables will handle the empty state automatically.
+    print <<HTML;
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted">
+                                        <i class="bi bi-people display-4 d-block mb-3 text-black-50 opacity-50"></i>
+                                        <p class="mb-0 fw-bold fs-5">Sin ejecutivos de ventas registrados.</p>
+                                    </td>
+                                </tr>
+HTML
 }
 
 print <<HTML;
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-
             </div>
         </div>
-    </main><style>
-  .editable-cell { cursor: pointer; transition: background-color 0.2s; }
-  .editable-cell:hover { background-color: #f1f5f9; outline: 1px dashed #cbd5e1; }
-  .editing-input { width: 100%; border: 1px solid #3b82f6; border-radius: 4px; padding: 4px 8px; outline: none; }
-  .new-row-highlight { background-color: #f0fdf4 !important; }
-</style>
+    </main>
+HTML
+utils::sub_sidebar::render_sidebar_footer();
+print <<HTML;
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Scripts y Librerías de DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
@@ -156,183 +196,131 @@ print <<HTML;
     let dtEjecutivos;
 
     \$(document).ready(function() {
-        dtEjecutivos = \$('#tablaEjecutivos').DataTable({
-            language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-            dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
-            ordering: false,
-            paging: false
-        });
-
-        // Inline Editing - Click to Edit
-        \$('#tablaEjecutivos tbody').on('click', '.editable-cell', function(e) {
-            e.stopPropagation();
-            if (\$(this).find('input').length > 0) return; // Ya está en modo edición
-
-            const \$cell = \$(this);
-            let currentText = \$cell.text().trim();
-            if (currentText.includes('Oculta')) currentText = '';
-
-            const field = \$cell.data('field');
-            const type = (field === 'clave') ? 'password' : 'text';
-            
-            const \$input = \$('<input>', {
-                type: type,
-                class: 'editing-input',
-                value: currentText,
-                placeholder: (field === 'clave') ? 'Nueva contraseña' : ''
+        if (\$('#tablaEjecutivos').length && \$('#tablaEjecutivos tbody tr td').length > 1) {
+            dtEjecutivos = \$('#tablaEjecutivos').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                ordering: true,
+                paging: true
             });
+        }
+    });
 
-            \$cell.html(\$input);
-            \$input.focus();
+    function toggleFormulario() {
+        const container = document.getElementById('formContainer');
+        if (container.classList.contains('d-none')) {
+            container.classList.remove('d-none');
+            container.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            container.classList.add('d-none');
+        }
+    }
 
-            // Guardar al perder el foco o Enter
-            \$input.on('blur keydown', function(e) {
-                if (e.type === 'keydown' && e.which !== 13) return; // Si es tecla y no es Enter, salir
-                
-                const newValue = \$(this).val().trim();
-                const \$row = \$cell.closest('tr');
-                const id = \$row.data('id');
-                const isNew = \$row.hasClass('new-row-highlight');
+    function prepararNuevoEjecutivo() {
+        document.getElementById('form_action').value = 'create';
+        document.getElementById('form_id_ejecutivo').value = '';
+        document.getElementById('form_nombre').value = '';
+        document.getElementById('form_correo').value = '';
+        document.getElementById('form_clave').value = '';
+        document.getElementById('form_clave').required = true;
+        document.getElementById('passwordLabel').innerText = 'Contraseña Inicial';
+        
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Añadir Ejecutivo de Ventas';
+        document.getElementById('formHeader').className = 'card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        
+        const container = document.getElementById('formContainer');
+        container.classList.remove('d-none');
+        container.scrollIntoView({ behavior: 'smooth' });
+    }
 
-                if (isNew) {
-                    // Solo restaurar texto si es nuevo (el guardado se hace global)
-                    \$cell.html(newValue === '' && field === 'clave' ? '<em>Oculta</em>' : newValue);
-                    if(e.type === 'keydown') \$input.trigger('blur'); // Evitar bucle si es Enter
-                    return;
-                }
+    function abrirFormEditar(id, nombre, correo) {
+        document.getElementById('form_action').value = 'edit';
+        document.getElementById('form_id_ejecutivo').value = id;
+        document.getElementById('form_nombre').value = nombre;
+        document.getElementById('form_correo').value = correo;
+        document.getElementById('form_clave').value = '';
+        document.getElementById('form_clave').required = false;
+        document.getElementById('passwordLabel').innerText = 'Nueva Contraseña (Opcional)';
+        
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Ejecutivo de Ventas';
+        document.getElementById('formHeader').className = 'card-header border-0 bg-navy text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        
+        const container = document.getElementById('formContainer');
+        container.classList.remove('d-none');
+        container.scrollIntoView({ behavior: 'smooth' });
+    }
 
-                // Guardado API (Update)
-                const fd = new FormData();
-                fd.append('action', 'edit');
-                fd.append('id', id);
-                // Si estoy editando un campo, los demás deben permanecer
-                const currentName = \$row.find('td[data-field="nombre"]').text().trim();
-                const currentEmail = \$row.find('td[data-field="correo"]').text().trim();
-                
-                let sendName = (field === 'nombre') ? newValue : currentName;
-                let sendEmail = (field === 'correo') ? newValue : currentEmail;
-                let sendClave = (field === 'clave') ? newValue : '';
+    document.getElementById('form-ejecutivo').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        const action = document.getElementById('form_action').value;
+        const btn = document.getElementById('btn-submit-form');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
 
-                fd.append('nombre', sendName);
-                fd.append('correo', sendEmail);
-                fd.append('clave', sendClave);
-
-                fetch('../api/crud_ejecutivos_api.pl', { method: 'POST', body: fd })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        // DataTables internal update
-                        let newHtml = field === 'clave' ? '<em class="text-muted">Oculta</em>' : newValue;
-                        dtEjecutivos.cell(\$cell).data(newHtml).draw(false);
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                        dtEjecutivos.cell(\$cell).data(currentText || '<em class="text-muted">Oculta</em>').draw(false);
-                    }
-                }).catch(() => {
-                    dtEjecutivos.cell(\$cell).data(currentText).draw(false);
-                });
-            });
-        });
-
-        // Borrar Registro (Soft Delete)
-        \$('#tablaEjecutivos tbody').on('click', '.btn-borrar-inline', function() {
-            const \$row = \$(this).closest('tr');
-            const id = \$row.data('id');
-            const isNew = \$row.hasClass('new-row-highlight');
-
-            if (isNew) {
-                dtEjecutivos.row(\$row).remove().draw();
-                return;
+        fetch('../api/crud_ejecutivos_api.pl', {
+            method: 'POST',
+            body: fd
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Guardado!',
+                    text: 'El perfil del ejecutivo ha sido guardado.',
+                    confirmButtonColor: '#18D1E6'
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Error', data.message || 'Ocurrió un error.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Ejecutivo';
             }
-
-            Swal.fire({
-                title: '¿Eliminar Ejecutivo?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Sí, borrar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const fd = new FormData();
-                    fd.append('action', 'remove');
-                    fd.append('id', id);
-                    fetch('../api/crud_ejecutivos_api.pl', { method: 'POST', body: fd })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            dtEjecutivos.row(\$row).remove().draw();
-                        } else {
-                            Swal.fire('Error', data.message, 'error');
-                        }
-                    });
-                }
-            });
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('Error', 'Falla de conexión.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Ejecutivo';
         });
     });
 
-    // Añadir Fila (Create)
-    window.agregarFilaInline = function() {
-        const trNode = dtEjecutivos.row.add([
-            '<input type="text" class="editing-input form-control-sm" placeholder="Nombre completo">',
-            '<input type="text" class="editing-input form-control-sm" placeholder="Correo">',
-            '<input type="password" class="editing-input form-control-sm" placeholder="Contraseña">',
-            '<button class="btn btn-sm btn-success rounded-pill btn-save-new"><i class="bi bi-check-lg"></i></button> <button class="btn btn-sm btn-outline-secondary rounded-pill btn-borrar-inline"><i class="bi bi-x"></i></button>'
-        ]).draw(false).node();
-
-        const \$row = \$(trNode);
-        \$row.addClass('new-row-highlight').attr('data-id', 'new');
-        \$row.find('td:eq(0)').addClass('editable-cell').attr('data-field', 'nombre');
-        \$row.find('td:eq(1)').addClass('editable-cell').attr('data-field', 'correo');
-        \$row.find('td:eq(2)').addClass('editable-cell').attr('data-field', 'clave');
-        
-        \$row.find('.btn-save-new').on('click', function() {
-            const btn = \$(this);
-            const nombre = \$row.find('td[data-field="nombre"] input').val();
-            const correo = \$row.find('td[data-field="correo"] input').val();
-            const clave  = \$row.find('td[data-field="clave"] input').val();
-
-            if(!nombre || !correo || !clave) {
-                Swal.fire('Atención', 'Todos los campos son obligatorios.', 'warning');
-                return;
+    // Eliminar Ejecutivo (Soft Delete)
+    function confirmBorrar(id) {
+        Swal.fire({
+            title: '¿Eliminar Ejecutivo?',
+            text: "El usuario ya no podrá iniciar sesión en el CRM.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, Eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('id', id);
+                fd.append('action', 'remove');
+                fetch('../api/crud_ejecutivos_api.pl', {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                });
             }
-
-            btn.prop('disabled', true);
-
-            const fd = new FormData();
-            fd.append('action', 'create');
-            fd.append('nombre', nombre);
-            fd.append('correo', correo);
-            fd.append('clave', clave);
-
-            fetch('../api/crud_ejecutivos_api.pl', { method: 'POST', body: fd })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    \$row.removeClass('new-row-highlight');
-                    \$row.attr('data-id', data.id);
-                    
-                    dtEjecutivos.row(\$row).data([
-                        nombre,
-                        correo,
-                        '<em class="text-muted">Oculta (Click para cambiar)</em>',
-                        '<button class="btn btn-sm btn-outline-danger rounded-pill btn-borrar-inline"><i class="bi bi-trash"></i></button>'
-                    ]).draw(false);
-                    
-                    Swal.fire('¡Éxito!', 'Ejecutivo guardado', 'success');
-                } else {
-                    btn.prop('disabled', false);
-                    Swal.fire('Error', data.message, 'error');
-                }
-            }).catch(err => {
-                btn.prop('disabled', false);
-                Swal.fire('Error', 'Error de red', 'error');
-            });
-        });
-    };
+        })
+    }
 
     window.hardResetDB = function() {
         Swal.fire({
-            title: '¿Peligro Inminente!',
+            title: '¡Peligro Inminente!',
             text: 'Estás a punto de borrar TODA la base de datos operativa y resetear el sistema. Esto no se puede deshacer. ¿Proceder?',
             icon: 'warning',
             showCancelButton: true,
