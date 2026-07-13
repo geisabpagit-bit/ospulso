@@ -3,4 +3,5 @@
 
 Administrador Global|cat_odontologos|cat_servicios|cat_clinicas|cat_config
 Soporte|cat_odontologos|cat_servicios|cat_config
-Tecnico Mantenimiento|cat_servicios|cat_configAdministrador Organizacion|cat_catalogo_org
+Tecnico Mantenimiento|cat_servicios|cat_config
+Administrador Organizacion|cat_catalogo_org

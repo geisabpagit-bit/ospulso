@@ -59,10 +59,11 @@ if ($regs_negocios) {
     }
 }
 
-# 2. Obtener usuarios
+# 2. Obtener usuarios (activos e inactivos)
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
 my @mi_personal = ();
+my @personal_inactivo = ();
 
 if ($regs_usuarios) {
     foreach my $r (@$regs_usuarios) {
@@ -70,9 +71,9 @@ if ($regs_usuarios) {
         my $extra = $r->[6];
         my ($org_id, $suc_id) = split(/:/, $extra);
         
-        # Si el usuario pertenece a mi organización, NO es el administrador global y ESTA ACTIVO
-        if ($org_id && $org_id eq $id_empresa && $r->[5] ne 'Administrador Organizacion' && $r->[4] eq '1') {
-            push @mi_personal, {
+        # Si el usuario pertenece a mi organización y NO es el administrador global
+        if ($org_id && $org_id eq $id_empresa && $r->[5] ne 'Administrador Organizacion') {
+            my $item = {
                 id => $r->[0],
                 nombre => $r->[1],
                 correo => $r->[2],
@@ -80,6 +81,11 @@ if ($regs_usuarios) {
                 id_suc => $suc_id,
                 sucursal => $sucursales_hash{$suc_id} || 'No Asignada'
             };
+            if ($r->[4] eq '1') {
+                push @mi_personal, $item;
+            } else {
+                push @personal_inactivo, $item;
+            }
         }
     }
 }
@@ -159,66 +165,157 @@ print <<HTML;
                 </div>
             </div>
 
-            <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" id="tablaUsuarios">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="small fw-bold text-muted text-uppercase border-0">Colaborador</th>
-                                    <th class="small fw-bold text-muted text-uppercase border-0">Rol / Perfil</th>
-                                    <th class="small fw-bold text-muted text-uppercase border-0">Sucursal Asignada</th>
-                                    <th class="small fw-bold text-muted text-uppercase border-0 text-end">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+            <!-- Pestañas de Navegación -->
+            <ul class="nav nav-pills mb-4 gap-2" id="userTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active rounded-pill fw-bold px-4" id="activos-tab" data-bs-toggle="pill" data-bs-target="#tab-activos" type="button" role="tab">
+                        <i class="bi bi-person-check-fill me-2"></i>Colaboradores Activos
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill fw-bold px-4 position-relative" id="inactivos-tab" data-bs-toggle="pill" data-bs-target="#tab-inactivos" type="button" role="tab">
+                        <i class="bi bi-person-x-fill me-2"></i>Inactivos / Papelera
+HTML
+if (@personal_inactivo) {
+    my $count = scalar(@personal_inactivo);
+    print qq|                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">$count</span>\n|;
+}
+print <<HTML;
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="userTabsContent">
+                <!-- PANEL: ACTIVOS -->
+                <div class="tab-pane fade show active" id="tab-activos" role="tabpanel">
+                    <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="tablaUsuarios">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Colaborador</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Rol / Perfil</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Sucursal Asignada</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0 text-end">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
 HTML
 
 if (@mi_personal) {
     foreach my $per (@mi_personal) {
         print <<HTML;
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
-                                                <i class="bi bi-person"></i>
-                                            </div>
-                                            <div>
-                                                <span class="fw-bold text-dark d-block">$$per{nombre}</span>
-                                                <span class="small text-muted">$$per{correo}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge bg-secondary px-3 py-2">$$per{rol}</span></td>
-                                    <td class="text-muted small fw-bold">$$per{sucursal}</td>
-                                    <td class="text-end pe-4" data-label="ACCIONES">
-                                        <div class="d-flex justify-content-end gap-2">
-                                            <button onclick="abrirFormEditar('$$per{id}', '$$per{nombre}', '$$per{correo}', '$$per{rol}', '$$per{id_suc}')" class="btn p-0 border-0 btn-expediente" title="Editar">
-                                                <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
-                                            </button>
-                                            <button onclick="confirmBorrar('$$per{id}')" class="btn p-0 border-0 action-btn-delete" title="Desactivar">
-                                                <div class="icon-container-acrylic text-danger border-danger border-opacity-25" style="background: rgba(220, 53, 69, 0.05);"><i class="bi bi-person-x"></i></div>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                                                        <i class="bi bi-person"></i>
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-bold text-dark d-block">$$per{nombre}</span>
+                                                        <span class="small text-muted">$$per{correo}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge bg-secondary px-3 py-2">$$per{rol}</span></td>
+                                            <td class="text-muted small fw-bold">$$per{sucursal}</td>
+                                            <td class="text-end pe-4">
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button onclick="abrirFormEditar('$$per{id}', '$$per{nombre}', '$$per{correo}', '$$per{rol}', '$$per{id_suc}')" class="btn p-0 border-0 btn-expediente" title="Editar">
+                                                        <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
+                                                    </button>
+                                                    <button onclick="confirmDesactivar('$$per{id}')" class="btn p-0 border-0 action-btn-delete" title="Desactivar">
+                                                        <div class="icon-container-acrylic text-danger border-danger border-opacity-25" style="background: rgba(220, 53, 69, 0.05);"><i class="bi bi-person-x"></i></div>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
 HTML
     }
 } else {
     print <<HTML;
-                                <tr>
-                                    <td colspan="4" class="text-center py-5 text-muted">
-                                        <i class="bi bi-person-badge display-4 d-block mb-3 text-black-50 opacity-50"></i>
-                                        <p class="mb-0 fw-bold fs-5">Sin colaboradores registrados.</p>
-                                        <p class="small text-muted">Agrega personal y asígnalo a tus sucursales.</p>
-                                    </td>
-                                </tr>
+                                        <tr>
+                                            <td colspan="4" class="text-center py-5 text-muted">
+                                                <i class="bi bi-person-badge display-4 d-block mb-3 text-black-50 opacity-50"></i>
+                                                <p class="mb-0 fw-bold fs-5">Sin colaboradores activos.</p>
+                                            </td>
+                                        </tr>
 HTML
 }
 
 print <<HTML;
-                            </tbody>
-                        </table>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL: INACTIVOS -->
+                <div class="tab-pane fade" id="tab-inactivos" role="tabpanel">
+                    <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="tablaUsuariosInactivos">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Colaborador</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Rol / Perfil</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Sucursal Asignada</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0 text-end">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+HTML
+
+if (@personal_inactivo) {
+    foreach my $per (@personal_inactivo) {
+        print <<HTML;
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center opacity-75">
+                                                    <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                                                        <i class="bi bi-person-x"></i>
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-bold text-muted d-block">$$per{nombre}</span>
+                                                        <span class="small text-muted">$$per{correo}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge bg-light text-muted px-3 py-2">$$per{rol}</span></td>
+                                            <td class="text-muted small fw-bold">$$per{sucursal}</td>
+                                            <td class="text-end pe-4">
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button onclick="confirmReactivar('$$per{id}')" class="btn p-0 border-0 btn-expediente" title="Reactivar">
+                                                        <div class="icon-container-acrylic text-success" style="background: rgba(25, 135, 84, 0.05); border-color: rgba(25, 135, 84, 0.25);"><i class="bi bi-arrow-counterclockwise"></i></div>
+                                                    </button>
+                                                    <button onclick="confirmEliminarDefinitivo('$$per{id}')" class="btn p-0 border-0 action-btn-delete" title="Eliminar Permanentemente">
+                                                        <div class="icon-container-acrylic text-danger" style="background: rgba(220, 53, 69, 0.1); border-color: rgba(220, 53, 69, 0.4);"><i class="bi bi-trash-fill"></i></div>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+HTML
+    }
+} else {
+    print <<HTML;
+                                        <tr>
+                                            <td colspan="4" class="text-center py-5 text-muted">
+                                                <i class="bi bi-trash3 display-4 d-block mb-3 text-black-50 opacity-50"></i>
+                                                <p class="mb-0 fw-bold fs-5">La papelera está vacía.</p>
+                                                <p class="small text-muted">Aquí aparecerán los colaboradores inactivos.</p>
+                                            </td>
+                                        </tr>
+HTML
+}
+
+print <<HTML;
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -335,10 +432,10 @@ print <<HTML;
     });
 
     // Desactivar Usuario (Soft Delete)
-    function confirmBorrar(id) {
+    function confirmDesactivar(id) {
         Swal.fire({
             title: '¿Desactivar Colaborador?',
-            text: "El usuario ya no podrá iniciar sesión.",
+            text: "El usuario ya no podrá iniciar sesión y pasará a la papelera.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -349,6 +446,71 @@ print <<HTML;
             if (result.isConfirmed) {
                 const fd = new FormData();
                 fd.append('id_usuario', id);
+                fd.append('accion', 'deactivate');
+                fetch('../api/baja_usuario_api.pl', {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                });
+            }
+        })
+    }
+
+    // Reactivar Usuario
+    function confirmReactivar(id) {
+        Swal.fire({
+            title: '¿Reactivar Colaborador?',
+            text: "El usuario volverá a la lista de personal activo y podrá iniciar sesión.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, Reactivar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('id_usuario', id);
+                fd.append('accion', 'reactivate');
+                fetch('../api/baja_usuario_api.pl', {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                });
+            }
+        })
+    }
+
+    // Eliminar Permanentemente (Físico)
+    function confirmEliminarDefinitivo(id) {
+        Swal.fire({
+            title: '¿Eliminar Permanentemente?',
+            text: "Esta acción borrará de forma física al colaborador de la base de datos. No se puede deshacer. ¿Proceder?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, BORRAR FÍSICAMENTE',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('id_usuario', id);
+                fd.append('accion', 'delete_permanent');
                 fetch('../api/baja_usuario_api.pl', {
                     method: 'POST',
                     body: fd
@@ -411,6 +573,13 @@ print <<HTML;
                         }
                     ]
                 }
+            });
+        }
+
+        if (\$('#tablaUsuariosInactivos').length && \$('#tablaUsuariosInactivos tbody tr td').length > 1) {
+            \$('#tablaUsuariosInactivos').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
             });
         }
     });

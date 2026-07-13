@@ -17,13 +17,14 @@ my $q  = $sd->{q};
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
-if (!$sd->{session_ok} || $sd->{role} ne 'Administrador Organizacion') {
+unless ($sd->{session_ok} && $sd->{role} eq 'Administrador Organizacion') {
     print encode_json({ status => 'error', message => 'Acceso denegado.' });
     exit;
 }
 
 my $id_org_matriz = $sd->{id_empresa};
 my $id_usuario    = $q->param('id_usuario') // '';
+my $accion        = $q->param('accion') // 'deactivate'; # 'deactivate', 'reactivate', 'delete_permanent'
 
 $id_usuario =~ s/^\s+|\s+$//g;
 
@@ -45,15 +46,24 @@ if ($regs_usuarios) {
             my ($org_id, $suc_id) = split(/:/, $extra);
             
             if ($org_id ne $id_org_matriz) {
-                print encode_json({ status => 'error', message => 'No tienes permiso para dar de baja este usuario.' });
+                print encode_json({ status => 'error', message => 'No tienes permiso para modificar este usuario.' });
                 exit;
             }
 
-            # Soft Delete
-            $r->[4] = '0';
             $encontrado = 1;
+            
+            if ($accion eq 'deactivate') {
+                $r->[4] = '0';
+                push @nuevas_lineas, join("!", @$r);
+            } elsif ($accion eq 'reactivate') {
+                $r->[4] = '1';
+                push @nuevas_lineas, join("!", @$r);
+            } elsif ($accion eq 'delete_permanent') {
+                # No empujar a @nuevas_lineas (eliminación física)
+            }
+        } else {
+            push @nuevas_lineas, join("!", @$r);
         }
-        push @nuevas_lineas, join("!", @$r);
     }
 }
 
@@ -68,9 +78,14 @@ eval {
 };
 
 if ($@) {
-    print encode_json({ status => 'error', message => 'Error al dar de baja al usuario: ' . $@ });
+    print encode_json({ status => 'error', message => 'Error al procesar al usuario: ' . $@ });
     exit;
 }
 
-print encode_json({ status => 'success', message => 'Usuario dado de baja correctamente.' });
+my $msg = 'Usuario procesado correctamente.';
+if ($accion eq 'deactivate') { $msg = 'Usuario desactivado correctamente.'; }
+elsif ($accion eq 'reactivate') { $msg = 'Usuario reactivado correctamente.'; }
+elsif ($accion eq 'delete_permanent') { $msg = 'Usuario eliminado permanentemente.'; }
+
+print encode_json({ status => 'success', message => $msg });
 1;

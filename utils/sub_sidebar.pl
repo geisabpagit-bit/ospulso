@@ -59,6 +59,58 @@ sub render_sidebar {
         close($rf);
     }
 
+    # --- CONTROL DINÁMICO DE CAPACIDADES SAAS POR ORGANIZACIÓN ---
+    my $id_empresa = 0;
+    eval {
+        my $sd = main::check_session();
+        $id_empresa = $sd->{id_empresa} || 0;
+    };
+
+    if ($id_empresa && $role ne 'Administrador Global') {
+        my %capacidades = ();
+        my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
+        if (-e $config_file) {
+            if (open(my $cf, '<:utf8', $config_file)) {
+                while (my $line = <$cf>) {
+                    chomp($line);
+                    next if $line =~ /^#|^\s*$/;
+                    my ($biz_id, $key, $val) = split(/\|/, $line);
+                    if ($biz_id eq $id_empresa && $key eq 'CAPACIDAD') {
+                        $capacidades{$val} = 1;
+                    }
+                }
+                close($cf);
+            }
+        }
+
+        # Si tenemos capacidades configuradas, filtramos
+        if (keys %capacidades) {
+            my %modulo_capacidad = (
+                'agenda'    => 'Agenda',
+                'pacientes' => 'Expediente Clínico',
+                'finanzas'  => 'Facturación',
+                'reportes'  => 'Facturación',
+                'productos' => 'Inventario',
+                'servicios' => 'Facturación',
+            );
+
+            my @filtered_modules = ();
+            foreach my $mod (@allowed_modules) {
+                my $trimmed_mod = $mod;
+                $trimmed_mod =~ s/^\s+|\s+$//g;
+                if (exists $modulo_capacidad{$trimmed_mod}) {
+                    my $required_cap = $modulo_capacidad{$trimmed_mod};
+                    if ($capacidades{$required_cap}) {
+                        push @filtered_modules, $mod;
+                    }
+                } else {
+                    push @filtered_modules, $mod; # Módulos core sin restricción (ej: clinicas, usuarios)
+                }
+            }
+            @allowed_modules = @filtered_modules;
+        }
+    }
+
     my %module_styles = (
         'agenda'      => { icon => 'calendar_month', bg => 'var(--calendar-bg)', color => 'var(--calendar-event)' },
         'pacientes'   => { icon => 'groups',         bg => 'var(--surface-secondary)', color => 'var(--icon-purple)' },
