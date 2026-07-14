@@ -315,4 +315,79 @@ if ($action eq 'remove') {
     exit;
 }
 
+# ==========================================
+# REACTIVATE
+# ==========================================
+if ($action eq 'reactivate') {
+    my $id_org = $q->param('id_org') // '';
+    if (!$id_org) { print encode_json({status=>'error', message=>'ID requerido'}); exit; }
+
+    my $regs_negocios = leer_tabla($archivo_negocios, '\|');
+    my @nuevos_negocios = ();
+    foreach my $r (@$regs_negocios) {
+        if (@$r >= 22 && $r->[0] eq $id_org) {
+            $r->[3] = '1'; # Activo = 1
+        }
+        push @nuevos_negocios, join('|', @$r);
+    }
+    
+    my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
+    my @nuevos_usuarios = ();
+    foreach my $r (@$regs_usuarios) {
+        next if @$r < 7;
+        my $multi_tenant = $r->[6];
+        my ($u_org, $u_suc) = split(/:/, $multi_tenant);
+        if (defined $u_org && $u_org eq $id_org) {
+            $r->[4] = '1'; # Reactivar todos los usuarios de la org
+        }
+        push @nuevos_usuarios, join('!', @$r);
+    }
+
+    eval {
+        actualizar_archivo($archivo_negocios, "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud", \@nuevos_negocios);
+        actualizar_archivo($archivo_usuarios, "id!nombre!correo!clave!activo!rol!ID_negocio", \@nuevos_usuarios);
+    };
+    if ($@) { print encode_json({status=>'error', message=>'Error: '.$@}); exit; }
+
+    print encode_json({ status => 'success', message => 'Organización reactivada' });
+    exit;
+}
+
+# ==========================================
+# DELETE PERMANENT
+# ==========================================
+if ($action eq 'delete_permanent') {
+    my $id_org = $q->param('id_org') // '';
+    if (!$id_org) { print encode_json({status=>'error', message=>'ID requerido'}); exit; }
+
+    my $regs_negocios = leer_tabla($archivo_negocios, '\|');
+    my @nuevos_negocios = ();
+    foreach my $r (@$regs_negocios) {
+        if (@$r >= 22 && $r->[0] eq $id_org) {
+            next; # Skip (Físicamente eliminado)
+        }
+        push @nuevos_negocios, join('|', @$r);
+    }
+    
+    my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
+    my @nuevos_usuarios = ();
+    foreach my $r (@$regs_usuarios) {
+        next if @$r < 7;
+        my $multi_tenant = $r->[6];
+        my ($u_org, $u_suc) = split(/:/, $multi_tenant);
+        if (defined $u_org && $u_org eq $id_org) {
+            next; # Skip
+        }
+        push @nuevos_usuarios, join('!', @$r);
+    }
+
+    eval {
+        actualizar_archivo($archivo_negocios, "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud", \@nuevos_negocios);
+        actualizar_archivo($archivo_usuarios, "id!nombre!correo!clave!activo!rol!ID_negocio", \@nuevos_usuarios);
+    };
+    if ($@) { print encode_json({status=>'error', message=>'Error: '.$@}); exit; }
+
+    print encode_json({ status => 'success', message => 'Organización eliminada permanentemente' });
+    exit;
+}
 print encode_json({ status => 'error', message => 'Acción inválida.' });

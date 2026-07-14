@@ -104,7 +104,7 @@ print <<HTML;
                             </div>
                             <div class="col-12 col-md-4">
                                 <label class="form-label small fw-bold text-muted">Correo Electrónico (Login)</label>
-                                <input type="email" class="form-control form-control-sm shadow-sm" id="form_correo" name="correo" required placeholder="correo\@correo.com">
+                                <input type="email" class="form-control form-control-sm shadow-sm" id="form_correo" name="correo" required placeholder="correo\@correo.com" autocomplete="username">
                             </div>
                             <div class="col-12 col-md-4" id="passwordFieldContainer">
                                 <label class="form-label small fw-bold text-muted" id="passwordLabel">Contraseña Inicial</label>
@@ -268,7 +268,6 @@ print <<HTML;
         </div>
     </main>
 HTML
-utils::sub_sidebar::render_sidebar_footer();
 print <<HTML;
 
 <style>
@@ -506,6 +505,11 @@ print <<HTML;
         })
     }
 </script>
+HTML
+
+utils::sub_sidebar::render_sidebar_footer();
+
+print <<HTML;
 </body>
 </html>
 HTML

@@ -46,7 +46,8 @@ render_header(
 # Leer Organizaciones Actuales del Ejecutivo
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
 my $regs_negocios = leer_tabla($archivo_negocios, '\|');
-my @mis_organizaciones = ();
+my @orgs_activas = ();
+my @orgs_inactivas = ();
 
 if ($regs_negocios) {
     foreach my $r (@$regs_negocios) {
@@ -54,7 +55,7 @@ if ($regs_negocios) {
         # r[0]: ID, r[1]: NOMBRE, r[2]: ID_MATRIZ, r[10]: RFC, r[13]: ID_VENDEDOR
         # Organizaciones raíz (ID_MATRIZ=0)
         if ($r->[2] eq '0' && ($r->[13] eq $id_usuario || $role eq 'Administrador Global')) {
-            push @mis_organizaciones, { 
+            my $org = { 
                 id => $r->[0], 
                 nombre => $r->[1], 
                 rfc => $r->[10],
@@ -62,6 +63,11 @@ if ($regs_negocios) {
                 fecha_fin => $r->[5] || 'N/A',
                 activo => $r->[3]
             };
+            if ($r->[3] eq '1') {
+                push @orgs_activas, $org;
+            } else {
+                push @orgs_inactivas, $org;
+            }
         }
     }
 }
@@ -87,68 +93,157 @@ print <<HTML;
         <div class="container-fluid px-4 pb-5">
             <div class="row g-4" id="contenedorTarjetasPrincipales">
                 
-                <!-- LISTA DE ORGANIZACIONES -->
                 <div class="col-12">
-                    <div class="card card-medentia-aura border-0 h-100 shadow-sm">
-                        <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
-                            <h5 class="fw-bold text-dark"><i class="bi bi-building text-primary me-2"></i>Mis Clientes (Organizaciones)</h5>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle border-bottom" id="tablaOrganizaciones">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="small text-muted fw-bold border-0 text-uppercase">Clínica / Organización</th>
-                                            <th class="small text-muted fw-bold border-0 text-uppercase">Inicio Suscripción</th>
-                                            <th class="small text-muted fw-bold border-0 text-uppercase">Fin Suscripción</th>
-                                            <th class="small text-muted fw-bold border-0 text-uppercase">Activo</th>
-                                            <th class="small text-muted fw-bold border-0 text-uppercase text-center">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                    <!-- Pestañas de Navegación -->
+                    <ul class="nav nav-pills mb-4 gap-2" id="orgTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link btn btn-sdm-primary active rounded-pill px-4 fw-bold shadow-sm text-white" style="background-color: var(--md-blue-deep); border: none;" id="activas-tab" data-bs-toggle="pill" data-bs-target="#tab-activas" type="button" role="tab" aria-controls="tab-activas" aria-selected="true">
+                                <i class="bi bi-building-check me-2"></i>Organizaciones Activas
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link btn btn-light rounded-pill px-4 fw-bold shadow-sm position-relative text-dark" id="inactivas-tab" data-bs-toggle="pill" data-bs-target="#tab-inactivas" type="button" role="tab" aria-controls="tab-inactivas" aria-selected="false" style="border: 1px solid #dee2e6;">
+                                <i class="bi bi-building-x me-2"></i>Inactivas / Papelera
+HTML
+if (@orgs_inactivas) {
+    my $count = scalar(@orgs_inactivas);
+    print qq|                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="z-index:10;">$count</span>\n|;
+}
+print <<HTML;
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="orgTabsContent">
+                        <!-- PANEL: ACTIVAS -->
+                        <div class="tab-pane fade show active" id="tab-activas" role="tabpanel" aria-labelledby="activas-tab">
+                            <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
+                                <div class="card-body p-4">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0" id="tablaOrganizaciones">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="small text-muted fw-bold border-0 text-uppercase">Clínica / Organización</th>
+                                                    <th class="small text-muted fw-bold border-0 text-uppercase">Inicio Suscripción</th>
+                                                    <th class="small text-muted fw-bold border-0 text-uppercase">Fin Suscripción</th>
+                                                    <th class="small text-muted fw-bold border-0 text-uppercase">Activo</th>
+                                                    <th class="small text-muted fw-bold border-0 text-uppercase text-center">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
 HTML
 
-if (@mis_organizaciones) {
-    foreach my $org (@mis_organizaciones) {
-        my $badge_activo = $$org{activo} eq '1' 
-            ? '<span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle me-1"></i>Activo</span>' 
-            : '<span class="badge bg-secondary rounded-pill px-3 py-2"><i class="bi bi-dash-circle me-1"></i>Inactivo</span>';
-        
+if (@orgs_activas) {
+    foreach my $org (@orgs_activas) {
+        my $badge_activo = '<span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle me-1"></i>Activo</span>';
         my $rfc_text = $$org{rfc} ? $$org{rfc} : 'Sin RFC';
 
         print <<HTML;
-                                        <tr>
-                                            <td style="background: transparent !important;">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center fw-bold me-3" style="width: 40px; height: 40px;">
-                                                        <i class="bi bi-building"></i>
-                                                    </div>
-                                                    <div>
-                                                        <span class="fw-bold text-dark d-block">$$org{nombre}</span>
-                                                        <span class="text-muted small">RFC: $rfc_text</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="text-muted small" style="background: transparent !important;">$$org{fecha}</td>
-                                            <td class="text-muted small" style="background: transparent !important;">$$org{fecha_fin}</td>
-                                            <td style="background: transparent !important;">$badge_activo</td>
-                                            <td class="text-center" style="background: transparent !important;">
-                                                <button class="btn btn-sm btn-light text-primary rounded-pill me-1" onclick="editarOrganizacion('$$org{id}')"><i class="bi bi-pencil"></i></button>
-                                                <button class="btn btn-sm btn-light text-danger rounded-pill" onclick="borrarOrganizacion('$$org{id}')"><i class="bi bi-trash"></i></button>
-                                            </td>
-                                        </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center fw-bold me-3" style="width: 40px; height: 40px;">
+                                                                <i class="bi bi-building"></i>
+                                                            </div>
+                                                            <div>
+                                                                <span class="fw-bold text-dark d-block">$$org{nombre}</span>
+                                                                <span class="text-muted small">RFC: $rfc_text</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-muted small fw-bold">$$org{fecha}</td>
+                                                    <td class="text-muted small fw-bold">$$org{fecha_fin}</td>
+                                                    <td>$badge_activo</td>
+                                                    <td class="text-center">
+                                                        <button class="btn btn-sm btn-light text-primary rounded-pill me-1" onclick="editarOrganizacion('$$org{id}')" title="Editar"><i class="bi bi-pencil"></i></button>
+                                                        <button class="btn btn-sm btn-light text-danger rounded-pill" onclick="borrarOrganizacion('$$org{id}')" title="Suspender"><i class="bi bi-trash"></i></button>
+                                                    </td>
+                                                </tr>
 HTML
     }
+} else {
+    print <<HTML;
+                                                <tr>
+                                                    <td colspan="5" class="text-center py-5 text-muted">
+                                                        <i class="bi bi-buildings display-4 d-block mb-3 text-black-50 opacity-50"></i>
+                                                        <p class="mb-0 fw-bold fs-5">Sin organizaciones activas.</p>
+                                                    </td>
+                                                </tr>
+HTML
 }
 
 print <<HTML;
-                                    </tbody>
-                                </table>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- PANEL: INACTIVAS -->
+                        <div class="tab-pane fade" id="tab-inactivas" role="tabpanel" aria-labelledby="inactivas-tab">
+                            <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
+                                <div class="card-body p-4">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0" id="tablaOrganizacionesInactivas">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="small text-muted fw-bold border-0 text-uppercase">Clínica / Organización</th>
+                                                    <th class="small text-muted fw-bold border-0 text-uppercase">Inicio Suscripción</th>
+                                                    <th class="small text-muted fw-bold border-0 text-uppercase">Fin Suscripción</th>
+                                                    <th class="small text-muted fw-bold border-0 text-uppercase text-center">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+HTML
+
+if (@orgs_inactivas) {
+    foreach my $org (@orgs_inactivas) {
+        my $rfc_text = $$org{rfc} ? $$org{rfc} : 'Sin RFC';
+
+        print <<HTML;
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center opacity-75">
+                                                            <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex justify-content-center align-items-center fw-bold me-3" style="width: 40px; height: 40px;">
+                                                                <i class="bi bi-building-x"></i>
+                                                            </div>
+                                                            <div>
+                                                                <span class="fw-bold text-muted d-block">$$org{nombre}</span>
+                                                                <span class="text-muted small">RFC: $rfc_text</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-muted small fw-bold">$$org{fecha}</td>
+                                                    <td class="text-muted small fw-bold">$$org{fecha_fin}</td>
+                                                    <td class="text-center">
+                                                        <button class="btn btn-sm btn-light text-success rounded-pill me-1" onclick="reactivarOrganizacion('$$org{id}')" title="Reactivar"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                                        <button class="btn btn-sm btn-light text-danger rounded-pill" onclick="eliminarDefinitivoOrganizacion('$$org{id}')" title="Eliminar Permanentemente"><i class="bi bi-trash-fill"></i></button>
+                                                    </td>
+                                                </tr>
+HTML
+    }
+} else {
+    print <<HTML;
+                                                <tr>
+                                                    <td colspan="4" class="text-center py-5 text-muted">
+                                                        <i class="bi bi-trash3 display-4 d-block mb-3 text-black-50 opacity-50"></i>
+                                                        <p class="mb-0 fw-bold fs-5">La papelera está vacía.</p>
+                                                    </td>
+                                                </tr>
+HTML
+}
+
+print <<HTML;
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-
             </div> <!-- Fin row g-4 contenedorTarjetasPrincipales -->
 
             <!-- CONTENEDOR FORMULARIO (Oculto por defecto) -->
@@ -194,7 +289,7 @@ print <<HTML;
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-bold">Correo Electrónico (Login)</label>
-                            <input type="email" class="form-control form-control-sm shadow-sm" name="correo_admin" required placeholder="admin\@clinica.com">
+                            <input type="email" class="form-control form-control-sm shadow-sm" name="correo_admin" required placeholder="admin\@clinica.com" autocomplete="username">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-bold">Contraseña Inicial</label>
@@ -292,14 +387,48 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
     let dtOrganizaciones;
-    \$(document).ready(function() {
-        dtOrganizaciones = \$('#tablaOrganizaciones').DataTable({
+    let dtOrganizacionesInactivas;
+    $(document).ready(function() {
+        dtOrganizaciones = $('#tablaOrganizaciones').DataTable({
             language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
             dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
             ordering: true,
             order: [[1, 'desc']], // Por fecha inicio descendente
             paging: true
         });
+
+        dtOrganizacionesInactivas = $('#tablaOrganizacionesInactivas').DataTable({
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+            dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+            ordering: true,
+            order: [[1, 'desc']], // Por fecha inicio descendente
+            paging: true
+        });
+
+        // Tabs styling
+        const tabActivos = document.getElementById('activas-tab');
+        const tabInactivos = document.getElementById('inactivas-tab');
+
+        if(tabActivos && tabInactivos) {
+            tabActivos.addEventListener('shown.bs.tab', function (event) {
+                tabActivos.style.backgroundColor = 'var(--md-blue-deep)';
+                tabActivos.style.color = '#fff';
+                tabActivos.style.border = 'none';
+
+                tabInactivos.style.backgroundColor = 'transparent';
+                tabInactivos.style.color = '#212529';
+                tabInactivos.style.border = '1px solid #dee2e6';
+            });
+            tabInactivos.addEventListener('shown.bs.tab', function (event) {
+                tabInactivos.style.backgroundColor = 'var(--md-blue-deep)';
+                tabInactivos.style.color = '#fff';
+                tabInactivos.style.border = 'none';
+
+                tabActivos.style.backgroundColor = 'transparent';
+                tabActivos.style.color = '#212529';
+                tabActivos.style.border = '1px solid #dee2e6';
+            });
+        }
     });
 
     window.mostrarFormularioSaaS = function() {
@@ -406,6 +535,64 @@ print <<HTML;
         });
     };
 
+    window.reactivarOrganizacion = function(id) {
+        Swal.fire({
+            title: '¿Reactivar Organización?',
+            text: "La organización volverá a estar activa.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            confirmButtonText: 'Sí, reactivar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('action', 'reactivate');
+                fd.append('id_org', id);
+                
+                fetch('../api/crud_organizaciones_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        Swal.fire('Reactivada', 'La organización ha sido reactivada.', 'success')
+                        .then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                }).catch(err => { Swal.fire('Error', 'Falla de red', 'error'); });
+            }
+        });
+    };
+
+    window.eliminarDefinitivoOrganizacion = function(id) {
+        Swal.fire({
+            title: '¿Eliminar Definitivamente?',
+            text: "Esta acción no se puede deshacer y borrará la organización por completo.",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('action', 'delete_permanent');
+                fd.append('id_org', id);
+                
+                fetch('../api/crud_organizaciones_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        Swal.fire('Eliminada', 'La organización ha sido eliminada permanentemente.', 'success')
+                        .then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                }).catch(err => { Swal.fire('Error', 'Falla de red', 'error'); });
+            }
+        });
+    };
+
     // Toggle Instituciones
     document.getElementById('selectReportaInstitucion').addEventListener('change', function() {
         if(this.value === 'Sí') {
@@ -451,6 +638,11 @@ print <<HTML;
         });
     });
 </script>
+HTML
+
+utils::sub_sidebar::render_sidebar_footer();
+
+print <<HTML;
 </body>
 </html>
 HTML
