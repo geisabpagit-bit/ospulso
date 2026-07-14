@@ -270,28 +270,7 @@ print <<HTML;
 HTML
 print <<HTML;
 
-<style>
-  .btn-blue-deep {
-      background-color: var(--md-blue-deep) !important;
-      color: #ffffff !important;
-      border: none !important;
-      transition: all 0.2s ease-in-out;
-  }
-  .btn-blue-deep:hover {
-      background-color: var(--md-blue-medical) !important;
-      color: #ffffff !important;
-      opacity: 0.9;
-  }
-  /* Ajustar botones de nav-pills active */
-  .nav-pills .nav-link.btn-blue-deep.active {
-      background-color: var(--md-blue-deep) !important;
-      color: #ffffff !important;
-  }
-  .nav-pills .nav-link.btn-light {
-      background-color: #f8f9fa !important;
-      color: var(--md-text-secondary) !important;
-  }
-</style>
+
 
 <!-- Scripts y Librerías de DataTables -->
 <link class="datatables-css" rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">

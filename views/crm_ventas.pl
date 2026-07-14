@@ -97,12 +97,12 @@ print <<HTML;
                     <!-- Pestañas de Navegación -->
                     <ul class="nav nav-pills mb-4 gap-2" id="orgTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link btn btn-blue-deep active rounded-pill px-4 fw-bold shadow-sm text-white" style="background-color: var(--md-blue-deep); border: none;" id="activas-tab" data-bs-toggle="pill" data-bs-target="#tab-activas" type="button" role="tab" aria-controls="tab-activas" aria-selected="true">
+                            <button class="nav-link btn btn-blue-deep active rounded-pill px-4 fw-bold shadow-sm text-white" id="activas-tab" data-bs-toggle="pill" data-bs-target="#tab-activas" type="button" role="tab" aria-controls="tab-activas" aria-selected="true">
                                 <i class="bi bi-building-check me-2"></i>Organizaciones Activas
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link btn btn-light rounded-pill px-4 fw-bold shadow-sm position-relative text-dark" id="inactivas-tab" data-bs-toggle="pill" data-bs-target="#tab-inactivas" type="button" role="tab" aria-controls="tab-inactivas" aria-selected="false" style="border: 1px solid #dee2e6;">
+                            <button class="nav-link btn btn-light rounded-pill px-4 fw-bold shadow-sm position-relative text-dark" id="inactivas-tab" data-bs-toggle="pill" data-bs-target="#tab-inactivas" type="button" role="tab" aria-controls="tab-inactivas" aria-selected="false">
                                 <i class="bi bi-building-x me-2"></i>Inactivas / Papelera
 HTML
 if (@orgs_inactivas) {
@@ -409,30 +409,11 @@ print <<HTML;
             });
         }
 
-        // Tabs styling
-        const tabActivos = document.getElementById('activas-tab');
-        const tabInactivos = document.getElementById('inactivas-tab');
-
-        if(tabActivos && tabInactivos) {
-            tabActivos.addEventListener('shown.bs.tab', function (event) {
-                tabActivos.style.backgroundColor = 'var(--md-blue-deep)';
-                tabActivos.style.color = '#fff';
-                tabActivos.style.border = 'none';
-
-                tabInactivos.style.backgroundColor = 'transparent';
-                tabInactivos.style.color = '#212529';
-                tabInactivos.style.border = '1px solid #dee2e6';
-            });
-            tabInactivos.addEventListener('shown.bs.tab', function (event) {
-                tabInactivos.style.backgroundColor = 'var(--md-blue-deep)';
-                tabInactivos.style.color = '#fff';
-                tabInactivos.style.border = 'none';
-
-                tabActivos.style.backgroundColor = 'transparent';
-                tabActivos.style.color = '#212529';
-                tabActivos.style.border = '1px solid #dee2e6';
-            });
-        }
+        // Toggling styles on Tab Pills click dynamically
+        \$('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
+            \$(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
+            \$(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
+        });
     });
 
     window.mostrarFormularioSaaS = function() {
