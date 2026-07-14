@@ -300,8 +300,8 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 
 <script>
-    let dtEjecutivos;
-    let dtEjecutivosInactivos;
+    var dtEjecutivos;
+    var dtEjecutivosInactivos;
 
     \$(document).ready(function() {
         if (\$('#tablaEjecutivos').length && \$('#tablaEjecutivos tbody tr td').length > 1) {

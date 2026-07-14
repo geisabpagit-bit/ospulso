@@ -386,8 +386,8 @@ print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
-    let dtOrganizaciones;
-    let dtOrganizacionesInactivas;
+    var dtOrganizaciones;
+    var dtOrganizacionesInactivas;
     $(document).ready(function() {
         dtOrganizaciones = $('#tablaOrganizaciones').DataTable({
             language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
