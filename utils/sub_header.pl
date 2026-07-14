@@ -178,44 +178,124 @@ $search_html
         </div>
     </nav>
 
-    <!-- Sidebar Offcanvas Premium v3 (Diamond Style) -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="sdmSidebar" aria-labelledby="sdmSidebarLabel" style="width: 280px; background: #ffffff; z-index: 5000;">
-        <div class="p-4 text-end pb-0">
-            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <!-- User Menu Offcanvas Premium (Floating Panel) -->
+    <div class="offcanvas offcanvas-end m-3 shadow-lg glass-user-menu" tabindex="-1" id="sdmSidebar" aria-labelledby="sdmSidebarLabel">
+        <!-- Barra superior Teal Accent -->
+        <div class="teal-accent-bar"></div>
+
+        <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-2">
+            <h6 class="mb-0 fw-bold text-muted text-uppercase" style="letter-spacing: 1px; font-size: 0.75rem;">Men&uacute; de Usuario</h6>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close" style="font-size: 0.8rem; opacity: 0.6;"></button>
         </div>
         
-        <div class="offcanvas-body p-4 pt-3 d-flex flex-column">
-            <div class="nav flex-column gap-2 h-100">
-                
-                <!-- Perfil Card Bento -->
-                <div class="sidebar-brand mb-4 px-2">
-                    <div class="avatar-diamond d-flex align-items-center justify-content-center mb-3" style="width: 55px; height: 55px; font-size: 1.5rem; border-width: 2px; margin: 0 auto;">$iniciales</div>
-                    <div class="text-center">
-                        <span class="sidebar-text d-block fw-bold" style="font-size: 1.1rem; color: #0A2A66;">$usuario</span>
-                        <span class="d-block text-primary small text-uppercase fw-bold mt-1" style="letter-spacing: 1px; font-size: 0.65rem;">$role_label</span>
-                    </div>
+        <div class="offcanvas-body px-4 pb-4 pt-2">
+            <!-- User Info Box -->
+            <div class="user-info-box d-flex align-items-center mb-4 p-3 rounded-4">
+                <div class="avatar-diamond d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px; font-size: 1.3rem; border: 2px solid teal; color: teal; background: rgba(32, 201, 151, 0.1);">
+                    $iniciales
                 </div>
-
-                <div class="sidebar-menu flex-grow-1 px-2 mt-2">
-                    <!-- Navegación General (Solo móvil) -->
-                    <div class="d-md-none mb-3">
-                        <a href="pacientes.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                            <span class="material-icons me-2" style="font-size:1.2rem; color: var(--icon-purple, #6f42c1)">groups</span> <span class="sidebar-text">Pacientes</span>
-                        </a>
-                        <a href="agenda_main.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                            <span class="material-icons me-2" style="font-size:1.2rem; color: var(--calendar-event, #0ea5e9)">calendar_month</span> <span class="sidebar-text">Agenda</span>
-                        </a>
-                        <hr class="border-primary opacity-10 my-3">
-                    </div>
-
-                    <a href="../views/perfil.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                        <span class="material-icons me-2" style="font-size:1.2rem; color: var(--primary-blue, #0d6efd)">person</span> <span class="sidebar-text">Editar Perfil</span>
-                    </a>
+                <div class="ms-3 overflow-hidden">
+                    <span class="d-block fw-bold text-truncate text-dark" style="font-size: 1.1rem; line-height: 1.2;" title="$usuario">$usuario</span>
+                    <span class="d-block mt-1 text-truncate fw-semibold text-teal" style="font-size: 0.75rem; letter-spacing: 0.5px;" title="$role_label">$role_label</span>
                 </div>
+            </div>
 
+            <!-- Options -->
+            <div class="d-flex flex-column gap-2">
+                <a href="../views/perfil.pl" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all" data-bs-dismiss="offcanvas">
+                    <div class="option-icon bg-primary-subtle text-primary me-3">
+                        <i class="bi bi-person-fill fs-5"></i>
+                    </div>
+                    <span class="fw-bold" style="font-size: 0.95rem; color: #495057;">Editar Perfil</span>
+                    <i class="bi bi-chevron-right ms-auto text-muted opacity-50" style="font-size: 0.8rem;"></i>
+                </a>
+
+                <a href="../auth/cerrar_sesion.pl" data-no-spa="true" class="btn user-menu-option-danger d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all">
+                    <div class="option-icon bg-danger-subtle text-danger me-3">
+                        <i class="bi bi-box-arrow-right fs-5"></i>
+                    </div>
+                    <span class="fw-bold text-danger" style="font-size: 0.95rem;">Cerrar Sesi&oacute;n</span>
+                </a>
             </div>
         </div>
     </div>
+
+    <style>
+        /* Glassmorphism Premium User Menu */
+        .glass-user-menu {
+            width: 340px !important;
+            height: max-content !important;
+            max-height: 95vh;
+            border-radius: 24px !important;
+            border: 1px solid rgba(32, 201, 151, 0.3) !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255,255,255,0.5) inset !important;
+            overflow: hidden;
+            z-index: 5000;
+        }
+        
+        .teal-accent-bar {
+            height: 6px;
+            background: linear-gradient(90deg, #20c997, #0dcaf0);
+            width: 100%;
+        }
+
+        .user-info-box {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        }
+        
+        .text-teal {
+            color: #20c997 !important;
+        }
+
+        .option-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+        }
+
+        .user-menu-option {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .user-menu-option:hover {
+            background: #ffffff;
+            border-color: rgba(13, 110, 253, 0.2);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .user-menu-option-danger {
+            background: rgba(220, 53, 69, 0.03);
+            border: 1px solid rgba(220, 53, 69, 0.1);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .user-menu-option-danger:hover {
+            background: rgba(220, 53, 69, 0.08);
+            border-color: rgba(220, 53, 69, 0.2);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.08);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive max-width para pantallas pequeñas */
+        \@media (max-width: 576px) {
+            .glass-user-menu {
+                width: auto !important;
+                left: 15px !important;
+                right: 15px !important;
+            }
+        }
+    </style>
 HTML
     }
 
