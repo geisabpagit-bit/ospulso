@@ -23,20 +23,20 @@ document.addEventListener('spa:contentLoaded', function() {
     }
 });
 // --- SDM AGENDA SPA ENGINE v1.5.0 [Estable 2026-04-14 16:35] ---
-const CrystalToast = typeof Swal !== 'undefined' ? Swal.mixin({
+var CrystalToast = CrystalToast || (typeof Swal !== 'undefined' ? Swal.mixin({
     toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, 
     timerProgressBar: true,
     didOpen: (t) => { t.addEventListener('mouseenter', Swal.stopTimer); t.addEventListener('mouseleave', Swal.resumeTimer); }
-}) : null;
+}) : null);
 
-let selectedDate = new Date();
-let appointments = [];
-let agendaConfig = {};
-let currentView = 'mes';
-let duracionCita = 30;
-let tableInstance = null;
-let draggedId = null;
-let manualDragId = null; // Para modo Doble Clic (Regla Smart-Drag)
+var selectedDate = selectedDate || new Date();
+var appointments = appointments || [];
+var agendaConfig = agendaConfig || {};
+var currentView = currentView || 'mes';
+var duracionCita = duracionCita || 30;
+var tableInstance = tableInstance || null;
+var draggedId = draggedId || null;
+var manualDragId = manualDragId || null; // Para modo Doble Clic (Regla Smart-Drag)
 
 /**
  * Vista Semanal Smart (Image 3 Style)

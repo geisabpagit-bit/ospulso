@@ -1,13 +1,13 @@
 /* SDM Digital - Financial Motor SPA */
-const formatter = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
-let idPacienteGlobal = null;
-let idMedicoGlobal = null;
-let catalogoMaster = [];
-let carritoApp = [];
-let windowActiveOS = null;
-let currentSaldoTotal = 0;
-let pieChartInstance = null;
-let pieCotizacionesInstance = null;
+var formatter = formatter || new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+var idPacienteGlobal = idPacienteGlobal || null;
+var idMedicoGlobal = idMedicoGlobal || null;
+var catalogoMaster = catalogoMaster || [];
+var carritoApp = carritoApp || [];
+var windowActiveOS = windowActiveOS || null;
+var currentSaldoTotal = currentSaldoTotal || 0;
+var pieChartInstance = pieChartInstance || null;
+var pieCotizacionesInstance = pieCotizacionesInstance || null;
 
 async function initModuloFinanciero(id, modo, idMed) {
     idPacienteGlobal = id;
@@ -868,7 +868,7 @@ function _initRadioCotizacion() {
     }
 }
 
-let lineChartInstance = null;
+var lineChartInstance = lineChartInstance || null;
 function renderEvolucionIngresosGlobal() {
     const canvas = document.getElementById("lineEvolucionIngresos");
     if (!canvas) return;
@@ -1020,8 +1020,8 @@ window.renderCxC = async function() {
 }
 
 // --- Módulo Gastos ---
-let catGastos = [], subcatGastos = [], subcat3Gastos = [];
-let categoriasGastosCargadas = false;
+var catGastos = catGastos || [], subcatGastos = subcatGastos || [], subcat3Gastos = subcat3Gastos || [];
+var categoriasGastosCargadas = categoriasGastosCargadas || false;
 
 async function cargarCategoriasGastos(force = false) {
     if (categoriasGastosCargadas && !force) return;
@@ -1625,7 +1625,7 @@ window.cargarDashboardKPIs = function() {
     }
 };
 
-let pieFinanzasInstance = null;
+var pieFinanzasInstance = pieFinanzasInstance || null;
 function actualizarPieChartDashboard(ingresos, egresos) {
     const canvas = document.getElementById('pieResumenFinanzas');
     if (!canvas) return;
