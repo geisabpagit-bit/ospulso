@@ -32,104 +32,65 @@ print <<'PAGE_HTML';
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
 
+PAGE_HTML
 
+utils::sub_sidebar::render_sidebar(
+    usuario => $session_data->{usuario},
+    role => $session_data->{role},
+    id_medico => $session_data->{id_medico},
+    pagina_actual => 'finanzas'
+);
 
-<div class="sdm-layout-wrapper animate__animated animate__fadeIn">
-    <!-- Sidebar Left -->
-    <nav class="diamond-sidebar" id="moduleSidebar">
-        <div class="sidebar-brand">
-            <div class="avatar-diamond d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; font-size: 1.2rem; border-width: 2px;"><i class="bi bi-wallet2 text-primary"></i></div>
-            <div class="sidebar-brand-text lh-1">
-                <h5 class="m-0 fw-black text-dark">FINANZAS</h5>
-                <small class="text-muted fw-bold" style="font-size: 0.6rem;">DIAMOND v3.8.0</small>
-            </div>
-            <button class="btn btn-light rounded-circle p-2 shadow-sm d-lg-none ms-auto" onclick="toggleSidebar()"><i class="bi bi-x-lg"></i></button>
-            <button class="btn-sidebar-toggle d-none d-lg-flex ms-auto" onclick="toggleDesktopSidebar()"><i class="bi bi-layout-sidebar text-muted"></i></button>
-        </div>
-
-        <div class="sidebar-menu accordion accordion-flush flex-grow-1" id="accordionSidebar">
-            <!-- Finanzas Corporativas -->
-            <div class="accordion-item bg-transparent border-0 mb-1">
-                <h2 class="accordion-header" id="h-fin">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#c-fin" aria-expanded="true" aria-controls="c-fin">
-                        <i class="bi bi-cash-stack text-success"></i><span class="sidebar-text">Gesti&oacute;n Financiera</span>
-                    </button>
-                </h2>
-                <div id="c-fin" class="accordion-collapse collapse show" aria-labelledby="h-fin" data-bs-parent="#accordionSidebar">
-                    <div class="accordion-body">
-                        <button class="sub-link active w-100 text-start" onclick="swTab('tab_resumen', this)"><i class="bi bi-pie-chart-fill text-muted me-2"></i>Resumen General</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab_ingresos', this)"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i>Ingresos</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab_gastos', this)"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i>Gastos (Egresos)</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab_cxc', this)"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Cuentas por Cobrar</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Contabilidad Fiscal -->
-            <div class="accordion-item bg-transparent border-0 mb-1">
-                <h2 class="accordion-header" id="h-fiscal">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-fiscal" aria-expanded="false" aria-controls="c-fiscal">
-                        <i class="bi bi-bank text-primary"></i><span class="sidebar-text">Fiscal y Contable</span>
-                    </button>
-                </h2>
-                <div id="c-fiscal" class="accordion-collapse collapse" aria-labelledby="h-fiscal" data-bs-parent="#accordionSidebar">
-                    <div class="accordion-body">
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab_facturacion', this)"><i class="bi bi-receipt text-muted me-2"></i>Facturaci&oacute;n PAC</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab_reportes', this)"><i class="bi bi-file-earmark-bar-graph-fill text-muted me-2"></i>Reportes (P&L)</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="p-3 sidebar-footer">
-            <a href="inicial.pl" class="btn btn-danger w-100 rounded-pill fw-bold d-flex justify-content-center align-items-center"><i class="bi bi-house-door me-2"></i><span class="sidebar-text">Inicio</span></a>
-        </div>
-    </nav>
-
-    <!-- Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-    <!-- Main Content -->
-    <div class="sdm-main-content">
+print <<'PAGE_HTML';
 <script>
-    function toggleSidebar() {
-        const sidebar = document.getElementById('moduleSidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        if (sidebar) sidebar.classList.toggle('show');
-        if (overlay) overlay.classList.toggle('show');
-    }
-    function toggleDesktopSidebar() {
-        const sidebar = document.getElementById('moduleSidebar');
-        if(sidebar) sidebar.classList.toggle('compact');
-    }
     function swTab(tabId, btnElement) {
-        // Ocultar todos los tabs
         document.querySelectorAll('.sdm-tab-pane').forEach(el => el.classList.add('d-none'));
         const target = document.getElementById(tabId);
         if(target) target.classList.remove('d-none');
         
-        // Actualizar visualmente los botones del sidebar
+        document.querySelectorAll('.sidebar-menu .sub-link').forEach(el => el.classList.remove('active'));
         if(btnElement) {
-            document.querySelectorAll('.sidebar-menu .sub-link').forEach(el => el.classList.remove('active'));
             btnElement.classList.add('active');
-            
-            // Auto cerrar en móvil
-            if(window.innerWidth < 992) {
-                toggleSidebar();
+        } else {
+            let pureTab = tabId.replace('tab_', '');
+            let link = document.querySelector(`.sidebar-menu .sub-link[href*="tab=${pureTab}"]`);
+            if (link) {
+                link.classList.add('active');
+                let parentCollapse = link.closest('.accordion-collapse');
+                if (parentCollapse && !parentCollapse.classList.contains('show')) {
+                    parentCollapse.classList.add('show');
+                    let btn = document.querySelector(`[data-bs-target="#${parentCollapse.id}"]`);
+                    if (btn) btn.classList.remove('collapsed');
+                }
             }
         }
         
-        // Render triggers si aplica
-        if(tabId === 'tab_cxc') {
-            if(typeof window.renderCxC === 'function') window.renderCxC();
+        if(window.innerWidth < 992 && btnElement && typeof toggleSidebar === 'function') {
+            toggleSidebar();
         }
-        if(tabId === 'tab_gastos') {
-            if(typeof window.renderGastos === 'function') window.renderGastos();
-        }
-        if(tabId === 'tab_ingresos') {
-            if(typeof window.renderIngresos === 'function') window.renderIngresos();
-        }
+        
+        if(tabId === 'tab_cxc' && typeof window.renderCxC === 'function') window.renderCxC();
+        if(tabId === 'tab_gastos' && typeof window.renderGastos === 'function') window.renderGastos();
+        if(tabId === 'tab_ingresos' && typeof window.renderIngresos === 'function') window.renderIngresos();
+        if(tabId === 'tab_reportes' && typeof window.renderReportes === 'function') window.renderReportes();
     }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab') || 'resumen';
+        swTab('tab_' + activeTab);
+        
+        // Intercept sidebar links to prevent reload if already in finanzas
+        document.querySelectorAll('.sidebar-menu .sub-link[href*="finanzas.pl?tab="]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = new URL(this.href, window.location.origin);
+                const tab = url.searchParams.get('tab');
+                window.history.pushState({}, '', this.href);
+                swTab('tab_' + tab, this);
+            });
+        });
+    });
 </script>
         <!-- Header Compacto -->
         <div class="diamond-header-compact d-flex justify-content-between align-items-center">
@@ -562,9 +523,7 @@ print <<'PAGE_HTML';
     document.addEventListener("DOMContentLoaded", bootFinanzas);
     document.addEventListener("spa:contentLoaded", bootFinanzas);
 </script>
-    </div> <!-- sdm-main-content -->
-</div> <!-- sdm-layout-wrapper -->
 PAGE_HTML
-
+utils::sub_sidebar::render_sidebar_footer();
 render_bottom_nav('finanzas');
 print "</body></html>\n";

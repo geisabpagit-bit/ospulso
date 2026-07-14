@@ -154,7 +154,7 @@ sub render_sidebar {
             <button class="btn-sidebar-toggle d-none d-lg-flex ms-auto" onclick="toggleDesktopSidebar()"><i class="bi bi-layout-sidebar text-muted"></i></button>
         </div>
 
-        <div class="sidebar-menu flex-grow-1 mt-3 px-2">
+        <div class="sidebar-menu accordion accordion-flush flex-grow-1 mt-3 px-2" id="accordionSidebar">
 HTML
     
     my $dash_active = ($pagina_actual eq 'dashboard') ? 'active' : '';
@@ -176,35 +176,94 @@ HTML
         my $style = $module_styles{$mod_key} || { icon => 'grid_view', bg => 'var(--surface-blue)', color => 'var(--primary-blue)' };
         my $active_class = ($pagina_actual eq $mod_key) ? 'active' : '';
 
-        print qq{
-            <a href="$href" $onclick class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
-            </a>
-        };
+        my $skip_flat = 0;
+        $skip_flat = 1 if $mod_key eq 'crm_ventas' && $role eq 'Ejecutivo Ventas';
+        $skip_flat = 1 if $mod_key eq 'finanzas';
 
-        if ($mod_key eq 'admin_global' && $role eq 'Administrador Global') {
+        unless ($skip_flat) {
+            print qq{
+                <a href="$href" $onclick class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                    <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
+                </a>
+            };
+        }
+
+        if ( ($mod_key eq 'admin_global' && $role eq 'Administrador Global') || 
+             ($mod_key eq 'crm_ventas' && $role eq 'Ejecutivo Ventas') ) {
+            
             my $ventas_active = ($pagina_actual eq 'crm_ventas' || $pagina_actual eq 'admin_ejecutivos') ? 'show' : '';
             my $collapsed_class = ($ventas_active eq 'show') ? '' : 'collapsed';
-            my $crm_active = ($pagina_actual eq 'crm_ventas') ? 'active' : '';
-            my $ejec_active = ($pagina_actual eq 'admin_ejecutivos') ? 'active' : '';
+            
+            my $crm_html = '';
+            if ($role eq 'Ejecutivo Ventas') {
+                my $crm_active = ($pagina_actual eq 'crm_ventas') ? 'active' : '';
+                $crm_html = qq{
+                        <a href="../views/crm_ventas.pl" class="sub-link $crm_active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                            <i class="bi bi-shop me-2 text-primary" style="font-size:1.1rem;"></i> <span class="sidebar-text">CRM Ventas</span>
+                        </a>
+                };
+            }
+            my $ejec_html = '';
+            if ($role eq 'Administrador Global') {
+                my $ejec_active = ($pagina_actual eq 'admin_ejecutivos') ? 'active' : '';
+                $ejec_html = qq{
+                        <a href="../views/admin_ejecutivos.pl" class="sub-link $ejec_active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                            <i class="bi bi-people-fill me-2 text-primary" style="font-size:1.1rem;"></i> <span class="sidebar-text">Ejecutivos</span>
+                        </a>
+                };
+            }
             
             print qq{
-                <div class="mb-1">
-                    <a class="sub-link w-100 text-start text-decoration-none d-flex align-items-center justify-content-between $collapsed_class" 
-                       data-bs-toggle="collapse" href="#menuVentas" role="button" aria-expanded="false" style="outline: none;">
-                        <span class="d-flex align-items-center">
-                            <span class="material-icons me-2" style="font-size:1.2rem; color: var(--primary-blue)">briefcase</span>
-                            <span class="sidebar-text fw-bold">Ventas</span>
-                        </span>
-                        <i class="bi bi-chevron-down small text-muted sidebar-text ms-auto"></i>
-                    </a>
-                    <div class="collapse $ventas_active" id="menuVentas">
-                        <a href="../views/crm_ventas.pl" class="sub-link $crm_active w-100 text-start text-decoration-none d-flex align-items-center mb-1 ps-4" style="font-size:0.9rem;">
-                            <span class="material-icons me-2" style="font-size:1.1rem; color: var(--primary-blue)">store</span> <span class="sidebar-text">CRM Ventas</span>
-                        </a>
-                        <a href="../views/admin_ejecutivos.pl" class="sub-link $ejec_active w-100 text-start text-decoration-none d-flex align-items-center mb-1 ps-4" style="font-size:0.9rem;">
-                            <span class="material-icons me-2" style="font-size:1.1rem; color: var(--primary-blue)">people</span> <span class="sidebar-text">Ejecutivos</span>
-                        </a>
+                <div class="accordion-item bg-transparent border-0 mb-1">
+                    <h2 class="accordion-header" id="h-ventas">
+                        <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-ventas" aria-expanded="false" aria-controls="c-ventas">
+                            <i class="material-icons text-primary" style="font-size:1.2rem;">briefcase</i> <span class="sidebar-text ms-2">Ventas</span>
+                        </button>
+                    </h2>
+                    <div id="c-ventas" class="accordion-collapse collapse $ventas_active" aria-labelledby="h-ventas" data-bs-parent="#accordionSidebar">
+                        <div class="accordion-body pb-0 pt-1">
+                            $crm_html
+                            $ejec_html
+                        </div>
+                    </div>
+                </div>
+            };
+        }
+
+        if ($mod_key eq 'finanzas') {
+            my $fin_active = ($pagina_actual eq 'finanzas') ? 'show' : '';
+            my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
+            
+            print qq{
+                <!-- Finanzas Corporativas -->
+                <div class="accordion-item bg-transparent border-0 mb-1">
+                    <h2 class="accordion-header" id="h-fin">
+                        <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-fin" aria-expanded="false" aria-controls="c-fin">
+                            <i class="bi bi-cash-stack text-success"></i> <span class="sidebar-text ms-2">Gesti&oacute;n Financiera</span>
+                        </button>
+                    </h2>
+                    <div id="c-fin" class="accordion-collapse collapse $fin_active" aria-labelledby="h-fin" data-bs-parent="#accordionSidebar">
+                        <div class="accordion-body pb-0 pt-1">
+                            <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
+                            <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
+                            <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Gastos (Egresos)</span></a>
+                            <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cuentas por Cobrar</span></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contabilidad Fiscal -->
+                <div class="accordion-item bg-transparent border-0 mb-1">
+                    <h2 class="accordion-header" id="h-fiscal">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-fiscal" aria-expanded="false" aria-controls="c-fiscal">
+                            <i class="bi bi-bank text-primary"></i> <span class="sidebar-text ms-2">Fiscal y Contable</span>
+                        </button>
+                    </h2>
+                    <div id="c-fiscal" class="accordion-collapse collapse" aria-labelledby="h-fiscal" data-bs-parent="#accordionSidebar">
+                        <div class="accordion-body pb-0 pt-1">
+                            <a href="../views/finanzas.pl?tab=facturacion" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt text-muted me-2"></i><span class="sidebar-text">Facturaci&oacute;n PAC</span></a>
+                            <a href="../views/finanzas.pl?tab=reportes" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-file-earmark-bar-graph-fill text-muted me-2"></i><span class="sidebar-text">Reportes (P&L)</span></a>
+                        </div>
                     </div>
                 </div>
             };
