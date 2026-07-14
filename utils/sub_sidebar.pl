@@ -175,6 +175,15 @@ sub render_sidebar {
         <div class="sidebar-menu accordion accordion-flush flex-grow-1 mt-3 px-2" id="accordionSidebar">
 HTML
     
+
+    my %is_allowed = ();
+    foreach my $mod (@allowed_modules) {
+        my $trimmed = $mod;
+        $trimmed =~ s/^\s+|\s+$//g;
+        $is_allowed{$trimmed} = 1;
+    }
+
+    # 1. Dashboard
     my $dash_active = ($pagina_actual eq 'dashboard') ? 'active' : '';
     print qq{
             <a href="inicial.pl" class="sub-link $dash_active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
@@ -182,9 +191,189 @@ HTML
             </a>
     };
 
-    foreach my $mod_key (@allowed_modules) {
-        $mod_key =~ s/^\s+|\s+$//g;
-        next if $mod_key eq 'crm_ventas' && $role eq 'Administrador Global';
+    # 2. Administración Accordion (Gestion de Clínicas, Personal, Servicios, Productos)
+    my $show_admin = 0;
+    if ($is_allowed{clinicas} || $is_allowed{usuarios} || $is_allowed{servicios} || $is_allowed{productos}) {
+        $show_admin = 1;
+    }
+
+    if ($show_admin) {
+        my $admin_active = ($pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos') ? 'show' : '';
+        my $collapsed_class = ($admin_active eq 'show') ? '' : 'collapsed';
+        
+        print qq{
+            <!-- Administración Accordion -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-administracion">
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-administracion" aria-expanded="false" aria-controls="c-administracion">
+                        <i class="bi bi-shield-lock-fill text-primary" style="font-size:1.2rem; color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Administraci&oacute;n</span>
+                    </button>
+                </h2>
+                <div id="c-administracion" class="accordion-collapse collapse $admin_active" aria-labelledby="h-administracion" data-bs-parent="#accordionSidebar">
+                    <div class="accordion-body pb-0 pt-1">
+        };
+        
+        my %admin_mod_names = (
+            'clinicas'  => { file => 'manage_clinicas.pl', icon => 'bi-building-gear', title => 'Gesti&oacute;n de Cl&iacute;nicas' },
+            'usuarios'  => { file => 'administracion_usuarios.pl', icon => 'bi-people-fill', title => 'Gesti&oacute;n de Personal' },
+            'servicios' => { file => 'manage_servicios.pl', icon => 'bi-heart-pulse-fill', title => 'Gesti&oacute;n de Servicios' },
+            'productos' => { file => 'manage_productos.pl', icon => 'bi-box-seam-fill', title => 'Gesti&oacute;n de Productos' }
+        );
+        
+        foreach my $k ('clinicas', 'usuarios', 'servicios', 'productos') {
+            if ($is_allowed{$k}) {
+                my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
+                my $cfg = $admin_mod_names{$k};
+                print qq{
+                    <a href="../views/$cfg->{file}" class="sub-link $active_sub w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                        <i class="bi $cfg->{icon} me-2 text-muted" style="font-size:1.1rem;"></i> <span class="sidebar-text">$cfg->{title}</span>
+                    </a>
+                };
+            }
+        }
+        
+        print qq{
+                    </div>
+                </div>
+            </div>
+        };
+    }
+
+    # Separador después de Administración
+    if ($show_admin) {
+        print qq{<hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">};
+    }
+
+    # 3. Pacientes (Flat Link)
+    if ($is_allowed{pacientes}) {
+        my $m = $menu_registry{pacientes};
+        my $style = $module_styles{pacientes};
+        my $active_class = ($pagina_actual eq 'pacientes') ? 'active' : '';
+        print qq{
+            <a href="../$m->{url}" class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
+            </a>
+        };
+    }
+
+    # 4. Agenda Dinámica (Flat Link)
+    if ($is_allowed{agenda}) {
+        my $m = $menu_registry{agenda};
+        my $style = $module_styles{agenda};
+        my $active_class = ($pagina_actual eq 'agenda') ? 'active' : '';
+        print qq{
+            <a href="../$m->{url}" class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
+            </a>
+        };
+        
+        # Ajustes de Agenda (Oculto para Administrador Organizacion por petición expresa)
+        if ($role ne 'Administrador Organizacion') {
+            my $ajustes_href = ($pagina_actual eq 'agenda') ? "#" : "../views/agenda_main.pl?open_settings=1";
+            my $ajustes_onclick = ($pagina_actual eq 'agenda') ? "onclick='abrirModalAjustes(); return false;'" : "";
+            print qq{
+                <a href="$ajustes_href" $ajustes_onclick class="sub-link ms-4 text-start text-decoration-none d-flex align-items-center mb-2" style="font-size: 0.85rem; opacity: 0.85;">
+                    <i class="bi bi-gear-fill me-2 text-secondary" style="font-size:1rem;"></i> <span class="sidebar-text">Ajustes</span>
+                </a>
+            };
+        }
+    }
+
+    # Separador después de Pacientes / Agenda Dinámica
+    if ($is_allowed{pacientes} || $is_allowed{agenda}) {
+        print qq{<hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">};
+    }
+
+    # 5. Finanzas Accordion
+    if ($is_allowed{finanzas}) {
+        my $fin_active = ($pagina_actual eq 'finanzas') ? 'show' : '';
+        my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
+        
+        print qq{
+            <!-- Finanzas Integradas -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-finanzas">
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="false" aria-controls="c-finanzas">
+                        <i class="bi bi-cash-stack text-success" style="color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Finanzas</span>
+                    </button>
+                </h2>
+                <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas" data-bs-parent="#accordionSidebar">
+                    <div class="accordion-body pb-0 pt-1">
+                        <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
+                        <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
+                        <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Gastos (Egresos)</span></a>
+                        <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cuentas por Cobrar</span></a>
+                        <hr class="my-2 opacity-25">
+                        <a href="../views/finanzas.pl?tab=facturacion" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt text-muted me-2"></i><span class="sidebar-text">Facturaci&oacute;n PAC</span></a>
+                        <a href="../views/finanzas.pl?tab=reportes" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-file-earmark-bar-graph-fill text-muted me-2"></i><span class="sidebar-text">Reportes (P&L)</span></a>
+                    </div>
+                </div>
+            </div>
+        };
+
+        # Separador después de Finanzas
+        print qq{<hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">};
+    }
+
+    # 6. Ventas Accordion (Ejecutivo Ventas o Administrador Global)
+    if ( ($is_allowed{crm_ventas} && $role eq 'Ejecutivo Ventas') || ($is_allowed{admin_global} && $role eq 'Administrador Global') ) {
+        my $ventas_active = ($pagina_actual eq 'crm_ventas' || $pagina_actual eq 'admin_ejecutivos') ? 'show' : '';
+        my $collapsed_class = ($ventas_active eq 'show') ? '' : 'collapsed';
+        
+        my $crm_html = '';
+        if ($role eq 'Ejecutivo Ventas') {
+            my $crm_active = ($pagina_actual eq 'crm_ventas') ? 'active' : '';
+            $crm_html = qq{
+                <a href="../views/crm_ventas.pl" class="sub-link $crm_active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                    <i class="bi bi-shop me-2 text-primary" style="font-size:1.1rem;"></i> <span class="sidebar-text">CRM Ventas</span>
+                </a>
+            };
+        }
+        my $ejec_html = '';
+        if ($role eq 'Administrador Global') {
+            my $ejec_active = ($pagina_actual eq 'admin_ejecutivos') ? 'active' : '';
+            $ejec_html = qq{
+                <a href="../views/admin_ejecutivos.pl" class="sub-link $ejec_active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                    <i class="bi bi-people-fill me-2 text-primary" style="font-size:1.1rem;"></i> <span class="sidebar-text">Ejecutivos</span>
+                </a>
+            };
+        }
+        
+        print qq{
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-ventas">
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-ventas" aria-expanded="false" aria-controls="c-ventas">
+                        <i class="material-icons text-primary" style="font-size:1.2rem;">briefcase</i> <span class="sidebar-text ms-2">Ventas</span>
+                    </button>
+                </h2>
+                <div id="c-ventas" class="accordion-collapse collapse $ventas_active" aria-labelledby="h-ventas" data-bs-parent="#accordionSidebar">
+                    <div class="accordion-body pb-0 pt-1">
+                        $crm_html
+                        $ejec_html
+                    </div>
+                </div>
+            </div>
+            <hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">
+        };
+    }
+
+    # 7. Cualquier otro módulo permitido plano que no hayamos dibujado aún (ej: tecnico, sync_google, etc.)
+    my %grouped_or_drawn = (
+        'clinicas'   => 1,
+        'usuarios'   => 1,
+        'servicios'  => 1,
+        'productos'  => 1,
+        'pacientes'  => 1,
+        'agenda'     => 1,
+        'finanzas'   => 1,
+        'crm_ventas' => 1
+    );
+    if ($role eq 'Administrador Organizacion') {
+        $grouped_or_drawn{'reportes'} = 1;
+    }
+
+    foreach my $mod_key (keys %is_allowed) {
+        next if $grouped_or_drawn{$mod_key};
         next unless $menu_registry{$mod_key};
         my $m = $menu_registry{$mod_key};
         my $u = $m->{url} || '#';
@@ -194,96 +383,11 @@ HTML
         my $style = $module_styles{$mod_key} || { icon => 'grid_view', bg => 'var(--surface-blue)', color => 'var(--primary-blue)' };
         my $active_class = ($pagina_actual eq $mod_key) ? 'active' : '';
 
-        my $skip_flat = 0;
-        $skip_flat = 1 if $mod_key eq 'crm_ventas' && $role eq 'Ejecutivo Ventas';
-        $skip_flat = 1 if $mod_key eq 'finanzas';
-
-        unless ($skip_flat) {
-            print qq{
-                <a href="$href" $onclick class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                    <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
-                </a>
-            };
-        }
-
-        if ( ($mod_key eq 'admin_global' && $role eq 'Administrador Global') || 
-             ($mod_key eq 'crm_ventas' && $role eq 'Ejecutivo Ventas') ) {
-            
-            my $ventas_active = ($pagina_actual eq 'crm_ventas' || $pagina_actual eq 'admin_ejecutivos') ? 'show' : '';
-            my $collapsed_class = ($ventas_active eq 'show') ? '' : 'collapsed';
-            
-            my $crm_html = '';
-            if ($role eq 'Ejecutivo Ventas') {
-                my $crm_active = ($pagina_actual eq 'crm_ventas') ? 'active' : '';
-                $crm_html = qq{
-                        <a href="../views/crm_ventas.pl" class="sub-link $crm_active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                            <i class="bi bi-shop me-2 text-primary" style="font-size:1.1rem;"></i> <span class="sidebar-text">CRM Ventas</span>
-                        </a>
-                };
-            }
-            my $ejec_html = '';
-            if ($role eq 'Administrador Global') {
-                my $ejec_active = ($pagina_actual eq 'admin_ejecutivos') ? 'active' : '';
-                $ejec_html = qq{
-                        <a href="../views/admin_ejecutivos.pl" class="sub-link $ejec_active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                            <i class="bi bi-people-fill me-2 text-primary" style="font-size:1.1rem;"></i> <span class="sidebar-text">Ejecutivos</span>
-                        </a>
-                };
-            }
-            
-            print qq{
-                <div class="accordion-item bg-transparent border-0 mb-1">
-                    <h2 class="accordion-header" id="h-ventas">
-                        <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-ventas" aria-expanded="false" aria-controls="c-ventas">
-                            <i class="material-icons text-primary" style="font-size:1.2rem;">briefcase</i> <span class="sidebar-text ms-2">Ventas</span>
-                        </button>
-                    </h2>
-                    <div id="c-ventas" class="accordion-collapse collapse $ventas_active" aria-labelledby="h-ventas" data-bs-parent="#accordionSidebar">
-                        <div class="accordion-body pb-0 pt-1">
-                            $crm_html
-                            $ejec_html
-                        </div>
-                    </div>
-                </div>
-            };
-        }
-
-        if ($mod_key eq 'finanzas') {
-            my $fin_active = ($pagina_actual eq 'finanzas') ? 'show' : '';
-            my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
-            
-            print qq{
-                <!-- Finanzas Integradas -->
-                <div class="accordion-item bg-transparent border-0 mb-1">
-                    <h2 class="accordion-header" id="h-finanzas">
-                        <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="false" aria-controls="c-finanzas">
-                            <i class="bi bi-cash-stack text-success"></i> <span class="sidebar-text ms-2">Finanzas</span>
-                        </button>
-                    </h2>
-                    <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas" data-bs-parent="#accordionSidebar">
-                        <div class="accordion-body pb-0 pt-1">
-                            <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
-                            <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
-                            <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Gastos (Egresos)</span></a>
-                            <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cuentas por Cobrar</span></a>
-                            <hr class="my-2 opacity-25">
-                            <a href="../views/finanzas.pl?tab=facturacion" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt text-muted me-2"></i><span class="sidebar-text">Facturaci&oacute;n PAC</span></a>
-                            <a href="../views/finanzas.pl?tab=reportes" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-file-earmark-bar-graph-fill text-muted me-2"></i><span class="sidebar-text">Reportes (P&L)</span></a>
-                        </div>
-                    </div>
-                </div>
-            };
-        }
-
-        if ($mod_key eq 'agenda') {
-            my $ajustes_href = ($pagina_actual eq 'agenda') ? "#" : "../views/agenda_main.pl?open_settings=1";
-            my $ajustes_onclick = ($pagina_actual eq 'agenda') ? "onclick='abrirModalAjustes(); return false;'" : "";
-            print qq{
-                <a href="$ajustes_href" $ajustes_onclick class="sub-link ms-4 text-start text-decoration-none d-flex align-items-center mb-2" style="font-size: 0.85rem; opacity: 0.85;">
-                    <i class="bi bi-gear-fill me-2 text-secondary" style="font-size:1rem;"></i> <span class="sidebar-text">Ajustes</span>
-                </a>
-            };
-        }
+        print qq{
+            <a href="$href" $onclick class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
+            </a>
+        };
     }
 
     print <<HTML;

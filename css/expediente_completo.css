@@ -130,6 +130,14 @@ body {
     border-left: 3px solid var(--md-teal-clinical) !important;
 }
 
+/* Invertir la dirección del chevron en acordeones (abajo al expandir, arriba al colapsar) */
+.diamond-sidebar .accordion-button.collapsed::after {
+    transform: rotate(180deg) !important;
+}
+.diamond-sidebar .accordion-button:not(.collapsed)::after {
+    transform: rotate(0deg) !important;
+}
+
 /* Uniformidad de color en los iconos principales y animación */
 .diamond-sidebar .accordion-button i { 
     font-size: 1.2rem; 
