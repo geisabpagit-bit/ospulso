@@ -279,37 +279,7 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 
 <script>
-    var dtEjecutivos;
-    var dtEjecutivosInactivos;
-
-    \$(document).ready(function() {
-        if (\$('#tablaEjecutivos').length && \$('#tablaEjecutivos tbody tr td').length > 1) {
-            dtEjecutivos = \$('#tablaEjecutivos').DataTable({
-                destroy: true,
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-                dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
-                ordering: true,
-                paging: true
-            });
-        }
-
-        if (\$('#tablaEjecutivosInactivos').length && \$('#tablaEjecutivosInactivos tbody tr td').length > 1) {
-            dtEjecutivosInactivos = \$('#tablaEjecutivosInactivos').DataTable({
-                destroy: true,
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-                dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
-                ordering: true,
-                paging: true
-            });
-        }
-
-        // Toggling styles on Tab Pills click dynamically
-        \$('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
-            \$(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
-            \$(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
-        });
-    });
-
+    // 1. Definir funciones globales primero para evitar ReferenceError en navegación SPA
     window.toggleFormulario = function() {
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
@@ -320,6 +290,48 @@ print <<HTML;
             container.classList.add('d-none');
         }
     };
+
+    var dtEjecutivos;
+    var dtEjecutivosInactivos;
+
+    // 2. Inicialización segura de componentes
+    function initEjecutivos() {
+        try {
+            if (\$('#tablaEjecutivos').length && \$('#tablaEjecutivos tbody tr td').length > 1) {
+                dtEjecutivos = \$('#tablaEjecutivos').DataTable({
+                    destroy: true,
+                    language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                    dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                    ordering: true,
+                    paging: true
+                });
+            }
+            if (\$('#tablaEjecutivosInactivos').length && \$('#tablaEjecutivosInactivos tbody tr td').length > 1) {
+                dtEjecutivosInactivos = \$('#tablaEjecutivosInactivos').DataTable({
+                    destroy: true,
+                    language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                    dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                    ordering: true,
+                    paging: true
+                });
+            }
+        } catch (e) {
+            console.error("Error al inicializar DataTables:", e);
+        }
+    }
+
+    try {
+        \$(document).ready(initEjecutivos);
+        document.addEventListener("spa:contentLoaded", initEjecutivos);
+
+        // Toggling styles on Tab Pills click dynamically
+        \$('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
+            \$(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
+            \$(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
+        });
+    } catch (e) {
+        console.error("Error al configurar bindings de jQuery:", e);
+    }
 
     window.prepararNuevoEjecutivo = function() {
         document.getElementById('form_action').value = 'create';

@@ -81,9 +81,6 @@ print <<HTML;
             </div>
         </div>
     </main>
-HTML
-utils::sub_sidebar::render_sidebar_footer();
-print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
@@ -127,6 +124,10 @@ print <<HTML;
         });
     }
 </script>
+HTML
+utils::sub_sidebar::render_sidebar_footer();
+
+print <<HTML;
 </body>
 </html>
 HTML
