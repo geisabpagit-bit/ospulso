@@ -604,5 +604,5 @@ print <<HTML;
 </body>
 </html>
 HTML
-utils::sub_bottom_nav::render_bottom_nav(role => $role);
+render_bottom_nav('usuarios');
 print $q->end_html;

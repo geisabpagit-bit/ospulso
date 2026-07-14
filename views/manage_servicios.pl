@@ -178,7 +178,7 @@ print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
-    function toggleFormulario() {
+    window.toggleFormulario = function() {
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
             container.classList.remove('d-none');
@@ -188,7 +188,7 @@ print <<HTML;
         }
     }
 
-    function prepararNuevoServicio() {
+    window.prepararNuevoServicio = function() {
         document.getElementById('action_serv').value = 'create';
         document.getElementById('id_servicio_edit').value = '';
         document.getElementById('in_nombre').value = '';
@@ -202,7 +202,7 @@ print <<HTML;
         container.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function editarServicio(id, nombre, precio, desc) {
+    window.editarServicio = function(id, nombre, precio, desc) {
         document.getElementById('action_serv').value = 'update';
         document.getElementById('id_servicio_edit').value = id;
         document.getElementById('in_nombre').value = nombre;
@@ -241,7 +241,7 @@ print <<HTML;
         });
     });
 
-    function eliminarServicio(id) {
+    window.eliminarServicio = function(id) {
         Swal.fire({
             title: '¿Estás seguro?',
             text: "Se eliminará el servicio de tu catálogo.",
@@ -269,5 +269,5 @@ print <<HTML;
     }
 </script>
 HTML
-utils::sub_bottom_nav::render_bottom_nav(role => $role);
+render_bottom_nav('servicios');
 print $q->end_html;

@@ -200,7 +200,7 @@ print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script>
-    function toggleFormulario() {
+    window.toggleFormulario = function() {
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
             container.classList.remove('d-none');
@@ -210,7 +210,7 @@ print <<HTML;
         }
     }
 
-    function prepararNuevoProducto() {
+    window.prepararNuevoProducto = function() {
         document.getElementById('action_prod').value = 'create';
         document.getElementById('id_producto_edit').value = '';
         document.getElementById('in_nombre').value = '';
@@ -226,7 +226,7 @@ print <<HTML;
         container.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function editarProducto(id, nombre, precio, cant, pres, desc) {
+    window.editarProducto = function(id, nombre, precio, cant, pres, desc) {
         document.getElementById('action_prod').value = 'update';
         document.getElementById('id_producto_edit').value = id;
         document.getElementById('in_nombre').value = nombre;
@@ -267,7 +267,7 @@ print <<HTML;
         });
     });
 
-    function eliminarProducto(id) {
+    window.eliminarProducto = function(id) {
         Swal.fire({
             title: '¿Estás seguro?',
             text: "Se eliminará el producto de tu catálogo.",
@@ -295,5 +295,5 @@ print <<HTML;
     }
 </script>
 HTML
-utils::sub_bottom_nav::render_bottom_nav(role => $role);
+render_bottom_nav('productos');
 print $q->end_html;
