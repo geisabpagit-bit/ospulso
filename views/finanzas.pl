@@ -44,7 +44,10 @@ utils::sub_sidebar::render_sidebar(
 
 print <<'PAGE_HTML';
 <script>
-    function swTab(tabId, btnElement) {
+    console.log("[SPA Debug] Declarando funciones de control de Finanzas");
+
+    window.swTab = function(tabId, btnElement) {
+        console.log("[SPA Debug] Cambiando a pestaña: " + tabId);
         document.querySelectorAll('.sdm-tab-pane').forEach(el => el.classList.add('d-none'));
         const target = document.getElementById(tabId);
         if(target) target.classList.remove('d-none');
@@ -66,32 +69,41 @@ print <<'PAGE_HTML';
             }
         }
         
-        if(window.innerWidth < 992 && btnElement && typeof toggleSidebar === 'function') {
-            toggleSidebar();
+        if(window.innerWidth < 992 && btnElement && typeof window.toggleSidebar === 'function') {
+            window.toggleSidebar();
         }
         
         if(tabId === 'tab_cxc' && typeof window.renderCxC === 'function') window.renderCxC();
         if(tabId === 'tab_gastos' && typeof window.renderGastos === 'function') window.renderGastos();
         if(tabId === 'tab_ingresos' && typeof window.renderIngresos === 'function') window.renderIngresos();
         if(tabId === 'tab_reportes' && typeof window.renderReportes === 'function') window.renderReportes();
-    }
+    };
     
-    document.addEventListener("DOMContentLoaded", function() {
+    window.onFinanzasSubLinkClick = function(e) {
+        e.preventDefault();
+        const url = new URL(this.href, window.location.origin);
+        const tab = url.searchParams.get('tab');
+        console.log("[SPA Debug] Interceptado click en sidebar link para tab: " + tab);
+        window.history.pushState({ spa: true }, '', this.href);
+        window.swTab('tab_' + tab, this);
+    };
+
+    window.initFinanzasTabs = function() {
+        console.log("[SPA Debug] Inicializando pestañas de Finanzas...");
         const urlParams = new URLSearchParams(window.location.search);
         const activeTab = urlParams.get('tab') || 'resumen';
-        swTab('tab_' + activeTab);
+        window.swTab('tab_' + activeTab);
         
         // Intercept sidebar links to prevent reload if already in finanzas
         document.querySelectorAll('.sidebar-menu .sub-link[href*="finanzas.pl?tab="]').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const url = new URL(this.href, window.location.origin);
-                const tab = url.searchParams.get('tab');
-                window.history.pushState({}, '', this.href);
-                swTab('tab_' + tab, this);
-            });
+            link.removeEventListener('click', window.onFinanzasSubLinkClick);
+            link.addEventListener('click', window.onFinanzasSubLinkClick);
         });
-    });
+    };
+
+    // Registrar en DOMContentLoaded para carga normal, y spa:contentLoaded para navegación SPA
+    document.addEventListener("DOMContentLoaded", window.initFinanzasTabs);
+    document.addEventListener("spa:contentLoaded", window.initFinanzasTabs);
 </script>
         <!-- Header Compacto -->
         <div class="diamond-header-compact d-flex justify-content-between align-items-center">
@@ -516,13 +528,17 @@ print <<'PAGE_HTML';
 <script src="../js/estado_cuenta_spa.js?v=4"></script>
 
 <script>
-    function bootFinanzas() {
-        if(typeof initModuloFinanciero === 'function') {
-            initModuloFinanciero('', 'bento', ''); 
+    window.bootFinanzas = function() {
+        console.log("[SPA Debug] Ejecutando bootFinanzas...");
+        if(typeof window.initModuloFinanciero === 'function') {
+            console.log("[SPA Debug] Llamando a initModuloFinanciero");
+            window.initModuloFinanciero('', 'bento', ''); 
+        } else {
+            console.warn("[SPA Debug] initModuloFinanciero no está definido en el contexto window");
         }
-    }
-    document.addEventListener("DOMContentLoaded", bootFinanzas);
-    document.addEventListener("spa:contentLoaded", bootFinanzas);
+    };
+    document.addEventListener("DOMContentLoaded", window.bootFinanzas);
+    document.addEventListener("spa:contentLoaded", window.bootFinanzas);
 </script>
 PAGE_HTML
 utils::sub_sidebar::render_sidebar_footer();
