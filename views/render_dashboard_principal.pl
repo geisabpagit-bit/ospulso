@@ -31,6 +31,23 @@ sub render_dashboard_principal {
     my $role = $args{role} || 'Visitante';
     my $usuario = $args{usuario} || 'Usuario';
     
+    if ($role eq 'Administrador Global') {
+        utils::sub_sidebar::render_sidebar(
+            usuario => $usuario,
+            role => $role,
+            id_medico => $id_medico,
+            pagina_actual => 'dashboard'
+        );
+        print <<HTML;
+        <!-- Dashboard Content para Administrador Global (Vacío) -->
+        <div class="container-fluid px-4 pb-5">
+            <!-- Pantalla sin contenido para Administrador Global -->
+        </div>
+HTML
+        utils::sub_sidebar::render_sidebar_footer();
+        return;
+    }
+    
         # Rutas de datos
     my $dat_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
     my $citas_file = File::Spec->catfile($dat_dir, 'citas.dat');

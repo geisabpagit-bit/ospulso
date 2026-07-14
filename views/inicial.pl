@@ -33,9 +33,6 @@ if ($session_ok) {
     if ($role eq 'Ejecutivo Ventas') {
         print $q->redirect(-uri => 'crm_ventas.pl');
         exit;
-    } elsif ($role eq 'Administrador Global') {
-        print $q->redirect(-uri => 'admin_global.pl');
-        exit;
     }
 
     print $q->header(-type => 'text/html', -charset => 'UTF-8');
