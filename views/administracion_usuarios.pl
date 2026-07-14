@@ -112,7 +112,7 @@ print <<HTML;
 
         <div class="container-fluid px-4 pb-5">
             <!-- Contenedor del Formulario Inline (Alta/Edición) -->
-            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
+            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer" style="scroll-margin-top: 100px;">
                 <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader">
                     <h5 class="fw-black mb-0" id="formTitle"><i class="bi bi-person-plus-fill me-2"></i>Añadir Colaborador</h5>
                     <button type="button" class="btn-close btn-close-white" onclick="toggleFormulario()"></button>
@@ -348,19 +348,20 @@ print <<HTML;
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function toggleFormulario() {
+    // Lógica para mostrar/ocultar formulario y llenarlo
+    window.toggleFormulario = function() {
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
             container.classList.remove('d-none');
-            container.scrollIntoView({ behavior: 'smooth' });
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else {
             container.classList.add('d-none');
         }
-    }
+    };
 
-    function prepararNuevoUsuario() {
+    window.prepararNuevoUsuario = function() {
         document.getElementById('form_action').value = 'create';
         document.getElementById('form_id_usuario').value = '';
         document.getElementById('form_nombre').value = '';
@@ -376,10 +377,10 @@ print <<HTML;
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        container.scrollIntoView({ behavior: 'smooth' });
-    }
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
-    function abrirFormEditar(id, nombre, correo, rol, id_sucursal) {
+    window.abrirFormEditar = function(id, nombre, correo, rol, id_sucursal) {
         document.getElementById('form_action').value = 'update';
         document.getElementById('form_id_usuario').value = id;
         document.getElementById('form_nombre').value = nombre;
@@ -395,9 +396,10 @@ print <<HTML;
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        container.scrollIntoView({ behavior: 'smooth' });
-    }
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
+    // Envío del Formulario
     document.getElementById('form-usuario').addEventListener('submit', function(e) {
         e.preventDefault();
         const fd = new FormData(this);
@@ -436,7 +438,7 @@ print <<HTML;
     });
 
     // Desactivar Usuario (Soft Delete)
-    function confirmDesactivar(id) {
+    window.confirmDesactivar = function(id) {
         Swal.fire({
             title: '¿Desactivar Colaborador?',
             text: "El usuario ya no podrá iniciar sesión y pasará a la papelera.",
@@ -468,7 +470,7 @@ print <<HTML;
     }
 
     // Reactivar Usuario
-    function confirmReactivar(id) {
+    window.confirmReactivar = function(id) {
         Swal.fire({
             title: '¿Reactivar Colaborador?',
             text: "El usuario volverá a la lista de personal activo y podrá iniciar sesión.",
@@ -500,7 +502,7 @@ print <<HTML;
     }
 
     // Eliminar Permanentemente (Físico)
-    function confirmEliminarDefinitivo(id) {
+    window.confirmEliminarDefinitivo = function(id) {
         Swal.fire({
             title: '¿Eliminar Permanentemente?',
             text: "Esta acción borrará de forma física al colaborador de la base de datos. No se puede deshacer. ¿Proceder?",

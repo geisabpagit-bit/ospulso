@@ -87,7 +87,7 @@ print <<HTML;
         <div class="container-fluid px-4 pb-5">
             
             <!-- Contenedor del Formulario Inline (Alta/Edición de Ejecutivo) -->
-            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
+            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer" style="scroll-margin-top: 100px;">
                 <div class="card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader" style="background-color: var(--md-blue-deep) !important;">
                     <h5 class="fw-black mb-0" id="formTitle"><i class="bi bi-person-plus-fill me-2"></i>Añadir Ejecutivo de Ventas</h5>
                     <button type="button" class="btn-close btn-close-white" onclick="toggleFormulario()"></button>
@@ -329,7 +329,7 @@ print <<HTML;
         });
     });
 
-    function toggleFormulario() {
+    window.toggleFormulario = function() {
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
             container.classList.remove('d-none');
@@ -337,9 +337,9 @@ print <<HTML;
         } else {
             container.classList.add('d-none');
         }
-    }
+    };
 
-    function prepararNuevoEjecutivo() {
+    window.prepararNuevoEjecutivo = function() {
         document.getElementById('form_action').value = 'create';
         document.getElementById('form_id_ejecutivo').value = '';
         document.getElementById('form_nombre').value = '';
@@ -354,9 +354,9 @@ print <<HTML;
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
         container.scrollIntoView({ behavior: 'smooth' });
-    }
+    };
 
-    function abrirFormEditar(id, nombre, correo) {
+    window.abrirFormEditar = function(id, nombre, correo) {
         document.getElementById('form_action').value = 'edit';
         document.getElementById('form_id_ejecutivo').value = id;
         document.getElementById('form_nombre').value = nombre;
@@ -371,7 +371,7 @@ print <<HTML;
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
         container.scrollIntoView({ behavior: 'smooth' });
-    }
+    };
 
     document.getElementById('form-ejecutivo').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -410,7 +410,7 @@ print <<HTML;
     });
 
     // Desactivar Ejecutivo (Soft Delete)
-    function confirmDesactivar(id) {
+    window.confirmDesactivar = function(id) {
         Swal.fire({
             title: '¿Desactivar Ejecutivo?',
             text: "El usuario ya no podrá iniciar sesión en el CRM y pasará a la papelera.",
@@ -442,7 +442,7 @@ print <<HTML;
     }
 
     // Reactivar Ejecutivo
-    function confirmReactivar(id) {
+    window.confirmReactivar = function(id) {
         Swal.fire({
             title: '¿Reactivar Ejecutivo?',
             text: "El usuario volverá a la lista activa y podrá iniciar sesión en el CRM.",
@@ -474,7 +474,7 @@ print <<HTML;
     }
 
     // Eliminar permanentemente (Borrado físico)
-    function confirmEliminarDefinitivo(id) {
+    window.confirmEliminarDefinitivo = function(id) {
         Swal.fire({
             title: '¿Eliminar Permanentemente?',
             text: "Esta acción borrará de forma física al Ejecutivo de la base de datos. No se puede deshacer.",
