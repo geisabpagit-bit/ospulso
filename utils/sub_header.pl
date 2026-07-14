@@ -213,9 +213,6 @@ $search_html
                     </a>
                 </div>
 
-                <div class="mt-auto sidebar-footer">
-                    <a href="javascript:void(0)" onclick="confirmLogout()" class="btn btn-danger w-100 rounded-pill fw-bold d-flex justify-content-center align-items-center"><i class="bi bi-box-arrow-right me-2"></i><span class="sidebar-text">Cerrar Sesión</span></a>
-                </div>
             </div>
         </div>
     </div>

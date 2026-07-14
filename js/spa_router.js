@@ -111,8 +111,9 @@ async function loadPage(url, push = true) {
                     newScript.async = false; // Mantener orden de ejecución
                     
                     await new Promise((resolve) => {
-                        newScript.onload = resolve;
-                        newScript.onerror = resolve; // Continuar aunque falle
+                        let timeout = setTimeout(resolve, 3000); // 3 seconds timeout
+                        newScript.onload = () => { clearTimeout(timeout); resolve(); };
+                        newScript.onerror = () => { clearTimeout(timeout); resolve(); }; // Continuar aunque falle
                         document.body.appendChild(newScript);
                     });
                 } else {

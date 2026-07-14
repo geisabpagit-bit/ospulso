@@ -235,32 +235,20 @@ HTML
             my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
             
             print qq{
-                <!-- Finanzas Corporativas -->
+                <!-- Finanzas Integradas -->
                 <div class="accordion-item bg-transparent border-0 mb-1">
-                    <h2 class="accordion-header" id="h-fin">
-                        <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-fin" aria-expanded="false" aria-controls="c-fin">
-                            <i class="bi bi-cash-stack text-success"></i> <span class="sidebar-text ms-2">Gesti&oacute;n Financiera</span>
+                    <h2 class="accordion-header" id="h-finanzas">
+                        <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="false" aria-controls="c-finanzas">
+                            <i class="bi bi-cash-stack text-success"></i> <span class="sidebar-text ms-2">Finanzas</span>
                         </button>
                     </h2>
-                    <div id="c-fin" class="accordion-collapse collapse $fin_active" aria-labelledby="h-fin" data-bs-parent="#accordionSidebar">
+                    <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas" data-bs-parent="#accordionSidebar">
                         <div class="accordion-body pb-0 pt-1">
                             <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
                             <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
                             <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Gastos (Egresos)</span></a>
                             <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cuentas por Cobrar</span></a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Contabilidad Fiscal -->
-                <div class="accordion-item bg-transparent border-0 mb-1">
-                    <h2 class="accordion-header" id="h-fiscal">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-fiscal" aria-expanded="false" aria-controls="c-fiscal">
-                            <i class="bi bi-bank text-primary"></i> <span class="sidebar-text ms-2">Fiscal y Contable</span>
-                        </button>
-                    </h2>
-                    <div id="c-fiscal" class="accordion-collapse collapse" aria-labelledby="h-fiscal" data-bs-parent="#accordionSidebar">
-                        <div class="accordion-body pb-0 pt-1">
+                            <hr class="my-2 opacity-25">
                             <a href="../views/finanzas.pl?tab=facturacion" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt text-muted me-2"></i><span class="sidebar-text">Facturaci&oacute;n PAC</span></a>
                             <a href="../views/finanzas.pl?tab=reportes" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-file-earmark-bar-graph-fill text-muted me-2"></i><span class="sidebar-text">Reportes (P&L)</span></a>
                         </div>

@@ -391,6 +391,7 @@ print <<HTML;
     \$(document).ready(function() {
         if (\$('#tablaOrganizaciones').length && \$('#tablaOrganizaciones tbody tr td').length > 1) {
             dtOrganizaciones = \$('#tablaOrganizaciones').DataTable({
+                destroy: true,
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
                 ordering: true,
@@ -401,6 +402,7 @@ print <<HTML;
 
         if (\$('#tablaOrganizacionesInactivas').length && \$('#tablaOrganizacionesInactivas tbody tr td').length > 1) {
             dtOrganizacionesInactivas = \$('#tablaOrganizacionesInactivas').DataTable({
+                destroy: true,
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
                 ordering: true,

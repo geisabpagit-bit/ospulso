@@ -285,6 +285,7 @@ print <<HTML;
     \$(document).ready(function() {
         if (\$('#tablaEjecutivos').length && \$('#tablaEjecutivos tbody tr td').length > 1) {
             dtEjecutivos = \$('#tablaEjecutivos').DataTable({
+                destroy: true,
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
                 ordering: true,
@@ -294,6 +295,7 @@ print <<HTML;
 
         if (\$('#tablaEjecutivosInactivos').length && \$('#tablaEjecutivosInactivos tbody tr td').length > 1) {
             dtEjecutivosInactivos = \$('#tablaEjecutivosInactivos').DataTable({
+                destroy: true,
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
                 ordering: true,
@@ -312,7 +314,8 @@ print <<HTML;
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
             container.classList.remove('d-none');
-            container.scrollIntoView({ behavior: 'smooth' });
+            const offset = container.offsetTop - 90;
+            window.scrollTo({ top: offset, behavior: 'smooth' });
         } else {
             container.classList.add('d-none');
         }
@@ -332,7 +335,8 @@ print <<HTML;
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        container.scrollIntoView({ behavior: 'smooth' });
+        const offset = container.offsetTop - 90;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
     window.abrirFormEditar = function(id, nombre, correo) {
@@ -349,7 +353,8 @@ print <<HTML;
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        container.scrollIntoView({ behavior: 'smooth' });
+        const offset = container.offsetTop - 90;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
     document.getElementById('form-ejecutivo').addEventListener('submit', function(e) {
