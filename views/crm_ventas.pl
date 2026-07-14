@@ -82,7 +82,7 @@ print <<HTML;
                     <p class="text-white-50 small mb-0 mt-1">Gestión de Nuevas Organizaciones y Licencias</p>
                 </div>
                 <div>
-                    <button type="button" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" onclick="mostrarFormularioSaaS()">
+                    <button type="button" class="btn btn-blue-deep rounded-pill px-4 fw-bold shadow-sm" onclick="mostrarFormularioSaaS()">
                         <i class="bi bi-plus-circle me-2"></i><span>Registrar Organización</span>
                     </button>
                 </div>
@@ -97,7 +97,7 @@ print <<HTML;
                     <!-- Pestañas de Navegación -->
                     <ul class="nav nav-pills mb-4 gap-2" id="orgTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link btn btn-sdm-primary active rounded-pill px-4 fw-bold shadow-sm text-white" style="background-color: var(--md-blue-deep); border: none;" id="activas-tab" data-bs-toggle="pill" data-bs-target="#tab-activas" type="button" role="tab" aria-controls="tab-activas" aria-selected="true">
+                            <button class="nav-link btn btn-blue-deep active rounded-pill px-4 fw-bold shadow-sm text-white" style="background-color: var(--md-blue-deep); border: none;" id="activas-tab" data-bs-toggle="pill" data-bs-target="#tab-activas" type="button" role="tab" aria-controls="tab-activas" aria-selected="true">
                                 <i class="bi bi-building-check me-2"></i>Organizaciones Activas
                             </button>
                         </li>
@@ -253,7 +253,7 @@ print <<HTML;
                         <input type="hidden" name="action" id="action_org" value="create">
                         <input type="hidden" name="id_org" id="id_org_edit" value="">
                         <div class="card border-0 shadow-sm rounded-4 mb-4 modal-diamond">
-                            <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center">
+                            <div class="card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader" style="background-color: var(--md-blue-deep) !important;">
                                 <h4 class="fw-black mb-0" id="tituloSaaS"><i class="bi bi-building-add me-2"></i>Configurador SaaS - Nueva Organización</h4>
                                 <button type="button" class="btn btn-sm btn-light rounded-pill fw-bold shadow-sm px-3" onclick="ocultarFormularioSaaS()">
                                     <i class="bi bi-arrow-left me-1"></i>Volver
@@ -365,7 +365,7 @@ print <<HTML;
                             </div>
                             <div class="card-footer border-0 p-4 bg-light rounded-bottom-4 text-end">
                                 <button type="button" class="btn btn-light fw-bold px-4 me-2" onclick="ocultarFormularioSaaS()">Cancelar</button>
-                                <button type="submit" class="btn btn-sdm-primary rounded-pill px-5 fw-bold shadow-sm" id="btn-submit-org">
+                                <button type="submit" class="btn btn-blue-deep rounded-pill px-5 fw-bold shadow-sm" id="btn-submit-org">
                                     <i class="bi bi-cloud-check-fill me-2"></i><span id="txt-submit-org">Desplegar Tenant y Enviar Accesos</span>
                                 </button>
                             </div>
@@ -388,8 +388,8 @@ print <<HTML;
 <script>
     var dtOrganizaciones;
     var dtOrganizacionesInactivas;
-    $(document).ready(function() {
-        dtOrganizaciones = $('#tablaOrganizaciones').DataTable({
+    \$(document).ready(function() {
+        dtOrganizaciones = \$('#tablaOrganizaciones').DataTable({
             language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
             dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
             ordering: true,
@@ -397,7 +397,7 @@ print <<HTML;
             paging: true
         });
 
-        dtOrganizacionesInactivas = $('#tablaOrganizacionesInactivas').DataTable({
+        dtOrganizacionesInactivas = \$('#tablaOrganizacionesInactivas').DataTable({
             language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
             dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
             ordering: true,
