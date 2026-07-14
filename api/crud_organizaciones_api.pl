@@ -15,8 +15,11 @@ require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 use utils::db_manager qw(leer_tabla actualizar_archivo);
 
+use Encode qw(decode_utf8);
+
 my $sd = check_session();
 my $q  = $sd->{q};
+
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
@@ -36,22 +39,30 @@ my $archivo_config   = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios
 # CREATE
 # ==========================================
 if ($action eq 'create') {
-    my $nombre_org   = $q->param('nombre_org')   // '';
-    my $rfc_org      = $q->param('rfc_org')      // '';
-    my $naturaleza_juridica = $q->param('naturaleza_juridica') // '';
-    my $tipo_organizacion   = $q->param('tipo_organizacion') // '';
-    my $reporta_institucion = $q->param('reporta_institucion') // '';
-    my @instituciones = $q->multi_param('institucion[]');
-    my @capacidades   = $q->multi_param('capacidades[]');
+    my $nombre_org   = decode_utf8($q->param('nombre_org')   // '');
+    my $rfc_org      = decode_utf8($q->param('rfc_org')      // '');
+    my $naturaleza_juridica = decode_utf8($q->param('naturaleza_juridica') // '');
+    my $tipo_organizacion   = decode_utf8($q->param('tipo_organizacion') // '');
+    my $reporta_institucion = decode_utf8($q->param('reporta_institucion') // '');
+    my @instituciones = map { decode_utf8($_ // '') } $q->multi_param('institucion[]');
+    my @capacidades   = map { decode_utf8($_ // '') } $q->multi_param('capacidades[]');
 
-    my $nombre_admin = $q->param('nombre_admin') // '';
-    my $correo_admin = lc($q->param('correo_admin') // '');
-    my $clave_admin  = $q->param('clave_admin')  // '';
+    my $nombre_admin = decode_utf8($q->param('nombre_admin') // '');
+    my $correo_admin = lc(decode_utf8($q->param('correo_admin') // ''));
+    my $clave_admin  = decode_utf8($q->param('clave_admin')  // '');
 
     $nombre_org   =~ s/^\s+|\s+$//g;
     $nombre_admin =~ s/^\s+|\s+$//g;
     $correo_admin =~ s/^\s+|\s+$//g;
     $clave_admin  =~ s/^\s+|\s+$//g;
+    $rfc_org      =~ s/^\s+|\s+$//g;
+    $reporta_institucion =~ s/^\s+|\s+$//g;
+
+    # Valores por defecto para evitar nulos en campos opcionales
+    $rfc_org = "No aplica" if $rfc_org eq '';
+    $reporta_institucion = "No aplica" if $reporta_institucion eq '';
+    @instituciones = ("No aplica") if !@instituciones;
+
 
     if (!$nombre_org || !$nombre_admin || !$correo_admin || !$clave_admin || !$tipo_organizacion || !$naturaleza_juridica) {
         print encode_json({ status => 'error', message => 'Faltan datos obligatorios.' });
@@ -186,22 +197,30 @@ if ($action eq 'update') {
     my $id_org = $q->param('id_org') // '';
     if (!$id_org) { print encode_json({status=>'error', message=>'ID requerido'}); exit; }
 
-    my $nombre_org   = $q->param('nombre_org')   // '';
-    my $rfc_org      = $q->param('rfc_org')      // '';
-    my $naturaleza_juridica = $q->param('naturaleza_juridica') // '';
-    my $tipo_organizacion   = $q->param('tipo_organizacion') // '';
-    my $reporta_institucion = $q->param('reporta_institucion') // '';
-    my @instituciones = $q->multi_param('institucion[]');
-    my @capacidades   = $q->multi_param('capacidades[]');
+    my $nombre_org   = decode_utf8($q->param('nombre_org')   // '');
+    my $rfc_org      = decode_utf8($q->param('rfc_org')      // '');
+    my $naturaleza_juridica = decode_utf8($q->param('naturaleza_juridica') // '');
+    my $tipo_organizacion   = decode_utf8($q->param('tipo_organizacion') // '');
+    my $reporta_institucion = decode_utf8($q->param('reporta_institucion') // '');
+    my @instituciones = map { decode_utf8($_ // '') } $q->multi_param('institucion[]');
+    my @capacidades   = map { decode_utf8($_ // '') } $q->multi_param('capacidades[]');
 
-    my $nombre_admin = $q->param('nombre_admin') // '';
-    my $correo_admin = lc($q->param('correo_admin') // '');
-    my $clave_admin  = $q->param('clave_admin')  // '';
+    my $nombre_admin = decode_utf8($q->param('nombre_admin') // '');
+    my $correo_admin = lc(decode_utf8($q->param('correo_admin') // ''));
+    my $clave_admin  = decode_utf8($q->param('clave_admin')  // '');
 
     $nombre_org   =~ s/^\s+|\s+$//g;
     $nombre_admin =~ s/^\s+|\s+$//g;
     $correo_admin =~ s/^\s+|\s+$//g;
     $clave_admin  =~ s/^\s+|\s+$//g;
+    $rfc_org      =~ s/^\s+|\s+$//g;
+    $reporta_institucion =~ s/^\s+|\s+$//g;
+
+    # Valores por defecto para evitar nulos en campos opcionales
+    $rfc_org = "No aplica" if $rfc_org eq '';
+    $reporta_institucion = "No aplica" if $reporta_institucion eq '';
+    @instituciones = ("No aplica") if !@instituciones;
+
 
     if (!$nombre_org || !$nombre_admin || !$correo_admin || !$tipo_organizacion || !$naturaleza_juridica) {
         print encode_json({ status => 'error', message => 'Faltan datos obligatorios.' });

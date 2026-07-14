@@ -23,14 +23,16 @@ if (!$sd->{session_ok} || $sd->{role} ne 'Administrador Organizacion') {
     exit;
 }
 
+use Encode qw(decode_utf8);
+
 my $id_org_matriz = $sd->{id_empresa};
 
-my $id_usuario_edit = $q->param('id_usuario_edit') // '';
-my $nombre          = $q->param('nombre')          // '';
-my $correo          = lc($q->param('correo')       // '');
-my $clave           = $q->param('clave')           // '';
-my $rol             = $q->param('rol')             // '';
-my $id_sucursal     = $q->param('id_sucursal')     // '';
+my $id_usuario_edit = decode_utf8($q->param('id_usuario_edit') // '');
+my $nombre          = decode_utf8($q->param('nombre')          // '');
+my $correo          = lc(decode_utf8($q->param('correo')       // ''));
+my $clave           = decode_utf8($q->param('clave')           // '');
+my $rol             = decode_utf8($q->param('rol')             // '');
+my $id_sucursal     = decode_utf8($q->param('id_sucursal')     // '');
 
 $nombre          =~ s/^\s+|\s+$//g;
 $correo          =~ s/^\s+|\s+$//g;
