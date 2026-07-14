@@ -12,6 +12,7 @@ use lib $FindBin::Bin . '/..';
 require "$FindBin::Bin/../auth/check_session.pl";
 require "$FindBin::Bin/../utils/sub_header.pl";
 require "$FindBin::Bin/../utils/sub_bottom_nav.pl";
+require "$FindBin::Bin/../utils/sub_sidebar.pl";
 use utils::db_manager qw(leer_tabla);
 
 my $q = CGI->new;
