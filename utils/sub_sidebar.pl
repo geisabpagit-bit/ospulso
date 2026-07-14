@@ -99,6 +99,24 @@ sub render_sidebar {
                 my $trimmed_mod = $mod;
                 $trimmed_mod =~ s/^\s+|\s+$//g;
                 if (exists $modulo_capacidad{$trimmed_mod}) {
+                    # --- REGLA DE BYPASS DE CAPACIDADES ---
+                    # 1. 'pacientes' siempre visible para Administrador Organizacion y Medico
+                    if ($trimmed_mod eq 'pacientes' && ($role eq 'Administrador Organizacion' || $role eq 'Medico')) {
+                        push @filtered_modules, $mod;
+                        next;
+                    }
+                    # 2. 'servicios' y 'productos' siempre visibles para Administrador Organizacion
+                    if ($role eq 'Administrador Organizacion' && ($trimmed_mod eq 'servicios' || $trimmed_mod eq 'productos')) {
+                        push @filtered_modules, $mod;
+                        next;
+                    }
+                    # 3. 'finanzas' y 'reportes' siempre visibles para Administrador Organizacion, Medico y Recepcionista
+                    if (($trimmed_mod eq 'finanzas' || $trimmed_mod eq 'reportes') && 
+                        ($role eq 'Administrador Organizacion' || $role eq 'Medico' || $role eq 'Recepcionista')) {
+                        push @filtered_modules, $mod;
+                        next;
+                    }
+
                     my $required_cap = $modulo_capacidad{$trimmed_mod};
                     if ($capacidades{$required_cap}) {
                         push @filtered_modules, $mod;

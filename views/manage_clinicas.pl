@@ -83,27 +83,29 @@ print <<HTML;
             </div>
         </header>
 
-        <div class="container-fluid px-4 pb-5">
+        <div class="container-fluid px-4">
             <!-- Contenedor del Formulario Inline -->
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
-                <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-black mb-0"><i class="bi bi-shop me-2"></i>Añadir Nueva Sucursal</h5>
+                <div class="card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader" style="background-color: var(--md-blue-deep) !important;">
+                    <h5 class="fw-black mb-0" id="formTitle"><i class="bi bi-shop me-2"></i>Añadir Nueva Sucursal</h5>
                     <button type="button" class="btn-close btn-close-white" onclick="toggleFormulario()"></button>
                 </div>
                 <div class="card-body p-4 bg-light rounded-bottom-4">
                     <form id="form-alta-sucursal" class="form-sdm-container">
+                        <input type="hidden" name="id_sucursal_edit" id="form_id_sucursal" value="">
+                        <input type="hidden" name="action" id="form_action" value="create">
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label class="form-label small fw-bold text-muted">Nombre de la Sucursal</label>
-                                <input type="text" class="form-control form-control-sm shadow-sm" name="nombre_sucursal" required placeholder="Ej: Sucursal Norte">
+                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_nombre" name="nombre_sucursal" required placeholder="Ej: Sucursal Norte">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label small fw-bold text-muted">Teléfono Principal</label>
-                                <input type="text" class="form-control form-control-sm shadow-sm" name="telefono" placeholder="555-1234">
+                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_telefono" name="telefono" placeholder="555-1234">
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-muted">Domicilio</label>
-                                <input type="text" class="form-control form-control-sm shadow-sm" name="domicilio" placeholder="Av. Siempre Viva 742">
+                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_domicilio" name="domicilio" placeholder="Av. Siempre Viva 742">
                             </div>
                         </div>
                         <div class="mt-4 d-flex justify-content-end gap-2">
@@ -126,6 +128,7 @@ print <<HTML;
                                     <th class="small fw-bold text-muted text-uppercase border-0">Estado</th>
                                     <th class="small fw-bold text-muted text-uppercase border-0">Teléfono</th>
                                     <th class="small fw-bold text-muted text-uppercase border-0">Domicilio</th>
+                                    <th class="small fw-bold text-muted text-uppercase border-0 text-end pe-4">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -134,6 +137,10 @@ HTML
 if (@mis_sucursales) {
     foreach my $suc (@mis_sucursales) {
         my $badge = $suc->{estado} eq 'Activa' ? 'bg-success' : 'bg-danger';
+        my $toggle_title = $suc->{estado} eq 'Activa' ? 'Desactivar' : 'Activar';
+        my $toggle_class = $suc->{estado} eq 'Activa' ? 'text-danger border-danger border-opacity-25' : 'text-success border-success border-opacity-25';
+        my $toggle_bg = $suc->{estado} eq 'Activa' ? 'rgba(220, 53, 69, 0.05)' : 'rgba(25, 135, 84, 0.05)';
+        my $toggle_icon = $suc->{estado} eq 'Activa' ? 'bi-toggle-on' : 'bi-toggle-off';
         print <<HTML;
                                 <tr>
                                     <td>
@@ -150,13 +157,23 @@ if (@mis_sucursales) {
                                     <td><span class="badge rounded-pill $badge px-3 py-2">$$suc{estado}</span></td>
                                     <td class="text-muted small fw-bold">$$suc{telefono}</td>
                                     <td class="text-muted small">$$suc{domicilio}</td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button onclick="abrirFormEditar('$$suc{id}', '$$suc{nombre}', '$$suc{telefono}', '$$suc{domicilio}')" class="btn p-0 border-0 btn-expediente" title="Editar">
+                                                <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
+                                            </button>
+                                            <button onclick="confirmToggleStatus('$$suc{id}', '$$suc{nombre}', '$$suc{estado}')" class="btn p-0 border-0 action-btn-delete" title="$toggle_title">
+                                                <div class="icon-container-acrylic $toggle_class" style="background: $toggle_bg;"><i class="bi $toggle_icon"></i></div>
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
 HTML
     }
 } else {
     print <<HTML;
                                 <tr>
-                                    <td colspan="4" class="text-center py-5 text-muted">
+                                    <td colspan="5" class="text-center py-5 text-muted">
                                         <i class="bi bi-shop-window display-4 d-block mb-3 text-black-50 opacity-50"></i>
                                         <p class="mb-0 fw-bold fs-5">Aún no has registrado ninguna sucursal.</p>
                                         <p class="small text-muted">Crea tu primera sede clínica para comenzar a agregar personal.</p>
@@ -181,11 +198,77 @@ print <<HTML;
     function toggleFormulario() {
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
+            // Limpiar formulario y restablecer a modo Creación
+            document.getElementById('form-alta-sucursal').reset();
+            document.getElementById('form_action').value = 'create';
+            document.getElementById('form_id_sucursal').value = '';
+            document.getElementById('formTitle').innerHTML = '<i class="bi bi-shop me-2"></i>Añadir Nueva Sucursal';
+            document.getElementById('btn-submit-sucursal').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Registrar Sucursal';
+            
             container.classList.remove('d-none');
             container.scrollIntoView({ behavior: 'smooth' });
         } else {
             container.classList.add('d-none');
         }
+    }
+
+    window.abrirFormEditar = function(id, nombre, telefono, domicilio) {
+        document.getElementById('form_action').value = 'update';
+        document.getElementById('form_id_sucursal').value = id;
+        document.getElementById('form_nombre').value = nombre;
+        document.getElementById('form_telefono').value = (telefono === 'N/A' || telefono === 'No aplica') ? '' : telefono;
+        document.getElementById('form_domicilio').value = (domicilio === 'No registrado' || domicilio === 'No aplica') ? '' : domicilio;
+        
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Sucursal';
+        document.getElementById('btn-submit-sucursal').innerHTML = '<i class="bi bi-save me-2"></i>Guardar Cambios';
+        
+        const container = document.getElementById('formContainer');
+        container.classList.remove('d-none');
+        container.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    window.confirmToggleStatus = function(id, nombre, estadoActual) {
+        const accion = (estadoActual === 'Activa') ? 'desactivar' : 'activar';
+        const color = (estadoActual === 'Activa') ? '#d33' : '#198754';
+        
+        Swal.fire({
+            title: '¿' + accion.charAt(0).toUpperCase() + accion.slice(1) + ' sucursal?',
+            text: '¿Estás seguro de que deseas ' + accion + ' la sucursal "' + nombre + '"?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: color,
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, ' + accion,
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('id_sucursal', id);
+                fd.append('action', 'toggle_status');
+                
+                fetch('../api/crud_sucursales_api.pl', {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Estado Actualizado!',
+                            text: 'La sucursal ha sido modificada.',
+                            confirmButtonColor: '#18D1E6'
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', data.message || 'Ocurrió un error.', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Error', 'Falla de conexión.', 'error');
+                });
+            }
+        });
     }
 
     document.getElementById('form-alta-sucursal').addEventListener('submit', function(e) {
@@ -195,7 +278,7 @@ print <<HTML;
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
 
-        fetch('../api/alta_sucursal_api.pl', {
+        fetch('../api/crud_sucursales_api.pl', {
             method: 'POST',
             body: fd
         })
@@ -204,21 +287,21 @@ print <<HTML;
             if (data.status === 'success') {
                 Swal.fire({
                     icon: 'success',
-                    title: '¡Sucursal Creada!',
-                    text: 'La sede ha sido dada de alta.',
+                    title: '¡Guardado!',
+                    text: 'La sucursal ha sido guardada correctamente.',
                     confirmButtonColor: '#18D1E6'
                 }).then(() => location.reload());
             } else {
-                Swal.fire('Error', data.message || 'Ocurrió un error.', 'error');
+                Swal.fire('Error', data.message || 'Error al procesar.', 'error');
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>Registrar Sucursal';
+                btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Cambios';
             }
         })
         .catch(err => {
             console.error(err);
             Swal.fire('Error', 'Falla de conexión.', 'error');
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>Registrar Sucursal';
+            btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Cambios';
         });
     });
 </script>

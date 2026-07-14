@@ -4,7 +4,7 @@ Administrador Global|0|admin_global|tecnico|sync_google|reportes
 Administrador Organizacion|1|servicios|productos|clinicas|usuarios|finanzas|reportes|pacientes|agenda
 Ejecutivo Ventas|0|crm_ventas
 Medico|1|pacientes|agenda|finanzas
-Recepcionista|0|agenda|finanzas
+Recepcionista|1|agenda|finanzas
 Paciente|0|mis_citas|mi_historial
 Soporte|1|sync_google|pacientes|agenda|reportes
 

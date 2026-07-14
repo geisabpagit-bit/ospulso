@@ -113,7 +113,7 @@ print <<HTML;
         <div class="container-fluid px-4 pb-5">
             <!-- Contenedor del Formulario Inline (Alta/Edición) -->
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer" style="scroll-margin-top: 100px;">
-                <div class="card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader">
+                <div class="card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader" style="background-color: var(--md-blue-deep) !important;">
                     <h5 class="fw-black mb-0" id="formTitle"><i class="bi bi-person-plus-fill me-2"></i>Añadir Colaborador</h5>
                     <button type="button" class="btn-close btn-close-white" onclick="toggleFormulario()"></button>
                 </div>
@@ -162,7 +162,7 @@ print <<HTML;
                         </div>
                         <div class="mt-4 d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-light fw-bold px-4" onclick="toggleFormulario()">Cancelar</button>
-                            <button type="submit" class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" id="btn-submit-form">
+                            <button type="submit" class="btn btn-blue-deep rounded-pill px-4 fw-bold shadow-sm" id="btn-submit-form">
                                 <i class="bi bi-person-check me-2"></i>Guardar Colaborador
                             </button>
                         </div>
@@ -173,12 +173,12 @@ print <<HTML;
             <!-- Pestañas de Navegación -->
             <ul class="nav nav-pills mb-4 gap-2" id="userTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active rounded-pill fw-bold px-4" id="activos-tab" data-bs-toggle="pill" data-bs-target="#tab-activos" type="button" role="tab">
+                    <button class="nav-link btn btn-blue-deep active rounded-pill px-4 fw-bold shadow-sm" id="activos-tab" data-bs-toggle="pill" data-bs-target="#tab-activos" type="button" role="tab">
                         <i class="bi bi-person-check-fill me-2"></i>Colaboradores Activos
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link rounded-pill fw-bold px-4 position-relative" id="inactivos-tab" data-bs-toggle="pill" data-bs-target="#tab-inactivos" type="button" role="tab">
+                    <button class="nav-link btn btn-light rounded-pill px-4 fw-bold shadow-sm position-relative" id="inactivos-tab" data-bs-toggle="pill" data-bs-target="#tab-inactivos" type="button" role="tab" style="border: 1px solid #dee2e6;">
                         <i class="bi bi-person-x-fill me-2"></i>Inactivos / Papelera
 HTML
 if (@personal_inactivo) {
@@ -373,7 +373,7 @@ print <<HTML;
         document.getElementById('form_id_sucursal').value = '';
         
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Añadir Colaborador';
-        document.getElementById('formHeader').className = 'card-header border-0 bg-primary bg-gradient text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        document.getElementById('formHeader').className = 'card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
@@ -392,7 +392,7 @@ print <<HTML;
         document.getElementById('form_id_sucursal').value = id_sucursal;
         
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Colaborador';
-        document.getElementById('formHeader').className = 'card-header border-0 bg-navy text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
+        document.getElementById('formHeader').className = 'card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
@@ -588,6 +588,12 @@ print <<HTML;
                 dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
             });
         }
+
+        // Toggling styles on Tab Pills click dynamically
+        \$('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
+            \$(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
+            \$(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
+        });
     });
 </script>
 HTML
