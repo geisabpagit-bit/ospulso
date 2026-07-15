@@ -148,7 +148,6 @@ sub render_sidebar {
     # So we use standard relative paths since this is called from views/
     
     print <<HTML;
-    print <<HTML;
 <link rel="stylesheet" href="../css/sub_sidebar.css?v=$^T">
 <script src="../js/spa_router.js?v=$^T" defer></script>
 <script src="../js/sub_sidebar.js?v=$^T" defer></script>
