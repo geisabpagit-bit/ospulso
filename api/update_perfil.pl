@@ -109,8 +109,33 @@ eval {
         );
         actualizar_paciente($correo_login, \%p_data);
     } else {
-        # MODO ESPECIALISTA: Actualizar negocios.dat
-        if ($id_negocio && $id_negocio ne '0') {
+        # Cargar Naturaleza Jurídica
+        my $naturaleza_juridica = 'Privado'; # default
+        if ($id_negocio) {
+            my $config_file = '../dat/negocios_config.dat';
+            if (-e $config_file && open(my $cf, '<:encoding(UTF-8)', $config_file)) {
+                while (my $line = <$cf>) {
+                    chomp($line);
+                    next if $line =~ /^#|^\s*$/;
+                    my ($biz_id, $key, $val) = split(/\|/, $line);
+                    if ($biz_id eq $id_negocio && $key eq 'NATURALEZA_JURIDICA') {
+                        $naturaleza_juridica = $val;
+                        last;
+                    }
+                }
+                close($cf);
+            }
+        }
+
+        # Restricción: Si el rol es Medico y la Naturaleza Jurídica es Privado, no puede actualizar el negocio (CLUES)
+        my $role = $session_data->{role} // '';
+        my $puede_actualizar_negocio = 1;
+        if ($role eq 'Medico' && $naturaleza_juridica eq 'Privado') {
+            $puede_actualizar_negocio = 0;
+        }
+
+        # MODO ESPECIALISTA: Actualizar negocios.dat si tiene permiso
+        if ($id_negocio && $id_negocio ne '0' && $puede_actualizar_negocio) {
             actualizar_negocio(
                 id_negocio => $id_negocio,
                 nombre     => decode('UTF-8', $q->param('biz_nombre') || ''),

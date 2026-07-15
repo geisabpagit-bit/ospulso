@@ -206,8 +206,23 @@ if ($session_ok) {
 
     # Verificar Estado y Suscripción del Negocio
     my $biz_status = {};
+    my $naturaleza_juridica = 'Privado'; # default
     if ($user_data->{id_negocio}) {
         $biz_status = verificar_estado_negocio($user_data->{id_negocio});
+        
+        my $config_file = '../dat/negocios_config.dat';
+        if (-e $config_file && open(my $cf, '<:encoding(UTF-8)', $config_file)) {
+            while (my $line = <$cf>) {
+                chomp($line);
+                next if $line =~ /^#|^\s*$/;
+                my ($biz_id, $key, $val) = split(/\|/, $line);
+                if ($biz_id eq $user_data->{id_negocio} && $key eq 'NATURALEZA_JURIDICA') {
+                    $naturaleza_juridica = $val;
+                    last;
+                }
+            }
+            close($cf);
+        }
     }
 
     render_header(
@@ -219,16 +234,17 @@ if ($session_ok) {
     );
 
     render_edita_perfil(
-        user_data          => $user_data,
-        biz_data           => $biz_data,
-        biz_status         => $biz_status,
-        perfil_data        => $perfil_data,
-        cat_formacion      => \@cat_formacion,
-        cat_religion       => \@cat_religion,
-        cat_nacionalidades => \@cat_nacionalidades,
-        role               => $role,
-        correo_sesion      => $correo_login,
-        busqueda           => \@busqueda
+        user_data           => $user_data,
+        biz_data            => $biz_data,
+        biz_status          => $biz_status,
+        perfil_data         => $perfil_data,
+        cat_formacion       => \@cat_formacion,
+        cat_religion        => \@cat_religion,
+        cat_nacionalidades  => \@cat_nacionalidades,
+        role                => $role,
+        correo_sesion       => $correo_login,
+        busqueda            => \@busqueda,
+        naturaleza_juridica => $naturaleza_juridica
     );
 
     render_footer();

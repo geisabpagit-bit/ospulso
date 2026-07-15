@@ -17,6 +17,12 @@ sub render_edita_perfil {
     my $cn   = $args{cat_nacionalidades} // [];
     my $role = $args{role}      // 'Sin Rol';
     my $c_s  = $args{correo_sesion} // 'No detectado';
+    my $naturaleza_juridica = $args{naturaleza_juridica} // 'Privado';
+    
+    my $has_clues = 1;
+    if ($role eq 'Medico' && $naturaleza_juridica eq 'Privado') {
+        $has_clues = 0;
+    }
     
     my $clave_formacion = $p->{clave_formacion} // '';
     my $clave_nacionalidad = $p->{clave_nacionalidad} || 'MEX';
@@ -117,7 +123,8 @@ HTML
     </div>
 HTML
     } else {
-        print <<HTML;
+        if ($has_clues) {
+            print <<HTML;
     <!-- Stepper Especialista -->
     <div class="wizard-stepper">
         <div class="wizard-step active" onclick="PerfilWizardController.jumpToStep(0)">
@@ -138,6 +145,25 @@ HTML
         </div>
     </div>
 HTML
+        } else {
+            print <<HTML;
+    <!-- Stepper Especialista (Sin CLUES) -->
+    <div class="wizard-stepper">
+        <div class="wizard-step active" onclick="PerfilWizardController.jumpToStep(0)">
+            <div class="wizard-step-icon"><i class="bi bi-person-badge"></i></div>
+            <div class="wizard-step-label">Identidad</div>
+        </div>
+        <div class="wizard-step" onclick="PerfilWizardController.jumpToStep(1)">
+            <div class="wizard-step-icon"><i class="bi bi-award"></i></div>
+            <div class="wizard-step-label">Suscripci&oacute;n</div>
+        </div>
+        <div class="wizard-step" onclick="PerfilWizardController.jumpToStep(2)">
+            <div class="wizard-step-icon"><i class="bi bi-shield-lock"></i></div>
+            <div class="wizard-step-label">Seguridad</div>
+        </div>
+    </div>
+HTML
+        }
     }
 
 print <<HTML;
@@ -150,7 +176,7 @@ print <<HTML;
         <div id="alertContainer"></div>
         <div class="alert alert-warning border-0 shadow-sm rounded-4 d-flex align-items-center justify-content-between mb-3 py-2 px-3 animate__animated animate__fadeIn">
             <span class="small fw-semibold text-dark"><i class="bi bi-shield-fill-exclamation text-warning me-2"></i>Recuerda que para guardar cualquier cambio es obligatorio ingresar tu contraseña actual.</span>
-            <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark px-3" onclick="PerfilWizardController.jumpToStep(3); setTimeout(function(){ \$('#clave_actual').focus(); }, 300);">
+            <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark px-3" onclick="PerfilWizardController.jumpToStep(@{[ $has_clues ? 3 : 2 ]}); setTimeout(function(){ \$('#clave_actual').focus(); }, 300);">
                 <i class="bi bi-key-fill me-1"></i>Ir a Contraseña
             </button>
         </div>
@@ -379,7 +405,8 @@ HTML
         
         my $colonia_options = $b_colonia ? qq(<option value="$b_colonia" selected>$b_colonia</option>) : qq(<option value="">Ingrese su C.P. para cargar localidades</option>);
 
-        print <<HTML;
+        if ($has_clues) {
+            print <<HTML;
         <!-- PANEL 1: ESPECIALISTA CLUES (Ubicación, CLUES, Comercial) -->
         <div class="wizard-panel" id="step-panel-1">
             <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-geo-alt me-2"></i>Ubicación y Domicilio</h5>
@@ -518,9 +545,12 @@ HTML
                 <button type="button" class="wizard-btn-next" onclick="PerfilWizardController.nextStep()">Siguiente <i class="bi bi-arrow-right ms-2"></i></button>
             </div>
         </div>
+HTML
+        }
 
+        print <<HTML;
         <!-- PANEL 2: ESPECIALISTA SUSCRIPCION / LICENCIA -->
-        <div class="wizard-panel" id="step-panel-2">
+        <div class="wizard-panel" id="step-panel-@{[ $has_clues ? 2 : 1 ]}">
             <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-award me-2"></i>Licenciamiento y Suscripción</h5>
             
             <div class="d-flex gap-2 mb-4">
@@ -563,7 +593,7 @@ HTML
         </div>
 
         <!-- PANEL 3: ESPECIALISTA SEGURIDAD -->
-        <div class="wizard-panel" id="step-panel-3">
+        <div class="wizard-panel" id="step-panel-@{[ $has_clues ? 3 : 2 ]}">
             <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-shield-lock-fill me-2"></i>Seguridad de Cuenta</h5>
             <div class="row g-3">
                 <div class="col-md-4">
@@ -605,7 +635,7 @@ HTML
 <script>
 \$(document).ready(function() {
     // 1. Inicializar Wizard (Total de pasos depende del rol)
-    let totalPasos = 4;
+    let totalPasos = @{[ $is_paciente ? 4 : ($has_clues ? 4 : 3) ]};
     PerfilWizardController.init(totalPasos);
 
     // 2. Control del Formulario
