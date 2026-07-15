@@ -266,18 +266,62 @@ print <<HTML;
                 </div>
             </div>
         </div>
-    </main>
 HTML
 print <<HTML;
 
 
 
-<!-- Scripts y Librerías de DataTables -->
+<!-- Scripts y Librerías de DataTables y Exportación -->
 <link class="datatables-css" rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 
+<!-- Librerías de Exportación Premium -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+    document.getElementById('form-ejecutivo').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        const action = document.getElementById('form_action').value;
+        const btn = document.getElementById('btn-submit-form');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+
+        fetch('../api/crud_ejecutivos_api.pl', {
+            method: 'POST',
+            body: fd
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Guardado!',
+                    text: 'El perfil del ejecutivo ha sido guardado.',
+                    confirmButtonColor: '#18D1E6'
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Error', data.message || 'Ocurrió un error.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Ejecutivo';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('Error', 'Falla de conexión.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Ejecutivo';
+        });
+    });
+</script>
 <script>
     // 1. Definir funciones globales primero para evitar ReferenceError en navegación SPA
     window.toggleFormulario = function() {
@@ -290,48 +334,6 @@ print <<HTML;
             container.classList.add('d-none');
         }
     };
-
-    var dtEjecutivos;
-    var dtEjecutivosInactivos;
-
-    // 2. Inicialización segura de componentes
-    function initEjecutivos() {
-        try {
-            if (\$('#tablaEjecutivos').length && \$('#tablaEjecutivos tbody tr td').length > 1) {
-                dtEjecutivos = \$('#tablaEjecutivos').DataTable({
-                    destroy: true,
-                    language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-                    dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
-                    ordering: true,
-                    paging: true
-                });
-            }
-            if (\$('#tablaEjecutivosInactivos').length && \$('#tablaEjecutivosInactivos tbody tr td').length > 1) {
-                dtEjecutivosInactivos = \$('#tablaEjecutivosInactivos').DataTable({
-                    destroy: true,
-                    language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-                    dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
-                    ordering: true,
-                    paging: true
-                });
-            }
-        } catch (e) {
-            console.error("Error al inicializar DataTables:", e);
-        }
-    }
-
-    try {
-        \$(document).ready(initEjecutivos);
-        document.addEventListener("spa:contentLoaded", initEjecutivos);
-
-        // Toggling styles on Tab Pills click dynamically
-        \$('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
-            \$(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
-            \$(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
-        });
-    } catch (e) {
-        console.error("Error al configurar bindings de jQuery:", e);
-    }
 
     window.prepararNuevoEjecutivo = function() {
         document.getElementById('form_action').value = 'create';
@@ -369,42 +371,6 @@ print <<HTML;
         window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
-    document.getElementById('form-ejecutivo').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const fd = new FormData(this);
-        const action = document.getElementById('form_action').value;
-        const btn = document.getElementById('btn-submit-form');
-        
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
-
-        fetch('../api/crud_ejecutivos_api.pl', {
-            method: 'POST',
-            body: fd
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Guardado!',
-                    text: 'El perfil del ejecutivo ha sido guardado.',
-                    confirmButtonColor: '#18D1E6'
-                }).then(() => location.reload());
-            } else {
-                Swal.fire('Error', data.message || 'Ocurrió un error.', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Ejecutivo';
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            Swal.fire('Error', 'Falla de conexión.', 'error');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Ejecutivo';
-        });
-    });
-
     // Desactivar Ejecutivo (Soft Delete)
     window.confirmDesactivar = function(id) {
         Swal.fire({
@@ -434,8 +400,8 @@ print <<HTML;
                     }
                 });
             }
-        })
-    }
+        });
+    };
 
     // Reactivar Ejecutivo
     window.confirmReactivar = function(id) {
@@ -466,8 +432,8 @@ print <<HTML;
                     }
                 });
             }
-        })
-    }
+        });
+    };
 
     // Eliminar permanentemente (Borrado físico)
     window.confirmEliminarDefinitivo = function(id) {
@@ -498,8 +464,90 @@ print <<HTML;
                     }
                 });
             }
-        })
+        });
+    };
+
+    var dtEjecutivos;
+    var dtEjecutivosInactivos;
+
+    // 2. Inicialización segura de componentes
+    function initEjecutivos() {
+        try {
+            const tableConfig = {
+                destroy: true,
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                dom: '<"export-toolbar d-flex flex-wrap justify-content-between align-items-center mb-3"Bf>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                buttons: [
+                    { extend: 'copy', className: 'btn btn-export btn-sm shadow-sm', text: '<i class="bi bi-clipboard"></i> COPIAR', exportOptions: { columns: [0, 1] } },
+                    { extend: 'excel', className: 'btn btn-export btn-sm shadow-sm', text: '<i class="bi bi-file-earmark-excel"></i> EXCEL', exportOptions: { columns: [0, 1] } },
+                    { 
+                        extend: 'pdfHtml5', 
+                        className: 'btn btn-export btn-sm shadow-sm', 
+                        text: '<i class="bi bi-file-earmark-pdf"></i> PDF',
+                        exportOptions: { columns: [0, 1] },
+                        customize: function(doc) {
+                            // Parche crítico SDM: Buscar la tabla real en doc.content
+                            let tableNode;
+                            for (let i = 0; i < doc.content.length; i++) {
+                                if (doc.content[i].table) {
+                                    tableNode = doc.content[i];
+                                    // Borrar posibles encabezados inyectados por default arriba de la tabla si se desea:
+                                    // doc.content.splice(0, i); 
+                                    break;
+                                }
+                            }
+                            if (tableNode) {
+                                // Asegurar que los anchos de columna coinciden con el exportOptions
+                                tableNode.table.widths = ['*', '*']; 
+                                // Aplicar estilos corporativos SDM
+                                tableNode.layout = 'lightHorizontalLines';
+                                doc.styles.tableHeader = {
+                                    fillColor: '#0d1e3d',
+                                    color: 'white',
+                                    bold: true,
+                                    alignment: 'left'
+                                };
+                            }
+                            // Cabecera Institucional
+                            doc.content.unshift({
+                                text: 'Fuerza de Ventas - SDM',
+                                style: 'header',
+                                alignment: 'center',
+                                margin: [0, 0, 0, 10]
+                            });
+                        }
+                    },
+                    { extend: 'print', className: 'btn btn-export btn-sm shadow-sm', text: '<i class="bi bi-printer"></i> IMPRIMIR', exportOptions: { columns: [0, 1] } }
+                ],
+                ordering: true,
+                paging: true
+            };
+
+            if (\$('#tablaEjecutivos').length && \$('#tablaEjecutivos tbody tr td').length > 1) {
+                dtEjecutivos = \$('#tablaEjecutivos').DataTable(tableConfig);
+            }
+            if (\$('#tablaEjecutivosInactivos').length && \$('#tablaEjecutivosInactivos tbody tr td').length > 1) {
+                dtEjecutivosInactivos = \$('#tablaEjecutivosInactivos').DataTable(tableConfig);
+            }
+        } catch (e) {
+            console.error("Error al inicializar DataTables:", e);
+        }
     }
+
+    try {
+        \$(document).ready(initEjecutivos);
+        document.addEventListener("spa:contentLoaded", initEjecutivos);
+
+        // Toggling styles on Tab Pills click dynamically
+        \$('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
+            \$(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
+            \$(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
+        });
+    } catch (e) {
+        console.error("Error al configurar bindings de jQuery:", e);
+    }
+
+
 </script>
 HTML
 
