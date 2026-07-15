@@ -219,7 +219,8 @@ print <<HTML;
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
             container.classList.remove('d-none');
-            container.scrollIntoView({ behavior: 'smooth' });
+            const offset = container.offsetTop - 100;
+            window.scrollTo({ top: offset, behavior: 'smooth' });
         } else {
             container.classList.add('d-none');
         }
@@ -238,7 +239,8 @@ print <<HTML;
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        container.scrollIntoView({ behavior: 'smooth' });
+        const offset = container.offsetTop - 100;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
     window.editarProducto = function(id, nombre, precio, cant, pres, desc) {
@@ -249,12 +251,13 @@ print <<HTML;
         document.getElementById('in_cant').value = cant;
         document.getElementById('in_pres').value = pres;
         document.getElementById('in_desc').value = desc;
-        document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar Producto';
+        document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Producto';
         document.getElementById('formHeader').className = 'card-header border-0 bg-navy text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        container.scrollIntoView({ behavior: 'smooth' });
+        const offset = container.offsetTop - 100;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
     // 2. Inicialización segura de DataTables (Norma 7 de Estilos SDM)

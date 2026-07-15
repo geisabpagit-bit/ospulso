@@ -222,7 +222,8 @@ print <<HTML;
             document.getElementById('btn-submit-sucursal').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Registrar Sucursal';
             
             container.classList.remove('d-none');
-            container.scrollIntoView({ behavior: 'smooth' });
+            const offset = container.offsetTop - 100;
+            window.scrollTo({ top: offset, behavior: 'smooth' });
         } else {
             container.classList.add('d-none');
         }
@@ -240,7 +241,8 @@ print <<HTML;
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        container.scrollIntoView({ behavior: 'smooth' });
+        const offset = container.offsetTop - 100;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
     window.confirmToggleStatus = function(id, nombre, estadoActual) {

@@ -197,7 +197,8 @@ print <<HTML;
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
             container.classList.remove('d-none');
-            container.scrollIntoView({ behavior: 'smooth' });
+            const offset = container.offsetTop - 100;
+            window.scrollTo({ top: offset, behavior: 'smooth' });
         } else {
             container.classList.add('d-none');
         }
@@ -214,7 +215,8 @@ print <<HTML;
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        container.scrollIntoView({ behavior: 'smooth' });
+        const offset = container.offsetTop - 100;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
     window.editarServicio = function(id, nombre, precio, desc) {
@@ -228,7 +230,8 @@ print <<HTML;
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        container.scrollIntoView({ behavior: 'smooth' });
+        const offset = container.offsetTop - 100;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
     // 2. Inicialización segura de DataTables (Norma 7 de Estilos SDM)
