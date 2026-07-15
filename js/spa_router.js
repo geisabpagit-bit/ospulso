@@ -1,6 +1,8 @@
 // SPA Router para OSPulso
 // Intercepta la navegación para una experiencia fluida sin recargas.
 
+// Deshabilitado temporal/definitivamente por estabilidad de carga en CGI Perl
+/*
 document.addEventListener("click", function (e) {
     const a = e.target.closest("a");
     if (!a || !a.href) return;
@@ -21,6 +23,7 @@ document.addEventListener("click", function (e) {
         loadPage(a.href);
     }
 });
+*/
 
 window.addEventListener("popstate", function (e) {
     if (e.state && e.state.spa) {
