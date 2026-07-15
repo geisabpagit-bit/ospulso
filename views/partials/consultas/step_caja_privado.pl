@@ -48,6 +48,7 @@ sub render_step_caja_privado {
         close($fh);
     }
     
+    use JSON::PP;
     my $json_cots = JSON::PP->new->utf8(1)->encode(\%cot_data);
     
     return qq{
