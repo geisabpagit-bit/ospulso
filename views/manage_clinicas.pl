@@ -121,7 +121,7 @@ print <<HTML;
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-hover align-middle mb-0" id="tablaSucursales">
                             <thead class="table-light">
                                 <tr>
                                     <th class="small fw-bold text-muted text-uppercase border-0">Sucursal</th>
@@ -193,9 +193,25 @@ HTML
 utils::sub_sidebar::render_sidebar_footer();
 
 print <<HTML;
+<!-- Hojas de Estilo de DataTables -->
+<link class="datatables-css" rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+
+<!-- Librerías de DataTables y Exportaciones -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+
 <script>
-    function toggleFormulario() {
+    // 1. Declarar funciones globales primero (Garantiza acceso en navegación SPA)
+    window.toggleFormulario = function() {
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
             // Limpiar formulario y restablecer a modo Creación
@@ -210,7 +226,7 @@ print <<HTML;
         } else {
             container.classList.add('d-none');
         }
-    }
+    };
 
     window.abrirFormEditar = function(id, nombre, telefono, domicilio) {
         document.getElementById('form_action').value = 'update';
@@ -225,7 +241,7 @@ print <<HTML;
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
         container.scrollIntoView({ behavior: 'smooth' });
-    }
+    };
 
     window.confirmToggleStatus = function(id, nombre, estadoActual) {
         const accion = (estadoActual === 'Activa') ? 'desactivar' : 'activar';
@@ -269,8 +285,77 @@ print <<HTML;
                 });
             }
         });
+    };
+
+    // 2. Inicialización segura de DataTables con Barra de Herramientas Estándar (Norma 7)
+    var dtSucursales;
+    function initSucursalesTable() {
+        try {
+            if (\$('#tablaSucursales').length && \$('#tablaSucursales tbody tr td').length > 1) {
+                dtSucursales = \$('#tablaSucursales').DataTable({
+                    destroy: true,
+                    language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                    dom: '<"p-3 d-flex justify-content-start align-items-center"B>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                    buttons: {
+                        dom: {
+                            container: { className: 'dt-buttons export-toolbar' },
+                            button: { className: 'btn-export' }
+                        },
+                        buttons: [
+                            { 
+                                extend: 'copy', 
+                                text: '<i class="bi bi-clipboard"></i> Copiar',
+                                exportOptions: { columns: [0, 1, 2, 3] }
+                            },
+                            { 
+                                extend: 'excel', 
+                                text: '<i class="bi bi-file-earmark-excel"></i> Excel', 
+                                title: 'Gestión de Sucursales - SDM',
+                                exportOptions: { columns: [0, 1, 2, 3] }
+                            },
+                            { 
+                                extend: 'pdf', 
+                                text: '<i class="bi bi-file-earmark-pdf"></i> PDF', 
+                                title: 'Gestión de Sucursales - SDM',
+                                exportOptions: { columns: [0, 1, 2, 3] },
+                                customize: function (doc) {
+                                    doc.styles.tableHeader = { fillColor: '#0d1e3d', color: 'white', alignment: 'center', bold: true, fontSize: 10 };
+                                    var tableIndex = -1;
+                                    for (var i = 0; i < doc.content.length; i++) {
+                                        if (doc.content[i].table) {
+                                            tableIndex = i;
+                                            break;
+                                        }
+                                    }
+                                    if (tableIndex > -1) {
+                                        doc.content[tableIndex].table.widths = ['25%', '15%', '20%', '40%'];
+                                        doc.content[tableIndex].margin = [0, 10, 0, 10];
+                                        if (tableIndex > 0) doc.content.splice(0, tableIndex);
+                                    }
+                                }
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="bi bi-printer"></i> Imprimir',
+                                exportOptions: { columns: [0, 1, 2, 3] }
+                            }
+                        ]
+                    }
+                });
+            }
+        } catch(e) {
+            console.error("Error al inicializar DataTables:", e);
+        }
     }
 
+    try {
+        \$(document).ready(initSucursalesTable);
+        document.addEventListener("spa:contentLoaded", initSucursalesTable);
+    } catch(e) {
+        console.error("Error al configurar bindings jQuery:", e);
+    }
+
+    // 3. Envío del Formulario vía Fetch
     document.getElementById('form-alta-sucursal').addEventListener('submit', function(e) {
         e.preventDefault();
         const fd = new FormData(this);
