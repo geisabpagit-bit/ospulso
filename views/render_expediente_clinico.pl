@@ -1032,7 +1032,6 @@ HTML
         </section>
 HTML
     utils::sub_sidebar::render_sidebar_footer();
-HTML
 
 print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>

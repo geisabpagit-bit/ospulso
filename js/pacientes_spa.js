@@ -479,9 +479,9 @@ window.abrirModalCorreoSpa = function(correoBase, nombreBase, idPaciente) {
     }
 
     // Config Inicial del modal al abrirse
+    document.getElementById('formCorreoCrm').reset();
     document.getElementById('crmInputTo').value = correoBase;
     document.getElementById('crmInputIdPaciente').value = idPaciente;
-    document.getElementById('formCorreoCrm').reset();
     document.getElementById('crmInputSubject').value = "Información Importante de su Clínica";
     
     var modalEl = document.getElementById('modalCorreoSpaContainer');

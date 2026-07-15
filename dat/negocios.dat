@@ -1,1 +1,4 @@
-﻿ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud
+﻿﻿ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud
+1055007|Guadalupe|0|1|2026-07-14|2027-07-14|||fran@gmail.com||guadalupe123|||190726041||||||||
+706496|norte|1055007|1|2026-07-14|2099-12-31|av 1|1234|No aplica|No aplica|No aplica|No aplica|No aplica|No aplica||||||||
+591522|sur|1055007|1|2026-07-14|2099-12-31|av 3|1234|No aplica|No aplica|No aplica|No aplica|No aplica|No aplica||||||||
