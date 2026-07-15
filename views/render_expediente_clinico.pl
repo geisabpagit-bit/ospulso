@@ -89,7 +89,7 @@ sub render_expediente_completo {
 
     print <<HTML;
 <link rel="stylesheet" href="../css/expediente_completo.css?v=$^T">
-
+HTML
 
     utils::sub_sidebar::render_sidebar(
         usuario => $session_data->{usuario},
@@ -136,13 +136,14 @@ sub render_expediente_completo {
         const hash = window.location.hash;
         if (hash) {
             const tabId = hash.substring(1);
-            const targetBtn = document.querySelector('.sub-link[onclick*="swTab(\\'" + tabId + "\\'"]');
+            const targetBtn = document.querySelector('.sub-link[onclick*="swTab(\\'' + tabId + '\\'"]');
             if(targetBtn) {
                 swTab(tabId, targetBtn);
             }
         }
     });
 </script>
+
 
         <!-- Header Expediente (Específico para esta vista) -->
         <div class="diamond-header-compact d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
