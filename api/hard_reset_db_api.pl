@@ -73,12 +73,34 @@ eval {
     foreach my $cat (@catalogos_dinamicos) {
         unlink $cat or warn "No se pudo borrar el catálogo dinámico $cat: $!";
     }
+
+    # 3. Limpiar carpetas de adjuntos y estudios de Rayos X (adjuntos_crm y estudiosRX)
+    limpiar_directorio(File::Spec->catdir($dir, "adjuntos_crm"));
+    limpiar_directorio(File::Spec->catdir($dir, "estudiosRX"));
 };
+
+sub limpiar_directorio {
+    my ($dir_path) = @_;
+    return unless -d $dir_path;
+    
+    require File::Path;
+    opendir(my $dh, $dir_path) or return;
+    while (my $entry = readdir($dh)) {
+        next if $entry eq '.' || $entry eq '..';
+        my $full_path = File::Spec->catdir($dir_path, $entry);
+        if (-d $full_path) {
+            File::Path::remove_tree($full_path);
+        } else {
+            unlink $full_path;
+        }
+    }
+    closedir($dh);
+}
 
 if ($@) {
     print encode_json({ status => 'error', message => "Error en reseteo: $@" });
     exit;
 }
 
-print encode_json({ status => 'success', message => 'Base de datos operativa reiniciada correctamente junto con catálogos dinámicos.' });
+print encode_json({ status => 'success', message => 'Base de datos operativa reiniciada correctamente junto con catálogos dinámicos y archivos adjuntos.' });
 1;

@@ -1,7 +1,7 @@
 ﻿# Formato: ROL|PUEDE_BUSCAR(1/0)|ENLACE_1|ENLACE_2|ENLACE_N...
 
 Administrador Global|0|admin_global|tecnico|sync_google|reportes
-Administrador Organizacion|1|servicios|productos|clinicas|usuarios|finanzas|reportes
+Administrador Organizacion|0|servicios|productos|clinicas|usuarios|finanzas|reportes
 Ejecutivo Ventas|0|crm_ventas
 Medico|1|pacientes|agenda|finanzas
 Recepcionista|1|agenda|finanzas
