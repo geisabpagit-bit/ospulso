@@ -1,3 +1,7 @@
+use strict;
+use warnings;
+use utf8;
+
 sub render_step_registro_privado {
     my ($paciente) = @_;
     my $motivo_precargado = $paciente->{motivo_precargado} || '';
