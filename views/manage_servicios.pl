@@ -175,9 +175,24 @@ print <<HTML;
 HTML
 utils::sub_sidebar::render_sidebar_footer();
 print <<HTML;
+<!-- Hojas de Estilo de DataTables -->
+<link class="datatables-css" rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
 
+<!-- Librerías de DataTables y Exportaciones -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+
 <script>
+    // 1. Declarar funciones globales primero (Garantiza acceso en navegación SPA)
     window.toggleFormulario = function() {
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
@@ -186,7 +201,7 @@ print <<HTML;
         } else {
             container.classList.add('d-none');
         }
-    }
+    };
 
     window.prepararNuevoServicio = function() {
         document.getElementById('action_serv').value = 'create';
@@ -200,7 +215,7 @@ print <<HTML;
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
         container.scrollIntoView({ behavior: 'smooth' });
-    }
+    };
 
     window.editarServicio = function(id, nombre, precio, desc) {
         document.getElementById('action_serv').value = 'update';
@@ -214,8 +229,77 @@ print <<HTML;
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
         container.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // 2. Inicialización segura de DataTables (Norma 7 de Estilos SDM)
+    var dtServicios;
+    function initServiciosTable() {
+        try {
+            if (\$('#tablaServicios').length && \$('#tablaServicios tbody tr td').length > 1) {
+                dtServicios = \$('#tablaServicios').DataTable({
+                    destroy: true,
+                    language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                    dom: '<"p-3 d-flex justify-content-start align-items-center"B>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                    buttons: {
+                        dom: {
+                            container: { className: 'dt-buttons export-toolbar' },
+                            button: { className: 'btn-export' }
+                        },
+                        buttons: [
+                            { 
+                                extend: 'copy', 
+                                text: '<i class="bi bi-clipboard"></i> Copiar',
+                                exportOptions: { columns: [0, 1, 2] }
+                            },
+                            { 
+                                extend: 'excel', 
+                                text: '<i class="bi bi-file-earmark-excel"></i> Excel', 
+                                title: 'Catálogo de Servicios - SDM',
+                                exportOptions: { columns: [0, 1, 2] }
+                            },
+                            { 
+                                extend: 'pdf', 
+                                text: '<i class="bi bi-file-earmark-pdf"></i> PDF', 
+                                title: 'Catálogo de Servicios - SDM',
+                                exportOptions: { columns: [0, 1, 2] },
+                                customize: function (doc) {
+                                    doc.styles.tableHeader = { fillColor: '#0d1e3d', color: 'white', alignment: 'center', bold: true, fontSize: 10 };
+                                    var tableIndex = -1;
+                                    for (var i = 0; i < doc.content.length; i++) {
+                                        if (doc.content[i].table) {
+                                            tableIndex = i;
+                                            break;
+                                        }
+                                    }
+                                    if (tableIndex > -1) {
+                                        doc.content[tableIndex].table.widths = ['40%', '40%', '20%'];
+                                        doc.content[tableIndex].margin = [0, 10, 0, 10];
+                                        if (tableIndex > 0) doc.content.splice(0, tableIndex);
+                                    }
+                                }
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="bi bi-printer"></i> Imprimir',
+                                exportOptions: { columns: [0, 1, 2] }
+                            }
+                        ]
+                    }
+                });
+            }
+        } catch(e) {
+            console.error("Error al inicializar DataTables de servicios:", e);
+        }
     }
 
+    try {
+        \$(document).ready(initServiciosTable);
+        document.addEventListener("spa:contentLoaded", initServiciosTable);
+    } catch(e) {
+        console.error("Error al configurar bindings jQuery en servicios:", e);
+    }
+
+    // 3. Envío y Eliminación
     document.getElementById('form-servicio').addEventListener('submit', function(e) {
         e.preventDefault();
         const fd = new FormData(this);
@@ -266,7 +350,7 @@ print <<HTML;
                 });
             }
         });
-    }
+    };
 </script>
 HTML
 render_bottom_nav('servicios');
