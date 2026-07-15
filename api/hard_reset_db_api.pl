@@ -35,23 +35,43 @@ my %archivos = (
     'estado_cuenta.dat' => "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n",
     'gastos.dat' => "ID_GASTO|CONCEPTO|MONTO|FECHA|CATEGORIA|SUBCATEGORIA|METODO_PAGO|ESTADO|COMPROBANTE|ID_MEDICO\n",
     'negocios_config.dat' => "ID_NEGOCIO|CLAVE|VALOR\n",
-    'tokens.dat' => "\n",
+    'cotizaciones.dat' => "ID_COT|ID_PACIENTE|NOMBRE|TOTAL|FECHA|ID_MEDICO\n",
+    'cotizaciones_items.dat' => "ID_COT|CONCEPTO|PRECIO|CANTIDAD|SUBTOTAL\n",
+    'consulta_draft.dat' => "id_draft|id_paciente|id_cita|id_medico|current_step|payload_json|timestamp\n",
+    'odontogramas.dat' => "ID_PACIENTE|TIPO|FECHA|NOTAS|DATOS_FDI\n",
+    'estudios.dat' => "id_estudio|id_paciente|fecha|modalidad|descripcion|ruta|size\n",
+    'historial_correos.dat' => "TIMESTAMP|ID_PACIENTE|FECHA_CORREO|ASUNTO|TIPO|ADJUNTO\n",
+    'tokens_google.dat' => "id_medico|refresh_token\n",
+    'tokens.dat' => "id_medico!refresh_token\n",
+    'facturacion.dat' => "\n",
+    'perfiles.dat' => "id!id_usuario!clave_formacion!clave_nacionalidad!clave_religion\n",
     'id_cat.counter' => "0\n",
     'id_subcat.counter' => "0\n",
     'id_subcat3.counter' => "0\n",
     'id_gasto.counter' => "0\n",
     'contador_pacientes.dat' => "0\n",
-    'contador_registro_inicial.dat' => "0\n"
+    'contador_registro_inicial.dat' => "0\n",
+    'abono_incremental.dat' => "0\n",
+    'os_incremental.dat' => "0\n"
 );
 
 eval {
     use Fcntl qw(:flock);
+    
+    # 1. Resetear tablas estáticas definidas en el hash
     foreach my $archivo (keys %archivos) {
         my $ruta = File::Spec->catfile($dir, $archivo);
         open(my $fh, '>:utf8', $ruta) or die "Error abriendo $archivo: $!";
         flock($fh, 2);
         print $fh $archivos{$archivo};
         close($fh);
+    }
+
+    # 2. Borrar catálogos dinámicos servicios_*.dat y productos_*.dat
+    my @catalogos_dinamicos = glob(File::Spec->catfile($dir, "servicios_*.dat")) ;
+    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "productos_*.dat"));
+    foreach my $cat (@catalogos_dinamicos) {
+        unlink $cat or warn "No se pudo borrar el catálogo dinámico $cat: $!";
     }
 };
 
@@ -60,5 +80,5 @@ if ($@) {
     exit;
 }
 
-print encode_json({ status => 'success', message => 'Base de datos operativa reiniciada correctamente.' });
+print encode_json({ status => 'success', message => 'Base de datos operativa reiniciada correctamente junto con catálogos dinámicos.' });
 1;

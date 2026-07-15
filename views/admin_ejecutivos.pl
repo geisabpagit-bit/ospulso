@@ -329,7 +329,7 @@ print <<HTML;
         const container = document.getElementById('formContainer');
         if (container.classList.contains('d-none')) {
             container.classList.remove('d-none');
-            const offset = container.offsetTop - 90;
+            const offset = container.offsetTop - 100;
             window.scrollTo({ top: offset, behavior: 'smooth' });
         } else {
             container.classList.add('d-none');
@@ -350,7 +350,7 @@ print <<HTML;
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        const offset = container.offsetTop - 90;
+        const offset = container.offsetTop - 100;
         window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
@@ -368,7 +368,7 @@ print <<HTML;
         
         const container = document.getElementById('formContainer');
         container.classList.remove('d-none');
-        const offset = container.offsetTop - 90;
+        const offset = container.offsetTop - 100;
         window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
