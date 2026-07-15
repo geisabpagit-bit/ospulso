@@ -28,6 +28,33 @@ my $q = CGI->new;
 my $session_data = check_session($q);
 unless ($session_data->{session_ok}) { print $q->header(-status => '302 Found', -location => '../index.html'); exit; }
 
+# Ruteador por Naturaleza Jurídica (Público vs Privado)
+my $id_negocio = $session_data->{id_empresa} || '';
+my $naturaleza_juridica = 'Privado'; # default
+if ($id_negocio) {
+    my $config_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+    if (-e $config_file && open(my $cf, '<:encoding(UTF-8)', $config_file)) {
+        while (my $line = <$cf>) {
+            chomp($line);
+            next if $line =~ /^#|^\s*$/;
+            my ($biz_id, $key, $val) = split(/\|/, $line);
+            if ($biz_id eq $id_negocio && $key eq 'NATURALEZA_JURIDICA') {
+                $naturaleza_juridica = $val;
+                last;
+            }
+        }
+        close($cf);
+    }
+}
+
+if ($naturaleza_juridica eq 'Privado') {
+    my $params = $q->query_string() || '';
+    my $url = "render_consultas_privado.pl";
+    $url .= "?$params" if $params;
+    print $q->header(-status => '302 Found', -location => $url);
+    exit;
+}
+
 binmode STDOUT, ":utf8";
 
 my $usuario     = $session_data->{usuario};

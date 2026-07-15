@@ -167,8 +167,9 @@ sub crear_cita {
     my $gid = eval { google_sync_event(undef, $id_m, $pac_nom, $fec, $hi, $hf, $query->param('motivo')) };
     if ($@) { log_google("CRITICAL ERROR: $@"); }
     
+    my $new_id = time;
     push @$arr, { 
-        id_cita => time, id_medico => $id_m, id_paciente => $pac_id, 
+        id_cita => $new_id, id_medico => $id_m, id_paciente => $pac_id, 
         fecha => $fec, hora_ini => $hi, hora_fin => $hf, 
         motivo => $query->param('motivo'), notas => '', estado => 'Programada', event_id => $gid // '',
         color => '', prioridad => $query->param('prioridad') // 'Normal',
@@ -176,7 +177,14 @@ sub crear_cita {
     };
     
     guardar_citas($arr);
-    responder_json(1, "Cita agendada correctamente. " . ($gid ? "(Sincronizada)" : "(Solo Local)"));
+    print "Content-Type: application/json; charset=UTF-8\n\n";
+    binmode STDOUT, ":raw";
+    print encode_json({
+        ok => 1,
+        msg => "Cita agendada correctamente. " . ($gid ? "(Sincronizada)" : "(Solo Local)"),
+        id_cita => $new_id
+    });
+    exit;
 }
 
 sub actualizar_cita {

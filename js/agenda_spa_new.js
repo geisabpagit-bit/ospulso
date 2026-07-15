@@ -853,14 +853,20 @@ function saveCita() {
     
     $.post('../api/citas_crud.pl', dataStr, function(res) {
         if (res && res.ok) { 
-            if(typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'success', title: 'Sincronizado' }); 
-            else Swal.fire({ icon: 'success', title: 'Éxito', text: res.msg || 'Cita Guardada', timer: 1500, showConfirmButton: false });
+            if (typeof window.onCitaAgendadaExito === 'function') {
+                window.onCitaAgendadaExito(res.id_cita, fecha, hi);
+            } else {
+                if(typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'success', title: 'Sincronizado' }); 
+                else Swal.fire({ icon: 'success', title: 'Éxito', text: res.msg || 'Cita Guardada', timer: 1500, showConfirmButton: false });
+            }
             
             const modalEl = document.getElementById('modalCita');
             const modalIns = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
             modalIns.hide();
             
-            loadContext(); 
+            if (typeof loadContext === 'function') {
+                loadContext(); 
+            }
         } else {
             Swal.fire({ icon: 'error', title: 'Error', text: (res ? res.msg : 'Error de conexión con el servidor') });
         }
