@@ -7,6 +7,7 @@ use open qw(:std :utf8);
 use CGI;
 use JSON qw(encode_json decode_json);
 use FindBin;
+use lib "$FindBin::Bin/..";
 use File::Spec;
 
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
