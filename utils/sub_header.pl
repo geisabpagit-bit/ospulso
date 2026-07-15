@@ -202,7 +202,7 @@ $search_html
 
             <!-- Options -->
             <div class="d-flex flex-column gap-2">
-                <a href="../views/perfil.pl" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all" data-bs-dismiss="offcanvas">
+                <a href="../views/perfil.pl" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all">
                     <div class="option-icon bg-primary-subtle text-primary me-3">
                         <i class="bi bi-person-fill fs-5"></i>
                     </div>
