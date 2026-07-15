@@ -31,6 +31,8 @@ my $usuario   = $sd->{usuario};
 my $role      = $sd->{role};
 my $id_medico = $sd->{id_medico};
 my $id_negocio = $sd->{session} ? $sd->{session}->param('id_empresa') : '';
+my $id_sucursal = $sd->{session} ? $sd->{session}->param('id_sucursal') : '';
+my $id_negocio_activo = ($id_sucursal && $id_sucursal ne '0') ? $id_sucursal : $id_negocio;
 
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
@@ -54,7 +56,7 @@ my $negocios = leer_tabla($archivo_negocios, '\|');
 my $nombre_sucursal = 'Clínica Principal';
 if ($negocios) {
     foreach my $n (@$negocios) {
-        if ($n->[0] eq $id_negocio) {
+        if ($n->[0] eq $id_negocio_activo) {
             $nombre_sucursal = $n->[1];
             last;
         }
