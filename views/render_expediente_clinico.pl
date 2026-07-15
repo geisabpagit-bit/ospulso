@@ -17,6 +17,7 @@ require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
 use utils::db_manager qw(leer_tabla);
 
 my $q = CGI->new;
@@ -90,107 +91,19 @@ sub render_expediente_completo {
 <link rel="stylesheet" href="../css/expediente_completo.css?v=$^T">
 
 
-<div class="sdm-layout-wrapper animate__animated animate__fadeIn">
-    <!-- Sidebar Left -->
-    <nav class="diamond-sidebar" id="moduleSidebar">
-        <div class="sidebar-brand">
-            <div class="avatar-diamond d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; font-size: 1.2rem; border-width: 2px;">$d->{iniciales}</div>
-            <div class="sidebar-brand-text lh-1">
-                <h5 class="m-0 fw-black text-dark">EXPEDIENTE</h5>
-                <small class="text-muted fw-bold" style="font-size: 0.6rem;">DIAMOND v3.8.0</small>
-            </div>
-            <button class="btn btn-light rounded-circle p-2 shadow-sm d-lg-none ms-auto" onclick="toggleSidebar()"><i class="bi bi-x-lg"></i></button>
-            <button class="btn-sidebar-toggle d-none d-lg-flex ms-auto" onclick="toggleDesktopSidebar()"><i class="bi bi-layout-sidebar text-muted"></i></button>
-        </div>
+    utils::sub_sidebar::render_sidebar(
+        usuario => $session_data->{usuario},
+        role => $session_data->{role},
+        id_medico => $session_data->{id_medico},
+        pagina_actual => 'expediente'
+    );
 
-        <div class="sidebar-menu accordion accordion-flush flex-grow-1" id="accordionSidebar">
-            <!-- 1. Atención Clínica -->
-            <div class="accordion-item bg-transparent border-0 mb-1">
-                <h2 class="accordion-header" id="h-clinica">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-clinica" aria-expanded="false" aria-controls="c-clinica">
-                        <i class="bi bi-heart-pulse-fill text-danger"></i><span class="sidebar-text">Atenci&oacute;n Cl&iacute;nica</span>
-                    </button>
-                </h2>
-                <div id="c-clinica" class="accordion-collapse collapse" aria-labelledby="h-clinica" data-bs-parent="#accordionSidebar">
-                    <div class="accordion-body">
-                        <button class="sub-link active w-100 text-start" onclick="swTab('tab0', this)"><i class="bi bi-calendar3 text-muted me-2"></i>1.1 Citas</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab10', this)"><i class="bi bi-activity text-muted me-2"></i>1.2 Consultas</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab3', this)"><i class="bi bi-person-gear text-muted me-2"></i>1.3 Ficha Paciente</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab2', this)"><i class="bi bi-grid-1x2 text-muted me-2"></i>1.4 Dashboard</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab4', this)"><i class="bi bi-journal-text text-muted me-2"></i>1.5 SOAP</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Diagnóstico -->
-            <div class="accordion-item bg-transparent border-0 mb-1">
-                <h2 class="accordion-header" id="h-diag">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-diag" aria-expanded="false" aria-controls="c-diag">
-                        <i class="bi bi-search text-primary"></i><span class="sidebar-text">Diagn&oacute;stico</span>
-                    </button>
-                </h2>
-                <div id="c-diag" class="accordion-collapse collapse" aria-labelledby="h-diag" data-bs-parent="#accordionSidebar">
-                    <div class="accordion-body">
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab6', this)"><i class="bi bi-diagram-3-fill text-muted me-2"></i>2.1 Odonto</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab7', this)"><i class="bi bi-camera-video-fill text-muted me-2"></i>2.2 Rayos X</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. Administración -->
-            <div class="accordion-item bg-transparent border-0 mb-1">
-                <h2 class="accordion-header" id="h-admin">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-admin" aria-expanded="false" aria-controls="c-admin">
-                        <i class="bi bi-briefcase-fill text-success"></i><span class="sidebar-text">Administraci&oacute;n</span>
-                    </button>
-                </h2>
-                <div id="c-admin" class="accordion-collapse collapse" aria-labelledby="h-admin" data-bs-parent="#accordionSidebar">
-                    <div class="accordion-body">
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab1', this)"><i class="bi bi-wallet2 text-muted me-2"></i>3.1 Finanzas</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab5', this)"><i class="bi bi-inbox text-muted me-2"></i>3.2 Inbox</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. Interoperabilidad -->
-            <div class="accordion-item bg-transparent border-0 mb-1">
-                <h2 class="accordion-header" id="h-inter">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-inter" aria-expanded="false" aria-controls="c-inter">
-                        <i class="bi bi-share-fill text-info"></i><span class="sidebar-text">Interoperabilidad</span>
-                    </button>
-                </h2>
-                <div id="c-inter" class="accordion-collapse collapse" aria-labelledby="h-inter" data-bs-parent="#accordionSidebar">
-                    <div class="accordion-body">
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab8', this)"><i class="bi bi-braces text-muted me-2"></i>4.1 FHIR</button>
-                        <button class="sub-link w-100 text-start" onclick="swTab('tab9', this)"><i class="bi bi-pci-card text-muted me-2"></i>4.2 HL7</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="p-3 sidebar-footer">
-            <a href="inicial.pl" class="btn btn-danger w-100 rounded-pill fw-bold d-flex justify-content-center align-items-center"><i class="bi bi-house-door me-2"></i><span class="sidebar-text">Inicio</span></a>
-        </div>
-    </nav>
-
-    <!-- Overlay para cerrar el menú en móvil -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-    <!-- Main Content -->
-    <div class="sdm-main-content">
+    print <<HTML;
 <script>
     let odontogramaInit = false;
 
-    function toggleSidebar() {
-        const sidebar = document.getElementById('moduleSidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        if (sidebar) sidebar.classList.toggle('show');
-        if (overlay) overlay.classList.toggle('show');
-    }
-
     function swTab(id, b) {
         if (window.innerWidth <= 991) {
-            // Solo auto-cerrar en móvil si hizo clic en un sub-link final, no en un botón padre
             if(b && b.classList.contains('sub-link')){
                 const sidebar = document.getElementById('moduleSidebar');
                 const overlay = document.getElementById('sidebarOverlay');
@@ -202,7 +115,6 @@ sub render_expediente_completo {
         const target = document.getElementById(id);
         if(target) target.classList.remove('d-none');
 
-        // Manejar active state solo en sub-links para la nueva estructura anidada
         if (b && b.classList.contains('sub-link')) {
             document.querySelectorAll('.sub-link').forEach(n => n.classList.remove('active'));
             b.classList.add('active');
@@ -220,37 +132,28 @@ sub render_expediente_completo {
         }
     }
     
-    // Switch to tab if hash is present on load
     document.addEventListener('DOMContentLoaded', function() {
         const hash = window.location.hash;
         if (hash) {
             const tabId = hash.substring(1);
-            const targetBtn = document.querySelector('.sub-link[onclick*="swTab(\\'' + tabId + '\\'"]');
+            const targetBtn = document.querySelector('.sub-link[onclick*="swTab(\\'" + tabId + "\\'"]');
             if(targetBtn) {
                 swTab(tabId, targetBtn);
             }
         }
     });
 </script>
-<script>
-    function toggleDesktopSidebar() {
-        const sidebar = document.getElementById('moduleSidebar');
-        if(sidebar) sidebar.classList.toggle('compact');
-    }
-</script>
-        <!-- Header Compacto -->
-        <div class="diamond-header-compact d-flex justify-content-between align-items-center">
+
+        <!-- Header Expediente (Específico para esta vista) -->
+        <div class="diamond-header-compact d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
             <div class="d-flex align-items-center gap-3">
-                <button class="btn btn-menu-toggle-inline d-lg-none" onclick="toggleSidebar()">
-                    <i class="bi bi-list"></i>
-                </button>
                 <div class="profile-hero text-start">
-                    <h4 class="text-truncate m-0 text-white fw-bold" style="max-width: 60vw; letter-spacing: -0.5px;">$d->{nombre}</h4>
+                    <h4 class="text-truncate m-0 text-dark fw-bold" style="max-width: 60vw; letter-spacing: -0.5px;">$d->{nombre}</h4>
                 </div>
             </div>
         </div>
 
-        <div class="sdm-content mt-4">
+        <div class="mt-4">
         <!-- 6: ODONTOGRAMA -->
         <section class="sdm-tab-sec d-none" id="tab6">
             <div class="d-flex justify-content-between align-items-center mb-5">
@@ -1572,7 +1475,9 @@ print <<HTML;
         </div>
     </div>
 </div>
+    </div>
 HTML
+    utils::sub_sidebar::render_sidebar_footer();
 }
 
 sub cargar_datos_paciente {

@@ -267,21 +267,83 @@ HTML
             </a>
         };
         
-        # Ajustes de Agenda (Oculto para Administrador Organizacion por petición expresa)
-        if ($role ne 'Administrador Organizacion') {
-            my $ajustes_href = ($pagina_actual eq 'agenda') ? "#" : "../views/agenda_main.pl?open_settings=1";
-            my $ajustes_onclick = ($pagina_actual eq 'agenda') ? "onclick='abrirModalAjustes(); return false;'" : "";
-            print qq{
-                <a href="$ajustes_href" $ajustes_onclick class="sub-link ms-4 text-start text-decoration-none d-flex align-items-center mb-2" style="font-size: 0.85rem; opacity: 0.85;">
-                    <i class="bi bi-gear-fill me-2 text-secondary" style="font-size:1rem;"></i> <span class="sidebar-text">Ajustes</span>
-                </a>
-            };
-        }
+        # Ajustes de Agenda eliminado
+
     }
 
     # Separador después de Pacientes / Agenda Dinámica
     if ($is_allowed{pacientes} || $is_allowed{agenda}) {
         print qq{<hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">};
+    }
+
+    # Menú del Expediente Clínico (Solo se muestra cuando pagina_actual es 'expediente')
+    if ($pagina_actual eq 'expediente') {
+        print qq{
+            <!-- 1. Atención Clínica -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-clinica">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-clinica" aria-expanded="false" aria-controls="c-clinica">
+                        <i class="bi bi-heart-pulse-fill text-danger" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Atenci&oacute;n Cl&iacute;nica</span>
+                    </button>
+                </h2>
+                <div id="c-clinica" class="accordion-collapse collapse" aria-labelledby="h-clinica" data-bs-parent="#accordionSidebar">
+                    <div class="accordion-body pb-0 pt-1">
+                        <button class="sub-link active w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab0', this)"><i class="bi bi-calendar3 text-muted me-2"></i><span class="sidebar-text">1.1 Citas</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab10', this)"><i class="bi bi-activity text-muted me-2"></i><span class="sidebar-text">1.2 Consultas</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab3', this)"><i class="bi bi-person-gear text-muted me-2"></i><span class="sidebar-text">1.3 Ficha Paciente</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab2', this)"><i class="bi bi-grid-1x2 text-muted me-2"></i><span class="sidebar-text">1.4 Dashboard</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab4', this)"><i class="bi bi-journal-text text-muted me-2"></i><span class="sidebar-text">1.5 SOAP</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Diagnóstico -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-diag">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-diag" aria-expanded="false" aria-controls="c-diag">
+                        <i class="bi bi-search text-primary" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Diagn&oacute;stico</span>
+                    </button>
+                </h2>
+                <div id="c-diag" class="accordion-collapse collapse" aria-labelledby="h-diag" data-bs-parent="#accordionSidebar">
+                    <div class="accordion-body pb-0 pt-1">
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab6', this)"><i class="bi bi-diagram-3-fill text-muted me-2"></i><span class="sidebar-text">2.1 Odonto</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab7', this)"><i class="bi bi-camera-video-fill text-muted me-2"></i><span class="sidebar-text">2.2 Rayos X</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Administración (Expediente) -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-admin-exp">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-admin-exp" aria-expanded="false" aria-controls="c-admin-exp">
+                        <i class="bi bi-briefcase-fill text-success" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Administraci&oacute;n</span>
+                    </button>
+                </h2>
+                <div id="c-admin-exp" class="accordion-collapse collapse" aria-labelledby="h-admin-exp" data-bs-parent="#accordionSidebar">
+                    <div class="accordion-body pb-0 pt-1">
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab1', this)"><i class="bi bi-wallet2 text-muted me-2"></i><span class="sidebar-text">3.1 Finanzas</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab5', this)"><i class="bi bi-inbox text-muted me-2"></i><span class="sidebar-text">3.2 Inbox</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Interoperabilidad -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-inter">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-inter" aria-expanded="false" aria-controls="c-inter">
+                        <i class="bi bi-share-fill text-info" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Interoperabilidad</span>
+                    </button>
+                </h2>
+                <div id="c-inter" class="accordion-collapse collapse" aria-labelledby="h-inter" data-bs-parent="#accordionSidebar">
+                    <div class="accordion-body pb-0 pt-1">
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab8', this)"><i class="bi bi-braces text-muted me-2"></i><span class="sidebar-text">4.1 FHIR</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab9', this)"><i class="bi bi-pci-card text-muted me-2"></i><span class="sidebar-text">4.2 HL7</span></button>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">
+        };
     }
 
     # 5. Finanzas Accordion
