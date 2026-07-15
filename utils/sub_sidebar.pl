@@ -148,25 +148,16 @@ sub render_sidebar {
     # So we use standard relative paths since this is called from views/
     
     print <<HTML;
-<link rel="stylesheet" href="../css/expediente_completo.css?v=$^T">
+    print <<HTML;
+<link rel="stylesheet" href="../css/sub_sidebar.css?v=$^T">
 <script src="../js/spa_router.js?v=$^T" defer></script>
-<script>
-    function toggleSidebar() {
-        const sidebar = document.getElementById('moduleSidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        if (sidebar) sidebar.classList.toggle('show');
-        if (overlay) overlay.classList.toggle('show');
-    }
-    function toggleDesktopSidebar() {
-        const sidebar = document.getElementById('moduleSidebar');
-        if(sidebar) sidebar.classList.toggle('compact');
-    }
-</script>
+<script src="../js/sub_sidebar.js?v=$^T" defer></script>
+
 <div class="sdm-layout-wrapper animate__animated animate__fadeIn">
     <!-- Sidebar Left -->
     <nav class="diamond-sidebar" id="moduleSidebar">
         <div class="sidebar-brand">
-            <div class="avatar-diamond d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; font-size: 1.2rem; border-width: 2px;">$iniciales</div>
+            <div class="avatar-diamond">$iniciales</div>
 
             <button class="btn btn-light rounded-circle p-2 shadow-sm d-lg-none ms-auto" onclick="toggleSidebar()"><i class="bi bi-x-lg"></i></button>
             <button class="btn-sidebar-toggle d-none d-lg-flex ms-auto" onclick="toggleDesktopSidebar()"><i class="bi bi-layout-sidebar text-muted"></i></button>
@@ -241,7 +232,7 @@ HTML
 
     # Separador después de Administración
     if ($show_admin) {
-        print qq{<hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">};
+        print qq{<hr class="my-2 opacity-25 sidebar-separator">};
     }
 
     # 3. Pacientes (Flat Link)
@@ -251,7 +242,7 @@ HTML
         my $active_class = ($pagina_actual eq 'pacientes') ? 'active' : '';
         print qq{
             <a href="../$m->{url}" class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
+                <span class="material-icons me-2" style="color: $style->{color}; font-size:1.2rem;">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
             </a>
         };
     }
@@ -263,7 +254,7 @@ HTML
         my $active_class = ($pagina_actual eq 'agenda') ? 'active' : '';
         print qq{
             <a href="../$m->{url}" class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
+                <span class="material-icons me-2" style="color: $style->{color}; font-size:1.2rem;">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
             </a>
         };
         
@@ -273,7 +264,7 @@ HTML
 
     # Separador después de Pacientes / Agenda Dinámica
     if ($is_allowed{pacientes} || $is_allowed{agenda}) {
-        print qq{<hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">};
+        print qq{<hr class="my-2 opacity-25 sidebar-separator">};
     }
 
     # Menú del Expediente Clínico (Solo se muestra cuando pagina_actual es 'expediente')
@@ -342,7 +333,7 @@ HTML
                 </div>
             </div>
             
-            <hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">
+            <hr class="my-2 opacity-25 sidebar-separator">
         };
     }
 
@@ -374,7 +365,7 @@ HTML
         };
 
         # Separador después de Finanzas
-        print qq{<hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">};
+        print qq{<hr class="my-2 opacity-25 sidebar-separator">};
     }
 
     # 6. Ventas Accordion (Ejecutivo Ventas o Administrador Global)
@@ -415,7 +406,7 @@ HTML
                     </div>
                 </div>
             </div>
-            <hr class="my-2 opacity-25" style="border-color: rgba(255,255,255,0.15);">
+            <hr class="my-2 opacity-25 sidebar-separator">
         };
     }
 
@@ -440,14 +431,14 @@ HTML
         my $m = $menu_registry{$mod_key};
         my $u = $m->{url} || '#';
         my $href = ($u =~ /^#|sync_google_handler/) ? "#" : "../$u";
-        my $onclick = ($u eq 'sync_google_handler.pl') ? "onclick='iniciarVinculacionGoogle(); return false;'" : "";
+        my $onclick = ($u eq 'sync_google_handler.pl') ? "onclick=\"iniciarVinculacionGoogle('$id_medico'); return false;\"" : "";
         
         my $style = $module_styles{$mod_key} || { icon => 'grid_view', bg => 'var(--surface-blue)', color => 'var(--primary-blue)' };
         my $active_class = ($pagina_actual eq $mod_key) ? 'active' : '';
 
         print qq{
             <a href="$href" $onclick class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                <span class="material-icons me-2" style="font-size:1.2rem; color: $style->{color}">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
+                <span class="material-icons me-2" style="color: $style->{color}; font-size:1.2rem;">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
             </a>
         };
     }
@@ -472,16 +463,6 @@ HTML
         </div>
 
         <div class="sdm-content mt-2 mt-lg-0">
-            <!-- Google Auth Script -->
-            <script>
-            function iniciarVinculacionGoogle() {
-                const clientId = "771205596556-64bfspdvs27aqogeot9mdelgvmqm4n7u.apps.googleusercontent.com";
-                const idMed = "$id_medico"; 
-                const redirectUri = encodeURIComponent(window.location.origin + '/auth/oauth_callback.pl');
-                const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=\${clientId}&redirect_uri=\${redirectUri}&response_type=code&scope=https://www.googleapis.com/auth/calendar.events&access_type=offline&prompt=consent&state=\${idMed}`;
-                window.open(authUrl, 'GoogleAuth', 'width=600,height=700');
-            }
-            </script>
 HTML
 }
 
