@@ -9,9 +9,15 @@ use lib '..';
 use utils::db_manager qw(leer_tabla);
 use POSIX qw(strftime);
 
-# binmode STDOUT, ":utf8"; # ELIMINADO para evitar doble encoding en JSON
+require '../auth/check_session.pl';
+my $sd = check_session();
+unless ($sd->{session_ok}) {
+    print "Content-Type: application/json; charset=UTF-8\n\n";
+    print JSON::PP->new->utf8(0)->encode({ok => 0, msg => "Sesión inválida"});
+    exit;
+}
 
-my $q = CGI->new;
+my $q = $sd->{q};
 my $accion = $q->param('accion') // '';
 my $id_paciente = $q->param('id') // '';
 
@@ -34,6 +40,37 @@ if ($accion eq 'get_perfil') {
     my $perfil;
     foreach my $p (@$registros) {
         if ($p->[0] && $p->[0] eq $id_paciente) {
+            my $tenant_pac = $p->[13] // '';
+            my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
+            my $mi_org = $sd->{id_empresa} || 'X';
+            my $mi_sucursal = $sd->{id_sucursal} // 0;
+            my $role = $sd->{role};
+            my $id_medico = $sd->{id_medico};
+            
+            my $acceso_permitido = 0;
+            if ($role eq 'Administrador Global') {
+                $acceso_permitido = 1;
+            } elsif ($role =~ /Administrador Organizacion|Soporte/i) {
+                if ($org_pac && $org_pac eq $mi_org) {
+                    $acceso_permitido = 1;
+                } elsif (!$org_pac) {
+                    $acceso_permitido = 1;
+                }
+            } elsif ($role eq 'Medico') {
+                if ($org_pac && $org_pac eq $mi_org) {
+                    if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $p->[1] eq $id_medico) {
+                        $acceso_permitido = 1;
+                    }
+                } elsif (!$org_pac && $p->[1] eq $id_medico) {
+                    $acceso_permitido = 1;
+                }
+            }
+            
+            unless ($acceso_permitido) {
+                print "Content-Type: application/json; charset=UTF-8\n\n";
+                print JSON::PP->new->utf8(0)->encode({ok => 0, msg => "Acceso denegado"});
+                exit;
+            }
             $perfil = {
                 id => $p->[0],
                 id_medico => $p->[1],

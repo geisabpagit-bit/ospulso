@@ -34,8 +34,38 @@ my $archivo_pacientes = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacient
 
 # Manejo de Borrado
 if (my $did = $q->param('delete_id')) {
-    if ($role =~ /Administrador|Soporte/i || $role eq 'Medico') {
-        eliminar_registro($archivo_pacientes, $did, '\|', "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO");
+    my $regs = leer_tabla($archivo_pacientes, '\|');
+    my $acceso_permitido = 0;
+    foreach my $r (@$regs) {
+        if ($r->[0] eq $did) {
+            my $tenant_pac = $r->[13] // '';
+            my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
+            my $mi_org = $sd->{id_empresa} || 'X';
+            my $mi_sucursal = $sd->{id_sucursal} // 0;
+            
+            if ($role eq 'Administrador Global') {
+                $acceso_permitido = 1;
+            } elsif ($role =~ /Administrador Organizacion|Soporte/i) {
+                if ($org_pac && $org_pac eq $mi_org) {
+                    $acceso_permitido = 1;
+                } elsif (!$org_pac) {
+                    $acceso_permitido = 1;
+                }
+            } elsif ($role eq 'Medico') {
+                if ($org_pac && $org_pac eq $mi_org) {
+                    if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $r->[1] eq $id_medico) {
+                        $acceso_permitido = 1;
+                    }
+                } elsif (!$org_pac && $r->[1] eq $id_medico) {
+                    $acceso_permitido = 1;
+                }
+            }
+            last;
+        }
+    }
+    
+    if ($acceso_permitido) {
+        eliminar_registro($archivo_pacientes, $did, '\|', "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT");
     }
     print $q->redirect('pacientes.pl'); 
     exit;
@@ -60,19 +90,30 @@ if ($regs) {
         my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
         
         my $mi_org = $sd->{id_empresa} || 'X';
+        my $mi_sucursal = $sd->{id_sucursal} // 0;
         my $es_mi_tenant = 0;
         
         # Administrador Global ve todo
         if ($role eq 'Administrador Global') {
             $es_mi_tenant = 1;
         } 
-        # Si tiene tenant y coincide con la Org actual
-        elsif ($org_pac && $org_pac eq $mi_org) {
-            $es_mi_tenant = 1;
-        } 
-        # Lógica Legacy (para pacientes viejos sin tenant guardado)
-        elsif (!$org_pac && ($role =~ /Administrador Organizacion|Soporte/i || $r->[1] eq $id_medico)) {
-            $es_mi_tenant = 1;
+        # Administrador Organización / Soporte
+        elsif ($role =~ /Administrador Organizacion|Soporte/i) {
+            if ($org_pac && $org_pac eq $mi_org) {
+                $es_mi_tenant = 1;
+            } elsif (!$org_pac) {
+                $es_mi_tenant = 1;
+            }
+        }
+        # Médico ve solo sus pacientes
+        elsif ($role eq 'Medico') {
+            if ($org_pac && $org_pac eq $mi_org) {
+                if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $r->[1] eq $id_medico) {
+                    $es_mi_tenant = 1;
+                }
+            } elsif (!$org_pac && $r->[1] eq $id_medico) {
+                $es_mi_tenant = 1;
+            }
         }
 
         if ($es_mi_tenant) {

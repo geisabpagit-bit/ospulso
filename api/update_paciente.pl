@@ -44,7 +44,7 @@ foreach my $f (@$registros) {
 }
 
 if ($actualizado) {
-    actualizar_archivo($archivo, "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO", \@nuevos);
+    actualizar_archivo($archivo, "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT", \@nuevos);
     print JSON::PP->new->utf8(1)->encode({status => 'success', message => "Expediente sincronizado correctamente."});
 } else {
     print JSON::PP->new->utf8(1)->encode({status => 'error', message => "Registro $id no encontrado."});

@@ -62,6 +62,64 @@ HTML
 my $id_target = $q->param('id') || '';
 my $paciente = cargar_datos_paciente($id_target);
 
+if ($paciente) {
+    my $tenant_pac = $paciente->{tenant} // '';
+    my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
+    my $mi_org = $session_data->{id_empresa} || 'X';
+    my $mi_sucursal = $session_data->{id_sucursal} // 0;
+    my $role = $session_data->{role};
+    my $id_medico = $session_data->{id_medico};
+    
+    my $acceso_permitido = 0;
+    if ($role eq 'Administrador Global') {
+        $acceso_permitido = 1;
+    } elsif ($role =~ /Administrador Organizacion|Soporte/i) {
+        if ($org_pac && $org_pac eq $mi_org) {
+            $acceso_permitido = 1;
+        } elsif (!$org_pac) {
+            $acceso_permitido = 1;
+        }
+    } elsif ($role eq 'Medico') {
+        if ($org_pac && $org_pac eq $mi_org) {
+            if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $paciente->{id_medico} eq $id_medico) {
+                $acceso_permitido = 1;
+            }
+        } elsif (!$org_pac && $paciente->{id_medico} eq $id_medico) {
+            $acceso_permitido = 1;
+        }
+    }
+    
+    if (!$acceso_permitido) {
+        print $q->header(-type => 'text/html', -charset => 'UTF-8');
+        print <<HTML;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acceso Denegado</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+</head>
+<body>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            Swal.fire({
+                title: 'Acceso Denegado',
+                text: 'No tienes los permisos necesarios para visualizar este expediente clínico.',
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#0d6efd'
+            }).then(() => {
+                window.location.href = 'pacientes.pl';
+            });
+        });
+    </script>
+</body>
+</html>
+HTML
+        exit;
+    }
+}
+
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 render_header(
     usuario     => $session_data->{usuario}, 
@@ -1497,7 +1555,8 @@ sub cargar_datos_paciente {
             e_civil      => $c->[9], 
             nacionalidad => $c->[10],
             tipo_sangre  => $c->[11], 
-            tel          => $c->[12] 
+            tel          => $c->[12],
+            tenant       => $c->[13] // ''
         }; 
     } }
     return undef;

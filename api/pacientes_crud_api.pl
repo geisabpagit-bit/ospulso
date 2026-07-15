@@ -107,6 +107,43 @@ if ($input->{accion} eq 'crear') {
     my $registros = leer_tabla('../dat/pacientes.dat', '\|');
     my @nuevos_registros;
     my $encontrado = 0;
+    
+    # Validar permisos de acceso antes de permitir la actualización
+    my $acceso_permitido = 0;
+    foreach my $r (@$registros) {
+        if ($r->[0] eq $id_target) {
+            my $tenant_pac = $r->[13] // '';
+            my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
+            my $mi_org = $session_data->{id_empresa} || 'X';
+            my $mi_sucursal = $session_data->{id_sucursal} // 0;
+            my $role = $session_data->{role};
+            
+            if ($role eq 'Administrador Global') {
+                $acceso_permitido = 1;
+            } elsif ($role =~ /Administrador Organizacion|Soporte/i) {
+                if ($org_pac && $org_pac eq $mi_org) {
+                    $acceso_permitido = 1;
+                } elsif (!$org_pac) {
+                    $acceso_permitido = 1;
+                }
+            } elsif ($role eq 'Medico') {
+                if ($org_pac && $org_pac eq $mi_org) {
+                    if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $r->[1] eq $id_medico) {
+                        $acceso_permitido = 1;
+                    }
+                } elsif (!$org_pac && $r->[1] eq $id_medico) {
+                    $acceso_permitido = 1;
+                }
+            }
+            last;
+        }
+    }
+    
+    unless ($acceso_permitido) {
+        print "Content-Type: application/json; charset=UTF-8\n\n";
+        print JSON::PP->new->utf8(0)->encode({ok => 0, msg => "Acceso denegado: No tiene permisos sobre este expediente."});
+        exit;
+    }
 
     foreach my $r (@$registros) {
         if (@$r > 1 && $r->[0] eq $id_target) {
@@ -133,7 +170,7 @@ if ($input->{accion} eq 'crear') {
     }
 
     if ($encontrado) {
-        actualizar_archivo('../dat/pacientes.dat', "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO", \@nuevos_registros);
+        actualizar_archivo('../dat/pacientes.dat', "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT", \@nuevos_registros);
         print "Content-Type: application/json; charset=UTF-8\n\n";
         print JSON::PP->new->utf8(0)->encode({ok => 1, msg => "El Expediente Clínico ha sido actualizado."});
         exit;

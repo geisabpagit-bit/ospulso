@@ -30,6 +30,8 @@ sub render_dashboard_principal {
     my $id_medico = $args{id_medico};
     my $role = $args{role} || 'Visitante';
     my $usuario = $args{usuario} || 'Usuario';
+    my $id_empresa = $args{id_empresa} || 0;
+    my $id_sucursal = $args{id_sucursal} || 0;
     
     if ($role eq 'Administrador Global') {
         utils::sub_sidebar::render_sidebar(
@@ -68,7 +70,30 @@ HTML
             chomp($line);
             next if $line =~ /^ID_PACIENTE/;
             my @f = split(/\|/, $line);
-            if ($is_admin || $f[1] eq $id_medico) {
+            
+            my $tenant_pac = $f[13] // '';
+            my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
+            
+            my $es_mi_paciente = 0;
+            if ($role eq 'Administrador Global') {
+                $es_mi_paciente = 1;
+            } elsif ($role =~ /Administrador Organizacion|Soporte/i) {
+                if ($org_pac && $org_pac eq $id_empresa) {
+                    $es_mi_paciente = 1;
+                } elsif (!$org_pac) {
+                    $es_mi_paciente = 1;
+                }
+            } elsif ($role eq 'Medico') {
+                if ($org_pac && $org_pac eq $id_empresa) {
+                    if (($suc_pac eq $id_sucursal || !$suc_pac || !$id_sucursal) && $f[1] eq $id_medico) {
+                        $es_mi_paciente = 1;
+                    }
+                } elsif (!$org_pac && $f[1] eq $id_medico) {
+                    $es_mi_paciente = 1;
+                }
+            }
+            
+            if ($es_mi_paciente) {
                 $pacientes_map{$f[0]} = $f[2];
                 $t_pac++;
             }
