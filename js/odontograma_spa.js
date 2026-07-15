@@ -6,7 +6,7 @@
 
 let selectedTool = 'caries';
 let currentPacienteId = null;
-let currentView = 'adulto'; // 'adulto' o 'nino'
+let odontogramaView = 'adulto'; // 'adulto' o 'nino'
 let globalState = {};
 
 const colors = {
@@ -36,8 +36,8 @@ async function initOdontograma(containerId, pacienteId) {
     container.innerHTML = `
         <div class="d-flex justify-content-center mb-4">
             <div class="btn-group shadow-sm">
-                <button class="btn btn-outline-primary active" id="btn-view-adulto" onclick="switchView('adulto')">Dentición Permanente</button>
-                <button class="btn btn-outline-primary" id="btn-view-nino" onclick="switchView('nino')">Dentición Decidua</button>
+                <button class="btn btn-outline-primary active" id="btn-view-adulto" onclick="odontogramaSwitchView('adulto')">Dentición Permanente</button>
+                <button class="btn btn-outline-primary" id="btn-view-nino" onclick="odontogramaSwitchView('nino')">Dentición Decidua</button>
             </div>
         </div>
         <div class="odontograma-grid-layout" style="display: flex; flex-direction: column; gap: 40px; align-items: center;">
@@ -51,8 +51,8 @@ async function initOdontograma(containerId, pacienteId) {
     await loadOdontogramaFromServer();
 }
 
-window.switchView = function(view) {
-    currentView = view;
+window.odontogramaSwitchView = function(view) {
+    odontogramaView = view;
     document.getElementById('btn-view-adulto').classList.toggle('active', view === 'adulto');
     document.getElementById('btn-view-nino').classList.toggle('active', view === 'nino');
     drawTeeth();
@@ -65,7 +65,7 @@ function drawTeeth() {
     rowSup.innerHTML = '';
     rowInf.innerHTML = '';
 
-    const data = currentView === 'adulto' ? fdiAdulto : fdiNino;
+    const data = odontogramaView === 'adulto' ? fdiAdulto : fdiNino;
 
     data.sup.forEach(id => { rowSup.appendChild(createToothElement(id, 'sup')); });
     data.inf.forEach(id => { rowInf.appendChild(createToothElement(id, 'inf')); });
