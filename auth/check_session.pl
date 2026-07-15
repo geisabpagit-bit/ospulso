@@ -15,8 +15,12 @@ eval {
 use FindBin;
 use File::Spec;
 
+my $cached_session_data;
+
 sub check_session {
     my ($external_q) = @_;
+    return $cached_session_data if defined $cached_session_data;
+
     my $q = $external_q || CGI->new;
     my $session;
     my $session_ok = 0;
@@ -63,6 +67,7 @@ sub check_session {
         }
     }
 
-    return { q => $q, session_ok => $session_ok, (%user_data) };
+    $cached_session_data = { q => $q, session_ok => $session_ok, (%user_data) };
+    return $cached_session_data;
 }
 1;
