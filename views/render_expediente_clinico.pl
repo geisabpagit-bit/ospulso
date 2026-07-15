@@ -1030,9 +1030,8 @@ HTML
     print <<HTML;
             </div>
         </section>
-    </div> <!-- /sdm-content -->
-  </div> <!-- /sdm-main-content -->
-</div> <!-- /sdm-layout-wrapper -->
+HTML
+    utils::sub_sidebar::render_sidebar_footer();
 HTML
 
 print <<HTML;
