@@ -111,97 +111,129 @@ if ($id_cita) {
 # 3. Flujo Clínico-Financiero Privado (Cotizaciones -> Tratamientos -> Caja -> Citas)
 my $id_cotizacion = $q->param('id_cotizacion') || '';
 my $convertir_tratamiento = $q->param('convertir_tratamiento') || '0';
+my $id_tratamiento_param = $q->param('id_tratamiento') || '';
 
-if ($id_cotizacion && $convertir_tratamiento eq '1') {
+if ($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) {
     my $cot_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones.dat');
     my $items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones_items.dat');
     my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
     my $fin_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
     
-    # A. Actualizar cotizaciones.dat para marcarla como 'Convertida'
-    my $total_cot = 0;
-    if (-e $cot_file && open my $fh_c, '<:encoding(UTF-8)', $cot_file) {
-        my @lineas = <$fh_c>;
-        close $fh_c;
-        
-        my $cabecera = shift @lineas;
-        chomp $cabecera if defined $cabecera;
-        
-        my @nuevas;
-        foreach my $l (@lineas) {
-            chomp $l;
-            my @c = split /\|/, $l, -1;
-            if ($c[0] eq $id_cotizacion) {
-                $total_cot = $c[3] // 0;
-                $c[6] = 'Convertida'; # 7ª columna
-                $l = join('|', @c);
-            }
-            push @nuevas, $l;
-        }
-        utils::db_manager::actualizar_archivo($cot_file, $cabecera, \@nuevas);
-    }
-    
-    # B. Crear Tratamiento en tratamientos.dat
-    my $id_tratamiento = 'TX-' . time() . '-' . int(rand(1000));
     my $caja_estado_tratamiento = $q->param('caja_estado_tratamiento') // 'Abierto';
     my $fecha_fin = ($caja_estado_tratamiento eq 'Cerrado') ? $hoy_fecha : '';
     my $proxima_cita_id = $q->param('proxima_cita_id') // '';
-    
-    unless (-e $trat_file) {
-        open my $fh_t, '>:encoding(UTF-8)', $trat_file;
-        print $fh_t "ID_TRATAMIENTO|ID_PACIENTE|ID_COT|ESTADO|FECHA_INICIO|FECHA_FIN|ID_MEDICO|TOTAL|ID_CITA\n";
-        close $fh_t;
-    }
-    
-    my $linea_trat = join('|', 
-        $id_tratamiento, $id_paciente, $id_cotizacion, $caja_estado_tratamiento, 
-        $hoy_fecha, $fecha_fin, $id_medico, $total_cot, $proxima_cita_id
-    );
-    utils::db_manager::guardar_registro($trat_file, $linea_trat);
-    
-    # C. Registrar conceptos de la cotización como Cargos en estado_cuenta.dat
-    my @items_cot;
-    if (-e $items_file && open my $fh_i, '<:encoding(UTF-8)', $items_file) {
-        my $header = <$fh_i>;
-        while (my $line = <$fh_i>) {
-            chomp $line;
-            my @c = split /\|/, $line, -1;
-            next unless @c >= 5;
-            if ($c[0] eq $id_cotizacion) {
-                push @items_cot, {
-                    concepto => $c[1],
-                    precio   => $c[2] // 0,
-                    cantidad => $c[3] // 1,
-                    subtotal => $c[4] // 0
-                };
-            }
-        }
-        close $fh_i;
-    }
-    
-    unless (-e $fin_file) {
-        open my $fh_f, '>:encoding(UTF-8)', $fin_file;
-        print $fh_f "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n";
-        close $fh_f;
-    }
-    
-    # Guardar cargos
-    my $idx = 1;
-    foreach my $it (@items_cot) {
-        my $id_mov = 'MOV-' . time() . '-' . $idx++;
-        my $linea_cargo = join('|',
-            $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{concepto},
-            $it->{subtotal}, 0, $it->{subtotal}, $hoy_fecha, $id_medico,
-            "Tratamiento: $id_tratamiento", ''
-        );
-        utils::db_manager::guardar_registro($fin_file, $linea_cargo);
-    }
-    
-    # D. Registrar Abono en Caja (si aplica)
     my $caja_monto_abono = $q->param('caja_monto_abono') // 0;
     my $caja_metodo_pago = $q->param('caja_metodo_pago') // 'Efectivo';
     
+    my $id_tratamiento = $id_tratamiento_param;
+    
+    if ($id_tratamiento) {
+        # A. ACTUALIZAR TRATAMIENTO EXISTENTE
+        if (-e $trat_file && open my $fh_t, '<:encoding(UTF-8)', $trat_file) {
+            my @lineas = <$fh_t>;
+            close $fh_t;
+            
+            my $cabecera = shift @lineas;
+            chomp $cabecera if defined $cabecera;
+            
+            my @nuevas;
+            foreach my $l (@lineas) {
+                chomp $l;
+                my @c = split /\|/, $l, -1;
+                if ($c[0] eq $id_tratamiento) {
+                    $c[3] = $caja_estado_tratamiento; # ESTADO
+                    $c[5] = $fecha_fin;               # FECHA_FIN
+                    $c[8] = $proxima_cita_id;         # ID_CITA
+                    $l = join('|', @c);
+                }
+                push @nuevas, $l;
+            }
+            utils::db_manager::actualizar_archivo($trat_file, $cabecera, \@nuevas);
+        }
+    } else {
+        # B. CREAR TRATAMIENTO NUEVO Y REGISTRAR CARGOS
+        $id_tratamiento = 'TX-' . time() . '-' . int(rand(1000));
+        
+        # 1. Actualizar cotizaciones.dat para marcarla como 'Convertida'
+        my $total_cot = 0;
+        if (-e $cot_file && open my $fh_c, '<:encoding(UTF-8)', $cot_file) {
+            my @lineas = <$fh_c>;
+            close $fh_c;
+            
+            my $cabecera = shift @lineas;
+            chomp $cabecera if defined $cabecera;
+            
+            my @nuevas;
+            foreach my $l (@lineas) {
+                chomp $l;
+                my @c = split /\|/, $l, -1;
+                if ($c[0] eq $id_cotizacion) {
+                    $total_cot = $c[3] // 0;
+                    $c[6] = 'Convertida';
+                    $l = join('|', @c);
+                }
+                push @nuevas, $l;
+            }
+            utils::db_manager::actualizar_archivo($cot_file, $cabecera, \@nuevas);
+        }
+        
+        # 2. Escribir fila en tratamientos.dat
+        unless (-e $trat_file) {
+            open my $fh_t, '>:encoding(UTF-8)', $trat_file;
+            print $fh_t "ID_TRATAMIENTO|ID_PACIENTE|ID_COT|ESTADO|FECHA_INICIO|FECHA_FIN|ID_MEDICO|TOTAL|ID_CITA\n";
+            close $fh_t;
+        }
+        
+        my $linea_trat = join('|', 
+            $id_tratamiento, $id_paciente, $id_cotizacion, $caja_estado_tratamiento, 
+            $hoy_fecha, $fecha_fin, $id_medico, $total_cot, $proxima_cita_id
+        );
+        utils::db_manager::guardar_registro($trat_file, $linea_trat);
+        
+        # 3. Registrar cargos iniciales desde cotizaciones_items.dat
+        my @items_cot;
+        if (-e $items_file && open my $fh_i, '<:encoding(UTF-8)', $items_file) {
+            my $header = <$fh_i>;
+            while (my $line = <$fh_i>) {
+                chomp $line;
+                my @c = split /\|/, $line, -1;
+                next unless @c >= 5;
+                if ($c[0] eq $id_cotizacion) {
+                    push @items_cot, {
+                        concepto => $c[1],
+                        subtotal => $c[4] // 0
+                    };
+                }
+            }
+            close $fh_i;
+        }
+        
+        unless (-e $fin_file) {
+            open my $fh_f, '>:encoding(UTF-8)', $fin_file;
+            print $fh_f "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n";
+            close $fh_f;
+        }
+        
+        my $idx = 1;
+        foreach my $it (@items_cot) {
+            my $id_mov = 'MOV-' . time() . '-' . $idx++;
+            my $linea_cargo = join('|',
+                $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{concepto},
+                $it->{subtotal}, 0, $it->{subtotal}, $hoy_fecha, $id_medico,
+                "Tratamiento: $id_tratamiento", ''
+            );
+            utils::db_manager::guardar_registro($fin_file, $linea_cargo);
+        }
+    }
+    
+    # C. REGISTRAR ABONO EN CAJA (PARA AMBOS CASOS)
     if ($caja_monto_abono > 0) {
+        unless (-e $fin_file) {
+            open my $fh_f, '>:encoding(UTF-8)', $fin_file;
+            print $fh_f "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n";
+            close $fh_f;
+        }
+        
         my $id_mov_abono = 'MOV-' . time() . '-ABONO';
         my $concepto_abono = "Abono en Caja - Metodo: $caja_metodo_pago";
         my $linea_abono = join('|',

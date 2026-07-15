@@ -17,11 +17,14 @@ sub render_step_caja_privado {
         my $header = <$fh>;
         while (my $line = <$fh>) {
             chomp $line;
+            next if $line =~ /^\s*$/;
             my @c = split /\|/, $line, -1;
             next unless @c >= 6;
-            if ($c[1] eq $id_p && ($c[6]//'') ne 'Convertida') {
-                $cot_data{$c[0]} = {
-                    id_cot => $c[0],
+            my $id_cot = $c[0];
+            my $cot_pac = $c[1] // '';
+            my $estado = $c[6] // 'Pendiente';
+            if ($cot_pac eq $id_p && $estado ne 'Convertida') {
+                $cot_data{$id_cot} = {
                     nombre => $c[2],
                     total  => $c[3] + 0,
                     fecha  => $c[4],
@@ -32,11 +35,12 @@ sub render_step_caja_privado {
         close($fh);
     }
     
-    # 2. Leer items
+    # 2. Leer conceptos de cotizaciones
     if (-e $items_file && open(my $fh, '<:encoding(UTF-8)', $items_file)) {
         my $header = <$fh>;
         while (my $line = <$fh>) {
             chomp $line;
+            next if $line =~ /^\s*$/;
             my @c = split /\|/, $line, -1;
             next unless @c >= 5;
             my $id_cot = $c[0];
@@ -54,6 +58,77 @@ sub render_step_caja_privado {
     
     use JSON::PP;
     my $json_cots = JSON::PP->new->utf8(1)->encode(\%cot_data);
+    
+    # 3. Buscar si tiene tratamiento abierto
+    my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
+    my $tiene_tratamiento = 0;
+    my $id_tratamiento_activo = '';
+    my $id_cotizacion_activa = '';
+    
+    if (-e $trat_file && open(my $fh_t, '<:encoding(UTF-8)', $trat_file)) {
+        my $header = <$fh_t>;
+        while (my $line = <$fh_t>) {
+            chomp $line;
+            next if $line =~ /^\s*$/;
+            my @c = split /\|/, $line, -1;
+            next unless @c >= 4;
+            if ($c[1] eq $id_p && $c[3] eq 'Abierto') {
+                $tiene_tratamiento = 1;
+                $id_tratamiento_activo = $c[0];
+                $id_cotizacion_activa = $c[2];
+                last;
+            }
+        }
+        close($fh_t);
+    }
+    
+    # 4. Cargar cargos y abonos del tratamiento activo
+    my @cargos = ();
+    my @abonos = ();
+    my $total_cargos = 0;
+    my $total_abonos = 0;
+    
+    my $fin_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
+    if ($tiene_tratamiento && -e $fin_file && open(my $fh_f, '<:encoding(UTF-8)', $fin_file)) {
+        my $header = <$fh_f>;
+        while (my $line = <$fh_f>) {
+            chomp $line;
+            next if $line =~ /^\s*$/;
+            my @c = split /\|/, $line, -1;
+            next unless @c >= 8;
+            if ($c[0] eq $id_tratamiento_activo) {
+                my $tipo = $c[3];
+                my $total = $c[7] // 0;
+                if ($tipo eq 'Cargo') {
+                    push @cargos, {
+                        concepto => $c[4],
+                        total    => $total + 0
+                    };
+                    $total_cargos += $total;
+                } elsif ($tipo eq 'Abono') {
+                    push @abonos, {
+                        concepto => $c[4],
+                        total    => $total + 0,
+                        fecha    => $c[8]
+                    };
+                    $total_abonos += $total;
+                }
+            }
+        }
+        close($fh_f);
+    }
+    
+    my $saldo_pendiente = $total_cargos - $total_abonos;
+    
+    my $json_historial = JSON::PP->new->utf8(1)->encode({
+        tiene_tratamiento => $tiene_tratamiento,
+        id_tratamiento => $id_tratamiento_activo,
+        cargos => \@cargos,
+        abonos => \@abonos,
+        total_cargos => $total_cargos,
+        total_abonos => $total_abonos,
+        saldo_pendiente => $saldo_pendiente
+    });
     
     return qq{
         <div class="wizard-panel" id="step-panel-6">
@@ -163,6 +238,7 @@ sub render_step_caja_privado {
         
         <script>
         const cotizacionesData = $json_cots;
+        const historialTratamiento = $json_historial;
         
         function cargarCajaDesdeRegistro() {
             const cotSelect = document.getElementById('f_id_cotizacion');
@@ -171,7 +247,58 @@ sub render_step_caja_privado {
             const noCotCard = document.getElementById('caja-no-cotizacion');
             const workflowCont = document.getElementById('caja-workflow-container');
             
-            if (cotSelect && cotSelect.value && convertirCheck && convertirCheck.checked) {
+            if (historialTratamiento && historialTratamiento.tiene_tratamiento) {
+                // Flujo con Tratamiento Activo existente
+                noCotCard.style.display = 'none';
+                workflowCont.style.display = 'block';
+                
+                // Cargar cargos en la tabla
+                const tbody = document.getElementById('caja-tbody-items');
+                tbody.innerHTML = '';
+                
+                historialTratamiento.cargos.forEach(it => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><span class="fw-bold text-dark text-uppercase small" style="letter-spacing:0.3px;">\${it.concepto}</span></td>
+                            <td class="text-end fw-semibold">\$\${it.total.toFixed(2)}</td>
+                            <td class="text-center fw-bold text-muted">1</td>
+                            <td class="text-end fw-black text-navy">\$\${it.total.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                
+                // Si hay abonos anteriores, desplegarlos en la tabla
+                if (historialTratamiento.abonos.length > 0) {
+                    tbody.innerHTML += `
+                        <tr class="table-light">
+                            <td colspan="3" class="text-end fw-bold text-uppercase small text-success">Total Cargos del Tratamiento</td>
+                            <td class="text-end fw-bold text-success">\$\${historialTratamiento.total_cargos.toFixed(2)}</td>
+                        </tr>
+                    `;
+                    
+                    historialTratamiento.abonos.forEach(ab => {
+                        tbody.innerHTML += `
+                            <tr class="text-success small">
+                                <td><i class="bi bi-arrow-return-right me-2"></i>\${ab.concepto} (Fecha: \${ab.fecha})</td>
+                                <td colspan="2"></td>
+                                <td class="text-end fw-bold text-success">-\$\${ab.total.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                // Agregar fila de saldo pendiente
+                tbody.innerHTML += `
+                    <tr class="table-warning border-top-2">
+                        <td colspan="3" class="text-end fw-black text-uppercase small">Saldo Pendiente a Abonar/Liquidar</td>
+                        <td class="text-end fw-black text-danger fs-6">\$\${historialTratamiento.saldo_pendiente.toFixed(2)}</td>
+                    </tr>
+                `;
+                
+                // Actualizar inputs
+                actualizarMontoPago();
+                
+            } else if (cotSelect && cotSelect.value && convertirCheck && convertirCheck.checked) {
                 noCotCard.style.display = 'none';
                 workflowCont.style.display = 'block';
                 
@@ -214,22 +341,25 @@ sub render_step_caja_privado {
         
         function actualizarMontoPago() {
             const cotSelect = document.getElementById('f_id_cotizacion');
-            if (!cotSelect) return;
-            
-            const idCot = cotSelect.value;
-            const cot = cotizacionesData[idCot];
-            if (!cot) return;
-            
             const tipoPago = document.getElementById('f_caja_tipo_pago').value;
             const montoInput = document.getElementById('f_caja_monto_abono');
             
+            let maxMonto = 0;
+            if (historialTratamiento && historialTratamiento.tiene_tratamiento) {
+                maxMonto = historialTratamiento.saldo_pendiente;
+            } else if (cotSelect && cotSelect.value) {
+                const idCot = cotSelect.value;
+                const cot = cotizacionesData[idCot];
+                if (cot) maxMonto = cot.total;
+            }
+            
             if (tipoPago === 'Liquidar') {
-                montoInput.value = cot.total.toFixed(2);
+                montoInput.value = maxMonto.toFixed(2);
                 montoInput.readOnly = true;
             } else {
                 montoInput.value = '';
                 montoInput.readOnly = false;
-                montoInput.placeholder = "Ingrese monto...";
+                montoInput.placeholder = "Ingrese abono parcial...";
                 montoInput.focus();
             }
         }
@@ -251,7 +381,6 @@ sub render_step_caja_privado {
         function abrirModalCitaConsulta() {
             const modalEl = document.getElementById('modalCita');
             if (modalEl) {
-                // Autocompletar datos del paciente en el modal de la cita
                 const pNombre = "$paciente->{nombre}";
                 const pId = "$paciente->{id_paciente}";
                 
@@ -261,7 +390,6 @@ sub render_step_caja_privado {
                 if (fPacienteInput) fPacienteInput.value = pNombre;
                 if (fIdPacienteInput) fIdPacienteInput.value = pId;
                 
-                // Forzar fecha de mañana como sugerencia inicial
                 const fFecha = document.getElementById('f_fecha');
                 if (fFecha && !fFecha.value) {
                     const tmr = new Date();
@@ -269,18 +397,15 @@ sub render_step_caja_privado {
                     fFecha.value = tmr.toISOString().split('T')[0];
                 }
                 
-                // Mostrar modal
                 const myModal = new bootstrap.Modal(modalEl);
                 myModal.show();
                 
-                // Trigger render de slots en base a la fecha cargada
                 if (typeof renderSlots === 'function' && fFecha) {
                     renderSlots(fFecha.value);
                 }
             }
         }
         
-        // Callback global llamado por el guardado exitoso de citas_crud.pl
         window.onCitaAgendadaExito = function(idCita, fecha, hora) {
             const citaIdInput = document.getElementById('f_proxima_cita_id');
             const statusCard = document.getElementById('cita-status-card');
@@ -291,14 +416,12 @@ sub render_step_caja_privado {
             if (citaIdInput) {
                 citaIdInput.value = idCita;
                 
-                // Actualizar interfaz visual
                 statusCard.classList.remove('bg-light');
                 statusCard.classList.add('bg-success-subtle', 'border-success');
                 statusIcon.className = 'bi bi-calendar-check-fill fs-2 text-success';
                 statusText.innerText = "¡Cita Programada!";
                 statusDetail.innerHTML = `Fecha: <strong>\${fecha}</strong><br>Hora: <strong>\${hora}</strong><br><small class="text-muted">(ID Cita: \${idCita})</small>`;
                 
-                // Cerrar modal
                 const modalEl = document.getElementById('modalCita');
                 if (modalEl) {
                     const m = bootstrap.Modal.getInstance(modalEl);
@@ -319,17 +442,31 @@ sub render_step_caja_privado {
             const cotSelect = document.getElementById('f_id_cotizacion');
             const convertirCheck = document.getElementById('f_convertir_tratamiento');
             
-            if (cotSelect && cotSelect.value && convertirCheck && convertirCheck.checked) {
-                // Validar monto
+            const isTratamientoActivo = historialTratamiento && historialTratamiento.tiene_tratamiento;
+            const isNuevaConversion = cotSelect && cotSelect.value && convertirCheck && convertirCheck.checked;
+            
+            if (isTratamientoActivo || isNuevaConversion) {
                 const montoInput = document.getElementById('f_caja_monto_abono');
                 const montoVal = parseFloat(montoInput.value) || 0;
                 
-                if (montoVal <= 0) {
+                let maxMonto = 0;
+                if (isTratamientoActivo) {
+                    maxMonto = historialTratamiento.saldo_pendiente;
+                } else {
+                    const idCot = cotSelect.value;
+                    const cot = cotizacionesData[idCot];
+                    if (cot) maxMonto = cot.total;
+                }
+                
+                if (montoVal < 0) {
                     Swal.fire('Atención', 'Por favor, ingrese un monto de abono válido.', 'warning');
                     return;
                 }
+                if (montoVal > maxMonto) {
+                    Swal.fire('Atención', `El monto a pagar (\$\${montoVal.toFixed(2)}) no puede ser mayor al saldo pendiente (\$\${maxMonto.toFixed(2)}).`, 'warning');
+                    return;
+                }
                 
-                // Validar si el tratamiento queda abierto que se haya agendado cita
                 const estadoTrat = document.getElementById('f_caja_estado_tratamiento').value;
                 const citaId = document.getElementById('f_proxima_cita_id').value;
                 
