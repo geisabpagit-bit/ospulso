@@ -563,7 +563,7 @@ sub render_step_caja_privado {
                 
                 tbody.innerHTML += `
                     <tr class="table-warning border-top-2">
-                        <td colspan="3" class="text-end fw-black text-uppercase small">\\${labelTotal}</td>
+                        <td colspan="3" class="text-end fw-black text-uppercase small">\${labelTotal}</td>
                         <td class="text-end fw-black text-danger fs-6">\$\${subtotalAcumulado.toFixed(2)}</td>
                     </tr>
                 `;
