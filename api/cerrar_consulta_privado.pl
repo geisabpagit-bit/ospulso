@@ -112,8 +112,15 @@ if ($id_cita) {
 my $id_cotizacion = $q->param('id_cotizacion') || '';
 my $convertir_tratamiento = $q->param('convertir_tratamiento') || '0';
 my $id_tratamiento_param = $q->param('id_tratamiento') || '';
+my $caja_items_json = $q->param('caja_items_json') || '[]';
 
-if ($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) {
+my $caja_items = [];
+eval {
+    $caja_items = decode_json($caja_items_json) if $caja_items_json;
+};
+my $tiene_cargos_directos = (ref($caja_items) eq 'ARRAY' && @$caja_items) ? 1 : 0;
+
+if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) || $tiene_cargos_directos) {
     my $cot_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones.dat');
     my $items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones_items.dat');
     my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
@@ -126,6 +133,12 @@ if ($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) 
     my $caja_metodo_pago = $q->param('caja_metodo_pago') // 'Efectivo';
     
     my $id_tratamiento = $id_tratamiento_param;
+    
+    # Calcular total de cargos directos
+    my $total_cargos_directos = 0;
+    foreach my $it (@$caja_items) {
+        $total_cargos_directos += ($it->{precio} || 0) * ($it->{cantidad} || 1);
+    }
     
     if ($id_tratamiento) {
         # A. ACTUALIZAR TRATAMIENTO EXISTENTE
@@ -143,6 +156,7 @@ if ($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) 
                 if ($c[0] eq $id_tratamiento) {
                     $c[3] = $caja_estado_tratamiento; # ESTADO
                     $c[5] = $fecha_fin;               # FECHA_FIN
+                    $c[7] = ($c[7] || 0) + $total_cargos_directos; # TOTAL actualizado
                     $c[8] = $proxima_cita_id;         # ID_CITA
                     $l = join('|', @c);
                 }
@@ -154,27 +168,29 @@ if ($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) 
         # B. CREAR TRATAMIENTO NUEVO Y REGISTRAR CARGOS
         $id_tratamiento = 'TX-' . time() . '-' . int(rand(1000));
         
-        # 1. Actualizar cotizaciones.dat para marcarla como 'Convertida'
         my $total_cot = 0;
-        if (-e $cot_file && open my $fh_c, '<:encoding(UTF-8)', $cot_file) {
-            my @lineas = <$fh_c>;
-            close $fh_c;
-            
-            my $cabecera = shift @lineas;
-            chomp $cabecera if defined $cabecera;
-            
-            my @nuevas;
-            foreach my $l (@lineas) {
-                chomp $l;
-                my @c = split /\|/, $l, -1;
-                if ($c[0] eq $id_cotizacion) {
-                    $total_cot = $c[3] // 0;
-                    $c[6] = 'Convertida';
-                    $l = join('|', @c);
+        if ($id_cotizacion) {
+            # 1. Actualizar cotizaciones.dat para marcarla como 'Convertida'
+            if (-e $cot_file && open my $fh_c, '<:encoding(UTF-8)', $cot_file) {
+                my @lineas = <$fh_c>;
+                close $fh_c;
+                
+                my $cabecera = shift @lineas;
+                chomp $cabecera if defined $cabecera;
+                
+                my @nuevas;
+                foreach my $l (@lineas) {
+                    chomp $l;
+                    my @c = split /\|/, $l, -1;
+                    if ($c[0] eq $id_cotizacion) {
+                        $total_cot = $c[3] // 0;
+                        $c[6] = 'Convertida';
+                        $l = join('|', @c);
+                    }
+                    push @nuevas, $l;
                 }
-                push @nuevas, $l;
+                utils::db_manager::actualizar_archivo($cot_file, $cabecera, \@nuevas);
             }
-            utils::db_manager::actualizar_archivo($cot_file, $cabecera, \@nuevas);
         }
         
         # 2. Escribir fila en tratamientos.dat
@@ -184,49 +200,74 @@ if ($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) 
             close $fh_t;
         }
         
+        my $total_trat = $total_cot + $total_cargos_directos;
+        
         my $linea_trat = join('|', 
             $id_tratamiento, $id_paciente, $id_cotizacion, $caja_estado_tratamiento, 
-            $hoy_fecha, $fecha_fin, $id_medico, $total_cot, $proxima_cita_id
+            $hoy_fecha, $fecha_fin, $id_medico, $total_trat, $proxima_cita_id
         );
         utils::db_manager::guardar_registro($trat_file, $linea_trat);
         
-        # 3. Registrar cargos iniciales desde cotizaciones_items.dat
-        my @items_cot;
-        if (-e $items_file && open my $fh_i, '<:encoding(UTF-8)', $items_file) {
-            my $header = <$fh_i>;
-            while (my $line = <$fh_i>) {
-                chomp $line;
-                my @c = split /\|/, $line, -1;
-                next unless @c >= 5;
-                if ($c[0] eq $id_cotizacion) {
-                    push @items_cot, {
-                        concepto => $c[1],
-                        subtotal => $c[4] // 0
-                    };
+        # 3. Registrar cargos iniciales de la cotización desde cotizaciones_items.dat
+        if ($id_cotizacion) {
+            my @items_cot;
+            if (-e $items_file && open my $fh_i, '<:encoding(UTF-8)', $items_file) {
+                my $header = <$fh_i>;
+                while (my $line = <$fh_i>) {
+                    chomp $line;
+                    my @c = split /\|/, $line, -1;
+                    next unless @c >= 5;
+                    if ($c[0] eq $id_cotizacion) {
+                        push @items_cot, {
+                            concepto => $c[1],
+                            subtotal => $c[4] // 0
+                        };
+                    }
                 }
+                close $fh_i;
             }
-            close $fh_i;
+            
+            unless (-e $fin_file) {
+                open my $fh_f, '>:encoding(UTF-8)', $fin_file;
+                print $fh_f "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n";
+                close $fh_f;
+            }
+            
+            my $idx = 1;
+            foreach my $it (@items_cot) {
+                my $id_mov = 'MOV-' . time() . '-' . $idx++;
+                my $linea_cargo = join('|',
+                    $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{concepto},
+                    $it->{subtotal}, 0, $it->{subtotal}, $hoy_fecha, $id_medico,
+                    "Tratamiento: $id_tratamiento", ''
+                );
+                utils::db_manager::guardar_registro($fin_file, $linea_cargo);
+            }
         }
-        
+    }
+    
+    # C. REGISTRAR CARGOS DIRECTOS (SI APLICA)
+    if ($tiene_cargos_directos) {
         unless (-e $fin_file) {
             open my $fh_f, '>:encoding(UTF-8)', $fin_file;
             print $fh_f "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n";
             close $fh_f;
         }
         
-        my $idx = 1;
-        foreach my $it (@items_cot) {
-            my $id_mov = 'MOV-' . time() . '-' . $idx++;
+        my $idx_dir = 100;
+        foreach my $it (@$caja_items) {
+            my $id_mov = 'MOV-' . time() . '-' . $idx_dir++;
+            my $sub = ($it->{precio} || 0) * ($it->{cantidad} || 1);
             my $linea_cargo = join('|',
-                $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{concepto},
-                $it->{subtotal}, 0, $it->{subtotal}, $hoy_fecha, $id_medico,
-                "Tratamiento: $id_tratamiento", ''
+                $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{nombre},
+                $sub, 0, $sub, $hoy_fecha, $id_medico,
+                "Tratamiento: $id_tratamiento | Cargo Directo", ''
             );
             utils::db_manager::guardar_registro($fin_file, $linea_cargo);
         }
     }
     
-    # C. REGISTRAR ABONO EN CAJA (PARA AMBOS CASOS)
+    # D. REGISTRAR ABONO EN CAJA (PARA TODOS LOS CASOS)
     if ($caja_monto_abono > 0) {
         unless (-e $fin_file) {
             open my $fh_f, '>:encoding(UTF-8)', $fin_file;
