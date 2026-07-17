@@ -328,13 +328,17 @@ sub render_step_caja_privado {
         var carritoLocalConsultas = [];
         
         async function abrirModalCargoConsultas() {
-            carritoLocalConsultas = JSON.parse(JSON.stringify(carritoConsulta || [])); // Clonar
-            refrescarGUICarritoConsultas();
-            
             const el = document.getElementById('modalCargoConsultas');
             if (!el) return console.error("Modal Cargo Consultas no encontrado");
             
-            const m = new bootstrap.Modal(el);
+            if (el.parentElement !== document.body) {
+                document.body.appendChild(el);
+            }
+            
+            carritoLocalConsultas = JSON.parse(JSON.stringify(carritoConsulta || [])); // Clonar
+            refrescarGUICarritoConsultas();
+            
+            const m = bootstrap.Modal.getOrCreateInstance(el);
             m.show();
             
             // Cargar catálogo si no está cargado
@@ -634,6 +638,10 @@ sub render_step_caja_privado {
         function abrirModalCitaConsulta() {
             const modalEl = document.getElementById('modalCita');
             if (modalEl) {
+                if (modalEl.parentElement !== document.body) {
+                    document.body.appendChild(modalEl);
+                }
+                
                 const pNombre = "$paciente->{nombre}";
                 const pId = "$paciente->{id_paciente}";
                 
@@ -650,7 +658,7 @@ sub render_step_caja_privado {
                     fFecha.value = tmr.toISOString().split('T')[0];
                 }
                 
-                const myModal = new bootstrap.Modal(modalEl);
+                const myModal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 myModal.show();
                 
                 if (typeof renderSlots === 'function' && fFecha) {
