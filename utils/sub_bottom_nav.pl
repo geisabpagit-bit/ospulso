@@ -20,17 +20,17 @@ sub render_bottom_nav {
         @{[ 
             $active eq 'agenda' ? qq(
                 <a href="pacientes.pl" class="main-tab-item" title="Pacientes">
-                    <i class="bi bi-people"></i>
+                    <img src="../img/pacientes_icon.png" class="bottom-nav-icon-img" alt="Pacientes" style="width: 24px; height: 24px; object-fit: contain;">
                     <span>Pacientes</span>
                 </a>
                 <button onclick="abrirModalNuevaCita()" class="main-tab-item dock-fab" title="Nueva Cita">
                     <i class="bi bi-calendar-plus"></i>
                     <span>Nueva Cita</span>
                 </button>
-                <button onclick="abrirModalAjustes()" class="main-tab-item" title="Ajustes">
-                    <i class="bi bi-gear-fill"></i>
-                    <span>Ajustes</span>
-                </button>
+                <a href="render_consultas.pl" class="main-tab-item" title="Consulta">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>Consulta</span>
+                </a>
             ) : $active eq 'pacientes' ? qq(
                 <a href="agenda_main.pl" class="main-tab-item" title="Citas">
                     <i class="bi bi-calendar3"></i>
@@ -40,9 +40,9 @@ sub render_bottom_nav {
                     <i class="bi bi-person-plus-fill"></i>
                     <span>Nuevo</span>
                 </a>
-                <a href="ajustes.pl" class="main-tab-item" title="Ajustes">
-                    <i class="bi bi-sliders"></i>
-                    <span>Ajustes</span>
+                <a href="render_consultas.pl" class="main-tab-item" title="Consulta">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>Consulta</span>
                 </a>
             ) : qq(
                 <a href="agenda_main.pl" class="main-tab-item @{[$active eq 'agenda' ? 'active' : '']}" title="Citas">
@@ -50,12 +50,12 @@ sub render_bottom_nav {
                     <span>Citas</span>
                 </a>
                 <a href="pacientes.pl" class="main-tab-item @{[$active eq 'pacientes' ? 'active' : '']}" title="Pacientes">
-                    <i class="bi bi-people"></i>
+                    <img src="../img/pacientes_icon.png" class="bottom-nav-icon-img" alt="Pacientes" style="width: 24px; height: 24px; object-fit: contain;">
                     <span>Pacientes</span>
                 </a>
-                <a href="ajustes.pl" class="main-tab-item @{[$active eq 'ajustes' ? 'active' : '']}" title="Ajustes">
-                    <i class="bi bi-sliders"></i>
-                    <span>Ajustes</span>
+                <a href="render_consultas.pl" class="main-tab-item @{[$active eq 'consulta' ? 'active' : '']}" title="Consulta">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>Consulta</span>
                 </a>
             )
         ]}

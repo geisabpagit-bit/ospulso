@@ -162,7 +162,7 @@ sub render_sidebar {
             <button class="btn-sidebar-toggle d-none d-lg-flex ms-auto" onclick="toggleDesktopSidebar()"><i class="bi bi-layout-sidebar text-muted"></i></button>
         </div>
 
-        <div class="sidebar-menu accordion accordion-flush flex-grow-1 mt-3 px-2" id="accordionSidebar">
+        <div class="sidebar-menu accordion accordion-flush flex-grow-1 mt-1 px-1" id="accordionSidebar">
 HTML
     
 

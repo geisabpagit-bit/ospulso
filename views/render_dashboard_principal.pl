@@ -450,10 +450,7 @@ HTML
             </div>
             
 
-            <!-- Botón flotante para Consulta Express móvil -->
-            <button class="fab-btn-v2 pulse-fab d-lg-none" onclick="window.location.href='../views/render_consultas.pl'" title="Consulta">
-                <span class="material-icons">medical_services</span>
-            </button>
+            
 HTML
     utils::sub_sidebar::render_sidebar_footer();
 

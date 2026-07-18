@@ -7,10 +7,11 @@
     width: auto !important;
     max-width: 600px !important;
     height: 70px !important;
-    background: rgba(255, 255, 255, 0.85) !important;
+    background: rgba(232, 243, 255, 0.96) !important; /* Mismo azul tenue que cabecera/footer */
     backdrop-filter: blur(15px) !important;
     -webkit-backdrop-filter: blur(15px) !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-bottom: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; /* Borde inferior teal */
     border-radius: 2rem !important;
     display: flex !important; 
     justify-content: space-around !important; 
@@ -31,7 +32,7 @@
     border-radius: 50% !important;
     color: var(--md-blue-deep, #0A2A66) !important;
     background: transparent !important;
-    border: none !important;
+    border: 1px solid transparent !important; /* Borde inicial transparente */
     font-size: 1.4rem !important;
     transition: all 0.2s !important;
     text-decoration: none !important;
@@ -44,8 +45,9 @@
 }
 
 .main-tab-item:hover, .main-tab-item:active, .main-tab-item.active {
-    background: rgba(0, 196, 196, 0.1) !important;
-    color: var(--md-teal-bright, #00C4C4) !important;
+    background: rgba(10, 42, 102, 0.05) !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    border: 1.5px solid var(--md-blue-deep, #0A2A66) !important; /* Borde azul marino corporativo delgado */
     transform: translateY(-3px) !important;
 }
 
@@ -80,6 +82,15 @@
     margin: 0 !important;
 }
 
+.main-tab-item img, .dock-fab img {
+    display: block !important;
+    margin: 0 auto !important;
+    max-width: 26px !important;
+    max-height: 26px !important;
+    object-fit: contain !important;
+}
+
 @media (min-width: 768px) {
     .sdm-main-bottom-nav { display: none !important; }
 }
+
