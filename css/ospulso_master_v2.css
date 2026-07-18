@@ -746,4 +746,71 @@
         box-sizing: border-box !important;
         display: inline-block !important;
     }
+
+    /* 5. Homogeneización Global de Cabeceras (Módulo y Expediente) en Celular */
+    header.bg-medentia-gradient,
+    .diamond-header-compact {
+        background: var(--bg-medentia-gradient, linear-gradient(135deg, #0A2A66, #124A9E)) !important;
+        padding: 12px 16px !important;
+        margin-bottom: 0.75rem !important;
+        border-radius: 0 0 16px 16px !important;
+        min-height: auto !important;
+        box-sizing: border-box !important;
+        box-shadow: 0 4px 12px rgba(10, 42, 102, 0.08) !important;
+        position: relative !important;
+        border: none !important;
+    }
+
+    header.bg-medentia-gradient,
+    header.bg-medentia-gradient .d-flex,
+    .diamond-header-compact,
+    .diamond-header-compact .d-flex {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    header.bg-medentia-gradient .d-flex > div,
+    .diamond-header-compact > div {
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    /* Títulos unificados en blanco puro de alta legibilidad */
+    header.bg-medentia-gradient h2,
+    .diamond-header-compact h4 {
+        font-size: 1.15rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        text-align: center !important;
+        margin: 0 !important;
+        letter-spacing: -0.3px !important;
+    }
+
+    /* Ocultar subtítulos para maximizar la pantalla útil */
+    header.bg-medentia-gradient p,
+    header.bg-medentia-gradient .text-white-50,
+    .diamond-header-compact p,
+    .diamond-header-compact .text-white-50 {
+        display: none !important;
+    }
+
+    /* Botones de acción a todo lo ancho de forma limpia y redondeada */
+    header.bg-medentia-gradient a.btn,
+    header.bg-medentia-gradient button.btn,
+    .diamond-header-compact a.btn,
+    .diamond-header-compact button.btn {
+        width: 100% !important;
+        padding: 8px 16px !important;
+        font-size: 0.8rem !important;
+        border-radius: 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        box-sizing: border-box !important;
+    }
 }
