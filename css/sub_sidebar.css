@@ -224,7 +224,12 @@
     }
     
     .diamond-header-compact { padding: 1rem 1.5rem; border-radius: 0 0 1.5rem 1.5rem; }
-    .sdm-content { padding: 1.5rem 1rem !important; }
+    .sdm-content { padding: 0.5rem 0.25rem 6rem 0.25rem !important; }
+    .sdm-content .container-fluid, 
+    .sdm-content .container { 
+        padding-left: 0.25rem !important; 
+        padding-right: 0.25rem !important; 
+    }
 }
 
 /* Overrides for hardcoded elements inside sub_sidebar.pl */
