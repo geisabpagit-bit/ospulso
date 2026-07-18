@@ -16,10 +16,10 @@
 
 /* --- Glassmorphism para el Navbar (sub_header.pl) --- */
 .glass-navbar {
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border-bottom: 1px solid rgba(10, 42, 102, 0.08) !important;
+    background: rgba(232, 243, 255, 0.96) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border-bottom: 1px solid var(--md-teal-clinical, #19B7A5) !important;
 }
 
 /* Modificando la barra de búsqueda superior */

@@ -138,6 +138,10 @@ HTML
         print <<HTML;
     <nav class="navbar sdm-navbar glass-navbar p-2 sticky-top flex-column align-items-stretch">
         <div class="container-fluid px-lg-4 d-flex align-items-center justify-content-between flex-nowrap w-100">
+            <!-- Hamburger Menu Toggle (Mobile Only) -->
+            <button class="btn btn-menu-toggle-inline d-lg-none me-2" onclick="toggleSidebar()" aria-label="Abrir menú" type="button">
+                <i class="bi bi-list"></i>
+            </button>
             
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">

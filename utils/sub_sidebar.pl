@@ -451,16 +451,6 @@ HTML
 
     <!-- Main Content -->
     <div class="sdm-main-content">
-        <!-- Header Compacto -->
-        <div class="diamond-header-compact d-lg-none d-flex justify-content-between align-items-center border-0 shadow-none pt-3 pb-0" style="background: transparent !important;">
-            <div class="d-flex align-items-center gap-3">
-                <button class="btn btn-menu-toggle-inline" onclick="toggleSidebar()">
-                    <i class="bi bi-list"></i>
-                </button>
-
-            </div>
-        </div>
-
         <div class="sdm-content mt-2 mt-lg-0">
 HTML
 }

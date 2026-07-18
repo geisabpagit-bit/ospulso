@@ -1,7 +1,7 @@
 .diamond-sidebar {
     width: 280px;
     background: #ffffff;
-    border: 2px solid var(--md-teal-clinical) !important;
+    border: 1px solid var(--md-teal-clinical) !important;
     display: flex;
     flex-direction: column;
     transition: width 0.3s cubic-bezier(0.19, 1, 0.22, 1), transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
@@ -217,7 +217,7 @@
         width: 290px !important;
         border-radius: 1.5rem !important;
         margin: 0;
-        border: 2px solid var(--md-teal-clinical) !important;
+        border: 1px solid var(--md-teal-clinical) !important;
     }
     .diamond-sidebar.show {
         transform: translateX(336px);
@@ -270,25 +270,21 @@
     overflow: hidden;
 }
 
-/* Pulsating Hamburguer Menu Button */
 .btn-menu-toggle-inline {
-    position: fixed !important;
-    top: 1rem !important;
-    left: 1rem !important;
-    z-index: 4900 !important;
     background: #0A2A66 !important; /* Azul marino */
     color: #ffffff !important;
     border: none !important;
-    border-radius: 12px !important;
-    width: 44px !important;
-    height: 44px !important;
+    border-radius: 10px !important;
+    width: 38px !important;
+    height: 38px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 1.5rem !important;
-    box-shadow: 0 4px 15px rgba(10, 42, 102, 0.25) !important;
+    font-size: 1.25rem !important;
+    box-shadow: 0 4px 10px rgba(10, 42, 102, 0.15) !important;
     transition: all 0.3s ease !important;
-    animation: pulse-menu 2s infinite !important;
+    animation: pulse-menu 2.5s infinite !important;
+    flex-shrink: 0;
 }
 
 @keyframes pulse-menu {

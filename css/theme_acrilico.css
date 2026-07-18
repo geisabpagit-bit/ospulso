@@ -106,26 +106,31 @@
 
 .kpi-icono {
   font-size: 2rem;
-  color: #00b3b3;
+  color: var(--md-teal-clinical, #19B7A5);
   margin-bottom: 8px;
 }
 
 .kpi-titulo {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #004d4d;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #475569; /* Gris corporativo */
   margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .kpi-valor {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #002f2f;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0A2A66; /* Azul marino corporativo */
 }
 
 .kpi-subtexto {
-  font-size: 0.85rem;
-  color: rgba(0, 77, 77, 0.8);
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 0.75rem;
+  color: #64748b;
 }
 
 @media (max-width: 1024px) {
@@ -141,11 +146,12 @@
     gap: 16px;
   }
   .kpi-acrilico {
-    padding: 16px;
+    padding: 12px;
     border-radius: 12px;
   }
-  .kpi-icono { font-size: 1.6rem; }
-  .kpi-valor { font-size: 1.3rem; }
+  .kpi-icono { font-size: 1.4rem; }
+  .kpi-titulo { font-size: 0.7rem; }
+  .kpi-valor { font-size: 1.25rem; }
 }
 
 @media (max-width: 480px) {

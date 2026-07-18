@@ -221,7 +221,7 @@ HTML
         background: white; 
         border-radius: var(--radius-lg); 
         padding: 1.5rem; 
-        border: 2px solid #19B7A5; 
+        border: 1px solid var(--md-teal-clinical); 
         box-shadow: var(--shadow-sm);
         transition: all 0.3s ease;
     }
@@ -266,7 +266,7 @@ HTML
         background: white;
         border-radius: var(--radius-md);
         padding: 1.25rem;
-        border: 2px solid #19B7A5;
+        border: 1px solid var(--md-teal-clinical);
         display: flex;
         align-items: center;
         gap: 1rem;
@@ -381,8 +381,8 @@ HTML
                 <div class="col-6 col-lg-3">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="kpi-title">Citas Hoy</span>
-                            <h2 class="kpi-value counter-up m-0" data-value="$citas_hoy_count">$citas_hoy_count</h2>
+                            <span class="kpi-titulo">Citas Hoy</span>
+                            <h2 class="kpi-valor counter-up m-0" data-value="$citas_hoy_count">$citas_hoy_count</h2>
                         </div>
                         <i class="bi bi-calendar-check text-primary fs-2 kpi-icon" style="opacity: 0.8;"></i>
                     </div>
@@ -390,8 +390,8 @@ HTML
                 <div class="col-6 col-lg-3">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="kpi-title">Pacientes</span>
-                            <h2 class="kpi-value counter-up m-0" data-value="$t_pac">$t_pac</h2>
+                            <span class="kpi-titulo">Pacientes</span>
+                            <h2 class="kpi-valor counter-up m-0" data-value="$t_pac">$t_pac</h2>
                         </div>
                         <i class="bi bi-people fs-2 kpi-icon" style="color: var(--md-teal-clinical); opacity: 0.8;"></i>
                     </div>
@@ -399,8 +399,8 @@ HTML
                 <div class="col-6 col-lg-3">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="kpi-title">Cargos</span>
-                            <h2 class="kpi-value counter-up m-0" data-value="$val_cargos_f" data-is-k="true">$str_cargos_k</h2>
+                            <span class="kpi-titulo">Cargos</span>
+                            <h2 class="kpi-valor counter-up m-0" data-value="$val_cargos_f" data-is-k="true">$str_cargos_k</h2>
                         </div>
                         <i class="bi bi-wallet2 text-cyan fs-2 kpi-icon" style="opacity: 0.8;"></i>
                     </div>
@@ -408,8 +408,8 @@ HTML
                 <div class="col-6 col-lg-3">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="kpi-title">Abonos</span>
-                            <h2 class="kpi-value counter-up m-0" data-value="$val_abonos_f" data-is-k="true">$str_abonos_k</h2>
+                            <span class="kpi-titulo">Abonos</span>
+                            <h2 class="kpi-valor counter-up m-0" data-value="$val_abonos_f" data-is-k="true">$str_abonos_k</h2>
                         </div>
                         <i class="bi bi-cash-stack fs-2 kpi-icon" style="color: var(--md-blue-deep); opacity: 0.8;"></i>
                     </div>
@@ -419,10 +419,10 @@ HTML
             <!-- Sección: Próximas Citas con Timeline -->
             <div class="row g-4">
                 <div class="col-12 col-lg-8 offset-lg-2">
-                    <h5 class="plus-jakarta fw-black mb-4">$tit_citas</h5>
-                    <div class="bg-white rounded-4 p-4 shadow-sm" style="border: 2px solid #19B7A5; min-height: 350px;">
+                    <h5 class="font-primary fw-bold mb-4" style="color: var(--md-blue-deep);">$tit_citas</h5>
+                    <div class="bg-white rounded-4 p-4 shadow-sm" style="border: 1px solid var(--md-teal-clinical); min-height: 350px;">
                         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
-                            <p class="text-muted m-0 small fw-bold" style="letter-spacing: 0.5px;">ACTIVIDAD PROGRAMADA RECIENTE</p>
+                            <p class="text-secondary font-secondary m-0 small fw-bold" style="letter-spacing: 0.5px;">ACTIVIDAD PROGRAMADA RECIENTE</p>
                             <a href="../views/agenda_main.pl" class="btn btn-sm btn-outline-unify rounded-pill px-3 py-1.5 text-nowrap align-self-stretch align-self-sm-auto text-center" style="font-size: 0.75rem;">Ver Agenda Completa</a>
                         </div>
 HTML
