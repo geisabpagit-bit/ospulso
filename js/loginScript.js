@@ -1,24 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // =================================================================
-    // 1. LOGICA DEL LOGIN PRINCIPAL (Mostrar/Ocultar Contrasena)
-    // ================================================================
-
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
-
-    if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', function() {
-            // Cambia el tipo de input entre 'password' y 'text'
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-
-            // Cambia el icono del ojo
-            const icon = this.querySelector('i');
-            icon.classList.toggle('bi-eye');
-            icon.classList.toggle('bi-eye-slash');
-        });
-    }
+    // 1. LOGICA DEL LOGIN PRINCIPAL (Manejado por indexLogic.js)
 
     // =================================================================
     // 2. LOGICA DEL MODAL DE RECUPERACION DE CONTRASENA
@@ -31,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const messageDiv = document.getElementById('recoverMessage');
     
     // Referencia al Modal para poder cerrarlo programáticamente
-    const forgotPasswordModal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+    const forgotPasswordModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('forgotPasswordModal'));
 
 
     // --- Funciones de Utilidad ---

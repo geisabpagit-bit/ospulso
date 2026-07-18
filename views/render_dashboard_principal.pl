@@ -421,9 +421,9 @@ HTML
                 <div class="col-12 col-lg-8 offset-lg-2">
                     <h5 class="plus-jakarta fw-black mb-4">$tit_citas</h5>
                     <div class="bg-white rounded-4 p-4 shadow-sm" style="border: 2px solid #19B7A5; min-height: 350px;">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <p class="text-muted m-0 small fw-bold">ACTIVIDAD PROGRAMADA RECIENTE</p>
-                            <a href="../views/agenda_main.pl" class="btn btn-sm btn-outline-primary rounded-pill px-3">Ver Agenda Completa</a>
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
+                            <p class="text-muted m-0 small fw-bold" style="letter-spacing: 0.5px;">ACTIVIDAD PROGRAMADA RECIENTE</p>
+                            <a href="../views/agenda_main.pl" class="btn btn-sm btn-outline-unify rounded-pill px-3 py-1.5 text-nowrap align-self-stretch align-self-sm-auto text-center" style="font-size: 0.75rem;">Ver Agenda Completa</a>
                         </div>
 HTML
 

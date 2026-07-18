@@ -70,12 +70,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Toggle Password
-        document.getElementById('togglePassword').addEventListener('click', function() {
-            const isPass = passInput.type === 'password';
-            passInput.type = isPass ? 'text' : 'password';
-            this.querySelector('i').classList.toggle('bi-eye');
-            this.querySelector('i').classList.toggle('bi-eye-slash');
-        });
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        if (togglePasswordBtn) {
+            togglePasswordBtn.addEventListener('click', function() {
+                const isPass = passInput.type === 'password';
+                passInput.type = isPass ? 'text' : 'password';
+                const eyeIcon = this.querySelector('i');
+                if (eyeIcon) {
+                    if (isPass) {
+                        eyeIcon.className = 'bi bi-eye-fill';
+                    } else {
+                        eyeIcon.className = 'bi bi-eye-slash-fill';
+                    }
+                }
+            });
+        }
 
         // Verificación de Correo en Tiempo Real (Debounce)
         let emailTimer;

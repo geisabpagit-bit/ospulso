@@ -34,5 +34,12 @@
 - [ ] **LocalStorage Cache**: Implementar caché local para acelerar la carga de la agenda.
 - [ ] **Compresión de Activos**: Minificar JS/CSS para producción.
 
+## 📐 Versión actual vs arquitectura
+Una vez terminada la fase de estabilización y asegurada la rentabilidad, se atacará la alineación de la especificación maestra:
+- **Arquitectura Física (EMMA)**: La versión actual utiliza scripts CGI y archivos planos `.dat` mediante `utils::db_manager`, alejada del monolito modular estructurado en la Fase N. Se mantendrá el aislamiento lógico de flujos (público vs privado) como preparación.
+- **Independencia Clínico-Financiera**: Desviación controlada y pragmática de UX al integrar Caja y Órdenes de Servicio en el wizard de consulta privada para evitar fugas de capital inmediatas. Se retornará al dominio independiente en fases posteriores.
+- **Estándares Visuales y Error 500 Guard**: Cumplimiento de estándares de diseño (Bootstrap 5.3, semántica estricta) y blindaje backend (escapes de `@`, UTF-8, LF) al 100%.
+
 ---
 *GEISABPA - Roadmap v4.2.0 (Liquid Motion Edition)*
+

@@ -1,15 +1,19 @@
-/* Sidebar Left */
 .diamond-sidebar {
     width: 280px;
     background: #ffffff;
-    border-right: 1px solid rgba(0,0,0,0.05);
+    border: 2px solid var(--md-teal-clinical) !important;
     display: flex;
     flex-direction: column;
     transition: width 0.3s cubic-bezier(0.19, 1, 0.22, 1), transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
     z-index: 5000;
-    box-shadow: 10px 0 30px rgba(0,0,0,0.02);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
     flex-shrink: 0;
+    height: fit-content;
+    max-height: calc(100vh - 2rem);
+    margin: 1rem;
+    border-radius: 1.5rem;
 }
+
 
 .diamond-sidebar.compact {
     width: 80px;
@@ -206,13 +210,17 @@
     .diamond-sidebar {
         position: fixed;
         left: -320px;
-        top: 0;
-        bottom: 0;
+        top: 1rem;
+        bottom: auto;
+        height: fit-content;
+        max-height: calc(100vh - 2rem);
         width: 290px !important;
-        border-radius: 0 2rem 2rem 0;
+        border-radius: 1.5rem !important;
+        margin: 0;
+        border: 2px solid var(--md-teal-clinical) !important;
     }
     .diamond-sidebar.show {
-        transform: translateX(320px);
+        transform: translateX(336px);
     }
     
     .diamond-header-compact { padding: 1rem 1.5rem; border-radius: 0 0 1.5rem 1.5rem; }
@@ -260,4 +268,56 @@
     min-height: 100vh;
     background-color: #f1f5f9;
     overflow: hidden;
+}
+
+/* Pulsating Hamburguer Menu Button */
+.btn-menu-toggle-inline {
+    position: fixed !important;
+    top: 1rem !important;
+    left: 1rem !important;
+    z-index: 4900 !important;
+    background: #0A2A66 !important; /* Azul marino */
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    width: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.5rem !important;
+    box-shadow: 0 4px 15px rgba(10, 42, 102, 0.25) !important;
+    transition: all 0.3s ease !important;
+    animation: pulse-menu 2s infinite !important;
+}
+
+@keyframes pulse-menu {
+    0% {
+        box-shadow: 0 0 0 0 rgba(10, 42, 102, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(10, 42, 102, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(10, 42, 102, 0);
+    }
+}
+
+.btn-menu-toggle-inline:hover {
+    background: #124A9E !important;
+    transform: scale(1.05) !important;
+}
+
+/* Premium Outline Button */
+.btn-outline-unify {
+    border: 2px solid var(--md-blue-medical) !important;
+    color: var(--md-blue-medical) !important;
+    background: transparent !important;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+.btn-outline-unify:hover {
+    background: var(--md-blue-medical) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(18, 74, 158, 0.15);
 }

@@ -1132,7 +1132,7 @@
                                 <i class="bi bi-plus-circle-fill me-1"></i>¿Nuevo? Regístrate aquí
                             </a>
                             <a href="#" class="text-decoration-none text-secondary" data-bs-toggle="modal"
-                                data-bs-target="#forgotPasswordModal" onclick="$('#loginModal').modal('hide');">
+                                 data-bs-target="#forgotPasswordModal" onclick="bootstrap.Modal.getOrCreateInstance(document.getElementById('loginModal')).hide();">
                                 <i class="bi bi-question-circle me-1"></i>¿Olvidaste tu clave?
                             </a>
                         </div>
@@ -1153,7 +1153,7 @@
                             <i class="bi bi-key-fill me-2"></i>Recuperar Contraseña
                         </h4>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"
-                            onclick="$('#loginModal').modal('show');"></button>
+                             onclick="bootstrap.Modal.getOrCreateInstance(document.getElementById('loginModal')).show();"></button>
                     </div>
                 </div>
                 <div class="modal-body p-4">
@@ -1173,7 +1173,7 @@
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
                     <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal"
-                        onclick="$('#loginModal').modal('show');"
+                        onclick="bootstrap.Modal.getOrCreateInstance(document.getElementById('loginModal')).show();"
                         style="border-radius: 12px; font-weight: 600;">Cancelar</button>
                     <button type="button" class="btn btn-primary px-4 py-2" id="sendRecoveryLinkBtn" disabled
                         style="border-radius: 12px; font-weight: 700; background: var(--md-blue-medical); border: none; box-shadow: 0 5px 15px rgba(18,74,158,0.2);">Enviar enlace</button>
