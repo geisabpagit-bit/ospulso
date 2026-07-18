@@ -6,7 +6,7 @@
     right: 20px !important;
     width: auto !important;
     max-width: 600px !important;
-    height: 70px !important;
+    height: 58px !important;
     background: rgba(232, 243, 255, 0.96) !important; /* Mismo azul tenue que cabecera/footer */
     backdrop-filter: blur(15px) !important;
     -webkit-backdrop-filter: blur(15px) !important;
@@ -26,13 +26,13 @@
     display: flex !important; 
     align-items: center !important; 
     justify-content: center !important;
-    width: 48px !important;
-    height: 48px !important;
+    width: 40px !important;
+    height: 40px !important;
     border-radius: 50% !important;
     color: var(--md-blue-deep, #0A2A66) !important;
     background: transparent !important;
     border: 1px solid transparent !important; /* Borde inicial transparente */
-    font-size: 1.4rem !important;
+    font-size: 1.25rem !important;
     transition: all 0.2s !important;
     text-decoration: none !important;
     position: relative;
@@ -54,10 +54,10 @@
     background: var(--md-teal-bright, #00C4C4) !important;
     color: white !important;
     box-shadow: 0 8px 20px rgba(0, 196, 196, 0.3) !important;
-    width: 56px !important;
-    height: 56px !important;
-    font-size: 1.6rem !important;
-    transform: translateY(-10px) !important;
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.40rem !important;
+    transform: translateY(-8px) !important;
     border-radius: 50% !important;
     display: flex !important;
     align-items: center !important;
@@ -73,7 +73,7 @@
 .dock-fab:hover, .dock-fab:active {
     background: var(--md-blue-medical, #124A9E) !important;
     color: white !important;
-    transform: translateY(-13px) !important;
+    transform: translateY(-10px) !important;
 }
 
 .main-tab-item i, .dock-fab i {

@@ -536,25 +536,91 @@
 /* ==========================================================================
    💎 DATATABLES PREMIUM RESPONSIVE CARD VIEW & COMPACT TOOLBAR
    ========================================================================== */
+
+/* 1. Contraste de Búsqueda y Fondo de DataTable (Aplica a cualquier modo) */
+.dataTables_wrapper {
+    background-color: #f8fafc !important; /* Fondo grisáceo claro / off-white clínico */
+    border: 1px solid rgba(25, 183, 165, 0.2) !important; /* Borde teal clínico muy delgado */
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 4px 15px rgba(10, 42, 102, 0.04) !important;
+    margin-bottom: 1.5rem !important;
+}
+
+/* Forzar que el buscador resalte con borde teal clínico y fondo contrastado */
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    background-color: #f8fbff !important; /* Fondo azul sutil */
+    color: var(--md-blue-deep, #0A2A66) !important;
+    border-radius: 20px !important;
+    padding: 6px 16px !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+}
+.dataTables_wrapper .dataTables_filter input:focus,
+.dataTables_wrapper .dataTables_length select:focus {
+    border-color: var(--md-cyan-ia, #18D1E6) !important;
+    box-shadow: 0 0 0 3px rgba(24, 209, 230, 0.2) !important;
+    background-color: #ffffff !important;
+}
+
+/* Filas interiores con fondo blanco y transición */
+.dataTables_wrapper table.dataTable,
+.dataTables_wrapper .table-diamond {
+    background-color: transparent !important;
+    border-collapse: separate !important;
+    border-spacing: 0 8px !important;
+}
+.dataTables_wrapper table.dataTable tbody tr,
+.dataTables_wrapper .table-diamond tbody tr {
+    background-color: #ffffff !important;
+    border: 1px solid rgba(10, 42, 102, 0.05) !important;
+    border-radius: 8px !important;
+}
+.dataTables_wrapper table.dataTable tbody tr:hover,
+.dataTables_wrapper .table-diamond tbody tr:hover {
+    background-color: #fbfdff !important;
+    box-shadow: 0 4px 10px rgba(10, 42, 102, 0.04) !important;
+}
+
 @media (max-width: 768px) {
-    /* 1. Barra de Exportación Compacta (Solo Iconos) */
+    /* 2. Barra de Exportación Compacta en una Sola Fila */
+    .dt-buttons, .export-toolbar {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important; /* Evita envolverse en varias filas */
+        justify-content: center !important;
+        gap: 6px !important;
+        width: 100% !important;
+        margin-bottom: 1rem !important;
+    }
+
     .dt-buttons .btn, 
     .export-toolbar .btn, 
     .buttons-html5, 
     .buttons-print {
-        font-size: 0 !important; /* Oculta el texto de los botones */
-        padding: 8px 12px !important;
-        position: relative;
+        font-size: 0 !important; /* Oculta texto */
+        padding: 6px 10px !important;
+        min-width: 44px !important;
+        height: 40px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        border-radius: 8px !important;
+        box-sizing: border-box !important;
     }
+    
     .dt-buttons .btn i, 
     .export-toolbar .btn i, 
     .buttons-html5 i, 
     .buttons-print i {
-        font-size: 1.2rem !important; /* Mantiene y resalta el icono */
+        font-size: 1.25rem !important; /* Mantiene icono grande */
         margin: 0 !important;
     }
 
-    /* 2. Transformación Card View para DataTables generales */
+    /* 3. Transformación Card View en una Sola Columna Vertical (UX Refined) */
     table.dataTable, 
     table.dataTable tbody, 
     table.dataTable tr, 
@@ -569,13 +635,13 @@
 
     table.dataTable thead,
     .table-diamond thead {
-        display: none !important; /* Oculta las cabeceras nativas */
+        display: none !important; /* Oculta cabecera */
     }
 
     table.dataTable tbody tr,
     .table-diamond tbody tr {
         background-color: #ffffff !important;
-        border: 1px solid var(--md-teal-clinical, #19B7A5) !important; /* Delineado Teal Clínico */
+        border: 1px solid var(--md-teal-clinical, #19B7A5) !important; /* Borde Teal */
         border-radius: 8px !important;
         margin-bottom: 12px !important;
         padding: 10px !important;
@@ -590,8 +656,8 @@
         border: none !important;
         border-bottom: 1px dashed #f1f5f9 !important;
         position: relative !important;
-        padding: 8px 8px 8px 45% !important; /* Deja 45% a la izquierda para el label */
-        text-align: right !important;
+        padding: 24px 8px 8px 8px !important; /* Espacio superior para la etiqueta */
+        text-align: left !important; /* Valor a la izquierda */
         white-space: normal !important;
         display: block !important;
         width: 100% !important;
@@ -603,25 +669,25 @@
         border-bottom: none !important;
     }
 
-    /* Inyectar las etiquetas de cabecera usando data-label */
+    /* Inyectar las etiquetas de cabecera en una línea superior flotante */
     table.dataTable tbody td::before,
     .table-diamond tbody td::before {
         content: attr(data-label) !important;
         position: absolute !important;
+        top: 6px !important; /* Posicionado arriba */
         left: 8px !important;
-        width: 40% !important;
-        padding-right: 10px !important;
+        width: calc(100% - 16px) !important; /* Todo el ancho de la celda */
         text-align: left !important;
         font-weight: 700 !important;
         color: var(--md-blue-deep, #0A2A66) !important;
-        font-size: 0.75rem !important;
+        font-size: 0.7rem !important; /* Muted y pequeño */
         text-transform: uppercase !important;
         white-space: nowrap !important;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    /* Ocultar etiquetas para columnas de acciones o sin nombre */
+    /* Columnas sin nombre, checkbox o acciones */
     table.dataTable tbody td[data-label=""]::before,
     table.dataTable tbody td[data-label="Acciones"]::before,
     table.dataTable tbody td[data-label="Acción"]::before,
@@ -637,7 +703,36 @@
     .table-diamond tbody td[data-label=""],
     .table-diamond tbody td[data-label="Acciones"],
     .table-diamond tbody td[data-label="Acción"] {
-        padding-left: 8px !important;
+        padding: 8px !important;
         text-align: center !important;
+    }
+
+    /* 4. Paginación y Control de Información Compactos en Celular */
+    .dataTables_wrapper .dataTables_info {
+        text-align: center !important;
+        font-size: 0.75rem !important;
+        margin-bottom: 8px !important;
+        color: var(--md-text-secondary, #475569) !important;
+        float: none !important;
+        width: 100% !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate {
+        text-align: center !important;
+        float: none !important;
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        flex-wrap: nowrap !important;
+        gap: 2px !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 4px 8px !important;
+        font-size: 0.7rem !important;
+        margin: 0 !important;
+        border-radius: 4px !important;
+        min-width: 28px !important;
+        box-sizing: border-box !important;
     }
 }

@@ -140,9 +140,10 @@ Todos los reportes y exportaciones deben seguir al pie de la letra `Reglas_impre
 
 ### 7.4 Reglas de Responsividad Premium para DataTables
 Para evitar scrolls horizontales incómodos en pantallas móviles y mantener una legibilidad de alta gama, toda DataTable y su barra de exportación se adaptarán automáticamente en viewports (< 768px):
-1. **Barra de Exportación Compacta (Solo Iconos)**: Las etiquetas de texto de los botones ("Copiar", "Excel", "PDF", "Imprimir") se ocultan de forma responsiva, dejando visibles únicamente los iconos. Las etiquetas se transforman en Tooltips flotantes.
+1. **Barra de Exportación Compacta (Solo Iconos)**: Las etiquetas de texto de los botones ("Copiar", "Excel", "PDF", "Imprimir") se ocultan de forma responsiva, dejando visibles únicamente los iconos en una sola fila (`flex-wrap: nowrap`). Las etiquetas se transforman en Tooltips flotantes.
 2. **Transformación Card View**: Las filas de la tabla (`tr`) se convierten en tarjetas verticales independientes con fondo blanco, bordes finos en Teal Clínico (`1px solid var(--md-teal-clinical)`) y sombreado suave.
-3. **Celdas Identificadas (data-label)**: Las celdas (`td`) se renderizan como bloques apilados. La etiqueta de la columna se despliega a la izquierda (`::before`) en negrita con el color azul profundo y el valor del registro se alinea a la derecha. Las columnas de operaciones o acciones no muestran etiqueta y se posicionan al centro.
+3. **Celdas Identificadas en Columna Única (data-label)**: Las celdas (`td`) se renderizan como bloques apilados verticalmente. La etiqueta de la columna se despliega arriba flotando (`::before`) en negrita con el color azul profundo, y el valor del registro se alinea a la izquierda debajo de ella. Esto evita los puntos suspensivos ("...") y aprovecha el 100% del ancho móvil. Las columnas de operaciones o acciones no muestran etiqueta y se posicionan al centro.
+4. **Contenedor Premium**: Todo el bloque `.dataTables_wrapper` se viste con un fondo grisáceo suave, bordes redondeados y un contorno teal delgado para mejorar el contraste de los buscadores e insumos de filtro.
 
 ## 8. Arquitectura de Interfaces "Dashboard Horizontal"
 Los Canvas/Offcanvas tipo "Resumen de Expediente" dejan de ser apilamientos verticales.
