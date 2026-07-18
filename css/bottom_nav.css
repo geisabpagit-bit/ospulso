@@ -10,9 +10,8 @@
     background: rgba(232, 243, 255, 0.96) !important; /* Mismo azul tenue que cabecera/footer */
     backdrop-filter: blur(15px) !important;
     -webkit-backdrop-filter: blur(15px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    border-bottom: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; /* Borde inferior teal */
-    border-radius: 2rem !important;
+    border: 1px solid var(--md-teal-clinical, #19B7A5) !important;
+    border-radius: 5px !important;
     display: flex !important; 
     justify-content: space-around !important; 
     align-items: center !important; 

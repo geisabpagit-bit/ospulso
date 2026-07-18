@@ -121,6 +121,60 @@ SEARCH_HTML
                 \$("#globalSearch").autocomplete(acConfig);
             }
         }
+
+        // 💎 Reglas de Responsividad Premium para DataTables (GUIA ESTILO SDM Punto 7.4)
+        \$(document).on('init.dt', function(e, settings) {
+            try {
+                var api = new \$.fn.dataTable.Api(settings);
+                var table = api.table().node();
+                if (!table) return;
+
+                // 1. Mapear encabezados a data-label para Card View responsivo
+                var headers = [];
+                \$(table).find('thead th').each(function() {
+                    headers.push(\$(this).text().trim());
+                });
+
+                function applyDataLabels() {
+                    \$(table).find('tbody tr').each(function() {
+                        \$(this).find('td').each(function(index) {
+                            if (headers[index]) {
+                                \$(this).attr('data-label', headers[index]);
+                            } else {
+                                \$(this).attr('data-label', '');
+                            }
+                        });
+                    });
+                }
+                
+                applyDataLabels();
+                api.on('draw', applyDataLabels);
+
+                // 2. Transformar botones de exportación a iconos con tooltips en móvil
+                var container = api.buttons().container();
+                if (container && container.length) {
+                    container.find('.btn, button').each(function() {
+                        var \$btn = \$(this);
+                        var text = \$btn.text().trim();
+                        if (text && !\$btn.attr('title')) {
+                            \$btn.attr('title', text);
+                            \$btn.attr('data-bs-toggle', 'tooltip');
+                            \$btn.attr('data-bs-placement', 'top');
+                        }
+                    });
+                    
+                    // Inicializar tooltips de Bootstrap
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                        var tooltipTriggerList = [].slice.call(container[0].querySelectorAll('[data-bs-toggle="tooltip"]'));
+                        tooltipTriggerList.map(function (tooltipTriggerEl) {
+                            return new bootstrap.Tooltip(tooltipTriggerEl);
+                        });
+                    }
+                }
+            } catch(err) {
+                console.error("Error al aplicar responsividad en DataTable:", err);
+            }
+        });
     });
 
     function confirmLogout() {

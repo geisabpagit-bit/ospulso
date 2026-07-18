@@ -532,3 +532,112 @@
     background-color: #f8f9fa !important;
     color: var(--md-text-secondary) !important;
 }
+
+/* ==========================================================================
+   💎 DATATABLES PREMIUM RESPONSIVE CARD VIEW & COMPACT TOOLBAR
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* 1. Barra de Exportación Compacta (Solo Iconos) */
+    .dt-buttons .btn, 
+    .export-toolbar .btn, 
+    .buttons-html5, 
+    .buttons-print {
+        font-size: 0 !important; /* Oculta el texto de los botones */
+        padding: 8px 12px !important;
+        position: relative;
+    }
+    .dt-buttons .btn i, 
+    .export-toolbar .btn i, 
+    .buttons-html5 i, 
+    .buttons-print i {
+        font-size: 1.2rem !important; /* Mantiene y resalta el icono */
+        margin: 0 !important;
+    }
+
+    /* 2. Transformación Card View para DataTables generales */
+    table.dataTable, 
+    table.dataTable tbody, 
+    table.dataTable tr, 
+    table.dataTable td,
+    .table-diamond,
+    .table-diamond tbody,
+    .table-diamond tr,
+    .table-diamond td {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    table.dataTable thead,
+    .table-diamond thead {
+        display: none !important; /* Oculta las cabeceras nativas */
+    }
+
+    table.dataTable tbody tr,
+    .table-diamond tbody tr {
+        background-color: #ffffff !important;
+        border: 1px solid var(--md-teal-clinical, #19B7A5) !important; /* Delineado Teal Clínico */
+        border-radius: 8px !important;
+        margin-bottom: 12px !important;
+        padding: 10px !important;
+        box-shadow: 0 4px 10px rgba(10, 42, 102, 0.05) !important;
+        position: relative !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    table.dataTable tbody td,
+    .table-diamond tbody td {
+        border: none !important;
+        border-bottom: 1px dashed #f1f5f9 !important;
+        position: relative !important;
+        padding: 8px 8px 8px 45% !important; /* Deja 45% a la izquierda para el label */
+        text-align: right !important;
+        white-space: normal !important;
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    table.dataTable tbody td:last-child,
+    .table-diamond tbody td:last-child {
+        border-bottom: none !important;
+    }
+
+    /* Inyectar las etiquetas de cabecera usando data-label */
+    table.dataTable tbody td::before,
+    .table-diamond tbody td::before {
+        content: attr(data-label) !important;
+        position: absolute !important;
+        left: 8px !important;
+        width: 40% !important;
+        padding-right: 10px !important;
+        text-align: left !important;
+        font-weight: 700 !important;
+        color: var(--md-blue-deep, #0A2A66) !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Ocultar etiquetas para columnas de acciones o sin nombre */
+    table.dataTable tbody td[data-label=""]::before,
+    table.dataTable tbody td[data-label="Acciones"]::before,
+    table.dataTable tbody td[data-label="Acción"]::before,
+    .table-diamond tbody td[data-label=""]::before,
+    .table-diamond tbody td[data-label="Acciones"]::before,
+    .table-diamond tbody td[data-label="Acción"]::before {
+        display: none !important;
+    }
+
+    table.dataTable tbody td[data-label=""],
+    table.dataTable tbody td[data-label="Acciones"],
+    table.dataTable tbody td[data-label="Acción"],
+    .table-diamond tbody td[data-label=""],
+    .table-diamond tbody td[data-label="Acciones"],
+    .table-diamond tbody td[data-label="Acción"] {
+        padding-left: 8px !important;
+        text-align: center !important;
+    }
+}

@@ -20,7 +20,7 @@ sub render_bottom_nav {
         @{[ 
             $active eq 'agenda' ? qq(
                 <a href="pacientes.pl" class="main-tab-item" title="Pacientes">
-                    <img src="../img/pacientes_icon.png" class="bottom-nav-icon-img" alt="Pacientes" style="width: 24px; height: 24px; object-fit: contain;">
+                    <i class="bi bi-people"></i>
                     <span>Pacientes</span>
                 </a>
                 <button onclick="abrirModalNuevaCita()" class="main-tab-item dock-fab" title="Nueva Cita">
@@ -50,7 +50,7 @@ sub render_bottom_nav {
                     <span>Citas</span>
                 </a>
                 <a href="pacientes.pl" class="main-tab-item @{[$active eq 'pacientes' ? 'active' : '']}" title="Pacientes">
-                    <img src="../img/pacientes_icon.png" class="bottom-nav-icon-img" alt="Pacientes" style="width: 24px; height: 24px; object-fit: contain;">
+                    <i class="bi bi-people"></i>
                     <span>Pacientes</span>
                 </a>
                 <a href="render_consultas.pl" class="main-tab-item @{[$active eq 'consulta' ? 'active' : '']}" title="Consulta">
