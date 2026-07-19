@@ -140,7 +140,7 @@ print <<HTML;
         <div class="wizard-step" onclick="WizardController.jumpToStep(1)">
             <div class="wizard-step-icon"><i class="bi bi-clock-history"></i></div>
             <div class="wizard-step-label">Historial M&eacute;dico</div>
-        </div></div>
+        </div>
         <div class="wizard-step" onclick="WizardController.jumpToStep(2)">
             <div class="wizard-step-icon"><i class="bi bi-activity"></i></div>
             <div class="wizard-step-label">Exploraci&oacute;n</div>
