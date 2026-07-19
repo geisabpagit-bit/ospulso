@@ -110,33 +110,12 @@ print $q->header(-type => 'text/html', -charset => 'UTF-8');
 render_header(
     usuario     => $usuario, 
     role        => $role, 
-    titulo      => 'SDM Diamond - Wizard Clínico (Privado)', 
+    titulo      => 'OsPulso -  Consulta Privada', 
     skip_header => 1
 );
 
 print <<HTML;
 <link rel="stylesheet" href="../css/consulta_flow.css">
-
-<!-- Estilos premium del modal de Cita -->
-<style>
-  .modal-backdrop.show { z-index: 104900 !important; }
-  .ui-autocomplete { z-index: 105001 !important; }
-  .floating-label-premium label { font-size: 0.65rem !important; text-transform: uppercase; color: #64748b; font-weight: 700; padding: 1rem 0.75rem; }
-  .floating-label-premium .form-control, .floating-label-premium .form-select { border-radius: 1rem; background-color: #f8fafc; border: 1px solid transparent; transition: all 0.2s; box-shadow: none; }
-  .floating-label-premium .form-control:focus, .floating-label-premium .form-select:focus { background-color: #ffffff; border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-  .dur-bar-premium .btn { border-radius: 12px !important; margin: 0; border: 1px solid rgba(59, 130, 246, 0.2) !important; background-color: #ffffff; color: #64748b; font-weight: 600; font-size: 0.85rem; padding: 10px 0; transition: all 0.2s; }
-  .dur-bar-premium .btn.active { background-color: var(--md-blue-medical) !important; color: #ffffff !important; border-color: var(--md-blue-medical) !important; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); transform: scale(1.05); z-index: 2; }
-  .dur-bar-premium .btn:hover:not(.active) { background-color: #f0f7ff; color: #1e293b; }
-  #modalCita .slot-grid-compact { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; gap: 10px !important; padding: 12px !important; }
-  #modalCita .btn-slot { font-size: 0.70rem !important; padding: 6px 0 !important; border-radius: 8px !important; background-color: #dcfce7 !important; color: #166534 !important; border: 1px solid #bbf7d0 !important; font-weight: 700; }
-  #modalCita .btn-slot:hover:not(:disabled) { background-color: #bbf7d0 !important; border-color: #86efac !important; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(22, 101, 52, 0.15); }
-  #modalCita .btn-slot.active { background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); }
-  #modalCita .slot-lunch { background-color: #fee2e2 !important; color: #991b1b !important; border-color: #fecaca !important; }
-  #modalCita .slot-busy { background-color: #fef9c3 !important; color: #854d0e !important; border-color: #fde047 !important; }
-  \@media (min-width: 768px) {
-      .border-md-end-soft { border-right: 1px solid var(--md-gray-soft) !important; }
-  }
-</style>
 
 <div class="wizard-container animate__animated animate__fadeIn">
     <!-- Encabezado Clínico -->
@@ -160,8 +139,8 @@ print <<HTML;
         </div>
         <div class="wizard-step" onclick="WizardController.jumpToStep(1)">
             <div class="wizard-step-icon"><i class="bi bi-clock-history"></i></div>
-            <div class="wizard-step-label">Anamnesis</div>
-        </div>
+            <div class="wizard-step-label">Historial M&eacute;dico</div>
+        </div></div>
         <div class="wizard-step" onclick="WizardController.jumpToStep(2)">
             <div class="wizard-step-icon"><i class="bi bi-activity"></i></div>
             <div class="wizard-step-label">Exploraci&oacute;n</div>

@@ -975,5 +975,189 @@
     box-shadow: 0 10px 20px rgba(20, 184, 166, 0.2) !important;
 }
 
+/* 6. Botones de Continuar / Siguiente Homogeneizados (Píldora Azul Profundo) */
+.wizard-btn-next {
+    background: var(--md-blue-deep, #0A2A66) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.8rem 2rem !important;
+    border-radius: 2rem !important;
+    font-weight: 800 !important;
+    transition: all 0.3s !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+}
+.wizard-btn-next:hover {
+    background: var(--md-blue-light, #124A9E) !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 20px rgba(10, 42, 102, 0.2) !important;
+}
+
+/* 7. Estilos de Modal de Cita Migrados (de render_consultas_privado.pl) */
+.ui-autocomplete { 
+    z-index: 105001 !important; 
+}
+.floating-label-premium label { 
+    font-size: 0.65rem !important; 
+    text-transform: uppercase; 
+    color: #64748b; 
+    font-weight: 700; 
+    padding: 1rem 0.75rem; 
+}
+.floating-label-premium .form-control, 
+.floating-label-premium .form-select { 
+    border-radius: 1rem; 
+    background-color: #f8fafc; 
+    border: 1px solid transparent; 
+    transition: all 0.2s; 
+    box-shadow: none; 
+}
+.floating-label-premium .form-control:focus, 
+.floating-label-premium .form-select:focus { 
+    background-color: #ffffff; 
+    border-color: rgba(59, 130, 246, 0.4); 
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); 
+}
+.dur-bar-premium .btn { 
+    border-radius: 12px !important; 
+    margin: 0; 
+    border: 1px solid rgba(59, 130, 246, 0.2) !important; 
+    background-color: #ffffff; 
+    color: #64748b; 
+    font-weight: 600; 
+    font-size: 0.85rem; 
+    padding: 10px 0; 
+    transition: all 0.2s; 
+}
+.dur-bar-premium .btn.active { 
+    background-color: var(--md-blue-medical) !important; 
+    color: #ffffff !important; 
+    border-color: var(--md-blue-medical) !important; 
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); 
+    transform: scale(1.05); 
+    z-index: 2; 
+}
+.dur-bar-premium .btn:hover:not(.active) { 
+    background-color: #f0f7ff; 
+    color: #1e293b; 
+}
+#modalCita .slot-grid-compact { 
+    display: grid !important; 
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; 
+    gap: 10px !important; 
+    padding: 12px !important; 
+}
+#modalCita .btn-slot { 
+    font-size: 0.70rem !important; 
+    padding: 6px 0 !important; 
+    border-radius: 8px !important; 
+    background-color: #dcfce7 !important; 
+    color: #166534 !important; 
+    border: 1px solid #bbf7d0 !important; 
+    font-weight: 700; 
+}
+#modalCita .btn-slot:hover:not(:disabled) { 
+    background-color: #bbf7d0 !important; 
+    border-color: #86efac !important; 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 8px rgba(22, 101, 52, 0.15); 
+}
+#modalCita .btn-slot.active { 
+    background-color: #16a34a !important; 
+    color: #ffffff !important; 
+    border-color: #15803d !important; 
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); 
+}
+#modalCita .slot-lunch { 
+    background-color: #fee2e2 !important; 
+    color: #991b1b !important; 
+    border-color: #fecaca !important; 
+}
+#modalCita .slot-busy { 
+    background-color: #fef9c3 !important; 
+    color: #854d0e !important; 
+    border-color: #fde047 !important; 
+}
+@media (min-width: 768px) {
+    .border-md-end-soft { 
+        border-right: 1px solid var(--md-gray-soft) !important; 
+    }
+}
+
+/* 8. Refactorización Responsiva Estrecha para Vistas Móviles del Wizard (Ajuste Perfecto) */
+@media (max-width: 768px) {
+    .wizard-container {
+        margin: 0.25rem auto !important;
+        padding: 0 6px !important;
+        padding-bottom: 50px !important;
+    }
+    
+    .wizard-stepper {
+        margin-bottom: 0.75rem !important;
+        padding: 0 !important;
+        overflow-x: auto !important;
+        display: flex !important;
+        justify-content: flex-start !important;
+        gap: 4px !important;
+        scrollbar-width: none;
+    }
+    .wizard-stepper::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .wizard-step {
+        flex: 0 0 auto !important;
+        min-width: 48px !important;
+        padding: 2px !important;
+    }
+    
+    .wizard-step-icon {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.85rem !important;
+        margin-bottom: 2px !important;
+        border-width: 1px !important;
+    }
+    
+    .wizard-step-label {
+        font-size: 0.52rem !important;
+        letter-spacing: -0.2px !important;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 52px;
+    }
+    
+    .wizard-panel {
+        padding: 1rem 0.75rem !important;
+        border-radius: 1rem !important;
+        border-width: 1.5px !important;
+    }
+    
+    .wizard-label {
+        font-size: 0.72rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    
+    .wizard-input {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.82rem !important;
+        border-radius: 0.5rem !important;
+        border-width: 1.5px !important;
+    }
+    
+    /* Botones de navegación muy estrechos y optimizados en móviles */
+    .wizard-btn-prev,
+    .wizard-btn-next {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.78rem !important;
+        border-radius: 1.25rem !important;
+    }
+}
+
+
 
 

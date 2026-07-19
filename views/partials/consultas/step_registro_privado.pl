@@ -181,7 +181,7 @@ HTML
             </div>
             
             <div class="d-flex justify-content-end mt-5">
-                <button type="button" class="wizard-btn-next" onclick="WizardController.nextStep()">Continuar a Anamnesis <i class="bi bi-arrow-right ms-2"></i></button>
+                <button type="button" class="wizard-btn-next" onclick="WizardController.nextStep()">Continuar a Historial M&eacute;dico <i class="bi bi-arrow-right ms-2"></i></button>
             </div>
         </div>
         

@@ -2,7 +2,7 @@ sub render_step_anamnesis {
     return qq{
         <div class="wizard-panel" id="step-panel-1">
             <h3 class="mb-4" style="color: var(--md-blue-deep); font-weight: 800;">
-                <i class="bi bi-clock-history me-2" style="color: var(--md-teal-clinical);"></i>Anamnesis y Antecedentes
+                <i class="bi bi-clock-history me-2" style="color: var(--md-teal-clinical);"></i>Historial M&eacute;dico y Antecedentes
             </h3>
             
             <div class="row g-4">
