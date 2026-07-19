@@ -63,7 +63,7 @@ if (-e $draft_file) {
             if ($c[0] eq "DRAFT-$id_paciente") {
                 $draft_step = $c[4] || 0;
                 $draft_json = $c[5] || '{}';
-                $draft_json =~ s/\\n/\n/g; # Restaurar saltos de línea
+                $draft_json =~ s/\\\\n/\\n/g; # Restaurar saltos de línea
                 last;
             }
         }
@@ -116,6 +116,10 @@ render_header(
 
 print <<HTML;
 <link rel="stylesheet" href="../css/consulta_flow.css">
+<!-- DataTables CSS/JS para Estudios PACS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
 <div class="wizard-container animate__animated animate__fadeIn">
     <!-- Encabezado Clínico -->
