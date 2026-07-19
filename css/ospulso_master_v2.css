@@ -188,21 +188,29 @@
     }
 
     /* Diseño Premium para la Cabecera de Tarjeta (Paciente) */
-    .table-diamond tbody td[data-label="PACIENTE"] {
+    .table-diamond tbody td[data-label="PACIENTE"],
+    .table-diamond tbody td[data-label="NOMBRE COMPLETO"],
+    .table-diamond tbody td[data-label="Nombre Completo"] {
         background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(10, 42, 102, 0.02) 100%);
         border-bottom: 1px solid rgba(10,42,102,0.08) !important;
     }
-    .table-diamond tbody td[data-label="PACIENTE"]::before {
+    .table-diamond tbody td[data-label="PACIENTE"]::before,
+    .table-diamond tbody td[data-label="NOMBRE COMPLETO"]::before,
+    .table-diamond tbody td[data-label="Nombre Completo"]::before {
         display: none !important;
     }
-    .table-diamond tbody td[data-label="PACIENTE"] .patient-name {
+    .table-diamond tbody td[data-label="PACIENTE"] .patient-name,
+    .table-diamond tbody td[data-label="NOMBRE COMPLETO"] .patient-name,
+    .table-diamond tbody td[data-label="Nombre Completo"] .patient-name {
         font-size: 1.4rem !important;
         color: #0A2A66 !important;
         font-weight: 800 !important;
         margin-bottom: 0.25rem;
         line-height: 1.2;
     }
-    .table-diamond tbody td[data-label="PACIENTE"] .patient-info-sub {
+    .table-diamond tbody td[data-label="PACIENTE"] .patient-info-sub,
+    .table-diamond tbody td[data-label="NOMBRE COMPLETO"] .patient-info-sub,
+    .table-diamond tbody td[data-label="Nombre Completo"] .patient-info-sub {
         color: #14b8a6 !important;
         font-weight: 700;
         font-size: 0.85rem;
@@ -813,4 +821,123 @@
         white-space: nowrap !important;
         box-sizing: border-box !important;
     }
+    }
 }
+
+/* ==========================================================================
+   💎 ESTILOS CENTRALIZADOS DE MÓDULOS (PREVENCIÓN DE INLINE <STYLE>)
+   ========================================================================== */
+
+/* 1. Modal Backdrop - Corrección de Z-Index (de pacientes.pl) */
+.modal-backdrop.show { 
+    z-index: 104900 !important; 
+}
+
+/* 2. Odontograma Toolbar & Impresión (de render_expediente_clinico.pl) */
+#odontograma-toolbar .btn {
+    border-radius: 24px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    border-width: 1.5px;
+    display: flex;
+    align-items: center;
+}
+#odontograma-toolbar .btn-outline-danger { border-color: #e63946; color: #e63946; }
+#odontograma-toolbar .btn-outline-danger:hover, 
+#odontograma-toolbar .btn-danger { background-color: #e63946; border-color: #e63946; color: #fff; }
+
+#odontograma-toolbar .btn-outline-primary { border-color: #3b82f6; color: #3b82f6; }
+#odontograma-toolbar .btn-outline-primary:hover, 
+#odontograma-toolbar .btn-primary { background-color: #3b82f6; border-color: #3b82f6; color: #fff; }
+
+#odontograma-toolbar .btn-outline-dark { border-color: #1e293b; color: #1e293b; }
+#odontograma-toolbar .btn-outline-dark:hover, 
+#odontograma-toolbar .btn-dark { background-color: #1e293b; border-color: #1e293b; color: #fff; }
+
+#odontograma-toolbar .btn-outline-info { border-color: #06b6d4; color: #06b6d4; }
+#odontograma-toolbar .btn-outline-info:hover, 
+#odontograma-toolbar .btn-info { background-color: #06b6d4; border-color: #06b6d4; color: #fff; }
+
+#odontograma-toolbar .btn-outline-warning { border-color: #f59e0b; color: #f59e0b; }
+#odontograma-toolbar .btn-outline-warning:hover, 
+#odontograma-toolbar .btn-warning { background-color: #f59e0b; border-color: #f59e0b; color: #fff; }
+
+#odontograma-toolbar .btn-outline-success { border-color: #10b981; color: #10b981; }
+#odontograma-toolbar .btn-outline-success:hover, 
+#odontograma-toolbar .btn-success { background-color: #10b981; border-color: #10b981; color: #fff; }
+
+@media print {
+    body * { 
+        visibility: hidden; 
+    }
+    #seccion-diagnostico-print, 
+    #seccion-diagnostico-print * { 
+        visibility: visible; 
+    }
+    #seccion-diagnostico-print { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        border: none !important; 
+        box-shadow: none !important; 
+    }
+}
+
+/* 3. Estructura Bento Grid (de render_expediente_clinico.pl) */
+.bento-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 1.5rem; 
+}
+.bento-card { 
+    border-radius: 2rem; 
+    padding: 2rem; 
+    position: relative; 
+    overflow: hidden; 
+}
+.bento-card.alert { background: #fff1f2 !important; border-color: #fecdd3 !important; }
+.bento-card.info { background: #f0f9ff !important; border-color: #e0f2fe !important; }
+.bento-card.dark { background: var(--md-blue-deep) !important; color: white !important; border: none !important; }
+
+.bento-icon { 
+    position: absolute; 
+    right: -10px; 
+    bottom: -10px; 
+    font-size: 4rem; 
+    opacity: 0.08; 
+    color: var(--md-teal-clinical); 
+}
+.bento-label { 
+    font-size: 0.7rem; 
+    font-weight: 800; 
+    color: var(--md-text-secondary); 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    display: block; 
+    margin-bottom: 0.5rem; 
+}
+.bento-value { 
+    font-size: 1.5rem; 
+    font-weight: 800; 
+    color: var(--md-blue-deep); 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+}
+.dark .bento-label { color: rgba(255,255,255,0.6); }
+.dark .bento-value { color: white; }
+.dark .bento-icon { color: white; opacity: 0.1; }
+
+.bento-big { grid-column: span 2; grid-row: span 2; }
+.bento-wide { grid-column: span 2; }
+
+@media (max-width: 991px) {
+    .bento-grid { 
+        grid-template-columns: 1fr; 
+    }
+    .bento-big, 
+    .bento-wide { 
+        grid-column: span 1; 
+        grid-row: span 1; 
+    }
+}
+

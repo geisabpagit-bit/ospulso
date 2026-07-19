@@ -35,7 +35,6 @@ if (!$session_data->{session_ok}) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght\@400;600;800&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; background: #f8fafc; }</style>
 </head>
 <body>
     <script>
@@ -220,39 +219,6 @@ HTML
                     <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Odontograma Digital v2.0</h3>
                     <p class="text-muted small fw-bold">MAPEO DE PIEZAS DENTALES EN TIEMPO REAL</p>
                 </div>
-                <style>
-                    #odontograma-toolbar .btn {
-                        border-radius: 24px;
-                        transition: all 0.3s ease;
-                        font-weight: 600;
-                        border-width: 1.5px;
-                        display: flex;
-                        align-items: center;
-                    }
-                    #odontograma-toolbar .btn-outline-danger { border-color: #e63946; color: #e63946; }
-                    #odontograma-toolbar .btn-outline-danger:hover, #odontograma-toolbar .btn-danger { background-color: #e63946; border-color: #e63946; color: #fff; }
-                    
-                    #odontograma-toolbar .btn-outline-primary { border-color: #3b82f6; color: #3b82f6; }
-                    #odontograma-toolbar .btn-outline-primary:hover, #odontograma-toolbar .btn-primary { background-color: #3b82f6; border-color: #3b82f6; color: #fff; }
-                    
-                    #odontograma-toolbar .btn-outline-dark { border-color: #1e293b; color: #1e293b; }
-                    #odontograma-toolbar .btn-outline-dark:hover, #odontograma-toolbar .btn-dark { background-color: #1e293b; border-color: #1e293b; color: #fff; }
-                    
-                    #odontograma-toolbar .btn-outline-info { border-color: #06b6d4; color: #06b6d4; }
-                    #odontograma-toolbar .btn-outline-info:hover, #odontograma-toolbar .btn-info { background-color: #06b6d4; border-color: #06b6d4; color: #fff; }
-                    
-                    #odontograma-toolbar .btn-outline-warning { border-color: #f59e0b; color: #f59e0b; }
-                    #odontograma-toolbar .btn-outline-warning:hover, #odontograma-toolbar .btn-warning { background-color: #f59e0b; border-color: #f59e0b; color: #fff; }
-                    
-                    #odontograma-toolbar .btn-outline-success { border-color: #10b981; color: #10b981; }
-                    #odontograma-toolbar .btn-outline-success:hover, #odontograma-toolbar .btn-success { background-color: #10b981; border-color: #10b981; color: #fff; }
-                    
-                    \@media print {
-                        body * { visibility: hidden; }
-                        #seccion-diagnostico-print, #seccion-diagnostico-print * { visibility: visible; }
-                        #seccion-diagnostico-print { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; }
-                    }
-                </style>
                 <div class="d-flex gap-2" id="odontograma-toolbar">
                     <button class="btn btn-outline-danger btn-sm rounded-pill px-3 active-tool" data-tool="caries"><i class="bi bi-circle-fill me-1"></i>Caries</button>
                     <button class="btn btn-outline-primary btn-sm rounded-pill px-3" data-tool="corona"><i class="bi bi-square-fill me-1"></i>Corona</button>
@@ -751,7 +717,7 @@ HTML
             </div>
             <div class="card-medentia-aura border-0 p-4 overflow-hidden">
                 <h6 class="fw-black mb-3" style="color: var(--md-blue-deep);">Movimientos de Cuenta</h6>
-                <div class="table-responsive" style="max-height: 400px;">
+                <div class="table-responsive">
                     <table class="table table-sm table-hover align-middle mb-0">
                         <thead class="table-light"><tr><th class="ps-3">Folio</th><th>Fecha</th><th>Concepto</th><th class="text-end">Cargo</th><th class="text-end">Abono</th></tr></thead>
                         <tbody id="tbEdoCuenta" class="small"><tr><td colspan="5" class="text-center py-4">Iniciando motor financiero...</td></tr></tbody>
@@ -761,29 +727,6 @@ HTML
         </section>
 
         <section class="sdm-tab-sec d-none" id="tab2">
-            <style>
-                .bento-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
-                .bento-card { border-radius: 2rem; padding: 2rem; position: relative; overflow: hidden; }
-                .bento-card.alert { background: #fff1f2 !important; border-color: #fecdd3 !important; }
-                .bento-card.info { background: #f0f9ff !important; border-color: #e0f2fe !important; }
-                .bento-card.dark { background: var(--md-blue-deep) !important; color: white !important; border: none !important; }
-                
-                .bento-icon { position: absolute; right: -10px; bottom: -10px; font-size: 4rem; opacity: 0.08; color: var(--md-teal-clinical); }
-                .bento-label { font-size: 0.7rem; font-weight: 800; color: var(--md-text-secondary); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 0.5rem; }
-                .bento-value { font-size: 1.5rem; font-weight: 800; color: var(--md-blue-deep); font-family: 'Plus Jakarta Sans'; }
-                .dark .bento-label { color: rgba(255,255,255,0.6); }
-                .dark .bento-value { color: white; }
-                .dark .bento-icon { color: white; opacity: 0.1; }
-
-                /* Tamaños Bento */
-                .bento-big { grid-column: span 2; grid-row: span 2; }
-                .bento-wide { grid-column: span 2; }
-                
-                \@media (max-width: 991px) {
-                    .bento-grid { grid-template-columns: 1fr; }
-                    .bento-big, .bento-wide { grid-column: span 1; grid-row: span 1; }
-                }
-            </style>
 
             <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
                 <div>

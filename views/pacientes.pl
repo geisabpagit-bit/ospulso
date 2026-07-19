@@ -242,9 +242,6 @@ print <<'HTML';
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <!-- Modal de Resumen Blindado -->
-<style>
-  .modal-backdrop.show { z-index: 104900 !important; }
-</style>
 <div class="modal fade modal-diamond" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 105000 !important;">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
