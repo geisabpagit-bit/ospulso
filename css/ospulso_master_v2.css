@@ -941,3 +941,27 @@
     }
 }
 
+/* 4. Rejilla Coherente de Botones para Odontograma */
+.odontograma-tools-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+.odontograma-tools-grid .btn {
+    width: 100% !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 38px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+}
+@media (max-width: 768px) {
+    .odontograma-tools-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+

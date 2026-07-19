@@ -202,7 +202,7 @@ print <<HTML;
         @{[ render_step_registro_privado($paciente) ]}
         @{[ render_step_anamnesis() ]}
         @{[ render_step_exploracion() ]}
-        @{[ render_step_estudios() ]}
+        @{[ render_step_estudios($paciente) ]}
         @{[ render_step_soap() ]}
         @{[ render_step_comunicacion() ]}
         @{[ render_step_caja_privado($paciente) ]}

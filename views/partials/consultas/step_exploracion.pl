@@ -48,15 +48,18 @@ sub render_step_exploracion {
                         </div>
                         
                         <!-- Toolbar -->
-                        <div class="d-flex flex-wrap gap-2 mb-4" id="odontograma-toolbar">
-                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 active-tool" data-tool="caries"><i class="bi bi-circle-fill me-1"></i>Caries</button>
-                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-tool="corona"><i class="bi bi-square-fill me-1"></i>Corona</button>
-                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3" data-tool="extraccion"><i class="bi bi-x-lg me-1"></i>Extracción</button>
-                            <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3" data-tool="implante"><i class="bi bi-vinyl-fill me-1"></i>Implante</button>
-                            <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-3" data-tool="protesis"><i class="bi bi-diagram-2-fill me-1"></i>Prótesis</button>
-                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3" data-tool="sano"><i class="bi bi-check-circle-fill me-1"></i>Sano</button>
-                            <div class="vr mx-2"></div>
-                            <button type="button" class="btn btn-medentia btn-sm rounded-pill px-4" onclick="saveOdontogramaToServer()"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Guardar Mapa Dental</button>
+                        <div class="d-flex flex-column gap-3 mb-4" id="odontograma-toolbar">
+                            <div class="odontograma-tools-grid">
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 active-tool" data-tool="caries"><i class="bi bi-circle-fill me-1"></i>Caries</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-tool="corona"><i class="bi bi-square-fill me-1"></i>Corona</button>
+                                <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3" data-tool="extraccion"><i class="bi bi-x-lg me-1"></i>Extracci&oacute;n</button>
+                                <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3" data-tool="implante"><i class="bi bi-vinyl-fill me-1"></i>Implante</button>
+                                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-3" data-tool="protesis"><i class="bi bi-diagram-2-fill me-1"></i>Pr&oacute;tesis</button>
+                                <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3" data-tool="sano"><i class="bi bi-check-circle-fill me-1"></i>Sano</button>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-medentia btn-sm rounded-pill px-4" onclick="saveOdontogramaToServer()"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Guardar Mapa Dental</button>
+                            </div>
                         </div>
                         
                         <!-- Container SVG -->
