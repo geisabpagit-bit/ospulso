@@ -69,6 +69,18 @@ Para cubrir casos donde no existe una cotización formal previa o se requieren c
 Durante el renderizado del wizard, los modales anidados (`modalCargoConsultas` y `modalCita`) quedaban atrapados debajo de la capa oscura de Bootstrap (`.modal-backdrop`), inhabilitando la interacción.
 - **Solución implementada**: Al dispararse las funciones de apertura (`abrirModalCargoConsultas` y `abrirModalCitaConsulta`), se valida si el nodo contenedor está fuera de `document.body`. En caso afirmativo, se ejecuta `document.body.appendChild(modalEl)` para moverlo a la raíz del DOM, rompiendo el contexto de apilamiento local del wizard.
 
+### D. Integración PACS en Estudios Complementarios y Mapeo Dental UTF-8
+Para optimizar el flujo clínico de imagenología y el diagnóstico odontológico dentro del wizard de consulta:
+1. **Rejilla Unificada de Odontograma**: Se reestructuró la botonera de herramientas del Odontograma interactivo (Paso 2, `step_exploracion.pl`) bajo una cuadrícula responsiva CSS Grid `.odontograma-tools-grid` que garantiza un ancho idéntico en todos los botones de herramienta.
+2. **UTF-8 en Vistas**: Se sanitizaron y reemplazaron acentos y caracteres especiales con codificación segura de entidades HTML (`Extracci&oacute;n`, `Pr&oacute;tesis`, `B&aacute;sicos`) para evitar fallos de renderizado de texto en el motor del navegador/WebView.
+3. **Hub PACS e Integración Automática (Paso 3, `step_estudios.pl`)**:
+   - El componente de **Estudios Complementarios** consulta dinámicamente el archivo `dat/estudios.dat` filtrando por el ID de paciente.
+   - Si no existen registros, despliega una alerta informativa unificada indicando que no hay estudios de gabinete previos.
+   - Si existen estudios, renderiza una DataTable responsiva que muestra la fecha, modalidad (XR, CT, MR) y descripción de los estudios PACS.
+   - **Vista Previa de Imagen**: Para estudios con ruta de imagen compatible (`.jpg`, `.png`, `.webp`, `.gif`), carga una miniatura rápida de previsualización directamente en la tabla.
+   - **Enlace de Visor Médico**: Incluye un disparador directo que abre en pestaña nueva el Visor DICOM (`render_visor_medico.pl`) cargado en el expediente clínico del paciente.
+   - **Check de Asignación por JS**: Permite asociar estudios de rayos X a la consulta actual. Al marcar el switch, el sistema concatena automáticamente la descripción detallada del estudio en el área de texto clínico de `gabinete_solicitados` (ej. `[Estudio PACS - XR - 19/07/2026 - Radiografía Dental]`).
+
 ---
 
 ## 4. Estabilidad y Normativa de Código (Error 500 Guard)

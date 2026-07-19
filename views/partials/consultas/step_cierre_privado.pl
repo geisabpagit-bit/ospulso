@@ -29,7 +29,7 @@ sub render_step_cierre_privado {
             
             <div class="d-flex justify-content-between mt-5 pt-4 border-top">
                 <button type="button" class="wizard-btn-prev" onclick="WizardController.prevStep()"><i class="bi bi-arrow-left me-2"></i> Volver a Revisar</button>
-                <button type="button" class="wizard-btn-next" style="background: var(--md-teal-clinical);" onclick="finalizarConsulta()">Firmar y Finalizar Consulta <i class="bi bi-lock ms-2"></i></button>
+                <button type="button" class="wizard-btn-next wizard-btn-finish" onclick="finalizarConsulta()">Firmar y Finalizar Consulta <i class="bi bi-lock ms-2"></i></button>
             </div>
         </div>
     };

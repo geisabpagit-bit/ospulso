@@ -7,30 +7,29 @@ sub render_step_exploracion {
             
             <div class="row g-4">
                 <div class="col-12">
-                    <h5 style="color: var(--md-teal-clinical); border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-top: 10px;">Signos Vitales Básicos</h5>
+                    <h5 style="color: var(--md-teal-clinical); border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-top: 10px;">Signos Vitales B&aacute;sicos</h5>
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-md-2">
                     <label class="wizard-label">T.A. (mmHg)</label>
                     <input type="text" name="ta" class="wizard-input" placeholder="120/80">
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-md-2">
                     <label class="wizard-label">F.C. (lpm)</label>
                     <input type="number" name="fc" class="wizard-input" placeholder="70">
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-md-2">
                     <label class="wizard-label">F.R. (rpm)</label>
                     <input type="number" name="fr" class="wizard-input" placeholder="16">
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-md-2">
                     <label class="wizard-label">Temp (&deg;C)</label>
                     <input type="number" name="temp" class="wizard-input" step="0.1" placeholder="36.5">
                 </div>
-                
-                <div class="col-md-6">
+                <div class="col-12 col-md-2">
                     <label class="wizard-label">Peso (kg)</label>
                     <input type="number" name="peso" id="ef_peso" class="wizard-input" step="0.1">
                 </div>
-                <div class="col-md-6">
+                <div class="col-12 col-md-2">
                     <label class="wizard-label">Talla (cm)</label>
                     <input type="number" name="talla" id="ef_talla" class="wizard-input" step="1">
                 </div>

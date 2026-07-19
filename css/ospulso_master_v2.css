@@ -964,4 +964,16 @@
     }
 }
 
+/* 5. Botón Finalizador del Wizard Homogeneizado */
+.wizard-btn-finish {
+    background: var(--md-teal-clinical) !important;
+    color: white !important;
+}
+.wizard-btn-finish:hover {
+    background: #14b8a6 !important;
+    color: white !important;
+    box-shadow: 0 10px 20px rgba(20, 184, 166, 0.2) !important;
+}
+
+
 
