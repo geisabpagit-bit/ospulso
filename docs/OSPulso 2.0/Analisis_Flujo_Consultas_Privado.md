@@ -56,16 +56,20 @@ graph TD
 - **Regla Clínica**: Un médico no puede mantener 2 consultas activas en paralelo.
 - **Validación en Backend**: Al intentar abrir una consulta (`render_consultas_privado.pl`), el backend analiza `citas.dat`. Si el médico (`$id_medico`) ya posee una cita en estado **`En consulta`** diferente a la que intenta abrir, se bloquea la navegación desplegando una alerta modal (SweetAlert2) que le exige finalizar la consulta activa antes de iniciar otra.
 
-### C. Visualización del Estado "En Consulta" en el Modal Resumen del Paciente
-- En el modal "Resumen de Expediente" del listado de pacientes (`pacientes.pl` y `pacientes_spa.js`), el estado de las citas en curso se renderiza con un badge **`En Consulta`** (`bg-info text-white`) y un botón interactivo *"Ir a Consulta Activa"*.
+### C. Visualización del Estado "En Consulta" en Expediente y Modal Resumen
+- **Continuidad de Consulta**: En el expediente clínico ([render_expediente_clinico.pl](file:///c:/xampp/htdocs/ospulso/views/render_expediente_clinico.pl)), cuando una cita se encuentra en estado `En consulta`, el botón inferior del timeline y del hub de consultas cambia a **`Continuar con la consulta ▶`** (`btn-info text-white`) y su enlace dirige directamente a `render_consultas_privado.pl?id=...&id_cita=...` para continuar la sesión en progreso.
+- **Badge en Modal Resumen**: En el modal "Resumen" del directorio de pacientes (`pacientes.pl` y `pacientes_spa.js`), el estado de las citas en curso se renderiza con un badge **`En Consulta`** (`bg-info text-white`) y un botón interactivo *"Ir a Consulta Activa"*.
 
-### D. Refactorización Responsiva del Grid (4 Columnas en Desktop/Tablet)
+### D. Refactorización Corporativa de Headers (Estándar Imagen 2)
+- Se estandarizaron los encabezados héroe en `render_expediente_clinico.pl` y `pacientes.pl` con un fondo de degradado azul marino corporativo (`bg-medentia-gradient` con `border-radius: 1.5rem`), títulos en texto blanco de alto contraste (`fw-black text-white`), subtítulos en `text-white-50` y botones de acción en cápsula azul marino oscuro (`style="background: #082050; border: 1px solid rgba(255,255,255,0.2);"`).
+
+### E. Refactorización Responsiva del Grid (4 Columnas en Desktop/Tablet)
 - El formulario en [step_registro_privado.pl](file:///c:/xampp/htdocs/ospulso/views/partials/consultas/step_registro_privado.pl) fue estructurado bajo un grid responsivo estricto:
   - **Tabletas y Pantallas Mayores (`≥ 768px`)**: Filas simétricas de **4 columnas idénticas** (`col-12 col-md-3`) eliminando espacios en blanco o desalineaciones.
   - **Dispositivos Móviles (`< 768px`)**: Colapso automático a **1 sola columna** (`col-12`).
 
-### E. Cálculo Automático de Edad
-- Se extrae `FECHA_NAC` de `dat/pacientes.dat` (Columna índice 6) y se calcula la edad en años mediante `calcular_edad($fecha_nac)`, desplegándose a un lado de **Sexo**.
+### F. Cálculo Automático de Edad
+- Se extrae `FECHA_NAC` de `dat/pacientes.dat` (Columna índice 6) y se calcula la edad en años mediante `calcular_edad($fecha_nac)`, desplegándose a un lado de **Sexo** en consultas y en el header del expediente.
 
 ---
 

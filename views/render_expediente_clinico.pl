@@ -143,6 +143,9 @@ sub render_expediente_completo {
     my $count_c = scalar @$citas_ref;
     my $count_m = scalar @$correos_ref;
     my $count_consultas = scalar @$consultas_ref;
+    my $edad = calcular_edad($d->{f_nac});
+    my $curp = $d->{curp} || 'Sin CURP';
+    my $sexo = $d->{sexo} || 'N/A';
 
     print <<HTML;
 <link rel="stylesheet" href="../css/expediente_completo.css?v=$^T">
@@ -201,15 +204,29 @@ HTML
     });
 </script>
 
-
-        <!-- Header Expediente (Específico para esta vista) -->
-        <div class="diamond-header-compact d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-            <div class="d-flex align-items-center gap-3">
-                <div class="profile-hero text-start">
-                    <h4 class="text-truncate m-0 text-dark fw-bold" style="max-width: 60vw; letter-spacing: -0.5px;">$d->{nombre}</h4>
+        <!-- TOPBAR / HEADER CORPORATIVO (ESTÁNDAR IMAGEN 2) -->
+        <header class="bg-medentia-gradient text-white p-4 shadow-sm mb-4" style="border-radius: 1.5rem;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white bg-opacity-10 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+                        <i class="bi bi-person-vcard-fill fs-3 text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-black mb-0 text-white" style="letter-spacing: -0.5px;">$d->{nombre}</h2>
+                        <p class="text-white-50 small mb-0 mt-1">
+                            <span class="me-3"><i class="bi bi-fingerprint me-1"></i>CURP: $curp</span>
+                            <span class="me-3"><i class="bi bi-calendar3 me-1"></i>Edad: $edad a&ntilde;os</span>
+                            <span><i class="bi bi-gender-ambiguous me-1"></i>Sexo: $sexo</span>
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <a href="pacientes.pl" class="btn text-white fw-bold rounded-pill px-4 py-2 shadow-sm d-flex align-items-center gap-2" style="background: #082050; border: 1px solid rgba(255,255,255,0.2);">
+                        <i class="bi bi-arrow-left text-white"></i><span>Directorio de Pacientes</span>
+                    </a>
                 </div>
             </div>
-        </div>
+        </header>
 
         <div class="mt-4">
         <!-- 6: ODONTOGRAMA -->
@@ -329,10 +346,15 @@ HTML
             <div class="timeline-diamond">
 HTML
     foreach my $c (@$citas_ref) {
-        my $status_color = ($c->{estado} =~ /Programada/i) ? '#10b981' : ($c->{estado} =~ /Cancelada/i) ? '#ef4444' : '#64748b';
+        my $is_en_consulta = ($c->{estado} =~ /En consulta/i);
+        my $status_color = $is_en_consulta ? '#00C4C4' : ($c->{estado} =~ /Programada/i) ? '#10b981' : ($c->{estado} =~ /Cancelada/i) ? '#ef4444' : '#64748b';
         my $btn_tomar_cita = "";
         if ($c->{estado} !~ /Realizada|Atendida|Cancelada/i) {
-            $btn_tomar_cita = qq{<a href="render_consultas.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="btn btn-sm btn-medentia px-3 fw-bold ms-2">Iniciar <i class="bi bi-play-fill ms-1" style="color: var(--md-cyan-ia);"></i></a>};
+            if ($is_en_consulta) {
+                $btn_tomar_cita = qq{<a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="btn btn-sm btn-info text-white px-3 fw-bold ms-2 shadow-sm rounded-pill">Continuar con la consulta <i class="bi bi-play-fill ms-1"></i></a>};
+            } else {
+                $btn_tomar_cita = qq{<a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="btn btn-sm btn-medentia px-3 fw-bold ms-2 rounded-pill">Iniciar <i class="bi bi-play-fill ms-1" style="color: var(--md-cyan-ia);"></i></a>};
+            }
         }
         print <<HTML;
                 <div class="timeline-item">
@@ -381,17 +403,20 @@ HTML
     foreach my $c (@$citas_ref) {
         if ($c->{estado} !~ /Realizada|Atendida|Cancelada/i) {
             $hay_citas_pendientes = 1;
-            my $badge_color = ($c->{estado} =~ /Confirmada/i) ? 'success' : ($c->{estado} =~ /No Asistió|No Asistio/i) ? 'warning' : 'primary';
+            my $is_en_consulta = ($c->{estado} =~ /En consulta/i);
+            my $badge_color = $is_en_consulta ? 'info' : ($c->{estado} =~ /Confirmada/i) ? 'success' : ($c->{estado} =~ /No Asistió|No Asistio/i) ? 'warning' : 'primary';
+            my $btn_label = $is_en_consulta ? "Continuar con la consulta" : "Iniciar";
+            my $btn_class = $is_en_consulta ? "btn btn-info text-white btn-sm d-flex align-items-center px-4 rounded-pill shadow-sm fw-bold" : "btn btn-medentia btn-sm d-flex align-items-center px-4 rounded-pill fw-bold";
             print <<HTML;
                 <div class="col-lg-6">
                     <div class="card-medentia-aura p-4 d-flex justify-content-between align-items-center" style="border-left: 5px solid var(--bs-$badge_color) !important;">
                         <div>
-                            <span class="badge bg-${badge_color}-subtle text-${badge_color} mb-2">$c->{estado} - $c->{fecha} $c->{hora}</span>
+                            <span class="badge bg-${badge_color} text-white mb-2">$c->{estado} - $c->{fecha} $c->{hora}</span>
                             <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);">$c->{motivo}</h5>
                             <p class="small text-muted m-0">M&eacute;dico: $c->{id_medico}</p>
                         </div>
-                        <a href="render_consultas.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="btn btn-medentia btn-sm d-flex align-items-center px-4">
-                            Iniciar <i class="bi bi-arrow-right-short ms-1" style="color: var(--md-cyan-ia);"></i>
+                        <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="$btn_class">
+                            $btn_label <i class="bi bi-arrow-right-short ms-1"></i>
                         </a>
                     </div>
                 </div>
@@ -1478,6 +1503,20 @@ print <<HTML;
     </div>
 HTML
     utils::sub_sidebar::render_sidebar_footer();
+}
+
+sub calcular_edad {
+    my ($fecha_nac) = @_;
+    return 'N/A' unless $fecha_nac && $fecha_nac =~ /^(\d{4})-(\d{2})-(\d{2})$/;
+    my ($ano, $mes, $dia) = ($1, $2, $3);
+    my (undef, undef, undef, $mday, $mon, $year) = localtime();
+    $year += 1900;
+    $mon += 1;
+    my $edad = $year - $ano;
+    if ($mon < $mes || ($mon == $mes && $mday < $dia)) {
+        $edad--;
+    }
+    return $edad >= 0 ? $edad : 0;
 }
 
 sub cargar_datos_paciente {

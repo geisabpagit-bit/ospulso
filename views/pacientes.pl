@@ -143,16 +143,23 @@ utils::sub_sidebar::render_sidebar(
 );
 
 print <<HTML;
-        <!-- TOPBAR -->
-        <header class="bg-medentia-gradient text-white p-4 shadow-sm" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 2rem;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="fw-black mb-0"><i class="bi bi-people me-2"></i>Directorio de Pacientes</h2>
-                    <p class="text-white-50 small mb-0 mt-1">Gestión integral de expedientes clínicos</p>
+        <!-- TOPBAR / HEADER CORPORATIVO (ESTÁNDAR IMAGEN 2) -->
+        <header class="bg-medentia-gradient text-white p-4 shadow-sm mb-4" style="border-radius: 1.5rem;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white bg-opacity-10 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+                        <i class="bi bi-people-fill fs-3 text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-black mb-0 text-white" style="letter-spacing: -0.5px;">Directorio de Pacientes</h2>
+                        <p class="text-white-50 small mb-0 mt-1">Gestión integral de expedientes clínicos</p>
+                    </div>
                 </div>
-                <a href="crud_paciente.pl" class="btn btn-light rounded-pill px-4 fw-bold shadow-sm">
-                    <i class="bi bi-person-plus-fill text-primary me-2"></i>Agregar nuevo paciente
-                </a>
+                <div>
+                    <a href="crud_paciente.pl" class="btn text-white fw-bold rounded-pill px-4 py-2 shadow-sm d-flex align-items-center gap-2" style="background: #082050; border: 1px solid rgba(255,255,255,0.2);">
+                        <i class="bi bi-person-plus-fill text-white"></i><span>Agregar nuevo paciente</span>
+                    </a>
+                </div>
             </div>
         </header>
 
