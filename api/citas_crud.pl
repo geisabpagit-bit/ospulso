@@ -153,6 +153,10 @@ sub crear_cita {
     my ($arr, $query) = @_;
     my ($fec, $hi, $hf) = ($query->param('fecha'), $query->param('hora_ini'), $query->param('hora_fin'));
     my $id_m = $query->param('id_medico');
+    my $motivo = $query->param('motivo') // '';
+    $motivo =~ s/^\s+|\s+$//g;
+
+    unless ($motivo) { responder_json(0, "El campo Motivo / Observaciones es obligatorio."); return; }
 
     my ($ok_h, $msg_h) = validar_horario($fec, $hi, $hf);
     unless ($ok_h) { responder_json(0, $msg_h); return; }
@@ -164,14 +168,14 @@ sub crear_cita {
     my $pac_nom = obtener_nombre_paciente($pac_id);
     
     # Sincronización protegida con eval para evitar muerte del script
-    my $gid = eval { google_sync_event(undef, $id_m, $pac_nom, $fec, $hi, $hf, $query->param('motivo')) };
+    my $gid = eval { google_sync_event(undef, $id_m, $pac_nom, $fec, $hi, $hf, $motivo) };
     if ($@) { log_google("CRITICAL ERROR: $@"); }
     
     my $new_id = time;
     push @$arr, { 
         id_cita => $new_id, id_medico => $id_m, id_paciente => $pac_id, 
         fecha => $fec, hora_ini => $hi, hora_fin => $hf, 
-        motivo => $query->param('motivo'), notas => '', estado => 'Programada', event_id => $gid // '',
+        motivo => $motivo, notas => '', estado => 'Programada', event_id => $gid // '',
         color => '', prioridad => $query->param('prioridad') // 'Normal',
         sucursal => $query->param('sucursal') // '', consultorio => $query->param('consultorio') // ''
     };
@@ -192,6 +196,10 @@ sub actualizar_cita {
     my $id_c = $query->param('id_cita');
     my ($fec, $hi, $hf) = ($query->param('fecha'), $query->param('hora_ini'), $query->param('hora_fin'));
     my $id_m = $query->param('id_medico');
+    my $motivo = $query->param('motivo') // '';
+    $motivo =~ s/^\s+|\s+$//g;
+
+    unless ($motivo) { responder_json(0, "El campo Motivo / Observaciones es obligatorio."); return; }
 
     my ($ok_h, $msg_h) = validar_horario($fec, $hi, $hf);
     unless ($ok_h) { responder_json(0, $msg_h); return; }
@@ -202,12 +210,16 @@ sub actualizar_cita {
     my $found = 0;
     foreach my $c (@$arr) {
         if ($c->{id_cita} eq $id_c) {
+            if (($c->{estado}//'') =~ /^Atendida$/i) {
+                responder_json(0, "La cita se encuentra finalizada (Atendida) y está bloqueada para edición.");
+                return;
+            }
             my $pac_nom = obtener_nombre_paciente($query->param('id_paciente'));
-            my $gid = google_sync_event($c->{event_id}, $id_m, $pac_nom, $fec, $hi, $hf, $query->param('motivo'));
+            my $gid = google_sync_event($c->{event_id}, $id_m, $pac_nom, $fec, $hi, $hf, $motivo);
             $c->{fecha} = $fec; 
             $c->{hora_ini} = $hi; 
             $c->{hora_fin} = $hf; 
-            $c->{motivo} = $query->param('motivo'); 
+            $c->{motivo} = $motivo; 
             $c->{estado} = $query->param('estado') // $c->{estado};
             $c->{id_medico} = $query->param('id_medico') // $c->{id_medico};
             $c->{prioridad} = $query->param('prioridad') // $c->{prioridad};
@@ -228,7 +240,13 @@ sub eliminar_cita {
     my @filtrados; my $eliminado;
     
     foreach my $c (@$arr) {
-        if ($c->{id_cita} eq $target) { $eliminado = $c; }
+        if ($c->{id_cita} eq $target) {
+            if (($c->{estado}//'') =~ /^Atendida$/i) {
+                responder_json(0, "La cita se encuentra finalizada (Atendida) y no se puede eliminar.");
+                return;
+            }
+            $eliminado = $c;
+        }
         else { push @filtrados, $c; }
     }
     

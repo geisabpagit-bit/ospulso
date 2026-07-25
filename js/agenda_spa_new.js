@@ -131,18 +131,36 @@ function renderSmartSlots(date) {
                 const hfM = h * 60 + m + interval;
                 const hhmmF = `${Math.floor(hfM / 60).toString().padStart(2, '0')}:${(hfM % 60).toString().padStart(2, '0')}`;
                 
-                const isOcc = dayApts.some(a => {
+                const aptInSlot = dayApts.find(a => {
                     const aHi = a.start.split('T')[1].substring(0, 5);
                     const aHf = a.end.split('T')[1].substring(0, 5);
                     return (hhmm < aHf && hhmmF > aHi);
                 });
+                const isOcc = !!aptInSlot;
+                const isEnConsulta = aptInSlot && (aptInSlot.extendedProps.estado || '').trim().toLowerCase() === 'en consulta';
+
+                let slotStyle = `animation-delay: ${delay}s;`;
+                let slotClass = '';
+                let slotLabel = hhmm;
+                let slotTitle = '';
+
+                if (isEnConsulta) {
+                    slotClass = 'slot-busy slot-en-consulta';
+                    slotStyle += ' background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; font-weight: bold;';
+                    slotLabel = `${hhmm} <span class="badge bg-danger text-white ms-1" style="font-size:0.5rem;">EN CONSULTA</span>`;
+                    slotTitle = `En Consulta - ${aptInSlot.title}`;
+                } else if (isOcc) {
+                    slotClass = 'opacity-25';
+                    slotTitle = `Ocupado - ${aptInSlot.title}`;
+                }
 
                 const btn = $(`
-                    <div class="col-4 col-sm-3 col-md-4">
-                        <button class="liquid-slot-btn liquid-anim ${isOcc ? 'opacity-25' : ''}" 
-                                style="animation-delay: ${delay}s"
-                                ${isOcc ? 'disabled' : `onclick="abrirModalNuevaCita('${date}', '${hhmm}')"`}>
-                            ${hhmm}
+                    <div class="col-6 col-sm-4 col-md-4">
+                        <button class="liquid-slot-btn liquid-anim ${slotClass}" 
+                                style="${slotStyle}"
+                                title="${slotTitle}"
+                                ${isOcc ? (isEnConsulta ? `onclick="window.location.href='render_consultas_privado.pl?id=${aptInSlot.extendedProps.id_paciente}&id_cita=${aptInSlot.id}'"` : 'disabled') : `onclick="abrirModalNuevaCita('${date}', '${hhmm}')"`}>
+                            ${slotLabel}
                         </button>
                     </div>
                 `);
@@ -483,6 +501,7 @@ function renderTimeline() {
         const startH = a.start.split('T')[1].substring(0, 5);
         const endH = a.end.split('T')[1].substring(0, 5);
         const status = a.extendedProps.estado || 'Programada';
+        const stLow = status.trim().toLowerCase();
         
         const [ah, am] = startH.split(':').map(Number);
         const [ahf, amf] = endH.split(':').map(Number);
@@ -497,23 +516,52 @@ function renderTimeline() {
         const slotsSpanned = durationMin / interval;
         const topOffset = ((am - slotM) / interval) * 100;
 
+        let cardStyle = `top: ${topOffset}%; --calc-height: calc(${slotsSpanned * 100}% - 4px); z-index: 10;`;
+        let badgeStyle = `background: white; color: #1e293b;`;
+        
+        if (stLow === 'en consulta') {
+            cardStyle += ` background-color: #dcfce7 !important; border-color: #86efac !important; color: #166534 !important;`;
+            badgeStyle = `background: #166534; color: #ffffff;`;
+        } else if (stLow.includes('atendida')) {
+            cardStyle += ` opacity: 0.85;`;
+        }
+
+        let actionButtons = '';
+        if (stLow === 'en consulta') {
+            actionButtons = `
+                <button class="btn-apt-action btn-apt-exp" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente"><i class="bi bi-person-vcard"></i></button>
+                <button class="btn-apt-action btn-apt-run" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'" title="Ir a Consulta Activa"><i class="bi bi-play-fill"></i></button>
+            `;
+        } else if (stLow.includes('atendida')) {
+            actionButtons = `
+                <button class="btn-apt-action btn-apt-exp" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente"><i class="bi bi-person-vcard"></i></button>
+                <button class="btn-apt-action" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Ficha (Solo Lectura)"><i class="bi bi-eye"></i></button>
+            `;
+        } else {
+            actionButtons = `
+                <button class="btn-apt-action btn-apt-exp" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente"><i class="bi bi-person-vcard"></i></button>
+                <button class="btn-apt-action btn-apt-run" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'" title="Ir a Consulta"><i class="bi bi-play-fill"></i></button>
+                <button class="btn-apt-action btn-apt-wa" onclick="event.stopPropagation(); dummyReminder('${a.id}')" title="Enviar Recordatorio"><i class="bi bi-bell-fill"></i></button>
+                <button class="btn-apt-action" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Editar Ficha"><i class="bi bi-pencil-square"></i></button>
+                <button class="btn-apt-action btn-apt-del" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+            `;
+        }
+
+        const clickHandler = (stLow.includes('atendida')) ? `abrirModalCita('${a.id}', true)` : `handleAptClick('${a.id}')`;
+
         const card = $(`
             <div class="apt-card-dia ${status.toLowerCase()} ${manualDragId == a.id ? 'is-dragging-manual' : ''}" 
-                 style="top: ${topOffset}%; --calc-height: calc(${slotsSpanned * 100}% - 4px); z-index: 10;"
-                 onclick="event.stopPropagation(); handleAptClick('${a.id}')">
+                 style="${cardStyle}"
+                 onclick="event.stopPropagation(); ${clickHandler}">
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="fw-bold text-truncate" style="max-width:70%;">${a.title}</div>
                     <div class="small fw-bold" style="font-size:0.7rem; opacity:0.8;">${startH} - ${endH}</div>
                 </div>
                 <div class="small opacity-90 mt-1 text-truncate">${a.extendedProps.motivo}</div>
-                <div class="badge bg-white text-dark small mt-2 py-1 px-2 rounded-pill fw-bold" style="font-size:0.6rem;">${status.toUpperCase()}</div>
+                <div class="badge small mt-2 py-1 px-2 rounded-pill fw-bold" style="${badgeStyle}; font-size:0.6rem;">${status.toUpperCase()}</div>
                 
                 <div class="apt-actions-overlay">
-                    <button class="btn-apt-action btn-apt-exp" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente"><i class="bi bi-person-vcard"></i></button>
-                    <button class="btn-apt-action btn-apt-run" onclick="event.stopPropagation(); window.location.href='render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}&modo=consulta'" title="Ir a Consulta"><i class="bi bi-play-fill"></i></button>
-                    <button class="btn-apt-action btn-apt-wa" onclick="event.stopPropagation(); dummyReminder('${a.id}')" title="Enviar Recordatorio"><i class="bi bi-bell-fill"></i></button>
-                    <button class="btn-apt-action" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Editar Ficha"><i class="bi bi-pencil-square"></i></button>
-                    <button class="btn-apt-action btn-apt-del" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    ${actionButtons}
                 </div>
             </div>
         `);
@@ -664,23 +712,44 @@ function renderGrid() {
                 ${dayApts.slice(0,3).map(a => {
                     const st = a.extendedProps.estado || 'Programada';
                     let bgColor = '#103070';
+                    let textColor = '#ffffff';
                     const stLow = st.trim().toLowerCase();
-                    if (stLow === 'confirmada') bgColor = '#10b981';
+                    if (stLow === 'en consulta') { bgColor = '#dcfce7'; textColor = '#166534'; }
+                    else if (stLow === 'confirmada') bgColor = '#10b981';
                     else if (stLow.includes('atendida')) bgColor = '#3b82f6';
                     else if (stLow === 'cancelada') bgColor = '#ef4444';
                     else if (stLow === 'no asistió' || stLow === 'no asistio') bgColor = '#f59e0b';
                     
-                    return `
-                    <div class="mini-apt-pro d-flex justify-content-between align-items-center ${a.id == manualDragId ? 'is-dragging-manual':''}" 
-                         onclick="event.stopPropagation(); handleAptClick('${a.id}')"
-                         style="background:${bgColor}; ${stLow==='cancelada'?'text-decoration:line-through; opacity:0.6;':''} cursor:pointer;"
-                         title="Estado: ${st}">
-                        <span class="text-truncate" style="font-size:0.55rem;">${a.start.split('T')[1].substring(0,5)} ${a.title.split(' ')[0]}</span>
-                        <div class="d-flex gap-1 align-items-center">
+                    let actionIcons = '';
+                    if (stLow === 'en consulta') {
+                        actionIcons = `
+                            <i class="bi bi-play-circle cursor-pointer text-success" style="font-size:0.7rem;" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'" title="Ir a Consulta Activa"></i>
+                            <i class="bi bi-calendar2-event cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
+                        `;
+                    } else if (stLow.includes('atendida')) {
+                        actionIcons = `
+                            <i class="bi bi-eye cursor-pointer" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Ficha (Solo Lectura)"></i>
+                            <i class="bi bi-calendar2-event cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
+                        `;
+                    } else {
+                        actionIcons = `
                             <i class="bi bi-grip-vertical cursor-pointer px-1 text-white opacity-75" style="font-size:0.8rem;" onclick="event.stopPropagation(); activateManualDrag('${a.id}')" title="Mover Cita (Drag Handle)"></i>
                             <i class="bi bi-calendar2-event cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
                             <i class="bi bi-pencil-square cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Editar Ficha"></i>
                             <i class="bi bi-trash cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"></i>
+                        `;
+                    }
+                    
+                    const itemClick = (stLow.includes('atendida')) ? `abrirModalCita('${a.id}', true)` : `handleAptClick('${a.id}')`;
+
+                    return `
+                    <div class="mini-apt-pro d-flex justify-content-between align-items-center ${a.id == manualDragId ? 'is-dragging-manual':''}" 
+                         onclick="event.stopPropagation(); ${itemClick}"
+                         style="background:${bgColor}; color:${textColor}; ${stLow==='cancelada'?'text-decoration:line-through; opacity:0.6;':''} cursor:pointer;"
+                         title="Estado: ${st}">
+                        <span class="text-truncate fw-bold" style="font-size:0.55rem;">${a.start.split('T')[1].substring(0,5)} ${a.title.split(' ')[0]}</span>
+                        <div class="d-flex gap-1 align-items-center">
+                            ${actionIcons}
                         </div>
                     </div>`
                 }).join('')}
@@ -797,6 +866,17 @@ function saveCita() {
     const hi = $("#f_hi").val(); 
     const fecha = $("#f_fecha").val();
     const idPac = $("#f_id_paciente").val();
+    const motivoVal = $("#f_motivo").val() ? $("#f_motivo").val().trim() : '';
+
+    if (!motivoVal) {
+        Swal.fire({ 
+            icon: 'warning', 
+            title: 'Motivo Requerido', 
+            text: 'El campo Motivo / Observaciones es obligatorio.',
+            customClass: { popup: 'rounded-4' }
+        });
+        return;
+    }
 
     if (!hi) {
         Swal.fire({ icon: 'info', title: 'Horario Requerido', text: 'Por favor, selecciona un horario disponible de la lista.' });
@@ -892,6 +972,18 @@ function dragS(id) {
 }
 
 function activateManualDrag(id) {
+    const a = appointments.find(x => x.id == id);
+    if (a) {
+        const stLow = (a.extendedProps.estado || '').trim().toLowerCase();
+        if (stLow === 'en consulta' || stLow.includes('atendida')) {
+            if (typeof CrystalToast !== 'undefined') {
+                CrystalToast.fire({ icon: 'warning', title: 'Acción Bloqueada', text: 'Las citas en consulta o atendidas no se pueden mover.' });
+            } else {
+                Swal.fire({ icon: 'warning', title: 'Acción Bloqueada', text: 'Las citas en consulta o atendidas no se pueden mover.', customClass: { popup: 'rounded-4' } });
+            }
+            return;
+        }
+    }
     if (manualDragId === id) {
         manualDragId = null; // Desactivar
         if (typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'info', title: 'Modo Mover Desactivado' });
@@ -925,6 +1017,19 @@ function dropManualDrag(iso, time) {
     const id = manualDragId;
     const a = appointments.find(x => x.id == id);
     if (!a || isHoliday(iso)) {
+        manualDragId = null;
+        renderView();
+        return;
+    }
+
+    const stLow = (a.extendedProps.estado || '').trim().toLowerCase();
+    if (stLow === 'en consulta' || stLow.includes('atendida')) {
+        Swal.fire({ 
+            icon: 'warning', 
+            title: 'Acción Bloqueada', 
+            text: 'Las citas en consulta o finalizadas (atendidas) están bloqueadas contra movimiento de horario.',
+            customClass: { popup: 'rounded-4' }
+        });
         manualDragId = null;
         renderView();
         return;
@@ -1219,6 +1324,9 @@ function abrirModalNuevaCita(f, h, idP, nomP) {
         $("#f_paciente").closest('.position-relative').find('.bi-search').show();
     }
 
+    $("#modalCita input, #modalCita select").prop('disabled', false);
+    $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").show();
+
     $("#f_motivo").val(''); 
     $("#f_estado").val('Programada'); 
     $("#f_prioridad").val('Normal');
@@ -1229,10 +1337,11 @@ function abrirModalNuevaCita(f, h, idP, nomP) {
     m.show();
 }
 
-function abrirModalCita(id) {
+function abrirModalCita(id, isReadonly) {
     const a = appointments.find(x => x.id == id); if(!a) return;
     const hi = a.start.split('T')[1].substring(0,5);
     const hf = a.end.split('T')[1].substring(0,5);
+    const est = (a.extendedProps.estado || 'Programada').trim().toLowerCase();
     
     $("#f_id_cita").val(a.id); 
     $("#f_accion").val('update'); // ASEGURAR ACCION UPDATE
@@ -1249,30 +1358,46 @@ function abrirModalCita(id) {
     if(a.extendedProps.sucursal) $("#f_sucursal").val(a.extendedProps.sucursal);
     if(a.extendedProps.consultorio) $("#f_consultorio").val(a.extendedProps.consultorio);
     
-    $("#modalCitaTitle").text(`GESTIÓN DE CITAS / EDITAR CITA`);
-
     // Bloqueo de Paciente en modo Edición
     $("#f_paciente").val(a.title).prop('readonly', true).addClass('bg-light');
     $("#f_paciente").closest('.position-relative').find('.bi-search').hide();
 
-    // Regla 3: Si la cita está programada/confirmada y la fecha/hora permiten tomarla
-    const est = (a.extendedProps.estado || 'Programada').trim().toLowerCase();
-    let mostrarTomarCita = false;
-    const aDate = a.start.split('T')[0];
-    const todayStr = getISO(new Date());
+    const esFinalizada = (est.includes('atendida') || isReadonly);
+    const esEnConsulta = (est === 'en consulta');
 
-    if ((est === 'programada' || est === 'confirmada' || est === 'no asistió' || est === 'no asistio') && aDate <= todayStr) {
-        // Lógica A: Se permite tomar la cita si la hora de la cita es menor o igual a (Hora Actual + 1 hr)
-        const now = new Date();
-        const limitDate = new Date(now.getTime() + 60*60*1000); 
-        
-        const aptDate = new Date(`${aDate}T${hi}:00`);
-        if (aptDate.getTime() <= limitDate.getTime()) {
-            mostrarTomarCita = true;
+    if (esFinalizada || esEnConsulta) {
+        $("#modalCita input, #modalCita select").prop('disabled', true);
+        $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").hide();
+        $("#btn-tomar-cita").addClass('d-none');
+        if (esFinalizada) {
+            $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA FINALIZADA (SOLO LECTURA)');
+        } else {
+            $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA EN CONSULTA (SOLO LECTURA)');
+        }
+    } else {
+        $("#modalCita input, #modalCita select").prop('disabled', false);
+        $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").show();
+        $("#modalCitaTitle").text('GESTIÓN DE CITAS / EDITAR CITA');
+
+        let mostrarTomarCita = false;
+        const aDate = a.start.split('T')[0];
+        const todayStr = getISO(new Date());
+
+        if ((est === 'programada' || est === 'confirmada' || est === 'no asistió' || est === 'no asistio') && aDate <= todayStr) {
+            const now = new Date();
+            const limitDate = new Date(now.getTime() + 60*60*1000); 
+            const aptDate = new Date(`${aDate}T${hi}:00`);
+            if (aptDate.getTime() <= limitDate.getTime()) {
+                mostrarTomarCita = true;
+            }
+        }
+
+        if (mostrarTomarCita) {
+            $("#btn-tomar-cita").removeClass('d-none');
+        } else {
+            $("#btn-tomar-cita").addClass('d-none');
         }
     }
-
-    if (mostrarTomarCita) {
         $("#btn-tomar-cita").removeClass('d-none');
     } else {
         $("#btn-tomar-cita").addClass('d-none');
@@ -1339,6 +1464,20 @@ function proceedTomarCita(id_cita, id_paciente) {
 }
 
 function delCita(id) {
+    const targetId = id || $("#f_id_cita").val();
+    const a = appointments.find(x => x.id == targetId);
+    if (a) {
+        const stLow = (a.extendedProps.estado || '').trim().toLowerCase();
+        if (stLow === 'en consulta' || stLow.includes('atendida')) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Acción Bloqueada',
+                text: 'La cita está en consulta o finalizada (atendida) y no se puede eliminar.',
+                customClass: { popup: 'rounded-4' }
+            });
+            return;
+        }
+    }
     Swal.fire({ 
         title: '¿Eliminar cita?', 
         text: "Esta acción no se puede deshacer.",
@@ -1349,7 +1488,13 @@ function delCita(id) {
         cancelButtonText: 'Cancelar',
         customClass: { popup: 'rounded-4' }
     }).then((r) => {
-        if(r.isConfirmed) $.post('../api/citas_crud.pl', { accion:'delete', id_cita:id }, function() { loadContext(); });
+        if(r.isConfirmed) $.post('../api/citas_crud.pl', { accion:'delete', id_cita:targetId }, function(res) {
+            if (res && !res.ok) {
+                Swal.fire({ icon: 'error', title: 'No se pudo eliminar', text: res.msg, customClass: { popup: 'rounded-4' } });
+            } else {
+                loadContext();
+            }
+        }, 'json');
     });
 }
 

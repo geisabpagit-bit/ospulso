@@ -287,8 +287,8 @@ print <<HTML;
                             </div>
                             <div class="col-md-3">
                                 <div class="form-floating floating-label-premium">
-                                    <input type="text" name="motivo" id="f_motivo" class="form-control" placeholder="Detalles de la cita...">
-                                    <label for="f_motivo">MOTIVO / OBSERVACIONES</label>
+                                    <input type="text" name="motivo" id="f_motivo" class="form-control" placeholder="Detalles de la cita..." required>
+                                    <label for="f_motivo">MOTIVO / OBSERVACIONES <span class="text-danger">*</span></label>
                                 </div>
                             </div>
                             <div class="col-md-3">
