@@ -1398,10 +1398,6 @@ function abrirModalCita(id, isReadonly) {
             $("#btn-tomar-cita").addClass('d-none');
         }
     }
-        $("#btn-tomar-cita").removeClass('d-none');
-    } else {
-        $("#btn-tomar-cita").addClass('d-none');
-    }
 
     renderSlots(a.start.split('T')[0]);
     const m = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCita'));
