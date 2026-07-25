@@ -16,7 +16,8 @@
   10. `event_id`: Identificador del evento sincronizado en Google Calendar.
 
 ## Reglas Operativas (Agenda Diamond v4.2.0)
-- **Transición de Estados en Consulta**: Al iniciar una consulta médica privada vinculada a una cita (`render_consultas_privado.pl?id_cita=...`), el estado de la cita cambia automáticamente a `En consulta`. Al firmar y finalizar la consulta (`cerrar_consulta_privado.pl`), el estado cambia definitivamente a `Atendida`.
+- **Transición de Estados en Consulta**: Al iniciar una consulta médica privada vinculada a una cita (`render_consultas_privado.pl?id_cita=...`), el estado de la cita cambia automáticamente a `En consulta` y se actualiza `hora_ini` con la hora real de atención. Al firmar y finalizar la consulta (`cerrar_consulta_privado.pl`), el estado cambia definitivamente a `Atendida`.
+- **Restricción de Consulta Única Activa por Médico**: Un médico no puede mantener 2 citas en estado `En consulta` de forma simultánea. Si intenta abrir una segunda consulta sin haber finalizado la previa, el sistema bloqueará la acción mediante una alerta modal que le exigirá concluir la consulta activa en curso.
 - **Codificación UTF-8**: Todo parámetro que provenga del UI y se guarde aquí es sanitizado con `use CGI qw(-utf8);` para evitar doble codificación JSON.
 - **Guardado de Duración Real**: Al realizar "Check-In" y "Firmar y Finalizar", el estado cambia a `Atendida`, y los campos `hora_ini` y `hora_fin` se sobrescriben con la duración efectiva de la consulta.
 - **Anticolisiones (Traslapes)**: Las citas nuevas o reprogramadas son validadas en bloque, excluyendo del chequeo de colisión a las citas con estado `Atendida` o `Cancelada`, permitiendo el empalme de históricas pero bloqueando empalmes de agendamiento futuro.

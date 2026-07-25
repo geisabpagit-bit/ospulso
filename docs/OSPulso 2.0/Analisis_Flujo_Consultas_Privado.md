@@ -46,24 +46,30 @@ graph TD
 
 ---
 
-## 3. Vinculación de Citas, Estados de Agenda y Edad
+## 3. Vinculación de Citas, Estados de Agenda, Hora Real, Regla de Consulta Única y UI 4-Columnas
 
-### A. Vinculación de Fecha, Hora y Motivo de Cita
-- **Cita Previa ($id_cita)**: Al abrir la consulta privada vinculada a una cita existente, se cargan la `fecha` y `hora_ini` agendadas, y se precarga el `motivo` exacto registrado en la cita en el campo *Motivo Principal de Consulta*.
-- **Sin Cita / Consulta Express**: Si la consulta no tiene cita agendada, la fecha y la hora se inicializan dinámicamente con el momento actual en que se toma la atención (`localtime`), y el motivo de consulta inicia en blanco.
+### A. Vinculación de Fecha, Hora Real y Motivo de Cita
+- **Cita Previa ($id_cita)**: Al abrir la consulta privada vinculada a una cita existente, se carga la `fecha` agendada y la `hora_ini` se **actualiza dinámicamente con la hora real** en que el médico toma la atención (`localtime` en formato `HH:MM`), guardándose tanto en pantalla como en `citas.dat`. Se precarga el `motivo` exacto registrado en la cita.
+- **Sin Cita / Consulta Express**: Si la consulta no tiene cita agendada, la fecha y la hora se inicializan con el momento real de inicio (`localtime`), y el motivo de consulta inicia en blanco.
 
-### B. Ciclo de Vida del Estado de la Cita en Agenda (`citas.dat`)
-1. **Inicio de Consulta**: Al ingresar a `render_consultas_privado.pl?id_cita=...`, la cita cambia automáticamente su estado a **`En consulta`**.
-2. **Cierre de Consulta**: Al guardar y firmar la consulta médica (`cerrar_consulta_privado.pl`), la cita se actualiza definitivamente al estado **`Atendida`**.
+### B. Restricción Estricta de Consulta Única Activa por Médico
+- **Regla Clínica**: Un médico no puede mantener 2 consultas activas en paralelo.
+- **Validación en Backend**: Al intentar abrir una consulta (`render_consultas_privado.pl`), el backend analiza `citas.dat`. Si el médico (`$id_medico`) ya posee una cita en estado **`En consulta`** diferente a la que intenta abrir, se bloquea la navegación desplegando una alerta modal (SweetAlert2) que le exige finalizar la consulta activa antes de iniciar otra.
 
-### C. Cálculo Automático de Edad
-- Se extrae el campo `FECHA_NAC` del archivo `dat/pacientes.dat` (Columna índice 6).
-- Mediante la función `calcular_edad($fecha_nac)` se determina la edad exacta del paciente en años al día de la atención.
-- El valor calculado se despliega dinámicamente en el encabezado del Paso 0 en un nuevo campo de solo lectura posicionado a un lado de **Sexo**.
+### C. Visualización del Estado "En Consulta" en el Modal Resumen del Paciente
+- En el modal "Resumen de Expediente" del listado de pacientes (`pacientes.pl` y `pacientes_spa.js`), el estado de las citas en curso se renderiza con un badge **`En Consulta`** (`bg-info text-white`) y un botón interactivo *"Ir a Consulta Activa"*.
+
+### D. Refactorización Responsiva del Grid (4 Columnas en Desktop/Tablet)
+- El formulario en [step_registro_privado.pl](file:///c:/xampp/htdocs/ospulso/views/partials/consultas/step_registro_privado.pl) fue estructurado bajo un grid responsivo estricto:
+  - **Tabletas y Pantallas Mayores (`≥ 768px`)**: Filas simétricas de **4 columnas idénticas** (`col-12 col-md-3`) eliminando espacios en blanco o desalineaciones.
+  - **Dispositivos Móviles (`< 768px`)**: Colapso automático a **1 sola columna** (`col-12`).
+
+### E. Cálculo Automático de Edad
+- Se extrae `FECHA_NAC` de `dat/pacientes.dat` (Columna índice 6) y se calcula la edad en años mediante `calcular_edad($fecha_nac)`, desplegándose a un lado de **Sexo**.
 
 ---
 
-## 3. Innovaciones y Mecanismos Técnicos Clave
+## 4. Innovaciones y Mecanismos Técnicos Clave
 
 ### A. Trazabilidad de Tratamientos Abiertos (Seguimiento Continuo)
 Para evitar la duplicidad de cobros y asegurar la consistencia del libro mayor (`dat/estado_cuenta.dat`), el sistema realiza las siguientes validaciones:

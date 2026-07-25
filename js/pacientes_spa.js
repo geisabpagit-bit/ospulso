@@ -152,7 +152,10 @@ function initPacientesSpa() {
 
                     var fechaReal = cita.fecha_real || '';
                     var fechaCita = new Date(fechaReal + 'T00:00:00');
-                    if (fechaReal && fechaCita < hoy && cita.estado === 'Confirmada') {
+                    if (cita.estado === 'En consulta' || cita.estado === 'En Consulta') {
+                        badgeClass = 'bg-info text-white';
+                        labelEstado = 'En Consulta';
+                    } else if (fechaReal && fechaCita < hoy && cita.estado === 'Confirmada') {
                         badgeClass = 'bg-success';
                         labelEstado = 'Realizado';
                     } else if (cita.estado === 'Cancelada') {
@@ -169,8 +172,11 @@ function initPacientesSpa() {
                     var motivo = cita.motivo || 'Sin motivo';
                     var hora = cita.hora || 'N/A';
                     var btnConsulta = '';
-                    if (labelEstado === 'Pendiente' || labelEstado === 'Programada') {
-                        btnConsulta = '<div class="mt-2"><a href="render_consultas.pl?id=' + (perfil.id||'') + '" class="btn btn-sm btn-outline-primary rounded-pill w-100" style="font-size: 0.65rem;"><i class="bi bi-box-arrow-in-right me-1"></i>Ir a Consulta</a></div>';
+                    if (labelEstado === 'Pendiente' || labelEstado === 'Programada' || labelEstado === 'En Consulta') {
+                        var idCitaParam = cita.id || cita.id_cita || '';
+                        var queryCita = idCitaParam ? '&id_cita=' + idCitaParam : '';
+                        var textoBtn = (labelEstado === 'En Consulta') ? 'Ir a Consulta Activa' : 'Ir a Consulta';
+                        btnConsulta = '<div class="mt-2"><a href="render_consultas.pl?id=' + (perfil.id||'') + queryCita + '" class="btn btn-sm btn-outline-primary rounded-pill w-100" style="font-size: 0.65rem;"><i class="bi bi-box-arrow-in-right me-1"></i>' + textoBtn + '</a></div>';
                     }
 
                     historialHtml += 

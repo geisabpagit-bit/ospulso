@@ -46,8 +46,82 @@ $paciente->{fecha_consulta} = $hoy_fecha;
 $paciente->{hora_consulta}  = $hoy_hora;
 $paciente->{motivo_precargado} = '';
 
+# 1. Bloqueo de Seguridad: Verificar si el médico ya tiene una consulta activa en curso
+my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
+my $cita_activa_medico = undef;
+
+if (-e $citas_file && open my $fh_chk, '<:encoding(UTF-8)', $citas_file) {
+    my $header = <$fh_chk>;
+    while (my $l = <$fh_chk>) {
+        chomp $l;
+        next if $l =~ /^\s*$/;
+        my @c = split /\|/, $l, -1;
+        my $c_id    = $c[0] // '';
+        my $c_med   = $c[1] // '';
+        my $c_pac   = $c[2] // '';
+        my $c_est   = $c[8] // '';
+        
+        $c_id  =~ s/^\s+|\s+$//g;
+        $c_med =~ s/^\s+|\s+$//g;
+        
+        if ($c_med eq $id_medico && $c_est eq 'En consulta') {
+            if (!$id_cita || $c_id ne $id_cita) {
+                $cita_activa_medico = {
+                    id_cita     => $c_id,
+                    id_paciente => $c_pac,
+                    fecha       => $c[3],
+                    hora        => $c[4],
+                    motivo      => $c[6]
+                };
+                last;
+            }
+        }
+    }
+    close $fh_chk;
+}
+
+if ($cita_activa_medico) {
+    my $pac_act = cargar_datos_paciente($cita_activa_medico->{id_paciente});
+    my $nombre_pac_act = $pac_act->{nombre} || $cita_activa_medico->{id_paciente};
+    
+    print $q->header(-type => 'text/html', -charset => 'UTF-8');
+    render_header(
+        usuario     => $usuario, 
+        role        => $role, 
+        titulo      => 'Consulta en Curso Detectada', 
+        skip_header => 1
+    );
+    print <<HTML;
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+<div class="container py-5 text-center">
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Consulta Activa en Curso',
+            html: 'Tiene una consulta activa en proceso con el paciente <strong>$nombre_pac_act</strong> (Cita ID: <code>$cita_activa_medico->{id_cita}</code>).<br><br>Como regla clínica, un médico debe concluir y cerrar su consulta activa antes de iniciar una nueva.',
+            confirmButtonText: '<i class="bi bi-arrow-right-circle me-1"></i> Ir a la Consulta Activa',
+            showCancelButton: true,
+            cancelButtonText: 'Volver a Agenda',
+            allowOutsideClick: false,
+            customClass: { popup: 'rounded-4 shadow-lg' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'render_consultas_privado.pl?id=$cita_activa_medico->{id_paciente}&id_cita=$cita_activa_medico->{id_cita}';
+            } else {
+                window.location.href = 'agenda_main.pl';
+            }
+        });
+    });
+    </script>
+</div>
+HTML
+    render_footer();
+    exit;
+}
+
+# 2. Procesar Cita Actual y actualizar a hora real
 if ($id_cita) {
-    my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
     if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
         my @lineas = <$fh_in>;
         close $fh_in;
@@ -62,17 +136,16 @@ if ($id_cita) {
             my $c0_clean = $c[0] // '';
             $c0_clean =~ s/^\s+|\s+$//g;
             if ($c0_clean eq $id_cita) {
+                $c[4] = $hoy_hora; # Actualizar la hora de inicio con la hora real
                 $paciente->{fecha_consulta} = $c[3] || $hoy_fecha;
-                $paciente->{hora_consulta}  = $c[4] || $hoy_hora;
+                $paciente->{hora_consulta}  = $hoy_hora;
                 $paciente->{motivo_precargado} = $c[6] // '';
                 
                 if (($c[8] // '') !~ /Atendida|Cancelada/i) {
-                    if (($c[8] // '') ne 'En consulta') {
-                        $c[8] = 'En consulta';
-                        $l = join('|', @c);
-                        $modificado = 1;
-                    }
+                    $c[8] = 'En consulta';
                 }
+                $l = join('|', @c);
+                $modificado = 1;
             }
             push @nuevas_lineas, $l;
         }
