@@ -38,14 +38,46 @@ my $id_paciente = $q->param('id') || $q->param('id_paciente') || '';
 my $id_cita     = $q->param('id_cita') || '';
 my $paciente    = cargar_datos_paciente($id_paciente);
 
+my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+my $hoy_fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
+my $hoy_hora  = sprintf("%02d:%02d", $hour, $min);
+
+$paciente->{fecha_consulta} = $hoy_fecha;
+$paciente->{hora_consulta}  = $hoy_hora;
 $paciente->{motivo_precargado} = '';
+
 if ($id_cita) {
     my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
-    my $res = leer_tabla($citas_file, '\|');
-    foreach my $c (@$res) {
-        if ($c->[0] eq $id_cita) {
-            $paciente->{motivo_precargado} = "MOTIVO DE CITA PROGRAMADA:\n" . $c->[6] . "\n\nNotas previas: " . ($c->[7]||'Ninguna');
-            last;
+    if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
+        my @lineas = <$fh_in>;
+        close $fh_in;
+        my $cabecera = shift @lineas;
+        chomp $cabecera if defined $cabecera;
+        my @nuevas_lineas;
+        my $modificado = 0;
+        
+        foreach my $l (@lineas) {
+            chomp $l;
+            my @c = split /\|/, $l, -1;
+            my $c0_clean = $c[0] // '';
+            $c0_clean =~ s/^\s+|\s+$//g;
+            if ($c0_clean eq $id_cita) {
+                $paciente->{fecha_consulta} = $c[3] || $hoy_fecha;
+                $paciente->{hora_consulta}  = $c[4] || $hoy_hora;
+                $paciente->{motivo_precargado} = $c[6] // '';
+                
+                if (($c[8] // '') !~ /Atendida|Cancelada/i) {
+                    if (($c[8] // '') ne 'En consulta') {
+                        $c[8] = 'En consulta';
+                        $l = join('|', @c);
+                        $modificado = 1;
+                    }
+                }
+            }
+            push @nuevas_lineas, $l;
+        }
+        if ($modificado) {
+            utils::db_manager::actualizar_archivo($citas_file, $cabecera, \@nuevas_lineas);
         }
     }
 }
@@ -411,21 +443,39 @@ async function finalizarConsulta() {
 </script>
 HTML
 
+sub calcular_edad {
+    my ($fecha_nac) = @_;
+    return "N/A" unless $fecha_nac && $fecha_nac =~ /^(\d{4})-(\d{2})-(\d{2})$/;
+    my ($a_nac, $m_nac, $d_nac) = ($1, $2, $3);
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
+    $year += 1900;
+    $mon += 1;
+    my $edad = $year - $a_nac;
+    if ($mon < $m_nac || ($mon == $m_nac && $mday < $d_nac)) {
+        $edad--;
+    }
+    return "$edad años";
+}
+
 sub cargar_datos_paciente {
     my ($id) = @_;
     my $path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
     my $res = leer_tabla($path, '\|');
     foreach my $c (@$res) {
         if ($c->[0] eq $id) {
+            my $fecha_nac = $c->[6] // '';
+            my $edad = calcular_edad($fecha_nac);
             return {
                 id_paciente => $c->[0],
                 nombre      => $c->[2]//'',
                 curp        => $c->[4]//'',
-                sexo        => $c->[7]//''
+                fecha_nac   => $fecha_nac,
+                sexo        => $c->[7]//'',
+                edad        => $edad
             };
         }
     }
-    return { id_paciente => $id, nombre => 'Paciente Desconocido', curp => '', sexo => '' };
+    return { id_paciente => $id, nombre => 'Paciente Desconocido', curp => '', fecha_nac => '', sexo => '', edad => 'N/A' };
 }
 
 render_footer();

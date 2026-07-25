@@ -134,7 +134,7 @@ HTML
             
             <div class="row g-4">
                 <!-- Info Paciente Readonly -->
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="wizard-label">Paciente</label>
                     <input type="text" class="wizard-input bg-light" value="$paciente->{nombre}" readonly>
                 </div>
@@ -142,9 +142,23 @@ HTML
                     <label class="wizard-label">CURP</label>
                     <input type="text" class="wizard-input bg-light" value="$paciente->{curp}" readonly>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="wizard-label">Sexo</label>
                     <input type="text" class="wizard-input bg-light" value="$paciente->{sexo}" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="wizard-label">Edad</label>
+                    <input type="text" class="wizard-input bg-light" value="$paciente->{edad}" readonly>
+                </div>
+
+                <!-- Fecha y Hora de Consulta -->
+                <div class="col-md-3">
+                    <label class="wizard-label">Fecha de Consulta</label>
+                    <input type="date" name="fecha_consulta" class="wizard-input bg-light" value="$paciente->{fecha_consulta}" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="wizard-label">Hora de Inicio</label>
+                    <input type="text" name="hora_consulta" class="wizard-input bg-light" value="$paciente->{hora_consulta}" readonly>
                 </div>
 
                 <!-- Selección de Cotización o Tratamiento Activo -->
