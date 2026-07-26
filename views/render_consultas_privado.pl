@@ -46,6 +46,48 @@ $paciente->{fecha_consulta} = $hoy_fecha;
 $paciente->{hora_consulta}  = $hoy_hora;
 $paciente->{motivo_precargado} = '';
 
+# Cargar Especialidad y Sub-Especialidad Inmutable del Médico
+my $id_espe_medico       = '0';
+my $id_subespe_medico    = '0';
+my $espe_nombre_medico   = 'Medicina General';
+my $subespe_nombre_medico = 'General / Ninguna';
+
+my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+my $regs_usr = leer_tabla($usr_file, '!');
+if ($regs_usr) {
+    foreach my $r (@$regs_usr) {
+        if ($r->[0] eq $id_medico || (lc($r->[2] // '') eq lc($usuario))) {
+            $id_espe_medico    = $r->[7] // '0';
+            $id_subespe_medico = $r->[8] // '0';
+            last;
+        }
+    }
+}
+
+my $esp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'especialidades.dat');
+my $sub_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'sub_especialidades.dat');
+
+my $regs_esp = leer_tabla($esp_file, '\|');
+if ($regs_esp) {
+    foreach my $r (@$regs_esp) {
+        next if $r->[0] =~ /^ID_ESPE$/i;
+        if ($r->[0] eq $id_espe_medico) { $espe_nombre_medico = $r->[1]; last; }
+    }
+}
+
+my $regs_sub = leer_tabla($sub_file, '\|');
+if ($regs_sub) {
+    foreach my $r (@$regs_sub) {
+        next if $r->[0] =~ /^ID_ESPE$/i;
+        if ($r->[1] eq $id_subespe_medico) { $subespe_nombre_medico = $r->[2]; last; }
+    }
+}
+
+$paciente->{id_espe_medico}       = $id_espe_medico;
+$paciente->{id_subespe_medico}    = $id_subespe_medico;
+$paciente->{espe_nombre_medico}    = $espe_nombre_medico;
+$paciente->{subespe_nombre_medico} = $subespe_nombre_medico;
+
 # 1. Bloqueo de Seguridad: Verificar si el médico ya tiene una consulta activa en curso
 my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
 my $cita_activa_medico = undef;
@@ -289,7 +331,7 @@ print <<HTML;
         
         @{[ render_step_registro_privado($paciente) ]}
         @{[ render_step_anamnesis() ]}
-        @{[ render_step_exploracion() ]}
+        @{[ render_step_exploracion($paciente) ]}
         @{[ render_step_estudios($paciente) ]}
         @{[ render_step_soap() ]}
         @{[ render_step_comunicacion() ]}

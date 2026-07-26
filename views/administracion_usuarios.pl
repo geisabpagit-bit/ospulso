@@ -64,7 +64,31 @@ if ($regs_negocios) {
     }
 }
 
-# 2. Obtener usuarios (activos e inactivos)
+# 2. Cargar Catálogos de Especialidades
+my $archivo_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'especialidades.dat');
+my $archivo_sub  = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'sub_especialidades.dat');
+
+my %espe_hash = ();
+my @lista_espe = ();
+my $regs_espe = leer_tabla($archivo_espe, '\|');
+if ($regs_espe) {
+    foreach my $r (@$regs_espe) {
+        next if @$r < 2 || $r->[0] =~ /^ID_ESPE$/i;
+        $espe_hash{$r->[0]} = $r->[1];
+        push @lista_espe, { id => $r->[0], nombre => $r->[1] };
+    }
+}
+
+my %subespe_hash = ();
+my $regs_sub = leer_tabla($archivo_sub, '\|');
+if ($regs_sub) {
+    foreach my $r (@$regs_sub) {
+        next if @$r < 3 || $r->[0] =~ /^ID_ESPE$/i;
+        $subespe_hash{$r->[1]} = $r->[2];
+    }
+}
+
+# 3. Obtener usuarios (activos e inactivos)
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
 my @mi_personal = ();
@@ -75,6 +99,8 @@ if ($regs_usuarios) {
         next if @$r < 7;
         my $extra = $r->[6];
         my ($org_id, $suc_id) = split(/:/, $extra);
+        my $id_espe = $r->[7] // '0';
+        my $id_subespe = $r->[8] // '0';
         
         # Si el usuario pertenece a mi organización y NO es el administrador global
         if ($org_id && $org_id eq $id_empresa && $r->[5] ne 'Administrador Organizacion') {
@@ -84,7 +110,11 @@ if ($regs_usuarios) {
                 correo => $r->[2],
                 rol => $r->[5],
                 id_suc => $suc_id,
-                sucursal => $sucursales_hash{$suc_id} || 'No Asignada'
+                sucursal => $sucursales_hash{$suc_id} || 'No Asignada',
+                id_espe => $id_espe,
+                id_subespe => $id_subespe,
+                espe_nombre => $espe_hash{$id_espe} || 'General / Ninguna',
+                subespe_nombre => $subespe_hash{$id_subespe} || ''
             };
             if ($r->[4] eq '1') {
                 push @mi_personal, $item;
@@ -159,6 +189,25 @@ if (!@mis_sucursales) {
 print <<HTML;
                                 </select>
                             </div>
+                            <div class="col-12 col-md-6" id="box_espe">
+                                <label class="form-label small fw-bold text-muted"><i class="bi bi-patch-check-fill text-primary me-1"></i>Especialidad Médica</label>
+                                <select class="form-select form-select-sm shadow-sm" id="form_id_espe" name="id_espe" onchange="actualizarSubespecialidades(this.value)">
+                                    <option value="0">General / Ninguna</option>
+HTML
+
+foreach my $esp (@lista_espe) {
+    print qq|                                    <option value="$esp->{id}">$esp->{nombre}</option>\n|;
+}
+
+print <<HTML;
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6" id="box_subespe">
+                                <label class="form-label small fw-bold text-muted"><i class="bi bi-award-fill text-info me-1"></i>Sub-Especialidad</label>
+                                <select class="form-select form-select-sm shadow-sm" id="form_id_subespe" name="id_subespe">
+                                    <option value="0">General / Ninguna</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="mt-4 d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-light fw-bold px-4" onclick="toggleFormulario()">Cancelar</button>
@@ -200,7 +249,7 @@ print <<HTML;
                                     <thead class="table-light">
                                         <tr>
                                             <th class="small fw-bold text-muted text-uppercase border-0">Colaborador</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">Rol / Perfil</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Rol / Especialidad</th>
                                             <th class="small fw-bold text-muted text-uppercase border-0">Sucursal Asignada</th>
                                             <th class="small fw-bold text-muted text-uppercase border-0 text-end">Acciones</th>
                                         </tr>
@@ -210,6 +259,7 @@ HTML
 
 if (@mi_personal) {
     foreach my $per (@mi_personal) {
+        my $badge_espe = ($$per{rol} eq 'Medico') ? qq{<span class="badge bg-info text-white ms-1 px-3 py-2">$$per{espe_nombre}</span>} : '';
         print <<HTML;
                                         <tr>
                                             <td>
@@ -223,11 +273,14 @@ if (@mi_personal) {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td><span class="badge bg-secondary px-3 py-2">$$per{rol}</span></td>
+                                            <td>
+                                                <span class="badge bg-secondary px-3 py-2">$$per{rol}</span>
+                                                $badge_espe
+                                            </td>
                                             <td class="text-muted small fw-bold">$$per{sucursal}</td>
                                             <td class="text-end pe-4">
                                                 <div class="d-flex justify-content-end gap-2">
-                                                    <button onclick="abrirFormEditar('$$per{id}', '$$per{nombre}', '$$per{correo}', '$$per{rol}', '$$per{id_suc}')" class="btn p-0 border-0 btn-expediente" title="Editar">
+                                                    <button onclick="abrirFormEditar('$$per{id}', '$$per{nombre}', '$$per{correo}', '$$per{rol}', '$$per{id_suc}', '$$per{id_espe}', '$$per{id_subespe}')" class="btn p-0 border-0 btn-expediente" title="Editar">
                                                         <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
                                                     </button>
                                                     <button onclick="confirmDesactivar('$$per{id}')" class="btn p-0 border-0 action-btn-delete" title="Desactivar">
@@ -350,6 +403,32 @@ print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    let subespecialidadesData = [];
+
+    // Cargar catálogo de subespecialidades vía API
+    fetch('../api/get_especialidades_api.pl')
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                subespecialidadesData = data.subespecialidades || [];
+            }
+        })
+        .catch(err => console.error("Error al cargar especialidades:", err));
+
+    window.actualizarSubespecialidades = function(idEspe, selectedSub = '0') {
+        const selectSub = document.getElementById('form_id_subespe');
+        if (!selectSub) return;
+        selectSub.innerHTML = '<option value="0">General / Ninguna</option>';
+        const subs = subespecialidadesData.filter(s => String(s.id_espe) === String(idEspe));
+        subs.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id_sub;
+            opt.textContent = s.nombre;
+            if (String(s.id_sub) === String(selectedSub)) opt.selected = true;
+            selectSub.appendChild(opt);
+        });
+    };
+
     // Lógica para mostrar/ocultar formulario y llenarlo
     window.toggleFormulario = function() {
         const container = document.getElementById('formContainer');
@@ -372,6 +451,8 @@ print <<HTML;
         document.getElementById('passwordLabel').innerText = 'Contraseña Inicial';
         document.getElementById('form_rol').value = 'Medico';
         document.getElementById('form_id_sucursal').value = '';
+        document.getElementById('form_id_espe').value = '0';
+        actualizarSubespecialidades('0');
         
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Añadir Colaborador';
         document.getElementById('formHeader').className = 'card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
@@ -382,7 +463,7 @@ print <<HTML;
         window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
-    window.abrirFormEditar = function(id, nombre, correo, rol, id_sucursal) {
+    window.abrirFormEditar = function(id, nombre, correo, rol, id_sucursal, id_espe, id_subespe) {
         document.getElementById('form_action').value = 'update';
         document.getElementById('form_id_usuario').value = id;
         document.getElementById('form_nombre').value = nombre;
@@ -392,6 +473,8 @@ print <<HTML;
         document.getElementById('passwordLabel').innerText = 'Nueva Contraseña (Opcional)';
         document.getElementById('form_rol').value = rol;
         document.getElementById('form_id_sucursal').value = id_sucursal;
+        document.getElementById('form_id_espe').value = id_espe || '0';
+        actualizarSubespecialidades(id_espe || '0', id_subespe || '0');
         
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Colaborador';
         document.getElementById('formHeader').className = 'card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';

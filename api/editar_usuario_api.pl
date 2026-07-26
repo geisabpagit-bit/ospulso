@@ -33,6 +33,8 @@ my $correo          = lc(decode_utf8($q->param('correo')       // ''));
 my $clave           = decode_utf8($q->param('clave')           // '');
 my $rol             = decode_utf8($q->param('rol')             // '');
 my $id_sucursal     = decode_utf8($q->param('id_sucursal')     // '');
+my $id_espe         = decode_utf8($q->param('id_espe')         // '0');
+my $id_subespe      = decode_utf8($q->param('id_subespe')      // '0');
 
 $nombre          =~ s/^\s+|\s+$//g;
 $correo          =~ s/^\s+|\s+$//g;
@@ -103,6 +105,8 @@ if ($regs_usuarios) {
             $r->[2] = $correo;
             $r->[5] = $rol;
             $r->[6] = "$id_org_matriz:$id_sucursal";
+            $r->[7] = $id_espe;
+            $r->[8] = $id_subespe;
 
             if ($clave ne '') {
                 $r->[3] = sha256_hex($clave);
@@ -119,7 +123,7 @@ if (!$encontrado) {
 }
 
 eval {
-    my $header = "id!nombre!correo!clave!activo!rol!ID_negocio";
+    my $header = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE";
     actualizar_archivo($archivo_usuarios, $header, \@nuevas_lineas);
 };
 

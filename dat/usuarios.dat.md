@@ -11,6 +11,8 @@
   5. `activo`: `1` (Activo), `0` (Pendiente/Bloqueado).
   6. `rol`: `Medico`, `Paciente`, `Administrador`, `Asistente`.
   7. `id_negocio`: ID de vinculación con `negocios.dat` o `extra` (empresa:sucursal).
+  8. `id_espe`: ID de especialidad (del catálogo `especialidades.dat`, ej. `100` = Odontología, `5` = Medicina Familiar).
+  9. `id_subespe`: ID de sub-especialidad (del catálogo `sub_especialidades.dat`, ej. `100.1` = Ortodoncia).
 
 ## Reglas de Integridad (v3.9.0)
 - **Validación de Sesión**:- Todos los usuarios (excepto el SuperAdmin) deben estar rigurosamente vinculados a un ID de negocio válido en `negocios.dat`.

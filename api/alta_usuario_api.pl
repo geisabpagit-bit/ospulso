@@ -32,6 +32,8 @@ my $correo      = lc(decode_utf8($q->param('correo')   // ''));
 my $clave       = decode_utf8($q->param('clave')       // '');
 my $rol         = decode_utf8($q->param('rol')         // '');
 my $id_sucursal = decode_utf8($q->param('id_sucursal') // '');
+my $id_espe     = decode_utf8($q->param('id_espe')     // '0');
+my $id_subespe  = decode_utf8($q->param('id_subespe')  // '0');
 
 $nombre =~ s/^\s+|\s+$//g;
 $correo =~ s/^\s+|\s+$//g;
@@ -91,7 +93,9 @@ my $registro_usuario = join("!",
     $hash, 
     1, 
     $rol, 
-    $extra_multi_tenant
+    $extra_multi_tenant,
+    $id_espe,
+    $id_subespe
 );
 
 eval {

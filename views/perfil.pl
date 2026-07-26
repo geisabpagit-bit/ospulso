@@ -57,13 +57,42 @@ if ($session_ok) {
             if ($c_email eq $target_email) {
                 my $extra = $c[6] // '';
                 my ($id_empresa) = split /:/, $extra;
+                my $id_espe = $c[7] // '0';
+                my $id_subespe = $c[8] // '0';
+
+                # Resolver nombres de especialidad
+                my $espe_nombre = 'General / Ninguna';
+                my $subespe_nombre = 'General / Ninguna';
+
+                if (open(my $fhe, '<:encoding(UTF-8)', '../dat/especialidades.dat')) {
+                    while (my $l = <$fhe>) {
+                        chomp $l;
+                        my @e = split /\|/, $l, -1;
+                        if ($e[0] eq $id_espe) { $espe_nombre = $e[1]; last; }
+                    }
+                    close($fhe);
+                }
+
+                if (open(my $fhs, '<:encoding(UTF-8)', '../dat/sub_especialidades.dat')) {
+                    while (my $l = <$fhs>) {
+                        chomp $l;
+                        my @s = split /\|/, $l, -1;
+                        if ($s[1] eq $id_subespe) { $subespe_nombre = $s[2]; last; }
+                    }
+                    close($fhs);
+                }
+
                 $user_data = {
-                    id         => $c[0],
-                    nombre     => $c[1],
-                    correo     => $c[2],
-                    activo     => $c[4],
-                    rol        => $c[5],
-                    id_negocio => $id_empresa
+                    id             => $c[0],
+                    nombre         => $c[1],
+                    correo         => $c[2],
+                    activo         => $c[4],
+                    rol            => $c[5],
+                    id_negocio     => $id_empresa,
+                    id_espe        => $id_espe,
+                    id_subespe     => $id_subespe,
+                    espe_nombre    => $espe_nombre,
+                    subespe_nombre => $subespe_nombre
                 };
                 last;
             }

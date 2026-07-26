@@ -167,13 +167,10 @@ HTML
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="wizard-label">Especialidad <span class="req-star">*</span></label>
-                    <select name="especialidad" class="wizard-input" required>
-                        <option value="">Seleccione...</option>
-                        <option value="Medicina General">Medicina General</option>
-                        <option value="Odontologia">Odontolog&iacute;a</option>
-                        <option value="Pediatria">Pediatr&iacute;a</option>
-                    </select>
+                    <label class="wizard-label">Especialidad (Inamovible)</label>
+                    <input type="text" class="wizard-input bg-light fw-bold text-primary" value="$paciente->{espe_nombre_medico}" readonly>
+                    <input type="hidden" name="especialidad" value="$paciente->{espe_nombre_medico}">
+                    <input type="hidden" name="id_espe" value="$paciente->{id_espe_medico}">
                 </div>
 
                 <!-- Fila 3: Cotización / Tratamiento Activo (2 bloques de 2-columnas en md/lg) -->

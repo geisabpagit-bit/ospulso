@@ -201,7 +201,23 @@ print <<HTML;
 HTML
 
     if ($role eq 'Medico') {
+        my $espe_nombre = $u->{espe_nombre} || 'General / Ninguna';
+        my $subespe_nombre = $u->{subespe_nombre} || 'General / Ninguna';
         print <<HTML;
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control bg-light fw-bold text-primary" value="$espe_nombre" readonly>
+                        <label><i class="bi bi-patch-check-fill text-primary me-1"></i>Especialidad Asignada (Solo Lectura)</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control bg-light fw-bold text-info" value="$subespe_nombre" readonly>
+                        <label><i class="bi bi-award-fill text-info me-1"></i>Sub-Especialidad (Solo Lectura)</label>
+                    </div>
+                </div>
+            </div>
             <div class="row g-3 mt-1">
                 <div class="col-md-5">
                     <div class="form-floating">
