@@ -11,6 +11,7 @@ use lib '..';
 # Carga de dependencias
 require '../auth/check_session.pl';
 require '../utils/sub_header.pl';
+require '../utils/sub_sidebar.pl';
 require '../utils/sub_footer.pl';
 
 my $q = CGI->new;
@@ -27,12 +28,18 @@ if ($sd->{session_ok}) {
 # Forzamos codificación para acentos en STDOUT
 binmode(STDOUT, ":encoding(UTF-8)");
 
-# --- RENDER HEADER ---
+# --- RENDER HEADER & SIDEBAR ---
 render_header(
     usuario => $sd->{usuario},
     role    => $sd->{role},
     titulo  => "SDM - Expediente del Paciente",
     skip_header => 1
+);
+
+utils::sub_sidebar::render_sidebar(
+    role          => $sd->{role},
+    usuario       => $sd->{usuario},
+    pagina_actual => 'pacientes'
 );
 
 print <<'HTML';
@@ -44,26 +51,29 @@ print <<'HTML';
     .section-divider { border-top: 1px solid #f1f5f9; padding-top: 2.5rem; margin-top: 2.5rem; }
 </style>
 
-<div class="animate-fade-in p-1">
-    <!-- Header de Acción -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-3">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item small"><a href="pacientes.pl" class="text-decoration-none">Directorio</a></li>
-                    <li id="breadcrumb-title" class="breadcrumb-item active small" aria-current="page">Nuevo Expediente</li>
-                </ol>
-            </nav>
-            <h1 id="page-hero-title" class="plus-jakarta fw-black text-dark m-0">Inscripción de Paciente</h1>
-            <p id="page-subtitle" class="text-muted m-0 small">Completa los campos para generar la ficha clínica oficial</p>
+<div class="animate-fade-in p-1 p-md-3">
+    <!-- ENCABEZADO CORPORATIVO (ESTÁNDAR GLOBAL) -->
+    <header class="bg-medentia-gradient text-white p-3 p-md-4 shadow-sm mb-4" style="border-radius: 1.25rem;">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-white bg-opacity-10 p-2 p-md-3 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                    <i class="bi bi-person-plus-fill fs-3 text-white"></i>
+                </div>
+                <div>
+                    <h3 id="page-hero-title" class="fw-black mb-0 text-white fs-4 fs-md-2" style="letter-spacing: -0.5px;">Inscripci&oacute;n de Paciente</h3>
+                    <p id="page-subtitle" class="text-white-50 small mb-0 mt-1">Completa los campos para generar la ficha cl&iacute;nica oficial</p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="pacientes.pl" class="btn text-white fw-bold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2 small transition-all" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);">
+                    <i class="bi bi-x-circle-fill text-white"></i><span>Cancelar</span>
+                </a>
+                <button type="button" id="btnGuardarPaciente" class="btn btn-medentia rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2">
+                    <i class="bi bi-cloud-check-fill me-1"></i><span id="btn-text-guardar">Guardar Expediente</span>
+                </button>
+            </div>
         </div>
-        <div class="d-flex gap-2">
-            <a href="pacientes.pl" class="btn btn-light rounded-pill px-4 fw-bold shadow-sm">Cancelar</a>
-            <button type="button" id="btnGuardarPaciente" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
-                <i class="bi bi-cloud-check-fill me-2"></i><span id="btn-text-guardar">Guardar Expediente</span>
-            </button>
-        </div>
-    </div>
+    </header>
 
     <!-- Contenedor del Formulario -->
     <div class="form-container p-4 p-md-5 mb-5 shadow-sm">
@@ -162,6 +172,8 @@ print <<'HTML';
 <script src="../js/paciente_form.js"></script>
 <script>console.log("SDM DEBUG: CRUD Paciente Sincronizado y Blindado.");</script>
 HTML
+
+utils::sub_sidebar::render_sidebar_footer();
 
 render_footer(role => $sd->{role});
 1;

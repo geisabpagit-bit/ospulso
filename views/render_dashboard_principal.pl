@@ -180,14 +180,16 @@ HTML
     <script>
     function animateValue(obj, start, end, duration, isK) {
         let startTimestamp = null;
+        let lastFormatted = "";
         const step = (timestamp) => {
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             const current = progress * (end - start) + start;
-            if (isK) {
-                obj.textContent = "\$ " + current.toFixed(2) + "k";
-            } else {
-                obj.textContent = Math.floor(current).toLocaleString();
+            const formatted = isK ? ("$ " + current.toFixed(2) + "k") : Math.floor(current).toLocaleString();
+            
+            if (formatted !== lastFormatted) {
+                lastFormatted = formatted;
+                obj.textContent = formatted;
             }
             if (progress < 1) {
                 window.requestAnimationFrame(step);
