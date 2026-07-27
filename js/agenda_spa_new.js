@@ -523,7 +523,8 @@ function renderTimeline() {
             cardStyle += ` background-color: #dcfce7 !important; border-color: #86efac !important; color: #166534 !important;`;
             badgeStyle = `background: #166534; color: #ffffff;`;
         } else if (stLow.includes('atendida')) {
-            cardStyle += ` opacity: 0.85;`;
+            cardStyle += ` background-color: #e6fffa !important; border-color: #19B7A5 !important; color: #0d7468 !important; opacity: 0.95;`;
+            badgeStyle = `background: #19B7A5; color: #ffffff;`;
         }
 
         let actionButtons = '';
@@ -716,7 +717,7 @@ function renderGrid() {
                     const stLow = st.trim().toLowerCase();
                     if (stLow === 'en consulta') { bgColor = '#dcfce7'; textColor = '#166534'; }
                     else if (stLow === 'confirmada') bgColor = '#10b981';
-                    else if (stLow.includes('atendida')) bgColor = '#3b82f6';
+                    else if (stLow.includes('atendida')) bgColor = '#19B7A5';
                     else if (stLow === 'cancelada') bgColor = '#ef4444';
                     else if (stLow === 'no asistió' || stLow === 'no asistio') bgColor = '#f59e0b';
                     
@@ -829,8 +830,8 @@ function renderMobileDayList() {
         const hf = a.end.split('T')[1].substring(0, 5);
         const status = a.extendedProps.estado || 'Programada';
         let color = a.color;
-        if (!color) {
-            color = status === 'Confirmada' ? '#10b981' : (status === 'Cancelada' ? '#ef4444' : '#103070');
+        if (!color || status === 'Atendida' || status === 'atendida') {
+            color = (status === 'Atendida' || status === 'atendida') ? '#19B7A5' : (status === 'Confirmada' ? '#10b981' : (status === 'Cancelada' ? '#ef4444' : '#103070'));
         }
         
         const card = $(`
@@ -1572,7 +1573,7 @@ function renderTable(type) {
                 <td data-label="Hora"><span class="badge bg-light text-navy border">${h}</span></td>
                 <td class="fw-black text-primary" data-label="Paciente">${a.title}</td>
                 <td class="small" data-label="Motivo">${a.extendedProps.motivo || ''}</td>
-                <td data-label="Status"><span class="badge ${st==='Atendida'?'bg-success':'bg-primary'} rounded-pill">${st.toUpperCase()}</span></td>
+                <td data-label="Status"><span class="badge ${st==='Atendida'||st==='atendida'?'bg-teal text-white':'bg-primary'} rounded-pill" style="${st==='Atendida'||st==='atendida'?'background-color: #19B7A5 !important;':''}">${st.toUpperCase()}</span></td>
                 <td class="text-end" data-label="Acciones">
                     <button class="btn btn-sm btn-light rounded-3" onclick="abrirModalCita('${a.id}')"><i class="bi bi-pencil"></i></button>
                 </td>

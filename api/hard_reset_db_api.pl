@@ -38,6 +38,9 @@ my %archivos = (
     'negocios_config.dat' => "ID_NEGOCIO|CLAVE|VALOR\n",
     'cotizaciones.dat' => "ID_COT|ID_PACIENTE|NOMBRE|TOTAL|FECHA|ID_MEDICO\n",
     'cotizaciones_items.dat' => "ID_COT|CONCEPTO|PRECIO|CANTIDAD|SUBTOTAL\n",
+    'consultas_clinicas.dat' => "id_consulta|id_paciente|id_cita|id_medico|timestamp|payload_json\n",
+    'recetas.dat' => "id_receta|id_consulta|id_paciente|id_medico|fecha|folio|diagnostico|payload_json\n",
+    'consentimientos.dat' => "id_consentimiento|id_consulta|id_paciente|id_medico|fecha|procedimiento|payload_json\n",
     'consulta_draft.dat' => "id_draft|id_paciente|id_cita|id_medico|current_step|payload_json|timestamp\n",
     'odontogramas.dat' => "ID_PACIENTE|TIPO|FECHA|NOTAS|DATOS_FDI\n",
     'estudios.dat' => "id_estudio|id_paciente|fecha|modalidad|descripcion|ruta|size\n",
@@ -75,9 +78,10 @@ eval {
         unlink $cat or warn "No se pudo borrar el catálogo dinámico $cat: $!";
     }
 
-    # 3. Limpiar carpetas de adjuntos y estudios de Rayos X (adjuntos_crm y estudiosRX)
+    # 3. Limpiar carpetas de adjuntos, estudios RX y firmas digitales
     limpiar_directorio(File::Spec->catdir($dir, "adjuntos_crm"));
     limpiar_directorio(File::Spec->catdir($dir, "estudiosRX"));
+    limpiar_directorio(File::Spec->catdir($FindBin::Bin, '..', 'uploads', 'firmas'));
 };
 
 sub limpiar_directorio {

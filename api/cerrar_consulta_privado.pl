@@ -214,6 +214,14 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         $total_cargos_directos += ($it->{precio} || 0) * ($it->{cantidad} || 1);
     }
     
+    # REGLA FINANCIERA: Si hay abono de caja pero no hay cotización ni ítems directos explícitos,
+    # generamos automáticamente el cargo por "Consulta Médica" igual al monto abonado para evitar saldo negativo.
+    if ($caja_monto_abono > 0 && !$id_cotizacion && !$tiene_cargos_directos) {
+        $caja_items = [ { nombre => 'Consulta Médica', precio => $caja_monto_abono, cantidad => 1 } ];
+        $tiene_cargos_directos = 1;
+        $total_cargos_directos = $caja_monto_abono;
+    }
+    
     if ($id_tratamiento) {
         # A. ACTUALIZAR TRATAMIENTO EXISTENTE
         if (-e $trat_file && open my $fh_t, '<:encoding(UTF-8)', $trat_file) {

@@ -155,6 +155,9 @@ function initPacientesSpa() {
                     if (cita.estado === 'En consulta' || cita.estado === 'En Consulta') {
                         badgeClass = 'bg-info text-white';
                         labelEstado = 'En Consulta';
+                    } else if (cita.estado === 'Atendida' || cita.estado === 'atendida' || cita.estado === 'Atendido') {
+                        badgeClass = 'bg-success';
+                        labelEstado = 'Atendida';
                     } else if (fechaReal && fechaCita < hoy && cita.estado === 'Confirmada') {
                         badgeClass = 'bg-success';
                         labelEstado = 'Realizado';
