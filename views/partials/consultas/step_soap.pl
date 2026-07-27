@@ -134,7 +134,78 @@ sub render_step_soap {
                 
                 <div class="col-12 mt-4">
                     <label class="wizard-label">Plan de Tratamiento y Abordaje Clínico (Plan) <span class="req-star">*</span></label>
-                    <textarea name="plan_tratamiento" class="wizard-input" rows="5" placeholder="Medidas generales, seguimiento, interconsultas..." required></textarea>
+                    <textarea name="plan_tratamiento" class="wizard-input" rows="4" placeholder="Medidas generales, seguimiento, interconsultas..." required></textarea>
+                </div>
+
+                <!-- Módulo de Prescripción: Receta Médica Oficial (NOM-004-SSA3 / NOM-024-SSA3) -->
+                <div class="col-12 mt-4">
+                    <div class="card-medentia-aura border-0 bg-white p-4 rounded-4 shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);">
+                                <i class="bi bi-capsule-prescription me-2 text-primary"></i>Expedición de Receta Médica
+                            </h5>
+                            <div class="form-check form-switch fs-5">
+                                <input class="form-check-input" type="checkbox" role="switch" id="check_requiere_receta" name="requiere_receta" value="1" onchange="toggleSeccionReceta(this.checked)">
+                                <label class="form-check-label fs-6 fw-bold text-muted" for="check_requiere_receta">¿Expedir Receta Médica?</label>
+                            </div>
+                        </div>
+
+                        <div id="seccion-receta-medica" style="display: none;">
+                            <input type="hidden" name="receta_json" id="receta_json_input" value="[]">
+                            
+                            <div class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 rounded-3 mb-4 p-3 d-flex align-items-center gap-2">
+                                <i class="bi bi-info-circle-fill text-info fs-4"></i>
+                                <div class="small">
+                                    <strong>Receta Médica Oficial COFEPRIS</strong>: Selecciona medicamentos del catálogo <code>productos.dat</code> o agrega prescripciones personalizadas.
+                                </div>
+                            </div>
+
+                            <!-- Buscador y Selección de Productos -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-7">
+                                    <label class="wizard-label">Buscar Medicamento en Catálogo (productos.dat)</label>
+                                    <select id="select_producto_receta" class="wizard-input" onchange="seleccionarProductoReceta(this.value)">
+                                        @{[ cargar_opciones_productos() ]}
+                                    </select>
+                                </div>
+                                <div class="col-md-5 d-flex align-items-end">
+                                    <button type="button" class="btn btn-outline-primary rounded-pill px-4 fw-bold w-100" onclick="agregarMedicamentoRecetaManual()">
+                                        <i class="bi bi-plus-circle me-2"></i>Agregar Prescripción Personalizada
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Tabla de Prescripciones -->
+                            <div class="table-responsive mb-3">
+                                <table class="table table-bordered table-hover align-middle">
+                                    <thead class="table-light small text-uppercase fw-bold">
+                                        <tr>
+                                            <th>Medicamento (Genérico / Comercial)</th>
+                                            <th>Forma Farmacéutica</th>
+                                            <th>Dosis / Concentración</th>
+                                            <th>Posología (Frecuencia / Duración)</th>
+                                            <th>Vía Admin.</th>
+                                            <th class="text-center" style="width: 50px;">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-receta-items">
+                                        <tr><td colspan="6" class="text-center py-4 text-muted small">No hay medicamentos en la receta. Selecciona del catálogo o presiona "Agregar Prescripción Personalizada".</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="wizard-label">Folio de Control de Receta</label>
+                                    <input type="text" name="receta_folio" id="receta_folio_input" class="wizard-input bg-light fw-bold" readonly>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="wizard-label">Indicaciones / Advertencias Generales</label>
+                                    <input type="text" name="receta_indicaciones_extra" class="wizard-input" placeholder="Ej: Tomar con abundante agua. Evitar consumo de alcohol durante el tratamiento.">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -200,9 +271,144 @@ sub render_step_soap {
                     });
                 }
             });
+
+            // Lógica JS de Receta Médica
+            let recetaItems = [];
+
+            function toggleSeccionReceta(checked) {
+                const sec = document.getElementById('seccion-receta-medica');
+                if (sec) {
+                    sec.style.display = checked ? 'block' : 'none';
+                }
+                if (checked && !document.getElementById('receta_folio_input').value) {
+                    const now = new Date();
+                    const folio = 'REC-' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + Math.floor(Math.random()*9000 + 1000);
+                    document.getElementById('receta_folio_input').value = folio;
+                }
+            }
+
+            function seleccionarProductoReceta(val) {
+                if (!val) return;
+                const parts = val.split('|');
+                if (parts.length >= 2) {
+                    const generico = parts[1];
+                    const forma = parts[2] || 'Tableta';
+                    const conc = parts[3] || '500mg';
+                    recetaItems.push({
+                        generico: generico,
+                        comercial: '',
+                        forma: forma,
+                        concentracion: conc,
+                        posologia: '1 cada 8 horas por 7 días',
+                        via: 'Oral'
+                    });
+                    document.getElementById('select_producto_receta').value = '';
+                    renderRecetaItems();
+                }
+            }
+
+            function agregarMedicamentoRecetaManual() {
+                recetaItems.push({
+                    generico: 'Medicamento Personalizado',
+                    comercial: '',
+                    forma: 'Tableta',
+                    concentracion: '500mg',
+                    posologia: '1 cada 8 horas por 5 días',
+                    via: 'Oral'
+                });
+                renderRecetaItems();
+            }
+
+            function updateRecetaField(idx, field, val) {
+                if (recetaItems[idx]) {
+                    recetaItems[idx][field] = val;
+                    syncRecetaJSON();
+                }
+            }
+
+            function removeRecetaItem(idx) {
+                recetaItems.splice(idx, 1);
+                renderRecetaItems();
+            }
+
+            function syncRecetaJSON() {
+                const input = document.getElementById('receta_json_input');
+                if (input) {
+                    input.value = JSON.stringify(recetaItems);
+                }
+            }
+
+            function renderRecetaItems() {
+                const tbody = document.getElementById('tbody-receta-items');
+                if (!tbody) return;
+                if (recetaItems.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted small">No hay medicamentos en la receta. Selecciona del catálogo o presiona "Agregar Prescripción Personalizada".</td></tr>';
+                    syncRecetaJSON();
+                    return;
+                }
+                let html = '';
+                recetaItems.forEach((it, i) => {
+                    html += `<tr>
+                        <td>
+                            <input type="text" class="form-control form-control-sm fw-bold" value="\${it.generico}" placeholder="Nombre genérico" onchange="updateRecetaField(\${i}, 'generico', this.value)">
+                            <input type="text" class="form-control form-control-sm mt-1 text-muted" value="\${it.comercial}" placeholder="Nombre comercial (opcional)" onchange="updateRecetaField(\${i}, 'comercial', this.value)">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" value="\${it.forma}" placeholder="Forma (ej: Tableta)" onchange="updateRecetaField(\${i}, 'forma', this.value)">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" value="\${it.concentracion}" placeholder="Dosis (ej: 500mg)" onchange="updateRecetaField(\${i}, 'concentracion', this.value)">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" value="\${it.posologia}" placeholder="Posología (ej: 1 c/8h por 7 días)" onchange="updateRecetaField(\${i}, 'posologia', this.value)">
+                        </td>
+                        <td>
+                            <select class="form-select form-select-sm" onchange="updateRecetaField(\${i}, 'via', this.value)">
+                                <option value="Oral" \${it.via==='Oral'?'selected':''}>Oral</option>
+                                <option value="Intramuscular" \${it.via==='Intramuscular'?'selected':''}>Intramuscular</option>
+                                <option value="Intravenosa" \${it.via==='Intravenosa'?'selected':''}>Intravenosa</option>
+                                <option value="Tópica" \${it.via==='Tópica'?'selected':''}>Tópica</option>
+                                <option value="Oftálmica" \${it.via==='Oftálmica'?'selected':''}>Oftálmica</option>
+                                <option value="Sublingual" \${it.via==='Sublingual'?'selected':''}>Sublingual</option>
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeRecetaItem(\${i})"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+                syncRecetaJSON();
+            }
             </script>
         </div>
     };
+}
+
+sub cargar_opciones_productos {
+    my $path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'productos.dat');
+    my $options = '<option value="">Buscar en catálogo de productos.dat...</option>';
+    if (open(my $fh, '<:encoding(UTF-8)', $path)) {
+        my $header = <$fh>;
+        while (my $line = <$fh>) {
+            chomp $line;
+            next if $line =~ /^\s*$/;
+            my @c = split /\|/, $line, -1;
+            if (@c >= 2) {
+                my $id = $c[0];
+                my $nom = $c[1];
+                my $pres = $c[4] // '';
+                my $conc = ($nom =~ /(\d+\s*(?:mg|g|ml))/i) ? $1 : '500mg';
+                my $forma = 'Tableta';
+                if ($pres =~ /cápsula/i) { $forma = 'Cápsula'; }
+                elsif ($pres =~ /jarabe/i) { $forma = 'Jarabe'; }
+                elsif ($pres =~ /efervescente/i) { $forma = 'Tableta Efervescente'; }
+                $options .= qq(<option value="$id|$nom|$forma|$conc">$nom ($pres)</option>\n);
+            }
+        }
+        close($fh);
+    }
+    return $options;
 }
 
 sub cargar_opciones_dat {

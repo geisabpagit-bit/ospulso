@@ -470,7 +470,11 @@ HTML
                             <div class="text-end">
                                 <div class="fw-black" style="font-size: 1.1rem; color: var(--md-teal-clinical);">$cons->{fecha}</div>
                                 <div class="small text-muted fw-bold">M&eacute;dico: $nombre_medico</div>
-                                <button class="btn btn-sm btn-outline-medentia mt-2 d-flex align-items-center" onclick="window.location.href='consulta_detalles.pl?id_consulta=$cons->{id_consulta}'"><i class="bi bi-eye-fill me-2"></i> Ver Detalles</button>
+                                <div class="d-flex gap-2 justify-content-end mt-2 flex-wrap">
+                                    <a href="../api/imprimir_receta_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-capsule me-1"></i>Receta</a>
+                                    <a href="../api/imprimir_consentimiento_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold"><i class="bi bi-file-earmark-medical me-1"></i>Consentimiento</a>
+                                    <button class="btn btn-sm btn-outline-medentia d-flex align-items-center" onclick="window.location.href='consulta_detalles.pl?id_consulta=$cons->{id_consulta}'"><i class="bi bi-eye-fill me-2"></i> Ver Detalles</button>
+                                </div>
                             </div>
                         </div>
                         $receta_html

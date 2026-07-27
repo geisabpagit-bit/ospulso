@@ -59,6 +59,43 @@ $json_str =~ s/\r|\n/\\n/g; # Escapar saltos de línea para mantener formato CSV
 my $linea = join('|', $id_consulta, $id_paciente, $id_cita, $id_medico, time(), $json_str);
 utils::db_manager::guardar_registro($consultas_file, $linea);
 
+# 1.1 Persistir Receta Médica si fue expedida
+my $requiere_receta = $q->param('requiere_receta') || $payload{requiere_receta} || '0';
+my $receta_json = $q->param('receta_json') || $payload{receta_json} || '';
+if ($requiere_receta eq '1' || $receta_json) {
+    my $recetas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'recetas.dat');
+    unless (-e $recetas_file) {
+        open my $fh_r, '>:encoding(UTF-8)', $recetas_file;
+        print $fh_r "id_receta|id_consulta|id_paciente|id_medico|fecha|folio|diagnostico|payload_json\n";
+        close $fh_r;
+    }
+    my $id_receta = 'REC-' . time() . '-' . int(rand(1000));
+    my $folio_receta = $q->param('receta_folio') || "REC-$hoy_fecha-" . int(rand(9000)+1000);
+    my $diag_receta  = $payload{diagnostico_principal} || $payload{clave_diagnostico_cie10} || 'Sin diagnóstico';
+    my $r_json_clean = $receta_json || encode_json(\%payload);
+    $r_json_clean =~ s/\r|\n/\\n/g;
+    my $linea_rec = join('|', $id_receta, $id_consulta, $id_paciente, $id_medico, $hoy_fecha, $folio_receta, $diag_receta, $r_json_clean);
+    utils::db_manager::guardar_registro($recetas_file, $linea_rec);
+}
+
+# 1.2 Persistir Consentimiento Informado si fue requerido
+my $requiere_consentimiento = $q->param('requiere_consentimiento') || $payload{requiere_consentimiento} || '0';
+my $consentimiento_json = $q->param('consentimiento_json') || $payload{consentimiento_json} || '';
+if ($requiere_consentimiento eq '1' || $consentimiento_json) {
+    my $cons_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consentimientos.dat');
+    unless (-e $cons_file) {
+        open my $fh_c, '>:encoding(UTF-8)', $cons_file;
+        print $fh_c "id_consentimiento|id_consulta|id_paciente|id_medico|fecha|procedimiento|payload_json\n";
+        close $fh_c;
+    }
+    my $id_consentimiento = 'CNS-' . time() . '-' . int(rand(1000));
+    my $proc_consentimiento = $payload{procedimiento_descripcion} || 'Procedimiento Médico General';
+    my $c_json_clean = $consentimiento_json || encode_json(\%payload);
+    $c_json_clean =~ s/\r|\n/\\n/g;
+    my $linea_cons = join('|', $id_consentimiento, $id_consulta, $id_paciente, $id_medico, $hoy_fecha, $proc_consentimiento, $c_json_clean);
+    utils::db_manager::guardar_registro($cons_file, $linea_cons);
+}
+
 # 2. Sincronizar estado en citas.dat
 if ($id_cita) {
     my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
@@ -113,6 +150,7 @@ my $id_cotizacion = $q->param('id_cotizacion') || '';
 my $convertir_tratamiento = $q->param('convertir_tratamiento') || '0';
 my $id_tratamiento_param = $q->param('id_tratamiento') || '';
 my $caja_items_json = $q->param('caja_items_json') || '[]';
+my $caja_monto_abono = $q->param('caja_monto_abono') // 0;
 
 my $caja_items = [];
 eval {
@@ -120,7 +158,7 @@ eval {
 };
 my $tiene_cargos_directos = (ref($caja_items) eq 'ARRAY' && @$caja_items) ? 1 : 0;
 
-if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) || $tiene_cargos_directos) {
+if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) || $tiene_cargos_directos || $caja_monto_abono > 0) {
     my $cot_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones.dat');
     my $items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones_items.dat');
     my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
@@ -129,7 +167,6 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
     my $caja_estado_tratamiento = $q->param('caja_estado_tratamiento') // 'Abierto';
     my $fecha_fin = ($caja_estado_tratamiento eq 'Cerrado') ? $hoy_fecha : '';
     my $proxima_cita_id = $q->param('proxima_cita_id') // '';
-    my $caja_monto_abono = $q->param('caja_monto_abono') // 0;
     my $caja_metodo_pago = $q->param('caja_metodo_pago') // 'Efectivo';
     
     my $id_tratamiento = $id_tratamiento_param;

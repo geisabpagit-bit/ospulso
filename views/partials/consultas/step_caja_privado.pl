@@ -468,6 +468,14 @@ sub render_step_caja_privado {
             
             const isTratamientoActivo = historialTratamiento && historialTratamiento.tiene_tratamiento;
             const isNuevaConversion = cotSelect && cotSelect.value && convertirCheck && convertirCheck.checked;
+            
+            // Precargar concepto de Consulta Médica base ($500.00) por regla financiera si está vacío
+            if (!isTratamientoActivo && !isNuevaConversion && (!carritoConsulta || carritoConsulta.length === 0)) {
+                const espeInput = document.querySelector('[name="especialidad"]');
+                const espeNombre = (espeInput && espeInput.value) ? espeInput.value : 'General';
+                carritoConsulta = [{ id: 'CONS-BASE', nombre: 'Consulta Médica (' + espeNombre + ')', precio: 500.00, cantidad: 1 }];
+            }
+
             const tieneCargosDirectos = carritoConsulta && carritoConsulta.length > 0;
             
             if (isTratamientoActivo || isNuevaConversion || tieneCargosDirectos) {
