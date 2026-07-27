@@ -8,6 +8,7 @@ use JSON qw(encode_json decode_json);
 use FindBin;
 use File::Spec;
 use Fcntl qw(:flock);
+use MIME::Base64 qw(decode_base64);
 use lib "$FindBin::Bin/..";
 
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
@@ -47,6 +48,40 @@ my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
 my $hoy_fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
 my $hoy_hora  = sprintf("%02d:%02d", $hour, $min);
 
+# --- PRE-PROCESAMIENTO: Extraer Firmas Base64 y guardarlas como físicas ---
+# (Para evitar que payload_json se vuelva gigante en la base de datos de texto)
+my $firmas_dir = File::Spec->catdir($FindBin::Bin, '..', 'uploads', 'firmas');
+unless (-d $firmas_dir) {
+    mkdir $firmas_dir or warn "No se pudo crear directorio $firmas_dir: $!";
+}
+
+# Usamos el id de consulta como base para el id de consentimiento si se crea
+my $id_consentimiento_ref = 'CNS-' . time() . '-' . int(rand(1000));
+
+foreach my $tipo ('paciente', 'medico') {
+    my $campo = "firma_${tipo}_data";
+    my $b64_data = $q->param($campo) || $payload{$campo} || '';
+    
+    if ($b64_data =~ /^data:image\/(png|jpeg);base64,(.*)$/) {
+        my $ext = $1;
+        my $base64 = $2;
+        my $img_data = decode_base64($base64);
+        
+        my $filename = "${id_consentimiento_ref}_${tipo}.${ext}";
+        my $filepath = File::Spec->catfile($firmas_dir, $filename);
+        if (open my $fh_img, '>:raw', $filepath) {
+            print $fh_img $img_data;
+            close $fh_img;
+            
+            # Reemplazar la base64 por la ruta en el payload
+            $payload{$campo} = "uploads/firmas/$filename";
+            # Preparación para el futuro: Firma FIEL
+            $payload{"tipo_firma_${tipo}"} = "Autógrafa Digital (Pad)";
+        }
+    }
+}
+# --------------------------------------------------------------------------
+
 # 1. Guardar la consulta
 my $consultas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
 unless (-e $consultas_file) {
@@ -80,19 +115,21 @@ if ($requiere_receta eq '1' || $receta_json) {
 
 # 1.2 Persistir Consentimiento Informado si fue requerido
 my $requiere_consentimiento = $q->param('requiere_consentimiento') || $payload{requiere_consentimiento} || '0';
-my $consentimiento_json = $q->param('consentimiento_json') || $payload{consentimiento_json} || '';
-if ($requiere_consentimiento eq '1' || $consentimiento_json) {
+# Siempre ignoramos el consentimiento_json del input si hay payload directo, ya que limpiamos las firmas del payload
+my $consentimiento_json = encode_json(\%payload); 
+
+if ($requiere_consentimiento eq '1' || $q->param('consentimiento_json')) {
     my $cons_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consentimientos.dat');
     unless (-e $cons_file) {
         open my $fh_c, '>:encoding(UTF-8)', $cons_file;
         print $fh_c "id_consentimiento|id_consulta|id_paciente|id_medico|fecha|procedimiento|payload_json\n";
         close $fh_c;
     }
-    my $id_consentimiento = 'CNS-' . time() . '-' . int(rand(1000));
+    
     my $proc_consentimiento = $payload{procedimiento_descripcion} || 'Procedimiento Médico General';
-    my $c_json_clean = $consentimiento_json || encode_json(\%payload);
+    my $c_json_clean = $consentimiento_json;
     $c_json_clean =~ s/\r|\n/\\n/g;
-    my $linea_cons = join('|', $id_consentimiento, $id_consulta, $id_paciente, $id_medico, $hoy_fecha, $proc_consentimiento, $c_json_clean);
+    my $linea_cons = join('|', $id_consentimiento_ref, $id_consulta, $id_paciente, $id_medico, $hoy_fecha, $proc_consentimiento, $c_json_clean);
     utils::db_manager::guardar_registro($cons_file, $linea_cons);
 }
 

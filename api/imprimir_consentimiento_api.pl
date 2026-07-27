@@ -88,8 +88,12 @@ if ($cons_row && $cons_row->[6]) {
         my $json_raw = $cons_row->[6];
         $json_raw =~ s/\\n/\n/g;
         $c_data = decode_json($json_raw);
+        
         $firma_pac_url = $c_data->{firma_paciente_data} || '';
+        $firma_pac_url = "../$firma_pac_url" if $firma_pac_url =~ m{^uploads/};
+        
         $firma_med_url = $c_data->{firma_medico_data} || '';
+        $firma_med_url = "../$firma_med_url" if $firma_med_url =~ m{^uploads/};
     };
 }
 
