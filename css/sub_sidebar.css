@@ -275,14 +275,35 @@
     overflow: hidden;
 }
 
+/* Sidebar Overlay para Móvil */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 42, 102, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 4999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.sidebar-overlay.show {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+/* Botón Hamburguesa Inline (Únicamente en Móvil <768px) */
 .btn-menu-toggle-inline {
-    background: #0A2A66 !important; /* Azul marino */
+    background: #0A2A66 !important;
     color: #ffffff !important;
     border: none !important;
     border-radius: 10px !important;
     width: 38px !important;
     height: 38px !important;
-    display: flex !important;
+    display: none !important; /* Oculto por defecto en Desktop y Tableta (>=768px) */
     align-items: center !important;
     justify-content: center !important;
     font-size: 1.25rem !important;
@@ -290,6 +311,12 @@
     transition: all 0.3s ease !important;
     animation: pulse-menu 2.5s infinite !important;
     flex-shrink: 0;
+}
+
+@media (max-width: 767.98px) {
+    .btn-menu-toggle-inline {
+        display: flex !important; /* Visible EXCLUSIVAMENTE en teléfonos (<768px) */
+    }
 }
 
 @keyframes pulse-menu {

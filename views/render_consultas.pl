@@ -209,9 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const odontoSection = document.getElementById('odontograma-section');
     
     function toggleOdontograma() {
-        if (especialidadSelect && especialidadSelect.value === 'Odontologia') {
+        if (!odontoSection) return;
+        const val = especialidadSelect ? especialidadSelect.value : '';
+        const isOdonto = (val === 'Odontologia' || val === '100' || val.toLowerCase().includes('odontolog'));
+        if (isOdonto) {
             odontoSection.style.display = 'block';
-            // Iniciar Odontograma SPA
             if (typeof initOdontograma === 'function') {
                 initOdontograma('odontograma-svg-container', '$id_paciente');
             }
@@ -220,9 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    if (especialidadSelect) {
+    if (especialidadSelect && odontoSection) {
         especialidadSelect.addEventListener('change', toggleOdontograma);
-        // Disparar en carga por si viene del draft
         toggleOdontograma();
     }
 });

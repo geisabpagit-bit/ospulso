@@ -261,6 +261,13 @@ render_header(
     skip_header => 1
 );
 
+utils::sub_sidebar::render_sidebar(
+    role          => $role, 
+    usuario       => $usuario, 
+    id_medico     => $id_medico, 
+    pagina_actual => 'consultas'
+);
+
 print <<HTML;
 <link rel="stylesheet" href="../css/consulta_flow.css">
 <!-- DataTables CSS/JS para Estudios PACS -->
@@ -268,19 +275,29 @@ print <<HTML;
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
-<div class="wizard-container animate__animated animate__fadeIn">
-    <!-- Encabezado Clínico -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-black mb-0" style="color: var(--md-navy);">
-                <i class="bi bi-heart-pulse-fill me-2" style="color: var(--md-teal-clinical);"></i>Consulta M&eacute;dica (Privada)
-            </h2>
-            <p class="text-muted fw-bold">Paciente: $paciente->{nombre} (Folio: $id_paciente)</p>
+<div class="wizard-container animate__animated animate__fadeIn p-2 p-md-4">
+    <!-- ENCABEZADO CLÍNICO DE ALTO IMPACTO (ESTÁNDAR GLOBAL CORPORATIVO) -->
+    <header class="bg-medentia-gradient text-white p-3 p-md-4 shadow-sm mb-4" style="border-radius: 1.25rem;">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-white bg-opacity-10 p-2 p-md-3 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                    <i class="bi bi-heart-pulse-fill fs-3 text-white"></i>
+                </div>
+                <div>
+                    <h3 class="fw-black mb-0 text-white fs-4 fs-md-2" style="letter-spacing: -0.5px;">Consulta M&eacute;dica (Privada)</h3>
+                    <p class="text-white-50 small mb-0 mt-1">
+                        <span class="me-3"><i class="bi bi-person-fill me-1"></i><strong>Paciente:</strong> $paciente->{nombre}</span>
+                        <span><i class="bi bi-hash me-1"></i><strong>Folio:</strong> $id_paciente</span>
+                    </p>
+                </div>
+            </div>
+            <div>
+                <a href="render_expediente_clinico.pl?id=$id_paciente" class="btn text-white fw-bold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2 small transition-all" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);">
+                    <i class="bi bi-x-circle-fill text-white"></i><span>Cancelar y Salir</span>
+                </a>
+            </div>
         </div>
-        <a href="render_expediente_clinico.pl?id=$id_paciente" class="btn btn-outline-secondary rounded-pill fw-bold">
-            <i class="bi bi-x-circle me-2"></i>Cancelar y Salir
-        </a>
-    </div>
+    </header>
 
     <!-- Stepper y Progress Bar (8 pasos) -->
     <div class="wizard-stepper">
@@ -506,7 +523,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const odontoSection = document.getElementById('odontograma-section');
     
     function toggleOdontograma() {
-        if (especialidadSelect && especialidadSelect.value === 'Odontologia') {
+        if (!odontoSection) return;
+        const val = especialidadSelect ? especialidadSelect.value : '';
+        const isOdonto = (val === 'Odontologia' || val === '100' || val.toLowerCase().includes('odontolog'));
+        if (isOdonto) {
             odontoSection.style.display = 'block';
             if (typeof initOdontograma === 'function') {
                 initOdontograma('odontograma-svg-container', '$id_paciente');
@@ -516,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    if (especialidadSelect) {
+    if (especialidadSelect && odontoSection) {
         especialidadSelect.addEventListener('change', toggleOdontograma);
         toggleOdontograma();
     }
@@ -557,6 +577,8 @@ async function finalizarConsulta() {
 }
 </script>
 HTML
+
+utils::sub_sidebar::render_sidebar_footer();
 
 sub calcular_edad {
     my ($fecha_nac) = @_;
