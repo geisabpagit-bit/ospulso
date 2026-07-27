@@ -204,6 +204,7 @@ sub render_step_caja_privado {
                                 <select name="caja_estado_tratamiento" id="f_caja_estado_tratamiento" class="wizard-input" onchange="toggleCitaWorkflow()">
                                     <option value="Abierto">Dejar tratamiento abierto (Requiere pr&oacute;xima cita)</option>
                                     <option value="Cerrado">Finalizar y Cerrar tratamiento (Alta m&eacute;dica)</option>
+                                    <option value="Cobro por recepción">Cobro por recepci&oacute;n (Pendiente por Recepcionista)</option>
                                 </select>
                             </div>
                         </div>
@@ -469,6 +470,14 @@ sub render_step_caja_privado {
             const isTratamientoActivo = historialTratamiento && historialTratamiento.tiene_tratamiento;
             const isNuevaConversion = cotSelect && cotSelect.value && convertirCheck && convertirCheck.checked;
             
+            // Si la cotización en Step Registro es ninguna/vacía, por default seleccionar 'Cerrado' (Alta médica)
+            if (!cotSelect || !cotSelect.value || cotSelect.value === 'ninguna' || cotSelect.value === '') {
+                const estadoTratSelect = document.getElementById('f_caja_estado_tratamiento');
+                if (estadoTratSelect && (!estadoTratSelect.dataset.userChanged)) {
+                    estadoTratSelect.value = 'Cerrado';
+                }
+            }
+
             // Precargar concepto de Consulta Médica base ($500.00) por regla financiera si está vacío
             if (!isTratamientoActivo && !isNuevaConversion && (!carritoConsulta || carritoConsulta.length === 0)) {
                 const espeInput = document.querySelector('[name="especialidad"]');
@@ -618,7 +627,12 @@ sub render_step_caja_privado {
                 });
             }
             
-            if (tipoPago === 'Liquidar') {
+            const estadoTrat = document.getElementById('f_caja_estado_tratamiento') ? document.getElementById('f_caja_estado_tratamiento').value : '';
+            
+            if (estadoTrat === 'Cobro por recepción') {
+                montoInput.value = '0.00';
+                montoInput.readOnly = true;
+            } else if (tipoPago === 'Liquidar') {
                 montoInput.value = totalAcumulado.toFixed(2);
                 montoInput.readOnly = true;
             } else {

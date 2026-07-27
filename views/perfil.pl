@@ -92,7 +92,8 @@ if ($session_ok) {
                     id_espe        => $id_espe,
                     id_subespe     => $id_subespe,
                     espe_nombre    => $espe_nombre,
-                    subespe_nombre => $subespe_nombre
+                    subespe_nombre => $subespe_nombre,
+                    cedula         => $c[9] // ''
                 };
                 last;
             }

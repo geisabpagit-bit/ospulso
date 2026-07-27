@@ -1,3 +1,7 @@
+use strict;
+use warnings;
+use utf8;
+
 sub render_step_comunicacion {
     return qq{
         <div class="wizard-panel" id="step-panel-5">

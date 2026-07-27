@@ -60,6 +60,7 @@ if ($regs_usr) {
         if ($r->[0] eq $id_medico || (lc($r->[2] // '') eq lc($usuario))) {
             $id_espe_medico    = $r->[7] // '0';
             $id_subespe_medico = $r->[8] // '0';
+            $paciente->{cedula_medico} = $r->[9] // '';
             last;
         }
     }
@@ -351,7 +352,7 @@ print <<HTML;
         @{[ render_step_anamnesis() ]}
         @{[ render_step_exploracion($paciente) ]}
         @{[ render_step_estudios($paciente) ]}
-        @{[ render_step_soap() ]}
+        @{[ render_step_soap($paciente) ]}
         @{[ render_step_comunicacion() ]}
         @{[ render_step_caja_privado($paciente) ]}
         @{[ render_step_cierre_privado() ]}

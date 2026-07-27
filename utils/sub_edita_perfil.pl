@@ -203,8 +203,15 @@ HTML
     if ($role eq 'Medico') {
         my $espe_nombre = $u->{espe_nombre} || 'General / Ninguna';
         my $subespe_nombre = $u->{subespe_nombre} || 'General / Ninguna';
+        my $u_cedula = $u->{cedula} // '';
         print <<HTML;
             <div class="row g-3 mt-1">
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <input type="text" class="form-control border-primary fw-bold" id="biz_cedula" name="biz_cedula" placeholder="Cédula Profesional" value="$u_cedula">
+                        <label for="biz_cedula"><i class="bi bi-card-heading text-primary me-1"></i>Cédula Profesional</label>
+                    </div>
+                </div>
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input type="text" class="form-control bg-light fw-bold text-primary" value="$espe_nombre" readonly>

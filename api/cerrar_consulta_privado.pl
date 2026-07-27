@@ -202,6 +202,11 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
     my $fin_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
     
     my $caja_estado_tratamiento = $q->param('caja_estado_tratamiento') // 'Abierto';
+    my $es_cobro_recepcion = ($caja_estado_tratamiento =~ /Cobro/i) ? 1 : 0;
+    if ($es_cobro_recepcion) {
+        $caja_monto_abono = 0; # El cobro se delega a recepción
+    }
+    
     my $fecha_fin = ($caja_estado_tratamiento eq 'Cerrado') ? $hoy_fecha : '';
     my $proxima_cita_id = $q->param('proxima_cita_id') // '';
     my $caja_metodo_pago = $q->param('caja_metodo_pago') // 'Efectivo';
@@ -214,12 +219,13 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         $total_cargos_directos += ($it->{precio} || 0) * ($it->{cantidad} || 1);
     }
     
-    # REGLA FINANCIERA: Si hay abono de caja pero no hay cotización ni ítems directos explícitos,
-    # generamos automáticamente el cargo por "Consulta Médica" igual al monto abonado para evitar saldo negativo.
-    if ($caja_monto_abono > 0 && !$id_cotizacion && !$tiene_cargos_directos) {
-        $caja_items = [ { nombre => 'Consulta Médica', precio => $caja_monto_abono, cantidad => 1 } ];
+    # REGLA FINANCIERA: Si hay abono de caja o cobro delegado por recepción pero no hay cotización ni ítems directos explícitos,
+    # generamos automáticamente el cargo por "Consulta Médica" igual al monto abonado o tarifa base ($500.00).
+    if (($caja_monto_abono > 0 || $es_cobro_recepcion) && !$id_cotizacion && !$tiene_cargos_directos) {
+        my $monto_cargo = $caja_monto_abono > 0 ? $caja_monto_abono : 500.00;
+        $caja_items = [ { nombre => 'Consulta Médica', precio => $monto_cargo, cantidad => 1 } ];
         $tiene_cargos_directos = 1;
-        $total_cargos_directos = $caja_monto_abono;
+        $total_cargos_directos = $monto_cargo;
     }
     
     if ($id_tratamiento) {

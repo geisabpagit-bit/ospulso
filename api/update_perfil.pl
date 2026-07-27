@@ -85,6 +85,7 @@ eval {
         nombre       => $u_nombre,
         clave_actual => $clave_actual,
         clave_nueva  => $clave_nueva,
+        cedula       => decode('UTF-8', $q->param('biz_cedula') || ''),
     );
 
     unless ($u_success) {
@@ -205,6 +206,9 @@ sub actualizar_usuario {
             close $in; close $out; unlink $temp; return (0, "Contraseña incorrecta.");
         }
         $c[U_NOMBRE_INDEX] = $args{nombre};
+        if (defined $args{cedula} && $args{cedula} ne '') {
+            $c[9] = $args{cedula};
+        }
         if ($args{clave_nueva}) {
             my $sha_n = Digest::SHA->new(256); $sha_n->add($args{clave_nueva});
             $c[U_CLAVE_INDEX] = $sha_n->hexdigest;

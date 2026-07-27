@@ -4,6 +4,9 @@ use utf8;
 use File::Spec;
 
 sub render_step_soap {
+    my ($paciente) = @_;
+    my $cedula_medico = ($paciente && ref($paciente) eq 'HASH') ? ($paciente->{cedula_medico} // '') : '';
+
     my $cif1_options = cargar_opciones_dat('CAT_CIF_1erNivel.dat', 1);
     my $cif2_options = cargar_opciones_dat('CAT_CIF_2oNivel.dat', 1);
     my $cif3_options = cargar_opciones_dat('CAT_CIF_3erNivel.dat', 1);
@@ -25,104 +28,118 @@ sub render_step_soap {
                     <p class="text-muted mb-4 fw-bold">An&aacute;lisis (Assessment) y Diagn&oacute;stico. El Subjetivo y Objetivo se consolidan autom&aacute;ticamente a partir de los pasos anteriores.</p>
                 </div>
                 
-                <!-- Diagnóstico CIE-10 Autocomplete -->
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <label class="wizard-label">Diagn&oacute;stico CIE-10 (Buscador) <span class="req-star">*</span></label>
-                        <div class="position-relative">
-                            <input type="text" id="cie10_search" class="wizard-input border-primary" placeholder="Escribe al menos 2 caracteres para buscar en CIE-10..." autocomplete="off">
-                            <div id="cie10_results" class="list-group position-absolute w-100 shadow rounded-3 mt-1" style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto; background: white;"></div>
+                <div class="col-12 mb-2">
+                    <div class="card border-0 bg-light p-3 rounded-4 shadow-sm">
+                        <div class="form-check form-switch fs-5 m-0 d-flex align-items-center gap-2">
+                            <input class="form-check-input my-0" type="checkbox" role="switch" id="check_usar_cie10" name="usar_cie10" value="1" onchange="toggleSeccionCIE10(this.checked)">
+                            <label class="form-check-label fs-6 fw-bold text-navy my-0" for="check_usar_cie10">¿Utilizar el catálogo oficial Diagnóstico CIE-10 / Valoración CIF?</label>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-8">
-                    <div class="form-group">
-                        <label class="wizard-label">Diagn&oacute;stico Seleccionado <span class="req-star">*</span></label>
-                        <input type="text" name="diagnostico_principal" id="diagnostico_principal" class="wizard-input bg-light border-secondary" readonly placeholder="Ninguno seleccionado..." required>
-                        <input type="hidden" name="clave_diagnostico_cie10" id="clave_diagnostico_cie10">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="wizard-label">Severidad</label>
-                        <select name="severidad" class="wizard-input">
-                            <option value="Leve">Leve</option>
-                            <option value="Moderada">Moderada</option>
-                            <option value="Grave">Grave</option>
-                        </select>
-                    </div>
-                </div>
+                <!-- Campos de Diagnóstico CIE-10 y CIF (Ocultos por defecto) -->
+                <div id="seccion-cie10-cif" class="col-12 p-0" style="display: none;">
+                    <div class="row g-4 m-0">
+                        <!-- Diagnóstico CIE-10 Autocomplete -->
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="wizard-label">Diagn&oacute;stico CIE-10 (Buscador)</label>
+                                <div class="position-relative">
+                                    <input type="text" id="cie10_search" class="wizard-input border-primary" placeholder="Escribe al menos 2 caracteres para buscar en CIE-10..." autocomplete="off">
+                                    <div id="cie10_results" class="list-group position-absolute w-100 shadow rounded-3 mt-1" style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto; background: white;"></div>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Evaluación Funcional CIF -->
-                <div class="col-12 mt-4">
-                    <h5 class="fw-bold mb-3 text-secondary"><i class="bi bi-person-wheelchair me-2"></i>Valoración Funcional CIF</h5>
-                    
-                    <!-- Nivel 1 -->
-                    <div class="row g-3 border rounded-3 p-3 mb-3 bg-light">
-                        <div class="col-12"><span class="badge bg-primary">Nivel 1: Funciones Corporales (b) / Estructuras (s) / Actividades (d) / Entorno (e)</span></div>
                         <div class="col-md-8">
-                            <label class="wizard-label">Código CIF Nivel 1</label>
-                            <select name="cif_nivel1" class="wizard-input">
-                                $cif1_options
-                            </select>
+                            <div class="form-group">
+                                <label class="wizard-label">Diagn&oacute;stico Seleccionado</label>
+                                <input type="text" name="diagnostico_principal" id="diagnostico_principal" class="wizard-input bg-light border-secondary" readonly placeholder="Ninguno seleccionado...">
+                                <input type="hidden" name="clave_diagnostico_cie10" id="clave_diagnostico_cie10">
+                            </div>
                         </div>
                         <div class="col-md-4">
-                            <label class="wizard-label">Calificador (Funciones)</label>
-                            <select name="cif_calif1" class="wizard-input">
-                                $calfunc_options
-                            </select>
+                            <div class="form-group">
+                                <label class="wizard-label">Severidad</label>
+                                <select name="severidad" class="wizard-input">
+                                    <option value="Leve">Leve</option>
+                                    <option value="Moderada">Moderada</option>
+                                    <option value="Grave">Grave</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Nivel 2 -->
-                    <div class="row g-3 border rounded-3 p-3 mb-3 bg-light">
-                        <div class="col-12"><span class="badge bg-secondary">Nivel 2: Detalle de Capítulo</span></div>
-                        <div class="col-md-8">
-                            <label class="wizard-label">Código CIF Nivel 2</label>
-                            <select name="cif_nivel2" class="wizard-input">
-                                $cif2_options
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="wizard-label">Calificador (Estructuras)</label>
-                            <select name="cif_calif2" class="wizard-input">
-                                $calestruc_options
-                            </select>
-                        </div>
-                    </div>
+                        <!-- Evaluación Funcional CIF -->
+                        <div class="col-12 mt-4">
+                            <h5 class="fw-bold mb-3 text-secondary"><i class="bi bi-person-wheelchair me-2"></i>Valoración Funcional CIF</h5>
+                            
+                            <!-- Nivel 1 -->
+                            <div class="row g-3 border rounded-3 p-3 mb-3 bg-light">
+                                <div class="col-12"><span class="badge bg-primary">Nivel 1: Funciones Corporales (b) / Estructuras (s) / Actividades (d) / Entorno (e)</span></div>
+                                <div class="col-md-8">
+                                    <label class="wizard-label">Código CIF Nivel 1</label>
+                                    <select name="cif_nivel1" class="wizard-input">
+                                        $cif1_options
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="wizard-label">Calificador (Funciones)</label>
+                                    <select name="cif_calif1" class="wizard-input">
+                                        $calfunc_options
+                                    </select>
+                                </div>
+                            </div>
 
-                    <!-- Nivel 3 -->
-                    <div class="row g-3 border rounded-3 p-3 mb-3 bg-light">
-                        <div class="col-12"><span class="badge bg-info text-dark">Nivel 3: Categoría Específica</span></div>
-                        <div class="col-md-8">
-                            <label class="wizard-label">Código CIF Nivel 3</label>
-                            <select name="cif_nivel3" class="wizard-input">
-                                $cif3_options
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="wizard-label">Calificador (Actividades y Participación)</label>
-                            <select name="cif_calif3" class="wizard-input">
-                                $calactpart_options
-                            </select>
-                        </div>
-                    </div>
+                            <!-- Nivel 2 -->
+                            <div class="row g-3 border rounded-3 p-3 mb-3 bg-light">
+                                <div class="col-12"><span class="badge bg-secondary">Nivel 2: Detalle de Capítulo</span></div>
+                                <div class="col-md-8">
+                                    <label class="wizard-label">Código CIF Nivel 2</label>
+                                    <select name="cif_nivel2" class="wizard-input">
+                                        $cif2_options
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="wizard-label">Calificador (Estructuras)</label>
+                                    <select name="cif_calif2" class="wizard-input">
+                                        $calestruc_options
+                                    </select>
+                                </div>
+                            </div>
 
-                    <!-- Nivel 4 -->
-                    <div class="row g-3 border rounded-3 p-3 mb-3 bg-light">
-                        <div class="col-12"><span class="badge bg-dark">Nivel 4: Subcategoría Detallada</span></div>
-                        <div class="col-md-8">
-                            <label class="wizard-label">Código CIF Nivel 4</label>
-                            <select name="cif_nivel4" class="wizard-input">
-                                $cif4_options
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="wizard-label">Calificador (Entorno/Ambiental)</label>
-                            <select name="cif_calif4" class="wizard-input">
-                                $calamb_options
-                            </select>
+                            <!-- Nivel 3 -->
+                            <div class="row g-3 border rounded-3 p-3 mb-3 bg-light">
+                                <div class="col-12"><span class="badge bg-info text-dark">Nivel 3: Categoría Específica</span></div>
+                                <div class="col-md-8">
+                                    <label class="wizard-label">Código CIF Nivel 3</label>
+                                    <select name="cif_nivel3" class="wizard-input">
+                                        $cif3_options
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="wizard-label">Calificador (Actividades y Participación)</label>
+                                    <select name="cif_calif3" class="wizard-input">
+                                        $calactpart_options
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Nivel 4 -->
+                            <div class="row g-3 border rounded-3 p-3 mb-3 bg-light">
+                                <div class="col-12"><span class="badge bg-dark">Nivel 4: Subcategoría Detallada</span></div>
+                                <div class="col-md-8">
+                                    <label class="wizard-label">Código CIF Nivel 4</label>
+                                    <select name="cif_nivel4" class="wizard-input">
+                                        $cif4_options
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="wizard-label">Calificador (Entorno/Ambiental)</label>
+                                    <select name="cif_calif4" class="wizard-input">
+                                        $calamb_options
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -195,11 +212,15 @@ sub render_step_soap {
                             </div>
 
                             <div class="row g-3">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="wizard-label">Folio de Control de Receta</label>
                                     <input type="text" name="receta_folio" id="receta_folio_input" class="wizard-input bg-light fw-bold" readonly>
                                 </div>
-                                <div class="col-md-8">
+                                <div class="col-md-3">
+                                    <label class="wizard-label">Cédula Profesional Médico</label>
+                                    <input type="text" class="wizard-input bg-light fw-bold text-primary" readonly value="$cedula_medico" placeholder="No registrada en perfil">
+                                </div>
+                                <div class="col-md-6">
                                     <label class="wizard-label">Indicaciones / Advertencias Generales</label>
                                     <input type="text" name="receta_indicaciones_extra" class="wizard-input" placeholder="Ej: Tomar con abundante agua. Evitar consumo de alcohol durante el tratamiento.">
                                 </div>
@@ -271,6 +292,23 @@ sub render_step_soap {
                     });
                 }
             });
+
+            // Lógica JS de CIE-10 Toggle
+            function toggleSeccionCIE10(checked) {
+                const sec = document.getElementById('seccion-cie10-cif');
+                const diagInput = document.getElementById('diagnostico_principal');
+                if (sec) {
+                    sec.style.display = checked ? 'block' : 'none';
+                }
+                if (diagInput) {
+                    if (checked) {
+                        diagInput.setAttribute('required', 'required');
+                    } else {
+                        diagInput.removeAttribute('required');
+                        diagInput.classList.remove('is-invalid');
+                    }
+                }
+            }
 
             // Lógica JS de Receta Médica
             let recetaItems = [];

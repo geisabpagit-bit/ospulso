@@ -1,3 +1,7 @@
+use strict;
+use warnings;
+use utf8;
+
 sub render_step_exploracion {
     my ($paciente) = @_;
     my $id_espe = $paciente->{id_espe_medico} // '0';
