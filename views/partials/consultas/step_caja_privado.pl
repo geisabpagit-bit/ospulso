@@ -82,21 +82,24 @@ sub render_step_caja_privado {
         close($fh_t);
     }
     
-    # 4. Cargar cargos y abonos del tratamiento activo
+    # 4. Cargar cargos y abonos del paciente / tratamiento activo (incluyendo recepción)
     my @cargos = ();
     my @abonos = ();
     my $total_cargos = 0;
     my $total_abonos = 0;
     
     my $fin_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
-    if ($tiene_tratamiento && -e $fin_file && open(my $fh_f, '<:encoding(UTF-8)', $fin_file)) {
+    if (-e $fin_file && open(my $fh_f, '<:encoding(UTF-8)', $fin_file)) {
         my $header = <$fh_f>;
         while (my $line = <$fh_f>) {
             chomp $line;
             next if $line =~ /^\s*$/;
             my @c = split /\|/, $line, -1;
             next unless @c >= 8;
-            if ($c[0] eq $id_tratamiento_activo) {
+            my $id_os_row = $c[0] // '';
+            my $id_pac_row = $c[2] // '';
+            
+            if ($id_pac_row eq $id_p && (!$tiene_tratamiento || $id_os_row eq $id_tratamiento_activo || $line =~ /Recepción|Recepcion/i)) {
                 my $tipo = $c[3];
                 my $total = $c[7] // 0;
                 if ($tipo eq 'Cargo') {
@@ -493,16 +496,17 @@ sub render_step_caja_privado {
                 }
             }
 
-            // Precargar concepto de Consulta Médica base ($500.00) por regla financiera si está vacío
-            if (!isTratamientoActivo && !isNuevaConversion && (!carritoConsulta || carritoConsulta.length === 0)) {
+            // Precargar concepto de Consulta Médica base ($500.00) por regla financiera si está vacío (salvo si ya fue pagado en Recepción)
+            if (!isTratamientoActivo && !isNuevaConversion && !tienePrePagoRecepcion && (!carritoConsulta || carritoConsulta.length === 0)) {
                 const espeInput = document.querySelector('[name="especialidad"]');
                 const espeNombre = (espeInput && espeInput.value) ? espeInput.value : 'General';
                 carritoConsulta = [{ id: 'CONS-BASE', nombre: 'Consulta Médica (' + espeNombre + ')', precio: 500.00, cantidad: 1 }];
             }
 
             const tieneCargosDirectos = carritoConsulta && carritoConsulta.length > 0;
+            const tieneHistorialCaja = historialTratamiento && ((historialTratamiento.cargos && historialTratamiento.cargos.length > 0) || (historialTratamiento.abonos && historialTratamiento.abonos.length > 0));
             
-            if (isTratamientoActivo || isNuevaConversion || tieneCargosDirectos) {
+            if (isTratamientoActivo || isNuevaConversion || tieneCargosDirectos || tienePrePagoRecepcion || tieneHistorialCaja) {
                 noCotCard.style.display = 'none';
                 workflowCont.style.display = 'block';
                 
@@ -511,8 +515,8 @@ sub render_step_caja_privado {
                 
                 let subtotalAcumulado = 0;
                 
-                // 1. Mostrar Cargos del tratamiento activo
-                if (isTratamientoActivo) {
+                // 1. Mostrar Cargos del tratamiento activo / Cobros de Recepción
+                if (isTratamientoActivo || tieneHistorialCaja) {
                     historialTratamiento.cargos.forEach(it => {
                         tbody.innerHTML += `
                             <tr>
@@ -591,7 +595,7 @@ sub render_step_caja_privado {
                 
                 // 4. Agregar fila de total acumulado
                 let labelTotal = "Total a Cobrar";
-                if (isTratamientoActivo) {
+                if (isTratamientoActivo || tieneHistorialCaja) {
                     labelTotal = "Saldo Restante + Conceptos Adicionales";
                 } else if (isNuevaConversion) {
                     labelTotal = "Total (Cotización + Adicionales)";
@@ -627,7 +631,7 @@ sub render_step_caja_privado {
             const isNuevaConversion = cotSelect && cotSelect.value;
             
             let totalAcumulado = 0;
-            if (isTratamientoActivo) {
+            if (isTratamientoActivo || tieneHistorialCaja) {
                 totalAcumulado = historialTratamiento.saldo_pendiente;
             } else if (isNuevaConversion) {
                 const idCot = cotSelect.value;
