@@ -32,6 +32,7 @@ my %archivos = (
     'negocios.dat' => "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud\n",
     'citas.dat' => "ID_CITA|ID_MEDICO|ID_PACIENTE|FECHA|HORA_INICIO|HORA_FIN|TIPO_CONSULTA|NOTAS|ESTADO|EXTRA\n",
     'pacientes.dat' => "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT\n",
+    'pacientes_antecedentes.dat' => "ID_PACIENTE|TUTOR|ANTECEDENTES_JSON|FECHA_ACTUALIZACION\n",
     'tratamientos.dat' => "ID_TRATAMIENTO|ID_PACIENTE|ID_COT|ESTADO|FECHA_INICIO|FECHA_FIN|ID_MEDICO|TOTAL|ID_CITA\n",
     'estado_cuenta.dat' => "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n",
     'gastos.dat' => "ID_GASTO|CONCEPTO|MONTO|FECHA|CATEGORIA|SUBCATEGORIA|METODO_PAGO|ESTADO|COMPROBANTE|ID_MEDICO\n",
@@ -78,10 +79,11 @@ eval {
         unlink $cat or warn "No se pudo borrar el catálogo dinámico $cat: $!";
     }
 
-    # 3. Limpiar carpetas de adjuntos, estudios RX y firmas digitales
+    # 3. Limpiar carpetas de adjuntos, estudios RX, facturas y firmas digitales
     limpiar_directorio(File::Spec->catdir($dir, "adjuntos_crm"));
     limpiar_directorio(File::Spec->catdir($dir, "estudiosRX"));
     limpiar_directorio(File::Spec->catdir($FindBin::Bin, '..', 'uploads', 'firmas'));
+    limpiar_directorio(File::Spec->catdir($FindBin::Bin, '..', 'uploads', 'facturas'));
 };
 
 sub limpiar_directorio {
