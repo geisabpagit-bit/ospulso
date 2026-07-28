@@ -487,7 +487,10 @@ sub render_step_caja_privado {
             const isNuevaConversion = cotSelect && cotSelect.value && convertirCheck && convertirCheck.checked;
             
             // Banner de Detección de Cobro Anticipado en Recepción
-            const tienePrePagoRecepcion = (historialTratamiento && historialTratamiento.abonos && historialTratamiento.abonos.some(a => (a.concepto||'').includes('Recepción') || (a.concepto||'').includes('Recepcion')));
+            const tienePrePagoRecepcion = (historialTratamiento && (
+                (historialTratamiento.abonos && historialTratamiento.abonos.some(a => (a.concepto||'').includes('Recepción') || (a.concepto||'').includes('Recepcion'))) ||
+                (historialTratamiento.cargos && historialTratamiento.cargos.some(c => (c.concepto||'').includes('Recepción') || (c.concepto||'').includes('Recepcion')))
+            ));
             let alertPrePago = document.getElementById('caja-prepago-alert');
             if (tienePrePagoRecepcion) {
                 if (!alertPrePago) {
@@ -510,7 +513,11 @@ sub render_step_caja_privado {
             }
 
             // Precargar concepto de Consulta Médica base ($500.00) por regla financiera si está vacío (salvo si ya fue pagado en Recepción)
-            if (!isTratamientoActivo && !isNuevaConversion && !tienePrePagoRecepcion && (!carritoConsulta || carritoConsulta.length === 0)) {
+            if (tienePrePagoRecepcion) {
+                if (carritoConsulta && carritoConsulta.length > 0) {
+                    carritoConsulta = carritoConsulta.filter(c => c.id !== 'CONS-BASE');
+                }
+            } else if (!isTratamientoActivo && !isNuevaConversion && (!carritoConsulta || carritoConsulta.length === 0)) {
                 const espeInput = document.querySelector('[name="especialidad"]');
                 const espeNombre = (espeInput && espeInput.value) ? espeInput.value : 'General';
                 carritoConsulta = [{ id: 'CONS-BASE', nombre: 'Consulta Médica (' + espeNombre + ')', precio: 500.00, cantidad: 1 }];
@@ -770,7 +777,10 @@ sub render_step_caja_privado {
         function validarPasoCajaYContinuar() {
             const cotSelect = document.getElementById('f_id_cotizacion');
             const convertirCheck = document.getElementById('f_convertir_tratamiento');
-            const tienePrePagoRecepcion = (historialTratamiento && historialTratamiento.abonos && historialTratamiento.abonos.some(a => (a.concepto||'').includes('Recepción') || (a.concepto||'').includes('Recepcion')));
+            const tienePrePagoRecepcion = (historialTratamiento && (
+                (historialTratamiento.abonos && historialTratamiento.abonos.some(a => (a.concepto||'').includes('Recepción') || (a.concepto||'').includes('Recepcion'))) ||
+                (historialTratamiento.cargos && historialTratamiento.cargos.some(c => (c.concepto||'').includes('Recepción') || (c.concepto||'').includes('Recepcion')))
+            ));
             
             // Supuesto A: Si es prepago en recepción y sin items adicionales, continuar directo al cierre
             if (tienePrePagoRecepcion && (!carritoConsulta || carritoConsulta.length === 0)) {
