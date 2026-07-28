@@ -600,7 +600,7 @@ sub cobrar_recepcion {
     my $id_mov_abono = "MOV-" . time() . "-2";
 
     my $linea_cargo = join("|", "OS-$id_os", $id_mov_cargo, $id_paciente, "Cargo", "Consulta Médica (Cobro en Recepción)", $monto, 0, $monto, $fecha_actual, $id_medico, "Cobro Anticipado Recepción Cita #$id_cita", "RECEPCION");
-    my $linea_abono = join("|", "OS-$id_os", $id_mov_abono, $id_paciente, "Abono", "Pago de Consulta ($metodo_pago - Recepción)", $monto, 0, $monto, $fecha_actual, $id_medico, "Pago Recibido en Recepción", "RECEPCION");
+    my $linea_abono = join("|", "OS-$id_os", $id_mov_abono, $id_paciente, "Abono", "Pago de Consulta ($metodo_pago - Recepción)", $monto, 0, $monto, $fecha_actual, $id_medico, "Pago Recibido en Recepción Cita #$id_cita", "RECEPCION");
 
     if (open my $fhec, '>>:encoding(UTF-8)', $ec_file) {
         print $fhec "$linea_cargo\n";

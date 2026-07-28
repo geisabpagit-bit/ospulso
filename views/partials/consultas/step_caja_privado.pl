@@ -89,49 +89,65 @@ sub render_step_caja_privado {
     my $total_cargos = 0;
     my $total_abonos = 0;
     
+    my %os_de_esta_cita = ();
     my $fin_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
     if (-e $fin_file && open(my $fh_f, '<:encoding(UTF-8)', $fin_file)) {
         my $header = <$fh_f>;
+        my @todas_lineas = ();
         while (my $line = <$fh_f>) {
             chomp $line;
             next if $line =~ /^\s*$/;
             my @c = split /\|/, $line, -1;
             next unless @c >= 8;
+            push @todas_lineas, \@c;
+            
             my $id_os_row = $c[0] // '';
             my $id_pac_row = $c[2] // '';
             my $notas_row = $c[10] // '';
             
+            if ($id_pac_row eq $id_p) {
+                if ($id_cita ne '' && ($notas_row =~ /Cita #\s*\Q$id_cita\E\b/i || $line =~ /Cita #\s*\Q$id_cita\E\b/i)) {
+                    $os_de_esta_cita{$id_os_row} = 1 if $id_os_row ne '';
+                }
+            }
+        }
+        close($fh_f);
+        
+        foreach my $c (@todas_lineas) {
+            my $id_os_row  = $c->[0] // '';
+            my $id_pac_row = $c->[2] // '';
+            my $notas_row  = $c->[10] // '';
+            
             my $pertenece_a_cita = 0;
             if ($id_cita ne '') {
-                if ($notas_row =~ /Cita #\s*\Q$id_cita\E\b/i || ($tiene_tratamiento && $id_os_row eq $id_tratamiento_activo)) {
+                if (($id_os_row ne '' && exists $os_de_esta_cita{$id_os_row}) || $notas_row =~ /Cita #\s*\Q$id_cita\E\b/i || ($tiene_tratamiento && $id_os_row eq $id_tratamiento_activo)) {
                     $pertenece_a_cita = 1;
                 }
             } else {
-                if (!$tiene_tratamiento || $id_os_row eq $id_tratamiento_activo || $line =~ /Recepción|Recepcion/i) {
+                if (!$tiene_tratamiento || $id_os_row eq $id_tratamiento_activo || $notas_row =~ /Recepción|Recepcion/i || ($c->[4] // '') =~ /Recepción|Recepcion/i) {
                     $pertenece_a_cita = 1;
                 }
             }
             
             if ($id_pac_row eq $id_p && $pertenece_a_cita) {
-                my $tipo = $c[3];
-                my $total = $c[7] // 0;
+                my $tipo = $c->[3];
+                my $total = $c->[7] // 0;
                 if ($tipo eq 'Cargo') {
                     push @cargos, {
-                        concepto => $c[4],
+                        concepto => $c->[4],
                         total    => $total + 0
                     };
                     $total_cargos += $total;
                 } elsif ($tipo eq 'Abono') {
                     push @abonos, {
-                        concepto => $c[4],
+                        concepto => $c->[4],
                         total    => $total + 0,
-                        fecha    => $c[8]
+                        fecha    => $c->[8]
                     };
                     $total_abonos += $total;
                 }
             }
         }
-        close($fh_f);
     }
     
     my $saldo_pendiente = $total_cargos - $total_abonos;
@@ -533,11 +549,12 @@ sub render_step_caja_privado {
                 const tbody = document.getElementById('caja-tbody-items');
                 tbody.innerHTML = '';
                 
-                let subtotalAcumulado = 0;
+                let totalCargosGenerales = 0;
                 
                 // 1. Mostrar Cargos del tratamiento activo / Cobros de Recepción
                 if (isTratamientoActivo || tieneHistorialCaja) {
                     historialTratamiento.cargos.forEach(it => {
+                        totalCargosGenerales += it.total;
                         tbody.innerHTML += `
                             <tr>
                                 <td><span class="fw-bold text-dark text-uppercase small" style="letter-spacing:0.3px;">\${it.concepto}</span></td>
@@ -547,26 +564,6 @@ sub render_step_caja_privado {
                             </tr>
                         `;
                     });
-                    
-                    if (historialTratamiento.abonos.length > 0) {
-                        tbody.innerHTML += `
-                            <tr class="table-light">
-                                <td colspan="3" class="text-end fw-bold text-uppercase small text-success">Total Cargos del Tratamiento</td>
-                                <td class="text-end fw-bold text-success">\$\${historialTratamiento.total_cargos.toFixed(2)}</td>
-                            </tr>
-                        `;
-                        
-                        historialTratamiento.abonos.forEach(ab => {
-                            tbody.innerHTML += `
-                                <tr class="text-success small">
-                                    <td><i class="bi bi-arrow-return-right me-2"></i>\${ab.concepto} (Fecha: \${ab.fecha})</td>
-                                    <td colspan="2"></td>
-                                    <td class="text-end fw-bold text-success">-\$\${ab.total.toFixed(2)}</td>
-                                </tr>
-                            `;
-                        });
-                    }
-                    subtotalAcumulado = historialTratamiento.saldo_pendiente;
                 }
                 
                 // 2. Mostrar Cargos de nueva cotización
@@ -575,6 +572,7 @@ sub render_step_caja_privado {
                     const cot = cotizacionesData[idCot];
                     if (cot) {
                         cot.items.forEach(it => {
+                            totalCargosGenerales += it.subtotal;
                             tbody.innerHTML += `
                                 <tr>
                                     <td><span class="fw-bold text-dark text-uppercase small" style="letter-spacing:0.3px;">\${it.concepto}</span></td>
@@ -584,7 +582,6 @@ sub render_step_caja_privado {
                                 </tr>
                             `;
                         });
-                        subtotalAcumulado = cot.total;
                     }
                 }
                 
@@ -598,7 +595,7 @@ sub render_step_caja_privado {
                     
                     carritoConsulta.forEach((c, idx) => {
                         const itemSub = c.precio * c.cantidad;
-                        subtotalAcumulado += itemSub;
+                        totalCargosGenerales += itemSub;
                         tbody.innerHTML += `
                             <tr>
                                 <td>
@@ -613,7 +610,32 @@ sub render_step_caja_privado {
                     });
                 }
                 
-                // 4. Agregar fila de total acumulado
+                // 4. Mostrar Total Cargos y Abonos
+                if (isTratamientoActivo || tieneHistorialCaja) {
+                    tbody.innerHTML += `
+                        <tr class="table-light">
+                            <td colspan="3" class="text-end fw-bold text-uppercase small text-success">Total Cargos del Tratamiento</td>
+                            <td class="text-end fw-bold text-success">\$\${totalCargosGenerales.toFixed(2)}</td>
+                        </tr>
+                    `;
+                    
+                    if (historialTratamiento.abonos.length > 0) {
+                        historialTratamiento.abonos.forEach(ab => {
+                            tbody.innerHTML += `
+                                <tr class="text-success small">
+                                    <td><i class="bi bi-arrow-return-right me-2"></i>\${ab.concepto} (Fecha: \${ab.fecha})</td>
+                                    <td colspan="2"></td>
+                                    <td class="text-end fw-bold text-success">-\$\${ab.total.toFixed(2)}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                }
+                
+                const totalAbonosHistoricos = (historialTratamiento && historialTratamiento.total_abonos) ? historialTratamiento.total_abonos : 0;
+                let subtotalAcumulado = totalCargosGenerales - totalAbonosHistoricos;
+                
+                // 5. Agregar fila de total acumulado
                 let labelTotal = "Total a Cobrar";
                 if (isTratamientoActivo || tieneHistorialCaja) {
                     labelTotal = "Saldo Restante + Conceptos Adicionales";

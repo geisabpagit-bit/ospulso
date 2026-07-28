@@ -145,6 +145,8 @@ HTML
                         $citas_hoy_count++ if $f[3] eq $hoy_str;
                         my $p_name = $pacientes_map{$f[2]} || "Paciente #$f[2]";
                         push @proximas_citas, { 
+                            id => $f[0],
+                            id_paciente => $f[2],
                             nombre_paciente => $p_name, 
                             hora => $f[4], 
                             motivo => $f[6], 
@@ -435,13 +437,20 @@ HTML
         foreach my $cita (@proximas_citas) {
             my $bCol = ($cita->{estado} =~ /Confirmada/i) ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary';
             my $date_label = ($cita->{fecha} eq $hoy_str) ? 'Hoy' : substr($cita->{fecha}, 5);
+            my $btn_tomar = '';
+            if ($role eq 'Medico') {
+                $btn_tomar = qq{<a href="../views/render_consultas_privado.pl?id=$cita->{id_paciente}&id_cita=$cita->{id}" class="btn btn-sm btn-success fw-bold rounded-pill px-3 py-1 ms-2" style="background: linear-gradient(135deg, #10b981, #059669); border:none; font-size:0.75rem;"><i class="bi bi-person-check me-1"></i> Tomar Cita</a>};
+            }
             print qq{
                 <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-4 mb-3 shadow-sm interactive-scale" style="border: 1px solid rgba(25, 183, 165, 0.4);">
                     <div style="flex-grow:1">
                         <span class="d-block fw-bold text-navy mb-1" style="font-size:0.85rem;">$cita->{nombre_paciente}</span>
                         <div class="d-flex gap-2 align-items-center"><span class="badge bg-light text-muted" style="font-size:0.6rem;">$date_label</span><small class="text-muted fw-semibold" style="font-size:0.7rem;"><i class="bi bi-clock me-1"></i>$cita->{hora}</small></div>
                     </div>
-                    <div class="text-end"><span class="badge $bCol rounded-pill border-0 px-3 py-2 fw-bold" style="font-size:0.6rem;">$cita->{estado}</span></div>
+                    <div class="text-end d-flex align-items-center gap-2">
+                        <span class="badge $bCol rounded-pill border-0 px-3 py-2 fw-bold" style="font-size:0.6rem;">$cita->{estado}</span>
+                        $btn_tomar
+                    </div>
                 </div>\n};
         }
     }
