@@ -1,7 +1,7 @@
-# ⚖️ Reglas de Negocio SDM v4.2.0 (Diamond Excellence)
+# ⚖️ Reglas de Negocio SDM v4.3.0 (Diamond Excellence)
 
 ## 1. Gestión de Citas y Agenda SPA
-- **Protocolo de Color**: Programada (Navy), Confirmada (Verde), Atendida (Azul Profundo), Cancelada (Rojo), No Asistió (Ámbar).
+- **Protocolo de Color**: Programada (Navy), Confirmada (Verde), Atendida (Teal `#19B7A5`), Cancelada (Rojo), No Asistió (Ámbar).
 - **Traslapes**: Validación estricta mediante algoritmo de colisión médica.
 
 ## 2. Finanzas y Trazabilidad "Path to Excellence"
@@ -74,10 +74,32 @@
 ## 15. Estabilidad de Interfaces (Ergonomía de Modales)
 - **Prevención de Desborde**: Todo modal interactivo debe limitar su altura al **92% del viewport** y delegar el scroll al cuerpo del modal (`modal-body`), garantizando que los botones de acción (Guardar/Cerrar) permanezcan siempre visibles o accesibles.
 
+## 16. Reglas de Oro de Arquitectura SOAP Polimórfica y Multi-Especialidad
+1. **Contrato de Datos JSON SOAP Canónico**: Toda consulta privada debe serializarse bajo las llaves canónicas SOAP (`subjective`, `objective`, `assessment`, `plan`). Los datos dinámicos creados por especialistas DEBEN alojarse dentro de `soap.objective.especialidad_data`.
+2. **Core Pipeline Único e Inviolable**: El flujo global (Paso 0 Registro, Agenda, Expediente, Firma y Cierre con Caja) es 100% ÚNICO y compartido. Está estrictamente PROHIBIDO duplicar vistas completas por especialidad (ej. NO crear `consulta_pediatria.pl` ni `consulta_ginecologia.pl`).
+3. **Subformularios Desacoplados (Plugin Slot)**: Los subformularios de especialidad deben ser componentes modulares alojados en `views/partials/consultas/` o `views/partials/especialidades/`. Si una especialidad aún no cuenta con un subformulario propio, DEBE renderizarse el componente de fallback con Signos Vitales y la leyenda del módulo dinámico sin romper el flujo.
+
+## 17. Gestión Financiera de Caja y Cobro por Recepción (v4.3)
+- **Alta Médica por Defecto**: Si la cotización en Paso Registro es "ninguna" o vacía, la lista "Destino del Tratamiento" debe tener por defecto la opción "Finalizar y Cerrar tratamiento (Alta médica)".
+- **Cobro por Recepción**: La opción "Cobro por recepción" fija el abono inmediato del Wizard en `$0.00` y delega la cobranza al personal con rol `Recepcionista`. El backend registra exclusivamente el **Cargo** en `estado_cuenta.dat` sin generar **Abono**, dejando el saldo pendiente.
+- **Protección de Saldo Negativo**: Toda consulta con abono directo pero sin cotización previa genera automáticamente un cargo explícito por "Consulta Médica" por igual monto, garantizando que el saldo neto nunca quede negativo (-$500.00).
+
+## 18. Cédula Profesional y Prescripción Médica (NOM-024-SSA3)
+- **Atributo Inmutable de Médico**: El campo "Cédula Profesional" reside en el índice 9 de `usuarios.dat`.
+- **Enlace Automático**: Al renderizar el paso SOAP y formalizar la receta médica, la cédula del médico tratante se inyecta automáticamente en la UI y en la plantilla PDF de impresión oficial.
+
+## 19. Consentimiento Informado (NOM-004-SSA3) y Firma Digital/FIEL
+- **Aceptación Obligatoria**: La expedición de consentimientos informados exige el marcado explícito de la casilla de explicación y riesgos en el paso Comunicación.
+- **Desacoplamiento de Firmas**: Las firmas autógrafas capturadas en canvas se guardan en el servidor como imágenes PNG físicas (`uploads/firmas/*.png`) referenciadas en JSON, manteniendo compatibilidad con Firma Electrónica Avanzada FIEL/e.firma.
+
+## 20. Selección Opcional de Diagnósticos CIE-10 y CIF
+- **Default Desactivado**: El switch `¿Utilizar el catálogo oficial Diagnóstico CIE-10 / Valoración CIF?` inicia desactivado (NO).
+- **Validación Dinámica**: Al estar desactivado, los campos CIE-10 y CIF se ocultan y no se exige la propiedad `required`. Al activarlo (SÍ), se despliega el catálogo y se exige la selección de diagnóstico principal.
 
 ### 📋 Reglas de Registro Diamond Edition (v4.2)
 1.  **Sincronización de ID**: Todo nuevo registro debe obtener su ID desde `contador_registro_inicial.dat` usando `abs(time)` como respaldo. Se debe usar `flock` durante la actualización del contador.
 2.  **Integridad de Persistencia**: El archivo `usuarios.dat` debe terminar siempre en un salto de línea (`\n`). Cada nuevo registro debe asegurar un salto de línea previo si el archivo no lo tiene.
 3.  **Transparencia de Sincronización**: Si el usuario desactiva el consentimiento de Google Calendar, el sistema DEBE mostrar una advertencia visual (Warning) antes de procesar el registro, informando sobre la pérdida de sincronización de agenda.
 4.  **Confirmación Post-OAuth**: Tras el retorno exitoso de Google, el sistema debe redirigir al landing page (`index.html`) para mostrar el modal de éxito unificado, nunca quedarse en una página de callback estática.
-**GEISABPA - Diamond Edition v4.2.0**
+
+**GEISABPA - Diamond Edition v4.3.0**

@@ -1,8 +1,8 @@
-# 📖 Documentación Maestra SDM v4.2.0
+# 📖 Documentación Maestra SDM v4.3.0
 **Software Dental Mexicano - Diamond Edition (The Clinical Standard)**
 
-## 1. Visión v4.2.0 (Liquid Motion)
-Esta versión consolida la madurez de la Agenda SPA bajo el concepto "Liquid Motion Healthcare". Se ha logrado una estabilidad absoluta mediante protocolos de blindaje CSS/Perl, una responsividad inteligente que adapta la densidad de información al dispositivo, y una integración profunda de controles administrativos en la navegación móvil WebApp.
+## 1. Visión v4.3.0 (Polymorphic Clinical & Financial Suite)
+Esta versión consolida la madurez de la Suite Clínica y Financiera Privada. Se ha establecido una arquitectura SOAP polimórfica y multi-especialidad inviolable, un módulo de recetas médicas (NOM-024-SSA3) y consentimientos informados (NOM-004-SSA3) con firmas autógrafas/FIEL, gestión opcional de diagnósticos CIE-10/CIF, y un motor financiero flexible que permite cobro inmediato o diferido por recepción ("Cobro por recepción").
 
 ## 2. Componentes Críticos
 
@@ -24,7 +24,7 @@ Esta versión consolida la madurez de la Agenda SPA bajo el concepto "Liquid Mot
 ### 2.4 Motor de Trazabilidad Clínica y Blindaje Legal (Agenda ↔ Consultas)
 - **Separación de Responsabilidades**: Las citas (logística/calendario) viven en `dat/citas.dat` y las consultas médicas reales (acto clínico) viven en `dat/consultas_clinicas.dat`.
 - **Hub de Consultas (`tab10`)**: Interfaz anidada en el expediente que consolida citas programadas por atender (detectando automáticamente citas Confirmadas, Programadas, o No Asistencias), atenciones express (walk-in) y el historial cronológico de notas médicas generadas.
-- **Handshake de Estados**: Al finalizar una consulta, el sistema genera un ID único, empaqueta los datos en JSON, y cambia automáticamente el estado de la cita original en la agenda de "Programada" a "Realizada", creando un puente auditable perfecto.
+- **Handshake de Estados**: Al finalizar una consulta, el sistema genera un ID único, empaqueta los datos en JSON, y cambia automáticamente el estado de la cita original en la agenda de "Programada" a "Realizada" (o "Atendida" en verde `#19B7A5`), creando un puente auditable perfecto.
 - **Manejo de Citas Extemporáneas ("Tomar Cita")**: Permite al médico atender una cita pasada. El sistema verifica colisiones de horario en tiempo real y reubica la cita al horario actual asignando el estado especial `Atendida (Ext.)`.
 - **Blindaje de Notas Médicas (Read-Only)**: Una vez finalizada una consulta, pasa al Historial Clínico. El sistema levanta un modal de "Solo Lectura" inmutable (evitando CRUD destructivo sobre el pasado), garantizando la integridad legal del expediente. Se incluye exportación e impresión del folio clínico.
 
@@ -36,9 +36,9 @@ Esta versión consolida la madurez de la Agenda SPA bajo el concepto "Liquid Mot
   - **Contexto Agenda**: Muestra `Inicio`, `Nueva Cita` (FAB destacado), `Pacientes` y `Ajustes`.
 - **Blindaje de Posicionamiento**: Implementación de `position: fixed !important`, `z-index: 5500` y soporte para `safe-area-inset-bottom` para garantizar visibilidad total y compatibilidad con gestos de sistemas operativos modernos (iOS/Android).
 
-### 2.6 Perfil Mutante (Multi-Role Experience)
+### 2.6 Perfil Mutante & Cédula Profesional (Multi-Role Experience)
 - **Interfaz Dinámica**: Unificación de la vista de perfil que alterna entre el Panel de Configuración del Negocio (para Médicos) y la Ficha Clínica Integral (para Pacientes) sin recargar la SPA.
-- **Sincronización Transversal**: Motor de persistencia que garantiza que los cambios en el perfil se reflejen en los archivos `.dat` correspondientes según el contexto del usuario.
+- **Campo Cédula Profesional**: Exclusivo para el rol `Medico`, almacenado en el índice 9 de `usuarios.dat`. Se vincula automáticamente a la formalización de recetas médicas en el paso S.O.A.P. y a los endpoints de impresión PDF.
 
 ### 2.7 Blindaje Diamante de Suscripción
 - **Acceso Condicional**: Capa de seguridad que invalida el acceso al sistema si el negocio asociado está marcado como inactivo o su fecha de suscripción ha expirado.
@@ -49,25 +49,34 @@ Esta versión consolida la madurez de la Agenda SPA bajo el concepto "Liquid Mot
 - **Implementación Híbrida UI/UX**: Se utilizan técnicas de **Databinding Unidireccional** (ej. Código Postal auto-llenando Entidad/Municipio) y **Autocomplete Nativo (Datalist)** (ej. Formación Académica) para manejar de forma eficiente miles de registros sin ralentizar la interfaz, inyectando silenciosamente las llaves primarias (`CATALOG_KEY`) hacia el backend.
 - **Transaccionalidad Aislada**: Las selecciones de catálogos se almacenan en tablas relacionales uno-a-uno como `perfiles.dat` (para la metadata del Médico Especialista) o `negocios.dat` (para ubicaciones), preservando la ligereza de la tabla central `usuarios.dat`.
 
+### 2.9 Arquitectura SOAP Polimórfica y Multi-Especialidad
+- **Contrato JSON Canónico**: Toda consulta médica se serializa bajo las llaves canónicas SOAP (`subjective`, `objective`, `assessment`, `plan`). Los subformularios específicos por especialidad guardan sus variables dentro de `soap.objective.especialidad_data`.
+- **Core Pipeline Único**: Flujo global 100% compartido (Paso 0 Registro, Agenda, Expediente, Firma y Cierre con Caja). Prohibido duplicar vistas completas por especialidad.
+- **Plugin Slot**: Componentes modulares inyectados dinámicamente según la especialidad del médico tratante (ej. Odontograma SVG para Odontología `id_espe == 100`, con fallback a Signos Vitales).
+
+### 2.10 Módulo de Recetas (NOM-024) y Consentimiento (NOM-004) con Firmas Digitales
+- **Receta Médica Oficial**: Extracción de productos desde `dat/productos.dat`, dosificación, posología, folio de control de receta y datos oficiales del médico tratante (Nombre, Cédula Profesional, Domicilio).
+- **Consentimiento Informado**: Blindaje legal en el paso de Comunicación. Generación de PDF e impresiones oficiales (`api/imprimir_receta_api.pl`, `api/imprimir_consentimiento_api.pl`).
+- **Firma Autógrafa / FIEL**: Captura de firma digital en canvas (Pad), guardado en `uploads/firmas/*.png` y estructura lista para integración con Firma Electrónica Avanzada FIEL/e.firma.
+
+### 2.11 Gestión Financiera Privada & "Cobro por Recepción"
+- **Cobro Inmediato o Diferido**: En el Paso Caja Privada, el médico puede liquidar inmediatamente o delegar el cobro a recepción mediante la opción **"Cobro por recepción"**.
+- **Consolidación de Cargos/Abonos**: Cuando se elige "Cobro por recepción", `cerrar_consulta_privado.pl` registra el **Cargo** de la consulta ($500 base o ítems seleccionados) con un **Abono de $0.00**, dejando el saldo pendiente para ser cobrado por un `Recepcionista`.
+- **Protección de Saldo Negativo**: Si el médico aplica un abono directo en consulta sin cotización previa, el backend genera automáticamente el cargo por "Consulta Médica" por igual monto, evitando saldos negativos en el estado de cuenta.
+
 ## 3. Guía de Arquitectura
-- **Backend**: Perl Modular con procesamiento de adjuntos en `/dat/adjuntos_crm/`.
+- **Backend**: Perl Modular con procesamiento de adjuntos en `/dat/adjuntos_crm/` y firmas en `/uploads/firmas/`.
 - **Frontend**: SPA con Vanilla JS, Bootstrap 5 y Animate.css.
-- **Estilos (CSS)**: Estricta separación de estilos en archivos `.css` independientes (ej. `expediente_completo.css`), eliminando los bloques en línea en scripts `.pl`.
+- **Estilos (CSS)**: Estricta separación de estilos en archivos `.css` independientes, eliminando los bloques en línea en scripts `.pl`.
 - **Seguridad**: Validación de sesión en tiempo real, cifrado SHA-256 y blindaje de suscripción circular.
 
-## 5. Historial de Ajustes Técnicos Recientes (v4.2.0)
-- **Engine Liquid Motion**: Implementación de animaciones staggered y segmentación horaria en la agenda.
-- **Smart Weekly View**: Refactorización del motor de renderizado para visualización adaptativa (3 días móvil / 7 días tablet).
-- **Smart Drag & Drop**: Implementación de reubicación manual asistida en la vista mensual, con algoritmo pre-cálculo de colisiones y bloqueo absoluto de programación en horarios pasados.
-- **Stability Guard (Protocolo 13)**: Blindaje de caracteres especiales en interpolación Perl para evitar Errores 500.
-- **Ergonomía de Modales**: Implementación global de `max-height` y scroll interno para prevenir desbordes de pantalla.
-- **Admin Mobile Integration**: Migración del control de ajustes a la barra de navegación inferior (`sub_bottom_nav.pl`).
-- **DataTables Diamond Style**: Estandarización de 4 botones de exportación (Copiar, Excel, PDF, Imprimir) alineados a la izquierda.
+## 5. Historial de Ajustes Técnicos Recientes (v4.3.0)
+- **Cédula Profesional Sync**: Integración del campo Cédula Profesional en perfiles de médicos, formulario SOAP y generación de recetas.
+- **Toggle Opcional CIE-10 / CIF**: Implementación del switch dinámico en el paso SOAP que habilita u oculta los buscadores CIE-10 y CIF sin exigir campos obligatorios cuando está apagado.
+- **Cobro por Recepción**: Adición del estado financiero diferido en el Wizard de Caja para delegación de cobro a recepción.
+- **Consolidación Financiera Auto-Cargo**: Generación automática de cargos por tarifa base de consulta ($500) para evitar saldos negativos.
+- **Optimización Base64 a PNG**: Extracción de firmas digitales del JSON a imágenes PNG físicas en el servidor.
+- **Hard Reset DB Update**: Inclusión de tablas clínicas (`consultas_clinicas.dat`, `recetas.dat`, `consentimientos.dat`) y la carpeta de firmas en la limpieza operativa del Administrador Global.
+- **Auditoría UTF-8**: Estandarización de `use strict; use warnings; use utf8;` en todos los archivos parciales del Wizard de Consultas.
 
-
-### 🔐 Módulo de Acceso Diamond (Implementación May-2026)
-*   **Seguridad**: Blindaje contra inyección de cabeceras en redirecciones y validación de sesiones con el nuevo `render_error_sesion`.
-*   **Registro Sincronizado**: Unificación de la experiencia de éxito para registros con y sin OAuth de Google.
-*   **Persistencia de Datos**: Uso de `flock` para el contador de IDs y garantía de integridad de saltos de línea (`\n`) en archivos `.dat`.
-*   **Validación Proactiva**: Sistema de debounce (600ms) para verificar existencia de correos en tiempo real sin saturar el servidor.
-**Software Dental Mexicano - Diamond Edition v4.2.0**
+**Software Dental Mexicano - Diamond Edition v4.3.0**
