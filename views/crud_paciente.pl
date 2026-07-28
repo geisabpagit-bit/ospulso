@@ -89,8 +89,14 @@ print <<'HTML';
             </div>
             
             <div class="col-md-5 col-lg-4">
-                <label class="label-badge">Fecha de Nacimiento</label>
+                <label class="label-badge">Fecha de Nacimiento <span id="lblEdadCalculada" class="badge bg-primary text-white ms-2 d-none"></span></label>
                 <input type="date" id="fechaNac" class="input-premium">
+            </div>
+
+            <!-- Campo Condicional: Responsable / Tutor (si menor de 18 años) -->
+            <div class="col-md-7 col-lg-8 d-none" id="containerTutor">
+                <label class="label-badge text-warning"><i class="bi bi-shield-person-fill me-1"></i>Responsable / Tutor <span class="text-danger">*</span></label>
+                <input type="text" id="responsableTutor" class="input-premium border-warning" placeholder="Nombre completo del padre, madre o tutor legal">
             </div>
 
             <div class="col-md-4">
@@ -163,6 +169,184 @@ print <<'HTML';
                     <option value="Divorciado">Divorciado/a</option>
                     <option value="Viudo">Viudo/a</option>
                 </select>
+            </div>
+
+            <!-- Bloque 4: Antecedentes Heredofamiliares -->
+            <div class="col-12 section-divider"><h5 class="plus-jakarta fw-bold text-dark"><i class="bi bi-people-fill text-primary me-2"></i>Antecedentes Heredofamiliares</h5></div>
+
+            <div class="col-md-4">
+                <label class="label-badge">Hipertensión Arterial Familiar</label>
+                <select id="hf_hipertension" class="input-premium">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="label-badge">Diabetes Mellitus Familiar</label>
+                <select id="hf_diabetes" class="input-premium">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="label-badge">Cardiopatías Familiares</label>
+                <select id="hf_cardiopatias" class="input-premium">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="label-badge">Cáncer Familiar</label>
+                <select id="hf_cancer" class="input-premium" onchange="toggleDetalle(this, 'hf_cancer_tipo_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="hf_cancer_tipo_cont" class="mt-2 d-none">
+                    <input type="text" id="hf_cancer_tipo" class="input-premium" placeholder="Especificar tipo de cáncer">
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="label-badge">Enfermedades Hereditarias</label>
+                <select id="hf_enfermedades" class="input-premium" onchange="toggleDetalle(this, 'hf_enfermedades_esp_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="hf_enfermedades_esp_cont" class="mt-2 d-none">
+                    <input type="text" id="hf_enfermedades_especificar" class="input-premium" placeholder="Ej. Hemofilia, Fibrosis Quística">
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="label-badge">Alergias Familiares</label>
+                <select id="hf_alergias" class="input-premium" onchange="toggleDetalle(this, 'hf_alergias_esp_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="hf_alergias_esp_cont" class="mt-2 d-none">
+                    <input type="text" id="hf_alergias_especificar" class="input-premium" placeholder="Especificar alergias familiares">
+                </div>
+            </div>
+
+            <!-- Bloque 5: Antecedentes Personales Patológicos -->
+            <div class="col-12 section-divider"><h5 class="plus-jakarta fw-bold text-dark"><i class="bi bi-file-earmark-medical-fill text-warning me-2"></i>Antecedentes Personales Patológicos</h5></div>
+
+            <div class="col-md-6">
+                <label class="label-badge">Enfermedades Crónicas</label>
+                <select id="pp_cronicas" class="input-premium" onchange="toggleDetalle(this, 'pp_cronicas_esp_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="pp_cronicas_esp_cont" class="mt-2 d-none">
+                    <input type="text" id="pp_cronicas_especificar" class="input-premium" placeholder="Hipertensión, Diabetes, Asma...">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="label-badge">Cirugías Previas</label>
+                <select id="pp_cirugias" class="input-premium" onchange="toggleDetalle(this, 'pp_cirugias_esp_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="pp_cirugias_esp_cont" class="mt-2 d-none">
+                    <input type="text" id="pp_cirugias_especificar" class="input-premium" placeholder="Tipo de cirugía y fecha aprox.">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="label-badge">Hospitalizaciones</label>
+                <select id="pp_hospitalizaciones" class="input-premium" onchange="toggleDetalle(this, 'pp_hosp_esp_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="pp_hosp_esp_cont" class="mt-2 d-none">
+                    <input type="text" id="pp_hospitalizaciones_especificar" class="input-premium" placeholder="Motivo de hospitalización">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="label-badge">Alergias Conocidas</label>
+                <select id="pp_alergias" class="input-premium" onchange="toggleDetalle(this, 'pp_alergias_esp_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="pp_alergias_esp_cont" class="mt-2 d-none">
+                    <input type="text" id="pp_alergias_especificar" class="input-premium" placeholder="Medicamentos, Alimentos, Ambiente...">
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <label class="label-badge">Tratamientos Médicos Actuales</label>
+                <select id="pp_tratamientos" class="input-premium" onchange="toggleDetalle(this, 'pp_trat_esp_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="pp_trat_esp_cont" class="mt-2 d-none">
+                    <input type="text" id="pp_tratamientos_especificar" class="input-premium" placeholder="Medicamentos y dosis actuales">
+                </div>
+            </div>
+
+            <!-- Bloque 6: Antecedentes Personales No Patológicos -->
+            <div class="col-12 section-divider"><h5 class="plus-jakarta fw-bold text-dark"><i class="bi bi-heart-pulse text-info me-2"></i>Antecedentes Personales No Patológicos</h5></div>
+
+            <div class="col-md-4">
+                <label class="label-badge">Tabaquismo</label>
+                <select id="pnp_tabaquismo" class="input-premium" onchange="toggleDetalle(this, 'pnp_tab_cant_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="pnp_tab_cant_cont" class="mt-2 d-none">
+                    <input type="text" id="pnp_tabaquismo_cantidad" class="input-premium" placeholder="Cigarrillos al día (ej: 5)">
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="label-badge">Alcoholismo</label>
+                <select id="pnp_alcohol" class="input-premium" onchange="toggleDetalle(this, 'pnp_alc_frec_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="pnp_alc_frec_cont" class="mt-2 d-none">
+                    <input type="text" id="pnp_alcohol_frecuencia" class="input-premium" placeholder="Frecuencia (ej. Ocasional, Semanal)">
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="label-badge">Consumo de Drogas / Sustancias</label>
+                <select id="pnp_drogas" class="input-premium" onchange="toggleDetalle(this, 'pnp_drogas_tipo_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="pnp_drogas_tipo_cont" class="mt-2 d-none">
+                    <input type="text" id="pnp_drogas_tipo" class="input-premium" placeholder="Tipo de sustancia">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="label-badge">Actividad Física</label>
+                <select id="pnp_actividad_fisica" class="input-premium" onchange="toggleDetalle(this, 'pnp_act_fisica_cont')">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <div id="pnp_act_fisica_cont" class="mt-2 d-none">
+                    <input type="text" id="pnp_actividad_fisica_tipo" class="input-premium" placeholder="Tipo y frecuencia (ej: Gimnasio 3 veces/sem)">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="label-badge">Alimentación</label>
+                <select id="pnp_alimentacion" class="input-premium" onchange="toggleAlimentacionOtro(this)">
+                    <option value="Balanceada">Balanceada</option>
+                    <option value="Alta en grasas">Alta en grasas</option>
+                    <option value="Alta en azúcares">Alta en azúcares</option>
+                    <option value="Otro">Otro</option>
+                </select>
+                <div id="pnp_alimentacion_otro_cont" class="mt-2 d-none">
+                    <input type="text" id="pnp_alimentacion_otro" class="input-premium" placeholder="Especificar patrón de alimentación">
+                </div>
             </div>
         </form>
     </div>

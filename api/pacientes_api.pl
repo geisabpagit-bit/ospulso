@@ -85,8 +85,29 @@ if ($accion eq 'get_perfil') {
                 estado_civil => $p->[9],
                 nacionalidad => $p->[10],
                 tipo_sangre => $p->[11] || 'No definido',
-                telefono => $p->[12] || 'No registrado'
+                telefono => $p->[12] || 'No registrado',
+                tutor => '',
+                antecedentes => {}
             };
+
+            # Cargar tutor y antecedentes desde pacientes_antecedentes.dat
+            my $ant_file = '../dat/pacientes_antecedentes.dat';
+            if (-e $ant_file && open(my $fha, '<:encoding(UTF-8)', $ant_file)) {
+                while (my $aline = <$fha>) {
+                    chomp $aline;
+                    next if $aline =~ /^\s*$/;
+                    my @av = split /\|/, $aline, -1;
+                    if (@av >= 3 && $av[0] eq $id_paciente) {
+                        $perfil->{tutor} = $av[1] || '';
+                        eval {
+                            $perfil->{antecedentes} = decode_json($av[2]);
+                        };
+                        last;
+                    }
+                }
+                close $fha;
+            }
+
             last;
         }
     }

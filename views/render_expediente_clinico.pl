@@ -762,7 +762,7 @@ HTML
                     <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Dashboard Cl&iacute;nico</h3>
                 </div>
                 <div class="d-flex gap-2 p-1 bg-transparent flex-wrap">
-                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold border-0" onclick="swTab('tab3', this)"><i class="bi bi-person-gear me-1"></i>Ficha</button>
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold border-0" onclick="swTab('tab3', this)"><i class="bi bi-person-gear me-1"></i>Ficha de Identificación</button>
                     <button class="btn btn-medentia btn-sm rounded-pill px-3 fw-bold" onclick="swTab('tab2', this)"><i class="bi bi-heart-pulse me-1"></i>Cl&iacute;nico</button>
                     <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold border-0" onclick="swTab('tab4', this)"><i class="bi bi-journal-text me-1"></i>SOAP</button>
                     <div class="vr mx-1"></div>
@@ -832,7 +832,7 @@ HTML
         <section class="sdm-tab-sec d-none" id="tab3">
             <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
                 <div>
-                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Perfil del Paciente</h3>
+                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Ficha de Identificación</h3>
                     <p class="text-muted small fw-bold">GESTI&Oacute;N DE EXPEDIENTE MAESTRO</p>
                 </div>
                 <div class="d-flex gap-2 p-1 bg-transparent rounded-pill flex-wrap">
@@ -1527,7 +1527,7 @@ sub cargar_datos_paciente {
     my ($id) = @_; my $res = leer_tabla(File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat'), '\|');
     foreach my $c (@$res) { if ($c->[0] eq $id) { 
         my $n = $c->[2]//'';
-        return { 
+        my $pac_data = { 
             id_paciente  => $c->[0], 
             id_medico    => $c->[1], 
             nombre       => $n, 
@@ -1542,8 +1542,29 @@ sub cargar_datos_paciente {
             nacionalidad => $c->[10],
             tipo_sangre  => $c->[11], 
             tel          => $c->[12],
-            tenant       => $c->[13] // ''
+            tenant       => $c->[13] // '',
+            tutor        => '',
+            antecedentes => {}
         }; 
+
+        my $ant_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes_antecedentes.dat');
+        if (-e $ant_file && open(my $fha, '<:encoding(UTF-8)', $ant_file)) {
+            while (my $aline = <$fha>) {
+                chomp $aline;
+                next if $aline =~ /^\s*$/;
+                my @av = split /\|/, $aline, -1;
+                if (@av >= 3 && $av[0] eq $id) {
+                    $pac_data->{tutor} = $av[1] || '';
+                    eval {
+                        $pac_data->{antecedentes} = decode_json($av[2]);
+                    };
+                    last;
+                }
+            }
+            close $fha;
+        }
+
+        return $pac_data;
     } }
     return undef;
 }

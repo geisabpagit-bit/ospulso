@@ -1,3 +1,28 @@
+// Helpers globales para toggles de detalle en Antecedentes
+window.toggleDetalle = function(selectEl, containerId) {
+    const cont = document.getElementById(containerId);
+    if (!cont) return;
+    if (selectEl.value === 'Sí' || selectEl.value === 'Si') {
+        cont.classList.remove('d-none');
+    } else {
+        cont.classList.add('d-none');
+        const input = cont.querySelector('input');
+        if (input) input.value = '';
+    }
+};
+
+window.toggleAlimentacionOtro = function(selectEl) {
+    const cont = document.getElementById('pnp_alimentacion_otro_cont');
+    if (!cont) return;
+    if (selectEl.value === 'Otro') {
+        cont.classList.remove('d-none');
+    } else {
+        cont.classList.add('d-none');
+        const input = cont.querySelector('input');
+        if (input) input.value = '';
+    }
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     const initBtn = document.getElementById("btnGuardarPaciente");
     const inputNombre = document.getElementById("nombreCompleto");
@@ -5,6 +30,66 @@ document.addEventListener("DOMContentLoaded", () => {
     const inputRfc = document.getElementById("rfc");
     const inputCurp = document.getElementById("curp");
     const inputTelefono = document.getElementById("telefono");
+    const inputFechaNac = document.getElementById("fechaNac");
+
+    // LÓGICA DE CÁLCULO DE EDAD Y MOSTRAR TUTOR SI MENOR DE 18 AÑOS
+    function calcularEdadJS(fechaNacStr) {
+        if (!fechaNacStr) return null;
+        const nac = new Date(fechaNacStr + 'T00:00:00');
+        if (isNaN(nac.getTime())) return null;
+        const hoy = new Date();
+        let edad = hoy.getFullYear() - nac.getFullYear();
+        const m = hoy.getMonth() - nac.getMonth();
+        if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) {
+            edad--;
+        }
+        return edad;
+    }
+
+    function evaluarEdadYTutor() {
+        const fechaVal = inputFechaNac ? inputFechaNac.value : '';
+        const edad = calcularEdadJS(fechaVal);
+        const lblEdad = document.getElementById("lblEdadCalculada");
+        const contTutor = document.getElementById("containerTutor");
+        const inputTutor = document.getElementById("responsableTutor");
+
+        if (edad !== null && !isNaN(edad)) {
+            if (lblEdad) {
+                lblEdad.innerText = `${edad} años` + (edad < 18 ? ' (Menor de edad)' : '');
+                lblEdad.className = `badge ${edad < 18 ? 'bg-warning text-dark' : 'bg-primary text-white'} ms-2`;
+                lblEdad.classList.remove('d-none');
+            }
+            if (edad < 18) {
+                if (contTutor) contTutor.classList.remove('d-none');
+                if (inputTutor) inputTutor.setAttribute('required', 'required');
+            } else {
+                if (contTutor) contTutor.classList.add('d-none');
+                if (inputTutor) inputTutor.removeAttribute('required');
+            }
+        } else {
+            if (lblEdad) lblEdad.classList.add('d-none');
+            if (contTutor) contTutor.classList.add('d-none');
+            if (inputTutor) inputTutor.removeAttribute('required');
+        }
+    }
+
+    if (inputFechaNac) {
+        inputFechaNac.addEventListener("change", evaluarEdadYTutor);
+        inputFechaNac.addEventListener("input", evaluarEdadYTutor);
+    }
+
+    // Helper para poblar select y su campo dependiente
+    function setSelectAndToggle(selectId, val, containerId, inputId, inputVal) {
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+        if (val) sel.value = val;
+        if (containerId && inputId) {
+            window.toggleDetalle(sel, containerId);
+            if (inputVal && document.getElementById(inputId)) {
+                document.getElementById(inputId).value = inputVal;
+            }
+        }
+    }
 
     // LÓGICA DE ACTUALIZACIÓN HÍBRIDA (C vs U)
     const urlParams = new URLSearchParams(window.location.search);
@@ -24,149 +109,232 @@ document.addEventListener("DOMContentLoaded", () => {
         if (elBreadcrumbInfo) elBreadcrumbInfo.innerText = "Editando Paciente";
         if (btnTextoGuardar) btnTextoGuardar.innerText = "Actualizar Expediente";
         
-        // Fetch patient data string (we know from pacientes_api.pl it's ?accion=get_perfil&id=)
         fetch('../api/pacientes_api.pl?accion=get_perfil&id=' + editId)
             .then(res => res.json())
             .then(data => {
                 if (data.ok) {
-                    // Update Breadcrumb con nombre real
                     if (elBreadcrumbInfo) elBreadcrumbInfo.innerText = "Editando Expediente de " + data.perfil.nombre;
 
                     inputNombre.value = data.perfil.nombre;
                     inputRfc.value = data.perfil.rfc || '';
                     inputCurp.value = data.perfil.curp || '';
-                    document.getElementById("fechaNac").value = data.perfil.fecha_nac || '';
-                    // Need to check for undefined since some fields might miss
-                    let dpGen = document.getElementById("genero");
-                    if (dpGen) {
-                        for(let opt of dpGen.options) {
-                            if(opt.value == data.perfil.sexo) dpGen.value = opt.value;
-                        }
-                    }
-                    let dpSangre = document.getElementById("tipoSangre");
-                    if (dpSangre) {
-                        for(let opt of dpSangre.options) {
-                            if(opt.value == data.perfil.tipo_sangre) dpSangre.value = opt.value;
-                        }
-                    }
-                    inputTelefono.value = data.perfil.telefono || '';
+                    if (inputFechaNac) inputFechaNac.value = data.perfil.fecha_nac || '';
                     
+                    let dpGen = document.getElementById("genero");
+                    if (dpGen && data.perfil.sexo) dpGen.value = data.perfil.sexo;
+                    
+                    let dpSangre = document.getElementById("tipoSangre");
+                    if (dpSangre && data.perfil.tipo_sangre) dpSangre.value = data.perfil.tipo_sangre;
+
+                    let dpECivil = document.getElementById("estadoCivil");
+                    if (dpECivil && data.perfil.estado_civil) dpECivil.value = data.perfil.estado_civil;
+                    
+                    inputTelefono.value = data.perfil.telefono || '';
                     if (document.getElementById("correo")) document.getElementById("correo").value = data.perfil.correo !== 'No registrado' ? data.perfil.correo : '';
                     if (document.getElementById("nacionalidad")) document.getElementById("nacionalidad").value = data.perfil.nacionalidad || '';
                     if (document.getElementById("ocupacion")) document.getElementById("ocupacion").value = data.perfil.ocupacion || '';
+
+                    if (data.perfil.tutor && document.getElementById("responsableTutor")) {
+                        document.getElementById("responsableTutor").value = data.perfil.tutor;
+                    }
+                    evaluarEdadYTutor();
+
+                    // Cargar Antecedentes si existen
+                    if (data.perfil.antecedentes) {
+                        const ant = data.perfil.antecedentes;
+                        if (ant.heredofamiliares) {
+                            const hf = ant.heredofamiliares;
+                            setSelectAndToggle("hf_hipertension", hf.hipertension);
+                            setSelectAndToggle("hf_diabetes", hf.diabetes);
+                            setSelectAndToggle("hf_cardiopatias", hf.cardiopatias);
+                            setSelectAndToggle("hf_cancer", hf.cancer, "hf_cancer_tipo_cont", "hf_cancer_tipo", hf.cancer_tipo);
+                            setSelectAndToggle("hf_enfermedades", hf.enfermedades, "hf_enfermedades_esp_cont", "hf_enfermedades_especificar", hf.enfermedades_especificar);
+                            setSelectAndToggle("hf_alergias", hf.alergias, "hf_alergias_esp_cont", "hf_alergias_especificar", hf.alergias_especificar);
+                        }
+                        if (ant.personales_patologicos) {
+                            const pp = ant.personales_patologicos;
+                            setSelectAndToggle("pp_cronicas", pp.cronicas, "pp_cronicas_esp_cont", "pp_cronicas_especificar", pp.cronicas_especificar);
+                            setSelectAndToggle("pp_cirugias", pp.cirugias, "pp_cirugias_esp_cont", "pp_cirugias_especificar", pp.cirugias_especificar);
+                            setSelectAndToggle("pp_hospitalizaciones", pp.hospitalizaciones, "pp_hosp_esp_cont", "pp_hospitalizaciones_especificar", pp.hospitalizaciones_especificar);
+                            setSelectAndToggle("pp_alergias", pp.alergias, "pp_alergias_esp_cont", "pp_alergias_especificar", pp.alergias_especificar);
+                            setSelectAndToggle("pp_tratamientos", pp.tratamientos, "pp_trat_esp_cont", "pp_tratamientos_especificar", pp.tratamientos_especificar);
+                        }
+                        if (ant.personales_no_patologicos) {
+                            const pnp = ant.personales_no_patologicos;
+                            setSelectAndToggle("pnp_tabaquismo", pnp.tabaquismo, "pnp_tab_cant_cont", "pnp_tabaquismo_cantidad", pnp.tabaquismo_cantidad);
+                            setSelectAndToggle("pnp_alcohol", pnp.alcohol, "pnp_alc_frec_cont", "pnp_alcohol_frecuencia", pnp.alcohol_frecuencia);
+                            setSelectAndToggle("pnp_drogas", pnp.drogas, "pnp_drogas_tipo_cont", "pnp_drogas_tipo", pnp.drogas_tipo);
+                            setSelectAndToggle("pnp_actividad_fisica", pnp.actividad_fisica, "pnp_act_fisica_cont", "pnp_actividad_fisica_tipo", pnp.actividad_fisica_tipo);
+                            if (pnp.alimentacion && document.getElementById("pnp_alimentacion")) {
+                                document.getElementById("pnp_alimentacion").value = pnp.alimentacion;
+                                window.toggleAlimentacionOtro(document.getElementById("pnp_alimentacion"));
+                                if (pnp.alimentacion === 'Otro' && document.getElementById("pnp_alimentacion_otro")) {
+                                    document.getElementById("pnp_alimentacion_otro").value = pnp.alimentacion_otro || '';
+                                }
+                            }
+                        }
+                    }
                 }
             });
     }
 
-
     // 1. VALIDACIÓN EN TIEMPO REAL: Nombre Exclusivamente Alfabético, Acentos y Ñ
     const alphaRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/;
-    inputNombre.addEventListener("input", function(e) {
-        if (!alphaRegex.test(this.value)) {
-            // Bloquea inyección y revierte al último string válido
-            this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-            errorNombre.classList.remove("hidden");
-        } else {
-            errorNombre.classList.add("hidden");
-        }
-    });
+    if (inputNombre) {
+        inputNombre.addEventListener("input", function(e) {
+            if (!alphaRegex.test(this.value)) {
+                this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                if (errorNombre) errorNombre.classList.remove("hidden");
+            } else {
+                if (errorNombre) errorNombre.classList.add("hidden");
+            }
+        });
+    }
 
-    // 2. VALIDACIÓN: RFC Alfanumérico exacto 13 chars front-limit
-    inputRfc.addEventListener("input", function() {
-        this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    });
+    if (inputRfc) {
+        inputRfc.addEventListener("input", function() {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+    }
 
-    // 3. VALIDACIÓN: CURP Alfanumérica exacto 18 chars front-limit
-    inputCurp.addEventListener("input", function() {
-        this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    });
+    if (inputCurp) {
+        inputCurp.addEventListener("input", function() {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+    }
 
-    // 4. VALIDACIÓN: Teléfono exclusivo números
-    inputTelefono.addEventListener("input", function() {
-        this.value = this.value.replace(/[^0-9\+]/g, '');
-    });
+    if (inputTelefono) {
+        inputTelefono.addEventListener("input", function() {
+            this.value = this.value.replace(/[^0-9\+]/g, '');
+        });
+    }
 
     // --- MANEJO DEL SUBMIT (FETCH / JSON / PURE UTF-8) ---
-    initBtn.addEventListener("click", async (e) => {
-        e.preventDefault();
+    if (initBtn) {
+        initBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
 
-        // Validaciones Finales Previas al Envío
-        if (!inputNombre.value.trim() || !inputTelefono.value.trim()) {
-            Swal.fire({
-                icon: "warning",
-                title: "Campos Incompletos",
-                text: "Por favor provee al menos el Nombre y Teléfono del paciente para crear el Expediente."
-            });
-            return;
-        }
-
-        // Limit Strict Checks
-        if (inputRfc.value && inputRfc.value.length !== 13) {
-            Swal.fire("RFC Irregular", "Si decides capturar el RFC, debe contener exactamente 13 caracteres alfanuméricos.", "error");
-            return;
-        }
-        if (inputCurp.value && inputCurp.value.length !== 18) {
-            Swal.fire("CURP Irregular", "Si decides capturar la CURP, debe contener exactamente 18 caracteres alfanuméricos.", "error");
-            return;
-        }
-
-        const btnOriginalText = initBtn.innerHTML;
-        initBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Procesando...`;
-        initBtn.disabled = true;
-
-        // Estructura JSON Cuidando UTF-8
-        const payload = {
-            accion: (accion === 'U' && editId) ? "actualizar" : "crear",
-            id: editId || "",
-            nombre: inputNombre.value.trim(),
-            rfc: inputRfc.value.trim(),
-            curp: inputCurp.value.trim(),
-            fecha_nac: document.getElementById("fechaNac").value,
-            genero: document.getElementById("genero").value,
-            estado_civil: document.getElementById("estadoCivil").value,
-            telefono: inputTelefono.value.trim(),
-            correo: document.getElementById("correo").value.trim(),
-            nacionalidad: document.getElementById("nacionalidad").value.trim(),
-            ocupacion: document.getElementById("ocupacion").value.trim(),
-            tipo_sangre: document.getElementById("tipoSangre").value
-        };
-
-        try {
-            console.log("=== DEBUG INIT ===");
-            console.log("Payload enviado hacia el API:", payload);
-
-            // El Content-Type charset=UTF-8 protege que el payload viaje inalterado desde el browser al Perl STDIN
-            const response = await fetch('../api/pacientes_crud_api.pl', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json; charset=UTF-8'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
-            console.log("Respuesta del servidor:", data);
-
-            if (data.ok) {
+            if (!inputNombre.value.trim() || !inputTelefono.value.trim()) {
                 Swal.fire({
-                    icon: "success",
-                    title: "¡Expediente Abierto!",
-                    text: data.msg,
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = "pacientes.pl";
+                    icon: "warning",
+                    title: "Campos Incompletos",
+                    text: "Por favor provee al menos el Nombre y Teléfono del paciente para crear el Expediente."
                 });
-            } else {
-                Swal.fire("El registro fue rechazado", data.msg || "Ocurrió un error inesperado en la validación.", "error");
+                return;
+            }
+
+            const edadCalc = calcularEdadJS(inputFechaNac ? inputFechaNac.value : '');
+            const inputTutor = document.getElementById("responsableTutor");
+            if (edadCalc !== null && edadCalc < 18 && inputTutor && !inputTutor.value.trim()) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Responsable / Tutor Requerido",
+                    text: "Para pacientes menores de 18 años, es obligatorio especificar el nombre del Responsable o Tutor."
+                });
+                return;
+            }
+
+            if (inputRfc && inputRfc.value && inputRfc.value.length !== 13) {
+                Swal.fire("RFC Irregular", "Si decides capturar el RFC, debe contener exactamente 13 caracteres alfanuméricos.", "error");
+                return;
+            }
+            if (inputCurp && inputCurp.value && inputCurp.value.length !== 18) {
+                Swal.fire("CURP Irregular", "Si decides capturar la CURP, debe contener exactamente 18 caracteres alfanuméricos.", "error");
+                return;
+            }
+
+            const btnOriginalText = initBtn.innerHTML;
+            initBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Procesando...`;
+            initBtn.disabled = true;
+
+            const antecedentesPayload = {
+                heredofamiliares: {
+                    hipertension: document.getElementById("hf_hipertension") ? document.getElementById("hf_hipertension").value : "No",
+                    diabetes: document.getElementById("hf_diabetes") ? document.getElementById("hf_diabetes").value : "No",
+                    cardiopatias: document.getElementById("hf_cardiopatias") ? document.getElementById("hf_cardiopatias").value : "No",
+                    cancer: document.getElementById("hf_cancer") ? document.getElementById("hf_cancer").value : "No",
+                    cancer_tipo: document.getElementById("hf_cancer_tipo") ? document.getElementById("hf_cancer_tipo").value.trim() : "",
+                    enfermedades: document.getElementById("hf_enfermedades") ? document.getElementById("hf_enfermedades").value : "No",
+                    enfermedades_especificar: document.getElementById("hf_enfermedades_especificar") ? document.getElementById("hf_enfermedades_especificar").value.trim() : "",
+                    alergias: document.getElementById("hf_alergias") ? document.getElementById("hf_alergias").value : "No",
+                    alergias_especificar: document.getElementById("hf_alergias_especificar") ? document.getElementById("hf_alergias_especificar").value.trim() : ""
+                },
+                personales_patologicos: {
+                    cronicas: document.getElementById("pp_cronicas") ? document.getElementById("pp_cronicas").value : "No",
+                    cronicas_especificar: document.getElementById("pp_cronicas_especificar") ? document.getElementById("pp_cronicas_especificar").value.trim() : "",
+                    cirugias: document.getElementById("pp_cirugias") ? document.getElementById("pp_cirugias").value : "No",
+                    cirugias_especificar: document.getElementById("pp_cirugias_especificar") ? document.getElementById("pp_cirugias_especificar").value.trim() : "",
+                    hospitalizaciones: document.getElementById("pp_hospitalizaciones") ? document.getElementById("pp_hospitalizaciones").value : "No",
+                    hospitalizaciones_especificar: document.getElementById("pp_hospitalizaciones_especificar") ? document.getElementById("pp_hospitalizaciones_especificar").value.trim() : "",
+                    alergias: document.getElementById("pp_alergias") ? document.getElementById("pp_alergias").value : "No",
+                    alergias_especificar: document.getElementById("pp_alergias_especificar") ? document.getElementById("pp_alergias_especificar").value.trim() : "",
+                    tratamientos: document.getElementById("pp_tratamientos") ? document.getElementById("pp_tratamientos").value : "No",
+                    tratamientos_especificar: document.getElementById("pp_tratamientos_especificar") ? document.getElementById("pp_tratamientos_especificar").value.trim() : ""
+                },
+                personales_no_patologicos: {
+                    tabaquismo: document.getElementById("pnp_tabaquismo") ? document.getElementById("pnp_tabaquismo").value : "No",
+                    tabaquismo_cantidad: document.getElementById("pnp_tabaquismo_cantidad") ? document.getElementById("pnp_tabaquismo_cantidad").value.trim() : "",
+                    alcohol: document.getElementById("pnp_alcohol") ? document.getElementById("pnp_alcohol").value : "No",
+                    alcohol_frecuencia: document.getElementById("pnp_alcohol_frecuencia") ? document.getElementById("pnp_alcohol_frecuencia").value.trim() : "",
+                    drogas: document.getElementById("pnp_drogas") ? document.getElementById("pnp_drogas").value : "No",
+                    drogas_tipo: document.getElementById("pnp_drogas_tipo") ? document.getElementById("pnp_drogas_tipo").value.trim() : "",
+                    actividad_fisica: document.getElementById("pnp_actividad_fisica") ? document.getElementById("pnp_actividad_fisica").value : "No",
+                    actividad_fisica_tipo: document.getElementById("pnp_actividad_fisica_tipo") ? document.getElementById("pnp_actividad_fisica_tipo").value.trim() : "",
+                    alimentacion: document.getElementById("pnp_alimentacion") ? document.getElementById("pnp_alimentacion").value : "Balanceada",
+                    alimentacion_otro: document.getElementById("pnp_alimentacion_otro") ? document.getElementById("pnp_alimentacion_otro").value.trim() : ""
+                }
+            };
+
+            const payload = {
+                accion: (accion === 'U' && editId) ? "actualizar" : "crear",
+                id: editId || "",
+                nombre: inputNombre.value.trim(),
+                rfc: inputRfc ? inputRfc.value.trim() : "",
+                curp: inputCurp ? inputCurp.value.trim() : "",
+                fecha_nac: inputFechaNac ? inputFechaNac.value : "",
+                genero: document.getElementById("genero") ? document.getElementById("genero").value : "",
+                estado_civil: document.getElementById("estadoCivil") ? document.getElementById("estadoCivil").value : "",
+                telefono: inputTelefono.value.trim(),
+                correo: document.getElementById("correo") ? document.getElementById("correo").value.trim() : "",
+                nacionalidad: document.getElementById("nacionalidad") ? document.getElementById("nacionalidad").value.trim() : "",
+                ocupacion: document.getElementById("ocupacion") ? document.getElementById("ocupacion").value.trim() : "",
+                tipo_sangre: document.getElementById("tipoSangre") ? document.getElementById("tipoSangre").value : "",
+                tutor: inputTutor ? inputTutor.value.trim() : "",
+                antecedentes: antecedentesPayload
+            };
+
+            try {
+                const response = await fetch('../api/pacientes_crud_api.pl', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json; charset=UTF-8'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "¡Expediente Guardado!",
+                        text: data.msg,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = "pacientes.pl";
+                    });
+                } else {
+                    Swal.fire("El registro fue rechazado", data.msg || "Ocurrió un error inesperado en la validación.", "error");
+                    initBtn.disabled = false;
+                    initBtn.innerHTML = btnOriginalText;
+                }
+            } catch (error) {
+                console.error("Error Fetch API:", error);
+                Swal.fire("Falla de Conectividad", "No fue posible comunicarse con el túnel Back-End.", "error");
                 initBtn.disabled = false;
                 initBtn.innerHTML = btnOriginalText;
             }
-        } catch (error) {
-            console.error("Error Fetch API:", error);
-            Swal.fire("Falla de Conectividad", "No fue posible comunicarse con el túnel Back-End.", "error");
-            initBtn.disabled = false;
-            initBtn.innerHTML = btnOriginalText;
-        }
-    });
+        });
+    }
 });
