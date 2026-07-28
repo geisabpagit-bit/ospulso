@@ -160,18 +160,26 @@ body {
 .diamond-input-armor .form-control,
 .diamond-input-armor .form-select {
     background-color: #F8FBFF; /* Blanco Clínico */
-    border: 1px solid transparent;
+    border: 1px solid #19B7A5 !important; /* Borde Delgado Verde Teal Clínico */
     border-radius: 1rem;
     transition: all 0.3s ease;
     font-weight: 600;
     color: #0A2A66; /* Azul Profundo */
 }
 
+.diamond-input-armor .form-control:disabled,
+.diamond-input-armor .form-control[readonly],
+.diamond-input-armor .form-select:disabled {
+    background-color: #F8FBFF !important;
+    border: 1px solid #19B7A5 !important;
+    opacity: 1;
+}
+
 .diamond-input-armor .form-control:focus,
 .diamond-input-armor .form-select:focus {
     background-color: #ffffff;
-    border-color: #19B7A5; /* Teal Clínico */
-    box-shadow: 0 0 0 4px rgba(25, 183, 165, 0.1);
+    border-color: #19B7A5 !important; /* Teal Clínico */
+    box-shadow: 0 0 0 4px rgba(25, 183, 165, 0.15) !important;
 }
 
 .diamond-input-armor label {
