@@ -1793,9 +1793,11 @@ sub cargar_datos_paciente {
                 my @av = split /\|/, $aline, -1;
                 if (@av >= 3 && $av[0] eq $id) {
                     $pac_data->{tutor} = $av[1] || '';
-                    eval {
-                        $pac_data->{antecedentes} = decode_json($av[2]);
-                    };
+                        eval {
+                            $pac_data->{antecedentes} = JSON::PP->new->decode($av[2]);
+                        } || eval {
+                            $pac_data->{antecedentes} = JSON::PP->new->utf8(1)->decode($av[2]);
+                        };
                     last;
                 }
             }

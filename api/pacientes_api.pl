@@ -100,7 +100,9 @@ if ($accion eq 'get_perfil') {
                     if (@av >= 3 && $av[0] eq $id_paciente) {
                         $perfil->{tutor} = $av[1] || '';
                         eval {
-                            $perfil->{antecedentes} = decode_json($av[2]);
+                            $perfil->{antecedentes} = JSON::PP->new->decode($av[2]);
+                        } || eval {
+                            $perfil->{antecedentes} = JSON::PP->new->utf8(1)->decode($av[2]);
                         };
                         last;
                     }
