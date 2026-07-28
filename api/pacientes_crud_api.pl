@@ -91,7 +91,7 @@ if ($input->{accion} eq 'crear') {
         $input->{tipo_sangre} // '',
         $input->{telefono} // '',
         $extra_tenant
-    ) . "|";
+    );
 
     guardar_registro('../dat/pacientes.dat', $nueva_linea);
     guardar_antecedentes_paciente($id_paciente, $input->{tutor}, $input->{antecedentes});
@@ -164,7 +164,7 @@ if ($input->{accion} eq 'crear') {
                 $input->{tipo_sangre} // '',
                 $input->{telefono} // '',
                 $r->[13] // (($session_data->{id_empresa} // '0') . ":" . ($session_data->{id_sucursal} // '0'))
-            ) . "|";
+            );
         } else {
             push @nuevos_registros, join("|", @$r);
         }
