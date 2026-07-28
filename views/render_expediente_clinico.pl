@@ -1016,6 +1016,85 @@ HTML
                     </div>
                 </div>
             </div>
+
+            <!-- M&Oacute;DULO COMPLETO DE ANTECEDENTES DEL EXPEDIENTE (SOLO RESUMEN ESTRUCTURADO) -->
+            @{[ do {
+                my $ant = $paciente->{antecedentes} // {};
+                my $hf  = $ant->{heredofamiliares} // {};
+                my $pp  = $ant->{personales_patologicos} // {};
+                my $pnp = $ant->{personales_no_patologicos} // {};
+
+                my $fmt_badge = sub {
+                    my ($label, $val, $spec) = @_;
+                    my $is_si = ($val && $val =~ /S[ií]/i);
+                    my $badge_cls = $is_si ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-light text-muted border';
+                    my $icon = $is_si ? '<i class="bi bi-exclamation-triangle-fill me-1"></i>' : '<i class="bi bi-check-circle me-1"></i>';
+                    my $txt = "$icon<strong>$label:</strong> " . ($val || 'No');
+                    if ($is_si && $spec) {
+                        $txt .= " <em>($spec)</em>";
+                    }
+                    return qq{<span class="badge $badge_cls p-2 fw-medium text-wrap text-start me-1 mb-1">$txt</span>};
+                };
+
+                my $hf_html = '';
+                $hf_html .= $fmt_badge->("Hipertensión", $hf->{hipertension});
+                $hf_html .= $fmt_badge->("Diabetes", $hf->{diabetes});
+                $hf_html .= $fmt_badge->("Cardiopatías", $hf->{cardiopatias});
+                $hf_html .= $fmt_badge->("Cáncer", $hf->{cancer}, $hf->{cancer_tipo});
+                $hf_html .= $fmt_badge->("Hereditarias", $hf->{enfermedades}, $hf->{enfermedades_especificar});
+                $hf_html .= $fmt_badge->("Alergias Fam.", $hf->{alergias}, $hf->{alergias_especificar});
+
+                my $pp_html = '';
+                $pp_html .= $fmt_badge->("Crónicas", $pp->{cronicas}, $pp->{cronicas_especificar});
+                $pp_html .= $fmt_badge->("Cirugías", $pp->{cirugias}, $pp->{cirugias_especificar});
+                $pp_html .= $fmt_badge->("Hospitalizaciones", $pp->{hospitalizaciones}, $pp->{hospitalizaciones_especificar});
+                $pp_html .= $fmt_badge->("Alergias", $pp->{alergias}, $pp->{alergias_especificar});
+                $pp_html .= $fmt_badge->("Tratamientos", $pp->{tratamientos}, $pp->{tratamientos_especificar});
+
+                my $pnp_html = '';
+                $pnp_html .= $fmt_badge->("Tabaquismo", $pnp->{tabaquismo}, $pnp->{tabaquismo_cantidad} ? "$pnp->{tabaquismo_cantidad} cig/día" : '');
+                $pnp_html .= $fmt_badge->("Alcoholismo", $pnp->{alcohol}, $pnp->{alcohol_frecuencia});
+                $pnp_html .= $fmt_badge->("Drogas", $pnp->{drogas}, $pnp->{drogas_tipo});
+                $pnp_html .= $fmt_badge->("Act. Física", $pnp->{actividad_fisica}, $pnp->{actividad_fisica_tipo});
+                my $alim_txt = $pnp->{alimentacion} || 'Balanceada';
+                if ($alim_txt eq 'Otro' && $pnp->{alimentacion_otro}) {
+                    $alim_txt .= " ($pnp->{alimentacion_otro})";
+                }
+                $pnp_html .= qq{<span class="badge bg-light text-dark border p-2 fw-medium me-1 mb-1"><i class="bi bi-egg-fried me-1 text-info"></i><strong>Alimentación:</strong> $alim_txt</span>};
+
+                qq{
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #ffffff; border: 1px solid #e2e8f0 !important;">
+                                <div class="mb-3">
+                                    <h6 class="fw-bold m-0" style="color: var(--md-blue-deep);"><i class="bi bi-journal-medical me-2" style="color: var(--md-teal-clinical);"></i>M&oacute;dulo Completo de Antecedentes del Expediente</h6>
+                                    <p class="text-muted small mb-0">Informaci&oacute;n estructurada extra&iacute;da de la Ficha de Identificaci&oacute;n del Paciente</p>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="p-3 bg-white rounded-3 border h-100 shadow-sm">
+                                            <div class="fw-bold small text-primary mb-2 border-bottom pb-1"><i class="bi bi-people-fill me-1"></i>Antecedentes Heredofamiliares</div>
+                                            <div class="d-flex flex-wrap">$hf_html</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 bg-white rounded-3 border h-100 shadow-sm">
+                                            <div class="fw-bold small text-warning-emphasis mb-2 border-bottom pb-1"><i class="bi bi-file-earmark-medical-fill me-1"></i>Personales Patol&oacute;gicos</div>
+                                            <div class="d-flex flex-wrap">$pp_html</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 bg-white rounded-3 border h-100 shadow-sm">
+                                            <div class="fw-bold small text-info mb-2 border-bottom pb-1"><i class="bi bi-heart-pulse me-1"></i>Personales No Patol&oacute;gicos</div>
+                                            <div class="d-flex flex-wrap">$pnp_html</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                };
+            } ]}
         </section>
 
         <!-- 4: SOAP (EVOLUCIÓN CLÍNICA) -->
