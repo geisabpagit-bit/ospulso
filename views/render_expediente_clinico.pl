@@ -224,6 +224,16 @@ HTML
         const target = document.getElementById(id);
         if(target) target.classList.remove('d-none');
 
+        // Ocultar header azul si la pestaña activa es tab3 (Ficha de Identificación) por información repetitiva
+        const mainHeader = document.getElementById('mainPatientHeader');
+        if (mainHeader) {
+            if (id === 'tab3') {
+                mainHeader.classList.add('d-none');
+            } else {
+                mainHeader.classList.remove('d-none');
+            }
+        }
+
         if (b && b.classList.contains('sub-link')) {
             document.querySelectorAll('.sub-link').forEach(n => n.classList.remove('active'));
             b.classList.add('active');
@@ -254,7 +264,7 @@ HTML
 </script>
 
         <!-- TOPBAR / HEADER CORPORATIVO (ESTÁNDAR IMAGEN 2) -->
-        <header class="bg-medentia-gradient text-white p-4 shadow-sm mb-4" style="border-radius: 1.5rem;">
+        <header id="mainPatientHeader" class="bg-medentia-gradient text-white p-4 shadow-sm mb-4" style="border-radius: 1.5rem;">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div class="d-flex align-items-center gap-3">
                     <div class="bg-white bg-opacity-10 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">

@@ -160,7 +160,7 @@ body {
 .diamond-input-armor .form-control,
 .diamond-input-armor .form-select {
     background-color: #F8FBFF; /* Blanco Clínico */
-    border: 1px solid #19B7A5 !important; /* Borde Delgado Verde Teal Clínico */
+    border: 1px solid #e2e8f0 !important; /* Borde Delgado Gris Clínico */
     border-radius: 1rem;
     transition: all 0.3s ease;
     font-weight: 600;
@@ -171,7 +171,7 @@ body {
 .diamond-input-armor .form-control[readonly],
 .diamond-input-armor .form-select:disabled {
     background-color: #F8FBFF !important;
-    border: 1px solid #19B7A5 !important;
+    border: 1px solid #e2e8f0 !important;
     opacity: 1;
 }
 
