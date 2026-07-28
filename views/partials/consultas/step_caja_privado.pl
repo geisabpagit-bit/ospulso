@@ -124,7 +124,7 @@ sub render_step_caja_privado {
                     $pertenece_a_cita = 1;
                 }
             } else {
-                if (!$tiene_tratamiento || $id_os_row eq $id_tratamiento_activo || $notas_row =~ /Recepción|Recepcion/i || ($c->[4] // '') =~ /Recepción|Recepcion/i) {
+                if ($tiene_tratamiento && $id_os_row eq $id_tratamiento_activo) {
                     $pertenece_a_cita = 1;
                 }
             }

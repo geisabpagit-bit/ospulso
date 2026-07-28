@@ -6,6 +6,7 @@ use utf8;
 use open qw(:std :utf8);
 use CGI;
 use JSON qw(decode_json);
+use Encode qw(encode_utf8);
 use FindBin;
 use File::Spec;
 use lib "$FindBin::Bin/..";
@@ -22,10 +23,11 @@ unless ($session_data->{session_ok}) { print $q->header(-status => '302 Found', 
 binmode STDOUT, ":utf8";
 
 my $id_consulta = $q->param('id_consulta') || '';
+my $id_cita     = $q->param('id_cita') || '';
 
-if (!$id_consulta) {
+if (!$id_consulta && !$id_cita) {
     print $q->header(-type => 'text/html', -charset => 'UTF-8');
-    print "<h1>Falta id_consulta</h1>";
+    print "<div style='font-family:sans-serif; text-align:center; padding:50px;'><h2>No se especificó ninguna consulta o cita</h2><a href='inicial.pl'>Volver al Inicio</a></div>";
     exit;
 }
 
@@ -33,19 +35,28 @@ if (!$id_consulta) {
 my $path_consultas = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
 my $res_consultas = leer_tabla($path_consultas, '\|');
 my $consulta = {};
+
 foreach my $c (@$res_consultas) {
-    if ($c->[0] eq $id_consulta) {
+    my $match_consulta = ($id_consulta ne '' && $c->[0] eq $id_consulta);
+    my $match_cita     = ($id_cita ne '' && $c->[2] eq $id_cita);
+    if ($match_consulta || $match_cita) {
         my $json_str = $c->[5] || '{}';
         $json_str =~ s/\\n/\n/g;
         my $data = {};
-        eval { $data = decode_json($json_str); };
+        eval { $data = decode_json(encode_utf8($json_str)); };
+        if (!%$data) { eval { $data = decode_json($json_str); }; }
+        
+        my $ts = $c->[4] || time();
+        my ($sec,$min,$hour,$mday,$mon,$year) = localtime($ts);
+        my $fecha_formatted = sprintf("%04d-%02d-%02d %02d:%02d", $year+1900, $mon+1, $mday, $hour, $min);
+        
         $consulta = {
             id_consulta => $c->[0],
             id_paciente => $c->[1],
             id_cita     => $c->[2],
             id_medico   => $c->[3],
-            timestamp   => $c->[4],
-            fecha       => scalar localtime($c->[4]),
+            timestamp   => $ts,
+            fecha       => $fecha_formatted,
             data        => $data
         };
         last;
@@ -54,39 +65,72 @@ foreach my $c (@$res_consultas) {
 
 if (!keys %$consulta) {
     print $q->header(-type => 'text/html', -charset => 'UTF-8');
-    print "<h1>Consulta no encontrada</h1>";
+    print "<div style='font-family:sans-serif; text-align:center; padding:50px;'><h2>Consulta Clínica No Encontrada</h2><p>No se localizó el expediente clínico para los parámetros especificados.</p><a href='inicial.pl'>Volver al Inicio</a></div>";
     exit;
 }
 
-# 2. Cargar Paciente
+# 2. Cargar Datos del Paciente
 my $path_pacientes = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
 my $res_pacientes = leer_tabla($path_pacientes, '\|');
 my $paciente = {};
 foreach my $p (@$res_pacientes) {
     if ($p->[0] eq $consulta->{id_paciente}) {
         $paciente = {
+            id => $p->[0],
             nombre => $p->[2],
             fecha_nac => $p->[3],
-            sexo => $p->[7],
-            alergias => $p->[11] || 'Negadas',
-            ts => $p->[10] || 'O+'
+            telefono => $p->[4] || 'No registrado',
+            curp => $p->[6] || '',
+            sexo => $p->[7] || 'No especificado',
+            ts => $p->[10] || 'O+',
+            alergias => $p->[11] || 'Negadas'
         };
         last;
     }
 }
 
-# 3. Obtener nombre del médico
+# 3. Obtener Datos del Médico
 my $path_med = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $res_med = leer_tabla($path_med, '!');
 my $nombre_medico = $consulta->{id_medico};
+my $especialidad_medico = 'Medicina General';
 foreach my $m (@$res_med) {
     if ($m->[0] eq $consulta->{id_medico} || "DOC-" . sprintf("%03d", $m->[0]) eq $consulta->{id_medico}) {
         $nombre_medico = "Dr(a). " . $m->[1];
+        $especialidad_medico = $m->[5] if ($m->[5] && $m->[5] ne '');
         last;
     }
 }
 
-my $d = $consulta->{data};
+my $d = $consulta->{data} || {};
+
+# Medicamentos expedidos
+my $medicamentos = $d->{medicamentos} || [];
+if ((!$medicamentos || ref($medicamentos) ne 'ARRAY' || scalar @$medicamentos == 0) && $d->{medicamentos_json}) {
+    eval { $medicamentos = decode_json(encode_utf8($d->{medicamentos_json})); };
+}
+
+# IMC Cálculo
+my $peso_val = parseFloatVal($d->{peso});
+my $talla_val = parseFloatVal($d->{talla});
+my $imc_val = '--';
+my $imc_status = '';
+if ($peso_val > 0 && $talla_val > 0) {
+    my $talla_m = $talla_val > 3 ? $talla_val / 100 : $talla_val;
+    my $calc = $peso_val / ($talla_m * $talla_m);
+    $imc_val = sprintf("%.1f", $calc);
+    if ($calc < 18.5) { $imc_status = 'Bajo peso'; }
+    elsif ($calc < 25.0) { $imc_status = 'Peso normal'; }
+    elsif ($calc < 30.0) { $imc_status = 'Sobrepeso'; }
+    else { $imc_status = 'Obesidad'; }
+}
+
+sub parseFloatVal {
+    my ($val) = @_;
+    return 0 unless defined $val;
+    $val =~ s/[^0-9.]//g;
+    return $val + 0;
+}
 
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 
@@ -96,7 +140,7 @@ print <<HTML;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalles de Consulta - $id_consulta</title>
+    <title>Detalle de Consulta M&eacute;dica - $consulta->{id_consulta}</title>
     <!-- Core MedentIA Diamond Armor Styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons\@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
@@ -107,7 +151,8 @@ print <<HTML;
             --md-teal-clinical: #19B7A5;
             --md-blue-deep: #0A2A66;
             --md-navy: #051A44;
-            --md-gray-bg: #F1F5F9;
+            --md-gray-bg: #F8FAFC;
+            --md-cyan-ia: #00C4C4;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -117,256 +162,343 @@ print <<HTML;
         
         .bento-card {
             background: #ffffff;
-            border-radius: 1.5rem;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(10, 42, 102, 0.05);
-            border: 2px solid var(--md-teal-clinical);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            box-shadow: 0 10px 30px rgba(10, 42, 102, 0.04);
+            border: 1px solid rgba(25, 183, 165, 0.25);
             height: 100%;
+            transition: all 0.2s ease;
+        }
+        .bento-card:hover {
+            border-color: var(--md-teal-clinical);
+            box-shadow: 0 12px 36px rgba(10, 42, 102, 0.08);
         }
         
-        .bento-title {
-            font-size: 1.1rem;
+        .bento-header {
+            font-size: 1.05rem;
             font-weight: 800;
-            color: var(--md-teal-clinical);
-            margin-bottom: 1.5rem;
+            color: var(--md-blue-deep);
+            margin-bottom: 1.25rem;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             border-bottom: 2px solid var(--md-gray-bg);
-            padding-bottom: 0.8rem;
+            padding-bottom: 0.75rem;
+        }
+
+        .bento-title-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         .data-label {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
             color: #64748b;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.25rem;
         }
         
         .data-value {
+            font-size: 0.95rem;
             font-weight: 600;
-            margin-bottom: 1.2rem;
-            white-space: pre-line; /* Para respetar saltos de línea de textareas */
+            color: var(--md-navy);
+            margin-bottom: 1.1rem;
+            white-space: pre-line;
         }
         
-        /* Ajustes de Impresión (Reglas de Impresión SDM) */
-        \@page {
-            margin: 1.5cm;
+        .vital-box {
+            background: #f1f5f9;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
         }
+        .vital-value {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--md-blue-deep);
+        }
+        .vital-unit {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+        
+        .pain-bar-bg {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .pain-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+            border-radius: 5px;
+        }
+
+        /* Estilos de Impresión */
         \@media print {
-            body { 
-                background: white; 
-                font-family: 'Inter', sans-serif;
-                color: black;
-            }
-            .container {
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
+            body { background: white !important; color: black !important; font-size: 12pt; }
             .d-print-none { display: none !important; }
-            .bento-card { 
-                box-shadow: none !important; 
-                border: 1px solid #ccc !important; 
-                padding: 1rem !important; 
-                border-radius: 0 !important; 
-                page-break-inside: avoid;
-            }
-            .row { display: flex !important; flex-wrap: wrap !important; }
-            .col-md-6, .col-lg-4, .col-lg-8, .col-lg-12, .col-12 { 
-                flex: 0 0 auto;
-            }
-            .bento-title { border-bottom: 1px solid #000 !important; color: #000 !important; }
-            .data-label { color: #555 !important; }
-            .recipe-section { page-break-before: always; }
+            .bento-card { box-shadow: none !important; border: 1px solid #cbd5e1 !important; padding: 1rem !important; border-radius: 0.5rem !important; page-break-inside: avoid; }
+            .container { max-width: 100% !important; width: 100% !important; padding: 0 !important; }
+            .recipe-print-page { page-break-before: always; }
         }
     </style>
 </head>
 <body>
 
-<div class="container py-5">
-    <!-- Action Bar -->
-    <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
-        <a href="render_expediente_clinico.pl?id=$consulta->{id_paciente}" class="btn btn-outline-secondary rounded-pill fw-bold">
-            <i class="bi bi-arrow-left me-2"></i>Volver al Expediente
-        </a>
-        <button onclick="window.print()" class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background: var(--md-teal-clinical);">
-            <i class="bi bi-printer-fill me-2"></i>Imprimir Nota M&eacute;dica
-        </button>
+<div class="container py-4">
+    <!-- Bar de Acciones Superior -->
+    <div class="d-flex justify-content-between align-items-center mb-4 d-print-none flex-wrap gap-2">
+        <div>
+            <a href="render_expediente_clinico.pl?id=$paciente->{id}" class="btn btn-outline-secondary rounded-pill fw-bold btn-sm px-3">
+                <i class="bi bi-arrow-left me-1"></i> Expediente
+            </a>
+            <a href="inicial.pl" class="btn btn-light rounded-pill fw-bold btn-sm px-3 ms-1 border">
+                <i class="bi bi-house me-1"></i> Dashboard
+            </a>
+        </div>
+        <div class="d-flex gap-2">
+            @{[ scalar(@$medicamentos) > 0 ? "<button onclick='window.print()' class='btn btn-outline-primary rounded-pill btn-sm fw-bold px-3'><i class='bi bi-file-earmark-medical me-1'></i>Imprimir Receta</button>" : "" ]}
+            <button onclick="window.print()" class="btn text-white rounded-pill btn-sm px-4 fw-bold shadow-sm" style="background: linear-gradient(135deg, var(--md-blue-deep), var(--md-teal-clinical));">
+                <i class="bi bi-printer-fill me-1"></i> Imprimir Nota M&eacute;dica
+            </button>
+        </div>
     </div>
 
     <!-- Header Impresión -->
-    <div class="d-none d-print-block text-center mb-5 border-bottom pb-4">
-        <h2 class="fw-black" style="color: var(--md-navy);">M&Eacute;DICA DIAMOND CLINIC</h2>
-        <h5 class="fw-bold text-muted">EXPEDIENTE CL&Iacute;NICO - NOTA DE EVOLUCI&Oacute;N</h5>
+    <div class="d-none d-print-block text-center mb-4 border-bottom pb-3">
+        <h3 class="fw-black mb-1" style="color: var(--md-navy);">MEDENTIA CLINIC - NOTA CL&Iacute;NICA DE EVOLUCI&Oacute;N</h3>
+        <p class="small text-muted mb-0">Folio de Consulta: $consulta->{id_consulta} | Cita: $consulta->{id_cita}</p>
     </div>
 
-    <div class="row g-4">
-        <!-- 1. Ficha Identificación -->
-        <div class="col-12">
-            <div class="bento-card" style="background: linear-gradient(135deg, var(--md-navy) 0%, var(--md-blue-deep) 100%); color: white;">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="data-label text-white-50">Paciente</div>
-                        <div class="data-value fs-4 mb-0">$paciente->{nombre}</div>
-                        <div class="small text-white-50 mt-1">ID: $consulta->{id_paciente} | Sexo: $paciente->{sexo} | GS: $paciente->{ts}</div>
-                    </div>
-                    <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                        <div class="data-label text-white-50">M&eacute;dico Tratante</div>
-                        <div class="data-value fs-5 mb-0" style="color: var(--md-teal-clinical);">$nombre_medico</div>
-                        <div class="small text-white-50 mt-1">Fecha: $consulta->{fecha} | Folio: $consulta->{id_consulta}</div>
+    <!-- Banner Principal: Datos de Paciente y Atención -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, var(--md-navy) 0%, var(--md-blue-deep) 100%); color: white;">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <span class="badge bg-white-10 text-white border border-white-20 rounded-pill px-3 py-1 mb-2 small fw-bold" style="background: rgba(255,255,255,0.15);">
+                        <i class="bi bi-person-badge me-1"></i> PACIENTE
+                    </span>
+                    <h3 class="fw-black text-white mb-1">$paciente->{nombre}</h3>
+                    <p class="text-white-50 small mb-0">
+                        <span class="me-3"><i class="bi bi-gender-ambiguous me-1"></i>$paciente->{sexo}</span>
+                        <span class="me-3"><i class="bi bi-droplet-fill me-1 text-danger"></i>GS: $paciente->{ts}</span>
+                        <span><i class="bi bi-telephone me-1"></i>$paciente->{telefono}</span>
+                    </p>
+                    @{[ $paciente->{alergias} ne 'Negadas' ? "<div class='mt-2'><span class='badge bg-danger text-white rounded-pill px-3'><i class='bi bi-exclamation-triangle-fill me-1'></i>Alergias: $paciente->{alergias}</span></div>" : "" ]}
+                </div>
+                <div class="col-md-5 text-md-end mt-3 mt-md-0 border-start-md border-white-10 ps-md-4">
+                    <div class="small text-white-50 fw-bold text-uppercase">M&eacute;dico Tratante</div>
+                    <h5 class="fw-bold mb-1" style="color: var(--md-cyan-ia);">$nombre_medico</h5>
+                    <div class="small text-white-50">$especialidad_medico</div>
+                    <div class="mt-2 pt-2 border-top border-white-10 small text-white-50">
+                        <i class="bi bi-calendar3 me-1"></i>Fecha: $consulta->{fecha}
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- 2. Registro y Anamnesis -->
-        <div class="col-lg-4">
+    <!-- Signos Vitales Bento Grid -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="vital-box">
+                <div class="data-label"><i class="bi bi-heart-pulse me-1 text-danger"></i> T.A.</div>
+                <div class="vital-value">@{[ $d->{ta} || '--' ]}</div>
+                <div class="vital-unit">mmHg</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="vital-box">
+                <div class="data-label"><i class="bi bi-activity me-1 text-primary"></i> F.C.</div>
+                <div class="vital-value">@{[ $d->{fc} || '--' ]}</div>
+                <div class="vital-unit">bpm</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="vital-box">
+                <div class="data-label"><i class="bi bi-wind me-1 text-info"></i> F.R.</div>
+                <div class="vital-value">@{[ $d->{fr} || '--' ]}</div>
+                <div class="vital-unit">rpm</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="vital-box">
+                <div class="data-label"><i class="bi bi-thermometer-half me-1 text-warning"></i> Temp</div>
+                <div class="vital-value">@{[ $d->{temp} || '--' ]}</div>
+                <div class="vital-unit">&deg;C</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="vital-box">
+                <div class="data-label"><i class="bi bi-speedometer2 me-1 text-success"></i> SpO2</div>
+                <div class="vital-value">@{[ $d->{spo2} || '--' ]}</div>
+                <div class="vital-unit">%</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="vital-box">
+                <div class="data-label"><i class="bi bi-person-bounding-box me-1 text-secondary"></i> IMC</div>
+                <div class="vital-value">$imc_val</div>
+                <div class="vital-unit">$imc_status</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de Secciones Clínicas -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Anamnesis y Padecimiento -->
+        <div class="col-lg-6">
             <div class="bento-card">
-                <div class="bento-title"><i class="bi bi-clock-history me-2"></i>Anamnesis</div>
+                <div class="bento-header">
+                    <div class="bento-title-text"><i class="bi bi-chat-left-text text-primary"></i> Anamnesis y Padecimiento Actual</div>
+                    <span class="badge bg-light text-secondary border">Paso 2</span>
+                </div>
                 
                 <div class="data-label">Motivo de Consulta</div>
-                <div class="data-value">@{[ $d->{motivo} || 'No especificado' ]}</div>
+                <div class="data-value fs-6 fw-bold" style="color: var(--md-navy);">@{[ $d->{motivo} || $d->{motivo_consulta} || 'Sin registro' ]}</div>
                 
-                <div class="data-label">Evoluci&oacute;n y Padecimiento</div>
-                <div class="data-value">@{[ $d->{evolucion} || 'Sin registro' ]}</div>
+                <div class="data-label">Evoluci&oacute;n y Padecimiento Actual</div>
+                <div class="data-value">@{[ $d->{evolucion} || $d->{padecimiento_actual} || 'Sin registro de evolución' ]}</div>
                 
-                <div class="data-label">Intensidad S&iacute;ntomas (1-10)</div>
-                <div class="data-value">@{[ $d->{intensidad} || '--' ]}/10</div>
+                @{[ ($d->{intensidad} || $d->{intensidad_sintomas}) ? "
+                <div class='data-label'>Intensidad de S&iacute;ntomas (" . ($d->{intensidad} || $d->{intensidad_sintomas}) . "/10)</div>
+                <div class='mb-3'>
+                    <div class='pain-bar-bg'><div class='pain-bar-fill' style='width: " . (($d->{intensidad} || $d->{intensidad_sintomas}) * 10) . "%;'></div></div>
+                </div>
+                " : "" ]}
                 
                 <div class="data-label">Antecedentes Relevantes</div>
-                <div class="data-value">@{[ $d->{antecedentes_patologicos} || 'Negados' ]}</div>
-                
-                <div class="data-label text-danger">Alergias</div>
-                <div class="data-value text-danger">@{[ $d->{alergias} || $paciente->{alergias} || 'Negadas' ]}</div>
+                <div class="data-value small text-muted">
+                    <strong>Patol&oacute;gicos:</strong> @{[ $d->{antecedentes_patologicos} || 'Negados' ]}<br>
+                    <strong>No Patol&oacute;gicos:</strong> @{[ $d->{antecedentes_no_patologicos} || 'Negados' ]}<br>
+                    <strong>Quir&uacute;rgicos:</strong> @{[ $d->{antecedentes_quirurgicos} || 'Negados' ]}
+                </div>
             </div>
         </div>
 
-        <!-- 3. Exploración -->
-        <div class="col-lg-4">
+        <!-- 2. Exploración Física -->
+        <div class="col-lg-6">
             <div class="bento-card">
-                <div class="bento-title"><i class="bi bi-activity me-2"></i>Exploraci&oacute;n F&iacute;sica</div>
-                
-                <div class="row mb-3 bg-light p-2 rounded">
-                    <div class="col-6">
-                        <span class="data-label d-block">T.A.</span>
-                        <span class="fw-bold">@{[ $d->{ta} || '--' ]}</span> mmHg
-                    </div>
-                    <div class="col-6">
-                        <span class="data-label d-block">F.C.</span>
-                        <span class="fw-bold">@{[ $d->{fc} || '--' ]}</span> lpm
-                    </div>
-                    <div class="col-6 mt-2">
-                        <span class="data-label d-block">Peso / Talla</span>
-                        <span class="fw-bold">@{[ $d->{peso} || '--' ]}kg / @{[ $d->{talla} || '--' ]}cm</span>
-                    </div>
-                    <div class="col-6 mt-2">
-                        <span class="data-label d-block">Temp.</span>
-                        <span class="fw-bold">@{[ $d->{temp} || '--' ]}</span> &deg;C
-                    </div>
+                <div class="bento-header">
+                    <div class="bento-title-text"><i class="bi bi-body-text text-success"></i> Exploraci&oacute;n F&iacute;sica</div>
+                    <span class="badge bg-light text-secondary border">Paso 3</span>
                 </div>
                 
-                <div class="data-label">Hallazgos Cl&iacute;nicos</div>
-                <div class="data-value">@{[ $d->{exploracion_hallazgos} || 'Sin registro' ]}</div>
-            </div>
-        </div>
-        
-        <!-- 4. SOAP & Diagnóstico -->
-        <div class="col-lg-4">
-            <div class="bento-card">
-                <div class="bento-title"><i class="bi bi-diagram-3 me-2"></i>S.O.A.P.</div>
+                <div class="data-label">Hallazgos Cl&iacute;nicos por Regi&oacute;n</div>
+                <div class="data-value" style="min-height: 120px;">@{[ $d->{exploracion_hallazgos} || $d->{hallazgos_exploracion} || 'Sin hallazgos patológicos registrados.' ]}</div>
                 
-                <div class="data-label">Diagn&oacute;stico Principal</div>
-                <div class="data-value fs-5" style="color: var(--md-navy);">@{[ $d->{diagnostico_principal} || 'Sin diagnóstico' ]}</div>
-                
-                <div class="data-label">Severidad</div>
-                <div class="data-value">
-                    <span class="badge bg-secondary">@{[ $d->{severidad} || 'No especificada' ]}</span>
+                <div class="data-label">Estudios Solicitados / Analizados</div>
+                <div class="data-value small">
+                    <strong>Laboratorios:</strong> @{[ $d->{laboratorios_solicitados} || 'Ninguno' ]}<br>
+                    <strong>Gabinete:</strong> @{[ $d->{gabinete_solicitados} || 'Ninguno' ]}<br>
+                    <strong>Resultados Anteriores:</strong> @{[ $d->{resultados_estudios} || 'N/A' ]}
                 </div>
-                
-                <div class="data-label">Impresi&oacute;n Cl&iacute;nica (Assessment)</div>
-                <div class="data-value">@{[ $d->{impresion_clinica} || 'Sin registro' ]}</div>
             </div>
         </div>
 
-        <!-- 5. Plan y Acuerdos -->
+        <!-- 3. Metodología S.O.A.P. & Diagnóstico -->
         <div class="col-lg-12">
             <div class="bento-card">
-                <div class="bento-title"><i class="bi bi-journal-medical me-2"></i>Plan de Tratamiento y Acuerdos</div>
+                <div class="bento-header">
+                    <div class="bento-title-text"><i class="bi bi-diagram-3-fill text-info"></i> Diagn&oacute;stico y Metodolog&iacute;a S.O.A.P.</div>
+                    <span class="badge bg-primary text-white border-0">Paso 5</span>
+                </div>
                 
-                <div class="row">
-                    <div class="col-md-7">
-                        <div class="data-label">Abordaje y Plan</div>
-                        <div class="data-value fs-6">@{[ $d->{plan_tratamiento} || 'Sin plan registrado' ]}</div>
+                <div class="row g-4">
+                    <div class="col-md-6 border-end-md">
+                        <div class="data-label text-primary">Diagn&oacute;stico Principal (CIE-10)</div>
+                        <div class="data-value fs-5 fw-black text-navy mb-2">
+                            @{[ $d->{diagnostico_principal} || 'Sin diagnóstico principal' ]}
+                            @{[ $d->{clave_diagnostico_cie10} ? "<span class='badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill ms-2 small'>" . $d->{clave_diagnostico_cie10} . "</span>" : "" ]}
+                        </div>
                         
-                        <div class="data-label mt-4">Estudios Solicitados / Analizados</div>
-                        <div class="data-value small">
-                            <strong>Labs:</strong> @{[ $d->{laboratorios_solicitados} || 'Ninguno' ]}<br>
-                            <strong>Gabinete:</strong> @{[ $d->{gabinete_solicitados} || 'Ninguno' ]}<br>
-                            <strong>Resultados Anteriores:</strong> @{[ $d->{resultados_estudios} || 'N/A' ]}
+                        @{[ $d->{diagnosticos_secundarios} ? "<div class='data-label'>Diagn&oacute;sticos Secundarios</div><div class='data-value small'>" . $d->{diagnosticos_secundarios} . "</div>" : "" ]}
+                        
+                        <div class="d-flex gap-3 mt-3">
+                            <div>
+                                <span class="data-label d-block">Severidad</span>
+                                <span class="badge bg-warning-subtle text-warning-emphasis fw-bold border">@{[ $d->{severidad} || 'Moderada' ]}</span>
+                            </div>
+                            <div>
+                                <span class="data-label d-block">Pron&oacute;stico</span>
+                                <span class="badge bg-success-subtle text-success-emphasis fw-bold border">@{[ $d->{pronostico} || 'Favorable' ]}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-5 bg-light p-4 rounded">
-                        <div class="data-label mb-3">Checklist Médico-Legal</div>
-                        <ul class="list-unstyled mb-0">
-                            <li class="mb-2"><i class="bi @{[ $d->{com_explicacion} ? 'bi-check-circle-fill text-success' : 'bi-dash-circle text-muted' ]} me-2"></i> Explicaci&oacute;n de diagn&oacute;stico brindada</li>
-                            <li class="mb-2"><i class="bi @{[ $d->{com_riesgos} ? 'bi-check-circle-fill text-success' : 'bi-dash-circle text-muted' ]} me-2"></i> Riesgos informados</li>
-                            <li class="mb-2"><i class="bi @{[ $d->{com_dudas} ? 'bi-check-circle-fill text-success' : 'bi-dash-circle text-muted' ]} me-2"></i> Dudas resueltas (Consentimiento oral)</li>
-                        </ul>
+                    
+                    <div class="col-md-6">
+                        <div class="data-label">Plan de Tratamiento (P)</div>
+                        <div class="data-value">@{[ $d->{plan_tratamiento} || $d->{plan} || 'Sin plan especificado' ]}</div>
                         
-                        @{[ $d->{com_observaciones} ? "<div class='data-label mt-4'>Observaciones de Interacci&oacute;n</div><div class='data-value small'>$d->{com_observaciones}</div>" : "" ]}
+                        <div class="data-label">Evaluaci&oacute;n y An&aacute;lisis (A)</div>
+                        <div class="data-value small text-muted">@{[ $d->{impresion_clinica} || $d->{assessment} || 'Sin notas de análisis adicionales' ]}</div>
                     </div>
                 </div>
             </div>
         </div>
-HTML
 
-# 6. Receta (Si existe)
-if ($d->{medicamentos} && ref($d->{medicamentos}) eq 'ARRAY' && scalar @{$d->{medicamentos}} > 0) {
-    print <<HTML;
-        <div class="col-12 recipe-section mt-5">
-            <div class="bento-card border border-primary border-2">
-                <div class="text-center mb-4">
-                    <h3 class="fw-black" style="color: var(--md-navy);"><i class="bi bi-file-earmark-medical me-2"></i>RECETA M&Eacute;DICA</h3>
+        <!-- 4. Receta Médica (si aplica) -->
+        @{[ scalar(@$medicamentos) > 0 ? "
+        <div class='col-lg-12 recipe-print-page'>
+            <div class='bento-card border-primary border-2'>
+                <div class='bento-header'>
+                    <div class='bento-title-text text-primary'><i class='bi bi-capsule me-2'></i> Receta M&eacute;dica Expedida</div>
+                    <span class='badge bg-success text-white border-0'>F&aacute;rmacos</span>
                 </div>
                 
-                <table class="table table-borderless table-striped align-middle">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>F&aacute;rmaco / Presentaci&oacute;n</th>
-                            <th>Dosis</th>
-                            <th>Frecuencia</th>
-                            <th>Duraci&oacute;n</th>
-                            <th>V&iacute;a</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-HTML
-    foreach my $med (@{$d->{medicamentos}}) {
-        my $f = $med->{farmaco} || '';
-        my $p = $med->{presentacion} || '';
-        my $do = $med->{dosis} || '';
-        my $fr = $med->{frecuencia} || '';
-        my $du = $med->{duracion} || '';
-        my $vi = $med->{via} || '';
-        print "<tr><td><span class='fw-bold'>$f</span><br><small class='text-muted'>$p</small></td><td>$do</td><td>$fr</td><td>$du</td><td>$vi</td></tr>\n";
-    }
-    
-    print <<HTML;
-                    </tbody>
-                </table>
-                <div class="mt-5 text-center pt-5 d-print-block">
-                    <div style="border-top: 1px solid #000; width: 300px; margin: 0 auto; padding-top: 10px;">
-                        <strong>$nombre_medico</strong><br>Firma y C&eacute;dula Profesional
+                <div class='table-responsive mb-3'>
+                    <table class='table table-hover align-middle'>
+                        <thead class='table-light small text-uppercase fw-bold'>
+                            <tr>
+                                <th>F&aacute;rmaco / Presentaci&oacute;n</th>
+                                <th>Dosis</th>
+                                <th>Frecuencia</th>
+                                <th>Duraci&oacute;n</th>
+                                <th>V&iacute;a</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            " . join("", map { "<tr><td><strong class='text-navy'>" . ($_->{farmaco}||'') . "</strong><br><small class='text-muted'>" . ($_->{presentacion}||'') . "</small></td><td>" . ($_->{dosis}||'') . "</td><td>" . ($_->{frecuencia}||'') . "</td><td>" . ($_->{duracion}||'') . "</td><td><span class='badge bg-light text-dark border'>" . ($_->{via}||'Oral') . "</span></td></tr>" } @$medicamentos) . "
+                        </tbody>
+                    </table>
+                </div>
+                
+                " . ($d->{receta_indicaciones} ? "<div class='p-3 bg-light rounded-3 border small'><strong>Indicaciones Especiales:</strong> " . $d->{receta_indicaciones} . "</div>" : "") . "
+            </div>
+        </div>
+        " : "" ]}
+
+        <!-- 5. Firmas y Conformidad -->
+        <div class="col-lg-12">
+            <div class="bento-card">
+                <div class="bento-header">
+                    <div class="bento-title-text"><i class="bi bi-shield-check text-success"></i> Conformidad y Firmas Digitales</div>
+                    <span class="badge bg-light text-secondary border">Validaci&oacute;n</span>
+                </div>
+                
+                <div class="row align-items-center text-center">
+                    <div class="col-md-6 border-end-md py-3">
+                        <div class="data-label mb-2">Firma del M&eacute;dico Tratante</div>
+                        @{[ ($d->{firma_medico_data} && -e File::Spec->catfile($FindBin::Bin, '..', $d->{firma_medico_data})) ? "<img src='../" . $d->{firma_medico_data} . "' style='max-height:80px;' class='img-fluid mb-2'>" : "<div class='p-3 bg-light rounded text-muted small mb-2'>Firma Digital Registrada en Sistema</div>" ]}
+                        <div class="fw-bold small text-navy">$nombre_medico</div>
+                        <div class="small text-muted">$especialidad_medico</div>
+                    </div>
+                    
+                    <div class="col-md-6 py-3">
+                        <div class="data-label mb-2">Firma del Paciente / Tutor</div>
+                        @{[ ($d->{firma_paciente_data} && -e File::Spec->catfile($FindBin::Bin, '..', $d->{firma_paciente_data})) ? "<img src='../" . $d->{firma_paciente_data} . "' style='max-height:80px;' class='img-fluid mb-2'>" : "<div class='p-3 bg-light rounded text-muted small mb-2'>Consentimiento Informado Aceptado</div>" ]}
+                        <div class="fw-bold small text-navy">$paciente->{nombre}</div>
+                        <div class="small text-muted">Conformidad con Atención y Tratamiento</div>
                     </div>
                 </div>
             </div>
         </div>
-HTML
-}
-
-print <<HTML;
     </div>
 </div>
 
@@ -374,3 +506,5 @@ print <<HTML;
 </body>
 </html>
 HTML
+
+1;
