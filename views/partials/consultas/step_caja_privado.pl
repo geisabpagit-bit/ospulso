@@ -470,6 +470,21 @@ sub render_step_caja_privado {
             const isTratamientoActivo = historialTratamiento && historialTratamiento.tiene_tratamiento;
             const isNuevaConversion = cotSelect && cotSelect.value && convertirCheck && convertirCheck.checked;
             
+            // Banner de Detección de Cobro Anticipado en Recepción
+            const tienePrePagoRecepcion = (historialTratamiento && historialTratamiento.abonos && historialTratamiento.abonos.some(a => (a.concepto||'').includes('Recepción') || (a.concepto||'').includes('Recepcion')));
+            let alertPrePago = document.getElementById('caja-prepago-alert');
+            if (tienePrePagoRecepcion) {
+                if (!alertPrePago) {
+                    alertPrePago = document.createElement('div');
+                    alertPrePago.id = 'caja-prepago-alert';
+                    alertPrePago.className = 'alert alert-success border-0 rounded-4 shadow-sm mb-4 p-3 d-flex align-items-center';
+                    alertPrePago.innerHTML = `<i class="bi bi-check-circle-fill fs-3 text-success me-3"></i><div><h6 class="fw-bold mb-0" style="color: #065f46;"><i class="bi bi-shield-check me-1"></i>Consulta Pagada en Recepción</h6><p class="small mb-0 text-success-emphasis">El pago por concepto de consulta ya fue cobrado e ingresado en Recepción. Saldo pendiente $0.00.</p></div>`;
+                    if (workflowCont) workflowCont.insertBefore(alertPrePago, workflowCont.firstChild);
+                }
+            } else if (alertPrePago) {
+                alertPrePago.remove();
+            }
+
             // Si la cotización en Step Registro es ninguna/vacía, por default seleccionar 'Cerrado' (Alta médica)
             if (!cotSelect || !cotSelect.value || cotSelect.value === 'ninguna' || cotSelect.value === '') {
                 const estadoTratSelect = document.getElementById('f_caja_estado_tratamiento');

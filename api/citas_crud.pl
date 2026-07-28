@@ -103,6 +103,7 @@ elsif ($accion eq 'delete')     { eliminar_cita($citas, $q); }
 elsif ($accion eq 'save_config') { guardar_config_medico($q); }
 elsif ($accion eq 'get_form_metadata') { obtener_metadatos_formulario($q); }
 elsif ($accion eq 'get_events') { enviar_eventos_oficial($citas); }
+elsif ($accion eq 'cobrar_recepcion') { cobrar_recepcion($citas, $q); }
 
 # --- MOTOR DE PERSISTENCIA ---
 sub cargar_citas {
@@ -563,5 +564,66 @@ sub obtener_metadatos_formulario {
     );
     print $q->header(-type => 'application/json', -charset => 'utf-8');
     print to_json(\%res, { utf8 => 0 });
+}
+
+sub cobrar_recepcion {
+    my ($arr, $q) = @_;
+    my $id_cita = $q->param('id_cita') // '';
+    my $id_paciente = $q->param('id_paciente') // '';
+    my $id_medico = $q->param('id_medico') // '';
+    my $monto = $q->param('monto') // 500;
+    my $metodo_pago = $q->param('metodo_pago') // 'Efectivo';
+    $monto += 0;
+
+    unless ($id_paciente) {
+        responder_json(0, "Falta el ID del paciente para registrar el cobro en Recepción.");
+    }
+
+    # 1. Registrar Cargo y Abono en estado_cuenta.dat
+    my $ec_file = "$dirname/../dat/estado_cuenta.dat";
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+    my $fecha_actual = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year+1900, $mon+1, $mday, $hour, $min, $sec);
+    
+    my $os_file = "$dirname/../dat/os_incremental.dat";
+    my $id_os = 1000;
+    if (-e $os_file && open my $fhos, '<', $os_file) {
+        my $num = <$fhos>; chomp $num if defined $num;
+        $id_os = ($num + 0) + 1 if $num;
+        close $fhos;
+    }
+    if (open my $fwos, '>', $os_file) {
+        print $fwos $id_os;
+        close $fwos;
+    }
+    
+    my $id_mov_cargo = "MOV-" . time() . "-1";
+    my $id_mov_abono = "MOV-" . time() . "-2";
+
+    my $linea_cargo = join("|", "OS-$id_os", $id_mov_cargo, $id_paciente, "Cargo", "Consulta Médica (Cobro en Recepción)", $monto, 0, $monto, $fecha_actual, $id_medico, "Cobro Anticipado Recepción Cita #$id_cita", "RECEPCION");
+    my $linea_abono = join("|", "OS-$id_os", $id_mov_abono, $id_paciente, "Abono", "Pago de Consulta ($metodo_pago - Recepción)", $monto, 0, $monto, $fecha_actual, $id_medico, "Pago Recibido en Recepción", "RECEPCION");
+
+    if (open my $fhec, '>>:encoding(UTF-8)', $ec_file) {
+        print $fhec "$linea_cargo\n";
+        print $fhec "$linea_abono\n";
+        close $fhec;
+    }
+
+    # 2. Actualizar estado de la cita a "Confirmada (Pagada)"
+    if ($id_cita) {
+        my $encontrado = 0;
+        foreach my $c (@$arr) {
+            if ($c->{id_cita} eq $id_cita) {
+                $c->{estado} = "Confirmada (Pagada)";
+                $c->{color}  = "#10b981";
+                $encontrado = 1;
+                last;
+            }
+        }
+        if ($encontrado) {
+            guardar_citas($arr);
+        }
+    }
+
+    responder_json(1, "El cobro anticipado de \$$monto ($metodo_pago) ha sido registrado exitosamente en Recepción.");
 }
 1;

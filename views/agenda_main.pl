@@ -368,7 +368,8 @@ print <<HTML;
                         <div class="d-flex flex-column flex-md-row justify-content-end gap-2 mt-4">
                             <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger fw-bold d-none px-4 order-3 order-md-1 rounded-pill">ELIMINAR CITA</button>
                             <button type="button" onclick="saveCita()" class="btn btn-premium-primary fw-bold px-4 order-1 order-md-2"><i class="bi bi-save me-1"></i> GUARDAR CITA</button>
-                            <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-success fw-bold d-none px-4 order-2 order-md-3 rounded-pill" style="background: linear-gradient(135deg, #10b981, #059669); border:none;"><i class="bi bi-person-check me-1"></i> TOMAR CITA</button>
+                            <button type="button" id="btn-cobrar-recepcion" onclick="cobrarRecepcionModal()" class="btn btn-warning text-dark fw-bold d-none px-4 order-2 order-md-3 rounded-pill" style="background: linear-gradient(135deg, #f59e0b, #d97706); border:none;"><i class="bi bi-cash-coin me-1"></i> COBRAR EN RECEPCIÓN</button>
+                            <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-success fw-bold d-none px-4 order-2 order-md-4 rounded-pill" style="background: linear-gradient(135deg, #10b981, #059669); border:none;"><i class="bi bi-person-check me-1"></i> TOMAR CITA</button>
                         </div>
                     </form>
                 </div>

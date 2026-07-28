@@ -1370,6 +1370,7 @@ function abrirModalCita(id, isReadonly) {
         $("#modalCita input, #modalCita select").prop('disabled', true);
         $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").hide();
         $("#btn-tomar-cita").addClass('d-none');
+        $("#btn-cobrar-recepcion").addClass('d-none');
         if (esFinalizada) {
             $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA FINALIZADA (SOLO LECTURA)');
         } else {
@@ -1397,6 +1398,12 @@ function abrirModalCita(id, isReadonly) {
             $("#btn-tomar-cita").removeClass('d-none');
         } else {
             $("#btn-tomar-cita").addClass('d-none');
+        }
+
+        if (est.includes('pagada')) {
+            $("#btn-cobrar-recepcion").addClass('d-none');
+        } else {
+            $("#btn-cobrar-recepcion").removeClass('d-none');
         }
     }
 
@@ -1458,6 +1465,91 @@ function proceedTomarCita(id_cita, id_paciente) {
     setTimeout(() => {
         window.location.href = `render_consultas.pl?id=${id_paciente}&id_cita=${id_cita}`;
     }, 400);
+}
+
+function cobrarRecepcionModal() {
+    const id_cita = $("#f_id_cita").val();
+    const id_paciente = $("#f_id_paciente").val();
+    const id_medico = $("#f_medico_select").val() || "";
+    const nombre_paciente = $("#f_paciente").val() || "Paciente";
+
+    if (!id_paciente) {
+        Swal.fire("Acción Requerida", "Debes seleccionar un paciente válido primero.", "warning");
+        return;
+    }
+
+    Swal.fire({
+        title: '<strong>Cobro de Consulta en Recepción</strong>',
+        icon: 'question',
+        html: `
+            <div class="text-start p-2">
+                <p class="mb-3 fs-6"><strong>Paciente:</strong> <span class="text-primary">${nombre_paciente}</span></p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-muted">Monto de la Consulta ($):</label>
+                    <input type="number" id="swal_monto_cobro" class="form-control fw-bold fs-5 text-success" value="500.00" min="0" step="10">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label fw-bold small text-muted">Método de Pago:</label>
+                    <select id="swal_metodo_pago" class="form-select fw-bold">
+                        <option value="Efectivo" selected>Efectivo</option>
+                        <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                        <option value="Transferencia">Transferencia Bancaria</option>
+                    </select>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="bi bi-check-circle-fill me-1"></i> Registrar Cobro',
+        cancelButtonText: 'Cancelar',
+        customClass: { popup: 'rounded-4 shadow-lg' },
+        preConfirm: () => {
+            const monto = document.getElementById('swal_monto_cobro').value;
+            const metodo = document.getElementById('swal_metodo_pago').value;
+            if (!monto || parseFloat(monto) < 0) {
+                Swal.showValidationMessage('Proporciona un monto de cobro válido.');
+                return false;
+            }
+            return { monto: monto, metodo_pago: metodo };
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const data = result.value;
+                const body = new URLSearchParams();
+                body.append('accion', 'cobrar_recepcion');
+                body.append('id_cita', id_cita);
+                body.append('id_paciente', id_paciente);
+                body.append('id_medico', id_medico);
+                body.append('monto', data.monto);
+                body.append('metodo_pago', data.metodo_pago);
+
+                const response = await fetch('../api/citas_crud.pl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                    body: body
+                });
+                const res = await response.json();
+                if (res.ok) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "¡Cobro Exitoso!",
+                        text: res.msg,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        const m = bootstrap.Modal.getInstance(document.getElementById('modalCita'));
+                        if (m) m.hide();
+                        fetchAppointments();
+                    });
+                } else {
+                    Swal.fire("Error en Cobro", res.msg || "No fue posible registrar el abono en Recepción.", "error");
+                }
+            } catch (err) {
+                console.error("Error en cobro recepción:", err);
+                Swal.fire("Falla de Servidor", "Ocurrió un error al procesar el cobro en Recepción.", "error");
+            }
+        }
+    });
 }
 
 function delCita(id) {
