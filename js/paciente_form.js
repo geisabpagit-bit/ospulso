@@ -174,10 +174,92 @@ document.addEventListener("DOMContentLoaded", () => {
                                 }
                             }
                         }
+                        if (ant.domicilio) {
+                            const dom = ant.domicilio;
+                            if (dom.cp && document.getElementById("cp_paciente")) {
+                                document.getElementById("cp_paciente").value = dom.cp;
+                                if (window.buscarDomicilioPorCP) {
+                                    window.buscarDomicilioPorCP(dom.cp, () => {
+                                        if (dom.colonia && document.getElementById("colonia_paciente")) {
+                                            document.getElementById("colonia_paciente").value = dom.colonia;
+                                        }
+                                    });
+                                }
+                            }
+                            if (dom.entidad && document.getElementById("entidad_paciente")) document.getElementById("entidad_paciente").value = dom.entidad;
+                            if (dom.municipio && document.getElementById("municipio_paciente")) document.getElementById("municipio_paciente").value = dom.municipio;
+                            if (dom.calle && document.getElementById("calle_paciente")) document.getElementById("calle_paciente").value = dom.calle;
+                            if (dom.num_ext && document.getElementById("num_ext_paciente")) document.getElementById("num_ext_paciente").value = dom.num_ext;
+                            if (dom.num_int && document.getElementById("num_int_paciente")) document.getElementById("num_int_paciente").value = dom.num_int;
+                        }
                     }
                 }
             });
     }
+
+    // BUSCADOR SEPOMEX POR CP
+    window.buscarDomicilioPorCP = function(cp, callback) {
+        if (!cp) return;
+        const cpClean = cp.replace(/\D/g, '');
+        const statusEl = document.getElementById('cpStatus');
+        const selectColonia = document.getElementById('colonia_paciente');
+        const inputEntidad = document.getElementById('entidad_paciente');
+        const inputMunicipio = document.getElementById('municipio_paciente');
+
+        if (cpClean.length !== 5) {
+            if (statusEl) statusEl.classList.add('d-none');
+            return;
+        }
+
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1 text-primary"></span> Consultando SEPOMEX...';
+            statusEl.className = 'small mt-1 fw-bold text-muted';
+            statusEl.classList.remove('d-none');
+        }
+
+        fetch('../api/get_location.pl?cp=' + cpClean)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.success) {
+                    if (inputEntidad && data.entidad) inputEntidad.value = data.entidad;
+                    if (inputMunicipio && data.municipio) inputMunicipio.value = data.municipio;
+                    
+                    if (selectColonia) {
+                        const currentVal = selectColonia.value;
+                        selectColonia.innerHTML = '<option value="">Seleccione Colonia / Asentamiento...</option>';
+                        if (data.localidades && data.localidades.length > 0) {
+                            data.localidades.forEach(loc => {
+                                const opt = document.createElement('option');
+                                opt.value = loc;
+                                opt.textContent = loc;
+                                selectColonia.appendChild(opt);
+                            });
+                            if (currentVal) {
+                                selectColonia.value = currentVal;
+                            } else if (data.localidades.length === 1) {
+                                selectColonia.selectedIndex = 1;
+                            }
+                        }
+                    }
+
+                    if (statusEl) {
+                        statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>CP Válido (' + (data.localidades ? data.localidades.length : 0) + ' asentamientos)</span>';
+                    }
+                } else {
+                    if (statusEl) {
+                        statusEl.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>' + (data.message || 'Código Postal no localizado') + '</span>';
+                    }
+                }
+                if (typeof callback === 'function') callback();
+            })
+            .catch(err => {
+                console.error("Error buscando CP:", err);
+                if (statusEl) {
+                    statusEl.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Error de conexión al catálogo</span>';
+                }
+                if (typeof callback === 'function') callback();
+            });
+    };
 
     // 1. VALIDACIÓN EN TIEMPO REAL: Nombre Exclusivamente Alfabético, Acentos y Ñ
     const alphaRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/;
@@ -283,6 +365,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     actividad_fisica_tipo: document.getElementById("pnp_actividad_fisica_tipo") ? document.getElementById("pnp_actividad_fisica_tipo").value.trim() : "",
                     alimentacion: document.getElementById("pnp_alimentacion") ? document.getElementById("pnp_alimentacion").value : "Balanceada",
                     alimentacion_otro: document.getElementById("pnp_alimentacion_otro") ? document.getElementById("pnp_alimentacion_otro").value.trim() : ""
+                },
+                domicilio: {
+                    cp: document.getElementById("cp_paciente") ? document.getElementById("cp_paciente").value.trim() : "",
+                    entidad: document.getElementById("entidad_paciente") ? document.getElementById("entidad_paciente").value.trim() : "",
+                    municipio: document.getElementById("municipio_paciente") ? document.getElementById("municipio_paciente").value.trim() : "",
+                    colonia: document.getElementById("colonia_paciente") ? document.getElementById("colonia_paciente").value : "",
+                    calle: document.getElementById("calle_paciente") ? document.getElementById("calle_paciente").value.trim() : "",
+                    num_ext: document.getElementById("num_ext_paciente") ? document.getElementById("num_ext_paciente").value.trim() : "",
+                    num_int: document.getElementById("num_int_paciente") ? document.getElementById("num_int_paciente").value.trim() : ""
                 }
             };
 

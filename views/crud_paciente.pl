@@ -213,6 +213,75 @@ print <<HTML;
             </div>
         </div>
 
+        <!-- CARD DOMICILIO CON BÚSQUEDA DE CP (SEPOMEX / INEGI OFICIAL) -->
+        <div class="card-medentia-aura p-4 p-md-5 mb-4 border-0 shadow-sm" style="border-radius: 1.5rem;">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-geo-alt-fill me-2" style="color: var(--md-teal-clinical);"></i>Domicilio</h5>
+                <span class="badge bg-light text-muted border px-3 py-1 rounded-pill small fw-bold"><i class="bi bi-patch-check-fill text-info me-1"></i>Cat&aacute;logo Oficial SEPOMEX / INEGI</span>
+            </div>
+
+            <div class="row g-3">
+                <!-- Buscador de CP -->
+                <div class="col-md-3">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" id="cp_paciente" maxlength="5" class="form-control fw-bold" placeholder="00000" oninput="buscarDomicilioPorCP(this.value)">
+                        <label>C&oacute;digo Postal (CP) *</label>
+                    </div>
+                    <div id="cpStatus" class="small mt-1 fw-bold text-muted d-none"></div>
+                </div>
+
+                <!-- Entidad Federativa -->
+                <div class="col-md-4">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" id="entidad_paciente" class="form-control fw-bold" placeholder="Entidad Federativa">
+                        <label>Entidad Federativa (Estado)</label>
+                    </div>
+                </div>
+
+                <!-- Municipio / Alcaldía -->
+                <div class="col-md-5">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" id="municipio_paciente" class="form-control fw-bold" placeholder="Municipio / Alcaldía">
+                        <label>Municipio / Alcald&iacute;a</label>
+                    </div>
+                </div>
+
+                <!-- Colonia / Asentamiento -->
+                <div class="col-md-5">
+                    <div class="form-floating diamond-input-armor">
+                        <select id="colonia_paciente" class="form-select fw-bold">
+                            <option value="">Seleccione Colonia / Asentamiento...</option>
+                        </select>
+                        <label>Colonia / Asentamiento</label>
+                    </div>
+                </div>
+
+                <!-- Calle -->
+                <div class="col-md-7">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" id="calle_paciente" class="form-control fw-bold" placeholder="Calle / Avenida">
+                        <label>Calle / Avenida</label>
+                    </div>
+                </div>
+
+                <!-- Número Exterior -->
+                <div class="col-md-6">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" id="num_ext_paciente" class="form-control fw-bold" placeholder="No. Exterior">
+                        <label>N&uacute;mero Exterior</label>
+                    </div>
+                </div>
+
+                <!-- Número Interior -->
+                <div class="col-md-6">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" id="num_int_paciente" class="form-control fw-bold" placeholder="No. Interior">
+                        <label>N&uacute;mero Interior (Opcional)</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- SECCIONES DE ANTECEDENTES COMPLEMENTARIOS -->
         <div class="card-medentia-aura p-4 p-md-5 mb-4 border-0 shadow-sm" style="border-radius: 1.5rem;">
             <!-- Bloque: Antecedentes Heredofamiliares -->

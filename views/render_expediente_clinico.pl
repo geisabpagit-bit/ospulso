@@ -1040,6 +1040,37 @@ HTML
                 </div>
             </div>
 
+            <!-- CARD DOMICILIO (SOLO LECTURA) -->
+            @{[ do {
+                my $ant = $paciente->{antecedentes} // {};
+                my $dom = $ant->{domicilio} // {};
+                my $cp = $dom->{cp} || 'No registrado';
+                my $ent = $dom->{entidad} || 'No registrada';
+                my $mun = $dom->{municipio} || 'No registrado';
+                my $col = $dom->{colonia} || 'No registrada';
+                my $calle = $dom->{calle} || 'No registrada';
+                my $n_ext = $dom->{num_ext} || '--';
+                my $n_int = $dom->{num_int} ? " Int. $dom->{num_int}" : '';
+
+                qq{
+                    <div class="card-medentia-aura p-5 border-0 shadow-sm mt-4 mb-4" style="border-radius: 1.5rem; background: #ffffff;">
+                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                            <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-geo-alt-fill me-2" style="color: var(--md-teal-clinical);"></i>Domicilio</h5>
+                            <span class="badge bg-light text-muted border px-3 py-1 rounded-pill small fw-bold"><i class="bi bi-patch-check-fill text-info me-1"></i>Cat&aacute;logo Oficial SEPOMEX / INEGI</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-3"><div class="form-floating diamond-input-armor"><input class="form-control" value="$cp" readonly disabled><label>C&oacute;digo Postal (CP)</label></div></div>
+                            <div class="col-md-4"><div class="form-floating diamond-input-armor"><input class="form-control" value="$ent" readonly disabled><label>Entidad Federativa</label></div></div>
+                            <div class="col-md-5"><div class="form-floating diamond-input-armor"><input class="form-control" value="$mun" readonly disabled><label>Municipio / Alcald&iacute;a</label></div></div>
+                            <div class="col-md-5"><div class="form-floating diamond-input-armor"><input class="form-control" value="$col" readonly disabled><label>Colonia / Asentamiento</label></div></div>
+                            <div class="col-md-7"><div class="form-floating diamond-input-armor"><input class="form-control" value="$calle" readonly disabled><label>Calle / Avenida</label></div></div>
+                            <div class="col-md-6"><div class="form-floating diamond-input-armor"><input class="form-control" value="$n_ext" readonly disabled><label>N&uacute;mero Exterior</label></div></div>
+                            <div class="col-md-6"><div class="form-floating diamond-input-armor"><input class="form-control" value="$n_int" readonly disabled><label>N&uacute;mero Interior</label></div></div>
+                        </div>
+                    </div>
+                };
+            } ]}
+
             <!-- M&Oacute;DULO COMPLETO DE ANTECEDENTES DEL EXPEDIENTE (SOLO RESUMEN ESTRUCTURADO) -->
             @{[ do {
                 my $ant = $paciente->{antecedentes} // {};
