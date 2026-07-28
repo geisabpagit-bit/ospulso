@@ -3,7 +3,8 @@ use warnings;
 use utf8;
 
 sub render_step_caja_privado {
-    my ($paciente) = @_;
+    my ($paciente, $id_cita) = @_;
+    $id_cita //= '';
     
     # Obtener todas las cotizaciones del paciente para pasarlas a JSON
     my $id_p = $paciente->{id_paciente} || '';
@@ -57,7 +58,7 @@ sub render_step_caja_privado {
     }
     
     use JSON::PP;
-    my $json_cots = JSON::PP->new->utf8(1)->encode(\%cot_data);
+    my $json_cots = JSON::PP->new->encode(\%cot_data);
     
     # 3. Buscar si tiene tratamiento abierto
     my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
@@ -98,8 +99,20 @@ sub render_step_caja_privado {
             next unless @c >= 8;
             my $id_os_row = $c[0] // '';
             my $id_pac_row = $c[2] // '';
+            my $notas_row = $c[10] // '';
             
-            if ($id_pac_row eq $id_p && (!$tiene_tratamiento || $id_os_row eq $id_tratamiento_activo || $line =~ /Recepción|Recepcion/i)) {
+            my $pertenece_a_cita = 0;
+            if ($id_cita ne '') {
+                if ($notas_row =~ /Cita #\s*\Q$id_cita\E\b/i || ($tiene_tratamiento && $id_os_row eq $id_tratamiento_activo)) {
+                    $pertenece_a_cita = 1;
+                }
+            } else {
+                if (!$tiene_tratamiento || $id_os_row eq $id_tratamiento_activo || $line =~ /Recepción|Recepcion/i) {
+                    $pertenece_a_cita = 1;
+                }
+            }
+            
+            if ($id_pac_row eq $id_p && $pertenece_a_cita) {
                 my $tipo = $c[3];
                 my $total = $c[7] // 0;
                 if ($tipo eq 'Cargo') {
@@ -123,7 +136,7 @@ sub render_step_caja_privado {
     
     my $saldo_pendiente = $total_cargos - $total_abonos;
     
-    my $json_historial = JSON::PP->new->utf8(1)->encode({
+    my $json_historial = JSON::PP->new->encode({
         tiene_tratamiento => $tiene_tratamiento,
         id_tratamiento => $id_tratamiento_activo,
         cargos => \@cargos,
@@ -204,7 +217,7 @@ sub render_step_caja_privado {
                             
                             <div class="mb-3">
                                 <label class="wizard-label">Destino del Tratamiento</label>
-                                <select name="caja_estado_tratamiento" id="f_caja_estado_tratamiento" class="wizard-input" onchange="toggleCitaWorkflow()">
+                                <select name="caja_estado_tratamiento" id="f_caja_estado_tratamiento" class="wizard-input" onchange="actualizarMontoPago()">
                                     <option value="Abierto">Dejar tratamiento abierto (Requiere pr&oacute;xima cita)</option>
                                     <option value="Cerrado">Finalizar y Cerrar tratamiento (Alta m&eacute;dica)</option>
                                     <option value="Cobro por recepción">Cobro por recepci&oacute;n (Pendiente por Recepcionista)</option>
@@ -213,7 +226,7 @@ sub render_step_caja_privado {
                         </div>
                     </div>
                     
-                    <div class="col-md-6">
+                    <div class="col-md-6" id="panel-programacion-cita">
                         <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="border: 1px solid rgba(25, 183, 165, 0.2) !important;">
                             <h5 class="fw-black text-navy mb-3"><i class="bi bi-calendar-week me-2" style="color: var(--md-teal-clinical);"></i>Programaci&oacute;n de Cita</h5>
                             
@@ -619,17 +632,17 @@ sub render_step_caja_privado {
                 document.getElementById('f_caja_items_json').value = '[]';
             }
             
-            // Lógica de ocultar "Gestión de Caja" si ya se pagó en recepción y no hay cargos extras
+            // Lógica de ocultar "Gestión de Caja" y "Programación de Cita" si ya se pagó en recepción y no hay cargos extras (Supuesto A)
             const panelCaja = document.getElementById('panel-gestion-caja');
-            if (panelCaja) {
-                if (tienePrePagoRecepcion && (!carritoConsulta || carritoConsulta.length === 0)) {
-                    panelCaja.style.display = 'none';
-                    // Marcar cobro por recepción
-                    const estadoTratSelect = document.getElementById('f_caja_estado_tratamiento');
-                    if (estadoTratSelect) estadoTratSelect.value = 'Cobro por recepción';
-                } else {
-                    panelCaja.style.display = 'block';
-                }
+            const panelCita = document.getElementById('panel-programacion-cita');
+            if (tienePrePagoRecepcion && (!carritoConsulta || carritoConsulta.length === 0)) {
+                if (panelCaja) panelCaja.style.display = 'none';
+                if (panelCita) panelCita.style.display = 'none';
+                const estadoTratSelect = document.getElementById('f_caja_estado_tratamiento');
+                if (estadoTratSelect) estadoTratSelect.value = 'Cerrado';
+            } else {
+                if (panelCaja) panelCaja.style.display = 'block';
+                if (panelCita) panelCita.style.display = 'block';
             }
             
             toggleCitaWorkflow();
@@ -757,14 +770,23 @@ sub render_step_caja_privado {
         function validarPasoCajaYContinuar() {
             const cotSelect = document.getElementById('f_id_cotizacion');
             const convertirCheck = document.getElementById('f_convertir_tratamiento');
+            const tienePrePagoRecepcion = (historialTratamiento && historialTratamiento.abonos && historialTratamiento.abonos.some(a => (a.concepto||'').includes('Recepción') || (a.concepto||'').includes('Recepcion')));
+            
+            // Supuesto A: Si es prepago en recepción y sin items adicionales, continuar directo al cierre
+            if (tienePrePagoRecepcion && (!carritoConsulta || carritoConsulta.length === 0)) {
+                WizardController.nextStep();
+                return;
+            }
             
             const isTratamientoActivo = historialTratamiento && historialTratamiento.tiene_tratamiento;
             const isNuevaConversion = cotSelect && cotSelect.value && convertirCheck && convertirCheck.checked;
             const tieneCargosDirectos = carritoConsulta && carritoConsulta.length > 0;
+            const estadoTratSelect = document.getElementById('f_caja_estado_tratamiento');
+            const estadoTrat = estadoTratSelect ? estadoTratSelect.value : '';
             
             if (isTratamientoActivo || isNuevaConversion || tieneCargosDirectos) {
                 const montoInput = document.getElementById('f_caja_monto_abono');
-                const montoVal = parseFloat(montoInput.value) || 0;
+                const montoVal = parseFloat(montoInput ? montoInput.value : 0) || 0;
                 
                 let maxMonto = 0;
                 if (isTratamientoActivo) {
@@ -785,13 +807,14 @@ sub render_step_caja_privado {
                     Swal.fire('Atención', 'Por favor, ingrese un monto de abono válido.', 'warning');
                     return;
                 }
-                if (montoVal > maxMonto) {
+                
+                // Supuesto C: Si el cobro se enviará a Recepción, el abono del médico es 0.00, omitir la validación de exceso
+                if (estadoTrat !== 'Cobro por recepción' && montoVal > maxMonto) {
                     Swal.fire('Atención', `El monto a pagar (\$\${montoVal.toFixed(2)}) no puede ser mayor al saldo pendiente (\$\${maxMonto.toFixed(2)}).`, 'warning');
                     return;
                 }
                 
-                const estadoTrat = document.getElementById('f_caja_estado_tratamiento').value;
-                const citaId = document.getElementById('f_proxima_cita_id').value;
+                const citaId = document.getElementById('f_proxima_cita_id') ? document.getElementById('f_proxima_cita_id').value : '';
                 
                 if (estadoTrat === 'Abierto' && !citaId) {
                     Swal.fire('Cita Requerida', 'Es obligatorio agendar la próxima cita de seguimiento para dejar el tratamiento abierto.', 'warning');

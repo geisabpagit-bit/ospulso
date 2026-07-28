@@ -347,10 +347,12 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         foreach my $it (@$caja_items) {
             my $id_mov = 'MOV-' . time() . '-' . $idx_dir++;
             my $sub = ($it->{precio} || 0) * ($it->{cantidad} || 1);
+            my $nota_cargo = "Tratamiento: $id_tratamiento | Cargo Directo";
+            $nota_cargo .= " | Cita #$id_cita" if $id_cita;
             my $linea_cargo = join('|',
                 $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{nombre},
                 $sub, 0, $sub, $hoy_fecha, $id_medico,
-                "Tratamiento: $id_tratamiento | Cargo Directo", ''
+                $nota_cargo, ''
             );
             utils::db_manager::guardar_registro($fin_file, $linea_cargo);
         }
@@ -366,10 +368,12 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         
         my $id_mov_abono = 'MOV-' . time() . '-ABONO';
         my $concepto_abono = "Abono en Caja - Metodo: $caja_metodo_pago";
+        my $nota_abono = "Tratamiento: $id_tratamiento | Metodo: $caja_metodo_pago";
+        $nota_abono .= " | Cita #$id_cita" if $id_cita;
         my $linea_abono = join('|',
             $id_tratamiento, $id_mov_abono, $id_paciente, 'Abono', $concepto_abono,
             $caja_monto_abono, 0, $caja_monto_abono, $hoy_fecha, $id_medico,
-            "Tratamiento: $id_tratamiento | Metodo: $caja_metodo_pago", ''
+            $nota_abono, ''
         );
         utils::db_manager::guardar_registro($fin_file, $linea_abono);
     }

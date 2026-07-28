@@ -354,7 +354,7 @@ print <<HTML;
         @{[ render_step_estudios($paciente) ]}
         @{[ render_step_soap($paciente) ]}
         @{[ render_step_comunicacion() ]}
-        @{[ render_step_caja_privado($paciente) ]}
+        @{[ render_step_caja_privado($paciente, $id_cita) ]}
         @{[ render_step_cierre_privado() ]}
     </form>
 </div>
