@@ -978,7 +978,7 @@ HTML
                     <p class="text-muted small fw-bold mb-0">EXPEDIENTE MAESTRO DEL PACIENTE (LECTURA)</p>
                 </div>
                 <div>
-                    <a href="crud_paciente.pl?id=$d->{id_paciente}&from=expediente" class="btn btn-medentia btn-sm rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+                    <a href="crud_paciente.pl?id=$paciente->{id_paciente}&from=expediente" class="btn btn-medentia btn-sm rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
                         <i class="bi bi-pencil-square" style="color: var(--md-cyan-ia);"></i><span>Editar Ficha</span>
                     </a>
                 </div>

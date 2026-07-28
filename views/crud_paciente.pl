@@ -163,8 +163,8 @@ print <<HTML;
                         <!-- Campo Responsable / Tutor (si menor de edad) -->
                         <div class="col-md-12 d-none" id="containerTutor">
                             <div class="form-floating diamond-input-armor">
-                                <input type="text" id="responsableTutor" class="form-control fw-bold border-warning" placeholder="Responsable / Tutor">
-                                <label class="text-warning"><i class="bi bi-shield-person-fill me-1"></i>Responsable / Tutor Legal *</label>
+                                <input type="text" id="responsableTutor" class="form-control fw-bold border-success-subtle" placeholder="Responsable / Tutor">
+                                <label class="text-success fw-bold"><i class="bi bi-shield-person-fill me-1" style="color: var(--md-teal-clinical);"></i>Responsable / Tutor Legal *</label>
                             </div>
                         </div>
                     </div>

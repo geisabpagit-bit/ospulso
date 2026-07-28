@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (edad !== null && !isNaN(edad)) {
             if (lblEdad) {
                 lblEdad.innerText = `${edad} años` + (edad < 18 ? ' (Menor de edad)' : '');
-                lblEdad.className = `badge ${edad < 18 ? 'bg-warning text-dark' : 'bg-primary text-white'} ms-2`;
+                lblEdad.className = `badge ${edad < 18 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary text-white'} ms-2`;
                 lblEdad.classList.remove('d-none');
             }
             if (edad < 18) {
@@ -93,8 +93,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // LÓGICA DE ACTUALIZACIÓN HÍBRIDA (C vs U)
     const urlParams = new URLSearchParams(window.location.search);
-    const editId = urlParams.get('edit_id') || urlParams.get('id');
-    const accion = urlParams.get('accion') || (editId ? 'U' : 'C');
+    const editIdValEl = document.getElementById('editIdVal');
+    const editId = urlParams.get('edit_id') || urlParams.get('id') || (editIdValEl ? editIdValEl.value : '');
+    const accion = (editId && editId !== '') ? 'U' : (urlParams.get('accion') || 'C');
 
     // Mapeo Dinámico de Interfaz
     const elBreadcrumbInfo  = document.getElementById('breadcrumb-title');
