@@ -806,22 +806,11 @@ HTML
 
         <!-- 2: DASHBOARD CLÍNICO (SUB-MÓDULO 1.4 REFACTORIZADO / RESUMEN) -->
         <section class="sdm-tab-sec" id="tab2">
-            <!-- Header de Sub-módulo 1.4 -->
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                <div>
-                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-heart-pulse-fill me-2" style="color: var(--md-teal-clinical);"></i>Dashboard Cl&iacute;nico 1.4</h3>
-                    <p class="text-muted small fw-bold mb-0">M&Eacute;TRICAS BIOM&Eacute;TRICAS, KPI Y ESTADO CL&Iacute;NICO EN TIEMPO REAL</p>
-                </div>
-                <div class="d-flex gap-2 p-1 bg-transparent flex-wrap">
-                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold border-0" onclick="swTab('tab3', this)"><i class="bi bi-person-gear me-1"></i>Ficha de Identificación</button>
-                    <button class="btn btn-medentia btn-sm rounded-pill px-3 fw-bold" onclick="swTab('tab2', this)"><i class="bi bi-heart-pulse me-1"></i>Cl&iacute;nico</button>
-                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold border-0" onclick="swTab('tab4', this)"><i class="bi bi-journal-text me-1"></i>SOAP</button>
-                    <div class="vr mx-1"></div>
-                    <a href="imprime_expediente_completo.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-outline-medentia btn-sm d-flex align-items-center px-3"><i class="bi bi-printer me-1" style="color: var(--md-teal-clinical);"></i>Reporte</a>
-                    <button type="button" class="btn btn-medentia btn-sm d-flex align-items-center px-4" onclick="guardarFichaMaster()">
-                        <i class="bi bi-shield-check me-1" style="color: var(--md-cyan-ia);"></i>Guardar
-                    </button>
-                </div>
+            <!-- Barra Superior de Acciones en Resumen -->
+            <div class="d-flex justify-content-end align-items-center mb-4">
+                <a href="imprime_expediente_completo.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-outline-medentia btn-sm d-flex align-items-center px-4 py-2 shadow-sm rounded-pill fw-bold">
+                    <i class="bi bi-printer me-2" style="color: var(--md-teal-clinical);"></i>Reporte
+                </a>
             </div>
 
             <!-- NIVEL 1: ALERTAS CLÍNICAS & EVALUACIÓN IMC / NUTRICIONAL -->
@@ -862,25 +851,25 @@ HTML
                 </div>
 
                 <div class="col-lg-5">
-                    <!-- Resumen Salud e IMC -->
-                    <div class="card-medentia-aura p-4 h-100 border-0 shadow-sm" style="border-radius: 1.25rem; background: linear-gradient(135deg, var(--md-navy) 0%, var(--md-blue-deep) 100%); color: white;">
+                    <!-- Resumen Salud e IMC con Alto Contraste -->
+                    <div class="card-medentia-aura p-4 h-100 border-0 shadow-sm" style="border-radius: 1.25rem; background: linear-gradient(135deg, #051A44 0%, #0A2A66 100%) !important; color: #ffffff !important;">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="small text-white-50 fw-bold text-uppercase" style="letter-spacing: 0.5px;"><i class="bi bi-person-bounding-box me-1"></i> Estado Nutricional e IMC</span>
-                            <span class="badge $imc_badge rounded-pill px-3 fw-bold">$imc_status</span>
+                            <span class="small fw-bold text-uppercase" style="letter-spacing: 0.5px; color: #a5f3fc;"><i class="bi bi-person-bounding-box me-1"></i> Estado Nutricional e IMC</span>
+                            <span class="badge $imc_badge rounded-pill px-3 py-1 fw-bold shadow-sm">$imc_status</span>
                         </div>
-                        <div class="row align-items-center">
+                        <div class="row align-items-center my-2">
                             <div class="col-6">
-                                <div class="display-5 fw-black text-white">$imc_val</div>
-                                <div class="small text-white-50 fw-semibold">kg/m&sup2; (IMC)</div>
+                                <div class="display-5 fw-black text-white" style="line-height: 1;">$imc_val</div>
+                                <div class="small fw-semibold mt-1" style="color: #cbd5e1;">kg/m&sup2; (IMC)</div>
                             </div>
                             <div class="col-6 text-end">
-                                <div class="small text-white-50 fw-bold">Peso: <strong class="text-white">$peso_val kg</strong></div>
-                                <div class="small text-white-50 fw-bold mt-1">Talla: <strong class="text-white">$talla_val cm</strong></div>
+                                <div class="small fw-bold" style="color: #e2e8f0;">Peso: <strong class="text-white fs-6">$peso_val kg</strong></div>
+                                <div class="small fw-bold mt-2" style="color: #e2e8f0;">Talla: <strong class="text-white fs-6">$talla_val cm</strong></div>
                             </div>
                         </div>
                         <div class="mt-3">
-                            <div class="progress" style="height: 6px; background: rgba(255,255,255,0.2);">
-                                <div class="progress-bar bg-info" role="progressbar" style="width: ${imc_perc}%;"></div>
+                            <div class="progress" style="height: 8px; background: rgba(255, 255, 255, 0.2); border-radius: 10px;">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: ${imc_perc}%; border-radius: 10px;"></div>
                             </div>
                         </div>
                     </div>
