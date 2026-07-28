@@ -1,4 +1,4 @@
-# 🏥 SDM - Arquitectura del Flujo Clínico (Wizard Edition v4.3.0)
+# 🏥 SDM - Arquitectura del Flujo Clínico (Wizard Edition v4.4.0)
 
 ## Archivos Core (Orquestadores)
 - `views/render_consultas.pl` (Flujo Público/Institucional)
@@ -7,12 +7,12 @@
 ---
 
 # 🎯 Objetivo de la Arquitectura
-El proceso de consulta médica está diseñado bajo un modelo de **Flujo Clínico Modular (Multi-Step)** con barra de progreso, persistencia incremental (Autosave) y estructura S.O.A.P. polimórfica. Esta arquitectura es el pilar de la suite clínica "MedentIA Diamond", asegurando velocidad operativa, prevención de pérdida de datos, trazabilidad financiero-clínica y blindaje médico-legal.
+El proceso de consulta médica está diseñado bajo un modelo de **Flujo Clínico Modular (Multi-Step)** con barra de progreso, persistencia incremental (Autosave), trazabilidad financiera multi-escenario (Cobro Inmediato, Pre-Pago en Recepción y Cobro Diferido) y metodología S.O.A.P. polimórfica.
 
 ---
 
 # 🏗 Arquitectura y Componentes
-El flujo se aleja de formularios monolíticos y POSTs gigantes. Se divide en 8 módulos asíncronos orquestados por JavaScript y Perl.
+El flujo se divide en 8 módulos asíncronos orquestados por JavaScript y Perl.
 
 ## 1. El Shell Principal (`render_consultas_privado.pl`)
 Actúa como un cascarón (shell) que inyecta dinámicamente los componentes parciales según el progreso. Gestiona:
@@ -25,11 +25,15 @@ Actúa como un cascarón (shell) que inyecta dinámicamente los componentes parc
 Cada paso del flujo clínico es un archivo `.pl` independiente que se incluye en el Shell:
 - `step_registro_privado.pl`: Datos básicos (Motivo, Tipo, Especialidad, Cotización del Paciente).
 - `step_anamnesis.pl`: Padecimiento, evolución, APNP y alergias.
-- `step_exploracion.pl`: Signos vitales, métricas y exploración física (Inyecta dinámicamente el **Odontograma Interactivo** si `id_espe == 100` Odontología).
+- `step_exploracion.pl`: Signos vitales, métricas e IMC (Inyecta dinámicamente el **Odontograma Interactivo** si `id_espe == 100` Odontología).
 - `step_estudios.pl`: Laboratorios solicitados o resultados analizados.
 - `step_soap.pl`: Motor diagnóstico SOAP, switch opcional de catálogo **CIE-10 / Valoración CIF**, y módulo oficial de **Receta Médica (NOM-024-SSA3)** vinculando la Cédula Profesional del médico.
 - `step_comunicacion.pl`: Blindaje médico-legal con explicación del plan y expedición de **Consentimiento Informado (NOM-004-SSA3)**.
-- `step_caja_privado.pl`: Gestión de Caja, carrito de conceptos, selección de Destino de Tratamiento ("Alta Médica" por default si no hay cotización previa) y opción de **"Cobro por recepción"**.
+- `step_caja_privado.pl`:
+  - **Supuesto A (Pre-Pago en Recepción)**: Si la cita ya fue pagada en Recepción y no hay ítems adicionales, oculta automáticamente las tarjetas de caja y programación de cita, fija el tratamiento como `Cerrado` en segundo plano y habilita la transición limpia al cierre. Si hay adicionales (ej. $800), calcula la deducción del abono (-$500) y fija el saldo resultante ($800.00).
+  - **Supuesto B (Cobro en Consulta)**: Cobro directo en consulta.
+  - **Supuesto C (Cobro por Recepción)**: Delega la cobranza a Recepción fijando `$0.00` de abono en el Wizard.
+  - **Aislamiento de Citas Directas**: Si `$id_cita` está vacío (`""`), la caja no arrastra movimientos pasados ($0.00 histórico), garantizando un inicio limpio en $500 o ítems de la sesión.
 - `step_cierre_privado.pl`: Firma autógrafa digital (Pad), conversión a PNG físico en `/uploads/firmas/` y finalización del acto clínico.
 
 ## 3. Motor de Persistencia (Autosave Engine)
@@ -40,25 +44,23 @@ Cada paso del flujo clínico es un archivo `.pl` independiente que se incluye en
 ## 4. Finalización y Trazabilidad Financiera
 - `api/cerrar_consulta_privado.pl`:
   - Traslada la consulta desde `consulta_draft.dat` hacia la base de datos definitiva en `dat/consultas_clinicas.dat` (formato JSON dentro de flat-file) y firma el registro.
-  - Genera las entradas financieras en `dat/estado_cuenta.dat`: si se selecciona "Cobro por recepción", escribe únicamente el **Cargo** (por $500 tarifa consulta o ítems) sin **Abono**, dejando el saldo pendiente a cobro por Recepción.
+  - Genera las entradas financieras en `dat/estado_cuenta.dat`.
   - Actualiza el estado de la cita en `dat/citas.dat` a `Atendida` (color Teal `#19B7A5`).
-- **Odontograma**: Si se utilizó, el mapa dental interactivo SVG persiste de forma paralela usando `js/odontograma_spa.js` hacia `api/odontograma_api.pl`.
 
 ---
 
-# 👁 Observabilidad y Reportes
-
-## Expediente Clínico (`render_expediente_clinico.pl`)
-La vista de historial lee la estructura JSON generada por el Wizard y mapea de forma inteligente el diagnóstico (`diagnostico_principal`), el motivo, el estado de cita "Atendida" en verde y la identidad del médico tratante.
-
-## Visor Maestro, Receta y Consentimiento (`consulta_detalles.pl`, `imprimir_receta_api.pl`, `imprimir_consentimiento_api.pl`)
-- **Web**: Despliega un modelo *Bento Grid* interactivo y estilizado para la revisión detallada de la consulta por parte de auditores o médicos interconsultantes.
-- **PDF e Impresión**: Generación de Receta Médica oficial con Cédula Profesional y Consentimiento Informado con firma digital lista para imprimir en formato carta oficial.
+# 👁 Visor Maestro de Consultas (`consulta_detalles.pl`)
+Despliega un modelo *Bento Grid* interactivo para la revisión detallada del expediente clínico:
+- Banner del Paciente y Médico con Cédula Profesional.
+- Tarjetas Bento de Signos Vitales, Anamnesis, Barra de Intensidad de Síntomas (1-10), Exploración Física, Metodología S.O.A.P. con CIE-10, Receta Médica Expedida, y Firmas Autógrafas Digitales en PNG.
+- Estilos `@media print` para impresión física de nota médica o exportación a PDF.
 
 ---
 
 # 🔒 Reglas Innegociables del Flujo
 1. **Protocolo 500 Guard**: Todo parseo de JSON (`decode_json`) y evaluación de datos debe estar envuelto en bloques `eval {}` para evitar bloqueos del CGI.
-2. **UTF-8 Forzado**: Todo archivo del Wizard debe declarar `use strict; use warnings; use utf8;` y `binmode STDOUT, ":utf8";` debido al amplio uso de vocabulario médico con tildes y caracteres latinos.
+2. **UTF-8 Forzado**: Todo archivo del Wizard debe declarar `use strict; use warnings; use utf8;` y `binmode STDOUT, ":utf8";`. Estandarización de `decode_json(encode_utf8(...))` para prevenir doble codificación de caracteres.
 3. **Estilo Diamond Armor**: Prohibido usar estilos inline. Todo contenedor debe heredar de `card-medentia-aura` o los inputs de `wizard-input` (Estándar #19B7A5).
 4. **Escape de Escalares CSS/JS**: En bloques string interpolados o heredocs (`<<"HTML"`), se deben escapar símbolos de arroba como `\@media` para evitar errores de compilación por variables no declaradas.
+
+**Software Dental Mexicano - Diamond Edition v4.4.0**
