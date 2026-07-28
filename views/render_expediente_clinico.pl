@@ -960,82 +960,62 @@ HTML
             </div>
         </section>
 
-        <!-- 3: FICHA TÉCNICA (MODERNIZADA & FIEL AL DAT) -->
+        <!-- 3: FICHA DE IDENTIFICACIÓN (SOLO LECTURA) -->
         <section class="sdm-tab-sec d-none" id="tab3">
-            <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
-                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Ficha de Identificación</h3>
-                    <p class="text-muted small fw-bold">GESTI&Oacute;N DE EXPEDIENTE MAESTRO</p>
+                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-person-vcard-fill me-2" style="color: var(--md-teal-clinical);"></i>Ficha de Identificación</h3>
+                    <p class="text-muted small fw-bold mb-0">EXPEDIENTE MAESTRO DEL PACIENTE (LECTURA)</p>
                 </div>
-                <div class="d-flex gap-2 p-1 bg-transparent rounded-pill flex-wrap">
-                    <a href="imprime_expediente_completo.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-outline-medentia d-flex align-items-center"><i class="bi bi-printer me-2" style="color: var(--md-teal-clinical);"></i>Reporte</a>
-                    <button type="button" class="btn btn-medentia d-flex align-items-center" onclick="guardarFichaMaster()">
-                        <i class="bi bi-shield-check me-2" style="color: var(--md-cyan-ia);"></i>Guardar Cambios
-                    </button>
+                <div>
+                    <a href="crud_paciente.pl?id=$d->{id_paciente}&from=expediente" class="btn btn-medentia btn-sm rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-pencil-square" style="color: var(--md-cyan-ia);"></i><span>Editar Ficha</span>
+                    </a>
                 </div>
             </div>
 
-            <form id="formFichaCRUD">
-                <input type="hidden" name="id_paciente" value="$paciente->{id_paciente}">
-                <div class="row g-4">
-                    <div class="col-lg-8">
-                        <div class="card-medentia-aura p-5 h-100">
-                            <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-person-lines-fill me-2" style="color: var(--md-teal-clinical);"></i>Informaci&oacute;n de Identidad</h5>
-                            <div class="row g-3">
-                                <div class="col-md-12"><div class="form-floating diamond-input-armor"><input class="form-control" name="nombre" value="$paciente->{nombre}" placeholder="Nombre"><label>Nombre Completo</label></div></div>
-                                <div class="col-md-6"><div class="form-floating diamond-input-armor"><input class="form-control" name="rfc" value="$paciente->{rfc}" placeholder="RFC"><label>RFC</label></div></div>
-                                <div class="col-md-6"><div class="form-floating diamond-input-armor"><input class="form-control" name="curp" value="$paciente->{curp}" placeholder="CURP"><label>CURP</label></div></div>
-                                <div class="col-md-6"><div class="form-floating diamond-input-armor"><input class="form-control" name="email" value="$paciente->{email}" placeholder="Email"><label>Correo Electr&oacute;nico</label></div></div>
-                                <div class="col-md-6"><div class="form-floating diamond-input-armor"><input class="form-control" name="telefono" value="$paciente->{tel}" placeholder="Tel"><label>Tel&eacute;fono de Contacto</label></div></div>
-                                <div class="col-md-4">
-                                    <div class="form-floating diamond-input-armor">
-                                        <select class="form-select" name="sexo">
-                                            <option value="Masculino" @{[ $paciente->{sexo} eq 'Masculino' ? 'selected' : '' ]}>Masculino</option>
-                                            <option value="Femenino" @{[ $paciente->{sexo} eq 'Femenino' ? 'selected' : '' ]}>Femenino</option>
-                                            <option value="Otro" @{[ $paciente->{sexo} eq 'Otro' ? 'selected' : '' ]}>Otro</option>
-                                        </select>
-                                        <label>G&eacute;nero</label>
-                                    </div>
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card-medentia-aura p-5 h-100">
+                        <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-person-lines-fill me-2" style="color: var(--md-teal-clinical);"></i>Informaci&oacute;n de Identidad</h5>
+                        <div class="row g-3">
+                            <div class="col-md-12"><div class="form-floating diamond-input-armor"><input class="form-control" value="$paciente->{nombre}" readonly disabled><label>Nombre Completo</label></div></div>
+                            <div class="col-md-6"><div class="form-floating diamond-input-armor"><input class="form-control" value="$paciente->{rfc}" readonly disabled><label>RFC</label></div></div>
+                            <div class="col-md-6"><div class="form-floating diamond-input-armor"><input class="form-control" value="$paciente->{curp}" readonly disabled><label>CURP</label></div></div>
+                            <div class="col-md-6"><div class="form-floating diamond-input-armor"><input class="form-control" value="$paciente->{email}" readonly disabled><label>Correo Electr&oacute;nico</label></div></div>
+                            <div class="col-md-6"><div class="form-floating diamond-input-armor"><input class="form-control" value="$paciente->{tel}" readonly disabled><label>Tel&eacute;fono de Contacto</label></div></div>
+                            <div class="col-md-4">
+                                <div class="form-floating diamond-input-armor">
+                                    <input class="form-control" value="$paciente->{sexo}" readonly disabled>
+                                    <label>G&eacute;nero</label>
                                 </div>
-                                <div class="col-md-4"><div class="form-floating diamond-input-armor"><input class="form-control" name="f_nac" value="$paciente->{f_nac}" type="date"><label>Fecha de Nacimiento</label></div></div>
-                                <div class="col-md-4"><div class="form-floating diamond-input-armor"><input class="form-control" name="nacionalidad" value="$paciente->{nacionalidad}" placeholder="Nacionalidad"><label>Nacionalidad</label></div></div>
                             </div>
+                            <div class="col-md-4"><div class="form-floating diamond-input-armor"><input class="form-control" value="$paciente->{f_nac}" readonly disabled><label>Fecha de Nacimiento</label></div></div>
+                            <div class="col-md-4"><div class="form-floating diamond-input-armor"><input class="form-control" value="$paciente->{nacionalidad}" readonly disabled><label>Nacionalidad</label></div></div>
                         </div>
                     </div>
-                    <div class="col-lg-4">
-                        <div class="card-medentia-aura p-5 h-100">
-                            <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-heart-pulse-fill me-2" style="color: var(--md-teal-clinical);"></i>Datos Cl&iacute;nicos</h5>
-                            <div class="mb-4 diamond-input-armor">
-                                <label class="small fw-bold text-muted mb-2 ps-1">Grupo Sangu&iacute;neo</label>
-                                <select class="form-select py-3 fw-bold" name="sangre">
-                                    <option value="O+" @{[ $paciente->{tipo_sangre} eq 'O+' ? 'selected' : '' ]}>O Positivo</option>
-                                    <option value="O-" @{[ $paciente->{tipo_sangre} eq 'O-' ? 'selected' : '' ]}>O Negativo</option>
-                                    <option value="A+" @{[ $paciente->{tipo_sangre} eq 'A+' ? 'selected' : '' ]}>A Positivo</option>
-                                    <option value="A-" @{[ $paciente->{tipo_sangre} eq 'A-' ? 'selected' : '' ]}>A Negativo</option>
-                                    <option value="B+" @{[ $paciente->{tipo_sangre} eq 'B+' ? 'selected' : '' ]}>B Positivo</option>
-                                    <option value="AB+" @{[ $paciente->{tipo_sangre} eq 'AB+' ? 'selected' : '' ]}>AB Positivo</option>
-                                </select>
-                            </div>
-                            <div class="mb-4 diamond-input-armor">
-                                <label class="small fw-bold text-muted mb-2 ps-1">Estado Civil</label>
-                                <select class="form-select py-3 fw-bold" name="e_civil">
-                                    <option value="Soltero" @{[ $paciente->{e_civil} eq 'Soltero' ? 'selected' : '' ]}>Soltero/a</option>
-                                    <option value="Casado" @{[ $paciente->{e_civil} eq 'Casado' ? 'selected' : '' ]}>Casado/a</option>
-                                    <option value="Divorciado" @{[ $paciente->{e_civil} eq 'Divorciado' ? 'selected' : '' ]}>Divorciado/a</option>
-                                    <option value="Viudo" @{[ $paciente->{e_civil} eq 'Viudo' ? 'selected' : '' ]}>Viudo/a</option>
-                                </select>
-                            </div>
-                            <div class="mb-4 diamond-input-armor">
-                                <label class="small fw-bold text-muted mb-2 ps-1">Ocupaci&oacute;n</label>
-                                <div class="input-group">
-                                    <span class="input-group-text border-0 bg-transparent ps-3"><i class="bi bi-briefcase" style="color: var(--md-teal-clinical);"></i></span>
-                                    <input class="form-control py-3 fw-bold" name="ocupacion" value="$paciente->{ocupacion}">
-                                </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card-medentia-aura p-5 h-100">
+                        <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-heart-pulse-fill me-2" style="color: var(--md-teal-clinical);"></i>Datos Cl&iacute;nicos</h5>
+                        <div class="mb-4 diamond-input-armor">
+                            <label class="small fw-bold text-muted mb-2 ps-1">Grupo Sangu&iacute;neo</label>
+                            <input class="form-control py-3 fw-bold" value="$paciente->{tipo_sangre}" readonly disabled>
+                        </div>
+                        <div class="mb-4 diamond-input-armor">
+                            <label class="small fw-bold text-muted mb-2 ps-1">Estado Civil</label>
+                            <input class="form-control py-3 fw-bold" value="$paciente->{e_civil}" readonly disabled>
+                        </div>
+                        <div class="mb-4 diamond-input-armor">
+                            <label class="small fw-bold text-muted mb-2 ps-1">Ocupaci&oacute;n</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-transparent ps-3"><i class="bi bi-briefcase" style="color: var(--md-teal-clinical);"></i></span>
+                                <input class="form-control py-3 fw-bold" value="$paciente->{ocupacion}" readonly disabled>
                             </div>
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
         </section>
 
         <!-- 4: SOAP (EVOLUCIÓN CLÍNICA) -->

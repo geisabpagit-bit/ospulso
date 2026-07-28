@@ -93,8 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // LÓGICA DE ACTUALIZACIÓN HÍBRIDA (C vs U)
     const urlParams = new URLSearchParams(window.location.search);
-    const accion = urlParams.get('accion') || 'C';
-    const editId = urlParams.get('edit_id');
+    const editId = urlParams.get('edit_id') || urlParams.get('id');
+    const accion = urlParams.get('accion') || (editId ? 'U' : 'C');
 
     // Mapeo Dinámico de Interfaz
     const elBreadcrumbInfo  = document.getElementById('breadcrumb-title');
@@ -322,7 +322,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.href = "pacientes.pl";
+                        const fromParam = urlParams.get('from');
+                        const returnId = editId || (data.data && data.data.id_paciente) || data.id_paciente || urlParams.get('id');
+                        if (fromParam === 'expediente' && returnId) {
+                            window.location.href = "render_expediente_clinico.pl?id=" + returnId + "#tab3";
+                        } else {
+                            window.location.href = "pacientes.pl";
+                        }
                     });
                 } else {
                     Swal.fire("El registro fue rechazado", data.msg || "Ocurrió un error inesperado en la validación.", "error");
