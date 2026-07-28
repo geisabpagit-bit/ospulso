@@ -110,6 +110,32 @@ if ($accion eq 'get_perfil') {
                 close $fha;
             }
 
+            # Cargar domicilio desde pacientes_domicilio.dat
+            my $dom_file = '../dat/pacientes_domicilio.dat';
+            $perfil->{domicilio} = {
+                cp => '', entidad => '', municipio => '', colonia => '', calle => '', num_ext => '', num_int => ''
+            };
+            if (-e $dom_file && open(my $fhd, '<:encoding(UTF-8)', $dom_file)) {
+                while (my $dline = <$fhd>) {
+                    chomp $dline;
+                    next if $dline =~ /^\s*$/ || $dline =~ /^ID_PACIENTE/i;
+                    my @dv = split /\|/, $dline, -1;
+                    if (@dv >= 8 && $dv[0] eq $id_paciente) {
+                        $perfil->{domicilio} = {
+                            cp        => $dv[1] // '',
+                            entidad   => $dv[2] // '',
+                            municipio => $dv[3] // '',
+                            colonia   => $dv[4] // '',
+                            calle     => $dv[5] // '',
+                            num_ext   => $dv[6] // '',
+                            num_int   => $dv[7] // ''
+                        };
+                        last;
+                    }
+                }
+                close $fhd;
+            }
+
             last;
         }
     }

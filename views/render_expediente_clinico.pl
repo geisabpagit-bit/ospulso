@@ -1043,7 +1043,7 @@ HTML
             <!-- CARD DOMICILIO (SOLO LECTURA) -->
             @{[ do {
                 my $ant = $paciente->{antecedentes} // {};
-                my $dom = $ant->{domicilio} // {};
+                my $dom = $paciente->{domicilio} || $ant->{domicilio} || {};
                 my $cp = $dom->{cp} || 'No registrado';
                 my $ent = $dom->{entidad} || 'No registrada';
                 my $mun = $dom->{municipio} || 'No registrado';
@@ -1802,6 +1802,31 @@ sub cargar_datos_paciente {
                 }
             }
             close $fha;
+        }
+
+        my $dom_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes_domicilio.dat');
+        $pac_data->{domicilio} = {
+            cp => '', entidad => '', municipio => '', colonia => '', calle => '', num_ext => '', num_int => ''
+        };
+        if (-e $dom_file && open(my $fhd, '<:encoding(UTF-8)', $dom_file)) {
+            while (my $dline = <$fhd>) {
+                chomp $dline;
+                next if $dline =~ /^\s*$/ || $dline =~ /^ID_PACIENTE/i;
+                my @dv = split /\|/, $dline, -1;
+                if (@dv >= 8 && $dv[0] eq $id) {
+                    $pac_data->{domicilio} = {
+                        cp        => $dv[1] // '',
+                        entidad   => $dv[2] // '',
+                        municipio => $dv[3] // '',
+                        colonia   => $dv[4] // '',
+                        calle     => $dv[5] // '',
+                        num_ext   => $dv[6] // '',
+                        num_int   => $dv[7] // ''
+                    };
+                    last;
+                }
+            }
+            close $fhd;
         }
 
         return $pac_data;

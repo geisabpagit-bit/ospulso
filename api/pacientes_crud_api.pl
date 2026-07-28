@@ -95,6 +95,8 @@ if ($input->{accion} eq 'crear') {
 
     guardar_registro('../dat/pacientes.dat', $nueva_linea);
     guardar_antecedentes_paciente($id_paciente, $input->{tutor}, $input->{antecedentes});
+    my $dom_data = $input->{domicilio} || ($input->{antecedentes} ? $input->{antecedentes}->{domicilio} : undef) || {};
+    guardar_domicilio_paciente($id_paciente, $dom_data);
 
     print "Content-Type: application/json; charset=UTF-8\n\n";
     print JSON::PP->new->utf8(0)->encode({ok => 1, msg => "La Ficha Clínica de $nombre ha sido generada correctamente."});
@@ -173,6 +175,8 @@ if ($input->{accion} eq 'crear') {
     if ($encontrado) {
         actualizar_archivo('../dat/pacientes.dat', "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT", \@nuevos_registros);
         guardar_antecedentes_paciente($id_target, $input->{tutor}, $input->{antecedentes});
+        my $dom_data = $input->{domicilio} || ($input->{antecedentes} ? $input->{antecedentes}->{domicilio} : undef) || {};
+        guardar_domicilio_paciente($id_target, $dom_data);
         print "Content-Type: application/json; charset=UTF-8\n\n";
         print JSON::PP->new->utf8(0)->encode({ok => 1, msg => "El Expediente Clínico ha sido actualizado."});
         exit;
@@ -186,7 +190,7 @@ if ($input->{accion} eq 'crear') {
 sub guardar_antecedentes_paciente {
     my ($id_paciente, $tutor, $antecedentes_obj) = @_;
     my $file = '../dat/pacientes_antecedentes.dat';
-    my $json_str = eval { JSON::PP->new->utf8(0)->encode($antecedentes_obj || {}) } || '{}';
+    my $json_str = eval { JSON::PP->new->encode($antecedentes_obj || {}) } || '{}';
     $json_str =~ s/\r?\n//g;
     
     my $tutor_clean = $tutor // '';
@@ -216,6 +220,55 @@ sub guardar_antecedentes_paciente {
     }
     
     if (open(my $out, '>:encoding(UTF-8)', $file)) {
+        foreach my $l (@lines) {
+            print $out "$l\n";
+        }
+        close $out;
+    }
+}
+
+sub guardar_domicilio_paciente {
+    my ($id_paciente, $dom_obj) = @_;
+    return unless $id_paciente;
+    my $file = '../dat/pacientes_domicilio.dat';
+    
+    my $cp = $dom_obj->{cp} // '';
+    my $ent = $dom_obj->{entidad} // '';
+    my $mun = $dom_obj->{municipio} // '';
+    my $col = $dom_obj->{colonia} // '';
+    my $calle = $dom_obj->{calle} // '';
+    my $num_ext = $dom_obj->{num_ext} // '';
+    my $num_int = $dom_obj->{num_int} // '';
+    
+    for ($cp, $ent, $mun, $col, $calle, $num_ext, $num_int) { s/\|/ /g; s/\r?\n/ /g; }
+    
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+    my $fecha_actual = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year+1900, $mon+1, $mday, $hour, $min, $sec);
+    
+    my $nueva_linea = "$id_paciente|$cp|$ent|$mun|$col|$calle|$num_ext|$num_int|$fecha_actual";
+    
+    my @lines;
+    my $found = 0;
+    if (-e $file && open(my $fh, '<:encoding(UTF-8)', $file)) {
+        while (my $line = <$fh>) {
+            chomp $line;
+            next if $line =~ /^\s*$/ || $line =~ /^ID_PACIENTE/i;
+            my @v = split /\|/, $line, -1;
+            if ($v[0] eq $id_paciente) {
+                $found = 1;
+                push @lines, $nueva_linea;
+            } else {
+                push @lines, $line;
+            }
+        }
+        close $fh;
+    }
+    unless ($found) {
+        push @lines, $nueva_linea;
+    }
+    
+    if (open(my $out, '>:encoding(UTF-8)', $file)) {
+        print $out "ID_PACIENTE|CP|ENTIDAD|MUNICIPIO|COLONIA|CALLE|NUM_EXT|NUM_INT|FECHA_ACTUALIZACION\n";
         foreach my $l (@lines) {
             print $out "$l\n";
         }
