@@ -1333,6 +1333,8 @@ function abrirModalNuevaCita(f, h, idP, nomP) {
     $("#f_prioridad").val('Normal');
     $("#f_color").val('#3b82f6');
     $("#f_consultorio").prop("selectedIndex", 0);
+    $("#btn-cobrar-recepcion").addClass('d-none');
+    $("#leyenda-cita-pagada").addClass('d-none');
     renderSlots(targetF);
     const m = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCita'));
     m.show();
@@ -1371,6 +1373,11 @@ function abrirModalCita(id, isReadonly) {
         $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").hide();
         $("#btn-tomar-cita").addClass('d-none');
         $("#btn-cobrar-recepcion").addClass('d-none');
+        if (est.includes('pagada')) {
+            $("#leyenda-cita-pagada").removeClass('d-none').html('<i class="bi bi-check-circle-fill me-1"></i> Consulta Pagada en Recepción');
+        } else {
+            $("#leyenda-cita-pagada").addClass('d-none');
+        }
         if (esFinalizada) {
             $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA FINALIZADA (SOLO LECTURA)');
         } else {
@@ -1402,8 +1409,10 @@ function abrirModalCita(id, isReadonly) {
 
         if (est.includes('pagada')) {
             $("#btn-cobrar-recepcion").addClass('d-none');
+            $("#leyenda-cita-pagada").removeClass('d-none').html('<i class="bi bi-check-circle-fill me-1"></i> Consulta Pagada en Recepción');
         } else {
             $("#btn-cobrar-recepcion").removeClass('d-none');
+            $("#leyenda-cita-pagada").addClass('d-none');
         }
     }
 
@@ -1530,15 +1539,22 @@ function cobrarRecepcionModal() {
                 });
                 const res = await response.json();
                 if (res.ok) {
+                    const idCitaLocal = $("#f_id_cita").val();
+                    const aLocal = appointments.find(x => x.id == idCitaLocal);
+                    if (aLocal) {
+                        aLocal.extendedProps.estado = 'Confirmada (Pagada)';
+                    }
+                    $("#f_estado").val('Confirmada (Pagada)');
+                    $("#btn-cobrar-recepcion").addClass('d-none');
+                    $("#leyenda-cita-pagada").removeClass('d-none').html('<i class="bi bi-check-circle-fill me-1"></i> Consulta Pagada en Recepción ($' + parseFloat(data.monto).toFixed(2) + ')');
+
                     Swal.fire({
                         icon: "success",
                         title: "¡Cobro Exitoso!",
                         text: res.msg,
-                        timer: 2000,
+                        timer: 1800,
                         showConfirmButton: false
                     }).then(() => {
-                        const m = bootstrap.Modal.getInstance(document.getElementById('modalCita'));
-                        if (m) m.hide();
                         fetchAppointments();
                     });
                 } else {
