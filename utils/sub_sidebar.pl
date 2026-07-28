@@ -269,20 +269,20 @@ HTML
     # Menú del Expediente Clínico (Solo se muestra cuando pagina_actual es 'expediente')
     if ($pagina_actual eq 'expediente') {
         print qq{
-            <!-- 1. Atención Clínica -->
+            <!-- 1. Expediente Clínico -->
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-clinica">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-clinica" aria-expanded="false" aria-controls="c-clinica">
-                        <i class="bi bi-heart-pulse-fill text-danger" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Atenci&oacute;n Cl&iacute;nica</span>
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#c-clinica" aria-expanded="true" aria-controls="c-clinica">
+                        <i class="bi bi-heart-pulse-fill text-danger" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Expediente Cl&iacute;nico</span>
                     </button>
                 </h2>
-                <div id="c-clinica" class="accordion-collapse collapse" aria-labelledby="h-clinica" data-bs-parent="#accordionSidebar">
+                <div id="c-clinica" class="accordion-collapse collapse show" aria-labelledby="h-clinica" data-bs-parent="#accordionSidebar">
                     <div class="accordion-body pb-0 pt-1">
-                        <button class="sub-link active w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab0', this)"><i class="bi bi-calendar3 text-muted me-2"></i><span class="sidebar-text">1.1 Citas</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab10', this)"><i class="bi bi-activity text-muted me-2"></i><span class="sidebar-text">1.2 Consultas</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab3', this)"><i class="bi bi-person-gear text-muted me-2"></i><span class="sidebar-text">1.3 Ficha de Identificación</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab2', this)"><i class="bi bi-grid-1x2 text-muted me-2"></i><span class="sidebar-text">1.4 Dashboard</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab4', this)"><i class="bi bi-journal-text text-muted me-2"></i><span class="sidebar-text">1.5 SOAP</span></button>
+                        <button class="sub-link active w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab2', this)"><i class="bi bi-grid-1x2 text-muted me-2"></i><span class="sidebar-text">Resumen</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab3', this)"><i class="bi bi-person-gear text-muted me-2"></i><span class="sidebar-text">Ficha de Identificación</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab0', this)"><i class="bi bi-calendar3 text-muted me-2"></i><span class="sidebar-text">Citas</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab10', this)"><i class="bi bi-activity text-muted me-2"></i><span class="sidebar-text">Consultas</span></button>
+                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab4', this)"><i class="bi bi-journal-text text-muted me-2"></i><span class="sidebar-text">SOAP</span></button>
                     </div>
                 </div>
             </div>

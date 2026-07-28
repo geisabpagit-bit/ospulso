@@ -378,7 +378,7 @@ HTML
             </div>
         </section>
         <!-- 0: CITAS (TIMELINE) -->
-        <section class="sdm-tab-sec" id="tab0">
+        <section class="sdm-tab-sec d-none" id="tab0">
             <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
                 <div>
                     <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Historial Cronol&oacute;gico</h3>
@@ -804,8 +804,8 @@ HTML
             </div>
         </section>
 
-        <!-- 2: DASHBOARD CLÍNICO (SUB-MÓDULO 1.4 REFACTORIZADO) -->
-        <section class="sdm-tab-sec d-none" id="tab2">
+        <!-- 2: DASHBOARD CLÍNICO (SUB-MÓDULO 1.4 REFACTORIZADO / RESUMEN) -->
+        <section class="sdm-tab-sec" id="tab2">
             <!-- Header de Sub-módulo 1.4 -->
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
