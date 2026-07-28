@@ -138,6 +138,13 @@ print "</main>\n";
 render_bottom_nav('pacientes');
 print "</body></html>\n";
 
+sub parseFloatVal {
+    my ($val) = @_;
+    return 0 unless defined $val;
+    $val =~ s/[^0-9.]//g;
+    return $val ne '' ? $val + 0 : 0;
+}
+
 sub render_expediente_completo {
     my ($d, $citas_ref, $correos_ref, $consultas_ref, $id_medico_actual) = @_;
     my $count_c = scalar @$citas_ref;
@@ -146,6 +153,48 @@ sub render_expediente_completo {
     my $edad = calcular_edad($d->{f_nac});
     my $curp = $d->{curp} || 'Sin CURP';
     my $sexo = $d->{sexo} || 'N/A';
+
+    # --- MÉTRICAS Y KPIS PARA DASHBOARD CLÍNICO 1.4 ---
+    my $ultima_cons = (@$consultas_ref) ? $consultas_ref->[0] : undef;
+    my $ult_data = $ultima_cons ? ($ultima_cons->{data} || {}) : {};
+    
+    my $ta_val = $ult_data->{ta} || '--';
+    my $fc_val = $ult_data->{fc} || '--';
+    my $fr_val = $ult_data->{fr} || '--';
+    my $temp_val = $ult_data->{temp} || '--';
+    my $spo2_val = $ult_data->{spo2} || '--';
+    my $peso_val = parseFloatVal($ult_data->{peso});
+    my $talla_val = parseFloatVal($ult_data->{talla});
+    my $diag_activo = $ult_data->{diagnostico_principal} || 'Sin diagnóstico registrado';
+    my $cie10_activo = $ult_data->{clave_diagnostico_cie10} || '';
+    
+    # Cálculo de IMC y Clasificación Nutricional
+    my $imc_val = '--';
+    my $imc_status = 'Sin registro';
+    my $imc_perc = 0;
+    my $imc_badge = 'bg-secondary';
+    if ($peso_val > 0 && $talla_val > 0) {
+        my $t_m = $talla_val > 3 ? $talla_val / 100 : $talla_val;
+        my $calc = $peso_val / ($t_m * $t_m);
+        $imc_val = sprintf("%.1f", $calc);
+        if ($calc < 18.5) { 
+            $imc_status = 'Bajo Peso'; $imc_badge = 'bg-warning text-dark'; $imc_perc = 25; 
+        } elsif ($calc < 25.0) { 
+            $imc_status = 'Normal'; $imc_badge = 'bg-success'; $imc_perc = 50; 
+        } elsif ($calc < 30.0) { 
+            $imc_status = 'Sobrepeso'; $imc_badge = 'bg-warning text-dark'; $imc_perc = 75; 
+        } else { 
+            $imc_status = 'Obesidad'; $imc_badge = 'bg-danger'; $imc_perc = 95; 
+        }
+    }
+    
+    # Asistencia a Citas (%)
+    my $citas_atendidas = scalar(grep { $_->{estado} =~ /Atendida|Realizada/i } @$citas_ref);
+    my $pct_asistencia = $count_c > 0 ? sprintf("%.0f", ($citas_atendidas / $count_c) * 100) : 100;
+    
+    # Alergias
+    my $alergias_txt = $d->{alergias} || 'Negadas';
+    my $tiene_alergias = ($alergias_txt ne '' && $alergias_txt !~ /Negada|Ninguna|Sin/i);
 
     print <<HTML;
 <link rel="stylesheet" href="../css/expediente_completo.css?v=$^T">
@@ -755,11 +804,13 @@ HTML
             </div>
         </section>
 
+        <!-- 2: DASHBOARD CLÍNICO (SUB-MÓDULO 1.4 REFACTORIZADO) -->
         <section class="sdm-tab-sec d-none" id="tab2">
-
-            <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+            <!-- Header de Sub-módulo 1.4 -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
-                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Dashboard Cl&iacute;nico</h3>
+                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-heart-pulse-fill me-2" style="color: var(--md-teal-clinical);"></i>Dashboard Cl&iacute;nico 1.4</h3>
+                    <p class="text-muted small fw-bold mb-0">M&Eacute;TRICAS BIOM&Eacute;TRICAS, KPI Y ESTADO CL&Iacute;NICO EN TIEMPO REAL</p>
                 </div>
                 <div class="d-flex gap-2 p-1 bg-transparent flex-wrap">
                     <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold border-0" onclick="swTab('tab3', this)"><i class="bi bi-person-gear me-1"></i>Ficha de Identificación</button>
@@ -773,57 +824,153 @@ HTML
                 </div>
             </div>
 
-            <div class="bento-grid">
-                <!-- Alertas Médicas (Crucial) -->
-                <div class="bento-card card-medentia-aura alert bento-big">
-                    <span class="bento-label" style="color:#e11d48">Alertas Médicas & Alergias</span>
-                    <div class="mt-3">
-                        <div class="d-flex align-items-center gap-3 mb-3 p-3 bg-white rounded-4 border border-danger-subtle">
-                            <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
-                            <div>
-                                <h6 class="m-0 fw-bold">Sin Alergias Registradas</h6>
-                                <p class="m-0 small text-muted">No se han reportado reacciones adversas.</p>
+            <!-- NIVEL 1: ALERTAS CLÍNICAS & EVALUACIÓN IMC / NUTRICIONAL -->
+            <div class="row g-3 mb-4">
+                <div class="col-lg-7">
+                    <!-- Alertas Médicas & Alergias -->
+                    <div class="card-medentia-aura p-4 h-100 border-0 shadow-sm" style="border-radius: 1.25rem; background: #ffffff;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="small fw-bold text-uppercase" style="letter-spacing: 0.5px; color: #e11d48;"><i class="bi bi-shield-exclamation me-1"></i> Alertas M&eacute;dicas y Alergias</span>
+                            <span class="badge @{[ $tiene_alergias ? 'bg-danger text-white' : 'bg-success-subtle text-success border border-success-subtle' ]} rounded-pill px-3 py-1 fw-bold">
+                                @{[ $tiene_alergias ? 'REACCIÓN ADVERSA REGISTRADA' : 'SIN ALERGIAS CONOCIDAS' ]}
+                            </span>
+                        </div>
+                        
+                        @{[ $tiene_alergias ? qq{
+                            <div class="d-flex align-items-center gap-3 p-3 bg-danger-subtle rounded-4 border border-danger-subtle mb-2">
+                                <i class="bi bi-exclamation-octagon-fill text-danger fs-2"></i>
+                                <div>
+                                    <h6 class="m-0 fw-black text-danger">Alergias Reportadas: $alergias_txt</h6>
+                                    <p class="m-0 small text-danger-emphasis">Precaución al prescribir fármacos o aplicar materiales en tratamiento.</p>
+                                </div>
+                            </div>
+                        } : qq{
+                            <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4 border mb-2">
+                                <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                                <div>
+                                    <h6 class="m-0 fw-bold" style="color: var(--md-blue-deep);">Sin Alergias Medicamentosas Registradas</h6>
+                                    <p class="m-0 small text-muted">El paciente no refiere reacciones adversas ni sensibilidad a fármacos al momento.</p>
+                                </div>
+                            </div>
+                        } ]}
+                        
+                        <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
+                            <span class="small text-muted fw-bold">Diagn&oacute;stico Activo:</span>
+                            <span class="fw-bold" style="color: var(--md-blue-deep);">$diag_activo @{[ $cie10_activo ? "<span class='badge bg-primary-subtle text-primary border rounded-pill ms-1'>$cie10_activo</span>" : "" ]}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <!-- Resumen Salud e IMC -->
+                    <div class="card-medentia-aura p-4 h-100 border-0 shadow-sm" style="border-radius: 1.25rem; background: linear-gradient(135deg, var(--md-navy) 0%, var(--md-blue-deep) 100%); color: white;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="small text-white-50 fw-bold text-uppercase" style="letter-spacing: 0.5px;"><i class="bi bi-person-bounding-box me-1"></i> Estado Nutricional e IMC</span>
+                            <span class="badge $imc_badge rounded-pill px-3 fw-bold">$imc_status</span>
+                        </div>
+                        <div class="row align-items-center">
+                            <div class="col-6">
+                                <div class="display-5 fw-black text-white">$imc_val</div>
+                                <div class="small text-white-50 fw-semibold">kg/m&sup2; (IMC)</div>
+                            </div>
+                            <div class="col-6 text-end">
+                                <div class="small text-white-50 fw-bold">Peso: <strong class="text-white">$peso_val kg</strong></div>
+                                <div class="small text-white-50 fw-bold mt-1">Talla: <strong class="text-white">$talla_val cm</strong></div>
                             </div>
                         </div>
-                        <p class="small text-muted italic">"El paciente no refiere enfermedades crónicas degenerativas al momento de la última actualización."</p>
-                    </div>
-                    <i class="bi bi-shield-exclamation bento-icon" style="color:#e11d48"></i>
-                </div>
-
-                <!-- Biométricos -->
-                <div class="bento-card card-medentia-aura info">
-                    <span class="bento-label">Grupo Sanguíneo</span>
-                    <div class="bento-value" style="color: var(--md-blue-deep);">$d->{tipo_sangre}</div>
-                    <i class="bi bi-droplet-fill bento-icon" style="color: var(--md-teal-clinical);"></i>
-                </div>
-
-                <div class="bento-card card-medentia-aura">
-                    <span class="bento-label">Género / Sexo</span>
-                    <div class="bento-value">$d->{sexo}</div>
-                    <i class="bi bi-gender-ambiguous bento-icon"></i>
-                </div>
-
-                <!-- Perfil Social -->
-                <div class="bento-card card-medentia-aura bento-wide dark">
-                    <div class="row align-items-center">
-                        <div class="col-7">
-                            <span class="bento-label">Ocupación Actual</span>
-                            <div class="bento-value" style="font-size:1.2rem;">$d->{ocupacion}</div>
-                        </div>
-                        <div class="col-5 text-end">
-                            <span class="bento-label">Estado Civil</span>
-                            <div class="fw-bold">$d->{e_civil}</div>
+                        <div class="mt-3">
+                            <div class="progress" style="height: 6px; background: rgba(255,255,255,0.2);">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: ${imc_perc}%;"></div>
+                            </div>
                         </div>
                     </div>
-                    <i class="bi bi-person-workspace bento-icon"></i>
+                </div>
+            </div>
+
+            <!-- NIVEL 2: SIGNOS VITALES DE ÚLTIMA CONSULTA -->
+            <h6 class="fw-black mb-3 uppercase" style="color: var(--md-blue-deep); letter-spacing: 0.5px;"><i class="bi bi-activity me-1" style="color: var(--md-teal-clinical);"></i> Signos Vitales de &Uacute;ltima Consulta</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-heart-pulse text-danger me-1"></i> T.A.</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$ta_val</div>
+                        <span class="small text-muted">mmHg</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-activity text-primary me-1"></i> F.C.</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$fc_val</div>
+                        <span class="small text-muted">bpm</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-wind text-info me-1"></i> F.R.</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$fr_val</div>
+                        <span class="small text-muted">rpm</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-thermometer-half text-warning me-1"></i> Temp</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$temp_val</div>
+                        <span class="small text-muted">&deg;C</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-speedometer2 text-success me-1"></i> SpO2</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$spo2_val</div>
+                        <span class="small text-muted">%</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-droplet-fill text-danger me-1"></i> Sangre</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$d->{tipo_sangre}</div>
+                        <span class="small text-muted">Grupo / Rh</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NIVEL 3: KPIS DE TRAZABILIDAD CLÍNICA & ADHERENCIA -->
+            <div class="row g-3">
+                <!-- KPI: Consultas Atendidas -->
+                <div class="col-md-4">
+                    <div class="card-medentia-aura p-4 border-0 shadow-sm h-100" style="border-radius: 1.25rem; background: white;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="small fw-bold text-muted text-uppercase">Atenciones Cl&iacute;nicas</span>
+                            <div class="p-2 rounded-circle bg-primary-subtle text-primary"><i class="bi bi-journal-check fs-4"></i></div>
+                        </div>
+                        <div class="display-6 fw-black" style="color: var(--md-blue-deep);">$count_consultas</div>
+                        <p class="small text-muted fw-semibold mb-0 mt-1">Consultas m&eacute;dicas realizadas en expediente</p>
+                    </div>
                 </div>
 
-                <!-- Resumen de Edad -->
-                <div class="bento-card card-medentia-aura">
-                    <span class="bento-label">Fecha de Nacimiento</span>
-                    <div class="fw-bold" style="color: var(--md-blue-deep);">$d->{f_nac}</div>
-                    <hr class="my-2 opacity-10">
-                    <div class="small text-muted fw-bold">ID: $d->{id_paciente}</div>
+                <!-- KPI: Adherencia a Citas -->
+                <div class="col-md-4">
+                    <div class="card-medentia-aura p-4 border-0 shadow-sm h-100" style="border-radius: 1.25rem; background: white;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="small fw-bold text-muted text-uppercase">Adherencia a Citas</span>
+                            <div class="p-2 rounded-circle bg-success-subtle text-success"><i class="bi bi-calendar-check fs-4"></i></div>
+                        </div>
+                        <div class="display-6 fw-black text-success">${pct_asistencia}%</div>
+                        <p class="small text-muted fw-semibold mb-0 mt-1">$citas_atendidas atendidas de $count_c citas programadas</p>
+                    </div>
+                </div>
+
+                <!-- KPI: Ficha Social & Contacto -->
+                <div class="col-md-4">
+                    <div class="card-medentia-aura p-4 border-0 shadow-sm h-100" style="border-radius: 1.25rem; background: white;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="small fw-bold text-muted text-uppercase">Ficha Social y Contacto</span>
+                            <div class="p-2 rounded-circle bg-info-subtle text-info"><i class="bi bi-person-badge fs-4"></i></div>
+                        </div>
+                        <div class="small fw-bold mb-1" style="color: var(--md-blue-deep);">Ocupaci&oacute;n: <span class="fw-normal text-muted">$d->{ocupacion}</span></div>
+                        <div class="small fw-bold mb-1" style="color: var(--md-blue-deep);">Estado Civil: <span class="fw-normal text-muted">$d->{e_civil}</span></div>
+                        <div class="small fw-bold mb-0" style="color: var(--md-blue-deep);">Tel&eacute;fono: <span class="fw-normal text-muted">$d->{tel}</span></div>
+                    </div>
                 </div>
             </div>
         </section>
