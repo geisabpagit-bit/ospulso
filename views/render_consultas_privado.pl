@@ -349,7 +349,7 @@ print <<HTML;
         <input type="hidden" name="id_medico" value="$id_medico">
         
         @{[ render_step_registro_privado($paciente) ]}
-        @{[ render_step_anamnesis() ]}
+        @{[ render_step_anamnesis($paciente) ]}
         @{[ render_step_exploracion($paciente) ]}
         @{[ render_step_estudios($paciente) ]}
         @{[ render_step_soap($paciente) ]}
@@ -604,17 +604,38 @@ sub cargar_datos_paciente {
         if ($c->[0] eq $id) {
             my $fecha_nac = $c->[6] // '';
             my $edad = calcular_edad($fecha_nac);
-            return {
+            my $pac_data = {
                 id_paciente => $c->[0],
                 nombre      => $c->[2]//'',
                 curp        => $c->[4]//'',
                 fecha_nac   => $fecha_nac,
                 sexo        => $c->[7]//'',
-                edad        => $edad
+                edad        => $edad,
+                tutor       => '',
+                antecedentes=> {}
             };
+
+            my $ant_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes_antecedentes.dat');
+            if (-e $ant_file && open(my $fha, '<:encoding(UTF-8)', $ant_file)) {
+                while (my $aline = <$fha>) {
+                    chomp $aline;
+                    next if $aline =~ /^\s*$/;
+                    my @av = split /\|/, $aline, -1;
+                    if (@av >= 3 && $av[0] eq $id) {
+                        $pac_data->{tutor} = $av[1] || '';
+                        eval {
+                            $pac_data->{antecedentes} = decode_json($av[2]);
+                        };
+                        last;
+                    }
+                }
+                close $fha;
+            }
+
+            return $pac_data;
         }
     }
-    return { id_paciente => $id, nombre => 'Paciente Desconocido', curp => '', fecha_nac => '', sexo => '', edad => 'N/A' };
+    return { id_paciente => $id, nombre => 'Paciente Desconocido', curp => '', fecha_nac => '', sexo => '', edad => 'N/A', tutor => '', antecedentes => {} };
 }
 
 render_footer();
