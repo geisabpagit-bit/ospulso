@@ -1000,8 +1000,21 @@ HTML
                                     <label>G&eacute;nero</label>
                                 </div>
                             </div>
-                            <div class="col-md-4"><div class="form-floating diamond-input-armor"><input class="form-control" value="$paciente->{f_nac}" readonly disabled><label>Fecha de Nacimiento</label></div></div>
+                            <div class="col-md-4">
+                                <div class="form-floating diamond-input-armor">
+                                    <input class="form-control" value="$paciente->{f_nac}" readonly disabled>
+                                    <label>Fecha de Nacimiento @{[ $edad ne '' ? "<span class='badge " . ($edad < 18 ? "bg-success-subtle text-success border border-success-subtle" : "bg-primary text-white") . " ms-1'>$edad a&ntilde;os" . ($edad < 18 ? " (Menor de edad)" : "") . "</span>" : "" ]}</label>
+                                </div>
+                            </div>
                             <div class="col-md-4"><div class="form-floating diamond-input-armor"><input class="form-control" value="$paciente->{nacionalidad}" readonly disabled><label>Nacionalidad</label></div></div>
+                            @{[ ($edad ne '' && $edad < 18) || $paciente->{tutor} ? qq{
+                                <div class="col-md-12 mt-3">
+                                    <div class="form-floating diamond-input-armor">
+                                        <input type="text" class="form-control fw-bold border-success-subtle" value="$paciente->{tutor}" readonly disabled>
+                                        <label class="text-success fw-bold"><i class="bi bi-shield-person-fill me-1" style="color: var(--md-teal-clinical);"></i>Responsable / Tutor Legal *</label>
+                                    </div>
+                                </div>
+                            } : '' ]}
                         </div>
                     </div>
                 </div>
