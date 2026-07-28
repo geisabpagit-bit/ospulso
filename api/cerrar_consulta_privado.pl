@@ -5,6 +5,7 @@ use warnings;
 use utf8;
 use CGI qw(-utf8);
 use JSON qw(encode_json decode_json);
+use Encode qw(encode_utf8);
 use FindBin;
 use File::Spec;
 use Fcntl qw(:flock);
@@ -26,7 +27,7 @@ unless ($session_data->{session_ok}) {
 
 my %payload;
 foreach my $p ($q->param) { $payload{$p} = $q->param($p); }
-if ($payload{medicamentos_json}) { eval { $payload{medicamentos} = decode_json($payload{medicamentos_json}); }; }
+if ($payload{medicamentos_json}) { eval { $payload{medicamentos} = decode_json(encode_utf8($payload{medicamentos_json})); }; }
 
 my $id_cita = $q->param('id_cita') || $payload{id_cita} || '';
 my $id_paciente = $q->param('id_paciente') || $q->param('id') || $payload{id_paciente} || '';
@@ -191,7 +192,7 @@ my $caja_monto_abono = $q->param('caja_monto_abono') // 0;
 
 my $caja_items = [];
 eval {
-    $caja_items = decode_json($caja_items_json) if $caja_items_json;
+    $caja_items = decode_json(encode_utf8($caja_items_json)) if $caja_items_json;
 };
 my $tiene_cargos_directos = (ref($caja_items) eq 'ARRAY' && @$caja_items) ? 1 : 0;
 

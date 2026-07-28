@@ -27,12 +27,33 @@ my $dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
 # Hash SHA-256 de "admin123"
 my $admin_hash = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
 
+# Hash SHA-256 de contraseñas de doctores (ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f)
+my $doc_hash = "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f";
+
+my $usuarios_content = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL\n" .
+"1!Administrador Global!admin\@ospulso.com!$admin_hash!1!Administrador Global!0:0!0!0!0!Clínica Principal!\n" .
+"190726041!pamela villegas!pam\@gmail.com!$doc_hash!1!Ejecutivo Ventas!0:0!0!0!0!Clínica Principal!\n" .
+"112979632!francisco lopez!fran\@gmail.com!$doc_hash!1!Administrador Organizacion!1055007:0!0!0!0!Clínica Principal!\n" .
+"1020747209!doctor 1!doc1\@gmail.com!$doc_hash!1!Medico!1055007:706496!100!100.1!12345678!Av. Universidad 100, Col. Centro, CDMX!FIRMA_DOC1\n" .
+"1088603479!doctor dos!doc2\@gmail.com!$doc_hash!1!Medico!1055007:591522!5!0!87654321!Calle Médicos 45, Col. Juárez, CDMX!FIRMA_DOC2\n";
+
+my $pacientes_content = "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT\n" .
+"1|1020747209|Carlos Mendoza García|MEMC850412H34|MEMC850412HDFRRN09|carlos.mendoza\@test.com|1985-04-12|Masculino|Ingeniero|Casado|Mexicana|O+|5512345678|1055007:706496\n" .
+"2|1088603479|María Fernanda López Reyes|LORM920820M56|LORM920820MDFPNN01|maria.lopez\@test.com|1992-08-20|Femenino|Diseñadora|Soltera|Mexicana|A+|5598765432|1055007:591522\n";
+
+my $ant_json = '{"hf_hipertension":"Si","hf_diabetes":"No","hf_cardiopatias":"No","hf_cancer":"Si","hf_cancer_tipo":"Pulmón","pp_alergias":"Si","pp_alergias_desc":"Polen","pp_cirugias":"No","pp_cirugias_desc":"","pp_enfermedades_cronicas":"No","pp_enfermedades_cronicas_desc":""}';
+my $ant_json2 = '{"hf_hipertension":"No","hf_diabetes":"Si","hf_cardiopatias":"No","hf_cancer":"No","hf_cancer_tipo":"","pp_alergias":"No","pp_alergias_desc":"","pp_cirugias":"Si","pp_cirugias_desc":"Apendicectomía","pp_enfermedades_cronicas":"Si","pp_enfermedades_cronicas_desc":"Asma"}';
+
+my $pac_ant_content = "ID_PACIENTE|TUTOR|ANTECEDENTES_JSON|FECHA_ACTUALIZACION\n" .
+"1||$ant_json|2026-07-27\n" .
+"2||$ant_json2|2026-07-27\n";
+
 my %archivos = (
-    'usuarios.dat' => "id!nombre!correo!clave!activo!rol!ID_negocio\n1!Administrador Global!admin\@ospulso.com!$admin_hash!1!Administrador Global!0:0\n",
+    'usuarios.dat' => $usuarios_content,
     'negocios.dat' => "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud\n",
     'citas.dat' => "ID_CITA|ID_MEDICO|ID_PACIENTE|FECHA|HORA_INICIO|HORA_FIN|TIPO_CONSULTA|NOTAS|ESTADO|EXTRA\n",
-    'pacientes.dat' => "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT\n",
-    'pacientes_antecedentes.dat' => "ID_PACIENTE|TUTOR|ANTECEDENTES_JSON|FECHA_ACTUALIZACION\n",
+    'pacientes.dat' => $pacientes_content,
+    'pacientes_antecedentes.dat' => $pac_ant_content,
     'tratamientos.dat' => "ID_TRATAMIENTO|ID_PACIENTE|ID_COT|ESTADO|FECHA_INICIO|FECHA_FIN|ID_MEDICO|TOTAL|ID_CITA\n",
     'estado_cuenta.dat' => "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n",
     'gastos.dat' => "ID_GASTO|CONCEPTO|MONTO|FECHA|CATEGORIA|SUBCATEGORIA|METODO_PAGO|ESTADO|COMPROBANTE|ID_MEDICO\n",
@@ -54,7 +75,7 @@ my %archivos = (
     'id_subcat.counter' => "0\n",
     'id_subcat3.counter' => "0\n",
     'id_gasto.counter' => "0\n",
-    'contador_pacientes.dat' => "0\n",
+    'contador_pacientes.dat' => "2\n",
     'contador_registro_inicial.dat' => "0\n",
     'abono_incremental.dat' => "0\n",
     'os_incremental.dat' => "0\n"

@@ -176,7 +176,7 @@ sub render_step_caja_privado {
                 
                 <!-- Opciones Financieras y Cita -->
                 <div class="row g-4">
-                    <div class="col-md-6">
+                    <div class="col-md-6" id="panel-gestion-caja">
                         <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="border: 1px solid rgba(25, 183, 165, 0.2) !important;">
                             <h5 class="fw-black text-navy mb-3"><i class="bi bi-cash-coin me-2" style="color: var(--md-teal-clinical);"></i>Gesti&oacute;n de Caja</h5>
                             
@@ -619,6 +619,19 @@ sub render_step_caja_privado {
                 document.getElementById('f_caja_items_json').value = '[]';
             }
             
+            // Lógica de ocultar "Gestión de Caja" si ya se pagó en recepción y no hay cargos extras
+            const panelCaja = document.getElementById('panel-gestion-caja');
+            if (panelCaja) {
+                if (tienePrePagoRecepcion && (!carritoConsulta || carritoConsulta.length === 0)) {
+                    panelCaja.style.display = 'none';
+                    // Marcar cobro por recepción
+                    const estadoTratSelect = document.getElementById('f_caja_estado_tratamiento');
+                    if (estadoTratSelect) estadoTratSelect.value = 'Cobro por recepción';
+                } else {
+                    panelCaja.style.display = 'block';
+                }
+            }
+            
             toggleCitaWorkflow();
         }
         
@@ -629,6 +642,7 @@ sub render_step_caja_privado {
             
             const isTratamientoActivo = historialTratamiento && historialTratamiento.tiene_tratamiento;
             const isNuevaConversion = cotSelect && cotSelect.value;
+            const tieneHistorialCaja = historialTratamiento && ((historialTratamiento.cargos && historialTratamiento.cargos.length > 0) || (historialTratamiento.abonos && historialTratamiento.abonos.length > 0));
             
             let totalAcumulado = 0;
             if (isTratamientoActivo || tieneHistorialCaja) {
