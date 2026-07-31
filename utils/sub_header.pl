@@ -151,24 +151,26 @@ SEARCH_HTML
                 api.on('draw', applyDataLabels);
 
                 // 2. Transformar botones de exportación a iconos con tooltips en móvil
-                var container = api.buttons().container();
-                if (container && container.length) {
-                    container.find('.btn, button').each(function() {
-                        var \$btn = \$(this);
-                        var text = \$btn.text().trim();
-                        if (text && !\$btn.attr('title')) {
-                            \$btn.attr('title', text);
-                            \$btn.attr('data-bs-toggle', 'tooltip');
-                            \$btn.attr('data-bs-placement', 'top');
-                        }
-                    });
-                    
-                    // Inicializar tooltips de Bootstrap
-                    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-                        var tooltipTriggerList = [].slice.call(container[0].querySelectorAll('[data-bs-toggle="tooltip"]'));
-                        tooltipTriggerList.map(function (tooltipTriggerEl) {
-                            return new bootstrap.Tooltip(tooltipTriggerEl);
+                if (typeof api.buttons === 'function') {
+                    var container = api.buttons().container();
+                    if (container && container.length) {
+                        container.find('.btn, button').each(function() {
+                            var \$btn = \$(this);
+                            var text = \$btn.text().trim();
+                            if (text && !\$btn.attr('title')) {
+                                \$btn.attr('title', text);
+                                \$btn.attr('data-bs-toggle', 'tooltip');
+                                \$btn.attr('data-bs-placement', 'top');
+                            }
                         });
+                        
+                        // Inicializar tooltips de Bootstrap
+                        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                            var tooltipTriggerList = [].slice.call(container[0].querySelectorAll('[data-bs-toggle="tooltip"]'));
+                            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                                return new bootstrap.Tooltip(tooltipTriggerEl);
+                            });
+                        }
                     }
                 }
             } catch(err) {

@@ -261,44 +261,8 @@ print <<HTML;
                             </div>
                             <div class="card-body p-4 bg-light form-sdm-container">
                                 <div class="row g-3">
-                        <!-- Entidad y Administrador -->
+                        <!-- A. Ubicación y Padrón Oficial (CLUES & Domicilio) -->
                         <div class="col-12">
-                            <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-building me-2"></i>Entidad y Administrador</h6>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Nombre Comercial</label>
-                            <input type="text" class="form-control form-control-sm shadow-sm" name="nombre_org" required placeholder="Clínicas Salud Total">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Naturaleza Jurídica</label>
-                            <select class="form-select form-select-sm shadow-sm" name="naturaleza_juridica" required>
-                                <option value="Privado">Privado</option>
-                                <option value="Público">Público</option>
-                                <option value="Mixto">Mixto</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">RFC Institucional (Opcional)</label>
-                            <input type="text" class="form-control form-control-sm shadow-sm" id="saas_rfc_org" name="rfc_org" placeholder="ABC123456T89">
-                        </div>
-                        
-                        <!-- Dueño -->
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Nombre Administrador</label>
-                            <input type="text" class="form-control form-control-sm shadow-sm" name="nombre_admin" required placeholder="Ej: Dr. Roberto Gómez">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Correo Electrónico (Login)</label>
-                            <input type="email" class="form-control form-control-sm shadow-sm" name="correo_admin" required placeholder="admin\@clinica.com" autocomplete="username">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Contraseña Inicial</label>
-                            <input type="password" class="form-control form-control-sm shadow-sm" id="input_clave_admin" name="clave_admin" required placeholder="••••••••" autocomplete="new-password">
-                            <small class="text-muted d-none" id="hint_clave_admin" style="font-size: 0.7rem;">Dejar en blanco para mantener la actual.</small>
-                        </div>
-
-                        <!-- B. Ubicación y Padrón Oficial (CLUES & Domicilio) -->
-                        <div class="col-12 mt-4">
                             <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-geo-alt-fill me-2"></i>Ubicación y Padrón Oficial (CLUES & Domicilio)</h6>
                         </div>
                         <div class="col-md-3">
@@ -343,6 +307,42 @@ print <<HTML;
                         <div class="col-md-2">
                             <label class="form-label small fw-bold">Extensión</label>
                             <input type="text" class="form-control form-control-sm shadow-sm" id="saas_ext_org" name="ext_org" placeholder="0">
+                        </div>
+
+                        <!-- B. Entidad y Administrador -->
+                        <div class="col-12 mt-4">
+                            <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-building me-2"></i>Entidad y Administrador</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Nombre Comercial</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" name="nombre_org" required placeholder="Clínicas Salud Total">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Naturaleza Jurídica</label>
+                            <select class="form-select form-select-sm shadow-sm" name="naturaleza_juridica" required>
+                                <option value="Privado">Privado</option>
+                                <option value="Público">Público</option>
+                                <option value="Mixto">Mixto</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">RFC Institucional (Opcional)</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" id="saas_rfc_org" name="rfc_org" placeholder="ABC123456T89">
+                        </div>
+                        
+                        <!-- Dueño -->
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Nombre Administrador</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" name="nombre_admin" required placeholder="Ej: Dr. Roberto Gómez">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Correo Electrónico (Login)</label>
+                            <input type="email" class="form-control form-control-sm shadow-sm" name="correo_admin" required placeholder="admin\@clinica.com" autocomplete="username">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Contraseña Inicial</label>
+                            <input type="password" class="form-control form-control-sm shadow-sm" id="input_clave_admin" name="clave_admin" required placeholder="••••••••" autocomplete="new-password">
+                            <small class="text-muted d-none" id="hint_clave_admin" style="font-size: 0.7rem;">Dejar en blanco para mantener la actual.</small>
                         </div>
 
                         <!-- C. Operación -->
@@ -466,10 +466,12 @@ print <<HTML;
         });
 
         // Búsqueda de CP y CLUES para Nueva Organización SaaS
-        function resolveSaaSLocation(cp, targetColonia, targetClues) {
+        window.resolveSaaSLocation = function(cp, targetColonia, targetClues) {
             if (!cp || cp.length !== 5) return;
             \$('#saas_entidad_org').val('Buscando...');
             \$('#saas_municipio_org').val('Buscando...');
+            \$('#saas_colonia_org').html('<option value="">Cargando colonias...</option>');
+            \$('#saas_clues_org').html('<option value="">Cargando establecimientos...</option>');
             
             \$.ajax({
                 type: 'GET',
@@ -482,7 +484,7 @@ print <<HTML;
                         \$('#saas_municipio_org').val(r.municipio || '');
                         
                         let options = '<option value="">Seleccione colonia...</option>';
-                        if(r.localidades) {
+                        if(r.localidades && r.localidades.length > 0) {
                             r.localidades.forEach(function(loc) {
                                 let sel = (loc === targetColonia) ? 'selected' : '';
                                 options += '<option value="' + loc + '" ' + sel + '>' + loc + '</option>';
@@ -491,7 +493,7 @@ print <<HTML;
                         \$('#saas_colonia_org').html(options);
 
                         let cluesOptions = '<option value="">Ninguno (Opcional)</option>';
-                        if(r.establecimientos) {
+                        if(r.establecimientos && r.establecimientos.length > 0) {
                             r.establecimientos.forEach(function(est) {
                                 let sel = (est.id === targetClues) ? 'selected' : '';
                                 cluesOptions += '<option value="' + est.id + '" ' + sel + '>' + est.nombre + ' (' + est.id + ')</option>';
@@ -501,28 +503,35 @@ print <<HTML;
                     } else {
                         \$('#saas_entidad_org').val('');
                         \$('#saas_municipio_org').val('');
-                        \$('#saas_colonia_org').html('<option value="">C.P. no encontrado</option>');
+                        \$('#saas_colonia_org').html('<option value="">' + (r.message || 'C.P. no encontrado') + '</option>');
+                        \$('#saas_clues_org').html('<option value="">Ninguno (Opcional)</option>');
                     }
+                },
+                error: function() {
+                    \$('#saas_entidad_org').val('');
+                    \$('#saas_municipio_org').val('');
+                    \$('#saas_colonia_org').html('<option value="">Error de conexión</option>');
+                    \$('#saas_clues_org').html('<option value="">Ninguno (Opcional)</option>');
                 }
             });
-        }
+        };
 
-        \$('#saas_cp_org').on('input', function() {
+        \$(document).on('input', '#saas_cp_org', function() {
             let cp = \$(this).val().replace(/\\D/g, '');
             \$(this).val(cp);
             if (cp.length === 5) {
-                resolveSaaSLocation(cp);
+                window.resolveSaaSLocation(cp);
             }
         });
 
-        \$('#btn_search_saas_cp').on('click', function() {
-            let cp = \$('#saas_cp_org').val();
+        \$(document).on('click', '#btn_search_saas_cp', function() {
+            let cp = \$('#saas_cp_org').val().replace(/\\D/g, '');
             if (cp.length === 5) {
-                resolveSaaSLocation(cp);
+                window.resolveSaaSLocation(cp);
             }
         });
 
-        \$('#saas_clues_org').on('change', function() {
+        \$(document).on('change', '#saas_clues_org', function() {
             let clues_id = \$(this).val();
             if (!clues_id) return;
             \$.ajax({
@@ -532,13 +541,17 @@ print <<HTML;
                 dataType: 'json',
                 success: function(r) {
                     if (r.success) {
-                        if (r.nombre && !\$('#saas_razon_org').val()) \$('#saas_razon_org').val(r.nombre);
+                        if (r.nombre) {
+                            \$('input[name="nombre_org"]').val(r.nombre);
+                            if (!\$('#saas_razon_org').val()) \$('#saas_razon_org').val(r.nombre);
+                        }
                         if (r.rfc_clues && !\$('#saas_rfc_org').val()) \$('#saas_rfc_org').val(r.rfc_clues);
                         if (r.telefono && !\$('#saas_tel_org').val()) \$('#saas_tel_org').val(r.telefono);
                         if (r.extension) \$('#saas_ext_org').val(r.extension);
                         let dirParts = [];
                         if (r.vialidad) dirParts.push(r.vialidad);
                         if (r.num_ext) dirParts.push('No. ' + r.num_ext);
+                        if (r.asentamiento) dirParts.push(r.asentamiento);
                         if (dirParts.length > 0 && !\$('#saas_dir_org').val()) \$('#saas_dir_org').val(dirParts.join(' '));
                     }
                 }
