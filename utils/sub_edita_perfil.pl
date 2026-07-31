@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# --- MedentIA Diamond Edition v4.5.0: Role-Based User Profile (RBAC Refactored) ---
+# --- MedentIA Diamond Edition v4.6.0: Role-Based User Profile with Operative CLUES for Org Admin ---
 use strict;
 use warnings;
 use utf8;
@@ -79,7 +79,7 @@ sub render_edita_perfil {
     if ($is_medico) {
         $role_badge_class = 'bg-primary text-white border-0';
         $role_title = 'M&eacute;dico Especialista';
-    } elsif ($role =~ /Administrador Organizacion/i) {
+    } elsif ($is_admin_org) {
         $role_badge_class = 'bg-navy text-white border-0';
         $role_title = 'Director de Organizaci&oacute;n';
     } elsif ($role =~ /Ejecutivo/i) {
@@ -209,10 +209,14 @@ HTML
             <div class="wizard-step-label">Identidad</div>
         </div>
         <div class="wizard-step" onclick="PerfilWizardController.jumpToStep(1)">
-            <div class="wizard-step-icon"><i class="bi bi-building"></i></div>
-            <div class="wizard-step-label">Mi Organizaci&oacute;n</div>
+            <div class="wizard-step-icon"><i class="bi bi-hospital"></i></div>
+            <div class="wizard-step-label">CLUES & Domicilio</div>
         </div>
         <div class="wizard-step" onclick="PerfilWizardController.jumpToStep(2)">
+            <div class="wizard-step-icon"><i class="bi bi-award"></i></div>
+            <div class="wizard-step-label">Suscripci&oacute;n</div>
+        </div>
+        <div class="wizard-step" onclick="PerfilWizardController.jumpToStep(3)">
             <div class="wizard-step-icon"><i class="bi bi-shield-lock"></i></div>
             <div class="wizard-step-label">Seguridad</div>
         </div>
@@ -246,7 +250,7 @@ print <<HTML;
         <div id="alertContainer"></div>
         <div class="alert alert-warning border-0 shadow-sm rounded-4 d-flex align-items-center justify-content-between mb-3 py-2 px-3 animate__animated animate__fadeIn">
             <span class="small fw-semibold text-dark"><i class="bi bi-shield-fill-exclamation text-warning me-2"></i>Para confirmar cualquier actualización de tu perfil es obligatorio ingresar tu contraseña actual.</span>
-            <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark px-3" onclick="PerfilWizardController.jumpToStep(@{[ $is_paciente ? 3 : ($is_medico || $is_admin_org ? 2 : 1) ]}); setTimeout(function(){ \$('#clave_actual').focus(); }, 300);">
+            <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark px-3" onclick="PerfilWizardController.jumpToStep(@{[ $is_paciente || $is_admin_org ? 3 : ($is_medico ? 2 : 1) ]}); setTimeout(function(){ \$('#clave_actual').focus(); }, 300);">
                 <i class="bi bi-key-fill me-1"></i>Ir a Contraseña
             </button>
         </div>
@@ -304,7 +308,7 @@ print <<HTML;
         </div>
 HTML
 
-    # --- PANEL PARA ROL MÉDICO: CREDANCIALES MÉDICAS Y FIRMA ---
+    # --- PANEL PARA ROL MÉDICO: CREDENCIALES MÉDICAS Y FIRMA ---
     if ($is_medico) {
         my $espe_nombre = $u->{espe_nombre} || 'General / Ninguna';
         my $subespe_nombre = $u->{subespe_nombre} || 'General / Ninguna';
@@ -400,12 +404,173 @@ HTML
 HTML
     }
 
-    # --- PANEL PARA ADMINISTRADOR DE ORGANIZACIÓN: MI ORGANIZACIÓN & SUSCRIPCIÓN ---
+    # --- PANELS PARA ADMINISTRADOR DE ORGANIZACIÓN: TAB 1 (CLUES OPERATIVO) Y TAB 2 (SUSCRIPCIÓN) ---
     if ($is_admin_org) {
+        my $b_nombre = $b->{nombre}        // '';
+        my $b_rfc    = $b->{rfc}           // '';
+        my $b_razon  = $b->{razon_social}  // '';
+        my $b_tel    = $b->{telefono}      // '';
+        my $b_email  = $b->{email_negocio} // '';
+        my $b_dir    = $b->{domicilio}     // '';
+        my $b_cp       = $b->{codigo_postal} // '';
+        my $b_entidad  = $b->{entidad}       // '';
+        my $b_mnpio    = $b->{municipio}     // '';
+        my $b_colonia  = $b->{colonia}       // '';
+        my $b_clues    = $b->{clues}         // '';
+        my $b_ext      = $b->{extension}     // '0';
+        my $b_lat      = $b->{latitud}       // '';
+        my $b_lng      = $b->{longitud}      // '';
+        
+        $b_nombre =~ s/"/&quot;/g;
+        $b_razon  =~ s/"/&quot;/g;
+        $b_email  =~ s/"/&quot;/g;
+        $b_dir    =~ s/"/&quot;/g;
+        
+        my $colonia_options = $b_colonia ? qq(<option value="$b_colonia" selected>$b_colonia</option>) : qq(<option value="">Ingrese su C.P. para cargar localidades</option>);
+
         print <<HTML;
-        <!-- PANEL 1: MI ORGANIZACIÓN & SUSCRIPCIÓN (Rol Administrador Organización Exclusivo) -->
+        <!-- PANEL 1: CLUES Y DOMICILIO INSTITUCIONAL OPERATIVO (Administrador Organización Exclusivo) -->
         <div class="wizard-panel" id="step-panel-1">
-            <h5 class="fw-bold mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-building me-2" style="color: var(--md-teal-clinical);"></i>Mi Organizaci&oacute;n & Estado de Suscripci&oacute;n</h5>
+            <h5 class="fw-bold mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-geo-alt-fill me-2" style="color: var(--md-teal-clinical);"></i>Ubicaci&oacute;n y Domicilio Oficial</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control fw-bold" id="biz_cp" name="biz_cp" value="$b_cp" placeholder="C.P." maxlength="5">
+                        <label>C&oacute;digo Postal *</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control bg-light fw-bold" id="biz_entidad" name="biz_entidad" value="$b_entidad" placeholder="Entidad" readonly>
+                        <label>Entidad Federativa</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control bg-light fw-bold" id="biz_municipio" name="biz_municipio" value="$b_mnpio" placeholder="Municipio" readonly>
+                        <label>Municipio o Alcald&iacute;a</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="form-floating diamond-input-armor">
+                        <select class="form-select fw-bold" id="biz_colonia" name="biz_colonia" data-init-val="$b_colonia">
+                            $colonia_options
+                        </select>
+                        <label>Colonia / Localidad *</label>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4 border-secondary border-opacity-25">
+
+            <h5 class="fw-bold mb-3" style="color: var(--md-blue-deep);"><i class="bi bi-hospital me-2" style="color: var(--md-teal-clinical);"></i>Padr&oacute;n Oficial de Establecimientos (CLUES)</h5>
+            <p class="text-muted small mb-3">Vincular tu cl&iacute;nica a un establecimiento de salud oficial permite autocompletar servicios, horarios y validaciones legales.</p>
+            
+            <div class="row g-3">
+                <div class="col-12" id="clues_container" style="display:none;">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="hidden" id="current_clues" value="$b_clues">
+                        <select class="form-select border-primary fw-bold" id="biz_clues" name="biz_clues" style="background-color: #f0f7ff;">
+                            <option value="">Seleccione Establecimiento Oficial (Opcional)</option>
+                        </select>
+                        <label class="text-primary fw-bold"><i class="bi bi-hospital me-1"></i>Establecimiento Oficial (CLUES)</label>
+                    </div>
+                </div>
+                
+                <div class="col-12" id="clues_no_results">
+                    <div class="alert alert-light border shadow-sm rounded-4 text-center p-4">
+                        <i class="bi bi-info-circle text-muted fs-3 mb-2 d-block"></i>
+                        <p class="mb-0 text-muted">Ingresa un C&oacute;digo Postal v&aacute;lido arriba para buscar establecimientos en tu zona.</p>
+                    </div>
+                </div>
+
+                <div class="col-12" id="clues_details_container" style="display:none;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4 bg-white border border-primary border-opacity-10 h-100 shadow-sm">
+                                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-heart-pulse-fill me-2"></i>Servicios Oficiales</h6>
+                                <div id="clues_servicios_list" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem;"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4 bg-white border border-primary border-opacity-10 h-100 shadow-sm">
+                                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-clock-fill me-2"></i>Horario Oficial</h6>
+                                <div id="clues_horarios_list" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4 border-secondary border-opacity-25">
+
+            <h5 class="fw-bold mb-3" style="color: var(--md-blue-deep);"><i class="bi bi-building me-2" style="color: var(--md-teal-clinical);"></i>Informaci&oacute;n Comercial e Institucional</h5>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control fw-bold" id="biz_nombre" name="biz_nombre" value="$b_nombre" placeholder="Clinica">
+                        <label>Nombre Comercial de la Cl&iacute;nica *</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control fw-bold" id="biz_rfc" name="biz_rfc" value="$b_rfc" placeholder="RFC">
+                        <label>RFC Institucional</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control fw-bold" id="biz_razon" name="biz_razon" value="$b_razon" placeholder="Razon">
+                        <label>Raz&oacute;n Social</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="form-floating diamond-input-armor">
+                        <textarea class="form-control fw-bold" id="biz_dir" name="biz_dir" style="height: 100px;">$b_dir</textarea>
+                        <label>Direcci&oacute;n Completa</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control bg-light fw-bold" id="biz_lat" name="biz_lat" value="$b_lat" placeholder="Latitud" readonly>
+                        <label><i class="bi bi-geo-alt-fill text-danger me-1"></i>Latitud GPS</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control bg-light fw-bold" id="biz_lng" name="biz_lng" value="$b_lng" placeholder="Longitud" readonly>
+                        <label><i class="bi bi-geo-alt-fill text-danger me-1"></i>Longitud GPS</label>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="tel" class="form-control fw-bold" id="biz_tel" name="biz_tel" value="$b_tel" placeholder="Tel">
+                        <label>Tel&eacute;fono de Contacto</label>
+                    </div>
+                </div>
+                <div class="col-md-3" id="div_biz_ext" style="@{[ $b_ext ne '0' && $b_ext ne '' ? '' : 'display:none;' ]}">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control fw-bold" id="biz_ext" name="biz_ext" value="$b_ext" placeholder="Ext">
+                        <label>Extensi&oacute;n</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="email" class="form-control fw-bold" id="biz_email" name="biz_email" value="$b_email" placeholder="Email">
+                        <label>Email Corporativo de la Cl&iacute;nica</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="wizard-btn-prev" onclick="PerfilWizardController.prevStep()"><i class="bi bi-arrow-left me-2"></i>Anterior</button>
+                <button type="button" class="wizard-btn-next" onclick="PerfilWizardController.nextStep()">Siguiente Secci&oacute;n <i class="bi bi-arrow-right ms-2"></i></button>
+            </div>
+        </div>
+
+        <!-- PANEL 2: SUSCRIPCIÓN Y LICENCIAMIENTO (Rol Administrador Organización Exclusivo) -->
+        <div class="wizard-panel" id="step-panel-2">
+            <h5 class="fw-bold mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-award-fill me-2" style="color: var(--md-teal-clinical);"></i>Licenciamiento y Estado de Suscripci&oacute;n</h5>
             
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
@@ -426,10 +591,34 @@ HTML
                 </div>
             </div>
 
+            @{[ $bs->{inicio} ? qq(
+            <div class="p-4 rounded-4 bg-light border border-primary border-opacity-10 shadow-sm mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-7">
+                        <h6 class="fw-bold mb-1"><i class="bi bi-calendar-check me-2 text-primary"></i>Periodo de Suscripci&oacute;n Contratado</h6>
+                        <p class="small text-muted mb-0">Vigencia contratada para el uso de la plataforma Diamond.</p>
+                    </div>
+                    <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                        <div class="d-flex justify-content-md-end gap-3">
+                            <div class="text-center">
+                                <div class="small text-muted fw-bold" style="font-size:0.65rem;">INICIO</div>
+                                <div class="fw-black text-dark">$bs->{inicio}</div>
+                            </div>
+                            <div class="vr"></div>
+                            <div class="text-center">
+                                <div class="small text-muted fw-bold" style="font-size:0.65rem;">VENCIMIENTO</div>
+                                <div class="fw-black text-primary">$bs->{fin}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            ) : '' ]}
+
             <div class="alert alert-info border-0 shadow-sm rounded-4 p-4 d-flex align-items-center justify-content-between">
                 <div>
-                    <h6 class="fw-bold mb-1 text-info-emphasis"><i class="bi bi-info-circle-fill me-2"></i>Gobernanza Institucional</h6>
-                    <p class="small text-muted mb-0">Los datos normativos de la cl&iacute;nica (`CLUES`, Domicilio institucional y Configuración de Sucursales) son administrados centralizadamente en el m&oacute;dulo de Organizaci&oacute;n.</p>
+                    <h6 class="fw-bold mb-1 text-info-emphasis"><i class="bi bi-info-circle-fill me-2"></i>Gesti&oacute;n de Licencias y Facturaci&oacute;n</h6>
+                    <p class="small text-muted mb-0">Para solicitar ampliaci&oacute;n de folios m&eacute;dicos, m&oacute;dulos adicionales o cambio de plan de suscripci&oacute;n, contacte a su Ejecutivo de Ventas asignado.</p>
                 </div>
             </div>
 
@@ -529,7 +718,7 @@ HTML
     }
 
     # --- PANEL FINAL DE SEGURIDAD (Común para todos) ---
-    my $security_step_idx = $is_paciente ? 3 : ($is_medico || $is_admin_org ? 2 : 1);
+    my $security_step_idx = $is_paciente || $is_admin_org ? 3 : ($is_medico ? 2 : 1);
 
 print <<HTML;
         <!-- PANEL DE SEGURIDAD Y CREDENCIALES (Paso Final) -->
@@ -611,7 +800,7 @@ function previewFirmaImage(input) {
 
 \$(document).ready(function() {
     // 1. Inicializar Wizard según total de pasos por Rol
-    let totalPasos = @{[ $is_paciente ? 4 : ($is_medico || $is_admin_org ? 3 : 2) ]};
+    let totalPasos = @{[ $is_paciente || $is_admin_org ? 4 : ($is_medico ? 3 : 2) ]};
     PerfilWizardController.init(totalPasos);
 
     // 2. Control del Formulario mediante FormData multipart
@@ -658,6 +847,207 @@ function previewFirmaImage(input) {
             }
         });
     });
+
+    // 3. Lógica de Databinding Unidireccional por CP y Padrón CLUES (Para Admin Org)
+    function resolveLocation(cp, autoLoadClues) {
+        let current_colonia = \$('#biz_colonia').val();
+        let current_colonia_data = \$('#biz_colonia').attr('data-init-val');
+        if (!current_colonia && current_colonia_data) {
+            current_colonia = current_colonia_data;
+        }
+
+        \$('#biz_entidad').val('Buscando...');
+        \$('#biz_municipio').val('Buscando...');
+        \$('#biz_colonia').html('<option value="">Cargando opciones...</option>');
+        
+        \$.ajax({
+            type: 'GET',
+            url: '../api/get_location.pl',
+            data: { cp: cp },
+            dataType: 'json',
+            success: function(r) {
+                if(r.success) {
+                    \$('#biz_entidad').val(r.entidad);
+                    \$('#biz_municipio').val(r.municipio);
+                    
+                    let options = '<option value="">Seleccione una localidad...</option>';
+                    r.localidades.forEach(function(loc) {
+                        let sel = (loc === current_colonia) ? 'selected' : '';
+                        options += '<option value="' + loc + '" '+sel+'>' + loc + '</option>';
+                    });
+                    \$('#biz_colonia').html(options);
+
+                    // Poblar CLUES si existen
+                    if (r.establecimientos && r.establecimientos.length > 0) {
+                        \$('#clues_no_results').hide();
+                        \$('#clues_container').slideDown();
+                        let current_clues = \$('#current_clues').val();
+                        let cluesOptions = '<option value="">Ninguno (Opcional)</option>';
+                        r.establecimientos.forEach(function(est) {
+                            let sel = (est.id === current_clues) ? 'selected' : '';
+                            cluesOptions += '<option value="' + est.id + '" '+sel+'>' + est.nombre + ' (' + est.id + ')</option>';
+                        });
+                        \$('#biz_clues').html(cluesOptions);
+                        
+                        if (autoLoadClues && current_clues) {
+                            loadCluesDetails(current_clues, false);
+                        }
+                    } else {
+                        \$('#clues_container').slideUp();
+                        \$('#biz_clues').html('<option value="">Ninguno (Opcional)</option>');
+                        \$('#clues_details_container').slideUp();
+                        \$('#clues_no_results').show();
+                    }
+                } else {
+                    \$('#biz_entidad').val('');
+                    \$('#biz_municipio').val('');
+                    \$('#biz_colonia').html('<option value="">' + r.message + '</option>');
+                    \$('#clues_container').slideUp();
+                    \$('#clues_no_results').show();
+                }
+            },
+            error: function() {
+                \$('#biz_entidad').val('');
+                \$('#biz_municipio').val('');
+                \$('#biz_colonia').html('<option value="">Error de conexión</option>');
+                \$('#clues_container').slideUp();
+                \$('#clues_no_results').show();
+            }
+        });
+    }
+
+    \$('#biz_cp').on('input', function() {
+        let cp = \$(this).val().replace(/\\D/g, '');
+        \$(this).val(cp);
+        if(cp.length === 5) {
+            resolveLocation(cp, false);
+        } else {
+            \$('#biz_entidad').val('');
+            \$('#biz_municipio').val('');
+            \$('#biz_colonia').html('<option value="">Ingrese su C.P. para cargar localidades</option>');
+            \$('#clues_container').slideUp();
+            \$('#clues_details_container').slideUp();
+            \$('#clues_no_results').show();
+        }
+    });
+
+    // Cargar detalles del CLUES
+    function loadCluesDetails(clues_id, overwriteName) {
+        if (!clues_id) {
+            \$('#clues_details_container').slideUp();
+            return;
+        }
+        
+        \$('#clues_details_container').slideDown();
+        \$('#clues_servicios_list').html('<div class="text-center p-3"><span class="spinner-border spinner-border-sm text-primary"></span></div>');
+        \$('#clues_horarios_list').html('<div class="text-center p-3"><span class="spinner-border spinner-border-sm text-primary"></span></div>');
+        
+        \$.ajax({
+            type: 'GET',
+            url: '../api/get_clues_details.pl',
+            data: { clues: clues_id },
+            dataType: 'json',
+            success: function(r) {
+                if(r.success) {
+                    if (overwriteName && r.nombre) {
+                        \$('#biz_nombre').val(r.nombre);
+                    }
+                    if (overwriteName && r.comercial) {
+                        \$('#biz_razon').val(r.comercial);
+                    }
+                    if (overwriteName && r.rfc_clues) {
+                        \$('#biz_rfc').val(r.rfc_clues);
+                    }
+                    if (overwriteName && r.telefono) {
+                        \$('#biz_tel').val(r.telefono);
+                    }
+                    if (overwriteName) {
+                        if (r.extension && r.extension !== '0' && r.extension.trim() !== '') {
+                            \$('#div_biz_ext').show();
+                            \$('#biz_ext').val(r.extension);
+                        } else {
+                            \$('#div_biz_ext').hide();
+                            \$('#biz_ext').val('0');
+                        }
+                    }
+                    if (overwriteName) {
+                        let dir_parts = [];
+                        if (r.vialidad) dir_parts.push(r.vialidad);
+                        if (r.num_ext) dir_parts.push('No. ' + r.num_ext);
+                        if (r.asentamiento) dir_parts.push(r.asentamiento);
+                        if (r.municipio) dir_parts.push(r.municipio);
+                        if (r.entidad) dir_parts.push(r.entidad);
+                        if (r.cp) dir_parts.push('C.P. ' + r.cp);
+                        if (dir_parts.length > 0) {
+                            \$('#biz_dir').val(dir_parts.join(', '));
+                        }
+                    }
+                    if (r.latitud && r.longitud) {
+                        \$('#biz_lat').val(r.latitud);
+                        \$('#biz_lng').val(r.longitud);
+                    }
+
+                    // Render Servicios
+                    let s_html = '<ul class="list-group list-group-flush">';
+                    if(r.servicios && r.servicios.length > 0) {
+                        r.servicios.forEach(s => {
+                            s_html += '<li class="list-group-item bg-transparent py-1 px-0 border-0"><i class="bi bi-check2-circle text-success me-2"></i>' + s.nombre + '</li>';
+                        });
+                    } else {
+                        s_html += '<li class="list-group-item bg-transparent text-muted py-1 px-0 border-0">Sin servicios registrados.</li>';
+                    }
+                    s_html += '</ul>';
+                    \$('#clues_servicios_list').html(s_html);
+
+                    // Render Horarios
+                    let h_html = '<table class="table table-sm table-borderless mb-0"><tbody>';
+                    if(r.horarios && r.horarios.length > 0) {
+                        r.horarios.forEach(h => {
+                            let dias = [];
+                            if(h.lunes === 'SI') dias.push('L');
+                            if(h.martes === 'SI') dias.push('M');
+                            if(h.miercoles === 'SI') dias.push('Mi');
+                            if(h.jueves === 'SI') dias.push('J');
+                            if(h.viernes === 'SI') dias.push('V');
+                            if(h.sabado === 'SI') dias.push('S');
+                            if(h.domingo === 'SI') dias.push('D');
+                            h_html += '<tr><td><span class="badge bg-light text-dark border">' + dias.join(', ') + '</span></td><td class="text-end fw-bold text-primary">' + h.inicio + ' - ' + h.fin + '</td></tr>';
+                        });
+                    } else {
+                        h_html += '<tr><td class="text-muted">Horarios no especificados en el padrón oficial.</td></tr>';
+                    }
+                    h_html += '</tbody></table>';
+                    \$('#clues_horarios_list').html(h_html);
+
+                } else {
+                    \$('#clues_servicios_list').html('<span class="text-danger">Error: ' + r.message + '</span>');
+                    \$('#clues_horarios_list').html('');
+                }
+            },
+            error: function() {
+                \$('#clues_servicios_list').html('<span class="text-danger">Fallo de conexión.</span>');
+                \$('#clues_horarios_list').html('');
+            }
+        });
+    }
+
+    \$('#biz_clues').on('change', function() {
+        let val = \$(this).val();
+        \$('#current_clues').val(val);
+        if (val) {
+            loadCluesDetails(val, true); 
+        } else {
+            \$('#clues_details_container').slideUp();
+        }
+    });
+
+    // Init load si hay CP
+    if (typeof \$('#biz_cp').val() !== 'undefined') {
+        let init_cp = \$('#biz_cp').val();
+        if(init_cp && init_cp.length === 5) {
+            resolveLocation(init_cp, true);
+        }
+    }
 
     // DATA Catálogo de Formación
     const catFormacion = [$js_formaciones_str];
