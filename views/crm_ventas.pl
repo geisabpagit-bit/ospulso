@@ -541,18 +541,41 @@ print <<HTML;
                 dataType: 'json',
                 success: function(r) {
                     if (r.success) {
+                        // 1. Nombre Comercial
                         if (r.nombre) {
                             \$('input[name="nombre_org"]').val(r.nombre);
-                            if (!\$('#saas_razon_org').val()) \$('#saas_razon_org').val(r.nombre);
                         }
-                        if (r.rfc_clues && !\$('#saas_rfc_org').val()) \$('#saas_rfc_org').val(r.rfc_clues);
-                        if (r.telefono && !\$('#saas_tel_org').val()) \$('#saas_tel_org').val(r.telefono);
-                        if (r.extension) \$('#saas_ext_org').val(r.extension);
+                        
+                        // 2. Razón Social Institucional
+                        if (r.comercial || r.nombre) {
+                            \$('#saas_razon_org').val(r.comercial || r.nombre);
+                        }
+                        
+                        // 3. RFC Institucional
+                        if (typeof r.rfc_clues !== 'undefined') {
+                            \$('#saas_rfc_org').val(r.rfc_clues);
+                        }
+                        
+                        // 4. Teléfono
+                        if (typeof r.telefono !== 'undefined') {
+                            \$('#saas_tel_org').val(r.telefono);
+                        }
+                        
+                        // 5. Extensión
+                        if (r.extension && r.extension !== '0' && r.extension.trim() !== '') {
+                            \$('#saas_ext_org').val(r.extension);
+                        } else {
+                            \$('#saas_ext_org').val('0');
+                        }
+
+                        // 6. Dirección Completa
                         let dirParts = [];
                         if (r.vialidad) dirParts.push(r.vialidad);
-                        if (r.num_ext) dirParts.push('No. ' + r.num_ext);
+                        if (r.num_ext && r.num_ext !== '0') dirParts.push('No. ' + r.num_ext);
                         if (r.asentamiento) dirParts.push(r.asentamiento);
-                        if (dirParts.length > 0 && !\$('#saas_dir_org').val()) \$('#saas_dir_org').val(dirParts.join(' '));
+                        if (dirParts.length > 0) {
+                            \$('#saas_dir_org').val(dirParts.join(', '));
+                        }
                     }
                 }
             });
