@@ -467,17 +467,18 @@ HTML
             <p class="text-muted small mb-3">Vincular tu cl&iacute;nica a un establecimiento de salud oficial permite autocompletar servicios, horarios y validaciones legales.</p>
             
             <div class="row g-3">
-                <div class="col-12" id="clues_container" style="display:none;">
+                <div class="col-12" id="clues_container" style="@{[ $b_clues ne '' ? '' : 'display:none;' ]}">
                     <div class="form-floating diamond-input-armor">
                         <input type="hidden" id="current_clues" value="$b_clues">
                         <select class="form-select border-primary fw-bold" id="biz_clues" name="biz_clues" style="background-color: #f0f7ff;">
                             <option value="">Seleccione Establecimiento Oficial (Opcional)</option>
+                            @{[ $b_clues ne '' ? qq(<option value="$b_clues" selected>$b_clues</option>) : '' ]}
                         </select>
                         <label class="text-primary fw-bold"><i class="bi bi-hospital me-1"></i>Establecimiento Oficial (CLUES)</label>
                     </div>
                 </div>
                 
-                <div class="col-12" id="clues_no_results">
+                <div class="col-12" id="clues_no_results" style="@{[ $b_clues ne '' ? 'display:none;' : '' ]}">
                     <div class="alert alert-light border shadow-sm rounded-4 text-center p-4">
                         <i class="bi bi-info-circle text-muted fs-3 mb-2 d-block"></i>
                         <p class="mb-0 text-muted">Ingresa un C&oacute;digo Postal v&aacute;lido arriba para buscar establecimientos en tu zona.</p>
@@ -856,9 +857,11 @@ function previewFirmaImage(input) {
             current_colonia = current_colonia_data;
         }
 
-        \$('#biz_entidad').val('Buscando...');
-        \$('#biz_municipio').val('Buscando...');
-        \$('#biz_colonia').html('<option value="">Cargando opciones...</option>');
+        let current_entidad = \$('#biz_entidad').val();
+        let current_municipio = \$('#biz_municipio').val();
+
+        if (!current_entidad) \$('#biz_entidad').val('Buscando...');
+        if (!current_municipio) \$('#biz_municipio').val('Buscando...');
         
         \$.ajax({
             type: 'GET',
@@ -867,51 +870,60 @@ function previewFirmaImage(input) {
             dataType: 'json',
             success: function(r) {
                 if(r.success) {
-                    \$('#biz_entidad').val(r.entidad);
-                    \$('#biz_municipio').val(r.municipio);
+                    if (r.entidad) \$('#biz_entidad').val(r.entidad);
+                    if (r.municipio) \$('#biz_municipio').val(r.municipio);
                     
                     let options = '<option value="">Seleccione una localidad...</option>';
-                    r.localidades.forEach(function(loc) {
-                        let sel = (loc === current_colonia) ? 'selected' : '';
-                        options += '<option value="' + loc + '" '+sel+'>' + loc + '</option>';
-                    });
+                    let found_colonia = false;
+                    if (r.localidades && r.localidades.length > 0) {
+                        r.localidades.forEach(function(loc) {
+                            let sel = (loc === current_colonia) ? 'selected' : '';
+                            if (sel) found_colonia = true;
+                            options += '<option value="' + loc + '" '+sel+'>' + loc + '</option>';
+                        });
+                    }
+                    if (current_colonia && !found_colonia) {
+                        options += '<option value="' + current_colonia + '" selected>' + current_colonia + '</option>';
+                    }
                     \$('#biz_colonia').html(options);
 
                     // Poblar CLUES si existen
+                    let current_clues = \$('#current_clues').val() || \$('#biz_clues').val();
+                    let cluesOptions = '<option value="">Ninguno (Opcional)</option>';
+                    let found_clues = false;
+
                     if (r.establecimientos && r.establecimientos.length > 0) {
-                        \$('#clues_no_results').hide();
-                        \$('#clues_container').slideDown();
-                        let current_clues = \$('#current_clues').val();
-                        let cluesOptions = '<option value="">Ninguno (Opcional)</option>';
                         r.establecimientos.forEach(function(est) {
                             let sel = (est.id === current_clues) ? 'selected' : '';
+                            if (sel) found_clues = true;
                             cluesOptions += '<option value="' + est.id + '" '+sel+'>' + est.nombre + ' (' + est.id + ')</option>';
                         });
-                        \$('#biz_clues').html(cluesOptions);
-                        
+                    }
+
+                    if (current_clues && !found_clues) {
+                        cluesOptions += '<option value="' + current_clues + '" selected>' + current_clues + '</option>';
+                    }
+                    \$('#biz_clues').html(cluesOptions);
+
+                    if ((r.establecimientos && r.establecimientos.length > 0) || current_clues) {
+                        \$('#clues_no_results').hide();
+                        \$('#clues_container').slideDown();
                         if (autoLoadClues && current_clues) {
                             loadCluesDetails(current_clues, false);
                         }
                     } else {
                         \$('#clues_container').slideUp();
-                        \$('#biz_clues').html('<option value="">Ninguno (Opcional)</option>');
                         \$('#clues_details_container').slideUp();
                         \$('#clues_no_results').show();
                     }
                 } else {
-                    \$('#biz_entidad').val('');
-                    \$('#biz_municipio').val('');
-                    \$('#biz_colonia').html('<option value="">' + r.message + '</option>');
-                    \$('#clues_container').slideUp();
-                    \$('#clues_no_results').show();
+                    if (current_entidad && current_entidad !== 'Buscando...') \$('#biz_entidad').val(current_entidad);
+                    if (current_municipio && current_municipio !== 'Buscando...') \$('#biz_municipio').val(current_municipio);
                 }
             },
             error: function() {
-                \$('#biz_entidad').val('');
-                \$('#biz_municipio').val('');
-                \$('#biz_colonia').html('<option value="">Error de conexión</option>');
-                \$('#clues_container').slideUp();
-                \$('#clues_no_results').show();
+                if (current_entidad && current_entidad !== 'Buscando...') \$('#biz_entidad').val(current_entidad);
+                if (current_municipio && current_municipio !== 'Buscando...') \$('#biz_municipio').val(current_municipio);
             }
         });
     }

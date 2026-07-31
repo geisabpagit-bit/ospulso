@@ -243,7 +243,10 @@ sub actualizar_usuario {
         if (@c < U_MIN_CAMPOS || $c[U_CORREO_INDEX] ne $args{correo}) {
             print $out "$line\n"; next;
         }
-        $found = 1; $id_negocio = $c[U_BIZ_ID_INDEX]; $id_user = $c[0];
+        my $raw_biz_id = $c[U_BIZ_ID_INDEX] // '0';
+        my ($clean_biz_id) = split /:/, $raw_biz_id;
+        $id_negocio = $clean_biz_id;
+        $id_user = $c[0];
         my $sha = Digest::SHA->new(256); $sha->add($args{clave_actual});
         if ($c[U_CLAVE_INDEX] ne $sha->hexdigest) {
             close $in; close $out; unlink $temp; return (0, "Contraseña incorrecta.");
@@ -266,21 +269,30 @@ sub actualizar_usuario {
 sub actualizar_negocio {
     my %args = @_;
     my ($archivo, $temp) = ("../dat/negocios.dat", "../dat/negocios.tmp");
+    my $target_biz_id = $args{id_negocio} // '';
+    ($target_biz_id) = split /:/, $target_biz_id;
+
     open(my $in, '<:encoding(UTF-8)', $archivo) or return;
     open(my $out, '>:encoding(UTF-8)', $temp) or return;
     while (my $line = <$in>) {
         chomp $line;
         my @c = split /\|/, $line, -1;
-        if ($c[0] ne $args{id_negocio}) { print $out "$line\n"; next; }
-        $c[B_NOMBRE_INDEX] = $args{nombre}; $c[B_RFC_INDEX] = $args{rfc};
-        $c[B_RAZON_INDEX] = $args{razon}; $c[B_TEL_INDEX] = $args{tel};
-        $c[B_EMAIL_INDEX] = $args{email}; $c[B_DIR_INDEX] = $args{dir};
-        $c[B_CP_INDEX] = $args{cp} // ''; $c[B_ENTIDAD_INDEX] = $args{entidad} // '';
-        $c[B_MUNICIPIO_INDEX] = $args{municipio} // ''; $c[B_COLONIA_INDEX] = $args{colonia} // '';
-        $c[B_CLUES_INDEX] = $args{clues} // '';
-        $c[B_EXT_INDEX]   = $args{extension} // '0';
-        $c[B_LAT_INDEX]   = $args{latitud} // '';
-        $c[B_LNG_INDEX]   = $args{longitud} // '';
+        if ($c[0] ne $target_biz_id) { print $out "$line\n"; next; }
+        
+        $c[B_NOMBRE_INDEX]    = $args{nombre} if defined $args{nombre};
+        $c[B_RFC_INDEX]       = $args{rfc} if defined $args{rfc};
+        $c[B_RAZON_INDEX]     = $args{razon} if defined $args{razon};
+        $c[B_TEL_INDEX]       = $args{tel} if defined $args{tel};
+        $c[B_EMAIL_INDEX]     = $args{email} if defined $args{email};
+        $c[B_DIR_INDEX]       = $args{dir} if defined $args{dir};
+        $c[B_CP_INDEX]        = $args{cp} if defined $args{cp};
+        $c[B_ENTIDAD_INDEX]   = $args{entidad} if defined $args{entidad};
+        $c[B_MUNICIPIO_INDEX] = $args{municipio} if defined $args{municipio};
+        $c[B_COLONIA_INDEX]   = $args{colonia} if defined $args{colonia};
+        $c[B_CLUES_INDEX]     = $args{clues} if defined $args{clues};
+        $c[B_EXT_INDEX]       = $args{extension} if defined $args{extension};
+        $c[B_LAT_INDEX]       = $args{latitud} if defined $args{latitud};
+        $c[B_LNG_INDEX]       = $args{longitud} if defined $args{longitud};
         print $out join('|', @c) . "\n";
         
         # Guardar en log de depuracion
