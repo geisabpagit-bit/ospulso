@@ -81,6 +81,13 @@ if ($action eq 'create') {
         exit;
     }
 
+    # Validar no duplicidad de Nombre Comercial y RFC Institucional
+    my ($dup_ok, $dup_msg) = validar_no_duplicidad('', $nombre_org, $rfc_org);
+    unless ($dup_ok) {
+        print encode_json({ status => 'error', message => $dup_msg });
+        exit;
+    }
+
     # Validar que el correo no exista en usuarios
     my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
     if ($regs_usuarios) {
@@ -259,6 +266,13 @@ if ($action eq 'update') {
 
     if (!$nombre_org || !$nombre_admin || !$correo_admin || !$tipo_organizacion || !$naturaleza_juridica) {
         print encode_json({ status => 'error', message => 'Faltan datos obligatorios.' });
+        exit;
+    }
+
+    # Validar no duplicidad de Nombre Comercial y RFC Institucional (excluyendo la org actual)
+    my ($dup_ok, $dup_msg) = validar_no_duplicidad($id_org, $nombre_org, $rfc_org);
+    unless ($dup_ok) {
+        print encode_json({ status => 'error', message => $dup_msg });
         exit;
     }
 
@@ -455,4 +469,51 @@ if ($action eq 'delete_permanent') {
     print encode_json({ status => 'success', message => 'Organización eliminada permanentemente' });
     exit;
 }
+
+sub validar_no_duplicidad {
+    my ($id_org_ignore, $nombre_org, $rfc_org) = @_;
+    my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+    my $regs_negocios = leer_tabla($archivo_negocios, '\|');
+    
+    my $target_nombre = lc($nombre_org // '');
+    $target_nombre =~ s/^\s+|\s+$//g;
+
+    my $target_rfc = uc($rfc_org // '');
+    $target_rfc =~ s/^\s+|\s+$//g;
+
+    if ($regs_negocios) {
+        foreach my $r (@$regs_negocios) {
+            next if @$r < 11;
+            my $curr_id     = $r->[0] // '';
+            my $curr_nombre = $r->[1] // '';
+            my $curr_activo = $r->[3] // '1';
+            my $curr_rfc    = $r->[10] // '';
+            
+            # Ignorar la misma organización si estamos editando
+            next if $id_org_ignore && $curr_id eq $id_org_ignore;
+            
+            # Solo validar contra organizaciones activas
+            next if $curr_activo ne '1';
+
+            # 1. Validar Nombre Comercial
+            my $clean_curr_nombre = lc($curr_nombre);
+            $clean_curr_nombre =~ s/^\s+|\s+$//g;
+            if ($target_nombre ne '' && $clean_curr_nombre eq $target_nombre) {
+                return (0, "Ya existe una organización registrada con el Nombre Comercial '$curr_nombre'.");
+            }
+
+            # 2. Validar RFC Institucional (si no es 'NO APLICA' ni vacío)
+            if ($target_rfc ne '' && $target_rfc ne 'NO APLICA') {
+                my $clean_curr_rfc = uc($curr_rfc);
+                $clean_curr_rfc =~ s/^\s+|\s+$//g;
+                if ($clean_curr_rfc ne '' && $clean_curr_rfc ne 'NO APLICA' && $clean_curr_rfc eq $target_rfc) {
+                    return (0, "Ya existe una organización registrada con el RFC Institucional '$curr_rfc' ($curr_nombre).");
+                }
+            }
+        }
+    }
+
+    return (1, '');
+}
+
 print encode_json({ status => 'error', message => 'Acción inválida.' });
