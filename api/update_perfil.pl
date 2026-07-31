@@ -9,7 +9,7 @@ use CGI;
 use CGI::Carp qw(fatalsToBrowser warningsToBrowser); 
 use JSON::PP;
 use lib '..';
-use Digest::SHA; 
+use Digest::SHA qw(sha256_hex); 
 use Encode qw(decode encode); 
 
 # --- Carga de Módulos ---
@@ -235,35 +235,55 @@ sub actualizar_usuario {
     my ($archivo, $temp) = ("../dat/usuarios.dat", "../dat/usuarios.tmp");
     my ($id_negocio, $found, $id_user) = (0, 0, '');
     
-    open(my $in, '<:encoding(UTF-8)', $archivo) or return (0, "Error lectura");
-    open(my $out, '>:encoding(UTF-8)', $temp) or return (0, "Error escritura");
+    my $target_correo = lc($args{correo} // '');
+    $target_correo =~ s/^\s+|\s+$//g;
+
+    my $clave_input = $args{clave_actual} // '';
+    $clave_input =~ s/^\s+|\s+$//g;
+    my $hash_input1 = sha256_hex($clave_input);
+    my $hash_input2 = sha256_hex(encode('UTF-8', $clave_input));
+
+    open(my $in, '<:encoding(UTF-8)', $archivo) or return (0, "Error lectura usuarios.dat.");
+    open(my $out, '>:encoding(UTF-8)', $temp) or return (0, "Error escritura usuarios.tmp.");
     while (my $line = <$in>) {
         chomp $line;
         my @c = split /!/, $line, -1;
-        if (@c < U_MIN_CAMPOS || $c[U_CORREO_INDEX] ne $args{correo}) {
+        
+        my $c_correo = lc($c[U_CORREO_INDEX] // '');
+        $c_correo =~ s/^\s+|\s+$//g;
+
+        if (@c < U_MIN_CAMPOS || $c_correo ne $target_correo) {
             print $out "$line\n"; next;
         }
+        
+        $found = 1;
         my $raw_biz_id = $c[U_BIZ_ID_INDEX] // '0';
         my ($clean_biz_id) = split /:/, $raw_biz_id;
         $id_negocio = $clean_biz_id;
         $id_user = $c[0];
-        my $sha = Digest::SHA->new(256); $sha->add($args{clave_actual});
-        if ($c[U_CLAVE_INDEX] ne $sha->hexdigest) {
-            close $in; close $out; unlink $temp; return (0, "Contraseña incorrecta.");
+        
+        my $stored_hash = $c[U_CLAVE_INDEX] // '';
+        $stored_hash =~ s/^\s+|\s+$//g;
+
+        if ($stored_hash ne $hash_input1 && $stored_hash ne $hash_input2) {
+            close $in; close $out; unlink $temp;
+            return (0, "Contraseña incorrecta.");
         }
+        
         $c[U_NOMBRE_INDEX] = $args{nombre};
         if (defined $args{cedula} && $args{cedula} ne '') {
             $c[9] = $args{cedula};
         }
-        if ($args{clave_nueva}) {
-            my $sha_n = Digest::SHA->new(256); $sha_n->add($args{clave_nueva});
-            $c[U_CLAVE_INDEX] = $sha_n->hexdigest;
+        if ($args{clave_nueva} && $args{clave_nueva} ne '') {
+            my $new_pass = $args{clave_nueva};
+            $new_pass =~ s/^\s+|\s+$//g;
+            $c[U_CLAVE_INDEX] = sha256_hex(encode('UTF-8', $new_pass));
         }
         print $out join('!', @c) . "\n";
     }
     close $in; close $out;
     if ($found) { rename $temp, $archivo; return (1, "Perfil Diamond Sincronizado.", $id_negocio, $id_user); }
-    unlink $temp; return (0, "No encontrado.");
+    unlink $temp; return (0, "Usuario no encontrado.");
 }
 
 sub actualizar_negocio {
