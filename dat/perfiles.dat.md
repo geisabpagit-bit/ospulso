@@ -1,17 +1,24 @@
-# Schema: perfiles.dat
+# PERFILES.DAT - Catálogo de Perfiles Extendidos de Usuarios
 
-## Descripción
-Tabla transaccional que funge como extensión directa ("uno a uno") de la tabla principal `usuarios.dat`. 
-Contiene información profesional, académica y operativa específica de cada usuario, especialmente diseñada para los usuarios con rol de "Especialista" o "Médico". 
-Esto permite evitar la saturación de la tabla de control de acceso (`usuarios.dat`) con campos clínicos o de metadata.
+## 1. Propósito
+Almacenar la información complementaria de perfil de los usuarios del sistema (formación académica, nacionalidad, religión, cédula de especialidad, fotografía de avatar y firma digital autógrafa).
 
-## Formato
-Delimitado por `!`
+## 2. Formato de Archivo
+Archivo plano delimitado por signo de exclamación (`!`) codificado en UTF-8.
 
-## Columnas (Estructura Inicial)
-1. **id**: Entero. Consecutivo y llave primaria (PK) del registro de perfil.
-2. **id_usuario**: Entero. Llave foránea (FK) que referencia a la columna `id` de `usuarios.dat`.
-3. **clave_formacion**: Cadena/Entero. Llave foránea (FK) que referencia a la columna `CATALOG_KEY` de `CAT_FORMACION.dat`. Determina la Formación Académica del médico. Si está vacío, significa que el usuario no ha especificado su formación académica.
-4. **clave_nacionalidad**: Cadena (ISO-3). Llave foránea (FK) que referencia a la columna `CLAVE_NACIONALIDAD` de `CAT_NACIONALIDADES.dat`. Determina la nacionalidad del médico.
-5. **clave_religion**: Cadena (6 dígitos). Llave foránea (FK) que referencia a la columna `CLAVE_RELIGION` de `CAT_RELIGION.dat`. Determina la religión del médico.
+## 3. Cabecera Exacta
+`id!id_usuario!clave_formacion!clave_nacionalidad!clave_religion!cedula_especialidad!avatar_url!firma_url!fecha_actualizacion`
 
+## 4. Descripción de Campos
+- **id** → Identificador secuencial del registro de perfil.
+- **id_usuario** → ID del usuario en `usuarios.dat`.
+- **clave_formacion** → Clave de la formación académica en `CAT_FORMACION.dat`.
+- **clave_nacionalidad** → Clave del país en `CAT_NACIONALIDADES.dat` (ej. `MEX`).
+- **clave_religion** → Clave de la religión/credo en `CAT_RELIGION.dat`.
+- **cedula_especialidad** → Número de Cédula de Especialidad Médica (si aplica).
+- **avatar_url** → Ruta o nombre del archivo de fotografía/avatar de perfil en `uploads/avatars/`.
+- **firma_url** → Ruta o nombre de la firma digitalizada transparente en `uploads/firmas/`.
+- **fecha_actualizacion** → Timestamp de la última modificación (`YYYY-MM-DD HH:MM:SS`).
+
+## 5. Ejemplo de Registro
+`1!1020747209!1885!MEX!110103!CED-ESP-987654!avatar_1020747209.png!firma_1020747209.png!2026-07-31 13:30:00`

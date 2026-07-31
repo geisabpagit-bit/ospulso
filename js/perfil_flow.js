@@ -24,7 +24,7 @@ const PerfilWizardController = {
     },
 
     nextStep: function() {
-        if (this.currentStep < this.totalSteps) {
+        if (this.currentStep < this.totalSteps - 1) {
             this.currentStep++;
             this.renderStep();
             window.scrollTo({ top: 0, behavior: 'smooth' });

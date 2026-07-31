@@ -106,7 +106,7 @@
     border-radius: 1.5rem;
     padding: 2.5rem;
     box-shadow: 0 10px 30px rgba(10, 42, 102, 0.05);
-    border: 2px solid var(--md-teal-clinical);
+    border: 2px solid #e2e8f0;
     display: none;
     animation: fadeIn 0.4s ease;
     backdrop-filter: blur(10px);

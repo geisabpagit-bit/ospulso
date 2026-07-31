@@ -73,6 +73,8 @@ eval {
     my $u_nombre      = decode('UTF-8', $q->param('nombre_completo') || '');
     my $clave_actual  = $q->param('clave_actual')    || '';
     my $clave_nueva   = $q->param('clave_nueva')     || '';
+    my $avatar_url    = '';
+    my $firma_url     = '';
 
     unless ($u_nombre && $clave_actual) {
         print $json->encode({ success => 0, message => "Nombre y Clave Actual son requeridos." });
@@ -159,13 +161,54 @@ eval {
             );
         }
         
+        # PROCESAR CARGA DE ARCHIVOS DE MEDIOS (AVATAR Y FIRMA)
+        $avatar_url = '';
+        $firma_url = '';
+
+        my $upload_avatar = $q->upload('avatar_file');
+        if ($upload_avatar && $id_usuario) {
+            my $dir_avatar = '../uploads/avatars';
+            mkdir $dir_avatar unless -d $dir_avatar;
+            my $filename = "avatar_$id_usuario.png";
+            my $target_path = "$dir_avatar/$filename";
+            if (open(my $out, '>', $target_path)) {
+                binmode $out;
+                my $buffer;
+                while (read($upload_avatar, $buffer, 1024)) {
+                    print $out $buffer;
+                }
+                close $out;
+                $avatar_url = "uploads/avatars/$filename";
+            }
+        }
+
+        my $upload_firma = $q->upload('firma_file');
+        if ($upload_firma && $id_usuario) {
+            my $dir_firma = '../uploads/firmas';
+            mkdir $dir_firma unless -d $dir_firma;
+            my $filename = "firma_$id_usuario.png";
+            my $target_path = "$dir_firma/$filename";
+            if (open(my $out, '>', $target_path)) {
+                binmode $out;
+                my $buffer;
+                while (read($upload_firma, $buffer, 1024)) {
+                    print $out $buffer;
+                }
+                close $out;
+                $firma_url = "uploads/firmas/$filename";
+            }
+        }
+
         # ACTUALIZAR PERFIL EXTENDIDO (perfiles.dat)
         if ($id_usuario) {
             actualizar_perfil_extendido(
-                id_usuario         => $id_usuario,
-                clave_formacion    => decode('UTF-8', $q->param('biz_formacion') || ''),
-                clave_nacionalidad => decode('UTF-8', $q->param('biz_nacionalidad') || ''),
-                clave_religion     => decode('UTF-8', $q->param('biz_religion') || '')
+                id_usuario          => $id_usuario,
+                clave_formacion     => decode('UTF-8', $q->param('biz_formacion') || ''),
+                clave_nacionalidad  => decode('UTF-8', $q->param('biz_nacionalidad') || ''),
+                clave_religion      => decode('UTF-8', $q->param('biz_religion') || ''),
+                cedula_especialidad => decode('UTF-8', $q->param('biz_cedula_espe') || ''),
+                avatar_url          => $avatar_url,
+                firma_url           => $firma_url
             );
         }
     }
@@ -178,7 +221,7 @@ eval {
         $session_data->{session}->flush();
     }
     
-    print $json->encode({ success => 1, message => $u_msg });
+    print $json->encode({ success => 1, message => $u_msg, avatar_url => $avatar_url, firma_url => $firma_url });
 };
 
 if ($@) {
@@ -274,36 +317,54 @@ sub actualizar_perfil_extendido {
     my $found = 0;
     my $max_id = 0;
     
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+    my $fecha_actual = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year+1900, $mon+1, $mday, $hour, $min, $sec);
+
+    my @lines;
     if (open(my $in, '<:encoding(UTF-8)', $archivo)) {
-        open(my $out, '>:encoding(UTF-8)', $temp) or return;
         my $header = <$in>;
-        print $out $header if $header;
+        push @lines, "id!id_usuario!clave_formacion!clave_nacionalidad!clave_religion!cedula_especialidad!avatar_url!firma_url!fecha_actualizacion";
         
         while (my $line = <$in>) {
             chomp $line;
+            next if $line =~ /^\s*$/ || $line =~ /^id!id_usuario/i;
             my @c = split /!/, $line, -1;
             
-            # Tracking max ID for auto-increment
             $max_id = $c[0] if $c[0] =~ /^\d+$/ && $c[0] > $max_id;
             
             if ($c[1] eq $args{id_usuario}) {
                 $found = 1;
-                $c[2] = $args{clave_formacion};
-                $c[3] = $args{clave_nacionalidad};
-                $c[4] = $args{clave_religion};
-                print $out join('!', @c) . "\n";
+                $c[2] = $args{clave_formacion} if defined $args{clave_formacion} && $args{clave_formacion} ne '';
+                $c[3] = $args{clave_nacionalidad} if defined $args{clave_nacionalidad} && $args{clave_nacionalidad} ne '';
+                $c[4] = $args{clave_religion} if defined $args{clave_religion} && $args{clave_religion} ne '';
+                $c[5] = $args{cedula_especialidad} // $c[5] // '';
+                $c[6] = $args{avatar_url} ne '' ? $args{avatar_url} : ($c[6] // '');
+                $c[7] = $args{firma_url} ne '' ? $args{firma_url} : ($c[7] // '');
+                $c[8] = $fecha_actual;
+                push @lines, join('!', @c);
             } else {
-                print $out "$line\n";
+                push @lines, $line;
             }
         }
-        
-        if (!$found) {
-            # Insert new record
-            my $new_id = $max_id + 1;
-            print $out "$new_id!$args{id_usuario}!$args{clave_formacion}!$args{clave_nacionalidad}!$args{clave_religion}\n";
+        close $in;
+    }
+    
+    if (!$found) {
+        my $new_id = $max_id + 1;
+        my $f_val = $args{clave_formacion} // '';
+        my $n_val = $args{clave_nacionalidad} // 'MEX';
+        my $r_val = $args{clave_religion} // '110103';
+        my $ce_val = $args{cedula_especialidad} // '';
+        my $av_val = $args{avatar_url} // '';
+        my $fm_val = $args{firma_url} // '';
+        push @lines, "$new_id!$args{id_usuario}!$f_val!$n_val!$r_val!$ce_val!$av_val!$fm_val!$fecha_actual";
+    }
+    
+    if (open(my $out, '>:encoding(UTF-8)', $archivo)) {
+        foreach my $l (@lines) {
+            print $out "$l\n";
         }
-        
-        close $in; close $out; rename $temp, $archivo;
+        close $out;
     }
 }
 

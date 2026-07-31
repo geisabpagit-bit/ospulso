@@ -159,16 +159,28 @@ if ($session_ok) {
     }
 
     # Buscar Datos de Perfil Adicional (perfiles.dat)
-    my $perfil_data = { clave_formacion => '', clave_nacionalidad => '', clave_religion => '' };
+    my $perfil_data = {
+        clave_formacion     => '',
+        clave_nacionalidad  => 'MEX',
+        clave_religion      => '110103',
+        cedula_especialidad => '',
+        avatar_url          => '',
+        firma_url           => '',
+        fecha_actualizacion => ''
+    };
     if ($user_data->{id} && open(my $fh, '<:encoding(UTF-8)', '../dat/perfiles.dat')) {
         my $header = <$fh>;
         while (my $line = <$fh>) {
             chomp $line;
             my @c = split /!/, $line, -1;
             if ($c[1] && $c[1] eq $user_data->{id}) {
-                $perfil_data->{clave_formacion} = $c[2] // '';
-                $perfil_data->{clave_nacionalidad} = $c[3] // '';
-                $perfil_data->{clave_religion} = $c[4] // '';
+                $perfil_data->{clave_formacion}     = $c[2] // '';
+                $perfil_data->{clave_nacionalidad}  = $c[3] // 'MEX';
+                $perfil_data->{clave_religion}      = $c[4] // '110103';
+                $perfil_data->{cedula_especialidad} = $c[5] // '';
+                $perfil_data->{avatar_url}          = $c[6] // '';
+                $perfil_data->{firma_url}           = $c[7] // '';
+                $perfil_data->{fecha_actualizacion} = $c[8] // '';
                 last;
             }
         }
