@@ -261,7 +261,7 @@ print <<HTML;
                             </div>
                             <div class="card-body p-4 bg-light form-sdm-container">
                                 <div class="row g-3">
-                        <!-- Entidad -->
+                        <!-- Entidad y Administrador -->
                         <div class="col-12">
                             <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-building me-2"></i>Entidad y Administrador</h6>
                         </div>
@@ -278,8 +278,8 @@ print <<HTML;
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold">RFC (Opcional)</label>
-                            <input type="text" class="form-control form-control-sm shadow-sm" name="rfc_org" placeholder="ABC123456T89">
+                            <label class="form-label small fw-bold">RFC Institucional (Opcional)</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" id="saas_rfc_org" name="rfc_org" placeholder="ABC123456T89">
                         </div>
                         
                         <!-- Dueño -->
@@ -295,6 +295,54 @@ print <<HTML;
                             <label class="form-label small fw-bold">Contraseña Inicial</label>
                             <input type="password" class="form-control form-control-sm shadow-sm" id="input_clave_admin" name="clave_admin" required placeholder="••••••••" autocomplete="new-password">
                             <small class="text-muted d-none" id="hint_clave_admin" style="font-size: 0.7rem;">Dejar en blanco para mantener la actual.</small>
+                        </div>
+
+                        <!-- B. Ubicación y Padrón Oficial (CLUES & Domicilio) -->
+                        <div class="col-12 mt-4">
+                            <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-geo-alt-fill me-2"></i>Ubicación y Padrón Oficial (CLUES & Domicilio)</h6>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Código Postal</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control shadow-sm" id="saas_cp_org" name="cp_org" maxlength="5" placeholder="01000">
+                                <button class="btn btn-outline-primary" type="button" id="btn_search_saas_cp"><i class="bi bi-search"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Entidad Federativa</label>
+                            <input type="text" class="form-control form-control-sm bg-light shadow-sm" id="saas_entidad_org" name="entidad_org" readonly placeholder="Entidad">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold">Municipio o Alcaldía</label>
+                            <input type="text" class="form-control form-control-sm bg-light shadow-sm" id="saas_municipio_org" name="municipio_org" readonly placeholder="Municipio">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Colonia / Localidad</label>
+                            <select class="form-select form-select-sm shadow-sm" id="saas_colonia_org" name="colonia_org">
+                                <option value="">Ingrese C.P. para cargar colonias...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-primary"><i class="bi bi-hospital me-1"></i>Establecimiento Oficial (CLUES)</label>
+                            <select class="form-select form-select-sm shadow-sm border-primary" id="saas_clues_org" name="clues_org" style="background-color: #f0f7ff;">
+                                <option value="">Ninguno (Opcional)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Razón Social Institucional</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" id="saas_razon_org" name="razon_org" placeholder="Razón Social SA de CV / Pública">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Dirección Completa (Calle y No.)</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" id="saas_dir_org" name="dir_org" placeholder="Av. Insurgentes Sur 123">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Teléfono de Oficina / Clínica</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" id="saas_tel_org" name="tel_org" placeholder="55 1234 5678">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">Extensión</label>
+                            <input type="text" class="form-control form-control-sm shadow-sm" id="saas_ext_org" name="ext_org" placeholder="0">
                         </div>
 
                         <!-- C. Operación -->
@@ -416,6 +464,86 @@ print <<HTML;
             \$(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
             \$(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
         });
+
+        // Búsqueda de CP y CLUES para Nueva Organización SaaS
+        function resolveSaaSLocation(cp, targetColonia, targetClues) {
+            if (!cp || cp.length !== 5) return;
+            \$('#saas_entidad_org').val('Buscando...');
+            \$('#saas_municipio_org').val('Buscando...');
+            
+            \$.ajax({
+                type: 'GET',
+                url: '../api/get_location.pl',
+                data: { cp: cp },
+                dataType: 'json',
+                success: function(r) {
+                    if(r.success) {
+                        \$('#saas_entidad_org').val(r.entidad || '');
+                        \$('#saas_municipio_org').val(r.municipio || '');
+                        
+                        let options = '<option value="">Seleccione colonia...</option>';
+                        if(r.localidades) {
+                            r.localidades.forEach(function(loc) {
+                                let sel = (loc === targetColonia) ? 'selected' : '';
+                                options += '<option value="' + loc + '" ' + sel + '>' + loc + '</option>';
+                            });
+                        }
+                        \$('#saas_colonia_org').html(options);
+
+                        let cluesOptions = '<option value="">Ninguno (Opcional)</option>';
+                        if(r.establecimientos) {
+                            r.establecimientos.forEach(function(est) {
+                                let sel = (est.id === targetClues) ? 'selected' : '';
+                                cluesOptions += '<option value="' + est.id + '" ' + sel + '>' + est.nombre + ' (' + est.id + ')</option>';
+                            });
+                        }
+                        \$('#saas_clues_org').html(cluesOptions);
+                    } else {
+                        \$('#saas_entidad_org').val('');
+                        \$('#saas_municipio_org').val('');
+                        \$('#saas_colonia_org').html('<option value="">C.P. no encontrado</option>');
+                    }
+                }
+            });
+        }
+
+        \$('#saas_cp_org').on('input', function() {
+            let cp = \$(this).val().replace(/\\D/g, '');
+            \$(this).val(cp);
+            if (cp.length === 5) {
+                resolveSaaSLocation(cp);
+            }
+        });
+
+        \$('#btn_search_saas_cp').on('click', function() {
+            let cp = \$('#saas_cp_org').val();
+            if (cp.length === 5) {
+                resolveSaaSLocation(cp);
+            }
+        });
+
+        \$('#saas_clues_org').on('change', function() {
+            let clues_id = \$(this).val();
+            if (!clues_id) return;
+            \$.ajax({
+                type: 'GET',
+                url: '../api/get_clues_details.pl',
+                data: { clues: clues_id },
+                dataType: 'json',
+                success: function(r) {
+                    if (r.success) {
+                        if (r.nombre && !\$('#saas_razon_org').val()) \$('#saas_razon_org').val(r.nombre);
+                        if (r.rfc_clues && !\$('#saas_rfc_org').val()) \$('#saas_rfc_org').val(r.rfc_clues);
+                        if (r.telefono && !\$('#saas_tel_org').val()) \$('#saas_tel_org').val(r.telefono);
+                        if (r.extension) \$('#saas_ext_org').val(r.extension);
+                        let dirParts = [];
+                        if (r.vialidad) dirParts.push(r.vialidad);
+                        if (r.num_ext) dirParts.push('No. ' + r.num_ext);
+                        if (dirParts.length > 0 && !\$('#saas_dir_org').val()) \$('#saas_dir_org').val(dirParts.join(' '));
+                    }
+                }
+            });
+        });
     });
 
     window.mostrarFormularioSaaS = function() {
@@ -470,6 +598,19 @@ print <<HTML;
                 
                 document.querySelector('input[name="nombre_admin"]').value = d.nombre_admin || '';
                 document.querySelector('input[name="correo_admin"]').value = d.correo_admin || '';
+                
+                // Ubicación y CLUES
+                document.getElementById('saas_cp_org').value = d.cp_org || '';
+                document.getElementById('saas_entidad_org').value = d.entidad_org || '';
+                document.getElementById('saas_municipio_org').value = d.municipio_org || '';
+                document.getElementById('saas_razon_org').value = d.razon_org || '';
+                document.getElementById('saas_dir_org').value = d.dir_org || '';
+                document.getElementById('saas_tel_org').value = d.tel_org || '';
+                document.getElementById('saas_ext_org').value = d.ext_org || '0';
+
+                if (d.cp_org && d.cp_org.length === 5) {
+                    resolveSaaSLocation(d.cp_org, d.colonia_org, d.clues_org);
+                }
                 
                 // Instituciones box
                 if(d.reporta_institucion === 'Sí') {

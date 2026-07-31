@@ -41,6 +41,7 @@ my $archivo_config   = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios
 if ($action eq 'create') {
     my $nombre_org   = decode_utf8($q->param('nombre_org')   // '');
     my $rfc_org      = decode_utf8($q->param('rfc_org')      // '');
+    my $razon_org    = decode_utf8($q->param('razon_org')    // '');
     my $naturaleza_juridica = decode_utf8($q->param('naturaleza_juridica') // '');
     my $tipo_organizacion   = decode_utf8($q->param('tipo_organizacion') // '');
     my $reporta_institucion = decode_utf8($q->param('reporta_institucion') // '');
@@ -51,18 +52,29 @@ if ($action eq 'create') {
     my $correo_admin = lc(decode_utf8($q->param('correo_admin') // ''));
     my $clave_admin  = decode_utf8($q->param('clave_admin')  // '');
 
+    my $cp_org        = decode_utf8($q->param('cp_org')        // '');
+    my $entidad_org   = decode_utf8($q->param('entidad_org')   // '');
+    my $municipio_org = decode_utf8($q->param('municipio_org') // '');
+    my $colonia_org   = decode_utf8($q->param('colonia_org')   // '');
+    my $clues_org     = decode_utf8($q->param('clues_org')     // '');
+    my $dir_org       = decode_utf8($q->param('dir_org')       // '');
+    my $tel_org       = decode_utf8($q->param('tel_org')       // '');
+    my $ext_org       = decode_utf8($q->param('ext_org')       // '0');
+    my $lat_org       = decode_utf8($q->param('lat_org')       // '');
+    my $lng_org       = decode_utf8($q->param('lng_org')       // '');
+
     $nombre_org   =~ s/^\s+|\s+$//g;
     $nombre_admin =~ s/^\s+|\s+$//g;
     $correo_admin =~ s/^\s+|\s+$//g;
     $clave_admin  =~ s/^\s+|\s+$//g;
     $rfc_org      =~ s/^\s+|\s+$//g;
+    $razon_org    =~ s/^\s+|\s+$//g;
     $reporta_institucion =~ s/^\s+|\s+$//g;
 
     # Valores por defecto para evitar nulos en campos opcionales
     $rfc_org = "No aplica" if $rfc_org eq '';
     $reporta_institucion = "No aplica" if $reporta_institucion eq '';
     @instituciones = ("No aplica") if !@instituciones;
-
 
     if (!$nombre_org || !$nombre_admin || !$correo_admin || !$clave_admin || !$tipo_organizacion || !$naturaleza_juridica) {
         print encode_json({ status => 'error', message => 'Faltan datos obligatorios.' });
@@ -92,7 +104,7 @@ if ($action eq 'create') {
 
     # 22 campos de negocios.dat
     my @campos_negocio = (
-        $id_org, $nombre_org, "0", "1", $fecha_inicio, $fecha_fin, "", "", $correo_admin, "", $rfc_org, "", "", $id_vendedor, "", "", "", "", "", "", "", ""
+        $id_org, $nombre_org, "0", "1", $fecha_inicio, $fecha_fin, $dir_org, $tel_org, $correo_admin, "", $rfc_org, $razon_org, "", $id_vendedor, $cp_org, $entidad_org, $municipio_org, $colonia_org, $clues_org, $ext_org, $lat_org, $lng_org
     );
     my $registro_negocio = join("|", @campos_negocio);
 
@@ -150,8 +162,19 @@ if ($action eq 'read') {
     foreach my $r (@$regs_negocios) {
         next if @$r < 22;
         if ($r->[0] eq $id_org) {
-            $data{nombre_org} = $r->[1];
-            $data{rfc_org} = $r->[10];
+            $data{nombre_org}   = $r->[1];
+            $data{dir_org}      = $r->[6];
+            $data{tel_org}      = $r->[7];
+            $data{rfc_org}      = $r->[10];
+            $data{razon_org}    = $r->[11];
+            $data{cp_org}       = $r->[14];
+            $data{entidad_org}  = $r->[15];
+            $data{municipio_org}= $r->[16];
+            $data{colonia_org}  = $r->[17];
+            $data{clues_org}    = $r->[18];
+            $data{ext_org}      = $r->[19];
+            $data{lat_org}      = $r->[20];
+            $data{lng_org}      = $r->[21];
             last;
         }
     }
@@ -199,6 +222,7 @@ if ($action eq 'update') {
 
     my $nombre_org   = decode_utf8($q->param('nombre_org')   // '');
     my $rfc_org      = decode_utf8($q->param('rfc_org')      // '');
+    my $razon_org    = decode_utf8($q->param('razon_org')    // '');
     my $naturaleza_juridica = decode_utf8($q->param('naturaleza_juridica') // '');
     my $tipo_organizacion   = decode_utf8($q->param('tipo_organizacion') // '');
     my $reporta_institucion = decode_utf8($q->param('reporta_institucion') // '');
@@ -209,18 +233,29 @@ if ($action eq 'update') {
     my $correo_admin = lc(decode_utf8($q->param('correo_admin') // ''));
     my $clave_admin  = decode_utf8($q->param('clave_admin')  // '');
 
+    my $cp_org        = decode_utf8($q->param('cp_org')        // '');
+    my $entidad_org   = decode_utf8($q->param('entidad_org')   // '');
+    my $municipio_org = decode_utf8($q->param('municipio_org') // '');
+    my $colonia_org   = decode_utf8($q->param('colonia_org')   // '');
+    my $clues_org     = decode_utf8($q->param('clues_org')     // '');
+    my $dir_org       = decode_utf8($q->param('dir_org')       // '');
+    my $tel_org       = decode_utf8($q->param('tel_org')       // '');
+    my $ext_org       = decode_utf8($q->param('ext_org')       // '0');
+    my $lat_org       = decode_utf8($q->param('lat_org')       // '');
+    my $lng_org       = decode_utf8($q->param('lng_org')       // '');
+
     $nombre_org   =~ s/^\s+|\s+$//g;
     $nombre_admin =~ s/^\s+|\s+$//g;
     $correo_admin =~ s/^\s+|\s+$//g;
     $clave_admin  =~ s/^\s+|\s+$//g;
     $rfc_org      =~ s/^\s+|\s+$//g;
+    $razon_org    =~ s/^\s+|\s+$//g;
     $reporta_institucion =~ s/^\s+|\s+$//g;
 
     # Valores por defecto para evitar nulos en campos opcionales
     $rfc_org = "No aplica" if $rfc_org eq '';
     $reporta_institucion = "No aplica" if $reporta_institucion eq '';
     @instituciones = ("No aplica") if !@instituciones;
-
 
     if (!$nombre_org || !$nombre_admin || !$correo_admin || !$tipo_organizacion || !$naturaleza_juridica) {
         print encode_json({ status => 'error', message => 'Faltan datos obligatorios.' });
@@ -234,8 +269,19 @@ if ($action eq 'update') {
     foreach my $r (@$regs_negocios) {
         if (@$r >= 22 && $r->[0] eq $id_org) {
             $r->[1] = $nombre_org;
-            $r->[10] = $rfc_org;
+            $r->[6] = $dir_org if $dir_org ne '';
+            $r->[7] = $tel_org if $tel_org ne '';
             $r->[8] = $correo_admin;
+            $r->[10] = $rfc_org;
+            $r->[11] = $razon_org if $razon_org ne '';
+            $r->[14] = $cp_org if $cp_org ne '';
+            $r->[15] = $entidad_org if $entidad_org ne '';
+            $r->[16] = $municipio_org if $municipio_org ne '';
+            $r->[17] = $colonia_org if $colonia_org ne '';
+            $r->[18] = $clues_org if $clues_org ne '';
+            $r->[19] = $ext_org if $ext_org ne '';
+            $r->[20] = $lat_org if $lat_org ne '';
+            $r->[21] = $lng_org if $lng_org ne '';
             $org_found = 1;
         }
         push @nuevos_negocios, join('|', @$r);
