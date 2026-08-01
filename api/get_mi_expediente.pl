@@ -19,7 +19,7 @@ unless ($session_data->{session_ok}) {
     exit;
 }
 
-my $correo_paciente = lc($session_data->{correo} // '');
+my $correo_paciente = lc($session_data->{uid} // '');
 if ($session_data->{role} ne 'Paciente' || !$correo_paciente) {
     print "Content-Type: application/json; charset=UTF-8\n\n";
     print JSON::PP->new->utf8(0)->encode({ok => 0, msg => "Acceso denegado."});

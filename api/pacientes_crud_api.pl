@@ -132,7 +132,7 @@ if ($input->{accion} eq 'crear') {
       <div style="margin: 20px 0; background-color: #f8f9ff; padding: 15px; border-radius: 8px;">
         <p>Hola $nombre,</p>
         <p>Tu expediente ha sido registrado en nuestra plataforma clínica. Ahora puedes acceder a tu Portal del Paciente para ver tus citas, estudios y recetas.</p>
-        <p><strong>URL de Acceso:</strong> https://tu-dominio.com/ospulso/index.html</p>
+        <p><strong>URL de Acceso:</strong> https://ospulso.pdigitalesm.com/</p>
         <p><strong>Usuario:</strong> $correo_pac</p>
         <p><strong>Contraseña Temporal:</strong> Ospulso2026!</p>
         <p>Te recomendamos cambiar tu contraseña al ingresar.</p>
