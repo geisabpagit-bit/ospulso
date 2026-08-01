@@ -5,6 +5,7 @@ use warnings;
 use utf8;
 use CGI;
 use JSON::PP;
+use Digest::SHA qw(sha256_hex);
 use lib '..';
 use utils::db_manager qw(leer_tabla obtener_nuevo_id guardar_registro actualizar_archivo);
 
@@ -97,6 +98,36 @@ if ($input->{accion} eq 'crear') {
     guardar_antecedentes_paciente($id_paciente, $input->{tutor}, $input->{antecedentes});
     my $dom_data = $input->{domicilio} || ($input->{antecedentes} ? $input->{antecedentes}->{domicilio} : undef) || {};
     guardar_domicilio_paciente($id_paciente, $dom_data);
+
+    # ==== REGISTRO DE USUARIO (PORTAL PACIENTE) ====
+    if ($input->{correo} && $input->{correo} =~ /\@/) {
+        my $correo_pac = lc($input->{correo});
+        $correo_pac =~ s/^\s+|\s+$//g;
+        
+        my $usuarios = leer_tabla('../dat/usuarios.dat', '!');
+        my $existe_usuario = 0;
+        foreach my $u (@$usuarios) {
+            if (lc($u->[2] // '') eq $correo_pac) {
+                $existe_usuario = 1;
+                last;
+            }
+        }
+        
+        if (!$existe_usuario) {
+            # Contraseña por defecto: Ospulso2026!
+            my $clave_hash = sha256_hex('Ospulso2026!');
+            # Tenant global consolidado (0:0) para pacientes
+            my $user_line = join('!', $id_paciente, $nombre, $correo_pac, $clave_hash, '1', 'Paciente', '0:0', '0', '0', '0', '', '');
+            guardar_registro('../dat/usuarios.dat', $user_line);
+            
+            # Registrar en historial de correos para envío posterior de "Invitación"
+            my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
+            my $fecha = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year+1900, $mon+1, $mday, $hour, $min, $sec);
+            my $mail_line = join('|', int(rand(999999)), $id_paciente, 'Invitación Portal Paciente', $correo_pac, 'Pendiente', $fecha);
+            guardar_registro('../dat/historial_correos.dat', $mail_line);
+        }
+    }
+    # ===============================================
 
     print "Content-Type: application/json; charset=UTF-8\n\n";
     print JSON::PP->new->utf8(0)->encode({ok => 1, msg => "La Ficha Clínica de $nombre ha sido generada correctamente."});

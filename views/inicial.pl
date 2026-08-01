@@ -34,6 +34,11 @@ if ($session_ok) {
         print $q->redirect(-uri => 'crm_ventas.pl');
         exit;
     }
+    
+    if ($role eq 'Paciente') {
+        print $q->redirect(-uri => 'mis_citas.pl');
+        exit;
+    }
 
     print $q->header(-type => 'text/html', -charset => 'UTF-8');
 

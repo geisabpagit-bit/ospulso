@@ -14,3 +14,4 @@ sync_google|sync_google_handler.pl|Sincronización Google|Vincular o renovar acc
 crm_ventas|views/crm_ventas.pl|CRM Ventas|Plataforma Comercial para Alta de Organizaciones.|bi-briefcase-fill|primary
 servicios|views/manage_servicios.pl|Gestión de Servicios|Administrar catálogo de servicios.|bi-heart-pulse|info
 productos|views/manage_productos.pl|Gestión de Productos|Administrar catálogo de productos e insumos.|bi-box-seam|info
+mi_estado_cuenta|views/mi_estado_cuenta.pl|Mi Estado de Cuenta|Historial consolidado y saldos.|bi-wallet2|info
