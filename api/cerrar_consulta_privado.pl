@@ -135,8 +135,19 @@ if ($requiere_consentimiento eq '1' || $q->param('consentimiento_json')) {
 }
 
 # 2. Sincronizar estado en citas.dat
+my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
+
+# Lógica de redondeo a bloques de 30 mins para evitar fracciones
+my $min_start = ($min < 30) ? 0 : 30;
+my $min_end   = ($min < 30) ? 30 : 0;
+my $hour_start = $hour;
+my $hour_end   = ($min < 30) ? $hour : $hour + 1;
+$hour_end = 0 if $hour_end == 24;
+
+my $hoy_hora_rounded = sprintf("%02d:%02d", $hour_start, $min_start);
+my $hoy_hora_fin_rounded = sprintf("%02d:%02d", $hour_end, $min_end);
+
 if ($id_cita) {
-    my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
     if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
         my @lineas = <$fh_in>;
         close $fh_in;
@@ -155,22 +166,11 @@ if ($id_cita) {
                 my $fecha_cita = $c[3] // '';
                 my $hora_cita  = $c[4] // '';
                 
+                # Si se tomó fuera de horario, mover al bloque de 30 mins actual
                 if ($fecha_cita ne $hoy_fecha || ($fecha_cita eq $hoy_fecha && $hora_cita lt $hoy_hora)) {
                     $c[3] = $hoy_fecha;
-                    $c[4] = $hoy_hora;
-                    my $h_fin; my $m_fin;
-                    if ($c[5]) {
-                        my ($ho, $mo) = split /:/, $hora_cita;
-                        my ($hf, $mf) = split /:/, $c[5];
-                        my $dur = ($hf*60+$mf) - ($ho*60+$mo);
-                        $dur = 30 if $dur <= 0;
-                        my $tot = $hour*60 + $min + $dur;
-                        $h_fin = int($tot/60); $m_fin = $tot%60;
-                    } else {
-                        my $tot = $hour*60 + $min + 30;
-                        $h_fin = int($tot/60); $m_fin = $tot%60;
-                    }
-                    $c[5] = sprintf("%02d:%02d", $h_fin, $m_fin);
+                    $c[4] = $hoy_hora_rounded;
+                    $c[5] = $hoy_hora_fin_rounded;
                     $c[8] = 'Atendida';
                 } else {
                     $c[8] = 'Atendida';
@@ -180,6 +180,13 @@ if ($id_cita) {
             push @nuevas_lineas, $l;
         }
         utils::db_manager::actualizar_archivo($citas_file, $cabecera, \@nuevas_lineas);
+    }
+} else {
+    # Es una Consulta Express, insertar en la agenda retroactivamente
+    if (-e $citas_file) {
+        my $new_id_cita = "EXP-" . time() . "-" . int(rand(1000));
+        my $linea = join('|', $new_id_cita, $id_medico, $id_paciente, $hoy_fecha, $hoy_hora_rounded, $hoy_hora_fin_rounded, 'Consulta Express Automática', 'Originada desde consultorio', 'Atendida', '');
+        utils::db_manager::guardar_registro($citas_file, $linea);
     }
 }
 
