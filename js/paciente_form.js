@@ -77,6 +77,35 @@ document.addEventListener("DOMContentLoaded", () => {
         inputFechaNac.addEventListener("change", evaluarEdadYTutor);
         inputFechaNac.addEventListener("input", evaluarEdadYTutor);
     }
+    
+    // --- VALIDACIÓN DE CORREO EXISTENTE AJAX ---
+    const inputCorreo = document.getElementById("correo");
+    if (inputCorreo) {
+        inputCorreo.addEventListener("blur", function() {
+            const val = this.value.trim();
+            if (val && val.includes("@")) {
+                $.ajax({
+                    url: '../api/validar_correo_paciente_api.pl',
+                    type: 'POST',
+                    data: { correo: val },
+                    dataType: 'json',
+                    success: function(res) {
+                        if(res.existe) {
+                            Swal.fire({
+                                title: 'Correo ya registrado',
+                                text: 'Este correo ya pertenece a una cuenta de Paciente en el sistema. Puedes agregarlo pero compartirá el mismo acceso de usuario.',
+                                icon: 'info',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 5000
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
 
     // Helper para poblar select y su campo dependiente
     function setSelectAndToggle(selectId, val, containerId, inputId, inputVal) {

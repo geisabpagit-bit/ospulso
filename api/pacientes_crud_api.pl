@@ -120,10 +120,51 @@ if ($input->{accion} eq 'crear') {
             my $user_line = join('!', $id_paciente, $nombre, $correo_pac, $clave_hash, '1', 'Paciente', '0:0', '0', '0', '0', '', '');
             guardar_registro('../dat/usuarios.dat', $user_line);
             
-            # Registrar en historial de correos para envío posterior de "Invitación"
+            # Enviar el correo usando MIME::Lite si está disponible
+            my $status_correo = 'Pendiente';
+            my $has_mime_lite = eval "use MIME::Lite; 1;";
+            if ($has_mime_lite) {
+                my $cuerpo_html = qq{
+<html>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px;">
+      <h2 style="color: #174975;">Bienvenido al Portal del Paciente</h2>
+      <div style="margin: 20px 0; background-color: #f8f9ff; padding: 15px; border-radius: 8px;">
+        <p>Hola $nombre,</p>
+        <p>Tu expediente ha sido registrado en nuestra plataforma clínica. Ahora puedes acceder a tu Portal del Paciente para ver tus citas, estudios y recetas.</p>
+        <p><strong>URL de Acceso:</strong> https://tu-dominio.com/ospulso/index.html</p>
+        <p><strong>Usuario:</strong> $correo_pac</p>
+        <p><strong>Contraseña Temporal:</strong> Ospulso2026!</p>
+        <p>Te recomendamos cambiar tu contraseña al ingresar.</p>
+      </div>
+      <hr>
+      <p style="font-size: 0.9em; color: #777;">Este es un mensaje automático de Software Dental Mexicano.</p>
+    </div>
+  </body>
+</html>
+                };
+                
+                eval {
+                    my $msg = MIME::Lite->new(
+                        From    => 'administracion@ospulso.pdigitalesm.com',
+                        To      => $correo_pac,
+                        Subject => 'Bienvenido al Portal del Paciente',
+                        Type    => 'text/html; charset=UTF-8',
+                        Data    => $cuerpo_html,
+                        Encoding=> 'quoted-printable'
+                    );
+                    $msg->send;
+                    $status_correo = 'Enviado';
+                };
+                if ($@) {
+                    $status_correo = 'Fallido';
+                }
+            }
+
+            # Registrar en historial de correos
             my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
             my $fecha = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year+1900, $mon+1, $mday, $hour, $min, $sec);
-            my $mail_line = join('|', int(rand(999999)), $id_paciente, 'Invitación Portal Paciente', $correo_pac, 'Pendiente', $fecha);
+            my $mail_line = join('|', int(rand(999999)), $id_paciente, 'Invitación Portal Paciente', $correo_pac, $status_correo, $fecha);
             guardar_registro('../dat/historial_correos.dat', $mail_line);
         }
     }
