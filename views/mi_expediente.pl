@@ -153,10 +153,10 @@ $(document).ready(function() {
                     res.recetas.forEach(r => {
                         recHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-0">${r.diagnostico}</h6>
-                                <small class="text-muted">${r.fecha}</small>
+                                <h6 class="mb-0">\${r.diagnostico}</h6>
+                                <small class="text-muted">\${r.fecha}</small>
                             </div>
-                            <button class="btn btn-sm btn-light" onclick="window.open('../api/imprimir_receta_api.pl?id_receta=${r.id_receta}')" title="Descargar PDF"><i class="bi bi-download text-primary"></i></button>
+                            <button class="btn btn-sm btn-light" onclick="window.open('../api/imprimir_receta_api.pl?id_receta=\${r.id_receta}')" title="Descargar PDF"><i class="bi bi-download text-primary"></i></button>
                         </li>`;
                     });
                 } else {
@@ -170,10 +170,10 @@ $(document).ready(function() {
                     res.estudios.forEach(e => {
                         estHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-0">${e.descripcion}</h6>
-                                <small class="text-muted">${e.fecha} | ${e.modalidad}</small>
+                                <h6 class="mb-0">\${e.descripcion}</h6>
+                                <small class="text-muted">\${e.fecha} | \${e.modalidad}</small>
                             </div>
-                            <a href="../${e.ruta}" target="_blank" class="btn btn-sm btn-light"><i class="bi bi-eye text-info"></i></a>
+                            <a href="../\${e.ruta}" target="_blank" class="btn btn-sm btn-light"><i class="bi bi-eye text-info"></i></a>
                         </li>`;
                     });
                 } else {
@@ -189,7 +189,7 @@ $(document).ready(function() {
                         consHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="mb-0">Consulta Terminada</h6>
-                                <small class="text-muted">${f}</small>
+                                <small class="text-muted">\${f}</small>
                             </div>
                             <i class="bi bi-check-circle-fill text-success"></i>
                         </li>`;
