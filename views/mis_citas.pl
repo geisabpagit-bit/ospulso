@@ -15,6 +15,8 @@ require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'render_error_sesion.pl');
 
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
+
 my $session_data = check_session();
 my $q          = $session_data->{q};
 my $session_ok = $session_data->{session_ok};
@@ -36,13 +38,17 @@ render_header(
     skip_header => 1
 );
 
+utils::sub_sidebar::render_sidebar(
+    usuario => $usuario,
+    role => $role,
+    pagina_actual => 'mis_citas'
+);
+
 print <<'HTML';
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-calendar-event me-2 text-primary"></i> Mis Citas</h2>
-        <button class="btn btn-primary" onclick="alert('Funcionalidad de Agendar Cita en desarrollo')">
-            <i class="bi bi-plus-lg"></i> Agendar Cita
-        </button>
+        <!-- <button class="btn btn-primary" onclick="window.location.href='agendar_cita_paciente.pl'"><i class="bi bi-plus-lg"></i> Agendar Cita</button> -->
     </div>
 
     <div class="card shadow-sm">
@@ -127,6 +133,7 @@ $(document).ready(function() {
 </script>
 HTML
 
+utils::sub_sidebar::render_sidebar_footer();
 render_bottom_nav('mis_citas');
 
 1;

@@ -60,7 +60,7 @@ if ($regs_negocios) {
 }
 
 # 2. Leer citas.dat y filtrar las que correspondan a mis_ids
-# ID_CITA|ID_PACIENTE|FECHA_HORA|ID_MEDICO|STATUS|TIPO_CONSULTA|NOTAS|TENANT
+# ID_CITA|ID_MEDICO|ID_PACIENTE|FECHA|HORA_INICIO|HORA_FIN|MOTIVO|NOTAS|ESTADO|EXTRA
 my $regs_citas = leer_tabla('../dat/citas.dat', '\|');
 my @citas = ();
 
@@ -68,20 +68,27 @@ if ($regs_citas) {
     foreach my $c (@$regs_citas) {
         next if @$c < 8;
         my $id_cita = $c->[0];
-        my $id_pac  = $c->[1];
+        my $id_medico = $c->[1];
+        my $id_pac  = $c->[2];
         
         if (exists $mis_ids{$id_pac}) {
-            my $id_medico = $c->[3];
-            my $tenant = $c->[7];
-            my $id_org = (split(/:/, $tenant))[0];
+            my $fecha = $c->[3];
+            my $hora_inicio = $c->[4];
+            my $hora_fin = $c->[5];
+            my $tipo_consulta = $c->[6];
+            my $notas = $c->[7];
+            my $status = $c->[8];
+            
+            my $tenant = $mis_ids{$id_pac}->{tenant} // '';
+            my $id_org = (split(/:/, $tenant))[0] // '';
             
             push @citas, {
                 id_cita => $id_cita,
-                fecha_hora => $c->[2],
+                fecha_hora => "$fecha $hora_inicio - $hora_fin",
                 id_medico => $id_medico,
-                status => $c->[4],
-                tipo_consulta => $c->[5],
-                notas => $c->[6],
+                status => $status,
+                tipo_consulta => $tipo_consulta,
+                notas => $notas,
                 tenant => $tenant,
                 # Meta
                 medico_nombre => $medicos{$id_medico} // "Médico $id_medico",

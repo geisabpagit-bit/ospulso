@@ -192,14 +192,12 @@ HTML
     if ($show_nav) {
         my $role_label = uc($role);
         my $hamburger_btn = '';
-        if ($role ne 'Paciente') {
-            $hamburger_btn = <<'HAM';
-            <!-- Hamburger Menu Toggle (Solo Teléfonos Móviles) -->
-            <button class="btn btn-menu-toggle-inline me-2" onclick="toggleSidebar()" aria-label="Abrir menú" type="button">
-                <i class="bi bi-list"></i>
-            </button>
+        $hamburger_btn = <<'HAM';
+        <!-- Hamburger Menu Toggle (Solo Teléfonos Móviles) -->
+        <button class="btn btn-menu-toggle-inline me-2" onclick="toggleSidebar()" aria-label="Abrir menú" type="button">
+            <i class="bi bi-list"></i>
+        </button>
 HAM
-        }
 
         print <<HTML;
     <nav class="navbar sdm-navbar glass-navbar p-2 sticky-top flex-column align-items-stretch">

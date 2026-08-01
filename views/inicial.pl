@@ -35,11 +35,6 @@ if ($session_ok) {
         exit;
     }
     
-    if ($role eq 'Paciente') {
-        print $q->redirect(-uri => 'mis_citas.pl');
-        exit;
-    }
-
     print $q->header(-type => 'text/html', -charset => 'UTF-8');
 
     render_header(

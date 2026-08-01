@@ -36,6 +36,13 @@ render_header(
     skip_header => 1
 );
 
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
+utils::sub_sidebar::render_sidebar(
+    usuario => $usuario,
+    role => $role,
+    pagina_actual => 'mi_estado_cuenta'
+);
+
 print <<'HTML';
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -139,6 +146,7 @@ $(document).ready(function() {
 </script>
 HTML
 
+utils::sub_sidebar::render_sidebar_footer();
 render_bottom_nav('mi_estado_cuenta');
 
 1;
