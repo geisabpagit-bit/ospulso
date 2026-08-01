@@ -77,7 +77,11 @@ print <<HTML;
 <div class="sdm-layout-wrapper">
     <!-- Sidebar -->
 HTML
-render_sidebar($session_data->{role}, 'mis_citas', $session_data->{usuario});
+utils::sub_sidebar::render_sidebar(
+    usuario => $session_data->{usuario},
+    role => $session_data->{role},
+    pagina_actual => 'mis_citas'
+);
 
 print <<HTML;
     <main class="sdm-main-content">
