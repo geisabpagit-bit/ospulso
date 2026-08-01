@@ -472,12 +472,19 @@ print <<HTML;
             \$('#saas_municipio_org').val('Buscando...');
             \$('#saas_colonia_org').html('<option value="">Cargando colonias...</option>');
             \$('#saas_clues_org').html('<option value="">Cargando establecimientos...</option>');
+            \$('input[name="nombre_org"]').val('');
+            \$('#saas_razon_org').val('');
+            \$('#saas_rfc_org').val('');
+            \$('#saas_tel_org').val('');
+            \$('#saas_ext_org').val('');
+            \$('#saas_dir_org').val('');
             
             \$.ajax({
                 type: 'GET',
                 url: '../api/get_location.pl',
                 data: { cp: cp },
                 dataType: 'json',
+                cache: false,
                 success: function(r) {
                     if(r.success) {
                         \$('#saas_entidad_org').val(r.entidad || '');
@@ -533,12 +540,21 @@ print <<HTML;
 
         \$(document).on('change', '#saas_clues_org', function() {
             let clues_id = \$(this).val();
-            if (!clues_id) return;
+            if (!clues_id) {
+                \$('input[name="nombre_org"]').val('');
+                \$('#saas_razon_org').val('');
+                \$('#saas_rfc_org').val('');
+                \$('#saas_tel_org').val('');
+                \$('#saas_ext_org').val('');
+                \$('#saas_dir_org').val('');
+                return;
+            }
             \$.ajax({
                 type: 'GET',
                 url: '../api/get_clues_details.pl',
                 data: { clues: clues_id },
                 dataType: 'json',
+                cache: false,
                 success: function(r) {
                     if (r.success) {
                         // 1. Nombre Comercial

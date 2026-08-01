@@ -32,6 +32,7 @@ sub render_dashboard_principal {
     my $usuario = $args{usuario} || 'Usuario';
     my $id_empresa = $args{id_empresa} || 0;
     my $id_sucursal = $args{id_sucursal} || 0;
+    my $uid = lc($args{uid} // '');
     
     if ($role eq 'Administrador Global') {
         utils::sub_sidebar::render_sidebar(
@@ -63,6 +64,7 @@ HTML
 
     # --- CARGA DE DATOS ---
     my %pacientes_map = ();
+    my %mis_pacientes_id = ();
     my $t_pac = 0;
     if (-e $pac_file) {
         open(my $fh, '<:utf8', $pac_file) or die $!;
@@ -90,6 +92,13 @@ HTML
                     }
                 } elsif (!$org_pac && $f[1] eq $id_medico) {
                     $es_mi_paciente = 1;
+                }
+            } elsif ($role eq 'Paciente' && $uid ne '') {
+                my $c = lc($f[5] // '');
+                $c =~ s/^\s+|\s+$//g;
+                if ($c eq $uid) {
+                    $es_mi_paciente = 1;
+                    $mis_pacientes_id{$f[0]} = 1;
                 }
             }
             
@@ -136,7 +145,7 @@ HTML
             next if $line =~ /^id_cita/;
             my @f = split(/\|/, $line);
             # F1: ID_MEDICO, F2: ID_PACIENTE, F3: FECHA, F4: HORA_INI
-            if ($is_admin || $f[1] eq $id_medico) {
+            if ($is_admin || $f[1] eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$f[2]})) {
                 # Comparación de fecha
                 my ($cy, $cm, $cd) = split(/-/, $f[3]);
                 if ($cy && $cm && $cd) {
@@ -391,6 +400,23 @@ HTML
                         <i class="bi bi-calendar-check text-primary fs-2 kpi-icon" style="opacity: 0.8;"></i>
                     </div>
                 </div>
+HTML
+
+    if ($role eq 'Paciente') {
+        my $citas_futuras = scalar(@proximas_citas);
+        print <<HTML;
+                <div class="col-6 col-lg-3">
+                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="kpi-titulo">Citas Futuras</span>
+                            <h2 class="kpi-valor counter-up m-0" data-value="$citas_futuras">$citas_futuras</h2>
+                        </div>
+                        <i class="bi bi-calendar-range fs-2 kpi-icon" style="color: var(--md-teal-clinical); opacity: 0.8;"></i>
+                    </div>
+                </div>
+HTML
+    } else {
+        print <<HTML;
                 <div class="col-6 col-lg-3">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
@@ -400,6 +426,10 @@ HTML
                         <i class="bi bi-people fs-2 kpi-icon" style="color: var(--md-teal-clinical); opacity: 0.8;"></i>
                     </div>
                 </div>
+HTML
+    }
+
+    print <<HTML;
                 <div class="col-6 col-lg-3">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>

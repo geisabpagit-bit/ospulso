@@ -2,10 +2,15 @@
 use strict;
 use warnings;
 use utf8;
+use lib '..';
+require 'auth/check_session.pl';
 
 sub render_bottom_nav {
     my ($active) = @_;
     $active //= '';
+
+    my $sd = check_session();
+    my $role = $sd->{role} || 'Invitado';
 
     print <<HTML;
     <!-- SDM Premium Bottom Navigation (Item 3.3 Style Guide) -->
@@ -16,7 +21,25 @@ sub render_bottom_nav {
             <i class="bi bi-house-door"></i>
             <span>Inicio</span>
         </a>
-        
+HTML
+
+    if ($role eq 'Paciente') {
+        print <<HTML;
+        <a href="mis_citas.pl" class="main-tab-item @{[$active eq 'mis_citas' ? 'active' : '']}" title="Mis Citas">
+            <i class="bi bi-calendar-event"></i>
+            <span>Citas</span>
+        </a>
+        <button class="main-tab-item dock-fab" title="Agendar Cita" onclick="window.location.href='agendar_cita_paciente.pl'">
+            <i class="bi bi-calendar-plus"></i>
+            <span>Agendar</span>
+        </button>
+        <a href="mi_expediente.pl" class="main-tab-item @{[$active eq 'mi_historial' ? 'active' : '']}" title="Mi Historial">
+            <i class="bi bi-file-medical"></i>
+            <span>Historial</span>
+        </a>
+HTML
+    } else {
+        print <<HTML;
         @{[ 
             $active eq 'agenda' ? qq(
                 <a href="pacientes.pl" class="main-tab-item" title="Pacientes">
@@ -59,6 +82,10 @@ sub render_bottom_nav {
                 </a>
             )
         ]}
+HTML
+    }
+    
+    print <<HTML;
     </nav>
 HTML
 }

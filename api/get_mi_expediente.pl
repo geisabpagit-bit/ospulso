@@ -45,12 +45,14 @@ if ($regs_pacientes) {
 
 # 2. Recetas
 my @recetas = ();
+my %seen_recetas = ();
 if (-e '../dat/recetas.dat') {
     my $regs = leer_tabla('../dat/recetas.dat', '\|');
     if ($regs) {
         foreach my $r (@$regs) {
             next if @$r < 7;
-            if (exists $mis_ids{$r->[2]}) {
+            if (exists $mis_ids{$r->[2]} && !$seen_recetas{$r->[0]}) {
+                $seen_recetas{$r->[0]} = 1;
                 push @recetas, {
                     id_receta => $r->[0],
                     id_consulta => $r->[1],
@@ -65,12 +67,14 @@ if (-e '../dat/recetas.dat') {
 
 # 3. Estudios
 my @estudios = ();
+my %seen_estudios = ();
 if (-e '../dat/estudios.dat') {
     my $regs = leer_tabla('../dat/estudios.dat', '\|');
     if ($regs) {
         foreach my $e (@$regs) {
             next if @$e < 6;
-            if (exists $mis_ids{$e->[1]}) {
+            if (exists $mis_ids{$e->[1]} && !$seen_estudios{$e->[0]}) {
+                $seen_estudios{$e->[0]} = 1;
                 push @estudios, {
                     id_estudio => $e->[0],
                     fecha => $e->[2],
@@ -85,12 +89,14 @@ if (-e '../dat/estudios.dat') {
 
 # 4. Consultas (Solo metadatos)
 my @consultas = ();
+my %seen_consultas = ();
 if (-e '../dat/consultas_clinicas.dat') {
     my $regs = leer_tabla('../dat/consultas_clinicas.dat', '\|');
     if ($regs) {
         foreach my $c (@$regs) {
             next if @$c < 5;
-            if (exists $mis_ids{$c->[1]}) {
+            if (exists $mis_ids{$c->[1]} && !$seen_consultas{$c->[0]}) {
+                $seen_consultas{$c->[0]} = 1;
                 push @consultas, {
                     id_consulta => $c->[0],
                     fecha_ts => $c->[4]

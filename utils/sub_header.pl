@@ -194,7 +194,7 @@ HTML
         my $hamburger_btn = '';
         $hamburger_btn = <<'HAM';
         <!-- Hamburger Menu Toggle (Solo Teléfonos Móviles) -->
-        <button class="btn btn-menu-toggle-inline me-2" onclick="toggleSidebar()" aria-label="Abrir menú" type="button">
+        <button class="btn btn-menu-toggle-inline me-2 d-lg-none" onclick="toggleSidebar()" aria-label="Abrir menú" type="button">
             <i class="bi bi-list"></i>
         </button>
 HAM

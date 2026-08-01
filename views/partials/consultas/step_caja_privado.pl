@@ -233,7 +233,7 @@ sub render_step_caja_privado {
                             
                             <div class="mb-3">
                                 <label class="wizard-label">Destino del Tratamiento</label>
-                                <select name="caja_estado_tratamiento" id="f_caja_estado_tratamiento" class="wizard-input" onchange="actualizarMontoPago()">
+                                <select name="caja_estado_tratamiento" id="f_caja_estado_tratamiento" class="wizard-input" onchange="actualizarMontoPago(); toggleCitaWorkflow();">
                                     <option value="Abierto">Dejar tratamiento abierto (Requiere pr&oacute;xima cita)</option>
                                     <option value="Cerrado">Finalizar y Cerrar tratamiento (Alta m&eacute;dica)</option>
                                     <option value="Cobro por recepción">Cobro por recepci&oacute;n (Pendiente por Recepcionista)</option>
@@ -849,8 +849,8 @@ sub render_step_caja_privado {
                 const citaId = document.getElementById('f_proxima_cita_id') ? document.getElementById('f_proxima_cita_id').value : '';
                 
                 if (estadoTrat === 'Abierto' && !citaId) {
-                    Swal.fire('Cita Requerida', 'Es obligatorio agendar la próxima cita de seguimiento para dejar el tratamiento abierto.', 'warning');
-                    return;
+                    // Make it optional - just inform the user
+                    console.log("Tratamiento abierto sin cita programada.");
                 }
             }
             

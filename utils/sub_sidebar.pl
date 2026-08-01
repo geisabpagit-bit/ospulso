@@ -130,18 +130,20 @@ sub render_sidebar {
     }
 
     my %module_styles = (
-        'agenda'      => { icon => 'calendar_month', bg => 'var(--calendar-bg)', color => 'var(--calendar-event)' },
-        'pacientes'   => { icon => 'groups',         bg => 'var(--surface-secondary)', color => 'var(--icon-purple)' },
-        'finanzas'    => { icon => 'payments',       bg => 'var(--surface-info)', color => 'var(--income)' },
-        'clinicas'    => { icon => 'domain',         bg => 'var(--surface-blue)', color => 'var(--primary-blue)' },
-        'usuarios'    => { icon => 'person_add',     bg => 'var(--surface-secondary)', color => 'var(--icon-purple)' },
-        'servicios'   => { icon => 'medical_services',bg => 'var(--surface-info)', color => 'var(--confirmation)' },
-        'productos'   => { icon => 'inventory_2',    bg => 'var(--surface-warn)', color => 'var(--alert)' },
-        'reportes'    => { icon => 'analytics',      bg => 'var(--surface-info)', color => 'var(--confirmation)' },
-        'tecnico'     => { icon => 'build',          bg => 'var(--surface-warn)', color => 'var(--alert)' },
-        'sync_google' => { icon => 'sync',           bg => 'var(--calendar-bg)', color => 'var(--calendar-event)' },
-        'mis_citas'   => { icon => 'event_note',     bg => 'var(--surface-blue)', color => 'var(--primary-blue)' },
-        'mi_historial'=> { icon => 'history_edu',    bg => 'var(--surface-secondary)', color => 'var(--icon-purple)' }
+        'agenda'           => { icon => 'calendar_month',   bg => 'var(--calendar-bg)',    color => 'var(--calendar-event)' },
+        'pacientes'        => { icon => 'groups',           bg => 'var(--surface-secondary)', color => 'var(--icon-purple)' },
+        'finanzas'         => { icon => 'payments',         bg => 'var(--surface-info)',      color => 'var(--income)' },
+        'clinicas'         => { icon => 'domain',           bg => 'var(--surface-blue)',      color => 'var(--primary-blue)' },
+        'usuarios'         => { icon => 'person_add',       bg => 'var(--surface-secondary)', color => 'var(--icon-purple)' },
+        'servicios'        => { icon => 'medical_services', bg => 'var(--surface-info)',      color => 'var(--confirmation)' },
+        'productos'        => { icon => 'inventory_2',      bg => 'var(--surface-warn)',      color => 'var(--alert)' },
+        'reportes'         => { icon => 'analytics',        bg => 'var(--surface-info)',      color => 'var(--confirmation)' },
+        'tecnico'          => { icon => 'build',            bg => 'var(--surface-warn)',      color => 'var(--alert)' },
+        'sync_google'      => { icon => 'sync',             bg => 'var(--calendar-bg)',       color => 'var(--calendar-event)' },
+        'mis_citas'        => { icon => 'event_available',  bg => 'var(--surface-blue)',      color => 'var(--primary-blue)' },
+        'mi_historial'     => { icon => 'medical_information', bg => 'var(--surface-secondary)', color => 'var(--icon-purple)' },
+        'mi_estado_cuenta' => { icon => 'account_balance_wallet', bg => 'var(--surface-info)', color => 'var(--income)' },
+        'inbox_paciente'   => { icon => 'inbox',            bg => 'var(--surface-warn)',      color => 'var(--alert)' }
     );
 
     # The Google Auth script needs to know the correct base URL

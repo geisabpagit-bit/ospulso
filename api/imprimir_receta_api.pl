@@ -70,6 +70,8 @@ if ($pacientes) {
 my $medico_name = $session_data->{usuario} || "Dr. Médico Especialista";
 my $medico_cedula = "12345678";
 my $medico_domicilio = "Clínica Principal - Av. Universidad 100, CDMX";
+my $id_org = '';
+my $id_suc = '';
 
 my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $usr_data = leer_tabla($usr_file, '!');
@@ -79,10 +81,43 @@ if ($usr_data) {
             $medico_name      = $u->[1] // $medico_name;
             $medico_cedula    = $u->[9] // '12345678';
             $medico_domicilio = $u->[10] // $medico_domicilio;
+            my $id_neg_str    = $u->[6] // '';
+            if ($id_neg_str =~ /^(.*?):(.*?)$/) {
+                $id_org = $1;
+                $id_suc = $2;
+            }
             last;
         }
     }
 }
+
+# Obtener nombre de la Organización y Sucursal
+my $org_name = "OsPulso Clínicas";
+my $org_rfc = "XAXX010101000";
+my $sucursal_name = "Matriz";
+my $clues_str = "";
+
+my $neg_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+my $negocios = leer_tabla($neg_file, '\|');
+if ($negocios) {
+    foreach my $n (@$negocios) {
+        # Si es la organización principal
+        if ($id_org && $n->[0] eq $id_org) {
+            $org_name = $n->[1] // $org_name;
+            $org_rfc = $n->[10] // $org_rfc;
+        }
+        # Si es la sucursal
+        if ($id_suc && $n->[0] eq $id_suc) {
+            $sucursal_name = $n->[1] // $sucursal_name;
+            $clues_str = $n->[18] // '';
+        }
+    }
+}
+
+my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+my $current_time = sprintf("%02d:%02d:%02d", $hour, $min, $sec);
+$fecha .= " $current_time" unless $fecha =~ /:/;
+
 
 # Parsear Medicamentos del Payload JSON
 my $items = [];
@@ -145,12 +180,16 @@ print <<HTML;
         <!-- Reglas_impresion.md: Cabecera con Nombre de Clínica y Módulo -->
         <div class="header-brand d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="fw-black text-navy mb-0" style="color: #0A2A66;"><i class="bi bi-heart-pulse-fill me-2" style="color: #19B7A5;"></i>OsPulso Salud</h2>
+                <h2 class="fw-black text-navy mb-0" style="color: #0A2A66;"><i class="bi bi-heart-pulse-fill me-2" style="color: #19B7A5;"></i>$org_name</h2>
                 <span class="text-uppercase fw-bold text-muted small" style="letter-spacing: 1px;">Expediente Clínico & Prescripción Médica Oficial</span>
+                <div class="small fw-bold text-secondary mt-1">
+                    Sucursal: $sucursal_name | RFC: $org_rfc
+                </div>
             </div>
             <div class="text-end">
                 <span class="badge-folio d-block mb-1">FOLIO: $folio</span>
-                <span class="small fw-bold text-secondary">Fecha: $fecha</span>
+                <span class="small fw-bold text-secondary d-block">Fecha: $fecha</span>
+                <span class="small fw-bold text-secondary d-block mt-1">CLUES: $clues_str</span>
             </div>
         </div>
 

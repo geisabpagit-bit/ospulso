@@ -43,8 +43,27 @@ utils::sub_sidebar::render_sidebar(
     pagina_actual => 'mi_historial'
 );
 
-print <<'HTML';
-<div class="container mt-4">
+my $uid = lc($session_data->{uid} // '');
+my $id_paciente = '';
+my $pac_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
+if (-e $pac_file) {
+    open(my $fh, '<:encoding(UTF-8)', $pac_file) or die $!;
+    while (my $line = <$fh>) {
+        chomp($line);
+        next if $line =~ /^ID_PACIENTE/;
+        my @f = split(/\|/, $line);
+        my $c = lc($f[5] // '');
+        $c =~ s/^\s+|\s+$//g;
+        if ($c eq $uid) {
+            $id_paciente = $f[0];
+            last;
+        }
+    }
+    close($fh);
+}
+
+print <<HTML;
+<div class="container mt-4 pb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-journal-medical me-2 text-primary"></i> Mi Historial Clínico</h2>
     </div>
@@ -94,10 +113,34 @@ print <<'HTML';
             </div>
         </div>
     </div>
+    
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card shadow-sm border-0" style="border-radius: 1.5rem;">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-teeth me-2 text-primary"></i>Odontograma Actual</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div id="odontograma-svg-container" class="w-100 overflow-auto" style="min-height: 350px; background: #f8fbff; border-radius: 1rem; border: 1px dashed #cbd5e1;">
+                        <!-- Se renderizará por JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+<script src="../js/odontograma_spa.js?v=$^T"></script>
 <script>
 $(document).ready(function() {
+    // Iniciar odontograma
+    if (typeof initOdontograma === 'function' && '$id_paciente' !== '') {
+        setTimeout(() => {
+            initOdontograma('odontograma-svg-container', '$id_paciente');
+        }, 100);
+    }
+
     $.ajax({
         url: '../api/get_mi_expediente.pl',
         type: 'GET',

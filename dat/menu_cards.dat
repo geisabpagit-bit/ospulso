@@ -1,4 +1,4 @@
-CLAVE_MENU|ARCHIVO_DESTINO|TÍTULO|DESCRIPCIÓN|ICONO_BS|COLOR_BS
+﻿CLAVE_MENU|ARCHIVO_DESTINO|TÍTULO|DESCRIPCIÓN|ICONO_BS|COLOR_BS
 dashboard|views/inicial.pl|Visión General|Resumen de citas y métricas.|bi-speedometer2|info
 admin_global|views/admin_global.pl|Admin Global|Gestión de licencias y servidores.|bi-globe|info
 clinicas|views/manage_clinicas.pl|Gestión de Clínicas|Agregar, modificar y desactivar sucursales.|bi-building-gear|info
@@ -15,3 +15,4 @@ crm_ventas|views/crm_ventas.pl|CRM Ventas|Plataforma Comercial para Alta de Orga
 servicios|views/manage_servicios.pl|Gestión de Servicios|Administrar catálogo de servicios.|bi-heart-pulse|info
 productos|views/manage_productos.pl|Gestión de Productos|Administrar catálogo de productos e insumos.|bi-box-seam|info
 mi_estado_cuenta|views/mi_estado_cuenta.pl|Mi Estado de Cuenta|Historial consolidado y saldos.|bi-wallet2|info
+inbox_paciente|views/inbox_paciente.pl|Inbox|Comunicaciones y notificaciones.|bi-inbox|primary

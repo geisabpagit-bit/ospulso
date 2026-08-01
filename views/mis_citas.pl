@@ -28,14 +28,11 @@ if (!$session_ok || $role ne 'Paciente') {
     exit;
 }
 
-print $q->header(-type => 'text/html', -charset => 'UTF-8');
-
 render_header(
     usuario     => $usuario,
     titulo      => 'OsPulso - Mis Citas',
     ruta_logout => '../auth/cerrar_sesion.pl',
-    role        => $role,
-    skip_header => 1
+    role        => $role
 );
 
 utils::sub_sidebar::render_sidebar(
@@ -48,7 +45,7 @@ print <<'HTML';
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-calendar-event me-2 text-primary"></i> Mis Citas</h2>
-        <!-- <button class="btn btn-primary" onclick="window.location.href='agendar_cita_paciente.pl'"><i class="bi bi-plus-lg"></i> Agendar Cita</button> -->
+        <button class="btn btn-primary" onclick="window.location.href='agendar_cita_paciente.pl'"><i class="bi bi-plus-lg"></i> Agendar Cita</button>
     </div>
 
     <div class="card shadow-sm">

@@ -51,7 +51,8 @@ if ($session_ok) {
         id_medico   => $id_medico, 
         usuario     => $usuario,
         id_empresa  => $session_data->{id_empresa} // 0,
-        id_sucursal => $session_data->{id_sucursal} // 0
+        id_sucursal => $session_data->{id_sucursal} // 0,
+        uid         => $session_data->{uid} // ''
     );
     render_bottom_nav('inicio');
 
