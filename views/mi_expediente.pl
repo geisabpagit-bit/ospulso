@@ -32,7 +32,8 @@ render_header(
     usuario     => $usuario,
     titulo      => 'OsPulso - Mi Historial Clínico',
     ruta_logout => '../auth/cerrar_sesion.pl',
-    role        => $role
+    role        => $role,
+    skip_header => 1
 );
 
 print <<'HTML';

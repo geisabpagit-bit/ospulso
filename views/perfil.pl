@@ -156,6 +156,25 @@ if ($session_ok) {
             }
         }
         close($fh);
+        
+        # Cargar domicilio del paciente
+        if ($biz_data->{id_paciente} && -e '../dat/pacientes_domicilio.dat' && open(my $fhd, '<:encoding(UTF-8)', '../dat/pacientes_domicilio.dat')) {
+            while (my $line = <$fhd>) {
+                chomp $line;
+                my @d = split /\|/, $line, -1;
+                if ($d[0] eq $biz_data->{id_paciente}) {
+                    $biz_data->{codigo_postal} = $d[1] // '';
+                    $biz_data->{entidad} = $d[2] // '';
+                    $biz_data->{municipio} = $d[3] // '';
+                    $biz_data->{colonia} = $d[4] // '';
+                    $biz_data->{calle} = $d[5] // '';
+                    $biz_data->{num_ext} = $d[6] // '';
+                    $biz_data->{num_int} = $d[7] // '';
+                    last;
+                }
+            }
+            close($fhd);
+        }
     }
 
     # Buscar Datos de Perfil Adicional (perfiles.dat)

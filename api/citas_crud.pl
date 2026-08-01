@@ -182,6 +182,57 @@ sub crear_cita {
     };
     
     guardar_citas($arr);
+
+    # Enviar correo de confirmación de cita al paciente
+    my $correo_paciente = obtener_correo_paciente($pac_id);
+    my $status_correo = 'Pendiente';
+    if ($correo_paciente && $correo_paciente =~ /\@/) {
+        my $has_mime_lite = eval "use MIME::Lite; 1;";
+        if ($has_mime_lite) {
+            my $cuerpo_html = qq{
+<html>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px;">
+      <h2 style="color: #174975;">Confirmación de Cita</h2>
+      <div style="margin: 20px 0; background-color: #f8f9ff; padding: 15px; border-radius: 8px;">
+        <p>Hola $pac_nom,</p>
+        <p>Tu cita ha sido programada con éxito.</p>
+        <p><strong>Fecha:</strong> $fec</p>
+        <p><strong>Horario:</strong> $hi - $hf</p>
+        <p><strong>Motivo:</strong> $motivo</p>
+      </div>
+      <hr>
+      <p style="font-size: 0.9em; color: #777;">Este es un mensaje automático de Software Dental Mexicano.</p>
+    </div>
+  </body>
+</html>
+            };
+            eval {
+                my $msg = MIME::Lite->new(
+                    From    => 'administracion@ospulso.pdigitalesm.com',
+                    To      => $correo_paciente,
+                    Subject => 'Confirmación de Cita - OSPulso',
+                    Type    => 'text/html; charset=UTF-8',
+                    Data    => $cuerpo_html,
+                    Encoding=> 'quoted-printable'
+                );
+                $msg->send;
+                $status_correo = 'Enviado';
+            };
+            if ($@) {
+                $status_correo = 'Fallido';
+            }
+        }
+        
+        my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
+        my $fecha_envio = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year+1900, $mon+1, $mday, $hour, $min, $sec);
+        my $mail_line = join('|', int(rand(999999)), $pac_id, 'Confirmación Cita', $correo_paciente, $status_correo, $fecha_envio);
+        eval {
+            require utils::db_manager;
+            utils::db_manager::guardar_registro('../dat/historial_correos.dat', $mail_line);
+        };
+    }
+
     print "Content-Type: application/json; charset=UTF-8\n\n";
     binmode STDOUT, ":raw";
     print encode_json({
@@ -508,6 +559,13 @@ sub obtener_nombre_paciente {
     my $pac_file = "$dirname/../dat/pacientes.dat";
     my $r = leer_tabla($pac_file, '\|');
     foreach my $f (@$r) { return $f->[2] if $f->[0] eq $id; } return "Paciente $id";
+}
+
+sub obtener_correo_paciente {
+    my ($id) = @_; 
+    my $pac_file = "$dirname/../dat/pacientes.dat";
+    my $r = leer_tabla($pac_file, '\|');
+    foreach my $f (@$r) { return $f->[5] if $f->[0] eq $id; } return "";
 }
 
 sub responder_json {

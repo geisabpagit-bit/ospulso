@@ -683,6 +683,65 @@ HTML
                     </div>
                 </div>
             </div>
+
+            <!-- CARD DOMICILIO CON BÚSQUEDA DE CP (SEPOMEX / INEGI OFICIAL) -->
+            <div class="card mt-4 border-0 shadow-sm" style="border-radius: 16px; border: 1px solid var(--md-teal-clinical) !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0" style="color: var(--md-blue-deep);"><i class="bi bi-geo-alt-fill me-2" style="color: var(--md-teal-clinical);"></i>Domicilio</h6>
+                        <span class="badge bg-light text-secondary border rounded-pill"><i class="bi bi-patch-check-fill text-info me-1"></i>Catálogo Oficial SEPOMEX / INEGI</span>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="form-floating diamond-input-armor">
+                                <input type="text" class="form-control fw-bold" id="biz_cp" name="biz_cp" value="@{[ $b->{codigo_postal} // '' ]}" placeholder="C.P." maxlength="5">
+                                <label>Código Postal (CP) *</label>
+                            </div>
+                            <small id="cp_status" class="text-success fw-bold d-none mt-1"><i class="bi bi-check-circle-fill me-1"></i>CP Válido</small>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-floating diamond-input-armor">
+                                <input type="text" class="form-control bg-light fw-bold" id="biz_entidad" name="biz_entidad" value="@{[ $b->{entidad} // '' ]}" placeholder="Entidad" readonly>
+                                <label>Entidad Federativa (Estado)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-floating diamond-input-armor">
+                                <input type="text" class="form-control bg-light fw-bold" id="biz_municipio" name="biz_municipio" value="@{[ $b->{municipio} // '' ]}" placeholder="Municipio" readonly>
+                                <label>Municipio / Alcaldía</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating diamond-input-armor">
+                                <select class="form-select fw-bold" id="biz_colonia" name="biz_colonia" data-init-val="@{[ $b->{colonia} // '' ]}">
+                                    @{[ $b->{colonia} ? qq(<option value="$b->{colonia}" selected>$b->{colonia}</option>) : qq(<option value="">Ingrese su C.P. para cargar localidades</option>) ]}
+                                </select>
+                                <label>Colonia / Asentamiento</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating diamond-input-armor">
+                                <input type="text" class="form-control fw-bold" id="biz_calle" name="biz_calle" value="@{[ $b->{calle} // '' ]}" placeholder="Calle">
+                                <label>Calle / Avenida</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating diamond-input-armor">
+                                <input type="text" class="form-control fw-bold" id="biz_num_ext" name="biz_num_ext" value="@{[ $b->{num_ext} // '' ]}" placeholder="Num Ext">
+                                <label>Número Exterior</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating diamond-input-armor">
+                                <input type="text" class="form-control fw-bold" id="biz_num_int" name="biz_num_int" value="@{[ $b->{num_int} // '' ]}" placeholder="Num Int">
+                                <label>Número Interior (Opcional)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-flex justify-content-between mt-4">
                 <button type="button" class="wizard-btn-prev" onclick="PerfilWizardController.prevStep()"><i class="bi bi-arrow-left me-2"></i>Anterior</button>
                 <button type="button" class="wizard-btn-next" onclick="PerfilWizardController.nextStep()">Siguiente <i class="bi bi-arrow-right ms-2"></i></button>

@@ -99,18 +99,30 @@ eval {
     if ($user_role eq 'Paciente') {
         # MODO PACIENTE: Actualizar pacientes.dat
         my %p_data = (
-            nombre => $u_nombre,
-            rfc    => decode('UTF-8', $q->param('p_rfc')    || ''),
-            curp   => decode('UTF-8', $q->param('p_curp')   || ''),
-            fnac   => decode('UTF-8', $q->param('p_fnac')   || ''),
-            sexo   => decode('UTF-8', $q->param('p_sexo')   || ''),
-            sangre => decode('UTF-8', $q->param('p_sangre') || ''),
-            ecivil => decode('UTF-8', $q->param('p_ecivil') || ''),
-            ocup   => decode('UTF-8', $q->param('p_ocup')   || ''),
-            nac    => decode('UTF-8', $q->param('p_nac')    || ''),
-            tel    => decode('UTF-8', $q->param('p_tel')    || ''),
+            nombre => decode('UTF-8', $q->param('p_nombre') // ''),
+            rfc    => decode('UTF-8', $q->param('p_rfc') // ''),
+            curp   => decode('UTF-8', $q->param('p_curp') // ''),
+            tel    => decode('UTF-8', $q->param('p_tel') // ''),
+            fnac   => decode('UTF-8', $q->param('p_fnac') // ''),
+            sexo   => decode('UTF-8', $q->param('p_sexo') // ''),
+            sangre => decode('UTF-8', $q->param('p_sangre') // ''),
+            ecivil => decode('UTF-8', $q->param('p_ecivil') // ''),
+            ocup   => decode('UTF-8', $q->param('p_ocup') // ''),
+            nac    => decode('UTF-8', $q->param('p_nac') // ''),
         );
-        actualizar_paciente($correo_login, \%p_data);
+        my $id_paciente_actualizado = actualizar_paciente($correo_login, \%p_data);
+        if ($id_paciente_actualizado) {
+            my %dom_data = (
+                cp => decode('UTF-8', $q->param('biz_cp') // ''),
+                entidad => decode('UTF-8', $q->param('biz_entidad') // ''),
+                municipio => decode('UTF-8', $q->param('biz_municipio') // ''),
+                colonia => decode('UTF-8', $q->param('biz_colonia') // ''),
+                calle => decode('UTF-8', $q->param('biz_calle') // ''),
+                num_ext => decode('UTF-8', $q->param('biz_num_ext') // ''),
+                num_int => decode('UTF-8', $q->param('biz_num_int') // ''),
+            );
+            actualizar_domicilio_paciente($id_paciente_actualizado, \%dom_data);
+        }
     } else {
         # Cargar Naturaleza Jurídica
         my $naturaleza_juridica = 'Privado'; # default
@@ -327,13 +339,16 @@ sub actualizar_negocio {
 sub actualizar_paciente {
     my ($correo, $d) = @_;
     my ($archivo, $temp) = ("../dat/pacientes.dat", "../dat/pacientes.tmp");
+    my $updated_id = 0;
     open(my $in, '<:encoding(UTF-8)', $archivo) or return;
     open(my $out, '>:encoding(UTF-8)', $temp) or return;
     while (my $line = <$in>) {
         chomp $line;
         my @c = split /\|/, $line, -1;
         if ($c[P_CORREO_INDEX] ne $correo) { print $out "$line\n"; next; }
-        $c[P_NOMBRE_INDEX] = $d->{nombre}; $c[P_RFC_INDEX] = $d->{rfc};
+        $updated_id = $c[0];
+        $c[P_NOMBRE_INDEX] = $d->{nombre} if $d->{nombre};
+        $c[P_RFC_INDEX]    = $d->{rfc};
         $c[P_CURP_INDEX]   = $d->{curp};   $c[P_FNAC_INDEX] = $d->{fnac};
         $c[P_SEXO_INDEX]   = $d->{sexo};   $c[P_SANGRE_INDEX] = $d->{sangre};
         $c[P_ECIV_INDEX]   = $d->{ecivil}; $c[P_OCUP_INDEX] = $d->{ocup};
@@ -341,6 +356,56 @@ sub actualizar_paciente {
         print $out join('|', @c) . "\n";
     }
     close $in; close $out; rename $temp, $archivo;
+    return $updated_id;
+}
+
+sub actualizar_domicilio_paciente {
+    my ($id_paciente, $dom_obj) = @_;
+    return unless $id_paciente;
+    my $file = '../dat/pacientes_domicilio.dat';
+    
+    my $cp = $dom_obj->{cp} // '';
+    my $ent = $dom_obj->{entidad} // '';
+    my $mun = $dom_obj->{municipio} // '';
+    my $col = $dom_obj->{colonia} // '';
+    my $calle = $dom_obj->{calle} // '';
+    my $num_ext = $dom_obj->{num_ext} // '';
+    my $num_int = $dom_obj->{num_int} // '';
+    
+    for ($cp, $ent, $mun, $col, $calle, $num_ext, $num_int) { s/\|/ /g; s/\r?\n/ /g; }
+    
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+    my $fecha_actual = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year+1900, $mon+1, $mday, $hour, $min, $sec);
+    
+    my $nueva_linea = "$id_paciente|$cp|$ent|$mun|$col|$calle|$num_ext|$num_int|$fecha_actual";
+    
+    my @lines;
+    my $found = 0;
+    if (-e $file && open(my $fh, '<:encoding(UTF-8)', $file)) {
+        while (my $line = <$fh>) {
+            chomp $line;
+            next if $line =~ /^\s*$/ || $line =~ /^ID_PACIENTE/i;
+            my @v = split /\|/, $line, -1;
+            if ($v[0] eq $id_paciente) {
+                $found = 1;
+                push @lines, $nueva_linea;
+            } else {
+                push @lines, $line;
+            }
+        }
+        close $fh;
+    }
+    unless ($found) {
+        push @lines, $nueva_linea;
+    }
+    
+    if (open(my $fh, '>:encoding(UTF-8)', $file)) {
+        print $fh "ID_PACIENTE|CP|ENTIDAD|MUNICIPIO|COLONIA|CALLE|NUM_EXT|NUM_INT|FECHA_ACTUALIZACION\n";
+        foreach my $l (@lines) {
+            print $fh "$l\n";
+        }
+        close $fh;
+    }
 }
 
 sub actualizar_perfil_extendido {

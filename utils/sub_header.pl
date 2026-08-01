@@ -191,14 +191,20 @@ HTML
 
     if ($show_nav) {
         my $role_label = uc($role);
-        print <<HTML;
-    <nav class="navbar sdm-navbar glass-navbar p-2 sticky-top flex-column align-items-stretch">
-        <div class="container-fluid px-lg-4 d-flex align-items-center justify-content-between flex-nowrap w-100">
+        my $hamburger_btn = '';
+        if ($role ne 'Paciente') {
+            $hamburger_btn = <<'HAM';
             <!-- Hamburger Menu Toggle (Solo Teléfonos Móviles) -->
             <button class="btn btn-menu-toggle-inline me-2" onclick="toggleSidebar()" aria-label="Abrir menú" type="button">
                 <i class="bi bi-list"></i>
             </button>
-            
+HAM
+        }
+
+        print <<HTML;
+    <nav class="navbar sdm-navbar glass-navbar p-2 sticky-top flex-column align-items-stretch">
+        <div class="container-fluid px-lg-4 d-flex align-items-center justify-content-between flex-nowrap w-100">
+$hamburger_btn
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">
                 <a class="navbar-brand d-flex align-items-center justify-content-center m-0 text-decoration-none" href="inicial.pl" title="Inicio" style="margin-bottom: -10px;">
