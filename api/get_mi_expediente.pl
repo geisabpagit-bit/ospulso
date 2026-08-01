@@ -5,13 +5,15 @@ use warnings;
 use utf8;
 use CGI;
 use JSON::PP;
-use lib '..';
+use FindBin;
+use File::Spec;
+use lib "$FindBin::Bin/..";
 use utils::db_manager qw(leer_tabla);
 
 # Forzamos STDOUT a utf8
 binmode STDOUT, ":utf8";
 
-require '../auth/check_session.pl';
+require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 my $session_data = check_session();
 unless ($session_data->{session_ok}) {
     print "Content-Type: application/json; charset=UTF-8\n\n";
@@ -27,7 +29,8 @@ if ($session_data->{role} ne 'Paciente' || !$correo_paciente) {
 }
 
 # 1. Obtener mis IDs
-my $regs_pacientes = leer_tabla('../dat/pacientes.dat', '\|');
+my $pacientes_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
+my $regs_pacientes = leer_tabla($pacientes_file, '\|');
 my %mis_ids = ();
 my @alergias_global = ();
 my @padecimientos_global = ();
@@ -46,8 +49,9 @@ if ($regs_pacientes) {
 # 2. Recetas
 my @recetas = ();
 my %seen_recetas = ();
-if (-e '../dat/recetas.dat') {
-    my $regs = leer_tabla('../dat/recetas.dat', '\|');
+my $recetas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'recetas.dat');
+if (-e $recetas_file) {
+    my $regs = leer_tabla($recetas_file, '\|');
     if ($regs) {
         foreach my $r (@$regs) {
             next if @$r < 7;
@@ -68,8 +72,9 @@ if (-e '../dat/recetas.dat') {
 # 3. Estudios
 my @estudios = ();
 my %seen_estudios = ();
-if (-e '../dat/estudios.dat') {
-    my $regs = leer_tabla('../dat/estudios.dat', '\|');
+my $estudios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estudios.dat');
+if (-e $estudios_file) {
+    my $regs = leer_tabla($estudios_file, '\|');
     if ($regs) {
         foreach my $e (@$regs) {
             next if @$e < 6;
@@ -90,8 +95,9 @@ if (-e '../dat/estudios.dat') {
 # 4. Consultas (Solo metadatos)
 my @consultas = ();
 my %seen_consultas = ();
-if (-e '../dat/consultas_clinicas.dat') {
-    my $regs = leer_tabla('../dat/consultas_clinicas.dat', '\|');
+my $consultas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
+if (-e $consultas_file) {
+    my $regs = leer_tabla($consultas_file, '\|');
     if ($regs) {
         foreach my $c (@$regs) {
             next if @$c < 5;

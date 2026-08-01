@@ -118,9 +118,9 @@ HTML
             chomp($line);
             next if $line =~ /^ID_OS/;
             my @f = split(/\|/, $line);
-            # v3.5.5: F3: TIPO, F7: TOTAL, F9: ID_MEDICO
+            # v3.5.5: F3: TIPO, F7: TOTAL, F9: ID_MEDICO, F2: ID_PACIENTE
             my $m_id = $f[9] // ''; $m_id =~ s/^\s+|\s+$//g;
-            if ($is_admin || $m_id eq $id_medico) {
+            if ($is_admin || $m_id eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$f[2]})) {
                 my $monto = $f[7] || 0;
                 if ($f[3] =~ /Cargo/i) { $total_cargos += $monto; }
                 elsif ($f[3] =~ /Abono/i) { $total_abonos += $monto; }
@@ -128,6 +128,7 @@ HTML
         }
         close($fh);
     }
+    my $total_saldo = $total_cargos - $total_abonos;
 
     # --- CÁLCULO DE RANGO DE 7 DÍAS ---
     my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
@@ -173,8 +174,10 @@ HTML
 
     my $str_cargos_k = format_compact_k($total_cargos);
     my $str_abonos_k = format_compact_k($total_abonos);
+    my $str_saldo_k  = format_compact_k($total_saldo);
     my $val_cargos_f = $total_cargos / 1000;
     my $val_abonos_f = $total_abonos / 1000;
+    my $val_saldo_f  = $total_saldo / 1000;
 
     # Homogenización de Etiquetas
     my $tit_modulos = "M&oacute;dulos de Gesti&oacute;n";
@@ -448,6 +451,23 @@ HTML
                         <i class="bi bi-cash-stack fs-2 kpi-icon" style="color: var(--md-blue-deep); opacity: 0.8;"></i>
                     </div>
                 </div>
+HTML
+
+    if ($role eq 'Paciente') {
+        print <<HTML;
+                <div class="col-6 col-lg-3">
+                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="kpi-titulo">Saldo Pendiente</span>
+                            <h2 class="kpi-valor counter-up m-0" data-value="$val_saldo_f" data-is-k="true">$str_saldo_k</h2>
+                        </div>
+                        <i class="bi bi-bank text-danger fs-2 kpi-icon" style="opacity: 0.8;"></i>
+                    </div>
+                </div>
+HTML
+    }
+
+    print <<HTML;
             </div>
 
             <!-- Sección: Próximas Citas con Timeline -->
