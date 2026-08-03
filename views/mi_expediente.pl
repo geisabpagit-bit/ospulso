@@ -49,13 +49,14 @@ my $pac_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
 if (-e $pac_file) {
     open(my $fh, '<:encoding(UTF-8)', $pac_file) or die $!;
     while (my $line = <$fh>) {
-        chomp($line);
+        $line =~ s/\r?\n$//;
         next if $line =~ /^ID_PACIENTE/;
         my @f = split(/\|/, $line);
         my $c = lc($f[5] // '');
         $c =~ s/^\s+|\s+$//g;
         if ($c eq $uid) {
             $id_paciente = $f[0];
+            $id_paciente =~ s/\r//g; # Clean any stray CR
             last;
         }
     }
@@ -156,7 +157,7 @@ $(document).ready(function() {
                         recHtml += '        <h6 class="mb-0">' + r.diagnostico + '</h6>';
                         recHtml += '        <small class="text-muted">' + r.fecha + '</small>';
                         recHtml += '    </div>';
-                        recHtml += '    <button class="btn btn-sm btn-light" onclick="window.open(\\'../api/imprimir_receta_api.pl?id_receta=' + r.id_receta + '\\')" title="Descargar PDF"><i class="bi bi-download text-primary"></i></button>';
+                        recHtml += "<button class='btn btn-sm btn-light' onclick='window.open(\"../api/imprimir_receta_api.pl?id_receta=" + r.id_receta + "\")' title='Descargar PDF'><i class='bi bi-download text-primary'></i></button>";
                         recHtml += '</li>';
                     });
                 } else {

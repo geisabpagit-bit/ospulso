@@ -24,8 +24,11 @@ sub render_bottom_nav {
 HTML
 
     if ($role eq 'Paciente') {
-        # Temporalmente oculto por solicitud de simplificación móvil
         print <<HTML;
+        <a href="inbox_paciente.pl" class="main-tab-item @{[$active eq 'inbox_paciente' ? 'active' : '']}" title="Inbox">
+            <i class="bi bi-inbox"></i>
+            <span>Inbox</span>
+        </a>
         <!--
         <a href="mis_citas.pl" class="main-tab-item @{[$active eq 'mis_citas' ? 'active' : '']}" title="Mis Citas">
             <i class="bi bi-calendar-event"></i>

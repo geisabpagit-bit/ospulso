@@ -6,10 +6,21 @@
 */
 
 @media (max-width: 768px) {
+    html, body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+    
+    .sdm-layout-wrapper {
+        overflow-x: hidden;
+        width: 100%;
+    }
+
     /* Contenedores sin padding lateral (o muy mínimo) para no gastar espacio en móviles */
     .container-mobile-flush {
         padding-left: 0.5rem !important;
         padding-right: 0.5rem !important;
+        overflow-x: hidden;
     }
     
     .card-mobile-flush .card-body {
