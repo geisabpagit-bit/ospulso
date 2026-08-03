@@ -90,14 +90,14 @@ print <<HTML;
             <h4 class="mb-0 fw-bold"><i class="bi bi-calendar-plus text-primary me-2"></i> Agendar Cita</h4>
         </header>
 
-        <div class="container-fluid p-0">
-            <div class="row">
-                <div class="col-12 col-md-8 col-lg-6 mx-auto">
-                    <div class="card shadow-sm border-0 rounded-4 p-4">
+        <div class="container container-mobile-flush mt-3 pb-5">
+            <div class="row justify-content-center card-mobile-flush">
+                <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+                    <div class="card shadow-sm border-0 rounded-4 p-4 p-lg-5 mobile-edge-to-edge">
                         <form id="formNuevaCita">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Especialista / Clínica</label>
-                                <select class="form-select" id="f_medico" required>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-secondary" style="letter-spacing: 0.5px; font-size: 0.85rem;"><i class="bi bi-person-badge me-2"></i>ESPECIALISTA / CLÍNICA</label>
+                                <select class="form-select form-select-lg shadow-sm" id="f_medico" style="border-radius: 0.75rem; font-size: 1rem;" required>
                                     <option value="">Seleccione su médico...</option>
 HTML
 
@@ -113,26 +113,26 @@ print <<HTML;
                                 </select>
                             </div>
                             
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Fecha Deseada</label>
-                                <input type="date" class="form-control" id="f_fecha" required min="@{[ sprintf('%04d-%02d-%02d', (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3]) ]}">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-secondary" style="letter-spacing: 0.5px; font-size: 0.85rem;"><i class="bi bi-calendar-event me-2"></i>FECHA DESEADA</label>
+                                <input type="date" class="form-control form-control-lg shadow-sm" id="f_fecha" style="border-radius: 0.75rem; font-size: 1rem;" required min="@{[ sprintf('%04d-%02d-%02d', (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3]) ]}">
                             </div>
                             
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Horario</label>
-                                <select class="form-select" id="f_horario" required disabled>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-secondary" style="letter-spacing: 0.5px; font-size: 0.85rem;"><i class="bi bi-clock me-2"></i>HORARIO</label>
+                                <select class="form-select form-select-lg shadow-sm" id="f_horario" style="border-radius: 0.75rem; font-size: 1rem;" required disabled>
                                     <option value="">Seleccione una fecha primero...</option>
                                 </select>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Motivo de Consulta</label>
-                                <textarea class="form-control" id="f_motivo" rows="3" required placeholder="Ej. Revisión general, dolor de cabeza..."></textarea>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-secondary" style="letter-spacing: 0.5px; font-size: 0.85rem;"><i class="bi bi-chat-text me-2"></i>MOTIVO DE CONSULTA</label>
+                                <textarea class="form-control form-control-lg shadow-sm" id="f_motivo" rows="3" style="border-radius: 0.75rem; font-size: 1rem;" required placeholder="Ej. Revisión general, dolor de cabeza..."></textarea>
                             </div>
                             
-                            <div class="d-flex justify-content-between mt-4">
-                                <a href="mis_citas.pl" class="btn btn-outline-secondary rounded-pill px-4"><i class="bi bi-x-circle me-1"></i> Cancelar</a>
-                                <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-check2-circle me-1"></i> Confirmar Cita</button>
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-3 mt-5">
+                                <a href="mis_citas.pl" class="btn btn-mobile-standard btn-mobile-outline order-2 order-sm-1"><i class="bi bi-x-circle fs-5"></i> Cancelar</a>
+                                <button type="submit" class="btn btn-mobile-standard btn-mobile-action order-1 order-sm-2"><i class="bi bi-check2-circle fs-5"></i> Confirmar Cita</button>
                             </div>
                         </form>
                     </div>
