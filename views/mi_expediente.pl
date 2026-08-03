@@ -63,14 +63,14 @@ if (-e $pac_file) {
 }
 
 print <<HTML;
-<div class="container mt-4 pb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-journal-medical me-2 text-primary"></i> Mi Historial Clínico</h2>
+<div class="container container-mobile-flush mt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+        <h2 class="mobile-condensed-title fw-bold"><i class="bi bi-journal-medical me-2 text-primary"></i> Mi Historial Clínico</h2>
     </div>
 
-    <div class="row">
+    <div class="row card-mobile-flush">
         <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4 mobile-edge-to-edge">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="bi bi-prescription2"></i> Mis Recetas</h5>
                 </div>
@@ -83,7 +83,7 @@ print <<HTML;
         </div>
         
         <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4 mobile-edge-to-edge">
                 <div class="card-header bg-info text-white">
                     <h5 class="mb-0"><i class="bi bi-file-earmark-medical"></i> Mis Estudios e Imágenes</h5>
                 </div>
@@ -92,16 +92,16 @@ print <<HTML;
                         <li class="list-group-item text-center text-muted py-4"><div class="spinner-border spinner-border-sm text-primary"></div> Cargando...</li>
                     </ul>
                 </div>
-                <div class="card-footer bg-light">
-                    <button class="btn btn-sm btn-outline-info w-100" onclick="alert('Subida de archivos en desarrollo')">
-                        <i class="bi bi-upload"></i> Subir Resultado
+                <div class="card-footer bg-light p-3">
+                    <button class="btn btn-mobile-standard btn-mobile-outline btn-mobile-full" onclick="alert('Subida de archivos en desarrollo')">
+                        <i class="bi bi-upload fs-5"></i> Subir Resultado
                     </button>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4 mobile-edge-to-edge">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0"><i class="bi bi-clipboard2-pulse"></i> Resumen de Consultas</h5>
                 </div>
@@ -114,11 +114,11 @@ print <<HTML;
         </div>
     </div>
     
-    <div class="row mt-3">
+    <div class="row mt-3 card-mobile-flush">
         <div class="col-12">
-            <div class="card shadow-sm border-0" style="border-radius: 1.5rem;">
+            <div class="card shadow-sm border-0 mobile-edge-to-edge" style="border-radius: 1.5rem;">
                 <div class="card-header bg-white border-0 pt-4 pb-0">
-                    <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-teeth me-2 text-primary"></i>Odontograma Actual</h5>
+                    <h5 class="fw-black m-0 mobile-condensed-title" style="color: var(--md-blue-deep);"><i class="bi bi-teeth me-2 text-primary"></i>Odontograma Actual</h5>
                 </div>
                 <div class="card-body p-4">
                     <div id="odontograma-svg-container" class="w-100 overflow-auto" style="min-height: 350px; background: #f8fbff; border-radius: 1rem; border: 1px dashed #cbd5e1;">
@@ -148,16 +148,16 @@ $(document).ready(function() {
         success: function(res) {
             if(res.ok) {
                 // Recetas
-                let recHtml = '';
-                if(res.recetas.length > 0) {
-                    res.recetas.forEach(r => {
-                        recHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-0">\${r.diagnostico}</h6>
-                                <small class="text-muted">\${r.fecha}</small>
-                            </div>
-                            <button class="btn btn-sm btn-light" onclick="window.open('../api/imprimir_receta_api.pl?id_receta=\${r.id_receta}')" title="Descargar PDF"><i class="bi bi-download text-primary"></i></button>
-                        </li>`;
+                var recHtml = '';
+                if(res.recetas && res.recetas.length > 0) {
+                    $.each(res.recetas, function(i, r) {
+                        recHtml += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+                        recHtml += '    <div>';
+                        recHtml += '        <h6 class="mb-0">' + r.diagnostico + '</h6>';
+                        recHtml += '        <small class="text-muted">' + r.fecha + '</small>';
+                        recHtml += '    </div>';
+                        recHtml += '    <button class="btn btn-sm btn-light" onclick="window.open(\\'../api/imprimir_receta_api.pl?id_receta=' + r.id_receta + '\\')" title="Descargar PDF"><i class="bi bi-download text-primary"></i></button>';
+                        recHtml += '</li>';
                     });
                 } else {
                     recHtml = '<li class="list-group-item text-center text-muted py-4">No hay recetas emitidas.</li>';
@@ -165,16 +165,16 @@ $(document).ready(function() {
                 $('#lista_recetas').html(recHtml);
 
                 // Estudios
-                let estHtml = '';
-                if(res.estudios.length > 0) {
-                    res.estudios.forEach(e => {
-                        estHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-0">\${e.descripcion}</h6>
-                                <small class="text-muted">\${e.fecha} | \${e.modalidad}</small>
-                            </div>
-                            <a href="../\${e.ruta}" target="_blank" class="btn btn-sm btn-light"><i class="bi bi-eye text-info"></i></a>
-                        </li>`;
+                var estHtml = '';
+                if(res.estudios && res.estudios.length > 0) {
+                    $.each(res.estudios, function(i, e) {
+                        estHtml += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+                        estHtml += '    <div>';
+                        estHtml += '        <h6 class="mb-0">' + e.descripcion + '</h6>';
+                        estHtml += '        <small class="text-muted">' + e.fecha + ' | ' + e.modalidad + '</small>';
+                        estHtml += '    </div>';
+                        estHtml += '    <a href="../' + e.ruta + '" target="_blank" class="btn btn-sm btn-light"><i class="bi bi-eye text-info"></i></a>';
+                        estHtml += '</li>';
                     });
                 } else {
                     estHtml = '<li class="list-group-item text-center text-muted py-4">No hay estudios asociados.</li>';
@@ -182,17 +182,17 @@ $(document).ready(function() {
                 $('#lista_estudios').html(estHtml);
 
                 // Consultas
-                let consHtml = '';
-                if(res.consultas.length > 0) {
-                    res.consultas.forEach(c => {
-                        let f = new Date(c.fecha_ts * 1000).toLocaleString('es-MX', {year:'numeric', month:'short', day:'numeric'});
-                        consHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-0">Consulta Terminada</h6>
-                                <small class="text-muted">\${f}</small>
-                            </div>
-                            <i class="bi bi-check-circle-fill text-success"></i>
-                        </li>`;
+                var consHtml = '';
+                if(res.consultas && res.consultas.length > 0) {
+                    $.each(res.consultas, function(i, c) {
+                        var f = new Date(c.fecha_ts * 1000).toLocaleString('es-MX', {year:'numeric', month:'short', day:'numeric'});
+                        consHtml += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+                        consHtml += '    <div>';
+                        consHtml += '        <h6 class="mb-0">Consulta Terminada</h6>';
+                        consHtml += '        <small class="text-muted">' + f + '</small>';
+                        consHtml += '    </div>';
+                        consHtml += '    <i class="bi bi-check-circle-fill text-success"></i>';
+                        consHtml += '</li>';
                     });
                 } else {
                     consHtml = '<li class="list-group-item text-center text-muted py-4">Aún no hay consultas finalizadas.</li>';

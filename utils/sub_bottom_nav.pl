@@ -24,7 +24,9 @@ sub render_bottom_nav {
 HTML
 
     if ($role eq 'Paciente') {
+        # Temporalmente oculto por solicitud de simplificación móvil
         print <<HTML;
+        <!--
         <a href="mis_citas.pl" class="main-tab-item @{[$active eq 'mis_citas' ? 'active' : '']}" title="Mis Citas">
             <i class="bi bi-calendar-event"></i>
             <span>Citas</span>
@@ -37,6 +39,7 @@ HTML
             <i class="bi bi-file-medical"></i>
             <span>Historial</span>
         </a>
+        -->
 HTML
     } else {
         print <<HTML;

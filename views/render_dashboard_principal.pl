@@ -393,7 +393,7 @@ HTML
             </script>
 
             <!-- Sección: KPIs Rápidos -->
-            <div class="row g-4 mb-4 animate__animated animate__fadeIn">
+            <div class="row g-2 g-lg-4 mb-3 mb-lg-4 animate__animated animate__fadeIn card-mobile-flush">
                 <div class="col-6 col-lg-3">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
@@ -471,13 +471,13 @@ HTML
             </div>
 
             <!-- Sección: Próximas Citas con Timeline -->
-            <div class="row g-4">
+            <div class="row g-2 g-lg-4 card-mobile-flush">
                 <div class="col-12 col-lg-8 offset-lg-2">
-                    <h5 class="font-primary fw-bold mb-4" style="color: var(--md-blue-deep);">$tit_citas</h5>
-                    <div class="bg-white rounded-4 p-4 shadow-sm" style="border: 1px solid var(--md-teal-clinical); min-height: 350px;">
-                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
+                    <h5 class="font-primary fw-bold mb-3 mb-lg-4 mobile-condensed-title px-2 px-lg-0" style="color: var(--md-blue-deep);">$tit_citas</h5>
+                    <div class="bg-white rounded-4 p-3 p-lg-4 shadow-sm mobile-edge-to-edge" style="border: 1px solid var(--md-teal-clinical); min-height: 350px;">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
                             <p class="text-secondary font-secondary m-0 small fw-bold" style="letter-spacing: 0.5px;">ACTIVIDAD PROGRAMADA RECIENTE</p>
-                            <a href="../views/agenda_main.pl" class="btn btn-sm btn-outline-unify rounded-pill px-3 py-1.5 text-nowrap align-self-stretch align-self-sm-auto text-center" style="font-size: 0.75rem;">Ver Agenda Completa</a>
+                            <a href="../views/agenda_main.pl" class="btn btn-mobile-standard btn-mobile-outline btn-mobile-full" style="font-size: 0.85rem;"><i class="bi bi-calendar-check fs-5"></i> Ver Agenda Completa</a>
                         </div>
 HTML
 
@@ -490,19 +490,19 @@ HTML
             my $btn_accion = '';
             if ($role eq 'Medico') {
                 if ($cita->{estado} =~ /Atendida|Finalizada|Completada/i) {
-                    $btn_accion = qq{<a href="../views/consulta_detalles.pl?id_cita=$cita->{id}&id_paciente=$cita->{id_paciente}" class="btn btn-sm btn-outline-primary fw-bold rounded-pill px-3 py-1 ms-2" style="font-size:0.75rem;"><i class="bi bi-file-earmark-medical me-1"></i> Ver Consulta</a>};
+                    $btn_accion = qq{<a href="../views/consulta_detalles.pl?id_cita=$cita->{id}&id_paciente=$cita->{id_paciente}" class="btn btn-mobile-standard btn-mobile-outline mt-2 mt-sm-0 w-100"><i class="bi bi-file-earmark-medical fs-5"></i> Ver Consulta</a>};
                 } else {
-                    $btn_accion = qq{<a href="../views/render_consultas_privado.pl?id=$cita->{id_paciente}&id_cita=$cita->{id}" class="btn btn-sm btn-success fw-bold rounded-pill px-3 py-1 ms-2" style="background: linear-gradient(135deg, #10b981, #059669); border:none; font-size:0.75rem;"><i class="bi bi-person-check me-1"></i> Tomar Cita</a>};
+                    $btn_accion = qq{<a href="../views/render_consultas_privado.pl?id=$cita->{id_paciente}&id_cita=$cita->{id}" class="btn btn-mobile-standard btn-mobile-action mt-2 mt-sm-0 w-100" style="background: linear-gradient(135deg, #10b981, #059669); border:none;"><i class="bi bi-person-check fs-5"></i> Tomar Cita</a>};
                 }
             }
             print qq{
-                <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-4 mb-3 shadow-sm interactive-scale" style="border: 1px solid rgba(25, 183, 165, 0.4);">
-                    <div style="flex-grow:1">
-                        <span class="d-block fw-bold text-navy mb-1" style="font-size:0.85rem;">$cita->{nombre_paciente}</span>
-                        <div class="d-flex gap-2 align-items-center"><span class="badge bg-light text-muted" style="font-size:0.6rem;">$date_label</span><small class="text-muted fw-semibold" style="font-size:0.7rem;"><i class="bi bi-clock me-1"></i>$cita->{hora}</small></div>
+                <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between p-3 bg-white rounded-4 mb-3 shadow-sm interactive-scale gap-3 gap-sm-0" style="border: 1px solid rgba(25, 183, 165, 0.4);">
+                    <div style="flex-grow:1; width: 100%;">
+                        <span class="d-block fw-bold text-navy mb-1" style="font-size:0.95rem;">$cita->{nombre_paciente}</span>
+                        <div class="d-flex gap-2 align-items-center"><span class="badge bg-light text-muted" style="font-size:0.75rem;">$date_label</span><small class="text-muted fw-semibold" style="font-size:0.8rem;"><i class="bi bi-clock me-1"></i>$cita->{hora}</small></div>
                     </div>
-                    <div class="text-end d-flex align-items-center gap-2">
-                        <span class="badge $bCol rounded-pill border-0 px-3 py-2 fw-bold" style="font-size:0.6rem;">$cita->{estado}</span>
+                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100" style="max-width: 100%;">
+                        <span class="badge $bCol rounded-pill border-0 px-3 py-2 fw-bold align-self-start align-self-sm-center" style="font-size:0.75rem;">$cita->{estado}</span>
                         $btn_accion
                     </div>
                 </div>\n};

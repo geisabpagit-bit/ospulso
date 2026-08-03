@@ -1,0 +1,78 @@
+/* 
+   SDM Mobile Standard (Mejores prácticas UI/UX tipo Kotlin/Native)
+   - Minimiza espacios perdidos en bordes.
+   - Botones (touch targets) estandarizados a mínimo 48px de alto para fácil pulsación.
+   - Alineación fluida de cards.
+*/
+
+@media (max-width: 768px) {
+    /* Contenedores sin padding lateral (o muy mínimo) para no gastar espacio en móviles */
+    .container-mobile-flush {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+    
+    .card-mobile-flush .card-body {
+        padding: 1rem 0.75rem !important;
+    }
+    
+    .card-mobile-flush .card-header {
+        padding: 0.75rem !important;
+    }
+
+    /* Ajustes generales a tipografía para no saturar móviles */
+    .mobile-condensed-title {
+        font-size: 1.15rem !important;
+    }
+    
+    /* Utilidad para expandir elementos al 100% de la pantalla ignorando márgenes del padre si es necesario */
+    .mobile-edge-to-edge {
+        margin-left: -0.5rem !important;
+        margin-right: -0.5rem !important;
+        border-radius: 0 !important;
+        border-left: 0 !important;
+        border-right: 0 !important;
+    }
+}
+
+/* --- Botones Móviles Estándar --- */
+.btn-mobile-standard {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;         /* Minimum touch target by UX best practices */
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.75rem;   /* Suave pero no pill (no completamente redondo) */
+    font-weight: 600;
+    transition: all 0.2s ease;
+    gap: 0.5rem;              /* Espacio estándar para iconos */
+}
+
+/* Versión de acción principal (Primary Action) */
+.btn-mobile-action {
+    background-color: var(--md-blue-deep);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 6px -1px rgba(10, 42, 102, 0.15);
+}
+.btn-mobile-action:hover, .btn-mobile-action:active {
+    background-color: #071f4f;
+    color: white;
+    transform: translateY(1px);
+}
+
+/* Versión secundaria / outline */
+.btn-mobile-outline {
+    background-color: transparent;
+    color: var(--md-blue-deep);
+    border: 1.5px solid var(--md-blue-deep);
+}
+.btn-mobile-outline:hover, .btn-mobile-outline:active {
+    background-color: rgba(10, 42, 102, 0.05);
+    color: var(--md-blue-deep);
+}
+
+/* Modificador de ancho completo ideal para sticky buttons o single actions en móviles */
+.btn-mobile-full {
+    width: 100%;
+}
