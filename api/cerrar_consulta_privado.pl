@@ -356,6 +356,7 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
             my $sub = ($it->{precio} || 0) * ($it->{cantidad} || 1);
             my $nota_cargo = "Tratamiento: $id_tratamiento | Cargo Directo";
             $nota_cargo .= " | Cita #$id_cita" if $id_cita;
+            $nota_cargo .= " | Consulta #$id_consulta";
             my $linea_cargo = join('|',
                 $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{nombre},
                 $sub, 0, $sub, $hoy_fecha, $id_medico,
@@ -377,12 +378,70 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         my $concepto_abono = "Abono en Caja - Metodo: $caja_metodo_pago";
         my $nota_abono = "Tratamiento: $id_tratamiento | Metodo: $caja_metodo_pago";
         $nota_abono .= " | Cita #$id_cita" if $id_cita;
+        $nota_abono .= " | Consulta #$id_consulta";
         my $linea_abono = join('|',
             $id_tratamiento, $id_mov_abono, $id_paciente, 'Abono', $concepto_abono,
             $caja_monto_abono, 0, $caja_monto_abono, $hoy_fecha, $id_medico,
             $nota_abono, ''
         );
         utils::db_manager::guardar_registro($fin_file, $linea_abono);
+    }
+    
+    # E. GENERAR RECIBO DE CAJA (FOLIOS CONSECUTIVOS POR SUCURSAL)
+    if ($tiene_cargos_directos || $caja_monto_abono > 0) {
+        my $id_neg = $session_data->{id_empresa} || 'ORG-000';
+        my $id_suc = $session_data->{id_sucursal} || 'SUC-000';
+        
+        my $contadores_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'contadores_recibos_privados.dat');
+        unless (-e $contadores_file) {
+            open my $fh_c, '>:encoding(UTF-8)', $contadores_file;
+            print $fh_c "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n";
+            close $fh_c;
+        }
+        
+        my $next_folio = 1;
+        my @nuevas_cont;
+        my $encontrado = 0;
+        if (open my $fh_c, '<:encoding(UTF-8)', $contadores_file) {
+            my @lines = <$fh_c>;
+            close $fh_c;
+            my $cabecera = shift @lines;
+            chomp $cabecera if defined $cabecera;
+            
+            foreach my $l (@lines) {
+                chomp $l;
+                my @c = split /\|/, $l, -1;
+                if ($c[0] eq $id_neg && $c[1] eq $id_suc) {
+                    $next_folio = ($c[2] || 0) + 1;
+                    $c[2] = $next_folio;
+                    $encontrado = 1;
+                    $l = join('|', @c);
+                }
+                push @nuevas_cont, $l;
+            }
+            if (!$encontrado) {
+                push @nuevas_cont, "$id_neg|$id_suc|1";
+                $next_folio = 1;
+            }
+            utils::db_manager::actualizar_archivo($contadores_file, $cabecera, \@nuevas_cont);
+        }
+        
+        my $folio_str = sprintf("REC-%06d", $next_folio);
+        my $id_recibo = "RC-" . time() . "-" . int(rand(1000));
+        my $elaborado_por = $session_data->{usuario} || $id_medico;
+        
+        my $recibos_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
+        unless (-e $recibos_file) {
+            open my $fh_r, '>:encoding(UTF-8)', $recibos_file;
+            print $fh_r "ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR\n";
+            close $fh_r;
+        }
+        
+        my $linea_recibo = join('|',
+            $id_recibo, $folio_str, $id_neg, $id_suc, $id_consulta, $id_paciente, $hoy_fecha, $hoy_hora,
+            $total_cargos_directos, $caja_monto_abono, $caja_metodo_pago, $elaborado_por
+        );
+        utils::db_manager::guardar_registro($recibos_file, $linea_recibo);
     }
 }
 

@@ -82,11 +82,11 @@ sub render_step_anamnesis {
                 </div>
                 <div class="col-md-6">
                     <label class="wizard-label">Inicio de S&iacute;ntomas</label>
-                    <input type="date" name="inicio_sintomas" class="wizard-input">
+                    <input type="date" name="inicio_sintomas" class="wizard-input" value="@{[ sprintf('%04d-%02d-%02d', (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3]) ]}">
                 </div>
                 <div class="col-md-6">
                     <label class="wizard-label">Intensidad (1-10)</label>
-                    <input type="number" name="intensidad" class="wizard-input" min="1" max="10">
+                    <input type="number" name="intensidad" class="wizard-input" min="1" max="10" value="1">
                 </div>
                 <div class="col-12">
                     <label class="wizard-label">Evoluci&oacute;n y S&iacute;ntomas <span class="req-star">*</span></label>

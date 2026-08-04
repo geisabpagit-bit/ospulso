@@ -568,6 +568,10 @@ async function finalizarConsulta() {
         if (json.ok) {
             AutosaveService.stop();
             Swal.fire('Completado', 'La consulta y transacciones de caja se han guardado con éxito.', 'success').then(() => {
+                // Abrir Recibo de Caja si existe la ruta (id_consulta)
+                if (json.id_consulta) {
+                    window.open('../api/imprimir_recibo_caja.pl?id_consulta=' + encodeURIComponent(json.id_consulta), '_blank');
+                }
                 window.location.href = 'render_expediente_clinico.pl?id=$id_paciente';
             });
         } else {
