@@ -199,7 +199,7 @@ HTML
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             const current = progress * (end - start) + start;
-            const formatted = isK ? ("$ " + current.toFixed(2) + "k") : Math.floor(current).toLocaleString();
+            const formatted = isK ? ('$ ' + current.toFixed(2) + 'k') : Math.floor(current).toLocaleString();
             
             if (formatted !== lastFormatted) {
                 lastFormatted = formatted;
