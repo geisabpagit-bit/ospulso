@@ -55,7 +55,7 @@ const AutosaveService = {
         const dataObj = {};
         
         inputs.forEach(el => {
-            if (el.name) {
+            if (el.name && !['id_paciente', 'id_cita', 'id_medico', 'current_step'].includes(el.name)) {
                 if (el.type === 'checkbox' || el.type === 'radio') {
                     if (el.checked) {
                         dataObj[el.name] = el.value;

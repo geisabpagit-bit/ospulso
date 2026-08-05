@@ -579,7 +579,7 @@ async function finalizarConsulta() {
         if (json.ok) {
             AutosaveService.stop();
             if(typeof AutosaveService.clearDraft === 'function') AutosaveService.clearDraft();
-            Swal.fire('Completado', 'La consulta y transacciones de caja se han guardado con éxito.', 'success').then(() => {
+            Swal.fire('Completado', 'La consulta y transacciones de caja se han guardado con exito.', 'success').then(() => {
                 // Abrir Recibo de Caja si existe la ruta (id_consulta)
                 if (json.id_consulta) {
                     window.open('../api/imprimir_recibo_caja.pl?id_consulta=' + encodeURIComponent(json.id_consulta), '_blank');
@@ -590,7 +590,7 @@ async function finalizarConsulta() {
             Swal.fire('Error', json.msg || 'No se pudo guardar la consulta', 'warning');
         }
     } catch(e) {
-        Swal.fire('Error', 'Fallo de conexión.', 'error');
+        Swal.fire('Error', 'Fallo de conexion.', 'error');
     }
 }
 function verReciboPrevio() {
@@ -646,14 +646,12 @@ function verReciboPrevio() {
     
     let itemsRows = '';
     items.forEach(it => {
-        itemsRows += `
-            <tr>
-                <td style="text-align: left; padding: 6px 5px; border-bottom: 1px dashed #ccc;"><strong>\${it.concepto}</strong></td>
-                <td style="text-align: right; padding: 6px 5px; border-bottom: 1px dashed #ccc;">\${fmt(it.precio)}</td>
-                <td style="text-align: center; padding: 6px 5px; border-bottom: 1px dashed #ccc;">\${it.cantidad}</td>
-                <td style="text-align: right; padding: 6px 5px; border-bottom: 1px dashed #ccc; color: #1a365d; font-weight: 600;">\${fmt(it.subtotal)}</td>
-            </tr>
-        `;
+        itemsRows += '            <tr>\\n' +
+            '                <td style="text-align: left; padding: 6px 5px; border-bottom: 1px dashed #ccc;"><strong>' + it.concepto + '</strong></td>\\n' +
+            '                <td style="text-align: right; padding: 6px 5px; border-bottom: 1px dashed #ccc;">' + fmt(it.precio) + '</td>\\n' +
+            '                <td style="text-align: center; padding: 6px 5px; border-bottom: 1px dashed #ccc;">' + it.cantidad + '</td>\\n' +
+            '                <td style="text-align: right; padding: 6px 5px; border-bottom: 1px dashed #ccc; color: #1a365d; font-weight: 600;">' + fmt(it.subtotal) + '</td>\\n' +
+            '            </tr>\\n';
     });
     
     const win = window.open('', '_blank', 'width=750,height=900');
@@ -667,83 +665,84 @@ function verReciboPrevio() {
     const hoyFecha  = '$hoy_fecha';
     const hoyHora   = '$hoy_hora';
     
-    win.document.write(`<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Recibo Previo (Borrador)</title>
-    <style>
-        \@page { size: 5.5in 8.5in; margin: 0; }
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #111; font-size: 11px; background: #f4f6f9; }
-        .banner-previo { background: #fff3cd; color: #856404; text-align: center; padding: 8px; font-weight: bold; font-size: 12px; border-bottom: 1px solid #ffeeba; }
-        .receipt-container { width: 5.5in; height: 8.5in; box-sizing: border-box; padding: 0.4in; margin: 20px auto; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-        .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .title-row h1 { margin: 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }
-        .title-row .folio { font-size: 14px; font-weight: bold; color: #e65100; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
-        .info-label { font-weight: bold; color: #555; display: inline-block; width: 65px; }
-        .table-concepts { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        .table-concepts th { border-bottom: 2px solid #1a365d; padding: 6px; text-transform: uppercase; font-size: 10px; color: #1a365d; }
-        .totals-box { width: 50%; margin-left: auto; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background: #fafafa; }
-        .totals-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .totals-row.grand-total { font-weight: bold; font-size: 13px; border-top: 1px solid #000; padding-top: 4px; margin-top: 4px; }
-        .signatures { margin-top: 40px; display: flex; justify-content: space-between; text-align: center; }
-        .signature-line { width: 45%; border-top: 1px solid #000; padding-top: 5px; font-size: 10px; color: #333; }
-        .footer-note { margin-top: 25px; text-align: center; font-size: 9px; color: #777; }
-    </style>
-</head>
-<body>
-    <div class="banner-previo">VISTA PREVIA DE RECIBO DE CAJA (PREVIO A FIRMA DEFINITIVA)</div>
-    <div class="receipt-container">
-        <div class="header">
-            <h2 style="margin:0; color:#1a365d;">RECIBO PREVIO</h2>
-        </div>
-        <div class="title-row">
-            <h1>Recibo de Caja</h1>
-            <div class="folio">Folio: REC-PREVIO</div>
-        </div>
-        <div class="info-grid">
-            <div><span class="info-label">Fecha:</span> \${hoyFecha} \${hoyHora}</div>
-            <div><span class="info-label">Paciente:</span> <strong>\${pacNombre}</strong></div>
-            <div><span class="info-label">Método:</span> \${metodo}</div>
-            <div><span class="info-label">Elaboró:</span> \${medNombre}</div>
-        </div>
-        <table class="table-concepts">
-            <thead>
-                <tr>
-                    <th style="text-align: left;">CONCEPTO</th>
-                    <th style="text-align: right;">PRECIO</th>
-                    <th style="text-align: center;">CANT.</th>
-                    <th style="text-align: right;">SUBTOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
-                \${itemsRows}
-            </tbody>
-        </table>
-        <div class="totals-box">
-            <div class="totals-row">
-                <span>Subtotal Cargos:</span>
-                <span>\${fmt(totalCargos)}</span>
-            </div>
-            <div class="totals-row" style="color: #2e7d32;">
-                <span>Total Abonado:</span>
-                <span>- \${fmt(totalAbonado)}</span>
-            </div>
-            <div class="totals-row grand-total">
-                <span>Saldo Pendiente:</span>
-                <span>\${fmt(saldo)}</span>
-            </div>
-        </div>
-        <div class="signatures">
-            <div class="signature-line"><br>Firma del Paciente<br>\${pacNombre}</div>
-            <div class="signature-line"><br>Firma de Recibido<br>\${medNombre}</div>
-        </div>
-        <div class="footer-note">Documento de vista previa previa a la firma final.</div>
-    </div>
-</body>
-</html>`);
+    let htmlContent = '<!DOCTYPE html>\\n' +
+        '<html lang="es">\\n' +
+        '<head>\\n' +
+        '    <meta charset="UTF-8">\\n' +
+        '    <title>Recibo Previo (Borrador)</title>\\n' +
+        '    <style>\\n' +
+        '        \@page { size: 5.5in 8.5in; margin: 0; }\\n' +
+        '        body { font-family: \\'Helvetica Neue\\', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #111; font-size: 11px; background: #f4f6f9; }\\n' +
+        '        .banner-previo { background: #fff3cd; color: #856404; text-align: center; padding: 8px; font-weight: bold; font-size: 12px; border-bottom: 1px solid #ffeeba; }\\n' +
+        '        .receipt-container { width: 5.5in; height: 8.5in; box-sizing: border-box; padding: 0.4in; margin: 20px auto; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }\\n' +
+        '        .header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }\\n' +
+        '        .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }\\n' +
+        '        .title-row h1 { margin: 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }\\n' +
+        '        .title-row .folio { font-size: 14px; font-weight: bold; color: #e65100; }\\n' +
+        '        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 4px; }\\n' +
+        '        .info-label { font-weight: bold; color: #555; display: inline-block; width: 65px; }\\n' +
+        '        .table-concepts { width: 100%; border-collapse: collapse; margin-bottom: 15px; }\\n' +
+        '        .table-concepts th { border-bottom: 2px solid #1a365d; padding: 6px; text-transform: uppercase; font-size: 10px; color: #1a365d; }\\n' +
+        '        .totals-box { width: 50%; margin-left: auto; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background: #fafafa; }\\n' +
+        '        .totals-row { display: flex; justify-content: space-between; margin-bottom: 4px; }\\n' +
+        '        .totals-row.grand-total { font-weight: bold; font-size: 13px; border-top: 1px solid #000; padding-top: 4px; margin-top: 4px; }\\n' +
+        '        .signatures { margin-top: 40px; display: flex; justify-content: space-between; text-align: center; }\\n' +
+        '        .signature-line { width: 45%; border-top: 1px solid #000; padding-top: 5px; font-size: 10px; color: #333; }\\n' +
+        '        .footer-note { margin-top: 25px; text-align: center; font-size: 9px; color: #777; }\\n' +
+        '    </style>\\n' +
+        '</head>\\n' +
+        '<body>\\n' +
+        '    <div class="banner-previo">VISTA PREVIA DE RECIBO DE CAJA (PREVIO A FIRMA DEFINITIVA)</div>\\n' +
+        '    <div class="receipt-container">\\n' +
+        '        <div class="header">\\n' +
+        '            <h2 style="margin:0; color:#1a365d;">RECIBO PREVIO</h2>\\n' +
+        '        </div>\\n' +
+        '        <div class="title-row">\\n' +
+        '            <h1>Recibo de Caja</h1>\\n' +
+        '            <div class="folio">Folio: REC-PREVIO</div>\\n' +
+        '        </div>\\n' +
+        '        <div class="info-grid">\\n' +
+        '            <div><span class="info-label">Fecha:</span> ' + hoyFecha + ' ' + hoyHora + '</div>\\n' +
+        '            <div><span class="info-label">Paciente:</span> <strong>' + pacNombre + '</strong></div>\\n' +
+        '            <div><span class="info-label">Metodo:</span> ' + metodo + '</div>\\n' +
+        '            <div><span class="info-label">Elaboro:</span> ' + medNombre + '</div>\\n' +
+        '        </div>\\n' +
+        '        <table class="table-concepts">\\n' +
+        '            <thead>\\n' +
+        '                <tr>\\n' +
+        '                    <th style="text-align: left;">CONCEPTO</th>\\n' +
+        '                    <th style="text-align: right;">PRECIO</th>\\n' +
+        '                    <th style="text-align: center;">CANT.</th>\\n' +
+        '                    <th style="text-align: right;">SUBTOTAL</th>\\n' +
+        '                </tr>\\n' +
+        '            </thead>\\n' +
+        '            <tbody>\\n' +
+        '                ' + itemsRows + '\\n' +
+        '            </tbody>\\n' +
+        '        </table>\\n' +
+        '        <div class="totals-box">\\n' +
+        '            <div class="totals-row">\\n' +
+        '                <span>Subtotal Cargos:</span>\\n' +
+        '                <span>' + fmt(totalCargos) + '</span>\\n' +
+        '            </div>\\n' +
+        '            <div class="totals-row" style="color: #2e7d32;">\\n' +
+        '                <span>Total Abonado:</span>\\n' +
+        '                <span>- ' + fmt(totalAbonado) + '</span>\\n' +
+        '            </div>\\n' +
+        '            <div class="totals-row grand-total">\\n' +
+        '                <span>Saldo Pendiente:</span>\\n' +
+        '                <span>' + fmt(saldo) + '</span>\\n' +
+        '            </div>\\n' +
+        '        </div>\\n' +
+        '        <div class="signatures">\\n' +
+        '            <div class="signature-line"><br>Firma del Paciente<br>' + pacNombre + '</div>\\n' +
+        '            <div class="signature-line"><br>Firma de Recibido<br>' + medNombre + '</div>\\n' +
+        '        </div>\\n' +
+        '        <div class="footer-note">Documento de vista previa previa a la firma final.</div>\\n' +
+        '    </div>\\n' +
+        '</body>\\n' +
+        '</html>';
+    win.document.write(htmlContent);
     win.document.close();
 }
 </script>
