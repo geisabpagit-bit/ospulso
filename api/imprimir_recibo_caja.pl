@@ -183,13 +183,14 @@ sub formato_moneda {
 my $saldo = $recibo->{total_cargos} - $recibo->{total_abonos};
 $saldo = 0 if $saldo < 0;
 
-print $q->header(-type => 'text/html', -charset => 'UTF-print <<HTML;
+print $q->header(-type => 'text/html', -charset => 'UTF-8');
+print <<HTML;
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Recibo $recibo->{folio}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght\@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* CSS Específico para Impresión en Media Carta (5.5 x 8.5 in) */
         \@page {
