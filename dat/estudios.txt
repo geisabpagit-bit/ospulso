@@ -1,2 +1,0 @@
-id_estudio|id_paciente|fecha|modalidad|descripcion|ruta|size  
-1000|3|2026-08-04|Rayos X|Panor mica de rutina|uploads/estudios/rx.jpg|1024 

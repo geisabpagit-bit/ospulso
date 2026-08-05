@@ -54,6 +54,7 @@ my %archivos = (
     'citas.dat' => "ID_CITA|ID_MEDICO|ID_PACIENTE|FECHA|HORA_INICIO|HORA_FIN|TIPO_CONSULTA|NOTAS|ESTADO|EXTRA\n",
     'pacientes.dat' => $pacientes_content,
     'pacientes_antecedentes.dat' => $pac_ant_content,
+    'pacientes_domicilio.dat' => "ID_PACIENTE|CALLE|NUM_EXT|NUM_INT|COLONIA|MUNICIPIO|ESTADO|CP\n",
     'tratamientos.dat' => "ID_TRATAMIENTO|ID_PACIENTE|ID_COT|ESTADO|FECHA_INICIO|FECHA_FIN|ID_MEDICO|TOTAL|ID_CITA\n",
     'estado_cuenta.dat' => "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n",
     'gastos.dat' => "ID_GASTO|CONCEPTO|MONTO|FECHA|CATEGORIA|SUBCATEGORIA|METODO_PAGO|ESTADO|COMPROBANTE|ID_MEDICO\n",
@@ -66,6 +67,8 @@ my %archivos = (
     'consulta_draft.dat' => "id_draft|id_paciente|id_cita|id_medico|current_step|payload_json|timestamp\n",
     'odontogramas.dat' => "ID_PACIENTE|TIPO|FECHA|NOTAS|DATOS_FDI\n",
     'estudios.dat' => "id_estudio|id_paciente|fecha|modalidad|descripcion|ruta|size\n",
+    'folios_recibos_privados.dat' => "ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR\n",
+    'contadores_recibos_privados.dat' => "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n",
     'historial_correos.dat' => "TIMESTAMP|ID_PACIENTE|FECHA_CORREO|ASUNTO|TIPO|ADJUNTO\n",
     'tokens_google.dat' => "id_medico|refresh_token\n",
     'tokens.dat' => "id_medico!refresh_token\n",
@@ -93,18 +96,23 @@ eval {
         close($fh);
     }
 
-    # 2. Borrar catálogos dinámicos servicios_*.dat y productos_*.dat
-    my @catalogos_dinamicos = glob(File::Spec->catfile($dir, "servicios_*.dat")) ;
+    # 2. Borrar catálogos dinámicos servicios_*.dat, productos_*.dat y archivos temporales
+    my @catalogos_dinamicos = glob(File::Spec->catfile($dir, "servicios_*.dat"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "productos_*.dat"));
+    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "consultas_privado.dat"));
+    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "consultas_bd.dat"));
+    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "estudios.txt"));
+    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "estudios2.dat"));
     foreach my $cat (@catalogos_dinamicos) {
-        unlink $cat or warn "No se pudo borrar el catálogo dinámico $cat: $!";
+        unlink $cat if -e $cat;
     }
 
-    # 3. Limpiar carpetas de adjuntos, estudios RX, facturas y firmas digitales
+    # 3. Limpiar carpetas de adjuntos, estudios RX, facturas, firmas y descargas
     limpiar_directorio(File::Spec->catdir($dir, "adjuntos_crm"));
     limpiar_directorio(File::Spec->catdir($dir, "estudiosRX"));
     limpiar_directorio(File::Spec->catdir($FindBin::Bin, '..', 'uploads', 'firmas'));
     limpiar_directorio(File::Spec->catdir($FindBin::Bin, '..', 'uploads', 'facturas'));
+    limpiar_directorio(File::Spec->catdir($FindBin::Bin, '..', 'uploads', 'estudios'));
 };
 
 sub limpiar_directorio {
