@@ -191,18 +191,53 @@ sub crear_cita {
         if ($has_mime_lite) {
             my $cuerpo_html = qq{
 <html>
-  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px;">
-      <h2 style="color: #174975;">Confirmación de Cita</h2>
-      <div style="margin: 20px 0; background-color: #f8f9ff; padding: 15px; border-radius: 8px;">
-        <p>Hola $pac_nom,</p>
-        <p>Tu cita ha sido programada con éxito.</p>
-        <p><strong>Fecha:</strong> $fec</p>
-        <p><strong>Horario:</strong> $hi - $hf</p>
-        <p><strong>Motivo:</strong> $motivo</p>
+  <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+      <!-- Header -->
+      <div style="background-color: #0A2A66; padding: 25px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">OSPULSO</h1>
       </div>
-      <hr>
-      <p style="font-size: 0.9em; color: #777;">Este es un mensaje automático de Software Dental Mexicano.</p>
+      
+      <!-- Body -->
+      <div style="padding: 30px;">
+        <h2 style="color: #0A2A66; margin-top: 0; font-size: 20px;">Confirmación de Cita Médica</h2>
+        <p style="font-size: 15px;">Estimado(a) <strong>$pac_nom</strong>,</p>
+        <p style="font-size: 15px;">Este correo es para confirmar que su cita médica ha sido programada exitosamente. A continuación, los detalles de su visita:</p>
+        
+        <div style="margin: 30px 0; padding: 20px; background-color: #f1f5f9; border-radius: 8px; border-left: 4px solid #19B7A5;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+                <tr>
+                    <td style="padding: 6px 0; color: #64748b; width: 80px;"><strong>Fecha:</strong></td>
+                    <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">$fec</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #64748b;"><strong>Horario:</strong></td>
+                    <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">$hi - $hf</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #64748b;"><strong>Motivo:</strong></td>
+                    <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">$motivo</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="text-align: center; margin: 35px 0;">
+            <a href="https://ospulso.pdigitalesm.com/" style="background-color: #19B7A5; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;">Acceder a mi Portal Médico</a>
+        </div>
+        
+        <p style="font-size: 14px; color: #334155;"><strong>Indicaciones Previas:</strong> Recuerde presentarse 10 minutos antes de su cita.</p>
+        <p style="font-size: 14px; color: #64748b;">Si necesita reprogramar o cancelar su cita, le agradecemos hacerlo con al menos 24 horas de anticipación accediendo a su portal o contactando a nuestra clínica.</p>
+        
+        <br>
+        <p style="font-size: 15px; margin-bottom: 0;">Atentamente,</p>
+        <p style="font-size: 15px; font-weight: bold; color: #0A2A66; margin-top: 5px;">Recepción Médica<br>OsPulso</p>
+      </div>
+      
+      <!-- Footer -->
+      <div style="background-color: #f8fafc; padding: 20px 30px; border-top: 1px solid #e2e8f0; text-align: center;">
+        <p style="font-size: 11px; color: #64748b; margin: 0 0 10px 0; line-height: 1.5;"><strong>Aviso de Privacidad:</strong> La información contenida en este correo electrónico es estrictamente confidencial. Sus datos son tratados bajo rigurosos estándares de seguridad de acuerdo con la LFPDPPP.</p>
+        <p style="font-size: 11px; color: #94a3b8; margin: 0;">Por favor, no responda a este correo automático.</p>
+      </div>
     </div>
   </body>
 </html>

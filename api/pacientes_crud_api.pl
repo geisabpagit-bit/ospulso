@@ -126,19 +126,48 @@ if ($input->{accion} eq 'crear') {
             if ($has_mime_lite) {
                 my $cuerpo_html = qq{
 <html>
-  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px;">
-      <h2 style="color: #174975;">Bienvenido al Portal del Paciente</h2>
-      <div style="margin: 20px 0; background-color: #f8f9ff; padding: 15px; border-radius: 8px;">
-        <p>Hola $nombre,</p>
-        <p>Tu expediente ha sido registrado en nuestra plataforma clínica. Ahora puedes acceder a tu Portal del Paciente para ver tus citas, estudios y recetas.</p>
-        <p><strong>URL de Acceso:</strong> https://ospulso.pdigitalesm.com/</p>
-        <p><strong>Usuario:</strong> $correo_pac</p>
-        <p><strong>Contraseña Temporal:</strong> Ospulso2026!</p>
-        <p>Te recomendamos cambiar tu contraseña al ingresar.</p>
+  <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+      <!-- Header -->
+      <div style="background-color: #0A2A66; padding: 25px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">OSPULSO</h1>
       </div>
-      <hr>
-      <p style="font-size: 0.9em; color: #777;">Este es un mensaje automático de Software Dental Mexicano.</p>
+      
+      <!-- Body -->
+      <div style="padding: 30px;">
+        <h2 style="color: #0A2A66; margin-top: 0; font-size: 20px;">Bienvenido(a) a su nuevo Portal Médico</h2>
+        <p style="font-size: 15px;">Estimado(a) <strong>$nombre</strong>,</p>
+        <p style="font-size: 15px;">Le damos la más cordial bienvenida a OsPulso.</p>
+        <p style="font-size: 15px;">Hemos generado su Expediente Clínico Electrónico para garantizarle una atención médica continua, segura y de vanguardia.</p>
+        <p style="font-size: 15px;">A través de nuestro portal seguro, usted podrá consultar:</p>
+        <ul style="font-size: 15px; color: #334155; padding-left: 20px;">
+            <li style="margin-bottom: 8px;">Próximas citas y recordatorios</li>
+            <li style="margin-bottom: 8px;">Recetas e indicaciones médicas</li>
+            <li style="margin-bottom: 8px;">Estados de cuenta y recibos</li>
+        </ul>
+        
+        <div style="margin: 30px 0; padding: 20px; background-color: #f1f5f9; border-radius: 8px; border-left: 4px solid #19B7A5;">
+            <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Sus credenciales de acceso:</strong></p>
+            <p style="margin: 0 0 5px 0; font-size: 14px;">Usuario: <strong>$correo_pac</strong></p>
+            <p style="margin: 0 0 15px 0; font-size: 14px;">Contraseña Temporal: <strong>Ospulso2026!</strong></p>
+            <p style="margin: 0; font-size: 13px; color: #64748b;"><em>* Le recomendamos cambiar su contraseña al ingresar por primera vez.</em></p>
+        </div>
+        
+        <div style="text-align: center; margin: 35px 0;">
+            <a href="https://ospulso.pdigitalesm.com/" style="background-color: #19B7A5; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;">Ingresar a mi Portal Médico</a>
+        </div>
+        
+        <p style="font-size: 14px; color: #64748b;">Si usted no solicitó este registro, por favor descarte este mensaje.</p>
+        <br>
+        <p style="font-size: 15px; margin-bottom: 0;">Atentamente,</p>
+        <p style="font-size: 15px; font-weight: bold; color: #0A2A66; margin-top: 5px;">El equipo de OsPulso</p>
+      </div>
+      
+      <!-- Footer -->
+      <div style="background-color: #f8fafc; padding: 20px 30px; border-top: 1px solid #e2e8f0; text-align: center;">
+        <p style="font-size: 11px; color: #64748b; margin: 0 0 10px 0; line-height: 1.5;"><strong>Aviso de Privacidad:</strong> La información contenida en este correo electrónico es estrictamente confidencial. Sus datos son tratados bajo rigurosos estándares de seguridad de acuerdo con la LFPDPPP.</p>
+        <p style="font-size: 11px; color: #94a3b8; margin: 0;">Por favor, no responda a este correo automático.</p>
+      </div>
     </div>
   </body>
 </html>
