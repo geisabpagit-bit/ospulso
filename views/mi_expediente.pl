@@ -135,20 +135,30 @@ print <<HTML;
 <script src="../js/odontograma_spa.js?v=$^T"></script>
 <script>
 $(document).ready(function() {
+    console.log("[DEBUG Mi Historial] Iniciando vista Mi Historial Clínico. ID Paciente:", '$id_paciente');
+    
     // Iniciar odontograma
     if (typeof initOdontograma === 'function' && '$id_paciente' !== '') {
+        console.log("[DEBUG Mi Historial] Inicializando Odontograma SVG...");
         setTimeout(() => {
             initOdontograma('odontograma-svg-container', '$id_paciente');
         }, 100);
+    } else {
+        console.warn("[DEBUG Mi Historial] initOdontograma no disponible o ID de paciente vacío.");
     }
 
+    console.log("[DEBUG Mi Historial] Enviando petición AJAX a ../api/get_mi_expediente.pl");
     $.ajax({
         url: '../api/get_mi_expediente.pl',
         type: 'GET',
         dataType: 'json',
         success: function(res) {
-            console.log("Respuesta de get_mi_expediente.pl:", res);
+            console.log("[DEBUG Mi Historial] Respuesta recibida de get_mi_expediente.pl:", res);
             if(res.ok) {
+                console.log("[DEBUG Mi Historial] Recetas encontradas:", res.recetas ? res.recetas.length : 0);
+                console.log("[DEBUG Mi Historial] Estudios encontrados:", res.estudios ? res.estudios.length : 0);
+                console.log("[DEBUG Mi Historial] Consultas encontradas:", res.consultas ? res.consultas.length : 0);
+
                 // Recetas
                 var recHtml = '';
                 if(res.recetas && res.recetas.length > 0) {
@@ -158,13 +168,13 @@ $(document).ready(function() {
                         recHtml += '        <h6 class="mb-0">' + r.diagnostico + '</h6>';
                         recHtml += '        <small class="text-muted">' + r.fecha + '</small>';
                         recHtml += '    </div>';
-                        recHtml += "<button class='btn btn-sm btn-light' onclick='window.open(\"../api/imprimir_receta_api.pl?id_receta=" + r.id_receta + "\")' title='Descargar PDF'><i class='bi bi-download text-primary'></i></button>";
+                        recHtml += '    <button class="btn btn-sm btn-light btn-descargar-receta" data-id="' + r.id_receta + '" title="Descargar PDF"><i class="bi bi-download text-primary"></i></button>';
                         recHtml += '</li>';
                     });
                 } else {
                     recHtml = '<li class="list-group-item text-center text-muted py-4">No hay recetas emitidas.</li>';
                 }
-                \$('#lista_recetas').html(recHtml);
+                $('#lista_recetas').html(recHtml);
 
                 // Estudios
                 var estHtml = '';
@@ -181,7 +191,7 @@ $(document).ready(function() {
                 } else {
                     estHtml = '<li class="list-group-item text-center text-muted py-4">No hay estudios asociados.</li>';
                 }
-                \$('#lista_estudios').html(estHtml);
+                $('#lista_estudios').html(estHtml);
 
                 // Consultas
                 var consHtml = '';
@@ -199,18 +209,25 @@ $(document).ready(function() {
                 } else {
                     consHtml = '<li class="list-group-item text-center text-muted py-4">Aún no hay consultas finalizadas.</li>';
                 }
-                \$('#lista_consultas').html(consHtml);
+                $('#lista_consultas').html(consHtml);
 
             } else {
-                console.error("Error en respuesta:", res.msg);
+                console.error("[DEBUG Mi Historial] Error en respuesta de backend:", res.msg);
                 Swal.fire('Error', res.msg, 'error');
             }
         },
         error: function(xhr, status, error) {
-            console.error("Error AJAX get_mi_expediente:", status, error);
-            console.error("Respuesta cruda:", xhr.responseText);
+            console.error("[DEBUG Mi Historial] Error AJAX get_mi_expediente:", status, error);
+            console.error("[DEBUG Mi Historial] Respuesta cruda servidor:", xhr.responseText);
             Swal.fire('Error', 'No se pudo cargar el expediente. Revisa la consola.', 'error');
         }
+    });
+
+    // Handler para descargar recetas
+    $(document).on('click', '.btn-descargar-receta', function() {
+        var idReceta = $(this).data('id');
+        console.log("[DEBUG Mi Historial] Abriendo PDF de Receta ID:", idReceta);
+        window.open('../api/imprimir_receta_api.pl?id_receta=' + idReceta, '_blank');
     });
 });
 </script>
