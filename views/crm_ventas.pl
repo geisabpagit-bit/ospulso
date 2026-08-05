@@ -370,6 +370,7 @@ print <<HTML;
                                 <option value="No" selected>No</option>
                                 <option value="Sí">Sí</option>
                             </select>
+                        </div>
                         <div class="col-12 d-none" id="cajaInstituciones">
                             <div class="bg-white p-3 border rounded shadow-sm">
                                 <label class="form-label small fw-bold text-muted mb-2">Seleccione Institución(es)</label>
