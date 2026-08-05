@@ -37,16 +37,12 @@ my $usuarios_content = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_
 "1020747209!doctor 1!doc1\@gmail.com!$doc_hash!1!Medico!1055007:706496!100!100.1!12345678!Av. Universidad 100, Col. Centro, CDMX!FIRMA_DOC1\n" .
 "1088603479!doctor dos!doc2\@gmail.com!$doc_hash!1!Medico!1055007:591522!5!0!87654321!Calle Médicos 45, Col. Juárez, CDMX!FIRMA_DOC2\n";
 
-my $pacientes_content = "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT\n" .
-"1|1020747209|Carlos Mendoza García|MEMC850412H34|MEMC850412HDFRRN09|carlos.mendoza\@test.com|1985-04-12|Masculino|Ingeniero|Casado|Mexicana|O+|5512345678|1055007:706496\n" .
-"2|1088603479|María Fernanda López Reyes|LORM920820M56|LORM920820MDFPNN01|maria.lopez\@test.com|1992-08-20|Femenino|Diseñadora|Soltera|Mexicana|A+|5598765432|1055007:591522\n";
+my $pacientes_content = "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT\n";
 
-my $ant_json = '{"hf_hipertension":"Si","hf_diabetes":"No","hf_cardiopatias":"No","hf_cancer":"Si","hf_cancer_tipo":"Pulmón","pp_alergias":"Si","pp_alergias_desc":"Polen","pp_cirugias":"No","pp_cirugias_desc":"","pp_enfermedades_cronicas":"No","pp_enfermedades_cronicas_desc":""}';
-my $ant_json2 = '{"hf_hipertension":"No","hf_diabetes":"Si","hf_cardiopatias":"No","hf_cancer":"No","hf_cancer_tipo":"","pp_alergias":"No","pp_alergias_desc":"","pp_cirugias":"Si","pp_cirugias_desc":"Apendicectomía","pp_enfermedades_cronicas":"Si","pp_enfermedades_cronicas_desc":"Asma"}';
+my $ant_json = '{}';
+my $ant_json2 = '{}';
 
-my $pac_ant_content = "ID_PACIENTE|TUTOR|ANTECEDENTES_JSON|FECHA_ACTUALIZACION\n" .
-"1||$ant_json|2026-07-27\n" .
-"2||$ant_json2|2026-07-27\n";
+my $pac_ant_content = "ID_PACIENTE|TUTOR|ANTECEDENTES_JSON|FECHA_ACTUALIZACION\n";
 
 my %archivos = (
     'usuarios.dat' => $usuarios_content,
@@ -79,7 +75,7 @@ my %archivos = (
     'id_subcat.counter' => "0\n",
     'id_subcat3.counter' => "0\n",
     'id_gasto.counter' => "0\n",
-    'contador_pacientes.dat' => "2\n",
+    'contador_pacientes.dat' => "0\n",
     'contador_registro_inicial.dat' => "0\n",
     'abono_incremental.dat' => "0\n",
     'os_incremental.dat' => "0\n"
