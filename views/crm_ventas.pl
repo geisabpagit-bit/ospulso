@@ -370,19 +370,6 @@ print <<HTML;
                                 <option value="No" selected>No</option>
                                 <option value="Sí">Sí</option>
                             </select>
-                        </div>
-                        <div class="col-md-6 mt-2">
-                            <div class="form-check mt-3">
-                                <input class="form-check-input" type="checkbox" id="saas_pacientes_estado" name="pacientes_estado" value="1">
-                                <label class="form-check-label small fw-bold" for="saas_pacientes_estado">¿Trabaja con pacientes del Estado?</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mt-2">
-                            <div class="form-check mt-3">
-                                <input class="form-check-input" type="checkbox" id="saas_maneja_hospitalizacion" name="maneja_hospitalizacion" value="1">
-                                <label class="form-check-label small fw-bold" for="saas_maneja_hospitalizacion">¿Maneja hospitalización?</label>
-                            </div>
-                        </div>
                         <div class="col-12 d-none" id="cajaInstituciones">
                             <div class="bg-white p-3 border rounded shadow-sm">
                                 <label class="form-label small fw-bold text-muted mb-2">Seleccione Institución(es)</label>
@@ -405,6 +392,8 @@ print <<HTML;
                         <div class="col-12 mt-4">
                             <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-box-seam me-2"></i>Capacidades SaaS Requeridas</h6>
                             <div class="row g-2 bg-white p-3 border rounded shadow-sm m-0">
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="pacientes_estado" value="1" id="saas_pacientes_estado"><label class="form-check-label small fw-bold text-primary" for="saas_pacientes_estado">Pacientes del Estado</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="maneja_hospitalizacion" value="1" id="saas_maneja_hospitalizacion"><label class="form-check-label small fw-bold text-primary" for="saas_maneja_hospitalizacion">Hospitalización</label></div></div>
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Expediente Clínico" id="cap1" checked><label class="form-check-label small" for="cap1">Expediente Clínico</label></div></div>
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Agenda" id="cap2" checked><label class="form-check-label small" for="cap2">Agenda</label></div></div>
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Imagenología" id="cap3"><label class="form-check-label small" for="cap3">Imagenología</label></div></div>
