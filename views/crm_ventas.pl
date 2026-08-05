@@ -481,18 +481,21 @@ print <<'JS';
         });
 
         // Búsqueda de CP y CLUES para Nueva Organización SaaS
-        window.resolveSaaSLocation = function(cp, targetColonia, targetClues) {
+        window.resolveSaaSLocation = function(cp, targetColonia, targetClues, isEditing = false) {
             if (!cp || cp.length !== 5) return;
             $('#saas_entidad_org').val('Buscando...');
             $('#saas_municipio_org').val('Buscando...');
             $('#saas_colonia_org').html('<option value="">Cargando colonias...</option>');
             $('#saas_clues_org').html('<option value="">Cargando establecimientos...</option>');
-            $('input[name="nombre_org"]').val('');
-            $('#saas_razon_org').val('');
-            $('#saas_rfc_org').val('');
-            $('#saas_tel_org').val('');
-            $('#saas_ext_org').val('');
-            $('#saas_dir_org').val('');
+            
+            if (!isEditing) {
+                $('input[name="nombre_org"]').val('');
+                $('#saas_razon_org').val('');
+                $('#saas_rfc_org').val('');
+                $('#saas_tel_org').val('');
+                $('#saas_ext_org').val('');
+                $('#saas_dir_org').val('');
+            }
             
             $.ajax({
                 type: 'GET',
@@ -676,7 +679,7 @@ print <<'JS';
                 document.getElementById('saas_ext_org').value = d.ext_org || '0';
 
                 if (d.cp_org && d.cp_org.length === 5) {
-                    resolveSaaSLocation(d.cp_org, d.colonia_org, d.clues_org);
+                    resolveSaaSLocation(d.cp_org, d.colonia_org, d.clues_org, true);
                 }
                 
                 // Instituciones box
