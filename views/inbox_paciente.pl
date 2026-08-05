@@ -96,8 +96,13 @@ print <<HTML;
 <div class="container-fluid px-4 pt-4 pb-5">
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
-            <h3 class="fw-black m-0 plus-jakarta" style="color: var(--md-blue-deep);"><i class="bi bi-inbox me-2" style="color: var(--md-teal-clinical);"></i>Mi Inbox</h3>
+            <h3 class="fw-black m-0 plus-jakarta" style="color: var(--md-blue-deep);"><i class="bi bi-inbox me-2" style="color: var(--md-teal-clinical);"></i>Bandeja de Entrada</h3>
             <p class="text-muted small fw-bold mt-1">COMUNICACIONES Y NOTIFICACIONES</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-danger fw-bold rounded-pill shadow-sm px-4" onclick="borrarTodo('$id_paciente')">
+                <i class="bi bi-trash me-2"></i>Vaciar Bandeja
+            </button>
         </div>
     </div>
     
@@ -114,14 +119,13 @@ if (@$correos_ref) {
         $cuerpo_esc =~ s/\r?\n/\\n/g;
 
         print qq{
-            <div class="col-12">
+            <div class="col-12" id="msg-card-$id_msg">
                 <div class="card-medentia-aura p-4 border-0 d-flex gap-4 align-items-center transition-all shadow-sm" 
-                     onclick="verDetalleMensaje('$id_msg', '$asunto_esc', '$corr->{fecha}', '$cuerpo_esc', '$cat', '$adj')"
-                     style="cursor: pointer; background: #fff; border-radius: 1rem;">
+                     style="background: #fff; border-radius: 1rem;">
                     <div class="p-3 rounded-4" style="background: rgba(25, 183, 165, 0.1); color: var(--md-teal-clinical);">
                         <i class="bi bi-envelope-check fs-3"></i>
                     </div>
-                    <div class="flex-grow-1 overflow-hidden">
+                    <div class="flex-grow-1 overflow-hidden" onclick="verDetalleMensaje('$id_msg', '$asunto_esc', '$corr->{fecha}', '$cuerpo_esc', '$cat', '$adj')" style="cursor: pointer;">
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
                             <h6 class="fw-bold m-0 text-truncate">$corr->{asunto}</h6>
                             <span class="badge bg-light text-muted small fw-bold">$corr->{fecha}</span>
@@ -131,8 +135,8 @@ if (@$correos_ref) {
                             <p class="small text-muted mb-0 text-truncate">$corr->{cuerpo}</p>
                         </div>
                     </div>
-                    <div class="text-muted opacity-25">
-                        <i class="bi bi-chevron-right fs-4"></i>
+                    <div class="text-danger opacity-75" onclick="borrarMensaje('$id_msg')" style="cursor: pointer;" title="Eliminar mensaje">
+                        <i class="bi bi-trash fs-4"></i>
                     </div>
                 </div>
             </div>
@@ -178,7 +182,7 @@ print <<HTML;
                 </div>
                 <div class="mb-4">
                     <label class="small fw-bold text-muted uppercase tracking-widest mb-1 d-block">Archivo Adjunto</label>
-                    <div id="msgDetailAdjunto" class="small fw-bold text-dark"><i class="bi bi-paperclip me-1"></i> <span></span></div>
+                    <div id="msgDetailAdjunto" class="small fw-bold text-dark"><i class="bi bi-paperclip me-1"></i> <span style="cursor: pointer; text-decoration: underline;" onclick="abrirAdjunto()"></span></div>
                 </div>
                 <hr class="my-4 opacity-10">
                 <div class="bg-light p-4 rounded-4 border">
@@ -195,6 +199,8 @@ print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    let currentAdjunto = '';
+
     function verDetalleMensaje(id, asunto, fecha, cuerpo, cat, adjunto) {
         const modalEl = document.getElementById('modalMensaje');
         if (modalEl && modalEl.parentElement !== document.body) {
@@ -207,12 +213,57 @@ print <<HTML;
         document.getElementById('msgDetailCuerpo').innerText = cuerpo;
         document.getElementById('msgDetailCat').innerText = cat;
         
+        currentAdjunto = adjunto;
         const adjContainer = document.getElementById('msgDetailAdjunto');
         const adjSpan = adjContainer.querySelector('span');
-        adjSpan.innerText = adjunto;
+        if (adjunto && adjunto !== 'Sin adjuntos' && adjunto !== 'Ninguno') {
+            adjSpan.innerHTML = '<a href="javascript:void(0)" class="text-primary fw-bold">Ver Adjunto</a>';
+        } else {
+            adjSpan.innerText = adjunto;
+        }
         
         const m = bootstrap.Modal.getOrCreateInstance(modalEl);
         m.show();
+    }
+    
+    function abrirAdjunto() {
+        if (!currentAdjunto || currentAdjunto === 'Sin adjuntos' || currentAdjunto === 'Ninguno') return;
+        window.open(currentAdjunto, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+    }
+
+    function borrarMensaje(id_msg) {
+        if(!confirm('¿Estás seguro de eliminar este mensaje?')) return;
+        fetch('../api/delete_correo_api.pl', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({ action: 'delete', id_correo: id_msg })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                const card = document.getElementById('msg-card-' + id_msg);
+                if(card) card.remove();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+
+    function borrarTodo(id_paciente) {
+        if(!confirm('¿Estás seguro de vaciar toda la bandeja de entrada?')) return;
+        fetch('../api/delete_correo_api.pl', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({ action: 'delete_all', id_paciente: id_paciente })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
     }
 </script>
 HTML

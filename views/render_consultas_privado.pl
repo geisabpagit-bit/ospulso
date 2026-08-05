@@ -36,6 +36,23 @@ my $role        = $session_data->{role};
 my $id_medico   = $session_data->{id_medico} || 'DOC-001';
 my $id_paciente = $q->param('id') || $q->param('id_paciente') || '';
 my $id_cita     = $q->param('id_cita') || '';
+
+if (!$id_paciente && $id_cita) {
+    my $citas_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
+    if (open my $fh_c, '<:encoding(UTF-8)', $citas_path) {
+        my $hdr = <$fh_c>;
+        while (<$fh_c>) {
+            chomp;
+            my @f = split /\|/, $_, -1;
+            if ($f[0] eq $id_cita) {
+                $id_paciente = $f[2];
+                last;
+            }
+        }
+        close $fh_c;
+    }
+}
+
 my $paciente    = cargar_datos_paciente($id_paciente);
 
 my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
@@ -291,11 +308,6 @@ print <<HTML;
                         <span><i class="bi bi-hash me-1"></i><strong>Folio:</strong> $id_paciente</span>
                     </p>
                 </div>
-            </div>
-            <div>
-                <a href="render_expediente_clinico.pl?id=$id_paciente" class="btn text-white fw-bold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2 small transition-all" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);">
-                    <i class="bi bi-x-circle-fill text-white"></i><span>Cancelar y Salir</span>
-                </a>
             </div>
         </div>
     </header>
@@ -566,6 +578,7 @@ async function finalizarConsulta() {
         
         if (json.ok) {
             AutosaveService.stop();
+            if(typeof AutosaveService.clearDraft === 'function') AutosaveService.clearDraft();
             Swal.fire('Completado', 'La consulta y transacciones de caja se han guardado con éxito.', 'success').then(() => {
                 // Abrir Recibo de Caja si existe la ruta (id_consulta)
                 if (json.id_consulta) {
@@ -793,5 +806,3 @@ sub cargar_datos_paciente {
     }
     return { id_paciente => $id, nombre => 'Paciente Desconocido', curp => '', fecha_nac => '', sexo => '', edad => 'N/A', tutor => '', antecedentes => {} };
 }
-
-render_footer();

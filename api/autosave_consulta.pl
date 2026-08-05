@@ -27,6 +27,8 @@ my $id_cita     = $q->param('id_cita') || '';
 my $id_medico   = $session_data->{id_medico} || $q->param('id_medico') || 'DOC-000';
 my $step        = $q->param('current_step') || 0;
 
+my $action      = $q->param('action') || '';
+
 if (!$id_paciente) {
     print JSON::PP->new->utf8(0)->encode({ ok => JSON::PP::false, msg => 'Falta id_paciente' });
     exit;
@@ -77,15 +79,20 @@ if (-e $draft_file) {
     $cabecera = "id_draft|id_paciente|id_cita|id_medico|current_step|payload_json|timestamp";
 }
 
-if (!$encontrado) {
-    push @nuevas_lineas, join('|', $id_draft, $id_paciente, $id_cita, $id_medico, $step, $json_str, $now);
+if ($action eq 'clear_draft') {
+    # Eliminar el borrador si existe
+    @nuevas_lineas = grep { $_ !~ /^$id_draft\|/ } @nuevas_lineas;
+} else {
+    if (!$encontrado) {
+        push @nuevas_lineas, join('|', $id_draft, $id_paciente, $id_cita, $id_medico, $step, $json_str, $now);
+    }
 }
 
 utils::db_manager::actualizar_archivo($draft_file, $cabecera, \@nuevas_lineas);
 
 print JSON::PP->new->utf8(0)->encode({
     ok => JSON::PP::true,
-    msg => 'Borrador guardado',
+    msg => $action eq 'clear_draft' ? 'Borrador eliminado' : 'Borrador guardado',
     step => $step,
     timestamp => scalar localtime
 });

@@ -29,20 +29,14 @@ HTML
             <i class="bi bi-inbox"></i>
             <span>Inbox</span>
         </a>
-        <!--
-        <a href="mis_citas.pl" class="main-tab-item @{[$active eq 'mis_citas' ? 'active' : '']}" title="Mis Citas">
+        <a href="mis_citas.pl" class="main-tab-item @{[$active eq 'mis_citas' ? 'active' : '']}" title="Citas">
             <i class="bi bi-calendar-event"></i>
             <span>Citas</span>
         </a>
-        <button class="main-tab-item dock-fab" title="Agendar Cita" onclick="window.location.href='agendar_cita_paciente.pl'">
-            <i class="bi bi-calendar-plus"></i>
-            <span>Agendar</span>
-        </button>
-        <a href="mi_expediente.pl" class="main-tab-item @{[$active eq 'mi_historial' ? 'active' : '']}" title="Mi Historial">
-            <i class="bi bi-file-medical"></i>
-            <span>Historial</span>
+        <a href="mis_consultas.pl" class="main-tab-item @{[$active eq 'mis_consultas' ? 'active' : '']}" title="Consultas">
+            <i class="bi bi-file-earmark-medical"></i>
+            <span>Consultas</span>
         </a>
-        -->
 HTML
     } else {
         print <<HTML;

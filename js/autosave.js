@@ -37,10 +37,18 @@ const AutosaveService = {
     
     collectData: function() {
         const formData = new FormData();
+        
+        // Fallback for idPaciente if not set in init()
+        if (!this.idPaciente) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const inputIdPac = document.querySelector('input[name="id_paciente"]');
+            this.idPaciente = urlParams.get('id') || urlParams.get('id_paciente') || (inputIdPac ? inputIdPac.value : '');
+        }
+
         formData.append('id_paciente', this.idPaciente || '');
         formData.append('id_cita', this.idCita || '');
         formData.append('id_medico', this.idMedico || '');
-        formData.append('current_step', WizardController.currentStep);
+        formData.append('current_step', WizardController.currentStep || 0);
         
         // Recolectar todos los inputs y textareas del wizard
         const inputs = document.querySelectorAll('.wizard-panel input, .wizard-panel textarea, .wizard-panel select');
@@ -119,5 +127,18 @@ const AutosaveService = {
     hideIndicator: function() {
         const ui = document.getElementById('autosave-ui');
         if (ui) ui.classList.remove('show');
+    },
+
+    clearDraft: function() {
+        if (!this.idCita && !this.idPaciente) return;
+        const formData = new FormData();
+        formData.append('action', 'clear_draft');
+        formData.append('id_cita', this.idCita || '');
+        formData.append('id_paciente', this.idPaciente || '');
+        
+        fetch(this.endpoint, {
+            method: 'POST',
+            body: formData
+        }).catch(e => console.error("Error clearing draft:", e));
     }
 };

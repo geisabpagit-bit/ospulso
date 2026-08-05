@@ -41,7 +41,26 @@ if (!$id_paciente) {
     exit;
 }
 
-my $id_consulta = 'CONS-' . time() . '-' . int(rand(1000));
+my $id_consulta = '';
+my $consultas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
+
+if ($id_cita && $id_cita ne '') {
+    if (-e $consultas_file && open my $fh_search, '<:encoding(UTF-8)', $consultas_file) {
+        my $hdr = <$fh_search>;
+        while(<$fh_search>) {
+            chomp;
+            my @c = split /\|/, $_, -1;
+            if ($c[2] eq $id_cita) {
+                $id_consulta = $c[0];
+                last;
+            }
+        }
+        close $fh_search;
+    }
+}
+if (!$id_consulta) {
+    $id_consulta = 'CONS-' . time() . '-' . int(rand(1000));
+}
 $payload{id_consulta} = $id_consulta;
 
 # Lógica de Fecha de Hoy
@@ -84,7 +103,6 @@ foreach my $tipo ('paciente', 'medico') {
 # --------------------------------------------------------------------------
 
 # 1. Guardar la consulta
-my $consultas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
 unless (-e $consultas_file) {
     open my $fh_new, '>:encoding(UTF-8)', $consultas_file;
     print $fh_new "id_consulta|id_paciente|id_cita|id_medico|timestamp|payload_json\n";
@@ -93,7 +111,31 @@ unless (-e $consultas_file) {
 my $json_str = encode_json(\%payload);
 $json_str =~ s/\r|\n/\\n/g; # Escapar saltos de línea para mantener formato CSV
 my $linea = join('|', $id_consulta, $id_paciente, $id_cita, $id_medico, time(), $json_str);
-utils::db_manager::guardar_registro($consultas_file, $linea);
+
+if (-e $consultas_file) {
+    my @lines;
+    my $cabecera = "";
+    my $found = 0;
+    if (open my $fh_c, '<:encoding(UTF-8)', $consultas_file) {
+        my @all = <$fh_c>;
+        close $fh_c;
+        $cabecera = shift @all;
+        chomp $cabecera if defined $cabecera;
+        foreach my $l (@all) {
+            chomp $l;
+            my @c = split /\|/, $l, -1;
+            if ($c[0] eq $id_consulta) {
+                $l = $linea;
+                $found = 1;
+            }
+            push @lines, $l;
+        }
+    }
+    if (!$found) {
+        push @lines, $linea;
+    }
+    utils::db_manager::actualizar_archivo($consultas_file, $cabecera, \@lines);
+}
 
 # 1.1 Persistir Receta Médica si fue expedida
 my $requiere_receta = $q->param('requiere_receta') || $payload{requiere_receta} || '0';

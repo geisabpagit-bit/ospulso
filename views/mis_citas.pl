@@ -61,22 +61,8 @@ print <<'HTML';
                 <p class="text-muted">Cuando agendes citas en tus clínicas, aparecerán aquí.</p>
             </div>
 
-            <div class="table-responsive" id="citas_table_container" style="display:none;">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Fecha y Hora</th>
-                            <th>Clínica</th>
-                            <th>Médico</th>
-                            <th>Consulta</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="citas_tbody">
-                        <!-- Llenado vía JS -->
-                    </tbody>
-                </table>
+            <div class="timeline-diamond" id="citas_timeline_container" style="display:none;">
+                <!-- Llenado vía JS -->
             </div>
         </div>
     </div>
@@ -92,28 +78,36 @@ $(document).ready(function() {
             $('#citas_loader').hide();
             if(res.ok) {
                 if(res.citas.length > 0) {
-                    $('#citas_table_container').fadeIn();
+                    $('#citas_timeline_container').fadeIn();
                     let html = '';
                     res.citas.forEach(c => {
-                        let badgeClass = 'bg-secondary';
-                        if(c.status === 'Agendada') badgeClass = 'bg-primary';
-                        if(c.status === 'Confirmada') badgeClass = 'bg-success';
-                        if(c.status === 'Cancelada') badgeClass = 'bg-danger';
-                        if(c.status === 'Concluida') badgeClass = 'bg-dark';
-
-                        html += `<tr>
-                            <td><strong>${c.fecha_hora.replace('T', ' ')}</strong></td>
-                            <td><i class="bi bi-building me-1"></i> ${c.clinica_nombre}</td>
-                            <td><i class="bi bi-person-badge me-1"></i> ${c.medico_nombre}</td>
-                            <td>${c.tipo_consulta}</td>
-                            <td><span class="badge ${badgeClass}">${c.status}</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary" title="Ver detalles"><i class="bi bi-eye"></i></button>
-                                ${c.status !== 'Cancelada' && c.status !== 'Concluida' ? `<button class="btn btn-sm btn-outline-danger ms-1" title="Cancelar" onclick="alert('Cancelar cita en desarrollo')"><i class="bi bi-x-circle"></i></button>` : ''}
-                            </td>
-                        </tr>`;
+                        let is_en_consulta = c.status.toLowerCase().includes('en consulta');
+                        let status_color = is_en_consulta ? '#00C4C4' : c.status.toLowerCase().includes('programada') || c.status.toLowerCase().includes('agendada') ? '#10b981' : c.status.toLowerCase().includes('cancelada') ? '#ef4444' : '#64748b';
+                        
+                        html += `
+                            <div class="timeline-item">
+                                <div class="timeline-dot" style="border-color: ${status_color}"></div>
+                                <div class="timeline-card">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <span class="badge mb-2" style="background: ${status_color}; color: white;">${c.status}</span>
+                                            <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);">${c.tipo_consulta}</h5>
+                                            <p class="small text-muted m-0 mt-1"><i class="bi bi-building me-1"></i> ${c.clinica_nombre}</p>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-black" style="font-size: 1.1rem; color: var(--md-teal-clinical);">${c.fecha_hora.split(' ')[0]}</div>
+                                            <div class="small text-muted fw-bold">${c.fecha_hora.split(' ')[1] || ''}</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mt-3 pt-3 border-top">
+                                        <i class="bi bi-person-circle text-muted"></i>
+                                        <span class="small fw-bold text-muted">Médico: ${c.medico_nombre}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     });
-                    $('#citas_tbody').html(html);
+                    $('#citas_timeline_container').html(html);
                 } else {
                     $('#citas_empty').fadeIn();
                 }
