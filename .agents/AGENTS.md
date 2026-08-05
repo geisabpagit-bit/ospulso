@@ -10,3 +10,8 @@
   1. Utilizar `.container-mobile-flush` y `.card-mobile-flush` en contenedores y tarjetas para comprimir los márgenes (paddings) estorbosos en resoluciones menores a 768px.
   2. Aplicar `.mobile-edge-to-edge` para expandir elementos al 100% de la pantalla cuando sea necesario eliminar todo margen sobrante.
   3. Los botones de acción en móvil deben ser amigables. Utiliza la clase base `.btn-mobile-standard` en combinación con `.btn-mobile-action` o `.btn-mobile-outline`. Esto garantiza el `touch target` mínimo de 48px y bordes sutilmente redondeados estándar. Para que cubran todo el ancho, añade `.btn-mobile-full`.
+
+- **PREVENCIÓN DE ERRORES DE SIGILOS (PERL vs JS)**: ESTÁ ESTRICTAMENTE PROHIBIDO mezclar variables de Perl y código JavaScript/CSS extenso dentro de un mismo bloque HEREDOC doble (`<<"HTML"`) o `qq{}`. Esto provoca colisiones incontrolables de sigilos (ej. el símbolo `$` de jQuery vs variables de Perl, o secuencias de escape como `\'` que destruyen las comillas del JS en el navegador causando `SyntaxError: Unexpected identifier`).
+  **SOLUCIÓN (Obligatoria en refactorizaciones o vistas nuevas)**: 
+  1. **Aislamiento**: Si un bloque `<script>` o `<style>` es extenso y no requiere variables de Perl, se DEBE aislar cerrando el HEREDOC principal y abriendo uno de comilla simple (ej. `print <<'JS';`).
+  2. **Intercambio por DOM**: Si el script JS necesita datos del backend de Perl, se DEBEN inyectar como atributos `data-*` en el HTML (ej. `<div id="config" data-user="$usuario">`) y el JS puro debe leerlos desde el DOM (`dataset.user`), nunca interpolándolos directamente.
