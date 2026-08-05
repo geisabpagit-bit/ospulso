@@ -674,7 +674,7 @@ function verReciboPrevio() {
         '    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">\\n' +
         '    <style>\\n' +
         '        \@page { size: 5.5in 8.5in; margin: 0; }\\n' +
-        '        body { font-family: \'Plus Jakarta Sans\', sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 0; font-size: 11px; }\\n' +
+        '        body { font-family: "Plus Jakarta Sans", sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 0; font-size: 11px; }\\n' +
         '        .banner-previo { background: #fff3cd; color: #856404; text-align: center; padding: 8px; font-weight: bold; font-size: 12px; border-bottom: 1px solid #ffeeba; }\\n' +
         '        .recipe-card { max-width: 5.5in; margin: 20px auto; background: white; border-radius: 12px; border: 2px solid #19B7A5; box-shadow: 0 10px 25px rgba(0,0,0,0.08); padding: 0.25in; position: relative; }\\n' +
         '        .grid-receipt { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 11px; }\\n' +
