@@ -108,7 +108,8 @@ if (@opciones_medicos == 0) {
     print qq{<option value="" disabled>No está registrado con ningún médico aún.</option>};
 }
 
-print                                </select>
+print <<HTML;
+                                </select>
                             </div>
 
                             <!-- NAVEGACIÓN Y MES ACTUAL -->
