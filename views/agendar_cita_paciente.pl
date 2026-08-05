@@ -84,15 +84,16 @@ print <<HTML;
         <header class="sdm-top-header d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0 fw-bold"><i class="bi bi-calendar-plus text-primary me-2"></i> Agendar Cita</h4>
         </header>
-        <div class="container container-mobile-flush mt-3 pb-5">
+        <div class="container-fluid container-mobile-flush mt-3 pb-5 px-xl-5">
             <div class="row justify-content-center card-mobile-flush">
-                <div class="col-12 col-md-10 col-lg-10 col-xl-8">
-                    <div class="card shadow-sm border-0 rounded-4 p-4 p-lg-5 mobile-edge-to-edge">
+                <div class="col-12 col-xxl-11">
+                    <div class="card shadow-sm rounded-4 p-3 p-lg-4 mobile-edge-to-edge" style="border: 1px solid var(--md-teal-clinical, #19B7A5);">
                         <form id="formNuevaCita">
-                            <div class="mb-4">
-                                <label class="form-label fw-bold text-secondary" style="letter-spacing: 0.5px; font-size: 0.85rem;"><i class="bi bi-person-badge me-2"></i>ESPECIALISTA / CLÍNICA</label>
-                                <select class="form-select form-select-lg shadow-sm" id="f_medico" style="border-radius: 0.75rem; font-size: 1rem;" required>
-                                    <option value="">Seleccione su médico...</option>
+                            <div class="mb-4 text-center">
+                                <label class="form-label fw-bold" style="color: var(--md-teal-clinical, #19B7A5); letter-spacing: 1px; font-size: 0.9rem;"><i class="bi bi-person-badge me-2"></i>ESPECIALISTA / CLÍNICA</label>
+                                <div class="mx-auto" style="max-width: 600px;">
+                                    <select class="form-select form-select-lg shadow-sm" id="f_medico" style="border-radius: 0.75rem; font-size: 1rem; border-color: rgba(25, 183, 165, 0.4);" required>
+                                        <option value="">Seleccione su médico...</option>
 HTML
 
 foreach my $m (@opciones_medicos) {
@@ -104,7 +105,8 @@ if (@opciones_medicos == 0) {
 }
 
 print <<HTML;
-                                </select>
+                                    </select>
+                                </div>
                             </div>
 
                             <!-- NAVEGACIÓN Y MES ACTUAL -->
