@@ -27,7 +27,7 @@ require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'step_cierre
 
 my $q = CGI->new;
 my $session_data = check_session($q);
-unless ($session_data->{session_ok}) { print $q->header(-status => '302 Found', -location => '../index.html'); exit; }
+# unless ($session_data->{session_ok}) { print $q->header(-status => '302 Found', -location => '../index.html'); exit; }
 
 binmode STDOUT, ":utf8";
 
@@ -642,7 +642,7 @@ function verReciboPrevio() {
     const metodoEl = document.getElementById('f_caja_metodo_pago');
     const metodo = metodoEl ? metodoEl.value : 'Efectivo';
     
-    const fmt = (num) => '$' + num.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');
+    const fmt = (num) => '\$' + num.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');
     
     let itemsRows = '';
     items.forEach(it => {
