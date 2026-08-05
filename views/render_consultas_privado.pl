@@ -498,6 +498,21 @@ print <<HTML;
 <script src="../js/autosave.js"></script>
 <script src="../js/odontograma_spa.js?v=$^T"></script>
 
+<!-- Variables de configuración para Javascript -->
+<div id="js-config" 
+    data-draft-step="$draft_step" 
+    data-id-paciente="$id_paciente" 
+    data-id-cita="$id_cita" 
+    data-id-medico="$id_medico" 
+    data-pac-nombre="$paciente->{nombre}" 
+    data-med-nombre="$usuario" 
+    data-hoy-fecha="$hoy_fecha" 
+    data-hoy-hora="$hoy_hora" 
+    style="display:none;"></div>
+<script type="application/json" id="draft-json-data">
+$draft_json
+</script>
+
 <!-- Scripts de soporte de Agenda de agenda_main.pl -->
 <script>
   // Funciones mockeadas para evitar errores de compilación de agenda_spa_new.js
@@ -507,17 +522,35 @@ print <<HTML;
 </script>
 <script src="../js/agenda_spa_new.js?v=$^T"></script>
 
+HTML
+print <<'JS';
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const configEl = document.getElementById('js-config');
+    const draftJsonEl = document.getElementById('draft-json-data');
+    
+    const draftStep = configEl ? configEl.getAttribute('data-draft-step') : '1';
+    const idPaciente = configEl ? configEl.getAttribute('data-id-paciente') : '';
+    const idCita = configEl ? configEl.getAttribute('data-id-cita') : '';
+    const idMedico = configEl ? configEl.getAttribute('data-id-medico') : '';
+
     // 1. Inicializar Wizard
-    WizardController.init($draft_step);
+    WizardController.init(draftStep);
     
     // 2. Cargar Draft Data
-    const draftData = $draft_json;
+    let draftData = {};
+    if (draftJsonEl && draftJsonEl.textContent.trim()) {
+        try {
+            draftData = JSON.parse(draftJsonEl.textContent);
+        } catch(e) {
+            console.warn("Draft JSON inválido:", e);
+        }
+    }
+    
     if (Object.keys(draftData).length > 0) {
         for (const key in draftData) {
             const val = draftData[key];
-            const el = document.querySelector(`[name="\${key}"]`);
+            const el = document.querySelector(`[name="${key}"]`);
             if (el) {
                 if (el.type === 'checkbox' || el.type === 'radio') {
                     if (el.value == val) el.checked = true;
@@ -529,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // 3. Inicializar Autosave
-    AutosaveService.init('$id_paciente', '$id_cita', '$id_medico');
+    AutosaveService.init(idPaciente, idCita, idMedico);
     
     // 4. Lógica de Odontograma Dinámico
     const especialidadSelect = document.querySelector('[name="especialidad"]');
@@ -542,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isOdonto) {
             odontoSection.style.display = 'block';
             if (typeof initOdontograma === 'function') {
-                initOdontograma('odontograma-svg-container', '$id_paciente');
+                initOdontograma('odontograma-svg-container', idPaciente);
             }
         } else {
             odontoSection.style.display = 'none';
@@ -580,11 +613,14 @@ async function finalizarConsulta() {
             AutosaveService.stop();
             if(typeof AutosaveService.clearDraft === 'function') AutosaveService.clearDraft();
             Swal.fire('Completado', 'La consulta y transacciones de caja se han guardado con exito.', 'success').then(() => {
+                const configEl = document.getElementById('js-config');
+                const idPaciente = configEl ? configEl.getAttribute('data-id-paciente') : '';
+                
                 // Abrir Recibo de Caja si existe la ruta (id_consulta)
                 if (json.id_consulta) {
                     window.open('../api/imprimir_recibo_caja.pl?id_consulta=' + encodeURIComponent(json.id_consulta), '_blank');
                 }
-                window.location.href = 'render_expediente_clinico.pl?id=$id_paciente';
+                window.location.href = 'render_expediente_clinico.pl?id=' + idPaciente;
             });
         } else {
             Swal.fire('Error', json.msg || 'No se pudo guardar la consulta', 'warning');
@@ -642,7 +678,7 @@ function verReciboPrevio() {
     const metodoEl = document.getElementById('f_caja_metodo_pago');
     const metodo = metodoEl ? metodoEl.value : 'Efectivo';
     
-    const fmt = (num) => '\$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const fmt = (num) => '$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     
     let itemsRows = '';
     items.forEach(it => {
@@ -660,10 +696,11 @@ function verReciboPrevio() {
         return;
     }
     
-    const pacNombre = '$paciente->{nombre}';
-    const medNombre = '$usuario';
-    const hoyFecha  = '$hoy_fecha';
-    const hoyHora   = '$hoy_hora';
+    const configEl = document.getElementById('js-config');
+    const pacNombre = configEl ? configEl.getAttribute('data-pac-nombre') : '';
+    const medNombre = configEl ? configEl.getAttribute('data-med-nombre') : '';
+    const hoyFecha  = configEl ? configEl.getAttribute('data-hoy-fecha') : '';
+    const hoyHora   = configEl ? configEl.getAttribute('data-hoy-hora') : '';
     
     let htmlContent = '<!DOCTYPE html>\n' +
         '<html lang="es">\n' +
@@ -750,7 +787,7 @@ function verReciboPrevio() {
     win.document.close();
 }
 </script>
-HTML
+JS
 
 utils::sub_sidebar::render_sidebar_footer();
 
