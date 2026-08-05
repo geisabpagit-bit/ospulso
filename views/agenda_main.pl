@@ -455,6 +455,18 @@ print <<HTML;
                                 </div>
                             </div>
                             <div class="col-12 mt-3">
+                                <div class="form-floating mb-2">
+                                    <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_cancel_hours" name="cancel_hours">
+                                        <option value="0">Sin Límite (0 hrs)</option>
+                                        <option value="12">12 Horas previas</option>
+                                        <option value="24">24 Horas previas</option>
+                                        <option value="48">48 Horas previas</option>
+                                        <option value="72">72 Horas previas</option>
+                                    </select>
+                                    <label class="text-muted fw-bold small text-uppercase">Límite Cancelación (Paciente)</label>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-3">
                                 <label class="small fw-bold text-muted mb-2 d-block text-uppercase">Festivos Personales</label>
                                 <div class="input-group mb-2 shadow-sm rounded-3">
                                     <input type="date" class="form-control border-0" id="adj_fest_picker">

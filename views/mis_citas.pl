@@ -84,6 +84,16 @@ $(document).ready(function() {
                         let is_en_consulta = c.status.toLowerCase().includes('en consulta');
                         let status_color = is_en_consulta ? '#00C4C4' : c.status.toLowerCase().includes('programada') || c.status.toLowerCase().includes('agendada') ? '#10b981' : c.status.toLowerCase().includes('cancelada') ? '#ef4444' : '#64748b';
                         
+                        let action_buttons = '';
+                        if (c.status.toLowerCase().includes('programada') || c.status.toLowerCase().includes('agendada')) {
+                            action_buttons = `
+                                <div class="d-flex gap-2 ms-auto">
+                                    <button class="btn btn-sm btn-outline-danger px-3 rounded-pill" onclick="cancelarCita('${c.id}')"><i class="bi bi-x-circle me-1"></i> Cancelar</button>
+                                    <button class="btn btn-sm btn-success px-3 rounded-pill" onclick="confirmarCita('${c.id}')"><i class="bi bi-check2-circle me-1"></i> Confirmar Asistencia</button>
+                                </div>
+                            `;
+                        }
+
                         html += `
                             <div class="timeline-item">
                                 <div class="timeline-dot" style="border-color: ${status_color}"></div>
@@ -99,9 +109,10 @@ $(document).ready(function() {
                                             <div class="small text-muted fw-bold">${c.fecha_hora.split(' ')[1] || ''}</div>
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-center gap-2 mt-3 pt-3 border-top">
-                                        <i class="bi bi-person-circle text-muted"></i>
+                                    <div class="d-flex align-items-center mt-3 pt-3 border-top">
+                                        <i class="bi bi-person-circle text-muted me-2"></i>
                                         <span class="small fw-bold text-muted">Médico: ${c.medico_nombre}</span>
+                                        ${action_buttons}
                                     </div>
                                 </div>
                             </div>
@@ -121,6 +132,63 @@ $(document).ready(function() {
         }
     });
 });
+
+function confirmarCita(id) {
+    Swal.fire({
+        title: '¿Confirmar Asistencia?',
+        text: "Le indicaremos a su médico que sí asistirá a esta cita.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, confirmaré mi asistencia',
+        cancelButtonText: 'Cerrar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('../api/citas_crud.pl', { accion: 'confirm_paciente', id_cita: id }, function(res) {
+                if(res.ok) {
+                    Swal.fire('Confirmada', res.msg, 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Aviso', res.msg, 'warning');
+                }
+            }, 'json').fail(function() {
+                Swal.fire('Error', 'No se pudo conectar con el servidor.', 'error');
+            });
+        }
+    });
+}
+
+function cancelarCita(id) {
+    Swal.fire({
+        title: 'Cancelar Cita',
+        text: 'Por favor, indíquenos brevemente el motivo de su cancelación:',
+        input: 'text',
+        inputPlaceholder: 'Ej. Motivos personales, enfermedad...',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Cancelar definitivamente',
+        cancelButtonText: 'Regresar',
+        inputValidator: (value) => {
+            if (!value) {
+                return '¡Necesitamos saber el motivo para poder cancelar!';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('../api/citas_crud.pl', { accion: 'cancel_paciente', id_cita: id, motivo_cancel: result.value }, function(res) {
+                if(res.ok) {
+                    Swal.fire('Cancelada', res.msg, 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Aviso', res.msg, 'warning');
+                }
+            }, 'json').fail(function() {
+                Swal.fire('Error', 'No se pudo conectar con el servidor.', 'error');
+            });
+        }
+    });
+}
 </script>
 HTML
 

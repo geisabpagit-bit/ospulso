@@ -1818,6 +1818,7 @@ function abrirModalAjustes() {
     $("#adj_c_ini").val(agendaConfig.lunchStart || '14:00');
     $("#adj_c_fin").val(agendaConfig.lunchEnd || '16:00');
     $("#adj_int").val(agendaConfig.intervalo_minutos || '30');
+    $("#adj_cancel_hours").val(agendaConfig.cancel_hours || '24');
     $("#adj_fest").val(agendaConfig.festivos_medico || '');
     
     // Checkboxes días
@@ -1844,6 +1845,7 @@ function guardarAjustes() {
         c_ini: $("#adj_c_ini").val(),
         c_fin: $("#adj_c_fin").val(),
         int: $("#adj_int").val(),
+        cancel_hours: $("#adj_cancel_hours").val(),
         festivos: $("#adj_fest").val(),
         dias: dias.join(',')
     };

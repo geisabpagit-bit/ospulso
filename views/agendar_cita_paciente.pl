@@ -89,10 +89,9 @@ print <<HTML;
         <header class="sdm-top-header d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0 fw-bold"><i class="bi bi-calendar-plus text-primary me-2"></i> Agendar Cita</h4>
         </header>
-
         <div class="container container-mobile-flush mt-3 pb-5">
             <div class="row justify-content-center card-mobile-flush">
-                <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+                <div class="col-12 col-md-10 col-lg-10 col-xl-8">
                     <div class="card shadow-sm border-0 rounded-4 p-4 p-lg-5 mobile-edge-to-edge">
                         <form id="formNuevaCita">
                             <div class="mb-4">
@@ -130,9 +129,9 @@ print <<HTML;
                                 <textarea class="form-control form-control-lg shadow-sm" id="f_motivo" rows="3" style="border-radius: 0.75rem; font-size: 1rem;" required placeholder="Ej. Revisión general, dolor de cabeza..."></textarea>
                             </div>
                             
-                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-3 mt-5">
-                                <a href="mis_citas.pl" class="btn btn-mobile-standard btn-mobile-outline order-2 order-sm-1"><i class="bi bi-x-circle fs-5"></i> Cancelar</a>
-                                <button type="submit" class="btn btn-mobile-standard btn-mobile-action order-1 order-sm-2"><i class="bi bi-check2-circle fs-5"></i> Confirmar Cita</button>
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mt-5">
+                                <a href="mis_citas.pl" class="btn btn-outline-secondary btn-lg order-2 order-md-1" style="border-radius: 0.75rem;"><i class="bi bi-x-circle fs-5 me-2"></i> Cancelar</a>
+                                <button type="submit" class="btn btn-primary btn-lg order-1 order-md-2" style="border-radius: 0.75rem;"><i class="bi bi-check2-circle fs-5 me-2"></i> Confirmar Cita</button>
                             </div>
                         </form>
                     </div>

@@ -87,6 +87,7 @@ sub _parse_config_file {
             elsif ($key eq 'horario_comida_fin') { $ref->{lunchEnd} = $val; }
             elsif ($key eq 'dias_habiles') { $ref->{workDays} = [ split(/,/, $val) ]; }
             elsif ($key eq 'intervalo_minutos') { $ref->{intervalo_minutos} = $val; }
+            elsif ($key eq 'cancel_hours') { $ref->{cancel_hours} = $val; }
             elsif ($key eq 'festivos') { $ref->{festivos} = $val; }
         }
         close $fh;
@@ -104,6 +105,8 @@ elsif ($accion eq 'save_config') { guardar_config_medico($q); }
 elsif ($accion eq 'get_form_metadata') { obtener_metadatos_formulario($q); }
 elsif ($accion eq 'get_events') { enviar_eventos_oficial($citas); }
 elsif ($accion eq 'cobrar_recepcion') { cobrar_recepcion($citas, $q); }
+elsif ($accion eq 'confirm_paciente') { confirmar_cita_paciente($citas, $q); }
+elsif ($accion eq 'cancel_paciente') { cancelar_cita_paciente($citas, $q); }
 
 # --- MOTOR DE PERSISTENCIA ---
 sub cargar_citas {
@@ -497,6 +500,7 @@ sub guardar_config_medico {
         print $fh "horario_comida_fin=$c_fin\n";
         print $fh "intervalo_minutos=$int\n";
         print $fh "dias_habiles=$d_hab\n";
+        print $fh "cancel_hours=" . ($q->param('cancel_hours') // '24') . "\n";
         print $fh "festivos=" . ($q->param('festivos') // '') . "\n";
         close $fh;
         
@@ -718,5 +722,76 @@ sub cobrar_recepcion {
     }
 
     responder_json(1, "El cobro anticipado de \$$monto ($metodo_pago) ha sido registrado exitosamente en Recepción.");
+}
+
+# --- ACCIONES DEL PACIENTE ---
+sub confirmar_cita_paciente {
+    my ($arr, $q) = @_;
+    my $id_cita = $q->param('id_cita') // '';
+    return responder_json(0, "ID de cita requerido.") unless $id_cita;
+
+    my $encontrado = 0;
+    foreach my $c (@$arr) {
+        if ($c->{id_cita} eq $id_cita) {
+            $c->{estado} = "Confirmada por Paciente";
+            $c->{color}  = "#10b981";
+            $encontrado = 1;
+            last;
+        }
+    }
+    
+    if ($encontrado) {
+        guardar_citas($arr);
+        responder_json(1, "Cita confirmada correctamente.");
+    } else {
+        responder_json(0, "No se encontró la cita.");
+    }
+}
+
+sub cancelar_cita_paciente {
+    my ($arr, $q) = @_;
+    my $id_cita = $q->param('id_cita') // '';
+    my $motivo_cancel = $q->param('motivo_cancel') // 'Cancelada por el paciente';
+    
+    return responder_json(0, "ID de cita requerido.") unless $id_cita;
+
+    my $encontrado = 0;
+    foreach my $c (@$arr) {
+        if ($c->{id_cita} eq $id_cita) {
+            # Validar límite de horas
+            my %config_med = cargar_agenda_config($c->{id_medico});
+            my $horas_limite = int($config_med{cancel_hours} // 24);
+            
+            if ($horas_limite > 0) {
+                my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
+                my $ahora = sprintf("%04d-%02d-%02d %02d:%02d:00", $year+1900, $mon+1, $mday, $hour, $min);
+                my $fecha_cita = "$c->{fecha} $c->{hora_ini}:00";
+                
+                use Time::Piece;
+                my $t_ahora = eval { Time::Piece->strptime($ahora, "%Y-%m-%d %H:%M:%0S") };
+                my $t_cita = eval { Time::Piece->strptime($fecha_cita, "%Y-%m-%d %H:%M:%0S") };
+                
+                if (!$@ && $t_cita && $t_ahora) {
+                    my $diff_sec = $t_cita->epoch - $t_ahora->epoch;
+                    my $diff_hours = $diff_sec / 3600;
+                    if ($diff_hours < $horas_limite) {
+                        return responder_json(0, "No puedes cancelar esta cita. El límite es de $horas_limite horas previas a la cita.");
+                    }
+                }
+            }
+
+            $c->{estado} = "Cancelada";
+            $c->{notas} = $c->{notas} ? $c->{notas} . " | Cancelada por Paciente: " . $motivo_cancel : "Cancelada por Paciente: " . $motivo_cancel;
+            $encontrado = 1;
+            last;
+        }
+    }
+    
+    if ($encontrado) {
+        guardar_citas($arr);
+        responder_json(1, "Cita cancelada correctamente.");
+    } else {
+        responder_json(0, "No se encontró la cita.");
+    }
 }
 1;
