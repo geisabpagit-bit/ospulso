@@ -47,6 +47,13 @@ function loadContext() {
     });
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    const medicoInput = document.getElementById('f_medico');
+    if (medicoInput && medicoInput.value) {
+        initPacienteSpa(medicoInput.value, medicoInput.getAttribute('data-idpac'));
+    }
+});
+
 function moveDate(days) {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() + days);

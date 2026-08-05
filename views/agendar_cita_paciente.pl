@@ -24,25 +24,23 @@ if (!$session_data->{session_ok} || $session_data->{role} ne 'Paciente') {
     exit;
 }
 
-my $correo_pac = lc($session_data->{uid});
-$correo_pac =~ s/^\s+|\s+$//g;
+my $uid = $session_data->{uid};
+$uid =~ s/^\s+|\s+$//g;
 
 # Obtener los médicos/clínicas a los que pertenece el paciente
 my $archivo_pacientes = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
 my $regs = leer_tabla($archivo_pacientes, '\|');
 
-my %mis_medicos = ();
+my $id_medico_asignado = '';
+my $id_paciente_real = '';
+
 if ($regs) {
     foreach my $p (@$regs) {
-        next if @$p < 6;
-        my $c = lc($p->[5] // '');
-        $c =~ s/^\s+|\s+$//g;
-        if ($c eq $correo_pac) {
-            my $id_medico = $p->[1] // '';
-            my $tenant = $p->[13] // '';
-            my $nombre_paciente = $p->[2] // '';
-            my $id_paciente = $p->[0] // '';
-            $mis_medicos{$id_medico} = { tenant => $tenant, nombre_paciente => $nombre_paciente, id_paciente => $id_paciente };
+        my $id_pac_db = $p->[0] // '';
+        if ($id_pac_db eq $uid) {
+            $id_medico_asignado = $p->[1] // '';
+            $id_paciente_real = $id_pac_db;
+            last;
         }
     }
 }
@@ -50,16 +48,13 @@ if ($regs) {
 # Obtener nombres de los médicos
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $usuarios = leer_tabla($archivo_usuarios, '!');
-my @opciones_medicos = ();
+my $nombre_medico_asignado = 'Sin Médico Asignado';
 
-if ($usuarios) {
+if ($usuarios && $id_medico_asignado) {
     foreach my $u (@$usuarios) {
-        if (exists $mis_medicos{$u->[0]}) {
-            push @opciones_medicos, {
-                id => $u->[0],
-                nombre => $u->[1],
-                id_paciente => $mis_medicos{$u->[0]}->{id_paciente}
-            };
+        if ($u->[0] eq $id_medico_asignado) {
+            $nombre_medico_asignado = $u->[1] // '';
+            last;
         }
     }
 }
@@ -92,20 +87,8 @@ print <<HTML;
                             <div class="mb-4 text-center">
                                 <label class="form-label fw-bold" style="color: var(--md-teal-clinical, #19B7A5); letter-spacing: 1px; font-size: 0.9rem;"><i class="bi bi-person-badge me-2"></i>ESPECIALISTA / CLÍNICA</label>
                                 <div class="mx-auto" style="max-width: 600px;">
-                                    <select class="form-select form-select-lg shadow-sm" id="f_medico" style="border-radius: 0.75rem; font-size: 1rem; border-color: rgba(25, 183, 165, 0.4);" required>
-                                        <option value="">Seleccione su médico...</option>
-HTML
-
-foreach my $m (@opciones_medicos) {
-    print qq{<option value="$m->{id}" data-idpac="$m->{id_paciente}">$m->{nombre}</option>\n};
-}
-
-if (@opciones_medicos == 0) {
-    print qq{<option value="" disabled>No está registrado con ningún médico aún.</option>};
-}
-
-print <<HTML;
-                                    </select>
+                                    <input type="text" class="form-control form-control-lg shadow-sm text-center fw-bold bg-light" value="$nombre_medico_asignado" readonly style="border-radius: 0.75rem; font-size: 1rem; border-color: rgba(25, 183, 165, 0.4); color: #334155;">
+                                    <input type="hidden" id="f_medico" value="$id_medico_asignado" data-idpac="$id_paciente_real">
                                 </div>
                             </div>
 
@@ -136,8 +119,8 @@ print <<HTML;
                                 <p class="mt-2 text-muted">Sincronizando disponibilidad...</p>
                             </div>
                             
-                            <div class="text-center mt-5">
-                                <a href="mis_citas.pl" class="btn btn-outline-secondary btn-lg rounded-pill px-4"><i class="bi bi-arrow-left-circle me-2"></i> Volver a Mis Citas</a>
+                            <div class="text-center mt-5 mb-2">
+                                <a href="mis_citas.pl" class="btn btn-mobile-standard btn-mobile-outline btn-mobile-full fw-bold" style="color: var(--md-teal-clinical, #19B7A5); border-color: var(--md-teal-clinical, #19B7A5); max-width: 300px;"><i class="bi bi-arrow-left-circle me-2"></i> Volver a Mis Citas</a>
                             </div>
                         </form>
                     </div>
@@ -153,26 +136,6 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script src="../js/agenda_paciente_spa.js?v=@{[time()]}"></script>
 <link rel="stylesheet" href="../css/agenda_paciente.css?v=@{[time()]}">
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicialización al seleccionar médico
-    const medicoSelect = document.getElementById('f_medico');
-    medicoSelect.addEventListener('change', function() {
-        if(this.value) {
-            initPacienteSpa(this.value, this.options[this.selectedIndex].getAttribute('data-idpac'));
-        } else {
-            document.getElementById('view-semana-smart').classList.add('d-none');
-            document.getElementById('smart-nav-container').classList.add('d-none');
-        }
-    });
-
-    // Si solo hay una opción habilitada, autoseleccionarla
-    if(medicoSelect.options.length === 2 && medicoSelect.options[1].value) {
-        medicoSelect.selectedIndex = 1;
-        medicoSelect.dispatchEvent(new Event('change'));
-    }
-});
-</script>
 HTML
 render_footer();
 1;
