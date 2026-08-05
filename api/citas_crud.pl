@@ -17,6 +17,9 @@ use utils::db_manager qw(leer_tabla);
 # Protocolo: Rutas Absolutas Dinámicas + UTF8 Nativo
 # ==========================================================
 
+require '../auth/check_session.pl';
+my $session_data = check_session();
+
 my $dirname = dirname(__FILE__);
 my $ARCHIVO = "$dirname/../dat/citas.dat";
 my $CONFIG_FILE = "$dirname/../dat/agenda_config.dat";
@@ -405,16 +408,26 @@ sub enviar_eventos_oficial {
     my @eventos;
     foreach my $c (@$arr) {
         next if $c->{estado} eq 'Cancelada';
+        
+        my $titulo = obtener_nombre_paciente($c->{id_paciente});
+        my $motivo = $c->{motivo};
+        
+        # Ocultar información si quien solicita es paciente (a menos que sea su propia cita, pero en la Smart View no mostramos eso)
+        if ($session_data->{role} eq 'Paciente') {
+            $titulo = "Ocupado";
+            $motivo = "Reservado";
+        }
+        
         push @eventos, {
             id => $c->{id_cita},
-            title => obtener_nombre_paciente($c->{id_paciente}),
+            title => $titulo,
             start => "$c->{fecha}T$c->{hora_ini}:00",
             end => "$c->{fecha}T$c->{hora_fin}:00",
             color => $c->{color} || '#3b82f6', # Azul premium por defecto si no tiene
             extendedProps => {
                 id_paciente => $c->{id_paciente},
                 id_medico => $c->{id_medico},
-                motivo => $c->{motivo},
+                motivo => $motivo,
                 estado => $c->{estado},
                 event_id => $c->{event_id},
                 prioridad => $c->{prioridad},

@@ -108,30 +108,38 @@ if (@opciones_medicos == 0) {
     print qq{<option value="" disabled>No está registrado con ningún médico aún.</option>};
 }
 
-print <<HTML;
-                                </select>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label class="form-label fw-bold text-secondary" style="letter-spacing: 0.5px; font-size: 0.85rem;"><i class="bi bi-calendar-event me-2"></i>FECHA DESEADA</label>
-                                <input type="date" class="form-control form-control-lg shadow-sm" id="f_fecha" style="border-radius: 0.75rem; font-size: 1rem;" required min="@{[ sprintf('%04d-%02d-%02d', (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3]) ]}">
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label class="form-label fw-bold text-secondary" style="letter-spacing: 0.5px; font-size: 0.85rem;"><i class="bi bi-clock me-2"></i>HORARIO</label>
-                                <select class="form-select form-select-lg shadow-sm" id="f_horario" style="border-radius: 0.75rem; font-size: 1rem;" required disabled>
-                                    <option value="">Seleccione una fecha primero...</option>
-                                </select>
+print                                </select>
                             </div>
 
-                            <div class="mb-4">
-                                <label class="form-label fw-bold text-secondary" style="letter-spacing: 0.5px; font-size: 0.85rem;"><i class="bi bi-chat-text me-2"></i>MOTIVO DE CONSULTA</label>
-                                <textarea class="form-control form-control-lg shadow-sm" id="f_motivo" rows="3" style="border-radius: 0.75rem; font-size: 1rem;" required placeholder="Ej. Revisión general, dolor de cabeza..."></textarea>
+                            <!-- NAVEGACIÓN Y MES ACTUAL -->
+                            <div id="smart-nav-container" class="d-none mt-4 text-center">
+                                <div class="d-flex align-items-center justify-content-center mb-3">
+                                    <button type="button" onclick="moveDate(-7)" class="btn btn-link text-primary p-2"><i class="bi bi-chevron-left fs-4"></i></button>
+                                    <h5 class="fw-bold mb-0 mx-3 text-uppercase text-secondary" id="current-month-label" style="min-width: 150px;">
+                                        CARGANDO...
+                                    </h5>
+                                    <button type="button" onclick="moveDate(7)" class="btn btn-link text-primary p-2"><i class="bi bi-chevron-right fs-4"></i></button>
+                                </div>
                             </div>
                             
-                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mt-5">
-                                <a href="mis_citas.pl" class="btn btn-outline-secondary btn-lg order-2 order-md-1" style="border-radius: 0.75rem;"><i class="bi bi-x-circle fs-5 me-2"></i> Cancelar</a>
-                                <button type="submit" class="btn btn-primary btn-lg order-1 order-md-2" style="border-radius: 0.75rem;"><i class="bi bi-check2-circle fs-5 me-2"></i> Confirmar Cita</button>
+                            <!-- VISTA SEMANAL SMART -->
+                            <div id="view-semana-smart" class="agenda-view-container d-none mt-3">
+                                <div id="weekly-smart-scroll" class="d-flex justify-content-center gap-2 py-3 mb-4 overflow-auto no-scrollbar">
+                                    <!-- Días generados por JS -->
+                                </div>
+                                <div id="weekly-smart-slots" class="row g-4">
+                                    <!-- Slots generados por JS -->
+                                </div>
+                            </div>
+                            
+                            <!-- Loader -->
+                            <div id="citas_loader" class="text-center py-5 d-none">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2 text-muted">Sincronizando disponibilidad...</p>
+                            </div>
+                            
+                            <div class="text-center mt-5">
+                                <a href="mis_citas.pl" class="btn btn-outline-secondary btn-lg rounded-pill px-4"><i class="bi bi-arrow-left-circle me-2"></i> Volver a Mis Citas</a>
                             </div>
                         </form>
                     </div>
@@ -145,97 +153,58 @@ render_bottom_nav('mis_citas');
 
 print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+<script src="../js/agenda_paciente_spa.js?v=@{[time()]}"></script>
+<style>
+/* Estilos extraídos para el Smart View (idénticos a agenda_main.pl) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.smart-day-card {
+    background: white; border: 2px solid #f1f5f9; border-radius: 1rem;
+    padding: 10px 15px; text-align: center; cursor: pointer;
+    min-width: 80px; transition: all 0.2s ease;
+}
+.smart-day-card:hover:not(.active) { border-color: #cbd5e1; transform: translateY(-2px); }
+.smart-day-card.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    color: white; border: none; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+.smart-day-card.active .day-name, .smart-day-card.active .day-num { color: white !important; }
+.smart-day-card .day-name { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+.smart-day-card .day-num { font-size: 1.5rem; font-weight: 900; color: #0f172a; line-height: 1; margin-top: 5px; }
+.smart-day-card.holiday { opacity: 0.5; cursor: not-allowed; }
+.smart-day-card.holiday:hover { transform: none; border-color: #f1f5f9; }
+
+.slot-btn {
+    background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem;
+    color: #334155; font-weight: 700; padding: 12px; width: 100%;
+    transition: all 0.2s; font-size: 0.95rem; box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.slot-btn:hover:not(:disabled) { border-color: #3b82f6; color: #3b82f6; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1); }
+.slot-btn.disabled, .slot-btn:disabled {
+    background: #f8fafc; border-color: #f1f5f9; color: #cbd5e1;
+    text-decoration: line-through; opacity: 0.8; cursor: not-allowed;
+}
+.slot-btn.disabled:hover, .slot-btn:disabled:hover { transform: none; box-shadow: none; border-color: #f1f5f9; }
+</style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Inicialización al seleccionar médico
     const medicoSelect = document.getElementById('f_medico');
-    const fechaInput = document.getElementById('f_fecha');
-    const horarioSelect = document.getElementById('f_horario');
-    
-    fechaInput.addEventListener('change', function() {
-        if (!this.value || !medicoSelect.value) return;
-        horarioSelect.innerHTML = '<option value="">Cargando horarios...</option>';
-        horarioSelect.disabled = true;
-        
-        // Simular carga de horarios disponibles
-        setTimeout(() => {
-            horarioSelect.innerHTML = `
-                <option value="">Seleccione un horario disponible</option>
-                <option value="09:00">09:00 AM - 09:30 AM</option>
-                <option value="09:30">09:30 AM - 10:00 AM</option>
-                <option value="10:00">10:00 AM - 10:30 AM</option>
-                <option value="11:00">11:00 AM - 11:30 AM</option>
-                <option value="12:00">12:00 PM - 12:30 PM</option>
-                <option value="16:00">04:00 PM - 04:30 PM</option>
-                <option value="17:00">05:00 PM - 05:30 PM</option>
-            `;
-            horarioSelect.disabled = false;
-        }, 500);
-    });
-    
     medicoSelect.addEventListener('change', function() {
-        if (fechaInput.value) {
-            fechaInput.dispatchEvent(new Event('change'));
+        if(this.value) {
+            initPacienteSpa(this.value, this.options[this.selectedIndex].getAttribute('data-idpac'));
+        } else {
+            document.getElementById('view-semana-smart').classList.add('d-none');
+            document.getElementById('smart-nav-container').classList.add('d-none');
         }
     });
 
-    document.getElementById('formNuevaCita').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const id_medico = medicoSelect.value;
-        const id_paciente = medicoSelect.options[medicoSelect.selectedIndex].getAttribute('data-idpac');
-        const fecha = fechaInput.value;
-        const hora_ini = horarioSelect.value;
-        
-        if(!hora_ini) {
-            Swal.fire('Error', 'Seleccione un horario válido', 'error');
-            return;
-        }
-        
-        // Calcular hora_fin (30 mins por defecto para paciente)
-        const [h, m] = hora_ini.split(':').map(Number);
-        let mFin = m + 30;
-        let hFin = h;
-        if(mFin >= 60) {
-            hFin++;
-            mFin -= 60;
-        }
-        const hora_fin = String(hFin).padStart(2, '0') + ':' + String(mFin).padStart(2, '0');
-        
-        const formData = new FormData();
-        formData.append('accion', 'create');
-        formData.append('id_medico', id_medico);
-        formData.append('id_paciente', id_paciente);
-        formData.append('fecha', fecha);
-        formData.append('hora_ini', hora_ini);
-        formData.append('hora_fin', hora_fin);
-        formData.append('motivo', document.getElementById('f_motivo').value);
-        formData.append('tipo', 'Consulta General de Valoración');
-        formData.append('estado', 'Programada');
-        
-        fetch('../api/citas_crud.pl', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Cita Agendada!',
-                    text: 'Su cita ha sido programada con éxito.',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = 'mis_citas.pl';
-                });
-            } else {
-                Swal.fire('Error', data.message || 'No se pudo agendar la cita', 'error');
-            }
-        })
-        .catch(err => {
-            Swal.fire('Error', 'Error de comunicación con el servidor', 'error');
-        });
-    });
+    // Si solo hay una opción habilitada, autoseleccionarla
+    if(medicoSelect.options.length === 2 && medicoSelect.options[1].value) {
+        medicoSelect.selectedIndex = 1;
+        medicoSelect.dispatchEvent(new Event('change'));
+    }
 });
 </script>
 HTML
