@@ -426,7 +426,9 @@ HTML
         $grouped_or_drawn{'reportes'} = 1;
     }
 
-    foreach my $mod_key (keys %is_allowed) {
+    foreach my $raw_mod (@allowed_modules) {
+        my $mod_key = $raw_mod;
+        $mod_key =~ s/^\s+|\s+$//g;
         next if $grouped_or_drawn{$mod_key};
         next unless $menu_registry{$mod_key};
         my $m = $menu_registry{$mod_key};

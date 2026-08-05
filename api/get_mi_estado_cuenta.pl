@@ -5,13 +5,15 @@ use warnings;
 use utf8;
 use CGI;
 use JSON::PP;
-use lib '..';
+use FindBin;
+use File::Spec;
+use lib "$FindBin::Bin/..";
 use utils::db_manager qw(leer_tabla);
 
 # Forzamos STDOUT a utf8
 binmode STDOUT, ":utf8";
 
-require '../auth/check_session.pl';
+require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 my $session_data = check_session();
 unless ($session_data->{session_ok}) {
     print "Content-Type: application/json; charset=UTF-8\n\n";
@@ -27,7 +29,8 @@ if ($session_data->{role} ne 'Paciente' || !$correo_paciente) {
 }
 
 # 1. Obtener mis IDs
-my $regs_pacientes = leer_tabla('../dat/pacientes.dat', '\|');
+my $pacientes_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
+my $regs_pacientes = leer_tabla($pacientes_file, '\|');
 my %mis_ids = ();
 
 if ($regs_pacientes) {
@@ -43,7 +46,8 @@ if ($regs_pacientes) {
 
 # Pre-cargar diccionarios para nombres reales de médicos
 my %medicos = ();
-my $regs_usuarios = leer_tabla('../dat/usuarios.dat', '!');
+my $usuarios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+my $regs_usuarios = leer_tabla($usuarios_file, '!');
 if ($regs_usuarios) {
     foreach my $u (@$regs_usuarios) {
         $medicos{$u->[0]} = $u->[1] if @$u >= 2;
@@ -55,8 +59,9 @@ if ($regs_usuarios) {
 my @movimientos = ();
 my $saldo_total = 0;
 
-if (-e '../dat/estado_cuenta.dat') {
-    my $regs = leer_tabla('../dat/estado_cuenta.dat', '\|');
+my $estado_cuenta_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
+if (-e $estado_cuenta_file) {
+    my $regs = leer_tabla($estado_cuenta_file, '\|');
     if ($regs) {
         foreach my $r (@$regs) {
             next if @$r < 10;

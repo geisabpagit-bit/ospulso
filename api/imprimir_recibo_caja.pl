@@ -10,6 +10,8 @@ use lib "$FindBin::Bin/..";
 
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 
+binmode STDOUT, ':utf8';
+
 my $q = CGI->new;
 my $session_data = check_session($q);
 

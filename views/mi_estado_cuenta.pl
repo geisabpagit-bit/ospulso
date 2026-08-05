@@ -69,7 +69,7 @@ print <<'HTML';
             </div>
 
             <div class="table-responsive" id="fin_table_container" style="display:none;">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle" id="tabla_finanzas">
                     <thead class="table-light">
                         <tr>
                             <th>Fecha</th>
@@ -88,6 +88,11 @@ print <<'HTML';
         </div>
     </div>
 </div>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
 $(document).ready(function() {
@@ -118,7 +123,7 @@ $(document).ready(function() {
                     res.movimientos.forEach(m => {
                         let textClass = m.tipo === 'Cargo' ? 'text-danger' : 'text-success';
                         let prefix = m.tipo === 'Cargo' ? '+' : '-';
-                        let f = new Date(m.fecha * 1000).toLocaleString('es-MX', {year:'numeric', month:'short', day:'numeric'});
+                        let f = m.fecha;
                         
                         html += `<tr>
                             <td>${f}</td>
@@ -130,6 +135,16 @@ $(document).ready(function() {
                         </tr>`;
                     });
                     $('#fin_tbody').html(html);
+                    
+                    // Inicializar DataTables
+                    if ($.fn.DataTable.isDataTable('#tabla_finanzas')) {
+                        $('#tabla_finanzas').DataTable().destroy();
+                    }
+                    $('#tabla_finanzas').DataTable({
+                        "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
+                        "order": [[ 0, "desc" ]],
+                        "pageLength": 10
+                    });
                 } else {
                     $('#fin_empty').fadeIn();
                 }

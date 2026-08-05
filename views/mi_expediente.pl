@@ -147,6 +147,7 @@ $(document).ready(function() {
         type: 'GET',
         dataType: 'json',
         success: function(res) {
+            console.log("Respuesta de get_mi_expediente.pl:", res);
             if(res.ok) {
                 // Recetas
                 var recHtml = '';
@@ -163,7 +164,7 @@ $(document).ready(function() {
                 } else {
                     recHtml = '<li class="list-group-item text-center text-muted py-4">No hay recetas emitidas.</li>';
                 }
-                $('#lista_recetas').html(recHtml);
+                \$('#lista_recetas').html(recHtml);
 
                 // Estudios
                 var estHtml = '';
@@ -180,7 +181,7 @@ $(document).ready(function() {
                 } else {
                     estHtml = '<li class="list-group-item text-center text-muted py-4">No hay estudios asociados.</li>';
                 }
-                $('#lista_estudios').html(estHtml);
+                \$('#lista_estudios').html(estHtml);
 
                 // Consultas
                 var consHtml = '';
@@ -198,14 +199,17 @@ $(document).ready(function() {
                 } else {
                     consHtml = '<li class="list-group-item text-center text-muted py-4">Aún no hay consultas finalizadas.</li>';
                 }
-                $('#lista_consultas').html(consHtml);
+                \$('#lista_consultas').html(consHtml);
 
             } else {
+                console.error("Error en respuesta:", res.msg);
                 Swal.fire('Error', res.msg, 'error');
             }
         },
-        error: function() {
-            Swal.fire('Error', 'No se pudo cargar el expediente', 'error');
+        error: function(xhr, status, error) {
+            console.error("Error AJAX get_mi_expediente:", status, error);
+            console.error("Respuesta cruda:", xhr.responseText);
+            Swal.fire('Error', 'No se pudo cargar el expediente. Revisa la consola.', 'error');
         }
     });
 });

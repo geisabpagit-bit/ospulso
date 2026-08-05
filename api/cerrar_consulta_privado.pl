@@ -332,10 +332,13 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
             my $idx = 1;
             foreach my $it (@items_cot) {
                 my $id_mov = 'MOV-' . time() . '-' . $idx++;
+                my $nota_tratamiento = "Tratamiento: $id_tratamiento";
+                $nota_tratamiento .= " | Cita #$id_cita" if $id_cita;
+                $nota_tratamiento .= " | Consulta #$id_consulta";
                 my $linea_cargo = join('|',
                     $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{concepto},
                     $it->{subtotal}, 0, $it->{subtotal}, $hoy_fecha, $id_medico,
-                    "Tratamiento: $id_tratamiento", ''
+                    $nota_tratamiento, ''
                 );
                 utils::db_manager::guardar_registro($fin_file, $linea_cargo);
             }
