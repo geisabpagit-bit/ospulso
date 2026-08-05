@@ -48,7 +48,13 @@ function loadContext() {
 }
 
 function moveDate(days) {
-    selectedDate.setDate(selectedDate.getDate() + days);
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + days);
+    if (getISO(newDate) < getISO(new Date())) {
+        selectedDate = new Date();
+    } else {
+        selectedDate = newDate;
+    }
     renderWeeklySmartView();
 }
 
@@ -82,21 +88,26 @@ function renderWeeklySmartView() {
     const numDays = isMobile ? 3 : 7;
     const offset = Math.floor(numDays / 2);
     
-    for (let i = -offset; i <= offset; i++) {
-        const d = new Date(base);
+    let startDate = new Date(base);
+    startDate.setDate(startDate.getDate() - offset);
+    if (getISO(startDate) < todayISO) {
+        startDate = new Date();
+    }
+    
+    for (let i = 0; i < numDays; i++) {
+        const d = new Date(startDate);
         d.setDate(d.getDate() + i);
         const iso = getISO(d);
         const active = iso === getISO(selectedDate);
         const holiday = isHoliday(iso) || !isWorkDay(iso);
-        const isPast = iso < todayISO;
         const isToday = iso === todayISO;
         const dayName = d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '');
         const dayNum = d.getDate();
 
-        const disabledClass = (holiday || isPast) ? 'holiday' : '';
+        const disabledClass = holiday ? 'holiday' : '';
 
         const card = $(`
-            <div class="smart-day-card ${active ? 'active' : ''} ${disabledClass}" onclick="if(!this.classList.contains('holiday')) { selectSmartDate('${iso}'); }">
+            <div class="smart-day-card kpi-acrilico ${active ? 'active' : ''} ${disabledClass}" onclick="if(!this.classList.contains('holiday')) { selectSmartDate('${iso}'); }">
                 <div class="day-name">${dayName}</div>
                 <div class="day-num">${dayNum}</div>
                 ${isToday ? '<div style="font-size: 0.6rem; margin-top: 2px; font-weight: bold; color: var(--bs-primary);">HOY</div>' : ''}

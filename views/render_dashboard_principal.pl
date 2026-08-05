@@ -477,7 +477,13 @@ HTML
                     <div class="bg-white rounded-4 p-3 p-lg-4 shadow-sm mobile-edge-to-edge" style="border: 1px solid var(--md-teal-clinical); min-height: 350px;">
                         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
                             <p class="text-secondary font-secondary m-0 small fw-bold" style="letter-spacing: 0.5px;">ACTIVIDAD PROGRAMADA RECIENTE</p>
-                            <a href="../views/agenda_main.pl" class="btn btn-mobile-standard btn-mobile-outline btn-mobile-full" style="font-size: 0.85rem;"><i class="bi bi-calendar-check fs-5"></i> Ver Agenda Completa</a>
+HTML
+
+    if ($role ne 'Paciente') {
+        print qq{                            <a href="../views/agenda_main.pl" class="btn btn-mobile-standard btn-mobile-outline btn-mobile-full" style="font-size: 0.85rem;"><i class="bi bi-calendar-check fs-5"></i> Ver Agenda Completa</a>\n};
+    }
+
+    print <<HTML;
                         </div>
 HTML
 
