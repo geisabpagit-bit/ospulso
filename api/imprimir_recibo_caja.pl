@@ -208,54 +208,29 @@ print <<HTML;
             width: 5.5in;
             height: 8.5in;
             box-sizing: border-box;
-            padding: 0.4in;
+            padding: 0.25in;
             margin: 0 auto;
         }
-        .header {
+        .grid-receipt {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+        .grid-receipt td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            vertical-align: middle;
+        }
+        .header-row td {
             text-align: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
         }
-        .header p {
-            margin: 2px 0;
+        .col-logo { width: 25%; }
+        .col-clinic { width: 50%; font-size: 13px; text-transform: uppercase; }
+        .col-folio { width: 25%; font-size: 11px; }
+        .info-label-cell {
+            width: 25%;
             color: #555;
-            font-size: 10px;
-        }
-        .title-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .title-row h1 {
-            margin: 0;
-            font-size: 16px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .title-row .folio {
-            font-size: 14px;
-            font-weight: bold;
-            color: #d32f2f;
-        }
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 4px;
-        }
-        .info-item {
-            margin-bottom: 4px;
-        }
-        .info-label {
-            font-weight: bold;
-            color: #555;
-            display: inline-block;
-            width: 65px;
         }
         .table-concepts {
             width: 100%;
@@ -323,86 +298,66 @@ print <<HTML;
 </head>
 <body onload="window.print()">
     <div class="receipt-container">
-        <div class="header">
-            $logo_html
-            <p><strong>$negocio->{nombre}</strong></p>
-            <p>$negocio->{domicilio}</p>
-            <p>Tel: $negocio->{telefono}</p>
-        </div>
+        <table class="grid-receipt">
+            <tr class="header-row">
+                <td class="col-logo">$logo_html</td>
+                <td class="col-clinic">$negocio->{nombre}</td>
+                <td class="col-folio">
+                    $recibo->{fecha} - $recibo->{hora} hrs.<br>
+                    <strong>Folio</strong><br>
+                    <strong style="font-size: 14px; color: #111;">$recibo->{folio}</strong><br>
+                    Visita : Recurrente
+                </td>
+            </tr>
+            <tr>
+                <td class="info-label-cell">Paciente :</td>
+                <td colspan="2" style="text-transform: uppercase;">$paciente_nombre</td>
+            </tr>
+            <tr>
+                <td class="info-label-cell">Motivo:</td>
+                <td colspan="2">Consulta / Atención Médica</td>
+            </tr>
+
         
-        <div class="title-row">
-            <h1>Recibo de Caja</h1>
-            <div class="folio">Folio: $recibo->{folio}</div>
-        </div>
-        
-        <div class="info-grid">
-            <div class="info-item"><span class="info-label">Fecha:</span> $recibo->{fecha} $recibo->{hora}</div>
-            <div class="info-item"><span class="info-label">Paciente:</span> <strong>$paciente_nombre</strong></div>
-            <div class="info-item"><span class="info-label">Método:</span> $recibo->{metodo_pago}</div>
-            <div class="info-item"><span class="info-label">Elaboró:</span> $recibo->{elaborado_por}</div>
-        </div>
-        
-        <table class="table-concepts">
-            <thead>
-                <tr>
-                    <th style="text-align: left;">CONCEPTO</th>
-                    <th style="text-align: right;">PRECIO</th>
-                    <th style="text-align: center;">CANT.</th>
-                    <th style="text-align: right;">SUBTOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
+            <tr>
+                <td class="info-label-cell" style="vertical-align: top;">Concepto :</td>
+                <td colspan="2" style="padding: 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
 HTML
 
 foreach my $c (@cargos) {
     my $precio_fmt   = formato_moneda($c->{precio});
     my $subtotal_fmt = formato_moneda($c->{subtotal});
+    my $concepto_txt = uc($c->{concepto});
     print qq{
-                <tr>
-                    <td style="text-align: left;"><strong>$c->{concepto}</strong></td>
-                    <td style="text-align: right;">$precio_fmt</td>
-                    <td style="text-align: center;">$c->{cantidad}</td>
-                    <td style="text-align: right; color: #1a365d; font-weight: 600;">$subtotal_fmt</td>
-                </tr>
+                        <tr>
+                            <td style="text-align: left; padding: 6px; border-bottom: 1px dashed #ccc;">$concepto_txt</td>
+                            <td style="text-align: right; padding: 6px; border-bottom: 1px dashed #ccc;">$subtotal_fmt</td>
+                        </tr>
     };
 }
 
 print <<HTML;
-            </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 90px; padding-bottom: 10px;">
+                    <div style="border-top: 1px solid #333; width: 60%; margin: 0 auto; padding-top: 5px;">
+                        Nombre y Firma del Paciente
+                    </div>
+                </td>
+                <td style="text-align: right; vertical-align: middle; padding: 15px;">
+                    Costo : @{[ formato_moneda($recibo->{total_cargos}) ]} ($recibo->{metodo_pago})<br><br><br>
+                    Elaboro : $recibo->{elaborado_por}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="text-align: center; color: #555;">
+                    $negocio->{domicilio}, Tel: $negocio->{telefono}
+                </td>
+            </tr>
         </table>
-        
-        <div class="totals-box">
-            <div class="totals-row">
-                <span>Subtotal Cargos:</span>
-                <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
-            </div>
-            <div class="totals-row" style="color: #2e7d32;">
-                <span>Total Abonado:</span>
-                <span>- @{[ formato_moneda($recibo->{total_abonos}) ]}</span>
-            </div>
-            <div class="totals-row grand-total">
-                <span>Saldo Pendiente:</span>
-                <span>@{[ formato_moneda($saldo) ]}</span>
-            </div>
-        </div>
-        
-        <div class="signatures">
-            <div class="signature-line">
-                <br>
-                Firma del Paciente<br>
-                $paciente_nombre
-            </div>
-            <div class="signature-line">
-                <br>
-                Firma de Recibido<br>
-                $recibo->{elaborado_por}
-            </div>
-        </div>
-        
-        <div class="footer">
-            Documento generado por OsPulso - El recibo es válido como comprobante de pago interno.<br>
-            Cita ID: $recibo->{id_consulta}
-        </div>
     </div>
 </body>
 </html>

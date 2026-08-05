@@ -670,78 +670,72 @@ function verReciboPrevio() {
         '<head>\\n' +
         '    <meta charset="UTF-8">\\n' +
         '    <title>Recibo Previo (Borrador)</title>\\n' +
-        '    <style>\\n' +
+                '    <style>\\n' +
         '        \@page { size: 5.5in 8.5in; margin: 0; }\\n' +
-        '        body { font-family: \\'Helvetica Neue\\', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #111; font-size: 11px; background: #f4f6f9; }\\n' +
+        '        body { font-family: \'Helvetica Neue\', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #111; font-size: 11px; background: #f4f6f9; }\\n' +
         '        .banner-previo { background: #fff3cd; color: #856404; text-align: center; padding: 8px; font-weight: bold; font-size: 12px; border-bottom: 1px solid #ffeeba; }\\n' +
-        '        .receipt-container { width: 5.5in; height: 8.5in; box-sizing: border-box; padding: 0.4in; margin: 20px auto; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }\\n' +
-        '        .header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }\\n' +
-        '        .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }\\n' +
-        '        .title-row h1 { margin: 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }\\n' +
-        '        .title-row .folio { font-size: 14px; font-weight: bold; color: #e65100; }\\n' +
-        '        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 4px; }\\n' +
-        '        .info-label { font-weight: bold; color: #555; display: inline-block; width: 65px; }\\n' +
-        '        .table-concepts { width: 100%; border-collapse: collapse; margin-bottom: 15px; }\\n' +
-        '        .table-concepts th { border-bottom: 2px solid #1a365d; padding: 6px; text-transform: uppercase; font-size: 10px; color: #1a365d; }\\n' +
-        '        .totals-box { width: 50%; margin-left: auto; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background: #fafafa; }\\n' +
-        '        .totals-row { display: flex; justify-content: space-between; margin-bottom: 4px; }\\n' +
-        '        .totals-row.grand-total { font-weight: bold; font-size: 13px; border-top: 1px solid #000; padding-top: 4px; margin-top: 4px; }\\n' +
-        '        .signatures { margin-top: 40px; display: flex; justify-content: space-between; text-align: center; }\\n' +
-        '        .signature-line { width: 45%; border-top: 1px solid #000; padding-top: 5px; font-size: 10px; color: #333; }\\n' +
-        '        .footer-note { margin-top: 25px; text-align: center; font-size: 9px; color: #777; }\\n' +
+        '        .receipt-container { width: 5.5in; height: 8.5in; box-sizing: border-box; padding: 0.25in; margin: 20px auto; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }\\n' +
+        '        .grid-receipt { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 11px; }\\n' +
+        '        .grid-receipt td { border: 1px solid #ddd; padding: 6px; vertical-align: middle; }\\n' +
+        '        .header-row td { text-align: center; }\\n' +
+        '        .col-logo { width: 25%; }\\n' +
+        '        .col-clinic { width: 50%; font-size: 13px; text-transform: uppercase; }\\n' +
+        '        .col-folio { width: 25%; font-size: 11px; }\\n' +
+        '        .info-label-cell { width: 25%; color: #555; }\\n' +
         '    </style>\\n' +
-        '</head>\\n' +
+
+                '</head>\\n' +
         '<body>\\n' +
         '    <div class="banner-previo">VISTA PREVIA DE RECIBO DE CAJA (PREVIO A FIRMA DEFINITIVA)</div>\\n' +
         '    <div class="receipt-container">\\n' +
-        '        <div class="header">\\n' +
-        '            <h2 style="margin:0; color:#1a365d;">RECIBO PREVIO</h2>\\n' +
-        '        </div>\\n' +
-        '        <div class="title-row">\\n' +
-        '            <h1>Recibo de Caja</h1>\\n' +
-        '            <div class="folio">Folio: REC-PREVIO</div>\\n' +
-        '        </div>\\n' +
-        '        <div class="info-grid">\\n' +
-        '            <div><span class="info-label">Fecha:</span> ' + hoyFecha + ' ' + hoyHora + '</div>\\n' +
-        '            <div><span class="info-label">Paciente:</span> <strong>' + pacNombre + '</strong></div>\\n' +
-        '            <div><span class="info-label">Metodo:</span> ' + metodo + '</div>\\n' +
-        '            <div><span class="info-label">Elaboro:</span> ' + medNombre + '</div>\\n' +
-        '        </div>\\n' +
-        '        <table class="table-concepts">\\n' +
-        '            <thead>\\n' +
-        '                <tr>\\n' +
-        '                    <th style="text-align: left;">CONCEPTO</th>\\n' +
-        '                    <th style="text-align: right;">PRECIO</th>\\n' +
-        '                    <th style="text-align: center;">CANT.</th>\\n' +
-        '                    <th style="text-align: right;">SUBTOTAL</th>\\n' +
-        '                </tr>\\n' +
-        '            </thead>\\n' +
-        '            <tbody>\\n' +
-        '                ' + itemsRows + '\\n' +
-        '            </tbody>\\n' +
+        '        <table class="grid-receipt">\\n' +
+        '            <tr class="header-row">\\n' +
+        '                <td class="col-logo"><h2>LOGO</h2></td>\\n' +
+        '                <td class="col-clinic">Clínica Médica</td>\\n' +
+        '                <td class="col-folio">\\n' +
+        '                    ' + hoyFecha + ' - ' + hoyHora + ' hrs.<br>\\n' +
+        '                    <strong>Folio</strong><br>\\n' +
+        '                    <strong style="font-size: 14px; color: #111;">BORRADOR</strong><br>\\n' +
+        '                    Visita : Recurrente\\n' +
+        '                </td>\\n' +
+        '            </tr>\\n' +
+        '            <tr>\\n' +
+        '                <td class="info-label-cell">Paciente :</td>\\n' +
+        '                <td colspan="2" style="text-transform: uppercase;">' + pacNombre + '</td>\\n' +
+        '            </tr>\\n' +
+        '            <tr>\\n' +
+        '                <td class="info-label-cell">Motivo:</td>\\n' +
+        '                <td colspan="2">Consulta / Atención Médica</td>\\n' +
+        '            </tr>\\n' +
+        '            <tr>\\n' +
+        '                <td class="info-label-cell" style="vertical-align: top;">Concepto :</td>\\n' +
+        '                <td colspan="2" style="padding: 0;">\\n' +
+        '                    <table style="width: 100%; border-collapse: collapse;">\\n' +
+        itemsRows +
+        '                    </table>\\n' +
+        '                </td>\\n' +
+        '            </tr>\\n' +
+        '            <tr>\\n' +
+        '                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 90px; padding-bottom: 10px;">\\n' +
+        '                    <div style="border-top: 1px solid #333; width: 60%; margin: 0 auto; padding-top: 5px;">\\n' +
+        '                        Nombre y Firma del Paciente\\n' +
+        '                    </div>\\n' +
+        '                </td>\\n' +
+        '                <td style="text-align: right; vertical-align: middle; padding: 15px;">\\n' +
+        '                    Costo : ' + fmt(totalCargos) + ' (' + metodo + ')<br><br><br>\\n' +
+        '                    Elaboró : ' + medNombre + '\\n' +
+        '                </td>\\n' +
+        '            </tr>\\n' +
+        '            <tr>\\n' +
+        '                <td colspan="3" style="text-align: center; color: #555;">\\n' +
+        '                    Documento generado por OsPulso - El recibo es válido como comprobante de pago interno.\\n' +
+        '                </td>\\n' +
+        '            </tr>\\n' +
         '        </table>\\n' +
-        '        <div class="totals-box">\\n' +
-        '            <div class="totals-row">\\n' +
-        '                <span>Subtotal Cargos:</span>\\n' +
-        '                <span>' + fmt(totalCargos) + '</span>\\n' +
-        '            </div>\\n' +
-        '            <div class="totals-row" style="color: #2e7d32;">\\n' +
-        '                <span>Total Abonado:</span>\\n' +
-        '                <span>- ' + fmt(totalAbonado) + '</span>\\n' +
-        '            </div>\\n' +
-        '            <div class="totals-row grand-total">\\n' +
-        '                <span>Saldo Pendiente:</span>\\n' +
-        '                <span>' + fmt(saldo) + '</span>\\n' +
-        '            </div>\\n' +
-        '        </div>\\n' +
-        '        <div class="signatures">\\n' +
-        '            <div class="signature-line"><br>Firma del Paciente<br>' + pacNombre + '</div>\\n' +
-        '            <div class="signature-line"><br>Firma de Recibido<br>' + medNombre + '</div>\\n' +
-        '        </div>\\n' +
-        '        <div class="footer-note">Documento de vista previa previa a la firma final.</div>\\n' +
         '    </div>\\n' +
         '</body>\\n' +
         '</html>';
+
     win.document.write(htmlContent);
     win.document.close();
 }
