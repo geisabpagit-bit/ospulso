@@ -4,3 +4,4 @@ id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO
 112979632!francisco lopez!fran@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Administrador Organizacion!1055007:0!0!0!0!Clínica Principal!
 1020747209!doctor 1!doc1@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Medico!1055007:706496!100!100.1!12345678!Av. Universidad 100, Col. Centro, CDMX!FIRMA_DOC1
 1088603479!doctor dos!doc2@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Medico!1055007:591522!5!0!87654321!Calle Médicos 45, Col. Juárez, CDMX!FIRMA_DOC2
+PAC-TEST-1785893265!Juan Pérez Test!paciente.flujo@test.com!288d17c9663008ce73119b63dfb123fe1a3c08bcb9e24c943af627b18f12dc11!1!Paciente!0:0!0!0!0!Clínica Principal

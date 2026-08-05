@@ -50,7 +50,8 @@ my $pac_ant_content = "ID_PACIENTE|TUTOR|ANTECEDENTES_JSON|FECHA_ACTUALIZACION\n
 
 my %archivos = (
     'usuarios.dat' => $usuarios_content,
-    'negocios.dat' => "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud\n",
+    'negocios.dat' => "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud\n" .
+                      "1055007|Clínica Principal|0|1|2026-01-01|2030-12-31|Av. Universidad 100, Col. Centro, CDMX|5512345678|contacto\@pdigitalesm.com|||||||||||||\n",
     'citas.dat' => "ID_CITA|ID_MEDICO|ID_PACIENTE|FECHA|HORA_INICIO|HORA_FIN|TIPO_CONSULTA|NOTAS|ESTADO|EXTRA\n",
     'pacientes.dat' => $pacientes_content,
     'pacientes_antecedentes.dat' => $pac_ant_content,

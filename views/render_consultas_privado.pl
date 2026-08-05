@@ -13,7 +13,6 @@ use File::Spec;
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
-require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 use utils::db_manager qw(leer_tabla);
 
 # Cargar Componentes (Partials)
@@ -580,6 +579,159 @@ async function finalizarConsulta() {
     } catch(e) {
         Swal.fire('Error', 'Fallo de conexión.', 'error');
     }
+}
+function verReciboPrevio() {
+    let items = [];
+    if (typeof carritoConsulta !== 'undefined' && carritoConsulta.length > 0) {
+        items = carritoConsulta.map(it => ({
+            concepto: it.nombre || it.concepto || 'Concepto Médico',
+            precio: parseFloat(it.precio || 0),
+            cantidad: parseInt(it.cantidad || 1),
+            subtotal: parseFloat(it.precio || 0) * parseInt(it.cantidad || 1)
+        }));
+    }
+    
+    const cotSelect = document.getElementById('f_id_cotizacion');
+    if (cotSelect && cotSelect.value && typeof cotizacionesData !== 'undefined' && cotizacionesData[cotSelect.value]) {
+        const cot = cotizacionesData[cotSelect.value];
+        if (cot.items && cot.items.length > 0) {
+            cot.items.forEach(ci => {
+                items.push({
+                    concepto: ci.concepto,
+                    precio: parseFloat(ci.precio || 0),
+                    cantidad: parseInt(ci.cantidad || 1),
+                    subtotal: parseFloat(ci.subtotal || (ci.precio * ci.cantidad))
+                });
+            });
+        }
+    }
+    
+    const montoAbonoEl = document.getElementById('f_caja_monto_abono');
+    const montoAbono = parseFloat(montoAbonoEl ? montoAbonoEl.value : 0) || 0;
+    
+    if (items.length === 0) {
+        let precioDefault = montoAbono > 0 ? montoAbono : 500.00;
+        items.push({
+            concepto: 'Consulta Médica General',
+            precio: precioDefault,
+            cantidad: 1,
+            subtotal: precioDefault
+        });
+    }
+    
+    let totalCargos = 0;
+    items.forEach(it => { totalCargos += it.subtotal; });
+    
+    let totalAbonado = montoAbono > 0 ? montoAbono : totalCargos;
+    let saldo = totalCargos - totalAbonado;
+    if (saldo < 0) saldo = 0;
+    
+    const metodoEl = document.getElementById('f_caja_metodo_pago');
+    const metodo = metodoEl ? metodoEl.value : 'Efectivo';
+    
+    const fmt = (num) => '$' + num.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');
+    
+    let itemsRows = '';
+    items.forEach(it => {
+        itemsRows += `
+            <tr>
+                <td style="text-align: left; padding: 6px 5px; border-bottom: 1px dashed #ccc;"><strong>\${it.concepto}</strong></td>
+                <td style="text-align: right; padding: 6px 5px; border-bottom: 1px dashed #ccc;">\${fmt(it.precio)}</td>
+                <td style="text-align: center; padding: 6px 5px; border-bottom: 1px dashed #ccc;">\${it.cantidad}</td>
+                <td style="text-align: right; padding: 6px 5px; border-bottom: 1px dashed #ccc; color: #1a365d; font-weight: 600;">\${fmt(it.subtotal)}</td>
+            </tr>
+        `;
+    });
+    
+    const win = window.open('', '_blank', 'width=750,height=900');
+    if (!win) {
+        Swal.fire('Atención', 'Por favor, permite ventanas emergentes para ver el recibo previo.', 'warning');
+        return;
+    }
+    
+    const pacNombre = '$paciente->{nombre}';
+    const medNombre = '$usuario';
+    const hoyFecha  = '$hoy_fecha';
+    const hoyHora   = '$hoy_hora';
+    
+    win.document.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recibo Previo (Borrador)</title>
+    <style>
+        \@page { size: 5.5in 8.5in; margin: 0; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #111; font-size: 11px; background: #f4f6f9; }
+        .banner-previo { background: #fff3cd; color: #856404; text-align: center; padding: 8px; font-weight: bold; font-size: 12px; border-bottom: 1px solid #ffeeba; }
+        .receipt-container { width: 5.5in; height: 8.5in; box-sizing: border-box; padding: 0.4in; margin: 20px auto; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .title-row h1 { margin: 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .title-row .folio { font-size: 14px; font-weight: bold; color: #e65100; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
+        .info-label { font-weight: bold; color: #555; display: inline-block; width: 65px; }
+        .table-concepts { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .table-concepts th { border-bottom: 2px solid #1a365d; padding: 6px; text-transform: uppercase; font-size: 10px; color: #1a365d; }
+        .totals-box { width: 50%; margin-left: auto; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background: #fafafa; }
+        .totals-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .totals-row.grand-total { font-weight: bold; font-size: 13px; border-top: 1px solid #000; padding-top: 4px; margin-top: 4px; }
+        .signatures { margin-top: 40px; display: flex; justify-content: space-between; text-align: center; }
+        .signature-line { width: 45%; border-top: 1px solid #000; padding-top: 5px; font-size: 10px; color: #333; }
+        .footer-note { margin-top: 25px; text-align: center; font-size: 9px; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="banner-previo">VISTA PREVIA DE RECIBO DE CAJA (PREVIO A FIRMA DEFINITIVA)</div>
+    <div class="receipt-container">
+        <div class="header">
+            <h2 style="margin:0; color:#1a365d;">RECIBO PREVIO</h2>
+        </div>
+        <div class="title-row">
+            <h1>Recibo de Caja</h1>
+            <div class="folio">Folio: REC-PREVIO</div>
+        </div>
+        <div class="info-grid">
+            <div><span class="info-label">Fecha:</span> \${hoyFecha} \${hoyHora}</div>
+            <div><span class="info-label">Paciente:</span> <strong>\${pacNombre}</strong></div>
+            <div><span class="info-label">Método:</span> \${metodo}</div>
+            <div><span class="info-label">Elaboró:</span> \${medNombre}</div>
+        </div>
+        <table class="table-concepts">
+            <thead>
+                <tr>
+                    <th style="text-align: left;">CONCEPTO</th>
+                    <th style="text-align: right;">PRECIO</th>
+                    <th style="text-align: center;">CANT.</th>
+                    <th style="text-align: right;">SUBTOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                \${itemsRows}
+            </tbody>
+        </table>
+        <div class="totals-box">
+            <div class="totals-row">
+                <span>Subtotal Cargos:</span>
+                <span>\${fmt(totalCargos)}</span>
+            </div>
+            <div class="totals-row" style="color: #2e7d32;">
+                <span>Total Abonado:</span>
+                <span>- \${fmt(totalAbonado)}</span>
+            </div>
+            <div class="totals-row grand-total">
+                <span>Saldo Pendiente:</span>
+                <span>\${fmt(saldo)}</span>
+            </div>
+        </div>
+        <div class="signatures">
+            <div class="signature-line"><br>Firma del Paciente<br>\${pacNombre}</div>
+            <div class="signature-line"><br>Firma de Recibido<br>\${medNombre}</div>
+        </div>
+        <div class="footer-note">Documento de vista previa previa a la firma final.</div>
+    </div>
+</body>
+</html>`);
+    win.document.close();
 }
 </script>
 HTML

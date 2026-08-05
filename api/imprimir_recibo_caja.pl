@@ -114,37 +114,69 @@ if ($negocio->{logo_url}) {
     $logo_html = qq{<h2 style="margin:0; color:#333;">$negocio->{nombre}</h2>};
 }
 
-# 4. Obtener Conceptos de estado_cuenta.dat
+# 4. Obtener Conceptos de consultas_clinicas.dat y estado_cuenta.dat
+use JSON qw(decode_json);
 my @cargos;
-my @abonos;
-my $edo_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
-if (-e $edo_file && open(my $fhe, '<:encoding(UTF-8)', $edo_file)) {
-    my $he = <$fhe>;
-    while (my $le = <$fhe>) {
-        chomp $le;
-        my @e = split /\|/, $le, -1;
-        # 0:ID_OS, 1:ID_MOV, 2:ID_PAC, 3:TIPO, 4:CONCEPTO, 5:MONTO, 6:IVA, 7:TOTAL, 8:FECHA, 9:MEDICO, 10:NOTAS
-        if ($e[10] && $e[10] =~ /Consulta #$id_consulta/) {
-            my $item = {
-                tipo => $e[3],
-                concepto => $e[4],
-                monto => $e[7]
+my $cons_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
+if (-e $cons_file && open(my $fhc, '<:encoding(UTF-8)', $cons_file)) {
+    my $hc = <$fhc>;
+    while (my $lc = <$fhc>) {
+        chomp $lc;
+        my @c = split /\|/, $lc, -1;
+        if (@c >= 6 && $c[0] eq $id_consulta) {
+            eval {
+                my $pdata = decode_json($c[5]);
+                my $raw_items = $pdata->{caja_items_json} || $pdata->{caja_items};
+                if ($raw_items) {
+                    my $arr = ref($raw_items) eq 'ARRAY' ? $raw_items : decode_json($raw_items);
+                    if (ref($arr) eq 'ARRAY') {
+                        foreach my $it (@$arr) {
+                            my $name = $it->{nombre} || $it->{concepto} || 'Concepto Médico';
+                            my $prec = $it->{precio} // $it->{monto} // 0;
+                            my $cant = $it->{cantidad} // 1;
+                            my $subt = $it->{subtotal} // ($prec * $cant);
+                            push @cargos, {
+                                concepto => $name,
+                                precio   => $prec,
+                                cantidad => $cant,
+                                subtotal => $subt
+                            };
+                        }
+                    }
+                }
             };
-            if ($item->{tipo} eq 'Cargo') {
-                push @cargos, $item;
-            } else {
-                push @abonos, $item;
-            }
+            last;
         }
     }
-    close $fhe;
+    close $fhc;
+}
+
+if (!@cargos) {
+    my $edo_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
+    if (-e $edo_file && open(my $fhe, '<:encoding(UTF-8)', $edo_file)) {
+        my $he = <$fhe>;
+        while (my $le = <$fhe>) {
+            chomp $le;
+            my @e = split /\|/, $le, -1;
+            if ($e[3] eq 'Cargo' && (($e[10] && $e[10] =~ /Consulta #$id_consulta/) || ($recibo->{id_paciente} && $e[2] eq $recibo->{id_paciente} && $e[8] eq $recibo->{fecha}))) {
+                my $monto = $e[7] || 0;
+                push @cargos, {
+                    concepto => $e[4],
+                    precio   => $monto,
+                    cantidad => 1,
+                    subtotal => $monto
+                };
+            }
+        }
+        close $fhe;
+    }
 }
 
 sub formato_moneda {
     my ($monto) = @_;
     $monto ||= 0;
     my $fmt = sprintf("%.2f", $monto);
-    while ($fmt =~ s/^(-?\\d+)(\\d{3})/$1,$2/) {}
+    while ($fmt =~ s/^(-?\d+)(\d{3})/$1,$2/) {}
     return '$' . $fmt;
 }
 
@@ -231,18 +263,16 @@ print <<HTML;
             margin-bottom: 15px;
         }
         .table-concepts th {
-            border-bottom: 1px solid #000;
-            padding: 5px;
-            text-align: left;
+            border-bottom: 2px solid #1a365d;
+            padding: 6px;
             text-transform: uppercase;
             font-size: 10px;
+            color: #1a365d;
         }
-        .table-concepts th.right { text-align: right; }
         .table-concepts td {
             padding: 6px 5px;
             border-bottom: 1px dashed #ccc;
         }
-        .table-concepts td.right { text-align: right; font-weight: 500; }
         
         .totals-box {
             width: 50%;
@@ -315,19 +345,24 @@ print <<HTML;
         <table class="table-concepts">
             <thead>
                 <tr>
-                    <th>Concepto</th>
-                    <th class="right">Importe</th>
+                    <th style="text-align: left;">CONCEPTO</th>
+                    <th style="text-align: right;">PRECIO</th>
+                    <th style="text-align: center;">CANT.</th>
+                    <th style="text-align: right;">SUBTOTAL</th>
                 </tr>
             </thead>
             <tbody>
 HTML
 
 foreach my $c (@cargos) {
-    my $monto_fmt = formato_moneda($c->{monto});
+    my $precio_fmt   = formato_moneda($c->{precio});
+    my $subtotal_fmt = formato_moneda($c->{subtotal});
     print qq{
                 <tr>
-                    <td>$c->{concepto}</td>
-                    <td class="right">$monto_fmt</td>
+                    <td style="text-align: left;"><strong>$c->{concepto}</strong></td>
+                    <td style="text-align: right;">$precio_fmt</td>
+                    <td style="text-align: center;">$c->{cantidad}</td>
+                    <td style="text-align: right; color: #1a365d; font-weight: 600;">$subtotal_fmt</td>
                 </tr>
     };
 }

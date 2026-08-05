@@ -20,6 +20,7 @@ sub render_step_cierre_privado {
                     <ul class="list-group list-group-flush border rounded">
                         <li class="list-group-item bg-light text-muted fw-bold"><i class="bi bi-check2 text-success me-2"></i> Receta M&eacute;dica Digital (si hay prescripciones)</li>
                         <li class="list-group-item bg-light text-muted fw-bold"><i class="bi bi-check2 text-success me-2"></i> Nota M&eacute;dica de Evoluci&oacute;n (SOAP)</li>
+                        <li class="list-group-item bg-light text-muted fw-bold"><i class="bi bi-check2 text-success me-2"></i> Recibo de Caja generado (Media Carta)</li>
                         <li class="list-group-item bg-light text-muted fw-bold"><i class="bi bi-check2 text-success me-2"></i> Conversi&oacute;n de Cotizaci&oacute;n a Tratamiento (si se seleccion&oacute;)</li>
                         <li class="list-group-item bg-light text-muted fw-bold"><i class="bi bi-check2 text-success me-2"></i> Registro del abono/liquidaci&oacute;n en Caja y Finanzas</li>
                         <li class="list-group-item bg-light text-muted fw-bold"><i class="bi bi-check2 text-success me-2"></i> Actualizaci&oacute;n de Agenda (Estado: Atendido / Programada)</li>
@@ -27,9 +28,12 @@ sub render_step_cierre_privado {
                 </div>
             </div>
             
-            <div class="d-flex justify-content-between mt-5 pt-4 border-top">
+            <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
                 <button type="button" class="wizard-btn-prev" onclick="WizardController.prevStep()"><i class="bi bi-arrow-left me-2"></i> Volver a Revisar</button>
-                <button type="button" class="wizard-btn-next wizard-btn-finish" onclick="finalizarConsulta()">Firmar y Finalizar Consulta <i class="bi bi-lock ms-2"></i></button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-mobile-standard me-2" onclick="verReciboPrevio()"><i class="bi bi-receipt me-2"></i> Ver recibo previo</button>
+                    <button type="button" class="wizard-btn-next wizard-btn-finish" onclick="finalizarConsulta()">Firmar y Finalizar Consulta <i class="bi bi-lock ms-2"></i></button>
+                </div>
             </div>
         </div>
     };
