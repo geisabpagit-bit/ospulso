@@ -433,12 +433,15 @@ print <<HTML;
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+HTML
+
+print <<'JS';
 <script>
     var dtOrganizaciones;
     var dtOrganizacionesInactivas;
-    \$(document).ready(function() {
-        if (\$('#tablaOrganizaciones').length && \$('#tablaOrganizaciones tbody tr td').length > 1) {
-            dtOrganizaciones = \$('#tablaOrganizaciones').DataTable({
+    $(document).ready(function() {
+        if ($('#tablaOrganizaciones').length && $('#tablaOrganizaciones tbody tr td').length > 1) {
+            dtOrganizaciones = $('#tablaOrganizaciones').DataTable({
                 destroy: true,
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
@@ -448,8 +451,8 @@ print <<HTML;
             });
         }
 
-        if (\$('#tablaOrganizacionesInactivas').length && \$('#tablaOrganizacionesInactivas tbody tr td').length > 1) {
-            dtOrganizacionesInactivas = \$('#tablaOrganizacionesInactivas').DataTable({
+        if ($('#tablaOrganizacionesInactivas').length && $('#tablaOrganizacionesInactivas tbody tr td').length > 1) {
+            dtOrganizacionesInactivas = $('#tablaOrganizacionesInactivas').DataTable({
                 destroy: true,
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
@@ -460,26 +463,26 @@ print <<HTML;
         }
 
         // Toggling styles on Tab Pills click dynamically
-        \$('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
-            \$(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
-            \$(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
+        $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
+            $(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
+            $(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
         });
 
         // Búsqueda de CP y CLUES para Nueva Organización SaaS
         window.resolveSaaSLocation = function(cp, targetColonia, targetClues) {
             if (!cp || cp.length !== 5) return;
-            \$('#saas_entidad_org').val('Buscando...');
-            \$('#saas_municipio_org').val('Buscando...');
-            \$('#saas_colonia_org').html('<option value="">Cargando colonias...</option>');
-            \$('#saas_clues_org').html('<option value="">Cargando establecimientos...</option>');
-            \$('input[name="nombre_org"]').val('');
-            \$('#saas_razon_org').val('');
-            \$('#saas_rfc_org').val('');
-            \$('#saas_tel_org').val('');
-            \$('#saas_ext_org').val('');
-            \$('#saas_dir_org').val('');
+            $('#saas_entidad_org').val('Buscando...');
+            $('#saas_municipio_org').val('Buscando...');
+            $('#saas_colonia_org').html('<option value="">Cargando colonias...</option>');
+            $('#saas_clues_org').html('<option value="">Cargando establecimientos...</option>');
+            $('input[name="nombre_org"]').val('');
+            $('#saas_razon_org').val('');
+            $('#saas_rfc_org').val('');
+            $('#saas_tel_org').val('');
+            $('#saas_ext_org').val('');
+            $('#saas_dir_org').val('');
             
-            \$.ajax({
+            $.ajax({
                 type: 'GET',
                 url: '../api/get_location.pl',
                 data: { cp: cp },
@@ -487,8 +490,8 @@ print <<HTML;
                 cache: false,
                 success: function(r) {
                     if(r.success) {
-                        \$('#saas_entidad_org').val(r.entidad || '');
-                        \$('#saas_municipio_org').val(r.municipio || '');
+                        $('#saas_entidad_org').val(r.entidad || '');
+                        $('#saas_municipio_org').val(r.municipio || '');
                         
                         let options = '<option value="">Seleccione colonia...</option>';
                         if(r.localidades && r.localidades.length > 0) {
@@ -497,7 +500,7 @@ print <<HTML;
                                 options += '<option value="' + loc + '" ' + sel + '>' + loc + '</option>';
                             });
                         }
-                        \$('#saas_colonia_org').html(options);
+                        $('#saas_colonia_org').html(options);
 
                         let cluesOptions = '<option value="">Ninguno (Opcional)</option>';
                         if(r.establecimientos && r.establecimientos.length > 0) {
@@ -506,50 +509,50 @@ print <<HTML;
                                 cluesOptions += '<option value="' + est.id + '" ' + sel + '>' + est.nombre + ' (' + est.id + ')</option>';
                             });
                         }
-                        \$('#saas_clues_org').html(cluesOptions);
+                        $('#saas_clues_org').html(cluesOptions);
                     } else {
-                        \$('#saas_entidad_org').val('');
-                        \$('#saas_municipio_org').val('');
-                        \$('#saas_colonia_org').html('<option value="">' + (r.message || 'C.P. no encontrado') + '</option>');
-                        \$('#saas_clues_org').html('<option value="">Ninguno (Opcional)</option>');
+                        $('#saas_entidad_org').val('');
+                        $('#saas_municipio_org').val('');
+                        $('#saas_colonia_org').html('<option value="">' + (r.message || 'C.P. no encontrado') + '</option>');
+                        $('#saas_clues_org').html('<option value="">Ninguno (Opcional)</option>');
                     }
                 },
                 error: function() {
-                    \$('#saas_entidad_org').val('');
-                    \$('#saas_municipio_org').val('');
-                    \$('#saas_colonia_org').html('<option value="">Error de conexión</option>');
-                    \$('#saas_clues_org').html('<option value="">Ninguno (Opcional)</option>');
+                    $('#saas_entidad_org').val('');
+                    $('#saas_municipio_org').val('');
+                    $('#saas_colonia_org').html('<option value="">Error de conexión</option>');
+                    $('#saas_clues_org').html('<option value="">Ninguno (Opcional)</option>');
                 }
             });
         };
 
-        \$(document).on('input', '#saas_cp_org', function() {
-            let cp = \$(this).val().replace(/\\D/g, '');
-            \$(this).val(cp);
+        $(document).on('input', '#saas_cp_org', function() {
+            let cp = $(this).val().replace(/\\D/g, '');
+            $(this).val(cp);
             if (cp.length === 5) {
                 window.resolveSaaSLocation(cp);
             }
         });
 
-        \$(document).on('click', '#btn_search_saas_cp', function() {
-            let cp = \$('#saas_cp_org').val().replace(/\\D/g, '');
+        $(document).on('click', '#btn_search_saas_cp', function() {
+            let cp = $('#saas_cp_org').val().replace(/\\D/g, '');
             if (cp.length === 5) {
                 window.resolveSaaSLocation(cp);
             }
         });
 
-        \$(document).on('change', '#saas_clues_org', function() {
-            let clues_id = \$(this).val();
+        $(document).on('change', '#saas_clues_org', function() {
+            let clues_id = $(this).val();
             if (!clues_id) {
-                \$('input[name="nombre_org"]').val('');
-                \$('#saas_razon_org').val('');
-                \$('#saas_rfc_org').val('');
-                \$('#saas_tel_org').val('');
-                \$('#saas_ext_org').val('');
-                \$('#saas_dir_org').val('');
+                $('input[name="nombre_org"]').val('');
+                $('#saas_razon_org').val('');
+                $('#saas_rfc_org').val('');
+                $('#saas_tel_org').val('');
+                $('#saas_ext_org').val('');
+                $('#saas_dir_org').val('');
                 return;
             }
-            \$.ajax({
+            $.ajax({
                 type: 'GET',
                 url: '../api/get_clues_details.pl',
                 data: { clues: clues_id },
@@ -559,29 +562,29 @@ print <<HTML;
                     if (r.success) {
                         // 1. Nombre Comercial
                         if (r.nombre) {
-                            \$('input[name="nombre_org"]').val(r.nombre);
+                            $('input[name="nombre_org"]').val(r.nombre);
                         }
                         
                         // 2. Razón Social Institucional
                         if (r.comercial || r.nombre) {
-                            \$('#saas_razon_org').val(r.comercial || r.nombre);
+                            $('#saas_razon_org').val(r.comercial || r.nombre);
                         }
                         
                         // 3. RFC Institucional
                         if (typeof r.rfc_clues !== 'undefined') {
-                            \$('#saas_rfc_org').val(r.rfc_clues);
+                            $('#saas_rfc_org').val(r.rfc_clues);
                         }
                         
                         // 4. Teléfono
                         if (typeof r.telefono !== 'undefined') {
-                            \$('#saas_tel_org').val(r.telefono);
+                            $('#saas_tel_org').val(r.telefono);
                         }
                         
                         // 5. Extensión
                         if (r.extension && r.extension !== '0' && r.extension.trim() !== '') {
-                            \$('#saas_ext_org').val(r.extension);
+                            $('#saas_ext_org').val(r.extension);
                         } else {
-                            \$('#saas_ext_org').val('0');
+                            $('#saas_ext_org').val('0');
                         }
 
                         // 6. Dirección Completa
@@ -590,7 +593,7 @@ print <<HTML;
                         if (r.num_ext && r.num_ext !== '0') dirParts.push('No. ' + r.num_ext);
                         if (r.asentamiento) dirParts.push(r.asentamiento);
                         if (dirParts.length > 0) {
-                            \$('#saas_dir_org').val(dirParts.join(', '));
+                            $('#saas_dir_org').val(dirParts.join(', '));
                         }
                     }
                 }
@@ -818,7 +821,8 @@ print <<HTML;
         });
     });
 </script>
-HTML
+JS
+
 
 utils::sub_sidebar::render_sidebar_footer();
 
