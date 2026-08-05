@@ -73,10 +73,6 @@ render_header(
     skip_header => 1
 );
 
-print <<HTML;
-<div class="sdm-layout-wrapper">
-    <!-- Sidebar -->
-HTML
 utils::sub_sidebar::render_sidebar(
     usuario => $session_data->{usuario},
     role => $session_data->{role},
@@ -84,7 +80,6 @@ utils::sub_sidebar::render_sidebar(
 );
 
 print <<HTML;
-    <main class="sdm-main-content">
         <!-- Header -->
         <header class="sdm-top-header d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0 fw-bold"><i class="bi bi-calendar-plus text-primary me-2"></i> Agendar Cita</h4>
@@ -147,47 +142,15 @@ print <<HTML;
                 </div>
             </div>
         </div>
-    </main>
-</div>
 HTML
+
+utils::sub_sidebar::render_sidebar_footer();
 render_bottom_nav('mis_citas');
 
 print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script src="../js/agenda_paciente_spa.js?v=@{[time()]}"></script>
-<style>
-/* Estilos extraídos para el Smart View (idénticos a agenda_main.pl) */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-.smart-day-card {
-    background: white; border: 2px solid #f1f5f9; border-radius: 1rem;
-    padding: 10px 15px; text-align: center; cursor: pointer;
-    min-width: 80px; transition: all 0.2s ease;
-}
-.smart-day-card:hover:not(.active) { border-color: #cbd5e1; transform: translateY(-2px); }
-.smart-day-card.active {
-    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
-    color: white; border: none; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-}
-.smart-day-card.active .day-name, .smart-day-card.active .day-num { color: white !important; }
-.smart-day-card .day-name { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
-.smart-day-card .day-num { font-size: 1.5rem; font-weight: 900; color: #0f172a; line-height: 1; margin-top: 5px; }
-.smart-day-card.holiday { opacity: 0.5; cursor: not-allowed; }
-.smart-day-card.holiday:hover { transform: none; border-color: #f1f5f9; }
-
-.slot-btn {
-    background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem;
-    color: #334155; font-weight: 700; padding: 12px; width: 100%;
-    transition: all 0.2s; font-size: 0.95rem; box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-}
-.slot-btn:hover:not(:disabled) { border-color: #3b82f6; color: #3b82f6; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1); }
-.slot-btn.disabled, .slot-btn:disabled {
-    background: #f8fafc; border-color: #f1f5f9; color: #cbd5e1;
-    text-decoration: line-through; opacity: 0.8; cursor: not-allowed;
-}
-.slot-btn.disabled:hover, .slot-btn:disabled:hover { transform: none; box-shadow: none; border-color: #f1f5f9; }
-</style>
+<link rel="stylesheet" href="../css/agenda_paciente.css?v=@{[time()]}">
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Inicialización al seleccionar médico
