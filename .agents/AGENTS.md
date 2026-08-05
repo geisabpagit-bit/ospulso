@@ -15,3 +15,5 @@
   **SOLUCIÓN (Obligatoria en refactorizaciones o vistas nuevas)**: 
   1. **Aislamiento**: Si un bloque `<script>` o `<style>` es extenso y no requiere variables de Perl, se DEBE aislar cerrando el HEREDOC principal y abriendo uno de comilla simple (ej. `print <<'JS';`).
   2. **Intercambio por DOM**: Si el script JS necesita datos del backend de Perl, se DEBEN inyectar como atributos `data-*` en el HTML (ej. `<div id="config" data-user="$usuario">`) y el JS puro debe leerlos desde el DOM (`dataset.user`), nunca interpolándolos directamente.
+
+- **SEPARACIÓN ESTRICTA DE ESTILOS (CSS)**: Está prohibido el uso de bloques `<style>` extensos o estilos en línea dentro de las vistas (`.pl` o `.html`). Todos los estilos personalizados deben residir en archivos CSS separados o, preferentemente, aprovechar las clases utilitarias del CSS mandante del proyecto (ej. `ospulso_master_v2.css`).
