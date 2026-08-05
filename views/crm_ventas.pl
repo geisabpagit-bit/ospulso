@@ -371,6 +371,18 @@ print <<HTML;
                                 <option value="Sí">Sí</option>
                             </select>
                         </div>
+                        <div class="col-md-6 mt-2">
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="saas_pacientes_estado" name="pacientes_estado" value="1">
+                                <label class="form-check-label small fw-bold" for="saas_pacientes_estado">¿Trabaja con pacientes del Estado?</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mt-2">
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="saas_maneja_hospitalizacion" name="maneja_hospitalizacion" value="1">
+                                <label class="form-check-label small fw-bold" for="saas_maneja_hospitalizacion">¿Maneja hospitalización?</label>
+                            </div>
+                        </div>
                         <div class="col-12 d-none" id="cajaInstituciones">
                             <div class="bg-white p-3 border rounded shadow-sm">
                                 <label class="form-label small fw-bold text-muted mb-2">Seleccione Institución(es)</label>
@@ -681,6 +693,11 @@ print <<'JS';
                 const capChecks = document.querySelectorAll('input[name="capacidades[]"]');
                 capChecks.forEach(chk => chk.checked = d.capacidades.includes(chk.value));
                 
+                document.getElementById('saas_pacientes_estado').checked = (d.pacientes_estado === '1');
+                document.getElementById('saas_maneja_hospitalizacion').checked = (d.maneja_hospitalizacion === '1');
+                const eventTipo = new Event('change');
+                document.querySelector('select[name="tipo_organizacion"]').dispatchEvent(eventTipo);
+                
                 document.getElementById('contenedorTarjetasPrincipales').classList.add('d-none');
                 document.getElementById('contenedorFormularioSaaS').classList.remove('d-none');
             } else {
@@ -782,6 +799,18 @@ print <<'JS';
             document.getElementById('cajaInstituciones').classList.remove('d-none');
         } else {
             document.getElementById('cajaInstituciones').classList.add('d-none');
+        }
+    });
+
+    // Toggle Hospitalizacion
+    document.querySelector('select[name="tipo_organizacion"]').addEventListener('change', function() {
+        const val = this.value;
+        const chk = document.getElementById('saas_maneja_hospitalizacion');
+        if (val === 'Consultorio Individual' || val === 'Consultorio Compartido') {
+            chk.checked = false;
+            chk.disabled = true;
+        } else {
+            chk.disabled = false;
         }
     });
 

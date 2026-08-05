@@ -45,6 +45,8 @@ if ($action eq 'create') {
     my $naturaleza_juridica = decode_utf8($q->param('naturaleza_juridica') // '');
     my $tipo_organizacion   = decode_utf8($q->param('tipo_organizacion') // '');
     my $reporta_institucion = decode_utf8($q->param('reporta_institucion') // '');
+    my $pacientes_estado    = decode_utf8($q->param('pacientes_estado') // '0');
+    my $maneja_hospitalizacion = decode_utf8($q->param('maneja_hospitalizacion') // '0');
     my @instituciones = map { decode_utf8($_ // '') } $q->multi_param('institucion[]');
     my @capacidades   = map { decode_utf8($_ // '') } $q->multi_param('capacidades[]');
 
@@ -126,6 +128,8 @@ if ($action eq 'create') {
     push @config_lines, "$id_org|TIPO_ORGANIZACION|$tipo_organizacion";
     push @config_lines, "$id_org|NATURALEZA_JURIDICA|$naturaleza_juridica";
     push @config_lines, "$id_org|REPORTE_INSTITUCION|$reporta_institucion";
+    push @config_lines, "$id_org|PACIENTES_ESTADO|$pacientes_estado";
+    push @config_lines, "$id_org|MANEJA_HOSPITALIZACION|$maneja_hospitalizacion";
     foreach my $inst (@instituciones) { push @config_lines, "$id_org|INSTITUCION|$inst"; }
     foreach my $cap (@capacidades) { push @config_lines, "$id_org|CAPACIDAD|$cap"; }
 
@@ -197,6 +201,8 @@ if ($action eq 'read') {
             if ($key eq 'TIPO_ORGANIZACION') { $data{tipo_organizacion} = $val; }
             elsif ($key eq 'NATURALEZA_JURIDICA') { $data{naturaleza_juridica} = $val; }
             elsif ($key eq 'REPORTE_INSTITUCION') { $data{reporta_institucion} = $val; }
+            elsif ($key eq 'PACIENTES_ESTADO') { $data{pacientes_estado} = $val; }
+            elsif ($key eq 'MANEJA_HOSPITALIZACION') { $data{maneja_hospitalizacion} = $val; }
             elsif ($key eq 'INSTITUCION') { push @{$data{instituciones}}, $val; }
             elsif ($key eq 'CAPACIDAD') { push @{$data{capacidades}}, $val; }
         }
@@ -233,6 +239,8 @@ if ($action eq 'update') {
     my $naturaleza_juridica = decode_utf8($q->param('naturaleza_juridica') // '');
     my $tipo_organizacion   = decode_utf8($q->param('tipo_organizacion') // '');
     my $reporta_institucion = decode_utf8($q->param('reporta_institucion') // '');
+    my $pacientes_estado    = decode_utf8($q->param('pacientes_estado') // '0');
+    my $maneja_hospitalizacion = decode_utf8($q->param('maneja_hospitalizacion') // '0');
     my @instituciones = map { decode_utf8($_ // '') } $q->multi_param('institucion[]');
     my @capacidades   = map { decode_utf8($_ // '') } $q->multi_param('capacidades[]');
 
@@ -341,6 +349,8 @@ if ($action eq 'update') {
     push @nueva_config, "$id_org|TIPO_ORGANIZACION|$tipo_organizacion";
     push @nueva_config, "$id_org|NATURALEZA_JURIDICA|$naturaleza_juridica";
     push @nueva_config, "$id_org|REPORTE_INSTITUCION|$reporta_institucion";
+    push @nueva_config, "$id_org|PACIENTES_ESTADO|$pacientes_estado";
+    push @nueva_config, "$id_org|MANEJA_HOSPITALIZACION|$maneja_hospitalizacion";
     foreach my $inst (@instituciones) { push @nueva_config, "$id_org|INSTITUCION|$inst"; }
     foreach my $cap (@capacidades) { push @nueva_config, "$id_org|CAPACIDAD|$cap"; }
 
