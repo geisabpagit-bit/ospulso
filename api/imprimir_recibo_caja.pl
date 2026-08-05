@@ -183,13 +183,13 @@ sub formato_moneda {
 my $saldo = $recibo->{total_cargos} - $recibo->{total_abonos};
 $saldo = 0 if $saldo < 0;
 
-print $q->header(-type => 'text/html', -charset => 'UTF-8');
-print <<HTML;
+print $q->header(-type => 'text/html', -charset => 'UTF-print <<HTML;
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Recibo $recibo->{folio}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* CSS Específico para Impresión en Media Carta (5.5 x 8.5 in) */
         \@page {
@@ -197,10 +197,10 @@ print <<HTML;
             margin: 0;
         }
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             margin: 0;
             padding: 0;
-            color: #111;
+            color: #1e293b;
             font-size: 11px;
             background: #fff;
         }
@@ -218,74 +218,48 @@ print <<HTML;
             font-size: 11px;
         }
         .grid-receipt td {
-            border: 1px solid #ddd;
-            padding: 6px;
+            border: 1px solid #0A2A66;
+            padding: 8px;
             vertical-align: middle;
         }
         .header-row td {
             text-align: center;
+            border-bottom: 2px solid #0A2A66;
         }
         .col-logo { width: 25%; }
-        .col-clinic { width: 50%; font-size: 13px; text-transform: uppercase; }
-        .col-folio { width: 25%; font-size: 11px; }
+        .col-clinic { width: 50%; font-size: 14px; text-transform: uppercase; color: #0A2A66; font-weight: 900; }
+        .col-folio { width: 25%; font-size: 11px; color: #64748b; }
         .info-label-cell {
             width: 25%;
-            color: #555;
+            font-weight: bold;
+            color: #0A2A66;
         }
-        .table-concepts {
+        .table-inner {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
         }
-        .table-concepts th {
-            border-bottom: 2px solid #1a365d;
+        .table-inner td {
+            border: none;
+            border-bottom: 1px dashed rgba(204, 204, 204, 0.4);
             padding: 6px;
-            text-transform: uppercase;
-            font-size: 10px;
-            color: #1a365d;
         }
-        .table-concepts td {
-            padding: 6px 5px;
-            border-bottom: 1px dashed #ccc;
-        }
-        
-        .totals-box {
-            width: 50%;
-            margin-left: auto;
-            border: 1px solid #ccc;
-            padding: 8px;
-            border-radius: 4px;
-        }
-        .totals-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
-        }
-        .totals-row.grand-total {
-            font-weight: bold;
-            font-size: 13px;
-            border-top: 1px solid #000;
-            padding-top: 4px;
-            margin-top: 4px;
-        }
-        .signatures {
-            margin-top: 40px;
-            display: flex;
-            justify-content: space-between;
-            text-align: center;
-        }
-        .signature-line {
-            width: 45%;
-            border-top: 1px solid #000;
+        .signature-box {
+            border-top: 1px solid #0A2A66;
+            width: 60%;
+            margin: 0 auto;
             padding-top: 5px;
-            font-size: 10px;
-            color: #333;
+            font-weight: bold;
+            color: #0A2A66;
         }
-        .footer {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 9px;
-            color: #777;
+        .badge-folio {
+            background: #0A2A66;
+            color: white;
+            border-radius: 20px;
+            font-weight: 800;
+            padding: 4px 10px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-top: 5px;
         }
         \@media screen {
             body { background: #e0e0e0; padding: 20px; }
@@ -303,26 +277,25 @@ print <<HTML;
                 <td class="col-logo">$logo_html</td>
                 <td class="col-clinic">$negocio->{nombre}</td>
                 <td class="col-folio">
-                    $recibo->{fecha} - $recibo->{hora} hrs.<br>
-                    <strong>Folio</strong><br>
-                    <strong style="font-size: 14px; color: #111;">$recibo->{folio}</strong><br>
-                    Visita : Recurrente
+                    <span style="font-weight: bold; color: #1e293b;">$recibo->{fecha} - $recibo->{hora} hrs.</span><br>
+                    <span class="badge-folio">$recibo->{folio}</span><br>
+                    <span style="margin-top: 4px; display: inline-block;">Visita : Recurrente</span>
                 </td>
             </tr>
             <tr>
                 <td class="info-label-cell">Paciente :</td>
-                <td colspan="2" style="text-transform: uppercase;">$paciente_nombre</td>
+                <td colspan="2" style="font-weight: bold; text-transform: uppercase;">$paciente_nombre</td>
             </tr>
             <tr>
                 <td class="info-label-cell">Motivo:</td>
-                <td colspan="2">Consulta / Atención Médica</td>
+                <td colspan="2" style="font-weight: bold;">Consulta / Atención Médica</td>
             </tr>
 
         
             <tr>
                 <td class="info-label-cell" style="vertical-align: top;">Concepto :</td>
                 <td colspan="2" style="padding: 0;">
-                    <table style="width: 100%; border-collapse: collapse;">
+                    <table class="table-inner">
 HTML
 
 foreach my $c (@cargos) {
@@ -331,8 +304,8 @@ foreach my $c (@cargos) {
     my $concepto_txt = uc($c->{concepto});
     print qq{
                         <tr>
-                            <td style="text-align: left; padding: 6px; border-bottom: 1px dashed #ccc;">$concepto_txt</td>
-                            <td style="text-align: right; padding: 6px; border-bottom: 1px dashed #ccc;">$subtotal_fmt</td>
+                            <td style="text-align: left;"><strong>$concepto_txt</strong></td>
+                            <td style="text-align: right; color: #1a365d; font-weight: 600;">$subtotal_fmt</td>
                         </tr>
     };
 }
@@ -342,19 +315,23 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 90px; padding-bottom: 10px;">
-                    <div style="border-top: 1px solid #333; width: 60%; margin: 0 auto; padding-top: 5px;">
+                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 110px; padding-bottom: 10px;">
+                    <div class="signature-box">
                         Nombre y Firma del Paciente
                     </div>
                 </td>
                 <td style="text-align: right; vertical-align: middle; padding: 15px;">
-                    Costo : @{[ formato_moneda($recibo->{total_cargos}) ]} ($recibo->{metodo_pago})<br><br><br>
-                    Elaboro : $recibo->{elaborado_por}
+                    <div style="color: #0A2A66; font-size: 14px; font-weight: bold; margin-bottom: 4px;">Costo : @{[ formato_moneda($recibo->{total_cargos}) ]}</div>
+                    <div style="color: #059669; font-size: 13px; font-weight: bold; margin-bottom: 4px;">Abono : @{[ formato_moneda($recibo->{total_abonos}) ]}</div>
+                    <div style="color: #dc2626; font-size: 13px; font-weight: bold; margin-bottom: 8px;">Saldo : @{[ formato_moneda($saldo) ]}</div>
+                    <span style="background: #f8f9fa; color: #212529; border: 1px solid #dee2e6; border-radius: 4px; padding: 3px 6px; font-size: 10px; display: inline-block; margin-bottom: 12px;">$recibo->{metodo_pago}</span><br>
+                    <span style="font-size: 10px; color: #6c757d;">Elaboró :<br><strong>$recibo->{elaborado_por}</strong></span>
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align: center; color: #555;">
-                    $negocio->{domicilio}, Tel: $negocio->{telefono}
+                <td colspan="3" style="text-align: center; color: #64748b; font-size: 9px; padding: 10px;">
+                    $negocio->{domicilio}, Tel: $negocio->{telefono}<br>
+                    <strong>Aviso de Confidencialidad:</strong> Documento generado por OsPulso - El recibo es válido como comprobante de pago interno.
                 </td>
             </tr>
         </table>
