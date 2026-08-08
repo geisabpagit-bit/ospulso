@@ -27,11 +27,14 @@ my $id_org_matriz = $sd->{id_empresa};
 my $action        = $q->param('action') // '';
 
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+my $archivo_config   = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
 
 if ($action eq 'create') {
     my $nombre_sucursal = decode_utf8($q->param('nombre_sucursal') // '');
     my $telefono        = decode_utf8($q->param('telefono')        // '');
     my $domicilio       = decode_utf8($q->param('domicilio')       // '');
+    my $consultorios    = decode_utf8($q->param('consultorios')    // '1');
+    my $quirofanos      = decode_utf8($q->param('quirofanos')      // '0');
 
     $nombre_sucursal =~ s/^\s+|\s+$//g;
     $telefono        =~ s/^\s+|\s+$//g;
@@ -79,6 +82,12 @@ if ($action eq 'create') {
         flock($fh_neg, 2);
         print $fh_neg "$registro_sucursal\n";
         close($fh_neg);
+        
+        open(my $fh_cfg, '>>:utf8', $archivo_config) or die "config: $!";
+        flock($fh_cfg, 2);
+        print $fh_cfg "$id_sucursal|CONSULTORIOS|$consultorios\n";
+        print $fh_cfg "$id_sucursal|QUIROFANOS|$quirofanos\n" if $quirofanos && $quirofanos ne '0';
+        close($fh_cfg);
     };
 
     if ($@) {
@@ -95,6 +104,8 @@ elsif ($action eq 'update') {
     my $nombre_sucursal = decode_utf8($q->param('nombre_sucursal') // '');
     my $telefono        = decode_utf8($q->param('telefono')        // '');
     my $domicilio       = decode_utf8($q->param('domicilio')       // '');
+    my $consultorios    = decode_utf8($q->param('consultorios')    // '1');
+    my $quirofanos      = decode_utf8($q->param('quirofanos')      // '0');
 
     $nombre_sucursal =~ s/^\s+|\s+$//g;
     $telefono        =~ s/^\s+|\s+$//g;
@@ -134,6 +145,20 @@ elsif ($action eq 'update') {
 
     eval {
         actualizar_archivo($archivo_negocios, "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud", \@nuevos_negocios);
+        
+        my $regs_config = leer_tabla($archivo_config, '\|');
+        my @nuevos_config = ();
+        if ($regs_config) {
+            foreach my $r (@$regs_config) {
+                if ($r->[0] ne $id_sucursal || ($r->[1] ne 'CONSULTORIOS' && $r->[1] ne 'QUIROFANOS')) {
+                    push @nuevos_config, join('|', @$r);
+                }
+            }
+        }
+        push @nuevos_config, "$id_sucursal|CONSULTORIOS|$consultorios";
+        push @nuevos_config, "$id_sucursal|QUIROFANOS|$quirofanos" if $quirofanos && $quirofanos ne '0';
+        
+        actualizar_archivo($archivo_config, "ID_NEGOCIO|KEY|VALUE", \@nuevos_config);
     };
 
     if ($@) {

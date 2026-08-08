@@ -49,7 +49,24 @@ render_header(
 );
 
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+my $archivo_config = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
 my $regs_negocios = leer_tabla($archivo_negocios, '\|');
+my $regs_config = leer_tabla($archivo_config, '\|');
+
+my $maneja_hospitalizacion = '0';
+my %configs_sucursales = ();
+
+if ($regs_config) {
+    foreach my $r (@$regs_config) {
+        if ($r->[0] eq $id_empresa && $r->[1] eq 'MANEJA_HOSPITALIZACION') {
+            $maneja_hospitalizacion = $r->[2];
+        } else {
+            # Guardar configs por ID para usarlas luego en las sucursales
+            $configs_sucursales{$r->[0]}{$r->[1]} = $r->[2] if defined $r->[0] && defined $r->[1];
+        }
+    }
+}
+
 my @mis_sucursales = ();
 
 if ($regs_negocios) {
@@ -57,12 +74,15 @@ if ($regs_negocios) {
         next if @$r < 3;
         # Si la matriz de esta sucursal es mi organizacion
         if ($r->[2] eq $id_empresa) {
+            my $id_suc = $r->[0];
             push @mis_sucursales, { 
-                id => $r->[0], 
+                id => $id_suc, 
                 nombre => $r->[1],
                 estado => $r->[3] eq '1' ? 'Activa' : 'Inactiva',
                 telefono => $r->[7] || 'N/A',
-                domicilio => $r->[6] || 'No registrado'
+                domicilio => $r->[6] || 'No registrado',
+                consultorios => $configs_sucursales{$id_suc}{CONSULTORIOS} || 1,
+                quirofanos => $configs_sucursales{$id_suc}{QUIROFANOS} || 0
             };
         }
     }
@@ -107,6 +127,22 @@ print <<HTML;
                                 <label class="form-label small fw-bold text-muted">Domicilio</label>
                                 <input type="text" class="form-control form-control-sm shadow-sm" id="form_domicilio" name="domicilio" placeholder="Av. Siempre Viva 742">
                             </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Consultorios <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control form-control-sm shadow-sm" id="form_consultorios" name="consultorios" required min="1" max="15" value="1" placeholder="Ej: 3">
+                            </div>
+HTML
+
+if ($maneja_hospitalizacion eq '1') {
+    print <<HTML;
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-muted">Quirófanos <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control form-control-sm shadow-sm" id="form_quirofanos" name="quirofanos" required min="1" max="10" value="1" placeholder="Ej: 2">
+                            </div>
+HTML
+}
+
+print <<HTML;
                         </div>
                         <div class="mt-4 d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-light fw-bold px-4" onclick="toggleFormulario()">Cancelar</button>
@@ -126,6 +162,14 @@ print <<HTML;
                                 <tr>
                                     <th class="small fw-bold text-muted text-uppercase border-0">Sucursal</th>
                                     <th class="small fw-bold text-muted text-uppercase border-0">Estado</th>
+                                    <th class="small fw-bold text-muted text-uppercase border-0 text-center">Consultorios</th>
+HTML
+if ($maneja_hospitalizacion eq '1') {
+    print <<HTML;
+                                    <th class="small fw-bold text-muted text-uppercase border-0 text-center">Quirófanos</th>
+HTML
+}
+print <<HTML;
                                     <th class="small fw-bold text-muted text-uppercase border-0">Teléfono</th>
                                     <th class="small fw-bold text-muted text-uppercase border-0">Domicilio</th>
                                     <th class="small fw-bold text-muted text-uppercase border-0 text-end pe-4">Acciones</th>
@@ -155,11 +199,19 @@ if (@mis_sucursales) {
                                         </div>
                                     </td>
                                     <td><span class="badge rounded-pill $badge px-3 py-2">$$suc{estado}</span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border">$$suc{consultorios}</span></td>
+HTML
+        if ($maneja_hospitalizacion eq '1') {
+            print <<HTML;
+                                    <td class="text-center"><span class="badge bg-light text-dark border">$$suc{quirofanos}</span></td>
+HTML
+        }
+        print <<HTML;
                                     <td class="text-muted small fw-bold">$$suc{telefono}</td>
                                     <td class="text-muted small">$$suc{domicilio}</td>
                                     <td class="text-end pe-4">
                                         <div class="d-flex justify-content-end gap-2">
-                                            <button onclick="abrirFormEditar('$$suc{id}', '$$suc{nombre}', '$$suc{telefono}', '$$suc{domicilio}')" class="btn p-0 border-0 btn-expediente" title="Editar">
+                                            <button onclick="abrirFormEditar('$$suc{id}', '$$suc{nombre}', '$$suc{telefono}', '$$suc{domicilio}', '$$suc{consultorios}', '$$suc{quirofanos}')" class="btn p-0 border-0 btn-expediente" title="Editar">
                                                 <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
                                             </button>
                                             <button onclick="confirmToggleStatus('$$suc{id}', '$$suc{nombre}', '$$suc{estado}')" class="btn p-0 border-0 action-btn-delete" title="$toggle_title">
@@ -229,12 +281,16 @@ print <<HTML;
         }
     };
 
-    window.abrirFormEditar = function(id, nombre, telefono, domicilio) {
+    window.abrirFormEditar = function(id, nombre, telefono, domicilio, consultorios, quirofanos) {
         document.getElementById('form_action').value = 'update';
         document.getElementById('form_id_sucursal').value = id;
         document.getElementById('form_nombre').value = nombre;
         document.getElementById('form_telefono').value = (telefono === 'N/A' || telefono === 'No aplica') ? '' : telefono;
         document.getElementById('form_domicilio').value = (domicilio === 'No registrado' || domicilio === 'No aplica') ? '' : domicilio;
+        document.getElementById('form_consultorios').value = consultorios || '1';
+        if (document.getElementById('form_quirofanos')) {
+            document.getElementById('form_quirofanos').value = quirofanos || '0';
+        }
         
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Sucursal';
         document.getElementById('btn-submit-sucursal').innerHTML = '<i class="bi bi-save me-2"></i>Guardar Cambios';
@@ -307,19 +363,19 @@ print <<HTML;
                             { 
                                 extend: 'copy', 
                                 text: '<i class="bi bi-clipboard"></i> Copiar',
-                                exportOptions: { columns: [0, 1, 2, 3] }
+                                exportOptions: { columns: ':not(:last-child)' }
                             },
                             { 
                                 extend: 'excel', 
                                 text: '<i class="bi bi-file-earmark-excel"></i> Excel', 
                                 title: 'Gestión de Sucursales - SDM',
-                                exportOptions: { columns: [0, 1, 2, 3] }
+                                exportOptions: { columns: ':not(:last-child)' }
                             },
                             { 
                                 extend: 'pdf', 
                                 text: '<i class="bi bi-file-earmark-pdf"></i> PDF', 
                                 title: 'Gestión de Sucursales - SDM',
-                                exportOptions: { columns: [0, 1, 2, 3] },
+                                exportOptions: { columns: ':not(:last-child)' },
                                 customize: function (doc) {
                                     doc.styles.tableHeader = { fillColor: '#0d1e3d', color: 'white', alignment: 'center', bold: true, fontSize: 10 };
                                     var tableIndex = -1;
@@ -330,7 +386,11 @@ print <<HTML;
                                         }
                                     }
                                     if (tableIndex > -1) {
-                                        doc.content[tableIndex].table.widths = ['25%', '15%', '20%', '40%'];
+                                        // Auto width para soportar N columnas dinamicas
+                                        var colsCount = doc.content[tableIndex].table.body[0].length;
+                                        var widths = [];
+                                        for(var w=0; w<colsCount; w++) widths.push('*');
+                                        doc.content[tableIndex].table.widths = widths;
                                         doc.content[tableIndex].margin = [0, 10, 0, 10];
                                         if (tableIndex > 0) doc.content.splice(0, tableIndex);
                                     }
@@ -339,7 +399,7 @@ print <<HTML;
                             {
                                 extend: 'print',
                                 text: '<i class="bi bi-printer"></i> Imprimir',
-                                exportOptions: { columns: [0, 1, 2, 3] }
+                                exportOptions: { columns: ':not(:last-child)' }
                             }
                         ]
                     }
