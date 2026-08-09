@@ -16,6 +16,8 @@ require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
+
+use utils::audit_manager qw(log_audit);
 use utils::db_manager qw(leer_tabla eliminar_registro);
 
 my $sd = check_session();
@@ -29,7 +31,7 @@ unless ($sd->{session_ok}) {
 
 my $usuario   = $sd->{usuario};
 my $role      = $sd->{role};
-my $id_medico = $sd->{id_medico};
+my $id_medico = $sd->{id_medico} || '';
 my $archivo_pacientes = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
 
 # Manejo de Borrado
@@ -65,6 +67,7 @@ if (my $did = $q->param('delete_id')) {
     }
     
     if ($acceso_permitido) {
+        log_audit('Pacientes', 'Eliminar', "Se elimino al paciente con ID: $did", $did, $usuario);
         eliminar_registro($archivo_pacientes, $did, '\|', "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT");
     }
     print $q->redirect('pacientes.pl'); 
@@ -178,51 +181,8 @@ print <<HTML;
                     </tr>
                 </thead>
                 <tbody class="border-0">
+                <!-- Los datos se inyectarán vía AJAX por DataTables -->
 HTML
-
-foreach my $p (@list) {
-    my $display_id = sprintf("%03d", $p->{id} || 0);
-    my $nombre = $p->{nombre} || 'Sin Nombre';
-    my $curp = $p->{curp} || 'Sin CURP';
-    my $correo = $p->{correo} || 'No registrado';
-    my $telefono = $p->{telefono} || 'N/A';
-    my $fecha_nac = $p->{fecha_nac} || 'N/A';
-    my $sexo = $p->{sexo} || 'N/A';
-
-    print <<ROW;
-                <tr>
-                    <td class="fw-bold text-muted ps-4" data-label="ID">
-                        $display_id
-                    </td>
-                    <td data-label="PACIENTE">
-                        <span class="patient-name">$nombre</span>
-                        <span class="patient-info-sub d-block mt-1"><i class="bi bi-person-badge me-1"></i>$curp</span>
-                    </td>
-                    <td data-label="CONTACTO">
-                        <div class="patient-info-sub d-flex flex-column gap-1">
-                            <span><i class="bi bi-telephone text-muted me-2"></i>$telefono</span>
-                            <span><i class="bi bi-envelope text-muted me-2"></i>$correo</span>
-                        </div>
-                    </td>
-                    <td data-label="F. NAC / SEXO">
-                        <div class="patient-info-sub d-flex flex-column gap-1">
-                            <span><i class="bi bi-calendar3 text-muted me-2"></i>$fecha_nac</span>
-                            <span class="text-uppercase"><i class="bi bi-gender-ambiguous text-muted me-2"></i>$sexo</span>
-                        </div>
-                    </td>
-                    <td class="text-end pe-4" data-label="ACCIONES">
-                        <div class="d-flex justify-content-end gap-2">
-                            <button class="btn p-0 border-0 btn-expediente" data-id="$p->{id}" title="Resumen">
-                                <div class="icon-container-acrylic"><i class="bi bi-eye"></i></div>
-                            </button>
-                            <button onclick="confirmBorrar('$p->{id}')" class="btn p-0 border-0 action-btn-delete" title="Eliminar">
-                                <div class="icon-container-acrylic text-danger border-danger border-opacity-25" style="background: rgba(220, 53, 69, 0.05);"><i class="bi bi-trash"></i></div>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-ROW
-}
 
 print <<'HTML';
                 </tbody>
@@ -296,6 +256,12 @@ print <<'HTML';
     $(document).ready(function() {
         if ($('#tablaPacientes').length) {
             var table = $('#tablaPacientes').DataTable({
+                serverSide: true,
+                processing: true,
+                ajax: {
+                    url: '../api/pacientes_dt_api.pl',
+                    type: 'POST'
+                },
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 // dom: B=Botones, t=Tabla, i=Info, p=Paginas. (Se quita 'f' de buscador interno)
                 dom: '<"p-3 d-flex justify-content-start align-items-center"B>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
@@ -415,10 +381,11 @@ print <<'HTML';
                 table.search(this.value).draw();
                 
                 // Experiencia Premium: Ocultar paginador durante la búsqueda
+                // Experiencia Premium: Fade Effect
                 if (this.value.length > 0) {
-                    $('.dataTables_paginate, .dataTables_info').fadeOut(200);
+                    $('.dataTables_info').fadeOut(200);
                 } else {
-                    $('.dataTables_paginate, .dataTables_info').fadeIn(200);
+                    $('.dataTables_info').fadeIn(200);
                 }
             });
         }

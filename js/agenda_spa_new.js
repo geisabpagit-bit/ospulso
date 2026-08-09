@@ -522,6 +522,9 @@ function renderTimeline() {
         if (stLow === 'en consulta') {
             cardStyle += ` background-color: #dcfce7 !important; border-color: #86efac !important; color: #166534 !important;`;
             badgeStyle = `background: #166534; color: #ffffff;`;
+        } else if (stLow.includes('sala de espera')) {
+            cardStyle += ` background-color: #fef3c7 !important; border-color: #f59e0b !important; color: #92400e !important;`;
+            badgeStyle = `background: #f59e0b; color: #ffffff;`;
         } else if (stLow.includes('atendida')) {
             cardStyle += ` background-color: #e6fffa !important; border-color: #19B7A5 !important; color: #0d7468 !important; opacity: 0.95;`;
             badgeStyle = `background: #19B7A5; color: #ffffff;`;
@@ -717,6 +720,7 @@ function renderGrid() {
                     const stLow = st.trim().toLowerCase();
                     if (stLow === 'en consulta') { bgColor = '#dcfce7'; textColor = '#166534'; }
                     else if (stLow === 'confirmada') bgColor = '#10b981';
+                    else if (stLow.includes('sala de espera')) bgColor = '#f59e0b';
                     else if (stLow.includes('atendida')) bgColor = '#19B7A5';
                     else if (stLow === 'cancelada') bgColor = '#ef4444';
                     else if (stLow === 'no asistió' || stLow === 'no asistio') bgColor = '#f59e0b';
@@ -725,6 +729,11 @@ function renderGrid() {
                     if (stLow === 'en consulta') {
                         actionIcons = `
                             <i class="bi bi-play-circle cursor-pointer text-success" style="font-size:0.7rem;" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'" title="Ir a Consulta Activa"></i>
+                            <i class="bi bi-calendar2-event cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
+                        `;
+                    } else if (stLow.includes('sala de espera')) {
+                        actionIcons = `
+                            <i class="bi bi-clock-history cursor-pointer" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Ver Cita"></i>
                             <i class="bi bi-calendar2-event cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
                         `;
                     } else if (stLow.includes('atendida')) {
@@ -830,8 +839,8 @@ function renderMobileDayList() {
         const hf = a.end.split('T')[1].substring(0, 5);
         const status = a.extendedProps.estado || 'Programada';
         let color = a.color;
-        if (!color || status === 'Atendida' || status === 'atendida') {
-            color = (status === 'Atendida' || status === 'atendida') ? '#19B7A5' : (status === 'Confirmada' ? '#10b981' : (status === 'Cancelada' ? '#ef4444' : '#103070'));
+        if (!color || status === 'Atendida' || status === 'atendida' || status === 'En Sala de Espera') {
+            color = (status === 'Atendida' || status === 'atendida') ? '#19B7A5' : (status === 'En Sala de Espera' ? '#f59e0b' : (status === 'Confirmada' ? '#10b981' : (status === 'Cancelada' ? '#ef4444' : '#103070')));
         }
         
         const card = $(`
@@ -1689,7 +1698,7 @@ function renderTable(type) {
                 <td data-label="Hora"><span class="badge bg-light text-navy border">${h}</span></td>
                 <td class="fw-black text-primary" data-label="Paciente">${a.title}</td>
                 <td class="small" data-label="Motivo">${a.extendedProps.motivo || ''}</td>
-                <td data-label="Status"><span class="badge ${st==='Atendida'||st==='atendida'?'bg-teal text-white':'bg-primary'} rounded-pill" style="${st==='Atendida'||st==='atendida'?'background-color: #19B7A5 !important;':''}">${st.toUpperCase()}</span></td>
+                <td data-label="Status"><span class="badge ${st==='Atendida'||st==='atendida'?'bg-teal text-white':(st==='En Sala de Espera'?'bg-warning text-dark':'bg-primary')} rounded-pill" style="${st==='Atendida'||st==='atendida'?'background-color: #19B7A5 !important;':''}">${st.toUpperCase()}</span></td>
                 <td class="text-end" data-label="Acciones">
                     <button class="btn btn-sm btn-light rounded-3" onclick="abrirModalCita('${a.id}')"><i class="bi bi-pencil"></i></button>
                 </td>

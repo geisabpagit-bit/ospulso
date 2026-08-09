@@ -157,9 +157,7 @@ elsif ($action eq 'save_gasto') {
             $q->param('proveedor') || '',
             $factura_path
         );
-        open my $fh, '>>:encoding(UTF-8)', "$FindBin::Bin/../dat/gastos.dat" or die $!;
-        print $fh "$linea\n";
-        close $fh;
+        guardar_registro("$FindBin::Bin/../dat/gastos.dat", $linea);
     } else {
         # Update is not fully implemented in db_manager without rewriting, ignoring for now.
     }

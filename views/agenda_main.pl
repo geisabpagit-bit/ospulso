@@ -321,6 +321,7 @@ print <<HTML;
                                 <div class="form-floating floating-label-premium">
                                     <select name="estado" id="f_estado" class="form-select fw-bold">
                                         <option value="Programada">Programada</option>
+                                        <option value="En Sala de Espera">En Sala de Espera</option>
                                         <option value="Confirmada">Confirmada</option>
                                         <option value="Atendida">Atendida</option>
                                         <option value="Cancelada">Cancelada</option>

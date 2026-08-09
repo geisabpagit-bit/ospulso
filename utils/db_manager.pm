@@ -40,6 +40,7 @@ sub leer_tabla {
     return \@registros unless -e $archivo;
 
     open my $fh, '<:encoding(UTF-8)', $archivo or return \@registros;
+    flock($fh, LOCK_SH) or warn "No se pudo bloquear (LOCK_SH) el archivo $archivo: $!";
     my $header = <$fh>; # Asumimos línea 1 como cabecera estricta
     
     while (my $linea = <$fh>) {

@@ -11,6 +11,7 @@ use HTTP::Request;
 use File::Basename;
 use lib '..';
 use utils::db_manager qw(leer_tabla); 
+use Fcntl qw(:flock);
 
 # ==========================================================
 # SDM DIGITAL - MOTOR DE AGENDA MODULAR v3.1.0 (GOLD)
@@ -142,8 +143,8 @@ sub cargar_citas {
 
 sub guardar_citas {
     my ($arr) = @_;
-    open my $fh, '>', $ARCHIVO or die "Error Crítico de Escritura: $!";
-    binmode $fh, ":utf8";
+    open my $fh, '>:encoding(UTF-8)', $ARCHIVO or die "Error Crítico de Escritura: $!";
+    flock($fh, LOCK_EX) or die "No se pudo bloquear citas.dat (LOCK_EX): $!";
     print $fh "$HEADER\n";
     foreach my $c (@$arr) {
         print $fh join('|', 
