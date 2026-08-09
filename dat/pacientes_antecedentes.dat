@@ -1,3 +1,1 @@
 ID_PACIENTE|TUTOR|ANTECEDENTES_JSON|FECHA_ACTUALIZACION
-1||{"hf_hipertension":"Si","hf_diabetes":"No","hf_cardiopatias":"No","hf_cancer":"Si","hf_cancer_tipo":"Pulmón","pp_alergias":"Si","pp_alergias_desc":"Polen","pp_cirugias":"No","pp_cirugias_desc":"","pp_enfermedades_cronicas":"No","pp_enfermedades_cronicas_desc":""}|2026-07-27
-2||{"hf_hipertension":"No","hf_diabetes":"Si","hf_cardiopatias":"No","hf_cancer":"No","hf_cancer_tipo":"","pp_alergias":"No","pp_alergias_desc":"","pp_cirugias":"Si","pp_cirugias_desc":"Apendicectomía","pp_enfermedades_cronicas":"Si","pp_enfermedades_cronicas_desc":"Asma"}|2026-07-27
