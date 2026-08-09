@@ -355,6 +355,7 @@ HTML
                     <div class="accordion-body pb-0 pt-1">
                         <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
                         <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
+                        <a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>
                         <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Gastos (Egresos)</span></a>
                         <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cuentas por Cobrar</span></a>
                         <hr class="my-2 opacity-25">
