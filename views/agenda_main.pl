@@ -62,7 +62,7 @@ if ($negocios) {
         }
     }
 }
-my $html_sucursal = qq(<option value="$nombre_sucursal" selected>$nombre_sucursal</option>);
+my $html_sucursal = qq(<option value="$id_negocio_activo" selected>$nombre_sucursal</option>);
 
 # 1. Cabecera Corporativa
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
@@ -312,11 +312,7 @@ print <<HTML;
                             <div class="col-md-3">
                                 <div class="form-floating floating-label-premium">
                                     <select name="consultorio" id="f_consultorio" class="form-select fw-bold">
-                                        <option value="Consultorio 1">Cons. 1</option>
-                                        <option value="Consultorio 2">Cons. 2</option>
-                                        <option value="Consultorio 3">Cons. 3</option>
-                                        <option value="Consultorio 4">Cons. 4</option>
-                                        <option value="Virtual">Virtual</option>
+                                        <option value="Virtual">Cargando...</option>
                                     </select>
                                     <label for="f_consultorio">LUGAR</label>
                                 </div>
@@ -503,6 +499,68 @@ print <<HTML;
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/agenda_spa_new.js?v=20260707_0018"></script>
 HTML
+
+print <<'JS';
+    <!-- SCRIPT DE RECURSOS (Consultorios y Quirófanos) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var fSucursal = document.getElementById('f_sucursal');
+            var fConsultorio = document.getElementById('f_consultorio');
+            
+            window.cargarRecursos = function(idSucursal) {
+                if (!fConsultorio) return;
+                fConsultorio.innerHTML = '<option value="">Cargando...</option>';
+                
+                fetch('../api/citas_crud.pl?accion=get_recursos&id_sucursal=' + idSucursal)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.ok) {
+                            let html = '<optgroup label="Consultorios">';
+                            for (let i = 1; i <= data.consultorios; i++) {
+                                html += `<option value="Consultorio ${i}">Consultorio ${i}</option>`;
+                            }
+                            html += '</optgroup>';
+                            
+                            if (data.quirofanos > 0) {
+                                html += '<optgroup label="Quirófanos">';
+                                for (let i = 1; i <= data.quirofanos; i++) {
+                                    html += `<option value="Quirófano ${i}">Quirófano ${i}</option>`;
+                                }
+                                html += '</optgroup>';
+                            }
+                            
+                            html += '<optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
+                            fConsultorio.innerHTML = html;
+                        }
+                    })
+                    .catch(e => {
+                        console.error("Error cargando recursos", e);
+                        fConsultorio.innerHTML = '<option value="Virtual">Virtual (Error)</option>';
+                    });
+            };
+
+            if (fSucursal) {
+                // Escuchar el cambio manual del usuario
+                fSucursal.addEventListener('change', function() {
+                    window.cargarRecursos(this.value);
+                });
+            }
+            
+            // Cargar inicial cuando el modal se abre para asegurar que toma el ID correcto
+            let modalEl = document.getElementById('modalCita');
+            if (modalEl) {
+                modalEl.addEventListener('show.bs.modal', function () {
+                    setTimeout(() => {
+                        if (fSucursal && fSucursal.value) {
+                            window.cargarRecursos(fSucursal.value);
+                        }
+                    }, 300); // Esperar a que agenda_spa_new.js pueble la sucursal
+                });
+            }
+        });
+    </script>
+JS
+
 utils::sub_sidebar::render_sidebar_footer();
 print <<HTML;
 </body>

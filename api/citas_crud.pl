@@ -106,6 +106,7 @@ elsif ($accion eq 'update')     { actualizar_cita($citas, $q); }
 elsif ($accion eq 'delete')     { eliminar_cita($citas, $q); }
 elsif ($accion eq 'save_config') { guardar_config_medico($q); }
 elsif ($accion eq 'get_form_metadata') { obtener_metadatos_formulario($q); }
+elsif ($accion eq 'get_recursos') { obtener_recursos_sucursal($q); }
 elsif ($accion eq 'get_events') { enviar_eventos_oficial($citas); }
 elsif ($accion eq 'cobrar_recepcion') { cobrar_recepcion($citas, $q); }
 elsif ($accion eq 'confirm_paciente') { confirmar_cita_paciente($citas, $q); }
@@ -168,7 +169,10 @@ sub crear_cita {
     my ($ok_h, $msg_h) = validar_horario($fec, $hi, $hf);
     unless ($ok_h) { responder_json(0, $msg_h); return; }
 
-    my ($ok_c, $msg_c) = detectar_colisiones($arr, $fec, $hi, $hf, $id_m);
+    my $sucursal = $query->param('sucursal') // '';
+    my $consultorio = $query->param('consultorio') // '';
+
+    my ($ok_c, $msg_c) = detectar_colisiones($arr, $fec, $hi, $hf, $id_m, $sucursal, $consultorio);
     unless ($ok_c) { responder_json(0, $msg_c); return; }
 
     my $pac_id = $query->param('id_paciente');
@@ -287,17 +291,20 @@ sub crear_cita {
 sub actualizar_cita {
     my ($arr, $query) = @_;
     my $id_c = $query->param('id_cita');
-    my ($fec, $hi, $hf) = ($query->param('fecha'), $query->param('hora_ini'), $query->param('hora_fin'));
+    my ($fec, $hi) = ($query->param('fecha'), $query->param('hora_ini'));
     my $id_m = $query->param('id_medico');
     my $motivo = $query->param('motivo') // '';
     $motivo =~ s/^\s+|\s+$//g;
 
     unless ($motivo) { responder_json(0, "El campo Motivo / Observaciones es obligatorio."); return; }
+    my $hf = $query->param('hora_fin');
+    my $sucursal = $query->param('sucursal') // '';
+    my $consultorio = $query->param('consultorio') // '';
 
     my ($ok_h, $msg_h) = validar_horario($fec, $hi, $hf);
     unless ($ok_h) { responder_json(0, $msg_h); return; }
 
-    my ($ok_c, $msg_c) = detectar_colisiones($arr, $fec, $hi, $hf, $id_m, $id_c);
+    my ($ok_c, $msg_c) = detectar_colisiones($arr, $fec, $hi, $hf, $id_m, $sucursal, $consultorio, $id_c);
     unless ($ok_c) { responder_json(0, $msg_c); return; }
 
     my $found = 0;
@@ -387,17 +394,25 @@ sub validar_horario {
 }
 
 sub detectar_colisiones {
-    my ($arr, $fec, $hi, $hf, $id_m, $exclude_id) = @_;
+    my ($arr, $fec, $hi, $hf, $id_m, $sucursal, $consultorio, $exclude_id) = @_;
     $exclude_id //= '';
     foreach my $c (@$arr) {
         next if $exclude_id && $c->{id_cita} eq $exclude_id;
         next if $c->{fecha} ne $fec;
-        next if $c->{id_medico} ne $id_m;
         next if $c->{estado} eq 'Cancelada';
         next if $c->{estado} =~ /Atendida/i; # Excluir citas Atendidas del chequeo de colisión
+        
         if ($hi lt $c->{hora_fin} && $hf gt $c->{hora_ini}) {
             my $pac_nom = obtener_nombre_paciente($c->{id_paciente});
-            return (0, "Colisión con: $pac_nom ($c->{hora_ini} - $c->{hora_fin}).");
+            
+            # Choque de Médico
+            if ($c->{id_medico} eq $id_m) {
+                return (0, "Colisión con el médico seleccionado: $pac_nom ($c->{hora_ini} - $c->{hora_fin}).");
+            }
+            # Choque de Recurso Físico (Consultorio/Quirófano)
+            elsif ($sucursal && $consultorio && $consultorio ne 'Virtual' && $c->{sucursal} eq $sucursal && $c->{consultorio} eq $consultorio) {
+                return (0, "El recurso físico ($consultorio) está ocupado por otra consulta ($c->{hora_ini} - $c->{hora_fin}).");
+            }
         }
     }
     return (1, "OK");
@@ -423,7 +438,8 @@ sub enviar_eventos_oficial {
             title => $titulo,
             start => "$c->{fecha}T$c->{hora_ini}:00",
             end => "$c->{fecha}T$c->{hora_fin}:00",
-            color => $c->{color} || '#3b82f6', # Azul premium por defecto si no tiene
+            color => ($c->{consultorio} && $c->{consultorio} =~ /quir/i) ? '#dc3545' : ($c->{color} || '#3b82f6'),
+
             extendedProps => {
                 id_paciente => $c->{id_paciente},
                 id_medico => $c->{id_medico},
@@ -673,7 +689,38 @@ sub obtener_metadatos_formulario {
         sucursales => \@sucursales
     );
     print $q->header(-type => 'application/json', -charset => 'utf-8');
-    print to_json(\%res, { utf8 => 0 });
+    print encode_json(\%res);
+}
+
+sub obtener_recursos_sucursal {
+    my ($q) = @_;
+    my $id_sucursal = $q->param('id_sucursal');
+    unless ($id_sucursal) {
+        responder_json(0, "Falta id_sucursal");
+    }
+    
+    my $file_cfg = "$dirname/../dat/negocios_config.dat";
+    my $consultorios = 1;
+    my $quirofanos = 0;
+    
+    if (-e $file_cfg && open my $fh, '<:encoding(UTF-8)', $file_cfg) {
+        my $cnt = 0;
+        while (my $line = <$fh>) {
+            $cnt++;
+            $line =~ s/\R//g;
+            next if $cnt == 1 || $line =~ /^\s*$/;
+            my @f = split(/\|/, $line);
+            next unless scalar(@f) >= 3;
+            if ($f[0] eq $id_sucursal) {
+                if ($f[1] eq 'CONSULTORIOS') { $consultorios = $f[2] + 0; }
+                if ($f[1] eq 'QUIROFANOS') { $quirofanos = $f[2] + 0; }
+            }
+        }
+        close $fh;
+    }
+    
+    print $q->header(-type => 'application/json', -charset => 'utf-8');
+    print encode_json({ ok => 1, consultorios => $consultorios, quirofanos => $quirofanos });
 }
 
 sub cobrar_recepcion {
