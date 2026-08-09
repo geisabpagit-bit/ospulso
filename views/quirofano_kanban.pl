@@ -30,22 +30,22 @@ if ($role !~ /Medico|Administrador|Enfermeria/i) {
 
 # Cargar Médicos y Anestesiólogos para el modal
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
-my $regs = leer_tabla($archivo_usuarios, '\|');
+my $regs = leer_tabla($archivo_usuarios, '!');
 my @medicos = ();
 foreach my $r (@$regs) {
-    next unless scalar(@$r) >= 11;
-    my $rol_u = $r->[3];
-    my $org_u = $r->[9];
+    next unless scalar(@$r) >= 7;
+    my $m_id = $r->[0];
+    my $m_nom = $r->[1];
+    my $rol_u = $r->[5] // '';
+    my $org_u = $r->[6] // '';
     if (($rol_u eq 'Medico' || $rol_u =~ /Especialista/i) && ($org_u eq $id_empresa || $role eq 'Administrador Global')) {
-        push @medicos, { id => $r->[1], nombre => $r->[2] };
+        push @medicos, { id => $m_id, nombre => $m_nom };
     }
 }
 my $medicos_options = "<option value=''>-- Seleccione --</option>";
 foreach my $m (@medicos) {
     $medicos_options .= "<option value='$m->{id}'>$m->{nombre}</option>";
 }
-
-print $q->header(-type => 'text/html', -charset => 'UTF-8');
 render_header(
     titulo => 'Tablero de Quirófano (Kanban)',
     role => $role,
