@@ -51,12 +51,12 @@ if (my $did = $q->param('delete_id')) {
                 } elsif (!$org_pac) {
                     $acceso_permitido = 1;
                 }
-            } elsif ($role eq 'Medico') {
+            } elsif ($role =~ /Medico|Asistente|Recepcion/i) {
                 if ($org_pac && $org_pac eq $mi_org) {
-                    if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $r->[1] eq $id_medico) {
+                    if ($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) {
                         $acceso_permitido = 1;
                     }
-                } elsif (!$org_pac && $r->[1] eq $id_medico) {
+                } elsif (!$org_pac) {
                     $acceso_permitido = 1;
                 }
             }
@@ -105,13 +105,13 @@ if ($regs) {
                 $es_mi_tenant = 1;
             }
         }
-        # Médico ve solo sus pacientes
-        elsif ($role eq 'Medico') {
+        # Médico / Asistente ve pacientes de su organización / sucursal
+        elsif ($role =~ /Medico|Asistente|Recepcion/i) {
             if ($org_pac && $org_pac eq $mi_org) {
-                if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $r->[1] eq $id_medico) {
+                if ($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) {
                     $es_mi_tenant = 1;
                 }
-            } elsif (!$org_pac && $r->[1] eq $id_medico) {
+            } elsif (!$org_pac) {
                 $es_mi_tenant = 1;
             }
         }

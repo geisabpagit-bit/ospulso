@@ -56,12 +56,12 @@ if ($regs) {
             } elsif (!$org_pac) {
                 $acceso_permitido = 1;
             }
-        } elsif ($role eq 'Medico') {
+        } elsif ($role =~ /Medico|Asistente|Recepcion/i) {
             if ($org_pac && $org_pac eq $mi_org) {
-                if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $med_id eq $id_medico) {
+                if ($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) {
                     $acceso_permitido = 1;
                 }
-            } elsif (!$org_pac && $med_id eq $id_medico) {
+            } elsif (!$org_pac) {
                 $acceso_permitido = 1;
             }
         }
