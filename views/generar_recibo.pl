@@ -61,7 +61,7 @@ foreach my $r (@$regs) {
 
 # 3. Render HTML
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
-render_sub_header(
+render_header(
     titulo => 'Caja Rápida',
     role => $role,
     usuario => $usuario,
