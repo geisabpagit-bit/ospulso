@@ -543,6 +543,17 @@ print <<'JS';
                 // Escuchar el cambio manual del usuario
                 fSucursal.addEventListener('change', function() {
                     window.cargarRecursos(this.value);
+                    if (typeof renderSlots === 'function' && document.getElementById('f_fecha')) {
+                        renderSlots(document.getElementById('f_fecha').value);
+                    }
+                });
+            }
+
+            if (fConsultorio) {
+                fConsultorio.addEventListener('change', function() {
+                    if (typeof renderSlots === 'function' && document.getElementById('f_fecha')) {
+                        renderSlots(document.getElementById('f_fecha').value);
+                    }
                 });
             }
             

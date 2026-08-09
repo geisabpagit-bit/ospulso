@@ -1168,11 +1168,19 @@ function renderSlots(date) {
     const [ls, le] = [agendaConfig.lunchStart, agendaConfig.lunchEnd];
     const curId = $("#f_id_cita").val(); 
     const medId = String($("#f_medico").val() || "");
+    const curSucursal = String($("#f_sucursal").val() || "");
+    const curConsultorio = String($("#f_consultorio").val() || "");
+
     const dayApps = appointments.filter(a => {
         const sameDay = a.start.startsWith(date);
-        const sameMed = String(a.extendedProps.id_medico || "") === medId;
         const differentId = String(a.id) !== String(curId);
-        return sameDay && sameMed && differentId;
+        
+        const isSameMed = String(a.extendedProps.id_medico || "") === medId;
+        const isSameResource = (curSucursal && curConsultorio) && 
+                               (String(a.extendedProps.sucursal || "") === curSucursal) && 
+                               (String(a.extendedProps.consultorio || "") === curConsultorio);
+
+        return sameDay && differentId && (isSameMed || isSameResource);
     });
 
     const laborStartMin = s * 60;
