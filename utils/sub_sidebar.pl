@@ -66,6 +66,7 @@ sub render_sidebar {
         $id_empresa = $sd->{id_empresa} || 0;
     };
 
+    my $tipo_org = '';
     if ($id_empresa && $role ne 'Administrador Global') {
         my %capacidades = ();
         my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
@@ -75,8 +76,12 @@ sub render_sidebar {
                     chomp($line);
                     next if $line =~ /^#|^\s*$/;
                     my ($biz_id, $key, $val) = split(/\|/, $line);
-                    if ($biz_id eq $id_empresa && $key eq 'CAPACIDAD') {
-                        $capacidades{$val} = 1;
+                    if ($biz_id eq $id_empresa) {
+                        if ($key eq 'CAPACIDAD') {
+                            $capacidades{$val} = 1;
+                        } elsif ($key eq 'TIPO_ORGANIZACION') {
+                            $tipo_org = $val;
+                        }
                     }
                 }
                 close($cf);
@@ -100,8 +105,8 @@ sub render_sidebar {
                 $trimmed_mod =~ s/^\s+|\s+$//g;
                 if (exists $modulo_capacidad{$trimmed_mod}) {
                     # --- REGLA DE BYPASS DE CAPACIDADES ---
-                    # 1. 'pacientes' siempre visible para Administrador Organizacion y Medico
-                    if ($trimmed_mod eq 'pacientes' && ($role eq 'Administrador Organizacion' || $role eq 'Medico')) {
+                    # 1. 'pacientes' siempre visible para Administrador Organizacion, Medico y Recepcionista
+                    if ($trimmed_mod eq 'pacientes' && ($role eq 'Administrador Organizacion' || $role eq 'Medico' || $role =~ /Recepcionista/i)) {
                         push @filtered_modules, $mod;
                         next;
                     }
@@ -110,11 +115,16 @@ sub render_sidebar {
                         push @filtered_modules, $mod;
                         next;
                     }
-                    # 3. 'finanzas' y 'reportes' siempre visibles para Administrador Organizacion, Medico y Recepcionista
-                    if (($trimmed_mod eq 'finanzas' || $trimmed_mod eq 'reportes') && 
-                        ($role eq 'Administrador Organizacion' || $role eq 'Medico' || $role eq 'Recepcionista')) {
-                        push @filtered_modules, $mod;
-                        next;
+                    # 3. 'finanzas' y 'reportes' siempre visibles para Administrador Organizacion y Recepcionista
+                    # Para Médico, solo si el tipo de organización es individual o compartido
+                    if ($trimmed_mod eq 'finanzas' || $trimmed_mod eq 'reportes') {
+                        if ($role eq 'Administrador Organizacion' || $role =~ /Recepcionista/i) {
+                            push @filtered_modules, $mod;
+                            next;
+                        } elsif ($role eq 'Medico' && ($tipo_org =~ /Individual/i || $tipo_org =~ /Compartido/i)) {
+                            push @filtered_modules, $mod;
+                            next;
+                        }
                     }
 
                     my $required_cap = $modulo_capacidad{$trimmed_mod};
@@ -365,7 +375,15 @@ HTML
                     <div class="accordion-body pb-0 pt-1">
                         <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
                         <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
+        };
+
+        if ($role !~ /Medico/i || ($role =~ /Medico/i && ($tipo_org =~ /Individual/i || $tipo_org =~ /Compartido/i))) {
+            print qq{
                         <a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>
+            };
+        }
+
+        print qq{
                         <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Gastos (Egresos)</span></a>
                         <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cuentas por Cobrar</span></a>
                         <hr class="my-2 opacity-25">

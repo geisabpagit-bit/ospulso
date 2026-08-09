@@ -45,6 +45,11 @@ if ($action eq 'get_cxc') {
         # Ignorar Cotizaciones (no son ingresos reales)
         next if $tipo eq 'Cargo' && $notas =~ /Presupuesto|Cotizacion/i;
         
+        # Filtro de médico si el rol es Medico
+        if ($session_data->{role} eq 'Medico') {
+            next if ($mov->[9] || '') ne $session_data->{id_medico};
+        }
+        
         my $cargo = ($tipo eq 'Cargo') ? ($mov->[7] || 0) : 0;
         my $abono = ($tipo eq 'Abono') ? ($mov->[7] || 0) : 0;
         my $fecha = $mov->[8] || '';
@@ -189,6 +194,11 @@ elsif ($action eq 'get_ingresos') {
         
         # Ignorar cotizaciones en ingresos (no son ingresos reales)
         next if $tipo eq 'Cargo' && $notas =~ /Presupuesto|Cotizacion/i;
+        
+        # Filtro de médico si el rol es Medico
+        if ($session_data->{role} eq 'Medico') {
+            next if ($m->[9] || '') ne $session_data->{id_medico};
+        }
         
         if ($total > 0) {
             push @ingresos, {

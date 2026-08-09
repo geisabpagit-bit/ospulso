@@ -23,6 +23,8 @@ my $role      = $sd->{role};
 my $id_medico = $sd->{id_medico} || '';
 my $id_empresa = $sd->{id_empresa} || '';
 
+binmode STDOUT, ":utf8";
+
 # Restringir a roles permitidos (Recepcion, Medicos, Admins)
 if ($role !~ /Recepcionista|Medico|Administrador/i) {
     print $q->redirect('inicial.pl');
@@ -56,7 +58,7 @@ foreach my $r (@$regs) {
     my $m_nom = $r->[1];
     my $rol_u = $r->[5] // '';
     my $org_u = $r->[6] // '';
-    if ($rol_u eq 'Medico' && ($org_u eq $id_empresa || $role eq 'Administrador Global')) {
+    if ($rol_u eq 'Medico' || $rol_u =~ /Especialista/i) {
         push @medicos, { id => $m_id, nombre => $m_nom };
     }
 }
@@ -103,27 +105,31 @@ print <<"HTML";
                     <div id="step1" class="wizard-step active">
                         <form id="frmCajaRapida" onsubmit="return false;">
                             
-                            <!-- Búsqueda de Paciente -->
+                            <!-- Selección del Paciente -->
                             <div class="mb-4">
                                 <label class="form-label fw-bold small text-muted">1. Selecciona o Busca al Paciente</label>
-                                <select id="selPaciente" class="form-select" style="width:100%;"></select>
-                                <div class="form-text">Si el paciente no existe, debe registrarse previamente en el Directorio.</div>
-                            </div>
-                            
-                            <!-- Búsqueda de Empleados Municipio (Solo si tiene la capacidad) -->
 HTML
 
 if ($has_pacientes_estado) {
     print <<"HTML";
-                            <div class="mb-4 p-3 bg-light rounded-3 border">
-                                <label class="form-label fw-bold small text-primary"><i class="bi bi-bank me-2"></i>Búsqueda Avanzada: Pacientes del Estado (empleadosmun.dat)</label>
-                                <select id="selPacienteEstado" class="form-select" style="width:100%;"></select>
-                                <div class="form-text">Busca por Número de Empleado o Nombre. Se asignará la información al recibo actual.</div>
-                            </div>
+                                <div class="mb-3 d-flex gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="tipoPaciente" id="tipoPrivado" value="privado" checked onchange="cambiarTipoPaciente()">
+                                        <label class="form-check-label" for="tipoPrivado">Privado (General)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="tipoPaciente" id="tipoEstado" value="estado" onchange="cambiarTipoPaciente()">
+                                        <label class="form-check-label" for="tipoEstado">Pacientes del Estado</label>
+                                    </div>
+                                </div>
 HTML
 }
 
 print <<"HTML";
+                                <select id="selPaciente" class="form-select fw-bold border-primary shadow-sm"></select>
+                                <div class="form-text">Si el paciente no existe, debe registrarse previamente en el Directorio.</div>
+                            </div>
+                            
                             <!-- Selección del Médico -->
                             <div class="mb-4">
                                 <label class="form-label fw-bold small text-muted">2. Médico Responsable (Para honorarios/comisiones)</label>
@@ -206,17 +212,25 @@ print <<"HTML";
 <script src="https://cdn.jsdelivr.net/npm/select2\@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     let cartItems = [];
-    let tratamientoExpressGuardado = null; // Guardará el ID retornado tras guardar en step 2
     
     \$(document).ready(function() {
-        // Init Pacientes Normal
+        initSelect2Paciente('privado');
+    });
+
+    function initSelect2Paciente(tipo) {
+        if (\$('#selPaciente').hasClass('select2-hidden-accessible')) {
+            \$('#selPaciente').select2('destroy');
+        }
+        
+        let urlApi = (tipo === 'estado') ? '../api/buscar_empleadosmun.pl' : '../api/pacientes_buscar.pl';
+        let placeholderTxt = (tipo === 'estado') ? '🔍 Escribe #Empleado o Nombre (Pacientes del Estado)...' : '🔍 Escribe el nombre del paciente (Privado)...';
+
         \$('#selPaciente').select2({
             theme: 'bootstrap-5',
-            placeholder: '🔍 Buscar Paciente por Nombre o ID...',
+            placeholder: placeholderTxt,
             minimumInputLength: 2,
-            language: { inputTooShort: function() { return "Ingresa al menos 2 letras..."; }, noResults: function() { return "No se encontraron pacientes."; } },
             ajax: {
-                url: '../api/pacientes_buscar.pl',
+                url: urlApi,
                 dataType: 'json',
                 delay: 350,
                 data: function (params) { return { q: params.term }; },
@@ -225,25 +239,12 @@ print <<"HTML";
                 }
             }
         });
-        
-        // Init Empleados Municipio
-        if (\$('#selPacienteEstado').length) {
-            \$('#selPacienteEstado').select2({
-                theme: 'bootstrap-5',
-                placeholder: '🔍 Buscar Número de Empleado (Ej: 21)...',
-                minimumInputLength: 1,
-                ajax: {
-                    url: '../api/buscar_empleadosmun.pl',
-                    dataType: 'json',
-                    delay: 350,
-                    data: function (params) { return { q: params.term }; },
-                    processResults: function (data) {
-                        return { results: data };
-                    }
-                }
-            });
-        }
-    });
+    }
+
+    function cambiarTipoPaciente() {
+        let tipo = \$('input[name="tipoPaciente"]:checked').val() || 'privado';
+        initSelect2Paciente(tipo);
+    }
     
     function addConcepto() {
         const nombre = \$('#iptConcepto').val().trim();
@@ -303,13 +304,9 @@ print <<"HTML";
     async function irAlPaso2() {
         let id_paciente = \$('#selPaciente').val();
         let name_paciente = \$('#selPaciente option:selected').text();
-        
-        // Si usaron Empleado Estado, usar ese ID
-        if (\$('#selPacienteEstado').length && \$('#selPacienteEstado').val()) {
-            const dataState = \$('#selPacienteEstado').select2('data')[0];
-            // Para el backend marcaremos que viene del estado
-            id_paciente = "EMP-" + dataState.id;
-            name_paciente = dataState.nombre;
+        let tipo = \$('input[name="tipoPaciente"]:checked').val() || 'privado';
+        if (tipo === 'estado' && id_paciente) {
+            id_paciente = "EMP-" + id_paciente;
         }
         
         const id_medico = \$('#selMedico').val();
@@ -327,7 +324,6 @@ print <<"HTML";
         const total = cartItems.reduce((acc, it) => acc + (it.precio * it.cantidad), 0);
         const metodo = \$('#selMetodoPago').val();
         
-        // Simular Iframe Previo de Recibo (Draft HTML)
         const fechaHtml = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'short', day:'numeric' });
         let draftHtml = `
         <!DOCTYPE html><html><head><style>body { font-family: 'Inter', sans-serif; padding: 20px; color: #333; } .banner { background: #f59e0b; color: white; text-align: center; padding: 5px; font-weight: bold; font-size: 12px; margin-bottom: 20px; border-radius: 4px; }</style></head><body>
@@ -361,10 +357,9 @@ print <<"HTML";
         let id_paciente = \$('#selPaciente').val();
         let name_paciente = \$('#selPaciente option:selected').text();
         
-        if (\$('#selPacienteEstado').length && \$('#selPacienteEstado').val()) {
-            const dataState = \$('#selPacienteEstado').select2('data')[0];
-            id_paciente = "EMP-" + dataState.id;
-            name_paciente = dataState.nombre;
+        let tipo = \$('input[name="tipoPaciente"]:checked').val() || 'privado';
+        if (tipo === 'estado' && id_paciente) {
+            id_paciente = "EMP-" + id_paciente;
         }
         
         const id_medico = \$('#selMedico').val();

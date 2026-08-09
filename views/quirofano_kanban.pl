@@ -22,6 +22,8 @@ my $usuario    = $sd->{usuario};
 my $role       = $sd->{role};
 my $id_empresa = $sd->{id_empresa} || '';
 
+binmode STDOUT, ":utf8";
+
 # Restringir
 if ($role !~ /Medico|Administrador|Enfermeria/i) {
     print $q->redirect('inicial.pl');
