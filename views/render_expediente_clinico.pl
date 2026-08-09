@@ -72,18 +72,14 @@ if ($paciente) {
     my $acceso_permitido = 0;
     if ($role eq 'Administrador Global') {
         $acceso_permitido = 1;
-    } elsif ($role =~ /Administrador Organizacion|Soporte/i) {
-        if ($org_pac && $org_pac eq $mi_org) {
+    } elsif ($org_pac && $org_pac eq $mi_org) {
+        # Si el paciente pertenece a esta organización, todos los de la org pueden verlo
+        $acceso_permitido = 1;
+    } elsif (!$org_pac) {
+        # Paciente legado sin org
+        if ($role =~ /Administrador Organizacion|Soporte/i) {
             $acceso_permitido = 1;
-        } elsif (!$org_pac) {
-            $acceso_permitido = 1;
-        }
-    } elsif ($role eq 'Medico') {
-        if ($org_pac && $org_pac eq $mi_org) {
-            if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $paciente->{id_medico} eq $id_medico) {
-                $acceso_permitido = 1;
-            }
-        } elsif (!$org_pac && $paciente->{id_medico} eq $id_medico) {
+        } elsif ($role eq 'Medico' && $paciente->{id_medico} eq $id_medico) {
             $acceso_permitido = 1;
         }
     }

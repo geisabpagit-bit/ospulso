@@ -31,11 +31,7 @@ my $admin_hash = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720
 my $doc_hash = "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f";
 
 my $usuarios_content = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL\n" .
-"1!Administrador Global!admin\@ospulso.com!$admin_hash!1!Administrador Global!0:0!0!0!0!Clínica Principal!\n" .
-"190726041!pamela villegas!pam\@gmail.com!$doc_hash!1!Ejecutivo Ventas!0:0!0!0!0!Clínica Principal!\n" .
-"112979632!francisco lopez!fran\@gmail.com!$doc_hash!1!Administrador Organizacion!1055007:0!0!0!0!Clínica Principal!\n" .
-"1020747209!doctor 1!doc1\@gmail.com!$doc_hash!1!Medico!1055007:706496!100!100.1!12345678!Av. Universidad 100, Col. Centro, CDMX!FIRMA_DOC1\n" .
-"1088603479!doctor dos!doc2\@gmail.com!$doc_hash!1!Medico!1055007:591522!5!0!87654321!Calle Médicos 45, Col. Juárez, CDMX!FIRMA_DOC2\n";
+"1!Administrador Global!admin\@ospulso.com!$admin_hash!1!Administrador Global!0:0!0!0!0!Clínica Principal!\n";
 
 my $pacientes_content = "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT\n";
 
@@ -46,8 +42,7 @@ my $pac_ant_content = "ID_PACIENTE|TUTOR|ANTECEDENTES_JSON|FECHA_ACTUALIZACION\n
 
 my %archivos = (
     'usuarios.dat' => $usuarios_content,
-    'negocios.dat' => "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud\n" .
-                      "1055007|Clínica Principal|0|1|2026-01-01|2030-12-31|Av. Universidad 100, Col. Centro, CDMX|5512345678|contacto\@pdigitalesm.com|||||||||||||\n",
+    'negocios.dat' => "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud\n",
     'citas.dat' => "ID_CITA|ID_MEDICO|ID_PACIENTE|FECHA|HORA_INICIO|HORA_FIN|TIPO_CONSULTA|NOTAS|ESTADO|EXTRA\n",
     'pacientes.dat' => $pacientes_content,
     'pacientes_antecedentes.dat' => $pac_ant_content,
