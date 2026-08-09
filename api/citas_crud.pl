@@ -171,11 +171,11 @@ sub crear_cita {
 
     my $sucursal = $query->param('sucursal') // '';
     my $consultorio = $query->param('consultorio') // '';
+    my $pac_id = $query->param('id_paciente');
 
-    my ($ok_c, $msg_c) = detectar_colisiones($arr, $fec, $hi, $hf, $id_m, $sucursal, $consultorio);
+    my ($ok_c, $msg_c) = detectar_colisiones($arr, $fec, $hi, $hf, $id_m, $sucursal, $consultorio, undef, $pac_id);
     unless ($ok_c) { responder_json(0, $msg_c); return; }
 
-    my $pac_id = $query->param('id_paciente');
     my $pac_nom = obtener_nombre_paciente($pac_id);
     
     # Sincronización protegida con eval para evitar muerte del script
@@ -304,7 +304,8 @@ sub actualizar_cita {
     my ($ok_h, $msg_h) = validar_horario($fec, $hi, $hf);
     unless ($ok_h) { responder_json(0, $msg_h); return; }
 
-    my ($ok_c, $msg_c) = detectar_colisiones($arr, $fec, $hi, $hf, $id_m, $sucursal, $consultorio, $id_c);
+    my $pac_id = $query->param('id_paciente');
+    my ($ok_c, $msg_c) = detectar_colisiones($arr, $fec, $hi, $hf, $id_m, $sucursal, $consultorio, $id_c, $pac_id);
     unless ($ok_c) { responder_json(0, $msg_c); return; }
 
     my $found = 0;
@@ -394,17 +395,37 @@ sub validar_horario {
 }
 
 sub detectar_colisiones {
-    my ($arr, $fec, $hi, $hf, $id_m, $sucursal, $consultorio, $exclude_id) = @_;
+    my ($arr, $fec, $hi, $hf, $id_m, $sucursal, $consultorio, $exclude_id, $id_paciente) = @_;
     $exclude_id //= '';
+    
+    # Parsear minutos para cálculos de overlap/gap
+    my ($hi_h, $hi_m) = split(/:/, $hi);
+    my $hi_min = ($hi_h // 0) * 60 + ($hi_m // 0);
+    
+    my ($hf_h, $hf_m) = split(/:/, $hf);
+    my $hf_min = ($hf_h // 0) * 60 + ($hf_m // 0);
+
     foreach my $c (@$arr) {
         next if $exclude_id && $c->{id_cita} eq $exclude_id;
         next if $c->{fecha} ne $fec;
         next if $c->{estado} eq 'Cancelada';
         next if $c->{estado} =~ /Atendida/i; # Excluir citas Atendidas del chequeo de colisión
         
-        if ($hi lt $c->{hora_fin} && $hf gt $c->{hora_ini}) {
+        my ($chi_h, $chi_m) = split(/:/, $c->{hora_ini});
+        my $chi_min = ($chi_h // 0) * 60 + ($chi_m // 0);
+        
+        my ($chf_h, $chf_m) = split(/:/, $c->{hora_fin});
+        my $chf_min = ($chf_h // 0) * 60 + ($chf_m // 0);
+        
+        # Validar colisión (superposición en el tiempo)
+        if ($hi_min < $chf_min && $hf_min > $chi_min) {
             my $pac_nom = obtener_nombre_paciente($c->{id_paciente});
             
+            # Choque del mismo paciente (superposición directa de fecha/hora)
+            if ($id_paciente && $c->{id_paciente} eq $id_paciente) {
+                return (0, "El paciente ya tiene una cita agendada que empalma con este horario ($c->{hora_ini} - $c->{hora_fin}).");
+            }
+
             # Choque de Médico
             if ($c->{id_medico} eq $id_m) {
                 return (0, "Colisión con el médico seleccionado: $pac_nom ($c->{hora_ini} - $c->{hora_fin}).");
@@ -412,6 +433,18 @@ sub detectar_colisiones {
             # Choque de Recurso Físico (Consultorio/Quirófano)
             elsif ($sucursal && $consultorio && $consultorio ne 'Virtual' && $c->{sucursal} eq $sucursal && $c->{consultorio} eq $consultorio) {
                 return (0, "El recurso físico ($consultorio) está ocupado por otra consulta ($c->{hora_ini} - $c->{hora_fin}).");
+            }
+        }
+        
+        # Regla: Gap mínimo de 30 minutos para el mismo paciente
+        if ($id_paciente && $c->{id_paciente} eq $id_paciente) {
+            # Gap 1: nueva cita antes de la existente
+            if ($hf_min <= $chi_min && ($chi_min - $hf_min) < 30) {
+                return (0, "El paciente debe tener al menos 30 minutos de descanso entre citas. (Tiene otra a las $c->{hora_ini}).");
+            }
+            # Gap 2: nueva cita después de la existente
+            if ($hi_min >= $chf_min && ($hi_min - $chf_min) < 30) {
+                return (0, "El paciente debe tener al menos 30 minutos de descanso entre citas. (La anterior termina a las $c->{hora_fin}).");
             }
         }
     }
