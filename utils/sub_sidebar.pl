@@ -262,8 +262,18 @@ HTML
         # Ajustes de Agenda eliminado
 
     }
+    
+    # 5. Quirófano / Hospitalización (Solo Médicos, Administradores, Enfermería)
+    if ($role =~ /Medico|Administrador|Enfermeria/i) {
+        my $active_quirofano = ($pagina_actual eq 'quirofano_kanban') ? 'active' : '';
+        print qq{
+            <a href="../views/quirofano_kanban.pl" class="sub-link $active_quirofano w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                <i class="bi bi-heart-pulse-fill me-2 text-danger" style="font-size:1.2rem;"></i> <span class="sidebar-text">Tablero Quirófano</span>
+            </a>
+        };
+    }
 
-    # Separador después de Pacientes / Agenda Dinámica
+    # Separador después de Pacientes / Agenda Dinámica / Quirófano
     if ($is_allowed{pacientes} || $is_allowed{agenda}) {
         print qq{<hr class="my-2 opacity-25 sidebar-separator">};
     }
