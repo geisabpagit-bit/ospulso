@@ -675,9 +675,8 @@ sub obtener_metadatos_formulario {
             next if $cnt == 1 || $line =~ /^\s*$/;
             my @f = split(/\|/, $line);
             next unless scalar(@f) >= 3;
-            if ($f[3] == 1) { # Activo
-                my $tipo = ($f[2] == 0) ? "Matriz" : "Sucursal";
-                push @sucursales, { id => $f[0], nombre => $f[1], tipo => $tipo };
+            if ($f[3] == 1 && $f[2] ne '0') { # Activo y NO es Matriz
+                push @sucursales, { id => $f[0], nombre => $f[1], tipo => "Sucursal" };
             }
         }
         close $fh;
