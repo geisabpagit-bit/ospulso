@@ -57,6 +57,7 @@ render_header(
 print <<"HTML";
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2\@4.1.0-rc.0/dist/css/select2.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme\@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<link rel="stylesheet" href="../css/sdm_mobile_standards.css" />
 <script src="https://cdn.jsdelivr.net/npm/sortablejs\@latest/Sortable.min.js"></script>
 
 <style>
@@ -114,7 +115,7 @@ print <<"HTML";
     .col-alta .kanban-header { border-color: #10b981; background: #ecfdf5; color: #047857; }
 </style>
 
-<main class="container-fluid pt-3 px-4 pb-5 animate__animated animate__fadeIn">
+<main class="container-fluid container-mobile-flush pt-3 px-4 pb-5 animate__animated animate__fadeIn">
     
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -123,7 +124,7 @@ print <<"HTML";
         </div>
         <div class="d-flex gap-2">
             <input type="date" id="filtroFecha" class="form-control form-control-sm" style="width: 150px;">
-            <button class="btn btn-sm btn-primary shadow-sm" onclick="\$('#modalNuevaCirugia').modal('show')">
+            <button class="btn btn-sm btn-primary btn-mobile-standard btn-mobile-action shadow-sm" onclick="\$('#modalNuevaCirugia').modal('show')">
                 <i class="bi bi-plus-circle me-1"></i> Agendar Cirugía
             </button>
         </div>
@@ -183,7 +184,7 @@ print <<"HTML";
 <!-- Modal Nueva Cirugía -->
 <div class="modal fade" id="modalNuevaCirugia" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content border-0 shadow">
+    <div class="modal-content card-mobile-flush border-0 shadow">
       <div class="modal-header bg-primary text-white border-0">
         <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus me-2"></i>Agendar Procedimiento Quirúrgico</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -199,13 +200,9 @@ print <<"HTML";
             </div>
             
             <div class="row g-3 mb-3">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <label class="form-label fw-bold small text-muted">Procedimiento / Cirugía <span class="text-danger">*</span></label>
                     <input type="text" id="iptProcedimiento" name="procedimiento" class="form-control" placeholder="Ej. Apendicectomía Laparoscópica" required>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold small text-muted">Sala / Quirófano</label>
-                    <input type="text" id="iptSala" name="sala" class="form-control" placeholder="Ej. Sala 1">
                 </div>
             </div>
             
@@ -243,29 +240,31 @@ print <<"HTML";
         </form>
       </div>
       <div class="modal-footer border-0">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary shadow-sm" onclick="guardarCirugia()">Guardar en Agenda</button>
+        <button type="button" class="btn btn-light btn-mobile-standard btn-mobile-outline" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-mobile-standard btn-mobile-action shadow-sm" onclick="guardarCirugia()">Guardar en Agenda</button>
       </div>
     </div>
   </div>
 </div>
+HTML
 
-<script src="https://cdn.jsdelivr.net/npm/select2\@4.1.0-rc.0/dist/js/select2.min.js"></script>
+print <<'JS';
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    \$(document).ready(function() {
+    $(document).ready(function() {
         // Init Filtro de Fecha a HOY
         const tzoffset = (new Date()).getTimezoneOffset() * 60000;
         const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 10);
-        \$('#filtroFecha').val(localISOTime);
-        \$('#iptFecha').val(localISOTime);
+        $('#filtroFecha').val(localISOTime);
+        $('#iptFecha').val(localISOTime);
         
-        \$('#filtroFecha').on('change', function() { cargarTablero(); });
+        $('#filtroFecha').on('change', function() { cargarTablero(); });
         
-        // Select2 Pacientes
-        \$('#selPaciente').select2({
+        // Init Select2 para Pacientes
+        $('#selPaciente').select2({
             theme: 'bootstrap-5',
-            dropdownParent: \$('#modalNuevaCirugia'),
-            placeholder: '🔍 Buscar Paciente...',
+            dropdownParent: $('#modalNuevaCirugia'),
+            placeholder: '🔍 Escribe nombre del paciente...',
             minimumInputLength: 2,
             ajax: {
                 url: '../api/pacientes_buscar.pl',
@@ -414,9 +413,9 @@ print <<"HTML";
         }
     }
 </script>
+JS
 
-HTML
-
+# Render Footer
 render_bottom_nav('hospital');
 print "</body></html>\n";
 1;

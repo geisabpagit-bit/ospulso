@@ -58,6 +58,9 @@ El sistema soporta tres escenarios operativos integrales para el cobro de la con
 - **Estilos (CSS)**: Sistema de diseño *MedentIA Diamond Armor* en archivos `.css` independientes.
 - **Seguridad**: Middleware de sesión `check_session.pl`, hashing SHA-256 y blindaje de suscripción.
 
+## 4. Módulos Específicos
+- **Quirófano y Hospitalización**: [Documentación del Módulo Kanban de Quirófano](modulo_quirofano.md)
+
 ---
 
 ## 4. Historial de Ajustes Técnicos Recientes (v4.4.0)
