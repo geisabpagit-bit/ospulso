@@ -19,7 +19,7 @@ unless ($session_data->{session_ok}) {
     print JSON::PP->new->utf8(0)->encode({ok => 0, msg => "Sesión caducada. Por favor recargue la página."});
     exit;
 }
-my $id_medico_sesion = $session_data->{id_medico};
+my $id_medico = $session_data->{id_medico};
 
 # --- CAPTURA DE PAYLOAD PURA JSON / UTF-8 SPA ---
 my $q = $session_data->{q};
@@ -43,8 +43,8 @@ if ($input->{accion} eq 'crear') {
     my $nombre = $input->{nombre} // '';
     my $rfc = $input->{rfc} // '';
     my $curp = $input->{curp} // '';
-    my $id_medico_form = $input->{id_medico} // $id_medico_sesion;
-    $id_medico_form = $id_medico_sesion if $id_medico_form eq '';
+    my $id_medico_form = $input->{id_medico} // $id_medico;
+    $id_medico_form = $id_medico if $id_medico_form eq '';
     
     # 1. Blindaje Backend - Nombres Puros
     if ($nombre =~ /[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/) {
