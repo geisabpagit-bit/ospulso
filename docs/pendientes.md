@@ -13,6 +13,9 @@
 - [x] **Actualización Documentación v4.2.0**: Sincronización total de manuales técnicos.
 
 ## 🚀 Próximos Pasos (Roadmap)
+- [ ] **Tablero Directivo de Alto Impacto (Dashboard V1.0)**: Inyectar widgets de Ingresos del Día, Productividad y Citas Totales en `render_dashboard_principal.pl`.
+- [ ] **Auditoría de Error 500 Global (V1.0)**: Revisión total de `/views/` y `/api/` para asegurar `use utf8`, `binmode STDOUT, ":utf8";` y `use FindBin;`.
+- [ ] **Depuración PWA (V1.0)**: Inyección de `manifest.json` y Service Worker básico para instalación móvil.
 - [x] **Candados de Negocio**: Implementar validación de columna `activo` en `negocios.dat` para bloqueo de suscripción.
 - [ ] **Automatización de Recordatorios**: Finalizar el script backend para envío masivo vía WhatsApp/Email.
 - [ ] **Sincronización Bidireccional Google**: Refinar la descarga de eventos externos hacia SDM.

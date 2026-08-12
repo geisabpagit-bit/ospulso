@@ -93,9 +93,9 @@ print <<"HTML";
     
     <div class="row justify-content-center">
         <div class="col-12 col-lg-8">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-header bg-white border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-receipt-cutoff me-2"></i>Caja Rápida - Recibo Independiente</h5>
+            <div class="bento-card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-0" style="color: var(--md-blue-deep, #0A2A66);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-cyan-ia, #18D1E6);"></i>Caja Rápida - Recibo Independiente</h5>
                     <p class="text-muted small">Genera comprobantes de pago sin necesidad de una cita programada.</p>
                 </div>
                 
@@ -138,22 +138,24 @@ print <<"HTML";
                                 </select>
                             </div>
                             
-                            <!-- Conceptos / Cotizador Express -->
+                            <!-- Conceptos / Carrito Universal -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold small text-muted">3. Conceptos a Cobrar</label>
-                                <div class="d-flex gap-2 mb-3">
-                                    <input type="text" id="iptConcepto" class="form-control form-control-sm" placeholder="Ej. Curación menor">
-                                    <input type="number" id="iptPrecio" class="form-control form-control-sm" placeholder="Monto \$" style="width: 120px;">
-                                    <input type="number" id="iptCant" class="form-control form-control-sm" placeholder="Cant." value="1" style="width: 80px;">
-                                    <button type="button" class="btn btn-sm btn-primary" onclick="addConcepto()"><i class="bi bi-plus-lg"></i> Agregar</button>
-                                </div>
-                                <div class="bg-light p-3 rounded-3 mb-2" id="cartContainer">
-                                    <div class="text-center text-muted small py-2" id="cartEmpty">No hay conceptos agregados</div>
-                                    <!-- Items will go here -->
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center bg-dark text-white p-2 rounded-3 px-3">
-                                    <span class="fw-bold">TOTAL:</span>
-                                    <span class="fw-bold fs-5" id="cartTotalText">\$ 0.00</span>
+                                <label class="kpi-label mb-2">3. Conceptos a Cobrar</label>
+                                <button type="button" class="btn btn-light border w-100 py-3 rounded-4 mb-3 d-flex flex-column align-items-center justify-content-center shadow-sm" onclick="$('#modalCargo').modal('show')" style="border-color: var(--md-gray-soft, #D9E2EC) !important;">
+                                    <i class="bi bi-cart-plus fs-3 mb-1" style="color: var(--md-blue-deep, #0A2A66);"></i>
+                                    <span class="fw-bold" style="color: var(--md-blue-deep, #0A2A66); font-family: 'Plus Jakarta Sans', sans-serif;">Abrir Carrito de Conceptos</span>
+                                    <span class="small text-muted">Agrega desde catálogo o entrada manual</span>
+                                </button>
+                                
+                                <!-- Resumen visual del carrito (sincronizado con el modal) -->
+                                <div class="p-3 rounded-4" style="background: var(--md-white-clinical, #F8FBFF); border: 1px solid var(--md-gray-soft, #D9E2EC);">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                                        <span class="fw-bold" style="color: var(--md-text-secondary, #486581); font-family: 'Plus Jakarta Sans', sans-serif;"><i class="bi bi-receipt me-1"></i> Resumen de Cobro</span>
+                                        <span class="fw-bold fs-5" id="cartTotalText" style="color: var(--md-blue-deep, #0A2A66);">\$0.00</span>
+                                    </div>
+                                    <div id="cartContainer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 150px;">
+                                        <div class="text-center text-muted small py-2" id="cartEmpty">No hay conceptos agregados</div>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -207,25 +209,103 @@ print <<"HTML";
             </div>
         </div>
     </div>
-</main>
+<!-- MODAL CARRITO UNIVERSAL -->
+<div class="modal fade modal-diamond" id="modalCargo" tabindex="-1" aria-labelledby="modalCargoTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66) 0%, #f59e0b 100%) !important;">
+                <h5 class="modal-title font-secondary fw-bold text-white" id="modalCargoTitle">
+                    <i class="bi bi-cart-plus me-2"></i>Conceptos del Recibo
+                </h5>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: var(--md-white-clinical, #F8FBFF);">
+                <div class="row g-3">
+                    <!-- Columna Izquierda: Catálogo -->
+                    <div class="col-lg-7">
+                        <!-- Entrada manual -->
+                        <div class="bento-card p-3 mb-2" style="border-radius: 12px;">
+                            <label class="kpi-label mb-2">Entrada Manual</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="manual_nombre" class="form-control" placeholder="Concepto (ej. Consulta General)" style="border-color: var(--md-gray-soft, #D9E2EC); font-family: 'Plus Jakarta Sans', sans-serif;">
+                                <span class="input-group-text fw-bold" style="background: var(--md-white-clinical, #F8FBFF); border-color: var(--md-gray-soft, #D9E2EC); color: var(--md-blue-deep, #0A2A66);">\$</span>
+                                <input type="number" id="manual_precio" class="form-control" style="max-width: 90px; border-color: var(--md-gray-soft, #D9E2EC);" placeholder="0.00" step="0.01" min="0">
+                                <button onclick="agregarCargoManual()" class="btn btn-sm px-3 fw-bold" style="background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66), var(--md-blue-medical, #124A9E)); color: white; border: none;">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
 
+                        <!-- Buscador catálogo -->
+                        <div class="position-relative mb-2">
+                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 small" style="color: var(--md-cyan-ia, #18D1E6);"></i>
+                            <input type="text" id="buscadorCatalogo" class="form-control form-control-sm ps-4 py-2 rounded-pill border-0 shadow-sm" placeholder="Buscar en catálogo de servicios y productos..." style="background: white; font-family: 'Plus Jakarta Sans', sans-serif;" oninput="filtrarCatalogo()" onkeyup="filtrarCatalogo()">
+                        </div>
+
+                        <!-- Tabla catálogo -->
+                        <div class="table-responsive shadow-sm" style="max-height: 300px; overflow-y: auto; border-radius: 10px; border: 1px solid var(--md-gray-soft, #D9E2EC);">
+                            <table class="table table-hover table-sm align-middle mb-0" style="background: white;">
+                                <thead style="background: var(--md-white-clinical, #F8FBFF); position: sticky; top: 0; z-index: 1;">
+                                    <tr>
+                                        <th class="ps-3 py-2" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--md-text-secondary, #486581); border-bottom: 2px solid var(--md-gray-soft, #D9E2EC);">Concepto</th>
+                                        <th class="text-end py-2" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--md-text-secondary, #486581); border-bottom: 2px solid var(--md-gray-soft, #D9E2EC);">Precio</th>
+                                        <th style="width: 60px; border-bottom: 2px solid var(--md-gray-soft, #D9E2EC);"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaCatalogo">
+                                    <!-- AJAX rellena esto -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Carrito -->
+                    <div class="col-lg-5">
+                        <div class="bento-card p-3 h-100 d-flex flex-column" style="border-radius: 12px; background: white;">
+                            <h6 class="fw-bold mb-2" style="font-family: 'Plus Jakarta Sans', sans-serif; color: var(--md-blue-deep, #0A2A66); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="bi bi-cart3 me-1" style="color: var(--md-cyan-ia, #18D1E6);"></i>Resumen del Cargo
+                            </h6>
+                            <div id="listaCarrito" class="flex-grow-1 d-flex flex-column gap-2 overflow-auto mb-3" style="max-height: 280px;"></div>
+                            <div class="p-3 rounded-4 mt-auto" style="background: var(--md-white-clinical, #F8FBFF); border: 1px solid var(--md-gray-soft, #D9E2EC);">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="kpi-label m-0" style="font-size: 0.7rem;">TOTAL</span>
+                                    <span class="fw-bold m-0" id="carritoTotal" style="font-size: 1.5rem; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--md-blue-deep, #0A2A66);">\$0.00</span>
+                                </div>
+                                <button class="btn btn-sm w-100 py-2 fw-bold rounded-3 shadow" id="btnProcesarCargo" onclick="$('#modalCargo').modal('hide')" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.3px; transition: all 0.3s ease;">
+                                    <i class="bi bi-check-circle me-1"></i>CONFIRMAR CONCEPTOS
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</main>
 <script src="https://cdn.jsdelivr.net/npm/select2\@4.1.0-rc.0/dist/js/select2.min.js"></script>
+HTML
+
+print <<'JS';
 <script>
     let cartItems = [];
+    let catalogoMaster = [];
     
-    \$(document).ready(function() {
+    $(document).ready(function() {
         initSelect2Paciente('privado');
+        cargarCatalogo();
     });
 
     function initSelect2Paciente(tipo) {
-        if (\$('#selPaciente').hasClass('select2-hidden-accessible')) {
-            \$('#selPaciente').select2('destroy');
+        if ($('#selPaciente').hasClass('select2-hidden-accessible')) {
+            $('#selPaciente').select2('destroy');
         }
         
         let urlApi = (tipo === 'estado') ? '../api/buscar_empleadosmun.pl' : '../api/pacientes_buscar.pl';
         let placeholderTxt = (tipo === 'estado') ? '🔍 Escribe #Empleado o Nombre (Pacientes del Estado)...' : '🔍 Escribe el nombre del paciente (Privado)...';
 
-        \$('#selPaciente').select2({
+        $('#selPaciente').select2({
             theme: 'bootstrap-5',
             placeholder: placeholderTxt,
             minimumInputLength: 2,
@@ -242,74 +322,163 @@ print <<"HTML";
     }
 
     function cambiarTipoPaciente() {
-        let tipo = \$('input[name="tipoPaciente"]:checked').val() || 'privado';
+        let tipo = $('input[name="tipoPaciente"]:checked').val() || 'privado';
         initSelect2Paciente(tipo);
     }
     
-    function addConcepto() {
-        const nombre = \$('#iptConcepto').val().trim();
-        const precio = parseFloat(\$('#iptPrecio').val());
-        const cant = parseInt(\$('#iptCant').val());
+    async function cargarCatalogo() {
+        try {
+            const req = await fetch('../api/inventario_api.pl?accion=listar_catalogo');
+            const res = await req.json();
+            catalogoMaster = res.data || [];
+            filtrarCatalogo();
+        } catch(e) {
+            console.error("Error al cargar catálogo:", e);
+        }
+    }
+
+    function formatCurrency(val) {
+        return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val);
+    }
+
+    function filtrarCatalogo() {
+        const term = $('#buscadorCatalogo').val().toLowerCase();
+        const tbody = document.getElementById('tablaCatalogo');
+        if(!tbody) return;
         
-        if (!nombre || isNaN(precio) || isNaN(cant) || cant <= 0) {
-            Swal.fire('Error', 'Ingresa concepto, precio y cantidad válidos.', 'error');
+        let filtered = catalogoMaster.filter(c => c.nombre.toLowerCase().includes(term) || c.clave.toLowerCase().includes(term));
+        filtered = filtered.slice(0, 30); // max 30
+        
+        let html = '';
+        filtered.forEach(c => {
+            let precio = parseFloat(c.precio_publico) || 0;
+            html += `
+            <tr>
+                <td class="ps-3 py-2">
+                    <div class="fw-bold" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.8rem;">${c.nombre}</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">${c.clave} | ${c.categoria}</div>
+                </td>
+                <td class="text-end py-2 fw-bold" style="color: var(--md-text-secondary, #486581); font-size: 0.85rem;">
+                    ${formatCurrency(precio)}
+                </td>
+                <td class="text-center py-2">
+                    <button class="btn btn-sm btn-light border shadow-sm rounded-circle p-1" onclick="addConceptoCatalogo('${c.id}', '${c.nombre.replace(/'/g, "\\'")}', ${precio})" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--md-blue-medical, #124A9E);">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </td>
+            </tr>`;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function agregarCargoManual() {
+        const nombre = $('#manual_nombre').val().trim();
+        const precio = parseFloat($('#manual_precio').val());
+        if(!nombre || isNaN(precio) || precio < 0) {
+            Swal.fire('Error', 'Ingresa un concepto y un precio válido.', 'error');
             return;
         }
-        
-        cartItems.push({ id: Date.now(), nombre: nombre, precio: precio, cantidad: cant });
-        \$('#iptConcepto').val('');
-        \$('#iptPrecio').val('');
-        \$('#iptCant').val('1');
-        \$('#iptConcepto').focus();
-        
+        cartItems.push({ id: Date.now(), nombre: nombre, precio: precio, cantidad: 1 });
+        $('#manual_nombre').val('');
+        $('#manual_precio').val('');
+        renderCart();
+    }
+
+    function addConceptoCatalogo(id, nombre, precio) {
+        let ex = cartItems.find(i => i.nombre === nombre);
+        if (ex) {
+            ex.cantidad++;
+        } else {
+            cartItems.push({ id: Date.now() + Math.random(), nombre: nombre, precio: precio, cantidad: 1 });
+        }
         renderCart();
     }
     
     function removeConcepto(id) {
-        cartItems = cartItems.filter(item => item.id !== id);
+        cartItems = cartItems.filter(item => item.id != id);
         renderCart();
+    }
+
+    function updateCantidad(id, delta) {
+        let ex = cartItems.find(i => i.id == id);
+        if (ex) {
+            ex.cantidad += delta;
+            if (ex.cantidad < 1) ex.cantidad = 1;
+            renderCart();
+        }
     }
     
     function renderCart() {
-        const c = \$('#cartContainer');
+        const cModal = $('#listaCarrito');
+        const cMain = $('#cartContainer');
+        
         if (cartItems.length === 0) {
-            c.html('<div class="text-center text-muted small py-2" id="cartEmpty">No hay conceptos agregados</div>');
-            \$('#cartTotalText').text('\$ 0.00');
+            let emptyHtml = '<div class="text-center text-muted small py-4" id="cartEmpty"><i class="bi bi-cart-x fs-2 d-block mb-2 text-black-50"></i>No hay conceptos agregados</div>';
+            cModal.html(emptyHtml);
+            cMain.html(emptyHtml);
+            $('#carritoTotal').text('$0.00');
+            $('#cartTotalText').text('$0.00');
             return;
         }
         
-        let html = '';
+        let htmlModal = '';
+        let htmlMain = '';
         let total = 0;
+        
         cartItems.forEach(item => {
             const sub = item.precio * item.cantidad;
             total += sub;
-            html += `
-                <div class="cart-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="fw-bold text-dark">\${item.nombre}</div>
-                        <div class="text-muted small">\${item.cantidad} x \$ \${item.precio.toFixed(2)}</div>
+            
+            // Modal
+            htmlModal += `
+                <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-2 shadow-sm" style="background: white; border: 1px solid var(--md-gray-soft, #D9E2EC);">
+                    <div class="me-2" style="flex: 1; min-width: 0;">
+                        <div class="fw-bold text-truncate" style="font-size: 0.8rem; color: var(--md-blue-deep, #0A2A66);">${item.nombre}</div>
+                        <div class="text-muted" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u</div>
                     </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <span class="fw-bold text-success">\$ \${sub.toFixed(2)}</span>
-                        <button type="button" class="btn btn-sm btn-light text-danger p-1" onclick="removeConcepto(\${item.id})"><i class="bi bi-trash"></i></button>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="input-group input-group-sm" style="width: 75px;">
+                            <button class="btn btn-outline-secondary px-1 py-0" type="button" onclick="updateCantidad('${item.id}', -1)">-</button>
+                            <input type="text" class="form-control text-center p-0" value="${item.cantidad}" readonly style="font-size: 0.75rem;">
+                            <button class="btn btn-outline-secondary px-1 py-0" type="button" onclick="updateCantidad('${item.id}', 1)">+</button>
+                        </div>
+                        <span class="fw-bold" style="font-size: 0.85rem; color: var(--md-blue-deep, #0A2A66); width: 60px; text-align: right;">${formatCurrency(sub)}</span>
+                        <button class="btn btn-sm text-danger p-1 border-0" onclick="removeConcepto('${item.id}')"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            
+            // Main view
+            htmlMain += `
+                <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-1 bg-white border" style="border-color: var(--md-gray-soft, #D9E2EC) !important;">
+                    <div>
+                        <div class="fw-bold" style="font-size: 0.8rem; color: var(--md-blue-deep, #0A2A66);">${item.nombre}</div>
+                        <div class="text-muted" style="font-size: 0.7rem;">${item.cantidad} x ${formatCurrency(item.precio)}</div>
+                    </div>
+                    <div class="fw-bold text-success" style="font-size: 0.85rem;">
+                        ${formatCurrency(sub)}
                     </div>
                 </div>
             `;
         });
         
-        c.html(html);
-        \$('#cartTotalText').text('\$ ' + total.toFixed(2));
+        cModal.html(htmlModal);
+        cMain.html(htmlMain);
+        
+        let totalFmt = formatCurrency(total);
+        $('#carritoTotal').text(totalFmt);
+        $('#cartTotalText').text(totalFmt);
     }
     
     async function irAlPaso2() {
-        let id_paciente = \$('#selPaciente').val();
-        let name_paciente = \$('#selPaciente option:selected').text();
-        let tipo = \$('input[name="tipoPaciente"]:checked').val() || 'privado';
+        let id_paciente = $('#selPaciente').val();
+        let name_paciente = $('#selPaciente option:selected').text();
+        let tipo = $('input[name="tipoPaciente"]:checked').val() || 'privado';
         if (tipo === 'estado' && id_paciente) {
             id_paciente = "EMP-" + id_paciente;
         }
         
-        const id_medico = \$('#selMedico').val();
+        const id_medico = $('#selMedico').val();
         
         if (!id_paciente) {
             return Swal.fire('Atención', 'Debes seleccionar un Paciente o registrarlo previamente.', 'warning');
@@ -318,52 +487,52 @@ print <<"HTML";
             return Swal.fire('Atención', 'Debes seleccionar al Médico responsable.', 'warning');
         }
         if (cartItems.length === 0) {
-            return Swal.fire('Atención', 'Agrega al menos un concepto a cobrar.', 'warning');
+            return Swal.fire('Atención', 'Agrega al menos un concepto a cobrar en el carrito.', 'warning');
         }
         
         const total = cartItems.reduce((acc, it) => acc + (it.precio * it.cantidad), 0);
-        const metodo = \$('#selMetodoPago').val();
+        const metodo = $('#selMetodoPago').val();
         
         const fechaHtml = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'short', day:'numeric' });
         let draftHtml = `
         <!DOCTYPE html><html><head><style>body { font-family: 'Inter', sans-serif; padding: 20px; color: #333; } .banner { background: #f59e0b; color: white; text-align: center; padding: 5px; font-weight: bold; font-size: 12px; margin-bottom: 20px; border-radius: 4px; }</style></head><body>
             <div class="banner">VISTA PREVIA DE RECIBO (BORRADOR)</div>
             <h2 style="margin:0 0 5px 0;">Recibo de Caja</h2>
-            <p style="margin:0; color:#666;">Fecha: \${fechaHtml} | Método: \${metodo}</p>
-            <p style="margin:15px 0; font-size:14px;"><strong>Paciente:</strong> \${name_paciente}<br><strong>Médico:</strong> \${$('#selMedico option:selected').text()}</p>
+            <p style="margin:0; color:#666;">Fecha: ${fechaHtml} | Método: ${metodo}</p>
+            <p style="margin:15px 0; font-size:14px;"><strong>Paciente:</strong> ${name_paciente}<br><strong>Médico:</strong> ${$('#selMedico option:selected').text()}</p>
             <table style="width:100%; border-collapse:collapse; margin-top:20px; font-size:13px;">
                 <tr style="background:#f1f5f9;"><th style="padding:8px;text-align:left;">Concepto</th><th style="padding:8px;text-align:center;">Cant.</th><th style="padding:8px;text-align:right;">Subtotal</th></tr>
         `;
         cartItems.forEach(it => {
             const s = it.precio * it.cantidad;
-            draftHtml += `<tr><td style="padding:8px; border-bottom:1px solid #e2e8f0;">\${it.nombre}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:center;">\${it.cantidad}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:right;">\$ \${s.toFixed(2)}</td></tr>`;
+            draftHtml += `<tr><td style="padding:8px; border-bottom:1px solid #e2e8f0;">${it.nombre}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:center;">${it.cantidad}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:right;">${formatCurrency(s)}</td></tr>`;
         });
-        draftHtml += `<tr><td colspan="2" style="padding:8px;text-align:right;font-weight:bold;font-size:16px;">TOTAL PAGADO:</td><td style="padding:8px;text-align:right;font-weight:bold;font-size:16px;color:#10b981;">\$ \${total.toFixed(2)}</td></tr>`;
+        draftHtml += `<tr><td colspan="2" style="padding:8px;text-align:right;font-weight:bold;font-size:16px;">TOTAL PAGADO:</td><td style="padding:8px;text-align:right;font-weight:bold;font-size:16px;color:#10b981;">${formatCurrency(total)}</td></tr>`;
         draftHtml += `</table></body></html>`;
         
         const doc = document.getElementById('iframePreview').contentWindow.document;
         doc.open(); doc.write(draftHtml); doc.close();
         
-        \$('#step1').removeClass('active');
-        \$('#step2').addClass('active');
+        $('#step1').removeClass('active');
+        $('#step2').addClass('active');
     }
     
     function volverAlPaso1() {
-        \$('#step2').removeClass('active');
-        \$('#step1').addClass('active');
+        $('#step2').removeClass('active');
+        $('#step1').addClass('active');
     }
     
     async function emitirReciboFinal() {
-        let id_paciente = \$('#selPaciente').val();
-        let name_paciente = \$('#selPaciente option:selected').text();
+        let id_paciente = $('#selPaciente').val();
+        let name_paciente = $('#selPaciente option:selected').text();
         
-        let tipo = \$('input[name="tipoPaciente"]:checked').val() || 'privado';
+        let tipo = $('input[name="tipoPaciente"]:checked').val() || 'privado';
         if (tipo === 'estado' && id_paciente) {
             id_paciente = "EMP-" + id_paciente;
         }
         
-        const id_medico = \$('#selMedico').val();
-        const metodo = \$('#selMetodoPago').val();
+        const id_medico = $('#selMedico').val();
+        const metodo = $('#selMetodoPago').val();
         const total = cartItems.reduce((acc, it) => acc + (it.precio * it.cantidad), 0);
         
         CrystalToast.fire({ icon: 'info', title: 'Emitiendo recibo, un momento...' });
@@ -391,11 +560,10 @@ print <<"HTML";
                     confirmButtonText: 'Abrir PDF'
                 }).then(() => {
                     window.open('../api/imprimir_recibo_caja.pl?id_consulta=' + encodeURIComponent(res.id_tratamiento), '_blank');
-                    // Reiniciar Wizard
                     cartItems = [];
                     renderCart();
-                    \$('#selPaciente').val(null).trigger('change');
-                    if (\$('#selPacienteEstado').length) \$('#selPacienteEstado').val(null).trigger('change');
+                    $('#selPaciente').val(null).trigger('change');
+                    if ($('#selPacienteEstado').length) $('#selPacienteEstado').val(null).trigger('change');
                     volverAlPaso1();
                 });
             } else {
@@ -406,9 +574,8 @@ print <<"HTML";
         }
     }
 </script>
-HTML
+JS
 
-print "</main>\n";
 render_bottom_nav('finanzas');
 print "</body></html>\n";
 1;
