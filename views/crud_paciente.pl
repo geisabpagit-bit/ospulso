@@ -48,8 +48,31 @@ utils::sub_sidebar::render_sidebar(
     role          => $sd->{role},
     usuario       => $sd->{usuario},
     id_medico     => $sd->{id_medico},
+    id_medico     => $sd->{id_medico},
     pagina_actual => $pagina_actual_sidebar
 );
+
+my $select_medico_html = '';
+if ($sd->{role} eq 'Recepcionista' || $sd->{role} eq 'Administrador') {
+    my $usuarios = utils::db_manager::leer_tabla(File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat'), '!');
+    my $options_medicos = '';
+    foreach my $u (@$usuarios) {
+        if (defined $u->[5] && $u->[5] =~ /Medico/i) {
+            my $selected = ($u->[0] eq $sd->{id_medico}) ? 'selected' : '';
+            $options_medicos .= qq{<option value="$u->[0]" $selected>$u->[1]</option>\n};
+        }
+    }
+    $select_medico_html = qq{
+        <div class="mb-4 diamond-input-armor">
+            <label class="small fw-bold text-muted mb-2 ps-1"><i class="bi bi-person-badge-fill me-1" style="color: var(--md-teal-clinical);"></i>Médico Tratante</label>
+            <select id="idMedicoAsignado" class="form-select py-3 fw-bold">
+                $options_medicos
+            </select>
+        </div>
+    };
+} else {
+    $select_medico_html = qq{<input type="hidden" id="idMedicoAsignado" value="$sd->{id_medico}">};
+}
 
 my $btn_cancel_url = ($pagina_actual_sidebar eq 'expediente' && $id_target ne '') ? "render_expediente_clinico.pl?id=$id_target#tab3" : "pacientes.pl";
 my $btn_cancel_text = ($pagina_actual_sidebar eq 'expediente' && $id_target ne '') ? "Volver al Expediente" : "Cancelar";
@@ -175,6 +198,8 @@ print <<HTML;
             <div class="col-lg-4">
                 <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm" style="border-radius: 1.5rem;">
                     <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-heart-pulse-fill me-2" style="color: var(--md-teal-clinical);"></i>Datos Cl&iacute;nicos</h5>
+                    
+                    $select_medico_html
                     
                     <div class="mb-4 diamond-input-armor">
                         <label class="small fw-bold text-muted mb-2 ps-1">Grupo Sangu&iacute;neo</label>

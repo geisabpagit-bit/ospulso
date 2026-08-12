@@ -421,6 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ocupacion: document.getElementById("ocupacion") ? document.getElementById("ocupacion").value.trim() : "",
                 tipo_sangre: document.getElementById("tipoSangre") ? document.getElementById("tipoSangre").value : "",
                 tutor: inputTutor ? inputTutor.value.trim() : "",
+                id_medico: document.getElementById("idMedicoAsignado") ? document.getElementById("idMedicoAsignado").value : "",
                 antecedentes: antecedentesPayload
             };
 

@@ -126,8 +126,17 @@ HTML
 }
 
 print <<"HTML";
-                                <select id="selPaciente" class="form-select fw-bold border-primary shadow-sm"></select>
-                                <div class="form-text">Si el paciente no existe, debe registrarse previamente en el Directorio.</div>
+                                <div id="contenedorPrivado">
+                                    <select id="selPaciente" class="form-select fw-bold border-primary shadow-sm"></select>
+                                    <div class="form-text">Si el paciente no existe, debe registrarse previamente en el Directorio.</div>
+                                </div>
+                                <div id="contenedorEstado" class="d-none mt-2">
+                                    <div class="input-group mb-2">
+                                        <input type="number" id="iptNumEmpleado" class="form-control fw-bold border-primary shadow-sm" placeholder="Ingresa el número de empleado">
+                                        <button class="btn btn-primary shadow-sm" type="button" id="btnBuscarEmpleado" onclick="buscarEmpleadoEstado()"><i class="bi bi-search"></i> Buscar</button>
+                                    </div>
+                                    <div id="resultadosEmpleado" class="d-flex flex-column gap-2"></div>
+                                </div>
                             </div>
                             
                             <!-- Selección del Médico -->
@@ -293,24 +302,22 @@ print <<'JS';
     let catalogoMaster = [];
     
     $(document).ready(function() {
-        initSelect2Paciente('privado');
+        initSelect2Paciente();
         cargarCatalogo();
     });
 
-    function initSelect2Paciente(tipo) {
+    let pacienteEstadoSeleccionado = { id: '', nombre: '' };
+
+    function initSelect2Paciente() {
         if ($('#selPaciente').hasClass('select2-hidden-accessible')) {
             $('#selPaciente').select2('destroy');
         }
-        
-        let urlApi = (tipo === 'estado') ? '../api/buscar_empleadosmun.pl' : '../api/pacientes_buscar.pl';
-        let placeholderTxt = (tipo === 'estado') ? '🔍 Escribe #Empleado o Nombre (Pacientes del Estado)...' : '🔍 Escribe el nombre del paciente (Privado)...';
-
         $('#selPaciente').select2({
             theme: 'bootstrap-5',
-            placeholder: placeholderTxt,
+            placeholder: '🔍 Escribe el nombre del paciente (Privado)...',
             minimumInputLength: 2,
             ajax: {
-                url: urlApi,
+                url: '../api/pacientes_buscar.pl',
                 dataType: 'json',
                 delay: 350,
                 data: function (params) { return { q: params.term }; },
@@ -323,7 +330,48 @@ print <<'JS';
 
     function cambiarTipoPaciente() {
         let tipo = $('input[name="tipoPaciente"]:checked').val() || 'privado';
-        initSelect2Paciente(tipo);
+        if (tipo === 'estado') {
+            $('#contenedorPrivado').addClass('d-none');
+            $('#contenedorEstado').removeClass('d-none');
+        } else {
+            $('#contenedorEstado').addClass('d-none');
+            $('#contenedorPrivado').removeClass('d-none');
+        }
+    }
+    
+    function buscarEmpleadoEstado() {
+        const num = $('#iptNumEmpleado').val().trim();
+        if(!num) return;
+        $('#resultadosEmpleado').html('<div class="spinner-border text-primary spinner-border-sm"></div> Buscando...');
+        $.ajax({
+            url: '../api/buscar_familia_empleado.pl',
+            method: 'POST',
+            data: { num_empleado: num },
+            success: function(res) {
+                if(res.ok && res.resultados.length > 0) {
+                    let html = '';
+                    res.resultados.forEach((r, idx) => {
+                        html += `
+                        <div class="form-check border rounded p-2 ps-4 bg-white shadow-sm">
+                            <input class="form-check-input" type="radio" name="pacienteEstadoRad" id="radEst_${idx}" value="${r.nombre}" onchange="seleccionarPacienteEstado('${r.id}', '${r.nombre.replace(/'/g, "\\'")}')">
+                            <label class="form-check-label w-100" for="radEst_${idx}" style="cursor: pointer;">
+                                <strong>${r.nombre}</strong> <span class="badge bg-secondary ms-2">${r.relacion}</span>
+                            </label>
+                        </div>`;
+                    });
+                    $('#resultadosEmpleado').html(html);
+                } else {
+                    $('#resultadosEmpleado').html('<div class="alert alert-warning py-2 small m-0">No se encontraron resultados para el número de empleado ingresado.</div>');
+                }
+            },
+            error: function() {
+                $('#resultadosEmpleado').html('<div class="alert alert-danger py-2 small m-0">Error de conexión al buscar.</div>');
+            }
+        });
+    }
+
+    function seleccionarPacienteEstado(id, nombre) {
+        pacienteEstadoSeleccionado = { id: id, nombre: nombre };
     }
     
     async function cargarCatalogo() {
@@ -471,11 +519,16 @@ print <<'JS';
     }
     
     async function irAlPaso2() {
-        let id_paciente = $('#selPaciente').val();
-        let name_paciente = $('#selPaciente option:selected').text();
         let tipo = $('input[name="tipoPaciente"]:checked').val() || 'privado';
-        if (tipo === 'estado' && id_paciente) {
-            id_paciente = "EMP-" + id_paciente;
+        let id_paciente = '';
+        let name_paciente = '';
+        
+        if (tipo === 'estado') {
+            id_paciente = pacienteEstadoSeleccionado.id ? "EMP-" + pacienteEstadoSeleccionado.id : '';
+            name_paciente = pacienteEstadoSeleccionado.nombre;
+        } else {
+            id_paciente = $('#selPaciente').val();
+            name_paciente = $('#selPaciente option:selected').text();
         }
         
         const id_medico = $('#selMedico').val();
@@ -523,12 +576,16 @@ print <<'JS';
     }
     
     async function emitirReciboFinal() {
-        let id_paciente = $('#selPaciente').val();
-        let name_paciente = $('#selPaciente option:selected').text();
-        
         let tipo = $('input[name="tipoPaciente"]:checked').val() || 'privado';
-        if (tipo === 'estado' && id_paciente) {
-            id_paciente = "EMP-" + id_paciente;
+        let id_paciente = '';
+        let name_paciente = '';
+        
+        if (tipo === 'estado') {
+            id_paciente = pacienteEstadoSeleccionado.id ? "EMP-" + pacienteEstadoSeleccionado.id : '';
+            name_paciente = pacienteEstadoSeleccionado.nombre;
+        } else {
+            id_paciente = $('#selPaciente').val();
+            name_paciente = $('#selPaciente option:selected').text();
         }
         
         const id_medico = $('#selMedico').val();
