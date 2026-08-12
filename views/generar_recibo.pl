@@ -317,12 +317,12 @@ print <<'JS';
             placeholder: '🔍 Escribe el nombre del paciente (Privado)...',
             minimumInputLength: 2,
             ajax: {
-                url: '../api/pacientes_buscar.pl',
+                url: '../api/autocomplete_pacientes.pl',
                 dataType: 'json',
                 delay: 350,
-                data: function (params) { return { q: params.term }; },
+                data: function (params) { return { term: params.term }; },
                 processResults: function (data) {
-                    return { results: data.map(function(item) { return { id: item.id, text: item.text }; }) };
+                    return { results: data.map(function(item) { return { id: item.id, text: item.label }; }) };
                 }
             }
         });
@@ -353,7 +353,7 @@ print <<'JS';
                     res.resultados.forEach((r, idx) => {
                         html += `
                         <div class="form-check border rounded p-2 ps-4 bg-white shadow-sm">
-                            <input class="form-check-input" type="radio" name="pacienteEstadoRad" id="radEst_${idx}" value="${r.nombre}" onchange="seleccionarPacienteEstado('${r.id}', '${r.nombre.replace(/'/g, "\\'")}')">
+                            <input class="form-check-input" type="radio" name="pacienteEstadoRad" id="radEst_${idx}" value="${r.nombre}" onchange="seleccionarPacienteEstado('${r.id}', '${r.nombre.replace(/'/g, "&apos;")}')">
                             <label class="form-check-label w-100" for="radEst_${idx}" style="cursor: pointer;">
                                 <strong>${r.nombre}</strong> <span class="badge bg-secondary ms-2">${r.relacion}</span>
                             </label>
@@ -376,9 +376,13 @@ print <<'JS';
     
     async function cargarCatalogo() {
         try {
-            const req = await fetch('../api/inventario_api.pl?accion=listar_catalogo');
+            const req = await fetch('../api/catalogo_org_api.pl?accion=get_catalogo_org');
             const res = await req.json();
-            catalogoMaster = res.data || [];
+            if(res.status === 'ok') {
+                catalogoMaster = [...(res.servicios || []), ...(res.productos || [])];
+            } else {
+                catalogoMaster = [];
+            }
             filtrarCatalogo();
         } catch(e) {
             console.error("Error al cargar catálogo:", e);
@@ -394,23 +398,24 @@ print <<'JS';
         const tbody = document.getElementById('tablaCatalogo');
         if(!tbody) return;
         
-        let filtered = catalogoMaster.filter(c => c.nombre.toLowerCase().includes(term) || c.clave.toLowerCase().includes(term));
+        let filtered = catalogoMaster.filter(c => c.nombre.toLowerCase().includes(term) || (c.id && String(c.id).toLowerCase().includes(term)));
         filtered = filtered.slice(0, 30); // max 30
         
         let html = '';
         filtered.forEach(c => {
-            let precio = parseFloat(c.precio_publico) || 0;
+            let precio = parseFloat(c.precio) || 0;
+            let claveText = c.id ? `Clave: ${c.id}` : '';
             html += `
             <tr>
                 <td class="ps-3 py-2">
                     <div class="fw-bold" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.8rem;">${c.nombre}</div>
-                    <div class="text-muted" style="font-size: 0.7rem;">${c.clave} | ${c.categoria}</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">${claveText}</div>
                 </td>
                 <td class="text-end py-2 fw-bold" style="color: var(--md-text-secondary, #486581); font-size: 0.85rem;">
                     ${formatCurrency(precio)}
                 </td>
                 <td class="text-center py-2">
-                    <button class="btn btn-sm btn-light border shadow-sm rounded-circle p-1" onclick="addConceptoCatalogo('${c.id}', '${c.nombre.replace(/'/g, "\\'")}', ${precio})" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--md-blue-medical, #124A9E);">
+                    <button class="btn btn-sm btn-light border shadow-sm rounded-circle p-1" onclick="addConceptoCatalogo('${c.id}', '${c.nombre.replace(/'/g, "&apos;")}', ${precio})" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--md-blue-medical, #124A9E);">
                         <i class="bi bi-plus"></i>
                     </button>
                 </td>
