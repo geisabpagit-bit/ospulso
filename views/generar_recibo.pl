@@ -78,8 +78,9 @@ foreach my $m (@medicos) {
 }
 
 print <<"HTML";
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2\@4.1.0-rc.0/dist/css/select2.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme\@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<link rel="stylesheet" href="../css/sdm_mobile_standards.css" />
 
 <style>
     .wizard-step { display: none; }
@@ -89,11 +90,11 @@ print <<"HTML";
     .cart-item:last-child { border-bottom: none; }
 </style>
 
-<main class="container-fluid pt-3 px-3 pb-5 animate__animated animate__fadeIn">
+<main class="container-fluid container-mobile-flush pt-3 px-3 pb-5 animate__animated animate__fadeIn">
     
     <div class="row justify-content-center">
         <div class="col-12 col-lg-8">
-            <div class="bento-card border-0 shadow-sm rounded-4">
+            <div class="bento-card card-mobile-flush border-0 shadow-sm rounded-4">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
                     <h5 class="fw-bold mb-0" style="color: var(--md-blue-deep, #0A2A66);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-cyan-ia, #18D1E6);"></i>Caja Rápida - Recibo Independiente</h5>
                     <p class="text-muted small">Genera comprobantes de pago sin necesidad de una cita programada.</p>
@@ -150,7 +151,7 @@ print <<"HTML";
                             <!-- Conceptos / Carrito Universal -->
                             <div class="mb-4">
                                 <label class="kpi-label mb-2">3. Conceptos a Cobrar</label>
-                                <button type="button" class="btn btn-light border w-100 py-3 rounded-4 mb-3 d-flex flex-column align-items-center justify-content-center shadow-sm" onclick="$('#modalCargo').modal('show')" style="border-color: var(--md-gray-soft, #D9E2EC) !important;">
+                                <button type="button" class="btn btn-light btn-mobile-standard btn-mobile-full border py-3 rounded-4 mb-3 d-flex flex-column align-items-center justify-content-center shadow-sm" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()" style="border-color: var(--md-gray-soft, #D9E2EC) !important;">
                                     <i class="bi bi-cart-plus fs-3 mb-1" style="color: var(--md-blue-deep, #0A2A66);"></i>
                                     <span class="fw-bold" style="color: var(--md-blue-deep, #0A2A66); font-family: 'Plus Jakarta Sans', sans-serif;">Abrir Carrito de Conceptos</span>
                                     <span class="small text-muted">Agrega desde catálogo o entrada manual</span>
@@ -183,7 +184,7 @@ print <<"HTML";
                             
                             <hr class="my-4">
                             <div class="d-flex justify-content-end">
-                                <button type="button" class="btn btn-primary px-4 fw-bold rounded-pill shadow-sm" onclick="irAlPaso2()">
+                                <button type="button" class="btn btn-primary btn-mobile-standard btn-mobile-full px-4 fw-bold rounded-pill shadow-sm" onclick="irAlPaso2()">
                                     Siguiente: Vista Previa <i class="bi bi-arrow-right ms-1"></i>
                                 </button>
                             </div>
@@ -204,11 +205,11 @@ print <<"HTML";
                             <iframe id="iframePreview" src="about:blank" style="width: 100%; height: 100%; border: none; background: #fff; border-radius: 6px;"></iframe>
                         </div>
                         
-                        <div class="d-flex justify-content-between">
-                            <button type="button" class="btn btn-light px-4 fw-bold rounded-pill" onclick="volverAlPaso1()">
+                        <div class="d-flex justify-content-between flex-column flex-lg-row gap-2">
+                            <button type="button" class="btn btn-light btn-mobile-standard px-4 fw-bold rounded-pill" onclick="volverAlPaso1()">
                                 <i class="bi bi-arrow-left me-1"></i> Volver
                             </button>
-                            <button type="button" class="btn btn-success px-5 fw-bold rounded-pill shadow" onclick="emitirReciboFinal()">
+                            <button type="button" class="btn btn-success btn-mobile-standard btn-mobile-full px-5 fw-bold rounded-pill shadow" onclick="emitirReciboFinal()">
                                 <i class="bi bi-check2-circle me-1"></i> Emitir Recibo Oficial
                             </button>
                         </div>

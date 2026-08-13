@@ -79,7 +79,7 @@ HTML
             my $es_mi_paciente = 0;
             if ($role eq 'Administrador Global') {
                 $es_mi_paciente = 1;
-            } elsif ($role =~ /Administrador Organizacion|Soporte/i) {
+            } elsif ($role =~ /Administrador Organizacion|Soporte|Recepcionista/i) {
                 if ($org_pac && $org_pac eq $id_empresa) {
                     $es_mi_paciente = 1;
                 } elsif (!$org_pac) {
