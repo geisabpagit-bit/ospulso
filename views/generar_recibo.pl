@@ -40,13 +40,13 @@ if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
         chomp($line);
         next if $line =~ /^#|^\s*$/;
         my ($biz_id, $key, $val) = split(/\|/, $line);
-        if ($biz_id eq $id_empresa && $key eq 'CAPACIDAD') {
-            $capacidades{$val} = 1;
+        if ($biz_id eq $id_empresa && $key eq 'PACIENTES_ESTADO') {
+            $capacidades{'PACIENTES_ESTADO'} = $val;
         }
     }
     close($cf);
 }
-my $has_pacientes_estado = $capacidades{'Pacientes del Estado'} ? 1 : 0;
+my $has_pacientes_estado = (exists $capacidades{'PACIENTES_ESTADO'} && $capacidades{'PACIENTES_ESTADO'} eq '1') ? 1 : 0;
 
 # 2. Cargar lista de médicos de la organización para el selector obligatorio
 my $archivo_usuarios = File::Spec->catfile($dat_dir, 'usuarios.dat');
