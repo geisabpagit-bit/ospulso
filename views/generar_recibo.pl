@@ -88,6 +88,26 @@ print <<"HTML";
     \@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .cart-item { border-bottom: 1px solid #e2e8f0; padding: 0.75rem 0; }
     .cart-item:last-child { border-bottom: none; }
+    
+    /* Estilo de Radios personalizados según captura */
+    .custom-radio-yellow .form-check-input {
+        width: 1.5em;
+        height: 1.5em;
+        border: 2px solid #F5B041; /* Amarillo OSPulso */
+        border-radius: 50%;
+        margin-top: 0.1em;
+        cursor: pointer;
+    }
+    .custom-radio-yellow .form-check-input:checked {
+        background-color: #F5B041;
+        border-color: #F5B041;
+        box-shadow: 0 0 0 0.25rem rgba(245, 176, 65, 0.25);
+    }
+    .custom-radio-yellow .form-check-label {
+        padding-top: 0.2em;
+        margin-left: 0.4em;
+        cursor: pointer;
+    }
 </style>
 
 <main class="container-fluid container-mobile-flush pt-3 px-3 pb-5 animate__animated animate__fadeIn">
@@ -97,10 +117,21 @@ print <<"HTML";
             <div class="bento-card card-mobile-flush border-0 shadow-sm rounded-4">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
                     <h5 class="fw-bold mb-0" style="color: var(--md-blue-deep, #0A2A66);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-cyan-ia, #18D1E6);"></i>Caja Rápida - Recibo Independiente</h5>
-                    <p class="text-muted small">Genera comprobantes de pago sin necesidad de una cita programada.</p>
+                    <p class="text-muted small mb-3">Genera comprobantes de pago sin necesidad de una cita programada.</p>
+                    
+                    <div class="mb-4 d-flex flex-wrap gap-4 align-items-center">
+                        <div class="form-check custom-radio-yellow">
+                            <input class="form-check-input" type="radio" name="tipoPaciente" id="tipoPrivado" value="privado" checked onchange="cambiarTipoPaciente(event)">
+                            <label class="form-check-label fw-bold" for="tipoPrivado">Privado</label>
+                        </div>
+                        <div class="form-check custom-radio-yellow">
+                            <input class="form-check-input" type="radio" name="tipoPaciente" id="tipoEstado" value="estado" onchange="cambiarTipoPaciente(event)">
+                            <label class="form-check-label fw-bold" for="tipoEstado">Publico (Capacidad SaaS Habilitada)</label>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="card-body">
+                <div class="card-body pt-0">
                     
                     <!-- PASO 1: Captura -->
                     <div id="step1" class="wizard-step active">
@@ -109,24 +140,6 @@ print <<"HTML";
                             <!-- Selección del Paciente -->
                             <div class="mb-4">
                                 <label class="form-label fw-bold small text-muted">1. Selecciona o Busca al Paciente</label>
-HTML
-
-if ($has_pacientes_estado) {
-    print <<"HTML";
-                                <div class="mb-3 d-flex gap-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="tipoPaciente" id="tipoPrivado" value="privado" checked onchange="cambiarTipoPaciente()">
-                                        <label class="form-check-label" for="tipoPrivado">Privado (General)</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="tipoPaciente" id="tipoEstado" value="estado" onchange="cambiarTipoPaciente()">
-                                        <label class="form-check-label" for="tipoEstado">Pacientes del Estado</label>
-                                    </div>
-                                </div>
-HTML
-}
-
-print <<"HTML";
                                 <div id="contenedorPrivado">
                                     <select id="selPaciente" class="form-select fw-bold border-primary shadow-sm"></select>
                                     <div class="form-text">Si el paciente no existe, debe registrarse previamente en el Directorio.</div>
@@ -291,18 +304,23 @@ print <<"HTML";
             </div>
         </div>
     </div>
-</div>
-
 </main>
-<script src="https://cdn.jsdelivr.net/npm/select2\@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    const HAS_PACIENTES_ESTADO = $has_pacientes_estado;
+</script>
 HTML
 
 print <<'JS';
 <script>
-    let cartItems = [];
     let catalogoMaster = [];
-    
-    $(document).ready(function() {
+    let cartItems = [];
+    let consecutivoId = 1;
+    let pacienteSeleccionado = null;
+    let cargoSeleccionadoManual = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.body.appendChild(document.getElementById('modalCargo'));
         initSelect2Paciente();
         cargarCatalogo();
     });
@@ -329,14 +347,26 @@ print <<'JS';
         });
     }
 
-    function cambiarTipoPaciente() {
-        let tipo = $('input[name="tipoPaciente"]:checked').val() || 'privado';
-        if (tipo === 'estado') {
-            $('#contenedorPrivado').addClass('d-none');
-            $('#contenedorEstado').removeClass('d-none');
+    function cambiarTipoPaciente(e) {
+        const isEstado = document.getElementById('tipoEstado').checked;
+        if (isEstado) {
+            if (!HAS_PACIENTES_ESTADO) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Función no disponible',
+                    text: 'La capacidad de Pacientes Públicos/Estado no está habilitada para tu organización.',
+                    confirmButtonText: 'Entendido'
+                });
+                document.getElementById('tipoPrivado').checked = true;
+                return;
+            }
+            document.getElementById('contenedorPrivado').classList.add('d-none');
+            document.getElementById('contenedorEstado').classList.remove('d-none');
+            pacienteSeleccionado = null; 
         } else {
-            $('#contenedorEstado').addClass('d-none');
-            $('#contenedorPrivado').removeClass('d-none');
+            document.getElementById('contenedorPrivado').classList.remove('d-none');
+            document.getElementById('contenedorEstado').classList.add('d-none');
+            pacienteSeleccionado = null;
         }
     }
     
