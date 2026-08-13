@@ -1,0 +1,3 @@
+Status: 302 Found
+Location: inicial.pl
+

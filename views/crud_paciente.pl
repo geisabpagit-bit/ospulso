@@ -14,7 +14,6 @@ use File::Spec;
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
-require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 
 my $q = CGI->new;
 my $sd = check_session();

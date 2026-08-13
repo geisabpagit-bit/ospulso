@@ -1,4 +1,4 @@
-﻿#!/usr/bin/perl
+#!/usr/bin/perl
 use cPanelUserConfig;
 use strict;
 use warnings;
@@ -23,9 +23,9 @@ unless ($sd->{session_ok}) {
     exit;
 }
 
-# Solo Administrador Organizacion y Administrador Global
+# Administrador, Medico, Recepcionista
 my $role = $sd->{role} || '';
-unless ($role eq 'Administrador Organizacion' || $role eq 'Administrador Global') {
+unless ($role eq 'Administrador Organizacion' || $role eq 'Administrador Global' || $role eq 'Medico' || $role eq 'Recepcionista') {
     print encode_json({ status => 'error', message => 'Acceso denegado.' });
     exit;
 }

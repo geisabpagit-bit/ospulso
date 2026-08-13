@@ -96,7 +96,8 @@ utils::db_manager::guardar_registro($fin_file, $linea_abono);
 
 
 # 3. Generar Folio Consecutivo
-my $contadores_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'contadores_recibos_privados.dat');
+my $is_estado = ($id_paciente =~ /^EMP-/) ? 1 : 0;
+my $contadores_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', $is_estado ? 'contadores_recibos_publicos.dat' : 'contadores_recibos_privados.dat');
 unless (-e $contadores_file) {
     open my $fh_c, '>:encoding(UTF-8)', $contadores_file;
     print $fh_c "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n";
@@ -129,7 +130,7 @@ if (open my $fh_c, '<:encoding(UTF-8)', $contadores_file) {
 }
 
 my $folio_impreso = sprintf("%s-%s-%06d", $id_neg, $id_suc, $next_folio);
-my $folios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
+my $folios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', $is_estado ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat');
 unless (-e $folios_file) {
     open my $fh_f2, '>:encoding(UTF-8)', $folios_file;
     print $fh_f2 "ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR\n";
