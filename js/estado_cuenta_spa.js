@@ -1447,14 +1447,16 @@ window.renderIngresos = async function() {
                 const folioDisplay = osExtra.toString().includes('TX') ? osExtra : `OS/2024/${osExtra.toString().padStart(4,'0')}`;
                 
                 // Formato jerárquico
-                concepto = `<div class="fw-bold">${concepto}</div><div class="small text-muted mt-1"><i class="bi bi-tag-fill me-1"></i>Ref: ${osExtra}</div>`;
+                concepto = `<div class="fw-bold">${concepto}</div>`;
+                
+                let valToShow = g.abono > 0 ? g.abono : (g.cargo > 0 ? g.cargo : 0);
                 
                 html += `<tr>
                     <td class="text-muted small">${g.fecha || ''}</td>
                     <td class="fw-bold" style="color: var(--md-blue-deep);"><i class="bi bi-person-circle me-2 text-muted"></i>${g.paciente_nombre}</td>
                     <td class="text-dark">${concepto}</td>
                     <td class="text-muted small">${folioDisplay}</td>
-                    <td class="fw-bold text-success">+${formatter.format(g.abono)}</td>
+                    <td class="fw-bold text-success">+${formatter.format(valToShow)}</td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill" onclick="window.open('../api/ver_recibo.pl?id_os=${osExtra}', '_blank')" title="Ver Recibo HTML"><i class="bi bi-file-earmark-text"></i></button>
                     </td>

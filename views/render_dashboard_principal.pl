@@ -60,7 +60,7 @@ HTML
     my $roles_file = File::Spec->catfile($dat_dir, 'roles.dat');
 
     # Definir si es vista global
-    my $is_admin = ($role =~ /Administrador|Soporte/i) ? 1 : 0;
+    my $is_admin = ($role =~ /Administrador|Soporte|Recepcionista/i) ? 1 : 0;
 
     # --- CARGA DE DATOS ---
     my %pacientes_map = ();
@@ -625,8 +625,18 @@ HTML
                         lengthChange: false
                     };
                     
-                    $('#dtPrivados').DataTable(Object.assign({}, dtConfig, { ajax: '../api/get_recibos_caja_api.pl?tipo=privados' }));
-                    $('#dtPublicos').DataTable(Object.assign({}, dtConfig, { ajax: '../api/get_recibos_caja_api.pl?tipo=publicos' }));
+                    $('#dtPrivados').DataTable(Object.assign({}, dtConfig, { 
+                        ajax: '../api/get_recibos_caja_api.pl?tipo=privados',
+                        drawCallback: function(settings) {
+                            console.log('Recibos Privados: ' + this.api().page.info().recordsTotal);
+                        }
+                    }));
+                    $('#dtPublicos').DataTable(Object.assign({}, dtConfig, { 
+                        ajax: '../api/get_recibos_caja_api.pl?tipo=publicos',
+                        drawCallback: function(settings) {
+                            console.log('Recibos Públicos (Estado): ' + this.api().page.info().recordsTotal);
+                        }
+                    }));
                 });
                 
                 function cancelarRecibo(id, tipo) {

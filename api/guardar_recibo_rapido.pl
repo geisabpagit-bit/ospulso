@@ -25,7 +25,8 @@ unless ($sd->{session_ok}) {
 }
 
 my $id_paciente = $q->param('id_paciente') || '';
-my $nombre_empleado = $q->param('nombre_paciente_empleado') || ''; # Por si es un EMP-* y queremos persistir su nombre temporal
+my $nombre_empleado = $q->param('nombre_paciente_empleado') || '';
+$nombre_empleado =~ s/.*Paciente:\s*//i; # Limpiar el texto arrastrado del select2
 my $id_medico = $q->param('id_medico') || '';
 my $caja_items_json = $q->param('caja_items_json') || '[]';
 my $caja_metodo_pago = $q->param('caja_metodo_pago') || 'Efectivo';

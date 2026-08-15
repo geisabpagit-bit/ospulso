@@ -115,6 +115,25 @@ if ($negocio->{logo_url}) {
     $logo_html = qq{<h2 style="margin:0; color:#333; font-size:14px;">$negocio->{nombre}</h2>};
 }
 
+if (!$negocio->{clues}) {
+    my $cfg_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+    if (-e $cfg_file && open(my $fc, '<:encoding(UTF-8)', $cfg_file)) {
+        while (my $lc = <$fc>) {
+            chomp $lc;
+            my @c = split /\|/, $lc, -1;
+            if ($c[0] eq $id_negocio && $c[1] eq 'PACIENTES_ESTADO' && $c[2] eq 'Habilitado') {
+                $negocio->{clues} = $c[3] // '';
+                last;
+            }
+        }
+        close $fc;
+    }
+}
+
+if ($paciente_nombre) {
+    $paciente_nombre =~ s/.*Paciente:\s*//i;
+}
+
 # 3.1 Extraer datos de Empleado Público
 my $empleado_nombre = '';
 my $dependencia_nombre = '';
@@ -236,7 +255,8 @@ if (!@cargos) {
                 # Rescatar nombre de empleado/paciente si se pasó por ALIAS (columna 11)
                 if (defined $e[11] && $e[11] ne '') {
                     $paciente_nombre = $e[11];
-                    $empleado_nombre = $e[11] if !$empleado_nombre;
+                    $paciente_nombre =~ s/.*Paciente:\s*//i;
+                    $empleado_nombre = $paciente_nombre if !$empleado_nombre;
                 }
             }
         }

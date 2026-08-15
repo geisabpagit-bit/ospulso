@@ -53,7 +53,7 @@ foreach my $r (@$recibos) {
     my $id_consulta = $r->[4] || '';
     my $id_paciente = $r->[5] || '';
     my $fecha = $r->[6] || '';
-    my $total = $r->[8] || 0;
+    my $total = $r->[9] || 0;
     my $estatus = $r->[12] // 'Activo';
     
     my $pac_nombre = $map_pacientes{$id_paciente} || $id_paciente;
