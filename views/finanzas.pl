@@ -32,6 +32,7 @@ print <<'PAGE_HTML';
 <link rel="stylesheet" href="../css/expediente_completo.css?v=3">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.4.1/css/rowGroup.bootstrap5.min.css">
 
 PAGE_HTML
 
@@ -231,6 +232,7 @@ print <<'PAGE_HTML';
                                     <th class="border-0">Paciente</th>
                                     <th class="border-0">Monto</th>
                                     <th class="border-0">Tipo</th>
+                                    <th class="border-0 text-center">Opciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tbodyResumenIngresos">
@@ -240,7 +242,7 @@ print <<'PAGE_HTML';
                                 <tr>
                                     <td colspan="4" class="text-end">Total:</td>
                                     <td id="tfootResumenMonto"></td>
-                                    <td></td>
+                                    <td colspan="2"></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -519,13 +521,14 @@ print <<'PAGE_HTML';
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/rowgroup/1.4.1/js/dataTables.rowGroup.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="../js/estado_cuenta_spa.js?v=4"></script>
+<script src="../js/estado_cuenta_spa.js?v=5"></script>
 
 <script>
     window.bootFinanzas = function() {

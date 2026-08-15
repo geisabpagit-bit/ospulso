@@ -80,18 +80,31 @@ async function cargarHistorialCuentas() {
             const limit = Math.min((res.historial || []).length, 10);
             for(let i=0; i<limit; i++) {
                 const h = res.historial[i];
-                // Si es Abono se asume Pagado. Si es Cargo se asume Pendiente (solo representativo para la demo UI)
                 const isAbono = h.tipo.toLowerCase().includes('abono');
                 const badgeStr = isAbono ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Pagado</span>' : '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Pendiente</span>';
                 const rowColorClass = isAbono ? 'tr-ingreso' : 'tr-egreso';
                 
+                let concepto = h.concepto || '';
+                let osExtra = '';
+                const matchOS = concepto.match(/\(OS:\s*([^)]+)\)/);
+                if (matchOS) {
+                    osExtra = matchOS[1];
+                    concepto = concepto.replace(/\(OS:\s*[^)]+\)/, '').trim();
+                    concepto = `${concepto}<br><small class="text-muted">(OS: ${osExtra})</small>`;
+                }
+                
+                const folioDisplay = h.id_os.toString().includes('TX') ? h.id_os : `OS/2024/${h.id_os.toString().padStart(4,'0')}`;
+                
                 html += `<tr class="${rowColorClass}">
                     <td class="text-muted">${h.fecha.substring(0, 10)}</td>
-                    <td class="fw-bold text-dark">${h.concepto}</td>
-                    <td class="text-muted small">OS/2024/${h.id_os.toString().padStart(4,'0')}</td>
+                    <td class="fw-bold text-dark">${concepto}</td>
+                    <td class="text-muted small">${folioDisplay}</td>
                     <td class="fw-bold" style="color: var(--md-blue-deep);">${h.alias || h.paciente_nombre}</td>
                     <td class="fw-bold text-dark">${formatter.format(h.total)}</td>
                     <td>${badgeStr}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill" onclick="window.open('../api/ver_recibo.pl?id_os=${h.id_os}', '_blank')" title="Ver Recibo HTML"><i class="bi bi-file-earmark-text"></i></button>
+                    </td>
                 </tr>`;
             }
             if(limit === 0) html = '';
@@ -105,6 +118,12 @@ async function cargarHistorialCuentas() {
                     scrollY: '400px',
                     scrollX: true,
                     scrollCollapse: true,
+                    rowGroup: {
+                        dataSrc: 2 // Agrupa por la columna 2 (Folio)
+                    },
+                    columnDefs: [
+                        { targets: 2, visible: false } // Ocultar columna de agrupación
+                    ],
                     footerCallback: function(row, data, start, end, display) {
                         var api = this.api();
                         var intVal = function(i) {
