@@ -270,16 +270,19 @@ print <<'PAGE_HTML';
                                     <th>Fecha</th>
                                     <th>Paciente</th>
                                     <th>Concepto (OS)</th>
+                                    <th>Folio</th>
                                     <th>Abono</th>
+                                    <th class="text-center">Opciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tbodyIngresos">
-                                <tr><td colspan="4" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
+                                <tr><td colspan="6" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
                             </tbody>
                             <tfoot class="bg-light fw-bold">
                                 <tr>
-                                    <td colspan="3" class="text-end">Total:</td>
+                                    <td colspan="4" class="text-end">Total:</td>
                                     <td id="tfootIngresosAbono"></td>
+                                    <td></td>
                                 </tr>
                             </tfoot>
                         </table>

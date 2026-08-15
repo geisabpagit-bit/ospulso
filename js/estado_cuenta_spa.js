@@ -1352,11 +1352,27 @@ window.renderIngresos = async function() {
         if (data.success && tbody) {
             let html = '';
             data.data.forEach(g => {
+                let concepto = g.concepto || '';
+                let osExtra = g.id_os || '';
+                // Extraer el (OS: xxxx) si ya viene concatenado
+                const matchOS = concepto.match(/\(OS:\s*([^)]+)\)/);
+                if (matchOS) {
+                    osExtra = matchOS[1];
+                    concepto = concepto.replace(/\(OS:\s*[^)]+\)/, '').trim();
+                }
+                
+                const folioDisplay = osExtra.toString().includes('TX') ? osExtra : `OS/2024/${osExtra.toString().padStart(4,'0')}`;
+                concepto = `${concepto}<br><small class="text-muted">(OS: ${osExtra})</small>`;
+                
                 html += `<tr>
                     <td class="text-muted small">${g.fecha || ''}</td>
                     <td class="fw-bold" style="color: var(--md-blue-deep);"><i class="bi bi-person-circle me-2 text-muted"></i>${g.paciente_nombre}</td>
-                    <td class="text-dark">${g.concepto} (OS: ${g.id_os})</td>
+                    <td class="text-dark">${concepto}</td>
+                    <td class="text-muted small">${folioDisplay}</td>
                     <td class="fw-bold text-success">+${formatter.format(g.abono)}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill" onclick="window.open('../api/ver_recibo.pl?id_os=${osExtra}', '_blank')" title="Ver Recibo HTML"><i class="bi bi-file-earmark-text"></i></button>
+                    </td>
                 </tr>`;
             });
             
@@ -1372,10 +1388,16 @@ window.renderIngresos = async function() {
                     scrollY: '400px',
                     scrollX: true,
                     scrollCollapse: true,
+                    rowGroup: {
+                        dataSrc: 3 // Agrupa por la columna 3 (Folio)
+                    },
+                    columnDefs: [
+                        { targets: 3, visible: false } // Ocultar columna de agrupación
+                    ],
                     footerCallback: function(row, data, start, end, display) {
                         var api = this.api();
-                        var intVal = function(i) { return typeof i === 'string' ? i.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0; };
-                        var total = api.column(3, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
+                        var intVal = function(i) { return typeof i === 'string' ? i.replace(/<[^>]*>?/gm, '').replace(/[\$,+]/g, '') * 1 : typeof i === 'number' ? i : 0; };
+                        var total = api.column(4, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
                         var el = document.getElementById('tfootIngresosAbono');
                         if(el) el.innerHTML = formatter.format(total);
                     },

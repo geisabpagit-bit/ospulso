@@ -189,12 +189,11 @@ HTML
         id_medico => $id_medico,
         pagina_actual => 'dashboard'
     );
-    print <<HTML;
-        <!-- Dashboard Content -->
+    print <<'JS';
     <script>
     function animateValue(obj, start, end, duration, isK) {
         let startTimestamp = null;
-        let lastFormatted = "";
+        let lastFormatted = null;
         const step = (timestamp) => {
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
@@ -231,6 +230,8 @@ HTML
     }
     document.addEventListener("spa:contentLoaded", initDashboardCounters);
     </script>
+JS
+    print <<HTML;
 <style>
     /* MedentIA Bento Dashboard v1.0 (Diamond Armor Style) */
     .dash-kpi-card { 
@@ -380,19 +381,19 @@ HTML
 </style>
 
 HTML
-    print <<HTML;
+    print <<'JS';
             <!-- Google Auth Script -->
             <script>
             function iniciarVinculacionGoogle() {
                 const clientId = "771205596556-64bfspdvs27aqogeot9mdelgvmqm4n7u.apps.googleusercontent.com";
-                const idMed = "$id_medico"; 
+                const idMed = document.body.dataset.idMedico || ''; 
                 const redirectUri = encodeURIComponent(window.location.origin + '/auth/oauth_callback.pl');
-                const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=\${clientId}&redirect_uri=\${redirectUri}&response_type=code&scope=https://www.googleapis.com/auth/calendar.events&access_type=offline&prompt=consent&state=\${idMed}`;
+                const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=https://www.googleapis.com/auth/calendar.events&access_type=offline&prompt=consent&state=${idMed}`;
                 window.open(authUrl, 'GoogleAuth', 'width=600,height=700');
             }
             </script>
-
-            <!-- Sección: KPIs Rápidos -->
+JS
+    print <<HTML;
             <div class="row g-2 g-lg-4 mb-3 mb-lg-4 animate__animated animate__fadeIn card-mobile-flush">
                 <div class="col-6 col-lg-3">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
@@ -531,9 +532,15 @@ HTML
             <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
             <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
             <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
             <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
             <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
-
+            <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+HTML
+    print <<'JS';
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const dtConfig = {
@@ -548,8 +555,8 @@ HTML
                         lengthChange: false
                     };
                     
-                    \$('#dtPrivados').DataTable(Object.assign({}, dtConfig, { ajax: '../api/get_recibos_caja_api.pl?tipo=privados' }));
-                    \$('#dtPublicos').DataTable(Object.assign({}, dtConfig, { ajax: '../api/get_recibos_caja_api.pl?tipo=publicos' }));
+                    $('#dtPrivados').DataTable(Object.assign({}, dtConfig, { ajax: '../api/get_recibos_caja_api.pl?tipo=privados' }));
+                    $('#dtPublicos').DataTable(Object.assign({}, dtConfig, { ajax: '../api/get_recibos_caja_api.pl?tipo=publicos' }));
                 });
                 
                 function cancelarRecibo(id, tipo) {
@@ -564,11 +571,11 @@ HTML
                         cancelButtonText: 'No'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            \$.post('../api/cancelar_recibo_api.pl', { id_recibo: id, tipo: tipo }, function(res) {
+                            $.post('../api/cancelar_recibo_api.pl', { id_recibo: id, tipo: tipo }, function(res) {
                                 if (res.ok) {
                                     Swal.fire('Cancelado', res.msg, 'success');
-                                    \$('#dtPrivados').DataTable().ajax.reload(null, false);
-                                    \$('#dtPublicos').DataTable().ajax.reload(null, false);
+                                    $('#dtPrivados').DataTable().ajax.reload(null, false);
+                                    $('#dtPublicos').DataTable().ajax.reload(null, false);
                                 } else {
                                     Swal.fire('Error', res.msg, 'error');
                                 }
@@ -577,7 +584,7 @@ HTML
                     });
                 }
             </script>
-HTML
+JS
     } else {
         print <<HTML;
             <div class="row g-2 g-lg-4 card-mobile-flush">

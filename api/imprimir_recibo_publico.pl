@@ -195,6 +195,8 @@ if (-e $cons_file && open(my $fhc, '<:encoding(UTF-8)', $cons_file)) {
     close $fhc;
 }
 
+my $id_medico = '';
+
 if (!@cargos) {
     my $edo_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
     if (-e $edo_file && open(my $fhe, '<:encoding(UTF-8)', $edo_file)) {
@@ -210,9 +212,27 @@ if (!@cargos) {
                     cantidad => 1,
                     subtotal => $monto
                 };
+                $id_medico = $e[9] if !$id_medico && $e[9];
             }
         }
         close $fhe;
+    }
+}
+
+my $medico_nombre = "NO ESPECIFICADO";
+if ($id_medico) {
+    my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+    if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
+        my $hu = <$fu>;
+        while (my $lu = <$fu>) {
+            chomp $lu;
+            my @u = split /!/, $lu, -1;
+            if ($u[0] eq $id_medico) {
+                $medico_nombre = uc($u[1] // '');
+                last;
+            }
+        }
+        close $fu;
     }
 }
 
@@ -359,8 +379,8 @@ print <<HTML;
                 <td colspan="2" style="font-weight: normal;">$paciente_nombre ($paciente_tipo)</td>
             </tr>
             <tr>
-                <td class="info-label-cell" style="color:#000; font-weight: normal;">Medico:</td>
-                <td colspan="2" style="font-weight: normal; text-transform: uppercase;">MÉDICO TRATANTE - ESPECIALIDAD</td>
+                <td class="info-label-cell" style="color:#000; font-weight: normal;">Médico:</td>
+                <td colspan="2" style="font-weight: normal; text-transform: uppercase;">$medico_nombre</td>
             </tr>
             <tr>
                 <td class="info-label-cell" style="color:#000; font-weight: normal; vertical-align: top;">Concepto :</td>
@@ -374,8 +394,8 @@ foreach my $c (@cargos) {
     my $concepto_txt = uc($c->{concepto});
     print qq{
                         <tr>
-                            <td style="text-align: left;">$concepto_txt</td>
-                            <td style="text-align: right;"></td>
+                            <td style="text-align: left; font-size: 10px; font-weight: normal;">$concepto_txt</td>
+                            <td style="text-align: right; color: #1a365d; font-size: 10px; font-weight: normal;">$subtotal_fmt</td>
                         </tr>
     };
 }
@@ -385,19 +405,25 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 110px; padding-bottom: 10px;">
-                    <div class="signature-box" style="width: 80%; border-top: 1px solid #000; color:#000; font-weight:normal;">
-                        Nombre y Firma del Paciente
-                    </div>
-                </td>
-                <td style="text-align: right; vertical-align: bottom; padding: 15px; border-left: 1px solid #0A2A66;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color:#000;">
-                        <span>Cuentas x Cobrar</span>
-                        <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
-                    </div>
-                    <div style="text-align: left; font-size: 11px; color: #000; margin-top: 20px;">
-                        Elaboro : $recibo->{elaborado_por}
-                    </div>
+                <td colspan="3" style="padding: 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 50%; text-align: center; vertical-align: bottom; height: 60px; padding-bottom: 5px; border-right: 1px solid #0A2A66;">
+                                <div class="signature-box" style="width: 80%;">
+                                    Nombre y Firma del Paciente
+                                </div>
+                            </td>
+                            <td style="width: 50%; text-align: right; vertical-align: middle; padding: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color:#000; font-weight: bold; font-size: 14px;">
+                                    <span>Cuentas x Cobrar</span>
+                                    <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
+                                    <span style="font-size: 11px; color: #000; text-align: right;">Elaboró :<br><strong>$recibo->{elaborado_por}</strong></span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
             <tr>

@@ -330,18 +330,24 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 60px; padding-bottom: 5px;">
-                    <div class="signature-box" style="width: 80%;">
-                        Nombre y Firma del Paciente
-                    </div>
-                </td>
-                <td style="text-align: right; vertical-align: middle; padding: 15px;">
-                    <div style="color: #0A2A66; font-size: 16px; font-weight: bold; margin-bottom: 8px;">Costo :<br>@{[ formato_moneda($recibo->{total_cargos}) ]}</div>
-                    $abono_saldo_html
-                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
-                        <span style="background: #f8f9fa; color: #212529; border: 1px solid #dee2e6; border-radius: 4px; padding: 4px 8px; font-size: 11px; display: inline-block;">$recibo->{metodo_pago}</span>
-                        <span style="font-size: 11px; color: #6c757d; text-align: right;">Elaboró :<br><strong>$recibo->{elaborado_por}</strong></span>
-                    </div>
+                <td colspan="3" style="padding: 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 50%; text-align: center; vertical-align: bottom; height: 60px; padding-bottom: 5px; border-right: 1px solid #0A2A66;">
+                                <div class="signature-box" style="width: 80%;">
+                                    Nombre y Firma del Paciente
+                                </div>
+                            </td>
+                            <td style="width: 50%; text-align: right; vertical-align: middle; padding: 15px;">
+                                <div style="color: #0A2A66; font-size: 16px; font-weight: bold; margin-bottom: 8px;">Costo :<br>@{[ formato_moneda($recibo->{total_cargos}) ]}</div>
+                                $abono_saldo_html
+                                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
+                                    <span style="background: #f8f9fa; color: #212529; border: 1px solid #dee2e6; border-radius: 4px; padding: 4px 8px; font-size: 11px; display: inline-block;">$recibo->{metodo_pago}</span>
+                                    <span style="font-size: 11px; color: #6c757d; text-align: right;">Elaboró :<br><strong>$recibo->{elaborado_por}</strong></span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
             <tr>
