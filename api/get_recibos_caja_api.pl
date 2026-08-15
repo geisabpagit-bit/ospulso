@@ -24,13 +24,9 @@ if (!$session_data->{session_ok} || $session_data->{role} ne 'Recepcionista') {
 }
 
 my $tipo = $q->param('tipo') || 'privados';
-my $file_name = $tipo eq 'publicos' ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat';
-my $file_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', $file_name);
+my $file_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
 
-my $recibos = leer_tabla($file_path, '|', 1); # Saltamos cabecera
-
-# ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|ESTATUS
-# 0         1     2          3           4           5           6     7    8            9            10          11            12
+my $movimientos = leer_tabla($file_path);
 
 my $pacientes_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
 my $pacs = leer_tabla($pacientes_file, '|', 1);
@@ -40,61 +36,91 @@ foreach my $p (@$pacs) {
     $map_pacientes{$p->[0]} = $p->[2];
 }
 
-my @data = ();
-foreach my $r (@$recibos) {
+my %recibos = ();
+
+foreach my $r (@$movimientos) {
     next unless @$r >= 12;
-    my $id_negocio = $r->[2];
-    # Filtrar por el negocio activo
-    my $ses_id_negocio = $session_data->{id_empresa} || 'ORG-000';
-    next if $id_negocio ne $ses_id_negocio;
+    my $id_os = $r->[0] || '';
+    my $id_paciente = $r->[2] || '';
+    my $tipo_mov = $r->[3] || '';
+    my $concepto = $r->[4] || '';
+    my $total = $r->[7] || 0;
+    my $fecha = $r->[8] || '';
+    my $id_medico = $r->[9] || '';
+    my $notas = $r->[10] || '';
+    my $alias = $r->[11] || '';
     
-    my $id_recibo = $r->[0] || '';
-    my $folio = $r->[1] || '';
-    my $id_consulta = $r->[4] || '';
-    my $id_paciente = $r->[5] || '';
-    my $fecha = $r->[6] || '';
-    my $total = $r->[9] || 0;
-    my $estatus = $r->[12] // 'Activo';
-    
-    my $pac_nombre = $map_pacientes{$id_paciente} || $id_paciente;
-    if ($tipo eq 'publicos' && $id_paciente =~ /^EMP-/) {
-        $pac_nombre = "EMPLEADO ESTADO " . $pac_nombre; # Solo para distinguirlo más visualmente si se quiere, o lo dejamos normal
-        $pac_nombre = $map_pacientes{$id_paciente} || $id_paciente; # Restore original mapping to keep it clean
+    # Filtro Privados / Publicos
+    if ($tipo eq 'publicos') {
+        next unless $id_paciente =~ /^EMP-/;
+    } else {
+        next if $id_paciente =~ /^EMP-/;
     }
+    
+    if (!exists $recibos{$id_os}) {
+        $recibos{$id_os} = {
+            folio => $id_os,
+            fecha => $fecha,
+            id_consulta => $id_os, # Usamos id_os como llave para imprimir el recibo
+            pac_nombre => $alias || $map_pacientes{$id_paciente} || $id_paciente,
+            total_cargo => 0,
+            total_abono => 0,
+            estatus => 'Activo' # Se asume activo, si quisieramos cancelado requeriría cruzar con folios
+        };
+    }
+    
+    if ($tipo_mov eq 'Cargo') {
+        $recibos{$id_os}->{total_cargo} += $total;
+    } elsif ($tipo_mov eq 'Abono') {
+        $recibos{$id_os}->{total_abono} += $total;
+    }
+}
+
+my @data = ();
+foreach my $id_os (keys %recibos) {
+    my $rec = $recibos{$id_os};
+    my $total_mostrar = $rec->{total_abono} > 0 ? $rec->{total_abono} : $rec->{total_cargo};
     
     my $medico = "Médico Tratante";
     my $detalle = "Caja";
     
     # Opciones
     my $script_print = $tipo eq 'publicos' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
-    my $btn_print = qq{<a href="../api/$script_print?id_consulta=$id_consulta" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="fas fa-file-invoice"></i></a>};
+    my $btn_print = qq{<a href="../api/$script_print?id_consulta=$rec->{id_consulta}" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="fas fa-file-invoice"></i></a>};
     my $btn_cancel = "";
-    if ($estatus ne 'Cancelado') {
-        $btn_cancel = qq{<button onclick="cancelarRecibo('$id_recibo', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="fas fa-ban"></i></button>};
+    if ($rec->{estatus} ne 'Cancelado') {
+        $btn_cancel = qq{<button onclick="cancelarRecibo('$id_os', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="fas fa-ban"></i></button>};
     }
     
-    my $estatus_badge = $estatus eq 'Cancelado' ? '<span class="badge bg-danger">Cancelado</span>' : '<span class="badge bg-success">Cobrado</span>';
+    my $estatus_badge = $rec->{estatus} eq 'Cancelado' ? '<span class="badge bg-danger">Cancelado</span>' : '<span class="badge bg-success">Cobrado</span>';
     
-    push @data, [
-        $folio,
-        $fecha,
-        $pac_nombre,
-        "Consulta",
-        $medico,
-        $detalle,
-        "\$" . sprintf("%.2f", $total),
-        $estatus_badge,
-        $btn_print . $btn_cancel
-    ];
+    # Formatear folio para mostrarlo amigable
+    my $folioDisplay = ($id_os =~ /^TX/i) ? $id_os : sprintf("OS/2024/%04d", $id_os);
+    
+    push @data, {
+        raw_fecha => $rec->{fecha},
+        row => [
+            $folioDisplay,
+            $rec->{fecha},
+            $rec->{pac_nombre},
+            "Servicios Múltiples",
+            $medico,
+            $detalle,
+            "\$" . sprintf("%.2f", $total_mostrar),
+            $estatus_badge,
+            $btn_print . $btn_cancel
+        ]
+    };
 }
 
-@data = reverse @data;
+# Ordenar por fecha descendente
+my @sorted_data = map { $_->{row} } sort { $b->{raw_fecha} cmp $a->{raw_fecha} } @data;
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 print JSON::PP->new->utf8(0)->encode({
     draw => 1,
-    recordsTotal => scalar(@data),
-    recordsFiltered => scalar(@data),
-    data => \@data
+    recordsTotal => scalar(@sorted_data),
+    recordsFiltered => scalar(@sorted_data),
+    data => \@sorted_data
 });
 exit;

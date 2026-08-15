@@ -121,7 +121,7 @@ if (!$negocio->{clues}) {
         while (my $lc = <$fc>) {
             chomp $lc;
             my @c = split /\|/, $lc, -1;
-            if ($c[0] eq $id_negocio && $c[1] eq 'PACIENTES_ESTADO' && $c[2] eq 'Habilitado') {
+            if ($c[0] eq ($recibo->{id_negocio} // '') && $c[1] eq 'PACIENTES_ESTADO' && $c[2] eq 'Habilitado') {
                 $negocio->{clues} = $c[3] // '';
                 last;
             }
