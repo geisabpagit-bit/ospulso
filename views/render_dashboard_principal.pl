@@ -470,13 +470,130 @@ HTML
     print <<HTML;
             </div>
 
-            <!-- Sección: Próximas Citas con Timeline -->
+            <!-- Sección: Próximas Citas o Dashboard Recepcionista -->
+HTML
+
+    if ($role eq 'Recepcionista') {
+        print <<HTML;
+            <div class="row g-4 mt-2 mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-uppercase fw-bold m-0" style="color: #0A2A66; font-size: 1.1rem;">MOVIMIENTOS DE RECIBOS DE INGRESOS DE PARTICULARES</h6>
+                    </div>
+                    <div class="bg-white rounded-4 shadow-sm p-4 table-responsive">
+                        <table id="dtPrivados" class="table table-hover align-middle w-100" style="font-size: 0.85rem;">
+                            <thead class="table-light text-secondary">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Fecha</th>
+                                    <th>Paciente</th>
+                                    <th>Concepto</th>
+                                    <th>Medico</th>
+                                    <th>Detalle</th>
+                                    <th>Total</th>
+                                    <th>Estatus</th>
+                                    <th>Opciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4 mt-4 mb-5">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-uppercase fw-bold m-0" style="color: #0A2A66; font-size: 1.1rem;">MOVIMIENTOS DE RECIBOS PÚBLICOS (ESTADO)</h6>
+                    </div>
+                    <div class="bg-white rounded-4 shadow-sm p-4 table-responsive">
+                        <table id="dtPublicos" class="table table-hover align-middle w-100" style="font-size: 0.85rem;">
+                            <thead class="table-light text-secondary">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Fecha</th>
+                                    <th>Paciente</th>
+                                    <th>Concepto</th>
+                                    <th>Medico</th>
+                                    <th>Detalle</th>
+                                    <th>Total</th>
+                                    <th>Estatus</th>
+                                    <th>Opciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estilos y Scripts Datatables -->
+            <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+            <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+            <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+            <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const dtConfig = {
+                        language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+                        dom: '<"row"<"col-sm-12 col-md-6"B><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                        buttons: [
+                            { extend: 'excel', className: 'btn btn-success btn-sm me-1', text: '<i class="bi bi-file-earmark-excel"></i>' },
+                            { extend: 'pdf', className: 'btn btn-danger btn-sm me-1', text: '<i class="bi bi-file-earmark-pdf"></i>' },
+                            { extend: 'print', className: 'btn btn-info text-white btn-sm', text: '<i class="bi bi-printer"></i>' }
+                        ],
+                        pageLength: 5,
+                        lengthChange: false
+                    };
+                    
+                    \$('#dtPrivados').DataTable(Object.assign({}, dtConfig, { ajax: '../api/get_recibos_caja_api.pl?tipo=privados' }));
+                    \$('#dtPublicos').DataTable(Object.assign({}, dtConfig, { ajax: '../api/get_recibos_caja_api.pl?tipo=publicos' }));
+                });
+                
+                function cancelarRecibo(id, tipo) {
+                    Swal.fire({
+                        title: '¿Cancelar Recibo?',
+                        text: "Esta acción es irreversible y revertirá el saldo de los KPIs financieros.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, Cancelar',
+                        cancelButtonText: 'No'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            \$.post('../api/cancelar_recibo_api.pl', { id_recibo: id, tipo: tipo }, function(res) {
+                                if (res.ok) {
+                                    Swal.fire('Cancelado', res.msg, 'success');
+                                    \$('#dtPrivados').DataTable().ajax.reload(null, false);
+                                    \$('#dtPublicos').DataTable().ajax.reload(null, false);
+                                } else {
+                                    Swal.fire('Error', res.msg, 'error');
+                                }
+                            });
+                        }
+                    });
+                }
+            </script>
+HTML
+    } else {
+        print <<HTML;
             <div class="row g-2 g-lg-4 card-mobile-flush">
                 <div class="col-12 col-lg-8 offset-lg-2">
                     <h5 class="font-primary fw-bold mb-3 mb-lg-4 mobile-condensed-title px-2 px-lg-0" style="color: var(--md-blue-deep);">$tit_citas</h5>
                     <div class="bg-white rounded-4 p-3 p-lg-4 shadow-sm mobile-edge-to-edge" style="border: 1px solid var(--md-teal-clinical); min-height: 350px;">
                         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
                             <p class="text-secondary font-secondary m-0 small fw-bold" style="letter-spacing: 0.5px;">ACTIVIDAD PROGRAMADA RECIENTE</p>
+HTML
 HTML
 
     if ($role ne 'Paciente') {
@@ -519,6 +636,8 @@ HTML
                     </div>
                 </div>
             </div>
+HTML
+    }
             
 
             

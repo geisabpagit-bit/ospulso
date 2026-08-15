@@ -31,7 +31,7 @@ if (!$id_consulta) {
 
 # 1. Leer Recibo
 my $recibo = {};
-my $recibos_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
+my $recibos_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_publicos.dat');
 if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
     my $header = <$fh>;
     while (my $line = <$fh>) {
@@ -101,6 +101,7 @@ if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
             $negocio->{domicilio} = $n[6] || '';
             $negocio->{telefono} = $n[7] || '';
             $negocio->{logo_url} = $n[9] || '';
+            $negocio->{clues} = $n[18] || '';
             last;
         }
     }
@@ -109,9 +110,52 @@ if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
 
 my $logo_html = '';
 if ($negocio->{logo_url}) {
-    $logo_html = qq{<img src="../$negocio->{logo_url}" alt="Logo" style="max-height: 80px; max-width: 200px;">};
+    $logo_html = qq{<img src="../$negocio->{logo_url}" alt="Logo" style="max-height: 80px; max-width: 150px;">};
 } else {
-    $logo_html = qq{<h2 style="margin:0; color:#333;">$negocio->{nombre}</h2>};
+    $logo_html = qq{<h2 style="margin:0; color:#333; font-size:14px;">$negocio->{nombre}</h2>};
+}
+
+# 3.1 Extraer datos de Empleado Público
+my $empleado_nombre = '';
+my $dependencia_nombre = '';
+my $num_empleado = '';
+my $paciente_tipo = 'Beneficiario';
+
+if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
+    $num_empleado = $1;
+}
+
+if ($num_empleado && $negocio->{clues}) {
+    my $emp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_$negocio->{clues}.dat");
+    my $id_dep = '';
+    if (-e $emp_file && open(my $fe, '<:encoding(UTF-8)', $emp_file)) {
+        while (my $le = <$fe>) {
+            chomp $le;
+            my @e = split /!/, $le, -1;
+            if ($e[0] eq $num_empleado) {
+                $empleado_nombre = $e[1] // '';
+                $paciente_tipo = $e[2] // '';
+                $id_dep = $e[3] // '';
+                last;
+            }
+        }
+        close $fe;
+    }
+    
+    if ($id_dep) {
+        my $dep_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "dependencia_$negocio->{clues}.dat");
+        if (-e $dep_file && open(my $fd, '<:encoding(UTF-8)', $dep_file)) {
+            while (my $ld = <$fd>) {
+                chomp $ld;
+                my @d = split /!/, $ld, -1;
+                if ($d[0] eq $id_dep) {
+                    $dependencia_nombre = $d[1] // '';
+                    last;
+                }
+            }
+            close $fd;
+        }
+    }
 }
 
 # 4. Obtener Conceptos de consultas_clinicas.dat y estado_cuenta.dat
@@ -266,14 +310,11 @@ print <<HTML;
             color: #0A2A66;
         }
         .badge-folio {
-            background: #0A2A66;
-            color: white;
-            border-radius: 20px;
             font-weight: 800;
-            padding: 4px 10px;
-            font-size: 0.85rem;
+            font-size: 1.2rem;
             display: inline-block;
             margin-top: 5px;
+            color: #000;
         }
         \@media screen {
             body { background: #e0e0e0; padding: 20px; }
@@ -287,28 +328,42 @@ print <<HTML;
 <body onload="window.print()">
     <div class="receipt-container">
         <table class="grid-receipt">
-            <tr class="header-row">
-                <td class="col-logo">$logo_html</td>
-                <td class="col-clinic">$negocio->{nombre}</td>
-                <td class="col-folio">
-                    <span style="font-weight: bold; color: #1e293b; font-size: 12px;">$recibo->{fecha} - $recibo->{hora} hrs.</span><br>
-                    <span style="font-weight: 800; font-size: 14px; margin-top: 4px; display:inline-block;">Folio</span><br>
-                    <span class="badge-folio" style="font-size: 16px;">$folio_corto</span><br>
-                    <span style="margin-top: 4px; display: inline-block; font-size: 12px;">Visita : Primera vez</span>
+            <tr class="header-row" style="border-bottom: 1px solid #ccc;">
+                <td class="col-logo" style="width:20%; border-right: none;">
+                    <div style="text-align: center;">
+                        $logo_html
+                        <div style="font-size: 8px; margin-top: 4px;">Clinica de Especialidades</div>
+                        <div style="font-size: 10px; font-weight: bold;">JUAN PABLO II</div>
+                    </div>
+                </td>
+                <td class="col-clinic" style="width:50%; text-align: center; border-left: none; border-right: 1px solid #0A2A66; color:#000;">
+                    $negocio->{nombre}
+                </td>
+                <td class="col-folio" style="width:30%; text-align: center;">
+                    <span style="font-weight: bold; color: #000; font-size: 12px;">$recibo->{fecha} - $recibo->{hora} hrs.</span><br>
+                    <span style="font-weight: 800; font-size: 14px; margin-top: 4px; display:inline-block; color:#000;">Folio</span><br>
+                    <span class="badge-folio" style="font-size: 16px;">$folio_corto</span>
                 </td>
             </tr>
             <tr>
-                <td class="info-label-cell">Paciente :</td>
-                <td colspan="2" style="font-weight: bold; text-transform: uppercase;">$paciente_nombre</td>
+                <td style="width:20%; vertical-align: top;">
+                    Visita : Primera vez
+                </td>
+                <td colspan="2" style="padding-left: 10px;">
+                    Empleado: $num_empleado - $empleado_nombre<br>
+                    Dependencia: $dependencia_nombre
+                </td>
             </tr>
             <tr>
-                <td class="info-label-cell">Motivo:</td>
-                <td colspan="2" style="font-weight: bold;">Consulta / Atención Médica</td>
+                <td class="info-label-cell" style="color:#000; font-weight: normal;">Paciente :</td>
+                <td colspan="2" style="font-weight: normal;">$paciente_nombre ($paciente_tipo)</td>
             </tr>
-
-        
             <tr>
-                <td class="info-label-cell" style="vertical-align: top;">Concepto :</td>
+                <td class="info-label-cell" style="color:#000; font-weight: normal;">Medico:</td>
+                <td colspan="2" style="font-weight: normal; text-transform: uppercase;">MÉDICO TRATANTE - ESPECIALIDAD</td>
+            </tr>
+            <tr>
+                <td class="info-label-cell" style="color:#000; font-weight: normal; vertical-align: top;">Concepto :</td>
                 <td colspan="2" style="padding: 0;">
                     <table class="table-inner">
 HTML
@@ -319,8 +374,8 @@ foreach my $c (@cargos) {
     my $concepto_txt = uc($c->{concepto});
     print qq{
                         <tr>
-                            <td style="text-align: left;"><strong>$concepto_txt</strong></td>
-                            <td style="text-align: right; color: #1a365d; font-weight: 600;">$subtotal_fmt</td>
+                            <td style="text-align: left;">$concepto_txt</td>
+                            <td style="text-align: right;"></td>
                         </tr>
     };
 }
@@ -331,23 +386,23 @@ print <<HTML;
             </tr>
             <tr>
                 <td colspan="2" style="text-align: center; vertical-align: bottom; height: 110px; padding-bottom: 10px;">
-                    <div class="signature-box" style="width: 80%;">
+                    <div class="signature-box" style="width: 80%; border-top: 1px solid #000; color:#000; font-weight:normal;">
                         Nombre y Firma del Paciente
                     </div>
                 </td>
-                <td style="text-align: right; vertical-align: middle; padding: 15px;">
-                    <div style="color: #0A2A66; font-size: 16px; font-weight: bold; margin-bottom: 8px;">Costo :<br>@{[ formato_moneda($recibo->{total_cargos}) ]}</div>
-                    $abono_saldo_html
-                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
-                        <span style="background: #f8f9fa; color: #212529; border: 1px solid #dee2e6; border-radius: 4px; padding: 4px 8px; font-size: 11px; display: inline-block;">$recibo->{metodo_pago}</span>
-                        <span style="font-size: 11px; color: #6c757d; text-align: right;">Elaboró :<br><strong>$recibo->{elaborado_por}</strong></span>
+                <td style="text-align: right; vertical-align: bottom; padding: 15px; border-left: 1px solid #0A2A66;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color:#000;">
+                        <span>Cuentas x Cobrar</span>
+                        <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
+                    </div>
+                    <div style="text-align: left; font-size: 11px; color: #000; margin-top: 20px;">
+                        Elaboro : $recibo->{elaborado_por}
                     </div>
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align: center; color: #64748b; font-size: 9px; padding: 10px;">
-                    $negocio->{domicilio}, Tel: $negocio->{telefono}<br>
-                    <strong>Aviso de Confidencialidad:</strong> Documento generado por OsPulso - El recibo es válido como comprobante de pago interno.
+                <td colspan="3" style="text-align: center; color: #000; font-size: 11px; padding: 10px;">
+                    $negocio->{domicilio}, Tels.$negocio->{telefono} CP. 76900
                 </td>
             </tr>
         </table>
