@@ -480,8 +480,8 @@ HTML
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="text-uppercase fw-bold m-0" style="color: #0A2A66; font-size: 1.1rem;">MOVIMIENTOS DE RECIBOS DE INGRESOS DE PARTICULARES</h6>
                     </div>
-                    <div class="bg-white rounded-4 shadow-sm p-4 table-responsive">
-                        <table id="dtPrivados" class="table table-hover align-middle w-100" style="font-size: 0.85rem;">
+                    <div class="table-responsive">
+                        <table id="dtPrivados" class="table table-hover align-middle w-100">
                             <thead class="table-light text-secondary">
                                 <tr>
                                     <th>ID</th>
@@ -506,8 +506,8 @@ HTML
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="text-uppercase fw-bold m-0" style="color: #0A2A66; font-size: 1.1rem;">MOVIMIENTOS DE RECIBOS PÚBLICOS (ESTADO)</h6>
                     </div>
-                    <div class="bg-white rounded-4 shadow-sm p-4 table-responsive">
-                        <table id="dtPublicos" class="table table-hover align-middle w-100" style="font-size: 0.85rem;">
+                    <div class="table-responsive">
+                        <table id="dtPublicos" class="table table-hover align-middle w-100">
                             <thead class="table-light text-secondary">
                                 <tr>
                                     <th>ID</th>
@@ -529,17 +529,10 @@ HTML
 
             <!-- Estilos y Scripts Datatables -->
             <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-            <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
-            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
             <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
             <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
             <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
             <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-            <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-            <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
             <script>
                 document.addEventListener('DOMContentLoaded', function() {

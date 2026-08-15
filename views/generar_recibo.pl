@@ -671,7 +671,8 @@ print <<'JS';
                     text: 'El ingreso ha sido registrado exitosamente en caja.',
                     confirmButtonText: 'Abrir PDF'
                 }).then(() => {
-                    window.open('../api/imprimir_recibo_caja.pl?id_consulta=' + encodeURIComponent(res.id_tratamiento), '_blank');
+                    let script = res.is_estado ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
+                    window.open('../api/' + script + '?id_consulta=' + encodeURIComponent(res.id_tratamiento), '_blank');
                     cartItems = [];
                     renderCart();
                     $('#selPaciente').val(null).trigger('change');

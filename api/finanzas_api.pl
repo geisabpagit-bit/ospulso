@@ -210,7 +210,7 @@ elsif ($action eq 'get_ingresos') {
                 concepto => $m->[4],
                 cargo => ($tipo eq 'Cargo') ? $total : 0,
                 abono => ($tipo eq 'Abono') ? $total : 0,
-                paciente_nombre => $nombres{$m->[2]} || 'Desconocido'
+                paciente_nombre => $m->[11] || $nombres{$m->[2]} || 'Desconocido'
             };
         }
     }

@@ -291,19 +291,19 @@ print <<HTML;
                 <td class="col-logo">$logo_html</td>
                 <td class="col-clinic">$negocio->{nombre}</td>
                 <td class="col-folio">
-                    <span style="font-weight: bold; color: #1e293b; font-size: 12px;">$recibo->{fecha} - $recibo->{hora} hrs.</span><br>
-                    <span style="font-weight: 800; font-size: 14px; margin-top: 4px; display:inline-block;">Folio</span><br>
-                    <span class="badge-folio" style="font-size: 16px;">$folio_corto</span><br>
-                    <span style="margin-top: 4px; display: inline-block; font-size: 12px;">Visita : Primera vez</span>
+                    <span style="color: #1e293b; font-size: 10px; font-weight: normal;">$recibo->{fecha} - $recibo->{hora} hrs.</span><br>
+                    <span style="font-size: 10px; margin-top: 4px; display:inline-block;">Folio</span><br>
+                    <span class="badge-folio" style="font-size: 12px; font-weight: normal;">$folio_corto</span><br>
+                    <span style="margin-top: 4px; display: inline-block; font-size: 10px; font-weight: normal;">Visita : Primera vez</span>
                 </td>
             </tr>
             <tr>
                 <td class="info-label-cell">Paciente :</td>
-                <td colspan="2" style="font-weight: bold; text-transform: uppercase;">$paciente_nombre</td>
+                <td colspan="2" style="font-weight: normal; font-size: 10px; text-transform: uppercase;">$paciente_nombre</td>
             </tr>
             <tr>
                 <td class="info-label-cell">Motivo:</td>
-                <td colspan="2" style="font-weight: bold;">Consulta / Atención Médica</td>
+                <td colspan="2" style="font-weight: normal; font-size: 10px;">Consulta / Atención Médica</td>
             </tr>
 
         
@@ -319,8 +319,8 @@ foreach my $c (@cargos) {
     my $concepto_txt = uc($c->{concepto});
     print qq{
                         <tr>
-                            <td style="text-align: left;"><strong>$concepto_txt</strong></td>
-                            <td style="text-align: right; color: #1a365d; font-weight: 600;">$subtotal_fmt</td>
+                            <td style="text-align: left; font-size: 10px; font-weight: normal;">$concepto_txt</td>
+                            <td style="text-align: right; color: #1a365d; font-size: 10px; font-weight: normal;">$subtotal_fmt</td>
                         </tr>
     };
 }
@@ -330,7 +330,7 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 110px; padding-bottom: 10px;">
+                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 60px; padding-bottom: 5px;">
                     <div class="signature-box" style="width: 80%;">
                         Nombre y Firma del Paciente
                     </div>

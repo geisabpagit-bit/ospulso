@@ -77,10 +77,11 @@ foreach my $it (@$caja_items) {
     my $id_mov = 'MOV-' . time() . '-' . $idx_dir++;
     my $sub = ($it->{precio} || 0) * ($it->{cantidad} || 1);
     my $nota_cargo = "Cargo Walk-in | Paciente: " . ($nombre_empleado || $id_paciente);
+    # En estado_cuenta.dat: ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS
     my $linea_cargo = join('|',
         $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{nombre},
         $sub, 0, $sub, $hoy_fecha, $id_medico,
-        $nota_cargo, ''
+        $nota_cargo, ($nombre_empleado || '')
     );
     utils::db_manager::guardar_registro($fin_file, $linea_cargo);
 }
@@ -90,7 +91,7 @@ my $nota_abono = "Pago Recibo Rápido | Metodo: $caja_metodo_pago";
 my $linea_abono = join('|',
     $id_tratamiento, $id_mov_abono, $id_paciente, 'Abono', "Abono en Caja - $caja_metodo_pago",
     $caja_monto_abono, 0, $caja_monto_abono, $hoy_fecha, $id_medico,
-    $nota_abono, ''
+    $nota_abono, ($nombre_empleado || '')
 );
 utils::db_manager::guardar_registro($fin_file, $linea_abono);
 
@@ -138,8 +139,8 @@ unless (-e $folios_file) {
 }
 my $id_recibo_folio = 'R-' . time() . '-' . int(rand(1000));
 my $hoy_hora = sprintf("%02d:%02d", $hour, $min);
-my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $id_tratamiento, $id_paciente, $hoy_fecha, $hoy_hora, $caja_monto_abono, $caja_monto_abono, $caja_metodo_pago, $usuario);
+my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $id_tratamiento, $id_paciente, $hoy_fecha, $hoy_hora, $caja_monto_abono, $caja_monto_abono, $caja_metodo_pago, $usuario, 'Activo');
 utils::db_manager::guardar_registro($folios_file, $linea_folio);
 
-print encode_json({ ok => JSON::true, id_tratamiento => $id_tratamiento, folio => $folio_impreso });
+print encode_json({ ok => JSON::true, id_tratamiento => $id_tratamiento, folio => $folio_impreso, is_estado => $is_estado });
 1;
