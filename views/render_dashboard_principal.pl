@@ -196,9 +196,11 @@ HTML
     my $str_cargos_k = format_compact_k($total_cargos);
     my $str_abonos_k = format_compact_k($total_abonos);
     my $str_saldo_k  = format_compact_k($total_saldo);
+    my $str_cxc_estado_k = format_compact_k($cxc_estado_total);
     my $val_cargos_f = $total_cargos / 1000;
     my $val_abonos_f = $total_abonos / 1000;
     my $val_saldo_f  = $total_saldo / 1000;
+    my $val_cxc_estado_f = $cxc_estado_total / 1000;
 
     # Homogenización de Etiquetas
     my $tit_modulos = "M&oacute;dulos de Gesti&oacute;n";
