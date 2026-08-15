@@ -1445,7 +1445,9 @@ window.renderIngresos = async function() {
                 }
                 
                 const folioDisplay = osExtra.toString().includes('TX') ? osExtra : `OS/2024/${osExtra.toString().padStart(4,'0')}`;
-                concepto = `${concepto}<br><small class="text-muted">(OS: ${osExtra})</small>`;
+                
+                // Formato jerárquico
+                concepto = `<div class="fw-bold">${concepto}</div><div class="small text-muted mt-1"><i class="bi bi-tag-fill me-1"></i>Ref: ${osExtra}</div>`;
                 
                 html += `<tr>
                     <td class="text-muted small">${g.fecha || ''}</td>
@@ -1472,7 +1474,10 @@ window.renderIngresos = async function() {
                     scrollX: true,
                     scrollCollapse: true,
                     rowGroup: {
-                        dataSrc: 3 // Agrupa por la columna 3 (Folio)
+                        dataSrc: 3, // Agrupa por la columna 3 (Folio)
+                        startRender: function (rows, group) {
+                            return $('<tr/>').append('<td colspan="5" class="bg-light text-primary fw-bold px-3 py-2"><i class="bi bi-folder2-open me-2"></i>Folio Agrupador: ' + group + ' <span class="badge bg-secondary ms-2">' + rows.count() + ' movimientos</span></td>');
+                        }
                     },
                     columnDefs: [
                         { targets: 3, visible: false } // Ocultar columna de agrupación

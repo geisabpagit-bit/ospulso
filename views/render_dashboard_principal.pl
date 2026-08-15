@@ -210,6 +210,7 @@ HTML
         usuario => $usuario,
         role => $role,
         id_medico => $id_medico,
+        id_empresa => $id_empresa,
         pagina_actual => 'dashboard'
     );
     print <<'JS';
@@ -508,13 +509,13 @@ HTML
 
     if ($role eq 'Recepcionista') {
         print <<HTML;
-                <div class="col-12 col-lg-3">
-                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between" style="border: 1px solid #0ea5e9;">
+                <div class="col-6 col-lg-2">
+                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="kpi-titulo text-info">CxC Estado</span>
-                            <h2 class="kpi-valor counter-up m-0 text-info" data-value="$val_cxc_estado_f" data-is-k="true">$str_cxc_estado_k</h2>
+                            <span class="kpi-titulo">CxC Estado</span>
+                            <h2 class="kpi-valor counter-up m-0" data-value="$val_cxc_estado_f" data-is-k="true">$str_cxc_estado_k</h2>
                         </div>
-                        <i class="bi bi-bank text-info fs-2 kpi-icon" style="opacity: 0.8;"></i>
+                        <i class="bi bi-bank text-secondary fs-2 kpi-icon" style="opacity: 0.8;"></i>
                     </div>
                 </div>
 HTML
@@ -599,14 +600,14 @@ HTML
             <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.4.1/css/rowGroup.bootstrap5.min.css">
             <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
             <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
             <script src="https://cdn.datatables.net/rowgroup/1.4.1/js/dataTables.rowGroup.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-            <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-            <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
-            <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-            <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 HTML
     print <<'JS';
             <script>
@@ -621,9 +622,7 @@ HTML
                             { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
                         ],
                         pageLength: 10,
-                        lengthChange: false,
-                        rowGroup: { dataSrc: 0 },
-                        columnDefs: [ { targets: 0, visible: false } ]
+                        lengthChange: false
                     };
                     
                     $('#dtPrivados').DataTable(Object.assign({}, dtConfig, { ajax: '../api/get_recibos_caja_api.pl?tipo=privados' }));

@@ -40,7 +40,10 @@ if (!$id_paciente || !$id_medico) {
 }
 
 my $caja_items = [];
-eval { $caja_items = decode_json(encode_utf8($caja_items_json)); };
+eval { $caja_items = decode_json($caja_items_json); };
+if ($@) {
+    eval { $caja_items = decode_json(encode_utf8($caja_items_json)); };
+}
 
 if (ref($caja_items) ne 'ARRAY' || !@$caja_items) {
     print encode_json({ ok => JSON::false, msg => 'No hay conceptos a cobrar.' });
@@ -139,7 +142,7 @@ unless (-e $folios_file) {
 }
 my $id_recibo_folio = 'R-' . time() . '-' . int(rand(1000));
 my $hoy_hora = sprintf("%02d:%02d", $hour, $min);
-my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $id_tratamiento, $id_paciente, $hoy_fecha, $hoy_hora, $caja_monto_abono, $caja_monto_abono, $caja_metodo_pago, $usuario, 'Activo');
+my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $id_tratamiento, $id_paciente, $hoy_fecha, $hoy_hora, $caja_monto_abono, $caja_monto_abono, $caja_metodo_pago, $usuario);
 utils::db_manager::guardar_registro($folios_file, $linea_folio);
 
 print encode_json({ ok => JSON::true, id_tratamiento => $id_tratamiento, folio => $folio_impreso, is_estado => $is_estado });

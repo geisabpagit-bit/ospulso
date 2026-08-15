@@ -221,7 +221,9 @@ if (!@cargos) {
         while (my $le = <$fhe>) {
             chomp $le;
             my @e = split /\|/, $le, -1;
-            if ($e[3] eq 'Cargo' && (($e[10] && $e[10] =~ /Consulta #$id_consulta/) || ($recibo->{id_paciente} && $e[2] eq $recibo->{id_paciente} && $e[8] eq $recibo->{fecha}))) {
+            
+            # Buscamos coincidencias explícitas de ID_OS o la vieja nomenclatura
+            if ($e[3] eq 'Cargo' && ($e[0] eq $id_consulta || ($e[10] && $e[10] =~ /Consulta #$id_consulta/) || ($recibo->{id_paciente} && $e[2] eq $recibo->{id_paciente} && $e[8] eq $recibo->{fecha}))) {
                 my $monto = $e[7] || 0;
                 push @cargos, {
                     concepto => $e[4],
@@ -230,6 +232,12 @@ if (!@cargos) {
                     subtotal => $monto
                 };
                 $id_medico = $e[9] if !$id_medico && $e[9];
+                
+                # Rescatar nombre de empleado/paciente si se pasó por ALIAS (columna 11)
+                if (defined $e[11] && $e[11] ne '') {
+                    $paciente_nombre = $e[11];
+                    $empleado_nombre = $e[11] if !$empleado_nombre;
+                }
             }
         }
         close $fhe;

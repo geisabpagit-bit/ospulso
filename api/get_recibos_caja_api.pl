@@ -45,7 +45,8 @@ foreach my $r (@$recibos) {
     next unless @$r >= 12;
     my $id_negocio = $r->[2];
     # Filtrar por el negocio activo
-    next if $id_negocio ne $session_data->{id_empresa};
+    my $ses_id_negocio = $session_data->{id_empresa} || 'ORG-000';
+    next if $id_negocio ne $ses_id_negocio;
     
     my $id_recibo = $r->[0] || '';
     my $folio = $r->[1] || '';

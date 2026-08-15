@@ -149,10 +149,10 @@ print <<"HTML";
                     </div>
                 </div>
                 
-                <div class="card-body pt-0">
+                <div class="card-body pt-0 row">
                     
-                    <!-- PASO 1: Captura -->
-                    <div id="step1" class="wizard-step active">
+                    <!-- Columna Izquierda: Captura -->
+                    <div class="col-12 col-lg-7 border-end-lg">
                         <form id="frmCajaRapida" onsubmit="return false;">
                             
                             <!-- Selección del Paciente -->
@@ -203,7 +203,7 @@ print <<"HTML";
                             <!-- Método de Pago -->
                             <div class="mb-4">
                                 <label class="form-label fw-bold small text-muted">4. Método de Pago</label>
-                                <select id="selMetodoPago" class="form-select">
+                                <select id="selMetodoPago" class="form-select" onchange="irAlPaso2()">
                                     <option value="Efectivo">Efectivo</option>
                                     <option value="Tarjeta de Debito">Tarjeta de Débito</option>
                                     <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
@@ -213,34 +213,31 @@ print <<"HTML";
                                 </select>
                             </div>
                             
-                            <hr class="my-4">
-                            <div class="d-flex justify-content-end">
+                            <hr class="my-4 d-lg-none">
+                            <div class="d-flex justify-content-end d-lg-none">
                                 <button type="button" class="btn btn-primary btn-mobile-standard btn-mobile-full px-4 fw-bold rounded-pill shadow-sm" onclick="irAlPaso2()">
-                                    Siguiente: Vista Previa <i class="bi bi-arrow-right ms-1"></i>
+                                    Siguiente: Vista Previa <i class="bi bi-arrow-down ms-1"></i>
                                 </button>
                             </div>
                         </form>
                     </div>
                     
-                    <!-- PASO 2: Vista Previa -->
-                    <div id="step2" class="wizard-step">
+                    <!-- Columna Derecha: Vista Previa y Acción -->
+                    <div class="col-12 col-lg-5 pt-4 pt-lg-0" id="step2">
                         <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4">
                             <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
                             <div>
-                                <h6 class="fw-bold mb-1">Paso Final</h6>
-                                <p class="mb-0 small">Revisa el comprobante. Una vez emitido, se registrará el ingreso en el sistema permanentemente.</p>
+                                <h6 class="fw-bold mb-1">Previsualización de Recibo</h6>
+                                <p class="mb-0 small">Se actualizará en tiempo real. Al emitirlo, el ingreso quedará registrado en caja.</p>
                             </div>
                         </div>
                         
-                        <div class="border rounded-3 p-1 mb-4 bg-light" style="height: 400px;">
+                        <div class="border rounded-3 p-1 mb-4 bg-light shadow-sm" style="height: 400px; overflow: hidden;">
                             <iframe id="iframePreview" src="about:blank" style="width: 100%; height: 100%; border: none; background: #fff; border-radius: 6px;"></iframe>
                         </div>
                         
-                        <div class="d-flex justify-content-between flex-column flex-lg-row gap-2">
-                            <button type="button" class="btn btn-light btn-mobile-standard px-4 fw-bold rounded-pill" onclick="volverAlPaso1()">
-                                <i class="bi bi-arrow-left me-1"></i> Volver
-                            </button>
-                            <button type="button" class="btn btn-success btn-mobile-standard btn-mobile-full px-5 fw-bold rounded-pill shadow" onclick="emitirReciboFinal()">
+                        <div class="d-flex justify-content-between flex-column gap-2">
+                            <button type="button" class="btn btn-success btn-mobile-standard btn-mobile-full px-5 fw-bold rounded-pill shadow w-100" onclick="emitirReciboFinal()">
                                 <i class="bi bi-check2-circle me-1"></i> Emitir Recibo Oficial
                             </button>
                         </div>
@@ -621,13 +618,16 @@ print <<'JS';
         const doc = document.getElementById('iframePreview').contentWindow.document;
         doc.open(); doc.write(draftHtml); doc.close();
         
-        $('#step1').removeClass('active');
-        $('#step2').addClass('active');
+        // En móviles hacemos scroll suave hacia la previsualización
+        if (window.innerWidth < 992) {
+            document.getElementById('step2').scrollIntoView({behavior: 'smooth'});
+        }
     }
     
     function volverAlPaso1() {
-        $('#step2').removeClass('active');
-        $('#step1').addClass('active');
+        if (window.innerWidth < 992) {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
     }
     
     async function emitirReciboFinal() {
