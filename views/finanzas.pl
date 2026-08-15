@@ -166,19 +166,21 @@ print <<'PAGE_HTML';
                         <div class="kpi-valor" id="kpiCuentasCobrar">$0.00</div>
                         <div class="kpi-subtexto text-warning fw-bold">(Privadas)</div>
                     </div>
-HTML
+PAGE_HTML
+
     if ($has_pacientes_estado) {
-        print <<HTML;
+        print <<'PAGE_HTML';
                     <!-- Cuentas por Cobrar al Estado -->
                     <div class="kpi-acrilico">
                         <div class="kpi-icono" style="color: #0ea5e9;"><i class="bi bi-bank"></i></div>
                         <div class="kpi-titulo">CxC (Estado)</div>
-                        <div class="kpi-valor" id="kpiCxcEstado">\$0.00</div>
+                        <div class="kpi-valor" id="kpiCxcEstado">$0.00</div>
                         <div class="kpi-subtexto text-info fw-bold">(Públicas)</div>
                     </div>
-HTML
+PAGE_HTML
     }
-    print <<HTML;
+
+    print <<'PAGE_HTML';
                     <!-- Cotizaciones Activas -->
                     <div class="kpi-acrilico">
                         <div class="kpi-icono" style="color: #f59e0b;"><i class="bi bi-file-earmark-text"></i></div>
@@ -397,9 +399,10 @@ HTML
                 </div>
             </div>
 
-HTML
+PAGE_HTML
+
     if ($has_pacientes_estado) {
-        print <<HTML;
+        print <<'PAGE_HTML';
             <!-- TAB: CUENTAS POR COBRAR ESTADO -->
             <div id="tab_cxc_estado" class="sdm-tab-pane d-none">
                 <div class="bento-card">
@@ -433,9 +436,10 @@ HTML
                     </div>
                 </div>
             </div>
-HTML
+PAGE_HTML
     }
-    print <<HTML;
+
+    print <<'PAGE_HTML';
 
             <!-- TAB: FACTURACION -->
             <div id="tab_facturacion" class="sdm-tab-pane d-none">

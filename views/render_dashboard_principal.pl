@@ -112,6 +112,8 @@ HTML
 
     my $total_cargos = 0;
     my $total_abonos = 0;
+    my %saldos_estado = ();
+
     if (-e $fin_file) {
         open(my $fh, '<:utf8', $fin_file) or die $!;
         while(my $line = <$fh>) {
@@ -120,15 +122,34 @@ HTML
             my @f = split(/\|/, $line);
             # v3.5.5: F3: TIPO, F7: TOTAL, F9: ID_MEDICO, F2: ID_PACIENTE
             my $m_id = $f[9] // ''; $m_id =~ s/^\s+|\s+$//g;
-            if ($is_admin || $m_id eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$f[2]})) {
-                my $monto = $f[7] || 0;
+            my $id_paciente = $f[2] // '';
+            my $monto = $f[7] || 0;
+
+            if ($is_admin || $m_id eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$id_paciente})) {
                 if ($f[3] =~ /Cargo/i) { $total_cargos += $monto; }
                 elsif ($f[3] =~ /Abono/i) { $total_abonos += $monto; }
+            }
+
+            # Acumular para CxC Estado si aplica
+            if ($id_paciente =~ /^EMP-/) {
+                if ($f[3] =~ /Cargo/i && ($f[10] // '') !~ /Presupuesto|Cotizacion/i) {
+                    $saldos_estado{$id_paciente}{cargos} += $monto;
+                } elsif ($f[3] =~ /Abono/i) {
+                    $saldos_estado{$id_paciente}{abonos} += $monto;
+                }
             }
         }
         close($fh);
     }
     my $total_saldo = $total_cargos - $total_abonos;
+    
+    my $cxc_estado_total = 0;
+    foreach my $id (keys %saldos_estado) {
+        my $pendiente = ($saldos_estado{$id}{cargos} || 0) - ($saldos_estado{$id}{abonos} || 0);
+        if ($pendiente > 0.01) {
+            $cxc_estado_total += $pendiente;
+        }
+    }
 
     # --- CÁLCULO DE RANGO DE 7 DÍAS ---
     my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
@@ -378,6 +399,35 @@ JS
             font-size: 20px !important;
         }
     }
+    .kpi-acrilico {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(10, 42, 102, 0.15);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        transition: all 0.25s ease;
+    }
+    .kpi-acrilico:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        border-color: var(--md-teal-clinical);
+    }
+    .kpi-titulo {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--md-gray-text);
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+    .kpi-valor {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--md-blue-deep);
+        letter-spacing: -1px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
 </style>
 
 HTML
@@ -395,7 +445,7 @@ HTML
 JS
     print <<HTML;
             <div class="row g-2 g-lg-4 mb-3 mb-lg-4 animate__animated animate__fadeIn card-mobile-flush">
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg-2">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
                             <span class="kpi-titulo">Citas Hoy</span>
@@ -409,7 +459,7 @@ HTML
     if ($role eq 'Paciente') {
         my $citas_futuras = scalar(@proximas_citas);
         print <<HTML;
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg-2">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
                             <span class="kpi-titulo">Citas Futuras</span>
@@ -421,7 +471,7 @@ HTML
 HTML
     } else {
         print <<HTML;
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg-2">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
                             <span class="kpi-titulo">Pacientes</span>
@@ -434,7 +484,7 @@ HTML
     }
 
     print <<HTML;
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg-2">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
                             <span class="kpi-titulo">Cargos</span>
@@ -443,7 +493,7 @@ HTML
                         <i class="bi bi-wallet2 text-cyan fs-2 kpi-icon" style="opacity: 0.8;"></i>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg-2">
                     <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
                         <div>
                             <span class="kpi-titulo">Abonos</span>
@@ -453,6 +503,20 @@ HTML
                     </div>
                 </div>
 HTML
+
+    if ($role eq 'Recepcionista') {
+        print <<HTML;
+                <div class="col-12 col-lg-3">
+                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between" style="border: 1px solid #0ea5e9;">
+                        <div>
+                            <span class="kpi-titulo text-info">CxC Estado</span>
+                            <h2 class="kpi-valor counter-up m-0 text-info" data-value="$val_cxc_estado_f" data-is-k="true">$str_cxc_estado_k</h2>
+                        </div>
+                        <i class="bi bi-bank text-info fs-2 kpi-icon" style="opacity: 0.8;"></i>
+                    </div>
+                </div>
+HTML
+    }
 
     if ($role eq 'Paciente') {
         print <<HTML;
