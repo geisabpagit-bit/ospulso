@@ -25,6 +25,23 @@ if (!$session_data->{session_ok}) {
 
 my $id_paciente = $q->param('id') || '';
 
+# Verificar SaaS Capabilities (PACIENTES_ESTADO)
+my $has_pacientes_estado = 0;
+my $config_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+my $id_empresa = $session_data->{id_empresa} // '';
+if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
+    while (my $line = <$cf>) {
+        chomp($line);
+        next if $line =~ /^#|^\s*$/;
+        my ($biz_id, $key, $val) = split(/\|/, $line);
+        if ($biz_id eq $id_empresa && $key eq 'PACIENTES_ESTADO') {
+            $has_pacientes_estado = ($val eq '1') ? 1 : 0;
+            last;
+        }
+    }
+    close($cf);
+}
+
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 render_header(usuario => $session_data->{usuario}, titulo => "Finanzas - SDM", role => $session_data->{role}, id_medico => $session_data->{id_medico}, skip_header => 1);
 
@@ -40,7 +57,8 @@ utils::sub_sidebar::render_sidebar(
     usuario => $session_data->{usuario},
     role => $session_data->{role},
     id_medico => $session_data->{id_medico},
-    pagina_actual => 'finanzas'
+    pagina_actual => 'finanzas',
+    id_empresa => $session_data->{id_empresa} // ''
 );
 
 print <<'PAGE_HTML';
@@ -75,6 +93,7 @@ print <<'PAGE_HTML';
         }
         
         if(tabId === 'tab_cxc' && typeof window.renderCxC === 'function') window.renderCxC();
+        if(tabId === 'tab_cxc_estado' && typeof window.renderCxcEstado === 'function') window.renderCxcEstado();
         if(tabId === 'tab_gastos' && typeof window.renderGastos === 'function') window.renderGastos();
         if(tabId === 'tab_ingresos' && typeof window.renderIngresos === 'function') window.renderIngresos();
         if(tabId === 'tab_reportes' && typeof window.renderReportes === 'function') window.renderReportes();
@@ -145,8 +164,21 @@ print <<'PAGE_HTML';
                         <div class="kpi-icono" style="color: #eab308;"><i class="bi bi-wallet2"></i></div>
                         <div class="kpi-titulo">Cuentas por Cobrar</div>
                         <div class="kpi-valor" id="kpiCuentasCobrar">$0.00</div>
-                        <div class="kpi-subtexto text-warning fw-bold">(Pendiente)</div>
+                        <div class="kpi-subtexto text-warning fw-bold">(Privadas)</div>
                     </div>
+HTML
+    if ($has_pacientes_estado) {
+        print <<HTML;
+                    <!-- Cuentas por Cobrar al Estado -->
+                    <div class="kpi-acrilico">
+                        <div class="kpi-icono" style="color: #0ea5e9;"><i class="bi bi-bank"></i></div>
+                        <div class="kpi-titulo">CxC (Estado)</div>
+                        <div class="kpi-valor" id="kpiCxcEstado">\$0.00</div>
+                        <div class="kpi-subtexto text-info fw-bold">(Públicas)</div>
+                    </div>
+HTML
+    }
+    print <<HTML;
                     <!-- Cotizaciones Activas -->
                     <div class="kpi-acrilico">
                         <div class="kpi-icono" style="color: #f59e0b;"><i class="bi bi-file-earmark-text"></i></div>
@@ -364,6 +396,46 @@ print <<'PAGE_HTML';
                     </div>
                 </div>
             </div>
+
+HTML
+    if ($has_pacientes_estado) {
+        print <<HTML;
+            <!-- TAB: CUENTAS POR COBRAR ESTADO -->
+            <div id="tab_cxc_estado" class="sdm-tab-pane d-none">
+                <div class="bento-card">
+                    <h4 class="fw-bold plus-jakarta mb-4 text-dark">Cuentas por Cobrar (Estado)</h4>
+                    <p class="text-muted">Pacientes de instituciones públicas con saldos pendientes.</p>
+                    <div class="table-responsive mt-3">
+                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond" id="tablaCxcEstado">
+                            <thead class="text-muted small">
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th>Ult. Movimiento</th>
+                                    <th>Cargos Acum.</th>
+                                    <th>Abonos Acum.</th>
+                                    <th>Saldo Pendiente</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyCxcEstado">
+                                <tr><td colspan="6" class="text-center text-muted">Cargando...</td></tr>
+                            </tbody>
+                            <tfoot class="bg-light fw-bold">
+                                <tr>
+                                    <td colspan="2" class="text-end">Totales:</td>
+                                    <td id="tfootCxcEstadoCargos"></td>
+                                    <td id="tfootCxcEstadoAbonos"></td>
+                                    <td id="tfootCxcEstadoSaldo"></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+HTML
+    }
+    print <<HTML;
 
             <!-- TAB: FACTURACION -->
             <div id="tab_facturacion" class="sdm-tab-pane d-none">

@@ -385,7 +385,32 @@ HTML
 
         print qq{
                         <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Gastos (Egresos)</span></a>
-                        <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cuentas por Cobrar</span></a>
+                        <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cuentas por Cobrar (Privadas)</span></a>
+        };
+        
+        my $has_pacientes_estado = 0;
+        my $id_empresa = $args{id_empresa} || '';
+        my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
+        if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
+            while (my $line = <$cf>) {
+                chomp($line);
+                next if $line =~ /^#|^\s*$/;
+                my ($biz_id, $key, $val) = split(/\|/, $line);
+                if ($biz_id eq $id_empresa && $key eq 'PACIENTES_ESTADO') {
+                    $has_pacientes_estado = ($val eq '1') ? 1 : 0;
+                    last;
+                }
+            }
+            close($cf);
+        }
+
+        if ($has_pacientes_estado) {
+            print qq{
+                        <a href="../views/finanzas.pl?tab=cxc_estado" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-bank2 text-info me-2"></i><span class="sidebar-text">Cuentas por Cobrar (Estado)</span></a>
+            };
+        }
+
+        print qq{
                         <hr class="my-2 opacity-25">
                         <a href="../views/finanzas.pl?tab=facturacion" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt text-muted me-2"></i><span class="sidebar-text">Facturaci&oacute;n PAC</span></a>
                         <a href="../views/finanzas.pl?tab=reportes" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-file-earmark-bar-graph-fill text-muted me-2"></i><span class="sidebar-text">Reportes (P&L)</span></a>

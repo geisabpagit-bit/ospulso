@@ -530,8 +530,10 @@ HTML
 
             <!-- Estilos y Scripts Datatables -->
             <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+            <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.4.1/css/rowGroup.bootstrap5.min.css">
             <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
             <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+            <script src="https://cdn.datatables.net/rowgroup/1.4.1/js/dataTables.rowGroup.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
@@ -545,14 +547,17 @@ HTML
                 document.addEventListener('DOMContentLoaded', function() {
                     const dtConfig = {
                         language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
-                        dom: '<"row"<"col-sm-12 col-md-6"B><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                        dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                         buttons: [
-                            { extend: 'excel', className: 'btn btn-success btn-sm me-1', text: '<i class="bi bi-file-earmark-excel"></i>' },
-                            { extend: 'pdf', className: 'btn btn-danger btn-sm me-1', text: '<i class="bi bi-file-earmark-pdf"></i>' },
-                            { extend: 'print', className: 'btn btn-info text-white btn-sm', text: '<i class="bi bi-printer"></i>' }
+                            { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
+                            { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
+                            { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' },
+                            { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
                         ],
-                        pageLength: 5,
-                        lengthChange: false
+                        pageLength: 10,
+                        lengthChange: false,
+                        rowGroup: { dataSrc: 0 },
+                        columnDefs: [ { targets: 0, visible: false } ]
                     };
                     
                     $('#dtPrivados').DataTable(Object.assign({}, dtConfig, { ajax: '../api/get_recibos_caja_api.pl?tipo=privados' }));

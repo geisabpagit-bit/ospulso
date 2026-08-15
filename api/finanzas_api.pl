@@ -73,8 +73,16 @@ if ($action eq 'get_cxc') {
         }
     }
     
+    my $filter_estado = $q->param('filter_estado') || '0';
+    
     my @cxc;
     for my $id (keys %saldos) {
+        if ($filter_estado eq '1') {
+            next unless $id =~ /^EMP-/;
+        } else {
+            next if $id =~ /^EMP-/;
+        }
+        
         $saldos{$id}{saldo_pendiente} = $saldos{$id}{cargos_acumulados} - $saldos{$id}{abonos_acumulados};
         if ($saldos{$id}{saldo_pendiente} > 0.01) { # Tolerance for floats
             push @cxc, $saldos{$id};

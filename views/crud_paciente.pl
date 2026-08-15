@@ -502,6 +502,4 @@ print <<HTML;
 HTML
 
 utils::sub_sidebar::render_sidebar_footer();
-
-render_footer(role => $sd->{role});
 1;

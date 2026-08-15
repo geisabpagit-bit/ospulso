@@ -17,7 +17,7 @@ require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 my $q = CGI->new;
 my $session_data = check_session($q);
 
-if (!$session_data->{session_ok} || $session_data->{rol} ne 'Recepcionista') {
+if (!$session_data->{session_ok} || $session_data->{role} ne 'Recepcionista') {
     print $q->header(-type => 'application/json', -charset => 'UTF-8');
     print JSON::PP->new->utf8(0)->encode({ok => 0, msg => "Acceso denegado"});
     exit;

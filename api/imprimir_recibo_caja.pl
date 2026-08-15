@@ -230,40 +230,45 @@ print <<HTML;
             border-collapse: collapse;
             margin-bottom: 10px;
             font-size: 11px;
+            text-transform: capitalize;
+            color: #333;
         }
         .grid-receipt td {
-            border: 1px solid #0A2A66;
+            border: 1px solid rgba(10, 42, 102, 0.25);
             padding: 8px;
             vertical-align: middle;
         }
         .header-row td {
             text-align: center;
-            border-bottom: 2px solid #0A2A66;
+            border-bottom: 1px solid rgba(10, 42, 102, 0.25);
         }
         .col-logo { width: 25%; }
-        .col-clinic { width: 50%; font-size: 14px; text-transform: uppercase; color: #0A2A66; font-weight: 900; }
-        .col-folio { width: 25%; font-size: 11px; color: #64748b; }
+        .col-clinic { width: 50%; font-size: 14px; text-transform: uppercase; color: #333; font-weight: bold; }
+        .col-folio { width: 25%; font-size: 11px; color: #333; }
         .info-label-cell {
             width: 25%;
             font-weight: bold;
-            color: #0A2A66;
+            color: #333;
         }
         .table-inner {
             width: 100%;
             border-collapse: collapse;
+            text-transform: capitalize;
         }
         .table-inner td {
             border: none;
             border-bottom: 1px dashed rgba(204, 204, 204, 0.4);
             padding: 6px;
+            color: #333;
         }
         .signature-box {
-            border-top: 1px solid #0A2A66;
+            border-top: 1px solid rgba(10, 42, 102, 0.25);
             width: 60%;
             margin: 0 auto;
             padding-top: 5px;
-            font-weight: bold;
-            color: #0A2A66;
+            font-weight: normal;
+            color: #333;
+            text-transform: capitalize;
         }
         .badge-folio {
             background: #0A2A66;

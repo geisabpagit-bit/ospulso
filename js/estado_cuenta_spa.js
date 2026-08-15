@@ -1038,6 +1038,89 @@ window.renderCxC = async function() {
     }
 }
 
+window.renderCxcEstado = async function() {
+    try {
+        const tbody = document.getElementById('tbodyCxcEstado');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando datos...</td></tr>';
+        
+        // Pass filter or action to distinguish it
+        const res = await fetch('../api/finanzas_api.pl', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({ action: 'get_cxc', filter_estado: '1' })
+        });
+        const data = await res.json();
+        
+        let kpiTotal = 0;
+        
+        if (data.success && tbody) {
+            let html = '';
+            data.data.forEach(p => {
+                const badge = p.saldo_pendiente > 0 ? '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3">Deuda Pública</span>' : '';
+                kpiTotal += p.saldo_pendiente;
+                html += `<tr>
+                    <td class="fw-bold" style="color: var(--md-blue-deep);"><i class="bi bi-person-circle me-2 text-muted"></i>${p.nombre}</td>
+                    <td class="text-muted small">${p.ultimo_movimiento.substring(0, 10) || 'N/A'}</td>
+                    <td class="text-muted">${formatter.format(p.cargos_acumulados)}</td>
+                    <td class="text-success">${formatter.format(p.abonos_acumulados)}</td>
+                    <td class="fw-bold text-danger">${formatter.format(p.saldo_pendiente)}</td>
+                    <td>
+                        ${badge}
+                        <a href="estado_cuenta.pl?id=${p.id_paciente}" class="btn btn-sm btn-light ms-2 shadow-sm rounded-pill fw-bold text-primary" title="Ir al estado de cuenta">Revisar <i class="bi bi-arrow-right-short"></i></a>
+                    </td>
+                </tr>`;
+            });
+            
+            if (data.data.length === 0) {
+                html = '';
+            }
+            
+            tbody.innerHTML = html;
+            const kpiEstado = document.getElementById('kpiCxcEstado');
+            if(kpiEstado) kpiEstado.innerHTML = formatter.format(kpiTotal);
+            
+            // Inicializar DataTable
+            if ($.fn.DataTable) {
+                if ($.fn.DataTable.isDataTable('#tablaCxcEstado')) {
+                    $('#tablaCxcEstado').DataTable().destroy();
+                }
+                $('#tablaCxcEstado').DataTable({
+                    scrollY: '400px',
+                    scrollX: true,
+                    scrollCollapse: true,
+                    footerCallback: function(row, data, start, end, display) {
+                        var api = this.api();
+                        var intVal = function(i) { return typeof i === 'string' ? i.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0; };
+                        var cargos = api.column(2, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
+                        var abonos = api.column(3, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
+                        var saldo = api.column(4, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
+                        var eC = document.getElementById('tfootCxcEstadoCargos'); if(eC) eC.innerHTML = formatter.format(cargos);
+                        var eA = document.getElementById('tfootCxcEstadoAbonos'); if(eA) eA.innerHTML = formatter.format(abonos);
+                        var eS = document.getElementById('tfootCxcEstadoSaldo'); if(eS) eS.innerHTML = formatter.format(saldo);
+                    },
+                    dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                    buttons: [
+                        { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
+                        { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
+                        { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' },
+                        { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
+                    ],
+                    language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json" },
+                    order: [[4, "desc"]], // Ordenar por saldo pendiente mayor a menor
+                    pageLength: 10,
+                    responsive: true,
+                    destroy: true
+                });
+            }
+        }
+    } catch (error) {
+        console.error("Error cargando CxC Estado", error);
+        const tbody = document.getElementById('tbodyCxcEstado');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Error al cargar cuentas por cobrar (Estado).</td></tr>';
+    }
+}
+
+
 // --- Módulo Gastos ---
 var catGastos = catGastos || [], subcatGastos = subcatGastos || [], subcat3Gastos = subcat3Gastos || [];
 var categoriasGastosCargadas = categoriasGastosCargadas || false;

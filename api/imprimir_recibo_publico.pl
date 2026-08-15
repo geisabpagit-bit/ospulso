@@ -119,7 +119,7 @@ if ($negocio->{logo_url}) {
 my $empleado_nombre = '';
 my $dependencia_nombre = '';
 my $num_empleado = '';
-my $paciente_tipo = 'Beneficiario';
+my $paciente_tipo = 'Desconocido';
 
 if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
     $num_empleado = $1;
@@ -128,23 +128,40 @@ if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
 if ($num_empleado && $negocio->{clues}) {
     my $emp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_$negocio->{clues}.dat");
     my $id_dep = '';
+    
+    # Buscar el paciente y al titular (Empleado)
     if (-e $emp_file && open(my $fe, '<:encoding(UTF-8)', $emp_file)) {
+        # Saltar cabecera
+        my $h = <$fe>;
         while (my $le = <$fe>) {
             chomp $le;
             my @e = split /!/, $le, -1;
+            next unless @e >= 5;
             if ($e[0] eq $num_empleado) {
-                $empleado_nombre = $e[1] // '';
-                $paciente_tipo = $e[2] // '';
-                $id_dep = $e[3] // '';
-                last;
+                # Identificamos el tipo de paciente (si hace match exacto)
+                if ($e[1] eq $paciente_nombre || uc($e[1]) eq uc($paciente_nombre)) {
+                    $paciente_tipo = $e[2] // '';
+                }
+                
+                # Siempre buscamos quién es el Empleado Titular
+                if ($e[2] =~ /^Empleado/i) {
+                    $empleado_nombre = $e[1] // '';
+                    $id_dep = $e[4] // '';
+                }
             }
         }
         close $fe;
     }
     
+    if (!$paciente_tipo || $paciente_tipo eq 'Desconocido') {
+        # Si no lo encontramos pero sabemos que es de empleados, lo asumimos Beneficiario a menos que él mismo sea el empleado
+        $paciente_tipo = ($paciente_nombre eq $empleado_nombre) ? 'Empleado' : 'Beneficiario';
+    }
+    
     if ($id_dep) {
         my $dep_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "dependencia_$negocio->{clues}.dat");
         if (-e $dep_file && open(my $fd, '<:encoding(UTF-8)', $dep_file)) {
+            my $hd = <$fd>;
             while (my $ld = <$fd>) {
                 chomp $ld;
                 my @d = split /!/, $ld, -1;
@@ -294,47 +311,52 @@ print <<HTML;
             border-collapse: collapse;
             margin-bottom: 10px;
             font-size: 11px;
+            text-transform: capitalize;
+            color: #333;
         }
         .grid-receipt td {
-            border: 1px solid #0A2A66;
+            border: 1px solid rgba(10, 42, 102, 0.25);
             padding: 8px;
             vertical-align: middle;
         }
         .header-row td {
             text-align: center;
-            border-bottom: 2px solid #0A2A66;
+            border-bottom: 1px solid rgba(10, 42, 102, 0.25);
         }
         .col-logo { width: 25%; }
-        .col-clinic { width: 50%; font-size: 14px; text-transform: uppercase; color: #0A2A66; font-weight: 900; }
-        .col-folio { width: 25%; font-size: 11px; color: #64748b; }
+        .col-clinic { width: 50%; font-size: 14px; text-transform: uppercase; color: #333; font-weight: bold; }
+        .col-folio { width: 25%; font-size: 11px; color: #333; }
         .info-label-cell {
             width: 25%;
             font-weight: bold;
-            color: #0A2A66;
+            color: #333;
         }
         .table-inner {
             width: 100%;
             border-collapse: collapse;
+            text-transform: capitalize;
         }
         .table-inner td {
             border: none;
             border-bottom: 1px dashed rgba(204, 204, 204, 0.4);
             padding: 6px;
+            color: #333;
         }
         .signature-box {
-            border-top: 1px solid #0A2A66;
+            border-top: 1px solid rgba(10, 42, 102, 0.25);
             width: 60%;
             margin: 0 auto;
             padding-top: 5px;
-            font-weight: bold;
-            color: #0A2A66;
+            font-weight: normal;
+            color: #333;
+            text-transform: capitalize;
         }
         .badge-folio {
-            font-weight: 800;
+            font-weight: bold;
             font-size: 1.2rem;
             display: inline-block;
             margin-top: 5px;
-            color: #000;
+            color: #333;
         }
         \@media screen {
             body { background: #e0e0e0; padding: 20px; }
