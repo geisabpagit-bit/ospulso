@@ -86,10 +86,10 @@ foreach my $id_os (keys %recibos) {
     
     # Opciones
     my $script_print = $tipo eq 'publicos' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
-    my $btn_print = qq{<a href="../api/$script_print?id_consulta=$rec->{id_consulta}" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="fas fa-file-invoice"></i></a>};
+    my $btn_print = qq{<a href="../api/$script_print?id_consulta=$rec->{id_consulta}" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="bi bi-file-earmark-text"></i></a>};
     my $btn_cancel = "";
     if ($rec->{estatus} ne 'Cancelado') {
-        $btn_cancel = qq{<button onclick="cancelarRecibo('$id_os', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="fas fa-ban"></i></button>};
+        $btn_cancel = qq{<button onclick="cancelarRecibo('$id_os', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="bi bi-x-circle"></i></button>};
     }
     
     my $estatus_badge = $rec->{estatus} eq 'Cancelado' ? '<span class="badge bg-danger">Cancelado</span>' : '<span class="badge bg-success">Cobrado</span>';

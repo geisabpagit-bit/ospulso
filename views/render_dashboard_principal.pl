@@ -133,9 +133,9 @@ HTML
             # Acumular para CxC Estado si aplica
             if ($id_paciente =~ /^EMP-/) {
                 if ($f[3] =~ /Cargo/i && ($f[10] // '') !~ /Presupuesto|Cotizacion/i) {
-                    $saldos_estado{$id_paciente}{cargos} += $monto;
+                    $saldos_estado{$f[0]}{cargos} += $monto;
                 } elsif ($f[3] =~ /Abono/i) {
-                    $saldos_estado{$id_paciente}{abonos} += $monto;
+                    $saldos_estado{$f[0]}{abonos} += $monto;
                 }
             }
         }
@@ -144,11 +144,10 @@ HTML
     my $total_saldo = $total_cargos - $total_abonos;
     
     my $cxc_estado_total = 0;
-    foreach my $id (keys %saldos_estado) {
-        my $pendiente = ($saldos_estado{$id}{cargos} || 0) - ($saldos_estado{$id}{abonos} || 0);
-        if ($pendiente > 0.01) {
-            $cxc_estado_total += $pendiente;
-        }
+    foreach my $id_os (keys %saldos_estado) {
+        my $ab = $saldos_estado{$id_os}{abonos} || 0;
+        my $cg = $saldos_estado{$id_os}{cargos} || 0;
+        $cxc_estado_total += ($ab > 0 ? $ab : $cg);
     }
 
     # --- CÁLCULO DE RANGO DE 7 DÍAS ---
@@ -564,6 +563,13 @@ HTML
                                 </tr>
                             </thead>
                             <tbody></tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="6" style="text-align:right; font-weight:bold;">Total:</th>
+                                    <th style="font-weight:bold;"></th>
+                                    <th colspan="2"></th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -572,7 +578,7 @@ HTML
             <div class="row g-4 mt-4 mb-5">
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="text-uppercase fw-bold m-0" style="color: #0A2A66; font-size: 1.1rem;">MOVIMIENTOS DE RECIBOS PÚBLICOS (ESTADO)</h6>
+                        <h6 class="text-uppercase fw-bold m-0" style="color: #0A2A66; font-size: 1.1rem;">Movimientos de Recibos de Municipio</h6>
                     </div>
                     <div class="table-responsive">
                         <table id="dtPublicos" class="table table-hover align-middle w-100">
@@ -590,6 +596,13 @@ HTML
                                 </tr>
                             </thead>
                             <tbody></tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="6" style="text-align:right; font-weight:bold;">Total:</th>
+                                    <th style="font-weight:bold;"></th>
+                                    <th colspan="2"></th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -622,7 +635,17 @@ HTML
                             { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
                         ],
                         pageLength: 10,
-                        lengthChange: false
+                        lengthChange: false,
+                        footerCallback: function(row, data, start, end, display) {
+                            var api = this.api();
+                            var intVal = function(i) {
+                                return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                            };
+                            var total = api.column(6, { page: 'current' }).data().reduce(function(a, b) {
+                                return intVal(a) + intVal(b);
+                            }, 0);
+                            $(api.column(6).footer()).html('$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        }
                     };
                     
                     $('#dtPrivados').DataTable(Object.assign({}, dtConfig, { 

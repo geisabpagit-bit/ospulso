@@ -29,7 +29,7 @@ if (!$id_consulta) {
     exit;
 }
 
-# 1. Leer Recibo
+## 1. Leer Recibo (Opcional, puede ser un recibo exprés sin folio oficial)
 my $recibo = {};
 my $recibos_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_publicos.dat');
 if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
@@ -59,53 +59,136 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
     close $fh;
 }
 
-if (!keys %$recibo) {
-    print $q->header(-type => 'text/html', -charset => 'UTF-8');
-    print "<h1>Error: Recibo no encontrado para esta consulta. Es posible que la consulta haya sido gratuita.</h1>";
-    exit;
+my $id_medico = '';
+my $paciente_nombre = 'Paciente Desconocido';
+my $empleado_nombre = '';
+my $num_empleado = '';
+my $paciente_tipo = 'Desconocido';
+my $dependencia_nombre = '';
+my $id_dep = '';
+
+# 2. Leer estado_cuenta.dat y consultas_clinicas.dat (obtener cargos y datos básicos del recibo si es exprés)
+use JSON qw(decode_json);
+my @cargos;
+
+# Datos extra si es un recibo exprés
+my $express_paciente = '';
+my $express_fecha = '';
+my $express_hora = '';
+my $express_folio = '';
+
+# Intentar de estado_cuenta.dat
+my $edc_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
+if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
+    my $he = <$fhe>;
+    while (my $le = <$fhe>) {
+        chomp $le;
+        my @e = split /\|/, $le, -1;
+        
+        if ($e[3] eq 'Cargo' && ($e[0] eq $id_consulta || ($e[10] && $e[10] =~ /Consulta #$id_consulta/) || ($recibo->{id_paciente} && $e[2] eq $recibo->{id_paciente} && $e[8] eq $recibo->{fecha}))) {
+            my $monto = $e[7] || 0;
+            push @cargos, {
+                concepto => $e[4],
+                precio   => $monto,
+                cantidad => 1,
+                subtotal => $monto
+            };
+            $id_medico = $e[9] if !$id_medico && $e[9];
+            $express_paciente = $e[2] if !$express_paciente;
+            $express_fecha = $e[8] if !$express_fecha;
+            $express_folio = $e[0] if !$express_folio;
+            
+            # Rescatar nombre de empleado/paciente si se pasó por ALIAS (columna 11)
+            if (defined $e[11] && $e[11] ne '') {
+                $paciente_nombre = $e[11];
+                $paciente_nombre =~ s/.*Paciente:\s*//i;
+            }
+        }
+    }
+    close $fhe;
 }
 
-# 2. Obtener Paciente
-my $paciente_nombre = 'Paciente Desconocido';
-my $pacientes_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
-if (-e $pacientes_file && open(my $fhp, '<:encoding(UTF-8)', $pacientes_file)) {
-    my $hp = <$fhp>;
-    while (my $lp = <$fhp>) {
-        chomp $lp;
-        my @p = split /\|/, $lp, -1;
-        if ($p[0] eq $recibo->{id_paciente}) {
-            $paciente_nombre = $p[2] // '';
+# Intentar de consultas_clinicas (si no hay cargos de estado_cuenta)
+my $cons_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
+if (!@cargos && -e $cons_file && open(my $fhc, '<:encoding(UTF-8)', $cons_file)) {
+    my $hc = <$fhc>;
+    while (my $lc = <$fhc>) {
+        chomp $lc;
+        my @c = split /\|/, $lc, -1;
+        if (@c >= 6 && $c[0] eq $id_consulta) {
+            eval {
+                my $pdata = decode_json($c[5]);
+                my $raw_items = $pdata->{caja_items_json} || $pdata->{caja_items};
+                if ($raw_items) {
+                    my $items = decode_json($raw_items);
+                    if (ref($items) eq 'ARRAY') {
+                        @cargos = @$items;
+                    }
+                }
+            };
+            $id_medico = $c[1] if !$id_medico;
+            $express_paciente = $c[2] if !$express_paciente;
+            $express_fecha = $c[3] if !$express_fecha;
+            $express_hora = $c[4] if !$express_hora;
             last;
         }
     }
-    close $fhp;
+    close $fhc;
+}
+
+if (!keys %$recibo && !@cargos) {
+    print $q->header(-type => 'text/html', -charset => 'UTF-8');
+    print "<h1>Error: Recibo no encontrado para esta consulta.</h1>";
+    exit;
+}
+
+# Consolidar datos de recibo (oficial o exprés)
+$recibo->{id_paciente} = $recibo->{id_paciente} || $express_paciente;
+$recibo->{fecha} = $recibo->{fecha} || $express_fecha;
+$recibo->{hora} = $recibo->{hora} || $express_hora || '00:00:00';
+$recibo->{id_negocio} = $recibo->{id_negocio} || $session_data->{id_empresa};
+$recibo->{folio} = $recibo->{folio} || $express_folio || $id_consulta;
+
+# Obtener nombre original de paciente si no hay ALIAS
+if ($paciente_nombre eq 'Paciente Desconocido') {
+    my $pacientes_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
+    if (-e $pacientes_file && open(my $fhp, '<:encoding(UTF-8)', $pacientes_file)) {
+        my $hp = <$fhp>;
+        while (my $lp = <$fhp>) {
+            chomp $lp;
+            my @p = split /\|/, $lp, -1;
+            if ($p[0] eq $recibo->{id_paciente}) {
+                $paciente_nombre = $p[2] // '';
+                last;
+            }
+        }
+        close $fhp;
+    }
 }
 
 # 3. Obtener Datos del Negocio
 my $negocio = {
-    nombre => 'Sucursal Clínica',
-    domicilio => 'Dirección no registrada',
-    telefono => 'Sin teléfono',
-    logo_url => ''
+    nombre => 'MUNICIPIO DE SAN JUAN DEL RIO, QRO.',
+    direccion => 'Av. Paso de los Guzman, Centro, San Juan del Rio, Qro.',
+    telefono => '427 272 0000',
+    clues => ''
 };
-my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
-if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
-    my $hn = <$fhn>;
-    while (my $ln = <$fhn>) {
+my $neg_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+if (-e $neg_file && open(my $fn, '<:encoding(UTF-8)', $neg_file)) {
+    my $hn = <$fn>;
+    while (my $ln = <$fn>) {
         chomp $ln;
         my @n = split /\|/, $ln, -1;
-        # Si tiene sucursal usamos ese, sino la matriz (id_negocio)
-        my $target_id = ($recibo->{id_sucursal} && $recibo->{id_sucursal} ne 'SUC-000' && $recibo->{id_sucursal} ne '0') ? $recibo->{id_sucursal} : $recibo->{id_negocio};
-        if ($n[0] eq $target_id) {
-            $negocio->{nombre} = $n[1] || 'Clínica';
-            $negocio->{domicilio} = $n[6] || '';
-            $negocio->{telefono} = $n[7] || '';
-            $negocio->{logo_url} = $n[9] || '';
-            $negocio->{clues} = $n[18] || '';
+        if ($n[0] eq ($recibo->{id_negocio} // '')) {
+            $negocio->{nombre} = $n[2] // '';
+            $negocio->{direccion} = ($n[3] // '') . ', ' . ($n[4] // '') . ', ' . ($n[7] // '') . ', ' . ($n[8] // '');
+            $negocio->{telefono} = $n[12] // '';
+            $negocio->{clues} = $n[1] // '';
+            $negocio->{logo_url} = $n[9] // '';
             last;
         }
     }
-    close $fhn;
+    close $fn;
 }
 
 my $logo_html = '';
@@ -115,42 +198,19 @@ if ($negocio->{logo_url}) {
     $logo_html = qq{<h2 style="margin:0; color:#333; font-size:14px;">$negocio->{nombre}</h2>};
 }
 
-if (!$negocio->{clues}) {
-    my $cfg_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
-    if (-e $cfg_file && open(my $fc, '<:encoding(UTF-8)', $cfg_file)) {
-        while (my $lc = <$fc>) {
-            chomp $lc;
-            my @c = split /\|/, $lc, -1;
-            if ($c[0] eq ($recibo->{id_negocio} // '') && $c[1] eq 'PACIENTES_ESTADO' && $c[2] eq 'Habilitado') {
-                $negocio->{clues} = $c[3] // '';
-                last;
-            }
-        }
-        close $fc;
-    }
-}
-
-if ($paciente_nombre) {
-    $paciente_nombre =~ s/.*Paciente:\s*//i;
-}
-
-# 3.1 Extraer datos de Empleado Público
-my $empleado_nombre = '';
-my $dependencia_nombre = '';
-my $num_empleado = '';
-my $paciente_tipo = 'Desconocido';
+my $folio_corto = $recibo->{folio} // $id_consulta;
+$folio_corto = sprintf("OS/2024/%04d", $folio_corto) if $folio_corto =~ /^\d+$/;
 
 if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
+
     $num_empleado = $1;
 }
 
 if ($num_empleado && $negocio->{clues}) {
     my $emp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_$negocio->{clues}.dat");
-    my $id_dep = '';
     
     # Buscar el paciente y al titular (Empleado)
     if (-e $emp_file && open(my $fe, '<:encoding(UTF-8)', $emp_file)) {
-        # Saltar cabecera
         my $h = <$fe>;
         while (my $le = <$fe>) {
             chomp $le;
@@ -162,7 +222,7 @@ if ($num_empleado && $negocio->{clues}) {
                     $paciente_tipo = $e[2] // '';
                 }
                 
-                # Siempre buscamos quién es el Empleado Titular
+                # Siempre buscamos quién es el Empleado Titular para la dependencia
                 if ($e[2] =~ /^Empleado/i) {
                     $empleado_nombre = $e[1] // '';
                     $id_dep = $e[4] // '';
@@ -194,76 +254,6 @@ if ($num_empleado && $negocio->{clues}) {
     }
 }
 
-# 4. Obtener Conceptos de consultas_clinicas.dat y estado_cuenta.dat
-use JSON qw(decode_json);
-my @cargos;
-my $cons_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
-if (-e $cons_file && open(my $fhc, '<:encoding(UTF-8)', $cons_file)) {
-    my $hc = <$fhc>;
-    while (my $lc = <$fhc>) {
-        chomp $lc;
-        my @c = split /\|/, $lc, -1;
-        if (@c >= 6 && $c[0] eq $id_consulta) {
-            eval {
-                my $pdata = decode_json($c[5]);
-                my $raw_items = $pdata->{caja_items_json} || $pdata->{caja_items};
-                if ($raw_items) {
-                    my $arr = ref($raw_items) eq 'ARRAY' ? $raw_items : decode_json($raw_items);
-                    if (ref($arr) eq 'ARRAY') {
-                        foreach my $it (@$arr) {
-                            my $name = $it->{nombre} || $it->{concepto} || 'Concepto Médico';
-                            my $prec = $it->{precio} // $it->{monto} // 0;
-                            my $cant = $it->{cantidad} // 1;
-                            my $subt = $it->{subtotal} // ($prec * $cant);
-                            push @cargos, {
-                                concepto => $name,
-                                precio   => $prec,
-                                cantidad => $cant,
-                                subtotal => $subt
-                            };
-                        }
-                    }
-                }
-            };
-            last;
-        }
-    }
-    close $fhc;
-}
-
-my $id_medico = '';
-
-if (!@cargos) {
-    my $edo_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
-    if (-e $edo_file && open(my $fhe, '<:encoding(UTF-8)', $edo_file)) {
-        my $he = <$fhe>;
-        while (my $le = <$fhe>) {
-            chomp $le;
-            my @e = split /\|/, $le, -1;
-            
-            # Buscamos coincidencias explícitas de ID_OS o la vieja nomenclatura
-            if ($e[3] eq 'Cargo' && ($e[0] eq $id_consulta || ($e[10] && $e[10] =~ /Consulta #$id_consulta/) || ($recibo->{id_paciente} && $e[2] eq $recibo->{id_paciente} && $e[8] eq $recibo->{fecha}))) {
-                my $monto = $e[7] || 0;
-                push @cargos, {
-                    concepto => $e[4],
-                    precio   => $monto,
-                    cantidad => 1,
-                    subtotal => $monto
-                };
-                $id_medico = $e[9] if !$id_medico && $e[9];
-                
-                # Rescatar nombre de empleado/paciente si se pasó por ALIAS (columna 11)
-                if (defined $e[11] && $e[11] ne '') {
-                    $paciente_nombre = $e[11];
-                    $paciente_nombre =~ s/.*Paciente:\s*//i;
-                    $empleado_nombre = $paciente_nombre if !$empleado_nombre;
-                }
-            }
-        }
-        close $fhe;
-    }
-}
-
 my $medico_nombre = "NO ESPECIFICADO";
 if ($id_medico) {
     my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
@@ -292,10 +282,7 @@ sub formato_moneda {
 my $saldo = $recibo->{total_cargos} - $recibo->{total_abonos};
 $saldo = 0 if $saldo < 0;
 
-my $folio_corto = $recibo->{folio};
-if ($folio_corto =~ /-0*(\d+)$/) {
-    $folio_corto = $1;
-}
+
 
 my $abono_saldo_html = "";
 if ($saldo > 0) {
