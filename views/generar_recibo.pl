@@ -89,6 +89,14 @@ render_header(
     hide_search => 1
 );
 
+utils::sub_sidebar::render_sidebar(
+    usuario => $usuario,
+    role => $role,
+    id_medico => $id_medico,
+    id_empresa => $id_empresa,
+    pagina_actual => 'caja_rapida'
+);
+
 my $medicos_options = "<option value=''>-- Selecciona el Médico que atiende --</option>";
 foreach my $m (@medicos) {
     my $sel = ($id_medico eq $m->{id}) ? "selected" : "";
@@ -157,7 +165,7 @@ print <<"HTML";
                             
                             <!-- Selección del Paciente -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold small text-muted">1. Selecciona o Busca al Paciente</label>
+                                <label id="lblPacienteStep1" class="form-label fw-bold small text-muted">1. Teclea el nombre del paciente</label>
                                 <div id="contenedorPrivado">
                                     <select id="selPaciente" class="form-select fw-bold border-primary shadow-sm"></select>
                                     <div class="form-text">Si el paciente no existe, debe registrarse previamente en el Directorio.</div>
@@ -237,8 +245,8 @@ print <<"HTML";
                         </div>
                         
                         <div class="d-flex justify-content-between flex-column gap-2">
-                            <button type="button" class="btn btn-success btn-mobile-standard btn-mobile-full px-5 fw-bold rounded-pill shadow w-100" onclick="emitirReciboFinal()">
-                                <i class="bi bi-check2-circle me-1"></i> Emitir Recibo Oficial
+                            <button type="button" class="btn btn-success btn-mobile-standard btn-mobile-full px-5 fw-bold rounded-pill shadow w-100" onclick="mostrarReciboPrevio()">
+                                <i class="bi bi-eye me-1"></i> Generar Recibo Previo
                             </button>
                         </div>
                     </div>
@@ -378,10 +386,12 @@ print <<'JS';
             }
             document.getElementById('contenedorPrivado').classList.add('d-none');
             document.getElementById('contenedorEstado').classList.remove('d-none');
+            document.getElementById('lblPacienteStep1').innerHTML = "1. Ingresa número de empleado";
             pacienteSeleccionado = null; 
         } else {
             document.getElementById('contenedorPrivado').classList.remove('d-none');
             document.getElementById('contenedorEstado').classList.add('d-none');
+            document.getElementById('lblPacienteStep1').innerHTML = "1. Teclea el nombre del paciente";
             pacienteSeleccionado = null;
         }
     }
@@ -406,7 +416,7 @@ print <<'JS';
                             </label>
                         </div>`;
                     });
-                    $('#resultadosEmpleado').html(html);
+                    $('#resultadosEmpleado').html(html + `<div class="mt-2 text-end"><button type="button" class="btn btn-sm btn-outline-primary" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-pencil-square"></i> Editar Empleado</button></div>`);
                 } else {
                     $('#resultadosEmpleado').html('<div class="alert alert-warning py-2 small m-0">No se encontraron resultados para el número de empleado ingresado.</div>');
                 }
@@ -630,6 +640,13 @@ print <<'JS';
         }
     }
     
+    function mostrarReciboPrevio() {
+        if (cartItems.length === 0) {
+            return Swal.fire('Atención', 'Agrega al menos un concepto a cobrar en el carrito.', 'warning');
+        }
+        $('#modalReciboPrevio').modal('show');
+    }
+    
     async function emitirReciboFinal() {
         let tipo = $('input[name="tipoPaciente"]:checked').val() || 'privado';
         let id_paciente = '';
@@ -669,26 +686,47 @@ print <<'JS';
                     icon: 'success',
                     title: '¡Recibo Emitido!',
                     text: 'El ingreso ha sido registrado exitosamente en caja.',
-                    confirmButtonText: 'Abrir PDF'
+                    confirmButtonText: 'Abrir PDF y Volver'
                 }).then(() => {
-                    let script = res.is_estado ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
-                    window.open('../api/' + script + '?id_consulta=' + encodeURIComponent(res.id_tratamiento), '_blank');
-                    cartItems = [];
-                    renderCart();
-                    $('#selPaciente').val(null).trigger('change');
-                    if ($('#selPacienteEstado').length) $('#selPacienteEstado').val(null).trigger('change');
-                    volverAlPaso1();
+                    $('#modalReciboPrevio').modal('hide');
+                    const script_print = tipo === 'estado' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
+                    window.open(`../api/${script_print}?id_consulta=${res.id_consulta}`, '_blank');
+                    window.location.href = 'inicial.pl';
                 });
             } else {
-                Swal.fire('Error', res.msg || 'No se pudo generar el recibo.', 'error');
+                Swal.fire('Error', res.error || 'No se pudo emitir el recibo.', 'error');
             }
         } catch (e) {
-            Swal.fire('Error', 'Falla de red.', 'error');
+            Swal.fire('Error', 'Hubo un problema de conexión.', 'error');
         }
     }
 </script>
 JS
 
+print <<"HTML";
+<!-- Modal Recibo Previo -->
+<div class="modal fade" id="modalReciboPrevio" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--md-blue-deep, #0A2A66);">
+                    <i class="bi bi-eye text-primary"></i> Confirmar Emisión de Recibo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center pt-3 pb-4">
+                <p class="text-muted small mb-4">¿Estás seguro que deseas emitir el recibo? Esta acción registrará el ingreso en caja y no podrá modificarse posteriormente sin generar una cancelación.</p>
+                <div class="d-flex justify-content-between gap-3 mt-3">
+                    <button type="button" class="btn btn-outline-secondary w-50 fw-bold rounded-pill shadow-sm" data-bs-dismiss="modal">Regresar a Editar</button>
+                    <button type="button" class="btn btn-success w-50 fw-bold rounded-pill shadow-sm" onclick="emitirReciboFinal()">Confirmar y Emitir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+HTML
+
+utils::sub_sidebar::render_sidebar_footer();
 render_bottom_nav('finanzas');
 print "</body></html>\n";
 1;
