@@ -52,6 +52,20 @@ if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
 }
 my $has_pacientes_estado = (exists $capacidades{'PACIENTES_ESTADO'} && $capacidades{'PACIENTES_ESTADO'} eq '1') ? 1 : 0;
 
+my $org_clues = '';
+my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
+if (-e $negocios_file && open(my $nf, '<:utf8', $negocios_file)) {
+    while (my $line = <$nf>) {
+        chomp($line);
+        my @f = split(/\|/, $line, -1);
+        if ($f[0] eq $id_empresa) {
+            $org_clues = $f[18] // '';
+            last;
+        }
+    }
+    close($nf);
+}
+
 # 2. Cargar lista de médicos de la organización para el selector obligatorio
 my $archivo_usuarios = File::Spec->catfile($dat_dir, 'usuarios.dat');
 my $regs = leer_tabla($archivo_usuarios, '!');
@@ -312,6 +326,7 @@ print <<"HTML";
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     const HAS_PACIENTES_ESTADO = ${has_pacientes_estado} || 0;
+    const ORG_CLUES = '$org_clues';
 </script>
 HTML
 
@@ -381,7 +396,7 @@ print <<'JS';
         $.ajax({
             url: '../api/buscar_familia_empleado.pl',
             method: 'POST',
-            data: { num_empleado: num },
+            data: { num_empleado: num, clues: ORG_CLUES },
             success: function(res) {
                 if(res.ok && res.resultados.length > 0) {
                     let html = '';

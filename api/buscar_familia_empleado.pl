@@ -22,7 +22,9 @@ unless ($session_data->{session_ok}) {
 
 my $q = CGI->new;
 my $num_empleado = $q->param('num_empleado') || '';
+my $clues = $q->param('clues') || '';
 $num_empleado =~ s/^\s+|\s+$//g;
+$clues =~ s/^\s+|\s+$//g;
 
 if ($num_empleado eq '') {
     print "Content-Type: application/json; charset=UTF-8\n\n";
@@ -30,7 +32,8 @@ if ($num_empleado eq '') {
     exit;
 }
 
-my $archivo_empleados = "$FindBin::Bin/../dat/empleadosmun.dat";
+my $sufijo = $clues ? "_${clues}" : "";
+my $archivo_empleados = "$FindBin::Bin/../dat/empleadosmun${sufijo}.dat";
 my $empleados = leer_tabla($archivo_empleados, '!');
 
 my @resultados;

@@ -23,7 +23,9 @@ unless ($sd->{session_ok}) {
 }
 
 my $q_str = $q->param('q') // '';
+my $clues = $q->param('clues') // '';
 $q_str =~ s/^\s+|\s+$//g;
+$clues =~ s/^\s+|\s+$//g;
 my $q_str_decoded = decode_utf8($q_str);
 
 if ($q_str eq '') {
@@ -31,7 +33,8 @@ if ($q_str eq '') {
     exit;
 }
 
-my $emp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'empleadosmun.dat');
+my $sufijo = $clues ? "_${clues}" : "";
+my $emp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun${sufijo}.dat");
 
 my @resultados = ();
 
