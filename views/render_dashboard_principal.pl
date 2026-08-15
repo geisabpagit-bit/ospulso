@@ -594,7 +594,6 @@ HTML
                         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
                             <p class="text-secondary font-secondary m-0 small fw-bold" style="letter-spacing: 0.5px;">ACTIVIDAD PROGRAMADA RECIENTE</p>
 HTML
-HTML
 
     if ($role ne 'Paciente') {
         print qq{                            <a href="../views/agenda_main.pl" class="btn btn-mobile-standard btn-mobile-outline btn-mobile-full" style="font-size: 0.85rem;"><i class="bi bi-calendar-check fs-5"></i> Ver Agenda Completa</a>\n};
@@ -639,9 +638,6 @@ HTML
 HTML
     }
             
-
-            
-HTML
     utils::sub_sidebar::render_sidebar_footer();
 
     if ($t_pac == 0 && $role eq 'Medico') {
