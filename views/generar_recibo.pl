@@ -703,6 +703,8 @@ print <<'JS';
 </script>
 JS
 
+utils::sub_sidebar::render_sidebar_footer();
+
 print <<"HTML";
 <!-- Modal Recibo Previo -->
 <div class="modal fade" id="modalReciboPrevio" tabindex="-1" aria-hidden="true">
@@ -726,7 +728,6 @@ print <<"HTML";
 </div>
 HTML
 
-utils::sub_sidebar::render_sidebar_footer();
 render_bottom_nav('finanzas');
 print "</body></html>\n";
 1;

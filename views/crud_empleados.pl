@@ -76,7 +76,11 @@ print <<"HTML";
         </div>
     </div>
 </main>
+HTML
 
+utils::sub_sidebar::render_sidebar_footer();
+
+print <<"HTML";
 <!-- Modal -->
 <div class="modal fade" id="modalEmpleado" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -243,7 +247,6 @@ print <<"HTML";
 </script>
 HTML
 
-utils::sub_sidebar::render_sidebar_footer();
 render_bottom_nav(role => $role, pagina_actual => 'crud_empleados');
 print "</body></html>\n";
 1;
