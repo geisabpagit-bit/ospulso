@@ -33,12 +33,20 @@ if ($action eq 'create') {
     my $nombre_sucursal = decode_utf8($q->param('nombre_sucursal') // '');
     my $telefono        = decode_utf8($q->param('telefono')        // '');
     my $domicilio       = decode_utf8($q->param('domicilio')       // '');
+    my $codigo_postal   = decode_utf8($q->param('codigo_postal')   // '');
+    my $entidad         = decode_utf8($q->param('entidad')         // '');
+    my $municipio       = decode_utf8($q->param('municipio')       // '');
+    my $colonia         = decode_utf8($q->param('colonia')         // '');
     my $consultorios    = decode_utf8($q->param('consultorios')    // '1');
     my $quirofanos      = decode_utf8($q->param('quirofanos')      // '0');
 
     $nombre_sucursal =~ s/^\s+|\s+$//g;
     $telefono        =~ s/^\s+|\s+$//g;
     $domicilio       =~ s/^\s+|\s+$//g;
+    $codigo_postal   =~ s/^\s+|\s+$//g;
+    $entidad         =~ s/^\s+|\s+$//g;
+    $municipio       =~ s/^\s+|\s+$//g;
+    $colonia         =~ s/^\s+|\s+$//g;
 
     $telefono = "No aplica" if $telefono eq '';
     $domicilio = "No aplica" if $domicilio eq '';
@@ -71,7 +79,11 @@ if ($action eq 'create') {
         "No aplica",     # 12. razon_social
         "No aplica",     # 13. id_tienda
         "No aplica",     # 14. id_vendedor
-        "", "", "", "", "", "", "", "" # Resto
+        $codigo_postal,  # 15. codigo_postal
+        $entidad,        # 16. entidad
+        $municipio,      # 17. municipio
+        $colonia,        # 18. colonia
+        "", "", "", ""   # Resto (clues, extension, latitud, longitud)
     );
 
     my $registro_sucursal = join("|", @campos_negocio);
@@ -104,12 +116,20 @@ elsif ($action eq 'update') {
     my $nombre_sucursal = decode_utf8($q->param('nombre_sucursal') // '');
     my $telefono        = decode_utf8($q->param('telefono')        // '');
     my $domicilio       = decode_utf8($q->param('domicilio')       // '');
+    my $codigo_postal   = decode_utf8($q->param('codigo_postal')   // '');
+    my $entidad         = decode_utf8($q->param('entidad')         // '');
+    my $municipio       = decode_utf8($q->param('municipio')       // '');
+    my $colonia         = decode_utf8($q->param('colonia')         // '');
     my $consultorios    = decode_utf8($q->param('consultorios')    // '1');
     my $quirofanos      = decode_utf8($q->param('quirofanos')      // '0');
 
     $nombre_sucursal =~ s/^\s+|\s+$//g;
     $telefono        =~ s/^\s+|\s+$//g;
     $domicilio       =~ s/^\s+|\s+$//g;
+    $codigo_postal   =~ s/^\s+|\s+$//g;
+    $entidad         =~ s/^\s+|\s+$//g;
+    $municipio       =~ s/^\s+|\s+$//g;
+    $colonia         =~ s/^\s+|\s+$//g;
 
     $telefono = "No aplica" if $telefono eq '';
     $domicilio = "No aplica" if $domicilio eq '';
@@ -133,6 +153,10 @@ elsif ($action eq 'update') {
             $r->[1] = $nombre_sucursal;
             $r->[6] = $domicilio;
             $r->[7] = $telefono;
+            $r->[14] = $codigo_postal;
+            $r->[15] = $entidad;
+            $r->[16] = $municipio;
+            $r->[17] = $colonia;
             $encontrado = 1;
         }
         push @nuevos_negocios, join('|', @$r);

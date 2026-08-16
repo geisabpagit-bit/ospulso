@@ -81,6 +81,10 @@ if ($regs_negocios) {
                 estado => $r->[3] eq '1' ? 'Activa' : 'Inactiva',
                 telefono => $r->[7] || 'N/A',
                 domicilio => $r->[6] || 'No registrado',
+                codigo_postal => $r->[14] || '',
+                entidad => $r->[15] || '',
+                municipio => $r->[16] || '',
+                colonia => $r->[17] || '',
                 consultorios => $configs_sucursales{$id_suc}{CONSULTORIOS} || 1,
                 quirofanos => $configs_sucursales{$id_suc}{QUIROFANOS} || 0
             };
@@ -124,9 +128,36 @@ print <<HTML;
                                 <input type="text" class="form-control form-control-sm shadow-sm" id="form_telefono" name="telefono" placeholder="555-1234">
                             </div>
                             <div class="col-12">
-                                <label class="form-label small fw-bold text-muted">Domicilio</label>
-                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_domicilio" name="domicilio" placeholder="Av. Siempre Viva 742">
+                                <hr class="my-2 text-muted opacity-25">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="fw-bold text-dark m-0"><i class="bi bi-geo-alt-fill me-2 text-primary"></i>Ubicación de la Clínica</h6>
+                                    <span class="badge bg-light text-muted border px-2 py-1 rounded-pill" style="font-size:0.7rem;"><i class="bi bi-patch-check-fill text-info me-1"></i>SEPOMEX / INEGI</span>
+                                </div>
                             </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label small fw-bold text-muted">Código Postal</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_cp" name="codigo_postal" maxlength="5" placeholder="00000" oninput="buscarDomicilioPorCP(this.value)">
+                                <div id="cpStatus" class="small mt-1 fw-bold text-muted d-none"></div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-bold text-muted">Entidad (Estado)</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_entidad" name="entidad" placeholder="Ej: CDMX">
+                            </div>
+                            <div class="col-12 col-md-5">
+                                <label class="form-label small fw-bold text-muted">Municipio / Alcaldía</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_municipio" name="municipio" placeholder="Ej: Coyoacán">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-bold text-muted">Colonia</label>
+                                <select class="form-select form-select-sm shadow-sm" id="form_colonia" name="colonia">
+                                    <option value="">Seleccione CP primero...</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-8">
+                                <label class="form-label small fw-bold text-muted">Calle, Número y Referencias</label>
+                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_domicilio" name="domicilio" placeholder="Av. Siempre Viva 742, Cons 4">
+                            </div>
+                            <div class="col-12"><hr class="my-2 text-muted opacity-25"></div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label small fw-bold text-muted">Consultorios <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control form-control-sm shadow-sm" id="form_consultorios" name="consultorios" required min="1" max="15" value="1" placeholder="Ej: 3">
@@ -211,7 +242,7 @@ HTML
                                     <td class="text-muted small">$$suc{domicilio}</td>
                                     <td class="text-end pe-4">
                                         <div class="d-flex justify-content-end gap-2">
-                                            <button onclick="abrirFormEditar('$$suc{id}', '$$suc{nombre}', '$$suc{telefono}', '$$suc{domicilio}', '$$suc{consultorios}', '$$suc{quirofanos}')" class="btn p-0 border-0 btn-expediente" title="Editar">
+                                            <button onclick="abrirFormEditar('$$suc{id}', '$$suc{nombre}', '$$suc{telefono}', '$$suc{domicilio}', '$$suc{consultorios}', '$$suc{quirofanos}', '$$suc{codigo_postal}', '$$suc{entidad}', '$$suc{municipio}', '$$suc{colonia}')" class="btn p-0 border-0 btn-expediente" title="Editar">
                                                 <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
                                             </button>
                                             <button onclick="confirmToggleStatus('$$suc{id}', '$$suc{nombre}', '$$suc{estado}')" class="btn p-0 border-0 action-btn-delete" title="$toggle_title">
@@ -270,6 +301,14 @@ print <<HTML;
             document.getElementById('form-alta-sucursal').reset();
             document.getElementById('form_action').value = 'create';
             document.getElementById('form_id_sucursal').value = '';
+            
+            // Limpiar SEPOMEX
+            if(document.getElementById('form_cp')) document.getElementById('form_cp').value = '';
+            if(document.getElementById('form_entidad')) document.getElementById('form_entidad').value = '';
+            if(document.getElementById('form_municipio')) document.getElementById('form_municipio').value = '';
+            if(document.getElementById('form_colonia')) document.getElementById('form_colonia').innerHTML = '<option value="">Seleccione CP primero...</option>';
+            if(document.getElementById('cpStatus')) document.getElementById('cpStatus').classList.add('d-none');
+            
             document.getElementById('formTitle').innerHTML = '<i class="bi bi-shop me-2"></i>Añadir Nueva Sucursal';
             document.getElementById('btn-submit-sucursal').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Registrar Sucursal';
             
@@ -281,17 +320,26 @@ print <<HTML;
         }
     };
 
-    window.abrirFormEditar = function(id, nombre, telefono, domicilio, consultorios, quirofanos) {
+    window.abrirFormEditar = function(id, nombre, telefono, domicilio, consultorios, quirofanos, cp, entidad, municipio, colonia) {
         document.getElementById('form_action').value = 'update';
         document.getElementById('form_id_sucursal').value = id;
         document.getElementById('form_nombre').value = nombre;
         document.getElementById('form_telefono').value = (telefono === 'N/A' || telefono === 'No aplica') ? '' : telefono;
         document.getElementById('form_domicilio').value = (domicilio === 'No registrado' || domicilio === 'No aplica') ? '' : domicilio;
-        document.getElementById('form_consultorios').value = consultorios || '1';
-        if (document.getElementById('form_quirofanos')) {
-            document.getElementById('form_quirofanos').value = quirofanos || '0';
+        document.getElementById('form_consultorios').value = consultorios;
+        if(document.getElementById('form_quirofanos')) document.getElementById('form_quirofanos').value = quirofanos;
+
+        // Llenar campos SEPOMEX
+        document.getElementById('form_cp').value = cp || '';
+        document.getElementById('form_entidad').value = entidad || '';
+        document.getElementById('form_municipio').value = municipio || '';
+        const colSelect = document.getElementById('form_colonia');
+        if (colonia) {
+            colSelect.innerHTML = '<option value="' + colonia + '" selected>' + colonia + '</option>';
+        } else {
+            colSelect.innerHTML = '<option value="">Seleccione CP primero...</option>';
         }
-        
+
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Sucursal';
         document.getElementById('btn-submit-sucursal').innerHTML = '<i class="bi bi-save me-2"></i>Guardar Cambios';
         
@@ -299,6 +347,57 @@ print <<HTML;
         container.classList.remove('d-none');
         const offset = container.offsetTop - 100;
         window.scrollTo({ top: offset, behavior: 'smooth' });
+    };
+
+    // BUSCADOR SEPOMEX POR CP
+    window.buscarDomicilioPorCP = function(cp) {
+        if (!cp) return;
+        const cpClean = cp.replace(/\D/g, '');
+        const statusEl = document.getElementById('cpStatus');
+        const selectColonia = document.getElementById('form_colonia');
+        const inputEntidad = document.getElementById('form_entidad');
+        const inputMunicipio = document.getElementById('form_municipio');
+
+        if (cpClean.length !== 5) {
+            if (statusEl) statusEl.classList.add('d-none');
+            return;
+        }
+
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1 text-primary"></span> Consultando SEPOMEX...';
+            statusEl.className = 'small mt-1 fw-bold text-muted';
+            statusEl.classList.remove('d-none');
+        }
+
+        fetch('../api/get_location.pl?cp=' + cpClean)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.success) {
+                    if (inputEntidad && data.entidad) inputEntidad.value = data.entidad;
+                    if (inputMunicipio && data.municipio) inputMunicipio.value = data.municipio;
+                    
+                    if (selectColonia) {
+                        selectColonia.innerHTML = '<option value="">Seleccione Colonia...</option>';
+                        if (data.localidades && data.localidades.length > 0) {
+                            data.localidades.forEach(loc => {
+                                const option = document.createElement('option');
+                                option.value = loc;
+                                option.textContent = loc;
+                                selectColonia.appendChild(option);
+                            });
+                        }
+                    }
+                    if (statusEl) {
+                        statusEl.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i>CP Encontrado';
+                        setTimeout(() => statusEl.classList.add('d-none'), 3000);
+                    }
+                } else {
+                    if (statusEl) statusEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>CP no encontrado en SEPOMEX';
+                }
+            })
+            .catch(err => {
+                if (statusEl) statusEl.innerHTML = '<i class="bi bi-x-circle-fill text-danger me-1"></i>Error de conexión';
+            });
     };
 
     window.confirmToggleStatus = function(id, nombre, estadoActual) {
