@@ -445,6 +445,9 @@ print <<HTML;
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+HTML
+
+print <<'JS';
 <script>
     let subespecialidadesData = [];
 
@@ -719,9 +722,9 @@ print <<HTML;
     }
 
     // Inicialización de DataTables Diamond
-    \$(document).ready(function() {
-        if (\$('#tablaUsuarios').length && \$('#tablaUsuarios tbody tr td').length > 1) {
-            \$('#tablaUsuarios').DataTable({
+    $(document).ready(function() {
+        if ($('#tablaUsuarios').length && $('#tablaUsuarios tbody tr td').length > 1) {
+            $('#tablaUsuarios').DataTable({
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 dom: '<"p-3 d-flex justify-content-start align-items-center"B>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
                 buttons: {
@@ -767,21 +770,21 @@ print <<HTML;
             });
         }
 
-        if (\$('#tablaUsuariosInactivos').length && \$('#tablaUsuariosInactivos tbody tr td').length > 1) {
-            \$('#tablaUsuariosInactivos').DataTable({
+        if ($('#tablaUsuariosInactivos').length && $('#tablaUsuariosInactivos tbody tr td').length > 1) {
+            $('#tablaUsuariosInactivos').DataTable({
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 dom: '<"p-3 d-flex justify-content-end align-items-center"f>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
             });
         }
 
         // Toggling styles on Tab Pills click dynamically
-        \$('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
-            \$(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
-            \$(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
+        $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
+            $(e.target).removeClass('btn-light text-dark').addClass('btn-blue-deep text-white');
+            $(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
         });
     });
 </script>
-HTML
+JS
 
 utils::sub_sidebar::render_sidebar_footer();
 
