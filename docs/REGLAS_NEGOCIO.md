@@ -52,4 +52,15 @@
 2. **Core Pipeline Único e Inviolable**: El flujo global (Paso 0 Registro, Agenda, Expediente, Firma y Cierre con Caja) es 100% ÚNICO y compartido. Está strictly PROHIBIDO duplicar vistas completas por especialidad.
 3. **Subformularios Desacoplados (Plugin Slot)**: Los subformularios de especialidad deben ser componentes modulares alojados en `views/partials/consultas/` o `views/partials/especialidades/`.
 
+## 9. Padrón de Empleados y Caja Rápida Polimórfica
+### 9.1 Gestión del CRUD de Empleados
+- **Prevención de Duplicados Clínicos (Colisión Inteligente)**: Al registrar un nuevo empleado, la digitación del "Núm. Empleado" dispara una validación asíncrona. Si el número ya pertenece a un Titular, el sistema auto-asigna el rol de "Beneficiario" y bloquea el campo de relación, evitando colisiones de titulares en el ecosistema.
+- **Inmutabilidad en Edición**: Al editar un registro existente, el "Núm. Empleado" y la "Relación" quedan estrictamente bloqueados (`readonly`/`disabled`) para prevenir alteraciones en la jerarquía clínica que comprometerían los presupuestos y el expediente familiar.
+- **Resolución de Catálogos en Caliente**: Las dependencias y municipios no se manejan como IDs crudos en la interfaz. El Backend carga los catálogos (`municipios.dat` y `dependencia.dat`) en memoria y el Frontend despliega selectores descriptivos interactivos (`<select>` bajo estándar form-floating).
+
+### 9.2 Caja Rápida (Recibos Privados vs Públicos)
+- **Flujo Intercambiable**: El wizard de Caja Rápida permite alternar entre paciente Privado y Público (Capacidad SaaS). Si es Público, se habilita la búsqueda asíncrona avanzada.
+- **Mapeo Relacional de Dependencia (API)**: En la API de búsqueda (`buscar_familia_empleado.pl`), el sistema no devuelve el ID huérfano de la dependencia, sino que cruza dinámicamente con el catálogo para presentar el nombre administrativo real a la Recepcionista.
+- **Trazabilidad de Impresión (Corrección de Estado)**: El sistema garantiza el pase correcto del `id_tratamiento` hacia los endpoints de emisión PDF (`imprimir_recibo_publico.pl` / `imprimir_recibo_caja.pl`), asegurando que cada movimiento quede sellado financieramente en la sesión del cajero.
+
 **GEISABPA - Diamond Edition v4.4.0**

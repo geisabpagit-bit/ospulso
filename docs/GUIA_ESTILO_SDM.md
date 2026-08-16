@@ -34,7 +34,10 @@ Este documento define el estándar visual y de interacción obligatorio para **S
 ### 1.1.2 Estándar de Contenedores y Formularios (Diamond Armor)
 - **Tarjetas y Cajas (ej. `.card-medentia`, `.card-medentia-aura`)**: Deben portar obligatoriamente un borde sólido de `1px` en color **Teal Clínico** (`#19B7A5`) para delimitar el área con estética médica. 
 - **Sombras**: Utilizar sombras profundas (10% más oscuras que la sombra base). El estándar es `box-shadow: 0 10px 30px rgba(10, 42, 102, 0.15)` en reposo y `0.18` al hacer hover.
-- **Formularios (Inputs)**: Fondo "Blanco Clínico" (`#F8FBFF`) en reposo, cambiando a borde "Teal Clínico" (`#19B7A5`) al recibir foco (clase `.diamond-input-armor`).
+- **Formularios Estructurados (Inputs & Selects)**: Todo nuevo modal de captura o módulo CRUD debe utilizar obligatoriamente la arquitectura `.form-floating` de Bootstrap combinada con nuestra clase propietaria `.diamond-input-armor`.
+  - El fondo base será "Blanco Clínico" (`#F8FBFF`), transicionando a borde "Teal Clínico" (`#19B7A5`) al recibir foco.
+  - El `label` acompañante utilizará las clases `.fw-bold` y `.text-muted`.
+  - Queda obsoleto el uso de labels sueltos por encima de un input estándar para interfaces de alta densidad.
 
 ### 1.2 Tipografía
 - **Títulos**: `Plus Jakarta Sans`, Sans-serif (800/900 Extra Bold).

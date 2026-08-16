@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+    <!-- 1. Fondo circular Azul Marino -->
+    <circle cx="250" cy="250" r="220" fill="#132A53" />
+
+    <!-- 2. Línea de Pulso (Se dibuja antes para quedar por DETRÁS del texto) 
+         - Inicia fuera a la izq
+         - Plana debajo
+         - Pico 1 (medio)
+         - Pico 2 (profundo)
+         - Pico 3 (alto, sobrepasando P)
+         - Sale plana a la derecha
+    -->
+    <path d="M 10 325 L 265 325 L 295 260 L 325 395 L 380 195 L 415 325 L 490 325" 
+          fill="none" stroke="#3CA09D" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- 3. Texto OsP (Se dibuja al final para quedar SIEMPRE AL FRENTE) -->
+    <text x="230" y="275" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="140" text-anchor="middle" fill="#FFFFFF">OsP</text>
+</svg>
