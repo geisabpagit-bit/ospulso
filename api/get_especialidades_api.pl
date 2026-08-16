@@ -9,21 +9,31 @@ use FindBin;
 use File::Spec;
 use lib "$FindBin::Bin/..";
 use utils::db_manager qw(leer_tabla);
+require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
+
+my $sd = check_session();
+my $id_empresa = $sd->{id_empresa} || '';
 
 my $q = CGI->new;
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
-my $archivo_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'especialidades.dat');
+my $archivo_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', "especialidades_${id_empresa}.dat");
+my $espe_delimiter = '\|';
+
+if (!-e $archivo_espe || !$id_empresa) {
+    $archivo_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'especialidades.dat');
+    $espe_delimiter = '\|';
+}
 my $archivo_sub  = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'sub_especialidades.dat');
 
 my @especialidades;
 my @subespecialidades;
 
-my $regs_espe = leer_tabla($archivo_espe, '\|');
+my $regs_espe = leer_tabla($archivo_espe, $espe_delimiter);
 if ($regs_espe) {
     foreach my $r (@$regs_espe) {
         next if @$r < 2;
-        next if $r->[0] =~ /^ID_ESPE$/i;
+        next if $r->[0] =~ /^\$T_espid/i || $r->[0] =~ /^ID_ESPE$/i;
         push @especialidades, {
             id => $r->[0],
             nombre => $r->[1]

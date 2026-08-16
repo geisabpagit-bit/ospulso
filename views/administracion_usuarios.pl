@@ -65,15 +65,22 @@ if ($regs_negocios) {
 }
 
 # 2. Cargar Catálogos de Especialidades
-my $archivo_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'especialidades.dat');
+my $archivo_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', "especialidades_${id_empresa}.dat");
+my $espe_delimiter = '\|';
+
+if (!-e $archivo_espe) {
+    $archivo_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'especialidades.dat');
+    $espe_delimiter = '\|';
+}
+
 my $archivo_sub  = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'sub_especialidades.dat');
 
 my %espe_hash = ();
 my @lista_espe = ();
-my $regs_espe = leer_tabla($archivo_espe, '\|');
+my $regs_espe = leer_tabla($archivo_espe, $espe_delimiter);
 if ($regs_espe) {
     foreach my $r (@$regs_espe) {
-        next if @$r < 2 || $r->[0] =~ /^ID_ESPE$/i;
+        next if @$r < 2 || $r->[0] =~ /^\$T_espid/i || $r->[0] =~ /^ID_ESPE$/i;
         $espe_hash{$r->[0]} = $r->[1];
         push @lista_espe, { id => $r->[0], nombre => $r->[1] };
     }
@@ -85,6 +92,23 @@ if ($regs_sub) {
     foreach my $r (@$regs_sub) {
         next if @$r < 3 || $r->[0] =~ /^ID_ESPE$/i;
         $subespe_hash{$r->[1]} = $r->[2];
+    }
+}
+
+# 2.5 Cargar Catálogo Custom de Médicos (si existe)
+my $archivo_medicos = File::Spec->catfile($FindBin::Bin, '..', 'dat', "medicos_${id_empresa}.dat");
+my @lista_medicos_custom = ();
+if (-e $archivo_medicos) {
+    my $regs_medicos = leer_tabla($archivo_medicos, '\|');
+    if ($regs_medicos) {
+        foreach my $r (@$regs_medicos) {
+            next if @$r < 3 || $r->[0] =~ /^\$T_medid/i;
+            push @lista_medicos_custom, { 
+                id_medico => $r->[0], 
+                id_espe   => $r->[1], 
+                nombre    => $r->[2] 
+            };
+        }
     }
 }
 
@@ -153,10 +177,29 @@ print <<HTML;
                         <input type="hidden" name="action" id="form_action" value="create">
                         
                         <div class="row g-3">
-                            <div class="col-12 col-md-6">
+                            <div class="col-12 col-md-6" id="box_nombre_libre">
                                 <label class="form-label small fw-bold text-muted">Nombre Completo</label>
                                 <input type="text" class="form-control form-control-sm shadow-sm" id="form_nombre" name="nombre" required placeholder="Ej: Dra. María López">
                             </div>
+HTML
+
+if (@lista_medicos_custom) {
+    print <<HTML;
+                            <div class="col-12 col-md-6 d-none" id="box_nombre_catalogo">
+                                <label class="form-label small fw-bold text-muted"><i class="bi bi-person-lines-fill text-primary me-1"></i>Médico (Catálogo Institucional)</label>
+                                <select class="form-select form-select-sm shadow-sm border-primary" id="form_nombre_select" onchange="seleccionarMedicoCatalogo()">
+                                    <option value="">Seleccione un médico...</option>
+HTML
+    foreach my $m (@lista_medicos_custom) {
+        print qq|                                    <option value="$m->{nombre}" data-espe="$m->{id_espe}">$m->{nombre}</option>\n|;
+    }
+    print <<HTML;
+                                </select>
+                            </div>
+HTML
+}
+
+print <<HTML;
                             <div class="col-12 col-md-6">
                                 <label class="form-label small fw-bold text-muted">Correo Electrónico (Login)</label>
                                 <input type="email" class="form-control form-control-sm shadow-sm" id="form_correo" name="correo" required placeholder="maria\@clinica.com" autocomplete="username">
@@ -167,7 +210,7 @@ print <<HTML;
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label small fw-bold text-muted">Rol Operativo</label>
-                                <select class="form-select form-select-sm shadow-sm" id="form_rol" name="rol" required>
+                                <select class="form-select form-select-sm shadow-sm" id="form_rol" name="rol" required onchange="cambiarRol(this.value)">
                                     <option value="Medico">Médico (Acceso a Expedientes)</option>
                                     <option value="Recepcionista">Recepcionista (Agenda y Pagos)</option>
                                 </select>
@@ -427,6 +470,48 @@ print <<HTML;
             if (String(s.id_sub) === String(selectedSub)) opt.selected = true;
             selectSub.appendChild(opt);
         });
+            selectSub.appendChild(opt);
+        });
+    };
+
+    // Funciones para Catálogo Custom de Médicos
+    window.cambiarRol = function(rol) {
+        const boxLibre = document.getElementById('box_nombre_libre');
+        const boxCatalogo = document.getElementById('box_nombre_catalogo');
+        const inputNombre = document.getElementById('form_nombre');
+        const selectNombre = document.getElementById('form_nombre_select');
+
+        if (boxCatalogo && selectNombre) {
+            if (rol === 'Medico') {
+                boxLibre.classList.add('d-none');
+                inputNombre.required = false;
+                boxCatalogo.classList.remove('d-none');
+                selectNombre.required = true;
+            } else {
+                boxCatalogo.classList.add('d-none');
+                selectNombre.required = false;
+                boxLibre.classList.remove('d-none');
+                inputNombre.required = true;
+            }
+        }
+    };
+
+    window.seleccionarMedicoCatalogo = function() {
+        const sel = document.getElementById('form_nombre_select');
+        const opt = sel.options[sel.selectedIndex];
+        if(opt && opt.value) {
+            document.getElementById('form_nombre').value = opt.value;
+            const idEspe = opt.getAttribute('data-espe');
+            if(idEspe) {
+                const selectEspe = document.getElementById('form_id_espe');
+                if(selectEspe) {
+                    selectEspe.value = idEspe;
+                    actualizarSubespecialidades(idEspe);
+                }
+            }
+        } else {
+            document.getElementById('form_nombre').value = '';
+        }
     };
 
     // Lógica para mostrar/ocultar formulario y llenarlo
@@ -454,6 +539,10 @@ print <<HTML;
         document.getElementById('form_id_espe').value = '0';
         actualizarSubespecialidades('0');
         
+        const selectNombre = document.getElementById('form_nombre_select');
+        if(selectNombre) selectNombre.value = '';
+        cambiarRol('Medico');
+        
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Añadir Colaborador';
         document.getElementById('formHeader').className = 'card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
         
@@ -475,6 +564,16 @@ print <<HTML;
         document.getElementById('form_id_sucursal').value = id_sucursal;
         document.getElementById('form_id_espe').value = id_espe || '0';
         actualizarSubespecialidades(id_espe || '0', id_subespe || '0');
+        
+        const selectNombre = document.getElementById('form_nombre_select');
+        if(selectNombre) {
+            // Verificar si el nombre está en el catálogo, sino se deja en blanco o se agrega un option.
+            const options = Array.from(selectNombre.options);
+            const found = options.find(o => o.value === nombre);
+            if(found) selectNombre.value = nombre;
+            else selectNombre.value = '';
+        }
+        cambiarRol(rol);
         
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Colaborador';
         document.getElementById('formHeader').className = 'card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center';
