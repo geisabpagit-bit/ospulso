@@ -53,4 +53,14 @@ Este documento establece la identidad, responsabilidades y alcances de cada acto
 🔹 **E – Extra**: Notifícame de inmediato si detectas un error 500 en la terminal o fallos en el motor de autocompletado.
 
 ---
-**GEISABPA - Diamond Edition v4.0.0**
+
+## 6. Arquitectura RBAC (Role-Based Access Control)
+OSPulso 2.0 opera bajo un modelo **RBAC Nivel 3 (Estricto)**, asegurando que las funciones clínicas y financieras nunca se traslapen indebidamente, garantizando el Principio de Menor Privilegio:
+
+* **Segregación de Funciones**: Un rol (ej. Médico) hereda únicamente los permisos de su dominio (Wizard Clínico). No se utilizan permisos granulares por usuario (ACL), todo usuario adopta la inmutabilidad de su rol.
+* **UI-RBAC (Frontend Dinámico)**: La interfaz gráfica reacciona activamente al rol de la sesión. 
+  * *Ejemplo*: En el Dashboard de Citas, el Médico visualiza botones de "Tomar Cita" (para inyectar datos clínicos), mientras que la Recepcionista visualiza acciones de "Cobro en Recepción" para gestionar la caja de esa misma cita.
+* **API-RBAC (Protección de Backend)**: El middleware `check_session.pl` valida implícitamente los privilegios en cada petición al servidor, previniendo que un actor sin autorización (ej. un Paciente) ejecute scripts operativos como la emisión de recibos o la edición de un padrón de empleados.
+
+---
+**GEISABPA - Diamond Edition v4.4.0**
