@@ -18,6 +18,34 @@ sub render_header {
     $iniciales .= uc(substr($nombres[0], 0, 1)) if @nombres > 0;
     $iniciales .= uc(substr($nombres[1], 0, 1)) if @nombres > 1;
 
+    # Buscar Avatar
+    my $avatar_url = '';
+    my $uid = '';
+    eval {
+        require "auth/check_session.pl";
+        my $s = check_session::check_session();
+        $uid = $s->{uid} if $s;
+    };
+    if ($uid && open(my $fh, '<:encoding(UTF-8)', '../dat/perfiles.dat')) {
+        my $header = <$fh>;
+        while (<$fh>) {
+            chomp;
+            my @c = split /!/, $_, -1;
+            if ($c[1] && $c[1] eq $uid) {
+                $avatar_url = $c[6] // '';
+                last;
+            }
+        }
+        close $fh;
+    }
+
+    my $avatar_html = '';
+    if ($avatar_url ne '') {
+        $avatar_html = qq{<img src="$avatar_url" alt="$usuario" class="avatar-img">};
+    } else {
+        $avatar_html = qq{<span class="avatar-initials">$iniciales</span>};
+    }
+
     my $puede_buscar = 0;
     my $roles_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'roles.dat');
     if (-e $roles_file) {
@@ -236,8 +264,8 @@ $search_html
                         <span class="d-block plus-jakarta fw-bold" style="font-size:0.75rem; line-height:1">$usuario</span>
                         <span class="d-block text-secondary fw-bold" style="font-size:0.55rem; letter-spacing:0.5px">$role_label</span>
                     </div>
-                    <div class="avatar-diamond d-flex align-items-center justify-content-center shadow-sm" style="width: 38px; height: 38px; font-size: 0.9rem; border-width: 2px;">
-                        $iniciales
+                    <div class="avatar-diamond shadow-sm" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                        $avatar_html
                     </div>
                 </button>
             </div>
@@ -266,8 +294,8 @@ $search_html
         <div class="offcanvas-body px-4 pb-4 pt-2">
             <!-- User Info Box -->
             <div class="user-info-box d-flex align-items-center mb-4 p-3 rounded-4">
-                <div class="avatar-diamond d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px; font-size: 1.3rem; border: 2px solid teal; color: teal; background: rgba(32, 201, 151, 0.1);">
-                    $iniciales
+                <div class="avatar-diamond shadow-sm flex-shrink-0" style="width: 50px; height: 50px; font-size: 1.3rem;">
+                    $avatar_html
                 </div>
                 <div class="ms-3 overflow-hidden">
                     <span class="d-block fw-bold text-truncate text-dark" style="font-size: 1.1rem; line-height: 1.2;" title="$usuario">$usuario</span>

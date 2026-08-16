@@ -246,6 +246,34 @@
     align-items: center;
     justify-content: center;
     border-radius: 12px;
+    
+    /* PREMIUM UI/UX enhancements */
+    overflow: hidden; 
+    background: linear-gradient(135deg, #0A2A66, #00C4C4);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.avatar-diamond:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.avatar-initials {
+    font-weight: 800;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    letter-spacing: 1px;
 }
 
 .diamond-sidebar.compact .sidebar-brand .avatar-diamond {
