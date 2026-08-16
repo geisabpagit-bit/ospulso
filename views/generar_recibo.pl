@@ -139,7 +139,7 @@ print <<"HTML";
 <main class="container-fluid container-mobile-flush pt-3 px-3 pb-5 animate__animated animate__fadeIn">
     
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
+        <div class="col-12 col-lg-10">
             <div class="bento-card card-mobile-flush border-0 shadow-sm rounded-4">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
                     <h5 class="fw-bold mb-0" style="color: var(--md-blue-deep, #0A2A66);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-cyan-ia, #18D1E6);"></i>Caja Rápida - Recibo Independiente</h5>
@@ -159,8 +159,8 @@ print <<"HTML";
                 
                 <div class="card-body pt-0 row">
                     
-                    <!-- Columna Izquierda: Captura -->
-                    <div class="col-12 col-lg-7 border-end-lg">
+                    <!-- Contenedor Único: Captura -->
+                    <div class="col-12">
                         <form id="frmCajaRapida" onsubmit="return false;">
                             
                             <!-- Selección del Paciente -->
@@ -221,36 +221,15 @@ print <<"HTML";
                                 </select>
                             </div>
                             
-                            <hr class="my-4 d-lg-none">
-                            <div class="d-flex justify-content-end d-lg-none">
-                                <button type="button" class="btn btn-primary btn-mobile-standard btn-mobile-full px-4 fw-bold rounded-pill shadow-sm" onclick="irAlPaso2()">
-                                    Siguiente: Vista Previa <i class="bi bi-arrow-down ms-1"></i>
+                            <hr class="my-4">
+                            
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="button" class="btn btn-success btn-mobile-standard btn-mobile-full px-5 fw-bold rounded-pill shadow w-100" onclick="mostrarReciboPrevio()">
+                                    <i class="bi bi-eye me-1"></i> Generar Recibo Previo
                                 </button>
                             </div>
                         </form>
                     </div>
-                    
-                    <!-- Columna Derecha: Vista Previa y Acción -->
-                    <div class="col-12 col-lg-5 pt-4 pt-lg-0" id="step2">
-                        <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4">
-                            <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
-                            <div>
-                                <h6 class="fw-bold mb-1">Previsualización de Recibo</h6>
-                                <p class="mb-0 small">Se actualizará en tiempo real. Al emitirlo, el ingreso quedará registrado en caja.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="border rounded-3 p-1 mb-4 bg-light shadow-sm" style="height: 400px; overflow: hidden;">
-                            <iframe id="iframePreview" src="about:blank" style="width: 100%; height: 100%; border: none; background: #fff; border-radius: 6px;"></iframe>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between flex-column gap-2">
-                            <button type="button" class="btn btn-success btn-mobile-standard btn-mobile-full px-5 fw-bold rounded-pill shadow w-100" onclick="mostrarReciboPrevio()">
-                                <i class="bi bi-eye me-1"></i> Generar Recibo Previo
-                            </button>
-                        </div>
-                    </div>
-                    
                 </div>
             </div>
         </div>
@@ -405,20 +384,23 @@ print <<'JS';
             method: 'POST',
             data: { num_empleado: num, clues: ORG_CLUES },
             success: function(res) {
-                if(res.ok && res.resultados.length > 0) {
+                if (res.ok && res.resultados.length > 0) {
                     let html = '';
-                    res.resultados.forEach((r, idx) => {
+                    res.resultados.forEach((emp, i) => {
+                        let isChecked = i === 0 ? 'checked' : '';
                         html += `
-                        <div class="form-check border rounded p-2 ps-4 bg-white shadow-sm">
-                            <input class="form-check-input" type="radio" name="pacienteEstadoRad" id="radEst_${idx}" value="${r.nombre}" onchange="seleccionarPacienteEstado('${r.id}', '${r.nombre.replace(/'/g, "&apos;")}')">
-                            <label class="form-check-label w-100" for="radEst_${idx}" style="cursor: pointer;">
-                                <strong>${r.nombre}</strong> <span class="badge bg-secondary ms-2">${r.relacion}</span>
+                        <div class="form-check custom-radio-yellow border rounded-3 p-3 mb-2 shadow-sm bg-light">
+                            <input class="form-check-input ms-0 mt-1" type="radio" name="empSeleccionado" id="empSel${emp.id}" value="${emp.id}" ${isChecked} onchange="seleccionarEmpleadoEstado('${emp.id}', '${emp.nombre.replace(/'/g, "&apos;")}')">
+                            <label class="form-check-label w-100 ps-4" for="empSel${emp.id}" style="cursor:pointer;">
+                                <div class="fw-bold mb-1">${emp.nombre}</div>
+                                <div class="small text-muted">Num: ${emp.id} &bull; Relación: ${emp.relacion}</div>
+                                <div class="small text-muted"><i class="bi bi-building"></i> Dep: ${emp.dependencia}</div>
                             </label>
                         </div>`;
                     });
                     $('#resultadosEmpleado').html(html + `<div class="mt-2 text-end"><button type="button" class="btn btn-sm btn-outline-primary" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-pencil-square"></i> Editar Empleado</button></div>`);
                 } else {
-                    $('#resultadosEmpleado').html('<div class="alert alert-warning py-2 small m-0">No se encontraron resultados para el número de empleado ingresado.</div>');
+                    $('#resultadosEmpleado').html(`<div class="alert alert-warning py-3 text-center small m-0 shadow-sm border-0"><p class="mb-2"><i class="bi bi-exclamation-triangle fs-4 d-block mb-1"></i>No se encontraron resultados para el número de empleado ingresado.</p><button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm mt-2" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-person-plus"></i> Registrar Nuevo Empleado / Beneficiario</button></div>`);
                 }
             },
             error: function() {
@@ -690,7 +672,7 @@ print <<'JS';
                 }).then(() => {
                     $('#modalReciboPrevio').modal('hide');
                     const script_print = tipo === 'estado' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
-                    window.open(`../api/${script_print}?id_consulta=${res.id_consulta}`, '_blank');
+                    window.open(`../api/${script_print}?id_consulta=${res.id_tratamiento}`, '_blank');
                     window.location.href = 'inicial.pl';
                 });
             } else {

@@ -165,6 +165,7 @@ print <<"HTML";
         \$('#iptOriginalName').val('');
         \$('#modalTitle').text('Nuevo Empleado / Beneficiario');
         \$('#iptNumEmpleado').prop('readonly', false);
+        \$('#iptRelacion').prop('disabled', false);
         \$('#numFeedback').html('');
         validacionExitosa = false;
         \$('#modalEmpleado').modal('show');
@@ -179,7 +180,7 @@ print <<"HTML";
         
         \$('#iptNumEmpleado').val(num).prop('readonly', true);
         \$('#iptNombre').val(nombre);
-        \$('#iptRelacion').val(relacion);
+        \$('#iptRelacion').val(relacion).prop('disabled', true);
         \$('#iptMunicipio').val(municipio);
         \$('#iptDependencia').val(dependencia);
         \$('#iptTelefono').val(telefono);
@@ -204,11 +205,11 @@ print <<"HTML";
         
         if (res.exists) {
             \$('#numFeedback').html('<span class="text-warning"><i class="bi bi-info-circle"></i> Este número ya tiene Titular. Se registrará como Beneficiario.</span>');
-            \$('#iptRelacion').val('Beneficiario');
+            \$('#iptRelacion').val('Beneficiario').prop('disabled', true);
             validacionExitosa = true; 
         } else {
             \$('#numFeedback').html('<span class="text-success"><i class="bi bi-check-circle"></i> Número libre. Alta de Titular.</span>');
-            \$('#iptRelacion').val('Empleado');
+            \$('#iptRelacion').val('Empleado').prop('disabled', false);
             validacionExitosa = true;
         }
     }
@@ -220,6 +221,7 @@ print <<"HTML";
             if(!validacionExitosa) return;
         }
         
+        \$('#iptRelacion').prop('disabled', false);
         const form = new URLSearchParams(new FormData(e.target));
         form.append('clues', CLUES);
         
