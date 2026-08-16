@@ -124,6 +124,33 @@ print <<'PAGE_HTML';
     // Registrar en DOMContentLoaded para carga normal, y spa:contentLoaded para navegación SPA
     document.addEventListener("DOMContentLoaded", window.initFinanzasTabs);
     document.addEventListener("spa:contentLoaded", window.initFinanzasTabs);
+
+    window.cancelarRecibo = function(id, tipo) {
+        if(typeof Swal === 'undefined') return;
+        Swal.fire({
+            title: '¿Cancelar Recibo?',
+            text: "Esta acción es irreversible.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, Cancelar',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('../api/cancelar_recibo_api.pl', { id_recibo: id, tipo: tipo }, function(res) {
+                    if (res.ok) {
+                        Swal.fire('Cancelado', res.msg, 'success');
+                        if ($.fn.DataTable.isDataTable('#dtPublicosCxC')) {
+                            $('#dtPublicosCxC').DataTable().ajax.reload(null, false);
+                        }
+                    } else {
+                        Swal.fire('Error', res.msg, 'error');
+                    }
+                }, 'json');
+            }
+        });
+    };
 </script>
         <!-- Header Compacto -->
         <div class="diamond-header-compact d-flex justify-content-between align-items-center">
@@ -406,30 +433,31 @@ PAGE_HTML
             <!-- TAB: CUENTAS POR COBRAR ESTADO -->
             <div id="tab_cxc_estado" class="sdm-tab-pane d-none">
                 <div class="bento-card">
-                    <h4 class="fw-bold plus-jakarta mb-4 text-dark">Cuentas por Cobrar (Estado)</h4>
-                    <p class="text-muted">Pacientes de instituciones públicas con saldos pendientes.</p>
+                    <h4 class="fw-bold plus-jakarta mb-4 text-dark">Movimientos de Recibos de Municipio</h4>
+                    <p class="text-muted">Ingresos generados por pacientes del Estado.</p>
                     <div class="table-responsive mt-3">
-                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond" id="tablaCxcEstado">
-                            <thead class="text-muted small">
+                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond w-100" id="dtPublicosCxC">
+                            <thead class="table-light text-secondary small">
                                 <tr>
+                                    <th>ID</th>
+                                    <th>Fecha</th>
                                     <th>Paciente</th>
-                                    <th>Ult. Movimiento</th>
-                                    <th>Cargos Acum.</th>
-                                    <th>Abonos Acum.</th>
-                                    <th>Saldo Pendiente</th>
-                                    <th>Acción</th>
+                                    <th>Concepto</th>
+                                    <th>Medico</th>
+                                    <th>Detalle</th>
+                                    <th>Total</th>
+                                    <th>Estatus</th>
+                                    <th>Opciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="tbodyCxcEstado">
-                                <tr><td colspan="6" class="text-center text-muted">Cargando...</td></tr>
+                            <tbody>
+                                <tr><td colspan="9" class="text-center text-muted">Cargando...</td></tr>
                             </tbody>
                             <tfoot class="bg-light fw-bold">
                                 <tr>
-                                    <td colspan="2" class="text-end">Totales:</td>
-                                    <td id="tfootCxcEstadoCargos"></td>
-                                    <td id="tfootCxcEstadoAbonos"></td>
-                                    <td id="tfootCxcEstadoSaldo"></td>
-                                    <td></td>
+                                    <th colspan="6" style="text-align:right; font-weight:bold;">Total:</th>
+                                    <th style="font-weight:bold;"></th>
+                                    <th colspan="2"></th>
                                 </tr>
                             </tfoot>
                         </table>
