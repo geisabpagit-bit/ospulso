@@ -409,7 +409,7 @@ print <<'JS';
         });
     }
 
-    function seleccionarPacienteEstado(id, nombre) {
+    function seleccionarEmpleadoEstado(id, nombre) {
         pacienteEstadoSeleccionado = { id: id, nombre: nombre };
     }
     
