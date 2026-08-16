@@ -473,8 +473,6 @@ print <<'JS';
             if (String(s.id_sub) === String(selectedSub)) opt.selected = true;
             selectSub.appendChild(opt);
         });
-            selectSub.appendChild(opt);
-        });
     };
 
     // Funciones para Catálogo Custom de Médicos
