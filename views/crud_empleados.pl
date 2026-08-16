@@ -30,6 +30,33 @@ if ($role !~ /Recepcionista|Administrador/i) {
 }
 
 my $clues = $q->param('clues') || '';
+my $sufijo = $clues ? "_${clues}" : "";
+
+my $opts_mun = "";
+if (open my $fh, '<:encoding(UTF-8)', "$FindBin::Bin/../dat/municipios${sufijo}.dat") {
+    my $header = <$fh>;
+    while(<$fh>) {
+        chomp;
+        my @f = split('!');
+        if (defined $f[0] && defined $f[1]) {
+            $opts_mun .= qq|<option value="$f[0]">$f[1]</option>\n|;
+        }
+    }
+    close $fh;
+}
+
+my $opts_dep = "";
+if (open my $fh, '<:encoding(UTF-8)', "$FindBin::Bin/../dat/dependencia${sufijo}.dat") {
+    my $header = <$fh>;
+    while(<$fh>) {
+        chomp;
+        my @f = split('!');
+        if (defined $f[0] && defined $f[1]) {
+            $opts_dep .= qq|<option value="$f[0]">$f[1]</option>\n|;
+        }
+    }
+    close $fh;
+}
 
 render_header(
     titulo => 'Gestión de Empleados', 
@@ -96,41 +123,60 @@ print <<"HTML";
                     <input type="hidden" id="iptOriginalName" name="original_name" value="">
                     
                     <div class="col-md-4">
-                        <label class="fw-bold small text-muted">Núm. Empleado</label>
-                        <input type="number" class="form-control" id="iptNumEmpleado" name="num_empleado" required onblur="validarNumEmpleado()">
+                        <div class="form-floating diamond-input-armor">
+                            <input type="number" class="form-control" id="iptNumEmpleado" name="num_empleado" placeholder="Núm. Empleado" required onblur="validarNumEmpleado()">
+                            <label for="iptNumEmpleado" class="fw-bold text-muted">Núm. Empleado</label>
+                        </div>
                         <div id="numFeedback" class="small mt-1 fw-bold"></div>
                     </div>
                     <div class="col-md-8">
-                        <label class="fw-bold small text-muted">Nombre Completo</label>
-                        <input type="text" class="form-control" id="iptNombre" name="nombre" required>
+                        <div class="form-floating diamond-input-armor">
+                            <input type="text" class="form-control" id="iptNombre" name="nombre" placeholder="Nombre Completo" required>
+                            <label for="iptNombre" class="fw-bold text-muted">Nombre Completo</label>
+                        </div>
                     </div>
                     
                     <div class="col-md-4">
-                        <label class="fw-bold small text-muted">Relación</label>
-                        <select class="form-select" id="iptRelacion" name="relacion" required>
-                            <option value="Empleado">Empleado (Titular)</option>
-                            <option value="Beneficiario">Beneficiario</option>
-                        </select>
+                        <div class="form-floating diamond-input-armor">
+                            <select class="form-select" id="iptRelacion" name="relacion" required>
+                                <option value="Empleado">Empleado (Titular)</option>
+                                <option value="Beneficiario">Beneficiario</option>
+                            </select>
+                            <label for="iptRelacion" class="fw-bold text-muted">Relación</label>
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <label class="fw-bold small text-muted">ID Municipio</label>
-                        <input type="number" class="form-control" id="iptMunicipio" name="municipio" required value="1">
+                        <div class="form-floating diamond-input-armor">
+                            <select class="form-select" id="iptMunicipio" name="municipio" required>
+                                $opts_mun
+                            </select>
+                            <label for="iptMunicipio" class="fw-bold text-muted">Municipio</label>
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <label class="fw-bold small text-muted">ID Dependencia</label>
-                        <input type="number" class="form-control" id="iptDependencia" name="dependencia" required>
+                        <div class="form-floating diamond-input-armor">
+                            <select class="form-select" id="iptDependencia" name="dependencia" required>
+                                <option value="">Selecciona dependencia...</option>
+                                $opts_dep
+                            </select>
+                            <label for="iptDependencia" class="fw-bold text-muted">Dependencia</label>
+                        </div>
                     </div>
                     
                     <div class="col-md-6">
-                        <label class="fw-bold small text-muted">Teléfono</label>
-                        <input type="text" class="form-control" id="iptTelefono" name="telefono">
+                        <div class="form-floating diamond-input-armor">
+                            <input type="text" class="form-control" id="iptTelefono" name="telefono" placeholder="Teléfono">
+                            <label for="iptTelefono" class="fw-bold text-muted">Teléfono</label>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <label class="fw-bold small text-muted">Estatus</label>
-                        <select class="form-select" id="iptEstatus" name="estatus">
-                            <option value="Activo">Activo</option>
-                            <option value="Baja">Baja</option>
-                        </select>
+                        <div class="form-floating diamond-input-armor">
+                            <select class="form-select" id="iptEstatus" name="estatus">
+                                <option value="Activo">Activo</option>
+                                <option value="Baja">Baja</option>
+                            </select>
+                            <label for="iptEstatus" class="fw-bold text-muted">Estatus</label>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top bg-light rounded-bottom-4">

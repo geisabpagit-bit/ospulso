@@ -36,14 +36,28 @@ my $sufijo = $clues ? "_${clues}" : "";
 my $archivo_empleados = "$FindBin::Bin/../dat/empleadosmun${sufijo}.dat";
 my $empleados = leer_tabla($archivo_empleados, '!');
 
+my $archivo_dependencias = "$FindBin::Bin/../dat/dependencia${sufijo}.dat";
+my $deps = leer_tabla($archivo_dependencias, '!');
+my %dep_map;
+if (ref $deps eq 'ARRAY') {
+    foreach my $d (@$deps) {
+        if (defined $d->[0]) {
+            $dep_map{$d->[0]} = $d->[1] // "";
+        }
+    }
+}
+
 my @resultados;
 
 foreach my $e (@$empleados) {
     if (defined $e->[0] && $e->[0] eq $num_empleado) {
+        my $id_dep = $e->[4] // '';
+        my $nombre_dep = $dep_map{$id_dep} || "ID: $id_dep";
         push @resultados, {
             id => $e->[0],
             nombre => $e->[1] // '',
-            relacion => $e->[2] // ''
+            relacion => $e->[2] // '',
+            dependencia => $nombre_dep
         };
     }
 }
