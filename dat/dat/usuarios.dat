@@ -1,0 +1,8 @@
+id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE
+1!Administrador Global!admin@ospulso.com!240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9!1!Administrador Global!0:0!0!0!0!Clínica Principal!
+190726041!pamela villegas!pam@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Ejecutivo Ventas!0:0!0!0!0!Clínica Principal!
+469815478!andrea!andrea@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Administrador Organizacion!447562:0
+391653690!rec!rec@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Recepcionista!447562:1088564!0!0
+128758630!doc uno!doc@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Medico!447562:1088564!2!0
+746339791!doc dos!doc2@gmail.com!ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f!1!Medico!447562:1088564!100!100.1
+1!israel garay!geisabpa@gmail.com!288d17c9663008ce73119b63dfb123fe1a3c08bcb9e24c943af627b18f12dc11!1!Paciente!0:0!0!0!0!!

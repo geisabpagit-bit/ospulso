@@ -1,0 +1,18 @@
+{
+   "id_estudio" : "1",
+   "imagenes" : [
+      {
+         "nombre_archivo" : "Skull_1785957424.png",
+         "size" : "748 KB",
+         "ruta" : "dat/estudiosRX/1/1/Skull_1785957424.png",
+         "fecha_subida" : "2026-08-05T19:17:04Z",
+         "id_imagen" : "img_1785957424"
+      }
+   ],
+   "id_paciente" : "1",
+   "metadatos" : {
+      "equipo" : "Generico"
+   },
+   "observaciones" : [],
+   "estado" : "creado"
+}

@@ -1,0 +1,18 @@
+{
+   "id_estudio" : "2",
+   "observaciones" : [],
+   "imagenes" : [
+      {
+         "ruta" : "dat/estudiosRX/1/2/MRBRAIN_1785957537.dcm",
+         "nombre_archivo" : "MRBRAIN_1785957537.dcm",
+         "id_imagen" : "img_1785957537",
+         "size" : "514 KB",
+         "fecha_subida" : "2026-08-05T19:18:57Z"
+      }
+   ],
+   "metadatos" : {
+      "equipo" : "Generico"
+   },
+   "id_paciente" : "1",
+   "estado" : "creado"
+}

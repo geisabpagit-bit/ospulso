@@ -1,0 +1,4 @@
+ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS
+TX-EXP-1786842235-3|MOV-1786842235-100|1|Cargo|Limpieza Dental con Ultrasonido (Profilaxis)|800|0|800|2026-08-15|746339791|Cargo Walk-in | Paciente: israel garay|israel garay
+TX-EXP-1786842235-3|MOV-1786842235-101|1|Cargo|Resina Estética Simple (1 Cara)|900|0|900|2026-08-15|746339791|Cargo Walk-in | Paciente: israel garay|israel garay
+TX-EXP-1786842235-3|MOV-1786842235-ABONO|1|Abono|Abono en Caja - Efectivo|1700|0|1700|2026-08-15|746339791|Pago Recibo Rápido | Metodo: Efectivo|israel garay

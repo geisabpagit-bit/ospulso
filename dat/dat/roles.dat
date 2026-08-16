@@ -1,0 +1,8 @@
+ROL|PUEDE_BUSCAR|MODULOS_PERMITIDOS
+Administrador Global|0|admin_global|tecnico|sync_google|reportes
+Administrador Organizacion|0|servicios|productos|clinicas|usuarios|finanzas|reportes
+Ejecutivo Ventas|0|crm_ventas
+Medico|1|pacientes|agenda|finanzas
+Recepcionista|1|agenda|finanzas|pacientes
+Paciente|0|mis_citas|mis_consultas|mi_estado_cuenta|inbox_paciente
+Soporte|1|sync_google|pacientes|agenda|reportes
