@@ -43,8 +43,17 @@ if ($input->{accion} eq 'crear') {
     my $nombre = $input->{nombre} // '';
     my $rfc = $input->{rfc} // '';
     my $curp = $input->{curp} // '';
-    my $id_medico_form = $input->{id_medico} // $id_medico;
-    $id_medico_form = $id_medico if $id_medico_form eq '';
+    my $id_medico_form = $input->{id_medico} // '';
+    
+    # 0. Lógica de Doble Propiedad (RBAC): Si quien crea es Recepcionista/Admin, y asignó a un Médico, ambos son dueños
+    if (($session_data->{role} eq 'Recepcionista' || $session_data->{role} eq 'Administrador') && $id_medico_form ne '') {
+        # Validar si el id_medico (usuario) es distinto al seleccionado
+        if ($id_medico ne $id_medico_form) {
+            $id_medico_form = "$id_medico,$id_medico_form";
+        }
+    } else {
+        $id_medico_form = $id_medico if $id_medico_form eq '';
+    }
     
     # 1. Blindaje Backend - Nombres Puros
     if ($nombre =~ /[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/) {
@@ -233,12 +242,12 @@ if ($input->{accion} eq 'crear') {
                 } elsif (!$org_pac) {
                     $acceso_permitido = 1;
                 }
-            } elsif ($role eq 'Medico') {
+            } elsif ($role =~ /Medico|Recepcionista/i) {
                 if ($org_pac && $org_pac eq $mi_org) {
-                    if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $r->[1] eq $id_medico) {
+                    if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $r->[1] =~ /\b\Q$id_medico\E\b/) {
                         $acceso_permitido = 1;
                     }
-                } elsif (!$org_pac && $r->[1] eq $id_medico) {
+                } elsif (!$org_pac && $r->[1] =~ /\b\Q$id_medico\E\b/) {
                     $acceso_permitido = 1;
                 }
             }
@@ -255,9 +264,14 @@ if ($input->{accion} eq 'crear') {
     foreach my $r (@$registros) {
         if (@$r > 1 && $r->[0] eq $id_target) {
             $encontrado = 1;
+            my $final_owner = $r->[1];
+            if ($id_medico_upd ne '') {
+                $final_owner = "$final_owner,$id_medico_upd" if $final_owner !~ /\b\Q$id_medico_upd\E\b/;
+            }
+            
             push @nuevos_registros, join("|",
                 $id_target,
-                ($id_medico_upd ne '') ? $id_medico_upd : $r->[1], # id_medico
+                $final_owner, # id_medico (múltiples dueños separados por coma)
                 $nombre,
                 uc($rfc),
                 uc($curp),
