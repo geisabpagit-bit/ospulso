@@ -86,6 +86,16 @@ print <<HTML;
 <head>
     <meta charset="UTF-8">
     <title>Ficha_Identificacion_$p->{id}</title>
+
+    <!-- OSPulso Brand Identity (Favicons) -->
+    <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="../favicon/favicon-64x64.png">
+    <link rel="icon" type="image/png" sizes="128x128" href="../favicon/favicon-128x128.png">
+    <link rel="icon" type="image/x-icon" href="../favicon/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png">
+    <link rel="manifest" href="../favicon/site.webmanifest">
     <style>
         body { font-family: 'Arial', sans-serif; background: white; color: #1e293b; font-size: 12px; margin: 0; padding: 0; -webkit-print-color-adjust: exact; }
         .print-page { max-width: 800px; margin: 0 auto; padding: 40px; }

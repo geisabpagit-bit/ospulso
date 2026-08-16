@@ -707,6 +707,14 @@ function verReciboPrevio() {
         '<head>\n' +
         '    <meta charset="UTF-8">\n' +
         '    <title>Recibo Previo (Borrador)</title>\n' +
+        '    <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">\n' +
+        '    <link rel="icon" type="image/png" sizes="16x16" href="../favicon/favicon-16x16.png">\n' +
+        '    <link rel="icon" type="image/png" sizes="32x32" href="../favicon/favicon-32x32.png">\n' +
+        '    <link rel="icon" type="image/png" sizes="64x64" href="../favicon/favicon-64x64.png">\n' +
+        '    <link rel="icon" type="image/png" sizes="128x128" href="../favicon/favicon-128x128.png">\n' +
+        '    <link rel="icon" type="image/x-icon" href="../favicon/favicon.ico">\n' +
+        '    <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png">\n' +
+        '    <link rel="manifest" href="../favicon/site.webmanifest">\n' +
                         '    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">\n' +
         '    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">\n' +
         '    <style>\n' +
