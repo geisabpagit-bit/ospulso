@@ -36,6 +36,56 @@ foreach my $p (@$pacs) {
     $map_pacientes{$p->[0]} = $p->[2];
 }
 
+my $org_clues = '';
+my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+if (-e $negocios_file && open(my $nf, '<:utf8', $negocios_file)) {
+    while (my $line = <$nf>) {
+        chomp($line);
+        my @f = split(/\|/, $line, -1);
+        if ($f[0] eq ($session_data->{id_empresa} || '')) {
+            $org_clues = $f[18] // '';
+            last;
+        }
+    }
+    close($nf);
+}
+
+my $empleados_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_${org_clues}.dat");
+my %map_empleados = ();
+if ($org_clues && -e $empleados_file) {
+    my $emps = leer_tabla($empleados_file, '!');
+    foreach my $e (@$emps) {
+        if (@$e >= 3) {
+            $map_empleados{$e->[0]} = $e->[1] if $e->[2] eq 'Empleado';
+        }
+    }
+}
+
+my $folios_priv = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
+my $folios_pub = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_publicos.dat');
+
+my %map_folios = ();
+if (-e $folios_priv) {
+    my $f_priv = leer_tabla($folios_priv, '|', 1);
+    foreach my $f (@$f_priv) {
+        if (@$f >= 5) {
+            my $folio_str = $f->[1];
+            $folio_str =~ s/^.*-//;
+            $map_folios{$f->[4]} = $folio_str + 0;
+        }
+    }
+}
+if (-e $folios_pub) {
+    my $f_pub = leer_tabla($folios_pub, '|', 1);
+    foreach my $f (@$f_pub) {
+        if (@$f >= 5) {
+            my $folio_str = $f->[1];
+            $folio_str =~ s/^.*-//;
+            $map_folios{$f->[4]} = $folio_str + 0;
+        }
+    }
+}
+
 my %recibos = ();
 
 foreach my $r (@$movimientos) {
@@ -61,7 +111,10 @@ foreach my $r (@$movimientos) {
         my $nombre_final = $alias || $map_pacientes{$id_paciente} || $id_paciente;
         if ($tipo eq 'publicos' && $id_paciente =~ /^EMP-(.*)/) {
             my $num_emp = $1;
-            $nombre_final = "<strong>Empleado:</strong> ($num_emp - $nombre_final)<br><strong>Paciente:</strong> ($nombre_final)";
+            my $paciente_nombre = $nombre_final;
+            $paciente_nombre =~ s/.*Paciente:\s*//i;
+            my $empleado_nombre = $map_empleados{$num_emp} || 'Desconocido';
+            $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
         }
         $recibos{$id_os} = {
             folio => $id_os,
@@ -100,7 +153,7 @@ foreach my $id_os (keys %recibos) {
     my $estatus_badge = $rec->{estatus} eq 'Cancelado' ? '<span class="badge bg-danger">Cancelado</span>' : '<span class="badge bg-success">Cobrado</span>';
     
     # Formatear folio para mostrarlo amigable
-    my $folioDisplay = ($id_os =~ /^TX/i) ? $id_os : sprintf("OS/2024/%04d", $id_os);
+    my $folioDisplay = "Folio " . ($map_folios{$id_os} || $id_os);
     
     push @data, {
         raw_fecha => $rec->{fecha},

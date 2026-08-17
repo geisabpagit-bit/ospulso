@@ -439,7 +439,7 @@ PAGE_HTML
                         <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond w-100" id="dtPublicosCxC">
                             <thead class="table-light text-secondary small">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Folio</th>
                                     <th>Fecha</th>
                                     <th>Paciente</th>
                                     <th>Concepto</th>

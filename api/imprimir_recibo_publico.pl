@@ -199,7 +199,12 @@ if ($negocio->{logo_url}) {
 }
 
 my $folio_corto = $recibo->{folio} // $id_consulta;
-$folio_corto = sprintf("OS/2024/%04d", $folio_corto) if $folio_corto =~ /^\d+$/;
+if ($folio_corto =~ /-0*(\d+)$/) {
+    $folio_corto = $1;
+} elsif ($folio_corto =~ /^\d+$/) {
+    # If it was already just digits, keep it as is.
+    $folio_corto = $folio_corto + 0;
+}
 
 if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
 

@@ -104,8 +104,8 @@ foreach my $m (@medicos) {
 }
 
 # 2.1 Comprobar catálogos custom (Médicos Legacy)
-my $archivo_medicos_custom = File::Spec->catfile($dat_dir, "medicos_${id_empresa}.dat");
-my $archivo_espe_custom = File::Spec->catfile($dat_dir, "especialidades_${id_empresa}.dat");
+my $archivo_medicos_custom = File::Spec->catfile($dat_dir, "medicos_${org_clues}.dat");
+my $archivo_espe_custom = File::Spec->catfile($dat_dir, "especialidades_${org_clues}.dat");
 
 my $has_custom_medicos = (-e $archivo_medicos_custom && -e $archivo_espe_custom) ? 1 : 0;
 my $espe_options = "<option value=''>-- Selecciona Especialidad --</option>";

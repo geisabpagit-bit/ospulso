@@ -18,13 +18,33 @@ sub render_header {
     $iniciales .= uc(substr($nombres[0], 0, 1)) if @nombres > 0;
     $iniciales .= uc(substr($nombres[1], 0, 1)) if @nombres > 1;
 
-    # Buscar Avatar
+    # Buscar Avatar y Config
     my $avatar_url = '';
     my $uid = '';
+    my $id_empresa = '';
+    my $id_sucursal = '';
     eval {
         my $s = main::check_session();
         $uid = $s->{uid} if $s;
+        $id_empresa = $s->{id_empresa} if $s;
+        $id_sucursal = $s->{id_sucursal} if $s;
     };
+    
+    my $nombre_org = 'OSPulso Clínicas';
+    my $clue_suc = "Sucursal $id_sucursal";
+    if ($id_empresa && open(my $fhn, '<:utf8', '../dat/negocios.dat')) {
+        while (<$fhn>) {
+            chomp;
+            my @f = split /\|/;
+            if ($f[0] eq $id_empresa) {
+                $nombre_org = $f[1] || $nombre_org;
+                my $clue = $f[18] || '';
+                $clue_suc = $clue ? "$clue - $id_sucursal" : "Sucursal $id_sucursal";
+                last;
+            }
+        }
+        close $fhn;
+    }
     if ($uid && open(my $fh, '<:encoding(UTF-8)', '../dat/perfiles.dat')) {
         my $header = <$fh>;
         while (<$fh>) {
@@ -245,13 +265,16 @@ $hamburger_btn
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">
                 <a class="navbar-brand d-flex align-items-center justify-content-center m-0 text-decoration-none" href="inicial.pl" title="Inicio" style="margin-bottom: -10px;">
-                    <svg class="ospulso-logo-svg" viewBox="0 0 165 50" xmlns="http://www.w3.org/2000/svg" style="height: 55px; width: auto; overflow: visible;">
-                        <text x="0" y="32" font-family="'Outfit', sans-serif" font-weight="900" font-size="28" letter-spacing="0.5">
+                    <svg width="105" height="40" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="ms-1 sdm-brand-logo">
+                        <text x="5" y="38" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="34" letter-spacing="-1">
                             <tspan fill="#0A2A66">Os</tspan><tspan fill="#00C4C4">Pulso</tspan>
                         </text>
                         <path class="ekg-line-anim" d="M0 40 H115 L121 22 L128 42 L134 6 L141 34 L146 40 H160" stroke="#00C4C4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
                     </svg>
-                    <span class="d-none d-lg-inline-block text-secondary small border-start ps-3 ms-2 align-self-center py-1 fw-medium" style="font-size: 0.72rem; letter-spacing: 0.5px;">Sistema Operativo para Clínicas Modernas</span>
+                    <span class="d-none d-lg-inline-block text-secondary small border-start ps-3 ms-2 align-self-center py-1 fw-medium d-flex flex-column justify-content-center" style="font-size: 0.72rem; letter-spacing: 0.5px; line-height: 1.2;">
+                        <strong class="text-dark">$nombre_org</strong>
+                        <span>$clue_suc</span>
+                    </span>
                 </a>
 
             </div>
