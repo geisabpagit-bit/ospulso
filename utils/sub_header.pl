@@ -22,8 +22,7 @@ sub render_header {
     my $avatar_url = '';
     my $uid = '';
     eval {
-        require "auth/check_session.pl";
-        my $s = check_session::check_session();
+        my $s = main::check_session();
         $uid = $s->{uid} if $s;
     };
     if ($uid && open(my $fh, '<:encoding(UTF-8)', '../dat/perfiles.dat')) {
@@ -41,7 +40,8 @@ sub render_header {
 
     my $avatar_html = '';
     if ($avatar_url ne '') {
-        $avatar_html = qq{<img src="$avatar_url" alt="$usuario" class="avatar-img">};
+        my $src_url = ($avatar_url =~ /^\.\./) ? $avatar_url : "../$avatar_url";
+        $avatar_html = qq{<img src="$src_url" alt="$usuario" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">};
     } else {
         $avatar_html = qq{<span class="avatar-initials">$iniciales</span>};
     }
