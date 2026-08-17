@@ -102,7 +102,20 @@ eval {
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "estudios.txt"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "estudios2.dat"));
     foreach my $cat (@catalogos_dinamicos) {
-        unlink $cat if -e $cat;
+        if (-e $cat) {
+            my $cabecera = "";
+            if (open(my $fhc, '<:utf8', $cat)) {
+                $cabecera = <$fhc>;
+                close($fhc);
+            }
+            if ($cabecera) {
+                open(my $fhcw, '>:utf8', $cat);
+                print $fhcw $cabecera;
+                close($fhcw);
+            } else {
+                unlink $cat;
+            }
+        }
     }
 
     # 3. Limpiar carpetas de adjuntos, estudios RX, facturas, firmas y descargas

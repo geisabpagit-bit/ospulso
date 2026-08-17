@@ -58,14 +58,19 @@ foreach my $r (@$movimientos) {
     }
     
     if (!exists $recibos{$id_os}) {
+        my $nombre_final = $alias || $map_pacientes{$id_paciente} || $id_paciente;
+        if ($tipo eq 'publicos' && $id_paciente =~ /^EMP-(.*)/) {
+            my $num_emp = $1;
+            $nombre_final = "<strong>Empleado:</strong> ($num_emp - $nombre_final)<br><strong>Paciente:</strong> ($nombre_final)";
+        }
         $recibos{$id_os} = {
             folio => $id_os,
             fecha => $fecha,
-            id_consulta => $id_os, # Usamos id_os como llave para imprimir el recibo
-            pac_nombre => $alias || $map_pacientes{$id_paciente} || $id_paciente,
+            id_consulta => $id_os,
+            pac_nombre => $nombre_final,
             total_cargo => 0,
             total_abono => 0,
-            estatus => 'Activo' # Se asume activo, si quisieramos cancelado requeriría cruzar con folios
+            estatus => 'Activo'
         };
     }
     
