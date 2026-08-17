@@ -1,3 +1,0 @@
-CLAVE_SUBMENU|ARCHIVO_DESTINO|TÍTULO|DESCRIPCIÓN|ICONO_BS|COLOR_BS
-cat_config|views/manage_config.pl|Catálogos globales|Administración de datos Maestros y Tablas Generales.|bi-gear-fill|danger
-cat_catalogo_org|views/catalogo_servicios_org.pl|Catalogo de Servicios|Gestion de servicios y productos de la organizacion.|bi-tags-fill|warning

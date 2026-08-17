@@ -80,6 +80,7 @@ foreach my $r (@$regs) {
         push @medicos, { id => $m_id, nombre => $m_nom };
     }
 }
+@medicos = sort { $a->{nombre} cmp $b->{nombre} } @medicos;
 
 # 3. Render HTML
 render_header(
@@ -113,6 +114,8 @@ my $medicos_custom_js = "{}";
 
 if ($has_custom_medicos) {
     my $espe_regs = leer_tabla($archivo_espe_custom);
+    @$espe_regs = sort { $a->[1] cmp $b->[1] } @$espe_regs;
+    
     foreach my $e (@$espe_regs) {
         next unless scalar(@$e) >= 2;
         $espe_options .= "<option value='$e->[0]'>$e->[1]</option>";
@@ -124,6 +127,12 @@ if ($has_custom_medicos) {
         next unless scalar(@$m) >= 3;
         push @{$med_by_espe{$m->[1]}}, { id => $m->[0], nombre => $m->[2] };
     }
+    
+    # Sort medicos within each especialidad
+    foreach my $espe (keys %med_by_espe) {
+        @{$med_by_espe{$espe}} = sort { $a->{nombre} cmp $b->{nombre} } @{$med_by_espe{$espe}};
+    }
+    
     $medicos_custom_js = encode_json(\%med_by_espe);
 }
 
@@ -135,13 +144,22 @@ print <<"HTML";
 <style>
     .cart-item { border-bottom: 1px solid #e2e8f0; padding: 0.75rem 0; }
     .cart-item:last-child { border-bottom: none; }
+    
+    /* Bordes Teal Delgados Diamond */
+    .diamond-input-armor, .card-medentia-aura, .select2-container--bootstrap-5 .select2-selection {
+        border: 1px solid var(--md-cyan-ia, #19B7A5) !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection:focus {
+        border-color: var(--md-blue-deep, #0A2A66) !important;
+        box-shadow: 0 0 0 0.25rem rgba(25, 183, 165, 0.25) !important;
+    }
 </style>
 
 <main class="container-fluid container-mobile-flush pt-3 px-3 pb-5 animate__animated animate__fadeIn">
     
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-10">
-            <div class="card-medentia card-mobile-flush border-0 rounded-4">
+        <div class="col-12">
+            <div class="card-medentia card-mobile-flush border-0 rounded-4 w-100">
                 <div class="card-header border-0 pt-4 pb-3" style="background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66) 0%, var(--md-blue-medical, #124A9E) 100%); border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
                     <h5 class="fw-bold mb-0 text-white"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-cyan-ia, #18D1E6);"></i>Caja Rápida - Recibo Independiente</h5>
                     <p class="text-white-50 small mb-0 mt-1">Genera comprobantes de pago sin necesidad de una cita programada.</p>
@@ -162,74 +180,89 @@ print <<"HTML";
                                 <label class="btn btn-outline-primary fw-bold px-4 rounded-pill" for="tipoEstado"><i class="bi bi-bank me-2"></i>Público / Estado</label>
                             </div>
 
-                            <!-- Selección del Paciente -->
-                            <div class="mb-4">
-                                <div id="contenedorPrivado" class="diamond-input-armor p-2 rounded-3 bg-white">
-                                    <label id="lblPacienteStep1" class="form-label fw-bold text-muted small mb-1">1. Paciente</label>
-                                    <select id="selPaciente" class="form-select border-0 shadow-none"></select>
-                                    <div class="form-text small mt-2"><i class="bi bi-info-circle text-primary me-1"></i>Si el paciente no existe, regístralo primero en el Directorio.</div>
-                                </div>
-                                <div id="contenedorEstado" class="d-none mt-2 diamond-input-armor p-3 rounded-3 bg-white">
-                                    <label class="form-label fw-bold text-muted small mb-2">1. Número de Empleado (Estado)</label>
-                                    <div class="input-group">
-                                        <div class="form-floating flex-grow-1">
-                                            <input type="number" id="iptNumEmpleado" class="form-control border-0 shadow-none bg-light" placeholder="Ej. 6113">
-                                            <label for="iptNumEmpleado">Ingresa el número de empleado</label>
-                                        </div>
-                                        <button class="btn btn-primary px-4 fw-bold" type="button" id="btnBuscarEmpleado" onclick="buscarEmpleadoEstado()"><i class="bi bi-search me-1"></i> Buscar</button>
+                            <!-- Selección de Entidades y Formulario Principal -->
+                            <div class="row g-3 mb-4">
+                                
+                                <!-- Paciente -->
+                                <div class="col-md-6 col-lg-3">
+                                    <label class="form-label fw-bold small text-muted mb-2">1. Paciente</label>
+                                    <div id="contenedorPrivado" class="diamond-input-armor p-2 rounded-3 bg-white h-100">
+                                        <select id="selPaciente" class="form-select border-0 shadow-none"></select>
+                                        <div class="form-text small mt-2"><i class="bi bi-info-circle text-primary me-1"></i>Regístralo en Directorio si no existe.</div>
                                     </div>
-                                    <div id="resultadosEmpleado" class="d-flex flex-column gap-2 mt-3"></div>
+                                    <div id="contenedorEstado" class="d-none diamond-input-armor p-2 rounded-3 bg-white h-100">
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" id="iptNumEmpleado" class="form-control border-0 shadow-none bg-light" placeholder="Núm Emp">
+                                            <button class="btn btn-primary px-3 fw-bold" type="button" id="btnBuscarEmpleado" onclick="buscarEmpleadoEstado()"><i class="bi bi-search"></i></button>
+                                        </div>
+                                        <div id="resultadosEmpleado" class="d-flex flex-column gap-2 mt-2"></div>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <!-- Selección del Médico -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-person-badge text-primary me-1"></i>2. Médico Responsable (Honorarios)</label>
+                                
+                                <!-- Médico Responsable -->
 HTML
+
+my $col_class_med = $has_custom_medicos ? "col-md-6 col-lg-3" : "col-md-6 col-lg-4";
 
 if ($has_custom_medicos) {
 print <<"HTML";
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <div class="form-floating diamond-input-armor rounded-3 bg-white">
-                                            <select id="selEspecialidadCustom" class="form-select border-0 shadow-none" onchange="filtrarMedicosCustom()" required>
-                                                $espe_options
-                                            </select>
-                                            <label for="selEspecialidadCustom" class="fw-bold text-muted">Especialidad</label>
-                                        </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-person-badge text-primary me-1"></i>2. Especialidad</label>
+                                    <div class="form-floating diamond-input-armor rounded-3 bg-white h-100">
+                                        <select id="selEspecialidadCustom" class="form-select border-0 shadow-none" onchange="filtrarMedicosCustom()" required>
+                                            $espe_options
+                                        </select>
+                                        <label for="selEspecialidadCustom" class="fw-bold text-muted">Especialidad</label>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="form-floating diamond-input-armor rounded-3 bg-white">
-                                            <select id="selMedico" class="form-select border-0 shadow-none" required>
-                                                <option value=''>-- Selecciona Especialidad --</option>
-                                            </select>
-                                            <label for="selMedico" class="fw-bold text-muted">Médico Tratante</label>
-                                        </div>
-                                    </div>
-                                </div>
-HTML
-} else {
-print <<"HTML";
-                                <div class="form-floating diamond-input-armor rounded-3 bg-white">
-                                    <select id="selMedico" class="form-select border-0 shadow-none" required>
-                                        $medicos_options
-                                    </select>
-                                    <label for="selMedico" class="fw-bold text-muted">Médico Tratante</label>
                                 </div>
 HTML
 }
 
 print <<"HTML";
+                                <div="$col_class_med">
+                                    <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-heart-pulse text-primary me-1"></i>Médico Tratante</label>
+                                    <div class="form-floating diamond-input-armor rounded-3 bg-white h-100">
+                                        <select id="selMedico" class="form-select border-0 shadow-none" required>
+HTML
+
+if ($has_custom_medicos) {
+    print "<option value=''>-- Selecciona Especialidad --</option>";
+} else {
+    print $medicos_options;
+}
+
+print <<"HTML";
+                                        </select>
+                                        <label for="selMedico" class="fw-bold text-muted">Médico</label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Método de Pago -->
+                                <div class="col-md-6 col-lg-3">
+                                    <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-credit-card text-primary me-1"></i>4. Método de Pago</label>
+                                    <div class="form-floating diamond-input-armor rounded-3 bg-white h-100">
+                                        <select id="selMetodoPago" class="form-select border-0 shadow-none" onchange="irAlPaso2()">
+                                            <option value="Efectivo">Efectivo</option>
+                                            <option value="Tarjeta de Debito">Tarjeta de Débito</option>
+                                            <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
+                                            <option value="Transferencia">Transferencia (SPEI)</option>
+                                            <option value="Convenio / Aseguradora">Convenio / Aseguradora</option>
+                                            <option value="Cortesía">Cortesía (Sin cobro)</option>
+                                        </select>
+                                        <label for="selMetodoPago" class="fw-bold text-muted">Vía de pago</label>
+                                    </div>
+                                </div>
+                                
                             </div>
                             
                             <!-- Conceptos / Carrito Universal -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-cart3 text-primary me-1"></i>3. Conceptos a Cobrar</label>
-                                <button type="button" class="btn btn-outline-primary btn-mobile-standard btn-mobile-full border-2 py-3 rounded-4 mb-3 d-flex flex-column align-items-center justify-content-center shadow-sm" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()">
-                                    <i class="bi bi-cart-plus fs-3 mb-1"></i>
-                                    <span class="fw-bold plus-jakarta">Agregar Conceptos (Abrir Catálogo)</span>
-                                    <span class="small opacity-75">Selecciona desde catálogo o añade montos libres</span>
-                                </button>
+                                <div class="d-flex flex-wrap justify-content-between align-items-end mb-3">
+                                    <label class="form-label fw-bold small text-muted mb-0"><i class="bi bi-cart3 text-primary me-1"></i>3. Conceptos a Cobrar</label>
+                                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold px-4 shadow-sm" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()">
+                                        <i class="bi bi-cart-plus me-1"></i> Agregar Conceptos
+                                    </button>
+                                </div>
                                 
                                 <!-- Resumen visual del carrito (sincronizado con el modal) -->
                                 <div class="card-medentia-aura p-3 rounded-4 bg-white">
@@ -240,22 +273,6 @@ print <<"HTML";
                                     <div id="cartContainer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 150px;">
                                         <div class="text-center text-muted small py-2" id="cartEmpty">Ningún concepto agregado</div>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Método de Pago -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-credit-card text-primary me-1"></i>4. Método de Pago</label>
-                                <div class="form-floating diamond-input-armor rounded-3 bg-white">
-                                    <select id="selMetodoPago" class="form-select border-0 shadow-none" onchange="irAlPaso2()">
-                                        <option value="Efectivo">Efectivo</option>
-                                        <option value="Tarjeta de Debito">Tarjeta de Débito</option>
-                                        <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
-                                        <option value="Transferencia">Transferencia (SPEI)</option>
-                                        <option value="Convenio / Aseguradora">Convenio / Aseguradora</option>
-                                        <option value="Cortesía">Cortesía (Sin cobro)</option>
-                                    </select>
-                                    <label for="selMetodoPago" class="fw-bold text-muted">Vía de pago</label>
                                 </div>
                             </div>
                             
