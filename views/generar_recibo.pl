@@ -103,6 +103,30 @@ foreach my $m (@medicos) {
     $medicos_options .= "<option value='$m->{id}' $sel>$m->{nombre}</option>";
 }
 
+# 2.1 Comprobar catálogos custom (Médicos Legacy)
+my $archivo_medicos_custom = File::Spec->catfile($dat_dir, "medicos_${id_empresa}.dat");
+my $archivo_espe_custom = File::Spec->catfile($dat_dir, "especialidades_${id_empresa}.dat");
+
+my $has_custom_medicos = (-e $archivo_medicos_custom && -e $archivo_espe_custom) ? 1 : 0;
+my $espe_options = "<option value=''>-- Selecciona Especialidad --</option>";
+my $medicos_custom_js = "{}";
+
+if ($has_custom_medicos) {
+    my $espe_regs = leer_tabla($archivo_espe_custom, '|');
+    foreach my $e (@$espe_regs) {
+        next unless scalar(@$e) >= 2;
+        $espe_options .= "<option value='$e->[0]'>$e->[1]</option>";
+    }
+    
+    my $med_regs = leer_tabla($archivo_medicos_custom, '|');
+    my %med_by_espe = ();
+    foreach my $m (@$med_regs) {
+        next unless scalar(@$m) >= 3;
+        push @{$med_by_espe{$m->[1]}}, { id => $m->[0], nombre => $m->[2] };
+    }
+    $medicos_custom_js = encode_json(\%med_by_espe);
+}
+
 print <<"HTML";
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
@@ -182,9 +206,32 @@ print <<"HTML";
                             <!-- Selección del Médico -->
                             <div class="mb-4">
                                 <label class="form-label fw-bold small text-muted">2. Médico Responsable (Para honorarios/comisiones)</label>
+HTML
+
+if ($has_custom_medicos) {
+print <<"HTML";
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <select id="selEspecialidadCustom" class="form-select fw-bold border-primary shadow-sm" onchange="filtrarMedicosCustom()" required>
+                                            $espe_options
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select id="selMedico" class="form-select fw-bold border-primary shadow-sm" required>
+                                            <option value=''>-- Primero selecciona Especialidad --</option>
+                                        </select>
+                                    </div>
+                                </div>
+HTML
+} else {
+print <<"HTML";
                                 <select id="selMedico" class="form-select fw-bold border-primary shadow-sm" required>
                                     $medicos_options
                                 </select>
+HTML
+}
+
+print <<"HTML";
                             </div>
                             
                             <!-- Conceptos / Carrito Universal -->
@@ -311,6 +358,7 @@ print <<"HTML";
 <script>
     const HAS_PACIENTES_ESTADO = ${has_pacientes_estado} || 0;
     const ORG_CLUES = '$org_clues';
+    const MEDICOS_CUSTOM_JSON = $medicos_custom_js;
 </script>
 HTML
 
@@ -321,6 +369,23 @@ print <<'JS';
     let consecutivoId = 1;
     let pacienteSeleccionado = null;
     let cargoSeleccionadoManual = null;
+
+    function filtrarMedicosCustom() {
+        const idEspe = document.getElementById('selEspecialidadCustom').value;
+        const selMedico = document.getElementById('selMedico');
+        if (!selMedico) return;
+        
+        selMedico.innerHTML = "<option value=''>-- Selecciona Médico --</option>";
+        if (idEspe && MEDICOS_CUSTOM_JSON[idEspe]) {
+            const medicos = MEDICOS_CUSTOM_JSON[idEspe];
+            medicos.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = m.nombre;
+                selMedico.appendChild(opt);
+            });
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(document.getElementById('modalCargo'));
