@@ -112,13 +112,13 @@ my $espe_options = "<option value=''>-- Selecciona Especialidad --</option>";
 my $medicos_custom_js = "{}";
 
 if ($has_custom_medicos) {
-    my $espe_regs = leer_tabla($archivo_espe_custom, '|');
+    my $espe_regs = leer_tabla($archivo_espe_custom);
     foreach my $e (@$espe_regs) {
         next unless scalar(@$e) >= 2;
         $espe_options .= "<option value='$e->[0]'>$e->[1]</option>";
     }
     
-    my $med_regs = leer_tabla($archivo_medicos_custom, '|');
+    my $med_regs = leer_tabla($archivo_medicos_custom);
     my %med_by_espe = ();
     foreach my $m (@$med_regs) {
         next unless scalar(@$m) >= 3;
@@ -133,101 +133,89 @@ print <<"HTML";
 <link rel="stylesheet" href="../css/sdm_mobile_standards.css" />
 
 <style>
-    .wizard-step { display: none; }
-    .wizard-step.active { display: block; animation: fadeIn 0.4s ease-in-out; }
-    \@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .cart-item { border-bottom: 1px solid #e2e8f0; padding: 0.75rem 0; }
     .cart-item:last-child { border-bottom: none; }
-    
-    /* Estilo de Radios personalizados según captura */
-    .custom-radio-yellow .form-check-input {
-        width: 1.5em;
-        height: 1.5em;
-        border: 2px solid #F5B041; /* Amarillo OSPulso */
-        border-radius: 50%;
-        margin-top: 0.1em;
-        cursor: pointer;
-    }
-    .custom-radio-yellow .form-check-input:checked {
-        background-color: #F5B041;
-        border-color: #F5B041;
-        box-shadow: 0 0 0 0.25rem rgba(245, 176, 65, 0.25);
-    }
-    .custom-radio-yellow .form-check-label {
-        padding-top: 0.2em;
-        margin-left: 0.4em;
-        cursor: pointer;
-    }
 </style>
 
 <main class="container-fluid container-mobile-flush pt-3 px-3 pb-5 animate__animated animate__fadeIn">
     
     <div class="row justify-content-center">
         <div class="col-12 col-lg-10">
-            <div class="bento-card card-mobile-flush border-0 shadow-sm rounded-4">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-0" style="color: var(--md-blue-deep, #0A2A66);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-cyan-ia, #18D1E6);"></i>Caja Rápida - Recibo Independiente</h5>
-                    <p class="text-muted small mb-3">Genera comprobantes de pago sin necesidad de una cita programada.</p>
-                    
-                    <div class="mb-4 d-flex flex-wrap gap-4 align-items-center">
-                        <div class="form-check custom-radio-yellow">
-                            <input class="form-check-input" type="radio" name="tipoPaciente" id="tipoPrivado" value="privado" checked onchange="cambiarTipoPaciente(event)">
-                            <label class="form-check-label fw-bold" for="tipoPrivado">Privado</label>
-                        </div>
-                        <div class="form-check custom-radio-yellow">
-                            <input class="form-check-input" type="radio" name="tipoPaciente" id="tipoEstado" value="estado" onchange="cambiarTipoPaciente(event)">
-                            <label class="form-check-label fw-bold" for="tipoEstado">Publico (Capacidad SaaS Habilitada)</label>
-                        </div>
-                    </div>
+            <div class="card-medentia card-mobile-flush border-0 rounded-4">
+                <div class="card-header border-0 pt-4 pb-3" style="background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66) 0%, var(--md-blue-medical, #124A9E) 100%); border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+                    <h5 class="fw-bold mb-0 text-white"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-cyan-ia, #18D1E6);"></i>Caja Rápida - Recibo Independiente</h5>
+                    <p class="text-white-50 small mb-0 mt-1">Genera comprobantes de pago sin necesidad de una cita programada.</p>
                 </div>
                 
-                <div class="card-body pt-0 row">
+                <div class="card-body pt-4 row" style="background: var(--sdm-bg, #f8fafc);">
                     
                     <!-- Contenedor Único: Captura -->
                     <div class="col-12">
                         <form id="frmCajaRapida" onsubmit="return false;">
                             
+                            <!-- Tipo de Paciente (Estándar Diamond Toggle) -->
+                            <div class="mb-4 d-flex gap-3 justify-content-center">
+                                <input type="radio" class="btn-check" name="tipoPaciente" id="tipoPrivado" value="privado" autocomplete="off" checked onchange="cambiarTipoPaciente(event)">
+                                <label class="btn btn-outline-primary fw-bold px-4 rounded-pill" for="tipoPrivado"><i class="bi bi-person me-2"></i>Paciente Privado</label>
+                                
+                                <input type="radio" class="btn-check" name="tipoPaciente" id="tipoEstado" value="estado" autocomplete="off" onchange="cambiarTipoPaciente(event)">
+                                <label class="btn btn-outline-primary fw-bold px-4 rounded-pill" for="tipoEstado"><i class="bi bi-bank me-2"></i>Público / Estado</label>
+                            </div>
+
                             <!-- Selección del Paciente -->
                             <div class="mb-4">
-                                <label id="lblPacienteStep1" class="form-label fw-bold small text-muted">1. Teclea el nombre del paciente</label>
-                                <div id="contenedorPrivado">
-                                    <select id="selPaciente" class="form-select fw-bold border-primary shadow-sm"></select>
-                                    <div class="form-text">Si el paciente no existe, debe registrarse previamente en el Directorio.</div>
+                                <div id="contenedorPrivado" class="diamond-input-armor p-2 rounded-3 bg-white">
+                                    <label id="lblPacienteStep1" class="form-label fw-bold text-muted small mb-1">1. Paciente</label>
+                                    <select id="selPaciente" class="form-select border-0 shadow-none"></select>
+                                    <div class="form-text small mt-2"><i class="bi bi-info-circle text-primary me-1"></i>Si el paciente no existe, regístralo primero en el Directorio.</div>
                                 </div>
-                                <div id="contenedorEstado" class="d-none mt-2">
-                                    <div class="input-group mb-2">
-                                        <input type="number" id="iptNumEmpleado" class="form-control fw-bold border-primary shadow-sm" placeholder="Ingresa el número de empleado">
-                                        <button class="btn btn-primary shadow-sm" type="button" id="btnBuscarEmpleado" onclick="buscarEmpleadoEstado()"><i class="bi bi-search"></i> Buscar</button>
+                                <div id="contenedorEstado" class="d-none mt-2 diamond-input-armor p-3 rounded-3 bg-white">
+                                    <label class="form-label fw-bold text-muted small mb-2">1. Número de Empleado (Estado)</label>
+                                    <div class="input-group">
+                                        <div class="form-floating flex-grow-1">
+                                            <input type="number" id="iptNumEmpleado" class="form-control border-0 shadow-none bg-light" placeholder="Ej. 6113">
+                                            <label for="iptNumEmpleado">Ingresa el número de empleado</label>
+                                        </div>
+                                        <button class="btn btn-primary px-4 fw-bold" type="button" id="btnBuscarEmpleado" onclick="buscarEmpleadoEstado()"><i class="bi bi-search me-1"></i> Buscar</button>
                                     </div>
-                                    <div id="resultadosEmpleado" class="d-flex flex-column gap-2"></div>
+                                    <div id="resultadosEmpleado" class="d-flex flex-column gap-2 mt-3"></div>
                                 </div>
                             </div>
                             
                             <!-- Selección del Médico -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold small text-muted">2. Médico Responsable (Para honorarios/comisiones)</label>
+                                <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-person-badge text-primary me-1"></i>2. Médico Responsable (Honorarios)</label>
 HTML
 
 if ($has_custom_medicos) {
 print <<"HTML";
-                                <div class="row g-2">
+                                <div class="row g-3">
                                     <div class="col-md-6">
-                                        <select id="selEspecialidadCustom" class="form-select fw-bold border-primary shadow-sm" onchange="filtrarMedicosCustom()" required>
-                                            $espe_options
-                                        </select>
+                                        <div class="form-floating diamond-input-armor rounded-3 bg-white">
+                                            <select id="selEspecialidadCustom" class="form-select border-0 shadow-none" onchange="filtrarMedicosCustom()" required>
+                                                $espe_options
+                                            </select>
+                                            <label for="selEspecialidadCustom" class="fw-bold text-muted">Especialidad</label>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <select id="selMedico" class="form-select fw-bold border-primary shadow-sm" required>
-                                            <option value=''>-- Primero selecciona Especialidad --</option>
-                                        </select>
+                                        <div class="form-floating diamond-input-armor rounded-3 bg-white">
+                                            <select id="selMedico" class="form-select border-0 shadow-none" required>
+                                                <option value=''>-- Selecciona Especialidad --</option>
+                                            </select>
+                                            <label for="selMedico" class="fw-bold text-muted">Médico Tratante</label>
+                                        </div>
                                     </div>
                                 </div>
 HTML
 } else {
 print <<"HTML";
-                                <select id="selMedico" class="form-select fw-bold border-primary shadow-sm" required>
-                                    $medicos_options
-                                </select>
+                                <div class="form-floating diamond-input-armor rounded-3 bg-white">
+                                    <select id="selMedico" class="form-select border-0 shadow-none" required>
+                                        $medicos_options
+                                    </select>
+                                    <label for="selMedico" class="fw-bold text-muted">Médico Tratante</label>
+                                </div>
 HTML
 }
 
@@ -236,43 +224,46 @@ print <<"HTML";
                             
                             <!-- Conceptos / Carrito Universal -->
                             <div class="mb-4">
-                                <label class="kpi-label mb-2">3. Conceptos a Cobrar</label>
-                                <button type="button" class="btn btn-light btn-mobile-standard btn-mobile-full border py-3 rounded-4 mb-3 d-flex flex-column align-items-center justify-content-center shadow-sm" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()" style="border-color: var(--md-gray-soft, #D9E2EC) !important;">
-                                    <i class="bi bi-cart-plus fs-3 mb-1" style="color: var(--md-blue-deep, #0A2A66);"></i>
-                                    <span class="fw-bold" style="color: var(--md-blue-deep, #0A2A66); font-family: 'Plus Jakarta Sans', sans-serif;">Abrir Carrito de Conceptos</span>
-                                    <span class="small text-muted">Agrega desde catálogo o entrada manual</span>
+                                <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-cart3 text-primary me-1"></i>3. Conceptos a Cobrar</label>
+                                <button type="button" class="btn btn-outline-primary btn-mobile-standard btn-mobile-full border-2 py-3 rounded-4 mb-3 d-flex flex-column align-items-center justify-content-center shadow-sm" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()">
+                                    <i class="bi bi-cart-plus fs-3 mb-1"></i>
+                                    <span class="fw-bold plus-jakarta">Agregar Conceptos (Abrir Catálogo)</span>
+                                    <span class="small opacity-75">Selecciona desde catálogo o añade montos libres</span>
                                 </button>
                                 
                                 <!-- Resumen visual del carrito (sincronizado con el modal) -->
-                                <div class="p-3 rounded-4" style="background: var(--md-white-clinical, #F8FBFF); border: 1px solid var(--md-gray-soft, #D9E2EC);">
+                                <div class="card-medentia-aura p-3 rounded-4 bg-white">
                                     <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-                                        <span class="fw-bold" style="color: var(--md-text-secondary, #486581); font-family: 'Plus Jakarta Sans', sans-serif;"><i class="bi bi-receipt me-1"></i> Resumen de Cobro</span>
-                                        <span class="fw-bold fs-5" id="cartTotalText" style="color: var(--md-blue-deep, #0A2A66);">\$0.00</span>
+                                        <span class="fw-bold plus-jakarta text-muted"><i class="bi bi-receipt me-1"></i> Resumen de Cobro</span>
+                                        <span class="fw-bold fs-5 text-primary plus-jakarta" id="cartTotalText">\$0.00</span>
                                     </div>
                                     <div id="cartContainer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 150px;">
-                                        <div class="text-center text-muted small py-2" id="cartEmpty">No hay conceptos agregados</div>
+                                        <div class="text-center text-muted small py-2" id="cartEmpty">Ningún concepto agregado</div>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- Método de Pago -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold small text-muted">4. Método de Pago</label>
-                                <select id="selMetodoPago" class="form-select" onchange="irAlPaso2()">
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="Tarjeta de Debito">Tarjeta de Débito</option>
-                                    <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
-                                    <option value="Transferencia">Transferencia (SPEI)</option>
-                                    <option value="Convenio / Aseguradora">Convenio / Aseguradora</option>
-                                    <option value="Cortesía">Cortesía (Sin cobro)</option>
-                                </select>
+                                <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-credit-card text-primary me-1"></i>4. Método de Pago</label>
+                                <div class="form-floating diamond-input-armor rounded-3 bg-white">
+                                    <select id="selMetodoPago" class="form-select border-0 shadow-none" onchange="irAlPaso2()">
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Tarjeta de Debito">Tarjeta de Débito</option>
+                                        <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
+                                        <option value="Transferencia">Transferencia (SPEI)</option>
+                                        <option value="Convenio / Aseguradora">Convenio / Aseguradora</option>
+                                        <option value="Cortesía">Cortesía (Sin cobro)</option>
+                                    </select>
+                                    <label for="selMetodoPago" class="fw-bold text-muted">Vía de pago</label>
+                                </div>
                             </div>
                             
-                            <hr class="my-4">
+                            <hr class="my-4 border-light">
                             
                             <div class="d-flex justify-content-end mt-4">
-                                <button type="button" class="btn btn-success btn-mobile-standard btn-mobile-full px-5 fw-bold rounded-pill shadow w-100" onclick="mostrarReciboPrevio()">
-                                    <i class="bi bi-eye me-1"></i> Generar Recibo Previo
+                                <button type="button" class="btn btn-primary btn-mobile-standard btn-mobile-full px-5 py-2 fw-bold rounded-pill shadow-lg w-100 plus-jakarta fs-5" onclick="mostrarReciboPrevio()">
+                                    <i class="bi bi-eye me-2"></i> Generar Recibo
                                 </button>
                             </div>
                         </form>
@@ -282,46 +273,57 @@ print <<"HTML";
         </div>
     </div>
 <!-- MODAL CARRITO UNIVERSAL -->
-<div class="modal fade modal-diamond" id="modalCargo" tabindex="-1" aria-labelledby="modalCargoTitle" aria-hidden="true">
+<div class="modal fade modal-diamond" id="modalCargo" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66) 0%, #f59e0b 100%) !important;">
-                <h5 class="modal-title font-secondary fw-bold text-white" id="modalCargoTitle">
-                    <i class="bi bi-cart-plus me-2"></i>Conceptos del Recibo
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header" style="background: var(--md-blue-deep, #0A2A66);">
+                <h5 class="modal-title plus-jakarta fw-bold text-white">
+                    <i class="bi bi-cart-plus me-2" style="color: var(--md-cyan-ia, #18D1E6);"></i>Catálogo y Conceptos
                 </h5>
                 <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" style="background: var(--md-white-clinical, #F8FBFF);">
-                <div class="row g-3">
+            <div class="modal-body bg-light">
+                <div class="row g-4">
                     <!-- Columna Izquierda: Catálogo -->
                     <div class="col-lg-7">
                         <!-- Entrada manual -->
-                        <div class="bento-card p-3 mb-2" style="border-radius: 12px;">
-                            <label class="kpi-label mb-2">Entrada Manual</label>
-                            <div class="input-group input-group-sm">
-                                <input type="text" id="manual_nombre" class="form-control" placeholder="Concepto (ej. Consulta General)" style="border-color: var(--md-gray-soft, #D9E2EC); font-family: 'Plus Jakarta Sans', sans-serif;">
-                                <span class="input-group-text fw-bold" style="background: var(--md-white-clinical, #F8FBFF); border-color: var(--md-gray-soft, #D9E2EC); color: var(--md-blue-deep, #0A2A66);">\$</span>
-                                <input type="number" id="manual_precio" class="form-control" style="max-width: 90px; border-color: var(--md-gray-soft, #D9E2EC);" placeholder="0.00" step="0.01" min="0">
-                                <button onclick="agregarCargoManual()" class="btn btn-sm px-3 fw-bold" style="background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66), var(--md-blue-medical, #124A9E)); color: white; border: none;">
-                                    <i class="bi bi-plus-lg"></i>
-                                </button>
+                        <div class="card-medentia p-3 mb-3 bg-white rounded-4 border-0 shadow-sm">
+                            <label class="fw-bold text-muted small mb-2 text-uppercase"><i class="bi bi-keyboard text-primary me-1"></i>Cargo Manual / Libre</label>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-7">
+                                    <div class="form-floating diamond-input-armor rounded-3 bg-light">
+                                        <input type="text" id="manual_nombre" class="form-control border-0 bg-transparent shadow-none" placeholder="Concepto">
+                                        <label for="manual_nombre" class="fw-bold text-muted">Descripción del concepto</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-floating diamond-input-armor rounded-3 bg-light">
+                                        <input type="number" id="manual_precio" class="form-control border-0 bg-transparent shadow-none" placeholder="0.00" step="0.01" min="0">
+                                        <label for="manual_precio" class="fw-bold text-muted">Precio ($)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <button onclick="agregarCargoManual()" class="btn btn-primary h-100 w-100 rounded-3 d-flex align-items-center justify-content-center shadow-sm" title="Añadir libre">
+                                        <i class="bi bi-plus-lg fs-4"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Buscador catálogo -->
-                        <div class="position-relative mb-2">
-                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 small" style="color: var(--md-cyan-ia, #18D1E6);"></i>
-                            <input type="text" id="buscadorCatalogo" class="form-control form-control-sm ps-4 py-2 rounded-pill border-0 shadow-sm" placeholder="Buscar en catálogo de servicios y productos..." style="background: white; font-family: 'Plus Jakarta Sans', sans-serif;" oninput="filtrarCatalogo()" onkeyup="filtrarCatalogo()">
+                        <div class="position-relative mb-3 diamond-input-armor rounded-pill p-1 shadow-sm bg-white">
+                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-primary"></i>
+                            <input type="text" id="buscadorCatalogo" class="form-control form-control-lg border-0 bg-transparent shadow-none ps-5 plus-jakarta" placeholder="Buscar producto o servicio..." oninput="filtrarCatalogo()" onkeyup="filtrarCatalogo()">
                         </div>
 
                         <!-- Tabla catálogo -->
-                        <div class="table-responsive shadow-sm" style="max-height: 300px; overflow-y: auto; border-radius: 10px; border: 1px solid var(--md-gray-soft, #D9E2EC);">
-                            <table class="table table-hover table-sm align-middle mb-0" style="background: white;">
-                                <thead style="background: var(--md-white-clinical, #F8FBFF); position: sticky; top: 0; z-index: 1;">
+                        <div class="table-responsive rounded-4 shadow-sm bg-white" style="max-height: 350px; overflow-y: auto; border: 1px solid rgba(25,183,165,0.2);">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light sticky-top" style="z-index: 1;">
                                     <tr>
-                                        <th class="ps-3 py-2" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--md-text-secondary, #486581); border-bottom: 2px solid var(--md-gray-soft, #D9E2EC);">Concepto</th>
-                                        <th class="text-end py-2" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--md-text-secondary, #486581); border-bottom: 2px solid var(--md-gray-soft, #D9E2EC);">Precio</th>
-                                        <th style="width: 60px; border-bottom: 2px solid var(--md-gray-soft, #D9E2EC);"></th>
+                                        <th class="ps-4 py-3 text-muted text-uppercase small fw-bold">Concepto en Catálogo</th>
+                                        <th class="text-end py-3 text-muted text-uppercase small fw-bold">Precio</th>
+                                        <th style="width: 80px;" class="py-3"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="tablaCatalogo">
@@ -333,18 +335,19 @@ print <<"HTML";
 
                     <!-- Columna Derecha: Carrito -->
                     <div class="col-lg-5">
-                        <div class="bento-card p-3 h-100 d-flex flex-column" style="border-radius: 12px; background: white;">
-                            <h6 class="fw-bold mb-2" style="font-family: 'Plus Jakarta Sans', sans-serif; color: var(--md-blue-deep, #0A2A66); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="bi bi-cart3 me-1" style="color: var(--md-cyan-ia, #18D1E6);"></i>Resumen del Cargo
+                        <div class="card-medentia p-3 h-100 d-flex flex-column bg-white rounded-4 border-0 shadow-sm">
+                            <h6 class="fw-bold plus-jakarta mb-3 text-primary text-uppercase border-bottom pb-2">
+                                <i class="bi bi-basket2 me-2"></i>Carrito Actual
                             </h6>
-                            <div id="listaCarrito" class="flex-grow-1 d-flex flex-column gap-2 overflow-auto mb-3" style="max-height: 280px;"></div>
-                            <div class="p-3 rounded-4 mt-auto" style="background: var(--md-white-clinical, #F8FBFF); border: 1px solid var(--md-gray-soft, #D9E2EC);">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="kpi-label m-0" style="font-size: 0.7rem;">TOTAL</span>
-                                    <span class="fw-bold m-0" id="carritoTotal" style="font-size: 1.5rem; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--md-blue-deep, #0A2A66);">\$0.00</span>
+                            <div id="listaCarrito" class="flex-grow-1 d-flex flex-column gap-2 overflow-auto mb-3" style="max-height: 320px;"></div>
+                            
+                            <div class="card-medentia-aura p-3 rounded-4 mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-muted fw-bold small text-uppercase">Total a Cobrar</span>
+                                    <span class="fw-bold fs-2 plus-jakarta text-primary" id="carritoTotal">\$0.00</span>
                                 </div>
-                                <button class="btn btn-sm w-100 py-2 fw-bold rounded-3 shadow" id="btnProcesarCargo" onclick="bootstrap.Modal.getInstance(document.getElementById('modalCargo')).hide()" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.3px; transition: all 0.3s ease;">
-                                    <i class="bi bi-check-circle me-1"></i>CONFIRMAR CONCEPTOS
+                                <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow-sm plus-jakarta fs-6" id="btnProcesarCargo" onclick="bootstrap.Modal.getInstance(document.getElementById('modalCargo')).hide()">
+                                    <i class="bi bi-check-circle me-2"></i>CONFIRMAR Y CERRAR
                                 </button>
                             </div>
                         </div>
