@@ -448,21 +448,30 @@ print <<'JS';
                 if (res.ok && res.resultados && res.resultados.length > 0) {
                     console.log("Resultados encontrados:", res.resultados.length);
                     let html = '';
-                    res.resultados.forEach((emp, i) => {
-                        let isChecked = i === 0 ? 'checked' : '';
-                        if(i===0) seleccionarEmpleadoEstado(emp.id, emp.nombre); // Select first auto
-                        html += `
-                        <div class="form-check border rounded-3 p-2 mb-1 bg-light cr-cart-item">
-                            <input class="form-check-input ms-0 mt-1" type="radio" name="empSeleccionado" id="empSel${emp.id}_${i}" value="${emp.id}" ${isChecked} onchange="seleccionarEmpleadoEstado('${emp.id}', '${emp.nombre.replace(/'/g, "&apos;")}')">
-                            <label class="form-check-label w-100 ps-2" for="empSel${emp.id}_${i}" style="cursor:pointer; font-size: 0.8rem;">
-                                <div class="fw-bold text-dark">${emp.nombre}</div>
-                                <div class="text-muted" style="font-size:0.7rem;">Relación: ${emp.relacion}</div>
-                            </label>
-                        </div>`;
-                    });
-                    $('#resultadosEmpleado').html(html);
-                    pacienteTipoActual = 'estado';
-                    $('#selPaciente').val(null).trigger('change.select2');
+                    try {
+                        res.resultados.forEach((emp, i) => {
+                            let isChecked = i === 0 ? 'checked' : '';
+                            let nombreStr = emp.nombre ? String(emp.nombre) : '';
+                            let safeNombre = nombreStr.replace(/'/g, "&apos;");
+                            if(i===0) seleccionarEmpleadoEstado(emp.id, nombreStr); // Select first auto
+                            
+                            html += `
+                            <div class="form-check border rounded-3 p-2 mb-1 bg-light cr-cart-item">
+                                <input class="form-check-input ms-0 mt-1" type="radio" name="empSeleccionado" id="empSel${emp.id}_${i}" value="${emp.id}" ${isChecked} onchange="seleccionarEmpleadoEstado('${emp.id}', '${safeNombre}')">
+                                <label class="form-check-label w-100 ps-2" for="empSel${emp.id}_${i}" style="cursor:pointer; font-size: 0.8rem;">
+                                    <div class="fw-bold text-dark">${nombreStr}</div>
+                                    <div class="text-muted" style="font-size:0.7rem;">Relación: ${emp.relacion}</div>
+                                </label>
+                            </div>`;
+                        });
+                        console.log("HTML generado:", html);
+                        $('#resultadosEmpleado').html(html);
+                        pacienteTipoActual = 'estado';
+                        $('#selPaciente').val(null).trigger('change.select2');
+                    } catch (err) {
+                        console.error("Error procesando resultados:", err);
+                        $('#resultadosEmpleado').html('<div class="alert alert-danger py-2 small m-0">Error procesando los resultados. Revisa la consola.</div>');
+                    }
                 } else {
                     $('#resultadosEmpleado').html(`<div class="alert alert-warning py-2 text-center small m-0 shadow-sm border-0">No se encontraron resultados para el número.</div>`);
                 }
