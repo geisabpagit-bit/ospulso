@@ -173,7 +173,7 @@ print <<"HTML";
         <!-- Columna Izquierda: Formulario -->
         <div class="col-lg-8">
             <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm" style="border-radius: 1.5rem;">
-                <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-person-lines-fill me-2" style="color: var(--md-teal-clinical);"></i>Caja Rápida</h5>
+                <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-person-lines-fill me-2" style="color: var(--md-teal-clinical);"></i>test</h5>
                 
                 <form id="frmCajaRapida" onsubmit="return false;">
                     
@@ -415,6 +415,7 @@ print <<'JS';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        console.log("hola");
         document.body.appendChild(document.getElementById('modalCargo'));
         initSelect2Paciente();
         cargarCatalogo();
