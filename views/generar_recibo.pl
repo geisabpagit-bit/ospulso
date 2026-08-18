@@ -267,7 +267,7 @@ print <<"HTML";
                     </button>
                 </div>
                 
-                <div id="cartContainer" class="d-flex flex-column flex-grow-1 overflow-auto mb-3" style="min-height: 200px;">
+                <div id="cartContainer" class="d-flex flex-column overflow-auto mb-3 pe-2" style="height: 250px;">
                     <div class="text-center text-muted small py-4" id="cartEmpty">
                         Ningún concepto agregado
                     </div>
@@ -277,7 +277,7 @@ print <<"HTML";
                 
                 <div class="d-flex justify-content-between text-muted small mb-2">
                     <span class="fw-bold">Tax (IVA 0%)</span>
-                    <span>$0.00</span>
+                    <span>\$0.00</span>
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -319,7 +319,7 @@ print <<"HTML";
                                 <div class="col-md-3">
                                     <div class="form-floating diamond-input-armor rounded-3 bg-light">
                                         <input type="number" id="manual_precio" class="form-control border-0 bg-transparent shadow-none" placeholder="0.00" step="0.01" min="0">
-                                        <label for="manual_precio" class="fw-bold text-muted">Precio ($)</label>
+                                        <label for="manual_precio" class="fw-bold text-muted">Precio (\(\$\))</label>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -332,8 +332,8 @@ print <<"HTML";
 
                         <!-- Buscador catálogo -->
                         <div class="position-relative mb-3 diamond-input-armor rounded-pill p-1 shadow-sm bg-white">
-                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-primary"></i>
-                            <input type="text" id="buscadorCatalogo" class="form-control form-control-lg border-0 bg-transparent shadow-none ps-5 plus-jakarta" placeholder="Buscar producto o servicio..." oninput="filtrarCatalogo()" onkeyup="filtrarCatalogo()">
+                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-primary"></i>
+                            <input type="text" id="buscadorCatalogo" class="form-control form-control-lg border-0 bg-transparent shadow-none plus-jakarta" style="padding-left: 2.8rem;" placeholder="Buscar producto o servicio..." oninput="filtrarCatalogo()" onkeyup="filtrarCatalogo()">
                         </div>
 
                         <!-- Tabla catálogo -->
@@ -636,12 +636,12 @@ print <<'JS';
             
             // Main view (Right column cart)
             htmlMain += `
-                <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-1 bg-white border shadow-sm" style="border-color: var(--md-gray-soft, #D9E2EC) !important;">
-                    <div>
-                        <div class="fw-bold" style="font-size: 0.85rem; color: var(--md-blue-deep, #0A2A66);">${item.nombre}</div>
+                <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-1 bg-white border shadow-sm" style="border-color: var(--md-gray-soft, #D9E2EC) !important; gap: 0.5rem;">
+                    <div style="min-width: 0;">
+                        <div class="fw-bold text-truncate" style="font-size: 0.85rem; color: var(--md-blue-deep, #0A2A66);">${item.nombre}</div>
                         <div class="text-muted" style="font-size: 0.75rem;">${item.cantidad} x ${formatCurrency(item.precio)}</div>
                     </div>
-                    <div class="fw-bold text-success" style="font-size: 0.9rem;">
+                    <div class="fw-bold text-success text-end flex-shrink-0" style="font-size: 0.9rem;">
                         ${formatCurrency(sub)}
                     </div>
                 </div>
