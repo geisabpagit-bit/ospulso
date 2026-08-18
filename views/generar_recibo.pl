@@ -118,7 +118,7 @@ if ($has_custom_medicos) {
     
     foreach my $e (@$espe_regs) {
         next unless scalar(@$e) >= 2;
-        my $sel = ($e->[1] eq 'Medicina General') ? 'selected' : '';
+        my $sel = ($e->[1] =~ /^MEDICINA GENERAL$/i) ? 'selected' : '';
         $espe_options .= "<option value='$e->[0]' $sel>$e->[1]</option>";
     }
     
@@ -151,12 +151,23 @@ print <<"HTML";
         padding: 0.75rem 1rem !important;
         background: #F8FBFF !important;
     }
-    .select2-container--bootstrap-5 .select2-selection:focus {
+    /* Unificar estilos de Select2, inputs y contenedores de resultados */
+    .select2-container--bootstrap-5 .select2-selection,
+    .custom-input-caja {
+        border: 1px solid #e9ecef !important;
+        border-radius: 1rem !important;
+        padding: 0.75rem 1rem !important;
+        background: #F8FBFF !important;
+        font-family: inherit !important;
+        transition: all 0.2s ease-in-out;
+    }
+    .select2-container--bootstrap-5 .select2-selection:focus,
+    .custom-input-caja:focus {
         border-color: #19B7A5 !important;
         background: white !important;
         box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.15) !important;
+        outline: none !important;
     }
-    /* Eliminar el borde feo del main input premium para integrarlo a select2 visual */
     .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
         color: #0A2A66 !important;
         font-weight: 600 !important;
@@ -166,6 +177,38 @@ print <<"HTML";
     .select2-container--bootstrap-5 .select2-selection--single {
         height: auto !important;
     }
+    
+    /* Grupo de input acoplado para Número de empleado */
+    .input-group-caja {
+        display: flex;
+        border: 1px solid #e9ecef;
+        border-radius: 1rem;
+        background: #F8FBFF;
+        transition: all 0.2s ease-in-out;
+    }
+    .input-group-caja:focus-within {
+        border-color: #19B7A5;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.15);
+    }
+    .input-group-caja .form-control {
+        border: none !important;
+        background: transparent !important;
+        padding: 0.75rem 1rem !important;
+        box-shadow: none !important;
+        font-weight: 600 !important;
+        color: #0A2A66 !important;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    .input-group-caja .btn {
+        border: none !important;
+        border-top-right-radius: 1rem !important;
+        border-bottom-right-radius: 1rem !important;
+        background: var(--md-blue-deep, #0A2A66) !important;
+        color: white !important;
+        padding: 0 1.5rem !important;
+    }
 </style>
 
 <main class="container-fluid container-mobile-flush pt-4 px-lg-4 pb-5 animate__animated animate__fadeIn">
@@ -173,7 +216,7 @@ print <<"HTML";
         <!-- Columna Izquierda: Formulario -->
         <div class="col-lg-8">
             <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm" style="border-radius: 1.5rem;">
-                <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-person-lines-fill me-2" style="color: var(--md-teal-clinical);"></i>test</h5>
+                <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-person-lines-fill me-2" style="color: var(--md-teal-clinical);"></i>Caja Rápida</h5>
                 
                 <form id="frmCajaRapida" onsubmit="return false;">
                     
@@ -188,11 +231,11 @@ print <<"HTML";
                         
                         <!-- Paciente Público -->
                         <div class="col-md-6">
-                            <div class="mb-4 diamond-input-armor rounded-3">
+                            <div class="mb-4 diamond-input-armor">
                                 <label class="small fw-bold text-muted mb-2 ps-1">N&uacute;mero Empleado (Estado)</label>
-                                <div class="input-group">
-                                    <input type="number" id="iptNumEmpleado" class="form-control py-2 fw-bold border-0 bg-transparent shadow-none" style="border-top-right-radius:0 !important; border-bottom-right-radius:0 !important;" placeholder="Ej. 12345" onkeypress="if(event.key==='Enter') buscarEmpleadoEstado()">
-                                    <button class="btn px-4 m-0" style="background: var(--md-blue-deep, #0A2A66); color: white; border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border:none;" type="button" onclick="buscarEmpleadoEstado()"><i class="bi bi-search"></i></button>
+                                <div class="input-group-caja">
+                                    <input type="number" id="iptNumEmpleado" class="form-control" placeholder="Ej. 12345" onkeypress="if(event.key==='Enter') buscarEmpleadoEstado()">
+                                    <button class="btn" type="button" onclick="buscarEmpleadoEstado()"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -415,10 +458,13 @@ print <<'JS';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        console.log("hola");
         document.body.appendChild(document.getElementById('modalCargo'));
         initSelect2Paciente();
         cargarCatalogo();
+        
+        if (document.getElementById('selEspecialidadCustom')) {
+            filtrarMedicosCustom();
+        }
     });
 
     let pacienteEstadoSeleccionado = { id: '', nombre: '' };
@@ -456,12 +502,14 @@ print <<'JS';
                             let safeNombre = nombreStr.replace(/'/g, "&apos;");
                             if(i===0) seleccionarEmpleadoEstado(emp.id, nombreStr); // Select first auto
                             
+                            let badgeText = emp.relacion.toLowerCase() === 'empleado' ? 'Empleado' : emp.relacion;
+                            
                             html += `
-                            <div class="form-check border rounded-3 p-2 mb-1 bg-light cr-cart-item">
-                                <input class="form-check-input ms-0 mt-1" type="radio" name="empSeleccionado" id="empSel${emp.id}_${i}" value="${emp.id}" ${isChecked} onchange="seleccionarEmpleadoEstado('${emp.id}', '${safeNombre}')">
-                                <label class="form-check-label w-100 ps-2" for="empSel${emp.id}_${i}" style="cursor:pointer; font-size: 0.8rem;">
-                                    <div class="fw-bold text-dark">${nombreStr}</div>
-                                    <div class="text-muted" style="font-size:0.7rem;">Relación: ${emp.relacion}</div>
+                            <div class="form-check custom-input-caja p-2 mb-2 d-flex align-items-center">
+                                <input class="form-check-input ms-0 me-3" style="width:1.2rem; height:1.2rem;" type="radio" name="empSeleccionado" id="empSel${emp.id}_${i}" value="${emp.id}" ${isChecked} onchange="seleccionarEmpleadoEstado('${emp.id}', '${safeNombre}')">
+                                <label class="form-check-label w-100 mb-0" for="empSel${emp.id}_${i}" style="cursor:pointer; display:flex; align-items:center;">
+                                    <div class="fw-bold text-dark flex-grow-1">${nombreStr}</div>
+                                    <span class="badge bg-secondary rounded-pill px-3">${badgeText}</span>
                                 </label>
                             </div>`;
                         });
@@ -474,7 +522,7 @@ print <<'JS';
                         $('#resultadosEmpleado').html('<div class="alert alert-danger py-2 small m-0">Error procesando los resultados. Revisa la consola.</div>');
                     }
                 } else {
-                    $('#resultadosEmpleado').html(`<div class="alert alert-warning py-2 text-center small m-0 shadow-sm border-0">No se encontraron resultados para el número.</div>`);
+                    $('#resultadosEmpleado').html(`<div class="alert alert-warning py-3 text-center small m-0 shadow-sm border-0"><p class="mb-2"><i class="bi bi-exclamation-triangle fs-4 d-block mb-1"></i>No se encontraron resultados para el número de empleado ingresado.</p><button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm mt-2" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-person-plus"></i> Registrar Nuevo Empleado / Beneficiario</button></div>`);
                 }
             },
             error: function() {
@@ -503,6 +551,11 @@ print <<'JS';
                 processResults: function (data) {
                     return { results: data.map(function(item) { return { id: item.id, text: item.label }; }) };
                 }
+            },
+            language: {
+                inputTooShort: function() { return "Por favor ingresa 2 o más caracteres"; },
+                noResults: function() { return "No se encontraron resultados"; },
+                searching: function() { return "Buscando..."; }
             }
         });
     }
