@@ -140,67 +140,90 @@ print <<"HTML";
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 <link rel="stylesheet" href="../css/sdm_mobile_standards.css" />
-<link rel="stylesheet" href="../css/caja_rapida.css" />
+<link rel="stylesheet" href="../css/expediente_completo.css?v=$^T" />
+
+<style>
+    /* Soporte adicional para Select2 y Diamond Style */
+    .select2-container--bootstrap-5 .select2-selection {
+        border: 1px solid var(--md-cyan-ia, #19B7A5) !important;
+        border-radius: 1rem !important;
+        padding: 0.75rem 1rem !important;
+        background: #F8FBFF !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection:focus {
+        border-color: #19B7A5 !important;
+        background: white !important;
+        box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.15) !important;
+    }
+    /* Eliminar el borde feo del main input premium para integrarlo a select2 visual */
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        color: #0A2A66 !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        line-height: 1.5 !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single {
+        height: auto !important;
+    }
+</style>
 
 <main class="container-fluid container-mobile-flush pt-4 px-lg-4 pb-5 animate__animated animate__fadeIn">
-    <div class="row">
+    <div class="row g-4 mb-4">
         <!-- Columna Izquierda: Formulario -->
-        <div class="col-12 col-lg-8 pe-lg-5 mb-4">
-            <form id="frmCajaRapida" onsubmit="return false;">
+        <div class="col-lg-8">
+            <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm" style="border-radius: 1.5rem;">
+                <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-person-lines-fill me-2" style="color: var(--md-teal-clinical);"></i>Caja Rápida</h5>
                 
-                <!-- 1. Paciente -->
-                <div class="mb-1">
-                    <div class="cr-section-title">1. Paciente</div>
-                    <div class="d-flex gap-2">
-                        <div class="cr-box flex-grow-1">
-                            <div class="cr-icon"><i class="bi bi-person"></i></div>
-                            <div class="cr-body">
-                                <select id="selPaciente" class="cr-select" onchange="seleccionarPacientePrivado()"></select>
+                <form id="frmCajaRapida" onsubmit="return false;">
+                    
+                    <div class="row g-3">
+                        <!-- 1. Paciente Privado -->
+                        <div class="col-md-7">
+                            <div class="mb-4 diamond-input-armor">
+                                <label class="small fw-bold text-muted mb-2 ps-1">Paciente Privado</label>
+                                <select id="selPaciente" class="form-select border-0 shadow-none fw-bold" onchange="seleccionarPacientePrivado()"></select>
                             </div>
                         </div>
-                        <div class="cr-box cr-box-sm">
-                            <div class="cr-body">
-                                <input type="number" id="iptNumEmpleado" class="cr-input text-center" placeholder="Núm Emp" onkeypress="if(event.key==='Enter') buscarEmpleadoEstado()">
+                        
+                        <!-- Paciente Público -->
+                        <div class="col-md-5">
+                            <div class="mb-4 diamond-input-armor">
+                                <label class="small fw-bold text-muted mb-2 ps-1">N&uacute;mero Empleado (Estado)</label>
+                                <div class="input-group">
+                                    <input type="number" id="iptNumEmpleado" class="form-control py-3 fw-bold input-premium border-0" style="border-top-right-radius:0 !important; border-bottom-right-radius:0 !important;" placeholder="Ej. 12345" onkeypress="if(event.key==='Enter') buscarEmpleadoEstado()">
+                                    <button class="btn px-4 m-0" style="background: var(--md-cyan-ia, #19B7A5); color: white; border-top-right-radius: 1rem; border-bottom-right-radius: 1rem; border:none;" type="button" onclick="buscarEmpleadoEstado()"><i class="bi bi-search"></i></button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- Contenedor oculto para resultados de búsqueda de empleados -->
-                    <div id="resultadosEmpleado" class="mt-2"></div>
-                </div>
+                        
+                        <!-- Resultados de búsqueda de empleados (oculto por defecto) -->
+                        <div class="col-12" id="resultadosEmpleadoContainer" style="display:none;">
+                            <div id="resultadosEmpleado" class="mb-3"></div>
+                        </div>
 
 HTML
 
 if ($has_custom_medicos) {
 print <<"HTML";
-                <hr class="cr-divider">
-                
-                <!-- 2. Especialidad -->
-                <div class="mb-1">
-                    <div class="cr-section-title">2. Especialidad</div>
-                    <div class="cr-box">
-                        <div class="cr-icon"><i class="bi bi-heart-pulse"></i></div>
-                        <div class="cr-body">
-                            <div class="cr-label">Especialidad</div>
-                            <select id="selEspecialidadCustom" class="cr-select" onchange="filtrarMedicosCustom()" required>
-                                $espe_options
-                            </select>
+                        <!-- 2. Especialidad -->
+                        <div class="col-md-6">
+                            <div class="mb-4 diamond-input-armor">
+                                <label class="small fw-bold text-muted mb-2 ps-1">Especialidad</label>
+                                <select id="selEspecialidadCustom" class="form-select py-3 fw-bold input-premium border-0" onchange="filtrarMedicosCustom()" required>
+                                    $espe_options
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                </div>
 HTML
 }
 
 print <<"HTML";
-                <hr class="cr-divider">
-                
-                <!-- 3. Médico Tratante -->
-                <div class="mb-1">
-                    <div class="cr-section-title">3. Médico Tratante</div>
-                    <div class="cr-box">
-                        <div class="cr-icon"><i class="bi bi-person-badge"></i></div>
-                        <div class="cr-body">
-                            <div class="cr-label">Médico Tratante</div>
-                            <select id="selMedico" class="cr-select" required>
+                        
+                        <!-- 3. Médico Tratante -->
+                        <div class="col-md-6">
+                            <div class="mb-4 diamond-input-armor">
+                                <label class="small fw-bold text-muted mb-2 ps-1">Médico Tratante</label>
+                                <select id="selMedico" class="form-select fw-bold border-0 shadow-none" required>
 HTML
 
 if ($has_custom_medicos) {
@@ -210,69 +233,60 @@ if ($has_custom_medicos) {
 }
 
 print <<"HTML";
-                            </select>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                
-                <hr class="cr-divider">
-                
-                <!-- 4. Método de Pago -->
-                <div class="mb-1">
-                    <div class="cr-section-title">4. Método de Pago</div>
-                    <div class="cr-box">
-                        <div class="cr-icon"><i class="bi bi-credit-card"></i></div>
-                        <div class="cr-body">
-                            <div class="cr-label">Método de Pago</div>
-                            <select id="selMetodoPago" class="cr-select">
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Tarjeta de Debito">Tarjeta de Débito</option>
-                                <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
-                                <option value="Transferencia">Transferencia (SPEI)</option>
-                                <option value="Convenio / Aseguradora">Convenio / Aseguradora</option>
-                                <option value="Cortesía">Cortesía (Sin cobro)</option>
-                            </select>
+                        
+                        <!-- 4. Método de Pago -->
+                        <div class="col-md-12">
+                            <div class="mb-4 diamond-input-armor">
+                                <label class="small fw-bold text-muted mb-2 ps-1">Método de Pago</label>
+                                <select id="selMetodoPago" class="form-select py-3 fw-bold input-premium border-0" style="max-width: 50%;">
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Tarjeta de Debito">Tarjeta de Débito</option>
+                                    <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
+                                    <option value="Transferencia">Transferencia (SPEI)</option>
+                                    <option value="Convenio / Aseguradora">Convenio / Aseguradora</option>
+                                    <option value="Cortesía">Cortesía (Sin cobro)</option>
+                                </select>
+                            </div>
                         </div>
+                        
                     </div>
-                </div>
-                
-            </form>
+                </form>
+            </div>
         </div>
         
         <!-- Columna Derecha: Resumen de Cobro -->
-        <div class="col-12 col-lg-4">
-            <div class="cr-cart-container">
-                <div class="cr-cart-header">
-                    Resumen de Cobro
-                </div>
-                
-                <div class="cr-cart-title">
-                    <span>Conceptos a Cobrar</span>
-                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 plus-jakarta fw-bold text-primary" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()">
-                        <i class="bi bi-plus-circle me-1"></i>Agregar
+        <div class="col-lg-4">
+            <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm d-flex flex-column" style="border-radius: 1.5rem;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-teal-clinical);"></i>Resumen</h5>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 fw-bold" style="color: var(--md-cyan-ia);" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()">
+                        <i class="bi bi-plus-circle me-1"></i> Agregar
                     </button>
                 </div>
                 
-                <div id="cartContainer" class="d-flex flex-column gap-2" style="min-height: 80px;">
+                <div id="cartContainer" class="d-flex flex-column flex-grow-1 overflow-auto mb-3" style="min-height: 200px;">
                     <div class="text-center text-muted small py-4" id="cartEmpty">
                         Ningún concepto agregado
                     </div>
                 </div>
                 
-                <div class="cr-divider"></div>
+                <hr class="border-light mt-auto">
                 
-                <div class="cr-cart-item text-muted">
-                    <div class="cr-cart-item-name">Tax (IVA 0%)</div>
-                    <div class="cr-cart-item-price">$0.00</div>
+                <div class="d-flex justify-content-between text-muted small mb-2">
+                    <span class="fw-bold">Tax (IVA 0%)</span>
+                    <span>$0.00</span>
                 </div>
                 
-                <div class="cr-cart-total-row">
-                    <div class="cr-cart-total-label">TOTAL A PAGAR</div>
-                    <div class="cr-cart-total-value" id="cartTotalText">\$0.00</div>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="fw-bold text-muted" style="letter-spacing: 1px;">TOTAL A PAGAR</span>
+                    <span class="fw-black fs-3" style="color: var(--md-blue-deep);" id="cartTotalText">\$0.00</span>
                 </div>
                 
-                <button type="button" class="btn btn-institucional w-100" onclick="mostrarReciboPrevio()">
-                    <i class="bi bi-check2 me-2"></i> Confirmar y Generar Recibo
+                <button type="button" class="btn btn-medentia rounded-pill py-3 fw-bold w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm" style="background: var(--md-blue-deep); color: white;" onclick="mostrarReciboPrevio()">
+                    <i class="bi bi-check2-circle fs-5"></i> Emitir Recibo
                 </button>
             </div>
         </div>
@@ -433,6 +447,7 @@ print <<'JS';
     function seleccionarPacientePrivado() {
         pacienteTipoActual = 'privado';
         $('#resultadosEmpleado').html('');
+        $('#resultadosEmpleadoContainer').hide();
         $('#iptNumEmpleado').val('');
         pacienteEstadoSeleccionado = { id: '', nombre: '' };
     }
@@ -451,6 +466,7 @@ print <<'JS';
             return;
         }
         
+        $('#resultadosEmpleadoContainer').show();
         $('#resultadosEmpleado').html('<div class="spinner-border text-primary spinner-border-sm"></div> Buscando...');
         $.ajax({
             url: '../api/buscar_familia_empleado.pl',
@@ -620,12 +636,12 @@ print <<'JS';
             
             // Main view (Right column cart)
             htmlMain += `
-                <div class="cr-cart-item">
-                    <div class="cr-cart-item-name">
-                        <div class="text-truncate" style="max-width: 200px;">${item.nombre}</div>
-                        <div style="font-size: 0.7rem; color:#94a3b8;">${item.cantidad} x ${formatCurrency(item.precio)}</div>
+                <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-1 bg-white border shadow-sm" style="border-color: var(--md-gray-soft, #D9E2EC) !important;">
+                    <div>
+                        <div class="fw-bold" style="font-size: 0.85rem; color: var(--md-blue-deep, #0A2A66);">${item.nombre}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">${item.cantidad} x ${formatCurrency(item.precio)}</div>
                     </div>
-                    <div class="cr-cart-item-price">
+                    <div class="fw-bold text-success" style="font-size: 0.9rem;">
                         ${formatCurrency(sub)}
                     </div>
                 </div>
