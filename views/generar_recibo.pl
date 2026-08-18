@@ -118,7 +118,8 @@ if ($has_custom_medicos) {
     
     foreach my $e (@$espe_regs) {
         next unless scalar(@$e) >= 2;
-        $espe_options .= "<option value='$e->[0]'>$e->[1]</option>";
+        my $sel = ($e->[1] eq 'Medicina General') ? 'selected' : '';
+        $espe_options .= "<option value='$e->[0]' $sel>$e->[1]</option>";
     }
     
     my $med_regs = leer_tabla($archivo_medicos_custom);
@@ -178,20 +179,20 @@ print <<"HTML";
                     
                     <div class="row g-3">
                         <!-- 1. Paciente Privado -->
-                        <div class="col-md-7">
-                            <div class="mb-4 diamond-input-armor">
+                        <div class="col-md-6">
+                            <div class="mb-4 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Paciente Privado</label>
                                 <select id="selPaciente" class="form-select border-0 shadow-none fw-bold" onchange="seleccionarPacientePrivado()"></select>
                             </div>
                         </div>
                         
                         <!-- Paciente Público -->
-                        <div class="col-md-5">
-                            <div class="mb-4 diamond-input-armor">
+                        <div class="col-md-6">
+                            <div class="mb-4 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">N&uacute;mero Empleado (Estado)</label>
                                 <div class="input-group">
-                                    <input type="number" id="iptNumEmpleado" class="form-control py-3 fw-bold input-premium border-0" style="border-top-right-radius:0 !important; border-bottom-right-radius:0 !important;" placeholder="Ej. 12345" onkeypress="if(event.key==='Enter') buscarEmpleadoEstado()">
-                                    <button class="btn px-4 m-0" style="background: var(--md-blue-deep, #0A2A66); color: white; border-top-right-radius: 1rem; border-bottom-right-radius: 1rem; border:none;" type="button" onclick="buscarEmpleadoEstado()"><i class="bi bi-search"></i></button>
+                                    <input type="number" id="iptNumEmpleado" class="form-control py-2 fw-bold border-0 bg-transparent shadow-none" style="border-top-right-radius:0 !important; border-bottom-right-radius:0 !important;" placeholder="Ej. 12345" onkeypress="if(event.key==='Enter') buscarEmpleadoEstado()">
+                                    <button class="btn px-4 m-0" style="background: var(--md-blue-deep, #0A2A66); color: white; border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem; border:none;" type="button" onclick="buscarEmpleadoEstado()"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -207,9 +208,9 @@ if ($has_custom_medicos) {
 print <<"HTML";
                         <!-- 2. Especialidad -->
                         <div class="col-md-6">
-                            <div class="mb-4 diamond-input-armor">
+                            <div class="mb-4 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Especialidad</label>
-                                <select id="selEspecialidadCustom" class="form-select py-3 fw-bold input-premium border-0" onchange="filtrarMedicosCustom()" required>
+                                <select id="selEspecialidadCustom" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="filtrarMedicosCustom()" required>
                                     $espe_options
                                 </select>
                             </div>
@@ -221,13 +222,13 @@ print <<"HTML";
                         
                         <!-- 3. Médico Tratante -->
                         <div class="col-md-6">
-                            <div class="mb-4 diamond-input-armor">
+                            <div class="mb-4 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Médico Tratante</label>
-                                <select id="selMedico" class="form-select fw-bold border-0 shadow-none" required>
+                                <select id="selMedico" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" required>
 HTML
 
 if ($has_custom_medicos) {
-    print "<option value=''>-- Selecciona Especialidad --</option>";
+    print "<option value=''>-- Selec. Médico --</option>";
 } else {
     print $medicos_options;
 }
@@ -239,9 +240,9 @@ print <<"HTML";
                         
                         <!-- 4. Método de Pago -->
                         <div class="col-md-12">
-                            <div class="mb-4 diamond-input-armor">
+                            <div class="mb-4 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Método de Pago</label>
-                                <select id="selMetodoPago" class="form-select py-3 fw-bold input-premium border-0" style="max-width: 50%;">
+                                <select id="selMetodoPago" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" style="max-width: 50%;">
                                     <option value="Efectivo">Efectivo</option>
                                     <option value="Tarjeta de Debito">Tarjeta de Débito</option>
                                     <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
@@ -262,8 +263,8 @@ print <<"HTML";
             <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm d-flex flex-column" style="border-radius: 1.5rem;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-teal-clinical);"></i>Resumen</h5>
-                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 fw-bold" style="color: var(--md-cyan-ia);" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()">
-                        <i class="bi bi-plus-circle me-1"></i> Agregar
+                    <button type="button" class="btn btn-sm text-white px-3 py-1 fw-bold rounded-3 shadow-sm" style="background: var(--md-blue-deep, #0A2A66);" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()">
+                        <i class="bi bi-cart-plus me-1"></i> Agregar
                     </button>
                 </div>
                 
@@ -275,9 +276,12 @@ print <<"HTML";
                 
                 <hr class="border-light mt-auto">
                 
-                <div class="d-flex justify-content-between text-muted small mb-2">
-                    <span class="fw-bold">Tax (IVA 0%)</span>
-                    <span>\$0.00</span>
+                <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" id="chkIva" onchange="renderCart()">
+                        <label class="form-check-label fw-bold" style="cursor: pointer;" for="chkIva">Tax (IVA 16%)</label>
+                    </div>
+                    <span class="fw-bold text-dark" id="taxAmountText">\$0.00</span>
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -285,7 +289,7 @@ print <<"HTML";
                     <span class="fw-black fs-3" style="color: var(--md-blue-deep);" id="cartTotalText">\$0.00</span>
                 </div>
                 
-                <button type="button" class="btn btn-medentia rounded-pill py-3 fw-bold w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm" style="background: var(--md-blue-deep); color: white;" onclick="mostrarReciboPrevio()">
+                <button type="button" class="btn rounded-3 py-3 fw-bold w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm" style="background: var(--md-blue-deep); color: white;" onclick="mostrarReciboPrevio()">
                     <i class="bi bi-check2-circle fs-5"></i> Emitir Recibo
                 </button>
             </div>
@@ -703,7 +707,15 @@ print <<'JS';
         cModal.html(htmlModal);
         cMain.html(htmlMain);
         
-        let totalFmt = formatCurrency(total);
+        let iva = 0;
+        if ($('#chkIva').length && $('#chkIva').is(':checked')) {
+            iva = total * 0.16;
+        }
+        
+        let totalIvaText = iva > 0 ? formatCurrency(iva) : '\\$0.00';
+        $('#taxAmountText').text(totalIvaText);
+        
+        let totalFmt = formatCurrency(total + iva);
         $('#carritoTotal').text(totalFmt);
         $('#cartTotalText').text(totalFmt);
     }
@@ -741,7 +753,12 @@ print <<'JS';
             return Swal.fire('Atención', 'Agrega al menos un concepto a cobrar en el carrito.', 'warning');
         }
         
-        const total = cartItems.reduce((acc, it) => acc + (it.precio * it.cantidad), 0);
+        let total = cartItems.reduce((acc, it) => acc + (it.precio * it.cantidad), 0);
+        let iva = 0;
+        if ($('#chkIva').length && $('#chkIva').is(':checked')) {
+            iva = total * 0.16;
+            total += iva;
+        }
         const metodo = $('#selMetodoPago').val();
         
         const fechaHtml = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'short', day:'numeric' });
@@ -758,6 +775,9 @@ print <<'JS';
             const s = it.precio * it.cantidad;
             draftHtml += `<tr><td style="padding:8px; border-bottom:1px solid #e2e8f0;">${it.nombre}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:center;">${it.cantidad}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:right;">${formatCurrency(s)}</td></tr>`;
         });
+        if (iva > 0) {
+            draftHtml += `<tr><td colspan="2" style="padding:8px;text-align:right;font-size:14px;color:#666;">Tax (IVA 16%):</td><td style="padding:8px;text-align:right;font-size:14px;color:#666;">${formatCurrency(iva)}</td></tr>`;
+        }
         draftHtml += `<tr><td colspan="2" style="padding:8px;text-align:right;font-weight:bold;font-size:16px;">TOTAL PAGADO:</td><td style="padding:8px;text-align:right;font-weight:bold;font-size:16px;color:#10b981;">${formatCurrency(total)}</td></tr>`;
         draftHtml += `</table></body></html>`;
         
@@ -782,7 +802,12 @@ print <<'JS';
         
         const id_medico = $('#selMedico').val();
         const metodo = $('#selMetodoPago').val();
-        const total = cartItems.reduce((acc, it) => acc + (it.precio * it.cantidad), 0);
+        let total = cartItems.reduce((acc, it) => acc + (it.precio * it.cantidad), 0);
+        let con_iva = 0;
+        if ($('#chkIva').length && $('#chkIva').is(':checked')) {
+            total += (total * 0.16);
+            con_iva = 1;
+        }
         
         Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Emitiendo recibo, un momento...', showConfirmButton: false, timer: 2000 });
         
@@ -794,6 +819,7 @@ print <<'JS';
             form.append('caja_items_json', JSON.stringify(cartItems));
             form.append('caja_metodo_pago', metodo);
             form.append('caja_monto_abono', total);
+            form.append('caja_con_iva', con_iva);
             
             const req = await fetch('../api/guardar_recibo_rapido.pl', {
                 method: 'POST',
