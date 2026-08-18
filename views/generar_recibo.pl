@@ -521,60 +521,7 @@ print <<'JS';
         pacienteEstadoSeleccionado = { id: '', nombre: '' };
     }
     
-    function buscarEmpleadoEstado() {
-        const num = $('#iptNumEmpleado').val().trim();
-        if(!num) return;
-        
-        if (!HAS_PACIENTES_ESTADO) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Función no disponible',
-                text: 'La capacidad de Empleados Públicos/Estado no está habilitada.',
-                confirmButtonText: 'Entendido'
-            });
-            return;
-        }
-        
-        $('#resultadosEmpleadoContainer').show();
-        $('#resultadosEmpleado').html('<div class="spinner-border text-primary spinner-border-sm"></div> Buscando...');
-        $.ajax({
-            url: '../api/buscar_familia_empleado.pl',
-            method: 'POST',
-            data: { num_empleado: num, clues: ORG_CLUES },
-            success: function(res) {
-                if (res.ok && res.resultados.length > 0) {
-                    let html = '';
-                    res.resultados.forEach((emp, i) => {
-                        let isChecked = i === 0 ? 'checked' : '';
-                        if(i===0) seleccionarEmpleadoEstado(emp.id, emp.nombre); // Select first auto
-                        html += `
-                        <div class="form-check border rounded-3 p-2 mb-1 bg-light cr-cart-item">
-                            <input class="form-check-input ms-0 mt-1" type="radio" name="empSeleccionado" id="empSel${emp.id}" value="${emp.id}" ${isChecked} onchange="seleccionarEmpleadoEstado('${emp.id}', '${emp.nombre.replace(/'/g, "&apos;")}')">
-                            <label class="form-check-label w-100 ps-2" for="empSel${emp.id}" style="cursor:pointer; font-size: 0.8rem;">
-                                <div class="fw-bold">${emp.nombre}</div>
-                                <div class="text-muted" style="font-size:0.7rem;">Relación: ${emp.relacion}</div>
-                            </label>
-                        </div>`;
-                    });
-                    $('#resultadosEmpleado').html(html);
-                    pacienteTipoActual = 'estado'; // Update state
-                    // Limpiar select de privado para evitar ambiguedades
-                    $('#selPaciente').val(null).trigger('change.select2');
-                } else {
-                    $('#resultadosEmpleado').html(`<div class="alert alert-warning py-2 text-center small m-0 shadow-sm border-0">No se encontraron resultados para el número.</div>`);
-                }
-            },
-            error: function() {
-                $('#resultadosEmpleado').html('<div class="alert alert-danger py-2 small m-0">Error de conexión al buscar.</div>');
-            }
-        });
-    }
 
-    function seleccionarEmpleadoEstado(id, nombre) {
-        pacienteEstadoSeleccionado = { id: id, nombre: nombre };
-        pacienteTipoActual = 'estado';
-        $('#selPaciente').val(null).trigger('change.select2');
-    }
     
     async function cargarCatalogo() {
         try {
