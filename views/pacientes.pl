@@ -249,6 +249,9 @@ print <<'HTML';
 </script>
 
 <!-- Scripts Específicos para Pacientes SPA -->
+<script>
+    window.USER_ROLE = '$role';
+</script>
 <script src="../js/pacientes_spa.js?v=20260707_0017"></script>
 <script src="../js/cotizaciones_spa.js?v=20260711_0001"></script>
 

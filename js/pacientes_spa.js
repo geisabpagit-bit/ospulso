@@ -176,10 +176,13 @@ function initPacientesSpa() {
                     var hora = cita.hora || 'N/A';
                     var btnConsulta = '';
                     if (labelEstado === 'Pendiente' || labelEstado === 'Programada' || labelEstado === 'En Consulta') {
-                        var idCitaParam = cita.id || cita.id_cita || '';
-                        var queryCita = idCitaParam ? '&id_cita=' + idCitaParam : '';
-                        var textoBtn = (labelEstado === 'En Consulta') ? 'Ir a Consulta Activa' : 'Ir a Consulta';
-                        btnConsulta = '<div class="mt-2"><a href="render_consultas.pl?id=' + (perfil.id||'') + queryCita + '" class="btn btn-sm btn-outline-primary rounded-pill w-100" style="font-size: 0.65rem;"><i class="bi bi-box-arrow-in-right me-1"></i>' + textoBtn + '</a></div>';
+                        var isRecepcionista = (window.USER_ROLE && window.USER_ROLE.toLowerCase() === 'recepcionista');
+                        if (!isRecepcionista) {
+                            var idCitaParam = cita.id || cita.id_cita || '';
+                            var queryCita = idCitaParam ? '&id_cita=' + idCitaParam : '';
+                            var textoBtn = (labelEstado === 'En Consulta') ? 'Ir a Consulta Activa' : 'Ir a Consulta';
+                            btnConsulta = '<div class="mt-2"><a href="render_consultas.pl?id=' + (perfil.id||'') + queryCita + '" class="btn btn-sm btn-outline-primary rounded-pill w-100" style="font-size: 0.65rem;"><i class="bi bi-box-arrow-in-right me-1"></i>' + textoBtn + '</a></div>';
+                        }
                     }
 
                     historialHtml += 
@@ -280,10 +283,11 @@ function initPacientesSpa() {
                           '<div class="col-3">' +
                             '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CITA</span></a>' +
                           '</div>' +
+                          ((window.USER_ROLE && window.USER_ROLE.toLowerCase() === 'recepcionista') ? '' : 
                           '<div class="col-3">' +
                             '<a href="render_consultas.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-heart-pulse fs-4 mb-1 text-danger"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CONSULTA</span></a>' +
-                          '</div>' +
-                          '<div class="col-3">' +
+                          '</div>') +
+                          '<div class="' + ((window.USER_ROLE && window.USER_ROLE.toLowerCase() === 'recepcionista') ? 'col-6' : 'col-3') + '">' +
                             '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">EXPEDIENTE</span></a>' +
                           '</div>' +
                         '</div>' +

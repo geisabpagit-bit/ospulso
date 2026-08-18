@@ -144,13 +144,6 @@ print <<"HTML";
 <link rel="stylesheet" href="../css/expediente_completo.css?v=$^T" />
 
 <style>
-    /* Soporte adicional para Select2 y Diamond Style */
-    .select2-container--bootstrap-5 .select2-selection {
-        border: 1px solid var(--md-cyan-ia, #19B7A5) !important;
-        border-radius: 1rem !important;
-        padding: 0.75rem 1rem !important;
-        background: #F8FBFF !important;
-    }
     /* Unificar estilos de Select2, inputs y contenedores de resultados */
     .select2-container--bootstrap-5 .select2-selection,
     .custom-input-caja {
@@ -162,11 +155,24 @@ print <<"HTML";
         transition: all 0.2s ease-in-out;
     }
     .select2-container--bootstrap-5 .select2-selection:focus,
+    .select2-container--bootstrap-5.select2-container--open .select2-selection,
     .custom-input-caja:focus {
         border-color: #19B7A5 !important;
         background: white !important;
         box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.15) !important;
         outline: none !important;
+    }
+    .select2-dropdown {
+        border-color: #19B7A5 !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    }
+    .select2-search__field {
+        border-radius: 0.5rem !important;
+    }
+    .select2-search__field:focus {
+        box-shadow: none !important;
+        border-color: #19B7A5 !important;
     }
     .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
         color: #0A2A66 !important;
@@ -513,16 +519,22 @@ print <<'JS';
                                 </label>
                             </div>`;
                         });
+                        html += `
+                        <div class="mt-3 text-end border-top pt-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-4 shadow-sm fw-bold" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES">
+                                <i class="bi bi-pencil-square me-1"></i> Editar Beneficiarios
+                            </button>
+                        </div>`;
                         console.log("HTML generado:", html);
                         $('#resultadosEmpleado').html(html);
                         pacienteTipoActual = 'estado';
                         $('#selPaciente').val(null).trigger('change.select2');
                     } catch (err) {
-                        console.error("Error procesando resultados:", err);
-                        $('#resultadosEmpleado').html('<div class="alert alert-danger py-2 small m-0">Error procesando los resultados. Revisa la consola.</div>');
+                        console.error("Error al procesar resultados:", err);
+                        $('#resultadosEmpleado').html('<div class="alert alert-danger py-2 small m-0 border-0 shadow-sm"><i class="bi bi-exclamation-circle text-danger me-2"></i>Error interno al mostrar resultados. Revise la consola.</div>');
                     }
                 } else {
-                    $('#resultadosEmpleado').html(`<div class="alert alert-warning py-3 text-center small m-0 shadow-sm border-0"><p class="mb-2"><i class="bi bi-exclamation-triangle fs-4 d-block mb-1"></i>No se encontraron resultados para el número de empleado ingresado.</p><button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm mt-2" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-person-plus"></i> Registrar Nuevo Empleado / Beneficiario</button></div>`);
+                    $('#resultadosEmpleado').html(`<div class="alert alert-warning py-3 text-center small m-0 shadow-sm border-0"><p class="mb-2"><i class="bi bi-exclamation-triangle fs-4 d-block mb-1"></i>No se encontraron resultados para el número de empleado ingresado.</p><button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm mt-2 fw-bold" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-person-plus me-1"></i> Registrar Nuevo Empleado / Beneficiario</button></div>`);
                 }
             },
             error: function() {

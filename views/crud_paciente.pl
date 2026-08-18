@@ -52,7 +52,7 @@ utils::sub_sidebar::render_sidebar(
 );
 
 my $select_medico_html = '';
-if ($sd->{role} eq 'Recepcionista' || $sd->{role} eq 'Administrador') {
+if ($sd->{role} =~ /Recepcion/i || $sd->{role} =~ /Administrador/i) {
     my $usuarios = utils::db_manager::leer_tabla(File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat'), '!');
     my $options_medicos = '';
     foreach my $u (@$usuarios) {

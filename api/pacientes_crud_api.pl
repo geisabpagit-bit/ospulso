@@ -46,7 +46,7 @@ if ($input->{accion} eq 'crear') {
     my $id_medico_form = $input->{id_medico} // '';
     
     # 0. Lógica de Doble Propiedad (RBAC): Si quien crea es Recepcionista/Admin, y asignó a un Médico, ambos son dueños
-    if (($session_data->{role} eq 'Recepcionista' || $session_data->{role} eq 'Administrador') && $id_medico_form ne '') {
+    if (($session_data->{role} =~ /Recepcion/i || $session_data->{role} =~ /Administrador/i) && $id_medico_form ne '') {
         # Validar si el id_medico (usuario) es distinto al seleccionado
         if ($id_medico ne $id_medico_form) {
             $id_medico_form = "$id_medico,$id_medico_form";
