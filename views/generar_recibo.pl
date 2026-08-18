@@ -785,6 +785,7 @@ print <<"HTML";
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center pt-3 pb-4">
+                <iframe id="iframePreview" style="width: 100%; height: 280px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 1rem; background: #fafafa;"></iframe>
                 <p class="text-muted small mb-4">¿Estás seguro que deseas emitir el recibo? Esta acción registrará el ingreso en caja y no podrá modificarse posteriormente sin generar una cancelación.</p>
                 <div class="d-flex justify-content-between gap-3 mt-3">
                     <button type="button" class="btn btn-outline-secondary w-50 fw-bold rounded-pill shadow-sm" data-bs-dismiss="modal">Regresar a Editar</button>
