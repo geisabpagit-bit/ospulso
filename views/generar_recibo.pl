@@ -435,6 +435,7 @@ print <<'JS';
             });
             return;
         }
+        console.log("Buscando empleado con número:", num);
         
         $('#resultadosEmpleadoContainer').show();
         $('#resultadosEmpleado').html('<div class="spinner-border text-primary spinner-border-sm"></div> Buscando...');
@@ -443,7 +444,9 @@ print <<'JS';
             method: 'POST',
             data: { num_empleado: num, clues: ORG_CLUES },
             success: function(res) {
-                if (res.ok && res.resultados.length > 0) {
+                console.log("Respuesta de buscar_familia_empleado.pl:", res);
+                if (res.ok && res.resultados && res.resultados.length > 0) {
+                    console.log("Resultados encontrados:", res.resultados.length);
                     let html = '';
                     res.resultados.forEach((emp, i) => {
                         let isChecked = i === 0 ? 'checked' : '';
