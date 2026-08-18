@@ -100,7 +100,13 @@ SEARCH_HTML
     # Solo imprimimos el header HTTP si NO se solicita omitirlo
     if (!$skip) {
         my $q = CGI->new;
-        print $q->header(-type => 'text/html', -charset => 'UTF-8');
+        print $q->header(
+            -type    => 'text/html',
+            -charset => 'UTF-8',
+            -expires => 'now',
+            -'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            -'Pragma' => 'no-cache',
+        );
     }
 
     print <<HTML;
