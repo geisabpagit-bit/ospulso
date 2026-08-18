@@ -514,6 +514,7 @@ print <<'JS';
     }
     
     function seleccionarPacientePrivado() {
+        if(!$('#selPaciente').val()) return; // Evitar dispararse a sí mismo cuando se limpia vía JS
         pacienteTipoActual = 'privado';
         $('#resultadosEmpleado').html('');
         $('#resultadosEmpleadoContainer').hide();
