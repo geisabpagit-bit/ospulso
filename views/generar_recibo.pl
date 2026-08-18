@@ -140,89 +140,67 @@ print <<"HTML";
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 <link rel="stylesheet" href="../css/sdm_mobile_standards.css" />
+<link rel="stylesheet" href="../css/caja_rapida.css" />
 
-<style>
-    .cart-item { border-bottom: 1px solid #e2e8f0; padding: 0.75rem 0; }
-    .cart-item:last-child { border-bottom: none; }
-    
-    /* Bordes Teal Delgados Diamond */
-    .diamond-input-armor, .card-medentia-aura, .select2-container--bootstrap-5 .select2-selection {
-        border: 1px solid var(--md-cyan-ia, #19B7A5) !important;
-    }
-    .select2-container--bootstrap-5 .select2-selection:focus {
-        border-color: var(--md-blue-deep, #0A2A66) !important;
-        box-shadow: 0 0 0 0.25rem rgba(25, 183, 165, 0.25) !important;
-    }
-</style>
-
-<main class="container-fluid container-mobile-flush pt-3 px-3 pb-5 animate__animated animate__fadeIn">
-    
-    <div class="row justify-content-center">
-        <div class="col-12">
-            <div class="card-medentia card-mobile-flush border-0 rounded-4 w-100">
-                <div class="card-header border-0 pt-4 pb-3" style="background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66) 0%, var(--md-blue-medical, #124A9E) 100%); border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
-                    <h5 class="fw-bold mb-0 text-white"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-cyan-ia, #18D1E6);"></i>Caja Rápida - Recibo Independiente</h5>
-                    <p class="text-white-50 small mb-0 mt-1">Genera comprobantes de pago sin necesidad de una cita programada.</p>
-                </div>
+<main class="container-fluid container-mobile-flush pt-4 px-lg-4 pb-5 animate__animated animate__fadeIn">
+    <div class="row">
+        <!-- Columna Izquierda: Formulario -->
+        <div class="col-12 col-lg-8 pe-lg-5 mb-4">
+            <form id="frmCajaRapida" onsubmit="return false;">
                 
-                <div class="card-body pt-4 row" style="background: var(--sdm-bg, #f8fafc);">
-                    
-                    <!-- Contenedor Único: Captura -->
-                    <div class="col-12">
-                        <form id="frmCajaRapida" onsubmit="return false;">
-                            
-                            <!-- Tipo de Paciente (Estándar Diamond Toggle) -->
-                            <div class="mb-4 d-flex gap-3 justify-content-center">
-                                <input type="radio" class="btn-check" name="tipoPaciente" id="tipoPrivado" value="privado" autocomplete="off" checked onchange="cambiarTipoPaciente(event)">
-                                <label class="btn btn-outline-primary fw-bold px-4 rounded-pill" for="tipoPrivado"><i class="bi bi-person me-2"></i>Paciente Privado</label>
-                                
-                                <input type="radio" class="btn-check" name="tipoPaciente" id="tipoEstado" value="estado" autocomplete="off" onchange="cambiarTipoPaciente(event)">
-                                <label class="btn btn-outline-primary fw-bold px-4 rounded-pill" for="tipoEstado"><i class="bi bi-bank me-2"></i>Público / Estado</label>
+                <!-- 1. Paciente -->
+                <div class="mb-1">
+                    <div class="cr-section-title">1. Paciente</div>
+                    <div class="d-flex gap-2">
+                        <div class="cr-box flex-grow-1">
+                            <div class="cr-icon"><i class="bi bi-person"></i></div>
+                            <div class="cr-body">
+                                <select id="selPaciente" class="cr-select" onchange="seleccionarPacientePrivado()"></select>
                             </div>
+                        </div>
+                        <div class="cr-box cr-box-sm">
+                            <div class="cr-body">
+                                <input type="number" id="iptNumEmpleado" class="cr-input text-center" placeholder="Núm Emp" onkeypress="if(event.key==='Enter') buscarEmpleadoEstado()">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Contenedor oculto para resultados de búsqueda de empleados -->
+                    <div id="resultadosEmpleado" class="mt-2"></div>
+                </div>
 
-                            <!-- Selección de Entidades y Formulario Principal -->
-                            <div class="row g-3 mb-4">
-                                
-                                <!-- Paciente -->
-                                <div class="col-md-6 col-lg-3">
-                                    <label class="form-label fw-bold small text-muted mb-2">1. Paciente</label>
-                                    <div id="contenedorPrivado" class="diamond-input-armor p-2 rounded-3 bg-white h-100">
-                                        <select id="selPaciente" class="form-select border-0 shadow-none"></select>
-                                        <div class="form-text small mt-2"><i class="bi bi-info-circle text-primary me-1"></i>Regístralo en Directorio si no existe.</div>
-                                    </div>
-                                    <div id="contenedorEstado" class="d-none diamond-input-armor p-2 rounded-3 bg-white h-100">
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" id="iptNumEmpleado" class="form-control border-0 shadow-none bg-light" placeholder="Núm Emp">
-                                            <button class="btn btn-primary px-3 fw-bold" type="button" id="btnBuscarEmpleado" onclick="buscarEmpleadoEstado()"><i class="bi bi-search"></i></button>
-                                        </div>
-                                        <div id="resultadosEmpleado" class="d-flex flex-column gap-2 mt-2"></div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Médico Responsable -->
 HTML
-
-my $col_class_med = $has_custom_medicos ? "col-md-6 col-lg-3" : "col-md-6 col-lg-4";
 
 if ($has_custom_medicos) {
 print <<"HTML";
-                                <div class="col-md-6 col-lg-3">
-                                    <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-person-badge text-primary me-1"></i>2. Especialidad</label>
-                                    <div class="form-floating diamond-input-armor rounded-3 bg-white h-100">
-                                        <select id="selEspecialidadCustom" class="form-select border-0 shadow-none" onchange="filtrarMedicosCustom()" required>
-                                            $espe_options
-                                        </select>
-                                        <label for="selEspecialidadCustom" class="fw-bold text-muted">Especialidad</label>
-                                    </div>
-                                </div>
+                <hr class="cr-divider">
+                
+                <!-- 2. Especialidad -->
+                <div class="mb-1">
+                    <div class="cr-section-title">2. Especialidad</div>
+                    <div class="cr-box">
+                        <div class="cr-icon"><i class="bi bi-heart-pulse"></i></div>
+                        <div class="cr-body">
+                            <div class="cr-label">Especialidad</div>
+                            <select id="selEspecialidadCustom" class="cr-select" onchange="filtrarMedicosCustom()" required>
+                                $espe_options
+                            </select>
+                        </div>
+                    </div>
+                </div>
 HTML
 }
 
 print <<"HTML";
-                                <div="$col_class_med">
-                                    <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-heart-pulse text-primary me-1"></i>Médico Tratante</label>
-                                    <div class="form-floating diamond-input-armor rounded-3 bg-white h-100">
-                                        <select id="selMedico" class="form-select border-0 shadow-none" required>
+                <hr class="cr-divider">
+                
+                <!-- 3. Médico Tratante -->
+                <div class="mb-1">
+                    <div class="cr-section-title">3. Médico Tratante</div>
+                    <div class="cr-box">
+                        <div class="cr-icon"><i class="bi bi-person-badge"></i></div>
+                        <div class="cr-body">
+                            <div class="cr-label">Médico Tratante</div>
+                            <select id="selMedico" class="cr-select" required>
 HTML
 
 if ($has_custom_medicos) {
@@ -232,63 +210,74 @@ if ($has_custom_medicos) {
 }
 
 print <<"HTML";
-                                        </select>
-                                        <label for="selMedico" class="fw-bold text-muted">Médico</label>
-                                    </div>
-                                </div>
-                                
-                                <!-- Método de Pago -->
-                                <div class="col-md-6 col-lg-3">
-                                    <label class="form-label fw-bold small text-muted mb-2"><i class="bi bi-credit-card text-primary me-1"></i>4. Método de Pago</label>
-                                    <div class="form-floating diamond-input-armor rounded-3 bg-white h-100">
-                                        <select id="selMetodoPago" class="form-select border-0 shadow-none" onchange="irAlPaso2()">
-                                            <option value="Efectivo">Efectivo</option>
-                                            <option value="Tarjeta de Debito">Tarjeta de Débito</option>
-                                            <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
-                                            <option value="Transferencia">Transferencia (SPEI)</option>
-                                            <option value="Convenio / Aseguradora">Convenio / Aseguradora</option>
-                                            <option value="Cortesía">Cortesía (Sin cobro)</option>
-                                        </select>
-                                        <label for="selMetodoPago" class="fw-bold text-muted">Vía de pago</label>
-                                    </div>
-                                </div>
-                                
-                            </div>
-                            
-                            <!-- Conceptos / Carrito Universal -->
-                            <div class="mb-4">
-                                <div class="d-flex flex-wrap justify-content-between align-items-end mb-3">
-                                    <label class="form-label fw-bold small text-muted mb-0"><i class="bi bi-cart3 text-primary me-1"></i>3. Conceptos a Cobrar</label>
-                                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold px-4 shadow-sm" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()">
-                                        <i class="bi bi-cart-plus me-1"></i> Agregar Conceptos
-                                    </button>
-                                </div>
-                                
-                                <!-- Resumen visual del carrito (sincronizado con el modal) -->
-                                <div class="card-medentia-aura p-3 rounded-4 bg-white">
-                                    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-                                        <span class="fw-bold plus-jakarta text-muted"><i class="bi bi-receipt me-1"></i> Resumen de Cobro</span>
-                                        <span class="fw-bold fs-5 text-primary plus-jakarta" id="cartTotalText">\$0.00</span>
-                                    </div>
-                                    <div id="cartContainer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 150px;">
-                                        <div class="text-center text-muted small py-2" id="cartEmpty">Ningún concepto agregado</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <hr class="my-4 border-light">
-                            
-                            <div class="d-flex justify-content-end mt-4">
-                                <button type="button" class="btn btn-primary btn-mobile-standard btn-mobile-full px-5 py-2 fw-bold rounded-pill shadow-lg w-100 plus-jakarta fs-5" onclick="mostrarReciboPrevio()">
-                                    <i class="bi bi-eye me-2"></i> Generar Recibo
-                                </button>
-                            </div>
-                        </form>
+                            </select>
+                        </div>
                     </div>
                 </div>
+                
+                <hr class="cr-divider">
+                
+                <!-- 4. Método de Pago -->
+                <div class="mb-1">
+                    <div class="cr-section-title">4. Método de Pago</div>
+                    <div class="cr-box">
+                        <div class="cr-icon"><i class="bi bi-credit-card"></i></div>
+                        <div class="cr-body">
+                            <div class="cr-label">Método de Pago</div>
+                            <select id="selMetodoPago" class="cr-select">
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Tarjeta de Debito">Tarjeta de Débito</option>
+                                <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
+                                <option value="Transferencia">Transferencia (SPEI)</option>
+                                <option value="Convenio / Aseguradora">Convenio / Aseguradora</option>
+                                <option value="Cortesía">Cortesía (Sin cobro)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+            </form>
+        </div>
+        
+        <!-- Columna Derecha: Resumen de Cobro -->
+        <div class="col-12 col-lg-4">
+            <div class="cr-cart-container">
+                <div class="cr-cart-header">
+                    Resumen de Cobro
+                </div>
+                
+                <div class="cr-cart-title">
+                    <span>Conceptos a Cobrar</span>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 plus-jakarta fw-bold text-primary" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()">
+                        <i class="bi bi-plus-circle me-1"></i>Agregar
+                    </button>
+                </div>
+                
+                <div id="cartContainer" class="d-flex flex-column gap-2" style="min-height: 80px;">
+                    <div class="text-center text-muted small py-4" id="cartEmpty">
+                        Ningún concepto agregado
+                    </div>
+                </div>
+                
+                <div class="cr-divider"></div>
+                
+                <div class="cr-cart-item text-muted">
+                    <div class="cr-cart-item-name">Tax (IVA 0%)</div>
+                    <div class="cr-cart-item-price">$0.00</div>
+                </div>
+                
+                <div class="cr-cart-total-row">
+                    <div class="cr-cart-total-label">TOTAL A PAGAR</div>
+                    <div class="cr-cart-total-value" id="cartTotalText">\$0.00</div>
+                </div>
+                
+                <button type="button" class="btn btn-institucional w-100" onclick="mostrarReciboPrevio()">
+                    <i class="bi bi-check2 me-2"></i> Confirmar y Generar Recibo
+                </button>
             </div>
         </div>
     </div>
+</main>
 <!-- MODAL CARRITO UNIVERSAL -->
 <div class="modal fade modal-diamond" id="modalCargo" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -435,34 +424,33 @@ print <<'JS';
         });
     }
 
+    let pacienteTipoActual = 'privado';
+
     function cambiarTipoPaciente(e) {
-        const isEstado = document.getElementById('tipoEstado').checked;
-        if (isEstado) {
-            if (!HAS_PACIENTES_ESTADO) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Función no disponible',
-                    text: 'La capacidad de Pacientes Públicos/Estado no está habilitada para tu organización.',
-                    confirmButtonText: 'Entendido'
-                });
-                document.getElementById('tipoPrivado').checked = true;
-                return;
-            }
-            document.getElementById('contenedorPrivado').classList.add('d-none');
-            document.getElementById('contenedorEstado').classList.remove('d-none');
-            document.getElementById('lblPacienteStep1').innerHTML = "1. Ingresa número de empleado";
-            pacienteSeleccionado = null; 
-        } else {
-            document.getElementById('contenedorPrivado').classList.remove('d-none');
-            document.getElementById('contenedorEstado').classList.add('d-none');
-            document.getElementById('lblPacienteStep1').innerHTML = "1. Teclea el nombre del paciente";
-            pacienteSeleccionado = null;
-        }
+        // Función mantenida por compatibilidad (vacía)
+    }
+    
+    function seleccionarPacientePrivado() {
+        pacienteTipoActual = 'privado';
+        $('#resultadosEmpleado').html('');
+        $('#iptNumEmpleado').val('');
+        pacienteEstadoSeleccionado = { id: '', nombre: '' };
     }
     
     function buscarEmpleadoEstado() {
         const num = $('#iptNumEmpleado').val().trim();
         if(!num) return;
+        
+        if (!HAS_PACIENTES_ESTADO) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Función no disponible',
+                text: 'La capacidad de Empleados Públicos/Estado no está habilitada.',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+        
         $('#resultadosEmpleado').html('<div class="spinner-border text-primary spinner-border-sm"></div> Buscando...');
         $.ajax({
             url: '../api/buscar_familia_empleado.pl',
@@ -473,19 +461,22 @@ print <<'JS';
                     let html = '';
                     res.resultados.forEach((emp, i) => {
                         let isChecked = i === 0 ? 'checked' : '';
+                        if(i===0) seleccionarEmpleadoEstado(emp.id, emp.nombre); // Select first auto
                         html += `
-                        <div class="form-check custom-radio-yellow border rounded-3 p-3 mb-2 shadow-sm bg-light">
+                        <div class="form-check border rounded-3 p-2 mb-1 bg-light cr-cart-item">
                             <input class="form-check-input ms-0 mt-1" type="radio" name="empSeleccionado" id="empSel${emp.id}" value="${emp.id}" ${isChecked} onchange="seleccionarEmpleadoEstado('${emp.id}', '${emp.nombre.replace(/'/g, "&apos;")}')">
-                            <label class="form-check-label w-100 ps-4" for="empSel${emp.id}" style="cursor:pointer;">
-                                <div class="fw-bold mb-1">${emp.nombre}</div>
-                                <div class="small text-muted">Num: ${emp.id} &bull; Relación: ${emp.relacion}</div>
-                                <div class="small text-muted"><i class="bi bi-building"></i> Dep: ${emp.dependencia}</div>
+                            <label class="form-check-label w-100 ps-2" for="empSel${emp.id}" style="cursor:pointer; font-size: 0.8rem;">
+                                <div class="fw-bold">${emp.nombre}</div>
+                                <div class="text-muted" style="font-size:0.7rem;">Relación: ${emp.relacion}</div>
                             </label>
                         </div>`;
                     });
-                    $('#resultadosEmpleado').html(html + `<div class="mt-2 text-end"><button type="button" class="btn btn-sm btn-outline-primary" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-pencil-square"></i> Editar Empleado</button></div>`);
+                    $('#resultadosEmpleado').html(html);
+                    pacienteTipoActual = 'estado'; // Update state
+                    // Limpiar select de privado para evitar ambiguedades
+                    $('#selPaciente').val(null).trigger('change.select2');
                 } else {
-                    $('#resultadosEmpleado').html(`<div class="alert alert-warning py-3 text-center small m-0 shadow-sm border-0"><p class="mb-2"><i class="bi bi-exclamation-triangle fs-4 d-block mb-1"></i>No se encontraron resultados para el número de empleado ingresado.</p><button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm mt-2" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-person-plus"></i> Registrar Nuevo Empleado / Beneficiario</button></div>`);
+                    $('#resultadosEmpleado').html(`<div class="alert alert-warning py-2 text-center small m-0 shadow-sm border-0">No se encontraron resultados para el número.</div>`);
                 }
             },
             error: function() {
@@ -496,6 +487,8 @@ print <<'JS';
 
     function seleccionarEmpleadoEstado(id, nombre) {
         pacienteEstadoSeleccionado = { id: id, nombre: nombre };
+        pacienteTipoActual = 'estado';
+        $('#selPaciente').val(null).trigger('change.select2');
     }
     
     async function cargarCatalogo() {
@@ -625,14 +618,14 @@ print <<'JS';
                 </div>
             `;
             
-            // Main view
+            // Main view (Right column cart)
             htmlMain += `
-                <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-1 bg-white border" style="border-color: var(--md-gray-soft, #D9E2EC) !important;">
-                    <div>
-                        <div class="fw-bold" style="font-size: 0.8rem; color: var(--md-blue-deep, #0A2A66);">${item.nombre}</div>
-                        <div class="text-muted" style="font-size: 0.7rem;">${item.cantidad} x ${formatCurrency(item.precio)}</div>
+                <div class="cr-cart-item">
+                    <div class="cr-cart-item-name">
+                        <div class="text-truncate" style="max-width: 200px;">${item.nombre}</div>
+                        <div style="font-size: 0.7rem; color:#94a3b8;">${item.cantidad} x ${formatCurrency(item.precio)}</div>
                     </div>
-                    <div class="fw-bold text-success" style="font-size: 0.85rem;">
+                    <div class="cr-cart-item-price">
                         ${formatCurrency(sub)}
                     </div>
                 </div>
@@ -648,7 +641,15 @@ print <<'JS';
     }
     
     async function irAlPaso2() {
-        let tipo = $('input[name="tipoPaciente"]:checked').val() || 'privado';
+        // Obsoleto en la nueva UI, ya no hay scrolling
+    }
+    
+    function volverAlPaso1() {
+        // Obsoleto
+    }
+    
+    function mostrarReciboPrevio() {
+        let tipo = pacienteTipoActual;
         let id_paciente = '';
         let name_paciente = '';
         
@@ -695,27 +696,11 @@ print <<'JS';
         const doc = document.getElementById('iframePreview').contentWindow.document;
         doc.open(); doc.write(draftHtml); doc.close();
         
-        // En móviles hacemos scroll suave hacia la previsualización
-        if (window.innerWidth < 992) {
-            document.getElementById('step2').scrollIntoView({behavior: 'smooth'});
-        }
-    }
-    
-    function volverAlPaso1() {
-        if (window.innerWidth < 992) {
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-    }
-    
-    function mostrarReciboPrevio() {
-        if (cartItems.length === 0) {
-            return Swal.fire('Atención', 'Agrega al menos un concepto a cobrar en el carrito.', 'warning');
-        }
         $('#modalReciboPrevio').modal('show');
     }
     
     async function emitirReciboFinal() {
-        let tipo = $('input[name="tipoPaciente"]:checked').val() || 'privado';
+        let tipo = pacienteTipoActual;
         let id_paciente = '';
         let name_paciente = '';
         
