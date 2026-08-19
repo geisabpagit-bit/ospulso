@@ -3,5 +3,6 @@ cat_admin_global|views/admin_global.pl|Hard Reset|Reinicio de la BD|bi-globe|dan
 cat_backups|views/admin_backups.pl|Backup / Restore|Copias de seguridad del sistema global.|bi-hdd-network-fill|primary
 cat_config|views/manage_config.pl|Catálogos globales|Administración de datos Maestros y Tablas Generales.|bi-gear-fill|danger
 cat_catalogo_org|views/catalogo_servicios_org.pl|Catalogo de Servicios|Gestion de servicios y productos de la organizacion.|bi-tags-fill|warning
+cat_migracion|views/admin_migracion.pl|Migración SaaS|Copia completa del código fuente e información para traspaso de servidor.|bi-cloud-arrow-down-fill|dark
 
 
