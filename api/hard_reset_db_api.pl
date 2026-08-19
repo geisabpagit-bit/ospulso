@@ -97,11 +97,6 @@ eval {
     # 2. Borrar catálogos dinámicos generados por la organización y archivos temporales
     my @catalogos_dinamicos = glob(File::Spec->catfile($dir, "servicios_*.dat"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "productos_*.dat"));
-    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "medicos_*.dat"));
-    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "empleadosmun_*.dat"));
-    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "dependencia_*.dat"));
-    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "especialidades_*.dat"));
-    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "municipios_*.dat"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "consultas_privado.dat"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "consultas_bd.dat"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "estudios.txt"));
