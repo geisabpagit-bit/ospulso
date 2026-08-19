@@ -32,7 +32,7 @@ Archive::Zip::setErrorHandler(sub {
 
 my $filename = $q->param('filename') // '';
 
-if ($filename !~ /^ospulso_backup_[\d_]+\.zip$/) {
+if ($filename !~ /^(?:auto_backup_ospulso_|ospulso_backup_)[\d_]+\.zip$/) {
     print encode_json({ status => 'error', message => 'Nombre de archivo no válido.' });
     exit;
 }
