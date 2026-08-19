@@ -273,8 +273,8 @@ HTML
 
     }
     
-    # 5. Quirófano / Hospitalización (Solo Médicos, Administradores, Enfermería)
-    if ($role =~ /Medico|Administrador|Enfermeria/i) {
+    # 5. Quirófano / Hospitalización (Solo Médicos, Administrador Organizacion, Enfermería)
+    if ($role ne 'Administrador Global' && $role =~ /Medico|Administrador|Enfermeria/i) {
         my $active_quirofano = ($pagina_actual eq 'quirofano_kanban') ? 'active' : '';
         print qq{
             <a href="../views/quirofano_kanban.pl" class="sub-link $active_quirofano w-100 text-start text-decoration-none d-flex align-items-center mb-1">
@@ -474,7 +474,8 @@ HTML
         'pacientes'  => 1,
         'agenda'     => 1,
         'finanzas'   => 1,
-        'crm_ventas' => 1
+        'crm_ventas' => 1,
+        'admin_global' => 1
     );
     if ($role eq 'Administrador Organizacion') {
         $grouped_or_drawn{'reportes'} = 1;
