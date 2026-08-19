@@ -248,13 +248,16 @@ print <<'JS';
                     didOpen: () => { Swal.showLoading(); }
                 });
 
+                let fd = new FormData();
+                fd.append('filename', filename);
+
                 fetch('../api/restore_db_api.pl', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename: filename })
+                    body: fd
                 })
                 .then(res => res.json())
                 .then(data => {
+                    console.log("Respuesta de restore:", data);
                     if (data.status === 'success') {
                         Swal.fire('¡Restaurado!', data.message, 'success').then(() => location.reload());
                     } else {
@@ -280,13 +283,16 @@ print <<'JS';
             if (result.isConfirmed) {
                 Swal.fire({ title: 'Eliminando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
+                let fd = new FormData();
+                fd.append('filename', filename);
+
                 fetch('../api/delete_backup_api.pl', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename: filename })
+                    body: fd
                 })
                 .then(res => res.json())
                 .then(data => {
+                    console.log("Respuesta de delete:", data);
                     if (data.status === 'success') {
                         Swal.fire('Eliminado', data.message, 'success').then(() => location.reload());
                     } else {

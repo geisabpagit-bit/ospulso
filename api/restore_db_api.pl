@@ -24,10 +24,7 @@ if (!$sd->{session_ok} || $sd->{role} ne 'Administrador Global') {
     exit;
 }
 
-my $input_data = '';
-read(STDIN, $input_data, $ENV{'CONTENT_LENGTH'} || 0);
-my $json_in = eval { decode_json($input_data) } || {};
-my $filename = $json_in->{filename} // '';
+my $filename = $q->param('filename') // '';
 
 if ($filename !~ /^ospulso_backup_[\d_]+\.zip$/) {
     print encode_json({ status => 'error', message => 'Nombre de archivo no válido.' });
