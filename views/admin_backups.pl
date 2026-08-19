@@ -60,6 +60,8 @@ my $filas_backups = "";
 foreach my $b (@backups) {
     my $file_path = File::Spec->catfile($backups_dir, $b);
     my $mtime = (stat($file_path))[9];
+    my $size_bytes = (stat($file_path))[7] || 0;
+    my $size_str = $size_bytes < 1048576 ? sprintf("%.2f KB", $size_bytes/1024) : sprintf("%.2f MB", $size_bytes/1048576);
     my ($sec,$min,$hour,$mday,$mon,$year) = localtime($mtime);
     my $fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
     my $hora = sprintf("%02d:%02d:%02d", $hour, $min, $sec);
@@ -67,6 +69,7 @@ foreach my $b (@backups) {
     $filas_backups .= qq{
         <tr>
             <td class="align-middle fw-bold text-primary"><i class="bi bi-file-earmark-zip me-2"></i>$b</td>
+            <td class="align-middle">$size_str</td>
             <td class="align-middle">$fecha</td>
             <td class="align-middle">$hora</td>
             <td class="align-middle text-end">
@@ -81,7 +84,7 @@ foreach my $b (@backups) {
     };
 }
 if (!$filas_backups) {
-    $filas_backups = qq{<tr><td colspan="4" class="text-center text-muted py-4">No hay copias de seguridad creadas aún.</td></tr>};
+    $filas_backups = qq{<tr><td colspan="5" class="text-center text-muted py-4">No hay copias de seguridad creadas aún.</td></tr>};
 }
 
 print <<HTML;
@@ -96,9 +99,14 @@ print <<HTML;
                 <p class="text-muted small mb-0">Gestión de respaldos del sistema.</p>
             </div>
         </div>
-        <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="createBackup()">
-            <i class="bi bi-cloud-upload-fill me-2"></i>Crear Backup Ahora
-        </button>
+        <div>
+            <button class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm me-2" onclick="openCronModal()">
+                <i class="bi bi-clock-history me-2"></i>Programar
+            </button>
+            <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="createBackup()">
+                <i class="bi bi-cloud-upload-fill me-2"></i>Crear Backup Ahora
+            </button>
+        </div>
     </div>
     
     <div class="card card-medentia-aura border-0 shadow-sm rounded-4 p-4 mt-4">
@@ -107,6 +115,7 @@ print <<HTML;
                 <thead class="table-light">
                     <tr>
                         <th>Nombre del Respaldo</th>
+                        <th>Tamaño</th>
                         <th>Fecha</th>
                         <th>Hora</th>
                         <th class="text-end">Acciones</th>
@@ -119,11 +128,119 @@ print <<HTML;
         </div>
     </div>
 </div>
+
+<!-- Modal Cron -->
+<div class="modal fade" id="modalCron" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white border-0" style="border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-clock-history me-2"></i>Programar Respaldos Automáticos</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" id="cronEnabled" style="transform: scale(1.5); margin-left: -2.5em; margin-right: 1rem; cursor: pointer;">
+                    <label class="form-check-label fw-bold" for="cronEnabled" style="padding-top: 0.2rem; cursor: pointer;">Activar Respaldos Automáticos</label>
+                </div>
+                
+                <div id="cronSettings" style="display: none;" class="animate__animated animate__fadeIn">
+                    <h6 class="fw-bold text-muted mb-2">Días de ejecución</h6>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <input type="checkbox" class="btn-check day-check" id="day_1" value="1" autocomplete="off"><label class="btn btn-outline-primary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;" for="day_1">L</label>
+                        <input type="checkbox" class="btn-check day-check" id="day_2" value="2" autocomplete="off"><label class="btn btn-outline-primary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;" for="day_2">M</label>
+                        <input type="checkbox" class="btn-check day-check" id="day_3" value="3" autocomplete="off"><label class="btn btn-outline-primary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;" for="day_3">M</label>
+                        <input type="checkbox" class="btn-check day-check" id="day_4" value="4" autocomplete="off"><label class="btn btn-outline-primary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;" for="day_4">J</label>
+                        <input type="checkbox" class="btn-check day-check" id="day_5" value="5" autocomplete="off"><label class="btn btn-outline-primary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;" for="day_5">V</label>
+                        <input type="checkbox" class="btn-check day-check" id="day_6" value="6" autocomplete="off"><label class="btn btn-outline-primary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;" for="day_6">S</label>
+                        <input type="checkbox" class="btn-check day-check" id="day_0" value="0" autocomplete="off"><label class="btn btn-outline-primary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;" for="day_0">D</label>
+                    </div>
+
+                    <h6 class="fw-bold text-muted mb-2">Hora de ejecución</h6>
+                    <input type="time" id="cronTime" class="form-control form-control-lg rounded-3 mb-3">
+                    
+                    <div class="alert alert-info border-0 shadow-sm rounded-3 py-2 px-3 small mb-0">
+                        <i class="bi bi-info-circle-fill me-2"></i>El sistema conservará únicamente los respaldos automáticos de los últimos 7 días.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="saveCronConfig()"><i class="bi bi-save me-2"></i>Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
 HTML
 
 print <<'JS';
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    document.getElementById('cronEnabled').addEventListener('change', function() {
+        document.getElementById('cronSettings').style.display = this.checked ? 'block' : 'none';
+    });
+
+    window.openCronModal = function() {
+        Swal.showLoading();
+        fetch('../api/get_cron_backup_config_api.pl')
+        .then(res => res.json())
+        .then(data => {
+            Swal.close();
+            if(data.status === 'success') {
+                document.getElementById('cronEnabled').checked = (data.config.enabled == 1);
+                document.getElementById('cronSettings').style.display = (data.config.enabled == 1) ? 'block' : 'none';
+                document.getElementById('cronTime').value = data.config.time || '03:00';
+                
+                document.querySelectorAll('.day-check').forEach(cb => cb.checked = false);
+                if(data.config.days) {
+                    data.config.days.split(',').forEach(d => {
+                        let cb = document.getElementById('day_' + d);
+                        if(cb) cb.checked = true;
+                    });
+                }
+            } else {
+                // Config defaults
+                document.getElementById('cronEnabled').checked = false;
+                document.getElementById('cronSettings').style.display = 'none';
+                document.getElementById('cronTime').value = '03:00';
+                document.querySelectorAll('.day-check').forEach(cb => cb.checked = false);
+            }
+            var myModal = new bootstrap.Modal(document.getElementById('modalCron'));
+            myModal.show();
+        }).catch(err => {
+            Swal.close();
+            Swal.fire('Error', 'No se pudo cargar la configuración', 'error');
+        });
+    };
+
+    window.saveCronConfig = function() {
+        let enabled = document.getElementById('cronEnabled').checked ? 1 : 0;
+        let time = document.getElementById('cronTime').value;
+        let days = Array.from(document.querySelectorAll('.day-check:checked')).map(cb => cb.value).join(',');
+
+        if (enabled && (!time || !days)) {
+            Swal.fire('Atención', 'Si activas el respaldo, debes elegir al menos un día y la hora.', 'warning');
+            return;
+        }
+
+        let fd = new FormData();
+        fd.append('enabled', enabled);
+        fd.append('time', time);
+        fd.append('days', days);
+
+        fetch('../api/save_cron_backup_config_api.pl', { method: 'POST', body: fd })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                Swal.fire('Guardado', 'La programación ha sido actualizada exitosamente.', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modalCron')).hide();
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        }).catch(err => {
+            Swal.fire('Error', 'Error de red al guardar.', 'error');
+        });
+    };
+
     window.createBackup = function() {
         Swal.fire({
             title: 'Creando Respaldo...',
