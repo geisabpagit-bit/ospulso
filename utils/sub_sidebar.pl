@@ -195,7 +195,7 @@ HTML
 
     # 2. Administración Accordion (Gestion de Clínicas, Personal, Servicios, Productos)
     my $show_admin = 0;
-    if ($is_allowed{clinicas} || $is_allowed{usuarios} || $is_allowed{servicios} || $is_allowed{productos}) {
+    if ($is_allowed{clinicas} || $is_allowed{usuarios} || $is_allowed{servicios} || $is_allowed{productos} || $is_allowed{tecnico} || $is_allowed{sync_google} || $is_allowed{reportes}) {
         $show_admin = 1;
     }
 
@@ -216,18 +216,22 @@ HTML
         };
         
         my %admin_mod_names = (
-            'clinicas'  => { file => 'manage_clinicas.pl', icon => 'bi-building-gear', title => 'Gesti&oacute;n de Cl&iacute;nicas' },
-            'usuarios'  => { file => 'administracion_usuarios.pl', icon => 'bi-people-fill', title => 'Gesti&oacute;n de Personal' },
-            'servicios' => { file => 'manage_servicios.pl', icon => 'bi-heart-pulse-fill', title => 'Gesti&oacute;n de Servicios' },
-            'productos' => { file => 'manage_productos.pl', icon => 'bi-box-seam-fill', title => 'Gesti&oacute;n de Productos' }
+            'clinicas'    => { file => 'manage_clinicas.pl', icon => 'bi-building-gear', title => 'Gesti&oacute;n de Cl&iacute;nicas' },
+            'usuarios'    => { file => 'administracion_usuarios.pl', icon => 'bi-people-fill', title => 'Gesti&oacute;n de Personal' },
+            'servicios'   => { file => 'manage_servicios.pl', icon => 'bi-heart-pulse-fill', title => 'Gesti&oacute;n de Servicios' },
+            'productos'   => { file => 'manage_productos.pl', icon => 'bi-box-seam-fill', title => 'Gesti&oacute;n de Productos' },
+            'tecnico'     => { file => 'administracion_catalogo.pl', icon => 'bi-tools', title => 'Cat&aacute;logos y Mantenimiento' },
+            'sync_google' => { file => '#', icon => 'bi-google', title => 'Sincronizaci&oacute;n Google', onclick => "iniciarVinculacionGoogle('$id_medico'); return false;" },
+            'reportes'    => { file => 'reportes.pl', icon => 'bi-file-bar-chart-fill', title => 'Reportes y An&aacute;lisis' }
         );
         
-        foreach my $k ('clinicas', 'usuarios', 'servicios', 'productos') {
+        foreach my $k ('clinicas', 'usuarios', 'servicios', 'productos', 'tecnico', 'sync_google', 'reportes') {
             if ($is_allowed{$k}) {
                 my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
                 my $cfg = $admin_mod_names{$k};
+                my $onclick_attr = $cfg->{onclick} ? "onclick=\"$cfg->{onclick}\"" : "";
                 print qq{
-                    <a href="../views/$cfg->{file}" class="sub-link $active_sub w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                    <a href="../views/$cfg->{file}" $onclick_attr class="sub-link $active_sub w-100 text-start text-decoration-none d-flex align-items-center mb-1">
                         <i class="bi $cfg->{icon} me-2 text-muted" style="font-size:1.1rem;"></i> <span class="sidebar-text">$cfg->{title}</span>
                     </a>
                 };
@@ -451,7 +455,7 @@ HTML
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-ventas">
                     <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-ventas" aria-expanded="false" aria-controls="c-ventas">
-                        <i class="material-icons text-primary" style="font-size:1.2rem;">briefcase</i> <span class="sidebar-text ms-2">Ventas</span>
+                        <i class="bi bi-briefcase-fill text-primary" style="font-size:1.2rem; color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Ventas</span>
                     </button>
                 </h2>
                 <div id="c-ventas" class="accordion-collapse collapse $ventas_active" aria-labelledby="h-ventas" data-bs-parent="#accordionSidebar">
@@ -475,10 +479,13 @@ HTML
         'agenda'     => 1,
         'finanzas'   => 1,
         'crm_ventas' => 1,
-        'admin_global' => 1
+        'admin_global' => 1,
+        'tecnico'    => 1,
+        'sync_google'=> 1,
+        'reportes'   => 1
     );
     if ($role eq 'Administrador Organizacion') {
-        $grouped_or_drawn{'reportes'} = 1;
+        # Ya están agrupados, no necesitamos hacer nada especial aquí
     }
 
     foreach my $raw_mod (@allowed_modules) {
