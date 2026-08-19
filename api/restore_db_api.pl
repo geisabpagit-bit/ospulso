@@ -47,6 +47,12 @@ if (!-f $backup_path) {
 }
 
 eval {
+    # PASO 0: VERIFICAR Y ABRIR EL ZIP (Antes de borrar nada)
+    my $zip = Archive::Zip->new();
+    if ($zip->read($backup_path) != AZ_OK) {
+        die "Error fatal al leer el archivo ZIP. El archivo podría estar corrupto. No se ha modificado la base de datos actual.";
+    }
+
     # PASO 1: LIMPIEZA DE DIRECTORIOS OPERATIVOS
     # Limpiamos dat/ (omitiendo la carpeta backups)
     opendir(my $dh_dat, $dat_dir) or die "No se puede abrir directorio dat: $!";
@@ -78,10 +84,6 @@ eval {
     }
 
     # PASO 2: DESCOMPRIMIR EL RESPALDO
-    my $zip = Archive::Zip->new();
-    if ($zip->read($backup_path) != AZ_OK) {
-        die "Error fatal al leer el archivo ZIP.";
-    }
     
     my $root_dir = abs_path("$FindBin::Bin/..");
     chdir $root_dir or die "No se pudo cambiar al directorio raíz del proyecto: $!";
