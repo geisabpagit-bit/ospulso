@@ -45,14 +45,10 @@ if ($input->{accion} eq 'crear') {
     my $curp = $input->{curp} // '';
     my $id_medico_form = $input->{id_medico} // '';
     
-    # 0. Lógica de Doble Propiedad (RBAC): Si quien crea es Recepcionista/Admin, y asignó a un Médico, ambos son dueños
-    if (($session_data->{role} =~ /Recepcion/i || $session_data->{role} =~ /Administrador/i) && $id_medico_form ne '') {
-        # Validar si el id_medico (usuario) es distinto al seleccionado
-        if ($id_medico ne $id_medico_form) {
-            $id_medico_form = "$id_medico,$id_medico_form";
-        }
-    } else {
-        $id_medico_form = $id_medico if $id_medico_form eq '';
+    # Asignación de Médico: Si Administrador o Recepcionista seleccionan un Médico Tratante, se guarda ese ID.
+    # Si no se envía id_medico en el formulario (ej. lo crea el propio médico), se asigna el suyo.
+    if ($id_medico_form eq '') {
+        $id_medico_form = $id_medico;
     }
     
     # 1. Blindaje Backend - Nombres Puros
@@ -242,7 +238,15 @@ if ($input->{accion} eq 'crear') {
                 } elsif (!$org_pac) {
                     $acceso_permitido = 1;
                 }
-            } elsif ($role =~ /Medico|Recepcionista/i) {
+            } elsif ($role =~ /Recepcionista|Asistente/i) {
+                if ($org_pac && $org_pac eq $mi_org) {
+                    if ($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) {
+                        $acceso_permitido = 1;
+                    }
+                } elsif (!$org_pac) {
+                    $acceso_permitido = 1;
+                }
+            } elsif ($role =~ /Medico/i) {
                 if ($org_pac && $org_pac eq $mi_org) {
                     if (($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) && $r->[1] =~ /\b\Q$id_medico\E\b/) {
                         $acceso_permitido = 1;

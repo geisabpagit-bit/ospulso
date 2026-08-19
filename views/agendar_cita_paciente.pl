@@ -50,6 +50,8 @@ my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios
 my $usuarios = leer_tabla($archivo_usuarios, '!');
 my @nombres_medicos = ();
 my @nombres_fallback = ();
+my $id_medico_real = '';
+my $id_medico_fallback = '';
 
 if ($usuarios && $id_medico_asignado) {
     my @ids = split(/,/, $id_medico_asignado);
@@ -61,8 +63,10 @@ if ($usuarios && $id_medico_asignado) {
                 my $rol_u = $u->[5] // '';
                 if ($rol_u =~ /Medico|Especialista/i) {
                     push @nombres_medicos, $u->[1];
+                    $id_medico_real = $id_m if $id_medico_real eq ''; # Tomar el primer médico real
                 } else {
                     push @nombres_fallback, $u->[1];
+                    $id_medico_fallback = $id_m if $id_medico_fallback eq '';
                 }
                 last;
             }
@@ -71,10 +75,14 @@ if ($usuarios && $id_medico_asignado) {
 }
 
 my $nombre_medico_asignado = 'Sin Médico Asignado';
+my $f_medico_val = '';
+
 if (@nombres_medicos) {
     $nombre_medico_asignado = join(' / ', @nombres_medicos);
+    $f_medico_val = $id_medico_real;
 } elsif (@nombres_fallback) {
     $nombre_medico_asignado = join(' / ', @nombres_fallback);
+    $f_medico_val = $id_medico_fallback;
 }
 
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
@@ -106,7 +114,7 @@ print <<HTML;
                                 <label class="form-label fw-bold" style="color: var(--md-teal-clinical, #19B7A5); letter-spacing: 1px; font-size: 0.9rem;"><i class="bi bi-person-badge me-2"></i>ESPECIALISTA / CLÍNICA</label>
                                 <div class="mx-auto" style="max-width: 600px;">
                                     <input type="text" class="form-control form-control-lg shadow-sm text-center fw-bold bg-light" value="$nombre_medico_asignado" readonly style="border-radius: 0.75rem; font-size: 1rem; border-color: rgba(25, 183, 165, 0.4); color: #334155;">
-                                    <input type="hidden" id="f_medico" value="$id_medico_asignado" data-idpac="$id_paciente_real">
+                                    <input type="hidden" id="f_medico" value="$f_medico_val" data-idpac="$id_paciente_real">
                                 </div>
                             </div>
 
