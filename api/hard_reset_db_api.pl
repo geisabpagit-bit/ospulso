@@ -94,27 +94,22 @@ eval {
         close($fh);
     }
 
-    # 2. Borrar catálogos dinámicos servicios_*.dat, productos_*.dat y archivos temporales
+    # 2. Borrar catálogos dinámicos generados por la organización y archivos temporales
     my @catalogos_dinamicos = glob(File::Spec->catfile($dir, "servicios_*.dat"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "productos_*.dat"));
+    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "medicos_*.dat"));
+    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "empleadosmun_*.dat"));
+    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "dependencia_*.dat"));
+    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "especialidades_*.dat"));
+    push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "municipios_*.dat"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "consultas_privado.dat"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "consultas_bd.dat"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "estudios.txt"));
     push @catalogos_dinamicos, glob(File::Spec->catfile($dir, "estudios2.dat"));
+    
     foreach my $cat (@catalogos_dinamicos) {
         if (-e $cat) {
-            my $cabecera = "";
-            if (open(my $fhc, '<:utf8', $cat)) {
-                $cabecera = <$fhc>;
-                close($fhc);
-            }
-            if ($cabecera) {
-                open(my $fhcw, '>:utf8', $cat);
-                print $fhcw $cabecera;
-                close($fhcw);
-            } else {
-                unlink $cat;
-            }
+            unlink $cat;
         }
     }
 
