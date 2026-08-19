@@ -48,15 +48,33 @@ if ($regs) {
 # Obtener nombres de los médicos
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $usuarios = leer_tabla($archivo_usuarios, '!');
-my $nombre_medico_asignado = 'Sin Médico Asignado';
+my @nombres_medicos = ();
+my @nombres_fallback = ();
 
 if ($usuarios && $id_medico_asignado) {
-    foreach my $u (@$usuarios) {
-        if ($u->[0] eq $id_medico_asignado) {
-            $nombre_medico_asignado = $u->[1] // '';
-            last;
+    my @ids = split(/,/, $id_medico_asignado);
+    foreach my $id_m (@ids) {
+        $id_m =~ s/^\s+|\s+$//g;
+        next unless $id_m;
+        foreach my $u (@$usuarios) {
+            if ($u->[0] eq $id_m) {
+                my $rol_u = $u->[5] // '';
+                if ($rol_u =~ /Medico|Especialista/i) {
+                    push @nombres_medicos, $u->[1];
+                } else {
+                    push @nombres_fallback, $u->[1];
+                }
+                last;
+            }
         }
     }
+}
+
+my $nombre_medico_asignado = 'Sin Médico Asignado';
+if (@nombres_medicos) {
+    $nombre_medico_asignado = join(' / ', @nombres_medicos);
+} elsif (@nombres_fallback) {
+    $nombre_medico_asignado = join(' / ', @nombres_fallback);
 }
 
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
