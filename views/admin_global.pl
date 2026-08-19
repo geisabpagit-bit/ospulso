@@ -49,46 +49,7 @@ render_header(
 
 utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_actual => 'dashboard');
 
-my $backups_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat', 'backups');
-my @backups = ();
-if (-d $backups_dir) {
-    opendir(my $dh, $backups_dir);
-    @backups = grep { $_ =~ /\.zip$/ } readdir($dh);
-    closedir($dh);
-}
-# Ordenar del más reciente al más antiguo
-@backups = sort { (stat(File::Spec->catfile($backups_dir, $b)))[9] <=> (stat(File::Spec->catfile($backups_dir, $a)))[9] } @backups;
-
-my $filas_backups = "";
-foreach my $b (@backups) {
-    my $file_path = File::Spec->catfile($backups_dir, $b);
-    my $mtime = (stat($file_path))[9];
-    my ($sec,$min,$hour,$mday,$mon,$year) = localtime($mtime);
-    my $fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
-    my $hora = sprintf("%02d:%02d:%02d", $hour, $min, $sec);
-    
-    $filas_backups .= qq{
-        <tr>
-            <td class="align-middle fw-bold text-primary"><i class="bi bi-file-earmark-zip me-2"></i>$b</td>
-            <td class="align-middle">$fecha</td>
-            <td class="align-middle">$hora</td>
-            <td class="align-middle text-end">
-                <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-2" onclick="restoreDB('$b')">
-                    <i class="bi bi-cloud-download me-1"></i>Restaurar
-                </button>
-                <button class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm" onclick="deleteBackup('$b')">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </td>
-        </tr>
-    };
-}
-
-if (!$filas_backups) {
-    $filas_backups = qq{
-        <tr><td colspan="4" class="text-center text-muted py-4">No hay copias de seguridad creadas aún.</td></tr>
-    };
-}
+# Se movió la lógica de lectura de backups a admin_backups.pl
 
 print <<HTML;
         <!-- TOPBAR -->
@@ -123,40 +84,7 @@ print <<HTML;
                 </div>
             </div>
 
-            <!-- BACKUP SECTION -->
-            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 p-4 mt-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 55px; height: 55px;">
-                            <i class="bi bi-hdd-network-fill" style="font-size: 1.5rem;"></i>
-                        </div>
-                        <div>
-                            <h4 class="fw-bold text-dark mb-0">Copias de Seguridad (Backup & Restore)</h4>
-                            <p class="text-muted small mb-0 mt-1">Administra los respaldos completos del sistema y archivos adjuntos</p>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="createBackup()">
-                        <i class="bi bi-cloud-upload-fill me-2"></i>Crear Backup Ahora
-                    </button>
-                </div>
-                <hr>
-                <div class="table-responsive mt-3">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Nombre del Respaldo</th>
-                                <th>Fecha</th>
-                                <th>Hora</th>
-                                <th class="text-end">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            $filas_backups
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- END BACKUP SECTION -->
+            <!-- BACKUP SECTION (Migrado a admin_backups.pl) -->
 
         </div>
     </main>
@@ -206,104 +134,7 @@ print <<'JS';
         });
     };
 
-    window.createBackup = function() {
-        Swal.fire({
-            title: 'Creando Respaldo...',
-            text: 'Empaquetando la base de datos y archivos adjuntos. Esto puede tardar unos momentos.',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-        });
-
-        fetch('../api/backup_db_api.pl')
-        .then(res => res.json())
-        .then(data => {
-            console.log("Respuesta de backup:", data);
-            if (data.status === 'success') {
-                Swal.fire('¡Éxito!', data.message, 'success').then(() => location.reload());
-            } else {
-                Swal.fire('Error', data.message, 'error');
-            }
-        }).catch(err => {
-            console.error("Error de red en backup:", err);
-            Swal.fire('Error', 'Error de red al crear el backup.', 'error');
-        });
-    };
-
-    window.restoreDB = function(filename) {
-        Swal.fire({
-            title: '¡Restauración Destructiva!',
-            text: 'Al restaurar, se borrará TODO tu estado actual para ser reemplazado por la copia "' + filename + '". ¿Confirmar?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, Restaurar Ahora',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Restaurando...',
-                    text: 'Extrayendo datos y reconstruyendo el sistema.',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
-                let fd = new FormData();
-                fd.append('filename', filename);
-
-                fetch('../api/restore_db_api.pl', {
-                    method: 'POST',
-                    body: fd
-                })
-                .then(res => res.json())
-                .then(data => {
-                    console.log("Respuesta de restore:", data);
-                    if (data.status === 'success') {
-                        Swal.fire('¡Restaurado!', data.message, 'success').then(() => location.reload());
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                    }
-                }).catch(err => {
-                    Swal.fire('Error', 'Error de red al restaurar.', 'error');
-                });
-            }
-        });
-    };
-
-    window.deleteBackup = function(filename) {
-        Swal.fire({
-            title: '¿Eliminar Backup?',
-            text: '¿Seguro que deseas eliminar el respaldo "' + filename + '" permanentemente?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, Eliminar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({ title: 'Eliminando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-                let fd = new FormData();
-                fd.append('filename', filename);
-
-                fetch('../api/delete_backup_api.pl', {
-                    method: 'POST',
-                    body: fd
-                })
-                .then(res => res.json())
-                .then(data => {
-                    console.log("Respuesta de delete:", data);
-                    if (data.status === 'success') {
-                        Swal.fire('Eliminado', data.message, 'success').then(() => location.reload());
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                    }
-                }).catch(err => {
-                    Swal.fire('Error', 'Error de red.', 'error');
-                });
-            }
-        });
-    };
+    // Funciones de backup migradas a admin_backups.pl
 </script>
 JS
 utils::sub_sidebar::render_sidebar_footer();
