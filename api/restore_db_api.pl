@@ -8,6 +8,7 @@ use JSON;
 use FindBin;
 use File::Spec;
 use File::Path qw(remove_tree);
+use Cwd 'abs_path';
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
 use lib "$FindBin::Bin/..";
@@ -23,6 +24,11 @@ if (!$sd->{session_ok} || $sd->{role} ne 'Administrador Global') {
     print encode_json({ status => 'error', message => 'Acceso denegado. Exclusivo para Administrador Global.' });
     exit;
 }
+
+our $zip_error_msg = '';
+Archive::Zip::setErrorHandler(sub {
+    $zip_error_msg .= shift() . " | ";
+});
 
 my $filename = $q->param('filename') // '';
 
@@ -77,10 +83,11 @@ eval {
         die "Error fatal al leer el archivo ZIP.";
     }
     
-    my $root_dir = File::Spec->catdir($FindBin::Bin, '..');
+    my $root_dir = abs_path("$FindBin::Bin/..");
+    chdir $root_dir or die "No se pudo cambiar al directorio raíz del proyecto: $!";
     
-    if ($zip->extractTree('', "$root_dir/") != AZ_OK) {
-        die "Error fatal al extraer el archivo ZIP.";
+    if ($zip->extractTree() != AZ_OK) {
+        die "Error fatal al extraer el archivo ZIP. Detalles Archive::Zip: $zip_error_msg";
     }
     
     print encode_json({ status => 'success', message => 'Restauración completada con éxito. El sistema ha vuelto al estado del respaldo.' });
