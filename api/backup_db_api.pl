@@ -24,6 +24,11 @@ if (!$sd->{session_ok} || $sd->{role} ne 'Administrador Global') {
     exit;
 }
 
+our $zip_error_msg = '';
+Archive::Zip::setErrorHandler(sub {
+    $zip_error_msg .= shift() . " | ";
+});
+
 eval {
     my $zip = Archive::Zip->new();
     
@@ -55,7 +60,7 @@ eval {
     my $backup_path = File::Spec->catfile($dat_dir, 'backups', $filename);
     
     if ($zip->writeToFileNamed($backup_path) != AZ_OK) {
-        die "Error fatal al escribir el archivo ZIP en disco.";
+        die "Error fatal al escribir el archivo ZIP en disco. Detalles de Archive::Zip: $zip_error_msg";
     }
     
     print encode_json({ 

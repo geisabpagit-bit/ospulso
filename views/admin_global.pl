@@ -161,7 +161,10 @@ print <<HTML;
         </div>
     </main>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+HTML
+
+print <<'JS';
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     window.hardResetDB = function() {
         Swal.fire({
@@ -214,12 +217,14 @@ print <<HTML;
         fetch('../api/backup_db_api.pl')
         .then(res => res.json())
         .then(data => {
+            console.log("Respuesta de backup:", data);
             if (data.status === 'success') {
                 Swal.fire('¡Éxito!', data.message, 'success').then(() => location.reload());
             } else {
                 Swal.fire('Error', data.message, 'error');
             }
         }).catch(err => {
+            console.error("Error de red en backup:", err);
             Swal.fire('Error', 'Error de red al crear el backup.', 'error');
         });
     };
@@ -294,7 +299,7 @@ print <<HTML;
         });
     };
 </script>
-HTML
+JS
 utils::sub_sidebar::render_sidebar_footer();
 
 print <<HTML;
