@@ -886,6 +886,12 @@ PAGE_HTML
         let difColor = dif > 0 ? "green" : (dif < 0 ? "red" : "gray");
         let prod = ccTotalIngresos + ccTotalCxC - ccTotalEgresos;
 
+        let htmlIngresos = ultimoResCorte.ingresos.length ? ultimoResCorte.ingresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.paciente + '</td><td>' + i.medico + '</td><td>' + i.forma_pago + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin ingresos en este periodo</td></tr>';
+        
+        let htmlCxC = (ultimoResCorte.cxc && ultimoResCorte.cxc.length) ? ultimoResCorte.cxc.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.paciente + '</td><td>' + i.medico + '</td><td>' + i.forma_pago + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin cuentas por cobrar en este periodo</td></tr>';
+        
+        let htmlEgresos = (ultimoResCorte.egresos && ultimoResCorte.egresos.length) ? ultimoResCorte.egresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.categoria + '</td><td>' + i.responsable + '</td><td>' + i.concepto + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin egresos en este periodo</td></tr>';
+
         let html = `
         <html>
         <head>
@@ -943,7 +949,7 @@ PAGE_HTML
                     <tr><th>Folio</th><th>Fecha</th><th>Paciente</th><th>Médico</th><th>Forma Pago</th><th class="text-right">Monto</th></tr>
                 </thead>
                 <tbody>
-                    ${ultimoResCorte.ingresos.length ? ultimoResCorte.ingresos.map(i => \`<tr><td>\${i.folio}</td><td>\${i.fecha}</td><td>\${i.paciente}</td><td>\${i.medico}</td><td>\${i.forma_pago}</td><td class="text-right">$\${parseFloat(i.monto).toFixed(2)}</td></tr>\`).join('') : '<tr><td colspan="6" style="text-align:center;">Sin ingresos en este periodo</td></tr>'}
+                    ${htmlIngresos}
                 </tbody>
             </table>
 
@@ -953,7 +959,7 @@ PAGE_HTML
                     <tr><th>Folio OS</th><th>Fecha</th><th>Paciente</th><th>Médico</th><th>Categoría</th><th class="text-right">Monto</th></tr>
                 </thead>
                 <tbody>
-                    ${(ultimoResCorte.cxc && ultimoResCorte.cxc.length) ? ultimoResCorte.cxc.map(i => \`<tr><td>\${i.folio}</td><td>\${i.fecha}</td><td>\${i.paciente}</td><td>\${i.medico}</td><td>\${i.forma_pago}</td><td class="text-right">$\${parseFloat(i.monto).toFixed(2)}</td></tr>\`).join('') : '<tr><td colspan="6" style="text-align:center;">Sin cuentas por cobrar en este periodo</td></tr>'}
+                    ${htmlCxC}
                 </tbody>
             </table>
 
@@ -963,7 +969,7 @@ PAGE_HTML
                     <tr><th>Folio</th><th>Fecha</th><th>Categoría</th><th>Proveedor</th><th>Concepto</th><th class="text-right">Monto</th></tr>
                 </thead>
                 <tbody>
-                    ${(ultimoResCorte.egresos && ultimoResCorte.egresos.length) ? ultimoResCorte.egresos.map(i => \`<tr><td>\${i.folio}</td><td>\${i.fecha}</td><td>\${i.categoria}</td><td>\${i.responsable}</td><td>\${i.concepto}</td><td class="text-right">$\${parseFloat(i.monto).toFixed(2)}</td></tr>\`).join('') : '<tr><td colspan="6" style="text-align:center;">Sin egresos en este periodo</td></tr>'}
+                    ${htmlEgresos}
                 </tbody>
             </table>
 
