@@ -576,6 +576,7 @@ PAGE_HTML
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
         <h5 class="fw-bold mb-2 m-0" style="color: var(--md-blue-medical);"><i class="bi bi-safe me-2"></i>Corte de Caja Diario</h5>
         <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-mobile-standard px-3 fw-bold" onclick="imprimirResumenEjecutivo()"><i class="bi bi-printer me-1"></i>Imprimir Resumen</button>
             <input type="date" id="cc_fecha_inicio" class="form-control" title="Fecha Inicio">
             <input type="date" id="cc_fecha_fin" class="form-control" title="Fecha Fin">
             <button class="btn btn-aura-save btn-mobile-standard px-4" onclick="cargarCorteCaja()"><i class="bi bi-search me-1"></i>Generar</button>
@@ -729,6 +730,7 @@ PAGE_HTML
     let ccTotalCxC = 0;
     let ccTotalEgresos = 0;
     let chartCorte = null;
+    let ultimoResCorte = null;
 
     window.cargarCorteCaja = function() {
         let f_inicio = document.getElementById('cc_fecha_inicio').value;
@@ -744,6 +746,8 @@ PAGE_HTML
                     Swal.fire('Error', res.msg || 'No autorizado', 'error');
                     return;
                 }
+                
+                ultimoResCorte = res;
 
                 ccTotalIngresos = parseFloat(res.total_ingresos) || 0;
                 ccTotalCxC = parseFloat(res.total_cxc) || 0;
@@ -863,6 +867,130 @@ PAGE_HTML
         document.getElementById('cc_gran_total').textContent = '\$' + productividad.toFixed(2);
 
         actualizarGraficaCorte(ccTotalIngresos, ccTotalCxC, ccTotalEgresos, fisico);
+    };
+
+    window.imprimirResumenEjecutivo = function() {
+        if(!ultimoResCorte) {
+            Swal.fire('Atención', 'Primero debes generar el corte de caja para poder imprimir el resumen.', 'warning');
+            return;
+        }
+
+        let fInicio = document.getElementById('cc_fecha_inicio').value;
+        let fFin = document.getElementById('cc_fecha_fin').value;
+        let fechaTexto = fInicio === fFin ? fInicio : (fInicio + " al " + fFin);
+
+        let fisico = parseFloat(document.getElementById('cc_fisico').value) || 0;
+        let saldoEsperado = ccTotalIngresos - ccTotalEgresos;
+        let dif = fisico - saldoEsperado;
+        let difTexto = dif > 0 ? "Sobrante" : (dif < 0 ? "Faltante" : "Cuadrado Perfecto");
+        let difColor = dif > 0 ? "green" : (dif < 0 ? "red" : "gray");
+        let prod = ccTotalIngresos + ccTotalCxC - ccTotalEgresos;
+
+        let html = `
+        <html>
+        <head>
+            <title>Resumen Ejecutivo - Corte de Caja</title>
+            <style>
+                body { font-family: 'Arial', sans-serif; padding: 20px; color: #333; }
+                .header { text-align: center; border-bottom: 2px solid #00C4C4; padding-bottom: 10px; margin-bottom: 20px; }
+                .header h2 { margin: 0; color: #004d40; }
+                .header p { margin: 5px 0 0; color: #666; font-size: 14px; }
+                
+                .kpi-container { display: flex; justify-content: space-between; margin-bottom: 20px; }
+                .kpi-box { border: 1px solid #ddd; border-radius: 8px; padding: 15px; width: 23%; text-align: center; background: #f9f9f9; }
+                .kpi-box h4 { margin: 0 0 10px; font-size: 13px; color: #666; }
+                .kpi-box .val { font-size: 20px; font-weight: bold; color: #333; margin: 0; }
+                
+                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; }
+                th, td { border: 1px solid #eee; padding: 6px; text-align: left; }
+                th { background-color: #f1f1f1; font-weight: bold; color: #555; }
+                .text-right { text-align: right; }
+                .section-title { font-size: 15px; margin: 20px 0 10px; color: #004d40; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+                
+                .footer-box { margin-top: 30px; border: 2px dashed #ccc; padding: 15px; text-align: center; background: #fcfcfc; }
+                .footer-box h3 { margin: 0 0 10px; color: #333; font-size: 16px; }
+                .footer-box p { margin: 5px 0; font-size: 14px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h2>Resumen Ejecutivo de Caja</h2>
+                <p>Periodo: ${fechaTexto}</p>
+            </div>
+
+            <div class="kpi-container">
+                <div class="kpi-box">
+                    <h4>Ingresos (Efectivo)</h4>
+                    <p class="val" style="color: green;">$${ccTotalIngresos.toFixed(2)}</p>
+                </div>
+                <div class="kpi-box">
+                    <h4>Cuentas x Cobrar</h4>
+                    <p class="val" style="color: #0dcaf0;">$${ccTotalCxC.toFixed(2)}</p>
+                </div>
+                <div class="kpi-box">
+                    <h4>Egresos</h4>
+                    <p class="val" style="color: red;">$${ccTotalEgresos.toFixed(2)}</p>
+                </div>
+                <div class="kpi-box" style="background: #e0f7fa; border-color: #00C4C4;">
+                    <h4>Productividad Global</h4>
+                    <p class="val" style="color: #00838F;">$${prod.toFixed(2)}</p>
+                </div>
+            </div>
+
+            <div class="section-title">Detalle de Ingresos en Efectivo</div>
+            <table>
+                <thead>
+                    <tr><th>Folio</th><th>Fecha</th><th>Paciente</th><th>Médico</th><th>Forma Pago</th><th class="text-right">Monto</th></tr>
+                </thead>
+                <tbody>
+                    ${ultimoResCorte.ingresos.length ? ultimoResCorte.ingresos.map(i => \`<tr><td>\${i.folio}</td><td>\${i.fecha}</td><td>\${i.paciente}</td><td>\${i.medico}</td><td>\${i.forma_pago}</td><td class="text-right">$\${parseFloat(i.monto).toFixed(2)}</td></tr>\`).join('') : '<tr><td colspan="6" style="text-align:center;">Sin ingresos en este periodo</td></tr>'}
+                </tbody>
+            </table>
+
+            <div class="section-title">Detalle de Cuentas por Cobrar (Estado)</div>
+            <table>
+                <thead>
+                    <tr><th>Folio OS</th><th>Fecha</th><th>Paciente</th><th>Médico</th><th>Categoría</th><th class="text-right">Monto</th></tr>
+                </thead>
+                <tbody>
+                    ${(ultimoResCorte.cxc && ultimoResCorte.cxc.length) ? ultimoResCorte.cxc.map(i => \`<tr><td>\${i.folio}</td><td>\${i.fecha}</td><td>\${i.paciente}</td><td>\${i.medico}</td><td>\${i.forma_pago}</td><td class="text-right">$\${parseFloat(i.monto).toFixed(2)}</td></tr>\`).join('') : '<tr><td colspan="6" style="text-align:center;">Sin cuentas por cobrar en este periodo</td></tr>'}
+                </tbody>
+            </table>
+
+            <div class="section-title">Detalle de Egresos</div>
+            <table>
+                <thead>
+                    <tr><th>Folio</th><th>Fecha</th><th>Categoría</th><th>Proveedor</th><th>Concepto</th><th class="text-right">Monto</th></tr>
+                </thead>
+                <tbody>
+                    ${(ultimoResCorte.egresos && ultimoResCorte.egresos.length) ? ultimoResCorte.egresos.map(i => \`<tr><td>\${i.folio}</td><td>\${i.fecha}</td><td>\${i.categoria}</td><td>\${i.responsable}</td><td>\${i.concepto}</td><td class="text-right">$\${parseFloat(i.monto).toFixed(2)}</td></tr>\`).join('') : '<tr><td colspan="6" style="text-align:center;">Sin egresos en este periodo</td></tr>'}
+                </tbody>
+            </table>
+
+            <div class="footer-box">
+                <h3>Declaración Física de Caja</h3>
+                <p>Efectivo Físico Reportado: <strong>$${fisico.toFixed(2)}</strong></p>
+                <p>Saldo Esperado (Ingresos - Egresos): <strong>$${saldoEsperado.toFixed(2)}</strong></p>
+                <p>Resultado del Cuadre: <strong style="color: ${difColor};">${difTexto} por $${Math.abs(dif).toFixed(2)}</strong></p>
+            </div>
+            
+            <div style="margin-top: 50px; text-align: center;">
+                <div style="display: inline-block; width: 250px; border-top: 1px solid #000; padding-top: 5px;">
+                    Nombre y Firma del Responsable
+                </div>
+            </div>
+        </body>
+        </html>
+        \`;
+
+        let printWin = window.open('', '_blank');
+        printWin.document.write(html);
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(() => {
+            printWin.print();
+            printWin.close();
+        }, 300);
     };
 
     window.actualizarGraficaCorte = function(ingresos, cxc, egresos, fisico) {
