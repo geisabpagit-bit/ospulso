@@ -386,24 +386,25 @@ print <<HTML;
             margin-bottom: 10px;
             font-size: 11px;
             text-transform: capitalize;
-            color: #333;
+            color: #000;
+            font-family: Arial, sans-serif;
+            font-weight: normal;
         }
         .grid-receipt td {
-            border: 1px solid rgba(10, 42, 102, 0.25);
+            border: 1px solid #ccc;
             padding: 8px;
             vertical-align: middle;
+            font-weight: normal;
         }
         .header-row td {
             text-align: center;
-            border-bottom: 1px solid rgba(10, 42, 102, 0.25);
         }
         .col-logo { width: 25%; }
-        .col-clinic { width: 50%; font-size: 14px; text-transform: uppercase; color: #333; font-weight: bold; }
-        .col-folio { width: 25%; font-size: 11px; color: #333; }
+        .col-clinic { width: 45%; font-size: 14px; text-transform: uppercase; color: #000; text-align: center; }
+        .col-folio { width: 30%; font-size: 11px; color: #000; text-align: center; }
         .info-label-cell {
             width: 25%;
-            font-weight: bold;
-            color: #333;
+            color: #000;
         }
         .table-inner {
             width: 100%;
@@ -412,25 +413,23 @@ print <<HTML;
         }
         .table-inner td {
             border: none;
-            border-bottom: 1px dashed rgba(204, 204, 204, 0.4);
+            border-bottom: 1px dashed #ccc;
             padding: 6px;
-            color: #333;
+            color: #000;
         }
         .signature-box {
-            border-top: 1px solid rgba(10, 42, 102, 0.25);
-            width: 60%;
+            border-top: 1px solid #ccc;
+            width: 80%;
             margin: 0 auto;
             padding-top: 5px;
-            font-weight: normal;
-            color: #333;
+            color: #000;
             text-transform: capitalize;
         }
         .badge-folio {
-            font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 16px;
             display: inline-block;
             margin-top: 5px;
-            color: #333;
+            color: #000;
         }
         \@media screen {
             body { background: #e0e0e0; padding: 20px; }
@@ -442,27 +441,25 @@ print <<HTML;
     </style>
 </head>
 <body onload="window.print()">
-    <div class="receipt-container">
+    <div class="receipt-container" style="font-family: Arial, sans-serif;">
         <table class="grid-receipt">
-            <tr class="header-row" style="border-bottom: 1px solid #ccc;">
-                <td class="col-logo" style="width:20%; border-right: none;">
+            <tr class="header-row">
+                <td class="col-logo">
                     <div style="text-align: center;">
                         $logo_html
-                        <div style="font-size: 8px; margin-top: 4px;">Clinica de Especialidades</div>
-                        <div style="font-size: 10px; font-weight: bold;">JUAN PABLO II</div>
                     </div>
                 </td>
-                <td class="col-clinic" style="width:50%; text-align: center; border-left: none; border-right: 1px solid #0A2A66; color:#000;">
+                <td class="col-clinic">
                     $negocio->{nombre}
                 </td>
-                <td class="col-folio" style="width:30%; text-align: center;">
-                    <span style="font-weight: bold; color: #000; font-size: 12px;">$recibo->{fecha} - $recibo->{hora} hrs.</span><br>
-                    <span style="font-weight: 800; font-size: 14px; margin-top: 4px; display:inline-block; color:#000;">Folio</span><br>
-                    <span class="badge-folio" style="font-size: 16px;">$folio_corto</span>
+                <td class="col-folio">
+                    <span style="font-size: 12px;">$recibo->{fecha} - $recibo->{hora} hrs.</span><br>
+                    <span style="font-size: 14px; margin-top: 4px; display:inline-block;">Folio</span><br>
+                    <span class="badge-folio">$folio_corto</span>
                 </td>
             </tr>
             <tr>
-                <td style="width:20%; vertical-align: top;">
+                <td style="vertical-align: top;">
                     Visita : Primera vez
                 </td>
                 <td colspan="2" style="padding-left: 10px;">
@@ -471,17 +468,17 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td class="info-label-cell" style="color:#000; font-weight: normal;">Paciente :</td>
-                <td colspan="2" style="font-weight: normal; text-transform: uppercase;">$paciente_nombre</td>
+                <td class="info-label-cell">Paciente :</td>
+                <td colspan="2" style="text-transform: uppercase;">$paciente_nombre</td>
             </tr>
             <tr>
                 <td class="info-label-cell">Médico:</td>
-                <td colspan="2" style="font-weight: normal; font-size: 10px; color:#1a365d;">
+                <td colspan="2" style="font-size: 10px;">
                     $medico_nombre
                 </td>
             </tr>
             <tr>
-                <td class="info-label-cell" style="color:#000; font-weight: normal; vertical-align: top;">Concepto :</td>
+                <td class="info-label-cell" style="vertical-align: top;">Concepto :</td>
                 <td colspan="2" style="padding: 0;">
                     <table class="table-inner">
 HTML
@@ -495,8 +492,8 @@ foreach my $c (@cargos) {
     
     print qq{
                         <tr>
-                            <td style="text-align: left; font-size: 10px; font-weight: normal; text-transform: uppercase;">$concepto_txt</td>
-                            <td style="text-align: right; color: #1a365d; font-size: 10px; font-weight: normal;">$subtotal_fmt</td>
+                            <td style="text-align: left; font-size: 10px; text-transform: uppercase;">$concepto_txt</td>
+                            <td style="text-align: right; font-size: 10px;">$subtotal_fmt</td>
                         </tr>
     };
 }
@@ -506,29 +503,23 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="padding: 0;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="width: 50%; text-align: center; vertical-align: bottom; height: 60px; padding-bottom: 5px; border-right: 1px solid #0A2A66;">
-                                <div class="signature-box" style="width: 80%;">
-                                    Nombre y Firma del Paciente
-                                </div>
-                            </td>
-                            <td style="width: 50%; text-align: right; vertical-align: middle; padding: 15px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color:#000; font-weight: bold; font-size: 14px;">
-                                    <span>Cuentas x Cobrar</span>
-                                    <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
-                                </div>
-                                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
-                                    <span style="font-size: 11px; color: #000; text-align: right;">Elaboró :<br><strong>$recibo->{elaborado_por}</strong></span>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 60px; padding-bottom: 5px;">
+                    <div class="signature-box">
+                        Nombre y Firma del Paciente
+                    </div>
+                </td>
+                <td style="text-align: right; vertical-align: middle; padding: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px;">
+                        <span>Cuentas x Cobrar</span>
+                        <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
+                        <span style="font-size: 11px; text-align: right;">Elaboró :<br>$recibo->{elaborado_por}</span>
+                    </div>
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align: center; color: #000; font-size: 11px; padding: 10px;">
+                <td colspan="3" style="text-align: center; font-size: 11px; padding: 10px;">
                     $negocio->{domicilio}, Tels.$negocio->{telefono} CP. 76900
                 </td>
             </tr>
