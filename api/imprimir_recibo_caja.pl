@@ -100,7 +100,7 @@ if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
         # Si tiene sucursal usamos ese, sino la matriz (id_negocio)
         my $target_id = ($recibo->{id_sucursal} && $recibo->{id_sucursal} ne 'SUC-000' && $recibo->{id_sucursal} ne '0') ? $recibo->{id_sucursal} : $recibo->{id_negocio};
         if ($n[0] eq $target_id) {
-            $negocio->{nombre} = $n[2] // '';
+            $negocio->{nombre} = $n[1] // '';
             $negocio->{domicilio} = ($n[3] // '') . ', ' . ($n[4] // '') . ', ' . ($n[7] // '') . ', ' . ($n[8] // '');
             $negocio->{telefono} = $n[12] // '';
             $negocio->{clues} = $n[18] // $n[1] // '';

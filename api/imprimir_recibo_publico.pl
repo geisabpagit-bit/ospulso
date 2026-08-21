@@ -202,7 +202,7 @@ if (-e $neg_file && open(my $fn, '<:encoding(UTF-8)', $neg_file)) {
         chomp $ln;
         my @n = split /\|/, $ln, -1;
         if ($n[0] eq ($recibo->{id_negocio} // '')) {
-            $negocio->{nombre} = $n[2] // '';
+            $negocio->{nombre} = $n[1] // '';
             $negocio->{direccion} = ($n[3] // '') . ', ' . ($n[4] // '') . ', ' . ($n[7] // '') . ', ' . ($n[8] // '');
             $negocio->{telefono} = $n[12] // '';
             $negocio->{clues} = $n[18] // $n[1] // '';
