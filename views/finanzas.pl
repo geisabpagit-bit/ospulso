@@ -18,8 +18,8 @@ use utils::db_manager qw(leer_tabla);
 my $q = CGI->new;
 my $session_data = check_session();
 
-if (!$session_data->{session_ok}) {
-    print $q->redirect(-uri => '../auth/login.pl');
+if (!$session_data->{session_ok} || $session_data->{role} !~ /Administrador|Caja/) {
+    print $q->redirect(-uri => '../index.html');
     exit;
 }
 

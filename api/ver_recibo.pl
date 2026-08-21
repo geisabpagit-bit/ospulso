@@ -12,7 +12,7 @@ use utils::db_manager qw(leer_tabla);
 my $q = CGI->new;
 my $sd = check_session();
 if (!$sd->{session_ok}) {
-    print $q->redirect(-uri => '../auth/login.pl');
+    print $q->redirect(-uri => '../index.html');
     exit;
 }
 
