@@ -146,6 +146,7 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
             my $num_emp = $1;
             my $empleado_nombre = $map_empleados{$num_emp} || 'Desconocido';
             my $paciente_nombre = $map_alias_estado{$folio_absoluto} || ($nombre_final eq $id_paciente ? $empleado_nombre : $nombre_final);
+            $paciente_nombre =~ s/.*Paciente:\s*//i;
             $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
         }
         
