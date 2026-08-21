@@ -86,8 +86,12 @@ foreach my $r (@$movimientos) {
     my $concepto_recibo = $r->[12] || 'Servicios Múltiples';
     my $elaborado_por = $r->[11] || '';
     
-    # Filtrar por negocio de la sesión
-    next if $id_neg ne ($session_data->{id_empresa} || '');
+    # Filtrar Privados / Publicos
+    if ($tipo eq 'publicos') {
+        next unless $id_paciente =~ /^EMP-/;
+    } else {
+        next if $id_paciente =~ /^EMP-/;
+    }
     
     my $nombre_final = $map_pacientes{$id_paciente} || $id_paciente;
     $nombre_final =~ s/.*Paciente:\s*//i;

@@ -28,7 +28,7 @@ my $id_paciente = $q->param('id_paciente') || '';
 my $nombre_empleado = $q->param('nombre_paciente_empleado') || '';
 $nombre_empleado =~ s/.*Paciente:\s*//i; # Limpiar el texto arrastrado del select2
 my $id_medico = $q->param('id_medico') || '';
-my $caja_items_json = $q->param('caja_items_json') || '[]';
+my $caja_items_json = decode_utf8($q->param('caja_items_json')) || '[]';
 my $caja_metodo_pago = decode_utf8($q->param('caja_metodo_pago') // 'Efectivo');
 my $caja_monto_abono = $q->param('caja_monto_abono') || 0;
 my $concepto_recibo = decode_utf8($q->param('caja_concepto') // '');
@@ -141,7 +141,7 @@ if (open my $fh_c, '<:encoding(UTF-8)', $contadores_file) {
 
 my $folio_impreso = sprintf("%s-%s-%06d", $id_neg, $id_suc, $next_folio);
 my $folios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', $is_estado ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat');
-unless (-e $folios_file) {
+unless (-s $folios_file) {
     open my $fh_f2, '>:encoding(UTF-8)', $folios_file;
     print $fh_f2 "ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON\n";
     close $fh_f2;
