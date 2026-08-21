@@ -61,6 +61,17 @@ if ($org_clues && -e $empleados_file) {
     }
 }
 
+my $usuarios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+my %map_medicos = ();
+if (-e $usuarios_file) {
+    my $usr_data = leer_tabla($usuarios_file, '!', 1);
+    foreach my $u (@$usr_data) {
+        if (@$u >= 2) {
+            $map_medicos{$u->[0]} = $u->[1];
+        }
+    }
+}
+
 my $folios_priv = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
 my $folios_pub = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_publicos.dat');
 
@@ -70,8 +81,13 @@ if (-e $folios_priv) {
     foreach my $f (@$f_priv) {
         if (@$f >= 5) {
             my $folio_str = $f->[1];
-            $folio_str =~ s/^.*-//;
-            $map_folios{$f->[4]} = $folio_str + 0;
+            if ($org_clues eq 'QTSMP000116') {
+                $folio_str =~ s/^.*-//;
+                $folio_str += 0;
+            }
+            my $key = $f->[4];
+            $key =~ s/^\s+|\s+$//g;
+            $map_folios{$key} = $folio_str;
         }
     }
 }
@@ -80,8 +96,13 @@ if (-e $folios_pub) {
     foreach my $f (@$f_pub) {
         if (@$f >= 5) {
             my $folio_str = $f->[1];
-            $folio_str =~ s/^.*-//;
-            $map_folios{$f->[4]} = $folio_str + 0;
+            if ($org_clues eq 'QTSMP000116') {
+                $folio_str =~ s/^.*-//;
+                $folio_str += 0;
+            }
+            my $key = $f->[4];
+            $key =~ s/^\s+|\s+$//g;
+            $map_folios{$key} = $folio_str;
         }
     }
 }
@@ -91,6 +112,7 @@ my %recibos = ();
 foreach my $r (@$movimientos) {
     next unless @$r >= 12;
     my $id_os = $r->[0] || '';
+    $id_os =~ s/^\s+|\s+$//g;
     my $id_paciente = $r->[2] || '';
     my $tipo_mov = $r->[3] || '';
     my $concepto = $r->[4] || '';
@@ -109,10 +131,11 @@ foreach my $r (@$movimientos) {
     
     if (!exists $recibos{$id_os}) {
         my $nombre_final = $alias || $map_pacientes{$id_paciente} || $id_paciente;
+        $nombre_final =~ s/.*Paciente:\s*//i;
+        
         if ($tipo eq 'publicos' && $id_paciente =~ /^EMP-(.*)/) {
             my $num_emp = $1;
             my $paciente_nombre = $nombre_final;
-            $paciente_nombre =~ s/.*Paciente:\s*//i;
             my $empleado_nombre = $map_empleados{$num_emp} || 'Desconocido';
             $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
         }
@@ -123,7 +146,8 @@ foreach my $r (@$movimientos) {
             pac_nombre => $nombre_final,
             total_cargo => 0,
             total_abono => 0,
-            estatus => 'Activo'
+            estatus => 'Activo',
+            id_medico => $id_medico
         };
     }
     
@@ -139,7 +163,7 @@ foreach my $id_os (keys %recibos) {
     my $rec = $recibos{$id_os};
     my $total_mostrar = $rec->{total_abono} > 0 ? $rec->{total_abono} : $rec->{total_cargo};
     
-    my $medico = "Médico Tratante";
+    my $medico = $map_medicos{$rec->{id_medico}} || "Médico Tratante";
     my $detalle = "Caja";
     
     # Opciones
