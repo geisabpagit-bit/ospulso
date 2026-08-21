@@ -541,8 +541,160 @@ HTML
 HTML
 
     if ($role eq 'Recepcionista') {
-        # Vista de Recepcionista limpia, solo KPIs superiores (espacio listo para empezar de cero)
-        print "\n<!-- Espacio limpio para Recepcionista -->\n";
+        print <<HTML;
+            <div class="row g-4 mt-2 mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-uppercase fw-bold m-0" style="color: var(--md-blue-deep); font-size: 1.1rem;"><i class="bi bi-person-check text-primary me-2"></i>MOVIMIENTOS DE RECIBOS DE PARTICULARES</h6>
+                    </div>
+                    <div class="bg-white p-3 rounded-4 shadow-sm" style="border: 1px solid var(--md-teal-clinical);">
+                        <div class="table-responsive">
+                            <table id="dtPrivados" class="table table-hover align-middle w-100">
+                                <thead class="table-light" style="color: var(--md-blue-deep);">
+                                    <tr>
+                                        <th>Folio</th>
+                                        <th>Fecha</th>
+                                        <th>Paciente</th>
+                                        <th>Concepto</th>
+                                        <th>Médico</th>
+                                        <th>Detalle</th>
+                                        <th>Total</th>
+                                        <th>Estatus</th>
+                                        <th class="text-center">Opciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="6" style="text-align:right; font-weight:bold;">Total:</th>
+                                        <th style="font-weight:bold; color: var(--md-success);"></th>
+                                        <th colspan="2"></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4 mt-4 mb-5">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-uppercase fw-bold m-0" style="color: var(--md-blue-deep); font-size: 1.1rem;"><i class="bi bi-building text-secondary me-2"></i>MOVIMIENTOS DE RECIBOS DE ESTADO / MUNICIPIO</h6>
+                    </div>
+                    <div class="bg-white p-3 rounded-4 shadow-sm" style="border: 1px solid var(--md-teal-clinical);">
+                        <div class="table-responsive">
+                            <table id="dtPublicos" class="table table-hover align-middle w-100">
+                                <thead class="table-light" style="color: var(--md-blue-deep);">
+                                    <tr>
+                                        <th>Folio</th>
+                                        <th>Fecha</th>
+                                        <th>Paciente</th>
+                                        <th>Concepto</th>
+                                        <th>Médico</th>
+                                        <th>Detalle</th>
+                                        <th>Total</th>
+                                        <th>Estatus</th>
+                                        <th class="text-center">Opciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="6" style="text-align:right; font-weight:bold;">Total:</th>
+                                        <th style="font-weight:bold; color: var(--md-success);"></th>
+                                        <th colspan="2"></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estilos y Scripts Datatables Premium -->
+            <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+            <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+            <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+            <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+HTML
+    print <<'JS';
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const dtConfig = {
+                        language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+                        dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                        buttons: [
+                            { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export fw-bold', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] } },
+                            { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export fw-bold', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] } },
+                            { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export fw-bold', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] } },
+                            { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export fw-bold', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] } }
+                        ],
+                        pageLength: 10,
+                        lengthChange: false,
+                        createdRow: function(row, data, dataIndex) {
+                            const labels = ['Folio', 'Fecha', 'Paciente', 'Concepto', 'Médico', 'Detalle', 'Total', 'Estatus', 'Opciones'];
+                            $('td', row).each(function(index) {
+                                if (index < 8) {
+                                    $(this).attr('data-label', labels[index]);
+                                } else {
+                                    $(this).addClass('text-center border-0');
+                                }
+                            });
+                        },
+                        footerCallback: function(row, data, start, end, display) {
+                            var api = this.api();
+                            var intVal = function(i) {
+                                return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                            };
+                            var total = api.column(6, { page: 'current' }).data().reduce(function(a, b) {
+                                return intVal(a) + intVal(b);
+                            }, 0);
+                            $(api.column(6).footer()).html('$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        }
+                    };
+                    
+                    $('#dtPrivados').DataTable(Object.assign({}, dtConfig, { 
+                        ajax: '../api/get_recibos_caja_api.pl?tipo=privados'
+                    }));
+                    $('#dtPublicos').DataTable(Object.assign({}, dtConfig, { 
+                        ajax: '../api/get_recibos_caja_api.pl?tipo=publicos'
+                    }));
+                });
+                
+                function cancelarRecibo(id, tipo) {
+                    Swal.fire({
+                        title: '¿Cancelar Recibo?',
+                        text: "Esta acción es irreversible y afectará los KPIs financieros.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, Cancelar',
+                        cancelButtonText: 'No'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.post('../api/cancelar_recibo_api.pl', { id_recibo: id, tipo: tipo }, function(res) {
+                                if (res.ok) {
+                                    Swal.fire('Cancelado', res.msg, 'success');
+                                    $('#dtPrivados').DataTable().ajax.reload(null, false);
+                                    $('#dtPublicos').DataTable().ajax.reload(null, false);
+                                } else {
+                                    Swal.fire('Error', res.msg, 'error');
+                                }
+                            });
+                        }
+                    });
+                }
+            </script>
+JS
     } else {
         print <<HTML;
             <div class="row g-2 g-lg-4 card-mobile-flush">
