@@ -578,29 +578,29 @@ PAGE_HTML
         <div class="d-flex gap-2">
             <input type="date" id="cc_fecha_inicio" class="form-control" title="Fecha Inicio">
             <input type="date" id="cc_fecha_fin" class="form-control" title="Fecha Fin">
-            <button class="btn btn-aura-save px-4" onclick="cargarCorteCaja()"><i class="bi bi-search me-1"></i>Generar</button>
+            <button class="btn btn-aura-save btn-mobile-standard px-4" onclick="cargarCorteCaja()"><i class="bi bi-search me-1"></i>Generar</button>
         </div>
     </div>
 
     <!-- KPIs -->
     <div class="kpi-grid mb-4">
         <div class="kpi-acrilico">
-            <div class="kpi-icono" style="color: #10b981;"><i class="bi bi-arrow-down-circle"></i></div>
+            <div class="kpi-icono text-success"><i class="bi bi-arrow-down-circle"></i></div>
             <div class="kpi-titulo">Ingresos (Sistema)</div>
             <div class="kpi-valor" id="cc_ingresos">$0.00</div>
         </div>
         <div class="kpi-acrilico">
-            <div class="kpi-icono" style="color: #ef4444;"><i class="bi bi-arrow-up-circle"></i></div>
+            <div class="kpi-icono text-danger"><i class="bi bi-arrow-up-circle"></i></div>
             <div class="kpi-titulo">Egresos (Sistema)</div>
             <div class="kpi-valor" id="cc_egresos">$0.00</div>
         </div>
-        <div class="kpi-acrilico" style="background: rgba(255,255,255,0.8);">
-            <div class="kpi-icono" style="color: #eab308;"><i class="bi bi-cash"></i></div>
+        <div class="kpi-acrilico bg-white bg-opacity-75">
+            <div class="kpi-icono text-warning"><i class="bi bi-cash"></i></div>
             <div class="kpi-titulo">Efectivo Físico</div>
-            <input type="number" id="cc_fisico" class="form-control mt-2 text-center fw-bold fs-5 shadow-sm" style="border: 2px dashed #ccc; border-radius: 12px; color: var(--md-blue-medical);" value="0" oninput="calcularFaltante()" placeholder="0.00">
+            <input type="number" id="cc_fisico" class="form-control mt-2 text-center fw-bold fs-5 shadow-sm border-2 rounded-3 text-primary" value="0" oninput="calcularFaltante()" placeholder="0.00">
         </div>
         <div class="kpi-acrilico" id="kpi_diferencia_box">
-            <div class="kpi-icono" id="cc_dif_icon" style="color: #6c757d;"><i class="bi bi-calculator"></i></div>
+            <div class="kpi-icono text-secondary" id="cc_dif_icon"><i class="bi bi-calculator"></i></div>
             <div class="kpi-titulo">Faltante / Sobrante</div>
             <div class="kpi-valor" id="cc_diferencia">$0.00</div>
             <div class="kpi-subtexto" id="cc_dif_label">Efectivo - (Ingresos - Egresos)</div>
