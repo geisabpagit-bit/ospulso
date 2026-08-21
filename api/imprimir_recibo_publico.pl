@@ -106,13 +106,15 @@ if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
         my @e = split /\|/, $le, -1;
         
         if ($e[3] eq 'Cargo' && ($e[0] eq $id_consulta || ($e[10] && $e[10] =~ /Consulta #$id_consulta/) || ($recibo->{id_paciente} && $e[2] eq $recibo->{id_paciente} && $e[8] eq $recibo->{fecha}))) {
-            my $monto = $e[7] || 0;
-            push @cargos, {
-                concepto => $e[4],
-                precio   => $monto,
-                cantidad => 1,
-                subtotal => $monto
-            };
+            if (!@cargos) {
+                my $monto = $e[7] || 0;
+                push @cargos, {
+                    concepto => $e[4],
+                    precio   => $monto,
+                    cantidad => 1,
+                    subtotal => $monto
+                };
+            }
             $id_medico = $e[9] if !$id_medico && $e[9];
             $express_paciente = $e[2] if !$express_paciente;
             $express_fecha = $e[8] if !$express_fecha;
@@ -236,12 +238,10 @@ if ($negocio->{logo_url}) {
 }
 
 my $folio_corto = $recibo->{folio} // $id_consulta;
-if ($negocio->{clues} ne 'QTSMP000116') {
-    if ($folio_corto =~ /-0*(\d+)$/) {
-        $folio_corto = $1;
-    } elsif ($folio_corto =~ /^\d+$/) {
-        $folio_corto = $folio_corto + 0;
-    }
+if ($folio_corto =~ /-0*(\d+)$/) {
+    $folio_corto = $1;
+} elsif ($folio_corto =~ /^\d+$/) {
+    $folio_corto = $folio_corto + 0;
 }
 
 if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
@@ -286,18 +286,34 @@ if ($num_empleado && $negocio->{clues}) {
 
 my $medico_nombre = "NO ESPECIFICADO";
 if ($id_medico) {
-    my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
-    if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
-        my $hu = <$fu>;
-        while (my $lu = <$fu>) {
-            chomp $lu;
-            my @u = split /!/, $lu, -1;
-            if ($u[0] eq $id_medico) {
-                $medico_nombre = uc($u[1] // '');
+    my $med_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "medicos_$negocio->{clues}.dat");
+    if (-e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
+        while (my $lm = <$fm>) {
+            chomp $lm;
+            my @m = split /\|/, $lm, -1;
+            if ($m[0] eq $id_medico) {
+                my $idx = (@m >= 3) ? 2 : 1;
+                $medico_nombre = uc($m[$idx] // '');
                 last;
             }
         }
-        close $fu;
+        close $fm;
+    }
+    
+    if ($medico_nombre eq "NO ESPECIFICADO") {
+        my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+        if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
+            my $hu = <$fu>;
+            while (my $lu = <$fu>) {
+                chomp $lu;
+                my @u = split /!/, $lu, -1;
+                if ($u[0] eq $id_medico) {
+                    $medico_nombre = uc($u[1] // '');
+                    last;
+                }
+            }
+            close $fu;
+        }
     }
 }
 
@@ -453,12 +469,10 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td class="info-label-cell" style="color:#000; font-weight: normal;">Paciente :</td>
-                <td colspan="2" style="font-weight: normal;">$paciente_nombre ($paciente_tipo)</td>
-            </tr>
-            <tr>
-                <td class="info-label-cell" style="color:#000; font-weight: normal;">Médico:</td>
-                <td colspan="2" style="font-weight: normal; text-transform: uppercase;">$medico_nombre</td>
+                <td class="info-label-cell">Médico:</td>
+                <td colspan="2" style="font-weight: normal; font-size: 10px; color:#1a365d;">
+                    $medico_nombre
+                </td>
             </tr>
             <tr>
                 <td class="info-label-cell" style="color:#000; font-weight: normal; vertical-align: top;">Concepto :</td>
@@ -466,13 +480,16 @@ print <<HTML;
                     <table class="table-inner">
 HTML
 
+my %seen;
 foreach my $c (@cargos) {
-    my $precio_fmt   = formato_moneda($c->{precio});
+    next if $seen{$c->{concepto}}++;
+    my $concepto_txt = $c->{concepto};
+    my $precio_fmt = formato_moneda($c->{precio});
     my $subtotal_fmt = formato_moneda($c->{subtotal});
-    my $concepto_txt = uc($c->{concepto});
+    
     print qq{
                         <tr>
-                            <td style="text-align: left; font-size: 10px; font-weight: normal;">$concepto_txt</td>
+                            <td style="text-align: left; font-size: 10px; font-weight: normal; text-transform: uppercase;">$concepto_txt</td>
                             <td style="text-align: right; color: #1a365d; font-size: 10px; font-weight: normal;">$subtotal_fmt</td>
                         </tr>
     };

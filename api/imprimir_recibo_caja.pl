@@ -401,10 +401,10 @@ HTML
 foreach my $c (@cargos) {
     my $precio_fmt   = formato_moneda($c->{precio});
     my $subtotal_fmt = formato_moneda($c->{subtotal});
-    my $concepto_txt = uc($c->{concepto});
+    my $concepto_txt = $c->{concepto};
     print qq{
                         <tr>
-                            <td style="text-align: left; font-size: 10px; font-weight: normal;">$concepto_txt</td>
+                            <td style="text-align: left; font-size: 10px; font-weight: normal; text-transform: uppercase;">$concepto_txt</td>
                             <td style="text-align: right; color: #1a365d; font-size: 10px; font-weight: normal;">$subtotal_fmt</td>
                         </tr>
     };
@@ -412,10 +412,6 @@ foreach my $c (@cargos) {
 
 print <<HTML;
                     </table>
-                    <div style="font-size: 15px; margin-bottom: 5px;">
-                        <span style="color: #64748b; font-weight: 500;">No. Trámite:</span>
-                        <span style="color: #0f172a; font-weight: bold; margin-left: 5px;">@{[ $negocio->{clues} eq 'QTSMP000116' ? $recibo->{folio} : $recibo->{id_consulta} ]}</span>
-                    </div>
                 </td>
             </tr>
             <tr>

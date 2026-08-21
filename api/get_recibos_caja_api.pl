@@ -80,7 +80,8 @@ if ($org_clues && -e $medicos_custom_file) {
     my $meds = leer_tabla($medicos_custom_file, '|');
     foreach my $m (@$meds) {
         if (@$m >= 2) {
-            $map_medicos{$m->[0]} = $m->[1];
+            my $name_idx = (@$m >= 3) ? 2 : 1;
+            $map_medicos{$m->[0]} = $m->[$name_idx];
         }
     }
 }
