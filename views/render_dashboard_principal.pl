@@ -551,7 +551,7 @@ HTML
                         <table id="dtPrivados" class="table table-hover align-middle w-100">
                             <thead class="table-light text-secondary">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Folio</th>
                                     <th>Fecha</th>
                                     <th>Paciente</th>
                                     <th>Concepto</th>
@@ -584,7 +584,7 @@ HTML
                         <table id="dtPublicos" class="table table-hover align-middle w-100">
                             <thead class="table-light text-secondary">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Folio</th>
                                     <th>Fecha</th>
                                     <th>Paciente</th>
                                     <th>Concepto</th>

@@ -185,7 +185,7 @@ foreach my $id_os (keys %recibos) {
     my $estatus_badge = $rec->{estatus} eq 'Cancelado' ? '<span class="badge bg-danger">Cancelado</span>' : '<span class="badge bg-success">Cobrado</span>';
     
     # Formatear folio para mostrarlo amigable
-    my $folioDisplay = "Folio " . ($map_folios{$id_os} || $id_os);
+    my $folioDisplay = $map_folios{$id_os} || $id_os;
     
     push @data, {
         raw_fecha => $rec->{fecha},
