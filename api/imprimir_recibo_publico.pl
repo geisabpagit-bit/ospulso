@@ -452,10 +452,10 @@ print <<HTML;
                 <td class="col-clinic">
                     $negocio->{nombre}
                 </td>
-                <td class="col-folio">
-                    <span style="font-size: 12px;">$recibo->{fecha} - $recibo->{hora} hrs.</span><br>
-                    <span style="font-size: 14px; margin-top: 4px; display:inline-block;">Folio</span><br>
-                    <span class="badge-folio">$folio_corto</span>
+                <td class="col-folio" style="font-size: 9px; white-space: nowrap; text-align: center;">
+                    $recibo->{fecha} - $recibo->{hora} hrs.<br>
+                    <span style="margin-top: 4px; display:inline-block;">Folio</span><br>
+                    <strong>$folio_corto</strong>
                 </td>
             </tr>
             <tr>
@@ -503,19 +503,25 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 60px; padding-bottom: 5px;">
-                    <div class="signature-box">
-                        Nombre y Firma del Paciente
-                    </div>
-                </td>
-                <td style="text-align: right; vertical-align: middle; padding: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px;">
-                        <span>Cuentas x Cobrar</span>
-                        <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
-                        <span style="font-size: 11px; text-align: right;">Elaboró :<br>$recibo->{elaborado_por}</span>
-                    </div>
+                <td colspan="3" style="padding: 0; border: none;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                        <tr>
+                            <td style="width: 50%; text-align: center; vertical-align: bottom; height: 60px; padding-bottom: 5px; border: 1px solid #ccc; border-top: none;">
+                                <div class="signature-box">
+                                    Nombre y Firma del Paciente
+                                </div>
+                            </td>
+                            <td style="width: 50%; text-align: right; vertical-align: middle; padding: 15px; border: 1px solid #ccc; border-top: none; border-left: none;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px;">
+                                    <span>Cuentas x Cobrar</span>
+                                    <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
+                                    <span style="font-size: 11px; text-align: right;">Elaboró :<br>$recibo->{elaborado_por}</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
             <tr>

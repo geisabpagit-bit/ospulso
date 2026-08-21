@@ -29,7 +29,7 @@ my $folios_file = $tipo eq 'publicos' ?
     File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
 
 my $pacientes_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
-my $pacs = leer_tabla($pacientes_file, '|', 1);
+my $pacs = leer_tabla($pacientes_file, '\|');
 my %map_pacientes = ();
 foreach my $p (@$pacs) {
     next unless @$p >= 3;
@@ -94,7 +94,7 @@ if ($org_clues && -e $empleados_file) {
 my $medicos_custom_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "medicos_${org_clues}.dat");
 my %map_medicos = ();
 if ($org_clues && -e $medicos_custom_file) {
-    my $meds = leer_tabla($medicos_custom_file, '|');
+    my $meds = leer_tabla($medicos_custom_file, '\|');
     foreach my $m (@$meds) {
         if (@$m >= 2) {
             $map_medicos{$m->[0]} = $m->[2] if $m->[0] && $m->[2];
