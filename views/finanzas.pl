@@ -653,7 +653,8 @@ PAGE_HTML
                                         <th>Folio</th>
                                         <th>Fecha</th>
                                         <th>Categoría</th>
-                                        <th>Responsable</th>
+                                        <th>Proveedor</th>
+                                        <th>Concepto</th>
                                         <th class="text-end">Monto</th>
                                     </tr>
                                 </thead>
@@ -717,6 +718,7 @@ PAGE_HTML
                     { data: 'fecha' },
                     { data: 'categoria' },
                     { data: 'responsable' },
+                    { data: 'concepto' },
                     { data: 'monto', className: 'text-end text-danger fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
                 ]);
 
@@ -738,10 +740,12 @@ PAGE_HTML
                 data: data,
                 columns: columns,
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
-                dom: 'Bfrtip',
+                dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                 buttons: [
-                    { extend: 'excelHtml5', className: 'btn btn-sm btn-outline-success', text: '<i class="bi bi-file-earmark-excel"></i> Excel' },
-                    { extend: 'pdfHtml5', className: 'btn btn-sm btn-outline-danger', text: '<i class="bi bi-file-earmark-pdf"></i> PDF' }
+                    { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export' },
+                    { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export' },
+                    { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export' },
+                    { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export' }
                 ],
                 responsive: false, // Handle via SDM mobile styles data-label
                 createdRow: function(row, data, dataIndex) {

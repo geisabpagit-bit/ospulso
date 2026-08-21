@@ -101,32 +101,31 @@ my @egresos_filtrados = ();
 my $total_egresos = 0;
 
 if (-e $archivo_egresos) {
+    my @cat = @{ leer_tabla(File::Spec->catfile($dat_dir, 'categorias.dat')) };
+    my %c_map = map { $_->[0] => $_->[1] } @cat;
+
     my $egr_data = leer_tabla($archivo_egresos);
     foreach my $f (@$egr_data) {
-        my $fecha = $f->[3] || '';
-        my $estatus = $f->[7] || '';
-        
-        next if $estatus =~ /Cancelado/i;
-
-        # Asumimos que los gastos guardan la fecha (puede ser YYYY-MM-DD)
-        # Algunos gastos pueden tener fecha tipo YYYY-MM-DD HH:MM:SS, extraemos solo el date
+        my $fecha = $f->[1] || '';
         my ($solo_fecha) = split(/\s+/, $fecha);
         $solo_fecha = '' unless defined $solo_fecha;
 
         if ($solo_fecha ge $f_inicio && $solo_fecha le $f_fin) {
-            my $monto = $f->[2] || 0;
+            my $monto = $f->[6] || 0;
             $monto =~ s/[^\d\.]//g; # limpiar
             
             $total_egresos += $monto;
             
-            my $id_med = $f->[9] || '';
-            my $resp = $medicos{$id_med} || $f->[1] || 'Organización';
-
+            my $id_cat = $f->[2] || '';
+            my $concepto = $f->[5] || '';
+            my $proveedor = $f->[7] || '';
+          
             push @egresos_filtrados, {
-                folio       => $f->[0] || '',
+                folio       => $f->[0],
                 fecha       => $fecha,
-                categoria   => ($f->[4] || '') . ' - ' . ($f->[5] || ''),
-                responsable => $resp,
+                categoria   => $c_map{$id_cat} || 'Gasto Operativo',
+                responsable => $proveedor || 'N/A',
+                concepto    => $concepto,
                 monto       => $monto
             };
         }
