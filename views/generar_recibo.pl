@@ -47,10 +47,14 @@ if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
         if ($biz_id eq $id_empresa && $key eq 'PACIENTES_ESTADO') {
             $capacidades{'PACIENTES_ESTADO'} = $val;
         }
+        if ($biz_id eq $id_empresa && $key eq 'PORTAL_PACIENTE') {
+            $capacidades{'PORTAL_PACIENTE'} = $val;
+        }
     }
     close($cf);
 }
 my $has_pacientes_estado = (exists $capacidades{'PACIENTES_ESTADO'} && $capacidades{'PACIENTES_ESTADO'} eq '1') ? 1 : 0;
+my $has_portal_paciente = (!exists $capacidades{'PORTAL_PACIENTE'} || $capacidades{'PORTAL_PACIENTE'} eq '1') ? 1 : 0;
 
 my $org_clues = '';
 my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
@@ -433,6 +437,7 @@ print <<"HTML";
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     const HAS_PACIENTES_ESTADO = ${has_pacientes_estado} || 0;
+    const HAS_PORTAL_PACIENTE = ${has_portal_paciente};
     const ORG_CLUES = '$org_clues';
     const MEDICOS_CUSTOM_JSON = $medicos_custom_js;
 </script>
@@ -551,22 +556,33 @@ print <<'JS';
         if ($('#selPaciente').hasClass('select2-hidden-accessible')) {
             $('#selPaciente').select2('destroy');
         }
+        
+        let ajaxUrl = HAS_PORTAL_PACIENTE ? '../api/autocomplete_pacientes.pl' : '../api/autocomplete_pacientes_privados.pl';
+        let ajaxDataFn = HAS_PORTAL_PACIENTE ? function (params) { return { term: params.term }; } : function (params) { return { term: params.term, clues: ORG_CLUES }; };
+        
         $('#selPaciente').select2({
             theme: 'bootstrap-5',
             placeholder: '🔍 Escribe el nombre del paciente (Privado)...',
             minimumInputLength: 2,
+            tags: !HAS_PORTAL_PACIENTE, // Permitir agregar nuevos nombres si no hay portal
             ajax: {
-                url: '../api/autocomplete_pacientes.pl',
+                url: ajaxUrl,
                 dataType: 'json',
                 delay: 350,
-                data: function (params) { return { term: params.term }; },
+                data: ajaxDataFn,
                 processResults: function (data) {
                     return { results: data.map(function(item) { return { id: item.id, text: item.label }; }) };
                 }
             },
+            createTag: function(params) {
+                if(HAS_PORTAL_PACIENTE) return null; // No permitir crear si el portal global manda
+                var term = $.trim(params.term);
+                if (term === '') return null;
+                return { id: term, text: term, newTag: true };
+            },
             language: {
                 inputTooShort: function() { return "Por favor ingresa 2 o más caracteres"; },
-                noResults: function() { return "No se encontraron resultados"; },
+                noResults: function() { return HAS_PORTAL_PACIENTE ? "No se encontraron resultados" : "Presiona enter para agregar como nuevo paciente"; },
                 searching: function() { return "Buscando..."; }
             }
         });

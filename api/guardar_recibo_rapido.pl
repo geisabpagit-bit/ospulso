@@ -59,6 +59,51 @@ my $id_neg = $sd->{id_empresa} || 'ORG-000';
 my $id_suc = $sd->{id_sucursal} || 'SUC-000';
 my $usuario = $sd->{usuario} || 'Sistema';
 
+# 0. Lógica de Pacientes Privados (Sin Portal)
+my $org_clues = '';
+my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+if (-e $negocios_file && open(my $nf, '<:utf8', $negocios_file)) {
+    while (my $line = <$nf>) {
+        chomp($line);
+        my @f = split(/\|/, $line, -1);
+        if ($f[0] eq $id_neg) {
+            $org_clues = $f[18] // '';
+            last;
+        }
+    }
+    close($nf);
+}
+
+my $has_portal_paciente = 1;
+my $config_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
+    while (my $line = <$cf>) {
+        chomp($line);
+        my @f = split(/\|/, $line, -1);
+        if ($f[0] eq $id_neg && $f[1] eq 'PORTAL_PACIENTE') {
+            $has_portal_paciente = ($f[2] eq '1') ? 1 : 0;
+            last;
+        }
+    }
+    close($cf);
+}
+
+if (!$has_portal_paciente && $id_paciente eq $nombre_empleado && $id_paciente !~ /^EMP-|^PRIV-/) {
+    # Es un nombre nuevo (tag free-text)
+    my $new_id = 'PRIV-' . time() . int(rand(1000));
+    my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "pacientes_privados__${org_clues}.dat");
+    my $header_exists = (-e $priv_file) ? 1 : 0;
+    if (open(my $fhp, '>>:utf8', $priv_file)) {
+        flock($fhp, 2);
+        if (!$header_exists) {
+            print $fhp "ID_PACIENTE|NOMBRE_COMPLETO|FECHA_REGISTRO\n";
+        }
+        print $fhp "$new_id|$nombre_empleado|$hoy_fecha\n";
+        close($fhp);
+    }
+    $id_paciente = $new_id;
+}
+
 # 1. Crear Tratamiento Express
 my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
 unless (-e $trat_file) {

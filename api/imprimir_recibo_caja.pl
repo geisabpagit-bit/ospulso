@@ -101,6 +101,7 @@ if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
             $negocio->{domicilio} = $n[6] || '';
             $negocio->{telefono} = $n[7] || '';
             $negocio->{logo_url} = $n[9] || '';
+            $negocio->{clues} = $n[18] || '';
             last;
         }
     }
@@ -184,8 +185,10 @@ my $saldo = $recibo->{total_cargos} - $recibo->{total_abonos};
 $saldo = 0 if $saldo < 0;
 
 my $folio_corto = $recibo->{folio};
-if ($folio_corto =~ /-0*(\d+)$/) {
-    $folio_corto = $1;
+if ($negocio->{clues} ne 'QTSMP000116') {
+    if ($folio_corto =~ /-0*(\d+)$/) {
+        $folio_corto = $1;
+    }
 }
 
 my $abono_saldo_html = "";
@@ -342,6 +345,10 @@ foreach my $c (@cargos) {
 
 print <<HTML;
                     </table>
+                    <div style="font-size: 15px; margin-bottom: 5px;">
+                        <span style="color: #64748b; font-weight: 500;">No. Trámite:</span>
+                        <span style="color: #0f172a; font-weight: bold; margin-left: 5px;">@{[ $negocio->{clues} eq 'QTSMP000116' ? $recibo->{folio} : $recibo->{id_consulta} ]}</span>
+                    </div>
                 </td>
             </tr>
             <tr>

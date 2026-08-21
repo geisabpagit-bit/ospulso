@@ -111,6 +111,37 @@ if ($accion eq 'get_catalogo') {
         close $fh_p;
     }
     
+    my $org_clues = '';
+    my $negocios_file = File::Spec->catfile($dat_path, 'negocios.dat');
+    if (-e $negocios_file && open(my $nf, '<:encoding(UTF-8)', $negocios_file)) {
+        while (my $line = <$nf>) {
+            chomp($line);
+            my @f = split(/\|/, $line, -1);
+            if ($f[0] eq $mi_org) {
+                $org_clues = $f[18] // '';
+                last;
+            }
+        }
+        close($nf);
+    }
+    
+    my %mapa_folios = ();
+    if ($org_clues eq 'QTSMP000116') {
+        foreach my $f_name ('folios_recibos_privados.dat', 'folios_recibos_publicos.dat') {
+            my $f_path = File::Spec->catfile($dat_path, $f_name);
+            if (-e $f_path && open(my $fh_f, '<:encoding(UTF-8)', $f_path)) {
+                <$fh_f>;
+                while (my $line = <$fh_f>) {
+                    chomp $line;
+                    my @f = split(/\|/, $line, -1);
+                    if (@f > 4 && $f[4]) {
+                        $mapa_folios{$f[4]} = $f[1];
+                    }
+                }
+                close($fh_f);
+            }
+        }
+    }
     if (-e $ec_file) {
         open(my $fh, "<:encoding(UTF-8)", $ec_file); <$fh>;
         while (my $line = <$fh>) {
@@ -126,7 +157,12 @@ if ($accion eq 'get_catalogo') {
                     my $notas = $v[10] || '';
                     my $is_legacy_cot = ($tipo =~ /Cargo/i && $notas =~ /Presupuesto|Cotizacion/i) ? 1 : 0;
                     
-                    push @h, { id_os => $v[0], id_mov => $v[1], tipo => $tipo, concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], paciente_nombre => $nom_pac, alias => ($v[11] || '') };
+                    my $id_os = $v[0];
+                    if ($org_clues eq 'QTSMP000116' && $mapa_folios{$id_os}) {
+                        $id_os = $mapa_folios{$id_os};
+                    }
+                    
+                    push @h, { id_os => $id_os, id_mov => $v[1], tipo => $tipo, concepto => $v[4], total => $tot, fecha => $v[8], id_paciente => $v[2], paciente_nombre => $nom_pac, alias => ($v[11] || '') };
                     
                     unless ($is_legacy_cot) {
                         if ($tipo =~ /Cargo/i) { $saldo_total += $tot; $cargos_sum += $tot; }
