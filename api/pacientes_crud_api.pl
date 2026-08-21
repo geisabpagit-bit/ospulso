@@ -107,7 +107,23 @@ if ($input->{accion} eq 'crear') {
     guardar_domicilio_paciente($id_paciente, $dom_data);
 
     # ==== REGISTRO DE USUARIO (PORTAL PACIENTE) ====
-    if ($input->{correo} && $input->{correo} =~ /\@/) {
+    # Revisar SaaS Capabilities para ver si el Portal del Paciente está activo para esta organización
+    my $portal_paciente_activo = 1; # Por defecto activado (retrocompatibilidad)
+    my $config_file = '../dat/negocios_config.dat';
+    if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
+        while (my $line = <$cf>) {
+            chomp($line);
+            next if $line =~ /^#|^\s*$/;
+            my ($biz_id, $key, $val) = split(/\|/, $line);
+            if ($biz_id eq ($session_data->{id_empresa} // '0') && $key eq 'PORTAL_PACIENTE') {
+                $portal_paciente_activo = ($val eq '1') ? 1 : 0;
+                last;
+            }
+        }
+        close($cf);
+    }
+
+    if ($portal_paciente_activo && $input->{correo} && $input->{correo} =~ /\@/) {
         my $correo_pac = lc($input->{correo});
         $correo_pac =~ s/^\s+|\s+$//g;
         

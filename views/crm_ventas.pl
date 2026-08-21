@@ -394,6 +394,7 @@ print <<HTML;
                             <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-box-seam me-2"></i>Capacidades SaaS Requeridas</h6>
                             <div class="row g-2 bg-white p-3 border rounded shadow-sm m-0">
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="pacientes_estado" value="1" id="saas_pacientes_estado"><label class="form-check-label small fw-bold text-primary" for="saas_pacientes_estado">Pacientes del Estado</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="portal_paciente" value="1" id="saas_portal_paciente" checked><label class="form-check-label small fw-bold text-success" for="saas_portal_paciente">Portal del Paciente</label></div></div>
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="maneja_hospitalizacion" value="1" id="saas_maneja_hospitalizacion"><label class="form-check-label small fw-bold text-primary" for="saas_maneja_hospitalizacion">Hospitalización</label></div></div>
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Expediente Clínico" id="cap1" checked><label class="form-check-label small" for="cap1">Expediente Clínico</label></div></div>
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Agenda" id="cap2" checked><label class="form-check-label small" for="cap2">Agenda</label></div></div>
@@ -687,6 +688,7 @@ print <<'JS';
                 capChecks.forEach(chk => chk.checked = d.capacidades.includes(chk.value));
                 
                 document.getElementById('saas_pacientes_estado').checked = (d.pacientes_estado === '1');
+                document.getElementById('saas_portal_paciente').checked = (d.portal_paciente === '1' || typeof d.portal_paciente === 'undefined');
                 document.getElementById('saas_maneja_hospitalizacion').checked = (d.maneja_hospitalizacion === '1');
                 const eventTipo = new Event('change');
                 document.querySelector('select[name="tipo_organizacion"]').dispatchEvent(eventTipo);
