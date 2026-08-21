@@ -30,4 +30,6 @@ Este documento contiene informaciÃ³n confidencial destinada Ãºnicamente al r
 ---
 # Documentos Específicos
 - **Nota de Evolución / Detalles de Consulta**: Implementado en `views/consulta_detalles.pl`. Utiliza un diseño Bento-Grid (CSS @media print) que aplasta márgenes y desactiva sombras para formato carta.
-- **Recibos de Caja**: Implementado en `api/imprimir_recibo_caja.pl`. Formato estricto a Media Carta (5.5" x 8.5" usando CSS `@page { size: 5.5in 8.5in; margin: 0; }`). Los montos usan formato moneda con separación de miles. La codificación es UTF-8. El folio es consecutivo (guardado en `folios_recibos_privados.dat` o PMIX correspondientes) e inmutable por sucursal. Incluye campos de firma, logo y detalle de los conceptos de la consulta.
+- **Recibos de Caja Privados (Walk-in y Particulares)**: Implementado en `api/imprimir_recibo_caja.pl`. Ver documentación detallada en [impresion_recibo_caja.md](file:///c:/xampp/htdocs/ospulso/docs/impresion_recibo_caja.md).
+- **Recibos Públicos (Estado/Municipio)**: Implementado en `api/imprimir_recibo_publico.pl`. Ver reglas en [impresion_recibo_publico.md](file:///c:/xampp/htdocs/ospulso/docs/impresion_recibo_publico.md).
+- **Flujo Global (CRUD) de Caja Rápida**: Documentado en [flujo_caja_rapida.md](file:///c:/xampp/htdocs/ospulso/docs/flujo_caja_rapida.md).
