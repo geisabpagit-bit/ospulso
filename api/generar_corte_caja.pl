@@ -53,7 +53,29 @@ if ($org_clues) {
     if (-e $med_file) {
         my $m_data = leer_tabla($med_file);
         foreach my $m (@$m_data) {
-            $medicos{$m->[0]} = $m->[1] || $m->[0];
+            # Índice 2 suele ser el Nombre_Completo en medicos_CLUE.dat
+            $medicos{$m->[0]} = $m->[2] || $m->[1] || $m->[0];
+        }
+    }
+}
+
+# Diccionario de pacientes para resolver ID a Nombre
+my %pacientes = ();
+my $pac_file = File::Spec->catfile($dat_dir, 'pacientes.dat');
+if (-e $pac_file) {
+    my $p_data = leer_tabla($pac_file);
+    foreach my $p (@$p_data) {
+        # Índice 2 es NOMBRE según las cabeceras de pacientes.dat
+        $pacientes{$p->[0]} = $p->[2] || $p->[0];
+    }
+}
+if ($org_clues) {
+    my $priv_file = File::Spec->catfile($dat_dir, "pacientes_privados__${org_clues}.dat");
+    if (-e $priv_file) {
+        my $priv_data = leer_tabla($priv_file);
+        foreach my $p (@$priv_data) {
+            # Índice 1 es NOMBRE_COMPLETO
+            $pacientes{$p->[0]} = $p->[1] || $p->[0];
         }
     }
 }
@@ -94,10 +116,14 @@ if (-e $archivo_ingresos) {
                 $folio_corto =~ s/^0+//;
             }
 
+            # Resolver nombre del paciente
+            my $id_pac = $f->[5] || '';
+            my $nombre_pac = $pacientes{$id_pac} || $id_pac || 'Público General';
+
             push @ingresos_filtrados, {
                 folio      => $folio_corto || $folio_raw,
                 fecha      => $fecha . ' ' . ($f->[7] || ''),
-                paciente   => $f->[5] || 'Público General',
+                paciente   => $nombre_pac,
                 medico     => $nombre_med,
                 forma_pago => $f->[10] || 'Efectivo',
                 monto      => $abono
