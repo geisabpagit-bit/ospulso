@@ -26,13 +26,24 @@ my $id_empresa = $sd->{id_empresa} || '';
 binmode STDOUT, ":utf8";
 
 # Restringir a roles permitidos (Recepcion, Medicos, Admins)
+unless ($sd->{session_ok}) {
+    print $q->redirect('../index.html');
+    exit;
+}
 if ($role !~ /Recepcionista|Medico|Administrador/i) {
     print $q->redirect('inicial.pl');
     exit;
 }
-unless ($sd->{session_ok}) {
-    print $q->redirect('../index.html');
-    exit;
+
+sub html_escape {
+    my $s = shift;
+    $s //= '';
+    $s =~ s/&/&amp;/g;
+    $s =~ s/</&lt;/g;
+    $s =~ s/>/&gt;/g;
+    $s =~ s/"/&quot;/g;
+    $s =~ s/'/&#39;/g;
+    return $s;
 }
 
 # 1. Leer SaaS Capabilities
@@ -43,7 +54,7 @@ if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
     while (my $line = <$cf>) {
         chomp($line);
         next if $line =~ /^#|^\s*$/;
-        my ($biz_id, $key, $val) = split(/\|/, $line);
+        my ($biz_id, $key, $val) = split(/\|/, $line, -1);
         if ($biz_id eq $id_empresa && $key eq 'PACIENTES_ESTADO') {
             $capacidades{'PACIENTES_ESTADO'} = $val;
         }
@@ -105,8 +116,11 @@ utils::sub_sidebar::render_sidebar(
 my $medicos_options = "<option value=''>-- Selecciona el Médico que atiende --</option>";
 foreach my $m (@medicos) {
     my $sel = ($id_medico eq $m->{id}) ? "selected" : "";
-    $medicos_options .= "<option value='$m->{id}' $sel>$m->{nombre}</option>";
+    my $safe_nombre = html_escape($m->{nombre});
+    $medicos_options .= "<option value='$m->{id}' $sel>$safe_nombre</option>";
 }
+
+$org_clues =~ s/[^A-Za-z0-9_]//g; # Sanitize path component
 
 # 2.1 Comprobar catálogos custom (Médicos Legacy)
 my $archivo_medicos_custom = File::Spec->catfile($dat_dir, "medicos_${org_clues}.dat");
@@ -123,7 +137,8 @@ if ($has_custom_medicos) {
     foreach my $e (@$espe_regs) {
         next unless scalar(@$e) >= 2;
         my $sel = ($e->[1] =~ /^MEDICINA GENERAL$/i) ? 'selected' : '';
-        $espe_options .= "<option value='$e->[0]' $sel>$e->[1]</option>";
+        my $safe_espe = html_escape($e->[1]);
+        $espe_options .= "<option value='$e->[0]' $sel>$safe_espe</option>";
     }
     
     my $med_regs = leer_tabla($archivo_medicos_custom);
@@ -148,16 +163,20 @@ if ($org_clues eq 'QTSMP000116') {
         my $mots = leer_tabla($motivos_file);
         foreach my $m (@$mots) {
             next unless @$m >= 2;
-            $motivos_html .= "<option value='$m->[1]'>$m->[1]</option>";
+            my $safe_mot = html_escape($m->[1]);
+            $motivos_html .= "<option value='$safe_mot'>$safe_mot</option>";
         }
     }
 }
+
+my $css_path = File::Spec->catfile($FindBin::Bin, '..', 'css', 'expediente_completo.css');
+my $css_ver = (stat($css_path))[9] || $^T;
 
 print <<"HTML";
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 <link rel="stylesheet" href="../css/sdm_mobile_standards.css" />
-<link rel="stylesheet" href="../css/expediente_completo.css?v=$^T" />
+<link rel="stylesheet" href="../css/expediente_completo.css?v=$css_ver" />
 
 <style>
     /* Unificar estilos de Select2, inputs y contenedores de resultados */
@@ -474,6 +493,16 @@ HTML
 
 print <<'JS';
 <script>
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe)
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
     let catalogoMaster = [];
     let cartItems = [];
     let consecutivoId = 1;
@@ -531,25 +560,23 @@ print <<'JS';
             method: 'POST',
             data: { num_empleado: num, clues: ORG_CLUES },
             success: function(res) {
-                console.log("Respuesta de buscar_familia_empleado.pl:", res);
                 if (res.ok && res.resultados && res.resultados.length > 0) {
-                    console.log("Resultados encontrados:", res.resultados.length);
                     let html = '';
                     try {
                         res.resultados.forEach((emp, i) => {
                             let isChecked = i === 0 ? 'checked' : '';
                             let nombreStr = emp.nombre ? String(emp.nombre) : '';
-                            let safeNombre = nombreStr.replace(/'/g, "&apos;");
+                            let safeNombre = escapeHtml(nombreStr).replace(/'/g, "\\'");
                             if(i===0) seleccionarEmpleadoEstado(emp.id, nombreStr); // Select first auto
                             
-                            let badgeText = emp.relacion.toLowerCase() === 'empleado' ? 'Empleado' : emp.relacion;
+                            let badgeText = (emp.relacion && emp.relacion.toLowerCase() === 'empleado') ? 'Empleado' : (emp.relacion || 'Desconocido');
                             
                             html += `
                             <div class="form-check custom-input-caja p-2 mb-2 d-flex align-items-center">
-                                <input class="form-check-input ms-0 me-3" style="width:1.2rem; height:1.2rem;" type="radio" name="empSeleccionado" id="empSel${emp.id}_${i}" value="${emp.id}" ${isChecked} onchange="seleccionarEmpleadoEstado('${emp.id}', '${safeNombre}')">
-                                <label class="form-check-label w-100 mb-0" for="empSel${emp.id}_${i}" style="cursor:pointer; display:flex; align-items:center;">
-                                    <div class="fw-bold text-dark flex-grow-1">${nombreStr}</div>
-                                    <span class="badge bg-secondary rounded-pill px-3">${badgeText}</span>
+                                <input class="form-check-input ms-0 me-3" style="width:1.2rem; height:1.2rem;" type="radio" name="empSeleccionado" id="empSel${escapeHtml(emp.id)}_${i}" value="${escapeHtml(emp.id)}" ${isChecked} onchange="seleccionarEmpleadoEstado('${escapeHtml(emp.id)}', '${safeNombre}')">
+                                <label class="form-check-label w-100 mb-0" for="empSel${escapeHtml(emp.id)}_${i}" style="cursor:pointer; display:flex; align-items:center;">
+                                    <div class="fw-bold text-dark flex-grow-1">${escapeHtml(nombreStr)}</div>
+                                    <span class="badge bg-secondary rounded-pill px-3">${escapeHtml(badgeText)}</span>
                                 </label>
                             </div>`;
                         });
@@ -559,7 +586,6 @@ print <<'JS';
                                 <i class="bi bi-pencil-square me-1"></i> Editar Beneficiarios
                             </button>
                         </div>`;
-                        console.log("HTML generado:", html);
                         $('#resultadosEmpleado').html(html);
                         pacienteTipoActual = 'estado';
                         $('#selPaciente').val(null).trigger('change.select2');
@@ -569,6 +595,7 @@ print <<'JS';
                     }
                 } else {
                     $('#resultadosEmpleado').html(`<div class="alert alert-warning py-3 text-center small m-0 shadow-sm border-0"><p class="mb-2"><i class="bi bi-exclamation-triangle fs-4 d-block mb-1"></i>No se encontraron resultados para el número de empleado ingresado.</p><button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm mt-2 fw-bold" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-person-plus me-1"></i> Registrar Nuevo Empleado / Beneficiario</button></div>`);
+                    pacienteEstadoSeleccionado = { id: '', nombre: '' };
                 }
             },
             error: function() {
@@ -746,17 +773,17 @@ print <<'JS';
             htmlModal += `
                 <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-2 shadow-sm" style="background: white; border: 1px solid var(--md-gray-soft, #D9E2EC);">
                     <div class="me-2" style="flex: 1; min-width: 0;">
-                        <div class="fw-bold text-truncate" style="font-size: 0.8rem; color: var(--md-blue-deep, #0A2A66);">${item.nombre}</div>
+                        <div class="fw-bold text-truncate" style="font-size: 0.8rem; color: var(--md-blue-deep, #0A2A66);">${escapeHtml(item.nombre)}</div>
                         <div class="text-muted" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u</div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <div class="input-group input-group-sm" style="width: 75px;">
-                            <button class="btn btn-outline-secondary px-1 py-0" type="button" onclick="updateCantidad('${item.id}', -1)">-</button>
-                            <input type="text" class="form-control text-center p-0" value="${item.cantidad}" readonly style="font-size: 0.75rem;">
-                            <button class="btn btn-outline-secondary px-1 py-0" type="button" onclick="updateCantidad('${item.id}', 1)">+</button>
+                            <button class="btn btn-outline-secondary px-1 py-0" type="button" onclick="updateCantidad('${escapeHtml(item.id)}', -1)">-</button>
+                            <input type="text" class="form-control text-center p-0" value="${escapeHtml(item.cantidad)}" readonly style="font-size: 0.75rem;">
+                            <button class="btn btn-outline-secondary px-1 py-0" type="button" onclick="updateCantidad('${escapeHtml(item.id)}', 1)">+</button>
                         </div>
                         <span class="fw-bold" style="font-size: 0.85rem; color: var(--md-blue-deep, #0A2A66); width: 60px; text-align: right;">${formatCurrency(sub)}</span>
-                        <button class="btn btn-sm text-danger p-1 border-0" onclick="removeConcepto('${item.id}')"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-sm text-danger p-1 border-0" onclick="removeConcepto('${escapeHtml(item.id)}')"><i class="bi bi-trash"></i></button>
                     </div>
                 </div>
             `;
@@ -765,8 +792,8 @@ print <<'JS';
             htmlMain += `
                 <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-1 bg-white border shadow-sm" style="border-color: var(--md-gray-soft, #D9E2EC) !important; gap: 0.5rem;">
                     <div style="min-width: 0;">
-                        <div class="fw-bold text-truncate" style="font-size: 0.85rem; color: var(--md-blue-deep, #0A2A66);">${item.nombre}</div>
-                        <div class="text-muted" style="font-size: 0.75rem;">${item.cantidad} x ${formatCurrency(item.precio)}</div>
+                        <div class="fw-bold text-truncate" style="font-size: 0.85rem; color: var(--md-blue-deep, #0A2A66);">${escapeHtml(item.nombre)}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">${escapeHtml(item.cantidad)} x ${formatCurrency(item.precio)}</div>
                     </div>
                     <div class="fw-bold text-success text-end flex-shrink-0" style="font-size: 0.9rem;">
                         ${formatCurrency(sub)}
@@ -847,7 +874,7 @@ print <<'JS';
         `;
         cartItems.forEach(it => {
             const s = it.precio * it.cantidad;
-            draftHtml += `<tr><td style="padding:8px; border-bottom:1px solid #e2e8f0;">${it.nombre}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:center;">${it.cantidad}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:right;">${formatCurrency(s)}</td></tr>`;
+            draftHtml += `<tr><td style="padding:8px; border-bottom:1px solid #e2e8f0;">${escapeHtml(it.nombre)}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:center;">${escapeHtml(it.cantidad)}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:right;">${formatCurrency(s)}</td></tr>`;
         });
         if (iva > 0) {
             draftHtml += `<tr><td colspan="2" style="padding:8px;text-align:right;font-size:14px;color:#666;">Tax (IVA 16%):</td><td style="padding:8px;text-align:right;font-size:14px;color:#666;">${formatCurrency(iva)}</td></tr>`;
@@ -915,8 +942,8 @@ print <<'JS';
                     confirmButtonText: 'Abrir PDF y Volver'
                 }).then(() => {
                     $('#modalReciboPrevio').modal('hide');
-                    const script_print = tipo === 'estado' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
-                    window.open(`../api/${script_print}?id_consulta=${res.id_tratamiento}`, '_blank');
+                    const ticketUrl = '../api/imprimir_recibo_' + (pacienteTipoActual === 'estado' ? 'publico' : 'caja') + '.pl?id_consulta=' + encodeURIComponent(res.folio);
+                    window.open(ticketUrl, '_blank');
                     window.location.href = 'inicial.pl';
                 });
             } else {
