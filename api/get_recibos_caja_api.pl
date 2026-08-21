@@ -74,13 +74,23 @@ if ($org_clues && -e $empleados_file) {
     }
 }
 
-my $usuarios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+my $medicos_custom_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "medicos_${org_clues}.dat");
 my %map_medicos = ();
+if ($org_clues && -e $medicos_custom_file) {
+    my $meds = leer_tabla($medicos_custom_file, '|');
+    foreach my $m (@$meds) {
+        if (@$m >= 2) {
+            $map_medicos{$m->[0]} = $m->[1];
+        }
+    }
+}
+
+my $usuarios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 if (-e $usuarios_file) {
     my $usr_data = leer_tabla($usuarios_file, '!', 1);
     foreach my $u (@$usr_data) {
-        if (@$u >= 2) {
-            # Map by username (column 0) to full name (column 1)
+        if (@$u >= 2 && !exists $map_medicos{$u->[0]}) {
+            # Map by username (column 0) to full name (column 1) if not already mapped
             $map_medicos{$u->[0]} = $u->[1];
         }
     }
@@ -122,7 +132,9 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
             $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
         }
         
-        my $medico = $map_medicos{$elaborado_por} || $elaborado_por || "Médico Tratante";
+        # El ID del médico (si se guardó) viene en $r[15], de lo contrario fallback a elaborado_por
+        my $id_medico_saved = $r[15] || $elaborado_por;
+        my $medico = $map_medicos{$id_medico_saved} || $id_medico_saved || "Médico Tratante";
         my $detalle = "Caja";
         
         my $folio_mostrar = $folio_absoluto;
@@ -132,7 +144,7 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
         
         my $script_print = $tipo eq 'publicos' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
         my $btn_print = qq{<a href="../api/$script_print?id_consulta=$folio_absoluto" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="bi bi-file-earmark-text"></i></a>};
-        my $btn_cancel = qq{<button onclick="cancelarRecibo('$folio_absoluto', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="bi bi-x-circle"></i></button>};
+        my $btn_cancel = qq{<button onclick="cancelarRecibo('$folio_absoluto', '$tipo')" class="btn btn-sm btn-danger text-white" title="Borrar Recibo"><i class="bi bi-trash"></i></button>};
         
         my $estatus = $r[14] || 'Cobrado';
         my $estatus_badge = $estatus eq 'Cancelado' ? '<span class="badge bg-danger">Cancelado</span>' : '<span class="badge bg-success">Cobrado</span>';

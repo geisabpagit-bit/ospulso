@@ -62,13 +62,14 @@ open(my $fh, '>:encoding(UTF-8)', $file_path) or do {
 
 foreach my $r (@recibos_raw) {
     if (ref($r) eq 'ARRAY') {
-        # Validar match por FOLIO ($r->[1])
+        # Validar match por FOLIO ($r->[1]) o ID ($r->[0])
         if ($r->[1] eq $id_recibo || $r->[0] eq $id_recibo) {
-            $r->[14] = 'Cancelado'; # Columna 14 es ESTATUS
             $found = 1;
             $id_consulta = $r->[4] || '';
             $id_paciente = $r->[5] || '';
             $total = $r->[8] || 0;
+            # Omitir la fila (borrado completo)
+            next;
         }
         print $fh join('|', @$r) . "\n";
     } else {
@@ -106,7 +107,7 @@ if ($found && $id_consulta && $total > 0) {
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 if ($found) {
-    print JSON::PP->new->utf8(0)->encode({ok => 1, msg => "Recibo cancelado exitosamente"});
+    print JSON::PP->new->utf8(0)->encode({ok => 1, msg => "Recibo eliminado exitosamente"});
 } else {
     print JSON::PP->new->utf8(0)->encode({ok => 0, msg => "Recibo no encontrado"});
 }
