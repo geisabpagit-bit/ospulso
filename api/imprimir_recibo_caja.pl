@@ -433,7 +433,7 @@ print <<HTML;
                                 <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
                                     <span style="border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 11px; display: inline-block;">$recibo->{metodo_pago}</span>
                                     <div style="text-align: right;">
-                                        <div style="font-size: 9px; font-weight: normal; color: #666; margin-bottom: 2px;">$usuario</div>
+                                        <div style="font-size: 9px; font-weight: normal; color: #666; margin-bottom: 2px;">$recibo->{elaborado_por}</div>
                                         <div style="font-size: 8px; font-weight: normal; color: #999;">Recibió</div>
                                     </div>
                                 </div>
