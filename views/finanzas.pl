@@ -18,7 +18,7 @@ use utils::db_manager qw(leer_tabla);
 my $q = CGI->new;
 my $session_data = check_session();
 
-if (!$session_data->{session_ok} || $session_data->{role} !~ /Administrador|Caja/) {
+if (!$session_data->{session_ok} || $session_data->{role} !~ /Administrador|Caja|Recepcionista|Medico/i) {
     print $q->redirect(-uri => '../index.html');
     exit;
 }
