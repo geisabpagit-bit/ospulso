@@ -110,6 +110,11 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
         my $medico = $map_medicos{$elaborado_por} || $elaborado_por || "Médico Tratante";
         my $detalle = "Caja";
         
+        my $folio_mostrar = $folio_absoluto;
+        if ($folio_absoluto =~ /-(\d+)$/) {
+            $folio_mostrar = $1;
+        }
+        
         my $script_print = $tipo eq 'publicos' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
         my $btn_print = qq{<a href="../api/$script_print?id_consulta=$folio_absoluto" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="bi bi-file-earmark-text"></i></a>};
         my $btn_cancel = qq{<button onclick="cancelarRecibo('$folio_absoluto', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="bi bi-x-circle"></i></button>};
@@ -119,7 +124,7 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
         push @data, {
             raw_fecha => $fecha,
             row => [
-                $folio_absoluto,
+                $folio_mostrar,
                 $fecha,
                 $nombre_final,
                 $concepto_recibo,
