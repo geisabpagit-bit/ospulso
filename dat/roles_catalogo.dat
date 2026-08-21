@@ -2,4 +2,4 @@ ROL|SUB_ENLACES_PERMITIDOS
 Administrador Global|cat_odontologos|cat_servicios|cat_clinicas|cat_config|cat_backups|cat_admin_global|cat_migracion
 Soporte|cat_odontologos|cat_servicios|cat_config
 Tecnico Mantenimiento|cat_servicios|cat_config
-Administrador Organizacion|cat_catalogo_org
+

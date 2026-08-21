@@ -8,6 +8,7 @@ use File::Spec;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use POSIX qw(strftime);
 use File::Path qw(make_path);
+use Cwd 'abs_path';
 
 # Logging para el cron (opcional, pero útil para depurar)
 my $log_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cron_backup.log');
@@ -72,31 +73,18 @@ Archive::Zip::setErrorHandler(sub {
 
 eval {
     make_path($backups_dir) unless -d $backups_dir;
-    my $zip = Archive::Zip->new();
     
-    opendir(my $dh_dat, $dat_dir) or die "No se puede abrir dat: $!";
-    my @dat_items = grep { $_ !~ /^\.\.?$/ && $_ ne 'backups' } readdir($dh_dat);
-    closedir($dh_dat);
-    
-    foreach my $item (@dat_items) {
-        my $full_path = File::Spec->catfile($dat_dir, $item);
-        if (-d $full_path) {
-            $zip->addTree($full_path, "dat/$item") == AZ_OK or die "Error al añadir dat/$item";
-        } else {
-            $zip->addFile($full_path, "dat/$item") or die "Error al añadir dat/$item";
-        }
-    }
-    
-    if (-d $uploads_dir) {
-        $zip->addTree($uploads_dir, "uploads") == AZ_OK or die "Error al añadir uploads";
-    }
-    
+    my $root_dir = abs_path("$FindBin::Bin/..");
     my $timestamp = strftime "%Y%m%d_%H%M%S", localtime;
     my $filename = "auto_backup_ospulso_$timestamp.zip";
     my $backup_path = File::Spec->catfile($backups_dir, $filename);
     
-    if ($zip->writeToFileNamed($backup_path) != AZ_OK) {
-        die "Error fatal ZIP: $zip_error_msg";
+    my $cmd = qq{cd "$root_dir" && zip -q -r "$backup_path" dat uploads -x "dat/backups/*" -x "dat/backups" -x "dat/migraciones/*" -x "dat/migraciones"};
+    my $output = `$cmd 2>&1`;
+    my $exit_code = $? >> 8;
+    
+    if ($exit_code != 0) {
+        die "Error fatal ZIP nativo. Código: $exit_code. Detalle: $output";
     }
     
     cron_log("Respaldo creado: $filename");

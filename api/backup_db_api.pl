@@ -9,6 +9,7 @@ use FindBin;
 use File::Spec;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use POSIX qw(strftime);
+use Cwd 'abs_path';
 
 use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
@@ -30,37 +31,21 @@ Archive::Zip::setErrorHandler(sub {
 });
 
 eval {
-    my $zip = Archive::Zip->new();
-    
     my $dat_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
     my $uploads_dir = File::Spec->catdir($FindBin::Bin, '..', 'uploads');
+    my $root_dir = abs_path("$FindBin::Bin/..");
     
-    # 1. Agregar contenido de 'dat' (omitiendo la carpeta 'backups')
-    opendir(my $dh_dat, $dat_dir) or die "No se puede abrir directorio dat: $!";
-    my @dat_items = grep { $_ !~ /^\.\.?$/ && $_ ne 'backups' } readdir($dh_dat);
-    closedir($dh_dat);
-    
-    foreach my $item (@dat_items) {
-        my $full_path = File::Spec->catfile($dat_dir, $item);
-        if (-d $full_path) {
-            $zip->addTree($full_path, "dat/$item") == AZ_OK or die "Error al añadir carpeta dat/$item";
-        } else {
-            $zip->addFile($full_path, "dat/$item") or die "Error al añadir archivo dat/$item";
-        }
-    }
-    
-    # 2. Agregar contenido de 'uploads'
-    if (-d $uploads_dir) {
-        $zip->addTree($uploads_dir, "uploads") == AZ_OK or die "Error al añadir carpeta uploads";
-    }
-    
-    # 3. Generar archivo ZIP en dat/backups/
     my $timestamp = strftime "%Y%m%d_%H%M%S", localtime;
     my $filename = "ospulso_backup_$timestamp.zip";
     my $backup_path = File::Spec->catfile($dat_dir, 'backups', $filename);
     
-    if ($zip->writeToFileNamed($backup_path) != AZ_OK) {
-        die "Error fatal al escribir el archivo ZIP en disco. Detalles de Archive::Zip: $zip_error_msg";
+    # Comando nativo ZIP para evitar desbordamiento de memoria (OOM) que causa tablas en cero
+    my $cmd = qq{cd "$root_dir" && zip -q -r "$backup_path" dat uploads -x "dat/backups/*" -x "dat/backups" -x "dat/migraciones/*" -x "dat/migraciones"};
+    my $output = `$cmd 2>&1`;
+    my $exit_code = $? >> 8;
+    
+    if ($exit_code != 0) {
+        die "Error al ejecutar zip nativo. Código: $exit_code. Detalle: $output";
     }
     
     print encode_json({ 
