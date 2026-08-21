@@ -145,7 +145,7 @@ my $motivos_html = "<option value=''>-- Selecciona Concepto --</option>";
 if ($org_clues eq 'QTSMP000116') {
     my $motivos_file = File::Spec->catfile($dat_dir, 'motivos_QTSMP000116.dat');
     if (-e $motivos_file) {
-        my $mots = leer_tabla($motivos_file, '|');
+        my $mots = leer_tabla($motivos_file);
         foreach my $m (@$mots) {
             next unless @$m >= 2;
             $motivos_html .= "<option value='$m->[1]'>$m->[1]</option>";
