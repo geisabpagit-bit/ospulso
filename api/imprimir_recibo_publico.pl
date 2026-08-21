@@ -232,7 +232,9 @@ if ($paciente_nombre eq 'Paciente Desconocido' || $paciente_nombre eq $recibo->{
 }
 
 my $logo_html = '';
-if ($negocio->{logo_url}) {
+if ($negocio->{clues} eq 'QTSMP000116') {
+    $logo_html = qq{<img src="../dat/logos/logo_QTSMP000116.png" alt="Logo" style="max-height: 80px; max-width: 150px;">};
+} elsif ($negocio->{logo_url}) {
     $logo_html = qq{<img src="../$negocio->{logo_url}" alt="Logo" style="max-height: 80px; max-width: 150px;">};
 } else {
     $logo_html = qq{<h2 style="margin:0; color:#333; font-size:14px;">$negocio->{nombre}</h2>};

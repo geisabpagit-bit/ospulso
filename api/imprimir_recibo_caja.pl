@@ -151,7 +151,9 @@ if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
 }
 
 my $logo_html = '';
-if ($negocio->{logo_url}) {
+if ($negocio->{clues} eq 'QTSMP000116') {
+    $logo_html = qq{<img src="../dat/logos/logo_QTSMP000116.png" alt="Logo" style="max-height: 80px; max-width: 200px;">};
+} elsif ($negocio->{logo_url}) {
     $logo_html = qq{<img src="../$negocio->{logo_url}" alt="Logo" style="max-height: 80px; max-width: 200px;">};
 } else {
     $logo_html = qq{<h2 style="margin:0; color:#333;">$negocio->{nombre}</h2>};
@@ -249,15 +251,17 @@ sub formato_moneda {
     return '$' . $fmt;
 }
 
+my $folio_corto = $recibo->{folio} // $id_consulta;
+if ($folio_corto =~ /-0*(\d+)$/) {
+    $folio_corto = $1;
+} elsif ($folio_corto =~ /^\d+$/) {
+    $folio_corto = $folio_corto + 0;
+}
+
 my $saldo = $recibo->{total_cargos} - $recibo->{total_abonos};
 $saldo = 0 if $saldo < 0;
 
-my $folio_corto = $recibo->{folio};
-if ($negocio->{clues} ne 'QTSMP000116') {
-    if ($folio_corto =~ /-0*(\d+)$/) {
-        $folio_corto = $1;
-    }
-}
+
 
 my $abono_saldo_html = "";
 if ($saldo > 0) {
