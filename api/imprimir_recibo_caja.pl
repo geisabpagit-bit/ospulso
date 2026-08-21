@@ -152,7 +152,7 @@ if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
 
 my $logo_html = '';
 if ($negocio->{clues} eq 'QTSMP000116') {
-    $logo_html = qq{<img src="../dat/logos/logo_QTSMP000116.png" alt="Logo" style="max-height: 80px; max-width: 200px;">};
+    $logo_html = qq{<img src="../dat/logos/logo_QTSMP000116.jpg" alt="Logo" style="max-height: 80px; max-width: 200px;">};
 } elsif ($negocio->{logo_url}) {
     $logo_html = qq{<img src="../$negocio->{logo_url}" alt="Logo" style="max-height: 80px; max-width: 200px;">};
 } else {
