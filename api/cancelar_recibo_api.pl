@@ -25,6 +25,7 @@ if (!$session_data->{session_ok}) {
 
 my $id_recibo = $q->param('id_recibo') || '';
 my $tipo = $q->param('tipo') || 'privados';
+my $motivo = $q->param('motivo') || 'Sin motivo especificado';
 $id_recibo =~ s/^\s+|\s+$//g;
 
 if (!$id_recibo) {
@@ -68,7 +69,12 @@ foreach my $r (@recibos_raw) {
             $id_consulta = $r->[4] || '';
             $id_paciente = $r->[5] || '';
             $total = $r->[8] || 0;
-            # Omitir la fila (borrado completo)
+            # Soft delete: Marcar como cancelado y registrar auditoría
+            $r->[14] = 'Cancelado';
+            $r->[15] = $motivo;
+            $r->[16] = $session_data->{usuario};
+            $r->[17] = strftime("%Y-%m-%d %H:%M:%S", localtime);
+            print $fh join('|', @$r) . "\n";
             next;
         }
         print $fh join('|', @$r) . "\n";
@@ -107,7 +113,7 @@ if ($found && $id_consulta && $total > 0) {
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 if ($found) {
-    print JSON::PP->new->utf8(0)->encode({ok => 1, msg => "Recibo eliminado exitosamente"});
+    print JSON::PP->new->utf8(0)->encode({ok => 1, msg => "Recibo cancelado exitosamente"});
 } else {
     print JSON::PP->new->utf8(0)->encode({ok => 0, msg => "Recibo no encontrado"});
 }

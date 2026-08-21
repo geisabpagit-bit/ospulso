@@ -672,16 +672,30 @@ HTML
                 function cancelarRecibo(id, tipo) {
                     Swal.fire({
                         title: '¿Cancelar Recibo?',
-                        text: "Esta acción es irreversible y afectará los KPIs financieros.",
+                        text: "Esta acción marcará el recibo como cancelado y afectará los KPIs financieros. Por favor, explique el motivo:",
+                        input: 'text',
+                        inputAttributes: {
+                            autocapitalize: 'off',
+                            required: 'true',
+                            placeholder: 'Motivo de cancelación'
+                        },
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#dc3545',
                         cancelButtonColor: '#6c757d',
                         confirmButtonText: 'Sí, Cancelar',
-                        cancelButtonText: 'No'
+                        cancelButtonText: 'No',
+                        preConfirm: (motivo) => {
+                            if (!motivo || motivo.trim() === '') {
+                                Swal.showValidationMessage('Debe ingresar un motivo de cancelación');
+                                return false;
+                            }
+                            return motivo;
+                        }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            $.post('../api/cancelar_recibo_api.pl', { id_recibo: id, tipo: tipo }, function(res) {
+                            let motivo = result.value;
+                            $.post('../api/cancelar_recibo_api.pl', { id_recibo: id, tipo: tipo, motivo: motivo }, function(res) {
                                 if (res.ok) {
                                     Swal.fire('Cancelado', res.msg, 'success');
                                     $('#dtPrivados').DataTable().ajax.reload(null, false);
