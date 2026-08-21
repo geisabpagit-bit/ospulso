@@ -36,18 +36,35 @@ foreach my $p (@$pacs) {
     $map_pacientes{$p->[0]} = $p->[2];
 }
 
+# 0. Lógica de Pacientes Privados (Sin Portal)
 my $org_clues = '';
+my $id_neg = $session_data->{id_empresa} || '';
 my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
-if (-e $negocios_file && open(my $nf, '<:utf8', $negocios_file)) {
-    while (my $line = <$nf>) {
-        chomp($line);
-        my @f = split(/\|/, $line, -1);
-        if ($f[0] eq ($session_data->{id_empresa} || '')) {
-            $org_clues = $f[18] // '';
+if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
+    my $hn = <$fhn>;
+    while (my $ln = <$fhn>) {
+        chomp $ln;
+        my @n = split /\|/, $ln, -1;
+        if ($n[0] eq $id_neg) {
+            $org_clues = $n[18] // '';
             last;
         }
     }
-    close($nf);
+    close $fhn;
+}
+$org_clues ||= 'QTSMP000116';
+
+my %map_alias_estado = ();
+my $edo_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
+if (-e $edo_file && open(my $fhe, '<:encoding(UTF-8)', $edo_file)) {
+    while (my $line = <$fhe>) {
+        chomp $line;
+        my @e = split /\|/, $line, -1;
+        if ($e[3] eq 'Cargo' && $e[11]) {
+            $map_alias_estado{$e[0]} = $e[11];
+        }
+    }
+    close $fhe;
 }
 
 my $priv_pacs_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "pacientes_privados__${org_clues}.dat");
@@ -129,7 +146,7 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
         if ($tipo eq 'publicos' && $id_paciente =~ /^EMP-(.*)/) {
             my $num_emp = $1;
             my $empleado_nombre = $map_empleados{$num_emp} || 'Desconocido';
-            my $paciente_nombre = ($nombre_final eq $id_paciente) ? $empleado_nombre : $nombre_final;
+            my $paciente_nombre = $map_alias_estado{$folio_absoluto} || ($nombre_final eq $id_paciente ? $empleado_nombre : $nombre_final);
             $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
         }
         

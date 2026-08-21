@@ -110,6 +110,7 @@ if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
     }
     close $fhn;
 }
+$negocio->{clues} ||= 'QTSMP000116';
 
 # Buscar también en pacientes_privados
 if ($paciente_nombre eq 'Paciente Desconocido' || $paciente_nombre eq $recibo->{id_paciente}) {
@@ -437,8 +438,7 @@ print <<HTML;
             </tr>
             <tr>
                 <td colspan="3" style="text-align: center; color: #64748b; font-size: 9px; padding: 10px;">
-                    $negocio->{domicilio}, Tel: $negocio->{telefono}<br>
-                    <strong>Aviso de Confidencialidad:</strong> Documento generado por OsPulso - El recibo es válido como comprobante de pago interno.
+                    $negocio->{domicilio}, Tel: $negocio->{telefono}
                 </td>
             </tr>
         </table>

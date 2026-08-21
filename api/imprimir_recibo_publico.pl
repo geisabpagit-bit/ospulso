@@ -212,6 +212,7 @@ if (-e $neg_file && open(my $fn, '<:encoding(UTF-8)', $neg_file)) {
     }
     close $fn;
 }
+$negocio->{clues} ||= 'QTSMP000116';
 
 # Buscar también en pacientes_privados
 if ($paciente_nombre eq 'Paciente Desconocido' || $paciente_nombre eq $recibo->{id_paciente}) {
@@ -260,7 +261,7 @@ if ($num_empleado && $negocio->{clues}) {
             if ($e[0] eq $num_empleado) {
                 if ($e[2] eq 'Empleado') {
                     $empleado_nombre = $e[1] // '';
-                    $dependencia_nombre = $e[4] // '';
+                    $id_dep = $e[4] // '';
                 }
             }
         }
@@ -463,10 +464,13 @@ print <<HTML;
                     Visita : Primera vez
                 </td>
                 <td colspan="2" style="padding-left: 10px;">
-                    <strong>Paciente:</strong> $paciente_nombre<br>
-                    <strong>Empleado:</strong> $num_empleado - $empleado_nombre<br>
-                    <strong>Dependencia:</strong> $dependencia_nombre
+                    Empleado: $num_empleado - $empleado_nombre<br>
+                    Dependencia: $dependencia_nombre
                 </td>
+            </tr>
+            <tr>
+                <td class="info-label-cell" style="color:#000; font-weight: normal;">Paciente :</td>
+                <td colspan="2" style="font-weight: normal; text-transform: uppercase;">$paciente_nombre</td>
             </tr>
             <tr>
                 <td class="info-label-cell">Médico:</td>
