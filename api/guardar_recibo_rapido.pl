@@ -29,8 +29,9 @@ my $nombre_empleado = $q->param('nombre_paciente_empleado') || '';
 $nombre_empleado =~ s/.*Paciente:\s*//i; # Limpiar el texto arrastrado del select2
 my $id_medico = $q->param('id_medico') || '';
 my $caja_items_json = $q->param('caja_items_json') || '[]';
-my $caja_metodo_pago = $q->param('caja_metodo_pago') || 'Efectivo';
-my $caja_monto_abono = $q->param('caja_monto_abono') // 0;
+my $caja_metodo_pago = decode_utf8($q->param('caja_metodo_pago') // 'Efectivo');
+my $caja_monto_abono = $q->param('caja_monto_abono') || 0;
+my $concepto_recibo = decode_utf8($q->param('caja_concepto') // '');
 
 $id_paciente =~ s/^\s+|\s+$//g;
 $id_medico =~ s/^\s+|\s+$//g;
@@ -126,6 +127,9 @@ foreach my $it (@$caja_items) {
     my $id_mov = 'MOV-' . time() . '-' . $idx_dir++;
     my $sub = ($it->{precio} || 0) * ($it->{cantidad} || 1);
     my $nota_cargo = "Cargo Walk-in | Paciente: " . ($nombre_empleado || $id_paciente);
+    if ($concepto_recibo) {
+        $nota_cargo .= " | Concepto: $concepto_recibo";
+    }
     # En estado_cuenta.dat: ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS
     my $linea_cargo = join('|',
         $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{nombre},
@@ -137,6 +141,9 @@ foreach my $it (@$caja_items) {
 
 my $id_mov_abono = 'MOV-' . time() . '-ABONO';
 my $nota_abono = "Pago Recibo Rápido | Metodo: $caja_metodo_pago";
+if ($concepto_recibo) {
+    $nota_abono .= " | Concepto: $concepto_recibo";
+}
 my $linea_abono = join('|',
     $id_tratamiento, $id_mov_abono, $id_paciente, 'Abono', "Abono en Caja - $caja_metodo_pago",
     $caja_monto_abono, 0, $caja_monto_abono, $hoy_fecha, $id_medico,

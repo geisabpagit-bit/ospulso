@@ -139,6 +139,13 @@ foreach my $r (@$movimientos) {
             my $empleado_nombre = $map_empleados{$num_emp} || 'Desconocido';
             $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
         }
+        
+        my $concepto_recibo = "Servicios Múltiples";
+        if ($notas =~ /Concepto:\s*([^\|]+)/) {
+            $concepto_recibo = $1;
+            $concepto_recibo =~ s/^\s+|\s+$//g;
+        }
+        
         $recibos{$id_os} = {
             folio => $id_os,
             fecha => $fecha,
@@ -147,7 +154,8 @@ foreach my $r (@$movimientos) {
             total_cargo => 0,
             total_abono => 0,
             estatus => 'Activo',
-            id_medico => $id_medico
+            id_medico => $id_medico,
+            concepto_recibo => $concepto_recibo
         };
     }
     
@@ -185,7 +193,7 @@ foreach my $id_os (keys %recibos) {
             $folioDisplay,
             $rec->{fecha},
             $rec->{pac_nombre},
-            "Servicios Múltiples",
+            $rec->{concepto_recibo},
             $medico,
             $detalle,
             "\$" . sprintf("%.2f", $total_mostrar),

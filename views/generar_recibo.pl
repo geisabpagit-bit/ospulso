@@ -141,6 +141,18 @@ if ($has_custom_medicos) {
     $medicos_custom_js = encode_json(\%med_by_espe);
 }
 
+my $motivos_html = "";
+if ($org_clues eq 'QTSMP000116') {
+    my $motivos_file = File::Spec->catfile($dat_dir, 'motivos_QTSMP000116.dat');
+    if (-e $motivos_file) {
+        my $mots = leer_tabla($motivos_file);
+        foreach my $m (@$mots) {
+            next unless @$m >= 2;
+            $motivos_html .= "<option value='$m->[1]'>$m->[1]</option>";
+        }
+    }
+}
+
 print <<"HTML";
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
@@ -292,10 +304,10 @@ print <<"HTML";
                         </div>
                         
                         <!-- 4. Método de Pago -->
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <div class="mb-4 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Método de Pago</label>
-                                <select id="selMetodoPago" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" style="max-width: 50%;">
+                                <select id="selMetodoPago" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent">
                                     <option value="Efectivo">Efectivo</option>
                                     <option value="Tarjeta de Debito">Tarjeta de Débito</option>
                                     <option value="Tarjeta de Credito">Tarjeta de Crédito</option>
@@ -305,6 +317,23 @@ print <<"HTML";
                                 </select>
                             </div>
                         </div>
+HTML
+
+if ($org_clues eq 'QTSMP000116') {
+print <<"HTML";
+                        <!-- 5. Concepto del Recibo -->
+                        <div class="col-md-6">
+                            <div class="mb-4 diamond-input-armor rounded-3">
+                                <label class="small fw-bold text-muted mb-2 ps-1">Concepto del Recibo</label>
+                                <select id="selConceptoRecibo" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" required>
+                                    $motivos_html
+                                </select>
+                            </div>
+                        </div>
+HTML
+}
+
+print <<"HTML";
                         
                     </div>
                 </form>
@@ -862,6 +891,9 @@ print <<'JS';
             form.append('caja_metodo_pago', metodo);
             form.append('caja_monto_abono', total);
             form.append('caja_con_iva', con_iva);
+            if ($('#selConceptoRecibo').length) {
+                form.append('caja_concepto', $('#selConceptoRecibo').val());
+            }
             
             const req = await fetch('../api/guardar_recibo_rapido.pl', {
                 method: 'POST',
