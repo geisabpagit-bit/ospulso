@@ -27,12 +27,12 @@ binmode STDOUT, ":utf8";
 
 # Restringir a roles permitidos (Recepcion, Medicos, Admins)
 if ($role !~ /Recepcionista|Medico|Administrador/i) {
-    # print $q->redirect('inicial.pl');
-    # exit;
+    print $q->redirect('inicial.pl');
+    exit;
 }
 unless ($sd->{session_ok}) {
-    # print $q->redirect('../index.html');
-    # exit;
+    print $q->redirect('../index.html');
+    exit;
 }
 
 # 1. Leer SaaS Capabilities

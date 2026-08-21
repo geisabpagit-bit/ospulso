@@ -19,8 +19,8 @@ my $sd = check_session($q);
 
 print $q->header(-type => 'application/json; charset=UTF-8');
 
-unless ($sd->{session_ok}) {
-    print encode_json({ ok => JSON::false, msg => 'Sesión expirada' });
+unless ($sd->{session_ok} && $sd->{role} =~ /Recepcionista|Medico|Administrador/i) {
+    print encode_json({ ok => JSON::false, msg => 'Sesión expirada o rol no permitido' });
     exit;
 }
 
