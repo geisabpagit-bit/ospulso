@@ -685,7 +685,7 @@ PAGE_HTML
         let f_inicio = document.getElementById('cc_fecha_inicio').value;
         let f_fin = document.getElementById('cc_fecha_fin').value;
 
-        \$.ajax({
+        $.ajax({
             url: '../api/generar_corte_caja.pl',
             type: 'POST',
             dataType: 'json',
@@ -709,7 +709,7 @@ PAGE_HTML
                     { data: 'paciente' },
                     { data: 'medico' },
                     { data: 'forma_pago' },
-                    { data: 'monto', className: 'text-end text-success fw-bold', render: \$.fn.dataTable.render.number(',', '.', 2, '\$') }
+                    { data: 'monto', className: 'text-end text-success fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
                 ]);
                 
                 renderTablaCorte('#dtCorteEgresos', res.egresos, [
@@ -717,7 +717,7 @@ PAGE_HTML
                     { data: 'fecha' },
                     { data: 'categoria' },
                     { data: 'responsable' },
-                    { data: 'monto', className: 'text-end text-danger fw-bold', render: \$.fn.dataTable.render.number(',', '.', 2, '\$') }
+                    { data: 'monto', className: 'text-end text-danger fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
                 ]);
 
                 calcularFaltante();
@@ -731,10 +731,10 @@ PAGE_HTML
     };
 
     window.renderTablaCorte = function(selector, data, columns) {
-        if(\$.fn.DataTable.isDataTable(selector)) {
-            \$(selector).DataTable().clear().rows.add(data).draw();
+        if($.fn.DataTable.isDataTable(selector)) {
+            $(selector).DataTable().clear().rows.add(data).draw();
         } else {
-            \$(selector).DataTable({
+            $(selector).DataTable({
                 data: data,
                 columns: columns,
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
@@ -746,9 +746,9 @@ PAGE_HTML
                 responsive: false, // Handle via SDM mobile styles data-label
                 createdRow: function(row, data, dataIndex) {
                     // Inject data-label for SDM Mobile Standards point 7
-                    \$(row).find('td').each(function(i) {
-                        let header = \$(selector).find('thead th').eq(i).text();
-                        \$(this).attr('data-label', header);
+                    $(row).find('td').each(function(i) {
+                        let header = $(selector).find('thead th').eq(i).text();
+                        $(this).attr('data-label', header);
                     });
                 }
             });
