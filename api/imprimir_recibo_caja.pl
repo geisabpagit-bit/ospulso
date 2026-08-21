@@ -88,7 +88,8 @@ my $negocio = {
     nombre => 'Sucursal Clínica',
     domicilio => 'Dirección no registrada',
     telefono => 'Sin teléfono',
-    logo_url => ''
+    logo_url => '',
+    clues => ''
 };
 my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
 if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
@@ -99,15 +100,53 @@ if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
         # Si tiene sucursal usamos ese, sino la matriz (id_negocio)
         my $target_id = ($recibo->{id_sucursal} && $recibo->{id_sucursal} ne 'SUC-000' && $recibo->{id_sucursal} ne '0') ? $recibo->{id_sucursal} : $recibo->{id_negocio};
         if ($n[0] eq $target_id) {
-            $negocio->{nombre} = $n[1] || 'Clínica';
-            $negocio->{domicilio} = $n[6] || '';
-            $negocio->{telefono} = $n[7] || '';
-            $negocio->{logo_url} = $n[9] || '';
-            $negocio->{clues} = $n[18] || '';
+            $negocio->{nombre} = $n[2] // '';
+            $negocio->{domicilio} = ($n[3] // '') . ', ' . ($n[4] // '') . ', ' . ($n[7] // '') . ', ' . ($n[8] // '');
+            $negocio->{telefono} = $n[12] // '';
+            $negocio->{clues} = $n[18] // $n[1] // '';
+            $negocio->{logo_url} = $n[9] // '';
             last;
         }
     }
     close $fhn;
+}
+
+# Buscar también en pacientes_privados
+if ($paciente_nombre eq 'Paciente Desconocido' || $paciente_nombre eq $recibo->{id_paciente}) {
+    my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "pacientes_privados__$negocio->{clues}.dat");
+    if (-e $priv_file && open(my $fhp, '<:encoding(UTF-8)', $priv_file)) {
+        my $hp = <$fhp>;
+        while (my $lp = <$fhp>) {
+            chomp $lp;
+            my @p = split /\|/, $lp, -1;
+            if ($p[0] eq $recibo->{id_paciente}) {
+                $paciente_nombre = $p[1] // '';
+                last;
+            }
+        }
+        close $fhp;
+    }
+}
+
+# Buscar en empleadosmun por si acaso
+if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
+    my $num_empleado = $1;
+    if ($num_empleado && $negocio->{clues}) {
+        my $emp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_$negocio->{clues}.dat");
+        if (-e $emp_file && open(my $fe, '<:encoding(UTF-8)', $emp_file)) {
+            my $h = <$fe>;
+            while (my $le = <$fe>) {
+                chomp $le;
+                my @e = split /!/, $le, -1;
+                next unless @e >= 5;
+                if ($e[0] eq $num_empleado && $e[2] eq 'Empleado') {
+                    $paciente_nombre = $e[1] // '';
+                    last;
+                }
+            }
+            close $fe;
+        }
+    }
 }
 
 my $logo_html = '';

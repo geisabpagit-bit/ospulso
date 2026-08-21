@@ -203,12 +203,29 @@ if (-e $neg_file && open(my $fn, '<:encoding(UTF-8)', $neg_file)) {
             $negocio->{nombre} = $n[2] // '';
             $negocio->{direccion} = ($n[3] // '') . ', ' . ($n[4] // '') . ', ' . ($n[7] // '') . ', ' . ($n[8] // '');
             $negocio->{telefono} = $n[12] // '';
-            $negocio->{clues} = $n[1] // '';
+            $negocio->{clues} = $n[18] // $n[1] // '';
             $negocio->{logo_url} = $n[9] // '';
             last;
         }
     }
     close $fn;
+}
+
+# Buscar también en pacientes_privados
+if ($paciente_nombre eq 'Paciente Desconocido' || $paciente_nombre eq $recibo->{id_paciente}) {
+    my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "pacientes_privados__$negocio->{clues}.dat");
+    if (-e $priv_file && open(my $fhp, '<:encoding(UTF-8)', $priv_file)) {
+        my $hp = <$fhp>;
+        while (my $lp = <$fhp>) {
+            chomp $lp;
+            my @p = split /\|/, $lp, -1;
+            if ($p[0] eq $recibo->{id_paciente}) {
+                $paciente_nombre = $p[1] // '';
+                last;
+            }
+        }
+        close $fhp;
+    }
 }
 
 my $logo_html = '';
@@ -223,20 +240,17 @@ if ($negocio->{clues} ne 'QTSMP000116') {
     if ($folio_corto =~ /-0*(\d+)$/) {
         $folio_corto = $1;
     } elsif ($folio_corto =~ /^\d+$/) {
-        # If it was already just digits, keep it as is.
         $folio_corto = $folio_corto + 0;
     }
 }
 
 if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
-
     $num_empleado = $1;
 }
 
 if ($num_empleado && $negocio->{clues}) {
     my $emp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_$negocio->{clues}.dat");
     
-    # Buscar el paciente y al titular (Empleado)
     if (-e $emp_file && open(my $fe, '<:encoding(UTF-8)', $emp_file)) {
         my $h = <$fe>;
         while (my $le = <$fe>) {
@@ -244,24 +258,13 @@ if ($num_empleado && $negocio->{clues}) {
             my @e = split /!/, $le, -1;
             next unless @e >= 5;
             if ($e[0] eq $num_empleado) {
-                # Identificamos el tipo de paciente (si hace match exacto)
-                if ($e[1] eq $paciente_nombre || uc($e[1]) eq uc($paciente_nombre)) {
-                    $paciente_tipo = $e[2] // '';
-                }
-                
-                # Siempre buscamos quién es el Empleado Titular para la dependencia
-                if ($e[2] =~ /^Empleado/i) {
+                if ($e[2] eq 'Empleado') {
                     $empleado_nombre = $e[1] // '';
-                    $id_dep = $e[4] // '';
+                    $dependencia_nombre = $e[4] // '';
                 }
             }
         }
         close $fe;
-    }
-    
-    if (!$paciente_tipo || $paciente_tipo eq 'Desconocido') {
-        # Si no lo encontramos pero sabemos que es de empleados, lo asumimos Beneficiario a menos que él mismo sea el empleado
-        $paciente_tipo = ($paciente_nombre eq $empleado_nombre) ? 'Empleado' : 'Beneficiario';
     }
     
     if ($id_dep) {
@@ -444,8 +447,9 @@ print <<HTML;
                     Visita : Primera vez
                 </td>
                 <td colspan="2" style="padding-left: 10px;">
-                    Empleado: $num_empleado - $empleado_nombre<br>
-                    Dependencia: $dependencia_nombre
+                    <strong>Paciente:</strong> $paciente_nombre<br>
+                    <strong>Empleado:</strong> $num_empleado - $empleado_nombre<br>
+                    <strong>Dependencia:</strong> $dependencia_nombre
                 </td>
             </tr>
             <tr>
