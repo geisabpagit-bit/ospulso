@@ -45,9 +45,9 @@ if ($action eq 'create') {
     my $naturaleza_juridica = decode_utf8($q->param('naturaleza_juridica') // '');
     my $tipo_organizacion   = decode_utf8($q->param('tipo_organizacion') // '');
     my $reporta_institucion = decode_utf8($q->param('reporta_institucion') // '');
-    my $pacientes_estado    = decode_utf8($q->param('pacientes_estado') // '0');
-    my $portal_paciente     = decode_utf8($q->param('portal_paciente') // '1');
-    my $maneja_hospitalizacion = decode_utf8($q->param('maneja_hospitalizacion') // '0');
+    my $pacientes_estado    = defined $q->param('pacientes_estado') ? decode_utf8($q->param('pacientes_estado')) : '0';
+    my $portal_paciente     = defined $q->param('portal_paciente') ? decode_utf8($q->param('portal_paciente')) : '0';
+    my $maneja_hospitalizacion = defined $q->param('maneja_hospitalizacion') ? decode_utf8($q->param('maneja_hospitalizacion')) : '0';
     my @instituciones = map { decode_utf8($_ // '') } $q->multi_param('institucion[]');
     my @capacidades   = map { decode_utf8($_ // '') } $q->multi_param('capacidades[]');
 
@@ -242,9 +242,9 @@ if ($action eq 'update') {
     my $naturaleza_juridica = decode_utf8($q->param('naturaleza_juridica') // '');
     my $tipo_organizacion   = decode_utf8($q->param('tipo_organizacion') // '');
     my $reporta_institucion = decode_utf8($q->param('reporta_institucion') // '');
-    my $pacientes_estado    = decode_utf8($q->param('pacientes_estado') // '0');
-    my $portal_paciente     = decode_utf8($q->param('portal_paciente') // '1');
-    my $maneja_hospitalizacion = decode_utf8($q->param('maneja_hospitalizacion') // '0');
+    my $pacientes_estado    = defined $q->param('pacientes_estado') ? decode_utf8($q->param('pacientes_estado')) : '0';
+    my $portal_paciente     = defined $q->param('portal_paciente') ? decode_utf8($q->param('portal_paciente')) : '0';
+    my $maneja_hospitalizacion = defined $q->param('maneja_hospitalizacion') ? decode_utf8($q->param('maneja_hospitalizacion')) : '0';
     my @instituciones = map { decode_utf8($_ // '') } $q->multi_param('institucion[]');
     my @capacidades   = map { decode_utf8($_ // '') } $q->multi_param('capacidades[]');
 

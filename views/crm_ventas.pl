@@ -394,21 +394,21 @@ print <<HTML;
                             <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-box-seam me-2"></i>Capacidades SaaS Requeridas</h6>
                             <div class="row g-2 bg-white p-3 border rounded shadow-sm m-0">
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="pacientes_estado" value="1" id="saas_pacientes_estado"><label class="form-check-label small fw-bold text-primary" for="saas_pacientes_estado">Pacientes del Estado</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="portal_paciente" value="1" id="saas_portal_paciente" checked><label class="form-check-label small fw-bold text-success" for="saas_portal_paciente">Portal del Paciente</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="portal_paciente" value="1" id="saas_portal_paciente"><label class="form-check-label small fw-bold text-primary" for="saas_portal_paciente">Portal del Paciente</label></div></div>
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="maneja_hospitalizacion" value="1" id="saas_maneja_hospitalizacion"><label class="form-check-label small fw-bold text-primary" for="saas_maneja_hospitalizacion">Hospitalización</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Expediente Clínico" id="cap1" checked><label class="form-check-label small" for="cap1">Expediente Clínico</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Agenda" id="cap2" checked><label class="form-check-label small" for="cap2">Agenda</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Imagenología" id="cap3"><label class="form-check-label small" for="cap3">Imagenología</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Inventario" id="cap4"><label class="form-check-label small" for="cap4">Inventario</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Facturación" id="cap5"><label class="form-check-label small" for="cap5">Facturación</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Telemedicina" id="cap6"><label class="form-check-label small" for="cap6">Telemedicina</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="CRM" id="cap7"><label class="form-check-label small" for="cap7">CRM</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Interoperabilidad SIS" id="cap8"><label class="form-check-label small text-primary fw-bold" for="cap8">Interop. SIS</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Interoperabilidad FHIR" id="cap9"><label class="form-check-label small text-primary fw-bold" for="cap9">Interop. FHIR</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="HL7" id="cap10"><label class="form-check-label small text-primary fw-bold" for="cap10">HL7</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="DICOM" id="cap11"><label class="form-check-label small text-primary fw-bold" for="cap11">DICOM</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Exportación CSV" id="cap12"><label class="form-check-label small" for="cap12">Exportación CSV</label></div></div>
-                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="API REST" id="cap13"><label class="form-check-label small text-primary fw-bold" for="cap13">API REST</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Expediente Clínico" id="cap1"><label class="form-check-label small fw-bold text-primary" for="cap1">Expediente Clínico</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Agenda" id="cap2"><label class="form-check-label small fw-bold text-primary" for="cap2">Agenda</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Imagenología" id="cap3"><label class="form-check-label small fw-bold text-primary" for="cap3">Imagenología</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Inventario" id="cap4"><label class="form-check-label small fw-bold text-primary" for="cap4">Inventario</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Facturación" id="cap5"><label class="form-check-label small fw-bold text-primary" for="cap5">Facturación</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Telemedicina" id="cap6"><label class="form-check-label small fw-bold text-primary" for="cap6">Telemedicina</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="CRM" id="cap7"><label class="form-check-label small fw-bold text-primary" for="cap7">CRM</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Interoperabilidad SIS" id="cap8"><label class="form-check-label small fw-bold text-primary" for="cap8">Interop. SIS</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Interoperabilidad FHIR" id="cap9"><label class="form-check-label small fw-bold text-primary" for="cap9">Interop. FHIR</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="HL7" id="cap10"><label class="form-check-label small fw-bold text-primary" for="cap10">HL7</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="DICOM" id="cap11"><label class="form-check-label small fw-bold text-primary" for="cap11">DICOM</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Exportación CSV" id="cap12"><label class="form-check-label small fw-bold text-primary" for="cap12">Exportación CSV</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="API REST" id="cap13"><label class="form-check-label small fw-bold text-primary" for="cap13">API REST</label></div></div>
                             </div>
                         </div>
                     </div>
@@ -815,6 +815,11 @@ print <<'JS';
         const btn = document.getElementById('btn-submit-org');
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando...';
+        
+        console.log("Enviando formulario SaaS con los siguientes datos:");
+        for (let [key, value] of fd.entries()) {
+            console.log(key, ":", value);
+        }
 
         fetch('../api/crud_organizaciones_api.pl', {
             method: 'POST',
@@ -823,6 +828,7 @@ print <<'JS';
         })
         .then(res => res.json())
         .then(data => {
+            console.log("Respuesta del servidor al guardar/editar SaaS:", data);
             if (data.status === 'success') {
                 const action = document.getElementById('action_org').value;
                 Swal.fire({
