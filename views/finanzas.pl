@@ -583,27 +583,50 @@ PAGE_HTML
     </div>
 
     <!-- KPIs -->
-    <div class="kpi-grid mb-4">
-        <div class="kpi-acrilico">
-            <div class="kpi-icono text-success"><i class="bi bi-arrow-down-circle"></i></div>
-            <div class="kpi-titulo">Ingresos (Sistema)</div>
-            <div class="kpi-valor" id="cc_ingresos">$0.00</div>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="kpi-acrilico h-100">
+                <div class="kpi-icono text-success"><i class="bi bi-arrow-down-circle"></i></div>
+                <div class="kpi-titulo">Ingresos (Efvo)</div>
+                <div class="kpi-valor" id="cc_ingresos">$0.00</div>
+            </div>
         </div>
-        <div class="kpi-acrilico">
-            <div class="kpi-icono text-danger"><i class="bi bi-arrow-up-circle"></i></div>
-            <div class="kpi-titulo">Egresos (Sistema)</div>
-            <div class="kpi-valor" id="cc_egresos">$0.00</div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="kpi-acrilico h-100">
+                <div class="kpi-icono text-info"><i class="bi bi-building"></i></div>
+                <div class="kpi-titulo">CxC (Estado)</div>
+                <div class="kpi-valor" id="cc_cxc">$0.00</div>
+            </div>
         </div>
-        <div class="kpi-acrilico bg-white bg-opacity-75">
-            <div class="kpi-icono text-warning"><i class="bi bi-cash"></i></div>
-            <div class="kpi-titulo">Efectivo Físico</div>
-            <input type="number" id="cc_fisico" class="form-control mt-2 text-center fw-bold fs-5 shadow-sm border-2 rounded-3 text-primary" value="0" oninput="calcularFaltante()" placeholder="0.00">
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="kpi-acrilico h-100">
+                <div class="kpi-icono text-danger"><i class="bi bi-arrow-up-circle"></i></div>
+                <div class="kpi-titulo">Egresos</div>
+                <div class="kpi-valor" id="cc_egresos">$0.00</div>
+            </div>
         </div>
-        <div class="kpi-acrilico" id="kpi_diferencia_box">
-            <div class="kpi-icono text-secondary" id="cc_dif_icon"><i class="bi bi-calculator"></i></div>
-            <div class="kpi-titulo">Faltante / Sobrante</div>
-            <div class="kpi-valor" id="cc_diferencia">$0.00</div>
-            <div class="kpi-subtexto" id="cc_dif_label">Efectivo - (Ingresos - Egresos)</div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="kpi-acrilico bg-white bg-opacity-75 h-100">
+                <div class="kpi-icono text-warning"><i class="bi bi-cash"></i></div>
+                <div class="kpi-titulo">Efectivo Físico</div>
+                <input type="number" id="cc_fisico" class="form-control mt-2 text-center fw-bold fs-5 shadow-sm border-2 rounded-3 text-primary" value="0" oninput="calcularFaltante()" placeholder="0.00">
+            </div>
+        </div>
+        <div class="col-12 col-md-4 col-lg-2">
+            <div class="kpi-acrilico h-100" id="kpi_diferencia_box">
+                <div class="kpi-icono text-secondary" id="cc_dif_icon"><i class="bi bi-calculator"></i></div>
+                <div class="kpi-titulo">Faltante/Sobrante</div>
+                <div class="kpi-valor" id="cc_diferencia">$0.00</div>
+                <div class="kpi-subtexto" id="cc_dif_label">Efectivo - (Ing - Egr)</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4 col-lg-2">
+            <div class="kpi-acrilico h-100 bg-primary bg-opacity-10" id="kpi_gran_total_box">
+                <div class="kpi-icono text-primary"><i class="bi bi-briefcase"></i></div>
+                <div class="kpi-titulo">Productividad</div>
+                <div class="kpi-valor text-primary" id="cc_gran_total">$0.00</div>
+                <div class="kpi-subtexto text-primary opacity-75">Ingresos + CxC - Egresos</div>
+            </div>
         </div>
     </div>
 
@@ -624,6 +647,9 @@ PAGE_HTML
                         <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_ingresos" type="button"><i class="bi bi-graph-up me-1 text-success"></i>Ingresos</button>
                     </li>
                     <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_cxc" type="button"><i class="bi bi-building me-1 text-info"></i>CxC (Estado)</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_egresos" type="button"><i class="bi bi-graph-down text-danger me-1"></i>Egresos</button>
                     </li>
                 </ul>
@@ -638,6 +664,23 @@ PAGE_HTML
                                         <th>Paciente</th>
                                         <th>Médico</th>
                                         <th>Forma de Pago</th>
+                                        <th class="text-end">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="cc_tab_cxc" role="tabpanel">
+                        <div class="table-responsive">
+                            <table id="dtCorteCxC" class="table table-hover dt-responsive-mobile nowrap w-100">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th>Folio OS</th>
+                                        <th>Fecha</th>
+                                        <th>Paciente</th>
+                                        <th>Médico</th>
+                                        <th>Categoría</th>
                                         <th class="text-end">Monto</th>
                                     </tr>
                                 </thead>
@@ -679,6 +722,7 @@ PAGE_HTML
     };
 
     let ccTotalIngresos = 0;
+    let ccTotalCxC = 0;
     let ccTotalEgresos = 0;
     let chartCorte = null;
 
@@ -698,9 +742,11 @@ PAGE_HTML
                 }
 
                 ccTotalIngresos = parseFloat(res.total_ingresos) || 0;
+                ccTotalCxC = parseFloat(res.total_cxc) || 0;
                 ccTotalEgresos = parseFloat(res.total_egresos) || 0;
                 
                 document.getElementById('cc_ingresos').textContent = '\$' + ccTotalIngresos.toFixed(2);
+                document.getElementById('cc_cxc').textContent = '\$' + ccTotalCxC.toFixed(2);
                 document.getElementById('cc_egresos').textContent = '\$' + ccTotalEgresos.toFixed(2);
                 
                 // Actualizar tablas
@@ -721,6 +767,17 @@ PAGE_HTML
                     { data: 'concepto' },
                     { data: 'monto', className: 'text-end text-danger fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
                 ]);
+
+                if(res.cxc) {
+                    renderTablaCorte('#dtCorteCxC', res.cxc, [
+                        { data: 'folio' },
+                        { data: 'fecha' },
+                        { data: 'paciente' },
+                        { data: 'medico' },
+                        { data: 'forma_pago' },
+                        { data: 'monto', className: 'text-end text-info fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                    ]);
+                }
 
                 calcularFaltante();
             },
@@ -793,30 +850,34 @@ PAGE_HTML
             iconDif.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
             labelDif.textContent = 'Cuadrado Perfecto';
             labelDif.className = 'kpi-subtexto text-muted fw-bold';
-            boxDif.style.border = 'none';
-            boxDif.style.backgroundColor = '';
+            boxDif.style.border = '2px solid #e9ecef';
+            boxDif.style.backgroundColor = '#f8f9fa';
         }
 
-        actualizarGraficaCorte(ccTotalIngresos, ccTotalEgresos, fisico);
+        // Productividad Global
+        let productividad = ccTotalIngresos + ccTotalCxC - ccTotalEgresos;
+        document.getElementById('cc_gran_total').textContent = '\$' + productividad.toFixed(2);
+
+        actualizarGraficaCorte(ccTotalIngresos, ccTotalCxC, ccTotalEgresos, fisico);
     };
 
-    window.actualizarGraficaCorte = function(ingresos, egresos, fisico) {
+    window.actualizarGraficaCorte = function(ingresos, cxc, egresos, fisico) {
         let ctx = document.getElementById('chartCorteCaja');
         if(!ctx) return;
         
         if(chartCorte) {
-            chartCorte.data.datasets[0].data = [ingresos, egresos, fisico];
+            chartCorte.data.datasets[0].data = [ingresos, cxc, egresos, fisico];
             chartCorte.update();
         } else {
             chartCorte = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Ingresos', 'Egresos', 'Físico'],
+                    labels: ['Ingresos (Efvo)', 'CxC (Estado)', 'Egresos', 'Físico'],
                     datasets: [{
                         label: 'Monto (\$)',
-                        data: [ingresos, egresos, fisico],
-                        backgroundColor: ['rgba(16, 185, 129, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(234, 179, 8, 0.7)'],
-                        borderColor: ['#10b981', '#ef4444', '#eab308'],
+                        data: [ingresos, cxc, egresos, fisico],
+                        backgroundColor: ['rgba(16, 185, 129, 0.7)', 'rgba(13, 202, 240, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(234, 179, 8, 0.7)'],
+                        borderColor: ['#10b981', '#0dcaf0', '#ef4444', '#eab308'],
                         borderWidth: 1
                     }]
                 },

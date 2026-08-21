@@ -132,6 +132,50 @@ if (-e $archivo_ingresos) {
     }
 }
 
+# 4.5. Procesar Cuentas por Cobrar (Recibos Públicos)
+my $archivo_publicos = File::Spec->catfile($dat_dir, 'folios_recibos_publicos.dat');
+my @cxc_filtrados = ();
+my $total_cxc = 0;
+
+if (-e $archivo_publicos) {
+    my $pub_data = leer_tabla($archivo_publicos);
+    foreach my $f (@$pub_data) {
+        my $fecha = $f->[6] || '';
+        my $estatus = $f->[14] || '';
+        
+        next if $estatus =~ /Cancelado/i;
+
+        if ($fecha ge $f_inicio && $fecha le $f_fin) {
+            my $abono = $f->[9] || 0;
+            $abono =~ s/[^\d\.]//g;
+            
+            $total_cxc += $abono;
+            
+            my $id_med = $f->[15] || '';
+            my $nombre_med = $medicos{$id_med} || 'N/D';
+
+            my $folio_raw = $f->[1] || '';
+            my $folio_corto = $folio_raw;
+            if ($folio_raw =~ /([^-]+)$/) {
+                $folio_corto = $1;
+                $folio_corto =~ s/^0+//;
+            }
+
+            my $id_pac = $f->[5] || '';
+            my $nombre_pac = $pacientes{$id_pac} || $id_pac || 'Empleado Estatal';
+
+            push @cxc_filtrados, {
+                folio      => $folio_corto || $folio_raw,
+                fecha      => $fecha . ' ' . ($f->[7] || ''),
+                paciente   => $nombre_pac,
+                medico     => $nombre_med,
+                forma_pago => $f->[10] || 'Crédito CxC',
+                monto      => $abono
+            };
+        }
+    }
+}
+
 # 5. Procesar Egresos (Gastos)
 my $archivo_egresos = File::Spec->catfile($dat_dir, 'gastos.dat');
 my @egresos_filtrados = ();
@@ -169,12 +213,14 @@ if (-e $archivo_egresos) {
     }
 }
 
-# 6. Salida
+# 6. Responder JSON
 print encode_json({
-    error          => 0,
-    ingresos       => \@ingresos_filtrados,
-    egresos        => \@egresos_filtrados,
+    ok       => JSON::true,
+    ingresos => \@ingresos_filtrados,
+    egresos  => \@egresos_filtrados,
+    cxc      => \@cxc_filtrados,
     total_ingresos => $total_ingresos,
-    total_egresos  => $total_egresos
+    total_egresos  => $total_egresos,
+    total_cxc      => $total_cxc
 });
 1;
