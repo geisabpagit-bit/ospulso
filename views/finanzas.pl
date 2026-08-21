@@ -584,35 +584,35 @@ PAGE_HTML
 
     <!-- KPIs -->
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-4 col-lg-2">
+        <div class="col-6 col-md-4">
             <div class="kpi-acrilico h-100">
                 <div class="kpi-icono text-success"><i class="bi bi-arrow-down-circle"></i></div>
                 <div class="kpi-titulo">Ingresos (Efvo)</div>
                 <div class="kpi-valor" id="cc_ingresos">$0.00</div>
             </div>
         </div>
-        <div class="col-6 col-md-4 col-lg-2">
+        <div class="col-6 col-md-4">
             <div class="kpi-acrilico h-100">
                 <div class="kpi-icono text-info"><i class="bi bi-building"></i></div>
                 <div class="kpi-titulo">CxC (Estado)</div>
                 <div class="kpi-valor" id="cc_cxc">$0.00</div>
             </div>
         </div>
-        <div class="col-6 col-md-4 col-lg-2">
+        <div class="col-6 col-md-4">
             <div class="kpi-acrilico h-100">
                 <div class="kpi-icono text-danger"><i class="bi bi-arrow-up-circle"></i></div>
                 <div class="kpi-titulo">Egresos</div>
                 <div class="kpi-valor" id="cc_egresos">$0.00</div>
             </div>
         </div>
-        <div class="col-6 col-md-4 col-lg-2">
+        <div class="col-6 col-md-4">
             <div class="kpi-acrilico bg-white bg-opacity-75 h-100">
                 <div class="kpi-icono text-warning"><i class="bi bi-cash"></i></div>
                 <div class="kpi-titulo">Efectivo Físico</div>
                 <input type="number" id="cc_fisico" class="form-control mt-2 text-center fw-bold fs-5 shadow-sm border-2 rounded-3 text-primary" value="0" oninput="calcularFaltante()" placeholder="0.00">
             </div>
         </div>
-        <div class="col-12 col-md-4 col-lg-2">
+        <div class="col-12 col-md-4">
             <div class="kpi-acrilico h-100" id="kpi_diferencia_box">
                 <div class="kpi-icono text-secondary" id="cc_dif_icon"><i class="bi bi-calculator"></i></div>
                 <div class="kpi-titulo">Faltante/Sobrante</div>
@@ -620,7 +620,7 @@ PAGE_HTML
                 <div class="kpi-subtexto" id="cc_dif_label">Efectivo - (Ing - Egr)</div>
             </div>
         </div>
-        <div class="col-12 col-md-4 col-lg-2">
+        <div class="col-12 col-md-4">
             <div class="kpi-acrilico h-100 bg-primary bg-opacity-10" id="kpi_gran_total_box">
                 <div class="kpi-icono text-primary"><i class="bi bi-briefcase"></i></div>
                 <div class="kpi-titulo">Productividad</div>
@@ -632,15 +632,19 @@ PAGE_HTML
 
     <div class="row">
         <!-- Gráfica -->
-        <div class="col-lg-4 mb-4">
-            <div class="card card-medentia-aura h-100 p-3 card-mobile-flush container-mobile-flush border-0">
+        <div class="col-12 mb-4">
+            <div class="card card-medentia-aura p-3 card-mobile-flush container-mobile-flush border-0">
                 <h6 class="fw-bold mb-3 text-muted">Distribución</h6>
-                <canvas id="chartCorteCaja"></canvas>
+                <div style="position: relative; height: 350px; width: 100%;">
+                    <canvas id="chartCorteCaja"></canvas>
+                </div>
             </div>
         </div>
+    </div>
 
+    <div class="row">
         <!-- Tablas de Desglose -->
-        <div class="col-lg-8 mb-4">
+        <div class="col-12 mb-4">
             <div class="card card-medentia-aura h-100 p-3 card-mobile-flush container-mobile-flush border-0">
                 <ul class="nav nav-tabs sdm-tabs mb-3" role="tablist">
                     <li class="nav-item" role="presentation">
@@ -883,6 +887,7 @@ PAGE_HTML
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: { y: { beginAtZero: true } }
                 }
             });

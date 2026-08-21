@@ -78,6 +78,23 @@ if ($org_clues) {
             $pacientes{$p->[0]} = $p->[1] || $p->[0];
         }
     }
+    
+    # Empleados Públicos (Estado) para Cuentas por Cobrar
+    my $emp_file = File::Spec->catfile($dat_dir, "empleadosmun_${org_clues}.dat");
+    if (-e $emp_file && open(my $efh, '<:utf8', $emp_file)) {
+        while (my $line = <$efh>) {
+            chomp $line;
+            my @f = split(/!/, $line);
+            if (scalar(@f) >= 2 && $f[0] ne '$c_clinumempleado') {
+                # Solo guardamos el primero que encontremos (usualmente el Empleado titular)
+                my $key = 'EMP-' . $f[0];
+                if (!exists $pacientes{$key}) {
+                    $pacientes{$key} = $f[1] || $key;
+                }
+            }
+        }
+        close($efh);
+    }
 }
 
 # 4. Procesar Ingresos (Recibos Privados)
