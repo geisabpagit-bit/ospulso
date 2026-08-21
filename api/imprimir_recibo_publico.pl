@@ -37,8 +37,8 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
     while (my $line = <$fh>) {
         chomp $line;
         my @c = split /\|/, $line, -1;
-        # ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR
-        if ($c[4] eq $id_consulta) {
+        # ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON
+        if ($c[1] eq $id_consulta) {
             $recibo = {
                 id_recibo     => $c[0],
                 folio         => $c[1],
@@ -51,12 +51,34 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
                 total_cargos  => $c[8] || 0,
                 total_abonos  => $c[9] || 0,
                 metodo_pago   => $c[10] || 'Efectivo',
-                elaborado_por => $c[11] || ''
+                elaborado_por => $c[11] || '',
+                concepto      => $c[12] || '',
+                items_json    => $c[13] || ''
             };
             last;
         }
     }
     close $fh;
+}
+
+use JSON qw(decode_json);
+use Encode qw(encode_utf8);
+my @cargos;
+if ($recibo->{items_json} && $recibo->{items_json} ne '[]') {
+    eval {
+        my $items;
+        eval { $items = decode_json($recibo->{items_json}); };
+        if ($@) { $items = decode_json(encode_utf8($recibo->{items_json})); }
+        
+        foreach my $it (@$items) {
+            push @cargos, {
+                concepto => $it->{nombre},
+                precio   => $it->{precio},
+                cantidad => $it->{cantidad},
+                subtotal => $it->{precio} * $it->{cantidad}
+            };
+        }
+    };
 }
 
 my $id_medico = '';
@@ -68,8 +90,6 @@ my $dependencia_nombre = '';
 my $id_dep = '';
 
 # 2. Leer estado_cuenta.dat y consultas_clinicas.dat (obtener cargos y datos básicos del recibo si es exprés)
-use JSON qw(decode_json);
-my @cargos;
 
 # Datos extra si es un recibo exprés
 my $express_paciente = '';

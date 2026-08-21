@@ -105,54 +105,7 @@ if (!$has_portal_paciente && $id_paciente eq $nombre_empleado && $id_paciente !~
     $id_paciente = $new_id;
 }
 
-# 1. Crear Tratamiento Express
-my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
-unless (-e $trat_file) {
-    open my $fh_t, '>:encoding(UTF-8)', $trat_file;
-    print $fh_t "ID_TRATAMIENTO|ID_PACIENTE|ID_COT|ESTADO|FECHA_INICIO|FECHA_FIN|ID_MEDICO|TOTAL|ID_CITA\n";
-    close $fh_t;
-}
-utils::db_manager::guardar_registro($trat_file, join('|', $id_tratamiento, $id_paciente, '', 'Cerrado', $hoy_fecha, $hoy_fecha, $id_medico, $caja_monto_abono, ''));
-
-# 2. Guardar Cargos y Abonos
-my $fin_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
-unless (-e $fin_file) {
-    open my $fh_f, '>:encoding(UTF-8)', $fin_file;
-    print $fh_f "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n";
-    close $fh_f;
-}
-
-my $idx_dir = 100;
-foreach my $it (@$caja_items) {
-    my $id_mov = 'MOV-' . time() . '-' . $idx_dir++;
-    my $sub = ($it->{precio} || 0) * ($it->{cantidad} || 1);
-    my $nota_cargo = "Cargo Walk-in | Paciente: " . ($nombre_empleado || $id_paciente);
-    if ($concepto_recibo) {
-        $nota_cargo .= " | Concepto: $concepto_recibo";
-    }
-    # En estado_cuenta.dat: ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS
-    my $linea_cargo = join('|',
-        $id_tratamiento, $id_mov, $id_paciente, 'Cargo', $it->{nombre},
-        $sub, 0, $sub, $hoy_fecha, $id_medico,
-        $nota_cargo, ($nombre_empleado || '')
-    );
-    utils::db_manager::guardar_registro($fin_file, $linea_cargo);
-}
-
-my $id_mov_abono = 'MOV-' . time() . '-ABONO';
-my $nota_abono = "Pago Recibo Rápido | Metodo: $caja_metodo_pago";
-if ($concepto_recibo) {
-    $nota_abono .= " | Concepto: $concepto_recibo";
-}
-my $linea_abono = join('|',
-    $id_tratamiento, $id_mov_abono, $id_paciente, 'Abono', "Abono en Caja - $caja_metodo_pago",
-    $caja_monto_abono, 0, $caja_monto_abono, $hoy_fecha, $id_medico,
-    $nota_abono, ($nombre_empleado || '')
-);
-utils::db_manager::guardar_registro($fin_file, $linea_abono);
-
-
-# 3. Generar Folio Consecutivo
+# 1. Generar Folio Consecutivo
 my $is_estado = ($id_paciente =~ /^EMP-/) ? 1 : 0;
 my $contadores_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', $is_estado ? 'contadores_recibos_publicos.dat' : 'contadores_recibos_privados.dat');
 unless (-e $contadores_file) {
@@ -190,13 +143,50 @@ my $folio_impreso = sprintf("%s-%s-%06d", $id_neg, $id_suc, $next_folio);
 my $folios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', $is_estado ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat');
 unless (-e $folios_file) {
     open my $fh_f2, '>:encoding(UTF-8)', $folios_file;
-    print $fh_f2 "ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR\n";
+    print $fh_f2 "ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON\n";
     close $fh_f2;
 }
+
 my $id_recibo_folio = 'R-' . time() . '-' . int(rand(1000));
 my $hoy_hora = sprintf("%02d:%02d", $hour, $min);
-my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $id_tratamiento, $id_paciente, $hoy_fecha, $hoy_hora, $caja_monto_abono, $caja_monto_abono, $caja_metodo_pago, $usuario);
+my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $folio_impreso, $id_paciente, $hoy_fecha, $hoy_hora, $caja_monto_abono, $caja_monto_abono, $caja_metodo_pago, $usuario, $concepto_recibo, $caja_items_json);
 utils::db_manager::guardar_registro($folios_file, $linea_folio);
 
-print encode_json({ ok => JSON::true, id_tratamiento => $id_tratamiento, folio => $folio_impreso, is_estado => $is_estado });
+# 2. Guardar Cargos y Abonos en estado_cuenta.dat usando el FOLIO ABSOLUTO como ID_OS
+my $fin_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
+unless (-e $fin_file) {
+    open my $fh_f, '>:encoding(UTF-8)', $fin_file;
+    print $fh_f "ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS\n";
+    close $fh_f;
+}
+
+my $idx_dir = 100;
+foreach my $it (@$caja_items) {
+    my $id_mov = 'MOV-' . time() . '-' . $idx_dir++;
+    my $sub = ($it->{precio} || 0) * ($it->{cantidad} || 1);
+    my $nota_cargo = "Cargo Walk-in | Paciente: " . ($nombre_empleado || $id_paciente);
+    if ($concepto_recibo) {
+        $nota_cargo .= " | Concepto: $concepto_recibo";
+    }
+    my $linea_cargo = join('|',
+        $folio_impreso, $id_mov, $id_paciente, 'Cargo', $it->{nombre},
+        $sub, 0, $sub, $hoy_fecha, $id_medico,
+        $nota_cargo, ($nombre_empleado || '')
+    );
+    utils::db_manager::guardar_registro($fin_file, $linea_cargo);
+}
+
+my $id_mov_abono = 'MOV-' . time() . '-ABONO';
+my $nota_abono = "Pago Recibo Rápido | Metodo: $caja_metodo_pago";
+if ($concepto_recibo) {
+    $nota_abono .= " | Concepto: $concepto_recibo";
+}
+my $linea_abono = join('|',
+    $folio_impreso, $id_mov_abono, $id_paciente, 'Abono', "Abono en Caja - $caja_metodo_pago",
+    $caja_monto_abono, 0, $caja_monto_abono, $hoy_fecha, $id_medico,
+    $nota_abono, ($nombre_empleado || '')
+);
+utils::db_manager::guardar_registro($fin_file, $linea_abono);
+
+print encode_json({ ok => JSON::true, id_tratamiento => $folio_impreso, folio => $folio_impreso, is_estado => $is_estado });
 1;

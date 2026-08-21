@@ -24,9 +24,9 @@ if (!$session_data->{session_ok} || $session_data->{role} ne 'Recepcionista') {
 }
 
 my $tipo = $q->param('tipo') || 'privados';
-my $file_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
-
-my $movimientos = leer_tabla($file_path);
+my $folios_file = $tipo eq 'publicos' ? 
+    File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_publicos.dat') :
+    File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
 
 my $pacientes_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
 my $pacs = leer_tabla($pacientes_file, '|', 1);
@@ -72,131 +72,53 @@ if (-e $usuarios_file) {
     }
 }
 
-my $folios_priv = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
-my $folios_pub = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_publicos.dat');
-
-my %map_folios = ();
-if (-e $folios_priv) {
-    my $f_priv = leer_tabla($folios_priv, '|', 1);
-    foreach my $f (@$f_priv) {
-        if (@$f >= 5) {
-            my $folio_str = $f->[1];
-            if ($org_clues eq 'QTSMP000116') {
-                $folio_str =~ s/^.*-//;
-                $folio_str += 0;
-            }
-            my $key = $f->[4];
-            $key =~ s/^\s+|\s+$//g;
-            $map_folios{$key} = $folio_str;
-        }
-    }
-}
-if (-e $folios_pub) {
-    my $f_pub = leer_tabla($folios_pub, '|', 1);
-    foreach my $f (@$f_pub) {
-        if (@$f >= 5) {
-            my $folio_str = $f->[1];
-            if ($org_clues eq 'QTSMP000116') {
-                $folio_str =~ s/^.*-//;
-                $folio_str += 0;
-            }
-            my $key = $f->[4];
-            $key =~ s/^\s+|\s+$//g;
-            $map_folios{$key} = $folio_str;
-        }
-    }
-}
-
-my %recibos = ();
-
-foreach my $r (@$movimientos) {
-    next unless @$r >= 12;
-    my $id_os = $r->[0] || '';
-    $id_os =~ s/^\s+|\s+$//g;
-    my $id_paciente = $r->[2] || '';
-    my $tipo_mov = $r->[3] || '';
-    my $concepto = $r->[4] || '';
-    my $total = $r->[7] || 0;
-    my $fecha = $r->[8] || '';
-    my $id_medico = $r->[9] || '';
-    my $notas = $r->[10] || '';
-    my $alias = $r->[11] || '';
-    
-    # Filtro Privados / Publicos
-    if ($tipo eq 'publicos') {
-        next unless $id_paciente =~ /^EMP-/;
-    } else {
-        next if $id_paciente =~ /^EMP-/;
-    }
-    
-    if (!exists $recibos{$id_os}) {
-        my $nombre_final = $alias || $map_pacientes{$id_paciente} || $id_paciente;
-        $nombre_final =~ s/.*Paciente:\s*//i;
-        
-        if ($tipo eq 'publicos' && $id_paciente =~ /^EMP-(.*)/) {
-            my $num_emp = $1;
-            my $paciente_nombre = $nombre_final;
-            my $empleado_nombre = $map_empleados{$num_emp} || 'Desconocido';
-            $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
-        }
-        
-        my $concepto_recibo = "Servicios Múltiples";
-        if ($notas =~ /Concepto:\s*([^\|]+)/) {
-            $concepto_recibo = $1;
-            $concepto_recibo =~ s/^\s+|\s+$//g;
-        }
-        
-        $recibos{$id_os} = {
-            folio => $id_os,
-            fecha => $fecha,
-            id_consulta => $id_os,
-            pac_nombre => $nombre_final,
-            total_cargo => 0,
-            total_abono => 0,
-            estatus => 'Activo',
-            id_medico => $id_medico,
-            concepto_recibo => $concepto_recibo
-        };
-    }
-    
-    if ($tipo_mov eq 'Cargo') {
-        $recibos{$id_os}->{total_cargo} += $total;
-    } elsif ($tipo_mov eq 'Abono') {
-        $recibos{$id_os}->{total_abono} += $total;
-    }
-}
+my $movimientos = leer_tabla($folios_file, '|', 1);
 
 my @data = ();
-foreach my $id_os (keys %recibos) {
-    my $rec = $recibos{$id_os};
-    my $total_mostrar = $rec->{total_abono} > 0 ? $rec->{total_abono} : $rec->{total_cargo};
+foreach my $r (@$movimientos) {
+    next unless @$r >= 12;
+    my $id_recibo = $r->[0] || '';
+    my $folio_absoluto = $r->[1] || '';
+    my $id_neg = $r->[2] || '';
+    my $id_paciente = $r->[5] || '';
+    my $fecha = $r->[6] || '';
+    my $total = $r->[8] || 0;
+    my $concepto_recibo = $r->[12] || 'Servicios Múltiples';
+    my $elaborado_por = $r->[11] || '';
     
-    my $medico = $map_medicos{$rec->{id_medico}} || "Médico Tratante";
+    # Filtrar por negocio de la sesión
+    next if $id_neg ne ($session_data->{id_empresa} || '');
+    
+    my $nombre_final = $map_pacientes{$id_paciente} || $id_paciente;
+    $nombre_final =~ s/.*Paciente:\s*//i;
+    
+    if ($tipo eq 'publicos' && $id_paciente =~ /^EMP-(.*)/) {
+        my $num_emp = $1;
+        my $paciente_nombre = $nombre_final;
+        my $empleado_nombre = $map_empleados{$num_emp} || 'Desconocido';
+        $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
+    }
+    
+    my $medico = $map_medicos{$elaborado_por} || $elaborado_por || "Médico Tratante";
     my $detalle = "Caja";
     
     # Opciones
     my $script_print = $tipo eq 'publicos' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
-    my $btn_print = qq{<a href="../api/$script_print?id_consulta=$rec->{id_consulta}" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="bi bi-file-earmark-text"></i></a>};
-    my $btn_cancel = "";
-    if ($rec->{estatus} ne 'Cancelado') {
-        $btn_cancel = qq{<button onclick="cancelarRecibo('$id_os', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="bi bi-x-circle"></i></button>};
-    }
+    my $btn_print = qq{<a href="../api/$script_print?id_consulta=$folio_absoluto" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="bi bi-file-earmark-text"></i></a>};
+    my $btn_cancel = qq{<button onclick="cancelarRecibo('$folio_absoluto', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="bi bi-x-circle"></i></button>};
     
-    my $estatus_badge = $rec->{estatus} eq 'Cancelado' ? '<span class="badge bg-danger">Cancelado</span>' : '<span class="badge bg-success">Cobrado</span>';
-    
-    # Formatear folio para mostrarlo amigable
-    my $folioDisplay = $map_folios{$id_os} || $id_os;
+    my $estatus_badge = '<span class="badge bg-success">Cobrado</span>'; # Si hay lógica de cancelados, añadirla luego
     
     push @data, {
-        raw_fecha => $rec->{fecha},
+        raw_fecha => $fecha,
         row => [
-            $folioDisplay,
-            $rec->{fecha},
-            $rec->{pac_nombre},
-            $rec->{concepto_recibo},
+            $folio_absoluto,
+            $fecha,
+            $nombre_final,
+            $concepto_recibo,
             $medico,
             $detalle,
-            "\$" . sprintf("%.2f", $total_mostrar),
+            "\$" . sprintf("%.2f", $total),
             $estatus_badge,
             $btn_print . $btn_cancel
         ]

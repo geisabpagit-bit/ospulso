@@ -152,6 +152,24 @@ if (-e $cons_file && open(my $fhc, '<:encoding(UTF-8)', $cons_file)) {
     close $fhc;
 }
 
+use Encode qw(encode_utf8);
+if ($recibo->{items_json} && $recibo->{items_json} ne '[]') {
+    eval {
+        my $items;
+        eval { $items = decode_json($recibo->{items_json}); };
+        if ($@) { $items = decode_json(encode_utf8($recibo->{items_json})); }
+        
+        foreach my $it (@$items) {
+            push @cargos, {
+                concepto => $it->{nombre},
+                precio   => $it->{precio},
+                cantidad => $it->{cantidad},
+                subtotal => $it->{precio} * $it->{cantidad}
+            };
+        }
+    };
+}
+
 if (!@cargos) {
     my $edo_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
     if (-e $edo_file && open(my $fhe, '<:encoding(UTF-8)', $edo_file)) {
