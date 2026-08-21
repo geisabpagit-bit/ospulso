@@ -141,11 +141,11 @@ if ($has_custom_medicos) {
     $medicos_custom_js = encode_json(\%med_by_espe);
 }
 
-my $motivos_html = "";
+my $motivos_html = "<option value=''>-- Selecciona Concepto --</option>";
 if ($org_clues eq 'QTSMP000116') {
     my $motivos_file = File::Spec->catfile($dat_dir, 'motivos_QTSMP000116.dat');
     if (-e $motivos_file) {
-        my $mots = leer_tabla($motivos_file);
+        my $mots = leer_tabla($motivos_file, '|');
         foreach my $m (@$mots) {
             next unless @$m >= 2;
             $motivos_html .= "<option value='$m->[1]'>$m->[1]</option>";
@@ -819,6 +819,9 @@ print <<'JS';
         }
         if (!id_medico) {
             return Swal.fire('Atención', 'Debes seleccionar al Médico responsable.', 'warning');
+        }
+        if ($('#selConceptoRecibo').length && !$('#selConceptoRecibo').val()) {
+            return Swal.fire('Atención', 'Debes seleccionar el Concepto del Recibo.', 'warning');
         }
         if (cartItems.length === 0) {
             return Swal.fire('Atención', 'Agrega al menos un concepto a cobrar en el carrito.', 'warning');
