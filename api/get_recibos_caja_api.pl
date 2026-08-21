@@ -50,6 +50,19 @@ if (-e $negocios_file && open(my $nf, '<:utf8', $negocios_file)) {
     close($nf);
 }
 
+my $priv_pacs_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "pacientes_privados__${org_clues}.dat");
+if (-e $priv_pacs_file && open(my $fhp, '<:encoding(UTF-8)', $priv_pacs_file)) {
+    my $header = <$fhp>;
+    while (my $line = <$fhp>) {
+        chomp($line);
+        my @p = split(/\|/, $line, -1);
+        if (@p >= 2) {
+            $map_pacientes{$p[0]} = $p[1];
+        }
+    }
+    close($fhp);
+}
+
 my $empleados_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_${org_clues}.dat");
 my %map_empleados = ();
 if ($org_clues && -e $empleados_file) {
@@ -67,10 +80,12 @@ if (-e $usuarios_file) {
     my $usr_data = leer_tabla($usuarios_file, '!', 1);
     foreach my $u (@$usr_data) {
         if (@$u >= 2) {
+            # Map by username (column 0) to full name (column 1)
             $map_medicos{$u->[0]} = $u->[1];
         }
     }
 }
+$map_medicos{'rec'} = 'Recepción' unless $map_medicos{'rec'};
 
 my @data = ();
 if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
@@ -102,8 +117,8 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
         
         if ($tipo eq 'publicos' && $id_paciente =~ /^EMP-(.*)/) {
             my $num_emp = $1;
-            my $paciente_nombre = $nombre_final;
             my $empleado_nombre = $map_empleados{$num_emp} || 'Desconocido';
+            my $paciente_nombre = ($nombre_final eq $id_paciente) ? $empleado_nombre : $nombre_final;
             $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
         }
         
@@ -112,14 +127,15 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
         
         my $folio_mostrar = $folio_absoluto;
         if ($folio_absoluto =~ /-(\d+)$/) {
-            $folio_mostrar = $1;
+            $folio_mostrar = int($1); # Convert to int to strip leading zeros
         }
         
         my $script_print = $tipo eq 'publicos' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
         my $btn_print = qq{<a href="../api/$script_print?id_consulta=$folio_absoluto" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="bi bi-file-earmark-text"></i></a>};
         my $btn_cancel = qq{<button onclick="cancelarRecibo('$folio_absoluto', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="bi bi-x-circle"></i></button>};
         
-        my $estatus_badge = '<span class="badge bg-success">Cobrado</span>';
+        my $estatus = $r[14] || 'Cobrado';
+        my $estatus_badge = $estatus eq 'Cancelado' ? '<span class="badge bg-danger">Cancelado</span>' : '<span class="badge bg-success">Cobrado</span>';
         
         push @data, {
             raw_fecha => $fecha,

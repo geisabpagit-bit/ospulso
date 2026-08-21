@@ -36,7 +36,19 @@ if (!$id_recibo) {
 my $file_name = $tipo eq 'publicos' ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat';
 my $file_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', $file_name);
 
-my $recibos = leer_tabla($file_path, '|');
+my @recibos_raw = ();
+if (-e $file_path && open(my $fhr, '<:encoding(UTF-8)', $file_path)) {
+    my $header = <$fhr>;
+    push @recibos_raw, $header if $header;
+    while (my $line = <$fhr>) {
+        chomp $line;
+        next if $line =~ /^\s*$/;
+        my @r = split(/\|/, $line, -1);
+        push @recibos_raw, \@r;
+    }
+    close $fhr;
+}
+
 my $found = 0;
 my $id_consulta = '';
 my $id_paciente = '';
@@ -48,15 +60,20 @@ open(my $fh, '>:encoding(UTF-8)', $file_path) or do {
     exit;
 };
 
-foreach my $r (@$recibos) {
-    if ($r->[0] eq $id_recibo) {
-        $r->[12] = 'Cancelado'; # Columna 12 es ESTATUS
-        $found = 1;
-        $id_consulta = $r->[4] || '';
-        $id_paciente = $r->[5] || '';
-        $total = $r->[8] || 0;
+foreach my $r (@recibos_raw) {
+    if (ref($r) eq 'ARRAY') {
+        # Validar match por FOLIO ($r->[1])
+        if ($r->[1] eq $id_recibo || $r->[0] eq $id_recibo) {
+            $r->[14] = 'Cancelado'; # Columna 14 es ESTATUS
+            $found = 1;
+            $id_consulta = $r->[4] || '';
+            $id_paciente = $r->[5] || '';
+            $total = $r->[8] || 0;
+        }
+        print $fh join('|', @$r) . "\n";
+    } else {
+        print $fh $r; # Header
     }
-    print $fh join('|', @$r) . "\n";
 }
 close($fh);
 
