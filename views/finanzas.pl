@@ -987,7 +987,7 @@ PAGE_HTML
             </div>
         </body>
         </html>
-        \`;
+        `;
 
         let printWin = window.open('', '_blank');
         printWin.document.write(html);
