@@ -72,61 +72,66 @@ if (-e $usuarios_file) {
     }
 }
 
-my $movimientos = leer_tabla($folios_file, '|', 1);
-
 my @data = ();
-foreach my $r (@$movimientos) {
-    next unless @$r >= 12;
-    my $id_recibo = $r->[0] || '';
-    my $folio_absoluto = $r->[1] || '';
-    my $id_neg = $r->[2] || '';
-    my $id_paciente = $r->[5] || '';
-    my $fecha = $r->[6] || '';
-    my $total = $r->[8] || 0;
-    my $concepto_recibo = $r->[12] || 'Servicios Múltiples';
-    my $elaborado_por = $r->[11] || '';
-    
-    # Filtrar Privados / Publicos
-    if ($tipo eq 'publicos') {
-        next unless $id_paciente =~ /^EMP-/;
-    } else {
-        next if $id_paciente =~ /^EMP-/;
+if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
+    my $header = <$fh>;
+    while (my $line = <$fh>) {
+        chomp $line;
+        next if $line =~ /^\s*$/;
+        my @r = split(/\|/, $line, -1);
+        
+        # ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON
+        my $id_recibo = $r[0] || '';
+        my $folio_absoluto = $r[1] || '';
+        my $id_neg = $r[2] || '';
+        my $id_paciente = $r[5] || '';
+        my $fecha = $r[6] || '';
+        my $total = $r[8] || 0;
+        my $elaborado_por = $r[11] || '';
+        my $concepto_recibo = $r[12] || 'Servicios Múltiples';
+        
+        # Filtros de tipo
+        if ($tipo eq 'publicos') {
+            next unless $id_paciente =~ /^EMP-/;
+        } else {
+            next if $id_paciente =~ /^EMP-/;
+        }
+        
+        my $nombre_final = $map_pacientes{$id_paciente} || $id_paciente;
+        $nombre_final =~ s/.*Paciente:\s*//i;
+        
+        if ($tipo eq 'publicos' && $id_paciente =~ /^EMP-(.*)/) {
+            my $num_emp = $1;
+            my $paciente_nombre = $nombre_final;
+            my $empleado_nombre = $map_empleados{$num_emp} || 'Desconocido';
+            $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
+        }
+        
+        my $medico = $map_medicos{$elaborado_por} || $elaborado_por || "Médico Tratante";
+        my $detalle = "Caja";
+        
+        my $script_print = $tipo eq 'publicos' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
+        my $btn_print = qq{<a href="../api/$script_print?id_consulta=$folio_absoluto" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="bi bi-file-earmark-text"></i></a>};
+        my $btn_cancel = qq{<button onclick="cancelarRecibo('$folio_absoluto', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="bi bi-x-circle"></i></button>};
+        
+        my $estatus_badge = '<span class="badge bg-success">Cobrado</span>';
+        
+        push @data, {
+            raw_fecha => $fecha,
+            row => [
+                $folio_absoluto,
+                $fecha,
+                $nombre_final,
+                $concepto_recibo,
+                $medico,
+                $detalle,
+                "\$" . sprintf("%.2f", $total),
+                $estatus_badge,
+                $btn_print . $btn_cancel
+            ]
+        };
     }
-    
-    my $nombre_final = $map_pacientes{$id_paciente} || $id_paciente;
-    $nombre_final =~ s/.*Paciente:\s*//i;
-    
-    if ($tipo eq 'publicos' && $id_paciente =~ /^EMP-(.*)/) {
-        my $num_emp = $1;
-        my $paciente_nombre = $nombre_final;
-        my $empleado_nombre = $map_empleados{$num_emp} || 'Desconocido';
-        $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
-    }
-    
-    my $medico = $map_medicos{$elaborado_por} || $elaborado_por || "Médico Tratante";
-    my $detalle = "Caja";
-    
-    # Opciones
-    my $script_print = $tipo eq 'publicos' ? 'imprimir_recibo_publico.pl' : 'imprimir_recibo_caja.pl';
-    my $btn_print = qq{<a href="../api/$script_print?id_consulta=$folio_absoluto" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="bi bi-file-earmark-text"></i></a>};
-    my $btn_cancel = qq{<button onclick="cancelarRecibo('$folio_absoluto', '$tipo')" class="btn btn-sm btn-danger text-white" title="Cancelar Recibo"><i class="bi bi-x-circle"></i></button>};
-    
-    my $estatus_badge = '<span class="badge bg-success">Cobrado</span>'; # Si hay lógica de cancelados, añadirla luego
-    
-    push @data, {
-        raw_fecha => $fecha,
-        row => [
-            $folio_absoluto,
-            $fecha,
-            $nombre_final,
-            $concepto_recibo,
-            $medico,
-            $detalle,
-            "\$" . sprintf("%.2f", $total),
-            $estatus_badge,
-            $btn_print . $btn_cancel
-        ]
-    };
+    close $fh;
 }
 
 # Ordenar por fecha descendente

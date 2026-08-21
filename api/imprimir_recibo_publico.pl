@@ -38,7 +38,7 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
         chomp $line;
         my @c = split /\|/, $line, -1;
         # ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON
-        if ($c[1] eq $id_consulta) {
+        if ($c[1] eq $id_consulta || $c[4] eq $id_consulta) {
             $recibo = {
                 id_recibo     => $c[0],
                 folio         => $c[1],

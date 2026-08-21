@@ -37,8 +37,8 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
     while (my $line = <$fh>) {
         chomp $line;
         my @c = split /\|/, $line, -1;
-        # ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR
-        if ($c[4] eq $id_consulta) {
+        # ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON
+        if ($c[4] eq $id_consulta || $c[1] eq $id_consulta) {
             $recibo = {
                 id_recibo     => $c[0],
                 folio         => $c[1],
@@ -51,7 +51,9 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
                 total_cargos  => $c[8] || 0,
                 total_abonos  => $c[9] || 0,
                 metodo_pago   => $c[10] || 'Efectivo',
-                elaborado_por => $c[11] || ''
+                elaborado_por => $c[11] || '',
+                concepto      => $c[12] || '',
+                items_json    => $c[13] || ''
             };
             last;
         }
@@ -115,44 +117,11 @@ if ($negocio->{logo_url}) {
     $logo_html = qq{<h2 style="margin:0; color:#333;">$negocio->{nombre}</h2>};
 }
 
-# 4. Obtener Conceptos de consultas_clinicas.dat y estado_cuenta.dat
+# 4. Obtener Conceptos de ITEMS_JSON
 use JSON qw(decode_json);
-my @cargos;
-my $cons_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
-if (-e $cons_file && open(my $fhc, '<:encoding(UTF-8)', $cons_file)) {
-    my $hc = <$fhc>;
-    while (my $lc = <$fhc>) {
-        chomp $lc;
-        my @c = split /\|/, $lc, -1;
-        if (@c >= 6 && $c[0] eq $id_consulta) {
-            eval {
-                my $pdata = decode_json($c[5]);
-                my $raw_items = $pdata->{caja_items_json} || $pdata->{caja_items};
-                if ($raw_items) {
-                    my $arr = ref($raw_items) eq 'ARRAY' ? $raw_items : decode_json($raw_items);
-                    if (ref($arr) eq 'ARRAY') {
-                        foreach my $it (@$arr) {
-                            my $name = $it->{nombre} || $it->{concepto} || 'Concepto Médico';
-                            my $prec = $it->{precio} // $it->{monto} // 0;
-                            my $cant = $it->{cantidad} // 1;
-                            my $subt = $it->{subtotal} // ($prec * $cant);
-                            push @cargos, {
-                                concepto => $name,
-                                precio   => $prec,
-                                cantidad => $cant,
-                                subtotal => $subt
-                            };
-                        }
-                    }
-                }
-            };
-            last;
-        }
-    }
-    close $fhc;
-}
-
 use Encode qw(encode_utf8);
+my @cargos;
+
 if ($recibo->{items_json} && $recibo->{items_json} ne '[]') {
     eval {
         my $items;
@@ -160,14 +129,55 @@ if ($recibo->{items_json} && $recibo->{items_json} ne '[]') {
         if ($@) { $items = decode_json(encode_utf8($recibo->{items_json})); }
         
         foreach my $it (@$items) {
+            my $name = $it->{nombre} || $it->{concepto} || 'Concepto Médico';
+            my $prec = $it->{precio} // $it->{monto} // 0;
+            my $cant = $it->{cantidad} // 1;
+            my $subt = $it->{subtotal} // ($prec * $cant);
             push @cargos, {
-                concepto => $it->{nombre},
-                precio   => $it->{precio},
-                cantidad => $it->{cantidad},
-                subtotal => $it->{precio} * $it->{cantidad}
+                concepto => $name,
+                precio   => $prec,
+                cantidad => $cant,
+                subtotal => $subt
             };
         }
     };
+}
+
+# Si falló leer de ITEMS_JSON, intentar de consultas_clinicas (Fallback para recibos antiguos)
+if (!@cargos) {
+    my $cons_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
+    if (-e $cons_file && open(my $fhc, '<:encoding(UTF-8)', $cons_file)) {
+        my $hc = <$fhc>;
+        while (my $lc = <$fhc>) {
+            chomp $lc;
+            my @c = split /\|/, $lc, -1;
+            if (@c >= 6 && $c[0] eq $id_consulta) {
+                eval {
+                    my $pdata = decode_json($c[5]);
+                    my $raw_items = $pdata->{caja_items_json} || $pdata->{caja_items};
+                    if ($raw_items) {
+                        my $arr = ref($raw_items) eq 'ARRAY' ? $raw_items : decode_json($raw_items);
+                        if (ref($arr) eq 'ARRAY') {
+                            foreach my $it (@$arr) {
+                                my $name = $it->{nombre} || $it->{concepto} || 'Concepto Médico';
+                                my $prec = $it->{precio} // $it->{monto} // 0;
+                                my $cant = $it->{cantidad} // 1;
+                                my $subt = $it->{subtotal} // ($prec * $cant);
+                                push @cargos, {
+                                    concepto => $name,
+                                    precio   => $prec,
+                                    cantidad => $cant,
+                                    subtotal => $subt
+                                };
+                            }
+                        }
+                    }
+                };
+                last;
+            }
+        }
+        close $fhc;
+    }
 }
 
 if (!@cargos) {
