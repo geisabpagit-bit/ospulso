@@ -28,10 +28,10 @@ my $id_paciente = $q->param('id_paciente') || '';
 my $nombre_empleado = $q->param('nombre_paciente_empleado') || '';
 $nombre_empleado =~ s/.*Paciente:\s*//i; # Limpiar el texto arrastrado del select2
 my $id_medico = $q->param('id_medico') || '';
-my $caja_items_json = decode_utf8($q->param('caja_items_json')) || '[]';
-my $caja_metodo_pago = decode_utf8($q->param('caja_metodo_pago') // 'Efectivo');
+my $caja_items_json = $q->param('caja_items_json') || '[]';
+my $caja_metodo_pago = $q->param('caja_metodo_pago') // 'Efectivo';
 my $caja_monto_abono = $q->param('caja_monto_abono') || 0;
-my $concepto_recibo = decode_utf8($q->param('caja_concepto') // '');
+my $concepto_recibo = $q->param('caja_concepto') // '';
 
 $id_paciente =~ s/^\s+|\s+$//g;
 $id_medico =~ s/^\s+|\s+$//g;
