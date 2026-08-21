@@ -1259,8 +1259,10 @@ window.renderGastos = async function() {
                     },
                     dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                     buttons: [
-                        { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
-                        { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' }
+                        { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export' },
+                        { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export' },
+                        { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export' },
+                        { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export' }
                     ],
                     language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json" },
                     order: [[0, "desc"]],
@@ -1414,14 +1416,17 @@ window.renderIngresos = async function() {
                 // Formato jerárquico
                 concepto = `<div class="fw-bold">${concepto}</div>`;
                 
-                let valToShow = g.abono > 0 ? g.abono : (g.cargo > 0 ? g.cargo : 0);
+                let valToShow = g.abono > 0 ? -g.abono : (g.cargo > 0 ? g.cargo : 0);
+                
+                let colorClass = valToShow > 0 ? 'text-danger' : (valToShow < 0 ? 'text-success' : 'text-muted');
+                let displayVal = valToShow > 0 ? `+${formatter.format(valToShow)}` : formatter.format(valToShow);
                 
                 html += `<tr>
                     <td class="text-muted small">${g.fecha || ''}</td>
                     <td class="fw-bold" style="color: var(--md-blue-deep);"><i class="bi bi-person-circle me-2 text-muted"></i>${g.paciente_nombre}</td>
                     <td class="text-dark">${concepto}</td>
                     <td class="text-muted small">${folioDisplay}</td>
-                    <td class="fw-bold text-success">+${formatter.format(valToShow)}</td>
+                    <td class="fw-bold ${colorClass}">${displayVal}</td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill" onclick="window.open('../api/ver_recibo.pl?id_os=${osExtra}', '_blank')" title="Ver Recibo HTML"><i class="bi bi-file-earmark-text"></i></button>
                     </td>
@@ -1458,9 +1463,10 @@ window.renderIngresos = async function() {
                     },
                     dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                     buttons: [
-                        { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
-                        { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' },
-                        { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
+                        { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export' },
+                        { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export' },
+                        { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export' },
+                        { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export' }
                     ],
                     language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json" },
                     order: [[0, "desc"]],

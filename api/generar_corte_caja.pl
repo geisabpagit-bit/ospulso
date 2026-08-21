@@ -83,8 +83,19 @@ if (-e $archivo_ingresos) {
             my $id_med = $f->[15] || '';
             my $nombre_med = $medicos{$id_med} || 'N/D';
 
+            # Simplificar Folio (Extraer el último segmento)
+            my $folio_raw = $f->[1] || '';
+            my $folio_corto = $folio_raw;
+            if ($folio_raw =~ /([^-]+)$/) {
+                $folio_corto = $1;
+                # Eliminar "OS/YYYY/" si llegara a quedar algo raro o simplemente forzar int
+                # Usar +0 convierte "006707" a "6707" y "027380" a "27380" de forma segura.
+                # Si el string no es numérico puro, intentamos limpiar ceros a la izquierda.
+                $folio_corto =~ s/^0+//;
+            }
+
             push @ingresos_filtrados, {
-                folio      => $f->[1] || '',
+                folio      => $folio_corto || $folio_raw,
                 fecha      => $fecha . ' ' . ($f->[7] || ''),
                 paciente   => $f->[5] || 'Público General',
                 medico     => $nombre_med,
