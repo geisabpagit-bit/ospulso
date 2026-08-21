@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 use CGI qw(-utf8);
 use JSON qw(encode_json decode_json);
-use Encode qw(encode_utf8);
+use Encode qw(encode_utf8 decode_utf8);
 use FindBin;
 use File::Spec;
 use Fcntl qw(:flock);

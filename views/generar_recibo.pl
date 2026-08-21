@@ -898,11 +898,14 @@ print <<'JS';
                 form.append('caja_concepto', $('#selConceptoRecibo').val());
             }
             
+            console.log("Enviando petición a guardar_recibo_rapido.pl con datos:", Object.fromEntries(form.entries()));
+            
             const req = await fetch('../api/guardar_recibo_rapido.pl', {
                 method: 'POST',
                 body: form
             });
             const res = await req.json();
+            console.log("Respuesta del servidor:", res);
             
             if (res.ok) {
                 Swal.fire({
@@ -917,10 +920,11 @@ print <<'JS';
                     window.location.href = 'inicial.pl';
                 });
             } else {
-                Swal.fire('Error', res.error || 'No se pudo emitir el recibo.', 'error');
+                Swal.fire('Error', res.error || res.msg || 'No se pudo emitir el recibo.', 'error');
             }
         } catch (e) {
-            Swal.fire('Error', 'Hubo un problema de conexión.', 'error');
+            console.error("Excepción al emitir recibo:", e);
+            Swal.fire('Error', 'Hubo un problema de conexión. Revisa la consola para más detalles.', 'error');
         }
     }
 </script>
