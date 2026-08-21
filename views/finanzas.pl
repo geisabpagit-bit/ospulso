@@ -97,6 +97,7 @@ print <<'PAGE_HTML';
         if(tabId === 'tab_gastos' && typeof window.renderGastos === 'function') window.renderGastos();
         if(tabId === 'tab_ingresos' && typeof window.renderIngresos === 'function') window.renderIngresos();
         if(tabId === 'tab_reportes' && typeof window.renderReportes === 'function') window.renderReportes();
+        if(tabId === 'tab_corte_caja' && typeof window.renderCorteCaja === 'function') window.renderCorteCaja();
     };
     
     window.onFinanzasSubLinkClick = function(e) {
@@ -569,6 +570,260 @@ PAGE_HTML
         </div>
     </div>
 </div>
+
+<!-- TAB: CORTE DE CAJA -->
+<div id="tab_corte_caja" class="sdm-tab-pane d-none">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <h5 class="fw-bold mb-2 m-0" style="color: var(--md-blue-medical);"><i class="bi bi-safe me-2"></i>Corte de Caja Diario</h5>
+        <div class="d-flex gap-2">
+            <input type="date" id="cc_fecha_inicio" class="form-control" title="Fecha Inicio">
+            <input type="date" id="cc_fecha_fin" class="form-control" title="Fecha Fin">
+            <button class="btn btn-aura-save px-4" onclick="cargarCorteCaja()"><i class="bi bi-search me-1"></i>Generar</button>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid mb-4">
+        <div class="kpi-acrilico">
+            <div class="kpi-icono" style="color: #10b981;"><i class="bi bi-arrow-down-circle"></i></div>
+            <div class="kpi-titulo">Ingresos (Sistema)</div>
+            <div class="kpi-valor" id="cc_ingresos">$0.00</div>
+        </div>
+        <div class="kpi-acrilico">
+            <div class="kpi-icono" style="color: #ef4444;"><i class="bi bi-arrow-up-circle"></i></div>
+            <div class="kpi-titulo">Egresos (Sistema)</div>
+            <div class="kpi-valor" id="cc_egresos">$0.00</div>
+        </div>
+        <div class="kpi-acrilico" style="background: rgba(255,255,255,0.8);">
+            <div class="kpi-icono" style="color: #eab308;"><i class="bi bi-cash"></i></div>
+            <div class="kpi-titulo">Efectivo Físico</div>
+            <input type="number" id="cc_fisico" class="form-control mt-2 text-center fw-bold fs-5 shadow-sm" style="border: 2px dashed #ccc; border-radius: 12px; color: var(--md-blue-medical);" value="0" oninput="calcularFaltante()" placeholder="0.00">
+        </div>
+        <div class="kpi-acrilico" id="kpi_diferencia_box">
+            <div class="kpi-icono" id="cc_dif_icon" style="color: #6c757d;"><i class="bi bi-calculator"></i></div>
+            <div class="kpi-titulo">Faltante / Sobrante</div>
+            <div class="kpi-valor" id="cc_diferencia">$0.00</div>
+            <div class="kpi-subtexto" id="cc_dif_label">Efectivo - (Ingresos - Egresos)</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Gráfica -->
+        <div class="col-lg-4 mb-4">
+            <div class="card card-medentia-aura h-100 p-3 card-mobile-flush container-mobile-flush border-0">
+                <h6 class="fw-bold mb-3 text-muted">Distribución</h6>
+                <canvas id="chartCorteCaja"></canvas>
+            </div>
+        </div>
+
+        <!-- Tablas de Desglose -->
+        <div class="col-lg-8 mb-4">
+            <div class="card card-medentia-aura h-100 p-3 card-mobile-flush container-mobile-flush border-0">
+                <ul class="nav nav-tabs sdm-tabs mb-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_ingresos" type="button"><i class="bi bi-graph-up me-1 text-success"></i>Ingresos</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_egresos" type="button"><i class="bi bi-graph-down text-danger me-1"></i>Egresos</button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="cc_tab_ingresos" role="tabpanel">
+                        <div class="table-responsive">
+                            <table id="dtCorteIngresos" class="table table-hover dt-responsive-mobile nowrap w-100">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th>Folio</th>
+                                        <th>Fecha</th>
+                                        <th>Paciente</th>
+                                        <th>Médico</th>
+                                        <th>Forma de Pago</th>
+                                        <th class="text-end">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="cc_tab_egresos" role="tabpanel">
+                        <div class="table-responsive">
+                            <table id="dtCorteEgresos" class="table table-hover dt-responsive-mobile nowrap w-100">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th>Folio</th>
+                                        <th>Fecha</th>
+                                        <th>Categoría</th>
+                                        <th>Responsable</th>
+                                        <th class="text-end">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.renderCorteCaja = function() {
+        console.log("[Corte Caja] Inicializando vista");
+        let hoy = new Date().toISOString().split('T')[0];
+        if(!document.getElementById('cc_fecha_inicio').value) document.getElementById('cc_fecha_inicio').value = hoy;
+        if(!document.getElementById('cc_fecha_fin').value) document.getElementById('cc_fecha_fin').value = hoy;
+        
+        cargarCorteCaja();
+    };
+
+    let ccTotalIngresos = 0;
+    let ccTotalEgresos = 0;
+    let chartCorte = null;
+
+    window.cargarCorteCaja = function() {
+        let f_inicio = document.getElementById('cc_fecha_inicio').value;
+        let f_fin = document.getElementById('cc_fecha_fin').value;
+
+        \$.ajax({
+            url: '../api/generar_corte_caja.pl',
+            type: 'POST',
+            dataType: 'json',
+            data: { f_inicio: f_inicio, f_fin: f_fin },
+            success: function(res) {
+                if(res.error) {
+                    Swal.fire('Error', res.msg || 'No autorizado', 'error');
+                    return;
+                }
+
+                ccTotalIngresos = parseFloat(res.total_ingresos) || 0;
+                ccTotalEgresos = parseFloat(res.total_egresos) || 0;
+                
+                document.getElementById('cc_ingresos').textContent = '\$' + ccTotalIngresos.toFixed(2);
+                document.getElementById('cc_egresos').textContent = '\$' + ccTotalEgresos.toFixed(2);
+                
+                // Actualizar tablas
+                renderTablaCorte('#dtCorteIngresos', res.ingresos, [
+                    { data: 'folio' },
+                    { data: 'fecha' },
+                    { data: 'paciente' },
+                    { data: 'medico' },
+                    { data: 'forma_pago' },
+                    { data: 'monto', className: 'text-end text-success fw-bold', render: \$.fn.dataTable.render.number(',', '.', 2, '\$') }
+                ]);
+                
+                renderTablaCorte('#dtCorteEgresos', res.egresos, [
+                    { data: 'folio' },
+                    { data: 'fecha' },
+                    { data: 'categoria' },
+                    { data: 'responsable' },
+                    { data: 'monto', className: 'text-end text-danger fw-bold', render: \$.fn.dataTable.render.number(',', '.', 2, '\$') }
+                ]);
+
+                calcularFaltante();
+            },
+            error: function() {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Error', 'Fallo de comunicación con la API de Corte de Caja', 'error');
+                }
+            }
+        });
+    };
+
+    window.renderTablaCorte = function(selector, data, columns) {
+        if(\$.fn.DataTable.isDataTable(selector)) {
+            \$(selector).DataTable().clear().rows.add(data).draw();
+        } else {
+            \$(selector).DataTable({
+                data: data,
+                columns: columns,
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+                dom: 'Bfrtip',
+                buttons: [
+                    { extend: 'excelHtml5', className: 'btn btn-sm btn-outline-success', text: '<i class="bi bi-file-earmark-excel"></i> Excel' },
+                    { extend: 'pdfHtml5', className: 'btn btn-sm btn-outline-danger', text: '<i class="bi bi-file-earmark-pdf"></i> PDF' }
+                ],
+                responsive: false, // Handle via SDM mobile styles data-label
+                createdRow: function(row, data, dataIndex) {
+                    // Inject data-label for SDM Mobile Standards point 7
+                    \$(row).find('td').each(function(i) {
+                        let header = \$(selector).find('thead th').eq(i).text();
+                        \$(this).attr('data-label', header);
+                    });
+                }
+            });
+        }
+    };
+
+    window.calcularFaltante = function() {
+        let fisico = parseFloat(document.getElementById('cc_fisico').value) || 0;
+        // Formula Tradicional: Efectivo Fisico - (Ingresos - Egresos)
+        let saldoEsperado = ccTotalIngresos - ccTotalEgresos;
+        let diferencia = fisico - saldoEsperado;
+
+        let elDif = document.getElementById('cc_diferencia');
+        let iconDif = document.getElementById('cc_dif_icon');
+        let labelDif = document.getElementById('cc_dif_label');
+        let boxDif = document.getElementById('kpi_diferencia_box');
+
+        elDif.textContent = '\$' + Math.abs(diferencia).toFixed(2);
+        if(diferencia > 0) {
+            elDif.className = 'kpi-valor text-success';
+            iconDif.style.color = '#10b981';
+            iconDif.innerHTML = '<i class="bi bi-arrow-up-right-circle-fill"></i>';
+            labelDif.textContent = 'Sobrante';
+            labelDif.className = 'kpi-subtexto text-success fw-bold';
+            boxDif.style.border = '2px solid #10b981';
+            boxDif.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
+        } else if(diferencia < 0) {
+            elDif.className = 'kpi-valor text-danger';
+            iconDif.style.color = '#ef4444';
+            iconDif.innerHTML = '<i class="bi bi-arrow-down-right-circle-fill"></i>';
+            labelDif.textContent = 'Faltante';
+            labelDif.className = 'kpi-subtexto text-danger fw-bold';
+            boxDif.style.border = '2px solid #ef4444';
+            boxDif.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+        } else {
+            elDif.className = 'kpi-valor text-muted';
+            iconDif.style.color = '#6c757d';
+            iconDif.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+            labelDif.textContent = 'Cuadrado Perfecto';
+            labelDif.className = 'kpi-subtexto text-muted fw-bold';
+            boxDif.style.border = 'none';
+            boxDif.style.backgroundColor = '';
+        }
+
+        actualizarGraficaCorte(ccTotalIngresos, ccTotalEgresos, fisico);
+    };
+
+    window.actualizarGraficaCorte = function(ingresos, egresos, fisico) {
+        let ctx = document.getElementById('chartCorteCaja');
+        if(!ctx) return;
+        
+        if(chartCorte) {
+            chartCorte.data.datasets[0].data = [ingresos, egresos, fisico];
+            chartCorte.update();
+        } else {
+            chartCorte = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Ingresos', 'Egresos', 'Físico'],
+                    datasets: [{
+                        label: 'Monto (\$)',
+                        data: [ingresos, egresos, fisico],
+                        backgroundColor: ['rgba(16, 185, 129, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(234, 179, 8, 0.7)'],
+                        borderColor: ['#10b981', '#ef4444', '#eab308'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+    };
+</script>
 
 <!-- Modal Gestión de Categorías -->
 <div class="modal fade modal-diamond" id="modalCategorias" tabindex="-1" aria-hidden="true" style="z-index: 105050 !important;">

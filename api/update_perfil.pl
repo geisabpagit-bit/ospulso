@@ -142,12 +142,9 @@ eval {
             }
         }
 
-        # Restricción: Si el rol es Medico y la Naturaleza Jurídica es Privado, no puede actualizar el negocio (CLUES)
+        # Restricción RBAC Estricta: Solo los Administradores pueden actualizar el negocio (CLUES, RFC, Domicilio)
         my $role = $session_data->{role} // '';
-        my $puede_actualizar_negocio = 1;
-        if ($role eq 'Medico' && $naturaleza_juridica eq 'Privado') {
-            $puede_actualizar_negocio = 0;
-        }
+        my $puede_actualizar_negocio = ($role =~ /Administrador Organizacion|Administrador Global/i) ? 1 : 0;
 
         # MODO ESPECIALISTA: Actualizar negocios.dat si tiene permiso
         if ($id_negocio && $id_negocio ne '0' && $puede_actualizar_negocio) {

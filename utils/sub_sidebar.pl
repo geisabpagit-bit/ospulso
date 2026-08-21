@@ -414,6 +414,13 @@ HTML
             };
         }
 
+        if ($role =~ /Administrador Organizacion|Recepcionista/i) {
+            print qq{
+                        <hr class="my-2 opacity-25">
+                        <a href="../views/finanzas.pl?tab=corte_caja" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-safe text-primary me-2"></i><span class="sidebar-text fw-bold">Corte de Caja</span></a>
+            };
+        }
+
         print qq{
                         <hr class="my-2 opacity-25">
                         <a href="../views/finanzas.pl?tab=facturacion" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt text-muted me-2"></i><span class="sidebar-text">Facturaci&oacute;n PAC</span></a>
