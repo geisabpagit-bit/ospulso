@@ -396,8 +396,229 @@ elsif ($action eq 'do_truncate' && $full_path && -e $full_path) {
             $message = "Tabla vaciada exitosamente (cabecera preservada).";
         }
     }
+}
     $action = 'view';
 }
+
+# --- NUEVAS ACCIONES ESTRUCTURALES Y DE RELACIONES ---
+
+elsif ($action eq 'do_add_column' && $q->request_method() eq 'POST' && $full_path && -e $full_path) {
+    my $new_col = $q->param('new_col_name') // '';
+    $new_col =~ s/[^a-zA-Z0-9_]//g; # Sanitizar nombre de columna
+    if ($new_col) {
+        open(my $fh, '<', $full_path);
+        binmode($fh, ":utf8");
+        my $header = <$fh>;
+        my @lines;
+        my $sep = ($header && $header =~ /!/) ? '!' : '\|';
+        my $sep_write = ($header && $header =~ /!/) ? '!' : '|';
+        while(my $line = <$fh>) { chomp $line; push @lines, $line if $line !~ /^\s*$/; }
+        close($fh);
+        
+        chomp $header if $header;
+        $header .= $sep_write . $new_col;
+        
+        open(my $fh_out, '>', $full_path) or $error = "Error al abrir archivo para nueva columna: $!";
+        if (!$error) {
+            flock($fh_out, 2);
+            binmode($fh_out, ":utf8");
+            print $fh_out "$header\n";
+            foreach my $l (@lines) {
+                print $fh_out $l . $sep_write . "\n";
+            }
+            close($fh_out);
+            $message = "Columna '$new_col' añadida con éxito.";
+        }
+    } else {
+        $error = "Nombre de columna inválido.";
+    }
+    $action = 'view';
+}
+
+elsif ($action eq 'do_rename_column' && $q->request_method() eq 'POST' && $full_path && -e $full_path) {
+    my $old_col = $q->param('old_col_name') // '';
+    my $new_col = $q->param('new_col_name') // '';
+    $new_col =~ s/[^a-zA-Z0-9_]//g;
+    if ($old_col && $new_col) {
+        open(my $fh, '<', $full_path);
+        binmode($fh, ":utf8");
+        my $header = <$fh>;
+        my @lines;
+        my $sep = ($header && $header =~ /!/) ? '!' : '\|';
+        my $sep_write = ($header && $header =~ /!/) ? '!' : '|';
+        while(my $line = <$fh>) { chomp $line; push @lines, $line if $line !~ /^\s*$/; }
+        close($fh);
+        
+        chomp $header if $header;
+        my @cols = split(/$sep/, $header);
+        my $found = 0;
+        for my $i (0 .. $#cols) {
+            if ($cols[$i] eq $old_col) {
+                $cols[$i] = $new_col;
+                $found = 1;
+                last;
+            }
+        }
+        
+        if ($found) {
+            $header = join($sep_write, @cols);
+            open(my $fh_out, '>', $full_path) or $error = "Error al renombrar: $!";
+            if (!$error) {
+                flock($fh_out, 2);
+                binmode($fh_out, ":utf8");
+                print $fh_out "$header\n";
+                foreach my $l (@lines) { print $fh_out "$l\n"; }
+                close($fh_out);
+                $message = "Columna '$old_col' renombrada a '$new_col'.";
+            }
+        } else {
+            $error = "Columna '$old_col' no encontrada.";
+        }
+    }
+    $action = 'view';
+}
+
+elsif ($action eq 'do_delete_column' && $q->request_method() eq 'POST' && $full_path && -e $full_path) {
+    my $col_name = $q->param('col_name') // '';
+    if ($col_name) {
+        open(my $fh, '<', $full_path);
+        binmode($fh, ":utf8");
+        my $header = <$fh>;
+        my @lines;
+        my $sep = ($header && $header =~ /!/) ? '!' : '\|';
+        my $sep_write = ($header && $header =~ /!/) ? '!' : '|';
+        while(my $line = <$fh>) { chomp $line; push @lines, $line if $line !~ /^\s*$/; }
+        close($fh);
+        
+        chomp $header if $header;
+        my @cols = split(/$sep/, $header);
+        my $del_idx = -1;
+        for my $i (0 .. $#cols) {
+            if ($cols[$i] eq $col_name) {
+                $del_idx = $i;
+                last;
+            }
+        }
+        
+        if ($del_idx >= 0) {
+            splice(@cols, $del_idx, 1);
+            $header = join($sep_write, @cols);
+            
+            open(my $fh_out, '>', $full_path) or $error = "Error al eliminar columna: $!";
+            if (!$error) {
+                flock($fh_out, 2);
+                binmode($fh_out, ":utf8");
+                print $fh_out "$header\n";
+                foreach my $l (@lines) {
+                    my @row_cols = split(/$sep/, $l, -1);
+                    splice(@row_cols, $del_idx, 1);
+                    print $fh_out join($sep_write, @row_cols) . "\n";
+                }
+                close($fh_out);
+                $message = "Columna '$col_name' eliminada de todos los registros.";
+            }
+        } else {
+            $error = "Columna '$col_name' no encontrada.";
+        }
+    }
+    $action = 'view';
+}
+
+elsif ($action eq 'do_get_relations') {
+    my $schema_file = File::Spec->catfile($DAT_DIR, 'schema_relations.json');
+    my $rels = [];
+    if (-e $schema_file) {
+        local $/;
+        open(my $fh, '<', $schema_file);
+        my $json_str = <$fh>;
+        close($fh);
+        eval { $rels = JSON::PP->new->utf8->decode($json_str); };
+    }
+    print $q->header(-type => 'application/json', -charset => 'UTF-8');
+    print JSON::PP->new->utf8->encode({ ok => 1, relations => $rels });
+    exit;
+}
+
+elsif ($action eq 'do_save_relation' && $q->request_method() eq 'POST') {
+    my $col_name = $q->param('col_name') // '';
+    my $target_table = $q->param('target_table') // '';
+    my $target_col = $q->param('target_col') // '';
+    
+    my $schema_file = File::Spec->catfile($DAT_DIR, 'schema_relations.json');
+    my $rels = [];
+    if (-e $schema_file) {
+        local $/;
+        open(my $fh, '<', $schema_file);
+        my $json_str = <$fh>;
+        close($fh);
+        eval { $rels = JSON::PP->new->utf8->decode($json_str); };
+        $rels = [] unless ref($rels) eq 'ARRAY';
+    }
+    
+    # Remover relación existente para la misma tabla y columna
+    @$rels = grep { !($_->{source_table} eq $filename && $_->{source_col} eq $col_name) } @$rels;
+    
+    # Agregar nueva si se especificó tabla objetivo
+    if ($target_table) {
+        push @$rels, {
+            source_table => $filename,
+            source_col => $col_name,
+            target_table => $target_table,
+            target_col => $target_col
+        };
+    }
+    
+    open(my $fh_out, '>', $schema_file);
+    print $fh_out JSON::PP->new->utf8->encode($rels);
+    close($fh_out);
+    
+    print $q->header(-type => 'application/json', -charset => 'UTF-8');
+    print JSON::PP->new->utf8->encode({ ok => 1, msg => "Relaciones actualizadas." });
+    exit;
+}
+
+elsif ($action eq 'do_get_relation_options') {
+    my $target = $q->param('target_table') // '';
+    my $col_display = $q->param('target_col') // '';
+    
+    my $target_path = File::Spec->catfile($DAT_DIR, $target);
+    $target_path = File::Spec->catfile($NOM_DIR, $target) unless -e $target_path;
+    
+    my @options;
+    if (-e $target_path) {
+        open(my $fh, '<', $target_path);
+        binmode($fh, ":utf8");
+        my $header = <$fh>;
+        my $sep = ($header && $header =~ /!/) ? '!' : '\|';
+        chomp $header if $header;
+        my @cols = split(/$sep/, $header);
+        
+        my $display_idx = 0; # Default a ID
+        if ($col_display) {
+            for my $i (0 .. $#cols) {
+                if ($cols[$i] eq $col_display) {
+                    $display_idx = $i;
+                    last;
+                }
+            }
+        }
+        
+        while(my $line = <$fh>) {
+            chomp $line;
+            next if $line =~ /^\s*$/ || $line =~ /^\s*#/;
+            my @row = split(/$sep/, $line);
+            push @options, { id => $row[0] // '', text => $row[$display_idx] // $row[0] // '' };
+        }
+        close($fh);
+    }
+    
+    print $q->header(-type => 'application/json', -charset => 'UTF-8');
+    print JSON::PP->new->utf8->encode({ ok => 1, options => \@options });
+    exit;
+}
+
+# --- FIN NUEVAS ACCIONES ESTRUCTURALES ---
+
 
 # 6. Cargar CSV para Actualizar Catálogo NOM
 elsif ($action eq 'do_upload_csv' && $group eq 'nom' && $full_path && -e $full_path) {
@@ -913,7 +1134,24 @@ HTML
     my $responsive_class = $should_load_data ? '' : 'd-none';
     print <<HTML;
                 
-                <div class="table-responsive $responsive_class">
+                <!-- TABS DE DATOS Y ESTRUCTURA -->
+                <ul class="nav nav-tabs nav-tabs-medentia mb-4" id="tableTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold" id="data-tab" data-bs-toggle="tab" data-bs-target="#dataTab" type="button" role="tab" aria-controls="dataTab" aria-selected="true">
+                            <i class="bi bi-table me-2"></i>Datos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="structure-tab" data-bs-toggle="tab" data-bs-target="#structureTab" type="button" role="tab" aria-controls="structureTab" aria-selected="false">
+                            <i class="bi bi-diagram-3-fill me-2"></i>Estructura y Relaciones
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="tableTabsContent">
+                    <!-- PESTAÑA: DATOS -->
+                    <div class="tab-pane fade show active" id="dataTab" role="tabpanel" aria-labelledby="data-tab">
+                        <div class="table-responsive $responsive_class">
                     <table id="tablaConfig" class="table table-hover align-middle w-100">
                         <thead class="table-light">
                             <tr>
@@ -985,9 +1223,64 @@ HTML
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+            </div> <!-- End Pestaña Datos -->
+            
+            <!-- PESTAÑA: ESTRUCTURA Y RELACIONES -->
+            <div class="tab-pane fade" id="structureTab" role="tabpanel" aria-labelledby="structure-tab">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0 text-dark">Columnas de $target_file</h5>
+                    <button class="btn btn-medentia btn-sm" onclick="showAddColumnModal()">
+                        <i class="bi bi-plus-lg me-1"></i> Nueva Columna
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle w-100" id="tablaEstructura">
+                        <thead class="table-light">
+                            <tr>
+                                <th># Índice</th>
+                                <th>Nombre Columna</th>
+                                <th>Relación (Llave Foránea)</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+HTML
+    my $col_idx = 0;
+    foreach my $h (@headers) {
+        my $h_esc = CGI::escapeHTML($h);
+        print <<HTML;
+                            <tr>
+                                <td>$col_idx</td>
+                                <td class="fw-bold">$h_esc</td>
+                                <td id="rel-td-$col_idx">
+                                    <span class="badge bg-light text-muted fw-normal"><i class="bi bi-dash"></i> Ninguna</span>
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <button class="btn btn-outline-info btn-sm rounded-circle me-1" onclick="showRelationModal('$h_esc')" title="Configurar Relación">
+                                        <i class="bi bi-link-45deg"></i>
+                                    </button>
+                                    <button class="btn btn-outline-primary btn-sm rounded-circle me-1" onclick="showRenameColumnModal('$h_esc')" title="Renombrar Columna">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm rounded-circle" onclick="confirmDeleteColumn('$h_esc')" title="Eliminar Columna">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+HTML
+        $col_idx++;
+    }
+    print <<HTML;
+                        </tbody>
+                    </table>
+                </div>
+            </div> <!-- End Pestaña Estructura -->
+            
+        </div> <!-- End Tab Content -->
+        
     </div>
+</div>
+</div>
 HTML
 }
 
@@ -1339,8 +1632,105 @@ HTML
             </div>
         </div>
     </div>
+    </div>
+HTML
+
+    print <<HTML;
+    <!-- Modal: Nueva Columna -->
+    <div class="modal fade" id="addColumnModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-medentia p-4 border-0">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-plus-circle-fill me-2"></i>Nueva Columna</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body border-0">
+                    <form action="manage_config.pl" method="POST">
+                        <input type="hidden" name="action" value="do_add_column">
+                        <input type="hidden" name="file" value="$target_file">
+                        <input type="hidden" name="group" value="$group">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nombre de la Columna</label>
+                            <input type="text" name="new_col_name" class="form-control rounded-3" placeholder="Ej. PRECIO_BASE" required>
+                        </div>
+                        <button type="submit" class="btn-medentia w-100 mt-2">AÑADIR COLUMNA</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Renombrar Columna -->
+    <div class="modal fade" id="renameColumnModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-medentia p-4 border-0">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-fill me-2"></i>Renombrar Columna</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body border-0">
+                    <form action="manage_config.pl" method="POST">
+                        <input type="hidden" name="action" value="do_rename_column">
+                        <input type="hidden" name="file" value="$target_file">
+                        <input type="hidden" name="group" value="$group">
+                        <input type="hidden" name="old_col_name" id="rename_old_col">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nombre Actual</label>
+                            <input type="text" id="rename_old_display" class="form-control rounded-3 bg-light" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nuevo Nombre</label>
+                            <input type="text" name="new_col_name" class="form-control rounded-3" required>
+                        </div>
+                        <button type="submit" class="btn-medentia w-100 mt-2">GUARDAR CAMBIOS</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Configurar Relación -->
+    <div class="modal fade" id="relationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-medentia p-4 border-0">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-link-45deg me-2"></i>Configurar Relación (Foránea)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body border-0">
+                    <form id="relationForm">
+                        <input type="hidden" name="action" value="do_save_relation">
+                        <input type="hidden" name="file" value="$target_file">
+                        <input type="hidden" name="group" value="$group">
+                        <input type="hidden" name="col_name" id="rel_col_name">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Columna Origen</label>
+                            <input type="text" id="rel_col_display" class="form-control rounded-3 bg-light" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Vincular a Tabla Destino</label>
+                            <select name="target_table" id="rel_target_table" class="form-select rounded-3">
+                                <option value="">-- Sin relación (Ninguna) --</option>
+HTML
+    foreach my $f (@global_files, @nom_files) {
+        print qq(<option value="$f">$f</option>\n);
+    }
+    print <<HTML;
+                            </select>
+                        </div>
+                        <div class="mb-3" id="rel_target_col_wrapper" style="display:none;">
+                            <label class="form-label small fw-bold">Columna a Mostrar (Display)</label>
+                            <input type="text" name="target_col" id="rel_target_col" class="form-control rounded-3" placeholder="Ej. Nombre (o déjalo en blanco para el ID)">
+                        </div>
+                        <button type="button" class="btn-medentia w-100 mt-2" onclick="saveRelation()">GUARDAR RELACIÓN</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 HTML
 }
+
 
 # --- CARGAR SCRIPTS DE JS GLOBALES ANTES DE BOTTOM NAV Y FOOTER ---
 print <<HTML;
@@ -1645,7 +2035,169 @@ print <<HTML;
         }
     }
     
+    function showAddColumnModal() {
+        const modalEl = document.getElementById('addColumnModal');
+        if (modalEl) {
+            if (modalEl.parentElement !== document.body) document.body.appendChild(modalEl);
+            new bootstrap.Modal(modalEl).show();
+        }
+    }
+
+    function showRenameColumnModal(colName) {
+        document.getElementById('rename_old_col').value = colName;
+        document.getElementById('rename_old_display').value = colName;
+        const modalEl = document.getElementById('renameColumnModal');
+        if (modalEl) {
+            if (modalEl.parentElement !== document.body) document.body.appendChild(modalEl);
+            new bootstrap.Modal(modalEl).show();
+        }
+    }
+
+    function confirmDeleteColumn(colName) {
+        Swal.fire({
+            title: '¿Eliminar columna?',
+            text: 'Se eliminará la columna "' + colName + '" de todos los registros de la tabla. ¡Esta acción no se puede deshacer!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'manage_config.pl';
+                
+                const act = document.createElement('input'); act.type = 'hidden'; act.name = 'action'; act.value = 'do_delete_column'; form.appendChild(act);
+                const file = document.createElement('input'); file.type = 'hidden'; file.name = 'file'; file.value = '$target_file'; form.appendChild(file);
+                const grp = document.createElement('input'); grp.type = 'hidden'; grp.name = 'group'; grp.value = '$group'; form.appendChild(grp);
+                const col = document.createElement('input'); col.type = 'hidden'; col.name = 'col_name'; col.value = colName; form.appendChild(col);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    function showRelationModal(colName) {
+        document.getElementById('rel_col_name').value = colName;
+        document.getElementById('rel_col_display').value = colName;
+        
+        document.getElementById('rel_target_table').value = '';
+        document.getElementById('rel_target_col').value = '';
+        
+        if (window.schemaRelations) {
+            const rel = window.schemaRelations.find(r => r.source_table === '$target_file' && r.source_col === colName);
+            if (rel) {
+                document.getElementById('rel_target_table').value = rel.target_table;
+                if(rel.target_table) document.getElementById('rel_target_col_wrapper').style.display = 'block';
+                document.getElementById('rel_target_col').value = rel.target_col || '';
+            } else {
+                document.getElementById('rel_target_col_wrapper').style.display = 'none';
+            }
+        }
+        
+        const modalEl = document.getElementById('relationModal');
+        if (modalEl) {
+            if (modalEl.parentElement !== document.body) document.body.appendChild(modalEl);
+            new bootstrap.Modal(modalEl).show();
+        }
+    }
+
+    // Listener temporal en DOM o en ready para rel_target_table
+    // (Se asigna abajo en document.ready)
+
+    function saveRelation() {
+        const formData = new FormData(document.getElementById('relationForm'));
+        fetch('manage_config.pl', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.ok) {
+                Swal.fire('Guardado', data.msg, 'success').then(() => {
+                    loadRelations();
+                    bootstrap.Modal.getInstance(document.getElementById('relationModal')).hide();
+                });
+            } else {
+                Swal.fire('Error', 'No se pudo guardar la relación.', 'error');
+            }
+        });
+    }
+
+    function loadRelations() {
+        fetch('manage_config.pl?action=do_get_relations')
+        .then(res => res.json())
+        .then(data => {
+            if(data.ok && data.relations) {
+                window.schemaRelations = data.relations;
+                const currentTable = '$target_file';
+                if(currentTable) {
+                    const tableRels = data.relations.filter(r => r.source_table === currentTable);
+                    tableRels.forEach(rel => {
+                        const tds = document.querySelectorAll('#tablaEstructura tbody tr td:nth-child(2)');
+                        tds.forEach(td => {
+                            if(td.textContent.trim() === rel.source_col) {
+                                const relTd = td.nextElementSibling;
+                                if(relTd) {
+                                    relTd.innerHTML = '<span class="badge bg-primary text-white"><i class="bi bi-link-45deg"></i> ' + rel.target_table + ' (' + (rel.target_col || 'ID') + ')</span>';
+                                }
+                            }
+                        });
+                        
+                        // Transformar Inputs a Selects en los Modales (Formularios CRUD)
+                        const addInput = document.querySelector('#addRecordModal input[name="field_' + rel.source_col + '"]');
+                        const editInput = document.querySelector('#editRecordModal input[name="field_' + rel.source_col + '"]');
+                        
+                        const replaceWithSelect = (inputEl) => {
+                            if(!inputEl || inputEl.tagName === 'SELECT') return;
+                            const selectEl = document.createElement('select');
+                            selectEl.name = inputEl.name;
+                            if(inputEl.id) selectEl.id = inputEl.id;
+                            selectEl.className = inputEl.className + " form-select";
+                            selectEl.required = inputEl.required;
+                            
+                            selectEl.innerHTML = '<option value="">Cargando...</option>';
+                            inputEl.parentNode.replaceChild(selectEl, inputEl);
+                            
+                            fetch('manage_config.pl?action=do_get_relation_options&target_table=' + rel.target_table + '&target_col=' + encodeURIComponent(rel.target_col || ''))
+                            .then(r => r.json())
+                            .then(optData => {
+                                if(optData.ok) {
+                                    selectEl.innerHTML = '<option value="">-- Seleccione Opción --</option>';
+                                    optData.options.forEach(opt => {
+                                        const option = document.createElement('option');
+                                        option.value = opt.id;
+                                        option.textContent = opt.id + ' - ' + opt.text;
+                                        selectEl.appendChild(option);
+                                    });
+                                }
+                            });
+                        };
+                        
+                        replaceWithSelect(addInput);
+                        replaceWithSelect(editInput);
+                    });
+                }
+            }
+        });
+    }
+
     \$(document).ready(function() {
+        // Inicializar dropdown interactivo de relaciones
+        const rtt = document.getElementById('rel_target_table');
+        if (rtt) {
+            rtt.addEventListener('change', function() {
+                document.getElementById('rel_target_col_wrapper').style.display = (this.value !== '') ? 'block' : 'none';
+            });
+        }
+        
+        // Cargar relaciones
+        loadRelations();
+
+
         if (document.getElementById('tabulatorTreeGrid') && window.nestedTreeData) {
             new Tabulator("#tabulatorTreeGrid", {
                 data: window.nestedTreeData,
