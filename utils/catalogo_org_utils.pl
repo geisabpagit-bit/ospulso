@@ -63,7 +63,28 @@ sub obtener_rutas_catalogo {
     my ($id_raiz) = @_;
     my $dat = File::Spec->catdir($FindBin::Bin, '..', 'dat');
     
-    if (defined $id_raiz && $id_raiz eq 'QTSMP000116') {
+    # Resolver CLUE
+    my $clues = '';
+    
+    if (defined $id_raiz && $id_raiz eq '0') {
+        $clues = 'QTSMP000116';
+    } else {
+        my $n_file = File::Spec->catfile($dat, 'negocios.dat');
+        if (-e $n_file && open(my $nf, '<:encoding(UTF-8)', $n_file)) {
+            <$nf>;
+            while (my $line = <$nf>) {
+                chomp $line;
+                my @f = split(/\|/, $line, -1);
+                if ($f[0] eq $id_raiz) {
+                    $clues = $f[18] // '';
+                    last;
+                }
+            }
+            close $nf;
+        }
+    }
+    
+    if ($clues eq 'QTSMP000116') {
         return {
             is_universal => 1,
             departamentos => File::Spec->catfile($dat, "departamentos_QTSMP000116.dat"),

@@ -226,15 +226,19 @@ HTML
         );
 
         my $org_clues = '';
-        if ($id_empresa) {
-            my $n_file = File::Spec->catfile($dat_dir, 'negocios.dat');
-            if (-e $n_file && open(my $nf, '<:encoding(UTF-8)', $n_file)) {
-                <$nf>;
-                while (my $line = <$nf>) {
-                    chomp $line; my @f = split(/\|/, $line, -1);
-                    if ($f[0] eq $id_empresa) { $org_clues = $f[18] // ''; last; }
+        if (defined $id_empresa && $id_empresa ne '') {
+            if ($id_empresa eq '0') {
+                $org_clues = 'QTSMP000116';
+            } else {
+                my $n_file = File::Spec->catfile($dat_dir, 'negocios.dat');
+                if (-e $n_file && open(my $nf, '<:encoding(UTF-8)', $n_file)) {
+                    <$nf>;
+                    while (my $line = <$nf>) {
+                        chomp $line; my @f = split(/\|/, $line, -1);
+                        if ($f[0] eq $id_empresa) { $org_clues = $f[18] // ''; last; }
+                    }
+                    close $nf;
                 }
-                close $nf;
             }
         }
         

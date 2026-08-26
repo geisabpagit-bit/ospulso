@@ -53,21 +53,22 @@ my $cat_univ = catalogo_org_utils::get_catalogo_universal($id_raiz);
 
 utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_actual => 'servicios');
 print <<HTML;
+        <link rel="stylesheet" href="../css/sdm_mobile_standards.css?v=$^T">
         <!-- TOPBAR -->
         <header class="bg-medentia-gradient text-white p-4 shadow-sm" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 2rem;">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div>
                     <h2 class="fw-black mb-0"><i class="bi bi-globe me-2"></i>Catálogo Universal</h2>
                     <p class="text-white-50 small mb-0 mt-1">Gestión centralizada del catálogo maestro 3NF</p>
                 </div>
-                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" onclick="alert('Funcionalidad en desarrollo para la fase de expansión CRUD.')">
+                <button class="btn btn-sdm-primary btn-mobile-standard btn-mobile-full rounded-pill px-4 fw-bold shadow-sm" onclick="alert('Funcionalidad en desarrollo para la fase de expansión CRUD.')">
                     <i class="bi bi-plus-circle me-2"></i>Nuevo Servicio
                 </button>
             </div>
         </header>
 
-        <div class="container-fluid px-4 pb-5">
-            <div class="card card-medentia-aura border-0 shadow-sm rounded-4">
+        <div class="container-fluid px-4 pb-5 container-mobile-flush">
+            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 card-mobile-flush">
                 <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
                     <ul class="nav nav-pills nav-fill" id="catalogoTabs" role="tablist">
                         <li class="nav-item" role="presentation">
