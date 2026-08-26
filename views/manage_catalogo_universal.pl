@@ -75,6 +75,9 @@ print <<HTML;
                             <button class="nav-link active rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#servicios" type="button" role="tab"><i class="bi bi-list-check me-2"></i>Servicios</button>
                         </li>
                         <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab"><i class="bi bi-box-seam me-2"></i>Productos</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#deptos" type="button" role="tab"><i class="bi bi-diagram-3 me-2"></i>Departamentos y Categorías</button>
                         </li>
                     </ul>
@@ -85,14 +88,14 @@ print <<HTML;
                         <!-- PESTAÑA SERVICIOS -->
                         <div class="tab-pane fade show active" id="servicios" role="tabpanel">
                             <div class="table-responsive dataTables_wrapper p-3 rounded-4" style="background-color: #f8fafc; border: 1px solid var(--md-teal-clinical);">
-                                <table id="tablaServicios" class="table table-hover align-middle w-100">
+                                <table id="tablaServicios" class="table table-hover align-middle w-100" style="font-size: 0.75rem;">
                                     <thead class="table-light">
                                         <tr>
-                                            <th>SKU</th>
-                                            <th>Concepto</th>
-                                            <th>Dep/Cat</th>
-                                            <th>Precios (Tarifas)</th>
-                                            <th class="text-end">Acciones</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">SKU</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Concepto</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Dep/Cat</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Precios (Tarifas)</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0 text-end pe-4">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -130,6 +133,42 @@ print <<HTML;
                             </div>
                         </div>
                         
+                        <!-- PESTAÑA PRODUCTOS -->
+                        <div class="tab-pane fade" id="productos" role="tabpanel">
+                            <div class="table-responsive dataTables_wrapper p-3 rounded-4" style="background-color: #f8fafc; border: 1px solid var(--md-teal-clinical);">
+                                <table id="tablaProductos" class="table table-hover align-middle w-100" style="font-size: 0.75rem;">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">ID</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Nombre</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Descripción</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Presentación</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Precio</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0 text-center">Stock</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+HTML
+
+foreach my $prod (@{$cat_univ->{productos}}) {
+    print <<HTML;
+                                        <tr>
+                                            <td><span class="badge bg-secondary">$$prod{id_prod}</span></td>
+                                            <td class="fw-bold text-primary">$$prod{nombre}</td>
+                                            <td class="small text-muted">$$prod{descripcion}</td>
+                                            <td class="small">$$prod{presentacion}</td>
+                                            <td class="fw-bold text-success">\$$$prod{precio}</td>
+                                            <td class="text-center"><span class="badge bg-light text-dark border">$$prod{cantidad}</span></td>
+                                        </tr>
+HTML
+}
+
+print <<HTML;
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <!-- PESTAÑA DEPARTAMENTOS -->
                         <div class="tab-pane fade" id="deptos" role="tabpanel">
                             <div class="row">
@@ -181,30 +220,60 @@ HTML
 
 print <<'JS';
         <script>
+            function initCatalogoTable(tableId, titleExport) {
+                if ($(tableId).length) {
+                    $(tableId).DataTable({
+                        destroy: true,
+                        language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                        dom: '<"p-3 d-flex justify-content-start align-items-center"B>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                        buttons: {
+                            dom: {
+                                container: { className: 'dt-buttons export-toolbar' },
+                                button: { className: 'btn-export' }
+                            },
+                            buttons: [
+                                { 
+                                    extend: 'copy', 
+                                    text: '<i class="bi bi-clipboard"></i> Copiar',
+                                    exportOptions: { columns: ':not(:last-child)' }
+                                },
+                                { 
+                                    extend: 'excel', 
+                                    text: '<i class="bi bi-file-earmark-excel"></i> Excel', 
+                                    title: titleExport,
+                                    exportOptions: { columns: ':not(:last-child)' }
+                                },
+                                { 
+                                    extend: 'pdf', 
+                                    text: '<i class="bi bi-file-earmark-pdf"></i> PDF', 
+                                    title: titleExport,
+                                    exportOptions: { columns: ':not(:last-child)' },
+                                    customize: function (doc) {
+                                        doc.styles.tableHeader = { fillColor: '#0d1e3d', color: 'white', alignment: 'center', bold: true, fontSize: 10 };
+                                        var tableIndex = doc.content.findIndex(node => node.table);
+                                        if (tableIndex > -1) {
+                                            var colsCount = doc.content[tableIndex].table.body[0].length;
+                                            var widths = [];
+                                            for(var w=0; w<colsCount; w++) widths.push('*');
+                                            doc.content[tableIndex].table.widths = widths;
+                                            doc.content[tableIndex].margin = [0, 10, 0, 10];
+                                        }
+                                    }
+                                },
+                                {
+                                    extend: 'print',
+                                    text: '<i class="bi bi-printer"></i> Imprimir',
+                                    exportOptions: { columns: ':not(:last-child)' }
+                                }
+                            ]
+                        }
+                    });
+                }
+            }
+
             $(document).ready(function() {
-                $('#tablaServicios').DataTable({
-                    language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' },
-                    dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6 export-toolbar d-flex flex-wrap gap-2'B><'col-sm-12 col-md-6'f>>" +
-                         "<'row'<'col-sm-12'tr>>" +
-                         "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                    buttons: [
-                        { extend: 'copyHtml5', className: 'btn btn-export btn-sm btn-light border shadow-sm rounded-pill px-3', text: '<i class="bi bi-clipboard me-1"></i><span class="d-none d-md-inline">Copiar</span>' },
-                        { extend: 'excelHtml5', className: 'btn btn-export btn-sm btn-success border shadow-sm rounded-pill px-3', text: '<i class="bi bi-file-earmark-excel me-1"></i><span class="d-none d-md-inline">Excel</span>', exportOptions: { columns: [0, 1, 2, 3] } },
-                        { extend: 'pdfHtml5', className: 'btn btn-export btn-sm btn-danger border shadow-sm rounded-pill px-3', text: '<i class="bi bi-file-earmark-pdf me-1"></i><span class="d-none d-md-inline">PDF</span>', exportOptions: { columns: [0, 1, 2, 3] },
-                          customize: function(doc) {
-                              doc.styles.tableHeader = { bold: true, fontSize: 11, color: 'white', fillColor: '#0d1e3d', alignment: 'center' };
-                              var tableIndex = doc.content.findIndex(node => node.table);
-                              if (tableIndex !== -1) {
-                                  doc.content[tableIndex].table.widths = ['15%', '35%', '25%', '25%'];
-                              }
-                          }
-                        },
-                        { extend: 'print', className: 'btn btn-export btn-sm btn-primary border shadow-sm rounded-pill px-3', text: '<i class="bi bi-printer me-1"></i><span class="d-none d-md-inline">Imprimir</span>', exportOptions: { columns: [0, 1, 2, 3] } }
-                    ],
-                    pageLength: 25,
-                    ordering: true,
-                    responsive: true
-                });
+                initCatalogoTable('#tablaServicios', 'Catálogo Universal - Servicios');
+                initCatalogoTable('#tablaProductos', 'Catálogo Universal - Productos');
             });
         </script>
 JS

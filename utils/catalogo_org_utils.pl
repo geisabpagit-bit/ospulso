@@ -92,6 +92,7 @@ sub obtener_rutas_catalogo {
             proveedores => File::Spec->catfile($dat, "proveedores_QTSMP000116.dat"),
             items => File::Spec->catfile($dat, "catalogo_items_QTSMP000116.dat"),
             precios => File::Spec->catfile($dat, "catalogo_precios_QTSMP000116.dat"),
+            productos => File::Spec->catfile($dat, "productos_QTSMP000116.dat"),
         };
     }
     
@@ -160,15 +161,32 @@ sub get_catalogo_universal {
     # Leer Proveedores
     if (-e $rutas->{proveedores}) {
         open(my $fh, '<:encoding(UTF-8)', $rutas->{proveedores});
-        <$fh>; while (<$fh>) { chomp; next if /^\s*$/; my @c=split/\|/; push @provs, { id_prov => $c[0], tipo => $c[1], nombre => $c[2] }; }
+        <$fh>; while (<$fh>) { chomp; next if /^\s*$/; my @c=split/\|/; push @provs, { id_prov => $c[0], nombre => $c[2] }; }
+        close $fh;
+    }
+
+    # Leer Productos
+    my @productos;
+    if (exists $rutas->{productos} && -e $rutas->{productos}) {
+        open(my $fh, '<:encoding(UTF-8)', $rutas->{productos});
+        <$fh>; # saltar header
+        while (<$fh>) {
+            chomp; next if /^\s*$/;
+            my @c = split /\|/, $_, -1;
+            push @productos, {
+                id_prod => $c[0], nombre => $c[1], precio => $c[2], cantidad => $c[3], presentacion => $c[4], descripcion => $c[5]
+            };
+        }
         close $fh;
     }
 
     return {
+        is_universal => 1,
         departamentos => \@deps,
         categorias => \@cats,
         proveedores => \@provs,
-        items => \@items
+        items => \@items,
+        productos => \@productos
     };
 }
 

@@ -523,21 +523,45 @@ async function cargarCatalogo() {
                 });
             });
             
-            // Inject dynamic select filter
-            if (data.catalogo.categorias && data.catalogo.categorias.length > 0 && !document.getElementById('filtroCategoriaCat')) {
-                let htmlOpts = `<select id="filtroCategoriaCat" class="form-select form-select-sm mb-2 rounded-pill shadow-sm" style="border-color: var(--md-teal-clinical, #19B7A5);" onchange="filtrarCatalogo()"><option value="">Todos los departamentos y categorías...</option>`;
-                (data.catalogo.departamentos || []).forEach(d => {
-                    htmlOpts += `<optgroup label="${d.nombre}">`;
-                    (data.catalogo.categorias || []).filter(c => c.id_dep == d.id_dep).forEach(c => {
-                        htmlOpts += `<option value="${c.id_cat}">${c.nombre}</option>`;
-                    });
-                    htmlOpts += `</optgroup>`;
+            // Inject Productos
+            (data.catalogo.productos || []).forEach(prod => {
+                catalogoMaster.push({
+                    id: `P-${prod.id_prod}`,
+                    id_item: prod.id_prod,
+                    nombre: `${prod.nombre} (${prod.presentacion})`,
+                    precio: prod.precio,
+                    aplica_iva: 0,
+                    codigo_sku: prod.id_prod,
+                    categoria: 'Insumos',
+                    departamento: 'Farmacia',
+                    id_cat: 'PROD_CAT'
                 });
-                htmlOpts += `</select>`;
-                
-                const bcat = document.getElementById('buscadorCatalogo');
-                if (bcat && bcat.parentNode) {
-                    bcat.parentNode.insertAdjacentHTML('beforebegin', htmlOpts);
+            });
+            
+            // Inject dynamic select filter
+            if ((data.catalogo.categorias && data.catalogo.categorias.length > 0) || (data.catalogo.productos && data.catalogo.productos.length > 0)) {
+                if (!document.getElementById('filtroCategoriaCat')) {
+                    let htmlOpts = `<select id="filtroCategoriaCat" class="form-select form-select-sm mb-2 rounded-pill shadow-sm" style="border-color: var(--md-teal-clinical, #19B7A5);" onchange="filtrarCatalogo()"><option value="">Todos los departamentos y categorías...</option>`;
+                    (data.catalogo.departamentos || []).forEach(d => {
+                        htmlOpts += `<optgroup label="${d.nombre}">`;
+                        (data.catalogo.categorias || []).filter(c => c.id_dep == d.id_dep).forEach(c => {
+                            htmlOpts += `<option value="${c.id_cat}">${c.nombre}</option>`;
+                        });
+                        htmlOpts += `</optgroup>`;
+                    });
+                    
+                    if (data.catalogo.productos && data.catalogo.productos.length > 0) {
+                        htmlOpts += `<optgroup label="Farmacia y Materiales">`;
+                        htmlOpts += `<option value="PROD_CAT">Productos e Insumos Médicos</option>`;
+                        htmlOpts += `</optgroup>`;
+                    }
+                    
+                    htmlOpts += `</select>`;
+                    
+                    const bcat = document.getElementById('buscadorCatalogo');
+                    if (bcat && bcat.parentNode) {
+                        bcat.parentNode.insertAdjacentHTML('beforebegin', htmlOpts);
+                    }
                 }
             }
         } else {
