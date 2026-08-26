@@ -2052,7 +2052,7 @@ print <<'JS';
     function showRenameColumnModal(colName) {
         document.getElementById('rename_old_col').value = colName;
         document.getElementById('rename_old_display').value = colName;
-        const modalEl = document.getElementById('renameColumnModal');
+        var modalEl = document.getElementById('renameColumnModal');
         if (modalEl) {
             if (modalEl.parentElement !== document.body) document.body.appendChild(modalEl);
             new bootstrap.Modal(modalEl).show();
@@ -2061,13 +2061,13 @@ print <<'JS';
 
     function confirmDeleteColumn(colName) {
         Swal.fire({
-            title: '¿Eliminar columna?',
-            text: 'Se eliminará la columna "' + colName + '" de todos los registros de la tabla. ¡Esta acción no se puede deshacer!',
+            title: 'Eliminar columna?',
+            text: 'Se eliminara la columna "' + colName + '" de todos los registros de la tabla. Esta accion no se puede deshacer!',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminar',
+            confirmButtonText: 'Si, eliminar',
             cancelButtonText: 'Cancelar'
         }).then(function(result) {
             if (result.isConfirmed) {
@@ -2111,24 +2111,21 @@ print <<'JS';
         }
     }
 
-    // Listener temporal en DOM o en ready para rel_target_table
-    // (Se asigna abajo en document.ready)
-
     function saveRelation() {
-        const formData = new FormData(document.getElementById('relationForm'));
+        var formData = new FormData(document.getElementById('relationForm'));
         fetch('manage_config.pl', {
             method: 'POST',
             body: formData
         })
-        .then(res => res.json())
-        .then(data => {
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
             if(data.ok) {
-                Swal.fire('Guardado', data.msg, 'success').then(() => {
+                Swal.fire('Guardado', data.msg, 'success').then(function() {
                     loadRelations();
                     bootstrap.Modal.getInstance(document.getElementById('relationModal')).hide();
                 });
             } else {
-                Swal.fire('Error', 'No se pudo guardar la relación.', 'error');
+                Swal.fire('Error', 'No se pudo guardar la relacion.', 'error');
             }
         });
     }
@@ -2153,7 +2150,6 @@ print <<'JS';
                             }
                         });
                         
-                        // Transformar Inputs a Selects en los Modales (Formularios CRUD)
                         var addInput = document.querySelector('#addRecordModal input[name="field_' + rel.source_col + '"]');
                         var editInput = document.querySelector('#editRecordModal input[name="field_' + rel.source_col + '"]');
                         
