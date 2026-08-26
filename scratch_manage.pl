@@ -1,3 +1,8 @@
+use strict;
+use warnings;
+
+my $file = 'c:\\xampp\\htdocs\\ospulso\\views\\manage_catalogo_universal.pl';
+my $content = <<'EOF';
 #!/usr/bin/perl
 use cPanelUserConfig;
 use strict;
@@ -31,7 +36,7 @@ my $id_empresa = $sd->{id_empresa};
 # Seguridad
 if ($role ne 'Administrador Organizacion' && $role ne 'Administrador Global' && $role !~ /Recepcionista/i) {
     print $q->header(-status => '403 Forbidden');
-    print "<h1>Acceso Denegado</h1><p>Esta secciÃ³n es exclusiva para el Administrador de la OrganizaciÃ³n y Recepcionistas.</p>";
+    print "<h1>Acceso Denegado</h1><p>Esta sección es exclusiva para el Administrador de la Organización y Recepcionistas.</p>";
     exit;
 }
 
@@ -44,7 +49,7 @@ print $q->header(
 render_header(
     usuario     => $usuario, 
     role        => $role, 
-    titulo      => "CatÃ¡logo Universal",
+    titulo      => "Catálogo Universal",
     skip_header => 1
 );
 
@@ -59,8 +64,8 @@ print <<HTML;
         <header class="bg-medentia-gradient text-white p-4 shadow-sm" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 2rem;">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div>
-                    <h2 class="fw-black mb-0"><i class="bi bi-globe me-2"></i>CatÃ¡logo Universal</h2>
-                    <p class="text-white-50 small mb-0 mt-1">GestiÃ³n centralizada del catÃ¡logo maestro 3NF</p>
+                    <h2 class="fw-black mb-0"><i class="bi bi-globe me-2"></i>Catálogo Universal</h2>
+                    <p class="text-white-50 small mb-0 mt-1">Gestión centralizada del catálogo maestro 3NF</p>
                 </div>
             </div>
         </header>
@@ -88,14 +93,14 @@ print <<HTML;
                             <button class="nav-link rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab"><i class="bi bi-box-seam me-2"></i>Productos</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#deptos" type="button" role="tab"><i class="bi bi-diagram-3 me-2"></i>Departamentos y CategorÃ­as</button>
+                            <button class="nav-link rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#deptos" type="button" role="tab"><i class="bi bi-diagram-3 me-2"></i>Departamentos y Categorías</button>
                         </li>
                     </ul>
                 </div>
                 
                 <div class="card-body p-4">
                     <div class="tab-content">
-                        <!-- PESTAÃA SERVICIOS -->
+                        <!-- PESTAÑA SERVICIOS -->
                         <div class="tab-pane fade show active" id="servicios" role="tabpanel">
                             <div class="d-flex justify-content-end mb-3">
                                 <button class="btn btn-sdm-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('servicio')">
@@ -151,7 +156,7 @@ print <<HTML;
                             </div>
                         </div>
                         
-                        <!-- PESTAÃA PRODUCTOS -->
+                        <!-- PESTAÑA PRODUCTOS -->
                         <div class="tab-pane fade" id="productos" role="tabpanel">
                             <div class="d-flex justify-content-end mb-3">
                                 <button class="btn btn-sdm-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('producto')">
@@ -164,8 +169,8 @@ print <<HTML;
                                         <tr>
                                             <th class="small fw-bold text-muted text-uppercase border-0">ID</th>
                                             <th class="small fw-bold text-muted text-uppercase border-0">Nombre</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">DescripciÃ³n</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">PresentaciÃ³n</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Descripción</th>
+                                            <th class="small fw-bold text-muted text-uppercase border-0">Presentación</th>
                                             <th class="small fw-bold text-muted text-uppercase border-0">Precio</th>
                                             <th class="small fw-bold text-muted text-uppercase border-0 text-end">Acciones</th>
                                         </tr>
@@ -195,7 +200,7 @@ print <<HTML;
                             </div>
                         </div>
 
-                        <!-- PESTAÃA DEPARTAMENTOS -->
+                        <!-- PESTAÑA DEPARTAMENTOS -->
                         <div class="tab-pane fade" id="deptos" role="tabpanel">
                             <div class="row">
                                 <div class="col-md-6">
@@ -227,7 +232,7 @@ print <<HTML;
                                 </div>
                                 <div class="col-md-6 mt-4 mt-md-0">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 class="fw-bold mb-0">CategorÃ­as</h5>
+                                        <h5 class="fw-bold mb-0">Categorías</h5>
                                         <button class="btn btn-sdm-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('categoria')">
                                             <i class="bi bi-plus-circle me-1"></i>Nueva
                                         </button>
@@ -313,8 +318,8 @@ print <<"JS";
             }
 
             \$(document).ready(function() {
-                initCatalogoTable('#tablaServicios', 'CatÃ¡logo Universal - Servicios');
-                initCatalogoTable('#tablaProductos', 'CatÃ¡logo Universal - Productos');
+                initCatalogoTable('#tablaServicios', 'Catálogo Universal - Servicios');
+                initCatalogoTable('#tablaProductos', 'Catálogo Universal - Productos');
             });
 
             // LOGICA DE CRUD FRONTEND
@@ -353,7 +358,7 @@ print <<"JS";
                     const id = args[0] || '';
                     const id_dep = args[1] || '';
                     const nombre = args[2] || '';
-                    title.innerHTML = `<i class="bi bi-tags me-2"></i>\${id ? 'Editar' : 'Nueva'} CategorÃ­a`;
+                    title.innerHTML = `<i class="bi bi-tags me-2"></i>\${id ? 'Editar' : 'Nueva'} Categoría`;
                     html = `
                         <form id="crudForm" onsubmit="saveEntity(event, 'categoria')">
                             <input type="hidden" name="action" value="save_categoria">
@@ -364,7 +369,7 @@ print <<"JS";
                                     <select class="form-select" name="id_dep" id="sel_dep" required>\${optsDep}</select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small text-muted">Nombre de CategorÃ­a</label>
+                                    <label class="form-label fw-bold small text-muted">Nombre de Categoría</label>
                                     <input type="text" class="form-control" name="nombre" value="\${nombre}" required>
                                 </div>
                             </div>
@@ -392,7 +397,7 @@ print <<"JS";
                                     <input type="text" class="form-control" name="nombre" value="\${nombre}" required>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold small text-muted">Precio PÃºblico</label>
+                                    <label class="form-label fw-bold small text-muted">Precio Público</label>
                                     <input type="number" step="0.01" class="form-control" name="precio" value="\${precio}" required>
                                 </div>
                                 <div class="col-md-4">
@@ -400,11 +405,11 @@ print <<"JS";
                                     <input type="number" class="form-control" name="cantidad" value="\${cantidad}">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold small text-muted">PresentaciÃ³n</label>
+                                    <label class="form-label fw-bold small text-muted">Presentación</label>
                                     <input type="text" class="form-control" name="presentacion" value="\${presentacion}" placeholder="Ej: Caja 20 tab">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold small text-muted">DescripciÃ³n Corta</label>
+                                    <label class="form-label fw-bold small text-muted">Descripción Corta</label>
                                     <input type="text" class="form-control" name="descripcion" value="\${descripcion}">
                                 </div>
                             </div>
@@ -427,11 +432,11 @@ print <<"JS";
                             <input type="hidden" name="id_item" value="\${id}">
                             <div class="row g-3 mb-3">
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold small text-muted">CategorÃ­a Mapeada</label>
+                                    <label class="form-label fw-bold small text-muted">Categoría Mapeada</label>
                                     <select class="form-select" name="id_cat" id="sel_cat" required>\${optsCat}</select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold small text-muted">CÃ³digo SKU</label>
+                                    <label class="form-label fw-bold small text-muted">Código SKU</label>
                                     <input type="text" class="form-control" name="codigo_sku" value="\${sku}" required>
                                 </div>
                                 <div class="col-md-4">
@@ -439,7 +444,7 @@ print <<"JS";
                                     <input type="number" step="0.01" class="form-control" name="precio" value="\${precio}" required>
                                 </div>
                                 <div class="col-md-12">
-                                    <label class="form-label fw-bold small text-muted">Concepto / DescripciÃ³n</label>
+                                    <label class="form-label fw-bold small text-muted">Concepto / Descripción</label>
                                     <input type="text" class="form-control" name="concepto" value="\${concepto}" required>
                                 </div>
                             </div>
@@ -464,24 +469,24 @@ print <<"JS";
                     const res = await fetch('../api/crud_catalogo_universal_api.pl', { method: 'POST', body: fd });
                     const data = await res.json();
                     if (data.success) {
-                        Swal.fire('Â¡Ãxito!', data.msg, 'success').then(() => location.reload());
+                        Swal.fire('¡Éxito!', data.msg, 'success').then(() => location.reload());
                     } else {
-                        Swal.fire('Error', data.error || 'OcurriÃ³ un error al guardar.', 'error');
+                        Swal.fire('Error', data.error || 'Ocurrió un error al guardar.', 'error');
                     }
                 } catch(e) {
-                    Swal.fire('Error', 'Problema de conexiÃ³n con el servidor.', 'error');
+                    Swal.fire('Error', 'Problema de conexión con el servidor.', 'error');
                 }
             }
 
             function deleteEntity(tipo, id) {
                 Swal.fire({
-                    title: 'Â¿EstÃ¡s seguro?',
-                    text: 'Esta acciÃ³n eliminarÃ¡ el registro de forma permanente. Si otros registros dependen de Ã©l, la operaciÃ³n podrÃ­a cancelarse para mantener la integridad (Efecto cascada no permitido).',
+                    title: '¿Estás seguro?',
+                    text: 'Esta acción eliminará el registro de forma permanente. Si otros registros dependen de él, la operación podría cancelarse para mantener la integridad (Efecto cascada no permitido).',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'SÃ­, eliminar',
+                    confirmButtonText: 'Sí, eliminar',
                     cancelButtonText: 'Cancelar'
                 }).then(async (result) => {
                     if (result.isConfirmed) {
@@ -494,10 +499,10 @@ print <<"JS";
                             if (data.success) {
                                 Swal.fire('Eliminado', data.msg, 'success').then(() => location.reload());
                             } else {
-                                Swal.fire('No se pudo eliminar', data.error || 'OcurriÃ³ un error interno.', 'error');
+                                Swal.fire('No se pudo eliminar', data.error || 'Ocurrió un error interno.', 'error');
                             }
                         } catch(e) {
-                            Swal.fire('Error', 'Problema de conexiÃ³n con el servidor.', 'error');
+                            Swal.fire('Error', 'Problema de conexión con el servidor.', 'error');
                         }
                     }
                 });
@@ -508,3 +513,7 @@ JS
 utils::sub_sidebar::render_sidebar_footer();
 print $q->end_html;
 
+EOF
+open(my $fh, '>:encoding(UTF-8)', $file) or die "Could not open $file: $!";
+print $fh $content;
+close $fh;

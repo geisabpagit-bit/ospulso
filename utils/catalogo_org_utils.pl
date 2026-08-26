@@ -84,15 +84,16 @@ sub obtener_rutas_catalogo {
         }
     }
     
-    if ($clues eq 'QTSMP000116') {
+    if ($clues) {
+        my $clue_dir = File::Spec->catdir($dat, 'catalogos_CLUE', $clues);
         return {
             is_universal => 1,
-            departamentos => File::Spec->catfile($dat, "departamentos_QTSMP000116.dat"),
-            categorias => File::Spec->catfile($dat, "categorias_QTSMP000116.dat"),
-            proveedores => File::Spec->catfile($dat, "proveedores_QTSMP000116.dat"),
-            items => File::Spec->catfile($dat, "catalogo_items_QTSMP000116.dat"),
-            precios => File::Spec->catfile($dat, "catalogo_precios_QTSMP000116.dat"),
-            productos => File::Spec->catfile($dat, "productos_QTSMP000116.dat"),
+            departamentos => File::Spec->catfile($clue_dir, "departamentos_${clues}.dat"),
+            categorias => File::Spec->catfile($clue_dir, "categorias_${clues}.dat"),
+            proveedores => File::Spec->catfile($clue_dir, "proveedores_${clues}.dat"),
+            items => File::Spec->catfile($clue_dir, "catalogo_items_${clues}.dat"),
+            precios => File::Spec->catfile($clue_dir, "catalogo_precios_${clues}.dat"),
+            productos => File::Spec->catfile($clue_dir, "productos_${clues}.dat"),
         };
     }
     
@@ -197,6 +198,9 @@ sub get_catalogo_universal {
 sub catalogo_org_existe {
     my ($id_raiz) = @_;
     my $rutas = obtener_rutas_catalogo($id_raiz);
+    if ($rutas->{is_universal}) {
+        return (-e $rutas->{productos} && -e $rutas->{departamentos}) ? 1 : 0;
+    }
     return (-e $rutas->{servicios} && -e $rutas->{productos}) ? 1 : 0;
 }
 
@@ -216,40 +220,91 @@ sub crear_catalogo_org_desde_global {
     my $prod_global = File::Spec->catfile($dat_path, 'productos.dat');
 
     eval {
-        # ── Servicios ──────────────────────────────────────────
-        unless (-e $rutas->{servicios}) {
-            open(my $fh_out, '>:encoding(UTF-8)', $rutas->{servicios})
-                or die "No se pudo crear servicios_${id_raiz}.dat: $!";
-            flock($fh_out, LOCK_EX);
-
-            if (-e $serv_global) {
-                open(my $fh_in, '<:encoding(UTF-8)', $serv_global)
-                    or die "No se pudo leer servicios.dat: $!";
-                while (my $line = <$fh_in>) { print $fh_out $line; }
-                close $fh_in;
-            } else {
-                print $fh_out "ID|NOMBRE|PRECIO|DESCRIPCION\n";
-                print $fh_out "1|Consulta General|500.00|Servicio base de la organizacion.\n";
+        if ($rutas->{is_universal}) {
+            my ($volume, $directories, $file) = File::Spec->splitpath($rutas->{productos});
+            my $clue_dir = File::Spec->catpath($volume, $directories, '');
+            if (!-d $clue_dir) {
+                mkdir $clue_dir or die "No se pudo crear directorio $clue_dir: $!";
             }
-            close $fh_out;
-        }
 
-        # ── Productos ─────────────────────────────────────────
-        unless (-e $rutas->{productos}) {
-            open(my $fh_out, '>:encoding(UTF-8)', $rutas->{productos})
-                or die "No se pudo crear productos_${id_raiz}.dat: $!";
-            flock($fh_out, LOCK_EX);
-
-            if (-e $prod_global) {
-                open(my $fh_in, '<:encoding(UTF-8)', $prod_global)
-                    or die "No se pudo leer productos.dat: $!";
-                while (my $line = <$fh_in>) { print $fh_out $line; }
-                close $fh_in;
-            } else {
-                print $fh_out "ID|NOMBRE|PRECIO|CANTIDAD|PRESENTACION|DESCRIPCION\n";
-                print $fh_out "1|Paracetamol 500mg|50.00|100|Caja 20 tabletas|Analgesico base.\n";
+            # ── Productos ─────────────────────────────────────────
+            unless (-e $rutas->{productos}) {
+                open(my $fh_out, '>:encoding(UTF-8)', $rutas->{productos}) or die "Error: $!";
+                if (-e $prod_global) {
+                    open(my $fh_in, '<:encoding(UTF-8)', $prod_global) or die "Error: $!";
+                    while (my $line = <$fh_in>) { print $fh_out $line; }
+                    close $fh_in;
+                } else {
+                    print $fh_out "ID|NOMBRE|PRECIO|CANTIDAD|PRESENTACION|DESCRIPCION\n";
+                }
+                close $fh_out;
             }
-            close $fh_out;
+            # ── Departamentos ─────────────────────────────────────
+            unless (-e $rutas->{departamentos}) {
+                open(my $fh_out, '>:encoding(UTF-8)', $rutas->{departamentos}) or die "Error: $!";
+                print $fh_out "ID|NOMBRE_DEPARTAMENTO\n1|Medicina General\n2|Especialidades\n3|Farmacia\n";
+                close $fh_out;
+            }
+            # ── Categorias ────────────────────────────────────────
+            unless (-e $rutas->{categorias}) {
+                open(my $fh_out, '>:encoding(UTF-8)', $rutas->{categorias}) or die "Error: $!";
+                print $fh_out "ID_CAT|ID_DEP|NOMBRE_CATEGORIA\n1|1|Consulta General\n2|2|Consultas de Especialidad\n3|3|Insumos Generales\n";
+                close $fh_out;
+            }
+            # ── Proveedores ───────────────────────────────────────
+            unless (-e $rutas->{proveedores}) {
+                open(my $fh_out, '>:encoding(UTF-8)', $rutas->{proveedores}) or die "Error: $!";
+                print $fh_out "ID_PROV|ID_MATRIZ|TIPO_PROVEEDOR|NOMBRE_PROVEEDOR|ESPECIALIDAD|TELEFONO|CORREO|DIRECCION\n1|0|INTERNO|STAFF MEDICO GENERAL|Medicina General|||\n";
+                close $fh_out;
+            }
+            # ── Catalogo Items ────────────────────────────────────
+            unless (-e $rutas->{items}) {
+                open(my $fh_out, '>:encoding(UTF-8)', $rutas->{items}) or die "Error: $!";
+                print $fh_out "ID_ITEM|ID_CAT|CODIGO_SKU|CONCEPTO|APLICA_IVA\n1|1|CG001|Consulta Medica General|0\n";
+                close $fh_out;
+            }
+            # ── Catalogo Precios ──────────────────────────────────
+            unless (-e $rutas->{precios}) {
+                open(my $fh_out, '>:encoding(UTF-8)', $rutas->{precios}) or die "Error: $!";
+                print $fh_out "ID_PRECIO|ID_ITEM|ID_PROV|TIPO_TARIFA|COSTO_BASE|PRECIO_PUBLICO|HONORARIO_FIJO|HONORARIO_PORCENTAJE\n1|1|1|DIA|100.00|500.00|150.00|0\n";
+                close $fh_out;
+            }
+        } else {
+            # ── Servicios ──────────────────────────────────────────
+            unless (-e $rutas->{servicios}) {
+                open(my $fh_out, '>:encoding(UTF-8)', $rutas->{servicios})
+                    or die "No se pudo crear servicios_${id_raiz}.dat: $!";
+                flock($fh_out, LOCK_EX);
+
+                if (-e $serv_global) {
+                    open(my $fh_in, '<:encoding(UTF-8)', $serv_global)
+                        or die "No se pudo leer servicios.dat: $!";
+                    while (my $line = <$fh_in>) { print $fh_out $line; }
+                    close $fh_in;
+                } else {
+                    print $fh_out "ID|NOMBRE|PRECIO|DESCRIPCION\n";
+                    print $fh_out "1|Consulta General|500.00|Servicio base de la organizacion.\n";
+                }
+                close $fh_out;
+            }
+
+            # ── Productos ─────────────────────────────────────────
+            unless (-e $rutas->{productos}) {
+                open(my $fh_out, '>:encoding(UTF-8)', $rutas->{productos})
+                    or die "No se pudo crear productos_${id_raiz}.dat: $!";
+                flock($fh_out, LOCK_EX);
+
+                if (-e $prod_global) {
+                    open(my $fh_in, '<:encoding(UTF-8)', $prod_global)
+                        or die "No se pudo leer productos.dat: $!";
+                    while (my $line = <$fh_in>) { print $fh_out $line; }
+                    close $fh_in;
+                } else {
+                    print $fh_out "ID|NOMBRE|PRECIO|CANTIDAD|PRESENTACION|DESCRIPCION\n";
+                    print $fh_out "1|Paracetamol 500mg|50.00|100|Caja 20 tabletas|Analgesico base.\n";
+                }
+                close $fh_out;
+            }
         }
     };
 
