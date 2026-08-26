@@ -396,7 +396,6 @@ elsif ($action eq 'do_truncate' && $full_path && -e $full_path) {
             $message = "Tabla vaciada exitosamente (cabecera preservada).";
         }
     }
-}
     $action = 'view';
 }
 
@@ -556,12 +555,12 @@ elsif ($action eq 'do_save_relation' && $q->request_method() eq 'POST') {
     }
     
     # Remover relación existente para la misma tabla y columna
-    @$rels = grep { !($_->{source_table} eq $filename && $_->{source_col} eq $col_name) } @$rels;
+    @$rels = grep { !($_->{source_table} eq $target_file && $_->{source_col} eq $col_name) } @$rels;
     
     # Agregar nueva si se especificó tabla objetivo
     if ($target_table) {
         push @$rels, {
-            source_table => $filename,
+            source_table => $target_file,
             source_col => $col_name,
             target_table => $target_table,
             target_col => $target_col
