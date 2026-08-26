@@ -84,8 +84,8 @@ print <<HTML;
                     <div class="tab-content">
                         <!-- PESTAÑA SERVICIOS -->
                         <div class="tab-pane fade show active" id="servicios" role="tabpanel">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle">
+                            <div class="table-responsive dataTables_wrapper p-3 rounded-4" style="background-color: #f8fafc; border: 1px solid var(--md-teal-clinical);">
+                                <table id="tablaServicios" class="table table-hover align-middle w-100">
                                     <thead class="table-light">
                                         <tr>
                                             <th>SKU</th>
@@ -113,10 +113,10 @@ foreach my $item (@{$cat_univ->{items}}) {
     
     print <<HTML;
                                         <tr>
-                                            <td><span class="badge bg-secondary">$item->{codigo_sku}</span></td>
-                                            <td class="fw-bold text-primary">$item->{concepto}</td>
-                                            <td class="small text-muted">$cat_name</td>
-                                            <td>$precios_html</td>
+                                            <td data-label="SKU"><span class="badge bg-secondary">$item->{codigo_sku}</span></td>
+                                            <td data-label="Concepto" class="fw-bold text-primary">$item->{concepto}</td>
+                                            <td data-label="Dep/Cat" class="small text-muted">$cat_name</td>
+                                            <td data-label="Precios">$precios_html</td>
                                             <td class="text-end">
                                                 <button class="btn btn-sm btn-outline-primary rounded-pill"><i class="bi bi-pencil"></i></button>
                                             </td>
@@ -163,7 +163,52 @@ print <<HTML;
                 </div>
             </div>
         </div>
+
+        <!-- DataTables JS & CSS -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+        <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 HTML
+
+print <<'JS';
+        <script>
+            $(document).ready(function() {
+                $('#tablaServicios').DataTable({
+                    language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' },
+                    dom: "<'row align-items-center mb-3'<'col-sm-12 col-md-6 export-toolbar d-flex flex-wrap gap-2'B><'col-sm-12 col-md-6'f>>" +
+                         "<'row'<'col-sm-12'tr>>" +
+                         "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    buttons: [
+                        { extend: 'copyHtml5', className: 'btn btn-export btn-sm btn-light border shadow-sm rounded-pill px-3', text: '<i class="bi bi-clipboard me-1"></i><span class="d-none d-md-inline">Copiar</span>' },
+                        { extend: 'excelHtml5', className: 'btn btn-export btn-sm btn-success border shadow-sm rounded-pill px-3', text: '<i class="bi bi-file-earmark-excel me-1"></i><span class="d-none d-md-inline">Excel</span>', exportOptions: { columns: [0, 1, 2, 3] } },
+                        { extend: 'pdfHtml5', className: 'btn btn-export btn-sm btn-danger border shadow-sm rounded-pill px-3', text: '<i class="bi bi-file-earmark-pdf me-1"></i><span class="d-none d-md-inline">PDF</span>', exportOptions: { columns: [0, 1, 2, 3] },
+                          customize: function(doc) {
+                              doc.styles.tableHeader = { bold: true, fontSize: 11, color: 'white', fillColor: '#0d1e3d', alignment: 'center' };
+                              var tableIndex = doc.content.findIndex(node => node.table);
+                              if (tableIndex !== -1) {
+                                  doc.content[tableIndex].table.widths = ['15%', '35%', '25%', '25%'];
+                              }
+                          }
+                        },
+                        { extend: 'print', className: 'btn btn-export btn-sm btn-primary border shadow-sm rounded-pill px-3', text: '<i class="bi bi-printer me-1"></i><span class="d-none d-md-inline">Imprimir</span>', exportOptions: { columns: [0, 1, 2, 3] } }
+                    ],
+                    pageLength: 25,
+                    ordering: true,
+                    responsive: true
+                });
+            });
+        </script>
+JS
 
 utils::sub_sidebar::render_sidebar_footer();
 print $q->end_html;
+

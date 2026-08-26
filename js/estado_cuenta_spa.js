@@ -497,8 +497,16 @@ async function cargarCatalogo() {
         const data = await res.json();
         
         if (data.is_universal) {
+            const catMap = {};
+            const depMap = {};
+            (data.catalogo.departamentos || []).forEach(d => depMap[d.id_dep] = d.nombre);
+            (data.catalogo.categorias || []).forEach(c => {
+                catMap[c.id_cat] = { nombre: c.nombre, depto: depMap[c.id_dep] || '', id_dep: c.id_dep };
+            });
+
             catalogoMaster = [];
             (data.catalogo.items || []).forEach(item => {
+                const cat = catMap[item.id_cat] || { nombre: '', depto: '' };
                 (item.precios || []).forEach(p => {
                     catalogoMaster.push({
                         id: `U-${p.id_precio}`,
@@ -507,10 +515,31 @@ async function cargarCatalogo() {
                         nombre: `${item.concepto} - ${p.tipo_tarifa}`,
                         precio: p.precio_publico,
                         aplica_iva: item.aplica_iva,
-                        codigo_sku: item.codigo_sku
+                        codigo_sku: item.codigo_sku,
+                        categoria: cat.nombre,
+                        departamento: cat.depto,
+                        id_cat: item.id_cat
                     });
                 });
             });
+            
+            // Inject dynamic select filter
+            if (data.catalogo.categorias && data.catalogo.categorias.length > 0 && !document.getElementById('filtroCategoriaCat')) {
+                let htmlOpts = `<select id="filtroCategoriaCat" class="form-select form-select-sm mb-2 rounded-pill shadow-sm" style="border-color: var(--md-teal-clinical, #19B7A5);" onchange="filtrarCatalogo()"><option value="">Todos los departamentos y categorías...</option>`;
+                (data.catalogo.departamentos || []).forEach(d => {
+                    htmlOpts += `<optgroup label="${d.nombre}">`;
+                    (data.catalogo.categorias || []).filter(c => c.id_dep == d.id_dep).forEach(c => {
+                        htmlOpts += `<option value="${c.id_cat}">${c.nombre}</option>`;
+                    });
+                    htmlOpts += `</optgroup>`;
+                });
+                htmlOpts += `</select>`;
+                
+                const bcat = document.getElementById('buscadorCatalogo');
+                if (bcat && bcat.parentNode) {
+                    bcat.parentNode.insertAdjacentHTML('beforebegin', htmlOpts);
+                }
+            }
         } else {
             catalogoMaster = [...(data.servicios||[]), ...(data.productos||[])];
         }
@@ -519,24 +548,33 @@ async function cargarCatalogo() {
     } catch(e) {}
 }
 
-function renderCatalogoGUI(f = '') {
+function renderCatalogoGUI(f = '', catFilter = '') {
     const tbody = document.getElementById('tablaCatalogo'); if(!tbody) return;
     tbody.innerHTML = '';
-    const filtered = catalogoMaster.filter(i => (i.nombre||'').toLowerCase().includes(f.toLowerCase()));
+    const filtered = catalogoMaster.filter(i => {
+        const matchName = (i.nombre||'').toLowerCase().includes(f.toLowerCase());
+        const matchCat = catFilter ? i.id_cat == catFilter : true;
+        return matchName && matchCat;
+    });
     
     filtered.forEach(it => {
+        let badgeDepto = it.departamento ? `<br><span class="badge bg-light text-secondary border mt-1" style="font-size:0.65rem;">${it.departamento} > ${it.categoria}</span>` : '';
         tbody.insertAdjacentHTML('beforeend', `
             <tr style="cursor:pointer;" onclick="agregarAlCarrito('${it.id}')" class="hover-shadow">
-                <td class="fw-bold text-dark small" title="${it.nombre}">${it.nombre}</td>
-                <td class="text-primary fw-bold text-end small">${formatter.format(it.precio)}</td>
-                <td class="text-center" style="width: 40px;">
+                <td class="fw-bold text-dark small" title="${it.nombre}">${it.nombre}${badgeDepto}</td>
+                <td class="text-primary fw-bold text-end small align-middle">${formatter.format(it.precio)}</td>
+                <td class="text-center align-middle" style="width: 40px;">
                     <div class="btn btn-sm btn-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width:24px; height:24px; padding:0; border:none;"><i class="bi bi-plus" style="font-size:1rem;"></i></div>
                 </td>
             </tr>`);
     });
 }
 
-function filtrarCatalogo() { renderCatalogoGUI(document.getElementById('buscadorCatalogo').value); }
+function filtrarCatalogo() { 
+    const f = document.getElementById('buscadorCatalogo') ? document.getElementById('buscadorCatalogo').value : '';
+    const cat = document.getElementById('filtroCategoriaCat') ? document.getElementById('filtroCategoriaCat').value : '';
+    renderCatalogoGUI(f, cat); 
+}
 
 function agregarCargoManual() {
     const n = document.getElementById('manual_nombre'), p = document.getElementById('manual_precio');
