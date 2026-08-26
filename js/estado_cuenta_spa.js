@@ -495,7 +495,26 @@ async function cargarCatalogo() {
     try {
         const res = await fetch('../api/estado_cuenta_api.pl', { method: 'POST', body: new URLSearchParams({accion: 'get_catalogo'}), credentials: 'same-origin' });
         const data = await res.json();
-        catalogoMaster = [...(data.servicios||[]), ...(data.productos||[])];
+        
+        if (data.is_universal) {
+            catalogoMaster = [];
+            (data.catalogo.items || []).forEach(item => {
+                (item.precios || []).forEach(p => {
+                    catalogoMaster.push({
+                        id: `U-${p.id_precio}`,
+                        id_item: item.id_item,
+                        id_precio: p.id_precio,
+                        nombre: `${item.concepto} - ${p.tipo_tarifa}`,
+                        precio: p.precio_publico,
+                        aplica_iva: item.aplica_iva,
+                        codigo_sku: item.codigo_sku
+                    });
+                });
+            });
+        } else {
+            catalogoMaster = [...(data.servicios||[]), ...(data.productos||[])];
+        }
+        
         renderCatalogoGUI();
     } catch(e) {}
 }

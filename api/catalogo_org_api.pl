@@ -50,6 +50,12 @@ catalogo_org_utils::crear_catalogo_org_desde_global($id_raiz)
 # GET_CATALOGO_ORG — Lista servicios y productos de la org
 # ──────────────────────────────────────────────────────────
 if ($accion eq 'get_catalogo_org') {
+    if ($rutas->{is_universal}) {
+        my $cat_univ = catalogo_org_utils::get_catalogo_universal($id_raiz);
+        print encode_json({ status => 'ok', is_universal => 1, id_raiz => $id_raiz, catalogo => $cat_univ });
+        exit;
+    }
+
     my (@s, @p);
 
     if (-e $rutas->{servicios}) {

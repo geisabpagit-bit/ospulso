@@ -14,6 +14,7 @@ our @EXPORT_OK = qw(
     obtener_rutas_catalogo
     crear_catalogo_org_desde_global
     catalogo_org_existe
+    get_catalogo_universal
 );
 
 # ─────────────────────────────────────────────────────────────
@@ -61,9 +62,92 @@ sub resolver_id_raiz_catalogo {
 sub obtener_rutas_catalogo {
     my ($id_raiz) = @_;
     my $dat = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+    
+    if (defined $id_raiz && $id_raiz eq 'QTSMP000116') {
+        return {
+            is_universal => 1,
+            departamentos => File::Spec->catfile($dat, "departamentos_QTSMP000116.dat"),
+            categorias => File::Spec->catfile($dat, "categorias_QTSMP000116.dat"),
+            proveedores => File::Spec->catfile($dat, "proveedores_QTSMP000116.dat"),
+            items => File::Spec->catfile($dat, "catalogo_items_QTSMP000116.dat"),
+            precios => File::Spec->catfile($dat, "catalogo_precios_QTSMP000116.dat"),
+        };
+    }
+    
     return {
         servicios => File::Spec->catfile($dat, "servicios_${id_raiz}.dat"),
         productos  => File::Spec->catfile($dat, "productos_${id_raiz}.dat"),
+    };
+}
+
+# ─────────────────────────────────────────────────────────────
+# get_catalogo_universal($id_raiz)
+# Carga las 5 tablas .dat del catalogo universal en memoria y
+# devuelve un hashref estructurado para JSON.
+# ─────────────────────────────────────────────────────────────
+sub get_catalogo_universal {
+    my ($id_raiz) = @_;
+    my $rutas = obtener_rutas_catalogo($id_raiz);
+    return {} unless $rutas->{is_universal};
+
+    my (@deps, @cats, @provs, @items, %precios_por_item);
+
+    # Leer Precios
+    if (-e $rutas->{precios}) {
+        open(my $fh, '<:encoding(UTF-8)', $rutas->{precios});
+        <$fh>;
+        while (<$fh>) {
+            chomp; next if /^\s*$/;
+            my @c = split /\|/, $_, -1;
+            push @{$precios_por_item{$c[1]}}, {
+                id_precio => $c[0], tipo_tarifa => $c[2], precio_publico => $c[3]+0, costo_proveedor => $c[4]+0, id_prov => $c[5]
+            };
+        }
+        close $fh;
+    }
+
+    # Leer Items
+    if (-e $rutas->{items}) {
+        open(my $fh, '<:encoding(UTF-8)', $rutas->{items});
+        <$fh>;
+        while (<$fh>) {
+            chomp; next if /^\s*$/;
+            my @c = split /\|/, $_, -1;
+            push @items, {
+                id_item => $c[0], codigo_sku => $c[1], id_cat => $c[2], concepto => $c[3],
+                aplica_iva => $c[4], indicaciones => $c[5], tiempo_entrega => $c[6],
+                precios => $precios_por_item{$c[0]} || []
+            };
+        }
+        close $fh;
+    }
+
+    # Leer Departamentos
+    if (-e $rutas->{departamentos}) {
+        open(my $fh, '<:encoding(UTF-8)', $rutas->{departamentos});
+        <$fh>; while (<$fh>) { chomp; next if /^\s*$/; my @c=split/\|/; push @deps, { id_dep => $c[0], nombre => $c[1] }; }
+        close $fh;
+    }
+
+    # Leer Categorias
+    if (-e $rutas->{categorias}) {
+        open(my $fh, '<:encoding(UTF-8)', $rutas->{categorias});
+        <$fh>; while (<$fh>) { chomp; next if /^\s*$/; my @c=split/\|/; push @cats, { id_cat => $c[0], id_dep => $c[1], nombre => $c[2] }; }
+        close $fh;
+    }
+
+    # Leer Proveedores
+    if (-e $rutas->{proveedores}) {
+        open(my $fh, '<:encoding(UTF-8)', $rutas->{proveedores});
+        <$fh>; while (<$fh>) { chomp; next if /^\s*$/; my @c=split/\|/; push @provs, { id_prov => $c[0], tipo => $c[1], nombre => $c[2] }; }
+        close $fh;
+    }
+
+    return {
+        departamentos => \@deps,
+        categorias => \@cats,
+        proveedores => \@provs,
+        items => \@items
     };
 }
 

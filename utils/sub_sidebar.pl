@@ -224,6 +224,24 @@ HTML
             'sync_google' => { file => '#', icon => 'bi-google', title => 'Sincronizaci&oacute;n Google', onclick => "iniciarVinculacionGoogle('$id_medico'); return false;" },
             'reportes'    => { file => 'reportes.pl', icon => 'bi-file-bar-chart-fill', title => 'Reportes y An&aacute;lisis' }
         );
+
+        my $org_clues = '';
+        if ($id_empresa) {
+            my $n_file = File::Spec->catfile($dat_dir, 'negocios.dat');
+            if (-e $n_file && open(my $nf, '<:encoding(UTF-8)', $n_file)) {
+                <$nf>;
+                while (my $line = <$nf>) {
+                    chomp $line; my @f = split(/\|/, $line, -1);
+                    if ($f[0] eq $id_empresa) { $org_clues = $f[18] // ''; last; }
+                }
+                close $nf;
+            }
+        }
+        
+        if ($org_clues eq 'QTSMP000116') {
+            $admin_mod_names{'servicios'} = { file => 'manage_catalogo_universal.pl', icon => 'bi-globe', title => 'Cat&aacute;logo Universal' };
+            $is_allowed{'productos'} = 0;
+        }
         
         foreach my $k ('clinicas', 'usuarios', 'servicios', 'productos', 'tecnico', 'sync_google', 'reportes') {
             if ($is_allowed{$k}) {

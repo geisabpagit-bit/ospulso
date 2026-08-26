@@ -46,6 +46,10 @@ if ($accion eq 'get_catalogo') {
     my ($serv_file, $prod_file);
     if ($id_raiz) {
         my $rutas = catalogo_org_utils::obtener_rutas_catalogo($id_raiz);
+        if ($rutas->{is_universal}) {
+            my $cat_univ = catalogo_org_utils::get_catalogo_universal($id_raiz);
+            responder({ is_universal => 1, catalogo => $cat_univ });
+        }
         $serv_file = $rutas->{servicios};
         $prod_file = $rutas->{productos};
         # Si no existen aun, semillarlos desde el global (idempotente)
@@ -254,7 +258,9 @@ if ($accion eq 'get_catalogo') {
     open(my $fh, ">>:encoding(UTF-8)", $ec_file);
     foreach my $it (@$items) {
         my $base = $it->{precio} * ($it->{cantidad} || 1);
-        my $iva = $iva_f ? ($base * 0.16) : 0;
+        # Usa el flag global o el específico del ítem (para el nuevo catálogo universal)
+        my $item_iva_f = defined $it->{aplica_iva} ? $it->{aplica_iva} : $iva_f;
+        my $iva = $item_iva_f ? ($base * 0.16) : 0;
         my $total = $base + $iva; $id_mov++;
         # ID_OS|ID_MOV|ID_PAC|TIPO|CONCEPTO|BASE|IVA|TOTAL|FECHA|ID_MED|NOTAS|ALIAS
         print $fh "$id_os|$id_mov|$id_p|Cargo|$it->{nombre}|$base|$iva|$total|$f|$id_m_req|$aplica_para|$alias_os\n";
