@@ -2034,8 +2034,15 @@ print <<HTML;
         }
     }
     
+    var sys_target_file = "$target_file";
+    var sys_group = "$group";
+</script>
+HTML
+
+print <<'JS';
+<script>
     function showAddColumnModal() {
-        const modalEl = document.getElementById('addColumnModal');
+        var modalEl = document.getElementById('addColumnModal');
         if (modalEl) {
             if (modalEl.parentElement !== document.body) document.body.appendChild(modalEl);
             new bootstrap.Modal(modalEl).show();
@@ -2062,16 +2069,16 @@ print <<HTML;
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
-        }).then((result) => {
+        }).then(function(result) {
             if (result.isConfirmed) {
-                const form = document.createElement('form');
+                var form = document.createElement('form');
                 form.method = 'POST';
                 form.action = 'manage_config.pl';
                 
-                const act = document.createElement('input'); act.type = 'hidden'; act.name = 'action'; act.value = 'do_delete_column'; form.appendChild(act);
-                const file = document.createElement('input'); file.type = 'hidden'; file.name = 'file'; file.value = '$target_file'; form.appendChild(file);
-                const grp = document.createElement('input'); grp.type = 'hidden'; grp.name = 'group'; grp.value = '$group'; form.appendChild(grp);
-                const col = document.createElement('input'); col.type = 'hidden'; col.name = 'col_name'; col.value = colName; form.appendChild(col);
+                var act = document.createElement('input'); act.type = 'hidden'; act.name = 'action'; act.value = 'do_delete_column'; form.appendChild(act);
+                var file = document.createElement('input'); file.type = 'hidden'; file.name = 'file'; file.value = sys_target_file; form.appendChild(file);
+                var grp = document.createElement('input'); grp.type = 'hidden'; grp.name = 'group'; grp.value = sys_group; form.appendChild(grp);
+                var col = document.createElement('input'); col.type = 'hidden'; col.name = 'col_name'; col.value = colName; form.appendChild(col);
                 
                 document.body.appendChild(form);
                 form.submit();
@@ -2087,7 +2094,7 @@ print <<HTML;
         document.getElementById('rel_target_col').value = '';
         
         if (window.schemaRelations) {
-            const rel = window.schemaRelations.find(r => r.source_table === '$target_file' && r.source_col === colName);
+            var rel = window.schemaRelations.find(function(r) { return r.source_table === sys_target_file && r.source_col === colName; });
             if (rel) {
                 document.getElementById('rel_target_table').value = rel.target_table;
                 if(rel.target_table) document.getElementById('rel_target_col_wrapper').style.display = 'block';
@@ -2097,7 +2104,7 @@ print <<HTML;
             }
         }
         
-        const modalEl = document.getElementById('relationModal');
+        var modalEl = document.getElementById('relationModal');
         if (modalEl) {
             if (modalEl.parentElement !== document.body) document.body.appendChild(modalEl);
             new bootstrap.Modal(modalEl).show();
@@ -2128,18 +2135,18 @@ print <<HTML;
 
     function loadRelations() {
         fetch('manage_config.pl?action=do_get_relations')
-        .then(res => res.json())
-        .then(data => {
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
             if(data.ok && data.relations) {
                 window.schemaRelations = data.relations;
-                const currentTable = '$target_file';
+                var currentTable = sys_target_file;
                 if(currentTable) {
-                    const tableRels = data.relations.filter(r => r.source_table === currentTable);
-                    tableRels.forEach(rel => {
-                        const tds = document.querySelectorAll('#tablaEstructura tbody tr td:nth-child(2)');
-                        tds.forEach(td => {
+                    var tableRels = data.relations.filter(function(r) { return r.source_table === currentTable; });
+                    tableRels.forEach(function(rel) {
+                        var tds = document.querySelectorAll('#tablaEstructura tbody tr td:nth-child(2)');
+                        tds.forEach(function(td) {
                             if(td.textContent.trim() === rel.source_col) {
-                                const relTd = td.nextElementSibling;
+                                var relTd = td.nextElementSibling;
                                 if(relTd) {
                                     relTd.innerHTML = '<span class="badge bg-primary text-white"><i class="bi bi-link-45deg"></i> ' + rel.target_table + ' (' + (rel.target_col || 'ID') + ')</span>';
                                 }
@@ -2147,12 +2154,12 @@ print <<HTML;
                         });
                         
                         // Transformar Inputs a Selects en los Modales (Formularios CRUD)
-                        const addInput = document.querySelector('#addRecordModal input[name="field_' + rel.source_col + '"]');
-                        const editInput = document.querySelector('#editRecordModal input[name="field_' + rel.source_col + '"]');
+                        var addInput = document.querySelector('#addRecordModal input[name="field_' + rel.source_col + '"]');
+                        var editInput = document.querySelector('#editRecordModal input[name="field_' + rel.source_col + '"]');
                         
-                        const replaceWithSelect = (inputEl) => {
+                        var replaceWithSelect = function(inputEl) {
                             if(!inputEl || inputEl.tagName === 'SELECT') return;
-                            const selectEl = document.createElement('select');
+                            var selectEl = document.createElement('select');
                             selectEl.name = inputEl.name;
                             if(inputEl.id) selectEl.id = inputEl.id;
                             selectEl.className = inputEl.className + " form-select";
@@ -2161,13 +2168,16 @@ print <<HTML;
                             selectEl.innerHTML = '<option value="">Cargando...</option>';
                             inputEl.parentNode.replaceChild(selectEl, inputEl);
                             
-                            fetch('manage_config.pl?action=do_get_relation_options&target_table=' + rel.target_table + '&target_col=' + encodeURIComponent(rel.target_col || ''))
-                            .then(r => r.json())
-                            .then(optData => {
+                            var targetTbl = rel.target_table;
+                            var targetCol = rel.target_col ? rel.target_col : '';
+                            
+                            fetch('manage_config.pl?action=do_get_relation_options&target_table=' + targetTbl + '&target_col=' + targetCol)
+                            .then(function(r) { return r.json(); })
+                            .then(function(optData) {
                                 if(optData.ok) {
-                                    selectEl.innerHTML = '<option value="">-- Seleccione Opción --</option>';
-                                    optData.options.forEach(opt => {
-                                        const option = document.createElement('option');
+                                    selectEl.innerHTML = '<option value="">-- Seleccione Opcion --</option>';
+                                    optData.options.forEach(function(opt) {
+                                        var option = document.createElement('option');
                                         option.value = opt.id;
                                         option.textContent = opt.id + ' - ' + opt.text;
                                         selectEl.appendChild(option);
@@ -2183,7 +2193,10 @@ print <<HTML;
             }
         });
     }
-
+</script>
+JS
+print <<"HTML";
+<script>
     \$(document).ready(function() {
         // Inicializar dropdown interactivo de relaciones
         const rtt = document.getElementById('rel_target_table');
