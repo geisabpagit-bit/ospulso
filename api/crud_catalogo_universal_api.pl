@@ -25,9 +25,16 @@ if (!$session_data || !$session_data->{session_ok} || !$session_data->{id_usuari
     responder({ error => 'No autorizado' });
 }
 
+my $role = $session_data->{role} || '';
+
+# API-RBAC: Verificación estricta de Roles Autorizados
+if ($role ne 'Administrador Organizacion' && $role ne 'Administrador Global' && $role !~ /Recepcionista/i) {
+    responder({ error => 'Acceso denegado. Se requieren permisos de Administrador u Operación.' });
+}
+
 my $id_empresa = $session_data->{id_empresa};
-if (!$id_empresa) {
-    responder({ error => 'Empresa no identificada' });
+if (!defined $id_empresa || $id_empresa eq '') {
+    $id_empresa = 0; # ID por defecto para Administrador Global
 }
 
 my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_empresa);

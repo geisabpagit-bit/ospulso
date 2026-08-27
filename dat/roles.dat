@@ -1,5 +1,5 @@
 ROL|PUEDE_BUSCAR|MODULOS_PERMITIDOS
-Administrador Global|0|admin_global|tecnico|sync_google|reportes
+Administrador Global|0|admin_global|tecnico|sync_google|reportes|servicios|productos|clinicas|usuarios|finanzas|pacientes
 Administrador Organizacion|0|servicios|productos|clinicas|usuarios|finanzas|reportes|pacientes
 Ejecutivo Ventas|0|crm_ventas
 Medico|1|pacientes|agenda|finanzas
