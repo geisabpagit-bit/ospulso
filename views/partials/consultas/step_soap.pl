@@ -4,7 +4,7 @@ use utf8;
 use File::Spec;
 
 sub render_step_soap {
-    my ($paciente) = @_;
+    my ($paciente, $id_empresa) = @_;
     my $cedula_medico = ($paciente && ref($paciente) eq 'HASH') ? ($paciente->{cedula_medico} // '') : '';
 
     my $cif1_options = cargar_opciones_dat('CAT_CIF_1erNivel.dat', 1);
@@ -182,7 +182,7 @@ sub render_step_soap {
                                 <div class="col-md-7">
                                     <label class="wizard-label">Buscar Medicamento en Catálogo (productos.dat)</label>
                                     <select id="select_producto_receta" class="wizard-input" onchange="seleccionarProductoReceta(this.value)">
-                                        @{[ cargar_opciones_productos() ]}
+                                        @{[ cargar_opciones_productos($id_empresa) ]}
                                     </select>
                                 </div>
                                 <div class="col-md-5 d-flex align-items-end">
@@ -424,9 +424,16 @@ sub render_step_soap {
 }
 
 sub cargar_opciones_productos {
-    my $path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'productos.dat');
+    my ($id_empresa) = @_;
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+    
+    # Obtener el catálogo correcto de productos basado en el id_empresa (y su CLUE si aplica)
+    my $id_raiz = $id_empresa ? catalogo_org_utils::resolver_id_raiz_catalogo($id_empresa) : 0;
+    my $rutas = catalogo_org_utils::obtener_rutas_catalogo($id_raiz);
+    my $path = $rutas->{productos};
+
     my $options = '<option value="">Buscar en catálogo de productos.dat...</option>';
-    if (open(my $fh, '<:encoding(UTF-8)', $path)) {
+    if (-e $path && open(my $fh, '<:encoding(UTF-8)', $path)) {
         my $header = <$fh>;
         while (my $line = <$fh>) {
             chomp $line;
