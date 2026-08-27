@@ -381,6 +381,9 @@ print <<'JS';
                 const body = document.getElementById('formBody');
                 
                 let html = '';
+                let currentDepId = '';
+                let id_cat = '';
+                
                 if (tipo === 'departamento') {
                     const id = args[0] || '';
                     const nombre = args[1] || '';
@@ -468,10 +471,9 @@ print <<'JS';
                     const id = args[0] || '';
                     const sku = args[1] || '';
                     const concepto = args[2] || '';
-                    const id_cat = args[3] || '';
+                    id_cat = args[3] || '';
                     const precio = args[4] || '';
                     
-                    let currentDepId = '';
                     if (id_cat && window.CATALOGO_CATS) {
                         const foundCat = window.CATALOGO_CATS.find(c => String(c.id_cat) === String(id_cat));
                         if (foundCat) {

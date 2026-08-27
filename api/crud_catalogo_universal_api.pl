@@ -21,7 +21,7 @@ sub responder {
 }
 
 my $session_data = check_session($cgi);
-if (!$session_data || !$session_data->{session_ok} || !$session_data->{id_usuario}) {
+if (!$session_data || !$session_data->{session_ok}) {
     responder({ error => 'No autorizado' });
 }
 
