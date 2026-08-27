@@ -263,7 +263,7 @@ print <<"HTML";
 <main class="container-fluid container-mobile-flush pt-4 px-lg-4 pb-5 animate__animated animate__fadeIn">
     <div class="row g-4 mb-4">
         <!-- Columna Izquierda: Formulario -->
-        <div class="col-lg-8">
+        <div class="col-lg-6">
             <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm" style="border-radius: 1.5rem;">
                 <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-person-lines-fill me-2" style="color: var(--md-teal-clinical);"></i>Caja Rápida</h5>
                 
@@ -367,8 +367,8 @@ print <<"HTML";
             </div>
         </div>
         
-        <!-- Columna Derecha: Resumen de Cobro -->
-        <div class="col-lg-4">
+        <!-- Columna Derecha: Resumen de Cobro (50% / 50%) -->
+        <div class="col-lg-6">
             <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm d-flex flex-column" style="border-radius: 1.5rem;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-teal-clinical);"></i>Resumen</h5>
@@ -850,16 +850,16 @@ print <<'JS';
             html += `
                 <div class="bg-light p-2 rounded-3 border mb-2 d-flex flex-column gap-1">
                     <div class="d-flex justify-content-between align-items-start">
-                        <span class="fw-bold text-dark text-xs text-uppercase flex-grow-1 me-2">${escapeHtml(item.nombre)}</span>
-                        <button type="button" class="btn btn-sm text-danger p-0 border-0 shadow-none" onclick="removeConcepto(${idx})"><i class="bi bi-trash"></i></button>
+                        <span class="fw-bold text-dark text-uppercase flex-grow-1 me-2" style="font-size: 0.7rem; line-height: 1.25; letter-spacing: 0.1px;">${escapeHtml(item.nombre)}</span>
+                        <button type="button" class="btn btn-sm text-danger p-0 border-0 shadow-none" style="font-size: 0.75rem;" onclick="removeConcepto(${idx})"><i class="bi bi-trash"></i></button>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted fw-bold">${formatCurrency(item.precio)} c/u</small>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <small class="text-muted fw-bold" style="font-size: 0.68rem;">${formatCurrency(item.precio)} c/u</small>
                         <div class="d-flex align-items-center gap-1">
-                            <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:22px; height:22px; line-height:1;" onclick="updateCantidad(${idx}, -1)">-</button>
-                            <span class="fw-bold small px-1">${item.cantidad}</span>
-                            <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:22px; height:22px; line-height:1;" onclick="updateCantidad(${idx}, 1)">+</button>
-                            <span class="fw-bold text-primary ms-2">${formatCurrency(sub)}</span>
+                            <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:20px; height:20px; line-height:1; font-size: 0.65rem;" onclick="updateCantidad(${idx}, -1)">-</button>
+                            <span class="fw-bold px-1" style="font-size: 0.7rem;">${item.cantidad}</span>
+                            <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:20px; height:20px; line-height:1; font-size: 0.65rem;" onclick="updateCantidad(${idx}, 1)">+</button>
+                            <span class="fw-bold ms-2" style="font-size: 0.72rem; color: var(--md-blue-deep, #0A2A66);">${formatCurrency(sub)}</span>
                         </div>
                     </div>
                 </div>
