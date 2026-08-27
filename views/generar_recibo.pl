@@ -372,7 +372,7 @@ print <<"HTML";
             <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm d-flex flex-column" style="border-radius: 1.5rem;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-teal-clinical);"></i>Resumen</h5>
-                    <button type="button" class="btn btn-sm text-white px-3 py-1 fw-bold rounded-3 shadow-sm" style="background: var(--md-blue-deep, #0A2A66);" onclick="new bootstrap.Modal(document.getElementById('modalCargo')).show()">
+                    <button type="button" class="btn btn-sm text-white px-3 py-1 fw-bold rounded-3 shadow-sm" style="background: var(--md-blue-deep, #0A2A66);" onclick="abrirModalCargo()">
                         <i class="bi bi-cart-plus me-1"></i> Agregar
                     </button>
                 </div>
@@ -476,7 +476,10 @@ print <<'JS';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        document.body.appendChild(document.getElementById('modalCargo'));
+        const mc = document.getElementById('modalCargo');
+        if (mc && mc.parentElement !== document.body) {
+            document.body.appendChild(mc);
+        }
         initSelect2Paciente();
         cargarCatalogo();
         
