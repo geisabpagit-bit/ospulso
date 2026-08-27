@@ -24,7 +24,8 @@ if (!$sd->{session_ok} || $sd->{role} ne 'Administrador Global') {
 
 my $filename = $q->param('filename') // '';
 
-if ($filename !~ /^ospulso_backup_[\d_]+\.zip$/) {
+# Security check: Prevent path traversal and allow auto_backup_ospulso_ / ospulso_backup_ or any valid .zip backup file
+if ($filename =~ /[\/\\]|\.\./ || $filename !~ /^[a-zA-Z0-9_\-]+\.zip$/) {
     print encode_json({ status => 'error', message => 'Nombre de archivo no válido.' });
     exit;
 }

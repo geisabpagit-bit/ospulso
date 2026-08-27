@@ -100,10 +100,10 @@ print <<HTML;
             </div>
         </div>
         <div>
-            <button class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm me-2" onclick="openCronModal()">
+            <button type="button" class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm me-2" onclick="openCronModal()">
                 <i class="bi bi-clock-history me-2"></i>Programar
             </button>
-            <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="createBackup()">
+            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="createBackup()">
                 <i class="bi bi-cloud-upload-fill me-2"></i>Crear Backup Ahora
             </button>
         </div>
