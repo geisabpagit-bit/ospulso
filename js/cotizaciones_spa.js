@@ -321,8 +321,11 @@ function _cargarCatalogoCot() {
         .then(function(res) {
             cotCatalogo = [];
             if (res.is_universal && res.catalogo) {
-                res.catalogo.forEach(function(c) {
-                    cotCatalogo.push({ id: c.id, nombre: c.concepto || c.nombre, precio: c.precio });
+                (res.catalogo.items || []).forEach(function(c) {
+                    cotCatalogo.push({ id: c.id_item, nombre: c.concepto || c.nombre, precio: c.precio });
+                });
+                (res.catalogo.productos || []).forEach(function(p) {
+                    cotCatalogo.push({ id: p.id_prod, nombre: p.nombre, precio: p.precio });
                 });
             } else {
                 (res.servicios || []).forEach(function(s) { cotCatalogo.push({ id: s.id, nombre: s.nombre, precio: s.precio }); });

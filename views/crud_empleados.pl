@@ -30,10 +30,12 @@ if ($role !~ /Recepcionista|Administrador/i) {
 }
 
 my $clues = $q->param('clues') || '';
-my $sufijo = $clues ? "_${clues}" : "";
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+
+my $rutas = $clues ? catalogo_org_utils::obtener_rutas_por_clue($clues) : catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
 
 my $opts_mun = "";
-if (open my $fh, '<:encoding(UTF-8)', "$FindBin::Bin/../dat/municipios${sufijo}.dat") {
+if (open my $fh, '<:encoding(UTF-8)', $rutas->{municipios}) {
     my $header = <$fh>;
     while(<$fh>) {
         chomp;
@@ -46,7 +48,7 @@ if (open my $fh, '<:encoding(UTF-8)', "$FindBin::Bin/../dat/municipios${sufijo}.
 }
 
 my $opts_dep = "";
-if (open my $fh, '<:encoding(UTF-8)', "$FindBin::Bin/../dat/dependencia${sufijo}.dat") {
+if (open my $fh, '<:encoding(UTF-8)', $rutas->{dependencia}) {
     my $header = <$fh>;
     while(<$fh>) {
         chomp;

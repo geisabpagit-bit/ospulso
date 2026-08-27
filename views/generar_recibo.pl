@@ -160,8 +160,12 @@ if ($has_custom_medicos) {
 }
 
 my $motivos_html = "<option value=''>-- Selecciona Concepto --</option>";
-$rutas = catalogo_org_utils::obtener_rutas_por_clue($id_empresa);
-my $motivos_file = $rutas->{rutas}{motivos};
+if ($org_clues) {
+    $rutas = catalogo_org_utils::obtener_rutas_por_clue($org_clues);
+} else {
+    $rutas = catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
+}
+my $motivos_file = $rutas->{motivos};
 if (-e $motivos_file) {
     my $mots = leer_tabla($motivos_file);
     foreach my $m (@$mots) {

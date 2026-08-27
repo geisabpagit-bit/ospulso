@@ -383,7 +383,17 @@ sub render_step_caja_privado {
                         credentials: 'same-origin' 
                     });
                     const data = await res.json();
-                    catalogoMasterConsultas = [...(data.servicios||[]), ...(data.productos||[])];
+                    catalogoMasterConsultas = [];
+                    if (data.is_universal && data.catalogo) {
+                        (data.catalogo.items || []).forEach(function(c) {
+                            catalogoMasterConsultas.push({ id: c.id_item, nombre: c.concepto || c.nombre, precio: c.precio });
+                        });
+                        (data.catalogo.productos || []).forEach(function(p) {
+                            catalogoMasterConsultas.push({ id: p.id_prod, nombre: p.nombre, precio: p.precio });
+                        });
+                    } else {
+                        catalogoMasterConsultas = [...(data.servicios||[]), ...(data.productos||[])];
+                    }
                 } catch(e) {
                     console.error("Fallo al cargar catálogo:", e);
                 }
