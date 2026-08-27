@@ -212,7 +212,78 @@ if (-e $neg_file && open(my $fn, '<:encoding(UTF-8)', $neg_file)) {
     }
     close $fn;
 }
-$negocio->{clues} ||= 'QTSMP000116';
+# 3.1 Obtener datos estructurados para el pie del recibo (CLUE o Sucursal)
+my $clue_encontrada = 0;
+my ($pie_calle_no, $pie_colonia, $pie_municipio, $pie_entidad, $pie_telefono, $pie_cp) = ('', '', '', '', '', '');
+
+my $clues_id_actual = $negocio->{clues} // '';
+if ($clues_id_actual) {
+    my $cat_clues_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogosOF', 'CAT_CLUES.dat');
+    if (-e $cat_clues_file && open(my $fh_clue, '<:encoding(UTF-8)', $cat_clues_file)) {
+        <$fh_clue>; # Omitir encabezado
+        while (my $line = <$fh_clue>) {
+            chomp $line;
+            next unless $line;
+            my @c = split /\|/, $line, -1;
+            if (@c > 32 && $c[0] eq $clues_id_actual) {
+                # Columnas CAT_CLUES.dat:
+                # 4: ENTIDAD, 6: MUNICIPIO, 8: LOCALIDAD, 20: TIPO_VIALIDAD, 21: VIALIDAD, 22: NUM_EXT, 26: ASENTAMIENTO, 27: CP, 32: TELEFONO
+                my $vialidad_tipo = $c[20] // '';
+                my $vialidad_nom  = $c[21] // '';
+                my $num_ext       = $c[22] // '';
+                
+                my $dir_calle = join(' ', grep { $_ ne '' } ($vialidad_tipo, $vialidad_nom, $num_ext));
+                $pie_calle_no  = $dir_calle || ($c[28] // '');
+                $pie_colonia   = $c[26] || $c[8] || '';
+                $pie_municipio = $c[6] // '';
+                $pie_entidad   = $c[4] // '';
+                $pie_telefono  = $c[32] // '';
+                $pie_cp        = $c[27] // '';
+                
+                $clue_encontrada = 1;
+                last;
+            }
+        }
+        close $fh_clue;
+    }
+}
+
+if (!$clue_encontrada) {
+    my $id_target = $recibo->{id_sucursal} || $recibo->{id_negocio} || $session_data->{id_empresa} || '';
+    if ($id_target && -e $neg_file && open(my $fn_suc, '<:encoding(UTF-8)', $neg_file)) {
+        <$fn_suc>;
+        while (my $line = <$fn_suc>) {
+            chomp $line;
+            my @n = split /\|/, $line, -1;
+            if ($n[0] eq $id_target) {
+                $pie_calle_no  = $n[6] // '';
+                $pie_colonia   = $n[17] // '';
+                $pie_municipio = $n[16] // '';
+                $pie_entidad   = $n[15] // '';
+                $pie_telefono  = $n[7] // '';
+                $pie_cp        = $n[14] // '';
+                last;
+            }
+        }
+        close $fn_suc;
+    }
+}
+
+# Sanitizar y eliminar paréntesis que pudieran venir en los datos
+foreach ($pie_calle_no, $pie_colonia, $pie_municipio, $pie_entidad, $pie_telefono, $pie_cp) {
+    s/[\(\)]//g;
+    s/^\s+|\s+$//g;
+}
+
+my @pie_partes;
+push @pie_partes, $pie_calle_no        if $pie_calle_no ne '';
+push @pie_partes, $pie_colonia         if $pie_colonia ne '';
+push @pie_partes, $pie_municipio       if $pie_municipio ne '';
+push @pie_partes, $pie_entidad         if $pie_entidad ne '';
+push @pie_partes, "Tel. $pie_telefono" if $pie_telefono ne '';
+push @pie_partes, "C.P. $pie_cp"       if $pie_cp ne '';
+
+my $texto_pie_recibo = join(", ", @pie_partes);
 
 # Buscar también en pacientes_privados
 if ($paciente_nombre eq 'Paciente Desconocido' || $paciente_nombre eq $recibo->{id_paciente}) {
@@ -527,7 +598,7 @@ print <<HTML;
             </tr>
             <tr>
                 <td colspan="3" style="text-align: center; font-size: 11px; padding: 10px;">
-                    $negocio->{domicilio}, Tels.$negocio->{telefono} CP. 76900
+                    $texto_pie_recibo
                 </td>
             </tr>
         </table>
