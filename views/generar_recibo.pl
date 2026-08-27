@@ -426,6 +426,10 @@ print <<'JS';
              .replace(/'/g, "&#039;");
     }
 
+    function formatCurrency(val) {
+        return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val || 0);
+    }
+
     let cartItems = [];
     let consecutivoId = 1;
     let pacienteSeleccionado = null;
