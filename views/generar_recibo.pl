@@ -372,7 +372,7 @@ print <<"HTML";
             <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm d-flex flex-column" style="border-radius: 1.5rem;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-teal-clinical);"></i>Resumen</h5>
-                    <button type="button" class="btn btn-sm text-white px-3 py-1 fw-bold rounded-3 shadow-sm" style="background: var(--md-blue-deep, #0A2A66);" onclick="abrirModalCargo()">
+                    <button type="button" class="btn btn-sm text-white px-3 py-1 fw-bold rounded-3 shadow-sm" style="background: var(--md-blue-deep, #0A2A66);" onclick="abrirModalConceptosRecibo()">
                         <i class="bi bi-cart-plus me-1"></i> Agregar
                     </button>
                 </div>
@@ -405,35 +405,8 @@ print <<"HTML";
         </div>
     </div>
 </main>
-<!-- MODAL CARRITO UNIVERSAL -->
-EOF
-require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'modal_carrito_universal.pl');
-partials::consultas::modal_carrito_universal::render();
-print <<"EOF";
-</main>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="../js/estado_cuenta_spa.js"></script>
 <script>
-    // Inicializar variables para estado_cuenta_spa.js
-    var idPacienteGlobal = '';
-    var idMedicoGlobal = '';
-    var paciente_genero_global = '';
-    
-    // Hook para recibir items del modal de estado_cuenta_spa.js
-    window.onCarritoCompletado = function(items) {
-        if (items && items.length > 0) {
-            items.forEach(function(it) {
-                cartItems.push({
-                    id: Date.now() + Math.random(),
-                    nombre: it.nombre,
-                    precio: parseFloat(it.precio),
-                    cantidad: parseInt(it.cantidad) || 1
-                });
-            });
-            renderCart();
-        }
-    };
-
     const HAS_PACIENTES_ESTADO = ${has_pacientes_estado} || 0;
     const HAS_PORTAL_PACIENTE = ${has_portal_paciente};
     const ORG_CLUES = '$org_clues';
@@ -476,12 +449,8 @@ print <<'JS';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        const mc = document.getElementById('modalCargo');
-        if (mc && mc.parentElement !== document.body) {
-            document.body.appendChild(mc);
-        }
         initSelect2Paciente();
-        cargarCatalogo();
+        _cargarCatalogoRecibo();
         
         if (document.getElementById('selEspecialidadCustom')) {
             filtrarMedicosCustom();
@@ -489,200 +458,296 @@ print <<'JS';
     });
 
     let pacienteEstadoSeleccionado = { id: '', nombre: '' };
+    let masterCatalogoRecibo = [];
+    let modalCartItems = [];
+    let recDepsMap = {};
+    let recCatsMap = {};
 
-    function buscarEmpleadoEstado() {
-        const num = $('#iptNumEmpleado').val().trim();
-        if(!num) return;
-        
-        if (!HAS_PACIENTES_ESTADO) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Función no disponible',
-                text: 'La capacidad de Empleados Públicos/Estado no está habilitada.',
-                confirmButtonText: 'Entendido'
-            });
+    async function _cargarCatalogoRecibo() {
+        if (masterCatalogoRecibo.length > 0) return;
+        try {
+            const res = await fetch('../api/estado_cuenta_api.pl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ accion: 'get_catalogo' })
+            }).then(r => r.json());
+
+            masterCatalogoRecibo = [];
+            recDepsMap = {};
+            recCatsMap = {};
+
+            if (res.is_universal && res.catalogo) {
+                (res.catalogo.departamentos || []).forEach(d => { recDepsMap[d.id_dep] = d.nombre; });
+                (res.catalogo.categorias || []).forEach(c => { recCatsMap[c.id_cat] = { n: c.nombre, d: c.id_dep }; });
+
+                (res.catalogo.items || []).forEach(c => {
+                    var pObj = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (c.precios || [])[0];
+                    var precio = pObj ? parseFloat(pObj.precio_publico || 0) : 0;
+                    var catInfo = recCatsMap[c.id_cat] || { d: '' };
+                    masterCatalogoRecibo.push({
+                        id: c.id_item,
+                        nombre: c.concepto || c.nombre,
+                        precio: precio,
+                        cat: c.id_cat,
+                        dep: catInfo.d
+                    });
+                });
+                (res.catalogo.productos || []).forEach(p => {
+                    masterCatalogoRecibo.push({
+                        id: p.id_prod,
+                        nombre: p.nombre,
+                        precio: parseFloat(p.precio) || 0,
+                        cat: '',
+                        dep: ''
+                    });
+                });
+                _poblarFiltrosRecibo();
+            } else {
+                (res.servicios || []).forEach(s => {
+                    masterCatalogoRecibo.push({ id: s.id, nombre: s.nombre, precio: parseFloat(s.precio) || 0, cat: '', dep: '' });
+                });
+                (res.productos || []).forEach(p => {
+                    masterCatalogoRecibo.push({ id: p.id, nombre: p.nombre, precio: parseFloat(p.precio) || 0, cat: '', dep: '' });
+                });
+            }
+        } catch (e) {
+            console.error("Error al cargar catálogo de recibo:", e);
+        }
+    }
+
+    function _poblarFiltrosRecibo() {
+        const selDep = document.getElementById('reciboSelDep');
+        const selCat = document.getElementById('reciboSelCat');
+        if (!selDep || !selCat) return;
+        selDep.innerHTML = '<option value="">Todos los Departamentos</option>';
+        selCat.innerHTML = '<option value="">Todas las Categorías</option>';
+        for (var k in recDepsMap) {
+            selDep.insertAdjacentHTML('beforeend', `<option value="${k}">${escapeHtml(recDepsMap[k])}</option>`);
+        }
+    }
+
+    function _onDepChangeRecibo() {
+        const selDep = document.getElementById('reciboSelDep');
+        const selCat = document.getElementById('reciboSelCat');
+        if (!selDep || !selCat) return;
+        const dep = selDep.value;
+        selCat.innerHTML = '<option value="">Todas las Categorías</option>';
+        for (var k in recCatsMap) {
+            if (dep === '' || recCatsMap[k].d == dep) {
+                selCat.insertAdjacentHTML('beforeend', `<option value="${k}">${escapeHtml(recCatsMap[k].n)}</option>`);
+            }
+        }
+        _filtrarCatalogoRecibo();
+    }
+
+    function _filtrarCatalogoRecibo() {
+        _renderizarCatalogoRecibo();
+    }
+
+    function _renderizarCatalogoRecibo() {
+        const tbody = document.getElementById('reciboTablaCatalogo');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        const filterText = (document.getElementById('reciboBuscador') ? document.getElementById('reciboBuscador').value : '').toLowerCase();
+        const selDep = document.getElementById('reciboSelDep') ? document.getElementById('reciboSelDep').value : '';
+        const selCat = document.getElementById('reciboSelCat') ? document.getElementById('reciboSelCat').value : '';
+
+        const filtered = masterCatalogoRecibo.filter(item => {
+            const matchText = (item.nombre || '').toLowerCase().includes(filterText);
+            const matchDep = !selDep || item.dep == selDep;
+            const matchCat = !selCat || item.cat == selCat;
+            return matchText && matchDep && matchCat;
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted small py-3">No se encontraron conceptos</td></tr>';
             return;
         }
-        console.log("Buscando empleado con número:", num);
-        
-        $('#resultadosEmpleadoContainer').show();
-        $('#resultadosEmpleado').html('<div class="spinner-border text-primary spinner-border-sm"></div> Buscando...');
-        $.ajax({
-            url: '../api/buscar_familia_empleado.pl',
-            method: 'POST',
-            data: { num_empleado: num, clues: ORG_CLUES },
-            success: function(res) {
-                if (res.ok && res.resultados && res.resultados.length > 0) {
-                    let html = '';
-                    try {
-                        res.resultados.forEach((emp, i) => {
-                            let isChecked = i === 0 ? 'checked' : '';
-                            let nombreStr = emp.nombre ? String(emp.nombre) : '';
-                            let safeNombre = escapeHtml(nombreStr).replace(/'/g, "\\'");
-                            if(i===0) seleccionarEmpleadoEstado(emp.id, nombreStr); // Select first auto
-                            
-                            let badgeText = (emp.relacion && emp.relacion.toLowerCase() === 'empleado') ? 'Empleado' : (emp.relacion || 'Desconocido');
-                            
-                            html += `
-                            <div class="form-check custom-input-caja p-2 mb-2 d-flex align-items-center">
-                                <input class="form-check-input ms-0 me-3" style="width:1.2rem; height:1.2rem;" type="radio" name="empSeleccionado" id="empSel${escapeHtml(emp.id)}_${i}" value="${escapeHtml(emp.id)}" ${isChecked} onchange="seleccionarEmpleadoEstado('${escapeHtml(emp.id)}', '${safeNombre}')">
-                                <label class="form-check-label w-100 mb-0" for="empSel${escapeHtml(emp.id)}_${i}" style="cursor:pointer; display:flex; align-items:center;">
-                                    <div class="fw-bold text-dark flex-grow-1">${escapeHtml(nombreStr)}</div>
-                                    <span class="badge bg-secondary rounded-pill px-3">${escapeHtml(badgeText)}</span>
-                                </label>
-                            </div>`;
-                        });
-                        html += `
-                        <div class="mt-3 text-end border-top pt-2">
-                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-4 shadow-sm fw-bold" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES">
-                                <i class="bi bi-pencil-square me-1"></i> Editar Beneficiarios
-                            </button>
-                        </div>`;
-                        $('#resultadosEmpleado').html(html);
-                        pacienteTipoActual = 'estado';
-                        $('#selPaciente').val(null).trigger('change.select2');
-                    } catch (err) {
-                        console.error("Error al procesar resultados:", err);
-                        $('#resultadosEmpleado').html('<div class="alert alert-danger py-2 small m-0 border-0 shadow-sm"><i class="bi bi-exclamation-circle text-danger me-2"></i>Error interno al mostrar resultados. Revise la consola.</div>');
-                    }
-                } else {
-                    $('#resultadosEmpleado').html(`<div class="alert alert-warning py-3 text-center small m-0 shadow-sm border-0"><p class="mb-2"><i class="bi bi-exclamation-triangle fs-4 d-block mb-1"></i>No se encontraron resultados para el número de empleado ingresado.</p><button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm mt-2 fw-bold" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-person-plus me-1"></i> Registrar Nuevo Empleado / Beneficiario</button></div>`);
-                    pacienteEstadoSeleccionado = { id: '', nombre: '' };
-                }
-            },
-            error: function() {
-                $('#resultadosEmpleado').html('<div class="alert alert-danger py-2 small m-0">Error de conexión al buscar.</div>');
-            }
+
+        filtered.forEach(it => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="ps-3 fw-bold small text-dark align-middle">${escapeHtml(it.nombre)}</td>
+                <td class="text-end fw-bold text-success small align-middle">${formatCurrency(it.precio)}</td>
+                <td class="text-center align-middle">
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:26px; height:26px;" onclick="agregarAlCarritoModalRecibo('${escapeHtml(it.id)}')">
+                        <i class="bi bi-plus" style="font-size:1.1rem;"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
         });
     }
 
-    function seleccionarEmpleadoEstado(id, nombre) {
-        pacienteEstadoSeleccionado = { id: id, nombre: nombre };
-    }
+    async function abrirModalConceptosRecibo() {
+        modalCartItems = JSON.parse(JSON.stringify(cartItems));
+        await _cargarCatalogoRecibo();
+        _renderizarCatalogoRecibo();
+        _renderizarCarritoModalRecibo();
 
-    function initSelect2Paciente() {
-        if ($('#selPaciente').hasClass('select2-hidden-accessible')) {
-            $('#selPaciente').select2('destroy');
+        const el = document.getElementById('modalConceptosRecibo');
+        if (!el) return;
+        if (el.parentElement !== document.body) {
+            document.body.appendChild(el);
         }
-        
-        let ajaxUrl = HAS_PORTAL_PACIENTE ? '../api/autocomplete_pacientes.pl' : '../api/autocomplete_pacientes_privados.pl';
-        let ajaxDataFn = HAS_PORTAL_PACIENTE ? function (params) { return { term: params.term }; } : function (params) { return { term: params.term, clues: ORG_CLUES }; };
-        
-        $('#selPaciente').select2({
-            theme: 'bootstrap-5',
-            placeholder: '🔍 Escribe el nombre del paciente (Privado)...',
-            minimumInputLength: 2,
-            tags: !HAS_PORTAL_PACIENTE, // Permitir agregar nuevos nombres si no hay portal
-            ajax: {
-                url: ajaxUrl,
-                dataType: 'json',
-                delay: 350,
-                data: ajaxDataFn,
-                processResults: function (data) {
-                    return { results: data.map(function(item) { return { id: item.id, text: item.label }; }) };
-                }
-            },
-            createTag: function(params) {
-                if(HAS_PORTAL_PACIENTE) return null; // No permitir crear si el portal global manda
-                var term = $.trim(params.term);
-                if (term === '') return null;
-                return { id: term, text: term, newTag: true };
-            },
-            language: {
-                inputTooShort: function() { return "Por favor ingresa 2 o más caracteres"; },
-                noResults: function() { return HAS_PORTAL_PACIENTE ? "No se encontraron resultados" : "Presiona enter para agregar como nuevo paciente"; },
-                searching: function() { return "Buscando..."; }
-            }
+        const m = bootstrap.Modal.getOrCreateInstance(el);
+        m.show();
+    }
+
+    function agregarAlCarritoModalRecibo(id) {
+        const item = masterCatalogoRecibo.find(x => x.id === id);
+        if (!item) return;
+        let ex = modalCartItems.find(x => x.nombre === item.nombre);
+        if (ex) {
+            ex.cantidad++;
+        } else {
+            modalCartItems.push({ id: item.id, nombre: item.nombre, precio: parseFloat(item.precio), cantidad: 1 });
+        }
+        _renderizarCarritoModalRecibo();
+    }
+
+    function agregarItemManualRecibo() {
+        const nomIn = document.getElementById('reciboManualNombre');
+        const precIn = document.getElementById('reciboManualPrecio');
+        if (!nomIn || !precIn) return;
+        const nombre = nomIn.value.trim();
+        const precio = parseFloat(precIn.value) || 0;
+        if (!nombre) {
+            Swal.fire('Atención', 'Ingresa el nombre del concepto.', 'warning');
+            return;
+        }
+        modalCartItems.push({
+            id: 'MAN-' + Date.now(),
+            nombre: nombre,
+            precio: precio,
+            cantidad: 1
         });
+        nomIn.value = '';
+        precIn.value = '';
+        _renderizarCarritoModalRecibo();
     }
 
-    let pacienteTipoActual = 'privado';
+    function _renderizarCarritoModalRecibo() {
+        const container = document.getElementById('reciboListaCarritoModal');
+        const totalEl = document.getElementById('reciboTotalCarritoModal');
+        if (!container) return;
 
-    function cambiarTipoPaciente(e) {
-        // Función mantenida por compatibilidad (vacía)
+        if (modalCartItems.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-cart-x fs-1 d-block mb-2 text-black-50"></i>
+                    <span class="fw-bold small">Sin conceptos</span>
+                </div>`;
+            if (totalEl) totalEl.textContent = '$0.00';
+            return;
+        }
+
+        let html = '';
+        let total = 0;
+        modalCartItems.forEach((it, idx) => {
+            const sub = it.precio * it.cantidad;
+            total += sub;
+            html += `
+                <div class="bg-white p-2 mb-2 rounded-3 border shadow-sm d-flex align-items-center justify-content-between gap-2">
+                    <div class="lh-sm flex-grow-1 overflow-hidden">
+                        <div class="fw-bold text-dark text-truncate small">${escapeHtml(it.nombre)}</div>
+                        <div class="text-muted small" style="font-size:0.75rem;">${formatCurrency(it.precio)} c/u</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <button type="button" class="btn btn-sm btn-light border p-0 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:22px; height:22px; line-height:1;" onclick="updateModalQtyRecibo(${idx}, -1)">-</button>
+                        <span class="fw-bold small px-1">${it.cantidad}</span>
+                        <button type="button" class="btn btn-sm btn-light border p-0 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:22px; height:22px; line-height:1;" onclick="updateModalQtyRecibo(${idx}, 1)">+</button>
+                    </div>
+                    <div class="fw-bold text-primary small text-end" style="min-width:60px;">${formatCurrency(sub)}</div>
+                    <button type="button" class="btn btn-sm text-danger p-0 border-0 shadow-none" onclick="removeModalItemRecibo(${idx})"><i class="bi bi-trash"></i></button>
+                </div>`;
+        });
+        container.innerHTML = html;
+        if (totalEl) totalEl.textContent = formatCurrency(total);
     }
-    
-    function seleccionarPacientePrivado() {
-        if(!$('#selPaciente').val()) return; // Evitar dispararse a sí mismo cuando se limpia vía JS
-        pacienteTipoActual = 'privado';
-        $('#resultadosEmpleado').html('');
-        $('#resultadosEmpleadoContainer').hide();
-        $('#iptNumEmpleado').val('');
-        pacienteEstadoSeleccionado = { id: '', nombre: '' };
+
+    function updateModalQtyRecibo(idx, delta) {
+        if (modalCartItems[idx]) {
+            modalCartItems[idx].cantidad += delta;
+            if (modalCartItems[idx].cantidad < 1) modalCartItems[idx].cantidad = 1;
+            _renderizarCarritoModalRecibo();
+        }
     }
-    
-    function formatCurrency(val) {
-        return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val);
+
+    function removeModalItemRecibo(idx) {
+        modalCartItems.splice(idx, 1);
+        _renderizarCarritoModalRecibo();
     }
-    
-    function removeConcepto(id) {
-        cartItems = cartItems.filter(item => item.id != id);
+
+    function guardarConceptosModalRecibo() {
+        cartItems = JSON.parse(JSON.stringify(modalCartItems));
+        renderCart();
+        const el = document.getElementById('modalConceptosRecibo');
+        if (el) {
+            const m = bootstrap.Modal.getInstance(el);
+            if (m) m.hide();
+        }
+    }
+
+    function removeConcepto(idx) {
+        cartItems.splice(idx, 1);
         renderCart();
     }
 
-    function updateCantidad(id, delta) {
-        let ex = cartItems.find(i => i.id == id);
-        if (ex) {
-            ex.cantidad += delta;
-            if (ex.cantidad < 1) ex.cantidad = 1;
+    function updateCantidad(idx, delta) {
+        if (cartItems[idx]) {
+            cartItems[idx].cantidad += delta;
+            if (cartItems[idx].cantidad < 1) cartItems[idx].cantidad = 1;
             renderCart();
         }
     }
-    
-    function editarConcepto(id) {
-        let ex = cartItems.find(i => i.id == id);
-        if (ex) {
-            Swal.fire("Aviso", "Para editar este concepto, bórrelo y agréguelo de nuevo desde el catálogo.", "info");
-        }
-    }
-    
+
     function renderCart() {
         const cMain = $('#cartContainer');
         
         if (cartItems.length === 0) {
-            let emptyHtml = '<div class="text-center p-10 text-slate-300 font-bold small" id="cartEmpty"><i class="bi bi-cart-x fs-2 d-block mb-2 text-black-50"></i>No hay conceptos agregados</div>';
+            let emptyHtml = '<div class="text-center text-muted small py-4" id="cartEmpty"><i class="bi bi-cart-x fs-2 d-block mb-2 text-black-50"></i>Ningún concepto agregado</div>';
             cMain.html(emptyHtml);
+            $('#taxAmountText').text('$0.00');
             $('#cartTotalText').text('$0.00');
             return;
         }
 
-        let htmlModal = '';
+        let html = '';
         let total = 0;
         
-        cartItems.forEach(item => {
+        cartItems.forEach((item, idx) => {
             const sub = item.precio * item.cantidad;
             total += sub;
             
-            htmlModal += `
-                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-2">
-                    <div class="lh-sm flex-grow-1">
-                        <span class="fw-black text-slate-800 d-block mb-1 text-xs uppercase">${escapeHtml(item.nombre)}</span>
-                        <small class="text-slate-400 fw-bold">${formatCurrency(item.precio)} c/u</small>
+            html += `
+                <div class="bg-light p-2 rounded-3 border mb-2 d-flex flex-column gap-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="fw-bold text-dark text-xs text-uppercase flex-grow-1 me-2">${escapeHtml(item.nombre)}</span>
+                        <button type="button" class="btn btn-sm text-danger p-0 border-0 shadow-none" onclick="removeConcepto(${idx})"><i class="bi bi-trash"></i></button>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 flex-wrap">
-                        <div class="d-flex align-items-center gap-2 bg-white rounded-pill px-2 py-1 border shadow-sm">
-                            <button class="btn btn-sm btn-light rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;" onclick="updateCantidad('${escapeHtml(item.id)}', -1)"><i class="bi bi-dash"></i></button>
-                            <span class="fw-bold px-2 text-sm">${item.cantidad}</span>
-                            <button class="btn btn-sm btn-light rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;" onclick="updateCantidad('${escapeHtml(item.id)}', 1)"><i class="bi bi-plus"></i></button>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="fw-black text-primary d-inline-block text-end" style="min-width: 70px;">${formatCurrency(sub)}</span>
-                            <button class="btn btn-sm btn-white text-primary border shadow-sm rounded-xl p-2" onclick="editarConcepto('${escapeHtml(item.id)}')"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-white text-danger border shadow-sm rounded-xl p-2" onclick="removeConcepto('${escapeHtml(item.id)}')"><i class="bi bi-trash"></i></button>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted fw-bold">${formatCurrency(item.precio)} c/u</small>
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:22px; height:22px; line-height:1;" onclick="updateCantidad(${idx}, -1)">-</button>
+                            <span class="fw-bold small px-1">${item.cantidad}</span>
+                            <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:22px; height:22px; line-height:1;" onclick="updateCantidad(${idx}, 1)">+</button>
+                            <span class="fw-bold text-primary ms-2">${formatCurrency(sub)}</span>
                         </div>
                     </div>
                 </div>
             `;
         });
         
-        cMain.html(htmlModal);
+        cMain.html(html);
         
         let iva = 0;
         if ($('#chkIva').length && $('#chkIva').is(':checked')) {
             iva = total * 0.16;
         }
         
-        let totalIvaText = iva > 0 ? formatCurrency(iva) : '\\$0.00';
+        let totalIvaText = iva > 0 ? formatCurrency(iva) : '$0.00';
         $('#taxAmountText').text(totalIvaText);
         
         let totalFmt = formatCurrency(total + iva);
@@ -831,6 +896,86 @@ JS
 utils::sub_sidebar::render_sidebar_footer();
 
 print <<"HTML";
+<!-- MODAL CONCEPTOS DEL RECIBO -->
+<div class="modal fade" id="modalConceptosRecibo" tabindex="-1" aria-labelledby="modalConceptosReciboTitle" aria-hidden="true" style="z-index: 108000 !important;">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content overflow-hidden border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-2" style="background: linear-gradient(135deg, #0A2A66 0%, #f59e0b 100%);">
+                <h5 class="modal-title fw-bold text-white" id="modalConceptosReciboTitle">
+                    <i class="bi bi-cart-plus me-2"></i>Conceptos del Recibo
+                </h5>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3" style="background: #f8fafc;">
+                <div class="row g-3">
+                    <!-- Columna Izquierda: Catálogo -->
+                    <div class="col-lg-7">
+                        <div class="card border-0 shadow-sm mb-2 rounded-3">
+                            <div class="card-body p-3">
+                                <label class="fw-bold small text-muted text-uppercase mb-2 d-block">Entrada Manual</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" id="reciboManualNombre" class="form-control" placeholder="Concepto (ej. Consulta General)">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" id="reciboManualPrecio" class="form-control" style="max-width: 90px;" placeholder="0.00" step="0.01" min="0">
+                                    <button type="button" class="btn btn-primary px-3" onclick="agregarItemManualRecibo()"><i class="bi bi-plus-lg"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <select id="reciboSelDep" class="form-select form-select-sm border-0 shadow-sm rounded-pill" onchange="_onDepChangeRecibo()">
+                                    <option value="">Todos los Departamentos</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <select id="reciboSelCat" class="form-select form-select-sm border-0 shadow-sm rounded-pill" onchange="_filtrarCatalogoRecibo()">
+                                    <option value="">Todas las Categorías</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="position-relative mb-2">
+                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted small"></i>
+                            <input type="text" id="reciboBuscador" class="form-control form-control-sm ps-5 py-2 rounded-pill shadow-sm border-0" placeholder="Buscar en catálogo..." oninput="_filtrarCatalogoRecibo()">
+                        </div>
+                        <div class="table-responsive border rounded-3 bg-white shadow-sm" style="max-height: 220px; overflow-y: auto;">
+                            <table class="table table-hover table-sm align-middle mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th class="ps-3 py-2 text-uppercase text-muted small fw-bold">Concepto</th>
+                                        <th class="text-end py-2 text-uppercase text-muted small fw-bold">Precio</th>
+                                        <th style="width: 50px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reciboTablaCatalogo"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Columna Derecha: Carrito en el Modal -->
+                    <div class="col-lg-5">
+                        <div class="card border-0 shadow-sm h-100 d-flex flex-column rounded-3">
+                            <div class="card-body p-3 d-flex flex-column">
+                                <h6 class="fw-bold text-primary mb-2">
+                                    <i class="bi bi-cart3 me-1"></i>Conceptos del Recibo
+                                </h6>
+                                <div id="reciboListaCarritoModal" class="flex-grow-1 overflow-auto mb-2 pe-1" style="max-height: 220px;"></div>
+                                <div class="p-3 bg-light rounded-3 border shadow-sm mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="small fw-bold text-muted">TOTAL</span>
+                                        <span class="h4 fw-bold text-primary m-0" id="reciboTotalCarritoModal">\$0.00</span>
+                                    </div>
+                                    <button type="button" id="btnGuardarConceptosRecibo" class="btn btn-warning btn-sm w-100 py-2 fw-bold rounded-3 shadow text-dark" onclick="guardarConceptosModalRecibo()">
+                                        <i class="bi bi-check-lg me-1"></i>GUARDAR CONCEPTOS
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Recibo Previo -->
 <div class="modal fade" id="modalReciboPrevio" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
