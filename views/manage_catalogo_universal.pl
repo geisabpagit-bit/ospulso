@@ -58,6 +58,136 @@ utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_ac
 print <<HTML;
         <link rel="stylesheet" href="../css/sdm_mobile_standards.css?v=$^T">
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+        
+        <style>
+            /* Estilos Institucionales Premium (Azul Marino #0A2A66 & Navy) */
+            :root {
+                --inst-navy-deep: #0A2A66;
+                --inst-navy-mid: #124A9E;
+                --inst-navy-hover: #071f4f;
+            }
+
+            /* Pestañas de Navegación Institucionales */
+            #catalogoTabs .nav-link {
+                color: #475569;
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                padding: 0.65rem 1.5rem;
+                font-weight: 600;
+                transition: all 0.2s ease-in-out;
+            }
+            #catalogoTabs .nav-link:hover {
+                color: var(--inst-navy-deep);
+                background: rgba(10, 42, 102, 0.05);
+                border-color: rgba(10, 42, 102, 0.2);
+            }
+            #catalogoTabs .nav-link.active {
+                background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;
+                color: #ffffff !important;
+                border-color: var(--inst-navy-deep) !important;
+                box-shadow: 0 4px 12px rgba(10, 42, 102, 0.25) !important;
+            }
+
+            /* Panel de Filtros Institucional */
+            .filter-panel-premium {
+                background: #ffffff;
+                border: 1px solid rgba(10, 42, 102, 0.12) !important;
+                box-shadow: 0 4px 15px rgba(10, 42, 102, 0.04) !important;
+            }
+            .filter-panel-premium label {
+                color: var(--inst-navy-deep) !important;
+                font-size: 0.8rem;
+            }
+
+            /* Botones Institucionales */
+            .btn-navy-primary {
+                background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;
+                color: #ffffff !important;
+                border: none !important;
+                font-weight: 600;
+                box-shadow: 0 4px 10px rgba(10, 42, 102, 0.2);
+                white-space: nowrap;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.35rem;
+                padding: 0.45rem 1.15rem;
+                border-radius: 50rem;
+                transition: all 0.2s ease;
+            }
+            .btn-navy-primary:hover {
+                background: linear-gradient(135deg, var(--inst-navy-hover) 0%, var(--inst-navy-deep) 100%) !important;
+                color: #ffffff !important;
+                transform: translateY(-1px);
+                box-shadow: 0 6px 15px rgba(10, 42, 102, 0.3);
+            }
+
+            .btn-navy-outline {
+                background: transparent !important;
+                color: var(--inst-navy-deep) !important;
+                border: 1.5px solid var(--inst-navy-deep) !important;
+                font-weight: 600;
+                white-space: nowrap;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.45rem 1rem;
+                border-radius: 50rem;
+                transition: all 0.2s ease;
+            }
+            .btn-navy-outline:hover {
+                background: rgba(10, 42, 102, 0.06) !important;
+                color: var(--inst-navy-deep) !important;
+            }
+
+            /* DataTables Export Toolbar Buttons */
+            .dataTables_wrapper .dt-buttons .btn,
+            .btn-export {
+                background: #ffffff !important;
+                color: #334155 !important;
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 50rem !important;
+                padding: 0.35rem 1rem !important;
+                font-size: 0.78rem !important;
+                font-weight: 600 !important;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03) !important;
+                transition: all 0.2s ease !important;
+                margin-right: 0.4rem !important;
+            }
+            .dataTables_wrapper .dt-buttons .btn:hover,
+            .btn-export:hover {
+                background: #f8fafc !important;
+                color: var(--inst-navy-deep) !important;
+                border-color: var(--inst-navy-deep) !important;
+                transform: translateY(-1px) !important;
+                box-shadow: 0 4px 10px rgba(10, 42, 102, 0.1) !important;
+            }
+
+            /* Standard DataTables Searcher input */
+            .dataTables_wrapper .dataTables_filter input {
+                border-radius: 50rem !important;
+                border: 1.5px solid #cbd5e1 !important;
+                padding: 0.35rem 0.85rem !important;
+                font-size: 0.8rem !important;
+                outline: none !important;
+                transition: all 0.2s ease !important;
+            }
+            .dataTables_wrapper .dataTables_filter input:focus {
+                border-color: var(--inst-navy-deep) !important;
+                box-shadow: 0 0 0 3px rgba(10, 42, 102, 0.1) !important;
+            }
+
+            .table-custom-header thead th {
+                background-color: #f1f5f9 !important;
+                color: #1e293b !important;
+                font-weight: 700 !important;
+                text-transform: uppercase;
+                font-size: 0.73rem !important;
+                letter-spacing: 0.5px;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+        </style>
+
         <!-- TOPBAR -->
         <header class="bg-medentia-gradient text-white p-4 shadow-sm" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 2rem;">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
@@ -72,7 +202,7 @@ print <<HTML;
             
             <!-- CONTENEDOR DE FORMULARIOS INLINE -->
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
-                <div class="card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader" style="background-color: var(--md-blue-deep) !important;">
+                <div class="card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader" style="background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;">
                     <h5 class="fw-black mb-0" id="formTitle"><i class="bi bi-pencil-square me-2"></i>Formulario</h5>
                     <button type="button" class="btn-close btn-close-white" onclick="cerrarFormulario()"></button>
                 </div>
@@ -83,7 +213,7 @@ print <<HTML;
 
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4 card-mobile-flush" id="mainCard">
                 <div class="card-header bg-white border-0 pt-3 px-3 px-md-4 pb-0 d-flex justify-content-between align-items-center">
-                    <ul class="nav nav-pills nav-fill flex-grow-1" id="catalogoTabs" role="tablist">
+                    <ul class="nav nav-pills nav-fill flex-grow-1 gap-2" id="catalogoTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#servicios" type="button" role="tab"><i class="bi bi-list-check me-2"></i>Servicios</button>
                         </li>
@@ -118,47 +248,47 @@ foreach my $cat (@{$cat_univ->{categorias} || []}) {
 
 print <<HTML;
                             <!-- PANEL DE FILTROS PERSONALIZADOS (DEPARTAMENTO, CATEGORIA Y TEXTO LIBRE) -->
-                            <div class="card bg-light border-0 shadow-sm rounded-4 p-3 mb-3">
+                            <div class="card filter-panel-premium border-0 shadow-sm rounded-4 p-3 mb-3">
                                 <div class="row g-2 align-items-center">
                                     <div class="col-12 col-md-3">
-                                        <label class="form-label fw-bold text-muted small mb-1"><i class="bi bi-diagram-3 me-1 text-primary"></i>Departamento</label>
+                                        <label class="form-label fw-bold small mb-1"><i class="bi bi-diagram-3 me-1"></i>Departamento</label>
                                         <select id="filtro_dep" class="form-select form-select-sm rounded-pill shadow-sm" onchange="onFiltroDepChange()">
                                             $filter_deps_options
                                         </select>
                                     </div>
                                     <div class="col-12 col-md-3">
-                                        <label class="form-label fw-bold text-muted small mb-1"><i class="bi bi-tags me-1 text-primary"></i>Categoría</label>
+                                        <label class="form-label fw-bold small mb-1"><i class="bi bi-tags me-1"></i>Categoría</label>
                                         <select id="filtro_cat" class="form-select form-select-sm rounded-pill shadow-sm" onchange="aplicarFiltrosTabla()">
                                             $filter_cats_options
                                         </select>
                                     </div>
-                                    <div class="col-12 col-md-4">
-                                        <label class="form-label fw-bold text-muted small mb-1"><i class="bi bi-search me-1 text-primary"></i>Texto Libre</label>
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label fw-bold small mb-1"><i class="bi bi-search me-1"></i>Texto Libre</label>
                                         <div class="position-relative">
                                             <input type="text" id="filtro_texto" class="form-control form-control-sm rounded-pill shadow-sm pe-4" placeholder="Buscar SKU, concepto, precio..." onkeyup="aplicarFiltrosTabla()">
                                             <i class="bi bi-x-circle-fill text-muted position-absolute end-0 top-50 translate-middle-y me-2 cursor-pointer" onclick="limpiarFiltroTexto()" style="display:none;" id="btn_limpiar_texto"></i>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-2 d-flex align-items-end gap-2 mt-3 mt-md-0">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill w-50 fw-bold shadow-sm" onclick="limpiarTodosFiltros()" title="Limpiar Filtros">
-                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                    <div class="col-12 col-md-3 d-flex align-items-end justify-content-md-end gap-2 mt-3 mt-md-0">
+                                        <button type="button" class="btn btn-navy-outline btn-sm rounded-pill fw-bold shadow-sm" onclick="limpiarTodosFiltros()" title="Limpiar Filtros">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
                                         </button>
-                                        <button type="button" class="btn btn-sdm-primary btn-sm rounded-pill px-3 w-50 fw-bold shadow-sm" onclick="abrirFormulario('servicio')">
-                                            <i class="bi bi-plus-circle me-1"></i>Nuevo
+                                        <button type="button" class="btn btn-navy-primary btn-sm rounded-pill fw-bold shadow-sm" onclick="abrirFormulario('servicio')">
+                                            <i class="bi bi-plus-circle me-1"></i>Nuevo Servicio
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="table-responsive dataTables_wrapper p-2 p-md-3 rounded-4" style="background-color: #f8fafc; border: 1px solid var(--md-teal-clinical);">
-                                <table id="tablaServicios" class="table table-hover align-middle w-100" style="font-size: 0.75rem;">
-                                    <thead class="table-light">
+                            <div class="table-responsive dataTables_wrapper p-2 p-md-3 rounded-4" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
+                                <table id="tablaServicios" class="table table-hover align-middle w-100 table-custom-header" style="font-size: 0.78rem;">
+                                    <thead>
                                         <tr>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">SKU</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">Concepto</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">Dep/Cat</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">Precios (Tarifas)</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0 text-end pe-4">Acciones</th>
+                                            <th class="border-0">SKU</th>
+                                            <th class="border-0">Concepto</th>
+                                            <th class="border-0">Dep/Cat</th>
+                                            <th class="border-0">Precios (Tarifas)</th>
+                                            <th class="border-0 text-end pe-4">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -176,18 +306,18 @@ foreach my $item (@{$cat_univ->{items} || []}) {
     my $precio_base = 0;
     foreach my $p (@{$item->{precios} || []}) {
         $precio_base = $p->{precio_publico} if $p->{tipo_tarifa} eq 'DIA';
-        $precios_html .= "<span class='badge bg-info me-1'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span><br>";
+        $precios_html .= "<span class='badge me-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span><br>";
     }
     
     print <<HTML;
                                         <tr data-dep-id="$dep_id" data-cat-id="$cat_id">
-                                            <td data-label="SKU"><span class="badge bg-secondary">$item->{codigo_sku}</span></td>
-                                            <td data-label="Concepto" class="fw-bold text-primary">$item->{concepto}</td>
+                                            <td data-label="SKU"><span class="badge" style="background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700;">$item->{codigo_sku}</span></td>
+                                            <td data-label="Concepto" class="fw-bold" style="color: var(--inst-navy-deep);">$item->{concepto}</td>
                                             <td data-label="Dep/Cat" class="small text-muted">$dep_cat_label</td>
                                             <td data-label="Precios">$precios_html</td>
                                             <td class="text-end">
-                                                <button class="btn btn-sm btn-outline-primary rounded-circle me-1" onclick="abrirFormulario('servicio', '$item->{id_item}', '$item->{codigo_sku}', '$item->{concepto}', '$item->{id_cat}', '$precio_base')"><i class="bi bi-pencil"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteEntity('servicio', '$item->{id_item}')"><i class="bi bi-trash"></i></button>
+                                                <button class="btn btn-sm btn-navy-outline rounded-circle me-1" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('servicio', '$item->{id_item}', '$item->{codigo_sku}', '$item->{concepto}', '$item->{id_cat}', '$precio_base')"><i class="bi bi-pencil"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEntity('servicio', '$item->{id_item}')"><i class="bi bi-trash"></i></button>
                                             </td>
                                         </tr>
 HTML
@@ -202,20 +332,20 @@ print <<HTML;
                         <!-- PESTAÑA PRODUCTOS -->
                         <div class="tab-pane fade" id="productos" role="tabpanel">
                             <div class="d-flex justify-content-end mb-3">
-                                <button class="btn btn-sdm-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('producto')">
+                                <button type="button" class="btn btn-navy-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('producto')">
                                     <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
                                 </button>
                             </div>
-                            <div class="table-responsive dataTables_wrapper p-3 rounded-4" style="background-color: #f8fafc; border: 1px solid var(--md-teal-clinical);">
-                                <table id="tablaProductos" class="table table-hover align-middle w-100" style="font-size: 0.75rem;">
-                                    <thead class="table-light">
+                            <div class="table-responsive dataTables_wrapper p-2 p-md-3 rounded-4" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
+                                <table id="tablaProductos" class="table table-hover align-middle w-100 table-custom-header" style="font-size: 0.78rem;">
+                                    <thead>
                                         <tr>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">ID</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">Nombre</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">Descripción</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">Presentación</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0">Precio</th>
-                                            <th class="small fw-bold text-muted text-uppercase border-0 text-end">Acciones</th>
+                                            <th class="border-0">ID</th>
+                                            <th class="border-0">Nombre</th>
+                                            <th class="border-0">Descripción</th>
+                                            <th class="border-0">Presentación</th>
+                                            <th class="border-0">Precio</th>
+                                            <th class="border-0 text-end">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -225,13 +355,13 @@ foreach my $prod (@{$cat_univ->{productos} || []}) {
     print <<HTML;
                                         <tr>
                                             <td><span class="badge bg-secondary">$$prod{id_prod}</span></td>
-                                            <td class="fw-bold text-primary">$$prod{nombre}</td>
+                                            <td class="fw-bold" style="color: var(--inst-navy-deep);">$$prod{nombre}</td>
                                             <td class="small text-muted">$$prod{descripcion}</td>
                                             <td class="small">$$prod{presentacion}</td>
                                             <td class="fw-bold text-success">\$$$prod{precio}</td>
                                             <td class="text-end">
-                                                <button class="btn btn-sm btn-outline-primary rounded-circle me-1" onclick="abrirFormulario('producto', '$$prod{id_prod}', '$$prod{nombre}', '$$prod{precio}', '$$prod{cantidad}', '$$prod{presentacion}', '$$prod{descripcion}')"><i class="bi bi-pencil"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteEntity('producto', '$$prod{id_prod}')"><i class="bi bi-trash"></i></button>
+                                                <button class="btn btn-sm btn-navy-outline rounded-circle me-1" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('producto', '$$prod{id_prod}', '$$prod{nombre}', '$$prod{precio}', '$$prod{cantidad}', '$$prod{presentacion}', '$$prod{descripcion}')"><i class="bi bi-pencil"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEntity('producto', '$$prod{id_prod}')"><i class="bi bi-trash"></i></button>
                                             </td>
                                         </tr>
 HTML
@@ -248,23 +378,23 @@ print <<HTML;
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 class="fw-bold mb-0">Departamentos</h5>
-                                        <button class="btn btn-sdm-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('departamento')">
+                                        <h5 class="fw-bold mb-0" style="color: var(--inst-navy-deep);">Departamentos</h5>
+                                        <button type="button" class="btn btn-navy-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('departamento')">
                                             <i class="bi bi-plus-circle me-1"></i>Nuevo
                                         </button>
                                     </div>
-                                    <ul class="list-group list-group-flush border rounded">
+                                    <ul class="list-group list-group-flush border rounded-4 shadow-sm overflow-hidden">
 HTML
 
 foreach my $dep (@{$cat_univ->{departamentos} || []}) {
     print <<HTML;
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
                                             <div>
-                                                <span class="badge bg-primary rounded-pill me-2">$dep->{id_dep}</span>$dep->{nombre}
+                                                <span class="badge rounded-pill me-2" style="background-color: var(--inst-navy-deep); color: white;">$dep->{id_dep}</span><strong style="color: var(--inst-navy-deep);">$dep->{nombre}</strong>
                                             </div>
                                             <div>
-                                                <button class="btn btn-sm text-primary p-1" onclick="abrirFormulario('departamento', '$dep->{id_dep}', '$dep->{nombre}')"><i class="bi bi-pencil"></i></button>
-                                                <button class="btn btn-sm text-danger p-1" onclick="deleteEntity('departamento', '$dep->{id_dep}')"><i class="bi bi-trash"></i></button>
+                                                <button class="btn btn-sm btn-navy-outline rounded-circle me-1" style="width: 30px; height: 30px; padding: 0;" onclick="abrirFormulario('departamento', '$dep->{id_dep}', '$dep->{nombre}')"><i class="bi bi-pencil"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 30px; height: 30px; padding: 0;" onclick="deleteEntity('departamento', '$dep->{id_dep}')"><i class="bi bi-trash"></i></button>
                                             </div>
                                         </li>
 HTML
@@ -275,24 +405,24 @@ print <<HTML;
                                 </div>
                                 <div class="col-md-6 mt-4 mt-md-0">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 class="fw-bold mb-0">Categorías</h5>
-                                        <button class="btn btn-sdm-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('categoria')">
+                                        <h5 class="fw-bold mb-0" style="color: var(--inst-navy-deep);">Categorías</h5>
+                                        <button type="button" class="btn btn-navy-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('categoria')">
                                             <i class="bi bi-plus-circle me-1"></i>Nueva
                                         </button>
                                     </div>
-                                    <ul class="list-group list-group-flush border rounded">
+                                    <ul class="list-group list-group-flush border rounded-4 shadow-sm overflow-hidden">
 HTML
 
 foreach my $cat (@{$cat_univ->{categorias} || []}) {
     print <<HTML;
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
                                             <div>
-                                                <span class="badge bg-secondary rounded-pill me-2">$cat->{id_cat}</span>$cat->{nombre}
+                                                <span class="badge bg-secondary rounded-pill me-2">$cat->{id_cat}</span><strong>$cat->{nombre}</strong>
                                                 <small class="text-muted ms-2">(Dep: $cat->{id_dep})</small>
                                             </div>
                                             <div>
-                                                <button class="btn btn-sm text-primary p-1" onclick="abrirFormulario('categoria', '$cat->{id_cat}', '$cat->{id_dep}', '$cat->{nombre}')"><i class="bi bi-pencil"></i></button>
-                                                <button class="btn btn-sm text-danger p-1" onclick="deleteEntity('categoria', '$cat->{id_cat}')"><i class="bi bi-trash"></i></button>
+                                                <button class="btn btn-sm btn-navy-outline rounded-circle me-1" style="width: 30px; height: 30px; padding: 0;" onclick="abrirFormulario('categoria', '$cat->{id_cat}', '$cat->{id_dep}', '$cat->{nombre}')"><i class="bi bi-pencil"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 30px; height: 30px; padding: 0;" onclick="deleteEntity('categoria', '$cat->{id_cat}')"><i class="bi bi-trash"></i></button>
                                             </div>
                                         </li>
 HTML
@@ -522,7 +652,7 @@ print <<'JS';
                             </div>
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="button" class="btn btn-light border" onclick="cerrarFormulario()">Cancelar</button>
-                                <button type="submit" class="btn btn-sdm-primary px-4"><i class="bi bi-save me-2"></i>Guardar</button>
+                                <button type="submit" class="btn btn-navy-primary px-4"><i class="bi bi-save me-2"></i>Guardar</button>
                             </div>
                         </form>
                     `;
@@ -547,7 +677,7 @@ print <<'JS';
                             </div>
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="button" class="btn btn-light border" onclick="cerrarFormulario()">Cancelar</button>
-                                <button type="submit" class="btn btn-sdm-primary px-4"><i class="bi bi-save me-2"></i>Guardar</button>
+                                <button type="submit" class="btn btn-navy-primary px-4"><i class="bi bi-save me-2"></i>Guardar</button>
                             </div>
                         </form>
                     `;
@@ -587,7 +717,7 @@ print <<'JS';
                             </div>
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="button" class="btn btn-light border" onclick="cerrarFormulario()">Cancelar</button>
-                                <button type="submit" class="btn btn-sdm-primary px-4"><i class="bi bi-save me-2"></i>Guardar</button>
+                                <button type="submit" class="btn btn-navy-primary px-4"><i class="bi bi-save me-2"></i>Guardar</button>
                             </div>
                         </form>
                     `;
@@ -646,7 +776,7 @@ print <<'JS';
                             </div>
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="button" class="btn btn-light border" onclick="cerrarFormulario()">Cancelar</button>
-                                <button type="submit" class="btn btn-sdm-primary px-4"><i class="bi bi-save me-2"></i>Guardar</button>
+                                <button type="submit" class="btn btn-navy-primary px-4"><i class="bi bi-save me-2"></i>Guardar</button>
                             </div>
                         </form>
                     `;
