@@ -386,33 +386,8 @@ HTML
 
     # 5. Finanzas Accordion
     if ($is_allowed{finanzas}) {
-        my $fin_active = ($pagina_actual eq 'finanzas') ? 'show' : '';
+        my $fin_active = ($pagina_actual eq 'finanzas' || $pagina_actual eq 'caja_rapida') ? 'show' : '';
         my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
-        
-        print qq{
-            <!-- Finanzas Integradas -->
-            <div class="accordion-item bg-transparent border-0 mb-1">
-                <h2 class="accordion-header" id="h-finanzas">
-                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="false" aria-controls="c-finanzas">
-                        <i class="bi bi-cash-stack text-success" style="color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Finanzas</span>
-                    </button>
-                </h2>
-                <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas" data-bs-parent="#accordionSidebar">
-                    <div class="accordion-body pb-0 pt-1">
-                        <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
-                        <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
-        };
-
-        if ($role !~ /Medico/i || ($role =~ /Medico/i && ($tipo_org =~ /Individual/i || $tipo_org =~ /Compartido/i))) {
-            print qq{
-                        <a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>
-            };
-        }
-
-        print qq{
-                        <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Gastos (Egresos)</span></a>
-                        <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cuentas por Cobrar (Privadas)</span></a>
-        };
         
         my $has_pacientes_estado = 0;
         my $id_empresa = $args{id_empresa} || '';
@@ -430,23 +405,33 @@ HTML
             close($cf);
         }
 
+        print qq{
+            <!-- Finanzas Integradas -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-finanzas">
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="false" aria-controls="c-finanzas">
+                        <i class="bi bi-cash-stack text-success" style="color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Finanzas</span>
+                    </button>
+                </h2>
+                <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas" data-bs-parent="#accordionSidebar">
+                    <div class="accordion-body pb-0 pt-1">
+                        <a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>
+                        <a href="../views/finanzas.pl?tab=corte_caja" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-safe text-primary me-2"></i><span class="sidebar-text fw-bold">Corte de Caja</span></a>
+                        <hr class="my-2 opacity-25">
+                        <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
+                        <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Egresos</span></a>
+                        <hr class="my-2 opacity-25">
+                        <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cxc Privadas</span></a>
+        };
+
         if ($has_pacientes_estado) {
             print qq{
-                        <a href="../views/finanzas.pl?tab=cxc_estado" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-bank2 text-info me-2"></i><span class="sidebar-text">Cuentas por Cobrar (Estado)</span></a>
-            };
-        }
-
-        if ($role =~ /Administrador Organizacion|Recepcionista/i) {
-            print qq{
-                        <hr class="my-2 opacity-25">
-                        <a href="../views/finanzas.pl?tab=corte_caja" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-safe text-primary me-2"></i><span class="sidebar-text fw-bold">Corte de Caja</span></a>
+                        <a href="../views/finanzas.pl?tab=cxc_estado" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-bank2 text-info me-2"></i><span class="sidebar-text">Cxc Estado</span></a>
             };
         }
 
         print qq{
-                        <hr class="my-2 opacity-25">
-                        <a href="../views/finanzas.pl?tab=facturacion" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt text-muted me-2"></i><span class="sidebar-text">Facturaci&oacute;n PAC</span></a>
-                        <a href="../views/finanzas.pl?tab=reportes" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-file-earmark-bar-graph-fill text-muted me-2"></i><span class="sidebar-text">Reportes (P&L)</span></a>
+                        <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
                     </div>
                 </div>
             </div>

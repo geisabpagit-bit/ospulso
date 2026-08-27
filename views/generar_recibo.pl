@@ -271,16 +271,16 @@ print <<"HTML";
                     
                     <div class="row g-3">
                         <!-- 1. Paciente Privado -->
-                        <div class="col-md-6">
-                            <div class="mb-4 diamond-input-armor rounded-3">
+                        <div class="col-12">
+                            <div class="mb-3 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Paciente Privado</label>
                                 <select id="selPaciente" class="form-select border-0 shadow-none fw-bold" onchange="seleccionarPacientePrivado()"></select>
                             </div>
                         </div>
                         
                         <!-- Paciente Público -->
-                        <div class="col-md-6">
-                            <div class="mb-4 diamond-input-armor">
+                        <div class="col-12">
+                            <div class="mb-3 diamond-input-armor">
                                 <label class="small fw-bold text-muted mb-2 ps-1">N&uacute;mero Empleado (Estado)</label>
                                 <div class="input-group-caja">
                                     <input type="number" id="iptNumEmpleado" class="form-control" placeholder="Ej. 12345" onkeypress="if(event.key==='Enter') buscarEmpleadoEstado()">
@@ -299,8 +299,8 @@ HTML
 if ($has_custom_medicos) {
 print <<"HTML";
                         <!-- 2. Especialidad -->
-                        <div class="col-md-6">
-                            <div class="mb-4 diamond-input-armor rounded-3">
+                        <div class="col-12">
+                            <div class="mb-3 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Especialidad</label>
                                 <select id="selEspecialidadCustom" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="filtrarMedicosCustom()" required>
                                     $espe_options
@@ -313,8 +313,8 @@ HTML
 print <<"HTML";
                         
                         <!-- 3. Médico Tratante -->
-                        <div class="col-md-6">
-                            <div class="mb-4 diamond-input-armor rounded-3">
+                        <div class="col-12">
+                            <div class="mb-3 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Médico Tratante</label>
                                 <select id="selMedico" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" required>
 HTML
@@ -331,8 +331,8 @@ print <<"HTML";
                         </div>
                         
                         <!-- 4. Método de Pago -->
-                        <div class="col-md-6">
-                            <div class="mb-4 diamond-input-armor rounded-3">
+                        <div class="col-12">
+                            <div class="mb-3 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Método de Pago</label>
                                 <select id="selMetodoPago" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent">
                                     <option value="Efectivo">Efectivo</option>
@@ -349,8 +349,8 @@ HTML
 if ($org_clues ne '') {
 print <<"HTML";
                         <!-- 5. Concepto del Recibo -->
-                        <div class="col-md-6">
-                            <div class="mb-4 diamond-input-armor rounded-3">
+                        <div class="col-12">
+                            <div class="mb-3 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Concepto del Recibo</label>
                                 <select id="selConceptoRecibo" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" required>
                                     $motivos_html
