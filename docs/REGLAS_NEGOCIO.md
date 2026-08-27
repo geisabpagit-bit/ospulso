@@ -58,9 +58,25 @@
 - **Inmutabilidad en Edición**: Al editar un registro existente, el "Núm. Empleado" y la "Relación" quedan estrictamente bloqueados (`readonly`/`disabled`) para prevenir alteraciones en la jerarquía clínica que comprometerían los presupuestos y el expediente familiar.
 - **Resolución de Catálogos en Caliente**: Las dependencias y municipios no se manejan como IDs crudos en la interfaz. El Backend carga los catálogos (`municipios.dat` y `dependencia.dat`) en memoria y el Frontend despliega selectores descriptivos interactivos (`<select>` bajo estándar form-floating).
 
-### 9.2 Caja Rápida (Recibos Privados vs Públicos)
-- **Flujo Intercambiable**: El wizard de Caja Rápida permite alternar entre paciente Privado y Público (Capacidad SaaS). Si es Público, se habilita la búsqueda asíncrona avanzada.
-- **Mapeo Relacional de Dependencia (API)**: En la API de búsqueda (`buscar_familia_empleado.pl`), el sistema no devuelve el ID huérfano de la dependencia, sino que cruza dinámicamente con el catálogo para presentar el nombre administrativo real a la Recepcionista.
-- **Trazabilidad de Impresión (Corrección de Estado)**: El sistema garantiza el pase correcto del `id_tratamiento` hacia los endpoints de emisión PDF (`imprimir_recibo_publico.pl` / `imprimir_recibo_caja.pl`), asegurando que cada movimiento quede sellado financieramente en la sesión del cajero.
+## 10. Catálogo Universal 3NF Multi-Tenant (`views/manage_catalogo_universal.pl`)
+- **Control de Acceso RBAC**: Exclusivo para los roles `Administrador Global` y `Administrador Organizacion`.
+- **Filtros en Cascada y Búsqueda**: La tabla de servicios se filtra relacionalmente mediante selector de Departamento, selector dependiente de Categoría y campo de Texto Libre conectado a `$.fn.dataTable.ext.search`.
+- **Normalización Inmediata a MAYÚSCULAS**:
+  - Tanto en la creación como en la edición de Departamentos y Categorías, la entrada de texto convierte los caracteres a MAYÚSCULAS en tiempo real (`oninput="this.value = this.value.toUpperCase()"`).
+  - El backend valida y aplica `$nombre = uc($nombre);` antes de actualizar el almacenamiento 3NF.
+- **Pre-selección de Departamento**: En el formulario de edición de Categorías, el selector de Departamento pre-selecciona siempre por defecto la unidad asignada a la categoría (`selected`), evitando la asignación del primer valor del catálogo.
 
-**GEISABPA - Diamond Edition v4.4.0**
+## 11. Registro Polimórfico de Usuarios y Recepcionistas (`views/administracion_usuarios.pl`)
+- **Adaptabilidad según Rol Operativo**:
+  - Al dar de alta o editar un colaborador con el rol `Recepcionista`, el sistema **OCULTA Y OMITE** los campos de *Especialidad Médica* y *Subespecialidad*.
+  - El sistema habilita la vinculación directa con la lista de médicos de la organización o un campo libre para el nombre de la persona a cargo de la recepción.
+
+## 12. Formato de Pie de Recibos (CLUE / Sucursal)
+- **Prioridad de Datos**: Se extraen los datos de la unidad médica desde `CAT_CLUES.dat` (si existe la clave CLUE); de lo contrario, se utilizan los datos de la Sucursal en `negocios.dat`.
+- **Formato Limpio Sin Paréntesis**: La línea final debe formatearse exactamente como: `Calle y No., Colonia / Localidad, Municipio / Alcaldía, Entidad Federativa, Teléfono, CP: XXXXX`, prohibiendo estrictamente el uso de paréntesis envueltos en los valores.
+
+## 13. Gobernanza de Copias de Seguridad (`views/admin_backups.pl`)
+- **Disparo Manual Exclusivo**: Todos los botones de acción en la vista deben definir `type="button"` para prevenir el envío accidental de formularios o autogeneración de respaldos al cargar la página.
+- **Patrón de Nombre de Archivo**: La API de borrado y restauración (`api/delete_backup_api.pl`, `api/restore_db_api.pl`) soporta de forma transparente los dos prefijos de archivo oficiales: `auto_backup_ospulso_` y `ospulso_backup_`.
+
+**GEISABPA - Diamond Edition v4.4.1**

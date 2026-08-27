@@ -48,7 +48,31 @@ El sistema soporta tres escenarios operativos integrales para el cobro de la con
   - Al completar la transacción en Recepción desde el modal, el callback de JS actualiza el objeto local en tiempo real, oculta el botón e intercambia el botón por la insignia sin recargar la página.
 
 ### 2.6 Auditoría UTF-8 y Estandarización JSON
-- Estandarización de `decode_json(encode_utf8(...))` para eliminar la doble codificación de caracteres en conceptos financieros y notas clínicas, garantizando acentuación impecable (ej. `Consulta Médica` en lugar de `CONSULTA MÃ©DICA`).
+### 2.7 Catálogo Universal 3NF Multi-Tenant (`views/manage_catalogo_universal.pl`)
+- **Arquitectura de Datos 3NF**: Gestión centralizada multi-tenant segregada por `id_raiz` / `id_empresa` para Servicios, Productos, Departamentos y Categorías.
+- **Filtros en Cascada y Búsqueda Avanzada**:
+  - Panel dinámico con selector de **Departamento** $\rightarrow$ selector en cascada de **Categoría** $\rightarrow$ campo de **Texto Libre**.
+  - Integración nativa con DataTables (`$.fn.dataTable.ext.search`) y barra de exportación estilizada (*Copiar*, *Excel*, *PDF*, *Imprimir*).
+- **Estandarización UI/UX Premium (Azul Marino `#0A2A66`)**:
+  - Desanidación de capas contenedoras (`container-mobile-flush` / `card-mobile-flush`) eliminando márgenes redundantes y el efecto de "caja sobre caja".
+  - Paleta institucional mandante en pestañas y botones (`.btn-navy-primary` y `.btn-navy-outline`) previniendo el desbordamiento de texto.
+- **Normalización en MAYÚSCULAS**:
+  - Transformación instantánea a MAYÚSCULAS en el Frontend (`oninput="this.value = this.value.toUpperCase()"`) y sanitización en el Backend API (`$nombre = uc($nombre);`).
+- **Gobernanza RBAC**: Acceso habilitado únicamente para `Administrador Global` y `Administrador Organizacion`.
+
+### 2.8 Gestión de Usuarios y Roles Operativos (`views/administracion_usuarios.pl`)
+- **Sincronización Polimórfica de Roles**:
+  - Permite la alta y edición tanto de personal médico (`Medico`) como de personal operativo (`Recepcionista`).
+  - Al seleccionar el rol `Recepcionista`, el sistema oculta y omite los campos de especialidad médica y subespecialidad, presentando una entrada libre para el nombre del colaborador o la lista institucional de médicos asignables.
+
+### 2.9 Formato Normativo de Pie de Recibos (`api/imprimir_recibo_publico.pl` / `api/imprimir_recibo_caja.pl`)
+- **Formato Estándar CLUE / Sucursal**:
+  - El pie de los recibos impresos (públicos y de caja) recupera dinámicamente los datos de la unidad médica desde `CAT_CLUES.dat` (si cuenta con clave CLUE) o como fallback desde `negocios.dat`.
+  - Desglose limpio **sin paréntesis**: *Dirección Completa (Calle y No.), Colonia / Localidad, Municipio o Alcaldía, Entidad Federativa, Teléfono de Oficina / Clínica, Código Postal*.
+
+### 2.10 Gestión Segura de Copias de Seguridad (`views/admin_backups.pl` & APIs)
+- **Prevención de Disparos Automáticos**: Atributos explícitos `type="button"` en todos los controles para evitar la generación involuntaria de backups al cargar la página.
+- **Soporte Completo de Eliminación**: Expresión regular actualizada en `api/delete_backup_api.pl` y `api/restore_db_api.pl` permitiendo gestionar tanto autobackups (`auto_backup_ospulso_...`) como respaldos manuales (`ospulso_backup_...`).
 
 ---
 
@@ -63,13 +87,16 @@ El sistema soporta tres escenarios operativos integrales para el cobro de la con
 
 ---
 
-## 4. Historial de Ajustes Técnicos Recientes (v4.4.0)
+## 5. Historial de Ajustes Técnicos Recientes (v4.4.1)
 - **Cobro Anticipado Recepción (Supuesto A)**: Asociación relacional por `ID_OS` y deducción exacta del abono de recepción (-$500.00) ante conceptos adicionales ($800.00 -> $800.00 neto).
 - **Ocultamiento Transparente de Paneles**: Supuesto A sin adicionales oculta automáticamente Gestión de Caja y Programación de Cita.
 - **Aislamiento de Caja sin Cita**: Eliminación de arrastre de saldos pasados ($0.00 históricos) en consultas directas sin cita previa.
 - **Navegación Dinámica Dashboard**: Botones dinámicos "Ver Consulta" vs "Tomar Cita" según estado de la cita.
 - **Refactorización Bento Grid `consulta_detalles.pl`**: Visor de expediente clínico completo con Signos Vitales, SOAP, Receta, Firmas e Impresión.
 - **Insignia "Consulta Pagada en Recepción"**: Alternancia automática del botón de cobro e insignia verde en el formulario de la Agenda.
-- **Auditoría UTF-8 / JSON**: Limpieza de codificación UTF-8 en endpoints de caja y detalles de consulta.
+- **Catálogo Universal 3NF**: Refactorización de layout, barra de filtros en cascada, tema Azul Marino `#0A2A66`, normalización a MAYÚSCULAS y RBAC de Administradores.
+- **Administración de Usuarios Operativos**: Módulo de alta/edición de Recepcionistas desacoplado de especialidades médicas.
+- **Pie de Recibos CLUE / Sucursal**: Formateo sin paréntesis de la ubicación física en recibos de caja y públicos.
+- **Seguridad en Módulo de Backups**: Prevención de autobackups al ingresar a la vista y soporte de borrado para prefijos `auto_backup_` y `ospulso_backup_`.
 
-**Software Dental Mexicano - Diamond Edition v4.4.0**
+**Software Dental Mexicano - Diamond Edition v4.4.1**

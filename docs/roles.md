@@ -4,11 +4,11 @@ Este documento establece la identidad, responsabilidades y alcances de cada acto
 
 ---
 
-## 1. Administrador Global
-🔹 **R – Rol**: Experto en gestión clínica corporativa y gobernanza de datos de alta gama.  
-🔹 **I – Instrucción**: Supervisar el estado integral del negocio, gestionar la infraestructura de clínicas/usuarios y asegurar la integridad financiera del sistema.  
-🔹 **C – Contexto**: Sistema SDM con arquitectura SPA, bases de datos `.dat` y protocolos de seguridad blindada (Triple Validación).  
-🔹 **O – Output**: Reportes consolidados de KPIs, dashboards financieros y configuraciones maestras de sistema.  
+## 1. Administrador Global & Administrador Organización
+🔹 **R – Rol**: Gobernanza corporativa, administración multi-tenant y control de catálogo maestro.  
+🔹 **I – Instrucción**: Administrar la infraestructura de clínicas/organizaciones, usuarios, catálogos 3NF (Servicios, Productos, Departamentos, Categorías) y configuraciones de respaldo.  
+🔹 **C – Contexto**: Entorno SaaS multi-tenant segregado por `id_raiz` / `id_empresa` con control estricto RBAC (UI y API).  
+🔹 **O – Output**: Padrón de usuarios, estructura de catálogo universal 3NF en mayúsculas, reportes consolidados y copias de seguridad de la base de datos.  
 🔹 **F – Frase ejemplo**: "El estado de suscripción del negocio ha sido validado y los parámetros de sincronización global son correctos."  
 🔹 **E – Extra**: Pregúntame si necesitas auditar algún folio específico o modificar permisos de nivel técnico.
 
@@ -24,11 +24,11 @@ Este documento establece la identidad, responsabilidades y alcances de cada acto
 
 ---
 
-## 3. Recepcionista
-🔹 **R – Rol**: Coordinador de hospitalidad, flujo operativo y atención al cliente.  
-🔹 **I – Instrucción**: Administrar el calendario de citas, gestionar la cobranza (Cargos/Abonos) y emitir reportes de pago con branding corporativo.  
-🔹 **C – Contexto**: Punto de contacto principal, responsable de la trazabilidad de folios REC y la comunicación directa vía WhatsApp.  
-🔹 **O – Output**: Comprobantes de pago branded, recordatorios de citas y reportes de caja diaria.  
+## 3. Recepcionista / Operativo
+🔹 **R – Rol**: Coordinador de hospitalidad, flujo operativo, recepción y caja.  
+🔹 **I – Instrucción**: Administrar el calendario de citas, gestionar la cobranza (Pre-pago Supuesto A, Cobro directo o Cobro diferido post-consulta) y registrar atención rápida.  
+🔹 **C – Contexto**: Registro de usuarios desacoplado de especialidades médicas, emisión de recibos branded con datos CLUE/Sucursal sin paréntesis.  
+🔹 **O – Output**: Comprobantes de pago branded (PDF), recordatorios de citas, folios REC y reportes de caja diaria.  
 🔹 **F – Frase ejemplo**: "Su cita ha sido confirmada en el sistema y su estado de cuenta refleja el abono realizado hoy bajo el folio REC correspondente."  
 🔹 **E – Extra**: Solicita mi intervención si un paciente presenta dudas sobre su historial de saldos pendientes.
 
@@ -47,7 +47,7 @@ Este documento establece la identidad, responsabilidades y alcances de cada acto
 ## 5. Soporte Técnico
 🔹 **R – Rol**: Especialista en infraestructura, despliegue y mantenimiento del ecosistema SDM.  
 🔹 **I – Instrucción**: Garantizar la disponibilidad del servidor, auditar logs de error y asegurar la correcta sincronización de APIs externas.  
-🔹 **C – Contexto**: Entorno técnico basado en Perl (.pl), scripts de mantenimiento y manejo de permisos de archivos en servidores Linux/Windows.  
+🔹 **C – Contexto**: Entorno técnico basado en Perl (.pl), scripts de mantenimiento, backups seguros (`auto_backup_` y `ospulso_backup_`) y manejo de permisos de archivos.  
 🔹 **O – Output**: Diagnósticos de sistema, parches de seguridad y reportes de integridad de bases de datos.  
 🔹 **F – Frase ejemplo**: "La sincronización con la API de Google ha sido restablecida y los permisos de escritura en el directorio `/dat` han sido corregidos."  
 🔹 **E – Extra**: Notifícame de inmediato si detectas un error 500 en la terminal o fallos en el motor de autocompletado.
@@ -57,10 +57,11 @@ Este documento establece la identidad, responsabilidades y alcances de cada acto
 ## 6. Arquitectura RBAC (Role-Based Access Control)
 OSPulso 2.0 opera bajo un modelo **RBAC Nivel 3 (Estricto)**, asegurando que las funciones clínicas y financieras nunca se traslapen indebidamente, garantizando el Principio de Menor Privilegio:
 
-* **Segregación de Funciones**: Un rol (ej. Médico) hereda únicamente los permisos de su dominio (Wizard Clínico). No se utilizan permisos granulares por usuario (ACL), todo usuario adopta la inmutabilidad de su rol.
+* **Segregación de Funciones**: Un rol (ej. Médico) hereda únicamente los permisos de su dominio (Wizard Clínico). `Administrador Global` y `Administrador Organizacion` poseen derechos CRUD sobre el Catálogo Universal 3NF.
 * **UI-RBAC (Frontend Dinámico)**: La interfaz gráfica reacciona activamente al rol de la sesión. 
-  * *Ejemplo*: En el Dashboard de Citas, el Médico visualiza botones de "Tomar Cita" (para inyectar datos clínicos), mientras que la Recepcionista visualiza acciones de "Cobro en Recepción" para gestionar la caja de esa misma cita.
-* **API-RBAC (Protección de Backend)**: El middleware `check_session.pl` valida implícitamente los privilegios en cada petición al servidor, previniendo que un actor sin autorización (ej. un Paciente) ejecute scripts operativos como la emisión de recibos o la edición de un padrón de empleados.
+  * *Ejemplo 1*: En la administración de usuarios, la selección del rol `Recepcionista` oculta los selectores de especialidades médicas.
+  * *Ejemplo 2*: En la vista de Catálogo Universal, únicamente los roles de Administración visualizan las acciones de creación, edición y borrado de servicios/categorías.
+* **API-RBAC (Protección de Backend)**: Middleware `check_session.pl` y validación implícita de roles en `api/*.pl` (ej. `crud_catalogo_universal_api.pl`, `administracion_usuarios_api.pl`), bloqueando cualquier acceso no autorizado a nivel de endpoints.
 
 ---
-**GEISABPA - Diamond Edition v4.4.0**
+**GEISABPA - Diamond Edition v4.4.1**
