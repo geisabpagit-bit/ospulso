@@ -193,86 +193,7 @@ HTML
             </a>
     };
 
-    # 2. Administración Accordion (Gestion de Clínicas, Personal, Servicios, Productos)
-    my $show_admin = 0;
-    if ($is_allowed{clinicas} || $is_allowed{usuarios} || $is_allowed{servicios} || $is_allowed{productos} || $is_allowed{tecnico} || $is_allowed{sync_google} || $is_allowed{reportes}) {
-        $show_admin = 1;
-    }
-
-    if ($show_admin) {
-        my $admin_active = ($pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos') ? 'show' : '';
-        my $collapsed_class = ($admin_active eq 'show') ? '' : 'collapsed';
-        
-        print qq{
-            <!-- Administración Accordion -->
-            <div class="accordion-item bg-transparent border-0 mb-1">
-                <h2 class="accordion-header" id="h-administracion">
-                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-administracion" aria-expanded="false" aria-controls="c-administracion">
-                        <i class="bi bi-shield-lock-fill text-primary" style="font-size:1.2rem; color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Administraci&oacute;n</span>
-                    </button>
-                </h2>
-                <div id="c-administracion" class="accordion-collapse collapse $admin_active" aria-labelledby="h-administracion" data-bs-parent="#accordionSidebar">
-                    <div class="accordion-body pb-0 pt-1">
-        };
-        
-        my %admin_mod_names = (
-            'clinicas'    => { file => 'manage_clinicas.pl', icon => 'bi-building-gear', title => 'Gesti&oacute;n de Cl&iacute;nicas' },
-            'usuarios'    => { file => 'administracion_usuarios.pl', icon => 'bi-people-fill', title => 'Gesti&oacute;n de Personal' },
-            'servicios'   => { file => 'manage_servicios.pl', icon => 'bi-heart-pulse-fill', title => 'Gesti&oacute;n de Servicios' },
-            'productos'   => { file => 'manage_productos.pl', icon => 'bi-box-seam-fill', title => 'Gesti&oacute;n de Productos' },
-            'tecnico'     => { file => 'administracion_catalogo.pl', icon => 'bi-tools', title => 'Cat&aacute;logos y Mantenimiento' },
-            'sync_google' => { file => '#', icon => 'bi-google', title => 'Sincronizaci&oacute;n Google', onclick => "iniciarVinculacionGoogle('$id_medico'); return false;" },
-            'reportes'    => { file => 'reportes.pl', icon => 'bi-file-bar-chart-fill', title => 'Reportes y An&aacute;lisis' }
-        );
-
-        my $org_clues = '';
-        if (defined $id_empresa && $id_empresa ne '') {
-            if ($id_empresa eq '0') {
-                $org_clues = 'QTSMP000116';
-            } else {
-                my $n_file = File::Spec->catfile($dat_dir, 'negocios.dat');
-                if (-e $n_file && open(my $nf, '<:encoding(UTF-8)', $n_file)) {
-                    <$nf>;
-                    while (my $line = <$nf>) {
-                        chomp $line; my @f = split(/\|/, $line, -1);
-                        if ($f[0] eq $id_empresa) { $org_clues = $f[18] // ''; last; }
-                    }
-                    close $nf;
-                }
-            }
-        }
-        
-        if ($org_clues eq 'QTSMP000116') {
-            $admin_mod_names{'servicios'} = { file => 'manage_catalogo_universal.pl', icon => 'bi-globe', title => 'Cat&aacute;logo Universal' };
-            $is_allowed{'productos'} = 0;
-        }
-        
-        foreach my $k ('clinicas', 'usuarios', 'servicios', 'productos', 'tecnico', 'sync_google', 'reportes') {
-            if ($is_allowed{$k}) {
-                my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
-                my $cfg = $admin_mod_names{$k};
-                my $onclick_attr = $cfg->{onclick} ? "onclick=\"$cfg->{onclick}\"" : "";
-                print qq{
-                    <a href="../views/$cfg->{file}" $onclick_attr class="sub-link $active_sub w-100 text-start text-decoration-none d-flex align-items-center mb-1">
-                        <i class="bi $cfg->{icon} me-2 text-muted" style="font-size:1.1rem;"></i> <span class="sidebar-text">$cfg->{title}</span>
-                    </a>
-                };
-            }
-        }
-        
-        print qq{
-                    </div>
-                </div>
-            </div>
-        };
-    }
-
-    # Separador después de Administración
-    if ($show_admin) {
-        print qq{<hr class="my-2 opacity-25 sidebar-separator">};
-    }
-
-    # 3. Pacientes (Flat Link)
+    # 2. Pacientes (Flat Link)
     if ($is_allowed{pacientes}) {
         my $m = $menu_registry{pacientes};
         my $style = $module_styles{pacientes};
@@ -284,7 +205,7 @@ HTML
         };
     }
 
-    # 4. Agenda Dinámica (Flat Link)
+    # 3. Agenda Dinámica (Flat Link)
     if ($is_allowed{agenda}) {
         my $m = $menu_registry{agenda};
         my $style = $module_styles{agenda};
@@ -294,12 +215,9 @@ HTML
                 <span class="material-icons me-2" style="color: $style->{color}; font-size:1.2rem;">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
             </a>
         };
-        
-        # Ajustes de Agenda eliminado
-
     }
     
-    # 5. Quirófano / Hospitalización (Solo Médicos, Administrador Organizacion, Enfermería)
+    # 4. Quirófano / Hospitalización (Solo Médicos, Administrador Organizacion, Enfermería)
     if ($role ne 'Administrador Global' && $role =~ /Medico|Administrador|Enfermeria/i) {
         my $active_quirofano = ($pagina_actual eq 'quirofano_kanban') ? 'active' : '';
         print qq{
@@ -384,20 +302,94 @@ HTML
         };
     }
 
-    # 5. Finanzas Accordion
+    # --- ADMINISTRACIÓN Y FINANZAS ---
+    # 5. Administración Accordion
+    my $show_admin = 0;
+    if ($is_allowed{clinicas} || $is_allowed{usuarios} || $is_allowed{servicios} || $is_allowed{productos} || $is_allowed{tecnico} || $is_allowed{sync_google}) {
+        $show_admin = 1;
+    }
+
+    if ($show_admin) {
+        my $admin_active = ($pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos') ? 'show' : '';
+        my $collapsed_class = ($admin_active eq 'show') ? '' : 'collapsed';
+        
+        print qq{
+            <!-- Administración Accordion -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-administracion">
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-administracion" aria-expanded="false" aria-controls="c-administracion">
+                        <i class="bi bi-shield-lock-fill text-primary" style="font-size:1.2rem; color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Administraci&oacute;n</span>
+                    </button>
+                </h2>
+                <div id="c-administracion" class="accordion-collapse collapse $admin_active" aria-labelledby="h-administracion" data-bs-parent="#accordionSidebar">
+                    <div class="accordion-body pb-0 pt-1">
+        };
+        
+        my %admin_mod_names = (
+            'clinicas'    => { file => 'manage_clinicas.pl', icon => 'bi-building-gear', title => 'Gesti&oacute;n de Cl&iacute;nicas' },
+            'usuarios'    => { file => 'administracion_usuarios.pl', icon => 'bi-people-fill', title => 'Gesti&oacute;n de Personal' },
+            'servicios'   => { file => 'manage_servicios.pl', icon => 'bi-heart-pulse-fill', title => 'Gesti&oacute;n de Servicios' },
+            'productos'   => { file => 'manage_productos.pl', icon => 'bi-box-seam-fill', title => 'Gesti&oacute;n de Productos' },
+            'tecnico'     => { file => 'administracion_catalogo.pl', icon => 'bi-tools', title => 'Cat&aacute;logos y Mantenimiento' },
+            'sync_google' => { file => '#', icon => 'bi-google', title => 'Sincronizaci&oacute;n Google', onclick => "iniciarVinculacionGoogle('$id_medico'); return false;" }
+        );
+
+        my $org_clues = '';
+        if (defined $id_empresa && $id_empresa ne '') {
+            if ($id_empresa eq '0') {
+                $org_clues = 'QTSMP000116';
+            } else {
+                my $n_file = File::Spec->catfile($dat_dir, 'negocios.dat');
+                if (-e $n_file && open(my $nf, '<:encoding(UTF-8)', $n_file)) {
+                    <$nf>;
+                    while (my $line = <$nf>) {
+                        chomp $line; my @f = split(/\|/, $line, -1);
+                        if ($f[0] eq $id_empresa) { $org_clues = $f[18] // ''; last; }
+                    }
+                    close $nf;
+                }
+            }
+        }
+        
+        if ($org_clues eq 'QTSMP000116') {
+            $admin_mod_names{'servicios'} = { file => 'manage_catalogo_universal.pl', icon => 'bi-globe', title => 'Cat&aacute;logo Universal' };
+            $is_allowed{'productos'} = 0;
+        }
+        
+        foreach my $k ('clinicas', 'usuarios', 'servicios', 'productos', 'tecnico', 'sync_google') {
+            if ($is_allowed{$k}) {
+                my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
+                my $cfg = $admin_mod_names{$k};
+                my $onclick_attr = $cfg->{onclick} ? "onclick=\"$cfg->{onclick}\"" : "";
+                print qq{
+                    <a href="../views/$cfg->{file}" $onclick_attr class="sub-link $active_sub w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                        <i class="bi $cfg->{icon} me-2 text-muted" style="font-size:1.1rem;"></i> <span class="sidebar-text">$cfg->{title}</span>
+                    </a>
+                };
+            }
+        }
+        
+        print qq{
+                    </div>
+                </div>
+            </div>
+        };
+    }
+
+    # 6. Finanzas Accordion (Justo al lado de Administración)
     if ($is_allowed{finanzas}) {
         my $fin_active = ($pagina_actual eq 'finanzas' || $pagina_actual eq 'caja_rapida') ? 'show' : '';
         my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
         
         my $has_pacientes_estado = 0;
-        my $id_empresa = $args{id_empresa} || '';
+        my $id_empresa_fin = $args{id_empresa} || '';
         my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
         if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
             while (my $line = <$cf>) {
                 chomp($line);
                 next if $line =~ /^#|^\s*$/;
                 my ($biz_id, $key, $val) = split(/\|/, $line);
-                if ($biz_id eq $id_empresa && $key eq 'PACIENTES_ESTADO') {
+                if ($biz_id eq $id_empresa_fin && $key eq 'PACIENTES_ESTADO') {
                     $has_pacientes_estado = ($val eq '1') ? 1 : 0;
                     last;
                 }
@@ -436,12 +428,14 @@ HTML
                 </div>
             </div>
         };
+    }
 
-        # Separador después de Finanzas
+    # Separador después de Administración y Finanzas
+    if ($show_admin || $is_allowed{finanzas}) {
         print qq{<hr class="my-2 opacity-25 sidebar-separator">};
     }
 
-    # 6. Ventas Accordion (Ejecutivo Ventas o Administrador Global)
+    # 7. Ventas Accordion (Ejecutivo Ventas o Administrador Global)
     if ( ($is_allowed{crm_ventas} && $role eq 'Ejecutivo Ventas') || ($is_allowed{admin_global} && $role eq 'Administrador Global') ) {
         my $ventas_active = ($pagina_actual eq 'crm_ventas' || $pagina_actual eq 'admin_ejecutivos') ? 'show' : '';
         my $collapsed_class = ($ventas_active eq 'show') ? '' : 'collapsed';
