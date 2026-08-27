@@ -458,6 +458,128 @@ print <<'JS';
     });
 
     let pacienteEstadoSeleccionado = { id: '', nombre: '' };
+
+    function buscarEmpleadoEstado() {
+        const num = $('#iptNumEmpleado').val().trim();
+        if(!num) return;
+        
+        if (!HAS_PACIENTES_ESTADO) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Función no disponible',
+                text: 'La capacidad de Empleados Públicos/Estado no está habilitada.',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+        console.log("Buscando empleado con número:", num);
+        
+        $('#resultadosEmpleadoContainer').show();
+        $('#resultadosEmpleado').html('<div class="spinner-border text-primary spinner-border-sm"></div> Buscando...');
+        $.ajax({
+            url: '../api/buscar_familia_empleado.pl',
+            method: 'POST',
+            data: { num_empleado: num, clues: ORG_CLUES },
+            success: function(res) {
+                if (res.ok && res.resultados && res.resultados.length > 0) {
+                    let html = '';
+                    try {
+                        res.resultados.forEach((emp, i) => {
+                            let isChecked = i === 0 ? 'checked' : '';
+                            let nombreStr = emp.nombre ? String(emp.nombre) : '';
+                            let safeNombre = escapeHtml(nombreStr).replace(/'/g, "\\'");
+                            if(i===0) seleccionarEmpleadoEstado(emp.id, nombreStr); // Select first auto
+                            
+                            let badgeText = (emp.relacion && emp.relacion.toLowerCase() === 'empleado') ? 'Empleado' : (emp.relacion || 'Desconocido');
+                            
+                            html += `
+                            <div class="form-check custom-input-caja p-2 mb-2 d-flex align-items-center">
+                                <input class="form-check-input ms-0 me-3" style="width:1.2rem; height:1.2rem;" type="radio" name="empSeleccionado" id="empSel${escapeHtml(emp.id)}_${i}" value="${escapeHtml(emp.id)}" ${isChecked} onchange="seleccionarEmpleadoEstado('${escapeHtml(emp.id)}', '${safeNombre}')">
+                                <label class="form-check-label w-100 mb-0" for="empSel${escapeHtml(emp.id)}_${i}" style="cursor:pointer; display:flex; align-items:center;">
+                                    <div class="fw-bold text-dark flex-grow-1">${escapeHtml(nombreStr)}</div>
+                                    <span class="badge bg-secondary rounded-pill px-3">${escapeHtml(badgeText)}</span>
+                                </label>
+                            </div>`;
+                        });
+                        html += `
+                        <div class="mt-3 text-end border-top pt-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-4 shadow-sm fw-bold" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES">
+                                <i class="bi bi-pencil-square me-1"></i> Editar Beneficiarios
+                            </button>
+                        </div>`;
+                        $('#resultadosEmpleado').html(html);
+                        pacienteTipoActual = 'estado';
+                        $('#selPaciente').val(null).trigger('change.select2');
+                    } catch (err) {
+                        console.error("Error al procesar resultados:", err);
+                        $('#resultadosEmpleado').html('<div class="alert alert-danger py-2 small m-0 border-0 shadow-sm"><i class="bi bi-exclamation-circle text-danger me-2"></i>Error interno al mostrar resultados. Revise la consola.</div>');
+                    }
+                } else {
+                    $('#resultadosEmpleado').html(`<div class="alert alert-warning py-3 text-center small m-0 shadow-sm border-0"><p class="mb-2"><i class="bi bi-exclamation-triangle fs-4 d-block mb-1"></i>No se encontraron resultados para el número de empleado ingresado.</p><button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm mt-2 fw-bold" onclick="window.location.href='crud_empleados.pl?clues='+ORG_CLUES"><i class="bi bi-person-plus me-1"></i> Registrar Nuevo Empleado / Beneficiario</button></div>`);
+                    pacienteEstadoSeleccionado = { id: '', nombre: '' };
+                }
+            },
+            error: function() {
+                $('#resultadosEmpleado').html('<div class="alert alert-danger py-2 small m-0">Error de conexión al buscar.</div>');
+            }
+        });
+    }
+
+    function seleccionarEmpleadoEstado(id, nombre) {
+        pacienteEstadoSeleccionado = { id: id, nombre: nombre };
+    }
+
+    function initSelect2Paciente() {
+        if ($('#selPaciente').hasClass('select2-hidden-accessible')) {
+            $('#selPaciente').select2('destroy');
+        }
+        
+        let ajaxUrl = HAS_PORTAL_PACIENTE ? '../api/autocomplete_pacientes.pl' : '../api/autocomplete_pacientes_privados.pl';
+        let ajaxDataFn = HAS_PORTAL_PACIENTE ? function (params) { return { term: params.term }; } : function (params) { return { term: params.term, clues: ORG_CLUES }; };
+        
+        $('#selPaciente').select2({
+            theme: 'bootstrap-5',
+            placeholder: '🔍 Escribe el nombre del paciente (Privado)...',
+            minimumInputLength: 2,
+            tags: !HAS_PORTAL_PACIENTE, // Permitir agregar nuevos nombres si no hay portal
+            ajax: {
+                url: ajaxUrl,
+                dataType: 'json',
+                delay: 350,
+                data: ajaxDataFn,
+                processResults: function (data) {
+                    return { results: data.map(function(item) { return { id: item.id, text: item.label }; }) };
+                }
+            },
+            createTag: function(params) {
+                if(HAS_PORTAL_PACIENTE) return null; // No permitir crear si el portal global manda
+                var term = $.trim(params.term);
+                if (term === '') return null;
+                return { id: term, text: term, newTag: true };
+            },
+            language: {
+                inputTooShort: function() { return "Por favor ingresa 2 o más caracteres"; },
+                noResults: function() { return HAS_PORTAL_PACIENTE ? "No se encontraron resultados" : "Presiona enter para agregar como nuevo paciente"; },
+                searching: function() { return "Buscando..."; }
+            }
+        });
+    }
+
+    let pacienteTipoActual = 'privado';
+
+    function cambiarTipoPaciente(e) {
+        // Función mantenida por compatibilidad (vacía)
+    }
+    
+    function seleccionarPacientePrivado() {
+        if(!$('#selPaciente').val()) return; // Evitar dispararse a sí mismo cuando se limpia vía JS
+        pacienteTipoActual = 'privado';
+        $('#resultadosEmpleado').html('');
+        $('#resultadosEmpleadoContainer').hide();
+        $('#iptNumEmpleado').val('');
+        pacienteEstadoSeleccionado = { id: '', nombre: '' };
+    }
+
     let masterCatalogoRecibo = [];
     let modalCartItems = [];
     let recDepsMap = {};
