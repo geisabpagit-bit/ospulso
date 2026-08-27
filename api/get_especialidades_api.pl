@@ -17,7 +17,8 @@ my $id_empresa = $sd->{id_empresa} || '';
 my $q = CGI->new;
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
-my $archivo_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', "especialidades_${id_empresa}.dat");
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+my $archivo_espe = catalogo_org_utils::obtener_rutas_catalogo($id_empresa)->{especialidades};
 my $espe_delimiter = '\|';
 
 if (!-e $archivo_espe || !$id_empresa) {

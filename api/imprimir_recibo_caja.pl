@@ -132,7 +132,8 @@ if ($paciente_nombre eq 'Paciente Desconocido' || $paciente_nombre eq $recibo->{
 if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
     my $num_empleado = $1;
     if ($num_empleado && $negocio->{clues}) {
-        my $emp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_$negocio->{clues}.dat");
+        require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+        my $emp_file = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues})->{empleadosmun};
         if (-e $emp_file && open(my $fe, '<:encoding(UTF-8)', $emp_file)) {
             my $h = <$fe>;
             while (my $le = <$fe>) {

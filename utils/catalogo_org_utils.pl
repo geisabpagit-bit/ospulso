@@ -84,22 +84,40 @@ sub obtener_rutas_catalogo {
         }
     }
     
+sub obtener_rutas_por_clue {
+    my ($clues) = @_;
+    my $dat = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+    my $clue_dir = File::Spec->catdir($dat, 'catalogos_CLUE', $clues);
+    return {
+        is_universal => 1,
+        departamentos => File::Spec->catfile($clue_dir, "departamentos_${clues}.dat"),
+        categorias => File::Spec->catfile($clue_dir, "categorias_${clues}.dat"),
+        proveedores => File::Spec->catfile($clue_dir, "proveedores_${clues}.dat"),
+        items => File::Spec->catfile($clue_dir, "catalogo_items_${clues}.dat"),
+        precios => File::Spec->catfile($clue_dir, "catalogo_precios_${clues}.dat"),
+        productos => File::Spec->catfile($clue_dir, "productos_${clues}.dat"),
+        medicos => File::Spec->catfile($clue_dir, "medicos_${clues}.dat"),
+        especialidades => File::Spec->catfile($clue_dir, "especialidades_${clues}.dat"),
+        dependencia => File::Spec->catfile($clue_dir, "dependencia_${clues}.dat"),
+        empleadosmun => File::Spec->catfile($clue_dir, "empleadosmun_${clues}.dat"),
+        municipios => File::Spec->catfile($clue_dir, "municipios_${clues}.dat"),
+        motivos => File::Spec->catfile($clue_dir, "motivos_${clues}.dat"),
+    };
+}
+
     if ($clues) {
-        my $clue_dir = File::Spec->catdir($dat, 'catalogos_CLUE', $clues);
-        return {
-            is_universal => 1,
-            departamentos => File::Spec->catfile($clue_dir, "departamentos_${clues}.dat"),
-            categorias => File::Spec->catfile($clue_dir, "categorias_${clues}.dat"),
-            proveedores => File::Spec->catfile($clue_dir, "proveedores_${clues}.dat"),
-            items => File::Spec->catfile($clue_dir, "catalogo_items_${clues}.dat"),
-            precios => File::Spec->catfile($clue_dir, "catalogo_precios_${clues}.dat"),
-            productos => File::Spec->catfile($clue_dir, "productos_${clues}.dat"),
-        };
+        return obtener_rutas_por_clue($clues);
     }
     
     return {
         servicios => File::Spec->catfile($dat, "servicios_${id_raiz}.dat"),
         productos  => File::Spec->catfile($dat, "productos_${id_raiz}.dat"),
+        medicos => File::Spec->catfile($dat, "medicos_${id_raiz}.dat"),
+        especialidades => File::Spec->catfile($dat, "especialidades_${id_raiz}.dat"),
+        dependencia => File::Spec->catfile($dat, "dependencia_${id_raiz}.dat"),
+        empleadosmun => File::Spec->catfile($dat, "empleadosmun_${id_raiz}.dat"),
+        municipios => File::Spec->catfile($dat, "municipios_${id_raiz}.dat"),
+        motivos => File::Spec->catfile($dat, "motivos_${id_raiz}.dat"),
     };
 }
 

@@ -33,10 +33,11 @@ if ($num_empleado eq '') {
 }
 
 my $sufijo = $clues ? "_${clues}" : "";
-my $archivo_empleados = "$FindBin::Bin/../dat/empleadosmun${sufijo}.dat";
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+my $archivo_empleados = catalogo_org_utils::obtener_rutas_por_clue($clues)->{empleadosmun};
 my $empleados = leer_tabla($archivo_empleados, '!');
 
-my $archivo_dependencias = "$FindBin::Bin/../dat/dependencia${sufijo}.dat";
+my $archivo_dependencias = catalogo_org_utils::obtener_rutas_por_clue($clues)->{dependencia};
 my $deps = leer_tabla($archivo_dependencias, '!');
 my %dep_map;
 if (ref $deps eq 'ARRAY') {

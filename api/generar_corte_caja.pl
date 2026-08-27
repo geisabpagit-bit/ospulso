@@ -49,7 +49,8 @@ foreach my $neg (@$negocios_data) {
 # Diccionario de médicos para resolver ID a Nombre
 my %medicos = ();
 if ($org_clues) {
-    my $med_file = File::Spec->catfile($dat_dir, "medicos_$org_clues.dat");
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+    my $med_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{medicos};
     if (-e $med_file) {
         my $m_data = leer_tabla($med_file);
         foreach my $m (@$m_data) {
@@ -80,7 +81,7 @@ if ($org_clues) {
     }
     
     # Empleados Públicos (Estado) para Cuentas por Cobrar
-    my $emp_file = File::Spec->catfile($dat_dir, "empleadosmun_${org_clues}.dat");
+    my $emp_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{empleadosmun};
     if (-e $emp_file && open(my $efh, '<:utf8', $emp_file)) {
         while (my $line = <$efh>) {
             chomp $line;

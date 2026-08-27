@@ -123,8 +123,10 @@ foreach my $m (@medicos) {
 $org_clues =~ s/[^A-Za-z0-9_]//g; # Sanitize path component
 
 # 2.1 Comprobar catálogos custom (Médicos Legacy)
-my $archivo_medicos_custom = File::Spec->catfile($dat_dir, "medicos_${org_clues}.dat");
-my $archivo_espe_custom = File::Spec->catfile($dat_dir, "especialidades_${org_clues}.dat");
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+my $rutas = catalogo_org_utils::obtener_rutas_por_clue($org_clues);
+my $archivo_medicos_custom = $rutas->{medicos};
+my $archivo_espe_custom = $rutas->{especialidades};
 
 my $has_custom_medicos = (-e $archivo_medicos_custom && -e $archivo_espe_custom) ? 1 : 0;
 my $espe_options = "<option value=''>-- Selecciona Especialidad --</option>";

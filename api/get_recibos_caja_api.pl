@@ -80,7 +80,8 @@ if (-e $priv_pacs_file && open(my $fhp, '<:encoding(UTF-8)', $priv_pacs_file)) {
     close($fhp);
 }
 
-my $empleados_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_${org_clues}.dat");
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+my $empleados_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{empleadosmun};
 my %map_empleados = ();
 if ($org_clues && -e $empleados_file) {
     my $emps = leer_tabla($empleados_file, '!');
@@ -91,7 +92,7 @@ if ($org_clues && -e $empleados_file) {
     }
 }
 
-my $medicos_custom_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "medicos_${org_clues}.dat");
+my $medicos_custom_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{medicos};
 my %map_medicos = ();
 if ($org_clues && -e $medicos_custom_file) {
     my $meds = leer_tabla($medicos_custom_file, '\|');

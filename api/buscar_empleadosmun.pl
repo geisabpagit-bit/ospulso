@@ -34,7 +34,8 @@ if ($q_str eq '') {
 }
 
 my $sufijo = $clues ? "_${clues}" : "";
-my $emp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun${sufijo}.dat");
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+my $emp_file = catalogo_org_utils::obtener_rutas_por_clue($clues)->{empleadosmun};
 
 my @resultados = ();
 

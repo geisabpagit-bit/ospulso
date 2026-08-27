@@ -252,7 +252,8 @@ if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
 }
 
 if ($num_empleado && $negocio->{clues}) {
-    my $emp_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_$negocio->{clues}.dat");
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+    my $emp_file = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues})->{empleadosmun};
     
     if (-e $emp_file && open(my $fe, '<:encoding(UTF-8)', $emp_file)) {
         my $h = <$fe>;
@@ -271,7 +272,7 @@ if ($num_empleado && $negocio->{clues}) {
     }
     
     if ($id_dep) {
-        my $dep_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "dependencia_$negocio->{clues}.dat");
+        my $dep_file = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues})->{dependencia};
         if (-e $dep_file && open(my $fd, '<:encoding(UTF-8)', $dep_file)) {
             my $hd = <$fd>;
             while (my $ld = <$fd>) {
@@ -289,7 +290,7 @@ if ($num_empleado && $negocio->{clues}) {
 
 my $medico_nombre = "NO ESPECIFICADO";
 if ($id_medico) {
-    my $med_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "medicos_$negocio->{clues}.dat");
+    my $med_file = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues})->{medicos};
     if (-e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
         while (my $lm = <$fm>) {
             chomp $lm;

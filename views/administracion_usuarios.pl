@@ -65,7 +65,9 @@ if ($regs_negocios) {
 }
 
 # 2. Cargar Catálogos de Especialidades
-my $archivo_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', "especialidades_${id_empresa}.dat");
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+my $rutas_cat = catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
+my $archivo_espe = $rutas_cat->{especialidades};
 my $espe_delimiter = '\|';
 
 if (!-e $archivo_espe) {
@@ -96,7 +98,7 @@ if ($regs_sub) {
 }
 
 # 2.5 Cargar Catálogo Custom de Médicos (si existe)
-my $archivo_medicos = File::Spec->catfile($FindBin::Bin, '..', 'dat', "medicos_${id_empresa}.dat");
+my $archivo_medicos = $rutas_cat->{medicos};
 my @lista_medicos_custom = ();
 if (-e $archivo_medicos) {
     my $regs_medicos = leer_tabla($archivo_medicos, '\|');

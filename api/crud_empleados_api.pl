@@ -32,7 +32,8 @@ if (!$clues) {
     exit;
 }
 
-my $file_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', "empleadosmun_${clues}.dat");
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+my $file_path = catalogo_org_utils::obtener_rutas_por_clue($clues)->{empleadosmun};
 
 if ($action eq 'list') {
     my @data = ();
