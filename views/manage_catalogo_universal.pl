@@ -68,7 +68,7 @@ print <<HTML;
             </div>
         </header>
 
-        <div class="container-fluid px-4 pb-5 container-mobile-flush">
+        <div class="container-fluid px-2 px-md-3 pb-4 container-mobile-flush">
             
             <!-- CONTENEDOR DE FORMULARIOS INLINE -->
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
@@ -82,7 +82,7 @@ print <<HTML;
             </div>
 
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4 card-mobile-flush" id="mainCard">
-                <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <div class="card-header bg-white border-0 pt-3 px-3 px-md-4 pb-0 d-flex justify-content-between align-items-center">
                     <ul class="nav nav-pills nav-fill flex-grow-1" id="catalogoTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#servicios" type="button" role="tab"><i class="bi bi-list-check me-2"></i>Servicios</button>
@@ -96,16 +96,61 @@ print <<HTML;
                     </ul>
                 </div>
                 
-                <div class="card-body p-4">
+                <div class="card-body p-2 p-md-3">
                     <div class="tab-content">
                         <!-- PESTAÑA SERVICIOS -->
                         <div class="tab-pane fade show active" id="servicios" role="tabpanel">
-                            <div class="d-flex justify-content-end mb-3">
-                                <button class="btn btn-sdm-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('servicio')">
-                                    <i class="bi bi-plus-circle me-1"></i>Nuevo Servicio
-                                </button>
+HTML
+
+my %cats_map;
+foreach my $c (@{$cat_univ->{categorias} || []}) { $cats_map{$c->{id_cat}} = { n => $c->{nombre}, d => $c->{id_dep} }; }
+my %deps_map;
+foreach my $d (@{$cat_univ->{departamentos} || []}) { $deps_map{$d->{id_dep}} = $d->{nombre}; }
+
+my $filter_deps_options = "<option value=''>-- Todos los Deptos --</option>";
+foreach my $dep (@{$cat_univ->{departamentos} || []}) {
+    $filter_deps_options .= "<option value='$dep->{id_dep}'>$dep->{nombre}</option>";
+}
+my $filter_cats_options = "<option value=''>-- Todas las Categorías --</option>";
+foreach my $cat (@{$cat_univ->{categorias} || []}) {
+    $filter_cats_options .= "<option value='$cat->{id_cat}' data-dep-id='$cat->{id_dep}'>$cat->{nombre}</option>";
+}
+
+print <<HTML;
+                            <!-- PANEL DE FILTROS PERSONALIZADOS (DEPARTAMENTO, CATEGORIA Y TEXTO LIBRE) -->
+                            <div class="card bg-light border-0 shadow-sm rounded-4 p-3 mb-3">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label fw-bold text-muted small mb-1"><i class="bi bi-diagram-3 me-1 text-primary"></i>Departamento</label>
+                                        <select id="filtro_dep" class="form-select form-select-sm rounded-pill shadow-sm" onchange="onFiltroDepChange()">
+                                            $filter_deps_options
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label fw-bold text-muted small mb-1"><i class="bi bi-tags me-1 text-primary"></i>Categoría</label>
+                                        <select id="filtro_cat" class="form-select form-select-sm rounded-pill shadow-sm" onchange="aplicarFiltrosTabla()">
+                                            $filter_cats_options
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label fw-bold text-muted small mb-1"><i class="bi bi-search me-1 text-primary"></i>Texto Libre</label>
+                                        <div class="position-relative">
+                                            <input type="text" id="filtro_texto" class="form-control form-control-sm rounded-pill shadow-sm pe-4" placeholder="Buscar SKU, concepto, precio..." onkeyup="aplicarFiltrosTabla()">
+                                            <i class="bi bi-x-circle-fill text-muted position-absolute end-0 top-50 translate-middle-y me-2 cursor-pointer" onclick="limpiarFiltroTexto()" style="display:none;" id="btn_limpiar_texto"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-2 d-flex align-items-end gap-2 mt-3 mt-md-0">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill w-50 fw-bold shadow-sm" onclick="limpiarTodosFiltros()" title="Limpiar Filtros">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sdm-primary btn-sm rounded-pill px-3 w-50 fw-bold shadow-sm" onclick="abrirFormulario('servicio')">
+                                            <i class="bi bi-plus-circle me-1"></i>Nuevo
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="table-responsive dataTables_wrapper p-3 rounded-4" style="background-color: #f8fafc; border: 1px solid var(--md-teal-clinical);">
+
+                            <div class="table-responsive dataTables_wrapper p-2 p-md-3 rounded-4" style="background-color: #f8fafc; border: 1px solid var(--md-teal-clinical);">
                                 <table id="tablaServicios" class="table table-hover align-middle w-100" style="font-size: 0.75rem;">
                                     <thead class="table-light">
                                         <tr>
@@ -119,14 +164,11 @@ print <<HTML;
                                     <tbody>
 HTML
 
-my %cats_map;
-foreach my $c (@{$cat_univ->{categorias} || []}) { $cats_map{$c->{id_cat}} = { n => $c->{nombre}, d => $c->{id_dep} }; }
-my %deps_map;
-foreach my $d (@{$cat_univ->{departamentos} || []}) { $deps_map{$d->{id_dep}} = $d->{nombre}; }
-
 foreach my $item (@{$cat_univ->{items} || []}) {
     my $cat = $cats_map{$item->{id_cat}};
+    my $cat_id = $item->{id_cat} // '';
     my $cat_name = $cat ? $cat->{n} : 'Desc';
+    my $dep_id = $cat ? ($cat->{d} // '') : '';
     my $dep_name = ($cat && $deps_map{$cat->{d}}) ? $deps_map{$cat->{d}} : '';
     my $dep_cat_label = $dep_name ? "$dep_name / $cat_name" : $cat_name;
     
@@ -138,7 +180,7 @@ foreach my $item (@{$cat_univ->{items} || []}) {
     }
     
     print <<HTML;
-                                        <tr>
+                                        <tr data-dep-id="$dep_id" data-cat-id="$cat_id">
                                             <td data-label="SKU"><span class="badge bg-secondary">$item->{codigo_sku}</span></td>
                                             <td data-label="Concepto" class="fw-bold text-primary">$item->{concepto}</td>
                                             <td data-label="Dep/Cat" class="small text-muted">$dep_cat_label</td>
@@ -343,12 +385,91 @@ print <<'JS';
                 catSelect.innerHTML = options;
             }
 
+            // Registrar filtro personalizado de DataTables para Departamento, Categoría y Texto Libre
+            if (typeof $.fn !== 'undefined' && $.fn.dataTable && !window.dtSearchPushed) {
+                window.dtSearchPushed = true;
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                    const tableId = settings.nTable ? settings.nTable.id : '';
+                    if (tableId !== 'tablaServicios') return true;
+
+                    const depVal = $('#filtro_dep').val();
+                    const catVal = $('#filtro_cat').val();
+                    const textVal = $('#filtro_texto').val() ? $('#filtro_texto').val().trim().toLowerCase() : '';
+
+                    const rowNode = settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
+                    if (!rowNode) return true;
+
+                    const rowDepId = $(rowNode).attr('data-dep-id') || '';
+                    const rowCatId = $(rowNode).attr('data-cat-id') || '';
+                    const rowText  = $(rowNode).text().toLowerCase();
+
+                    if (depVal && String(rowDepId) !== String(depVal)) return false;
+                    if (catVal && String(rowCatId) !== String(catVal)) return false;
+                    if (textVal && !rowText.includes(textVal)) return false;
+
+                    return true;
+                });
+            }
+
+            function onFiltroDepChange() {
+                const depId = $('#filtro_dep').val();
+                const catSelect = $('#filtro_cat');
+                
+                if (!depId) {
+                    let options = '<option value="">-- Todas las Categorías --</option>';
+                    (window.CATALOGO_CATS || []).forEach(c => {
+                        options += `<option value="${c.id_cat}" data-dep-id="${c.id_dep}">${escapeHtml(c.nombre)}</option>`;
+                    });
+                    catSelect.html(options);
+                } else {
+                    const filtered = (window.CATALOGO_CATS || []).filter(c => String(c.id_dep) === String(depId));
+                    let options = '<option value="">-- Todas las Categorías --</option>';
+                    if (filtered.length === 0) {
+                        options = '<option value="">-- Sin categorías --</option>';
+                    } else {
+                        filtered.forEach(c => {
+                            options += `<option value="${c.id_cat}" data-dep-id="${c.id_dep}">${escapeHtml(c.nombre)}</option>`;
+                        });
+                    }
+                    catSelect.html(options);
+                }
+                aplicarFiltrosTabla();
+            }
+
+            function aplicarFiltrosTabla() {
+                const txt = $('#filtro_texto').val();
+                if (txt) {
+                    $('#btn_limpiar_texto').show();
+                } else {
+                    $('#btn_limpiar_texto').hide();
+                }
+
+                if ($.fn.DataTable.isDataTable('#tablaServicios')) {
+                    $('#tablaServicios').DataTable().draw();
+                }
+            }
+
+            function limpiarFiltroTexto() {
+                $('#filtro_texto').val('');
+                aplicarFiltrosTabla();
+            }
+
+            function limpiarTodosFiltros() {
+                $('#filtro_dep').val('');
+                onFiltroDepChange();
+                $('#filtro_texto').val('');
+                $('#btn_limpiar_texto').hide();
+                if ($.fn.DataTable.isDataTable('#tablaServicios')) {
+                    $('#tablaServicios').DataTable().search('').draw();
+                }
+            }
+
             function initCatalogoTable(tableId, titleExport) {
                 if ($(tableId).length) {
                     $(tableId).DataTable({
                         destroy: true,
                         language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-                        dom: '<"p-3 d-flex justify-content-start align-items-center"B>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                        dom: '<"p-3 d-flex flex-wrap justify-content-between align-items-center gap-2"B f>rt<"p-3 d-flex justify-content-between align-items-center flex-wrap"i p>',
                         buttons: {
                             dom: {
                                 container: { className: 'dt-buttons export-toolbar' },
