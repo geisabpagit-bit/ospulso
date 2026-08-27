@@ -648,7 +648,7 @@ print <<'JS';
                             <input type="hidden" name="id" value="${id}">
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-muted">Nombre del Departamento</label>
-                                <input type="text" class="form-control" name="nombre" value="${nombre}" required>
+                                <input type="text" class="form-control text-uppercase" name="nombre" value="${nombre}" oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;" required>
                             </div>
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="button" class="btn btn-light border" onclick="cerrarFormulario()">Cancelar</button>
@@ -660,6 +660,15 @@ print <<'JS';
                     const id = args[0] || '';
                     const id_dep = args[1] || '';
                     const nombre = args[2] || '';
+                    
+                    let depOptionsCat = '<option value="">-- Seleccione Departamento --</option>';
+                    if (window.CATALOGO_DEPS) {
+                        window.CATALOGO_DEPS.forEach(d => {
+                            const sel = String(d.id_dep) === String(id_dep) ? 'selected' : '';
+                            depOptionsCat += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
+                        });
+                    }
+
                     title.innerHTML = `<i class="bi bi-tags me-2"></i>${id ? 'Editar' : 'Nueva'} Categoría`;
                     html = `
                         <form id="crudForm" onsubmit="saveEntity(event, 'categoria')">
@@ -668,11 +677,11 @@ print <<'JS';
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small text-muted">Departamento</label>
-                                    <select class="form-select" name="id_dep" id="sel_dep" required>${optsDep}</select>
+                                    <select class="form-select" name="id_dep" id="sel_dep" required>${depOptionsCat}</select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small text-muted">Nombre de Categoría</label>
-                                    <input type="text" class="form-control" name="nombre" value="${nombre}" required>
+                                    <input type="text" class="form-control text-uppercase" name="nombre" value="${nombre}" oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;" required>
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end gap-2">

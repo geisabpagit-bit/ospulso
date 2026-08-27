@@ -94,6 +94,7 @@ if ($action eq 'save_departamento') {
     my $id = $cgi->param('id') || '';
     my $nombre = $cgi->param('nombre') || '';
     $nombre =~ s/\|//g; # limpiar
+    $nombre = uc($nombre);
     if (!$nombre) { responder({ error => 'Nombre es requerido' }); }
 
     my ($header, $lines) = leer_archivo($rutas->{departamentos});
@@ -139,6 +140,7 @@ elsif ($action eq 'save_categoria') {
     my $id_dep = $cgi->param('id_dep') || '';
     my $nombre = $cgi->param('nombre') || '';
     $nombre =~ s/\|//g;
+    $nombre = uc($nombre);
     if (!$nombre || !$id_dep) { responder({ error => 'Datos requeridos' }); }
 
     my ($header, $lines) = leer_archivo($rutas->{categorias});
