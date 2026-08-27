@@ -453,7 +453,6 @@ print <<'JS';
              .replace(/'/g, "&#039;");
     }
 
-    let catalogoMaster = [];
     let cartItems = [];
     let consecutivoId = 1;
     let pacienteSeleccionado = null;
