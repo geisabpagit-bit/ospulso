@@ -179,9 +179,34 @@ print <<HTML;
                         <input type="hidden" name="action" id="form_action" value="create">
                         
                         <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-muted"><i class="bi bi-shield-lock-fill text-primary me-1"></i>Rol Operativo</label>
+                                <select class="form-select form-select-sm shadow-sm border-primary fw-bold" id="form_rol" name="rol" required onchange="cambiarRol(this.value)">
+                                    <option value="Medico">Médico (Acceso a Expedientes y Consultas)</option>
+                                    <option value="Recepcionista">Recepcionista (Agenda, Registro y Pagos)</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-muted"><i class="bi bi-building me-1"></i>Asignar a Sucursal</label>
+                                <select class="form-select form-select-sm shadow-sm" id="form_id_sucursal" name="id_sucursal" required>
+                                    <option value="" disabled selected>Selecciona una sede...</option>
+HTML
+
+foreach my $suc (@mis_sucursales) {
+    print qq|                                    <option value="$suc->{id}">$suc->{nombre}</option>\n|;
+}
+
+if (!@mis_sucursales) {
+    print qq|                                    <option value="" disabled>! PRIMERO DEBES CREAR UNA SUCURSAL</option>\n|;
+}
+
+print <<HTML;
+                                </select>
+                            </div>
+
                             <div class="col-12 col-md-6" id="box_nombre_libre">
                                 <label class="form-label small fw-bold text-muted">Nombre Completo</label>
-                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_nombre" name="nombre" required placeholder="Ej: Dra. María López">
+                                <input type="text" class="form-control form-control-sm shadow-sm" id="form_nombre" name="nombre" required placeholder="Ej: Lic. Ana Martínez">
                             </div>
 HTML
 
@@ -209,30 +234,6 @@ print <<HTML;
                             <div class="col-12 col-md-6" id="passwordFieldContainer">
                                 <label class="form-label small fw-bold text-muted" id="passwordLabel">Contraseña Inicial</label>
                                 <input type="password" class="form-control form-control-sm shadow-sm" id="form_clave" name="clave" placeholder="••••••••" autocomplete="new-password">
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label small fw-bold text-muted">Rol Operativo</label>
-                                <select class="form-select form-select-sm shadow-sm" id="form_rol" name="rol" required onchange="cambiarRol(this.value)">
-                                    <option value="Medico">Médico (Acceso a Expedientes)</option>
-                                    <option value="Recepcionista">Recepcionista (Agenda y Pagos)</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label small fw-bold text-muted">Asignar a Sucursal</label>
-                                <select class="form-select form-select-sm shadow-sm" id="form_id_sucursal" name="id_sucursal" required>
-                                    <option value="" disabled selected>Selecciona una sede...</option>
-HTML
-
-foreach my $suc (@mis_sucursales) {
-    print qq|                                    <option value="$suc->{id}">$suc->{nombre}</option>\n|;
-}
-
-if (!@mis_sucursales) {
-    print qq|                                    <option value="" disabled>! PRIMERO DEBES CREAR UNA SUCURSAL</option>\n|;
-}
-
-print <<HTML;
-                                </select>
                             </div>
                             <div class="col-12 col-md-6" id="box_espe">
                                 <label class="form-label small fw-bold text-muted"><i class="bi bi-patch-check-fill text-primary me-1"></i>Especialidad Médica</label>
@@ -483,19 +484,41 @@ print <<'JS';
         const boxCatalogo = document.getElementById('box_nombre_catalogo');
         const inputNombre = document.getElementById('form_nombre');
         const selectNombre = document.getElementById('form_nombre_select');
+        const boxEspe = document.getElementById('box_espe');
+        const boxSubespe = document.getElementById('box_subespe');
+        const selectEspe = document.getElementById('form_id_espe');
+        const selectSubespe = document.getElementById('form_id_subespe');
 
-        if (boxCatalogo && selectNombre) {
-            if (rol === 'Medico') {
+        if (rol === 'Medico') {
+            if (boxCatalogo && selectNombre && selectNombre.options.length > 1) {
                 boxLibre.classList.add('d-none');
                 inputNombre.required = false;
                 boxCatalogo.classList.remove('d-none');
                 selectNombre.required = true;
             } else {
-                boxCatalogo.classList.add('d-none');
-                selectNombre.required = false;
                 boxLibre.classList.remove('d-none');
                 inputNombre.required = true;
+                if (boxCatalogo) {
+                    boxCatalogo.classList.add('d-none');
+                    if (selectNombre) selectNombre.required = false;
+                }
             }
+            if (boxEspe) boxEspe.classList.remove('d-none');
+            if (boxSubespe) boxSubespe.classList.remove('d-none');
+        } else {
+            // Recepcionista: campo libre para el nombre, ocultar catálogo de médicos
+            if (boxCatalogo) {
+                boxCatalogo.classList.add('d-none');
+                if (selectNombre) selectNombre.required = false;
+            }
+            boxLibre.classList.remove('d-none');
+            inputNombre.required = true;
+            
+            // Ocultar y omitir especialidad médica y subespecialidad
+            if (boxEspe) boxEspe.classList.add('d-none');
+            if (boxSubespe) boxSubespe.classList.add('d-none');
+            if (selectEspe) selectEspe.value = '0';
+            if (selectSubespe) selectSubespe.value = '0';
         }
     };
 

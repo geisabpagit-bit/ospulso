@@ -51,6 +51,11 @@ if ($rol ne 'Medico' && $rol ne 'Recepcionista') {
     exit;
 }
 
+if ($rol eq 'Recepcionista') {
+    $id_espe    = '0';
+    $id_subespe = '0';
+}
+
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
 
