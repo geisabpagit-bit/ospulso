@@ -124,6 +124,9 @@ foreach my $d (@{$cat_univ->{departamentos} || []}) { $deps_map{$d->{id_dep}} = 
 foreach my $item (@{$cat_univ->{items} || []}) {
     my $cat = $cats_map{$item->{id_cat}};
     my $cat_name = $cat ? $cat->{n} : 'Desc';
+    my $dep_name = ($cat && $deps_map{$cat->{d}}) ? $deps_map{$cat->{d}} : '';
+    my $dep_cat_label = $dep_name ? "$dep_name / $cat_name" : $cat_name;
+    
     my $precios_html = "";
     my $precio_base = 0;
     foreach my $p (@{$item->{precios} || []}) {
@@ -135,7 +138,7 @@ foreach my $item (@{$cat_univ->{items} || []}) {
                                         <tr>
                                             <td data-label="SKU"><span class="badge bg-secondary">$item->{codigo_sku}</span></td>
                                             <td data-label="Concepto" class="fw-bold text-primary">$item->{concepto}</td>
-                                            <td data-label="Dep/Cat" class="small text-muted">$cat_name</td>
+                                            <td data-label="Dep/Cat" class="small text-muted">$dep_cat_label</td>
                                             <td data-label="Precios">$precios_html</td>
                                             <td class="text-end">
                                                 <button class="btn btn-sm btn-outline-primary rounded-circle me-1" onclick="abrirFormulario('servicio', '$item->{id_item}', '$item->{codigo_sku}', '$item->{concepto}', '$item->{id_cat}', '$precio_base')"><i class="bi bi-pencil"></i></button>
@@ -284,8 +287,15 @@ foreach my $dep (@{$cat_univ->{departamentos} || []}) {
     $deps_options .= "<option value='$dep->{id_dep}'>$dep->{nombre}</option>";
 }
 
+my $deps_json = encode_json($cat_univ->{departamentos} || []);
+my $cats_json = encode_json($cat_univ->{categorias} || []);
+
 print <<HTML;
 <div id="config-catalogo" style="display:none;" data-cats="$cats_options" data-deps="$deps_options"></div>
+<script>
+    window.CATALOGO_DEPS = $deps_json;
+    window.CATALOGO_CATS = $cats_json;
+</script>
 HTML
 
 print <<'JS';
@@ -293,6 +303,42 @@ print <<'JS';
             const config = document.getElementById('config-catalogo');
             const optsCat = config ? config.dataset.cats : '';
             const optsDep = config ? config.dataset.deps : '';
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                return String(text)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            function filtrarCategoriasPorDep(depId, targetCatSelectId = 'sel_cat', selectedCatId = '') {
+                const catSelect = document.getElementById(targetCatSelectId);
+                if (!catSelect) return;
+                
+                if (!depId) {
+                    catSelect.innerHTML = '<option value="">-- Primero seleccione Departamento --</option>';
+                    catSelect.disabled = true;
+                    return;
+                }
+                
+                const filtered = (window.CATALOGO_CATS || []).filter(c => String(c.id_dep) === String(depId));
+                let options = '<option value="">-- Seleccione Categoría --</option>';
+                
+                if (filtered.length === 0) {
+                    options = '<option value="">-- Sin categorías en este departamento --</option>';
+                    catSelect.disabled = true;
+                } else {
+                    catSelect.disabled = false;
+                    filtered.forEach(c => {
+                        const sel = String(c.id_cat) === String(selectedCatId) ? 'selected' : '';
+                        options += `<option value="${c.id_cat}" ${sel}>${escapeHtml(c.nombre)}</option>`;
+                    });
+                }
+                catSelect.innerHTML = options;
+            }
 
             function initCatalogoTable(tableId, titleExport) {
                 if ($(tableId).length) {
@@ -424,21 +470,46 @@ print <<'JS';
                     const concepto = args[2] || '';
                     const id_cat = args[3] || '';
                     const precio = args[4] || '';
+                    
+                    let currentDepId = '';
+                    if (id_cat && window.CATALOGO_CATS) {
+                        const foundCat = window.CATALOGO_CATS.find(c => String(c.id_cat) === String(id_cat));
+                        if (foundCat) {
+                            currentDepId = foundCat.id_dep;
+                        }
+                    }
+
+                    let depOptions = '<option value="">-- Seleccione Departamento --</option>';
+                    if (window.CATALOGO_DEPS) {
+                        window.CATALOGO_DEPS.forEach(d => {
+                            const sel = String(d.id_dep) === String(currentDepId) ? 'selected' : '';
+                            depOptions += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
+                        });
+                    }
+
                     title.innerHTML = `<i class="bi bi-activity me-2"></i>${id ? 'Editar' : 'Nuevo'} Servicio`;
                     html = `
                         <form id="crudForm" onsubmit="saveEntity(event, 'servicio')">
                             <input type="hidden" name="action" value="save_servicio">
                             <input type="hidden" name="id_item" value="${id}">
                             <div class="row g-3 mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold small text-muted">Categoría Mapeada</label>
-                                    <select class="form-select" name="id_cat" id="sel_cat" required>${optsCat}</select>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small text-muted">Departamento</label>
+                                    <select class="form-select" id="sel_dep_servicio" onchange="filtrarCategoriasPorDep(this.value, 'sel_cat')" required>
+                                        ${depOptions}
+                                    </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small text-muted">Categoría Mapeada</label>
+                                    <select class="form-select" name="id_cat" id="sel_cat" required>
+                                        <option value="">-- Primero seleccione Departamento --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted">Código SKU</label>
                                     <input type="text" class="form-control" name="codigo_sku" value="${sku}" required>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted">Precio Base (DIA)</label>
                                     <input type="number" step="0.01" class="form-control" name="precio" value="${precio}" required>
                                 </div>
@@ -457,7 +528,14 @@ print <<'JS';
                 
                 body.innerHTML = html;
                 if (tipo === 'categoria' && args[1]) document.getElementById('sel_dep').value = args[1];
-                if (tipo === 'servicio' && args[3]) document.getElementById('sel_cat').value = args[3];
+                if (tipo === 'servicio') {
+                    if (currentDepId) {
+                        filtrarCategoriasPorDep(currentDepId, 'sel_cat', id_cat);
+                    } else {
+                        const selCat = document.getElementById('sel_cat');
+                        if (selCat) selCat.disabled = true;
+                    }
+                }
             }
 
             async function saveEntity(e, tipo) {
