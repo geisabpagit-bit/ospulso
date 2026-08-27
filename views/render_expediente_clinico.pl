@@ -85,32 +85,11 @@ if ($paciente) {
     }
     
     if (!$acceso_permitido) {
-        print $q->header(-type => 'text/html', -charset => 'UTF-8');
-        print <<HTML;
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Acceso Denegado</title>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
-</head>
-<body>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            Swal.fire({
-                title: 'Acceso Denegado',
-                text: 'No tienes los permisos necesarios para visualizar este expediente clínico.',
-                icon: 'error',
-                confirmButtonText: 'Aceptar',
-                confirmButtonColor: '#0d6efd'
-            }).then(() => {
-                window.location.href = 'pacientes.pl';
-            });
-        });
-    </script>
-</body>
-</html>
-HTML
+        render_acceso_denegado(
+            q => $q, usuario => ($session_data->{usuario} // 'Usuario'), role => $role,
+            mensaje => 'No tienes los permisos necesarios para visualizar este expediente clínico.',
+            rol_requerido => 'Personal Médico o Administrador de la Organización'
+        );
         exit;
     }
 }

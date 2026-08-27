@@ -31,8 +31,11 @@ my $id_empresa = $sd->{id_empresa};
 
 # Seguridad: Sólo Administrador de Organización puede ver/gestionar Servicios
 if ($role ne 'Administrador Organizacion' && $role ne 'Administrador Global') {
-    print $q->header(-status => '403 Forbidden');
-    print "<h1>Acceso Denegado</h1><p>Esta sección es exclusiva para el Administrador de la Organización.</p>";
+    render_acceso_denegado(
+        q => $q, usuario => $usuario, role => $role,
+        mensaje => 'Esta sección es exclusiva para el Administrador de la Organización.',
+        rol_requerido => 'Administrador Organización'
+    );
     exit;
 }
 

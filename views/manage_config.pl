@@ -36,21 +36,11 @@ my $role       = $session_data->{role};
 
 # --- Validar Rol de Administrador Global ---
 if (!$session_ok || $role ne 'Administrador Global') {
-    print $q->header(-type => 'text/html', -charset => 'UTF-8');
-    render_header(usuario => 'Invitado', titulo => 'Acceso Denegado', ruta_logout => '../index.html', show_nav_content => 0);
-    print <<HTML;
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-  <div class="card-medentia p-5 text-center border-danger border-opacity-50 shadow-lg animate__animated animate__shakeX" style="max-width: 500px; width: 100%;">
-    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-      <i class="bi bi-shield-slash fs-1"></i>
-    </div>
-    <h4 class="fw-bold text-dark mb-3">Acceso Restringido</h4>
-    <p class="text-muted small mb-4">No tienes los privilegios necesarios para acceder a la administración del sistema.</p>
-    <a href="inicial.pl" class="btn-medentia px-4"><i class="bi bi-house me-2"></i>Volver al Inicio</a>
-  </div>
-</div>
-HTML
-    render_footer();
+    render_acceso_denegado(
+        q => $q, usuario => ($usuario // 'Invitado'), role => ($role // 'Invitado'),
+        mensaje => 'Esta sección es exclusiva para el Administrador Global del sistema.',
+        rol_requerido => 'Administrador Global'
+    );
     exit;
 }
 

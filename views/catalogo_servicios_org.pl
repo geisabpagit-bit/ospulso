@@ -1,4 +1,4 @@
-﻿#!/usr/bin/perl
+#!/usr/bin/perl
 use cPanelUserConfig;
 use strict;
 use warnings;
@@ -22,12 +22,12 @@ my $usuario = $session_data->{usuario};
 my $role    = $session_data->{role};
 my $id_emp  = $session_data->{id_empresa} || 0;
 
-print $q->header('text/html; charset=UTF-8');
-
 unless ($session_ok && ($role eq 'Administrador Organizacion' || $role eq 'Administrador Global')) {
-    render_header(usuario => 'Invitado', titulo => 'Acceso Denegado', ruta_logout => '../index.html', show_nav_content => 0);
-    print '<div class="container py-5 text-center"><div class="alert alert-danger shadow"><h4><i class="bi bi-shield-lock-fill me-2"></i>Acceso Restringido</h4><p>No tienes permisos para acceder a esta seccion.</p><a href="../index.html" class="btn btn-danger mt-2">Volver al inicio</a></div></div>';
-    render_footer();
+    render_acceso_denegado(
+        q => $q, usuario => ($usuario // 'Invitado'), role => ($role // 'Invitado'),
+        mensaje => 'Esta sección es exclusiva para el Administrador de la Organización.',
+        rol_requerido => 'Administrador Organización'
+    );
     exit;
 }
 

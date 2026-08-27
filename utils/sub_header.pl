@@ -435,4 +435,102 @@ HTML
     <main class="container-fluid px-lg-4 pt-1 pb-4">
 HTML
 }
+
+sub render_acceso_denegado {
+    my %args = @_;
+    my $q             = $args{q} || CGI->new;
+    my $usuario       = $args{usuario} || 'Usuario';
+    my $role          = $args{role} || 'Invitado';
+    my $mensaje       = $args{mensaje} || 'No cuentas con los permisos necesarios para acceder a este módulo.';
+    my $rol_requerido = $args{rol_requerido} || '';
+    my $titulo        = $args{titulo} || 'Acceso Denegado';
+
+    print $q->header(
+        -status => '403 Forbidden',
+        -type => 'text/html',
+        -charset => 'UTF-8',
+        -cache_control => 'no-store, no-cache, must-revalidate, max-age=0',
+        -pragma => 'no-cache'
+    );
+
+    render_header(
+        usuario     => $usuario,
+        role        => $role,
+        titulo      => $titulo,
+        skip_header => 1
+    );
+
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
+    utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_actual => '');
+
+    my $badge_rol_req = '';
+    if ($rol_requerido) {
+        $badge_rol_req = qq{<div class="mt-3"><span class="small text-muted fw-bold">Rol requerido:</span> <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 ms-1 rounded-pill"><i class="bi bi-shield-lock-fill me-1"></i>$rol_requerido</span></div>};
+    }
+
+    print <<HTML;
+        <link rel="stylesheet" href="../css/sdm_mobile_standards.css?v=$^T">
+        <!-- TOPBAR INSTITUCIONAL -->
+        <header class="bg-medentia-gradient text-white p-4 shadow-sm" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 2rem;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-black mb-0"><i class="bi bi-shield-slash-fill me-2 text-warning"></i>Acceso Restringido</h2>
+                    <p class="text-white-50 small mb-0 mt-1">Control de Acceso y Gobernanza RBAC</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="container-fluid px-4 pb-5 container-mobile-flush">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <div class="card card-medentia-aura border-0 shadow-lg rounded-4 p-4 text-center my-4">
+                        <div class="card-body p-4 d-flex flex-column align-items-center">
+                            
+                            <div class="d-flex align-items-center justify-content-center mb-4" style="width: 90px; height: 90px; border-radius: 50%; background: rgba(220, 53, 69, 0.1); border: 2px solid rgba(220, 53, 69, 0.25); color: #dc3545;">
+                                <i class="bi bi-shield-lock-fill display-4"></i>
+                            </div>
+
+                            <h3 class="fw-black text-dark mb-2">Acceso Denegado</h3>
+                            <p class="text-muted fs-6 mb-3">$mensaje</p>
+
+                            <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 mb-3">
+                                <span class="small text-muted fw-bold">Tu Rol Actual:</span>
+                                <span class="badge bg-secondary px-3 py-2 rounded-pill">$role</span>
+                            </div>
+
+                            $badge_rol_req
+
+                            <div class="alert alert-warning border-0 rounded-4 text-start small mt-4 mb-4 p-3 shadow-sm w-100" style="background-color: #fff8e6; border-left: 4px solid #f59e0b !important;">
+                                <div class="d-flex align-items-start gap-2">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-5 flex-shrink-0"></i>
+                                    <div>
+                                        <strong class="text-dark d-block">¿Necesitas acceso a esta sección?</strong>
+                                        Si consideras que deberías tener acceso a este módulo, solicita a un Administrador de la Organización que actualice tus permisos en el sistema.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 w-100 mt-2">
+                                <button type="button" onclick="window.history.back()" class="btn btn-sdm-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
+                                    <i class="bi bi-arrow-left me-2"></i>Regresar a Página Anterior
+                                </button>
+                                <a href="../views/pacientes.pl" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-bold shadow-sm">
+                                    <i class="bi bi-house-door-fill me-2"></i>Ir al Inicio
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+HTML
+
+    utils::sub_sidebar::render_sidebar_footer();
+    if (defined &render_bottom_nav) {
+        render_bottom_nav('');
+    }
+    print $q->end_html;
+}
+
 1;

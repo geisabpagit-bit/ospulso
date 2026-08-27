@@ -30,8 +30,11 @@ my $id_empresa = $sd->{id_empresa};
 
 # Seguridad
 if ($role ne 'Administrador Organizacion' && $role ne 'Administrador Global' && $role !~ /Recepcionista/i) {
-    print $q->header(-status => '403 Forbidden');
-    print "<h1>Acceso Denegado</h1><p>Esta sección es exclusiva para el Administrador de la Organización y Recepcionistas.</p>";
+    render_acceso_denegado(
+        q => $q, usuario => $usuario, role => $role,
+        mensaje => 'Esta sección es exclusiva para el Administrador de la Organización y Recepcionistas.',
+        rol_requerido => 'Administrador Organización o Recepcionista'
+    );
     exit;
 }
 

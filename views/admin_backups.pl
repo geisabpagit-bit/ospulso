@@ -28,8 +28,11 @@ my $role      = $sd->{role};
 
 # Seguridad Estricta: Sólo Administrador Global
 if ($role ne 'Administrador Global') {
-    print $q->header(-status => '403 Forbidden');
-    print "<h1>Acceso Denegado</h1><p>Esta sección es exclusiva para el Administrador Global.</p>";
+    render_acceso_denegado(
+        q => $q, usuario => $usuario, role => $role,
+        mensaje => 'Esta sección es exclusiva para el Administrador Global.',
+        rol_requerido => 'Administrador Global'
+    );
     exit;
 }
 

@@ -30,8 +30,11 @@ my $id_usuario = $sd->{id_medico}; # ID del usuario activo (Ejecutivo de ventas)
 
 # Seguridad: Sólo Ejecutivo de Ventas (o Admin Global para revisar)
 if ($role ne 'Ejecutivo Ventas' && $role ne 'Administrador Global') {
-    print $q->header(-status => '403 Forbidden');
-    print "<h1>Acceso Denegado</h1><p>Esta sección es exclusiva para la Fuerza de Ventas.</p>";
+    render_acceso_denegado(
+        q => $q, usuario => $usuario, role => $role,
+        mensaje => 'Esta sección es exclusiva para la Fuerza de Ventas.',
+        rol_requerido => 'Ejecutivo Ventas'
+    );
     exit;
 }
 

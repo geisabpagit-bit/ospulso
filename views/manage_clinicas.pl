@@ -30,8 +30,11 @@ my $id_empresa = $sd->{id_empresa};
 
 # Seguridad: Sólo Administrador de Organización puede ver/gestionar Sucursales
 if ($role ne 'Administrador Organizacion') {
-    print $q->header(-status => '403 Forbidden');
-    print "<h1>Acceso Denegado</h1><p>Esta sección es exclusiva para Directores de Organización.</p>";
+    render_acceso_denegado(
+        q => $q, usuario => $usuario, role => $role,
+        mensaje => 'Esta sección es exclusiva para Directores de Organización.',
+        rol_requerido => 'Administrador Organización'
+    );
     exit;
 }
 
