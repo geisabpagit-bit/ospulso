@@ -15,6 +15,7 @@ require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
 use utils::db_manager qw(leer_tabla);
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 
 my $sd = check_session();
 my $q  = $sd->{q};
@@ -159,15 +160,14 @@ if ($has_custom_medicos) {
 }
 
 my $motivos_html = "<option value=''>-- Selecciona Concepto --</option>";
-if ($org_clues eq 'QTSMP000116') {
-    my $motivos_file = File::Spec->catfile($dat_dir, 'motivos_QTSMP000116.dat');
-    if (-e $motivos_file) {
-        my $mots = leer_tabla($motivos_file);
-        foreach my $m (@$mots) {
-            next unless @$m >= 2;
-            my $safe_mot = html_escape($m->[1]);
-            $motivos_html .= "<option value='$safe_mot'>$safe_mot</option>";
-        }
+$rutas = catalogo_org_utils::obtener_rutas_por_clue($id_empresa);
+my $motivos_file = $rutas->{rutas}{motivos};
+if (-e $motivos_file) {
+    my $mots = leer_tabla($motivos_file);
+    foreach my $m (@$mots) {
+        next unless @$m >= 2;
+        my $safe_mot = html_escape($m->[1]);
+        $motivos_html .= "<option value='$safe_mot'>$safe_mot</option>";
     }
 }
 
@@ -750,12 +750,21 @@ print <<'JS';
         }
     }
     
+    function editarConcepto(id) {
+        let ex = cartItems.find(i => i.id == id);
+        if (ex) {
+            $('#manual_nombre').val(ex.nombre);
+            $('#manual_precio').val(ex.precio);
+            removeConcepto(id);
+        }
+    }
+    
     function renderCart() {
         const cModal = $('#listaCarrito');
         const cMain = $('#cartContainer');
         
         if (cartItems.length === 0) {
-            let emptyHtml = '<div class="text-center text-muted small py-4" id="cartEmpty"><i class="bi bi-cart-x fs-2 d-block mb-2 text-black-50"></i>No hay conceptos agregados</div>';
+            let emptyHtml = '<div class="text-center p-10 text-slate-300 font-bold small" id="cartEmpty"><i class="bi bi-cart-x fs-2 d-block mb-2 text-black-50"></i>No hay conceptos agregados</div>';
             cModal.html(emptyHtml);
             cMain.html(emptyHtml);
             $('#carritoTotal').text('$0.00');
@@ -764,48 +773,36 @@ print <<'JS';
         }
         
         let htmlModal = '';
-        let htmlMain = '';
         let total = 0;
         
         cartItems.forEach(item => {
             const sub = item.precio * item.cantidad;
             total += sub;
             
-            // Modal
             htmlModal += `
-                <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-2 shadow-sm" style="background: white; border: 1px solid var(--md-gray-soft, #D9E2EC);">
-                    <div class="me-2" style="flex: 1; min-width: 0;">
-                        <div class="fw-bold text-truncate" style="font-size: 0.8rem; color: var(--md-blue-deep, #0A2A66);">${escapeHtml(item.nombre)}</div>
-                        <div class="text-muted" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u</div>
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-2">
+                    <div class="lh-sm flex-grow-1">
+                        <span class="fw-black text-slate-800 d-block mb-1 text-xs uppercase">${escapeHtml(item.nombre)}</span>
+                        <small class="text-slate-400 fw-bold">${formatCurrency(item.precio)} c/u</small>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="input-group input-group-sm" style="width: 75px;">
-                            <button class="btn btn-outline-secondary px-1 py-0" type="button" onclick="updateCantidad('${escapeHtml(item.id)}', -1)">-</button>
-                            <input type="text" class="form-control text-center p-0" value="${escapeHtml(item.cantidad)}" readonly style="font-size: 0.75rem;">
-                            <button class="btn btn-outline-secondary px-1 py-0" type="button" onclick="updateCantidad('${escapeHtml(item.id)}', 1)">+</button>
+                    <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 flex-wrap">
+                        <div class="d-flex align-items-center gap-2 bg-white rounded-pill px-2 py-1 border shadow-sm">
+                            <button class="btn btn-sm btn-light rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;" onclick="updateCantidad('${escapeHtml(item.id)}', -1)"><i class="bi bi-dash"></i></button>
+                            <span class="fw-bold px-2 text-sm">${item.cantidad}</span>
+                            <button class="btn btn-sm btn-light rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;" onclick="updateCantidad('${escapeHtml(item.id)}', 1)"><i class="bi bi-plus"></i></button>
                         </div>
-                        <span class="fw-bold" style="font-size: 0.85rem; color: var(--md-blue-deep, #0A2A66); width: 60px; text-align: right;">${formatCurrency(sub)}</span>
-                        <button class="btn btn-sm text-danger p-1 border-0" onclick="removeConcepto('${escapeHtml(item.id)}')"><i class="bi bi-trash"></i></button>
-                    </div>
-                </div>
-            `;
-            
-            // Main view (Right column cart)
-            htmlMain += `
-                <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-1 bg-white border shadow-sm" style="border-color: var(--md-gray-soft, #D9E2EC) !important; gap: 0.5rem;">
-                    <div style="min-width: 0;">
-                        <div class="fw-bold text-truncate" style="font-size: 0.85rem; color: var(--md-blue-deep, #0A2A66);">${escapeHtml(item.nombre)}</div>
-                        <div class="text-muted" style="font-size: 0.75rem;">${escapeHtml(item.cantidad)} x ${formatCurrency(item.precio)}</div>
-                    </div>
-                    <div class="fw-bold text-success text-end flex-shrink-0" style="font-size: 0.9rem;">
-                        ${formatCurrency(sub)}
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-black text-primary d-inline-block text-end" style="min-width: 70px;">${formatCurrency(sub)}</span>
+                            <button class="btn btn-sm btn-white text-primary border shadow-sm rounded-xl p-2" onclick="editarConcepto('${escapeHtml(item.id)}')"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-white text-danger border shadow-sm rounded-xl p-2" onclick="removeConcepto('${escapeHtml(item.id)}')"><i class="bi bi-trash"></i></button>
+                        </div>
                     </div>
                 </div>
             `;
         });
         
         cModal.html(htmlModal);
-        cMain.html(htmlMain);
+        cMain.html(htmlModal);
         
         let iva = 0;
         if ($('#chkIva').length && $('#chkIva').is(':checked')) {

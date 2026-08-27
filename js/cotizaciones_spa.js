@@ -320,8 +320,14 @@ function _cargarCatalogoCot() {
         .then(function(r) { return r.json(); })
         .then(function(res) {
             cotCatalogo = [];
-            (res.servicios || []).forEach(function(s) { cotCatalogo.push({ id: s.id, nombre: s.nombre, precio: s.precio }); });
-            (res.productos || []).forEach(function(p) { cotCatalogo.push({ id: p.id, nombre: p.nombre, precio: p.precio }); });
+            if (res.is_universal && res.catalogo) {
+                res.catalogo.forEach(function(c) {
+                    cotCatalogo.push({ id: c.id, nombre: c.concepto || c.nombre, precio: c.precio });
+                });
+            } else {
+                (res.servicios || []).forEach(function(s) { cotCatalogo.push({ id: s.id, nombre: s.nombre, precio: s.precio }); });
+                (res.productos || []).forEach(function(p) { cotCatalogo.push({ id: p.id, nombre: p.nombre, precio: p.precio }); });
+            }
             _renderizarCatalogoCot();
         })
         .catch(function(e) { console.warn('[Cotizaciones] catalogo error:', e); });
