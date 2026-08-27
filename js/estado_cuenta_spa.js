@@ -912,7 +912,8 @@ function prepararEdicion(id, concepto, total) {
 
 function abrirModalCargo() {
     windowActiveOS = null;
-    document.getElementById('modalCargoTitle').innerHTML = '<i class="bi bi-cart-plus me-3"></i>Nueva Orden de Servicio';
+    const titleEl = document.getElementById('modalCargoTitle');
+    if (titleEl) titleEl.innerHTML = '<i class="bi bi-cart-plus me-3"></i>Nueva Orden de Servicio';
     carritoApp = [];
     refrescarGUICarrito();
     const aliasIn = document.getElementById('alias_os_cargo');
@@ -924,13 +925,17 @@ function abrirModalCargo() {
     _initRadioCotizacion();
     const el = document.getElementById('modalCargo');
     if (!el) return console.error("Modal Cargo no encontrado");
-    const m = new bootstrap.Modal(el);
+    if (el.parentElement !== document.body) {
+        document.body.appendChild(el);
+    }
+    const m = bootstrap.Modal.getOrCreateInstance(el);
     m.show();
 }
 
 function abrirModalCargoConOS(id_os, alias) {
     windowActiveOS = id_os;
-    document.getElementById('modalCargoTitle').innerHTML = `<i class="bi bi-plus-circle-dotted me-3"></i>Agregar a OS: <span class="text-primary">${id_os}</span>`;
+    const titleEl = document.getElementById('modalCargoTitle');
+    if (titleEl) titleEl.innerHTML = `<i class="bi bi-plus-circle-dotted me-3"></i>Agregar a OS: <span class="text-primary">${id_os}</span>`;
     carritoApp = [];
     refrescarGUICarrito();
     const aliasIn = document.getElementById('alias_os_cargo');
@@ -942,7 +947,10 @@ function abrirModalCargoConOS(id_os, alias) {
     _initRadioCotizacion();
     const el = document.getElementById('modalCargo');
     if (!el) return console.error("Modal Cargo no encontrado");
-    const m = new bootstrap.Modal(el);
+    if (el.parentElement !== document.body) {
+        document.body.appendChild(el);
+    }
+    const m = bootstrap.Modal.getOrCreateInstance(el);
     m.show();
 }
 
