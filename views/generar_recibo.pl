@@ -697,7 +697,7 @@ print <<'JS';
                 <td class="ps-3 fw-bold small text-dark align-middle">${escapeHtml(it.nombre)}</td>
                 <td class="text-end fw-bold text-success small align-middle">${formatCurrency(it.precio)}</td>
                 <td class="text-center align-middle">
-                    <button type="button" class="btn btn-sm btn-outline-primary rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:26px; height:26px;" onclick="agregarAlCarritoModalRecibo('${escapeHtml(it.id)}')">
+                    <button type="button" class="btn btn-sm text-white rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-sm" style="width:26px; height:26px; background: var(--md-blue-deep, #0A2A66);" onclick="agregarAlCarritoModalRecibo('${escapeHtml(it.id)}')">
                         <i class="bi bi-plus" style="font-size:1.1rem;"></i>
                     </button>
                 </td>
@@ -785,7 +785,7 @@ print <<'JS';
                         <span class="fw-bold small px-1">${it.cantidad}</span>
                         <button type="button" class="btn btn-sm btn-light border p-0 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:22px; height:22px; line-height:1;" onclick="updateModalQtyRecibo(${idx}, 1)">+</button>
                     </div>
-                    <div class="fw-bold text-primary small text-end" style="min-width:60px;">${formatCurrency(sub)}</div>
+                    <div class="fw-bold small text-end" style="min-width:60px; color: var(--md-blue-deep, #0A2A66);">${formatCurrency(sub)}</div>
                     <button type="button" class="btn btn-sm text-danger p-0 border-0 shadow-none" onclick="removeModalItemRecibo(${idx})"><i class="bi bi-trash"></i></button>
                 </div>`;
         });
@@ -1026,9 +1026,9 @@ print <<"HTML";
 <div class="modal fade" id="modalConceptosRecibo" tabindex="-1" aria-labelledby="modalConceptosReciboTitle" aria-hidden="true" style="z-index: 108000 !important;">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content overflow-hidden border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 pb-2" style="background: linear-gradient(135deg, #0A2A66 0%, #f59e0b 100%);">
-                <h5 class="modal-title fw-bold text-white" id="modalConceptosReciboTitle">
-                    <i class="bi bi-cart-plus me-2"></i>Conceptos del Recibo
+            <div class="modal-header border-0 pb-3 text-white" style="background: var(--md-blue-deep, #0A2A66);">
+                <h5 class="modal-title fw-bold text-white m-0" id="modalConceptosReciboTitle">
+                    <i class="bi bi-cart-plus me-2" style="color: var(--md-teal-clinical, #0D9488);"></i>Conceptos del Recibo
                 </h5>
                 <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
             </div>
@@ -1041,9 +1041,9 @@ print <<"HTML";
                                 <label class="fw-bold small text-muted text-uppercase mb-2 d-block">Entrada Manual</label>
                                 <div class="input-group input-group-sm">
                                     <input type="text" id="reciboManualNombre" class="form-control" placeholder="Concepto (ej. Consulta General)">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">\$</span>
                                     <input type="number" id="reciboManualPrecio" class="form-control" style="max-width: 90px;" placeholder="0.00" step="0.01" min="0">
-                                    <button type="button" class="btn btn-primary px-3" onclick="agregarItemManualRecibo()"><i class="bi bi-plus-lg"></i></button>
+                                    <button type="button" class="btn text-white px-3 fw-bold rounded-2 shadow-sm" style="background: var(--md-blue-deep, #0A2A66);" onclick="agregarItemManualRecibo()"><i class="bi bi-plus-lg"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -1080,17 +1080,17 @@ print <<"HTML";
                     <div class="col-lg-5">
                         <div class="card border-0 shadow-sm h-100 d-flex flex-column rounded-3">
                             <div class="card-body p-3 d-flex flex-column">
-                                <h6 class="fw-bold text-primary mb-2">
-                                    <i class="bi bi-cart3 me-1"></i>Conceptos del Recibo
+                                <h6 class="fw-bold mb-2" style="color: var(--md-blue-deep, #0A2A66);">
+                                    <i class="bi bi-cart3 me-1" style="color: var(--md-teal-clinical, #0D9488);"></i>Conceptos del Recibo
                                 </h6>
                                 <div id="reciboListaCarritoModal" class="flex-grow-1 overflow-auto mb-2 pe-1" style="max-height: 220px;"></div>
                                 <div class="p-3 bg-light rounded-3 border shadow-sm mt-auto">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="small fw-bold text-muted">TOTAL</span>
-                                        <span class="h4 fw-bold text-primary m-0" id="reciboTotalCarritoModal">\$0.00</span>
+                                        <span class="h4 fw-bold m-0" style="color: var(--md-blue-deep, #0A2A66);" id="reciboTotalCarritoModal">\$0.00</span>
                                     </div>
-                                    <button type="button" id="btnGuardarConceptosRecibo" class="btn btn-warning btn-sm w-100 py-2 fw-bold rounded-3 shadow text-dark" onclick="guardarConceptosModalRecibo()">
-                                        <i class="bi bi-check-lg me-1"></i>GUARDAR CONCEPTOS
+                                    <button type="button" id="btnGuardarConceptosRecibo" class="btn text-white btn-sm w-100 py-2.5 fw-bold rounded-3 shadow-sm" style="background: var(--md-blue-deep, #0A2A66);" onclick="guardarConceptosModalRecibo()">
+                                        <i class="bi bi-check2-circle me-1"></i> GUARDAR CONCEPTOS
                                     </button>
                                 </div>
                             </div>
