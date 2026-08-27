@@ -1,1 +1,13 @@
-use strict; use JSON; use FindBin; use lib "  /.\; use utils::db_manager qw(leer_tabla); my @cat = leer_tabla(\dat/categorias.dat\); my @cat_map = map { { id => ->[0], nombre => ->[1], desc => ->[2] } } @cat; print encode_json(\@cat_map);
+#!/usr/bin/perl
+use strict;
+use warnings;
+use utf8;
+use Data::Dumper;
+use File::Spec;
+
+use lib 'c:/xampp/htdocs/ospulso';
+use utils::db_manager qw(leer_tabla);
+
+my $f = 'c:/xampp/htdocs/ospulso/dat/catalogos_CLUE/QTSMP000116/motivos_QTSMP000116.dat';
+my $m = leer_tabla($f);
+print Dumper($m);

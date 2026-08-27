@@ -537,31 +537,34 @@ async function cargarCatalogo() {
                     id_cat: 'PROD_CAT'
                 });
             });
-            
-            // Inject dynamic select filter
-            if ((data.catalogo.categorias && data.catalogo.categorias.length > 0) || (data.catalogo.productos && data.catalogo.productos.length > 0)) {
-                if (!document.getElementById('filtroCategoriaCat')) {
-                    let htmlOpts = `<select id="filtroCategoriaCat" class="form-select form-select-sm mb-2 rounded-pill shadow-sm" style="border-color: var(--md-teal-clinical, #19B7A5);" onchange="filtrarCatalogo()"><option value="">Todos los departamentos y categorías...</option>`;
-                    (data.catalogo.departamentos || []).forEach(d => {
-                        htmlOpts += `<optgroup label="${d.nombre}">`;
-                        (data.catalogo.categorias || []).filter(c => c.id_dep == d.id_dep).forEach(c => {
-                            htmlOpts += `<option value="${c.id_cat}">${c.nombre}</option>`;
-                        });
-                        htmlOpts += `</optgroup>`;
+            // Populate select filters
+            if (data.catalogo.departamentos && data.catalogo.departamentos.length > 0) {
+                const selDep = document.getElementById('filtroDepartamento');
+                const selCat = document.getElementById('filtroCategoria');
+                if (selDep) {
+                    selDep.innerHTML = '<option value="">Todos los Departamentos</option>';
+                    data.catalogo.departamentos.forEach(d => {
+                        selDep.insertAdjacentHTML('beforeend', `<option value="${d.id_dep}">${d.nombre}</option>`);
                     });
-                    
-                    if (data.catalogo.productos && data.catalogo.productos.length > 0) {
-                        htmlOpts += `<optgroup label="Farmacia y Materiales">`;
-                        htmlOpts += `<option value="PROD_CAT">Productos e Insumos Médicos</option>`;
-                        htmlOpts += `</optgroup>`;
-                    }
-                    
-                    htmlOpts += `</select>`;
-                    
-                    const bcat = document.getElementById('buscadorCatalogo');
-                    if (bcat && bcat.parentNode) {
-                        bcat.parentNode.insertAdjacentHTML('beforebegin', htmlOpts);
-                    }
+                    selDep.onchange = function() {
+                        const dep = this.value;
+                        if (selCat) {
+                            selCat.innerHTML = '<option value="">Todas las Categorías</option>';
+                            (data.catalogo.categorias || []).forEach(c => {
+                                if (dep === '' || c.id_dep == dep) {
+                                    selCat.insertAdjacentHTML('beforeend', `<option value="${c.id_cat}">${c.nombre}</option>`);
+                                }
+                            });
+                            if (dep === '' || dep === 'FARMACIA_DEP') {
+                                if (data.catalogo.productos && data.catalogo.productos.length > 0) {
+                                    selCat.insertAdjacentHTML('beforeend', `<option value="PROD_CAT">Productos e Insumos Médicos</option>`);
+                                }
+                            }
+                        }
+                        filtrarCatalogo();
+                    };
+                    // Trigger onchange to populate categories initially
+                    selDep.onchange();
                 }
             }
         } else {
@@ -572,16 +575,24 @@ async function cargarCatalogo() {
     } catch(e) {}
 }
 
-function renderCatalogoGUI(f = '', catFilter = '') {
+function renderCatalogoGUI(f = '', depFilter = '', catFilter = '') {
     const tbody = document.getElementById('tablaCatalogo'); if(!tbody) return;
     tbody.innerHTML = '';
     const filtered = catalogoMaster.filter(i => {
         const matchName = (i.nombre||'').toLowerCase().includes(f.toLowerCase());
-        const matchCat = catFilter ? i.id_cat == catFilter : true;
+        let matchCat = true;
+        if (catFilter) {
+            matchCat = (i.id_cat == catFilter);
+        } else if (depFilter) {
+            // Check if item's category belongs to this department
+            matchCat = (i.id_dep == depFilter) || (depFilter === 'FARMACIA_DEP' && i.id_cat === 'PROD_CAT'); 
+        }
         return matchName && matchCat;
     });
     
-    filtered.forEach(it => {
+    let totalCount = 0;
+    filtered.slice(0, 50).forEach(it => {
+        totalCount++;
         let badgeDepto = it.departamento ? `<br><span class="badge bg-light text-secondary border mt-1" style="font-size:0.65rem;">${it.departamento} > ${it.categoria}</span>` : '';
         tbody.insertAdjacentHTML('beforeend', `
             <tr style="cursor:pointer;" onclick="agregarAlCarrito('${it.id}')" class="hover-shadow">
@@ -592,12 +603,17 @@ function renderCatalogoGUI(f = '', catFilter = '') {
                 </td>
             </tr>`);
     });
+    
+    if (document.getElementById('totalConceptosBadge')) {
+        document.getElementById('totalConceptosBadge').innerText = filtered.length;
+    }
 }
 
 function filtrarCatalogo() { 
     const f = document.getElementById('buscadorCatalogo') ? document.getElementById('buscadorCatalogo').value : '';
-    const cat = document.getElementById('filtroCategoriaCat') ? document.getElementById('filtroCategoriaCat').value : '';
-    renderCatalogoGUI(f, cat); 
+    const dep = document.getElementById('filtroDepartamento') ? document.getElementById('filtroDepartamento').value : '';
+    const cat = document.getElementById('filtroCategoria') ? document.getElementById('filtroCategoria').value : '';
+    renderCatalogoGUI(f, dep, cat); 
 }
 
 function agregarCargoManual() {
@@ -671,6 +687,19 @@ function updateCartItemQty(idx, delta) {
 
 async function procesarCarrito() {
     if(carritoApp.length === 0) return;
+    
+    // Si la página invocadora define una función onCarritoCompletado, se le devuelven los items y NO se procesa por AJAX
+    if (typeof window.onCarritoCompletado === 'function') {
+        const itemsToReturn = JSON.parse(JSON.stringify(carritoApp)); // Clone
+        window.onCarritoCompletado(itemsToReturn);
+        const m = bootstrap.Modal.getInstance(document.getElementById('modalCargo'));
+        if (m) m.hide();
+        // Limpiar
+        carritoApp = [];
+        renderCarrito();
+        return;
+    }
+
     const btn = document.getElementById('btnProcesarCargo');
     const oldText = btn.innerHTML;
     btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> PROCESANDO...';

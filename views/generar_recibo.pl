@@ -170,7 +170,9 @@ if (-e $motivos_file) {
     my $mots = leer_tabla($motivos_file);
     foreach my $m (@$mots) {
         next unless @$m >= 2;
-        my $safe_mot = html_escape($m->[1]);
+        my $motivo = $m->[1];
+        $motivo =~ s/\s+$//; # Strip trailing \r or spaces
+        my $safe_mot = html_escape($motivo);
         $motivos_html .= "<option value='$safe_mot'>$safe_mot</option>";
     }
 }
@@ -344,7 +346,7 @@ print <<"HTML";
                         </div>
 HTML
 
-if ($org_clues eq 'QTSMP000116') {
+if ($org_clues ne '') {
 print <<"HTML";
                         <!-- 5. Concepto del Recibo -->
                         <div class="col-md-6">
@@ -404,92 +406,34 @@ print <<"HTML";
     </div>
 </main>
 <!-- MODAL CARRITO UNIVERSAL -->
-<div class="modal fade modal-diamond" id="modalCargo" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header" style="background: var(--md-blue-deep, #0A2A66);">
-                <h5 class="modal-title plus-jakarta fw-bold text-white">
-                    <i class="bi bi-cart-plus me-2" style="color: var(--md-cyan-ia, #18D1E6);"></i>Catálogo y Conceptos
-                </h5>
-                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body bg-light">
-                <div class="row g-4">
-                    <!-- Columna Izquierda: Catálogo -->
-                    <div class="col-lg-7">
-                        <!-- Entrada manual -->
-                        <div class="card-medentia p-3 mb-3 bg-white rounded-4 border-0 shadow-sm">
-                            <label class="fw-bold text-muted small mb-2 text-uppercase"><i class="bi bi-keyboard text-primary me-1"></i>Cargo Manual / Libre</label>
-                            <div class="row g-2 align-items-center">
-                                <div class="col-md-7">
-                                    <div class="form-floating diamond-input-armor rounded-3 bg-light">
-                                        <input type="text" id="manual_nombre" class="form-control border-0 bg-transparent shadow-none" placeholder="Concepto">
-                                        <label for="manual_nombre" class="fw-bold text-muted">Descripción del concepto</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-floating diamond-input-armor rounded-3 bg-light">
-                                        <input type="number" id="manual_precio" class="form-control border-0 bg-transparent shadow-none" placeholder="0.00" step="0.01" min="0">
-                                        <label for="manual_precio" class="fw-bold text-muted">Precio (\(\$\))</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <button onclick="agregarCargoManual()" class="btn h-100 w-100 rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="background: var(--md-blue-deep, #0A2A66); color: white; border: none;" title="Añadir libre">
-                                        <i class="bi bi-cart-plus fs-4"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Buscador catálogo -->
-                        <div class="position-relative mb-3 diamond-input-armor rounded-pill p-1 shadow-sm bg-white">
-                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-primary"></i>
-                            <input type="text" id="buscadorCatalogo" class="form-control form-control-lg border-0 bg-transparent shadow-none plus-jakarta" style="padding-left: 2.8rem;" placeholder="Buscar producto o servicio..." oninput="filtrarCatalogo()" onkeyup="filtrarCatalogo()">
-                        </div>
-
-                        <!-- Tabla catálogo -->
-                        <div class="table-responsive rounded-4 shadow-sm bg-white" style="max-height: 350px; overflow-y: auto; border: 1px solid rgba(25,183,165,0.2);">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light sticky-top" style="z-index: 1;">
-                                    <tr>
-                                        <th class="ps-4 py-3 text-muted text-uppercase small fw-bold">Concepto en Catálogo</th>
-                                        <th class="text-end py-3 text-muted text-uppercase small fw-bold">Precio</th>
-                                        <th style="width: 80px;" class="py-3"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tablaCatalogo">
-                                    <!-- AJAX rellena esto -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Columna Derecha: Carrito -->
-                    <div class="col-lg-5">
-                        <div class="card-medentia p-3 h-100 d-flex flex-column bg-white rounded-4 border-0 shadow-sm">
-                            <h6 class="fw-bold plus-jakarta mb-3 text-primary text-uppercase border-bottom pb-2">
-                                <i class="bi bi-basket2 me-2"></i>Carrito Actual
-                            </h6>
-                            <div id="listaCarrito" class="flex-grow-1 d-flex flex-column gap-2 overflow-auto mb-3" style="max-height: 320px;"></div>
-                            
-                            <div class="card-medentia-aura p-3 rounded-4 mt-auto">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="text-muted fw-bold small text-uppercase">Total a Cobrar</span>
-                                    <span class="fw-bold fs-2 plus-jakarta text-primary" id="carritoTotal">\$0.00</span>
-                                </div>
-                                <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow-sm plus-jakarta fs-6" id="btnProcesarCargo" onclick="bootstrap.Modal.getInstance(document.getElementById('modalCargo')).hide()">
-                                    <i class="bi bi-check-circle me-2"></i>CONFIRMAR Y CERRAR
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+EOF
+require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'modal_carrito_universal.pl');
+partials::consultas::modal_carrito_universal::render();
+print <<"EOF";
 </main>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="../js/estado_cuenta_spa.js"></script>
 <script>
+    // Inicializar variables para estado_cuenta_spa.js
+    var idPacienteGlobal = '';
+    var idMedicoGlobal = '';
+    var paciente_genero_global = '';
+    
+    // Hook para recibir items del modal de estado_cuenta_spa.js
+    window.onCarritoCompletado = function(items) {
+        if (items && items.length > 0) {
+            items.forEach(function(it) {
+                cartItems.push({
+                    id: Date.now() + Math.random(),
+                    nombre: it.nombre,
+                    precio: parseFloat(it.precio),
+                    cantidad: parseInt(it.cantidad) || 1
+                });
+            });
+            renderCart();
+        }
+    };
+
     const HAS_PACIENTES_ESTADO = ${has_pacientes_estado} || 0;
     const HAS_PORTAL_PACIENTE = ${has_portal_paciente};
     const ORG_CLUES = '$org_clues';
@@ -665,79 +609,8 @@ print <<'JS';
         pacienteEstadoSeleccionado = { id: '', nombre: '' };
     }
     
-
-    
-    async function cargarCatalogo() {
-        try {
-            const req = await fetch('../api/catalogo_org_api.pl?accion=get_catalogo_org');
-            const res = await req.json();
-            if(res.status === 'ok') {
-                catalogoMaster = [...(res.servicios || []), ...(res.productos || [])];
-            } else {
-                catalogoMaster = [];
-            }
-            filtrarCatalogo();
-        } catch(e) {
-            console.error("Error al cargar catálogo:", e);
-        }
-    }
-
     function formatCurrency(val) {
         return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val);
-    }
-
-    function filtrarCatalogo() {
-        const term = $('#buscadorCatalogo').val().toLowerCase();
-        const tbody = document.getElementById('tablaCatalogo');
-        if(!tbody) return;
-        
-        let filtered = catalogoMaster.filter(c => c.nombre.toLowerCase().includes(term) || (c.id && String(c.id).toLowerCase().includes(term)));
-        filtered = filtered.slice(0, 30); // max 30
-        
-        let html = '';
-        filtered.forEach(c => {
-            let precio = parseFloat(c.precio) || 0;
-            let claveText = c.id ? `Clave: ${c.id}` : '';
-            html += `
-            <tr>
-                <td class="ps-3 py-2">
-                    <div class="fw-bold" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.8rem;">${c.nombre}</div>
-                    <div class="text-muted" style="font-size: 0.7rem;">${claveText}</div>
-                </td>
-                <td class="text-end py-2 fw-bold" style="color: var(--md-text-secondary, #486581); font-size: 0.85rem;">
-                    ${formatCurrency(precio)}
-                </td>
-                <td class="text-center py-2">
-                    <button class="btn btn-sm btn-light border shadow-sm rounded-circle p-1" onclick="addConceptoCatalogo('${c.id}', '${c.nombre.replace(/'/g, "&apos;")}', ${precio})" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--md-blue-medical, #124A9E);">
-                        <i class="bi bi-plus"></i>
-                    </button>
-                </td>
-            </tr>`;
-        });
-        tbody.innerHTML = html;
-    }
-
-    function agregarCargoManual() {
-        const nombre = $('#manual_nombre').val().trim();
-        const precio = parseFloat($('#manual_precio').val());
-        if(!nombre || isNaN(precio) || precio < 0) {
-            Swal.fire('Error', 'Ingresa un concepto y un precio válido.', 'error');
-            return;
-        }
-        cartItems.push({ id: Date.now(), nombre: nombre, precio: precio, cantidad: 1 });
-        $('#manual_nombre').val('');
-        $('#manual_precio').val('');
-        renderCart();
-    }
-
-    function addConceptoCatalogo(id, nombre, precio) {
-        let ex = cartItems.find(i => i.nombre === nombre);
-        if (ex) {
-            ex.cantidad++;
-        } else {
-            cartItems.push({ id: Date.now() + Math.random(), nombre: nombre, precio: precio, cantidad: 1 });
-        }
-        renderCart();
     }
     
     function removeConcepto(id) {
@@ -757,25 +630,20 @@ print <<'JS';
     function editarConcepto(id) {
         let ex = cartItems.find(i => i.id == id);
         if (ex) {
-            $('#manual_nombre').val(ex.nombre);
-            $('#manual_precio').val(ex.precio);
-            removeConcepto(id);
+            Swal.fire("Aviso", "Para editar este concepto, bórrelo y agréguelo de nuevo desde el catálogo.", "info");
         }
     }
     
     function renderCart() {
-        const cModal = $('#listaCarrito');
         const cMain = $('#cartContainer');
         
         if (cartItems.length === 0) {
             let emptyHtml = '<div class="text-center p-10 text-slate-300 font-bold small" id="cartEmpty"><i class="bi bi-cart-x fs-2 d-block mb-2 text-black-50"></i>No hay conceptos agregados</div>';
-            cModal.html(emptyHtml);
             cMain.html(emptyHtml);
-            $('#carritoTotal').text('$0.00');
             $('#cartTotalText').text('$0.00');
             return;
         }
-        
+
         let htmlModal = '';
         let total = 0;
         
@@ -805,7 +673,6 @@ print <<'JS';
             `;
         });
         
-        cModal.html(htmlModal);
         cMain.html(htmlModal);
         
         let iva = 0;
@@ -817,7 +684,6 @@ print <<'JS';
         $('#taxAmountText').text(totalIvaText);
         
         let totalFmt = formatCurrency(total + iva);
-        $('#carritoTotal').text(totalFmt);
         $('#cartTotalText').text(totalFmt);
     }
     

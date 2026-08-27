@@ -137,6 +137,7 @@ window.editarCotizacion = function(idCot) {
                 return { nombre: it.concepto, precio: it.precio, cantidad: it.cantidad };
             });
             _renderizarCarritoCot();
+            _cargarCatalogoCot();
             _filtrarCatalogoCot();
 
             var el = document.getElementById('modalNuevaCot');
@@ -320,28 +321,70 @@ function _cargarCatalogoCot() {
         .then(function(r) { return r.json(); })
         .then(function(res) {
             cotCatalogo = [];
+            window.cotDepsMap = {};
+            window.cotCatsMap = {};
             if (res.is_universal && res.catalogo) {
+                (res.catalogo.departamentos || []).forEach(function(d) { cotDepsMap[d.id_dep] = d.nombre; });
+                (res.catalogo.categorias || []).forEach(function(c) { cotCatsMap[c.id_cat] = { n: c.nombre, d: c.id_dep }; });
+                
                 (res.catalogo.items || []).forEach(function(c) {
-                    cotCatalogo.push({ id: c.id_item, nombre: c.concepto || c.nombre, precio: c.precio });
+                    var pObj = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (c.precios || [])[0];
+                    var precio = pObj ? parseFloat(pObj.precio_publico || 0) : 0;
+                    var catInfo = cotCatsMap[c.id_cat] || { d: '' };
+                    cotCatalogo.push({ id: c.id_item, nombre: c.concepto || c.nombre, precio: precio, cat: c.id_cat, dep: catInfo.d });
                 });
                 (res.catalogo.productos || []).forEach(function(p) {
-                    cotCatalogo.push({ id: p.id_prod, nombre: p.nombre, precio: p.precio });
+                    cotCatalogo.push({ id: p.id_prod, nombre: p.nombre, precio: p.precio, cat: '', dep: '' });
                 });
+                _poblarFiltrosCot();
             } else {
-                (res.servicios || []).forEach(function(s) { cotCatalogo.push({ id: s.id, nombre: s.nombre, precio: s.precio }); });
-                (res.productos || []).forEach(function(p) { cotCatalogo.push({ id: p.id, nombre: p.nombre, precio: p.precio }); });
+                (res.servicios || []).forEach(function(s) { cotCatalogo.push({ id: s.id, nombre: s.nombre, precio: s.precio, cat: '', dep: '' }); });
+                (res.productos || []).forEach(function(p) { cotCatalogo.push({ id: p.id, nombre: p.nombre, precio: p.precio, cat: '', dep: '' }); });
             }
             _renderizarCatalogoCot();
         })
         .catch(function(e) { console.warn('[Cotizaciones] catalogo error:', e); });
 }
 
+function _poblarFiltrosCot() {
+    var selDep = document.getElementById('cotSelDep');
+    var selCat = document.getElementById('cotSelCat');
+    if (!selDep || !selCat) return;
+    selDep.innerHTML = '<option value="">Todos los Departamentos</option>';
+    selCat.innerHTML = '<option value="">Todas las Categorías</option>';
+    for (var k in window.cotDepsMap) {
+        selDep.insertAdjacentHTML('beforeend', '<option value="'+k+'">'+window.cotDepsMap[k]+'</option>');
+    }
+}
+
+window._onDepChangeCot = function() {
+    var selDep = document.getElementById('cotSelDep');
+    var selCat = document.getElementById('cotSelCat');
+    if (!selDep || !selCat) return;
+    var dep = selDep.value;
+    selCat.innerHTML = '<option value="">Todas las Categorías</option>';
+    for (var k in window.cotCatsMap) {
+        if (dep === '' || window.cotCatsMap[k].d == dep) {
+            selCat.insertAdjacentHTML('beforeend', '<option value="'+k+'">'+window.cotCatsMap[k].n+'</option>');
+        }
+    }
+    _filtrarCatalogoCot();
+};
+
 window._filtrarCatalogoCot = function() {
     var q = ((document.getElementById('cotBuscador') || {}).value || '').toLowerCase();
+    var selDep = (document.getElementById('cotSelDep') || {}).value || '';
+    var selCat = (document.getElementById('cotSelCat') || {}).value || '';
+    
     var tbody = document.getElementById('cotTablaCatalogo');
     if (!tbody) return;
     tbody.innerHTML = '';
-    var filtrado = cotCatalogo.filter(function(it) { return it.nombre.toLowerCase().indexOf(q) > -1; });
+    var filtrado = cotCatalogo.filter(function(it) { 
+        var mQ = it.nombre.toLowerCase().indexOf(q) > -1;
+        var mDep = (selDep === '') || (it.dep == selDep);
+        var mCat = (selCat === '') || (it.cat == selCat);
+        return mQ && mDep && mCat;
+    });
     if (filtrado.length === 0) {
         tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted small py-2">Sin resultados</td></tr>';
         return;
@@ -434,6 +477,14 @@ function _inyectarModalCotizaciones() {
                           '<input type="number" id="cotManualPrecio" class="form-control" style="max-width:90px;" placeholder="0.00">' +
                           '<button class="btn btn-primary px-3" onclick="agregarItemManualCot()"><i class="bi bi-plus-lg"></i></button>' +
                         '</div>' +
+                      '</div>' +
+                    '</div>' +
+                    '<div class="row g-2 mb-2">' +
+                      '<div class="col-6">' +
+                        '<select id="cotSelDep" class="form-select form-select-sm border-0 shadow-sm rounded-pill" onchange="_onDepChangeCot()"><option value="">Todos los Departamentos</option></select>' +
+                      '</div>' +
+                      '<div class="col-6">' +
+                        '<select id="cotSelCat" class="form-select form-select-sm border-0 shadow-sm rounded-pill" onchange="_filtrarCatalogoCot()"><option value="">Todas las Categorías</option></select>' +
                       '</div>' +
                     '</div>' +
                     '<div class="position-relative mb-2">' +

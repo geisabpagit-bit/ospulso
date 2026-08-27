@@ -386,10 +386,12 @@ sub render_step_caja_privado {
                     catalogoMasterConsultas = [];
                     if (data.is_universal && data.catalogo) {
                         (data.catalogo.items || []).forEach(function(c) {
-                            catalogoMasterConsultas.push({ id: c.id_item, nombre: c.concepto || c.nombre, precio: c.precio });
+                            var pObj = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (c.precios || [])[0];
+                            var precio = pObj ? parseFloat(pObj.precio_publico || 0) : 0;
+                            catalogoMasterConsultas.push({ id: c.id_item, nombre: c.concepto || c.nombre, precio: precio });
                         });
                         (data.catalogo.productos || []).forEach(function(p) {
-                            catalogoMasterConsultas.push({ id: p.id_prod, nombre: p.nombre, precio: p.precio });
+                            catalogoMasterConsultas.push({ id: p.id_prod, nombre: p.nombre, precio: parseFloat(p.precio) || 0 });
                         });
                     } else {
                         catalogoMasterConsultas = [...(data.servicios||[]), ...(data.productos||[])];

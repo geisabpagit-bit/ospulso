@@ -12,6 +12,7 @@ use Exporter 'import';
 our @EXPORT_OK = qw(
     resolver_id_raiz_catalogo
     obtener_rutas_catalogo
+    obtener_rutas_por_clue
     crear_catalogo_org_desde_global
     catalogo_org_existe
     get_catalogo_universal
@@ -55,6 +56,31 @@ sub resolver_id_raiz_catalogo {
 }
 
 # ─────────────────────────────────────────────────────────────
+# obtener_rutas_por_clue($clues)
+# Devuelve hashref con rutas absolutas de archivos para cat. basado en CLUE
+# ─────────────────────────────────────────────────────────────
+sub obtener_rutas_por_clue {
+    my ($clues) = @_;
+    my $dat = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+    my $clue_dir = File::Spec->catdir($dat, 'catalogos_CLUE', $clues);
+    return {
+        is_universal => 1,
+        departamentos => File::Spec->catfile($clue_dir, "departamentos_${clues}.dat"),
+        categorias => File::Spec->catfile($clue_dir, "categorias_${clues}.dat"),
+        proveedores => File::Spec->catfile($clue_dir, "proveedores_${clues}.dat"),
+        items => File::Spec->catfile($clue_dir, "catalogo_items_${clues}.dat"),
+        precios => File::Spec->catfile($clue_dir, "catalogo_precios_${clues}.dat"),
+        productos => File::Spec->catfile($clue_dir, "productos_${clues}.dat"),
+        medicos => File::Spec->catfile($clue_dir, "medicos_${clues}.dat"),
+        especialidades => File::Spec->catfile($clue_dir, "especialidades_${clues}.dat"),
+        dependencia => File::Spec->catfile($clue_dir, "dependencia_${clues}.dat"),
+        empleadosmun => File::Spec->catfile($clue_dir, "empleadosmun_${clues}.dat"),
+        municipios => File::Spec->catfile($clue_dir, "municipios_${clues}.dat"),
+        motivos => File::Spec->catfile($clue_dir, "motivos_${clues}.dat"),
+    };
+}
+
+# ─────────────────────────────────────────────────────────────
 # obtener_rutas_catalogo($id_raiz)
 # Devuelve hashref con rutas absolutas de los archivos .dat
 # de servicios y productos de la organizacion.
@@ -84,27 +110,6 @@ sub obtener_rutas_catalogo {
         }
     }
     
-sub obtener_rutas_por_clue {
-    my ($clues) = @_;
-    my $dat = File::Spec->catdir($FindBin::Bin, '..', 'dat');
-    my $clue_dir = File::Spec->catdir($dat, 'catalogos_CLUE', $clues);
-    return {
-        is_universal => 1,
-        departamentos => File::Spec->catfile($clue_dir, "departamentos_${clues}.dat"),
-        categorias => File::Spec->catfile($clue_dir, "categorias_${clues}.dat"),
-        proveedores => File::Spec->catfile($clue_dir, "proveedores_${clues}.dat"),
-        items => File::Spec->catfile($clue_dir, "catalogo_items_${clues}.dat"),
-        precios => File::Spec->catfile($clue_dir, "catalogo_precios_${clues}.dat"),
-        productos => File::Spec->catfile($clue_dir, "productos_${clues}.dat"),
-        medicos => File::Spec->catfile($clue_dir, "medicos_${clues}.dat"),
-        especialidades => File::Spec->catfile($clue_dir, "especialidades_${clues}.dat"),
-        dependencia => File::Spec->catfile($clue_dir, "dependencia_${clues}.dat"),
-        empleadosmun => File::Spec->catfile($clue_dir, "empleadosmun_${clues}.dat"),
-        municipios => File::Spec->catfile($clue_dir, "municipios_${clues}.dat"),
-        motivos => File::Spec->catfile($clue_dir, "motivos_${clues}.dat"),
-    };
-}
-
     if ($clues) {
         return obtener_rutas_por_clue($clues);
     }
