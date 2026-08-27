@@ -1,6 +1,6 @@
-# 👥 Definición de Roles SDM (Protocolo RIC-OFE)
+# 👥 Definición de Roles OSpulso (Protocolo RIC-OFE)
 
-Este documento establece la identidad, responsabilidades y alcances de cada actor dentro del ecosistema **Software Dental Mexicano (Diamond Edition)**, siguiendo el estándar de comunicación estructurada.
+Este documento establece la identidad, responsabilidades y alcances de cada actor dentro del ecosistema **Ospulso**, siguiendo el estándar de comunicación estructurada.
 
 ---
 

@@ -61,6 +61,13 @@
 ## 10. Catálogo Universal 3NF Multi-Tenant (`views/manage_catalogo_universal.pl`)
 - **Control de Acceso RBAC**: Exclusivo para los roles `Administrador Global` y `Administrador Organizacion`.
 - **Filtros en Cascada y Búsqueda**: La tabla de servicios se filtra relacionalmente mediante selector de Departamento, selector dependiente de Categoría y campo de Texto Libre conectado a `$.fn.dataTable.ext.search`.
+- **Generación Automática de Nomenclatura SKU**:
+  - Al dar de alta un nuevo servicio, el sistema construye por defecto el SKU tomando las **primeras 3 letras del Departamento** + la **primera 1 letra de la Categoría** + **`-00`** (ejemplo: `PATOLOGIA` + `CITOLOGIA` $\rightarrow$ `PATC-00`).
+  - El usuario únicamente completa o ajusta los últimos 2 dígitos. El campo se auto-convierte a MAYÚSCULAS en tiempo real.
+- **Validación de Precios Mayores a Cero**:
+  - Queda estrictamente prohibido registrar o guardar servicios/productos con precio igual o menor a cero ($0.00). Tanto el Frontend (`min="0.01"` y `saveEntity`) como la API Backend rechazan transacciones con `$precio <= 0`.
+- **Recuperación Exacta de Precio Base (DIA) en Edición**:
+  - Al editar un servicio existente, la vista recupera dinámicamente el `precio_publico` registrado para la tarifa `DIA` o tarifa base mediante la resolución corregida de columnas en `catalogo_org_utils.pl` (`c[3]` tarifa, `c[5]` precio público), evitando desplegar montos en cero.
 - **Normalización Inmediata a MAYÚSCULAS**:
   - Tanto en la creación como en la edición de Departamentos y Categorías, la entrada de texto convierte los caracteres a MAYÚSCULAS en tiempo real (`oninput="this.value = this.value.toUpperCase()"`).
   - El backend valida y aplica `$nombre = uc($nombre);` antes de actualizar el almacenamiento 3NF.

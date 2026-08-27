@@ -305,7 +305,9 @@ foreach my $item (@{$cat_univ->{items} || []}) {
     my $precios_html = "";
     my $precio_base = 0;
     foreach my $p (@{$item->{precios} || []}) {
-        $precio_base = $p->{precio_publico} if $p->{tipo_tarifa} eq 'DIA';
+        if (!$precio_base || (defined $p->{tipo_tarifa} && $p->{tipo_tarifa} eq 'DIA')) {
+            $precio_base = $p->{precio_publico};
+        }
         $precios_html .= "<span class='badge me-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span><br>";
     }
     
@@ -627,6 +629,39 @@ print <<'JS';
                 document.getElementById('mainCard').classList.remove('d-none');
             }
 
+            function generarNomenclaturaSku() {
+                const idInput = document.querySelector('#crudForm input[name="id_item"]');
+                if (idInput && idInput.value) return; // En edición, conservar SKU existente
+
+                const selDep = document.getElementById('sel_dep_servicio');
+                const selCat = document.getElementById('sel_cat');
+                const skuInput = document.getElementById('input_sku');
+                if (!selDep || !selCat || !skuInput) return;
+
+                const depText = selDep.options[selDep.selectedIndex] ? selDep.options[selDep.selectedIndex].text : '';
+                const catText = selCat.options[selCat.selectedIndex] ? selCat.options[selCat.selectedIndex].text : '';
+
+                if (!depText || depText.includes('--') || !catText || catText.includes('--')) return;
+
+                const depClean = depText.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                const catClean = catText.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+                if (depClean.length >= 3 && catClean.length >= 1) {
+                    const dep3 = depClean.substring(0, 3);
+                    const cat1 = catClean.substring(0, 1);
+                    skuInput.value = `${dep3}${cat1}-00`;
+                }
+            }
+
+            function onServicioDepChange(depId) {
+                filtrarCategoriasPorDep(depId, 'sel_cat');
+                generarNomenclaturaSku();
+            }
+
+            function onServicioCatChange(catId) {
+                generarNomenclaturaSku();
+            }
+
             function abrirFormulario(tipo, ...args) {
                 document.getElementById('mainCard').classList.add('d-none');
                 const container = document.getElementById('formContainer');
@@ -705,11 +740,11 @@ print <<'JS';
                             <div class="row g-3 mb-3">
                                 <div class="col-md-8">
                                     <label class="form-label fw-bold small text-muted">Nombre del Producto</label>
-                                    <input type="text" class="form-control" name="nombre" value="${nombre}" required>
+                                    <input type="text" class="form-control text-uppercase" name="nombre" value="${nombre}" oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;" required>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold small text-muted">Precio Público</label>
-                                    <input type="number" step="0.01" class="form-control" name="precio" value="${precio}" required>
+                                    <input type="number" step="0.01" min="0.01" class="form-control" name="precio" value="${precio}" placeholder="Monto mayor a 0" required>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold small text-muted">Stock / Cantidad</label>
@@ -760,27 +795,27 @@ print <<'JS';
                             <div class="row g-3 mb-3">
                                 <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted">Departamento</label>
-                                    <select class="form-select" id="sel_dep_servicio" onchange="filtrarCategoriasPorDep(this.value, 'sel_cat')" required>
+                                    <select class="form-select" id="sel_dep_servicio" onchange="onServicioDepChange(this.value)" required>
                                         ${depOptions}
                                     </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted">Categoría Mapeada</label>
-                                    <select class="form-select" name="id_cat" id="sel_cat" required>
+                                    <select class="form-select" name="id_cat" id="sel_cat" onchange="onServicioCatChange(this.value)" required>
                                         <option value="">-- Primero seleccione Departamento --</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted">Código SKU</label>
-                                    <input type="text" class="form-control" name="codigo_sku" value="${sku}" required>
+                                    <input type="text" class="form-control text-uppercase" name="codigo_sku" id="input_sku" value="${sku}" oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;" placeholder="Ej: PATC-00" required>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted">Precio Base (DIA)</label>
-                                    <input type="number" step="0.01" class="form-control" name="precio" value="${precio}" required>
+                                    <input type="number" step="0.01" min="0.01" class="form-control" name="precio" value="${precio}" placeholder="Monto mayor a 0" required>
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold small text-muted">Concepto / Descripción</label>
-                                    <input type="text" class="form-control" name="concepto" value="${concepto}" required>
+                                    <input type="text" class="form-control text-uppercase" name="concepto" value="${concepto}" oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;" required>
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end gap-2">
@@ -807,6 +842,15 @@ print <<'JS';
                 e.preventDefault();
                 const form = e.target;
                 const fd = new FormData(form);
+
+                if (tipo === 'servicio' || tipo === 'producto') {
+                    const precioVal = parseFloat(fd.get('precio'));
+                    if (isNaN(precioVal) || precioVal <= 0) {
+                        Swal.fire('Atención', 'No se permiten precios iguales o menores a cero ($0.00). El monto debe ser mayor a cero.', 'warning');
+                        return;
+                    }
+                }
+
                 try {
                     const res = await fetch('../api/crud_catalogo_universal_api.pl', { method: 'POST', body: fd });
                     const data = await res.json();

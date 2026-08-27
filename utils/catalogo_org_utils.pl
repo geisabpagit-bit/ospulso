@@ -146,7 +146,7 @@ sub get_catalogo_universal {
             chomp; next if /^\s*$/;
             my @c = split /\|/, $_, -1;
             push @{$precios_por_item{$c[1]}}, {
-                id_precio => $c[0], tipo_tarifa => $c[2], precio_publico => $c[3]+0, costo_proveedor => $c[4]+0, id_prov => $c[5]
+                id_precio => $c[0], id_prov => $c[2], tipo_tarifa => ($c[3] // 'DIA'), costo_proveedor => ($c[4] // 0)+0, precio_publico => ($c[5] // 0)+0
             };
         }
         close $fh;

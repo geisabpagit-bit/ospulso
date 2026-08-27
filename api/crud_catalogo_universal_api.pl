@@ -224,10 +224,14 @@ elsif ($action eq 'save_servicio') {
     # Servicios requires updating items AND precios
     my $id_item = $cgi->param('id_item') || '';
     my $id_cat = $cgi->param('id_cat') || '';
-    my $sku = $cgi->param('codigo_sku') || '';
-    my $concepto = $cgi->param('concepto') || '';
+    my $sku = uc($cgi->param('codigo_sku') || '');
+    my $concepto = uc($cgi->param('concepto') || '');
     my $precio = $cgi->param('precio') || '0.00';
     $sku =~ s/\|//g; $concepto =~ s/\|//g;
+    
+    if (!$precio || $precio <= 0) {
+        responder({ error => 'No se permiten servicios con precio igual o menor a cero ($0.00).' });
+    }
     
     my ($header_i, $lines_i) = leer_archivo($rutas->{items});
     my ($header_p, $lines_p) = leer_archivo($rutas->{precios});
