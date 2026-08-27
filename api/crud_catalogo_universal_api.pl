@@ -20,7 +20,7 @@ sub responder {
     exit;
 }
 
-my $session_data = check_session();
+my $session_data = check_session($cgi);
 if (!$session_data || !$session_data->{session_ok} || !$session_data->{id_usuario}) {
     responder({ error => 'No autorizado' });
 }
