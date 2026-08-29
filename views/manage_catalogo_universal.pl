@@ -88,7 +88,7 @@ print <<HTML;
                 box-shadow: 0 4px 12px rgba(10, 42, 102, 0.25) !important;
             }
 
-            /* Panel de Filtros Institucional */
+            /* Panel de Filtros Institucional & Controles Unificados */
             .filter-panel-premium {
                 background: #ffffff;
                 border: 1px solid rgba(10, 42, 102, 0.12) !important;
@@ -96,7 +96,39 @@ print <<HTML;
             }
             .filter-panel-premium label {
                 color: var(--inst-navy-deep) !important;
-                font-size: 0.8rem;
+                font-size: 0.78rem !important;
+                font-weight: 700 !important;
+                margin-bottom: 0.35rem !important;
+                display: block;
+            }
+
+            /* Estandarización de Altura Unificada (38px) para Todos los Controles del Filtro */
+            .filter-panel-premium .form-select,
+            .filter-panel-premium .form-control,
+            .filter-panel-premium .btn,
+            .filter-control-equal {
+                height: 38px !important;
+                min-height: 38px !important;
+                max-height: 38px !important;
+                font-size: 0.82rem !important;
+                line-height: 1.4 !important;
+                border-radius: 50rem !important;
+                box-sizing: border-box !important;
+            }
+
+            .filter-panel-premium .form-select,
+            .filter-panel-premium .form-control {
+                border: 1.5px solid #cbd5e1 !important;
+                padding-top: 0.38rem !important;
+                padding-bottom: 0.38rem !important;
+                padding-left: 0.85rem !important;
+                background-color: #ffffff !important;
+            }
+
+            .filter-panel-premium .form-select:focus,
+            .filter-panel-premium .form-control:focus {
+                border-color: var(--inst-navy-deep) !important;
+                box-shadow: 0 0 0 3px rgba(10, 42, 102, 0.1) !important;
             }
 
             /* Botones Institucionales */
@@ -141,6 +173,10 @@ print <<HTML;
             }
 
             /* DataTables Export Toolbar Buttons */
+            .dataTables_wrapper .dt-buttons {
+                margin-top: 0.75rem !important;
+                margin-bottom: 0.75rem !important;
+            }
             .dataTables_wrapper .dt-buttons .btn,
             .btn-export {
                 background: #ffffff !important;
@@ -153,6 +189,9 @@ print <<HTML;
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03) !important;
                 transition: all 0.2s ease !important;
                 margin-right: 0.4rem !important;
+                height: 34px !important;
+                display: inline-flex !important;
+                align-items: center !important;
             }
             .dataTables_wrapper .dt-buttons .btn:hover,
             .btn-export:hover {
@@ -171,6 +210,7 @@ print <<HTML;
                 font-size: 0.8rem !important;
                 outline: none !important;
                 transition: all 0.2s ease !important;
+                height: 34px !important;
             }
             .dataTables_wrapper .dataTables_filter input:focus {
                 border-color: var(--inst-navy-deep) !important;
@@ -248,34 +288,37 @@ foreach my $cat (@{$cat_univ->{categorias} || []}) {
 
 print <<HTML;
                             <!-- PANEL DE FILTROS PERSONALIZADOS (DEPARTAMENTO, CATEGORIA Y TEXTO LIBRE) -->
-                            <div class="card filter-panel-premium border-0 shadow-sm rounded-4 p-3 mb-3">
-                                <div class="row g-2 align-items-end">
-                                    <div class="col-12 col-md-4 col-lg-3">
-                                        <label class="form-label fw-bold small mb-1"><i class="bi bi-diagram-3 me-1"></i>Departamento</label>
-                                        <select id="filtro_dep" class="form-select form-select-sm rounded-pill shadow-sm" onchange="onFiltroDepChange()">
+                            <div class="card filter-panel-premium border-0 shadow-sm rounded-4 p-3 mb-4">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-12 col-sm-6 col-lg-3">
+                                        <label class="form-label mb-1"><i class="bi bi-diagram-3 me-1"></i>Departamento</label>
+                                        <select id="filtro_dep" class="form-select filter-control-equal" onchange="onFiltroDepChange()">
                                             $filter_deps_options
                                         </select>
                                     </div>
-                                    <div class="col-12 col-md-4 col-lg-3">
-                                        <label class="form-label fw-bold small mb-1"><i class="bi bi-tags me-1"></i>Categoría</label>
-                                        <select id="filtro_cat" class="form-select form-select-sm rounded-pill shadow-sm" onchange="aplicarFiltrosTabla()">
+                                    <div class="col-12 col-sm-6 col-lg-3">
+                                        <label class="form-label mb-1"><i class="bi bi-tags me-1"></i>Categoría</label>
+                                        <select id="filtro_cat" class="form-select filter-control-equal" onchange="aplicarFiltrosTabla()">
                                             $filter_cats_options
                                         </select>
                                     </div>
-                                    <div class="col-12 col-md-4 col-lg-3">
-                                        <label class="form-label fw-bold small mb-1"><i class="bi bi-search me-1"></i>Texto Libre</label>
+                                    <div class="col-12 col-sm-6 col-lg-3">
+                                        <label class="form-label mb-1"><i class="bi bi-search me-1"></i>Texto Libre</label>
                                         <div class="position-relative">
-                                            <input type="text" id="filtro_texto" class="form-control form-control-sm rounded-pill shadow-sm pe-4" placeholder="Buscar SKU, concepto, precio..." onkeyup="aplicarFiltrosTabla()">
+                                            <input type="text" id="filtro_texto" class="form-control filter-control-equal pe-4" placeholder="Buscar SKU, concepto, precio..." onkeyup="aplicarFiltrosTabla()">
                                             <i class="bi bi-x-circle-fill text-muted position-absolute end-0 top-50 translate-middle-y me-2 cursor-pointer" onclick="limpiarFiltroTexto()" style="display:none;" id="btn_limpiar_texto"></i>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-12 col-lg-3 d-flex align-items-center justify-content-lg-end gap-2 mt-2 mt-lg-0">
-                                        <button type="button" class="btn btn-navy-outline btn-sm rounded-pill fw-bold shadow-sm" onclick="limpiarTodosFiltros()" title="Limpiar Filtros">
-                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
-                                        </button>
-                                        <button type="button" class="btn btn-navy-primary btn-sm rounded-pill fw-bold shadow-sm" onclick="abrirFormulario('servicio')">
-                                            <i class="bi bi-plus-circle me-1"></i>Nuevo Servicio
-                                        </button>
+                                    <div class="col-12 col-sm-6 col-lg-3">
+                                        <label class="form-label mb-1 d-none d-lg-block">&nbsp;</label>
+                                        <div class="d-flex align-items-center justify-content-lg-end gap-2 w-100">
+                                            <button type="button" class="btn btn-navy-outline filter-control-equal px-3 fw-bold flex-grow-1 flex-lg-grow-0" onclick="limpiarTodosFiltros()" title="Limpiar Filtros">
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
+                                            </button>
+                                            <button type="button" class="btn btn-navy-primary filter-control-equal px-3 fw-bold flex-grow-1 flex-lg-grow-0" onclick="abrirFormulario('servicio')">
+                                                <i class="bi bi-plus-circle me-1"></i>Nuevo Servicio
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
