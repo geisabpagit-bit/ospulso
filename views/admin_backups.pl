@@ -72,17 +72,42 @@ if (-d $backups_dir) {
         push @backups, $f;
     }
 }
-@backups = sort { (stat(File::Spec->catfile($backups_dir, $b)))[9] <=> (stat(File::Spec->catfile($backups_dir, $a)))[9] } @backups;
+sub get_backup_timestamp {
+    my ($file) = @_;
+    if ($file =~ /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})\.zip$/) {
+        return "$1$2$3$4$5$6";
+    }
+    my $path = File::Spec->catfile($backups_dir, $file);
+    return (stat($path))[9] || 0;
+}
+@backups = sort { get_backup_timestamp($b) cmp get_backup_timestamp($a) } @backups;
 
 my $filas_backups = "";
+my $latest_fecha = "";
+my $latest_hora = "";
+my $latest_name = "";
+
 foreach my $b (@backups) {
     my $file_path = File::Spec->catfile($backups_dir, $b);
-    my $mtime = (stat($file_path))[9];
     my $size_bytes = (stat($file_path))[7] || 0;
     my $size_str = $size_bytes < 1048576 ? sprintf("%.2f KB", $size_bytes/1024) : sprintf("%.2f MB", $size_bytes/1048576);
-    my ($sec,$min,$hour,$mday,$mon,$year) = localtime($mtime);
-    my $fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
-    my $hora = sprintf("%02d:%02d:%02d", $hour, $min, $sec);
+    
+    my ($fecha, $hora);
+    if ($b =~ /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})\.zip$/) {
+        $fecha = "$1-$2-$3";
+        $hora  = "$4:$5:$6";
+    } else {
+        my $mtime = (stat($file_path))[9] || time;
+        my ($sec,$min,$hour,$mday,$mon,$year) = localtime($mtime);
+        $fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
+        $hora = sprintf("%02d:%02d:%02d", $hour, $min, $sec);
+    }
+
+    if (!$latest_name) {
+        $latest_name  = $b;
+        $latest_fecha = $fecha;
+        $latest_hora  = $hora;
+    }
     
     $filas_backups .= qq{
         <tr>
@@ -104,6 +129,14 @@ foreach my $b (@backups) {
 if (!$filas_backups) {
     $filas_backups = qq{<tr><td colspan="5" class="text-center text-muted py-4">No hay copias de seguridad creadas aún.</td></tr>};
 }
+
+my $debug_info_json = JSON::PP::encode_json({
+    auto_backup_en_carga => 0,
+    total_respaldos      => scalar(@backups),
+    ultimo_respaldo      => $latest_name || 'Ninguno',
+    fecha_ultimo         => $latest_fecha || 'N/A',
+    hora_ultimo          => $latest_hora || 'N/A'
+});
 
 print <<HTML;
 <div class="container mt-4 mb-5 pb-5 animate__animated animate__fadeIn">
@@ -190,11 +223,25 @@ print <<HTML;
 </div>
 HTML
 
-print <<'JS';
+print <<"JS";
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.getElementById('cronEnabled').addEventListener('change', function() {
-        document.getElementById('cronSettings').style.display = this.checked ? 'block' : 'none';
+    const DEBUG_BACKUP_STATE = $debug_info_json;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("[DEBUG OSPulso Backup] Acceso a la vista admin_backups.pl");
+        console.log("[DEBUG OSPulso Backup] auto_backup_en_carga: 0");
+        console.log("[DEBUG OSPulso Backup] Último respaldo registrado:", DEBUG_BACKUP_STATE.ultimo_respaldo);
+        console.log("[DEBUG OSPulso Backup] Fecha de creación:", DEBUG_BACKUP_STATE.fecha_ultimo + " " + DEBUG_BACKUP_STATE.hora_ultimo);
+        console.log("[DEBUG OSPulso Backup] Estado general:", DEBUG_BACKUP_STATE);
+
+        const cronEl = document.getElementById('cronEnabled');
+        if (cronEl) {
+            cronEl.addEventListener('change', function() {
+                const settingsEl = document.getElementById('cronSettings');
+                if (settingsEl) settingsEl.style.display = this.checked ? 'block' : 'none';
+            });
+        }
     });
 
     window.openCronModal = function() {
@@ -216,7 +263,6 @@ print <<'JS';
                     });
                 }
             } else {
-                // Config defaults
                 document.getElementById('cronEnabled').checked = false;
                 document.getElementById('cronSettings').style.display = 'none';
                 document.getElementById('cronTime').value = '03:00';
@@ -260,6 +306,8 @@ print <<'JS';
     };
 
     window.createBackup = function() {
+        console.log("[DEBUG OSPulso Backup] Acción manual gatillada por el usuario. crear_backup_manual_click: 1");
+        
         Swal.fire({
             title: 'Creando Respaldo...',
             text: 'Empaquetando la base de datos y archivos adjuntos. Esto puede tardar unos momentos.',
@@ -270,14 +318,14 @@ print <<'JS';
         fetch('../api/backup_db_api.pl')
         .then(res => res.json())
         .then(data => {
-            console.log("Respuesta de backup:", data);
+            console.log("[DEBUG OSPulso Backup] Respuesta de API backup_db_api.pl:", data);
             if (data.status === 'success') {
                 Swal.fire('¡Éxito!', data.message, 'success').then(() => location.reload());
             } else {
                 Swal.fire('Error', data.message, 'error');
             }
         }).catch(err => {
-            console.error("Error de red en backup:", err);
+            console.error("[DEBUG OSPulso Backup] Error de red en backup:", err);
             Swal.fire('Error', 'Error de red al crear el backup.', 'error');
         });
     };
@@ -310,7 +358,7 @@ print <<'JS';
                 })
                 .then(res => res.json())
                 .then(data => {
-                    console.log("Respuesta de restore:", data);
+                    console.log("[DEBUG OSPulso Backup] Respuesta de restore:", data);
                     if (data.status === 'success') {
                         Swal.fire('¡Restaurado!', data.message, 'success').then(() => location.reload());
                     } else {
@@ -345,7 +393,7 @@ print <<'JS';
                 })
                 .then(res => res.json())
                 .then(data => {
-                    console.log("Respuesta de delete:", data);
+                    console.log("[DEBUG OSPulso Backup] Respuesta de delete:", data);
                     if (data.status === 'success') {
                         Swal.fire('Eliminado', data.message, 'success').then(() => location.reload());
                     } else {
