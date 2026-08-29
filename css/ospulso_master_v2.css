@@ -1165,19 +1165,24 @@
     --inst-navy-hover: #071f4f;
 }
 
+/* Pestañas de Navegación Institucionales (Alta Especificidad) */
+.nav-pills#catalogoTabs .nav-link,
 #catalogoTabs .nav-link {
-    color: #475569;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 0.65rem 1.5rem;
-    font-weight: 600;
-    transition: all 0.2s ease-in-out;
+    color: #475569 !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    padding: 0.55rem 1.5rem !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease-in-out !important;
 }
+.nav-pills#catalogoTabs .nav-link:hover,
 #catalogoTabs .nav-link:hover {
-    color: var(--inst-navy-deep);
-    background: rgba(10, 42, 102, 0.05);
-    border-color: rgba(10, 42, 102, 0.2);
+    color: var(--inst-navy-deep) !important;
+    background: rgba(10, 42, 102, 0.05) !important;
+    border-color: rgba(10, 42, 102, 0.3) !important;
 }
+.nav-pills#catalogoTabs .nav-link.active,
+.nav-pills#catalogoTabs .show > .nav-link,
 #catalogoTabs .nav-link.active {
     background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;
     color: #ffffff !important;
@@ -1185,12 +1190,16 @@
     box-shadow: 0 4px 12px rgba(10, 42, 102, 0.25) !important;
 }
 
-.filter-panel-premium {
-    background: #ffffff;
-    border: 1px solid rgba(10, 42, 102, 0.12) !important;
-    box-shadow: 0 4px 15px rgba(10, 42, 102, 0.04) !important;
+/* Panel de Filtros Institucional & Controles Unificados */
+.filter-panel-premium,
+.filter-panel-flat {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
-.filter-panel-premium label {
+
+.filter-panel-premium label,
+.filter-panel-flat label {
     color: var(--inst-navy-deep) !important;
     font-size: 0.78rem !important;
     font-weight: 700 !important;
@@ -1198,9 +1207,13 @@
     display: block;
 }
 
+/* Estandarización de Altura Unificada (38px) para Todos los Controles del Filtro */
 .filter-panel-premium .form-select,
 .filter-panel-premium .form-control,
 .filter-panel-premium .btn,
+.filter-panel-flat .form-select,
+.filter-panel-flat .form-control,
+.filter-panel-flat .btn,
 .filter-control-equal {
     height: 38px !important;
     min-height: 38px !important;
@@ -1212,7 +1225,9 @@
 }
 
 .filter-panel-premium .form-select,
-.filter-panel-premium .form-control {
+.filter-panel-premium .form-control,
+.filter-panel-flat .form-select,
+.filter-panel-flat .form-control {
     border: 1.5px solid #cbd5e1 !important;
     padding-top: 0.38rem !important;
     padding-bottom: 0.38rem !important;
@@ -1221,54 +1236,61 @@
 }
 
 .filter-panel-premium .form-select:focus,
-.filter-panel-premium .form-control:focus {
+.filter-panel-premium .form-control:focus,
+.filter-panel-flat .form-select:focus,
+.filter-panel-flat .form-control:focus {
     border-color: var(--inst-navy-deep) !important;
     box-shadow: 0 0 0 3px rgba(10, 42, 102, 0.1) !important;
 }
 
+/* Botones Institucionales Navy */
 .btn-navy-primary {
     background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;
     color: #ffffff !important;
     border: none !important;
-    font-weight: 600;
-    box-shadow: 0 4px 10px rgba(10, 42, 102, 0.2);
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    padding: 0.45rem 1.15rem;
-    border-radius: 50rem;
-    transition: all 0.2s ease;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 10px rgba(10, 42, 102, 0.2) !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.35rem !important;
+    padding: 0.45rem 1.15rem !important;
+    border-radius: 50rem !important;
+    transition: all 0.2s ease !important;
 }
 .btn-navy-primary:hover {
     background: linear-gradient(135deg, var(--inst-navy-hover) 0%, var(--inst-navy-deep) 100%) !important;
     color: #ffffff !important;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 15px rgba(10, 42, 102, 0.3);
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 15px rgba(10, 42, 102, 0.3) !important;
 }
 
 .btn-navy-outline {
-    background: transparent !important;
+    background: #ffffff !important;
     color: var(--inst-navy-deep) !important;
     border: 1.5px solid var(--inst-navy-deep) !important;
-    font-weight: 600;
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.45rem 1rem;
-    border-radius: 50rem;
-    transition: all 0.2s ease;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.45rem 1rem !important;
+    border-radius: 50rem !important;
+    transition: all 0.2s ease !important;
 }
 .btn-navy-outline:hover {
-    background: rgba(10, 42, 102, 0.06) !important;
+    background: rgba(10, 42, 102, 0.08) !important;
     color: var(--inst-navy-deep) !important;
 }
 
+/* DataTables Export Toolbar Buttons - Compact & Sleek */
 .dataTables_wrapper .dt-buttons {
     margin-top: 0.25rem !important;
     margin-bottom: 0.5rem !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 .dataTables_wrapper .dt-buttons .btn,
 .btn-export {
@@ -1303,21 +1325,24 @@
     height: 34px !important;
 }
 
-#mainCard,
-.tab-content,
-.tab-pane,
-.dataTables_wrapper,
-.table-responsive,
-.dt-buttons,
-.export-toolbar {
+/* Eliminación Absoluta de Capas, Marcos y Bordes Envolventes en Catálogo Universal */
+.catalogo-container-flat,
+.catalogo-container-flat #mainCard,
+.catalogo-container-flat .tab-content,
+.catalogo-container-flat .tab-pane,
+.catalogo-container-flat .dataTables_wrapper,
+.catalogo-container-flat .table-responsive,
+.catalogo-container-flat .dt-buttons,
+.catalogo-container-flat .export-toolbar {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    border-radius: 0 !important;
     outline: none !important;
 }
 
-.table-responsive,
-.dataTables_wrapper {
+.catalogo-container-flat .table-responsive,
+.catalogo-container-flat .dataTables_wrapper {
     padding: 0 !important;
     margin: 0 !important;
 }

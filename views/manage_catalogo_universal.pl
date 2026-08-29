@@ -56,6 +56,7 @@ my $cat_univ = catalogo_org_utils::get_catalogo_universal($id_raiz);
 
 utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_actual => 'servicios');
 print <<HTML;
+        <link rel="stylesheet" href="../css/ospulso_master_v2.css?v=$^T">
         <link rel="stylesheet" href="../css/sdm_mobile_standards.css?v=$^T">
         <!-- TOPBAR -->
         <header class="bg-medentia-gradient text-white p-3 shadow-sm" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; margin-bottom: 0.5rem;">
@@ -67,7 +68,7 @@ print <<HTML;
             </div>
         </header>
 
-        <div class="container-fluid px-1 pb-2 container-mobile-flush">
+        <div class="container-fluid px-1 pb-2 container-mobile-flush catalogo-container-flat">
             
             <!-- CONTENEDOR DE FORMULARIOS INLINE -->
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-3 d-none animate__animated animate__fadeIn" id="formContainer">
@@ -118,7 +119,7 @@ foreach my $cat (@{$cat_univ->{categorias} || []}) {
 
 print <<HTML;
                             <!-- PANEL DE FILTROS PERSONALIZADOS (DEPARTAMENTO, CATEGORIA Y TEXTO LIBRE) -->
-                            <div class="filter-panel-premium p-2 mb-2 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0 !important;">
+                            <div class="filter-panel-flat p-2 mb-2">
                                 <div class="row g-2 align-items-end">
                                     <div class="col-12 col-md-3">
                                         <label class="form-label mb-1"><i class="bi bi-diagram-3 me-1"></i>Departamento</label>
