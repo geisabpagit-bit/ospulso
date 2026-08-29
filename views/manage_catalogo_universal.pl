@@ -210,9 +210,24 @@ print <<HTML;
                 transition: all 0.2s ease !important;
                 height: 34px !important;
             }
-            .dataTables_wrapper .dataTables_filter input:focus {
-                border-color: var(--inst-navy-deep) !important;
-                box-shadow: 0 0 0 3px rgba(10, 42, 102, 0.1) !important;
+            /* Eliminación Estricta de Capas y Bordes Redundantes ("Capa Atrapada") */
+            #mainCard,
+            .tab-content,
+            .tab-pane,
+            .dataTables_wrapper,
+            .table-responsive,
+            .dt-buttons,
+            .export-toolbar {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                outline: none !important;
+            }
+
+            .table-responsive,
+            .dataTables_wrapper {
+                padding: 0 !important;
+                margin: 0 !important;
             }
 
             .table-custom-header thead th,
