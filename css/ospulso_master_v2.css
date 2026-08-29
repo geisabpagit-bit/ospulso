@@ -1158,6 +1158,184 @@
     }
 }
 
+/* --- Catálogo Universal 3NF - Estilos Institucionales & Layout Plano --- */
+:root {
+    --inst-navy-deep: #0A2A66;
+    --inst-navy-mid: #124A9E;
+    --inst-navy-hover: #071f4f;
+}
+
+#catalogoTabs .nav-link {
+    color: #475569;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 0.65rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+#catalogoTabs .nav-link:hover {
+    color: var(--inst-navy-deep);
+    background: rgba(10, 42, 102, 0.05);
+    border-color: rgba(10, 42, 102, 0.2);
+}
+#catalogoTabs .nav-link.active {
+    background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;
+    color: #ffffff !important;
+    border-color: var(--inst-navy-deep) !important;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.25) !important;
+}
+
+.filter-panel-premium {
+    background: #ffffff;
+    border: 1px solid rgba(10, 42, 102, 0.12) !important;
+    box-shadow: 0 4px 15px rgba(10, 42, 102, 0.04) !important;
+}
+.filter-panel-premium label {
+    color: var(--inst-navy-deep) !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.35rem !important;
+    display: block;
+}
+
+.filter-panel-premium .form-select,
+.filter-panel-premium .form-control,
+.filter-panel-premium .btn,
+.filter-control-equal {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    font-size: 0.82rem !important;
+    line-height: 1.4 !important;
+    border-radius: 50rem !important;
+    box-sizing: border-box !important;
+}
+
+.filter-panel-premium .form-select,
+.filter-panel-premium .form-control {
+    border: 1.5px solid #cbd5e1 !important;
+    padding-top: 0.38rem !important;
+    padding-bottom: 0.38rem !important;
+    padding-left: 0.85rem !important;
+    background-color: #ffffff !important;
+}
+
+.filter-panel-premium .form-select:focus,
+.filter-panel-premium .form-control:focus {
+    border-color: var(--inst-navy-deep) !important;
+    box-shadow: 0 0 0 3px rgba(10, 42, 102, 0.1) !important;
+}
+
+.btn-navy-primary {
+    background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(10, 42, 102, 0.2);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.45rem 1.15rem;
+    border-radius: 50rem;
+    transition: all 0.2s ease;
+}
+.btn-navy-primary:hover {
+    background: linear-gradient(135deg, var(--inst-navy-hover) 0%, var(--inst-navy-deep) 100%) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(10, 42, 102, 0.3);
+}
+
+.btn-navy-outline {
+    background: transparent !important;
+    color: var(--inst-navy-deep) !important;
+    border: 1.5px solid var(--inst-navy-deep) !important;
+    font-weight: 600;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 1rem;
+    border-radius: 50rem;
+    transition: all 0.2s ease;
+}
+.btn-navy-outline:hover {
+    background: rgba(10, 42, 102, 0.06) !important;
+    color: var(--inst-navy-deep) !important;
+}
+
+.dataTables_wrapper .dt-buttons {
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.5rem !important;
+}
+.dataTables_wrapper .dt-buttons .btn,
+.btn-export {
+    background: #ffffff !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 50rem !important;
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
+    margin-right: 0.3rem !important;
+    height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+.dataTables_wrapper .dt-buttons .btn:hover,
+.btn-export:hover {
+    background: #f8fafc !important;
+    color: var(--inst-navy-deep) !important;
+    border-color: var(--inst-navy-deep) !important;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 50rem !important;
+    border: 1.5px solid #cbd5e1 !important;
+    padding: 0.35rem 0.85rem !important;
+    font-size: 0.8rem !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+    height: 34px !important;
+}
+
+#mainCard,
+.tab-content,
+.tab-pane,
+.dataTables_wrapper,
+.table-responsive,
+.dt-buttons,
+.export-toolbar {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.table-responsive,
+.dataTables_wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.table-custom-header thead th,
+.table-custom-header tbody td {
+    padding: 0.45rem 0.5rem !important;
+}
+.table-custom-header thead th {
+    background-color: #f1f5f9 !important;
+    color: #1e293b !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    font-size: 0.73rem !important;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0 !important;
+}
+
 
 
 
