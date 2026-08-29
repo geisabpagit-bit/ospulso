@@ -156,11 +156,11 @@ print <<HTML;
                                     <table id="tablaServicios" class="table table-hover align-middle w-100 table-custom-header" style="font-size: 0.78rem;">
                                         <thead>
                                             <tr>
-                                                <th class="border-0">SKU</th>
+                                                <th class="border-0" style="width: 110px;">SKU</th>
                                                 <th class="border-0">Concepto</th>
                                                 <th class="border-0">Dep/Cat</th>
-                                                <th class="border-0">Precios (Tarifas)</th>
-                                                <th class="border-0 text-end pe-4">Acciones</th>
+                                                <th class="border-0" style="width: 140px; max-width: 140px;">Precios (Tarifas)</th>
+                                                <th class="border-0 text-end text-nowrap" style="width: 95px; min-width: 95px;">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -180,7 +180,7 @@ foreach my $item (@{$cat_univ->{items} || []}) {
         if (!$precio_base || (defined $p->{tipo_tarifa} && ($p->{tipo_tarifa} eq 'ESTANDAR' || $p->{tipo_tarifa} eq 'DIA' || $p->{tipo_tarifa} eq 'BASE'))) {
             $precio_base = $p->{precio_publico};
         }
-        $precios_html .= "<span class='badge me-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span><br>";
+        $precios_html .= "<span class='badge me-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span>";
     }
     
     print <<HTML;
@@ -188,10 +188,12 @@ foreach my $item (@{$cat_univ->{items} || []}) {
                                             <td data-label="SKU"><span class="badge" style="background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700;">$item->{codigo_sku}</span></td>
                                             <td data-label="Concepto" class="fw-bold" style="color: var(--inst-navy-deep);">$item->{concepto}</td>
                                             <td data-label="Dep/Cat" class="small text-muted">$dep_cat_label</td>
-                                            <td data-label="Precios">$precios_html</td>
-                                            <td class="text-end">
-                                                <button class="btn btn-sm btn-navy-outline rounded-circle me-1" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('servicio', '$item->{id_item}', '$item->{codigo_sku}', '$item->{concepto}', '$item->{id_cat}', '$precio_base')"><i class="bi bi-pencil"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEntity('servicio', '$item->{id_item}')"><i class="bi bi-trash"></i></button>
+                                            <td data-label="Precios" style="width: 140px; max-width: 140px;">$precios_html</td>
+                                            <td class="text-end text-nowrap" style="width: 95px; min-width: 95px;">
+                                                <div class="d-inline-flex align-items-center justify-content-end gap-1">
+                                                    <button class="btn btn-sm btn-navy-outline rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('servicio', '$item->{id_item}', '$item->{codigo_sku}', '$item->{concepto}', '$item->{id_cat}', '$precio_base')" title="Editar Servicio"><i class="bi bi-pencil"></i></button>
+                                                    <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEntity('servicio', '$item->{id_item}')" title="Eliminar Servicio"><i class="bi bi-trash"></i></button>
+                                                </div>
                                             </td>
                                         </tr>
 HTML
@@ -216,12 +218,12 @@ print <<HTML;
                                     <table id="tablaProductos" class="table table-hover align-middle w-100 table-custom-header" style="font-size: 0.78rem;">
                                         <thead>
                                             <tr>
-                                                <th class="border-0">ID</th>
+                                                <th class="border-0" style="width: 80px;">ID</th>
                                                 <th class="border-0">Nombre</th>
                                                 <th class="border-0">Descripción</th>
                                                 <th class="border-0">Presentación</th>
-                                                <th class="border-0">Precio</th>
-                                                <th class="border-0 text-end">Acciones</th>
+                                                <th class="border-0" style="width: 110px;">Precio</th>
+                                                <th class="border-0 text-end text-nowrap" style="width: 95px; min-width: 95px;">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -235,9 +237,11 @@ foreach my $prod (@{$cat_univ->{productos} || []}) {
                                             <td class="small text-muted">$$prod{descripcion}</td>
                                             <td class="small">$$prod{presentacion}</td>
                                             <td class="fw-bold text-success">\$$$prod{precio}</td>
-                                            <td class="text-end">
-                                                <button class="btn btn-sm btn-navy-outline rounded-circle me-1" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('producto', '$$prod{id_prod}', '$$prod{nombre}', '$$prod{precio}', '$$prod{cantidad}', '$$prod{presentacion}', '$$prod{descripcion}')"><i class="bi bi-pencil"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEntity('producto', '$$prod{id_prod}')"><i class="bi bi-trash"></i></button>
+                                            <td class="text-end text-nowrap" style="width: 95px; min-width: 95px;">
+                                                <div class="d-inline-flex align-items-center justify-content-end gap-1">
+                                                    <button class="btn btn-sm btn-navy-outline rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('producto', '$$prod{id_prod}', '$$prod{nombre}', '$$prod{precio}', '$$prod{cantidad}', '$$prod{presentacion}', '$$prod{descripcion}')" title="Editar Producto"><i class="bi bi-pencil"></i></button>
+                                                    <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEntity('producto', '$$prod{id_prod}')" title="Eliminar Producto"><i class="bi bi-trash"></i></button>
+                                                </div>
                                             </td>
                                         </tr>
 HTML
