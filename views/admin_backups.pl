@@ -53,9 +53,24 @@ render_header(
 my $backups_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat', 'backups');
 my @backups = ();
 if (-d $backups_dir) {
+    my $now = time;
     opendir(my $dh, $backups_dir);
-    @backups = grep { $_ =~ /\.zip$/ } readdir($dh);
+    my @all_files = readdir($dh);
     closedir($dh);
+
+    foreach my $f (@all_files) {
+        next unless $f =~ /\.zip$/;
+        # Purga de respaldos automáticos con permanencia mayor a 3 días (3 * 86400 = 259,200 segundos)
+        if ($f =~ /^auto_backup_ospulso_/) {
+            my $fp = File::Spec->catfile($backups_dir, $f);
+            my $mtime = (stat($fp))[9] || 0;
+            if ($mtime > 0 && ($now - $mtime) > (3 * 86400)) {
+                unlink($fp);
+                next;
+            }
+        }
+        push @backups, $f;
+    }
 }
 @backups = sort { (stat(File::Spec->catfile($backups_dir, $b)))[9] <=> (stat(File::Spec->catfile($backups_dir, $a)))[9] } @backups;
 
@@ -76,10 +91,10 @@ foreach my $b (@backups) {
             <td class="align-middle">$fecha</td>
             <td class="align-middle">$hora</td>
             <td class="align-middle text-end">
-                <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-2" onclick="restoreDB('$b')">
+                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-2" onclick="restoreDB('$b')">
                     <i class="bi bi-cloud-download me-1"></i>Restaurar
                 </button>
-                <button class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm" onclick="deleteBackup('$b')">
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm" onclick="deleteBackup('$b')">
                     <i class="bi bi-trash"></i>
                 </button>
             </td>
@@ -162,7 +177,7 @@ print <<HTML;
                     <input type="time" id="cronTime" class="form-control form-control-lg rounded-3 mb-3">
                     
                     <div class="alert alert-info border-0 shadow-sm rounded-3 py-2 px-3 small mb-0">
-                        <i class="bi bi-info-circle-fill me-2"></i>El sistema conservará únicamente los respaldos automáticos de los últimos 7 días.
+                        <i class="bi bi-info-circle-fill me-2"></i>El sistema conservará únicamente los respaldos automáticos de los últimos 3 días.
                     </div>
                 </div>
             </div>

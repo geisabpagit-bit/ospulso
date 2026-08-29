@@ -89,7 +89,7 @@ eval {
     
     cron_log("Respaldo creado: $filename");
     
-    # 5. Rotación de 7 días
+    # 5. Rotación a 3 días de permanencia (3 * 86400s)
     opendir(my $bdh, $backups_dir);
     my @auto_backups = grep { /^auto_backup_ospulso_.*\.zip$/ } readdir($bdh);
     closedir($bdh);
@@ -100,12 +100,12 @@ eval {
         my $ab_path = File::Spec->catfile($backups_dir, $ab);
         my $mtime = (stat($ab_path))[9];
         my $age_days = ($now - $mtime) / (60 * 60 * 24);
-        if ($age_days > 7) {
+        if ($age_days > 3) {
             unlink($ab_path);
             $deleted_count++;
         }
     }
-    cron_log("Limpieza completada: $deleted_count respaldos antiguos eliminados.") if $deleted_count > 0;
+    cron_log("Limpieza completada: $deleted_count respaldos automáticos antiguos (>3 días) eliminados.") if $deleted_count > 0;
 };
 
 if ($@) {

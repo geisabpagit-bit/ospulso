@@ -83,7 +83,10 @@
 - **Formato Limpio Sin Paréntesis**: La línea final debe formatearse exactamente como: `Calle y No., Colonia / Localidad, Municipio / Alcaldía, Entidad Federativa, Teléfono, CP: XXXXX`, prohibiendo estrictamente el uso de paréntesis envueltos en los valores.
 
 ## 13. Gobernanza de Copias de Seguridad (`views/admin_backups.pl`)
-- **Disparo Manual Exclusivo**: Todos los botones de acción en la vista deben definir `type="button"` para prevenir el envío accidental de formularios o autogeneración de respaldos al cargar la página.
+- **Disparo Manual Exclusivo**: Todos los botones de acción en la vista incluyen `type="button"` para prevenir el envío accidental de formularios o autogeneración de respaldos al cargar la página.
+- **Permanencia y Purga Automática (3 Días)**:
+  - Los respaldos automáticos (`auto_backup_ospulso_*`) cuentan con una ventana de permanencia de **máximo 3 días** (259,200 segundos).
+  - Al ingresar a `views/admin_backups.pl` o ejecutarse la tarea de rotación en `api/cron_backup_worker.pl`, el sistema elimina automáticamente cualquier archivo `auto_backup_ospulso_*` cuya antigüedad supere los 3 días.
 - **Patrón de Nombre de Archivo**: La API de borrado y restauración (`api/delete_backup_api.pl`, `api/restore_db_api.pl`) soporta de forma transparente los dos prefijos de archivo oficiales: `auto_backup_ospulso_` y `ospulso_backup_`.
 
 **GEISABPA - Diamond Edition v4.4.1**
