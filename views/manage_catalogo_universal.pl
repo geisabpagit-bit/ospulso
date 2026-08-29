@@ -172,10 +172,10 @@ print <<HTML;
                 color: var(--inst-navy-deep) !important;
             }
 
-            /* DataTables Export Toolbar Buttons */
+            /* DataTables Export Toolbar Buttons - Compact & Sleek */
             .dataTables_wrapper .dt-buttons {
-                margin-top: 0.75rem !important;
-                margin-bottom: 0.75rem !important;
+                margin-top: 0.25rem !important;
+                margin-bottom: 0.5rem !important;
             }
             .dataTables_wrapper .dt-buttons .btn,
             .btn-export {
@@ -183,13 +183,13 @@ print <<HTML;
                 color: #334155 !important;
                 border: 1px solid #cbd5e1 !important;
                 border-radius: 50rem !important;
-                padding: 0.35rem 1rem !important;
-                font-size: 0.78rem !important;
+                padding: 0.25rem 0.75rem !important;
+                font-size: 0.75rem !important;
                 font-weight: 600 !important;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03) !important;
+                box-shadow: none !important;
                 transition: all 0.2s ease !important;
-                margin-right: 0.4rem !important;
-                height: 34px !important;
+                margin-right: 0.3rem !important;
+                height: 32px !important;
                 display: inline-flex !important;
                 align-items: center !important;
             }
@@ -198,8 +198,6 @@ print <<HTML;
                 background: #f8fafc !important;
                 color: var(--inst-navy-deep) !important;
                 border-color: var(--inst-navy-deep) !important;
-                transform: translateY(-1px) !important;
-                box-shadow: 0 4px 10px rgba(10, 42, 102, 0.1) !important;
             }
 
             /* Standard DataTables Searcher input */
@@ -217,6 +215,10 @@ print <<HTML;
                 box-shadow: 0 0 0 3px rgba(10, 42, 102, 0.1) !important;
             }
 
+            .table-custom-header thead th,
+            .table-custom-header tbody td {
+                padding: 0.45rem 0.5rem !important;
+            }
             .table-custom-header thead th {
                 background-color: #f1f5f9 !important;
                 color: #1e293b !important;
@@ -229,7 +231,7 @@ print <<HTML;
         </style>
 
         <!-- TOPBAR -->
-        <header class="bg-medentia-gradient text-white p-3 p-md-4 shadow-sm" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; margin-bottom: 0.75rem;">
+        <header class="bg-medentia-gradient text-white p-3 shadow-sm" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; margin-bottom: 0.5rem;">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
                 <div>
                     <h3 class="fw-black mb-0"><i class="bi bi-globe me-2"></i>Catálogo Universal</h3>
@@ -238,7 +240,7 @@ print <<HTML;
             </div>
         </header>
 
-        <div class="container-fluid px-1 px-md-2 pb-3 container-mobile-flush">
+        <div class="container-fluid px-1 pb-2 container-mobile-flush">
             
             <!-- CONTENEDOR DE FORMULARIOS INLINE -->
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-3 d-none animate__animated animate__fadeIn" id="formContainer">
@@ -251,22 +253,23 @@ print <<HTML;
                 </div>
             </div>
 
-            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 card-mobile-flush" id="mainCard">
-                <div class="card-header bg-white border-0 pt-2 px-2 px-md-3 pb-0 d-flex justify-content-between align-items-center">
+            <!-- CONTENEDOR PRINCIPAL FLUIDO (SIN CAPAS NI MARCOS REDUNDANTES) -->
+            <div id="mainCard" class="w-100">
+                <div class="bg-transparent border-0 pt-1 px-1 pb-2 d-flex justify-content-between align-items-center">
                     <ul class="nav nav-pills nav-fill flex-grow-1 gap-2" id="catalogoTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active rounded-pill fw-bold py-2" data-bs-toggle="tab" data-bs-target="#servicios" type="button" role="tab"><i class="bi bi-list-check me-2"></i>Servicios</button>
+                            <button class="nav-link active rounded-pill fw-bold py-1.5" data-bs-toggle="tab" data-bs-target="#servicios" type="button" role="tab"><i class="bi bi-list-check me-2"></i>Servicios</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill fw-bold py-2" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab"><i class="bi bi-box-seam me-2"></i>Productos</button>
+                            <button class="nav-link rounded-pill fw-bold py-1.5" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab"><i class="bi bi-box-seam me-2"></i>Productos</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill fw-bold py-2" data-bs-toggle="tab" data-bs-target="#deptos" type="button" role="tab"><i class="bi bi-diagram-3 me-2"></i>Departamentos y Categorías</button>
+                            <button class="nav-link rounded-pill fw-bold py-1.5" data-bs-toggle="tab" data-bs-target="#deptos" type="button" role="tab"><i class="bi bi-diagram-3 me-2"></i>Departamentos y Categorías</button>
                         </li>
                     </ul>
                 </div>
                 
-                <div class="card-body p-2 p-md-3 pt-2">
+                <div class="p-0 pt-1">
                     <div class="tab-content">
                         <!-- PESTAÑA SERVICIOS -->
                         <div class="tab-pane fade show active" id="servicios" role="tabpanel">
@@ -288,42 +291,39 @@ foreach my $cat (@{$cat_univ->{categorias} || []}) {
 
 print <<HTML;
                             <!-- PANEL DE FILTROS PERSONALIZADOS (DEPARTAMENTO, CATEGORIA Y TEXTO LIBRE) -->
-                            <div class="filter-panel-premium p-2.5 p-md-3 mb-3 rounded-4" style="background: #f8fafc; border: 1px solid #e2e8f0 !important;">
+                            <div class="filter-panel-premium p-2 mb-2 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0 !important;">
                                 <div class="row g-2 align-items-end">
-                                    <div class="col-12 col-sm-6 col-lg-3">
+                                    <div class="col-12 col-md-3">
                                         <label class="form-label mb-1"><i class="bi bi-diagram-3 me-1"></i>Departamento</label>
                                         <select id="filtro_dep" class="form-select filter-control-equal" onchange="onFiltroDepChange()">
                                             $filter_deps_options
                                         </select>
                                     </div>
-                                    <div class="col-12 col-sm-6 col-lg-3">
+                                    <div class="col-12 col-md-3">
                                         <label class="form-label mb-1"><i class="bi bi-tags me-1"></i>Categoría</label>
                                         <select id="filtro_cat" class="form-select filter-control-equal" onchange="aplicarFiltrosTabla()">
                                             $filter_cats_options
                                         </select>
                                     </div>
-                                    <div class="col-12 col-sm-6 col-lg-3">
+                                    <div class="col-12 col-md-4">
                                         <label class="form-label mb-1"><i class="bi bi-search me-1"></i>Texto Libre</label>
                                         <div class="position-relative">
                                             <input type="text" id="filtro_texto" class="form-control filter-control-equal pe-4" placeholder="Buscar SKU, concepto, precio..." onkeyup="aplicarFiltrosTabla()">
                                             <i class="bi bi-x-circle-fill text-muted position-absolute end-0 top-50 translate-middle-y me-2 cursor-pointer" onclick="limpiarFiltroTexto()" style="display:none;" id="btn_limpiar_texto"></i>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-sm-6 col-lg-3">
-                                        <label class="form-label mb-1 d-none d-lg-block">&nbsp;</label>
-                                        <div class="d-flex align-items-center justify-content-lg-end gap-2 w-100">
-                                            <button type="button" class="btn btn-navy-outline filter-control-equal px-3 fw-bold flex-grow-1 flex-lg-grow-0" onclick="limpiarTodosFiltros()" title="Limpiar Filtros">
-                                                <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
-                                            </button>
-                                            <button type="button" class="btn btn-navy-primary filter-control-equal px-3 fw-bold flex-grow-1 flex-lg-grow-0" onclick="abrirFormulario('servicio')">
-                                                <i class="bi bi-plus-circle me-1"></i>Nuevo Servicio
-                                            </button>
-                                        </div>
+                                    <div class="col-12 col-md-2 d-flex align-items-center justify-content-md-end gap-1">
+                                        <button type="button" class="btn btn-navy-outline filter-control-equal px-2.5 fw-bold" onclick="limpiarTodosFiltros()" title="Limpiar Filtros">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-navy-primary filter-control-equal px-2.5 px-lg-3 fw-bold" onclick="abrirFormulario('servicio')">
+                                            <i class="bi bi-plus-circle me-1"></i>Nuevo
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="table-responsive dataTables_wrapper">
+                            <div class="table-responsive dataTables_wrapper p-0">
                                 <table id="tablaServicios" class="table table-hover align-middle w-100 table-custom-header" style="font-size: 0.78rem;">
                                     <thead>
                                         <tr>
