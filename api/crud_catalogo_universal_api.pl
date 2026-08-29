@@ -250,8 +250,9 @@ elsif ($action eq 'save_servicio') {
         my $updated_precio = 0;
         foreach my $l (@$lines_p) {
             my @c = split /\|/, $l;
-            if ($c[1] eq $id_item && $c[3] eq 'DIA') {
-                $c[5] = $precio;
+            if ($c[1] eq $id_item) {
+                $c[2] = 'ESTANDAR' if (!defined $c[2] || $c[2] eq '');
+                $c[3] = $precio;
                 $l = join("|", @c);
                 $updated_precio = 1;
             }
@@ -259,7 +260,7 @@ elsif ($action eq 'save_servicio') {
         }
         if (!$updated_precio) {
             my $id_p = get_next_id($rutas->{precios});
-            push @new_p, "$id_p|$id_item|1|DIA|0.00|$precio|0|0";
+            push @new_p, "$id_p|$id_item|ESTANDAR|$precio|0.00|1";
         }
         actualizar_archivo($rutas->{items}, $header_i, \@new_i);
         actualizar_archivo($rutas->{precios}, $header_p, \@new_p);
@@ -268,10 +269,10 @@ elsif ($action eq 'save_servicio') {
         $id_item = get_next_id($rutas->{items});
         push @$lines_i, "$id_item|$id_cat|$sku|$concepto|0";
         my $id_p = get_next_id($rutas->{precios});
-        push @$lines_p, "$id_p|$id_item|1|DIA|0.00|$precio|0|0";
+        push @$lines_p, "$id_p|$id_item|ESTANDAR|$precio|0.00|1";
         
         actualizar_archivo($rutas->{items}, $header_i || "ID_ITEM|ID_CAT|CODIGO_SKU|CONCEPTO|APLICA_IVA", $lines_i);
-        actualizar_archivo($rutas->{precios}, $header_p || "ID_PRECIO|ID_ITEM|ID_PROV|TIPO_TARIFA|COSTO_BASE|PRECIO_PUBLICO|HONORARIO_FIJO|HONORARIO_PORCENTAJE", $lines_p);
+        actualizar_archivo($rutas->{precios}, $header_p || "ID_PRECIO|ID_ITEM|TIPO_TARIFA|PRECIO_PUBLICO|COSTO_PROVEEDOR|ID_PROV", $lines_p);
         responder({ success => 1, msg => 'Servicio creado' });
     }
 }

@@ -229,44 +229,44 @@ print <<HTML;
         </style>
 
         <!-- TOPBAR -->
-        <header class="bg-medentia-gradient text-white p-4 shadow-sm" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 2rem;">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <header class="bg-medentia-gradient text-white p-3 p-md-4 shadow-sm" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; margin-bottom: 0.75rem;">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
                 <div>
-                    <h2 class="fw-black mb-0"><i class="bi bi-globe me-2"></i>Catálogo Universal</h2>
-                    <p class="text-white-50 small mb-0 mt-1">Gestión centralizada del catálogo maestro 3NF</p>
+                    <h3 class="fw-black mb-0"><i class="bi bi-globe me-2"></i>Catálogo Universal</h3>
+                    <p class="text-white-50 small mb-0">Gestión centralizada del catálogo maestro 3NF</p>
                 </div>
             </div>
         </header>
 
-        <div class="container-fluid px-2 px-md-3 pb-4 container-mobile-flush">
+        <div class="container-fluid px-1 px-md-2 pb-3 container-mobile-flush">
             
             <!-- CONTENEDOR DE FORMULARIOS INLINE -->
-            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4 d-none animate__animated animate__fadeIn" id="formContainer">
-                <div class="card-header border-0 text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader" style="background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;">
-                    <h5 class="fw-black mb-0" id="formTitle"><i class="bi bi-pencil-square me-2"></i>Formulario</h5>
+            <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-3 d-none animate__animated animate__fadeIn" id="formContainer">
+                <div class="card-header border-0 text-white py-2 px-3 rounded-top-4 d-flex justify-content-between align-items-center" id="formHeader" style="background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;">
+                    <h6 class="fw-black mb-0" id="formTitle"><i class="bi bi-pencil-square me-2"></i>Formulario</h6>
                     <button type="button" class="btn-close btn-close-white" onclick="cerrarFormulario()"></button>
                 </div>
-                <div class="card-body p-4 bg-light rounded-bottom-4" id="formBody">
+                <div class="card-body p-3 bg-light rounded-bottom-4" id="formBody">
                     <!-- Los formularios se inyectan dinamicamente con JS -->
                 </div>
             </div>
 
             <div class="card card-medentia-aura border-0 shadow-sm rounded-4 card-mobile-flush" id="mainCard">
-                <div class="card-header bg-white border-0 pt-3 px-3 px-md-4 pb-0 d-flex justify-content-between align-items-center">
+                <div class="card-header bg-white border-0 pt-2 px-2 px-md-3 pb-0 d-flex justify-content-between align-items-center">
                     <ul class="nav nav-pills nav-fill flex-grow-1 gap-2" id="catalogoTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#servicios" type="button" role="tab"><i class="bi bi-list-check me-2"></i>Servicios</button>
+                            <button class="nav-link active rounded-pill fw-bold py-2" data-bs-toggle="tab" data-bs-target="#servicios" type="button" role="tab"><i class="bi bi-list-check me-2"></i>Servicios</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab"><i class="bi bi-box-seam me-2"></i>Productos</button>
+                            <button class="nav-link rounded-pill fw-bold py-2" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab"><i class="bi bi-box-seam me-2"></i>Productos</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill fw-bold" data-bs-toggle="tab" data-bs-target="#deptos" type="button" role="tab"><i class="bi bi-diagram-3 me-2"></i>Departamentos y Categorías</button>
+                            <button class="nav-link rounded-pill fw-bold py-2" data-bs-toggle="tab" data-bs-target="#deptos" type="button" role="tab"><i class="bi bi-diagram-3 me-2"></i>Departamentos y Categorías</button>
                         </li>
                     </ul>
                 </div>
                 
-                <div class="card-body p-2 p-md-3">
+                <div class="card-body p-2 p-md-3 pt-2">
                     <div class="tab-content">
                         <!-- PESTAÑA SERVICIOS -->
                         <div class="tab-pane fade show active" id="servicios" role="tabpanel">
@@ -288,8 +288,8 @@ foreach my $cat (@{$cat_univ->{categorias} || []}) {
 
 print <<HTML;
                             <!-- PANEL DE FILTROS PERSONALIZADOS (DEPARTAMENTO, CATEGORIA Y TEXTO LIBRE) -->
-                            <div class="card filter-panel-premium border-0 shadow-sm rounded-4 p-3 mb-4">
-                                <div class="row g-3 align-items-end">
+                            <div class="filter-panel-premium p-2.5 p-md-3 mb-3 rounded-4" style="background: #f8fafc; border: 1px solid #e2e8f0 !important;">
+                                <div class="row g-2 align-items-end">
                                     <div class="col-12 col-sm-6 col-lg-3">
                                         <label class="form-label mb-1"><i class="bi bi-diagram-3 me-1"></i>Departamento</label>
                                         <select id="filtro_dep" class="form-select filter-control-equal" onchange="onFiltroDepChange()">
@@ -348,7 +348,7 @@ foreach my $item (@{$cat_univ->{items} || []}) {
     my $precios_html = "";
     my $precio_base = 0;
     foreach my $p (@{$item->{precios} || []}) {
-        if (!$precio_base || (defined $p->{tipo_tarifa} && $p->{tipo_tarifa} eq 'DIA')) {
+        if (!$precio_base || (defined $p->{tipo_tarifa} && ($p->{tipo_tarifa} eq 'ESTANDAR' || $p->{tipo_tarifa} eq 'DIA' || $p->{tipo_tarifa} eq 'BASE'))) {
             $precio_base = $p->{precio_publico};
         }
         $precios_html .= "<span class='badge me-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span><br>";
