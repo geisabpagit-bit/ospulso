@@ -119,7 +119,7 @@ foreach my $cat (@{$cat_univ->{categorias} || []}) {
 
 print <<HTML;
                             <!-- PANEL DE FILTROS PERSONALIZADOS (DEPARTAMENTO, CATEGORIA Y TEXTO LIBRE) -->
-                            <div class="filter-panel-flat p-2 mb-2">
+                            <div class="card card-filter-diamond">
                                 <div class="row g-2 align-items-end">
                                     <div class="col-12 col-md-3">
                                         <label class="form-label mb-1"><i class="bi bi-diagram-3 me-1"></i>Departamento</label>

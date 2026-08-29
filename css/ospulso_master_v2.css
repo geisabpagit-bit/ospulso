@@ -1337,7 +1337,8 @@
     outline: none !important;
 }
 
-/* --- Punto 7 GUIA_ESTILO_SDM.md: Marco de Tabla DataTables Diamond --- */
+/* --- Punto 7 GUIA_ESTILO_SDM.md: Marcos Independientes Diamond (Filtros y Tabla) --- */
+.card-filter-diamond,
 .card-table-diamond {
     background: #ffffff !important;
     border: 1px solid rgba(25, 183, 165, 0.4) !important; /* Teal Clínico Diamond (Punto 7 SDM) */
@@ -1345,7 +1346,7 @@
     box-shadow: 0 8px 24px rgba(10, 42, 102, 0.06) !important;
     padding: 1rem 1.25rem !important;
     margin-top: 0.5rem !important;
-    margin-bottom: 1rem !important;
+    margin-bottom: 0.75rem !important;
 }
 
 .card-table-diamond .dataTables_wrapper,
