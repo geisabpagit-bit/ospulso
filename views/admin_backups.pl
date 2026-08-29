@@ -7,6 +7,7 @@ use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use FindBin;
 use File::Spec;
+use JSON::PP qw(encode_json);
 use open qw(:std :utf8);
 
 use lib "$FindBin::Bin/..";
@@ -130,7 +131,7 @@ if (!$filas_backups) {
     $filas_backups = qq{<tr><td colspan="5" class="text-center text-muted py-4">No hay copias de seguridad creadas aún.</td></tr>};
 }
 
-my $debug_info_json = JSON::PP::encode_json({
+my $debug_info_json = encode_json({
     auto_backup_en_carga => 0,
     total_respaldos      => scalar(@backups),
     ultimo_respaldo      => $latest_name || 'Ninguno',
