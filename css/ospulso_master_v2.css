@@ -1329,11 +1329,7 @@
 .catalogo-container-flat,
 .catalogo-container-flat #mainCard,
 .catalogo-container-flat .tab-content,
-.catalogo-container-flat .tab-pane,
-.catalogo-container-flat .dataTables_wrapper,
-.catalogo-container-flat .table-responsive,
-.catalogo-container-flat .dt-buttons,
-.catalogo-container-flat .export-toolbar {
+.catalogo-container-flat .tab-pane {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -1341,8 +1337,22 @@
     outline: none !important;
 }
 
-.catalogo-container-flat .table-responsive,
-.catalogo-container-flat .dataTables_wrapper {
+/* --- Punto 7 GUIA_ESTILO_SDM.md: Marco de Tabla DataTables Diamond --- */
+.card-table-diamond {
+    background: #ffffff !important;
+    border: 1px solid rgba(25, 183, 165, 0.4) !important; /* Teal Clínico Diamond (Punto 7 SDM) */
+    border-radius: 1rem !important;
+    box-shadow: 0 8px 24px rgba(10, 42, 102, 0.06) !important;
+    padding: 1rem 1.25rem !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 1rem !important;
+}
+
+.card-table-diamond .dataTables_wrapper,
+.card-table-diamond .table-responsive {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
 }

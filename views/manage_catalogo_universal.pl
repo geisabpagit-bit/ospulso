@@ -151,18 +151,19 @@ print <<HTML;
                                 </div>
                             </div>
 
-                            <div class="table-responsive dataTables_wrapper p-0">
-                                <table id="tablaServicios" class="table table-hover align-middle w-100 table-custom-header" style="font-size: 0.78rem;">
-                                    <thead>
-                                        <tr>
-                                            <th class="border-0">SKU</th>
-                                            <th class="border-0">Concepto</th>
-                                            <th class="border-0">Dep/Cat</th>
-                                            <th class="border-0">Precios (Tarifas)</th>
-                                            <th class="border-0 text-end pe-4">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                            <div class="card card-table-diamond">
+                                <div class="table-responsive dataTables_wrapper p-0">
+                                    <table id="tablaServicios" class="table table-hover align-middle w-100 table-custom-header" style="font-size: 0.78rem;">
+                                        <thead>
+                                            <tr>
+                                                <th class="border-0">SKU</th>
+                                                <th class="border-0">Concepto</th>
+                                                <th class="border-0">Dep/Cat</th>
+                                                <th class="border-0">Precios (Tarifas)</th>
+                                                <th class="border-0 text-end pe-4">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
 HTML
 
 foreach my $item (@{$cat_univ->{items} || []}) {
@@ -197,8 +198,9 @@ HTML
 }
 
 print <<HTML;
-                                    </tbody>
-                                </table>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                         
@@ -209,19 +211,20 @@ print <<HTML;
                                     <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
                                 </button>
                             </div>
-                            <div class="table-responsive dataTables_wrapper">
-                                <table id="tablaProductos" class="table table-hover align-middle w-100 table-custom-header" style="font-size: 0.78rem;">
-                                    <thead>
-                                        <tr>
-                                            <th class="border-0">ID</th>
-                                            <th class="border-0">Nombre</th>
-                                            <th class="border-0">Descripción</th>
-                                            <th class="border-0">Presentación</th>
-                                            <th class="border-0">Precio</th>
-                                            <th class="border-0 text-end">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                            <div class="card card-table-diamond">
+                                <div class="table-responsive dataTables_wrapper p-0">
+                                    <table id="tablaProductos" class="table table-hover align-middle w-100 table-custom-header" style="font-size: 0.78rem;">
+                                        <thead>
+                                            <tr>
+                                                <th class="border-0">ID</th>
+                                                <th class="border-0">Nombre</th>
+                                                <th class="border-0">Descripción</th>
+                                                <th class="border-0">Presentación</th>
+                                                <th class="border-0">Precio</th>
+                                                <th class="border-0 text-end">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
 HTML
 
 foreach my $prod (@{$cat_univ->{productos} || []}) {
@@ -241,8 +244,9 @@ HTML
 }
 
 print <<HTML;
-                                    </tbody>
-                                </table>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
 
