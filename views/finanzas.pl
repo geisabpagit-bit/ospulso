@@ -331,37 +331,71 @@ PAGE_HTML
 
             <!-- TAB: INGRESOS -->
             <div id="tab_ingresos" class="sdm-tab-pane d-none">
-                <div class="bento-card">
-                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                        <div>
-                            <h4 class="fw-bold plus-jakarta m-0 text-dark">Historial de Ingresos</h4>
-                            <p class="text-muted m-0 small">Registro detallado de abonos y pagos recibidos en clínica.</p>
+                <div class="row g-4">
+                    <!-- Tabla 1: Ingresos Privados -->
+                    <div class="col-12">
+                        <div class="card card-medentia-aura border-0 shadow-sm p-4 rounded-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);"><i class="bi bi-wallet2 me-2 text-primary"></i>Ingresos Privados</h5>
+                                    <p class="text-muted small m-0">Recibos de ingresos generados por pacientes privados.</p>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="dtIngresosPrivados" class="table table-hover align-middle table-diamond w-100">
+                                    <thead class="table-light text-muted small">
+                                        <tr>
+                                            <th>Folio</th>
+                                            <th>Paciente</th>
+                                            <th>Médico</th>
+                                            <th class="text-end">Monto del Recibo</th>
+                                            <th class="text-center">Opciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                    <tfoot class="bg-light fw-bold">
+                                        <tr>
+                                            <th colspan="3" class="text-end">Total Ingresos Privados:</th>
+                                            <th class="text-end" id="tfootTotalPrivados"></th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="table-responsive mt-3">
-                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond" id="tablaIngresos">
-                            <thead class="text-muted small">
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Paciente</th>
-                                    <th>Concepto (OS)</th>
-                                    <th>Folio</th>
-                                    <th>Abono</th>
-                                    <th class="text-center">Opciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyIngresos">
-                                <tr><td colspan="6" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
-                            </tbody>
-                            <tfoot class="bg-light fw-bold">
-                                <tr>
-                                    <td colspan="4" class="text-end">Total:</td>
-                                    <td id="tfootIngresosAbono"></td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+
+                    <!-- Tabla 2: Ingresos Municipio -->
+                    <div class="col-12">
+                        <div class="card card-medentia-aura border-0 shadow-sm p-4 rounded-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);"><i class="bi bi-building me-2 text-info"></i>Ingresos Municipio</h5>
+                                    <p class="text-muted small m-0">Recibos de ingresos generados por derechohabientes del Municipio.</p>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="dtIngresosMunicipio" class="table table-hover align-middle table-diamond w-100">
+                                    <thead class="table-light text-muted small">
+                                        <tr>
+                                            <th>Folio</th>
+                                            <th>Paciente y Nombre del Trabajador</th>
+                                            <th>Médico</th>
+                                            <th class="text-end">Monto del Recibo</th>
+                                            <th class="text-center">Opciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                    <tfoot class="bg-light fw-bold">
+                                        <tr>
+                                            <th colspan="3" class="text-end">Total Ingresos Municipio:</th>
+                                            <th class="text-end" id="tfootTotalMunicipio"></th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -599,48 +633,40 @@ PAGE_HTML
 
     <!-- KPIs -->
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-4">
+        <div class="col-12 col-sm-6 col-md-3">
             <div class="kpi-acrilico h-100">
                 <div class="kpi-icono text-success"><i class="bi bi-arrow-down-circle"></i></div>
                 <div class="kpi-titulo">Ingresos (Efvo)</div>
                 <div class="kpi-valor" id="cc_ingresos">$0.00</div>
             </div>
         </div>
-        <div class="col-6 col-md-4">
+        <div class="col-12 col-sm-6 col-md-3">
             <div class="kpi-acrilico h-100">
                 <div class="kpi-icono text-info"><i class="bi bi-building"></i></div>
-                <div class="kpi-titulo">CxC (Estado)</div>
+                <div class="kpi-titulo">Ingresos Municipio</div>
                 <div class="kpi-valor" id="cc_cxc">$0.00</div>
             </div>
         </div>
-        <div class="col-6 col-md-4">
+        <div class="col-12 col-sm-6 col-md-3">
             <div class="kpi-acrilico h-100">
                 <div class="kpi-icono text-danger"><i class="bi bi-arrow-up-circle"></i></div>
                 <div class="kpi-titulo">Egresos</div>
                 <div class="kpi-valor" id="cc_egresos">$0.00</div>
             </div>
         </div>
-        <div class="col-6 col-md-4">
+        <div class="col-12 col-sm-6 col-md-3">
             <div class="kpi-acrilico bg-white bg-opacity-75 h-100">
                 <div class="kpi-icono text-warning"><i class="bi bi-cash"></i></div>
                 <div class="kpi-titulo">Efectivo Físico</div>
                 <input type="number" id="cc_fisico" class="form-control mt-2 text-center fw-bold fs-5 shadow-sm border-2 rounded-3 text-primary" value="0" oninput="calcularFaltante()" placeholder="0.00">
             </div>
         </div>
-        <div class="col-12 col-md-4">
+        <div class="col-12">
             <div class="kpi-acrilico h-100" id="kpi_diferencia_box">
                 <div class="kpi-icono text-secondary" id="cc_dif_icon"><i class="bi bi-calculator"></i></div>
-                <div class="kpi-titulo">Faltante/Sobrante</div>
+                <div class="kpi-titulo">Faltante / Sobrante</div>
                 <div class="kpi-valor" id="cc_diferencia">$0.00</div>
-                <div class="kpi-subtexto" id="cc_dif_label">Efectivo - (Ing - Egr)</div>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="kpi-acrilico h-100 bg-primary bg-opacity-10" id="kpi_gran_total_box">
-                <div class="kpi-icono text-primary"><i class="bi bi-briefcase"></i></div>
-                <div class="kpi-titulo">Productividad</div>
-                <div class="kpi-valor text-primary" id="cc_gran_total">$0.00</div>
-                <div class="kpi-subtexto text-primary opacity-75">Ingresos + CxC - Egresos</div>
+                <div class="kpi-subtexto" id="cc_dif_label">Efectivo Físico - (Ingresos - Egresos)</div>
             </div>
         </div>
     </div>
@@ -666,7 +692,7 @@ PAGE_HTML
                         <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_ingresos" type="button"><i class="bi bi-graph-up me-1 text-success"></i>Ingresos</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_cxc" type="button"><i class="bi bi-building me-1 text-info"></i>CxC (Estado)</button>
+                        <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_cxc" type="button"><i class="bi bi-building me-1 text-info"></i>Ingresos Municipio</button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_egresos" type="button"><i class="bi bi-graph-down text-danger me-1"></i>Egresos</button>
@@ -866,19 +892,8 @@ PAGE_HTML
             labelDif.className = 'kpi-subtexto text-danger fw-bold';
             boxDif.style.border = '2px solid #ef4444';
             boxDif.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
-        } else {
-            elDif.className = 'kpi-valor text-muted';
-            iconDif.style.color = '#6c757d';
-            iconDif.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
-            labelDif.textContent = 'Cuadrado Perfecto';
-            labelDif.className = 'kpi-subtexto text-muted fw-bold';
-            boxDif.style.border = '2px solid #e9ecef';
             boxDif.style.backgroundColor = '#f8f9fa';
         }
-
-        // Productividad Global
-        let productividad = ccTotalIngresos + ccTotalCxC - ccTotalEgresos;
-        document.getElementById('cc_gran_total').textContent = '\$' + productividad.toFixed(2);
 
         actualizarGraficaCorte(ccTotalIngresos, ccTotalCxC, ccTotalEgresos, fisico);
     };
@@ -898,11 +913,8 @@ PAGE_HTML
         let dif = fisico - saldoEsperado;
         let difTexto = dif > 0 ? "Sobrante" : (dif < 0 ? "Faltante" : "Cuadrado Perfecto");
         let difColor = dif > 0 ? "green" : (dif < 0 ? "red" : "gray");
-        let prod = ccTotalIngresos + ccTotalCxC - ccTotalEgresos;
 
         let htmlIngresos = ultimoResCorte.ingresos.length ? ultimoResCorte.ingresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.paciente + '</td><td>' + i.medico + '</td><td>' + i.forma_pago + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin ingresos en este periodo</td></tr>';
-        
-        let htmlCxC = (ultimoResCorte.cxc && ultimoResCorte.cxc.length) ? ultimoResCorte.cxc.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.paciente + '</td><td>' + i.medico + '</td><td>' + i.forma_pago + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin cuentas por cobrar en este periodo</td></tr>';
         
         let htmlEgresos = (ultimoResCorte.egresos && ultimoResCorte.egresos.length) ? ultimoResCorte.egresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.categoria + '</td><td>' + i.responsable + '</td><td>' + i.concepto + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin egresos en este periodo</td></tr>';
 
@@ -916,8 +928,8 @@ PAGE_HTML
                 .header h2 { margin: 0; color: #004d40; }
                 .header p { margin: 5px 0 0; color: #666; font-size: 14px; }
                 
-                .kpi-container { display: flex; justify-content: space-between; margin-bottom: 20px; }
-                .kpi-box { border: 1px solid #ddd; border-radius: 8px; padding: 15px; width: 23%; text-align: center; background: #f9f9f9; }
+                .kpi-container { display: flex; justify-content: space-around; margin-bottom: 20px; }
+                .kpi-box { border: 1px solid #ddd; border-radius: 8px; padding: 15px; width: 30%; text-align: center; background: #f9f9f9; }
                 .kpi-box h4 { margin: 0 0 10px; font-size: 13px; color: #666; }
                 .kpi-box .val { font-size: 20px; font-weight: bold; color: #333; margin: 0; }
                 
@@ -940,40 +952,26 @@ PAGE_HTML
 
             <div class="kpi-container">
                 <div class="kpi-box">
-                    <h4>Ingresos (Efectivo)</h4>
+                    <h4>Ingresos Total</h4>
                     <p class="val" style="color: green;">$${ccTotalIngresos.toFixed(2)}</p>
                 </div>
                 <div class="kpi-box">
-                    <h4>Cuentas x Cobrar</h4>
-                    <p class="val" style="color: #0dcaf0;">$${ccTotalCxC.toFixed(2)}</p>
-                </div>
-                <div class="kpi-box">
-                    <h4>Egresos</h4>
+                    <h4>Egresos Total</h4>
                     <p class="val" style="color: red;">$${ccTotalEgresos.toFixed(2)}</p>
                 </div>
                 <div class="kpi-box" style="background: #e0f7fa; border-color: #00C4C4;">
-                    <h4>Productividad Global</h4>
-                    <p class="val" style="color: #00838F;">$${prod.toFixed(2)}</p>
+                    <h4>Saldo Esperado</h4>
+                    <p class="val" style="color: #00838F;">$${saldoEsperado.toFixed(2)}</p>
                 </div>
             </div>
 
-            <div class="section-title">Detalle de Ingresos en Efectivo</div>
+            <div class="section-title">Detalle de Ingresos</div>
             <table>
                 <thead>
                     <tr><th>Folio</th><th>Fecha</th><th>Paciente</th><th>Médico</th><th>Forma Pago</th><th class="text-right">Monto</th></tr>
                 </thead>
                 <tbody>
                     ${htmlIngresos}
-                </tbody>
-            </table>
-
-            <div class="section-title">Detalle de Cuentas por Cobrar (Estado)</div>
-            <table>
-                <thead>
-                    <tr><th>Folio OS</th><th>Fecha</th><th>Paciente</th><th>Médico</th><th>Categoría</th><th class="text-right">Monto</th></tr>
-                </thead>
-                <tbody>
-                    ${htmlCxC}
                 </tbody>
             </table>
 
@@ -1024,9 +1022,9 @@ PAGE_HTML
             chartCorte = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Ingresos (Efvo)', 'CxC (Estado)', 'Egresos', 'Físico'],
+                    labels: ['Ingresos (Efvo)', 'Ingresos Municipio', 'Egresos', 'Físico'],
                     datasets: [{
-                        label: 'Monto (\$)',
+                        label: 'Monto ($)',
                         data: [ingresos, cxc, egresos, fisico],
                         backgroundColor: ['rgba(16, 185, 129, 0.7)', 'rgba(13, 202, 240, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(234, 179, 8, 0.7)'],
                         borderColor: ['#10b981', '#0dcaf0', '#ef4444', '#eab308'],
@@ -1037,7 +1035,6 @@ PAGE_HTML
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: { y: { beginAtZero: true } }
-                }
             });
         }
     };

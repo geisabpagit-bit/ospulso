@@ -1507,104 +1507,83 @@ window.eliminarGasto = function(id) {
 // --- Módulo Ingresos ---
 window.renderIngresos = async function() {
     try {
-        const tbody = document.getElementById('tbodyIngresos');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando datos...</td></tr>';
-        
-        const res = await fetch('../api/finanzas_api.pl', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: new URLSearchParams({ action: 'get_ingresos' })
-        });
-        const data = await res.json();
-        
-        if (data.success && tbody) {
-            let html = '';
-            data.data.forEach(g => {
-                let concepto = g.concepto || '';
-                let osExtra = g.id_os || '';
-                // Extraer el (OS: xxxx) si ya viene concatenado
-                const matchOS = concepto.match(/\(OS:\s*([^)]+)\)/);
-                if (matchOS) {
-                    osExtra = matchOS[1];
-                    concepto = concepto.replace(/\(OS:\s*[^)]+\)/, '').trim();
+        if ($.fn.DataTable) {
+            const dtPrivadosConfig = {
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+                dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                buttons: [
+                    { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
+                    { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
+                    { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' },
+                    { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
+                ],
+                pageLength: 10,
+                lengthChange: false,
+                ajax: '../api/get_recibos_caja_api.pl?tipo=privados',
+                columns: [
+                    { data: 0 }, // Folio
+                    { data: 2 }, // Paciente
+                    { data: 4 }, // Medico
+                    { data: 6, className: 'text-end text-success fw-bold' }, // Monto del Recibo
+                    { data: 8, className: 'text-center' }  // Opciones
+                ],
+                footerCallback: function(row, data, start, end, display) {
+                    var api = this.api();
+                    var intVal = function(i) {
+                        return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                    };
+                    var total = api.column(3, { page: 'current' }).data().reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+                    $('#tfootTotalPrivados').html('$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
                 }
-                
-                const folioDisplay = osExtra.toString().includes('TX') ? osExtra : `OS/2024/${osExtra.toString().padStart(4,'0')}`;
-                
-                // Formato jerárquico
-                concepto = `<div class="fw-bold">${concepto}</div>`;
-                
-                let valToShow = g.abono > 0 ? -g.abono : (g.cargo > 0 ? g.cargo : 0);
-                
-                let colorClass = valToShow > 0 ? 'text-danger' : (valToShow < 0 ? 'text-success' : 'text-muted');
-                let displayVal = valToShow > 0 ? `+${formatter.format(valToShow)}` : formatter.format(valToShow);
-                
-                html += `<tr>
-                    <td class="text-muted small">${g.fecha || ''}</td>
-                    <td class="fw-bold" style="color: var(--md-blue-deep);"><i class="bi bi-person-circle me-2 text-muted"></i>${g.paciente_nombre}</td>
-                    <td class="text-dark">${concepto}</td>
-                    <td class="text-muted small">${folioDisplay}</td>
-                    <td class="fw-bold ${colorClass}">${displayVal}</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill" onclick="window.open('../api/ver_recibo.pl?id_os=${osExtra}', '_blank')" title="Ver Recibo HTML"><i class="bi bi-file-earmark-text"></i></button>
-                    </td>
-                </tr>`;
-            });
-            
-            if (data.data.length === 0) {
-                html = '';
+            };
+
+            const dtMunicipioConfig = {
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+                dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                buttons: [
+                    { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
+                    { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
+                    { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' },
+                    { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
+                ],
+                pageLength: 10,
+                lengthChange: false,
+                ajax: '../api/get_recibos_caja_api.pl?tipo=publicos',
+                columns: [
+                    { data: 0 }, // Folio
+                    { data: 2 }, // Paciente y Nombre del Trabajador
+                    { data: 4 }, // Medico
+                    { data: 6, className: 'text-end text-info fw-bold' }, // Monto del Recibo
+                    { data: 8, className: 'text-center' }  // Opciones
+                ],
+                footerCallback: function(row, data, start, end, display) {
+                    var api = this.api();
+                    var intVal = function(i) {
+                        return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                    };
+                    var total = api.column(3, { page: 'current' }).data().reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+                    $('#tfootTotalMunicipio').html('$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                }
+            };
+
+            if ($.fn.DataTable.isDataTable('#dtIngresosPrivados')) {
+                $('#dtIngresosPrivados').DataTable().destroy();
             }
-            
-            tbody.innerHTML = html;
-            
-            if ($.fn.DataTable) {
-                if ($.fn.DataTable.isDataTable('#tablaIngresos')) $('#tablaIngresos').DataTable().destroy();
-                $('#tablaIngresos').DataTable({
-                    scrollY: '400px',
-                    scrollX: true,
-                    scrollCollapse: true,
-                    rowGroup: {
-                        dataSrc: 3, // Agrupa por la columna 3 (Folio)
-                        startRender: function (rows, group) {
-                            return $('<tr/>').append('<td colspan="5" class="bg-light text-primary fw-bold px-3 py-2"><i class="bi bi-folder2-open me-2"></i>Folio Agrupador: ' + group + ' <span class="badge bg-secondary ms-2">' + rows.count() + ' movimientos</span></td>');
-                        }
-                    },
-                    columnDefs: [
-                        { targets: 3, visible: false } // Ocultar columna de agrupación
-                    ],
-                    footerCallback: function(row, data, start, end, display) {
-                        var api = this.api();
-                        var intVal = function(i) { return typeof i === 'string' ? i.replace(/<[^>]*>?/gm, '').replace(/[\$,+]/g, '') * 1 : typeof i === 'number' ? i : 0; };
-                        var total = api.column(4, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
-                        var el = document.getElementById('tfootIngresosAbono');
-                        if(el) el.innerHTML = formatter.format(total);
-                    },
-                    dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
-                    buttons: [
-                        { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export' },
-                        { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export' },
-                        { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export' },
-                        { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export' }
-                    ],
-                    language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json" },
-                    order: [[0, "desc"]],
-                    pageLength: 10,
-                    responsive: true,
-                    destroy: true
-                });
+            if ($.fn.DataTable.isDataTable('#dtIngresosMunicipio')) {
+                $('#dtIngresosMunicipio').DataTable().destroy();
             }
-        } else if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${data.message || 'Error al cargar'}</td></tr>`;
-            if (data.message === 'Sesión expirada') {
-                window.location.reload();
-            }
+
+            $('#dtIngresosPrivados').DataTable(dtPrivadosConfig);
+            $('#dtIngresosMunicipio').DataTable(dtMunicipioConfig);
         }
     } catch (e) {
-        console.error(e);
-        const tbody = document.getElementById('tbodyIngresos');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Error al cargar historial de ingresos.</td></tr>';
+        console.error("Error al cargar las tablas de ingresos:", e);
     }
-}
+};
 
 
 // ==========================================
