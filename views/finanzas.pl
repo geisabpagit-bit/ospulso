@@ -784,8 +784,8 @@ PAGE_HTML
         let hoy = new Date().toISOString().split('T')[0];
         const elInicio = document.getElementById('ing_fecha_inicio');
         const elFin = document.getElementById('ing_fecha_fin');
-        if (elInicio && !elInicio.value) elInicio.value = hoy;
-        if (elFin && !elFin.value) elFin.value = hoy;
+        if (elInicio) elInicio.value = hoy;
+        if (elFin) elFin.value = hoy;
         
         cargarIngresos();
     };
@@ -855,16 +855,13 @@ PAGE_HTML
     window.cargarIngresos = function() {
         const elInicio = document.getElementById('ing_fecha_inicio');
         const elFin = document.getElementById('ing_fecha_fin');
-        let f_inicio = elInicio ? elInicio.value : '';
-        let f_fin = elFin ? elFin.value : '';
+        let hoy = new Date().toISOString().split('T')[0];
 
-        if (!f_inicio || !f_fin) {
-            let hoy = new Date().toISOString().split('T')[0];
-            f_inicio = hoy;
-            f_fin = hoy;
-            if (elInicio) elInicio.value = hoy;
-            if (elFin) elFin.value = hoy;
-        }
+        if (elInicio && !elInicio.value) elInicio.value = hoy;
+        if (elFin && !elFin.value) elFin.value = hoy;
+
+        let f_inicio = elInicio ? elInicio.value : hoy;
+        let f_fin = elFin ? elFin.value : hoy;
 
         $.ajax({
             url: '../api/generar_corte_caja.pl',
@@ -891,7 +888,7 @@ PAGE_HTML
                         render: function(data, type, row) {
                             let f = row.folio_raw || row.folio || '';
                             return `<div class="d-flex justify-content-center gap-1">
-                                <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="window.open('../api/ver_recibo.pl?id_os=${f}', '_blank')" title="Ver / Imprimir Recibo"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
+                                <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Privado"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
                                 <button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>
                             </div>`;
                         }
@@ -912,7 +909,7 @@ PAGE_HTML
                         render: function(data, type, row) {
                             let f = row.folio_raw || row.folio || '';
                             return `<div class="d-flex justify-content-center gap-1">
-                                <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="window.open('../api/ver_recibo.pl?id_os=${f}', '_blank')" title="Ver / Imprimir Recibo"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
+                                <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="window.open('../api/ver_recibo.pl?tipo=publicos&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Municipio"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
                                 <button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>
                             </div>`;
                         }

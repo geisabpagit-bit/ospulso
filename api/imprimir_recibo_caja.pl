@@ -495,7 +495,7 @@ print <<HTML;
                     <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                         <tr>
                             <td style="width: 100%; text-align: right; vertical-align: middle; padding: 12px; border: 1px solid #ccc; border-top: none;">
-                                <div style="font-size: 11px; margin-bottom: 8px;">Costo : @{[ formato_moneda($recibo->{total_cargos}) ]}</div>
+                                <div style="font-size: 11px; margin-bottom: 8px; font-weight: bold;">Total : @{[ formato_moneda($recibo->{total_cargos}) ]}</div>
                                 $abono_saldo_html
                                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px;">
                                     <span style="border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 11px; display: inline-block;">$recibo->{metodo_pago}</span>

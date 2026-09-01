@@ -17,9 +17,19 @@ if (!$sd->{session_ok}) {
 }
 
 my $id_os = $q->param('id_os') || '';
+my $tipo  = $q->param('tipo')  || '';
+
 unless ($id_os) {
     print $q->header(-type => 'text/html', -charset => 'UTF-8', -status => '400 Bad Request');
     print "<h1>Error</h1><p>ID OS requerido para visualizar el recibo.</p>";
+    exit;
+}
+
+if ($tipo eq 'publicos' || $tipo eq 'publico' || $tipo eq 'municipio') {
+    print $q->redirect(-uri => "imprimir_recibo_publico.pl?id_consulta=$id_os");
+    exit;
+} elsif ($tipo eq 'privados' || $tipo eq 'privado') {
+    print $q->redirect(-uri => "imprimir_recibo_caja.pl?id_consulta=$id_os");
     exit;
 }
 
