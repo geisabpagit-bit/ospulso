@@ -23,10 +23,10 @@ El sistema maneja dos flujos principales de pacientes: **Privados** y **Público
   - `[0]` = ID del Empleado (Ej: `6113`).
   - `[1]` = Nombre Completo.
   - `[2]` = Relación (`Empleado` o `Beneficiario`).
-- **Comportamiento Especial (El Problema del Prefijo):**
+- **Comportamiento Especial (El Problema del Prefijo y Beneficiarios):**
   - En las tablas transaccionales (como CxC o recibos públicos), el sistema guarda el ID del paciente inyectando el prefijo `EMP-` (Ej: `EMP-6113`).
   - Al cruzar los datos contra `empleadosmun_...dat`, se debe **limpiar el prefijo `EMP-`** o **inyectarlo artificialmente** al leer el catálogo para que las llaves coincidan.
-  - *Nota sobre Beneficiarios:* Varios registros pueden compartir el mismo ID (Ej: `6113` para el Titular y `6113` para sus hijos). Al renderizar un recibo general, por regla de negocio, suele bastar con extraer la primera coincidencia (el Titular).
+  - **Diferenciación de Titular vs Beneficiario**: Un empleado (Ej: `6113`) puede tener N beneficiarios en `empleadosmun_...dat`. El motor backend indexa a los titulares filtrando estrictamente los registros con `[2] eq 'Empleado'`, garantizando que la propiedad `trabajador_nombre` sea siempre el titular del expediente. El nombre del **Paciente Real** se extrae de la columna `ALIAS` de `estado_cuenta.dat` (`Paciente: <Nombre Real>`).
 
 ---
 

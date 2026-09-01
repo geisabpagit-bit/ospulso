@@ -27,5 +27,13 @@ Debido a que el layout HTML/CSS está embebido dentro del motor backend de Perl 
 1. **Escapado de Arrobas CSS**: Las reglas complejas de CSS obligatoriamente deben escapar el sigilo de arroba, ej. `\@media screen { }` y `\@page { }`. El no hacerlo arroja el error fatal *"Global symbol requires explicit package name"*.
 2. **Uso de Datos en Memoria**: Para evitar inyecciones defectuosas de variables Javascript, todos los metadatos se renderizan en el HTML estático provisto por Perl antes de enviarse al navegador del cliente. No se usa JavaScript dinámico.
 
-## 4. Origen de los Datos
+## 4. Reglas Específicas de Estructura e Impresión
+
+- **Fila Condicional de Médico**: La fila `Médico :` y el nombre del médico únicamente se renderizan inmediatamente después de `Paciente :` si se encuentra un médico válido asignado al recibo (ej. en conceptos de *Consulta* u *Hospitalización*). Para conceptos sin médico (ej. *Farmacia* u *Otro*), la fila de médico se omite por completo.
+- **Firma de Paciente**: La fila con la leyenda `"Nombre y firma del paciente"` queda **excluida** de los recibos privados, aplicando únicamente a los recibos públicos de municipio/estado.
+- **Elaboró**: El recibo despliega siempre en una fila `"Elaboró : <Usuario Logueado>"` utilizando la sesión activa del cajero.
+- **Dirección del Pie de Página**: La dirección oficial (`CALLE HIDALGO 78, EL PUEBLITO, CORREGIDORA, QUERETARO, Tel. 4422259229, C.P. 76900`) debe renderizarse siempre en una sola línea continua mediante tipografía compacta (`font-size: 8px`).
+- **Nomenclatura de Subtotales**: La penúltima fila de la tabla resumen de importes del recibo despliega el texto `"Total"` en lugar de `"Costo"`.
+
+## 5. Origen de los Datos
 El script obtiene el recibo de la base `dat/folios_recibos_privados.dat` cruzando el folio (último segmento del ID). La variable `$recibo->{elaborado_por}` despliega el usuario cajero logueado al momento del cobro.
