@@ -359,17 +359,17 @@ PAGE_HTML
                                     <p class="text-muted small m-0">Detalle de ingresos recibidos por servicios privados en el periodo seleccionado.</p>
                                 </div>
                             </div>
-                            <div class="table-responsive">
-                                <table id="dtIngresosPrivados" class="table table-hover table-sm align-middle table-diamond w-100" style="font-size: 11px !important;">
+                            <div class="table-responsive" style="overflow-x: hidden;">
+                                <table id="dtIngresosPrivados" class="table table-hover table-sm align-middle table-diamond w-100" style="font-size: 11px !important; table-layout: fixed;">
                                     <thead class="table-light text-muted" style="font-size: 11px !important;">
                                         <tr>
-                                            <th>Folio</th>
-                                            <th>Fecha</th>
-                                            <th>Paciente</th>
-                                            <th>Médico</th>
-                                            <th>Forma de Pago</th>
-                                            <th class="text-end">Monto</th>
-                                            <th class="text-center">Acciones</th>
+                                            <th style="width: 10%;">Folio</th>
+                                            <th style="width: 14%;">Fecha</th>
+                                            <th style="width: 28%;">Paciente</th>
+                                            <th style="width: 18%;">Médico</th>
+                                            <th style="width: 12%;">Forma de Pago</th>
+                                            <th style="width: 10%;" class="text-end">Monto</th>
+                                            <th style="width: 8%;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody style="font-size: 11px !important;"></tbody>
@@ -394,24 +394,23 @@ PAGE_HTML
                                     <p class="text-muted small m-0">Detalle de ingresos generados por derechohabientes del Municipio en el periodo seleccionado.</p>
                                 </div>
                             </div>
-                            <div class="table-responsive">
-                                <table id="dtIngresosMunicipio" class="table table-hover table-sm align-middle table-diamond w-100" style="font-size: 11px !important;">
+                            <div class="table-responsive" style="overflow-x: hidden;">
+                                <table id="dtIngresosMunicipio" class="table table-hover table-sm align-middle table-diamond w-100" style="font-size: 11px !important; table-layout: fixed;">
                                     <thead class="table-light text-muted" style="font-size: 11px !important;">
                                         <tr>
-                                            <th>Folio OS</th>
-                                            <th>Fecha</th>
-                                            <th>Paciente</th>
-                                            <th>Dependencia</th>
-                                            <th>Médico</th>
-                                            <th>Categoría / Forma de Pago</th>
-                                            <th class="text-end">Monto</th>
-                                            <th class="text-center">Acciones</th>
+                                            <th style="width: 10%;">Folio OS</th>
+                                            <th style="width: 14%;">Fecha</th>
+                                            <th style="width: 32%;">Paciente</th>
+                                            <th style="width: 18%;">Dependencia</th>
+                                            <th style="width: 16%;">Médico</th>
+                                            <th style="width: 10%;" class="text-end">Monto</th>
+                                            <th style="width: 10%;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody style="font-size: 11px !important;"></tbody>
                                     <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                         <tr>
-                                            <th colspan="6" class="text-end">Total Ingresos Municipio:</th>
+                                            <th colspan="5" class="text-end">Total Ingresos Municipio:</th>
                                             <th class="text-end text-info" id="tfootTotalMunicipio">$0.00</th>
                                             <th></th>
                                         </tr>
@@ -947,6 +946,7 @@ PAGE_HTML
                                 html += `<div class="text-muted small ${isCancel ? 'text-decoration-line-through' : ''}"><i class="bi bi-person-badge me-1 text-secondary"></i><strong>Trabajador:</strong> ${txtTrabajador}</div>`;
                             }
                             if (isCancel) {
+                                html += `<div class="mt-1"><span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 9px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span></div>`;
                                 html += `<div class="text-danger fw-bold mt-1" style="font-size: 10px;"><i class="bi bi-x-circle-fill me-1"></i><strong>MOTIVO CANCELACIÓN:</strong> ${row.motivo || 'Sin motivo registrado'}</div>`;
                             }
                             return html;
@@ -961,15 +961,6 @@ PAGE_HTML
                         }
                     },
                     { data: 'medico' },
-                    { 
-                        data: 'forma_pago',
-                        render: function(data, type, row) {
-                            if (row.estatus === 'Cancelado') {
-                                return `<span class="badge bg-danger text-uppercase px-2 py-1"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>`;
-                            }
-                            return data || '';
-                        }
-                    },
                     { 
                         data: 'monto', 
                         className: 'text-end text-info fw-bold',
