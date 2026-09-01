@@ -63,8 +63,11 @@ open(my $fh, '>:encoding(UTF-8)', $file_path) or do {
 
 foreach my $r (@recibos_raw) {
     if (ref($r) eq 'ARRAY') {
-        # Validar match por FOLIO ($r->[1]) o ID ($r->[0])
-        if ($r->[1] eq $id_recibo || $r->[0] eq $id_recibo) {
+        # Validar match por FOLIO ($r->[1]), ID ($r->[0]) o ID_OS ($r->[4])
+        my $match_folio = $r->[1] // '';
+        my $match_id    = $r->[0] // '';
+        my $match_os    = $r->[4] // '';
+        if ($match_folio eq $id_recibo || $match_id eq $id_recibo || $match_os eq $id_recibo || ($match_folio && $match_folio =~ /(?:^|\/|-)\Q$id_recibo\E$/)) {
             $found = 1;
             $id_consulta = $r->[4] || '';
             $id_paciente = $r->[5] || '';

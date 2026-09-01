@@ -140,6 +140,7 @@ if (-e $archivo_ingresos) {
 
             push @ingresos_filtrados, {
                 folio      => $folio_corto || $folio_raw,
+                folio_raw  => $folio_raw,
                 fecha      => $fecha . ' ' . ($f->[7] || ''),
                 paciente   => $nombre_pac,
                 medico     => $nombre_med,
@@ -184,6 +185,7 @@ if (-e $archivo_publicos) {
 
             push @cxc_filtrados, {
                 folio      => $folio_corto || $folio_raw,
+                folio_raw  => $folio_raw,
                 fecha      => $fecha . ' ' . ($f->[7] || ''),
                 paciente   => $nombre_pac,
                 medico     => $nombre_med,

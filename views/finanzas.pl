@@ -360,8 +360,8 @@ PAGE_HTML
                                 </div>
                             </div>
                             <div class="table-responsive">
-                                <table id="dtIngresosPrivados" class="table table-hover align-middle table-diamond w-100">
-                                    <thead class="table-light text-muted small">
+                                <table id="dtIngresosPrivados" class="table table-hover table-sm align-middle table-diamond w-100" style="font-size: 11px !important;">
+                                    <thead class="table-light text-muted" style="font-size: 11px !important;">
                                         <tr>
                                             <th>Folio</th>
                                             <th>Fecha</th>
@@ -369,13 +369,15 @@ PAGE_HTML
                                             <th>Médico</th>
                                             <th>Forma de Pago</th>
                                             <th class="text-end">Monto</th>
+                                            <th class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
-                                    <tbody></tbody>
-                                    <tfoot class="bg-light fw-bold">
+                                    <tbody style="font-size: 11px !important;"></tbody>
+                                    <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                         <tr>
                                             <th colspan="5" class="text-end">Total Ingresos Privados:</th>
                                             <th class="text-end text-success" id="tfootTotalPrivados">$0.00</th>
+                                            <th></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -393,8 +395,8 @@ PAGE_HTML
                                 </div>
                             </div>
                             <div class="table-responsive">
-                                <table id="dtIngresosMunicipio" class="table table-hover align-middle table-diamond w-100">
-                                    <thead class="table-light text-muted small">
+                                <table id="dtIngresosMunicipio" class="table table-hover table-sm align-middle table-diamond w-100" style="font-size: 11px !important;">
+                                    <thead class="table-light text-muted" style="font-size: 11px !important;">
                                         <tr>
                                             <th>Folio OS</th>
                                             <th>Fecha</th>
@@ -402,13 +404,15 @@ PAGE_HTML
                                             <th>Médico</th>
                                             <th>Categoría / Forma de Pago</th>
                                             <th class="text-end">Monto</th>
+                                            <th class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
-                                    <tbody></tbody>
-                                    <tfoot class="bg-light fw-bold">
+                                    <tbody style="font-size: 11px !important;"></tbody>
+                                    <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                         <tr>
                                             <th colspan="5" class="text-end">Total Ingresos Municipio:</th>
                                             <th class="text-end text-info" id="tfootTotalMunicipio">$0.00</th>
+                                            <th></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -786,6 +790,68 @@ PAGE_HTML
         cargarIngresos();
     };
 
+    window.cancelarRecibo = function(id_recibo, tipo) {
+        if (!id_recibo) return;
+        
+        if (typeof Swal === 'undefined') {
+            alert("SweetAlert2 no está disponible.");
+            return;
+        }
+
+        Swal.fire({
+            title: 'Cancelar Recibo',
+            html: '<p class="text-muted small">Está a punto de cancelar el recibo <strong>' + id_recibo + '</strong> (' + tipo + ').</p>',
+            input: 'textarea',
+            inputPlaceholder: 'Ingrese el motivo detallado de la cancelación aquí...',
+            inputAttributes: {
+                'aria-label': 'Motivo de la cancelación',
+                'rows': 3
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="bi bi-trash-fill me-1"></i> Confirmar Cancelación',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                confirmButton: 'btn btn-danger btn-mobile-standard rounded-pill px-4',
+                cancelButton: 'btn btn-secondary btn-mobile-standard rounded-pill px-4'
+            },
+            inputValidator: (value) => {
+                if (!value || !value.trim()) {
+                    return '¡Debe ingresar un motivo obligatorio para cancelar el recibo!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const motivo = result.value.trim();
+                $.ajax({
+                    url: '../api/cancelar_recibo_api.pl',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { id_recibo: id_recibo, tipo: tipo, motivo: motivo },
+                    success: function(res) {
+                        if (res.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Recibo Cancelado',
+                                text: res.msg || 'El recibo fue cancelado correctamente.',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            cargarIngresos();
+                            if (typeof cargarCorteCaja === 'function') cargarCorteCaja();
+                        } else {
+                            Swal.fire('Error', res.msg || 'No se pudo cancelar el recibo.', 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'Error al comunicarse con el servidor para cancelar el recibo.', 'error');
+                    }
+                });
+            }
+        });
+    };
+
     window.cargarIngresos = function() {
         const elInicio = document.getElementById('ing_fecha_inicio');
         const elFin = document.getElementById('ing_fecha_fin');
@@ -817,7 +883,19 @@ PAGE_HTML
                     { data: 'paciente' },
                     { data: 'medico' },
                     { data: 'forma_pago' },
-                    { data: 'monto', className: 'text-end text-success fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                    { data: 'monto', className: 'text-end text-success fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                    {
+                        data: null,
+                        className: 'text-center',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            let f = row.folio_raw || row.folio || '';
+                            return `<div class="d-flex justify-content-center gap-1">
+                                <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="window.open('../api/ver_recibo.pl?id_os=${f}', '_blank')" title="Ver / Imprimir Recibo"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
+                                <button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>
+                            </div>`;
+                        }
+                    }
                 ]);
 
                 renderTablaCorte('#dtIngresosMunicipio', res.cxc || [], [
@@ -826,7 +904,19 @@ PAGE_HTML
                     { data: 'paciente' },
                     { data: 'medico' },
                     { data: 'forma_pago' },
-                    { data: 'monto', className: 'text-end text-info fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                    { data: 'monto', className: 'text-end text-info fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                    {
+                        data: null,
+                        className: 'text-center',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            let f = row.folio_raw || row.folio || '';
+                            return `<div class="d-flex justify-content-center gap-1">
+                                <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="window.open('../api/ver_recibo.pl?id_os=${f}', '_blank')" title="Ver / Imprimir Recibo"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
+                                <button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>
+                            </div>`;
+                        }
+                    }
                 ]);
 
                 let totPriv = (res.ingresos || []).reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0);
