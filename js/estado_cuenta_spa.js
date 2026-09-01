@@ -1639,20 +1639,27 @@ window.cargarIngresos = function() {
                         data: 'paciente',
                         render: function(data, type, row) {
                             let isCancel = (row.estatus === 'Cancelado');
-                            let pacNom = data || 'Paciente Desconocido';
+                            let rawPac = (data || '').replace(/^Paciente:\s*/i, '').trim();
+                            if (!rawPac || /^Metodo:/i.test(rawPac)) {
+                                rawPac = row.trabajador_nombre || 'Empleado Estatal';
+                            }
                             let empNum = row.num_empleado || '';
                             let empNom = row.trabajador_nombre || '';
 
                             let txtTrabajador = empNom ? (empNum ? `${empNum} - ${empNom}` : empNom) : (empNum ? empNum : '');
 
-                            let html = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i><strong>Paciente:</strong> ${pacNom}</div>`;
-                            if (txtTrabajador) {
-                                html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i><strong>Trabajador:</strong> ${txtTrabajador}</div>`;
+                            let html = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
+                            
+                            if (txtTrabajador && rawPac.toLowerCase() !== empNom.toLowerCase()) {
+                                html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i><strong>Trabajador:</strong> ${escapeHtml(txtTrabajador)}</div>`;
+                            } else if (empNum) {
+                                html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-card-text me-1 text-secondary"></i><strong>Num. Empleado:</strong> ${escapeHtml(empNum)}</div>`;
                             }
+
                             if (isCancel) {
                                 html += `<div class="d-flex align-items-center gap-1 mt-1">
                                     <span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>
-                                    <span class="text-danger fw-semibold" style="font-size: 9.5px;">Motivo: ${row.motivo || 'Sin motivo registrado'}</span>
+                                    <span class="text-danger fw-semibold" style="font-size: 9.5px;">Motivo: ${escapeHtml(row.motivo || 'Sin motivo registrado')}</span>
                                 </div>`;
                             }
                             return html;

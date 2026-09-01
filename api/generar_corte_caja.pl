@@ -195,8 +195,10 @@ if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
         next if ($e[3] && $e[3] =~ /Cancelac/i) || ($e[4] && $e[4] =~ /Cancelac/i);
         if (defined $e[11] && $e[11] ne '') {
             my $alias = $e[11];
+            next if $alias =~ /Metodo:/i || $alias =~ /^Cargo/i || $alias =~ /^Abono/i;
             $alias =~ s/.*Paciente:\s*//i;
-            if ($alias) {
+            $alias =~ s/^\s+|\s+$//g;
+            if ($alias && $alias !~ /^Metodo:/i) {
                 $pacientes_edc{$e[0]} = $alias if $e[0];
             }
         }
@@ -294,7 +296,7 @@ if (-e $archivo_publicos) {
                 $nombre_pac = $pacientes{$id_pac};
             }
 
-            if (!$nombre_pac || $nombre_pac eq $id_pac) {
+            if (!$nombre_pac || $nombre_pac eq $id_pac || $nombre_pac =~ /^Metodo:/i) {
                 $nombre_pac = $trabajador_nom || $id_pac || 'Empleado Estatal';
             }
 
