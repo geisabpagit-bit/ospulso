@@ -184,7 +184,27 @@ my $archivo_publicos = File::Spec->catfile($dat_dir, 'folios_recibos_publicos.da
 my @cxc_filtrados = ();
 my $total_cxc = 0;
 
-# Definir variables de contexto para CxC fuera del bloque loop
+# Indexar ALIAS de pacientes desde estado_cuenta.dat
+my %pacientes_edc = ();
+my $edc_file = File::Spec->catfile($dat_dir, 'estado_cuenta.dat');
+if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
+    my $he = <$fhe>;
+    while (my $le = <$fhe>) {
+        chomp $le;
+        my @e = split /\|/, $le, -1;
+        next if ($e[3] && $e[3] =~ /Cancelac/i) || ($e[4] && $e[4] =~ /Cancelac/i);
+        if (defined $e[11] && $e[11] ne '') {
+            my $alias = $e[11];
+            $alias =~ s/.*Paciente:\s*//i;
+            if ($alias) {
+                $pacientes_edc{$e[0]} = $alias if $e[0];
+            }
+        }
+    }
+    close($fhe);
+}
+
+# Definir variables de contexto para CxC (Trabajadores y Dependencias)
 my %dependencias = ();
 my %empleados = ();
 if ($org_clues) {
@@ -205,7 +225,19 @@ if ($org_clues) {
             chomp $line;
             my @f = split(/!/, $line);
             if (scalar(@f) >= 2 && $f[0] ne '$c_clinumempleado') {
-                $empleados{$f[0]} = { num => $f[0], nombre => $f[1], dep_nombre => $dependencias{$f[4]} || '' };
+                my $num_emp = $f[0];
+                my $nom_emp = $f[1] || '';
+                my $rel_emp = $f[2] || '';
+                my $id_dep  = $f[4] || '';
+
+                # Preservar al TRABAJADOR TITULAR (Relación == Empleado)
+                if ($rel_emp eq 'Empleado' || !exists $empleados{$num_emp}) {
+                    $empleados{$num_emp} = {
+                        num        => $num_emp,
+                        nombre     => $nom_emp,
+                        dep_nombre => $dependencias{$id_dep} || ''
+                    };
+                }
             }
         }
         close($efh);
@@ -231,6 +263,9 @@ if (-e $archivo_publicos) {
             my $nombre_med = $id_med ? ($medicos{$id_med} || $id_med || 'N/D') : 'N/D';
 
             my $folio_raw = $f->[1] || '';
+            my $id_recibo = $f->[0] || '';
+            my $id_consulta = $f->[4] || '';
+
             my $folio_corto = $folio_raw;
             if ($folio_raw =~ /([^-]+)$/) {
                 $folio_corto = $1;
@@ -238,12 +273,30 @@ if (-e $archivo_publicos) {
             }
 
             my $id_pac = $f->[5] || '';
-            my $nombre_pac = $pacientes{$id_pac} || $id_pac || 'Empleado Estatal';
 
+            # Extraer número de empleado del ID_PACIENTE
             my $num_emp = '';
-            if ($id_pac =~ /^EMP-(.+)/) { $num_emp = $1; }
+            if ($id_pac =~ /^EMP-(.+)/) { $num_emp = $1; } else { $num_emp = $id_pac; }
+
+            # 1. Obtener Nombre del TRABAJADOR TITULAR
             my $trabajador_nom = ($num_emp && $empleados{$num_emp}) ? $empleados{$num_emp}->{nombre} : '';
             my $dep_nom = ($num_emp && $empleados{$num_emp}) ? $empleados{$num_emp}->{dep_nombre} : '';
+
+            # 2. Obtener Nombre del PACIENTE REAL que recibió la consulta/servicio
+            my $nombre_pac = '';
+            if ($folio_raw && $pacientes_edc{$folio_raw}) {
+                $nombre_pac = $pacientes_edc{$folio_raw};
+            } elsif ($id_recibo && $pacientes_edc{$id_recibo}) {
+                $nombre_pac = $pacientes_edc{$id_recibo};
+            } elsif ($id_consulta && $pacientes_edc{$id_consulta}) {
+                $nombre_pac = $pacientes_edc{$id_consulta};
+            } elsif ($pacientes{$id_pac}) {
+                $nombre_pac = $pacientes{$id_pac};
+            }
+
+            if (!$nombre_pac || $nombre_pac eq $id_pac) {
+                $nombre_pac = $trabajador_nom || $id_pac || 'Empleado Estatal';
+            }
 
             push @cxc_filtrados, {
                 folio             => $folio_corto || $folio_raw,
