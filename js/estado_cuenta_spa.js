@@ -1,4 +1,17 @@
 /* SDM Digital - Financial Motor SPA */
+if (typeof window.escapeHtml !== 'function') {
+    window.escapeHtml = function(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
+}
+var escapeHtml = window.escapeHtml;
+
 var formatter = formatter || new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 var idPacienteGlobal = idPacienteGlobal || null;
 var idMedicoGlobal = idMedicoGlobal || null;

@@ -341,11 +341,17 @@ PAGE_HTML
                     <div class="d-flex gap-2 flex-wrap align-items-center">
                         <div class="d-flex align-items-center gap-1">
                             <span class="small text-muted fw-bold">Desde:</span>
-                            <input type="date" id="ing_fecha_inicio" class="form-control form-control-sm" value="$fecha_hoy" title="Fecha Inicio">
+                            <input type="date" id="ing_fecha_inicio" class="form-control form-control-sm" value="PAGE_HTML
+print $fecha_hoy;
+print <<'PAGE_HTML';
+" title="Fecha Inicio">
                         </div>
                         <div class="d-flex align-items-center gap-1">
                             <span class="small text-muted fw-bold">Hasta:</span>
-                            <input type="date" id="ing_fecha_fin" class="form-control form-control-sm" value="$fecha_hoy" title="Fecha Fin">
+                            <input type="date" id="ing_fecha_fin" class="form-control form-control-sm" value="PAGE_HTML
+print $fecha_hoy;
+print <<'PAGE_HTML';
+" title="Fecha Fin">
                         </div>
                         <button class="btn btn-aura-save btn-mobile-standard btn-sm px-3 fw-bold" onclick="cargarIngresos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
                     </div>
