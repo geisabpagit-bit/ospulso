@@ -1505,84 +1505,68 @@ window.eliminarGasto = function(id) {
 }
 
 // --- Módulo Ingresos ---
-window.renderIngresos = async function() {
-    try {
-        if ($.fn.DataTable) {
-            const dtPrivadosConfig = {
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
-                dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
-                buttons: [
-                    { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
-                    { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
-                    { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' },
-                    { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
-                ],
-                pageLength: 10,
-                lengthChange: false,
-                ajax: '../api/get_recibos_caja_api.pl?tipo=privados',
-                columns: [
-                    { data: 0 }, // Folio
-                    { data: 2 }, // Paciente
-                    { data: 4 }, // Medico
-                    { data: 6, className: 'text-end text-success fw-bold' }, // Monto del Recibo
-                    { data: 8, className: 'text-center' }  // Opciones
-                ],
-                footerCallback: function(row, data, start, end, display) {
-                    var api = this.api();
-                    var intVal = function(i) {
-                        return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
-                    };
-                    var total = api.column(3, { page: 'current' }).data().reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-                    $('#tfootTotalPrivados').html('$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-                }
-            };
+window.renderIngresos = function() {
+    let hoy = new Date().toISOString().split('T')[0];
+    const elInicio = document.getElementById('ing_fecha_inicio');
+    const elFin = document.getElementById('ing_fecha_fin');
+    if (elInicio && !elInicio.value) elInicio.value = hoy;
+    if (elFin && !elFin.value) elFin.value = hoy;
+    
+    window.cargarIngresos();
+};
 
-            const dtMunicipioConfig = {
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
-                dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
-                buttons: [
-                    { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export' },
-                    { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export' },
-                    { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export' },
-                    { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export' }
-                ],
-                pageLength: 10,
-                lengthChange: false,
-                ajax: '../api/get_recibos_caja_api.pl?tipo=publicos',
-                columns: [
-                    { data: 0 }, // Folio
-                    { data: 2 }, // Paciente y Nombre del Trabajador
-                    { data: 4 }, // Medico
-                    { data: 6, className: 'text-end text-info fw-bold' }, // Monto del Recibo
-                    { data: 8, className: 'text-center' }  // Opciones
-                ],
-                footerCallback: function(row, data, start, end, display) {
-                    var api = this.api();
-                    var intVal = function(i) {
-                        return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
-                    };
-                    var total = api.column(3, { page: 'current' }).data().reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-                    $('#tfootTotalMunicipio').html('$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-                }
-            };
+window.cargarIngresos = function() {
+    const elInicio = document.getElementById('ing_fecha_inicio');
+    const elFin = document.getElementById('ing_fecha_fin');
+    let f_inicio = elInicio ? elInicio.value : '';
+    let f_fin = elFin ? elFin.value : '';
 
-            if ($.fn.DataTable.isDataTable('#dtIngresosPrivados')) {
-                $('#dtIngresosPrivados').DataTable().destroy();
-            }
-            if ($.fn.DataTable.isDataTable('#dtIngresosMunicipio')) {
-                $('#dtIngresosMunicipio').DataTable().destroy();
+    $.ajax({
+        url: '../api/generar_corte_caja.pl',
+        type: 'POST',
+        dataType: 'json',
+        data: { f_inicio: f_inicio, f_fin: f_fin },
+        success: function(res) {
+            if (res.error) {
+                if (typeof Swal !== 'undefined') Swal.fire('Error', res.msg || 'Error al cargar ingresos', 'error');
+                return;
             }
 
-            $('#dtIngresosPrivados').DataTable(dtPrivadosConfig);
-            $('#dtIngresosMunicipio').DataTable(dtMunicipioConfig);
+            // Poblado de Tabla 1: Ingresos Privados (mismo render de corte de caja)
+            if (typeof window.renderTablaCorte === 'function') {
+                window.renderTablaCorte('#dtIngresosPrivados', res.ingresos || [], [
+                    { data: 'folio' },
+                    { data: 'fecha' },
+                    { data: 'paciente' },
+                    { data: 'medico' },
+                    { data: 'forma_pago' },
+                    { data: 'monto', className: 'text-end text-success fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                ]);
+
+                // Poblado de Tabla 2: Ingresos Municipio (mismo render de corte de caja)
+                window.renderTablaCorte('#dtIngresosMunicipio', res.cxc || [], [
+                    { data: 'folio' },
+                    { data: 'fecha' },
+                    { data: 'paciente' },
+                    { data: 'medico' },
+                    { data: 'forma_pago' },
+                    { data: 'monto', className: 'text-end text-info fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                ]);
+            }
+
+            // Totales de pie de tabla
+            let totPriv = (res.ingresos || []).reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0);
+            let totMuni = (res.cxc || []).reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0);
+
+            let elTotPriv = document.getElementById('tfootTotalPrivados');
+            let elTotMuni = document.getElementById('tfootTotalMunicipio');
+            if (elTotPriv) elTotPriv.textContent = '$' + totPriv.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (elTotMuni) elTotMuni.textContent = '$' + totMuni.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        },
+        error: function() {
+            if (typeof Swal !== 'undefined') Swal.fire('Error', 'Error al comunicarse con la API de Corte de Caja', 'error');
         }
-    } catch (e) {
-        console.error("Error al cargar las tablas de ingresos:", e);
-    }
+    });
 };
 
 

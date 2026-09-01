@@ -331,14 +331,32 @@ PAGE_HTML
 
             <!-- TAB: INGRESOS -->
             <div id="tab_ingresos" class="sdm-tab-pane d-none">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <div>
+                        <h4 class="fw-bold plus-jakarta m-0 text-dark"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Historial de Ingresos</h4>
+                        <p class="text-muted m-0 small">Filtro y registro de ingresos por rango de fecha.</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="small text-muted fw-bold">Desde:</span>
+                            <input type="date" id="ing_fecha_inicio" class="form-control form-control-sm" title="Fecha Inicio">
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="small text-muted fw-bold">Hasta:</span>
+                            <input type="date" id="ing_fecha_fin" class="form-control form-control-sm" title="Fecha Fin">
+                        </div>
+                        <button class="btn btn-aura-save btn-mobile-standard btn-sm px-3 fw-bold" onclick="cargarIngresos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                    </div>
+                </div>
+
                 <div class="row g-4">
-                    <!-- Tabla 1: Ingresos Privados -->
+                    <!-- Tabla 1: Ingresos Privados / Efectivo -->
                     <div class="col-12">
                         <div class="card card-medentia-aura border-0 shadow-sm p-4 rounded-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
-                                    <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);"><i class="bi bi-wallet2 me-2 text-primary"></i>Ingresos Privados</h5>
-                                    <p class="text-muted small m-0">Recibos de ingresos generados por pacientes privados.</p>
+                                    <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);"><i class="bi bi-wallet2 me-2 text-primary"></i>Ingresos (Efectivo / Privados)</h5>
+                                    <p class="text-muted small m-0">Detalle de ingresos recibidos por servicios privados en el periodo seleccionado.</p>
                                 </div>
                             </div>
                             <div class="table-responsive">
@@ -346,18 +364,18 @@ PAGE_HTML
                                     <thead class="table-light text-muted small">
                                         <tr>
                                             <th>Folio</th>
+                                            <th>Fecha</th>
                                             <th>Paciente</th>
                                             <th>Médico</th>
-                                            <th class="text-end">Monto del Recibo</th>
-                                            <th class="text-center">Opciones</th>
+                                            <th>Forma de Pago</th>
+                                            <th class="text-end">Monto</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
                                     <tfoot class="bg-light fw-bold">
                                         <tr>
-                                            <th colspan="3" class="text-end">Total Ingresos Privados:</th>
-                                            <th class="text-end" id="tfootTotalPrivados"></th>
-                                            <th></th>
+                                            <th colspan="5" class="text-end">Total Ingresos Privados:</th>
+                                            <th class="text-end text-success" id="tfootTotalPrivados">$0.00</th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -371,26 +389,26 @@ PAGE_HTML
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
                                     <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);"><i class="bi bi-building me-2 text-info"></i>Ingresos Municipio</h5>
-                                    <p class="text-muted small m-0">Recibos de ingresos generados por derechohabientes del Municipio.</p>
+                                    <p class="text-muted small m-0">Detalle de ingresos generados por derechohabientes del Municipio en el periodo seleccionado.</p>
                                 </div>
                             </div>
                             <div class="table-responsive">
                                 <table id="dtIngresosMunicipio" class="table table-hover align-middle table-diamond w-100">
                                     <thead class="table-light text-muted small">
                                         <tr>
-                                            <th>Folio</th>
-                                            <th>Paciente y Nombre del Trabajador</th>
+                                            <th>Folio OS</th>
+                                            <th>Fecha</th>
+                                            <th>Paciente</th>
                                             <th>Médico</th>
-                                            <th class="text-end">Monto del Recibo</th>
-                                            <th class="text-center">Opciones</th>
+                                            <th>Categoría / Forma de Pago</th>
+                                            <th class="text-end">Monto</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
                                     <tfoot class="bg-light fw-bold">
                                         <tr>
-                                            <th colspan="3" class="text-end">Total Ingresos Municipio:</th>
-                                            <th class="text-end" id="tfootTotalMunicipio"></th>
-                                            <th></th>
+                                            <th colspan="5" class="text-end">Total Ingresos Municipio:</th>
+                                            <th class="text-end text-info" id="tfootTotalMunicipio">$0.00</th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -672,18 +690,6 @@ PAGE_HTML
     </div>
 
     <div class="row">
-        <!-- Gráfica -->
-        <div class="col-12 mb-4">
-            <div class="card card-medentia-aura p-3 card-mobile-flush container-mobile-flush border-0">
-                <h6 class="fw-bold mb-3 text-muted">Distribución</h6>
-                <div style="position: relative; height: 350px; width: 100%;">
-                    <canvas id="chartCorteCaja"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
         <!-- Tablas de Desglose -->
         <div class="col-12 mb-4">
             <div class="card card-medentia-aura h-100 p-3 card-mobile-flush container-mobile-flush border-0">
@@ -750,6 +756,18 @@ PAGE_HTML
                             </table>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Gráfica -->
+        <div class="col-12 mb-4">
+            <div class="card card-medentia-aura p-3 card-mobile-flush container-mobile-flush border-0">
+                <h6 class="fw-bold mb-3 text-muted">Distribución de Corte de Caja</h6>
+                <div style="position: relative; height: 350px; width: 100%;">
+                    <canvas id="chartCorteCaja"></canvas>
                 </div>
             </div>
         </div>
@@ -942,9 +960,25 @@ PAGE_HTML
                 .footer-box { margin-top: 30px; border: 2px dashed #ccc; padding: 15px; text-align: center; background: #fcfcfc; }
                 .footer-box h3 { margin: 0 0 10px; color: #333; font-size: 16px; }
                 .footer-box p { margin: 5px 0; font-size: 14px; }
+                
+                @media print {
+                    .no-print { display: none !important; }
+                    body { padding: 0; }
+                }
             </style>
         </head>
         <body>
+            <div class="no-print" style="margin-bottom: 20px; background: #0A2A66; color: #ffffff; padding: 12px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">📊</span>
+                    <strong style="font-size: 15px;">Vista Previa de Resumen Ejecutivo de Caja</strong>
+                </div>
+                <div>
+                    <button onclick="window.print()" style="background: #18D1E6; color: #0A2A66; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-right: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🖨️ Imprimir Reporte</button>
+                    <button onclick="window.close()" style="background: #6c757d; color: #ffffff; border: none; padding: 8px 18px; border-radius: 20px; font-weight: bold; cursor: pointer;">Cerrar Vista</button>
+                </div>
+            </div>
+
             <div class="header">
                 <h2>Resumen Ejecutivo de Caja</h2>
                 <p>Periodo: ${fechaTexto}</p>
@@ -1005,10 +1039,6 @@ PAGE_HTML
         printWin.document.write(html);
         printWin.document.close();
         printWin.focus();
-        setTimeout(() => {
-            printWin.print();
-            printWin.close();
-        }, 300);
     };
 
     window.actualizarGraficaCorte = function(ingresos, cxc, egresos, fisico) {
