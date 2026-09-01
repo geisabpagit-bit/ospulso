@@ -294,15 +294,25 @@ print <<"HTML";
                             <div id="resultadosEmpleado" class="mb-3"></div>
                         </div>
 
+                        <!-- Concepto del Recibo (Movido inmediatamente después de Número de Empleado) -->
+                        <div class="col-12">
+                            <div class="mb-3 diamond-input-armor rounded-3">
+                                <label class="small fw-bold text-muted mb-2 ps-1">Concepto del Recibo</label>
+                                <select id="selConceptoRecibo" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="evaluarVisibilidadMedico()" required>
+                                    $motivos_html
+                                </select>
+                            </div>
+                        </div>
+
 HTML
 
 if ($has_custom_medicos) {
 print <<"HTML";
-                        <!-- 2. Especialidad -->
-                        <div class="col-12">
+                        <!-- Especialidad (Visibilidad dinámica según Concepto) -->
+                        <div class="col-12" id="containerEspecialidad">
                             <div class="mb-3 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Especialidad</label>
-                                <select id="selEspecialidadCustom" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="filtrarMedicosCustom()" required>
+                                <select id="selEspecialidadCustom" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="filtrarMedicosCustom()">
                                     $espe_options
                                 </select>
                             </div>
@@ -312,11 +322,11 @@ HTML
 
 print <<"HTML";
                         
-                        <!-- 3. Médico Tratante -->
-                        <div class="col-12">
+                        <!-- Médico Tratante (Visibilidad dinámica según Concepto) -->
+                        <div class="col-12" id="containerMedico">
                             <div class="mb-3 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Médico Tratante</label>
-                                <select id="selMedico" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" required>
+                                <select id="selMedico" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent">
 HTML
 
 if ($has_custom_medicos) {
@@ -330,7 +340,7 @@ print <<"HTML";
                             </div>
                         </div>
                         
-                        <!-- 4. Método de Pago -->
+                        <!-- Método de Pago -->
                         <div class="col-12">
                             <div class="mb-3 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Método de Pago</label>
@@ -345,20 +355,6 @@ print <<"HTML";
                             </div>
                         </div>
 HTML
-
-if ($org_clues ne '') {
-print <<"HTML";
-                        <!-- 5. Concepto del Recibo -->
-                        <div class="col-12">
-                            <div class="mb-3 diamond-input-armor rounded-3">
-                                <label class="small fw-bold text-muted mb-2 ps-1">Concepto del Recibo</label>
-                                <select id="selConceptoRecibo" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" required>
-                                    $motivos_html
-                                </select>
-                            </div>
-                        </div>
-HTML
-}
 
 print <<"HTML";
                         
@@ -884,10 +880,37 @@ print <<'JS';
         // Obsoleto en la nueva UI, ya no hay scrolling
     }
     
-    function volverAlPaso1() {
-        // Obsoleto
+    function evaluarVisibilidadMedico() {
+        let val = $('#selConceptoRecibo').val() || '';
+        let valNorm = val.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        
+        let esVisible = (valNorm.includes('consulta') || valNorm.includes('hospitalizacion'));
+        
+        const contEspe = document.getElementById('containerEspecialidad');
+        const contMed  = document.getElementById('containerMedico');
+        const selMed   = document.getElementById('selMedico');
+        
+        if (contEspe) {
+            contEspe.style.display = esVisible ? '' : 'none';
+        }
+        if (contMed) {
+            contMed.style.display = esVisible ? '' : 'none';
+        }
+        if (selMed) {
+            if (esVisible) {
+                selMed.setAttribute('required', 'required');
+            } else {
+                selMed.removeAttribute('required');
+                selMed.value = '';
+            }
+        }
     }
-    
+
+    $(document).ready(function() {
+        $('#selConceptoRecibo').on('change', evaluarVisibilidadMedico);
+        evaluarVisibilidadMedico();
+    });
+
     function mostrarReciboPrevio() {
         let tipo = pacienteTipoActual;
         let id_paciente = '';
@@ -902,15 +925,18 @@ print <<'JS';
         }
         
         const id_medico = $('#selMedico').val();
+        let conceptoVal = $('#selConceptoRecibo').val() || '';
+        let conceptoNorm = conceptoVal.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        let requiereMedico = (conceptoNorm.includes('consulta') || conceptoNorm.includes('hospitalizacion'));
         
         if (!id_paciente) {
             return Swal.fire('Atención', 'Debes seleccionar un Paciente o registrarlo previamente.', 'warning');
         }
-        if (!id_medico) {
-            return Swal.fire('Atención', 'Debes seleccionar al Médico responsable.', 'warning');
-        }
         if ($('#selConceptoRecibo').length && !$('#selConceptoRecibo').val()) {
             return Swal.fire('Atención', 'Debes seleccionar el Concepto del Recibo.', 'warning');
+        }
+        if (requiereMedico && !id_medico) {
+            return Swal.fire('Atención', 'Debes seleccionar al Médico responsable.', 'warning');
         }
         if (cartItems.length === 0) {
             return Swal.fire('Atención', 'Agrega al menos un concepto a cobrar en el carrito.', 'warning');

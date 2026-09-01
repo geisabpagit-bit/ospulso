@@ -238,6 +238,53 @@ if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
     }
 }
 
+# 3.1 Resolver Médico
+my $id_medico = $recibo->{id_medico} || '';
+my $medico_nombre = '';
+
+if ($id_medico && $id_medico ne 'N/D') {
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+    my $med_file = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues})->{medicos};
+    if (-e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
+        while (my $lm = <$fm>) {
+            chomp $lm;
+            my @m = split /\|/, $lm, -1;
+            if ($m[0] eq $id_medico) {
+                my $idx = (@m >= 3) ? 2 : 1;
+                $medico_nombre = uc($m[$idx] // '');
+                last;
+            }
+        }
+        close $fm;
+    }
+    
+    if (!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") {
+        my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+        if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
+            my $hu = <$fu>;
+            while (my $lu = <$fu>) {
+                chomp $lu;
+                my @u = split /!/, $lu, -1;
+                if ($u[0] eq $id_medico) {
+                    $medico_nombre = uc($u[1] // '');
+                    last;
+                }
+            }
+            close $fu;
+        }
+    }
+}
+
+my $medico_row_html = '';
+if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO') {
+    $medico_row_html = qq{
+            <tr>
+                <td class="info-label-cell">Médico :</td>
+                <td colspan="2" style="font-size: 10px; text-transform: uppercase;">$medico_nombre</td>
+            </tr>
+    };
+}
+
 my $logo_html = '';
 if ($negocio->{clues} eq 'QTSMP000116') {
     $logo_html = qq{<img src="../dat/logos/logo_QTSMP000116.jpg" alt="Logo" style="max-height: 80px; max-width: 200px;">};
@@ -481,6 +528,7 @@ print <<HTML;
                 <td class="info-label-cell">Paciente :</td>
                 <td colspan="2" style="font-size: 10px; text-transform: uppercase;">$paciente_nombre</td>
             </tr>
+            $medico_row_html
             <tr>
                 <td class="info-label-cell">Motivo:</td>
                 <td colspan="2" style="font-size: 10px;">Consulta / Atención Médica</td>

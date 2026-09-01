@@ -36,8 +36,8 @@ my $concepto_recibo = $q->param('caja_concepto') // '';
 $id_paciente =~ s/^\s+|\s+$//g;
 $id_medico =~ s/^\s+|\s+$//g;
 
-if (!$id_paciente || !$id_medico) {
-    print encode_json({ ok => JSON::false, msg => 'Falta paciente o médico.' });
+if (!$id_paciente) {
+    print encode_json({ ok => JSON::false, msg => 'Falta seleccionar el paciente.' });
     exit;
 }
 
