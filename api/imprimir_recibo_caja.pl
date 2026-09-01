@@ -340,6 +340,8 @@ if ($saldo > 0) {
     };
 }
 
+my $elaborado_por = $recibo->{elaborado_por} || $session_data->{usuario} || $session_data->{nombre_usuario} || 'Sistema';
+
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print <<HTML;
 <!DOCTYPE html>
@@ -492,20 +494,12 @@ print <<HTML;
                 <td colspan="3" style="padding: 0; border: none;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                         <tr>
-                            <td style="width: 50%; text-align: center; vertical-align: bottom; height: 60px; padding-bottom: 5px; border: 1px solid #ccc; border-top: none;">
-                                <div class="signature-box">
-                                    Nombre y Firma del Paciente
-                                </div>
-                            </td>
-                            <td style="width: 50%; text-align: right; vertical-align: middle; padding: 15px; border: 1px solid #ccc; border-top: none; border-left: none;">
-                                <div style="font-size: 11px; margin-bottom: 8px;">Costo :<br>@{[ formato_moneda($recibo->{total_cargos}) ]}</div>
+                            <td style="width: 100%; text-align: right; vertical-align: middle; padding: 12px; border: 1px solid #ccc; border-top: none;">
+                                <div style="font-size: 11px; margin-bottom: 8px;">Costo : @{[ formato_moneda($recibo->{total_cargos}) ]}</div>
                                 $abono_saldo_html
-                                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px;">
                                     <span style="border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 11px; display: inline-block;">$recibo->{metodo_pago}</span>
-                                    <div style="text-align: right;">
-                                        <div style="font-size: 9px; font-weight: normal; color: #666; margin-bottom: 2px;">$recibo->{elaborado_por}</div>
-                                        <div style="font-size: 8px; font-weight: normal; color: #999;">Recibió</div>
-                                    </div>
+                                    <span style="font-size: 10px; font-weight: bold; color: #334155; white-space: nowrap;">Elaboró : $elaborado_por</span>
                                 </div>
                             </td>
                         </tr>
@@ -513,7 +507,7 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align: center; font-size: 11px; padding: 10px;">
+                <td colspan="3" style="text-align: center; font-size: 8px; font-weight: bold; padding: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">
                     $texto_pie_recibo
                 </td>
             </tr>

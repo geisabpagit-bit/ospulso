@@ -413,6 +413,8 @@ if ($saldo > 0) {
     };
 }
 
+my $elaborado_por = $recibo->{elaborado_por} || $session_data->{usuario} || $session_data->{nombre_usuario} || 'Sistema';
+
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print <<HTML;
 <!DOCTYPE html>
@@ -584,12 +586,12 @@ print <<HTML;
                                 </div>
                             </td>
                             <td style="width: 50%; text-align: right; vertical-align: middle; padding: 15px; border: 1px solid #ccc; border-top: none; border-left: none;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px; font-weight: bold;">
                                     <span>Cuentas x Cobrar</span>
                                     <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
                                 </div>
                                 <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
-                                    <span style="font-size: 11px; text-align: right;">Elaboró :<br>$recibo->{elaborado_por}</span>
+                                    <span style="font-size: 11px; text-align: right; white-space: nowrap; font-weight: bold; color: #334155;">Elaboró : $elaborado_por</span>
                                 </div>
                             </td>
                         </tr>
@@ -597,7 +599,7 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align: center; font-size: 11px; padding: 10px;">
+                <td colspan="3" style="text-align: center; font-size: 8px; font-weight: bold; padding: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">
                     $texto_pie_recibo
                 </td>
             </tr>
