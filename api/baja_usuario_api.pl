@@ -54,15 +54,18 @@ if ($regs_usuarios) {
             
             if ($accion eq 'deactivate') {
                 $r->[4] = '0';
-                push @nuevas_lineas, join("!", @$r);
+                my @cols = map { $_ // '' } @$r;
+                push @nuevas_lineas, join("!", @cols[0..11]);
             } elsif ($accion eq 'reactivate') {
                 $r->[4] = '1';
-                push @nuevas_lineas, join("!", @$r);
+                my @cols = map { $_ // '' } @$r;
+                push @nuevas_lineas, join("!", @cols[0..11]);
             } elsif ($accion eq 'delete_permanent') {
                 # No empujar a @nuevas_lineas (eliminación física)
             }
         } else {
-            push @nuevas_lineas, join("!", @$r);
+            my @cols = map { $_ // '' } @$r;
+            push @nuevas_lineas, join("!", @cols[0..11]);
         }
     }
 }
@@ -73,7 +76,7 @@ if (!$encontrado) {
 }
 
 eval {
-    my $header = "id!nombre!correo!clave!activo!rol!ID_negocio";
+    my $header = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL";
     actualizar_archivo($archivo_usuarios, $header, \@nuevas_lineas);
 };
 

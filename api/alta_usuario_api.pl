@@ -101,6 +101,7 @@ my $id_nuevo = int(rand(999999999)) + 100000000;
 my $hash = sha256_hex($clave);
 my $extra_multi_tenant = "$id_org_matriz:$id_sucursal"; # EL BLINDAJE
 
+# Canónico de 12 Columnas
 my $registro_usuario = join("!", 
     $id_nuevo, 
     $nombre, 
@@ -109,8 +110,11 @@ my $registro_usuario = join("!",
     1, 
     $rol, 
     $extra_multi_tenant,
-    $id_espe,
-    $id_subespe
+    $id_espe    // '0',
+    $id_subespe // '0',
+    '', # CEDULA
+    '', # DOMICILIO
+    ''  # FIRMA_URL
 );
 
 eval {

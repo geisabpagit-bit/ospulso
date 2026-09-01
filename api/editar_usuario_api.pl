@@ -122,10 +122,10 @@ if ($regs_usuarios) {
                 exit;
             }
 
-            # Si el usuario editado es el mismo usuario autenticado en la sesión actual, actualizar sesión en vivo
-            my $uid_actual = lc($sd->{uid} // '');
-            my $id_actual  = $sd->{id_registro} // $sd->{id_medico} // '';
-            if (($id_actual && $id_actual eq $id_usuario_edit) || ($uid_actual && $uid_actual eq lc($r->[2] // ''))) {
+            # Solamente si el Administrador está editando SU PROPIA CUENTA PERSONAL, actualizar la sesión activa.
+            # JAMÁS actualizar la sesión del Administrador si está editando la cuenta de un colaborador subalterno.
+            my $id_actual = $sd->{id_registro} // $sd->{id_medico} // '';
+            if ($id_actual && $id_actual eq $id_usuario_edit) {
                 if ($sd->{session}) {
                     $sd->{session}->param('uid', $correo);
                     $sd->{session}->param('usuario', $nombre);
@@ -133,19 +133,23 @@ if ($regs_usuarios) {
                 }
             }
 
-            $r->[1] = $nombre;
-            $r->[2] = $correo;
-            $r->[5] = $rol;
-            $r->[6] = "$id_org_matriz:$id_sucursal";
-            $r->[7] = $id_espe;
-            $r->[8] = $id_subespe;
+            $r->[1]  = $nombre;
+            $r->[2]  = $correo;
+            $r->[5]  = $rol;
+            $r->[6]  = "$id_org_matriz:$id_sucursal";
+            $r->[7]  = $id_espe;
+            $r->[8]  = $id_subespe;
+            $r->[9]  //= '';
+            $r->[10] //= '';
+            $r->[11] //= '';
 
             if ($clave ne '') {
                 $r->[3] = sha256_hex($clave);
             }
             $encontrado = 1;
         }
-        push @nuevas_lineas, join("!", @$r);
+        my @cols = map { $_ // '' } @$r;
+        push @nuevas_lineas, join("!", @cols[0..11]);
     }
 }
 
@@ -155,7 +159,7 @@ if (!$encontrado) {
 }
 
 eval {
-    my $header = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE";
+    my $header = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL";
     actualizar_archivo($archivo_usuarios, $header, \@nuevas_lineas);
 };
 
