@@ -401,6 +401,7 @@ PAGE_HTML
                                             <th>Folio OS</th>
                                             <th>Fecha</th>
                                             <th>Paciente</th>
+                                            <th>Dependencia</th>
                                             <th>Médico</th>
                                             <th>Categoría / Forma de Pago</th>
                                             <th class="text-end">Monto</th>
@@ -410,7 +411,7 @@ PAGE_HTML
                                     <tbody style="font-size: 11px !important;"></tbody>
                                     <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                         <tr>
-                                            <th colspan="5" class="text-end">Total Ingresos Municipio:</th>
+                                            <th colspan="6" class="text-end">Total Ingresos Municipio:</th>
                                             <th class="text-end text-info" id="tfootTotalMunicipio">$0.00</th>
                                             <th></th>
                                         </tr>
@@ -935,11 +936,28 @@ PAGE_HTML
                         data: 'paciente',
                         render: function(data, type, row) {
                             let isCancel = (row.estatus === 'Cancelado');
-                            let pacHtml = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : ''}">${data || ''}</div>`;
-                            if (isCancel) {
-                                pacHtml += `<div class="text-danger fw-bold mt-1" style="font-size: 10px;"><i class="bi bi-x-circle-fill me-1"></i><strong>MOTIVO CANCELACIÓN:</strong> ${row.motivo || 'Sin motivo registrado'}</div>`;
+                            let pacNom = data || 'Paciente Desconocido';
+                            let empNum = row.num_empleado || '';
+                            let empNom = row.trabajador_nombre || '';
+
+                            let txtTrabajador = empNom ? (empNum ? `${empNum} - ${empNom}` : empNom) : (empNum ? empNum : '');
+
+                            let html = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}"><i class="bi bi-person-fill me-1 text-primary"></i><strong>Paciente:</strong> ${pacNom}</div>`;
+                            if (txtTrabajador) {
+                                html += `<div class="text-muted small ${isCancel ? 'text-decoration-line-through' : ''}"><i class="bi bi-person-badge me-1 text-secondary"></i><strong>Trabajador:</strong> ${txtTrabajador}</div>`;
                             }
-                            return pacHtml;
+                            if (isCancel) {
+                                html += `<div class="text-danger fw-bold mt-1" style="font-size: 10px;"><i class="bi bi-x-circle-fill me-1"></i><strong>MOTIVO CANCELACIÓN:</strong> ${row.motivo || 'Sin motivo registrado'}</div>`;
+                            }
+                            return html;
+                        }
+                    },
+                    { 
+                        data: 'dependencia',
+                        render: function(data, type, row) {
+                            let dep = data || 'Municipio';
+                            let isCancel = (row.estatus === 'Cancelado');
+                            return `<span class="badge bg-light text-dark border ${isCancel ? 'text-decoration-line-through opacity-75' : ''}"><i class="bi bi-building me-1 text-info"></i>${dep}</span>`;
                         }
                     },
                     { data: 'medico' },

@@ -78,23 +78,52 @@ if ($org_clues) {
             # Índice 1 es NOMBRE_COMPLETO
             $pacientes{$p->[0]} = $p->[1] || $p->[0];
         }
-    }
-    
-    # Empleados Públicos (Estado) para Cuentas por Cobrar
-    my $emp_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{empleadosmun};
-    if (-e $emp_file && open(my $efh, '<:utf8', $emp_file)) {
-        while (my $line = <$efh>) {
-            chomp $line;
-            my @f = split(/!/, $line);
-            if (scalar(@f) >= 2 && $f[0] ne '$c_clinumempleado') {
-                # Solo guardamos el primero que encontremos (usualmente el Empleado titular)
-                my $key = 'EMP-' . $f[0];
-                if (!exists $pacientes{$key}) {
-                    $pacientes{$key} = $f[1] || $key;
+        my %dependencias = ();
+        my %empleados = ();
+
+        # Dependencias del Municipio
+        my $dep_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{dependencia};
+        if (-e $dep_file && open(my $dfh, '<:encoding(UTF-8)', $dep_file)) {
+            <$dfh>; # Omitir header
+            while (my $line = <$dfh>) {
+                chomp $line;
+                my @d = split(/!/, $line, -1);
+                if (@d >= 2) {
+                    $dependencias{$d[0]} = $d[1] // '';
                 }
             }
+            close($dfh);
         }
-        close($efh);
+
+        # Empleados Públicos (Estado) para Cuentas por Cobrar
+        my $emp_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{empleadosmun};
+        if (-e $emp_file && open(my $efh, '<:encoding(UTF-8)', $emp_file)) {
+            while (my $line = <$efh>) {
+                chomp $line;
+                my @f = split(/!/, $line);
+                if (scalar(@f) >= 2 && $f[0] ne '$c_clinumempleado') {
+                    my $num_emp = $f[0];
+                    my $nombre_emp = $f[1] || '';
+                    my $tipo_emp = $f[2] || '';
+                    my $id_dep = $f[4] || '';
+
+                    if ($tipo_emp eq 'Empleado' || !exists $empleados{$num_emp}) {
+                        $empleados{$num_emp} = {
+                            num        => $num_emp,
+                            nombre     => $nombre_emp,
+                            id_dep     => $id_dep,
+                            dep_nombre => $dependencias{$id_dep} || ''
+                        };
+                    }
+
+                    my $key = 'EMP-' . $num_emp;
+                    if (!exists $pacientes{$key}) {
+                        $pacientes{$key} = $nombre_emp;
+                    }
+                }
+            }
+            close($efh);
+        }
     }
 }
 
@@ -155,6 +184,34 @@ my $archivo_publicos = File::Spec->catfile($dat_dir, 'folios_recibos_publicos.da
 my @cxc_filtrados = ();
 my $total_cxc = 0;
 
+# Definir variables de contexto para CxC fuera del bloque loop
+my %dependencias = ();
+my %empleados = ();
+if ($org_clues) {
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+    my $dep_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{dependencia};
+    if (-e $dep_file && open(my $dfh, '<:encoding(UTF-8)', $dep_file)) {
+        <$dfh>;
+        while (my $line = <$dfh>) {
+            chomp $line;
+            my @d = split(/!/, $line, -1);
+            if (@d >= 2) { $dependencias{$d[0]} = $d[1] // ''; }
+        }
+        close($dfh);
+    }
+    my $emp_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{empleadosmun};
+    if (-e $emp_file && open(my $efh, '<:encoding(UTF-8)', $emp_file)) {
+        while (my $line = <$efh>) {
+            chomp $line;
+            my @f = split(/!/, $line);
+            if (scalar(@f) >= 2 && $f[0] ne '$c_clinumempleado') {
+                $empleados{$f[0]} = { num => $f[0], nombre => $f[1], dep_nombre => $dependencias{$f[4]} || '' };
+            }
+        }
+        close($efh);
+    }
+}
+
 if (-e $archivo_publicos) {
     my $pub_data = leer_tabla($archivo_publicos);
     foreach my $f (@$pub_data) {
@@ -183,16 +240,24 @@ if (-e $archivo_publicos) {
             my $id_pac = $f->[5] || '';
             my $nombre_pac = $pacientes{$id_pac} || $id_pac || 'Empleado Estatal';
 
+            my $num_emp = '';
+            if ($id_pac =~ /^EMP-(.+)/) { $num_emp = $1; }
+            my $trabajador_nom = ($num_emp && $empleados{$num_emp}) ? $empleados{$num_emp}->{nombre} : '';
+            my $dep_nom = ($num_emp && $empleados{$num_emp}) ? $empleados{$num_emp}->{dep_nombre} : '';
+
             push @cxc_filtrados, {
-                folio      => $folio_corto || $folio_raw,
-                folio_raw  => $folio_raw,
-                fecha      => $fecha . ' ' . ($f->[7] || ''),
-                paciente   => $nombre_pac,
-                medico     => $nombre_med,
-                forma_pago => $f->[10] || 'Crédito CxC',
-                monto      => $abono,
-                estatus    => $is_cancelado ? 'Cancelado' : 'Activo',
-                motivo     => $is_cancelado ? ($f->[15] || 'Sin motivo registrado') : ''
+                folio             => $folio_corto || $folio_raw,
+                folio_raw         => $folio_raw,
+                fecha             => $fecha . ' ' . ($f->[7] || ''),
+                paciente          => $nombre_pac,
+                num_empleado      => $num_emp,
+                trabajador_nombre => $trabajador_nom,
+                dependencia       => $dep_nom || 'Municipio',
+                medico            => $nombre_med,
+                forma_pago        => $f->[10] || 'Crédito CxC',
+                monto             => $abono,
+                estatus           => $is_cancelado ? 'Cancelado' : 'Activo',
+                motivo            => $is_cancelado ? ($f->[15] || 'Sin motivo registrado') : ''
             };
         }
     }
