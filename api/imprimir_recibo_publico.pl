@@ -32,13 +32,30 @@ if (!$id_consulta) {
 ## 1. Leer Recibo (Opcional, puede ser un recibo exprés sin folio oficial)
 my $recibo = {};
 my $recibos_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_publicos.dat');
+my $target_digits = $id_consulta;
+$target_digits =~ s/\D+//g;
+
 if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
     my $header = <$fh>;
     while (my $line = <$fh>) {
         chomp $line;
+        next if $line =~ /^\s*$/;
         my @c = split /\|/, $line, -1;
-        # ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON
-        if ($c[1] eq $id_consulta || $c[4] eq $id_consulta) {
+        
+        my $c_id    = $c[0] // '';
+        my $c_folio = $c[1] // '';
+        my $c_cons  = $c[4] // '';
+
+        my $match = 0;
+        if ($c_id eq $id_consulta || $c_folio eq $id_consulta || $c_cons eq $id_consulta) {
+            $match = 1;
+        } elsif ($c_folio =~ /(?:^|\/|-)\Q$id_consulta\E$/) {
+            $match = 1;
+        } elsif ($target_digits ne '' && ($c_folio =~ /\Q$target_digits\E$/ || $c_id =~ /\Q$target_digits\E$/ || $c_cons =~ /\Q$target_digits\E$/)) {
+            $match = 1;
+        }
+
+        if ($match) {
             $recibo = {
                 id_recibo     => $c[0],
                 folio         => $c[1],
@@ -53,7 +70,9 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
                 metodo_pago   => $c[10] || 'Efectivo',
                 elaborado_por => $c[11] || '',
                 concepto      => $c[12] || '',
-                items_json    => $c[13] || ''
+                items_json    => $c[13] || '',
+                estatus       => $c[14] || '',
+                id_medico     => $c[15] || ''
             };
             last;
         }
@@ -81,7 +100,7 @@ if ($recibo->{items_json} && $recibo->{items_json} ne '[]') {
     };
 }
 
-my $id_medico = '';
+my $id_medico = $recibo->{id_medico} || '';
 my $paciente_nombre = 'Paciente Desconocido';
 my $empleado_nombre = '';
 my $num_empleado = '';
@@ -104,6 +123,9 @@ if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
     while (my $le = <$fhe>) {
         chomp $le;
         my @e = split /\|/, $le, -1;
+
+        # Ignorar movimientos de cancelación que alteran los datos contables
+        next if ($e[3] && $e[3] =~ /Cancelac/i) || ($e[4] && $e[4] =~ /Cancelac/i) || ($e[10] && $e[10] =~ /Cancelac/i);
         
         if ($e[3] eq 'Cargo' && ($e[0] eq $id_consulta || ($e[10] && $e[10] =~ /Consulta #$id_consulta/) || ($recibo->{id_paciente} && $e[2] eq $recibo->{id_paciente} && $e[8] eq $recibo->{fecha}))) {
             if (!@cargos) {

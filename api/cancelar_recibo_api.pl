@@ -74,9 +74,10 @@ foreach my $r (@recibos_raw) {
             $total = $r->[8] || 0;
             # Soft delete: Marcar como cancelado y registrar auditoría
             $r->[14] = 'Cancelado';
-            $r->[15] = $motivo;
-            $r->[16] = $session_data->{usuario};
-            $r->[17] = strftime("%Y-%m-%d %H:%M:%S", localtime);
+            # $r->[15] contiene ID_MEDICO, se preserva intacto
+            $r->[16] = $motivo;
+            $r->[17] = $session_data->{usuario};
+            $r->[18] = strftime("%Y-%m-%d %H:%M:%S", localtime);
             print $fh join('|', @$r) . "\n";
             next;
         }

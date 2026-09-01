@@ -32,13 +32,30 @@ if (!$id_consulta) {
 # 1. Leer Recibo
 my $recibo = {};
 my $recibos_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
+my $target_digits = $id_consulta;
+$target_digits =~ s/\D+//g;
+
 if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
     my $header = <$fh>;
     while (my $line = <$fh>) {
         chomp $line;
+        next if $line =~ /^\s*$/;
         my @c = split /\|/, $line, -1;
-        # ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON
-        if ($c[4] eq $id_consulta || $c[1] eq $id_consulta) {
+        
+        my $c_id    = $c[0] // '';
+        my $c_folio = $c[1] // '';
+        my $c_cons  = $c[4] // '';
+
+        my $match = 0;
+        if ($c_id eq $id_consulta || $c_folio eq $id_consulta || $c_cons eq $id_consulta) {
+            $match = 1;
+        } elsif ($c_folio =~ /(?:^|\/|-)\Q$id_consulta\E$/) {
+            $match = 1;
+        } elsif ($target_digits ne '' && ($c_folio =~ /\Q$target_digits\E$/ || $c_id =~ /\Q$target_digits\E$/ || $c_cons =~ /\Q$target_digits\E$/)) {
+            $match = 1;
+        }
+
+        if ($match) {
             $recibo = {
                 id_recibo     => $c[0],
                 folio         => $c[1],
@@ -53,7 +70,9 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
                 metodo_pago   => $c[10] || 'Efectivo',
                 elaborado_por => $c[11] || '',
                 concepto      => $c[12] || '',
-                items_json    => $c[13] || ''
+                items_json    => $c[13] || '',
+                estatus       => $c[14] || '',
+                id_medico     => $c[15] || ''
             };
             last;
         }

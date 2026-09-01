@@ -149,8 +149,8 @@ if (-e $archivo_ingresos) {
             }
             
             # Resolver nombre del médico
-            my $id_med = $is_cancelado ? '' : ($f->[15] || '');
-            my $nombre_med = $id_med ? ($medicos{$id_med} || 'N/D') : 'N/D';
+            my $id_med = $f->[15] || '';
+            my $nombre_med = $id_med ? ($medicos{$id_med} || $id_med || 'N/D') : 'N/D';
 
             # Simplificar Folio (Extraer el último segmento)
             my $folio_raw = $f->[1] || '';
@@ -173,7 +173,7 @@ if (-e $archivo_ingresos) {
                 forma_pago => $f->[10] || 'Efectivo',
                 monto      => $abono,
                 estatus    => $is_cancelado ? 'Cancelado' : 'Activo',
-                motivo     => $is_cancelado ? ($f->[15] || 'Sin motivo registrado') : ''
+                motivo     => $is_cancelado ? ($f->[16] || $f->[15] || 'Sin motivo registrado') : ''
             };
         }
     }
@@ -227,8 +227,8 @@ if (-e $archivo_publicos) {
                 $total_cxc += $abono;
             }
             
-            my $id_med = $is_cancelado ? '' : ($f->[15] || '');
-            my $nombre_med = $id_med ? ($medicos{$id_med} || 'N/D') : 'N/D';
+            my $id_med = $f->[15] || '';
+            my $nombre_med = $id_med ? ($medicos{$id_med} || $id_med || 'N/D') : 'N/D';
 
             my $folio_raw = $f->[1] || '';
             my $folio_corto = $folio_raw;
@@ -257,7 +257,7 @@ if (-e $archivo_publicos) {
                 forma_pago        => $f->[10] || 'Crédito CxC',
                 monto             => $abono,
                 estatus           => $is_cancelado ? 'Cancelado' : 'Activo',
-                motivo            => $is_cancelado ? ($f->[15] || 'Sin motivo registrado') : ''
+                motivo            => $is_cancelado ? ($f->[16] || $f->[15] || 'Sin motivo registrado') : ''
             };
         }
     }
