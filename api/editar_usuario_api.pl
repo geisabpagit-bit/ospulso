@@ -81,16 +81,32 @@ my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
 my @nuevas_lineas;
 my $encontrado = 0;
 my $correo_duplicado = 0;
+my $nombre_duplicado = 0;
 
 if ($regs_usuarios) {
     foreach my $r (@$regs_usuarios) {
-        if ($r->[0] ne $id_usuario_edit && lc($r->[2] // '') eq $correo) {
-            $correo_duplicado = 1;
+        next if @$r < 3;
+        if ($r->[0] ne $id_usuario_edit) {
+            my $nom_exist = lc($r->[1] // '');
+            my $cor_exist = lc($r->[2] // '');
+            $nom_exist =~ s/^\s+|\s+$//g;
+            $cor_exist =~ s/^\s+|\s+$//g;
+
+            if ($cor_exist eq $correo) {
+                $correo_duplicado = 1;
+            }
+            if ($nom_exist eq lc($nombre)) {
+                $nombre_duplicado = 1;
+            }
         }
     }
 
     if ($correo_duplicado) {
         print encode_json({ status => 'error', message => 'El correo electrónico ya está registrado en otra cuenta.' });
+        exit;
+    }
+    if ($nombre_duplicado) {
+        print encode_json({ status => 'error', message => 'El nombre de usuario ya está registrado en otra cuenta.' });
         exit;
     }
 
@@ -104,6 +120,17 @@ if ($regs_usuarios) {
             if ($org_id ne $id_org_matriz) {
                 print encode_json({ status => 'error', message => 'No tienes permiso para editar este usuario.' });
                 exit;
+            }
+
+            # Si el usuario editado es el mismo usuario autenticado en la sesión actual, actualizar sesión en vivo
+            my $uid_actual = lc($sd->{uid} // '');
+            my $id_actual  = $sd->{id_registro} // $sd->{id_medico} // '';
+            if (($id_actual && $id_actual eq $id_usuario_edit) || ($uid_actual && $uid_actual eq lc($r->[2] // ''))) {
+                if ($sd->{session}) {
+                    $sd->{session}->param('uid', $correo);
+                    $sd->{session}->param('usuario', $nombre);
+                    $sd->{session}->param('role', $rol);
+                }
             }
 
             $r->[1] = $nombre;
@@ -135,6 +162,10 @@ eval {
 if ($@) {
     print encode_json({ status => 'error', message => 'Error al actualizar usuario: ' . $@ });
     exit;
+}
+
+if ($sd->{session}) {
+    eval { $sd->{session}->flush(); };
 }
 
 print encode_json({ status => 'success', message => 'Usuario actualizado correctamente.' });

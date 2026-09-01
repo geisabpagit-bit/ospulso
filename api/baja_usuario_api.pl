@@ -87,5 +87,9 @@ if ($accion eq 'deactivate') { $msg = 'Usuario desactivado correctamente.'; }
 elsif ($accion eq 'reactivate') { $msg = 'Usuario reactivado correctamente.'; }
 elsif ($accion eq 'delete_permanent') { $msg = 'Usuario eliminado permanentemente.'; }
 
+if ($sd->{session}) {
+    eval { $sd->{session}->flush(); };
+}
+
 print encode_json({ status => 'success', message => $msg });
 1;

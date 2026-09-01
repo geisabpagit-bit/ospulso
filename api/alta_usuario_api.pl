@@ -75,12 +75,22 @@ if (!$sucursal_valida) {
     exit;
 }
 
-# 2. Validar que el correo no exista
+# 2. Validar que el correo ni el nombre de colaborador existan (Estricto - Insensible a Mayúsculas)
 my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
 if ($regs_usuarios) {
     foreach my $r (@$regs_usuarios) {
-        if (lc($r->[2] // '') eq $correo) {
+        next if @$r < 3;
+        my $nom_exist = lc($r->[1] // '');
+        my $cor_exist = lc($r->[2] // '');
+        $nom_exist =~ s/^\s+|\s+$//g;
+        $cor_exist =~ s/^\s+|\s+$//g;
+
+        if ($cor_exist eq $correo) {
             print encode_json({ status => 'error', message => 'El correo electrónico ya está registrado.' });
+            exit;
+        }
+        if ($nom_exist eq lc($nombre)) {
+            print encode_json({ status => 'error', message => 'El nombre del colaborador ya está registrado.' });
             exit;
         }
     }
@@ -114,6 +124,10 @@ eval {
 if ($@) {
     print encode_json({ status => 'error', message => 'Error al guardar el usuario: ' . $@ });
     exit;
+}
+
+if ($sd->{session}) {
+    eval { $sd->{session}->flush(); };
 }
 
 print encode_json({ status => 'success' });

@@ -626,6 +626,7 @@ print <<'JS';
 
         fetch(apiUrl, {
             method: 'POST',
+            credentials: 'same-origin',
             body: fd
         })
         .then(res => res.json())
@@ -634,7 +635,7 @@ print <<'JS';
                 Swal.fire({
                     icon: 'success',
                     title: '¡Guardado!',
-                    text: 'El perfil del colaborador ha sido guardado.',
+                    text: data.message || 'El perfil del colaborador ha sido guardado.',
                     confirmButtonColor: '#18D1E6'
                 }).then(() => location.reload());
             } else {
@@ -669,6 +670,7 @@ print <<'JS';
                 fd.append('accion', 'deactivate');
                 fetch('../api/baja_usuario_api.pl', {
                     method: 'POST',
+                    credentials: 'same-origin',
                     body: fd
                 })
                 .then(res => res.json())
@@ -701,6 +703,7 @@ print <<'JS';
                 fd.append('accion', 'reactivate');
                 fetch('../api/baja_usuario_api.pl', {
                     method: 'POST',
+                    credentials: 'same-origin',
                     body: fd
                 })
                 .then(res => res.json())
@@ -733,6 +736,7 @@ print <<'JS';
                 fd.append('accion', 'delete_permanent');
                 fetch('../api/baja_usuario_api.pl', {
                     method: 'POST',
+                    credentials: 'same-origin',
                     body: fd
                 })
                 .then(res => res.json())
