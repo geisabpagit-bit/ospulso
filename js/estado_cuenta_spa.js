@@ -1518,8 +1518,12 @@ window.renderIngresos = function() {
 window.cargarIngresos = function() {
     const elInicio = document.getElementById('ing_fecha_inicio');
     const elFin = document.getElementById('ing_fecha_fin');
-    let f_inicio = elInicio ? elInicio.value : '';
-    let f_fin = elFin ? elFin.value : '';
+    let hoy = new Date().toISOString().split('T')[0];
+    if (elInicio && !elInicio.value) elInicio.value = hoy;
+    if (elFin && !elFin.value) elFin.value = hoy;
+
+    let f_inicio = elInicio ? elInicio.value : hoy;
+    let f_fin = elFin ? elFin.value : hoy;
 
     $.ajax({
         url: '../api/generar_corte_caja.pl',
@@ -1532,31 +1536,176 @@ window.cargarIngresos = function() {
                 return;
             }
 
-            // Poblado de Tabla 1: Ingresos Privados (mismo render de corte de caja)
+            let dataIngresos = (res && Array.isArray(res.ingresos)) ? res.ingresos : [];
+            let dataMunicipio = (res && Array.isArray(res.cxc)) ? res.cxc : [];
+
+            // Poblado de Tabla 1: Ingresos Privados
             if (typeof window.renderTablaCorte === 'function') {
-                window.renderTablaCorte('#dtIngresosPrivados', res.ingresos || [], [
-                    { data: 'folio' },
-                    { data: 'fecha' },
-                    { data: 'paciente' },
-                    { data: 'medico' },
-                    { data: 'forma_pago' },
-                    { data: 'monto', className: 'text-end text-success fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                window.renderTablaCorte('#dtIngresosPrivados', dataIngresos, [
+                    { 
+                        data: 'folio',
+                        render: function(d) {
+                            return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'fecha',
+                        render: function(d) {
+                            if (!d) return '';
+                            let parts = d.split(' ');
+                            let f = parts[0] || '';
+                            let h = parts[1] || '';
+                            return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
+                        }
+                    },
+                    { 
+                        data: 'paciente',
+                        render: function(data, type, row) {
+                            let isCancel = (row.estatus === 'Cancelado');
+                            let pacHtml = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;">${data || ''}</div>`;
+                            if (isCancel) {
+                                pacHtml += `<div class="d-flex align-items-center gap-1 mt-1">
+                                    <span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>
+                                    <span class="text-danger fw-semibold" style="font-size: 9.5px;">Motivo: ${row.motivo || 'Sin motivo registrado'}</span>
+                                </div>`;
+                            }
+                            return pacHtml;
+                        }
+                    },
+                    { 
+                        data: 'medico',
+                        render: function(d) {
+                            return `<span class="text-muted fw-semibold d-block text-truncate" style="max-width: 140px; font-size: 10px;" title="${d || 'N/D'}">${d || 'N/D'}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'forma_pago',
+                        render: function(data, type, row) {
+                            if (row.estatus === 'Cancelado') {
+                                return `<span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>`;
+                            }
+                            return `<span class="badge bg-light text-dark border px-2 py-1" style="font-size: 9.5px;">${data || 'Efectivo'}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'monto', 
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let val = parseFloat(data) || 0;
+                            let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            if (row.estatus === 'Cancelado') {
+                                return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+                            }
+                            return `<span class="text-success fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'text-center',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            let f = row.folio_raw || row.folio || '';
+                            let isCancel = (row.estatus === 'Cancelado');
+                            let btnDelete = isCancel ?
+                                `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0 disabled text-nowrap" style="font-size: 9px;" title="Ya está cancelado"><i class="bi bi-x-circle me-1"></i>Cancelado</button>` :
+                                `<button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9px;" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>`;
+                            return `<div class="d-flex justify-content-center align-items-center gap-1 text-nowrap">
+                                <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9.5px;" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Privado"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
+                                ${btnDelete}
+                            </div>`;
+                        }
+                    }
                 ]);
 
-                // Poblado de Tabla 2: Ingresos Municipio (mismo render de corte de caja)
-                window.renderTablaCorte('#dtIngresosMunicipio', res.cxc || [], [
-                    { data: 'folio' },
-                    { data: 'fecha' },
-                    { data: 'paciente' },
-                    { data: 'medico' },
-                    { data: 'forma_pago' },
-                    { data: 'monto', className: 'text-end text-info fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                // Poblado de Tabla 2: Ingresos Municipio
+                window.renderTablaCorte('#dtIngresosMunicipio', dataMunicipio, [
+                    { 
+                        data: 'folio',
+                        render: function(d) {
+                            return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'fecha',
+                        render: function(d) {
+                            if (!d) return '';
+                            let parts = d.split(' ');
+                            let f = parts[0] || '';
+                            let h = parts[1] || '';
+                            return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
+                        }
+                    },
+                    { 
+                        data: 'paciente',
+                        render: function(data, type, row) {
+                            let isCancel = (row.estatus === 'Cancelado');
+                            let pacNom = data || 'Paciente Desconocido';
+                            let empNum = row.num_empleado || '';
+                            let empNom = row.trabajador_nombre || '';
+
+                            let txtTrabajador = empNom ? (empNum ? `${empNum} - ${empNom}` : empNom) : (empNum ? empNum : '');
+
+                            let html = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i><strong>Paciente:</strong> ${pacNom}</div>`;
+                            if (txtTrabajador) {
+                                html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i><strong>Trabajador:</strong> ${txtTrabajador}</div>`;
+                            }
+                            if (isCancel) {
+                                html += `<div class="d-flex align-items-center gap-1 mt-1">
+                                    <span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>
+                                    <span class="text-danger fw-semibold" style="font-size: 9.5px;">Motivo: ${row.motivo || 'Sin motivo registrado'}</span>
+                                </div>`;
+                            }
+                            return html;
+                        }
+                    },
+                    { 
+                        data: 'dependencia',
+                        render: function(data, type, row) {
+                            let dep = data || 'Municipio';
+                            let isCancel = (row.estatus === 'Cancelado');
+                            return `<div class="d-inline-block text-truncate border rounded px-2 py-0 bg-light text-dark ${isCancel ? 'text-decoration-line-through opacity-75' : ''}" style="max-width: 150px; font-size: 9.5px;" title="${dep}"><i class="bi bi-building me-1 text-info"></i>${dep}</div>`;
+                        }
+                    },
+                    { 
+                        data: 'medico',
+                        render: function(d) {
+                            return `<span class="text-muted fw-semibold d-block text-truncate" style="max-width: 130px; font-size: 10px;" title="${d || 'N/D'}">${d || 'N/D'}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'monto', 
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let val = parseFloat(data) || 0;
+                            let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            if (row.estatus === 'Cancelado') {
+                                return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+                            }
+                            return `<span class="text-info fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'text-center',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            let f = row.folio_raw || row.folio || '';
+                            let isCancel = (row.estatus === 'Cancelado');
+                            let btnDelete = isCancel ?
+                                `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0 disabled text-nowrap" style="font-size: 9px;" title="Ya está cancelado"><i class="bi bi-x-circle me-1"></i>Cancelado</button>` :
+                                `<button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9px;" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>`;
+                            return `<div class="d-flex justify-content-center align-items-center gap-1 text-nowrap">
+                                <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9.5px;" onclick="window.open('../api/ver_recibo.pl?tipo=publicos&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Municipio"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
+                                ${btnDelete}
+                            </div>`;
+                        }
+                    }
                 ]);
             }
 
             // Totales de pie de tabla
-            let totPriv = (res.ingresos || []).reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0);
-            let totMuni = (res.cxc || []).reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0);
+            let totPriv = dataIngresos.reduce((acc, curr) => acc + (curr.estatus === 'Cancelado' ? 0 : (parseFloat(curr.monto) || 0)), 0);
+            let totMuni = dataMunicipio.reduce((acc, curr) => acc + (curr.estatus === 'Cancelado' ? 0 : (parseFloat(curr.monto) || 0)), 0);
 
             let elTotPriv = document.getElementById('tfootTotalPrivados');
             let elTotMuni = document.getElementById('tfootTotalMunicipio');
