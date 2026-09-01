@@ -877,19 +877,52 @@ PAGE_HTML
                 renderTablaCorte('#dtIngresosPrivados', res.ingresos || [], [
                     { data: 'folio' },
                     { data: 'fecha' },
-                    { data: 'paciente' },
+                    { 
+                        data: 'paciente',
+                        render: function(data, type, row) {
+                            let isCancel = (row.estatus === 'Cancelado');
+                            let pacHtml = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : ''}">${data || ''}</div>`;
+                            if (isCancel) {
+                                pacHtml += `<div class="text-danger fw-bold mt-1" style="font-size: 10px;"><i class="bi bi-x-circle-fill me-1"></i><strong>MOTIVO CANCELACIÓN:</strong> ${row.motivo || 'Sin motivo registrado'}</div>`;
+                            }
+                            return pacHtml;
+                        }
+                    },
                     { data: 'medico' },
-                    { data: 'forma_pago' },
-                    { data: 'monto', className: 'text-end text-success fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                    { 
+                        data: 'forma_pago',
+                        render: function(data, type, row) {
+                            if (row.estatus === 'Cancelado') {
+                                return `<span class="badge bg-danger text-uppercase px-2 py-1"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>`;
+                            }
+                            return data || '';
+                        }
+                    },
+                    { 
+                        data: 'monto', 
+                        className: 'text-end text-success fw-bold',
+                        render: function(data, type, row) {
+                            let val = parseFloat(data) || 0;
+                            let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            if (row.estatus === 'Cancelado') {
+                                return `<span class="text-decoration-line-through text-danger fw-bold">${fmt}</span>`;
+                            }
+                            return fmt;
+                        }
+                    },
                     {
                         data: null,
                         className: 'text-center',
                         orderable: false,
                         render: function(data, type, row) {
                             let f = row.folio_raw || row.folio || '';
+                            let isCancel = (row.estatus === 'Cancelado');
+                            let btnDelete = isCancel ?
+                                `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0 disabled" style="font-size: 11px;" title="Ya está cancelado"><i class="bi bi-x-circle me-1"></i>Cancelado</button>` :
+                                `<button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>`;
                             return `<div class="d-flex justify-content-center gap-1">
                                 <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Privado"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
-                                <button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>
+                                ${btnDelete}
                             </div>`;
                         }
                     }
@@ -898,26 +931,59 @@ PAGE_HTML
                 renderTablaCorte('#dtIngresosMunicipio', res.cxc || [], [
                     { data: 'folio' },
                     { data: 'fecha' },
-                    { data: 'paciente' },
+                    { 
+                        data: 'paciente',
+                        render: function(data, type, row) {
+                            let isCancel = (row.estatus === 'Cancelado');
+                            let pacHtml = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : ''}">${data || ''}</div>`;
+                            if (isCancel) {
+                                pacHtml += `<div class="text-danger fw-bold mt-1" style="font-size: 10px;"><i class="bi bi-x-circle-fill me-1"></i><strong>MOTIVO CANCELACIÓN:</strong> ${row.motivo || 'Sin motivo registrado'}</div>`;
+                            }
+                            return pacHtml;
+                        }
+                    },
                     { data: 'medico' },
-                    { data: 'forma_pago' },
-                    { data: 'monto', className: 'text-end text-info fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                    { 
+                        data: 'forma_pago',
+                        render: function(data, type, row) {
+                            if (row.estatus === 'Cancelado') {
+                                return `<span class="badge bg-danger text-uppercase px-2 py-1"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>`;
+                            }
+                            return data || '';
+                        }
+                    },
+                    { 
+                        data: 'monto', 
+                        className: 'text-end text-info fw-bold',
+                        render: function(data, type, row) {
+                            let val = parseFloat(data) || 0;
+                            let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            if (row.estatus === 'Cancelado') {
+                                return `<span class="text-decoration-line-through text-danger fw-bold">${fmt}</span>`;
+                            }
+                            return fmt;
+                        }
+                    },
                     {
                         data: null,
                         className: 'text-center',
                         orderable: false,
                         render: function(data, type, row) {
                             let f = row.folio_raw || row.folio || '';
+                            let isCancel = (row.estatus === 'Cancelado');
+                            let btnDelete = isCancel ?
+                                `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0 disabled" style="font-size: 11px;" title="Ya está cancelado"><i class="bi bi-x-circle me-1"></i>Cancelado</button>` :
+                                `<button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>`;
                             return `<div class="d-flex justify-content-center gap-1">
                                 <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="window.open('../api/ver_recibo.pl?tipo=publicos&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Municipio"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
-                                <button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0" style="font-size: 11px;" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>
+                                ${btnDelete}
                             </div>`;
                         }
                     }
                 ]);
 
-                let totPriv = (res.ingresos || []).reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0);
-                let totMuni = (res.cxc || []).reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0);
+                let totPriv = (res.ingresos || []).reduce((acc, curr) => acc + (curr.estatus === 'Cancelado' ? 0 : (parseFloat(curr.monto) || 0)), 0);
+                let totMuni = (res.cxc || []).reduce((acc, curr) => acc + (curr.estatus === 'Cancelado' ? 0 : (parseFloat(curr.monto) || 0)), 0);
 
                 let elTotPriv = document.getElementById('tfootTotalPrivados');
                 let elTotMuni = document.getElementById('tfootTotalMunicipio');

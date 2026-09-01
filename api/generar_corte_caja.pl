@@ -108,29 +108,26 @@ if (-e $archivo_ingresos) {
     foreach my $f (@$ing_data) {
         my $fecha = $f->[6] || '';
         my $estatus = $f->[14] || '';
-        
-        # Ignorar cancelados si los hubiera
-        next if $estatus =~ /Cancelado/i;
+        my $is_cancelado = ($estatus =~ /Cancelado/i) ? 1 : 0;
 
         # Filtro de fechas (YYYY-MM-DD string comp)
         if ($fecha ge $f_inicio && $fecha le $f_fin) {
             my $abono = $f->[9] || 0;
             $abono =~ s/[^\d\.]//g; # limpiar
             
-            $total_ingresos += $abono;
+            if (!$is_cancelado) {
+                $total_ingresos += $abono;
+            }
             
             # Resolver nombre del médico
-            my $id_med = $f->[15] || '';
-            my $nombre_med = $medicos{$id_med} || 'N/D';
+            my $id_med = $is_cancelado ? '' : ($f->[15] || '');
+            my $nombre_med = $id_med ? ($medicos{$id_med} || 'N/D') : 'N/D';
 
             # Simplificar Folio (Extraer el último segmento)
             my $folio_raw = $f->[1] || '';
             my $folio_corto = $folio_raw;
             if ($folio_raw =~ /([^-]+)$/) {
                 $folio_corto = $1;
-                # Eliminar "OS/YYYY/" si llegara a quedar algo raro o simplemente forzar int
-                # Usar +0 convierte "006707" a "6707" y "027380" a "27380" de forma segura.
-                # Si el string no es numérico puro, intentamos limpiar ceros a la izquierda.
                 $folio_corto =~ s/^0+//;
             }
 
@@ -145,7 +142,9 @@ if (-e $archivo_ingresos) {
                 paciente   => $nombre_pac,
                 medico     => $nombre_med,
                 forma_pago => $f->[10] || 'Efectivo',
-                monto      => $abono
+                monto      => $abono,
+                estatus    => $is_cancelado ? 'Cancelado' : 'Activo',
+                motivo     => $is_cancelado ? ($f->[15] || 'Sin motivo registrado') : ''
             };
         }
     }
@@ -161,17 +160,18 @@ if (-e $archivo_publicos) {
     foreach my $f (@$pub_data) {
         my $fecha = $f->[6] || '';
         my $estatus = $f->[14] || '';
+        my $is_cancelado = ($estatus =~ /Cancelado/i) ? 1 : 0;
         
-        next if $estatus =~ /Cancelado/i;
-
         if ($fecha ge $f_inicio && $fecha le $f_fin) {
             my $abono = $f->[9] || 0;
             $abono =~ s/[^\d\.]//g;
             
-            $total_cxc += $abono;
+            if (!$is_cancelado) {
+                $total_cxc += $abono;
+            }
             
-            my $id_med = $f->[15] || '';
-            my $nombre_med = $medicos{$id_med} || 'N/D';
+            my $id_med = $is_cancelado ? '' : ($f->[15] || '');
+            my $nombre_med = $id_med ? ($medicos{$id_med} || 'N/D') : 'N/D';
 
             my $folio_raw = $f->[1] || '';
             my $folio_corto = $folio_raw;
@@ -190,7 +190,9 @@ if (-e $archivo_publicos) {
                 paciente   => $nombre_pac,
                 medico     => $nombre_med,
                 forma_pago => $f->[10] || 'Crédito CxC',
-                monto      => $abono
+                monto      => $abono,
+                estatus    => $is_cancelado ? 'Cancelado' : 'Activo',
+                motivo     => $is_cancelado ? ($f->[15] || 'Sin motivo registrado') : ''
             };
         }
     }
