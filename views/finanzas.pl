@@ -14,9 +14,11 @@ require "$FindBin::Bin/../utils/sub_header.pl";
 require "$FindBin::Bin/../utils/sub_bottom_nav.pl";
 require "$FindBin::Bin/../utils/sub_sidebar.pl";
 use utils::db_manager qw(leer_tabla);
+use POSIX qw(strftime);
 
 my $q = CGI->new;
 my $session_data = check_session();
+my $fecha_hoy = strftime("%Y-%m-%d", localtime);
 
 if (!$session_data->{session_ok} || $session_data->{role} !~ /Administrador|Caja|Recepcionista|Medico/i) {
     print $q->redirect(-uri => '../index.html');
@@ -339,11 +341,11 @@ PAGE_HTML
                     <div class="d-flex gap-2 flex-wrap align-items-center">
                         <div class="d-flex align-items-center gap-1">
                             <span class="small text-muted fw-bold">Desde:</span>
-                            <input type="date" id="ing_fecha_inicio" class="form-control form-control-sm" title="Fecha Inicio">
+                            <input type="date" id="ing_fecha_inicio" class="form-control form-control-sm" value="$fecha_hoy" title="Fecha Inicio">
                         </div>
                         <div class="d-flex align-items-center gap-1">
                             <span class="small text-muted fw-bold">Hasta:</span>
-                            <input type="date" id="ing_fecha_fin" class="form-control form-control-sm" title="Fecha Fin">
+                            <input type="date" id="ing_fecha_fin" class="form-control form-control-sm" value="$fecha_hoy" title="Fecha Fin">
                         </div>
                         <button class="btn btn-aura-save btn-mobile-standard btn-sm px-3 fw-bold" onclick="cargarIngresos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
                     </div>
@@ -1376,6 +1378,12 @@ PAGE_HTML
             window.initModuloFinanciero('', 'bento', ''); 
         } else {
             console.warn("[SPA Debug] initModuloFinanciero no está definido en el contexto window");
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab') || '';
+        if (activeTab === 'ingresos' && typeof window.renderIngresos === 'function') {
+            window.renderIngresos();
         }
     };
     document.addEventListener("DOMContentLoaded", window.bootFinanzas);
