@@ -775,6 +775,74 @@ PAGE_HTML
 </div>
 
 <script>
+    window.renderIngresos = function() {
+        console.log("[Ingresos] Inicializando vista de ingresos");
+        let hoy = new Date().toISOString().split('T')[0];
+        const elInicio = document.getElementById('ing_fecha_inicio');
+        const elFin = document.getElementById('ing_fecha_fin');
+        if (elInicio && !elInicio.value) elInicio.value = hoy;
+        if (elFin && !elFin.value) elFin.value = hoy;
+        
+        cargarIngresos();
+    };
+
+    window.cargarIngresos = function() {
+        const elInicio = document.getElementById('ing_fecha_inicio');
+        const elFin = document.getElementById('ing_fecha_fin');
+        let f_inicio = elInicio ? elInicio.value : '';
+        let f_fin = elFin ? elFin.value : '';
+
+        if (!f_inicio || !f_fin) {
+            let hoy = new Date().toISOString().split('T')[0];
+            f_inicio = hoy;
+            f_fin = hoy;
+            if (elInicio) elInicio.value = hoy;
+            if (elFin) elFin.value = hoy;
+        }
+
+        $.ajax({
+            url: '../api/generar_corte_caja.pl',
+            type: 'POST',
+            dataType: 'json',
+            data: { f_inicio: f_inicio, f_fin: f_fin },
+            success: function(res) {
+                if (res.error) {
+                    if (typeof Swal !== 'undefined') Swal.fire('Error', res.msg || 'Error al cargar ingresos', 'error');
+                    return;
+                }
+
+                renderTablaCorte('#dtIngresosPrivados', res.ingresos || [], [
+                    { data: 'folio' },
+                    { data: 'fecha' },
+                    { data: 'paciente' },
+                    { data: 'medico' },
+                    { data: 'forma_pago' },
+                    { data: 'monto', className: 'text-end text-success fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                ]);
+
+                renderTablaCorte('#dtIngresosMunicipio', res.cxc || [], [
+                    { data: 'folio' },
+                    { data: 'fecha' },
+                    { data: 'paciente' },
+                    { data: 'medico' },
+                    { data: 'forma_pago' },
+                    { data: 'monto', className: 'text-end text-info fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                ]);
+
+                let totPriv = (res.ingresos || []).reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0);
+                let totMuni = (res.cxc || []).reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0);
+
+                let elTotPriv = document.getElementById('tfootTotalPrivados');
+                let elTotMuni = document.getElementById('tfootTotalMunicipio');
+                if (elTotPriv) elTotPriv.textContent = '$' + totPriv.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                if (elTotMuni) elTotMuni.textContent = '$' + totMuni.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            },
+            error: function() {
+                if (typeof Swal !== 'undefined') Swal.fire('Error', 'Fallo al comunicarse con la API de Corte de Caja', 'error');
+            }
+        });
+    };
+
     window.renderCorteCaja = function() {
         console.log("[Corte Caja] Inicializando vista");
         let hoy = new Date().toISOString().split('T')[0];
