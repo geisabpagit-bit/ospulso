@@ -1374,9 +1374,8 @@ window.renderGastos = async function() {
                     </td>
                     <td class="fw-bold text-dark">${g.proveedor || '-'}</td>
                     <td><span class="badge bg-light text-dark border px-2 py-1" style="font-size: 9px;"><i class="bi bi-cash-coin me-1"></i>${g.origen_nombre || 'No Especificado'}</span></td>
-                    <td class="text-muted">${g.concepto}</td>
+                    <td class="text-muted">${facturaBtn}${g.concepto}</td>
                     <td class="fw-bold text-danger">${formatter.format(g.monto)}</td>
-                    <td class="text-center">${facturaBtn}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarGasto('${g.id_gasto}')"><i class="bi bi-trash"></i></button>
                     </td>
@@ -1964,8 +1963,10 @@ window.editarCategoria = async function(id, nivel, oldName) {
     const { value: newName } = await Swal.fire({
         title: 'Editar Categoría',
         input: 'text',
+        inputLabel: 'Nuevo nombre',
         inputValue: oldName,
         showCancelButton: true,
+        target: document.getElementById('modalCategorias'),
         inputValidator: (value) => {
             if (!value) return 'El nombre es obligatorio';
         }
@@ -2150,6 +2151,7 @@ window.editarOrigenDinero = async function(id, oldName, oldDesc) {
         inputLabel: 'Nombre del origen',
         inputValue: oldName,
         showCancelButton: true,
+        target: document.getElementById('modalOrigenesDinero') || document.body,
         inputValidator: (value) => {
             if (!value) return 'El nombre es obligatorio';
         }

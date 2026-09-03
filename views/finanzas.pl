@@ -90,6 +90,19 @@ print <<'PAGE_HTML';
             }
         }
         
+        const titleEl = document.getElementById('mainPageTitle');
+        const subtitleEl = document.getElementById('mainPageSubtitle');
+        if (titleEl && subtitleEl) {
+            if (tabId === 'tab_gastos') {
+                titleEl.innerText = 'Control de Egresos';
+                subtitleEl.innerText = 'Administración de gastos operativos, proveedores y pagos.';
+                subtitleEl.classList.remove('d-none');
+            } else {
+                titleEl.innerText = 'Módulo Financiero';
+                subtitleEl.classList.add('d-none');
+            }
+        }
+        
         if(window.innerWidth < 992 && btnElement && typeof window.toggleSidebar === 'function') {
             window.toggleSidebar();
         }
@@ -176,7 +189,8 @@ print <<'PAGE_HTML';
                     <i class="bi bi-list"></i>
                 </button>
                 <div class="profile-hero text-start">
-                    <h4 class="text-truncate m-0 text-white fw-bold" style="max-width: 60vw; letter-spacing: -0.5px;">Módulo Financiero</h4>
+                    <h4 id="mainPageTitle" class="text-truncate m-0 text-white fw-bold" style="max-width: 60vw; letter-spacing: -0.5px;">Módulo Financiero</h4>
+                    <p id="mainPageSubtitle" class="text-white-50 small m-0 d-none" style="font-size: 0.8rem;"></p>
                 </div>
             </div>
         </div>
@@ -426,28 +440,25 @@ PAGE_HTML
 
             <!-- TAB: GASTOS -->
             <div id="tab_gastos" class="sdm-tab-pane d-none">
-                <div class="bento-card">
-                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                        <div>
-                            <h4 class="fw-bold plus-jakarta m-0 text-dark">Control de Egresos</h4>
-                            <p class="text-muted m-0 small">Administración de gastos operativos, proveedores y pagos.</p>
-                        </div>
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="small text-muted fw-bold">Desde:</span>
-                                <input type="date" id="gastos_f_inicio" class="form-control form-control-sm" title="Fecha Inicio">
+                <div class="card card-mobile-flush border-0 shadow-sm rounded-4">
+                    <div class="card-body p-2 p-md-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted fw-bold">Desde:</span>
+                                    <input type="date" id="gastos_f_inicio" class="form-control form-control-sm" title="Fecha Inicio">
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted fw-bold">Hasta:</span>
+                                    <input type="date" id="gastos_f_fin" class="form-control form-control-sm" title="Fecha Fin">
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold" onclick="renderGastos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
                             </div>
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="small text-muted fw-bold">Hasta:</span>
-                                <input type="date" id="gastos_f_fin" class="form-control form-control-sm" title="Fecha Fin">
-                            </div>
-                            <button class="btn btn-outline-secondary btn-sm px-3 fw-bold" onclick="renderGastos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
-                            <button class="btn btn-sm btn-outline-primary btn-mobile-standard px-3 fw-bold" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar</button>
+                            <button class="btn btn-primary btn-sm rounded-pill fw-bold btn-medentia-action" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar</button>
                         </div>
-                    </div>
                     
-                    <div class="table-responsive mt-3">
-                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond" id="tablaGastos" style="font-size: 10px !important;">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond mb-0" id="tablaGastos" style="font-size: 10px !important;">
                             <thead class="text-muted" style="font-size: 10.5px !important;">
                                 <tr>
                                     <th>Fecha</th>
@@ -456,18 +467,17 @@ PAGE_HTML
                                     <th>Origen</th>
                                     <th>Concepto</th>
                                     <th>Monto</th>
-                                    <th>Factura</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tbodyGastos" style="font-size: 10px !important;">
-                                <tr><td colspan="8" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
+                                <tr><td colspan="7" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
                             </tbody>
                             <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                 <tr>
                                     <td colspan="5" class="text-end">Total Gastos:</td>
                                     <td id="tfootGastosMonto"></td>
-                                    <td colspan="2"></td>
+                                    <td></td>
                                 </tr>
                             </tfoot>
                         </table>
