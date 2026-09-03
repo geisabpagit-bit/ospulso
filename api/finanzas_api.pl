@@ -388,7 +388,6 @@ elsif ($action eq 'delete_categoria') {
     
     print encode_json({ success => 1 });
 }
-}
 elsif ($action eq 'get_origenes_dinero') {
     my $origen_file = "$FindBin::Bin/../dat/origen_dinero.dat";
     
