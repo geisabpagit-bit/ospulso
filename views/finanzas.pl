@@ -595,6 +595,7 @@ PAGE_HTML
             </div>
             <div class="modal-body">
                 <form id="formGasto">
+                    <input type="hidden" id="id_gasto" name="id_gasto" value="">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">

@@ -1496,6 +1496,8 @@ function attachFinanzasListeners() {
             
             const payload = new FormData();
             payload.append('action', 'save_gasto');
+            const idGasto = document.getElementById('id_gasto')?.value;
+            if (idGasto) payload.append('id_gasto', idGasto);
             payload.append('fecha', document.getElementById('fecha_gasto').value);
             payload.append('id_cat', document.getElementById('cat_gasto').value);
             payload.append('id_subcat', document.getElementById('subcat_gasto').value);
