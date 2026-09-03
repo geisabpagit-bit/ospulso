@@ -1315,6 +1315,19 @@ window.filtrarSubcategorias3 = function() {
 
 window.renderGastos = async function() {
     try {
+        const fi_input = document.getElementById('gastos_f_inicio');
+        const ff_input = document.getElementById('gastos_f_fin');
+        
+        // Default to today if empty
+        if (fi_input && !fi_input.value) {
+            const today = new Date().toISOString().split('T')[0];
+            fi_input.value = today;
+            ff_input.value = today;
+        }
+        
+        const f_inicio = fi_input ? fi_input.value : '';
+        const f_fin = ff_input ? ff_input.value : '';
+
         const tbody = document.getElementById('tbodyGastos');
         if ($.fn.DataTable && $.fn.DataTable.isDataTable('#tablaGastos')) {
             $('#tablaGastos').DataTable().destroy();
@@ -1324,7 +1337,7 @@ window.renderGastos = async function() {
         const res = await fetch('../api/finanzas_api.pl', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: new URLSearchParams({ action: 'get_gastos' })
+            body: new URLSearchParams({ action: 'get_gastos', f_inicio: f_inicio, f_fin: f_fin })
         });
         
         let data;
@@ -1845,6 +1858,7 @@ window.renderListaCategorias = function() {
             <tr>
                 <td class="fw-medium">${item.nombre}</td>
                 <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary border-0 me-1" onclick="editarCategoria('${item.id}', '${n}', '${item.nombre.replace(/'/g, "\\'")}')"><i class="bi bi-pencil"></i></button>
                     <button class="btn btn-sm btn-outline-danger border-0" onclick="borrarCategoria('${item.id}', '${n}')"><i class="bi bi-trash"></i></button>
                 </td>
             </tr>
@@ -1946,6 +1960,40 @@ window.borrarCategoria = async function(id, nivel) {
     }
 }
 
+window.editarCategoria = async function(id, nivel, oldName) {
+    const { value: newName } = await Swal.fire({
+        title: 'Editar Categoría',
+        input: 'text',
+        inputValue: oldName,
+        showCancelButton: true,
+        inputValidator: (value) => {
+            if (!value) return 'El nombre es obligatorio';
+        }
+    });
+
+    if (newName && newName !== oldName) {
+        try {
+            const res = await fetch('../api/finanzas_api.pl', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({ action: 'edit_categoria', id: id, nivel: nivel, nombre: newName })
+            });
+            const data = await res.json();
+            if (data.success) {
+                await cargarCategoriasGastos(false);
+                renderListaCategorias();
+                Swal.fire('Guardado', 'Categoría editada', 'success');
+            } else {
+                Swal.fire('Error', data.message || 'Error al editar', 'error');
+            }
+        } catch(e) {
+            console.error(e);
+            Swal.fire('Error', 'Fallo de conexión', 'error');
+        }
+    }
+}
+
+
 // ==========================================
 // SPA: GESTION DE ORIGENES DE DINERO
 // ==========================================
@@ -1994,6 +2042,7 @@ window.renderListaOrigenesDinero = function() {
             <tr>
                 <td class="fw-medium">${item.nombre} <small class="text-muted d-block">${item.desc}</small></td>
                 <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary border-0 me-1" onclick="editarOrigenDinero('${item.id}', '${item.nombre.replace(/'/g, "\\'")}', '${item.desc.replace(/'/g, "\\'")}')"><i class="bi bi-pencil"></i></button>
                     <button class="btn btn-sm btn-outline-danger border-0" onclick="borrarOrigenDinero('${item.id}')"><i class="bi bi-trash"></i></button>
                 </td>
             </tr>
@@ -2093,6 +2142,41 @@ window.borrarOrigenDinero = async function(id) {
         Swal.fire('Error', 'Error de red', 'error');
     }
 }
+
+window.editarOrigenDinero = async function(id, oldName, oldDesc) {
+    const { value: newName } = await Swal.fire({
+        title: 'Editar Origen de Dinero',
+        input: 'text',
+        inputLabel: 'Nombre del origen',
+        inputValue: oldName,
+        showCancelButton: true,
+        inputValidator: (value) => {
+            if (!value) return 'El nombre es obligatorio';
+        }
+    });
+
+    if (newName) {
+        try {
+            const res = await fetch('../api/finanzas_api.pl', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({ action: 'edit_origen_dinero', id: id, nombre: newName, desc: oldDesc })
+            });
+            const data = await res.json();
+            if (data.success) {
+                await cargarOrigenesDinero(false);
+                renderListaOrigenesDinero();
+                Swal.fire('Guardado', 'Origen editado', 'success');
+            } else {
+                Swal.fire('Error', data.message || 'Error al editar', 'error');
+            }
+        } catch(e) {
+            console.error(e);
+            Swal.fire('Error', 'Fallo de conexión', 'error');
+        }
+    }
+}
+
 
 window.cargarDashboardKPIs = function() {
     if (document.getElementById('kpiIngresosTotales')) {

@@ -432,7 +432,18 @@ PAGE_HTML
                             <h4 class="fw-bold plus-jakarta m-0 text-dark">Control de Egresos</h4>
                             <p class="text-muted m-0 small">Administración de gastos operativos, proveedores y pagos.</p>
                         </div>
-                        <button class="btn btn-primary rounded-pill fw-bold btn-medentia-action" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-2"></i>Registrar Gasto</button>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="small text-muted fw-bold">Desde:</span>
+                                <input type="date" id="gastos_f_inicio" class="form-control form-control-sm" title="Fecha Inicio">
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="small text-muted fw-bold">Hasta:</span>
+                                <input type="date" id="gastos_f_fin" class="form-control form-control-sm" title="Fecha Fin">
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm px-3 fw-bold" onclick="renderGastos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                            <button class="btn btn-sm btn-outline-primary btn-mobile-standard px-3 fw-bold" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar</button>
+                        </div>
                     </div>
                     
                     <div class="table-responsive mt-3">
@@ -570,12 +581,7 @@ PAGE_HTML
                     <i class="bi bi-cash-stack me-2" style="color: #00C4C4 !important;"></i>
                     <span>Registrar Gasto</span>
                 </h5>
-                <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm btn-light rounded-circle text-muted" onclick="abrirModalCategorias()" title="Gestionar Categorías">
-                        <i class="bi bi-gear-fill"></i>
-                    </button>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="formGasto">
@@ -601,7 +607,10 @@ PAGE_HTML
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="cat_gasto" class="form-label">Categoría Principal</label>
+                                <label for="cat_gasto" class="form-label d-flex justify-content-between align-items-center">
+                                    <span>Categoría Principal</span>
+                                    <a href="javascript:void(0)" onclick="abrirModalCategorias()" class="text-muted" title="Gestionar Categorías"><i class="bi bi-gear-fill"></i></a>
+                                </label>
                                 <select class="form-select" id="cat_gasto" required onchange="filtrarSubcategorias()">
                                     <option value="">Seleccione...</option>
                                 </select>

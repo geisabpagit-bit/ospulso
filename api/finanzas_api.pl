@@ -110,8 +110,18 @@ elsif ($action eq 'get_gastos') {
     my %s3_map = map { $_->[0] => $_->[2] } @subcat3;
     my %o_map = map { $_->[0] => $_->[1] } @orig;
     
+    my $f_inicio = $q->param('f_inicio') || '';
+    my $f_fin = $q->param('f_fin') || '';
+
     my @gastos;
     for my $g (@gastos_raw) {
+        my $fecha_gasto = $g->[1] || '';
+        
+        # Filtrar por fecha
+        if ($f_inicio && $f_fin) {
+            next if ($fecha_gasto lt $f_inicio || $fecha_gasto gt $f_fin);
+        }
+
         my $id_cat = $g->[2] || '';
         my $id_subcat = $g->[3] || '';
         my $id_subcat3 = $g->[4] || '';
@@ -119,7 +129,7 @@ elsif ($action eq 'get_gastos') {
         
         push @gastos, {
             id_gasto => $g->[0],
-            fecha => $g->[1],
+            fecha => $fecha_gasto,
             id_cat => $id_cat,
             id_subcat => $id_subcat,
             id_subcat3 => $id_subcat3,
@@ -337,6 +347,49 @@ elsif ($action eq 'add_categoria') {
     }
     print encode_json({ success => 1 });
 }
+elsif ($action eq 'edit_categoria') {
+    my $id = $q->param('id');
+    my $nivel = $q->param('nivel');
+    my $nombre = $q->param('nombre') || '';
+    
+    if (!$id || !$nivel || !$nombre) {
+        print encode_json({ success=>0, message=>'ID, nivel o nombre faltante' });
+        exit;
+    }
+    
+    my $file = "";
+    if ($nivel eq '1') { $file = "categorias.dat"; }
+    elsif ($nivel eq '2') { $file = "sub_categoria.dat"; }
+    elsif ($nivel eq '3') { $file = "sub_categoria_nivel3.dat"; }
+    
+    my $path = "$FindBin::Bin/../dat/$file";
+    my @lines;
+    open(my $in, "<:encoding(UTF-8)", $path);
+    while(<$in>) {
+        my $line = $_;
+        chomp($line);
+        my @cols = split(/\|/, $line, -1);
+        if ($cols[0] eq $id) {
+            if ($nivel eq '1') {
+                $cols[1] = $nombre;
+            } elsif ($nivel eq '2' || $nivel eq '3') {
+                $cols[2] = $nombre;
+            }
+            push @lines, join("|", @cols);
+        } else {
+            push @lines, $line;
+        }
+    }
+    close $in;
+    
+    open(my $out, ">:encoding(UTF-8)", $path);
+    for my $l (@lines) {
+        print $out "$l\n";
+    }
+    close $out;
+    
+    print encode_json({ success => 1 });
+}
 elsif ($action eq 'delete_categoria') {
     my $id = $q->param('id');
     my $nivel = $q->param('nivel');
@@ -421,6 +474,41 @@ elsif ($action eq 'add_origen_dinero') {
     open(my $f, ">>:encoding(UTF-8)", "$FindBin::Bin/../dat/origen_dinero.dat");
     print $f "$l\n";
     close $f;
+    print encode_json({ success => 1 });
+}
+elsif ($action eq 'edit_origen_dinero') {
+    my $id = $q->param('id');
+    my $nombre = $q->param('nombre') || '';
+    my $desc = $q->param('desc') || '';
+    
+    if (!$id || !$nombre) {
+        print encode_json({ success=>0, message=>'ID o nombre faltante' });
+        exit;
+    }
+    
+    my $path = "$FindBin::Bin/../dat/origen_dinero.dat";
+    my @lines;
+    open(my $in, "<:encoding(UTF-8)", $path);
+    while(<$in>) {
+        my $line = $_;
+        chomp($line);
+        my @cols = split(/\|/, $line, -1);
+        if ($cols[0] eq $id) {
+            $cols[1] = $nombre;
+            $cols[2] = $desc;
+            push @lines, join("|", @cols);
+        } else {
+            push @lines, $line;
+        }
+    }
+    close $in;
+    
+    open(my $out, ">:encoding(UTF-8)", $path);
+    for my $l (@lines) {
+        print $out "$l\n";
+    }
+    close $out;
+    
     print encode_json({ success => 1 });
 }
 elsif ($action eq 'delete_origen_dinero') {
