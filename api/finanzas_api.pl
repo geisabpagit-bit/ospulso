@@ -99,15 +99,23 @@ elsif ($action eq 'get_gastos') {
     my @subcat = @{ leer_tabla("$FindBin::Bin/../dat/sub_categoria.dat") };
     my @subcat3 = @{ leer_tabla("$FindBin::Bin/../dat/sub_categoria_nivel3.dat") };
     
+    my @orig = ();
+    my $origen_file = "$FindBin::Bin/../dat/origen_dinero.dat";
+    if (-e $origen_file) {
+        @orig = @{ leer_tabla($origen_file) };
+    }
+    
     my %c_map = map { $_->[0] => $_->[1] } @cat;
     my %s_map = map { $_->[0] => $_->[2] } @subcat;
     my %s3_map = map { $_->[0] => $_->[2] } @subcat3;
+    my %o_map = map { $_->[0] => $_->[1] } @orig;
     
     my @gastos;
     for my $g (@gastos_raw) {
         my $id_cat = $g->[2] || '';
         my $id_subcat = $g->[3] || '';
         my $id_subcat3 = $g->[4] || '';
+        my $id_origen = $g->[9] || '';
         
         push @gastos, {
             id_gasto => $g->[0],
@@ -119,6 +127,8 @@ elsif ($action eq 'get_gastos') {
             monto => $g->[6],
             proveedor => $g->[7] || '',
             factura_path => $g->[8] || '',
+            id_origen => $id_origen,
+            origen_nombre => $o_map{$id_origen} || 'Efectivo / Caja General',
             cat_nombre => $c_map{$id_cat} || 'N/A',
             subcat_nombre => $s_map{$id_subcat} || 'N/A',
             subcat3_nombre => $s3_map{$id_subcat3} || 'N/A'
@@ -168,7 +178,8 @@ elsif ($action eq 'save_gasto') {
             $q->param('concepto') || '',
             $q->param('monto') || 0,
             $q->param('proveedor') || '',
-            $factura_path
+            $factura_path,
+            $q->param('id_origen') || ''
         );
         guardar_registro("$FindBin::Bin/../dat/gastos.dat", $linea);
     } else {
@@ -362,6 +373,77 @@ elsif ($action eq 'delete_categoria') {
         chomp($line);
         my @cols = split(/\|/, $line, -1);
         if ($cols[0] eq $id && $cols[0] ne 'id') { # Ensure not deleting header
+            # Skip this line
+        } else {
+            push @lines, $line;
+        }
+    }
+    close $in;
+    
+    open(my $out, ">:encoding(UTF-8)", $path);
+    for my $l (@lines) {
+        print $out "$l\n";
+    }
+    close $out;
+    
+    print encode_json({ success => 1 });
+}
+}
+elsif ($action eq 'get_origenes_dinero') {
+    my $origen_file = "$FindBin::Bin/../dat/origen_dinero.dat";
+    
+    # Auto-seed si no existe
+    if (!-e $origen_file) {
+        open(my $f, ">:encoding(UTF-8)", $origen_file);
+        print $f "1|Efectivo / Caja Chica|Efectivo físico en sucursal\n";
+        print $f "2|Caja General|Efectivo principal\n";
+        print $f "3|Transferencia Bancaria|Pago electrónico\n";
+        print $f "4|Tarjeta de Crédito / Débito|Terminal bancaria\n";
+        close $f;
+        open(my $c, ">", "$FindBin::Bin/../dat/id_origen_dinero.counter");
+        print $c "4";
+        close $c;
+    }
+    
+    my @orig = @{ leer_tabla($origen_file) };
+    my @orig_map = map { { id => $_->[0], nombre => $_->[1], desc => $_->[2] } } @orig;
+    
+    print encode_json({ success => 1, origenes => \@orig_map });
+}
+elsif ($action eq 'add_origen_dinero') {
+    my $nombre = $q->param('nombre') || '';
+    my $desc = $q->param('desc') || '';
+    if (!$nombre) {
+        print encode_json({ success => 0, message => 'Nombre requerido' });
+        exit;
+    }
+    my $nid = obtener_nuevo_id("$FindBin::Bin/../dat/id_origen_dinero.counter");
+    my $l = "$nid|$nombre|$desc";
+    open(my $f, ">>:encoding(UTF-8)", "$FindBin::Bin/../dat/origen_dinero.dat");
+    print $f "$l\n";
+    close $f;
+    print encode_json({ success => 1 });
+}
+elsif ($action eq 'delete_origen_dinero') {
+    my $id = $q->param('id');
+    if (!$id) { print encode_json({ success=>0, message=>'ID faltante' }); exit; }
+    
+    my @gastos = @{ leer_tabla("$FindBin::Bin/../dat/gastos.dat") };
+    for my $g (@gastos) {
+        if (($g->[9] || '') eq $id) {
+            print encode_json({ success=>0, message=>'No se puede borrar porque hay gastos registrados con este origen de dinero.' });
+            exit;
+        }
+    }
+    
+    my $path = "$FindBin::Bin/../dat/origen_dinero.dat";
+    my @lines;
+    open(my $in, "<:encoding(UTF-8)", $path);
+    while(<$in>) {
+        my $line = $_;
+        chomp($line);
+        my @cols = split(/\|/, $line, -1);
+        if ($cols[0] eq $id && $cols[0] ne 'id') {
             # Skip this line
         } else {
             push @lines, $line;

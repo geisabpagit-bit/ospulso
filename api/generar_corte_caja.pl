@@ -327,6 +327,13 @@ if (-e $archivo_egresos) {
     my @cat = @{ leer_tabla(File::Spec->catfile($dat_dir, 'categorias.dat')) };
     my %c_map = map { $_->[0] => $_->[1] } @cat;
 
+    my $od_file = File::Spec->catfile($dat_dir, 'origenes_dinero.dat');
+    my %o_map = ();
+    if (-e $od_file) {
+        my $od_data = leer_tabla($od_file);
+        %o_map = map { $_->[0] => $_->[1] } @$od_data;
+    }
+
     my $egr_data = leer_tabla($archivo_egresos);
     foreach my $f (@$egr_data) {
         my $fecha = $f->[1] || '';
@@ -342,14 +349,18 @@ if (-e $archivo_egresos) {
             my $id_cat = $f->[2] || '';
             my $concepto = $f->[5] || '';
             my $proveedor = $f->[7] || '';
+            my $id_origen = $f->[9] || '';
+            my $origen_nombre = $id_origen ? ($o_map{$id_origen} || 'Desconocido') : 'No Especificado';
           
             push @egresos_filtrados, {
-                folio       => $f->[0],
-                fecha       => $fecha,
-                categoria   => $c_map{$id_cat} || 'Gasto Operativo',
-                responsable => $proveedor || 'N/A',
-                concepto    => $concepto,
-                monto       => $monto
+                folio         => $f->[0],
+                fecha         => $fecha,
+                categoria     => $c_map{$id_cat} || 'Gasto Operativo',
+                responsable   => $proveedor || 'N/A',
+                concepto      => $concepto,
+                monto         => $monto,
+                id_origen     => $id_origen,
+                origen_nombre => $origen_nombre
             };
         }
     }

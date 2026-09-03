@@ -442,24 +442,25 @@ print <<'PAGE_HTML';
                     </div>
                     
                     <div class="table-responsive mt-3">
-                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond" id="tablaGastos">
-                            <thead class="text-muted small">
+                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond" id="tablaGastos" style="font-size: 10px !important;">
+                            <thead class="text-muted" style="font-size: 10.5px !important;">
                                 <tr>
                                     <th>Fecha</th>
                                     <th>Categoría / Sub</th>
                                     <th>Proveedor</th>
+                                    <th>Origen</th>
                                     <th>Concepto</th>
                                     <th>Monto</th>
                                     <th>Factura</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="tbodyGastos">
-                                <tr><td colspan="7" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
+                            <tbody id="tbodyGastos" style="font-size: 10px !important;">
+                                <tr><td colspan="8" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
                             </tbody>
-                            <tfoot class="bg-light fw-bold">
+                            <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                 <tr>
-                                    <td colspan="4" class="text-end">Total Gastos:</td>
+                                    <td colspan="5" class="text-end">Total Gastos:</td>
                                     <td id="tfootGastosMonto"></td>
                                     <td colspan="2"></td>
                                 </tr>
@@ -584,9 +585,24 @@ PAGE_HTML
             </div>
             <div class="modal-body">
                 <form id="formGasto">
-                    <div class="mb-3">
-                        <label for="fecha_gasto" class="form-label">Fecha del Gasto</label>
-                        <input type="date" class="form-control" id="fecha_gasto" required>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fecha_gasto" class="form-label">Fecha del Gasto</label>
+                                <input type="date" class="form-control" id="fecha_gasto" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="origen_gasto" class="form-label d-flex justify-content-between">
+                                    <span>Origen del Dinero</span>
+                                    <a href="javascript:void(0)" onclick="abrirModalOrigenesDinero()" class="text-muted"><i class="bi bi-gear-fill"></i></a>
+                                </label>
+                                <select class="form-select" id="origen_gasto" required>
+                                    <option value="">Cargando...</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-4">
@@ -1078,6 +1094,7 @@ PAGE_HTML
     let ccTotalIngresos = 0;
     let ccTotalCxC = 0;
     let ccTotalEgresos = 0;
+    let ccTotalEgresosFisicos = 0;
     let chartCorte = null;
     let ultimoResCorte = null;
 
@@ -1101,6 +1118,16 @@ PAGE_HTML
                 ccTotalIngresos = parseFloat(res.total_ingresos) || 0;
                 ccTotalCxC = parseFloat(res.total_cxc) || 0;
                 ccTotalEgresos = parseFloat(res.total_egresos) || 0;
+                
+                ccTotalEgresosFisicos = 0;
+                if (res.egresos) {
+                    res.egresos.forEach(e => {
+                        let orig = (e.origen_nombre || '').toLowerCase();
+                        if (orig === 'no especificado' || orig === 'desconocido' || orig.includes('caja') || orig.includes('efectivo')) {
+                            ccTotalEgresosFisicos += parseFloat(e.monto) || 0;
+                        }
+                    });
+                }
                 
                 document.getElementById('cc_ingresos').textContent = '\$' + ccTotalIngresos.toFixed(2);
                 document.getElementById('cc_cxc').textContent = '\$' + ccTotalCxC.toFixed(2);
@@ -1175,8 +1202,8 @@ PAGE_HTML
 
     window.calcularFaltante = function() {
         let fisico = parseFloat(document.getElementById('cc_fisico').value) || 0;
-        // Formula Tradicional: Efectivo Fisico - (Ingresos - Egresos)
-        let saldoEsperado = ccTotalIngresos - ccTotalEgresos;
+        // Formula Faltante Físico: Efectivo Físico - (Ingresos Efectivo - Egresos Físicos)
+        let saldoEsperado = ccTotalIngresos - ccTotalEgresosFisicos;
         let diferencia = fisico - saldoEsperado;
 
         let elDif = document.getElementById('cc_diferencia');
@@ -1218,14 +1245,14 @@ PAGE_HTML
         let fechaTexto = fInicio === fFin ? fInicio : (fInicio + " al " + fFin);
 
         let fisico = parseFloat(document.getElementById('cc_fisico').value) || 0;
-        let saldoEsperado = ccTotalIngresos - ccTotalEgresos;
+        let saldoEsperado = ccTotalIngresos - ccTotalEgresosFisicos;
         let dif = fisico - saldoEsperado;
         let difTexto = dif > 0 ? "Sobrante" : (dif < 0 ? "Faltante" : "Cuadrado Perfecto");
         let difColor = dif > 0 ? "green" : (dif < 0 ? "red" : "gray");
 
         let htmlIngresos = ultimoResCorte.ingresos.length ? ultimoResCorte.ingresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.paciente + '</td><td>' + i.medico + '</td><td>' + i.forma_pago + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin ingresos en este periodo</td></tr>';
         
-        let htmlEgresos = (ultimoResCorte.egresos && ultimoResCorte.egresos.length) ? ultimoResCorte.egresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.categoria + '</td><td>' + i.responsable + '</td><td>' + i.concepto + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin egresos en este periodo</td></tr>';
+        let htmlEgresos = (ultimoResCorte.egresos && ultimoResCorte.egresos.length) ? ultimoResCorte.egresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.categoria + '</td><td>' + (i.origen_nombre || 'No Especificado') + '</td><td>' + i.concepto + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin egresos en este periodo</td></tr>';
 
         let html = `
         <html>
@@ -1303,7 +1330,7 @@ PAGE_HTML
             <div class="section-title">Detalle de Egresos</div>
             <table>
                 <thead>
-                    <tr><th>Folio</th><th>Fecha</th><th>Categoría</th><th>Proveedor</th><th>Concepto</th><th class="text-right">Monto</th></tr>
+                    <tr><th>Folio</th><th>Fecha</th><th>Categoría</th><th>Origen</th><th>Concepto</th><th class="text-right">Monto</th></tr>
                 </thead>
                 <tbody>
                     ${htmlEgresos}
@@ -1313,7 +1340,7 @@ PAGE_HTML
             <div class="footer-box">
                 <h3>Declaración Física de Caja</h3>
                 <p>Efectivo Físico Reportado: <strong>$${fisico.toFixed(2)}</strong></p>
-                <p>Saldo Esperado (Ingresos - Egresos): <strong>$${saldoEsperado.toFixed(2)}</strong></p>
+                <p>Saldo Esperado (Ingresos Efectivo - Egresos Físicos): <strong>$${saldoEsperado.toFixed(2)}</strong></p>
                 <p>Resultado del Cuadre: <strong style="color: ${difColor};">${difTexto} por $${Math.abs(dif).toFixed(2)}</strong></p>
             </div>
             
@@ -1407,6 +1434,46 @@ PAGE_HTML
                             </tr>
                         </thead>
                         <tbody id="tbodyCategorias">
+                            <!-- JS populate -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Origenes de Dinero -->
+<div class="modal fade modal-diamond" id="modalOrigenesDinero" tabindex="-1" aria-hidden="true" style="z-index: 105050 !important;">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center m-0">
+                    <i class="bi bi-cash-coin me-2" style="color: #00C4C4 !important;"></i>
+                    <span>Gestión de Origen del Dinero</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Nombre del Origen</label>
+                    <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden; border: 1px solid var(--md-gray-soft);">
+                        <input type="text" id="od_nombre" class="form-control border-0" placeholder="Ej. Tarjeta Corporativa, Caja Fuerte...">
+                        <button class="btn fw-bold px-3 text-white" type="button" style="background: var(--md-blue-medical);" onclick="agregarOrigenDinero()">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="text-muted small sticky-top bg-white">
+                            <tr>
+                                <th>Origen</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyOrigenesDinero">
                             <!-- JS populate -->
                         </tbody>
                     </table>

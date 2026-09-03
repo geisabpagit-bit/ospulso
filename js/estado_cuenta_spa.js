@@ -1360,6 +1360,7 @@ window.renderGastos = async function() {
                         ${subCatsHtml}
                     </td>
                     <td class="fw-bold text-dark">${g.proveedor || '-'}</td>
+                    <td><span class="badge bg-light text-dark border px-2 py-1" style="font-size: 9px;"><i class="bi bi-cash-coin me-1"></i>${g.origen_nombre || 'No Especificado'}</span></td>
                     <td class="text-muted">${g.concepto}</td>
                     <td class="fw-bold text-danger">${formatter.format(g.monto)}</td>
                     <td class="text-center">${facturaBtn}</td>
@@ -1384,7 +1385,7 @@ window.renderGastos = async function() {
                     footerCallback: function(row, data, start, end, display) {
                         var api = this.api();
                         var intVal = function(i) { return typeof i === 'string' ? i.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0; };
-                        var total = api.column(4, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
+                        var total = api.column(5, { page: 'current' }).data().reduce(function(a, b) { return intVal(a) + intVal(b); }, 0);
                         var el = document.getElementById('tfootGastosMonto');
                         if(el) el.innerHTML = formatter.format(total);
                     },
@@ -1417,6 +1418,7 @@ window.renderGastos = async function() {
 
 window.abrirModalGasto = async function() {
     await cargarCategoriasGastos();
+    await cargarOrigenesDinero(true);
     const form = document.getElementById('formGasto');
     if (form) form.reset();
     document.getElementById('fecha_gasto').value = new Date().toISOString().split('T')[0];
@@ -1450,6 +1452,7 @@ function attachFinanzasListeners() {
             payload.append('id_subcat', document.getElementById('subcat_gasto').value);
             payload.append('id_subcat3', document.getElementById('subcat3_gasto').value);
             payload.append('proveedor', document.getElementById('proveedor_gasto').value);
+            payload.append('id_origen', document.getElementById('origen_gasto').value);
             payload.append('concepto', document.getElementById('concepto_gasto').value);
             payload.append('monto', document.getElementById('monto_gasto').value);
             
@@ -1937,6 +1940,154 @@ window.borrarCategoria = async function(id, nivel) {
             Swal.fire('Borrado', 'Categoría eliminada', 'success');
         } else {
             Swal.fire('Error', d.message, 'error');
+        }
+    } catch(e) {
+        Swal.fire('Error', 'Error de red', 'error');
+    }
+}
+
+// ==========================================
+// SPA: GESTION DE ORIGENES DE DINERO
+// ==========================================
+let origenesDinero = [];
+
+window.cargarOrigenesDinero = async function(isSelect = false) {
+    try {
+        const res = await fetch('../api/finanzas_api.pl', {
+            method: 'POST',
+            body: new URLSearchParams({ action: 'get_origenes_dinero' })
+        });
+        const d = await res.json();
+        if (d.success) {
+            origenesDinero = d.origenes || [];
+            
+            const sel = document.getElementById('origen_gasto');
+            if (sel) {
+                const cur = sel.value;
+                sel.innerHTML = '<option value="">Seleccione...</option>';
+                origenesDinero.forEach(o => {
+                    sel.innerHTML += `<option value="${o.id}">${o.nombre}</option>`;
+                });
+                if (cur) sel.value = cur;
+            }
+            if (!isSelect) {
+                renderListaOrigenesDinero();
+            }
+        }
+    } catch(e) {
+        console.error("Error al cargar origenes", e);
+    }
+}
+
+window.renderListaOrigenesDinero = function() {
+    const tbody = document.getElementById('tbodyOrigenesDinero');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    if (origenesDinero.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay orígenes registrados</td></tr>';
+        return;
+    }
+    
+    origenesDinero.forEach(item => {
+        tbody.innerHTML += `
+            <tr>
+                <td class="fw-medium">${item.nombre} <small class="text-muted d-block">${item.desc}</small></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-danger border-0" onclick="borrarOrigenDinero('${item.id}')"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+window.abrirModalOrigenesDinero = function() {
+    const el = document.getElementById('modalOrigenesDinero');
+    if (!el) return;
+    $(el).appendTo('body');
+    
+    document.getElementById('od_nombre').value = '';
+    cargarOrigenesDinero();
+    
+    const modalGastoEl = document.getElementById('modalGasto');
+    
+    const reabrirGastoHandler = function() {
+        el.removeEventListener('hidden.bs.modal', reabrirGastoHandler);
+        if (modalGastoEl) {
+            const mg = bootstrap.Modal.getInstance(modalGastoEl) || new bootstrap.Modal(modalGastoEl);
+            mg.show();
+        }
+    };
+    
+    if (modalGastoEl && modalGastoEl.classList.contains('show')) {
+        const mg = bootstrap.Modal.getInstance(modalGastoEl);
+        if (mg) {
+            const onHidden = function() {
+                modalGastoEl.removeEventListener('hidden.bs.modal', onHidden);
+                const mo = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+                mo.show();
+                el.addEventListener('hidden.bs.modal', reabrirGastoHandler);
+            };
+            modalGastoEl.addEventListener('hidden.bs.modal', onHidden);
+            mg.hide();
+        }
+    } else {
+        const mo = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+        mo.show();
+    }
+}
+
+window.agregarOrigenDinero = async function() {
+    const nombre = document.getElementById('od_nombre').value.trim();
+    if (!nombre) {
+        Swal.fire('Atención', 'Ingrese un nombre', 'warning');
+        return;
+    }
+    
+    try {
+        const params = new URLSearchParams({ action: 'add_origen_dinero', nombre: nombre });
+        const res = await fetch('../api/finanzas_api.pl', { method: 'POST', body: params });
+        const d = await res.json();
+        
+        if (d.success) {
+            document.getElementById('od_nombre').value = '';
+            await cargarOrigenesDinero();
+        } else {
+            Swal.fire('Error', d.message, 'error');
+        }
+    } catch(e) {
+        Swal.fire('Error', 'Error de red', 'error');
+    }
+}
+
+window.borrarOrigenDinero = async function(id) {
+    const { isConfirmed } = await Swal.fire({
+        title: '¿Borrar Origen de Dinero?',
+        text: 'Se verificará que no existan gastos asociados.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, borrar',
+        cancelButtonText: 'Cancelar'
+    });
+    
+    if (!isConfirmed) return;
+    
+    try {
+        const params = new URLSearchParams({ action: 'delete_origen_dinero', id: id });
+        const res = await fetch('../api/finanzas_api.pl', { method: 'POST', body: params });
+        const d = await res.json();
+        
+        if (d.success) {
+            await cargarOrigenesDinero();
+            Swal.fire('Borrado', 'Origen eliminado', 'success');
+        } else {
+            Swal.fire({
+                title: 'No se puede eliminar',
+                text: d.message,
+                icon: 'error',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Entendido'
+            });
         }
     } catch(e) {
         Swal.fire('Error', 'Error de red', 'error');
