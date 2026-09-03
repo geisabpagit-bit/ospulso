@@ -1350,6 +1350,7 @@ window.renderGastos = async function() {
         }
         
         if (data.success && tbody) {
+            window.currentGastos = data.data;
             let html = '';
             data.data.forEach(g => {
                 const facturaBtn = g.factura_path ? 
@@ -1377,7 +1378,8 @@ window.renderGastos = async function() {
                     <td class="text-muted">${facturaBtn}${g.concepto}</td>
                     <td class="fw-bold text-danger">${formatter.format(g.monto)}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarGasto('${g.id_gasto}')"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-sm btn-outline-primary rounded-pill me-1" onclick="editarGastoUi('${g.id_gasto}')" title="Editar"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarGasto('${g.id_gasto}')" title="Borrar"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>`;
             });
@@ -1391,9 +1393,7 @@ window.renderGastos = async function() {
             if ($.fn.DataTable) {
                 if ($.fn.DataTable.isDataTable('#tablaGastos')) $('#tablaGastos').DataTable().destroy();
                 $('#tablaGastos').DataTable({
-                    scrollY: '400px',
                     scrollX: true,
-                    scrollCollapse: true,
                     footerCallback: function(row, data, start, end, display) {
                         var api = this.api();
                         var intVal = function(i) { return typeof i === 'string' ? i.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0; };
@@ -1433,6 +1433,7 @@ window.abrirModalGasto = async function() {
     await cargarOrigenesDinero(true);
     const form = document.getElementById('formGasto');
     if (form) form.reset();
+    document.getElementById('id_gasto').value = '';
     document.getElementById('fecha_gasto').value = new Date().toISOString().split('T')[0];
     const el = document.getElementById('modalGasto');
     if (el) {
@@ -1443,6 +1444,42 @@ window.abrirModalGasto = async function() {
         document.getElementById('col_subcat_gasto').style.display = 'none';
         document.getElementById('col_subcat3_gasto').style.display = 'none';
         
+        new bootstrap.Modal(el).show();
+    }
+}
+
+window.editarGastoUi = async function(id) {
+    if (!window.currentGastos) return;
+    const g = window.currentGastos.find(x => x.id_gasto === id);
+    if (!g) return;
+    
+    await cargarCategoriasGastos();
+    await cargarOrigenesDinero(true);
+    const form = document.getElementById('formGasto');
+    if (form) form.reset();
+    
+    document.getElementById('id_gasto').value = g.id_gasto;
+    document.getElementById('fecha_gasto').value = g.fecha;
+    document.getElementById('concepto_gasto').value = g.concepto;
+    document.getElementById('monto_gasto').value = g.monto;
+    document.getElementById('proveedor_gasto').value = g.proveedor || '';
+    
+    if (g.id_origen) document.getElementById('origen_gasto').value = g.id_origen;
+    if (g.id_cat) {
+        document.getElementById('cat_gasto').value = g.id_cat;
+        await filtrarSubcategorias();
+        if (g.id_subcat) {
+            document.getElementById('subcat_gasto').value = g.id_subcat;
+            await filtrarSubcategoriasNivel3();
+            if (g.id_subcat3) {
+                document.getElementById('subcat3_gasto').value = g.id_subcat3;
+            }
+        }
+    }
+    
+    const el = document.getElementById('modalGasto');
+    if (el) {
+        $(el).appendTo('body');
         new bootstrap.Modal(el).show();
     }
 }

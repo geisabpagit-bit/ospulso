@@ -193,14 +193,44 @@ elsif ($action eq 'save_gasto') {
         );
         guardar_registro("$FindBin::Bin/../dat/gastos.dat", $linea);
     } else {
-        # Update is not fully implemented in db_manager without rewriting, ignoring for now.
+        # Update existente
+        my $archivo = "$FindBin::Bin/../dat/gastos.dat";
+        if (-e $archivo) {
+            open(my $fh_in, '<:encoding(UTF-8)', $archivo);
+            my @lineas = <$fh_in>;
+            close $fh_in;
+            
+            open(my $fh_out, '>:encoding(UTF-8)', $archivo);
+            foreach my $l (@lineas) {
+                chomp $l;
+                my @campos = split(/\|/, $l, -1);
+                if ($campos[0] eq $id_gasto) {
+                    # Conservar factura antigua si no se subió una nueva
+                    my $final_factura = $factura_path ne "" ? $factura_path : $campos[8];
+                    $l = join("|", 
+                        $id_gasto,
+                        $q->param('fecha') || $campos[1],
+                        $q->param('id_cat') || $campos[2],
+                        $q->param('id_subcat') || '',
+                        $q->param('id_subcat3') || '',
+                        $q->param('concepto') || $campos[5],
+                        $q->param('monto') || $campos[6],
+                        $q->param('proveedor') || $campos[7],
+                        $final_factura,
+                        $q->param('id_origen') || $campos[9]
+                    );
+                }
+                print $fh_out "$l\n";
+            }
+            close $fh_out;
+        }
     }
     print encode_json({ success => 1, message => "Gasto guardado correctamente" });
 }
 elsif ($action eq 'delete_gasto') {
     my $id_gasto = $q->param('id_gasto') || '';
     if ($id_gasto) {
-        eliminar_registro("$FindBin::Bin/../dat/gastos.dat", 'id_gasto', $id_gasto);
+        eliminar_registro("$FindBin::Bin/../dat/gastos.dat", $id_gasto);
         print encode_json({ success => 1, message => "Gasto eliminado" });
     } else {
         print encode_json({ success => 0, message => "ID no especificado" });

@@ -453,8 +453,8 @@ PAGE_HTML
                                     <input type="date" id="gastos_f_fin" class="form-control form-control-sm" title="Fecha Fin">
                                 </div>
                                 <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold" onclick="renderGastos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar</button>
                             </div>
-                            <button class="btn btn-primary btn-sm rounded-pill fw-bold btn-medentia-action" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar</button>
                         </div>
                     
                     <div class="table-responsive">
