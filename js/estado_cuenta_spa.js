@@ -1393,7 +1393,6 @@ window.renderGastos = async function() {
             if ($.fn.DataTable) {
                 if ($.fn.DataTable.isDataTable('#tablaGastos')) $('#tablaGastos').DataTable().destroy();
                 $('#tablaGastos').DataTable({
-                    scrollX: true,
                     footerCallback: function(row, data, start, end, display) {
                         var api = this.api();
                         var intVal = function(i) { return typeof i === 'string' ? i.replace(/<[^>]*>?/gm, '').replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0; };
@@ -1470,7 +1469,7 @@ window.editarGastoUi = async function(id) {
         await filtrarSubcategorias();
         if (g.id_subcat) {
             document.getElementById('subcat_gasto').value = g.id_subcat;
-            await filtrarSubcategoriasNivel3();
+            await filtrarSubcategorias3();
             if (g.id_subcat3) {
                 document.getElementById('subcat3_gasto').value = g.id_subcat3;
             }
