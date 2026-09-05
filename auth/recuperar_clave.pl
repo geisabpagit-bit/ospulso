@@ -33,6 +33,7 @@ use constant CORREO_INDEX_USER => 2;
 sub get_user_alias {
     my ($correo) = @_;
     my $user_name = ''; 
+    my $id_negocio = '';
     my $correo_lower = lc($correo);
     $correo_lower =~ s/^\s+|\s+$//g;
     
@@ -53,6 +54,8 @@ sub get_user_alias {
                     if ($c_correo eq $correo_lower) {
                         # 2. Obtener el Nombre (índice 1) para el saludo
                         $user_name = $campos[USER_NAME_INDEX]; 
+                        my $extra = $campos[6] // '';
+                        ($id_negocio) = split(/:/, $extra);
                         last;
                     }
                 }
@@ -60,14 +63,39 @@ sub get_user_alias {
             close($fh);
         }
     }
-    return $user_name || 'Usuario'; # Valor predeterminado si no se encuentra
+    return ($user_name || 'Usuario', $id_negocio || ''); # Valor predeterminado si no se encuentra
+}
+
+# -------------------------------------------------------------------
+# --- FUNCIÓN: Obtener Nombre Comercial del Negocio ---
+# -------------------------------------------------------------------
+sub get_business_name {
+    my ($id_negocio) = @_;
+    my $nombre_comercial = 'Software Dental Mexicano';
+    return $nombre_comercial unless $id_negocio;
+    my $archivo_negocios = File::Spec->rel2abs("$dirname/../dat/negocios.dat");
+    if (open(my $fh, '<:encoding(UTF-8)', $archivo_negocios)) {
+        my $header = <$fh>;
+        while (my $line = <$fh>) {
+            chomp $line;
+            my @c = split /\|/, $line, -1;
+            if ($c[0] && $c[0] eq $id_negocio && $c[1]) {
+                $nombre_comercial = $c[1];
+                last;
+            }
+        }
+        close($fh);
+    }
+    return $nombre_comercial;
 }
 
 # -------------------------------------------------------------------
 # --- FUNCIÓN: Envío de Correo (HTML) ---
 # -------------------------------------------------------------------
 sub enviar_correo_recuperacion {
-    my ($correo, $error_ref, $user_alias) = @_; 
+    my ($correo, $error_ref, $user_alias, $id_negocio) = @_; 
+    
+    my $nombre_comercial = get_business_name($id_negocio);
     
     # 1. Generar Token
     my $timestamp = time();
@@ -94,11 +122,11 @@ sub enviar_correo_recuperacion {
     
     my $from = 'administracion@ospulso.pdigitalesm.com';
     my $to = $correo;
-    my $subject = encode_utf8("Recuperación de Contraseña - Software Dental Mexicano"); 
+    my $subject = encode_utf8("Recuperación de Contraseña - $nombre_comercial"); 
     
     # Contenido de Texto Plano (Fallback)
     my $body_text = encode_utf8(
-        "Hola $user_alias,\n\nHemos recibido una solicitud para restablecer tu contraseña. \n\n" .
+        "Hola $user_alias,\n\nHemos recibido una solicitud para restablecer tu contraseña en $nombre_comercial. \n\n" .
         "Haz clic en el siguiente enlace. Caduca en 1 hora:\n\n" .
         "$url_recuperacion\n\n" .
         "Si no solicitaste este cambio, por favor ignora este correo.\n\n"
@@ -125,7 +153,7 @@ sub enviar_correo_recuperacion {
         </head>
         <body>
             <div class="container">
-                <div class="header">¡Restablecer Contraseña en Software Dental Mexicano!</div>
+                <div class="header">¡Restablecer Contraseña en $nombre_comercial!</div>
                 <div class="content">
                     <p>Hola $user_alias,</p> <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Por favor, haz clic en el siguiente botón para continuar:</p>
                     
@@ -193,7 +221,7 @@ my $response = { success => 0, message => $error_message };
 
 if ($q->request_method eq 'POST' && $correo_recuperacion) {
     
-    my $user_alias = get_user_alias($correo_recuperacion);
+    my ($user_alias, $id_negocio) = get_user_alias($correo_recuperacion);
 
     # Si el correo no existe en la base de datos, respondemos con éxito para evitar la enumeración de usuarios
     if (!$user_alias || $user_alias eq 'Usuario') { # Verificamos si no se encontró el nombre
@@ -204,7 +232,7 @@ if ($q->request_method eq 'POST' && $correo_recuperacion) {
     }
 
     # Pasamos el alias y la referencia a la variable de error
-    if (enviar_correo_recuperacion($correo_recuperacion, \$error_message, $user_alias)) {
+    if (enviar_correo_recuperacion($correo_recuperacion, \$error_message, $user_alias, $id_negocio)) {
         $response->{success} = 1;
         $response->{message} = "Hemos procesado tu solicitud. Si el correo existe en nuestra base de datos, recibiras un enlace de recuperacion en breve.";
     } else {

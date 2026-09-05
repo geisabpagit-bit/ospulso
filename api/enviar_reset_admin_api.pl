@@ -93,12 +93,28 @@ if ($@) {
 my $host = $ENV{'HTTP_HOST'} || 'ospulso.pdigitalesm.com';
 my $url_recuperacion = "https://$host/auth/cambiar_clave.pl?token=$token";
 
+# Obtener el nombre de la organización
+my $nombre_comercial = 'Software Dental Mexicano';
+my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+if (open(my $fhn, '<:encoding(UTF-8)', $archivo_negocios)) {
+    my $header = <$fhn>;
+    while (my $line = <$fhn>) {
+        chomp $line;
+        my @c = split /\|/, $line, -1;
+        if ($c[0] && $c[0] eq $id_org_matriz && $c[1]) {
+            $nombre_comercial = $c[1];
+            last;
+        }
+    }
+    close($fhn);
+}
+
 my $from = 'administracion@ospulso.pdigitalesm.com';
 my $to = $correo;
-my $subject = encode_utf8("Restablecer Contraseña - Software Dental Mexicano"); 
+my $subject = encode_utf8("Restablecer Contraseña - $nombre_comercial"); 
 
 my $body_text = encode_utf8(
-    "Hola $user_alias,\n\nTu Administrador ha solicitado restablecer tu contraseña para acceder a OSPulso. \n\n" .
+    "Hola $user_alias,\n\nTu Administrador ha solicitado restablecer tu contraseña para acceder a $nombre_comercial. \n\n" .
     "Haz clic en el siguiente enlace. Caduca en 1 hora:\n\n" .
     "$url_recuperacion\n\n" .
     "Si tú no lo solicitaste o no sabes de qué se trata, consulta con el Director de tu Clínica.\n\n"
@@ -124,7 +140,7 @@ my $cuerpo_html = encode_utf8(qq{
     </head>
     <body>
         <div class="container">
-            <div class="header">¡Restablecer Contraseña en Software Dental Mexicano!</div>
+            <div class="header">¡Restablecer Contraseña en $nombre_comercial!</div>
             <div class="content">
                 <p>Hola $user_alias,</p> <p>Tu Administrador ha solicitado enviarte un enlace de acceso para tu cuenta. Por favor, haz clic en el siguiente botón para asignar una nueva contraseña:</p>
                 
