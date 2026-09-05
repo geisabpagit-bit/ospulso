@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
             emailFeedbackDiv.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verificando existencia...';
 
             // 🚩 Linea de FETCH con template literal revisada
-            fetch(`check_email.pl?correo=${encodeURIComponent(email)}`)
+            fetch(`auth/check_email.pl?correo=${encodeURIComponent(email)}`)
             .then(response => {
                 if (!response.ok) {
                     // Esto atrapa errores de HTTP (404, 500, etc.)
