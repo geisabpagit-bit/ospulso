@@ -34,6 +34,7 @@ sub get_user_alias {
     my ($correo) = @_;
     my $user_name = ''; 
     my $correo_lower = lc($correo);
+    $correo_lower =~ s/^\s+|\s+$//g;
     
     if (-e $archivo_usuarios) {
         if (open(my $fh, '<:encoding(UTF-8)', $archivo_usuarios)) {
@@ -41,14 +42,19 @@ sub get_user_alias {
             
             while (my $linea = <$fh>) {
                 chomp $linea;
+                $linea =~ s/\r$//;
                 next if $linea =~ /^\s*$/;
                 my @campos = split /!/, $linea, -1; 
                 
                 # 1. Comprobar si el campo de correo (índice 2) coincide
-                if (@campos > CORREO_INDEX_USER && lc($campos[CORREO_INDEX_USER]) eq $correo_lower) {
-                    # 2. Obtener el Nombre (índice 1) para el saludo
-                    $user_name = $campos[USER_NAME_INDEX]; 
-                    last;
+                if (@campos > CORREO_INDEX_USER) {
+                    my $c_correo = lc($campos[CORREO_INDEX_USER] // '');
+                    $c_correo =~ s/^\s+|\s+$//g;
+                    if ($c_correo eq $correo_lower) {
+                        # 2. Obtener el Nombre (índice 1) para el saludo
+                        $user_name = $campos[USER_NAME_INDEX]; 
+                        last;
+                    }
                 }
             }
             close($fh);
@@ -178,7 +184,9 @@ sub enviar_correo_recuperacion {
 # --- SCRIPT PRINCIPAL ---
 # -------------------------------------------------------------------
 
-my $correo_recuperacion = $q->param('h_correo_recuperacion') || '';
+my $correo_raw = $q->param('h_correo_recuperacion') || '';
+my $correo_recuperacion = lc(decode_utf8($correo_raw));
+$correo_recuperacion =~ s/^\s+|\s+$//g;
 my $error_message = 'Solicitud incompleta (POST o parametro faltante).'; 
 
 my $response = { success => 0, message => $error_message };

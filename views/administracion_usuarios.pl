@@ -236,7 +236,18 @@ print <<HTML;
                             </div>
                             <div class="col-12 col-md-6" id="passwordFieldContainer">
                                 <label class="form-label small fw-bold text-muted" id="passwordLabel">Contraseña Inicial</label>
-                                <input type="password" class="form-control form-control-sm shadow-sm" id="form_clave" name="clave" placeholder="••••••••" autocomplete="new-password">
+                                <div class="input-group input-group-sm shadow-sm">
+                                    <input type="password" class="form-control" id="form_clave" name="clave" placeholder="••••••••" autocomplete="new-password">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('form_clave', this)"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6" id="passwordConfirmContainer">
+                                <label class="form-label small fw-bold text-muted" id="passwordConfirmLabel">Confirmar Contraseña</label>
+                                <div class="input-group input-group-sm shadow-sm">
+                                    <input type="password" class="form-control" id="form_clave_confirma" placeholder="••••••••" autocomplete="new-password">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('form_clave_confirma', this)"><i class="bi bi-eye"></i></button>
+                                </div>
+                                <div class="invalid-feedback d-block d-none" id="passwordMismatchError">Las contraseñas no coinciden.</div>
                             </div>
                             <div class="col-12 col-md-6" id="box_espe">
                                 <label class="form-label small fw-bold text-muted"><i class="bi bi-patch-check-fill text-primary me-1"></i>Especialidad Médica</label>
@@ -329,6 +340,9 @@ if (@mi_personal) {
                                             <td class="text-muted small fw-bold">$$per{sucursal}</td>
                                             <td class="text-end pe-4">
                                                 <div class="d-flex justify-content-end gap-2">
+                                                    <button onclick="confirmEnviarReset('$$per{correo}', '$$per{nombre}')" class="btn p-0 border-0 btn-expediente" title="Enviar Restablecimiento">
+                                                        <div class="icon-container-acrylic text-warning border-warning border-opacity-25" style="background: rgba(255, 193, 7, 0.05);"><i class="bi bi-envelope-at"></i></div>
+                                                    </button>
                                                     <button onclick="abrirFormEditar('$$per{id}', '$$per{nombre}', '$$per{correo}', '$$per{rol}', '$$per{id_suc}', '$$per{id_espe}', '$$per{id_subespe}')" class="btn p-0 border-0 btn-expediente" title="Editar">
                                                         <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
                                                     </button>
@@ -563,6 +577,12 @@ print <<'JS';
         document.getElementById('form_clave').value = '';
         document.getElementById('form_clave').required = true;
         document.getElementById('passwordLabel').innerText = 'Contraseña Inicial';
+        document.getElementById('form_clave_confirma').value = '';
+        document.getElementById('form_clave_confirma').required = true;
+        document.getElementById('form_clave_confirma').classList.remove('is-invalid', 'is-valid');
+        document.getElementById('form_clave').classList.remove('is-invalid', 'is-valid');
+        document.getElementById('btn-submit-form').disabled = false;
+        document.getElementById('passwordConfirmContainer').classList.remove('d-none');
         document.getElementById('form_rol').value = 'Medico';
         document.getElementById('form_id_sucursal').value = '';
         document.getElementById('form_id_espe').value = '0';
@@ -589,6 +609,12 @@ print <<'JS';
         document.getElementById('form_clave').value = '';
         document.getElementById('form_clave').required = false;
         document.getElementById('passwordLabel').innerText = 'Nueva Contraseña (Opcional)';
+        document.getElementById('form_clave_confirma').value = '';
+        document.getElementById('form_clave_confirma').required = false;
+        document.getElementById('form_clave_confirma').classList.remove('is-invalid', 'is-valid');
+        document.getElementById('form_clave').classList.remove('is-invalid', 'is-valid');
+        document.getElementById('btn-submit-form').disabled = false;
+        document.getElementById('passwordConfirmContainer').classList.remove('d-none');
         document.getElementById('form_rol').value = rol;
         document.getElementById('form_id_sucursal').value = id_sucursal;
         document.getElementById('form_id_espe').value = id_espe || '0';
@@ -616,8 +642,13 @@ print <<'JS';
     // Envío del Formulario
     document.getElementById('form-usuario').addEventListener('submit', function(e) {
         e.preventDefault();
-        const fd = new FormData(this);
         const action = document.getElementById('form_action').value;
+        const pwd = document.getElementById('form_clave').value;
+        if ((action === 'create' || pwd !== '') && !validatePasswords()) {
+            return;
+        }
+
+        const fd = new FormData(this);
         const btn = document.getElementById('btn-submit-form');
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
@@ -813,6 +844,103 @@ print <<'JS';
             $(e.relatedTarget).removeClass('btn-blue-deep text-white').addClass('btn-light text-dark');
         });
     });
+
+    window.togglePasswordVisibility = function(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    };
+
+    window.validatePasswords = function() {
+        const pwd = document.getElementById('form_clave');
+        const confirmPwd = document.getElementById('form_clave_confirma');
+        const btnSubmit = document.getElementById('btn-submit-form');
+        const err = document.getElementById('passwordMismatchError');
+        const action = document.getElementById('form_action').value;
+        
+        if (action === 'update' && pwd.value === '' && confirmPwd.value === '') {
+            pwd.classList.remove('is-invalid', 'is-valid');
+            confirmPwd.classList.remove('is-invalid', 'is-valid');
+            confirmPwd.required = false;
+            btnSubmit.disabled = false;
+            err.classList.add('d-none');
+            return true;
+        }
+
+        if (action === 'update' && pwd.value !== '') {
+            confirmPwd.required = true;
+        }
+
+        if (pwd.value === confirmPwd.value && pwd.value !== '') {
+            pwd.classList.remove('is-invalid');
+            pwd.classList.add('is-valid');
+            confirmPwd.classList.remove('is-invalid');
+            confirmPwd.classList.add('is-valid');
+            btnSubmit.disabled = false;
+            err.classList.add('d-none');
+            return true;
+        } else if (confirmPwd.value !== '') {
+            pwd.classList.remove('is-valid');
+            pwd.classList.add('is-invalid');
+            confirmPwd.classList.remove('is-valid');
+            confirmPwd.classList.add('is-invalid');
+            btnSubmit.disabled = true;
+            err.classList.remove('d-none');
+            return false;
+        } else {
+            pwd.classList.remove('is-invalid', 'is-valid');
+            confirmPwd.classList.remove('is-invalid', 'is-valid');
+            btnSubmit.disabled = false;
+            err.classList.add('d-none');
+            return false;
+        }
+    };
+
+    document.getElementById('form_clave').addEventListener('input', validatePasswords);
+    document.getElementById('form_clave_confirma').addEventListener('input', validatePasswords);
+
+    window.confirmEnviarReset = function(correo, nombre) {
+        Swal.fire({
+            title: '¿Enviar Enlace de Acceso?',
+            html: `Se enviará un correo a <strong>${correo}</strong> para que <strong>${nombre}</strong> pueda restablecer su contraseña.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, Enviar Correo',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('correo', correo);
+                fetch('../api/enviar_reset_admin_api.pl', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: fd
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('¡Enviado!', data.message, 'success');
+                    } else {
+                        Swal.fire('Error', data.message || 'Ocurrió un error al enviar el correo.', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Error', 'Falla de conexión.', 'error');
+                });
+            }
+        });
+    };
 </script>
 JS
 
