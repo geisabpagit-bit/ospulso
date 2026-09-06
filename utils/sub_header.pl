@@ -109,6 +109,21 @@ SEARCH_HTML
         );
     }
 
+    # Leer configuración global del timeout
+    my $global_timeout_mins = 30;
+    my $config_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+    if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
+        while(<$cf>) {
+            chomp;
+            my @f = split(/\|/);
+            if (defined $f[0] && $f[0] eq '0' && defined $f[1] && $f[1] eq 'GLOBAL_SESSION_TIMEOUT') {
+                $global_timeout_mins = int($f[2]) if $f[2] =~ /^\d+$/;
+                last;
+            }
+        }
+        close($cf);
+    }
+
     print <<HTML;
 <!DOCTYPE html>
 <html lang="es">
@@ -116,6 +131,7 @@ SEARCH_HTML
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>$titulo | OSPulso Diamond</title>
+    <script>window.OS_SESSION_TIMEOUT = $global_timeout_mins;</script>
 
     <!-- OSPulso Brand Identity (Favicons) -->
     <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">

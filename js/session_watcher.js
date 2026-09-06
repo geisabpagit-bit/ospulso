@@ -5,13 +5,18 @@
  */
 
 const SessionWatcher = {
-    timeoutMs: 30 * 60 * 1000, // 30 minutos totales para expiración
-    warningMs: 25 * 60 * 1000, // 25 minutos para mostrar aviso
+    timeoutMs: (window.OS_SESSION_TIMEOUT || 30) * 60 * 1000,
+    warningMs: ((window.OS_SESSION_TIMEOUT || 30) - 5) * 60 * 1000,
     timer: null,
     warningTimer: null,
     isWarning: false,
 
     init: function() {
+        // En caso de que se llame antes de cargar la variable global por algún motivo, la re-calculamos.
+        this.timeoutMs = (window.OS_SESSION_TIMEOUT || 30) * 60 * 1000;
+        this.warningMs = ((window.OS_SESSION_TIMEOUT || 30) - 5) * 60 * 1000;
+        if (this.warningMs < 60000) this.warningMs = 60000; // Mínimo 1 minuto de warning
+
         this.resetTimers();
         this.bindEvents();
     },

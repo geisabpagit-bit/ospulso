@@ -328,6 +328,7 @@ HTML
         my %admin_mod_names = (
             'clinicas'    => { file => 'manage_clinicas.pl', icon => 'bi-building-gear', title => 'Gesti&oacute;n de Cl&iacute;nicas' },
             'usuarios'    => { file => 'administracion_usuarios.pl', icon => 'bi-people-fill', title => 'Gesti&oacute;n de Personal' },
+            'usuarios_online' => { file => 'usuarios_online.pl', icon => 'bi-activity text-success', title => 'Usuarios en L&iacute;nea' },
             'servicios'   => { file => 'manage_servicios.pl', icon => 'bi-heart-pulse-fill', title => 'Gesti&oacute;n de Servicios' },
             'productos'   => { file => 'manage_productos.pl', icon => 'bi-box-seam-fill', title => 'Gesti&oacute;n de Productos' },
             'tecnico'     => { file => 'administracion_catalogo.pl', icon => 'bi-tools', title => 'Cat&aacute;logos y Mantenimiento' },
@@ -364,7 +365,10 @@ HTML
             $is_allowed{'gestion_catalogos'} = 0;
         }
         
-        foreach my $k ('clinicas', 'usuarios', 'servicios', 'productos', 'tecnico', 'gestion_catalogos', 'sync_google') {
+        # Allow usuarios_online for all admins
+        $is_allowed{'usuarios_online'} = 1;
+        
+        foreach my $k ('clinicas', 'usuarios', 'usuarios_online', 'servicios', 'productos', 'tecnico', 'gestion_catalogos', 'sync_google') {
             if ($is_allowed{$k}) {
                 my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
                 my $cfg = $admin_mod_names{$k};
