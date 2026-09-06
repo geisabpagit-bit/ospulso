@@ -49,9 +49,10 @@ if (!$org_clues) {
 
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 
-utils::sub_header::render_header(
-    title => 'Gestión de Catálogos (CRUD) - OSPulso',
-    role  => $role
+render_header(
+    titulo => 'Gestión de Catálogos (CRUD) - OSPulso',
+    role  => $role,
+    usuario => $usuario
 );
 
 print <<'HTML';
@@ -65,7 +66,7 @@ print <<'HTML';
 <div id="wrapper">
 HTML
 
-utils::sub_sidebar::render_sidebar(
+render_sidebar(
     usuario => $usuario,
     role => $role,
     id_medico => $id_medico,
@@ -371,4 +372,4 @@ print <<'JS';
 </script>
 JS
 
-utils::sub_footer::render_footer();
+render_footer();
