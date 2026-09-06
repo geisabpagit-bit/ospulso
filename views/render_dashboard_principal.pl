@@ -114,32 +114,70 @@ HTML
     my $total_abonos = 0;
     my %saldos_estado = ();
 
-    if (-e $fin_file) {
-        open(my $fh, '<:utf8', $fin_file) or die $!;
-        while(my $line = <$fh>) {
-            chomp($line);
-            next if $line =~ /^ID_OS/;
-            my @f = split(/\|/, $line);
-            # v3.5.5: F3: TIPO, F7: TOTAL, F9: ID_MEDICO, F2: ID_PACIENTE
-            my $m_id = $f[9] // ''; $m_id =~ s/^\s+|\s+$//g;
-            my $id_paciente = $f[2] // '';
-            my $monto = $f[7] || 0;
-
-            if ($is_admin || $m_id eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$id_paciente})) {
-                if ($f[3] =~ /Cargo/i) { $total_cargos += $monto; }
-                elsif ($f[3] =~ /Abono/i) { $total_abonos += $monto; }
+    if ($role eq 'Recepcionista') {
+        # Para Recepcionista, leer folios_recibos_privados y publicos
+        my @recibos_files = (
+            File::Spec->catfile($dat_dir, 'folios_recibos_privados.dat'),
+            File::Spec->catfile($dat_dir, 'folios_recibos_publicos.dat')
+        );
+        
+        my %medicos = ();
+        my $usuarios_file = File::Spec->catfile($dat_dir, 'usuarios.dat');
+        if (-e $usuarios_file && open(my $fu, '<:utf8', $usuarios_file)) {
+            my $header = <$fu>;
+            while(my $line = <$fu>) {
+                chomp $line;
+                my @u = split /!/, $line, -1;
+                $medicos{$u[0]} = $u[1] if @u >= 2;
             }
-
-            # Acumular para CxC Estado si aplica
-            if ($id_paciente =~ /^EMP-/) {
-                if ($f[3] =~ /Cargo/i && ($f[10] // '') !~ /Presupuesto|Cotizacion/i) {
-                    $saldos_estado{$f[0]}{cargos} += $monto;
-                } elsif ($f[3] =~ /Abono/i) {
-                    $saldos_estado{$f[0]}{abonos} += $monto;
+            close $fu;
+        }
+        my $mi_nombre = $medicos{$usuario} || $usuario;
+        
+        foreach my $rfile (@recibos_files) {
+            if (-e $rfile && open(my $fh, '<:utf8', $rfile)) {
+                my $header = <$fh>;
+                while(my $line = <$fh>) {
+                    chomp($line);
+                    next if $line =~ /^\s*$/;
+                    my @r = split(/\|/, $line, -1);
+                    my $elaborado = $r[11] // '';
+                    if ($elaborado eq $usuario || $elaborado eq $mi_nombre) {
+                        $total_cargos += ($r[8] || 0);
+                        $total_abonos += ($r[9] || 0);
+                    }
                 }
+                close($fh);
             }
         }
-        close($fh);
+    } else {
+        if (-e $fin_file) {
+            open(my $fh, '<:utf8', $fin_file) or die $!;
+            while(my $line = <$fh>) {
+                chomp($line);
+                next if $line =~ /^ID_OS/;
+                my @f = split(/\|/, $line);
+                # v3.5.5: F3: TIPO, F7: TOTAL, F9: ID_MEDICO, F2: ID_PACIENTE
+                my $m_id = $f[9] // ''; $m_id =~ s/^\s+|\s+$//g;
+                my $id_paciente = $f[2] // '';
+                my $monto = $f[7] || 0;
+    
+                if ($is_admin || $m_id eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$id_paciente})) {
+                    if ($f[3] =~ /Cargo/i) { $total_cargos += $monto; }
+                    elsif ($f[3] =~ /Abono/i) { $total_abonos += $monto; }
+                }
+    
+                # Acumular para CxC Estado si aplica
+                if ($id_paciente =~ /^EMP-/) {
+                    if ($f[3] =~ /Cargo/i && ($f[10] // '') !~ /Presupuesto|Cotizacion/i) {
+                        $saldos_estado{$f[0]}{cargos} += $monto;
+                    } elsif ($f[3] =~ /Abono/i) {
+                        $saldos_estado{$f[0]}{abonos} += $monto;
+                    }
+                }
+            }
+            close($fh);
+        }
     }
     my $total_saldo = $total_cargos - $total_abonos;
     
