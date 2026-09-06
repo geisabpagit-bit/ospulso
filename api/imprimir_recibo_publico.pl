@@ -382,8 +382,12 @@ if ($num_empleado && $negocio->{clues}) {
 }
 
 my $medico_nombre = "NO ESPECIFICADO";
+my $especialidad_nombre = '';
 if ($id_medico) {
-    my $med_file = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues})->{medicos};
+    my $rutas = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
+    my $med_file = $rutas->{medicos};
+    my $id_especialidad = '';
+    
     if (-e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
         while (my $lm = <$fm>) {
             chomp $lm;
@@ -391,10 +395,26 @@ if ($id_medico) {
             if ($m[0] eq $id_medico) {
                 my $idx = (@m >= 3) ? 2 : 1;
                 $medico_nombre = uc($m[$idx] // '');
+                $id_especialidad = $m[1] // '' if @m >= 3;
                 last;
             }
         }
         close $fm;
+    }
+    
+    if ($id_especialidad) {
+        my $esp_file = $rutas->{especialidades};
+        if (-e $esp_file && open(my $fe, '<:encoding(UTF-8)', $esp_file)) {
+            while (my $le = <$fe>) {
+                chomp $le;
+                my @e = split /\|/, $le, -1;
+                if ($e[0] eq $id_especialidad) {
+                    $especialidad_nombre = uc($e[1] // '');
+                    last;
+                }
+            }
+            close $fe;
+        }
     }
     
     if ($medico_nombre eq "NO ESPECIFICADO") {
@@ -417,6 +437,7 @@ if ($id_medico) {
 sub formato_moneda {
     my ($monto) = @_;
     $monto ||= 0;
+    return '' if $monto == 0;
     my $fmt = sprintf("%.2f", $monto);
     while ($fmt =~ s/^(-?\d+)(\d{3})/$1,$2/) {}
     return '$' . $fmt;
@@ -430,8 +451,8 @@ $saldo = 0 if $saldo < 0;
 my $abono_saldo_html = "";
 if ($saldo > 0) {
     $abono_saldo_html = qq{
-        <div style="color: #059669; font-size: 13px; font-weight: bold; margin-bottom: 4px;">Abono : @{[ formato_moneda($recibo->{total_abonos}) ]}</div>
-        <div style="color: #dc2626; font-size: 13px; font-weight: bold; margin-bottom: 8px;">Saldo : @{[ formato_moneda($saldo) ]}</div>
+        <div style="color: #059669; font-size: 13px; font-weight: normal; margin-bottom: 4px;">Abono : @{[ formato_moneda($recibo->{total_abonos}) ]}</div>
+        <div style="color: #dc2626; font-size: 13px; font-weight: normal; margin-bottom: 8px;">Saldo : @{[ formato_moneda($saldo) ]}</div>
     };
 }
 
@@ -456,9 +477,9 @@ print <<HTML;
     <link rel="manifest" href="../favicon/site.webmanifest">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght\@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* CSS Específico para Impresión en Media Carta (5.5 x 8.5 in) */
+        /* CSS Específico para Impresión en Carta, sin zoom */
         \@page {
-            size: 5.5in 8.5in;
+            size: letter portrait;
             margin: 0;
         }
         body {
@@ -470,10 +491,9 @@ print <<HTML;
             background: #fff;
         }
         .receipt-container {
-            width: 5.5in;
-            height: 8.5in;
+            width: 8.5in;
             box-sizing: border-box;
-            padding: 0.25in;
+            padding: 0.5in;
             margin: 0 auto;
         }
         .grid-receipt {
@@ -551,7 +571,7 @@ print <<HTML;
                 <td class="col-folio" style="font-size: 9px; white-space: nowrap; text-align: center;">
                     $recibo->{fecha} - $recibo->{hora} hrs.<br>
                     <span style="margin-top: 4px; display:inline-block;">Folio</span><br>
-                    <strong>$folio_corto</strong>
+                    <span>$folio_corto</span>
                 </td>
             </tr>
             <tr>
@@ -569,8 +589,8 @@ print <<HTML;
             </tr>
             <tr>
                 <td class="info-label-cell">Médico:</td>
-                <td colspan="2" style="font-size: 10px;">
-                    $medico_nombre
+                <td colspan="2" style="font-size: 10px; text-transform: uppercase;">
+                    $medico_nombre @{[ $especialidad_nombre ? "- $especialidad_nombre" : "" ]}
                 </td>
             </tr>
             <tr>
@@ -607,13 +627,13 @@ print <<HTML;
                                     Nombre y Firma del Paciente
                                 </div>
                             </td>
-                            <td style="width: 50%; text-align: right; vertical-align: middle; padding: 15px; border: 1px solid #ccc; border-top: none; border-left: none;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px; font-weight: bold;">
-                                    <span>Cuentas x Cobrar</span>
+                            <td style="width: 50%; text-align: left; vertical-align: middle; padding: 15px; border: 1px solid #ccc; border-top: none; border-left: none;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px; font-weight: normal;">
+                                    <span>Cuentas x cobrar</span>
                                     <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
                                 </div>
                                 <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
-                                    <span style="font-size: 11px; text-align: right; white-space: nowrap; font-weight: bold; color: #334155;">Elaboró : $elaborado_por</span>
+                                    <span style="font-size: 11px; text-align: right; white-space: nowrap; font-weight: normal; color: #334155;">Elaboró : $elaborado_por</span>
                                 </div>
                             </td>
                         </tr>
@@ -621,7 +641,7 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align: center; font-size: 8px; font-weight: bold; padding: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">
+                <td colspan="3" style="text-align: center; font-size: 8px; font-weight: normal; padding: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">
                     $texto_pie_recibo
                 </td>
             </tr>
