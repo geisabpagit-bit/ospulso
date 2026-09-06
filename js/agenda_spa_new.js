@@ -1638,7 +1638,7 @@ function handleAptClick(id) {
 }
 
 function initClock() { setInterval(() => { const n = new Date(); $("#digital-clock").text(n.toLocaleTimeString()); }, 1000); }
-function getISO(d) { return d.toISOString().split('T')[0]; }
+function getISO(d) { const tz = d.getTimezoneOffset() * 60000; return new Date(d.getTime() - tz).toISOString().split('T')[0]; }
 function isHoliday(iso) { 
     if (!agendaConfig.festivos) return false;
     let list = [];

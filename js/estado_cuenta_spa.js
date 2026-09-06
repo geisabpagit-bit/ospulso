@@ -1320,7 +1320,8 @@ window.renderGastos = async function() {
         
         // Default to today if empty
         if (fi_input && !fi_input.value) {
-            const today = new Date().toISOString().split('T')[0];
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            const today = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
             fi_input.value = today;
             ff_input.value = today;
         }
@@ -1433,7 +1434,8 @@ window.abrirModalGasto = async function() {
     const form = document.getElementById('formGasto');
     if (form) form.reset();
     document.getElementById('id_gasto').value = '';
-    document.getElementById('fecha_gasto').value = new Date().toISOString().split('T')[0];
+    const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+    document.getElementById('fecha_gasto').value = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
     const el = document.getElementById('modalGasto');
     if (el) {
         // Garantizar que escape de contextos de apilamiento en DOM
@@ -1572,7 +1574,8 @@ window.eliminarGasto = function(id) {
 
 // --- Módulo Ingresos ---
 window.renderIngresos = function() {
-    let hoy = new Date().toISOString().split('T')[0];
+    const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+    let hoy = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
     const elInicio = document.getElementById('ing_fecha_inicio');
     const elFin = document.getElementById('ing_fecha_fin');
     if (elInicio && !elInicio.value) elInicio.value = hoy;
@@ -1584,7 +1587,8 @@ window.renderIngresos = function() {
 window.cargarIngresos = function() {
     const elInicio = document.getElementById('ing_fecha_inicio');
     const elFin = document.getElementById('ing_fecha_fin');
-    let hoy = new Date().toISOString().split('T')[0];
+    const tzoffset2 = (new Date()).getTimezoneOffset() * 60000;
+    let hoy = (new Date(Date.now() - tzoffset2)).toISOString().split('T')[0];
     if (elInicio && !elInicio.value) elInicio.value = hoy;
     if (elFin && !elFin.value) elFin.value = hoy;
 

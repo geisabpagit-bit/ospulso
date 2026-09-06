@@ -287,7 +287,8 @@ function abrirModalEdicion(event) {
     document.getElementById('cita_paciente_search').value = pMatch ? pMatch.label : ('ID: ' + p.id_paciente);
     
     // Extracción Limpia ISO
-    document.getElementById('cita_fecha').value = event.start.toISOString().split('T')[0];
+    const tz = event.start.getTimezoneOffset() * 60000;
+    document.getElementById('cita_fecha').value = new Date(event.start.getTime() - tz).toISOString().split('T')[0];
     document.getElementById('cita_hora_ini').value = p.hora_ini;
     document.getElementById('cita_hora_fin').value = p.hora_fin;
     

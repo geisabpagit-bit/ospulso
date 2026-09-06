@@ -24,7 +24,7 @@ my $session_data = check_session();
 my $dirname = dirname(__FILE__);
 my $ARCHIVO = "$dirname/../dat/citas.dat";
 my $CONFIG_FILE = "$dirname/../dat/agenda_config.dat";
-my $HEADER  = "id_cita|id_medico|id_paciente|fecha|hora_ini|hora_fin|motivo|notas|estado|event_id";
+my $HEADER  = "id_cita|id_medico|id_paciente|fecha|hora_ini|hora_fin|motivo|notas|estado|event_id|color|prioridad|sucursal|consultorio|id_negocio|elaborado_por";
 
 my $q = CGI->new;
 my $accion = $q->param('accion') // '';
@@ -151,7 +151,8 @@ sub guardar_citas {
             $c->{id_cita}, $c->{id_medico}, $c->{id_paciente}, $c->{fecha}, 
             $c->{hora_ini}, $c->{hora_fin}, $c->{motivo}, $c->{notas}, 
             $c->{estado}, $c->{event_id}, $c->{color}, $c->{prioridad},
-            $c->{sucursal}, $c->{consultorio}
+            $c->{sucursal}, $c->{consultorio},
+            $c->{id_negocio} // '', $c->{elaborado_por} // ''
         ) . "\n";
     }
     close $fh;
@@ -189,7 +190,8 @@ sub crear_cita {
         fecha => $fec, hora_ini => $hi, hora_fin => $hf, 
         motivo => $motivo, notas => '', estado => 'Programada', event_id => $gid // '',
         color => '', prioridad => $query->param('prioridad') // 'Normal',
-        sucursal => $query->param('sucursal') // '', consultorio => $query->param('consultorio') // ''
+        sucursal => $query->param('sucursal') // '', consultorio => $query->param('consultorio') // '',
+        id_negocio => $session_data->{id_empresa} // '', elaborado_por => $session_data->{id_usuario} // ''
     };
     
     guardar_citas($arr);

@@ -59,7 +59,7 @@ my $hoy_fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
 my $id_tratamiento = 'TX-EXP-' . time() . '-' . int(rand(1000));
 my $id_neg = $sd->{id_empresa} || 'ORG-000';
 my $id_suc = $sd->{id_sucursal} || 'SUC-000';
-my $usuario = $sd->{usuario} || 'Sistema';
+my $usuario = $sd->{id_usuario} || 'Sistema';
 
 # 0. Lógica de Pacientes Privados (Sin Portal)
 my $org_clues = '';
