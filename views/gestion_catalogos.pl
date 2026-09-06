@@ -120,15 +120,6 @@ print <<"HTML";
                 </div>
             </div>
         </div>
-        
-        <!-- Footer -->
-        <footer class="sticky-footer bg-white">
-            <div class="container my-auto">
-                <div class="copyright text-center my-auto text-muted">
-                    <span>Ospulso &copy; 2026</span>
-                </div>
-            </div>
-        </footer>
     </div>
 </div> <!-- End of Wrapper -->
 
@@ -442,4 +433,8 @@ print <<'JS';
 </script>
 JS
 
-render_footer();
+print <<'HTML';
+    <script src="../js/session_watcher.js"></script>
+</body>
+</html>
+HTML
