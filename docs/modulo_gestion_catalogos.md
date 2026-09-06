@@ -47,3 +47,12 @@ Esta es la primera lÃ­nea de defensa para mantener la salud financiera e integri
 
 1.  **Bordes Expandidos:** La interfaz usa las clases de estandarizaciÃ³n mÃ³vil `.container-mobile-flush` y `.card-mobile-flush` dictadas en la guÃ­a de diseÃ±o de OSPulso.
 2.  **Advertencia Persistente:** Dado que este mÃ³dulo permite la manipulaciÃ³n a nivel de base de datos (`.dat`), un banner de Bootstrap de tipo `alert-danger` advierte al administrador sobre el impacto irreversible de eliminar registros (IDs) que ya poseen historial transaccional en otros mÃ³dulos, evitando asÃ­ rupturas relacionales con las notas de venta o expedientes mÃ©dicos.
+
+## 4. Arquitectura de Plugins (CatalogHooks)
+
+Para evitar que el código del frontend se convierta en un 'Spaghetti Code' lleno de condiciones específicas para cada tabla, la gestión de catálogos emplea una arquitectura modular basada en Hooks (CatalogHooks).
+
+Al crear o editar registros en catálogos especiales (ej. medicos_<CLUE>.dat), el sistema invoca métodos de un objeto de configuración para personalizar la experiencia sin afectar el núcleo del CRUD:
+- preload: Carga datos foráneos antes de mostrar el modal (ej. cargar especialidades_<CLUE>.dat).
+- onCalculateId: Intercepta la generación de un nuevo ID para aplicar reglas de autoincremento.
+- onRenderField: Transforma un campo de texto estándar en un componente dinámico (ej. convertir \ en un menú <select>).
