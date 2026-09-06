@@ -12,6 +12,7 @@ use Fcntl qw(:flock);
 use lib "$FindBin::Bin/..";
 
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 use utils::db_manager qw(guardar_registro actualizar_archivo);
 
 my $q = CGI->new;
@@ -107,7 +108,9 @@ if (!$has_portal_paciente && $id_paciente eq $nombre_empleado && $id_paciente !~
 
 # 1. Generar Folio Consecutivo
 my $is_estado = ($id_paciente =~ /^EMP-/) ? 1 : 0;
-my $contadores_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', $is_estado ? 'contadores_recibos_publicos.dat' : 'contadores_recibos_privados.dat');
+my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_neg);
+my $rutas_contadores = catalogo_org_utils::obtener_rutas_contadores($id_raiz);
+my $contadores_file = $is_estado ? $rutas_contadores->{publicos} : $rutas_contadores->{privados};
 unless (-e $contadores_file) {
     open my $fh_c, '>:encoding(UTF-8)', $contadores_file;
     print $fh_c "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n";

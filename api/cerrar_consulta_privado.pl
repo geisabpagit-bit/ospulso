@@ -13,6 +13,7 @@ use MIME::Base64 qw(decode_base64);
 use lib "$FindBin::Bin/..";
 
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 use utils::db_manager qw(guardar_registro actualizar_archivo);
 
 my $q = CGI->new;
@@ -437,7 +438,9 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         my $id_neg = $session_data->{id_empresa} || 'ORG-000';
         my $id_suc = $session_data->{id_sucursal} || 'SUC-000';
         
-        my $contadores_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'contadores_recibos_privados.dat');
+        my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_neg);
+        my $rutas_contadores = catalogo_org_utils::obtener_rutas_contadores($id_raiz);
+        my $contadores_file = $rutas_contadores->{privados};
         unless (-e $contadores_file) {
             open my $fh_c, '>:encoding(UTF-8)', $contadores_file;
             print $fh_c "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n";

@@ -278,13 +278,17 @@ if ($accion eq 'get_catalogo') {
     my $f = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $lt[5]+1900, $lt[4]+1, $lt[3], $lt[2], $lt[1], $lt[0]);
     my $f_folio = sprintf("%04d%02d%02d", $lt[5]+1900, $lt[4]+1, $lt[3]);
 
-    # GENERACIÓN DE FOLIO DE RECIBO (ABONO)
     my $id_neg = $session_data->{id_empresa} || 1;
     my $id_suc = $session_data->{id_sucursal} || 0;
+    
+    # Resolver ID raiz
+    my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_neg);
+    my $rutas_contadores = catalogo_org_utils::obtener_rutas_contadores($id_raiz);
+    
     my $next_folio = 1;
     my @nuevas_cont;
     my $encontrado = 0;
-    my $contadores_file = File::Spec->catfile($dat_path, 'contadores_recibos_privados.dat');
+    my $contadores_file = $rutas_contadores->{privados};
     
     if (-e $contadores_file && open(my $fh_c, '<:encoding(UTF-8)', $contadores_file)) {
         my @lines_c = <$fh_c>;

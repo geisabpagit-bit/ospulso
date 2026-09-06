@@ -16,6 +16,7 @@ our @EXPORT_OK = qw(
     crear_catalogo_org_desde_global
     catalogo_org_existe
     get_catalogo_universal
+    obtener_rutas_contadores
 );
 
 # ─────────────────────────────────────────────────────────────
@@ -123,6 +124,51 @@ sub obtener_rutas_catalogo {
         empleadosmun => File::Spec->catfile($dat, "empleadosmun_${id_raiz}.dat"),
         municipios => File::Spec->catfile($dat, "municipios_${id_raiz}.dat"),
         motivos => File::Spec->catfile($dat, "motivos_${id_raiz}.dat"),
+    };
+}
+
+# ─────────────────────────────────────────────────────────────
+# obtener_rutas_contadores($id_raiz)
+# Devuelve hashref con rutas absolutas de los archivos de contadores
+# de folios de la organizacion aislados por SaaS Tenant (CLUES o ID_RAIZ).
+# ─────────────────────────────────────────────────────────────
+sub obtener_rutas_contadores {
+    my ($id_raiz) = @_;
+    my $dat = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+    
+    # Resolver CLUE
+    my $clues = '';
+    
+    if (defined $id_raiz && $id_raiz eq '0') {
+        $clues = 'QTSMP000116';
+    } else {
+        my $n_file = File::Spec->catfile($dat, 'negocios.dat');
+        if (-e $n_file && open(my $nf, '<:encoding(UTF-8)', $n_file)) {
+            <$nf>;
+            while (my $line = <$nf>) {
+                chomp $line;
+                my @f = split(/\|/, $line, -1);
+                if ($f[0] eq $id_raiz) {
+                    $clues = $f[18] // '';
+                    last;
+                }
+            }
+            close $nf;
+        }
+    }
+    
+    if ($clues) {
+        my $clue_dir = File::Spec->catdir($dat, 'catalogos_CLUE', $clues);
+        return {
+            privados => File::Spec->catfile($clue_dir, "contadores_recibos_privados_${clues}.dat"),
+            publicos => File::Spec->catfile($clue_dir, "contadores_recibos_publicos_${clues}.dat"),
+        };
+    }
+    
+    # Fallback si no tiene CLUES
+    return {
+        privados => File::Spec->catfile($dat, "contadores_recibos_privados_${id_raiz}.dat"),
+        publicos => File::Spec->catfile($dat, "contadores_recibos_publicos_${id_raiz}.dat"),
     };
 }
 
