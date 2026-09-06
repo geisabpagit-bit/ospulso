@@ -200,72 +200,148 @@ print <<'PAGE_HTML';
             <!-- TAB: RESUMEN (Actual Dashboard) -->
             <div id="tab_resumen" class="sdm-tab-pane">
 
+                <!-- Barra de Control Temporal y Filtros Dinámicos (Executive Toolbar) -->
+                <div class="card card-mobile-flush border-0 shadow-sm mb-4" style="border-radius: 16px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.8);">
+                    <div class="card-body p-3 p-md-4">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                            <div>
+                                <h5 class="fw-bold plus-jakarta text-dark mb-1 d-flex align-items-center gap-2">
+                                    <i class="bi bi-speedometer2 text-primary"></i>
+                                    Tablero Financiero Ejecutivo
+                                </h5>
+                                <p class="text-muted small mb-0">Métricas consolidadas, rentabilidad y flujo operativo de la organización</p>
+                            </div>
+                            
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <!-- Botones Rápidos de Periodo -->
+                                <div class="btn-group btn-group-sm p-1 bg-light rounded-pill border" role="group" id="filterPillsGroup">
+                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('hoy', this)">Hoy</button>
+                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('semana', this)">Semana</button>
+                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill active btn-primary" onclick="seleccionarPeriodoDashboard('mes', this)">Este Mes</button>
+                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('ano', this)">Año</button>
+                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('todo', this)">Todo</button>
+                                </div>
 
-                <!-- KPI Cards Acrílicos -->
+                                <!-- Rango Personalizado -->
+                                <div class="d-flex align-items-center gap-1 bg-white p-1 rounded-pill border shadow-xs">
+                                    <input type="date" id="dashFechaInicio" class="form-control form-control-sm border-0 bg-transparent px-2" style="font-size:0.8rem; width:130px;" title="Fecha Desde">
+                                    <span class="text-muted small px-1"><i class="bi bi-arrow-right"></i></span>
+                                    <input type="date" id="dashFechaFin" class="form-control form-control-sm border-0 bg-transparent px-2" style="font-size:0.8rem; width:130px;" title="Fecha Hasta">
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="aplicarRangoManualDashboard()" title="Actualizar Totales">
+                                        <i class="bi bi-arrow-repeat" id="dashRefreshIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Cards Acrílicos con Drilldown a DataTables -->
                 <div class="kpi-grid mb-4">
-                    <!-- Ingresos Totales -->
-                    <div class="kpi-acrilico">
+                    <!-- 1. Ingresos Reales -> Ligar a tab_ingresos -->
+                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_ingresos')" title="Clic para ver detalle en Ingresos" style="cursor: pointer;">
                         <div class="kpi-icono" style="color: #10b981;"><i class="bi bi-cash-stack"></i></div>
-                        <div class="kpi-titulo">Ingresos Reales</div>
-                        <div class="kpi-valor" id="kpiIngresosTotales">$0.00</div>
-                        <div class="kpi-subtexto text-success fw-bold">(Cobrado)</div>
+                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
+                            Ingresos Reales <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                        </div>
+                        <div class="kpi-valor text-success" id="kpiIngresosTotales">$0.00</div>
+                        <div class="kpi-subtexto text-success fw-bold">(Cobrado en Caja)</div>
                     </div>
-                    <!-- Total Egresos -->
-                    <div class="kpi-acrilico">
+
+                    <!-- 2. Total Gastos -> Ligar a tab_gastos -->
+                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_gastos')" title="Clic para ver detalle en Egresos" style="cursor: pointer;">
                         <div class="kpi-icono" style="color: #ef4444;"><i class="bi bi-graph-down-arrow"></i></div>
-                        <div class="kpi-titulo">Total Gastos</div>
-                        <div class="kpi-valor" id="kpiTotalEgresos">$0.00</div>
-                        <div class="kpi-subtexto text-danger fw-bold">(Pagado)</div>
+                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
+                            Total Gastos <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                        </div>
+                        <div class="kpi-valor text-danger" id="kpiTotalEgresos">$0.00</div>
+                        <div class="kpi-subtexto text-danger fw-bold">(Pagado / Egresos)</div>
                     </div>
-                    <!-- Cuentas por Cobrar -->
+
+                    <!-- 3. Utilidad Neta / Flujo Neto (Sugerencia Premium) -->
                     <div class="kpi-acrilico">
+                        <div class="kpi-icono" style="color: #06b6d4;"><i class="bi bi-piggy-bank"></i></div>
+                        <div class="kpi-titulo">Utilidad Neta</div>
+                        <div class="kpi-valor" id="kpiUtilidadNeta">$0.00</div>
+                        <div class="kpi-subtexto text-muted" id="kpiMargenSubtexto">Margen: <span class="fw-bold">0%</span></div>
+                    </div>
+
+                    <!-- 4. Recibos Emitidos -> Ligar a tab_corte_caja (Requerimiento 3.1) -->
+                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_corte_caja')" title="Clic para ver detalle en Recibos y Arqueo" style="cursor: pointer;">
+                        <div class="kpi-icono" style="color: #6366f1;"><i class="bi bi-receipt-cutoff"></i></div>
+                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
+                            Recibos Emitidos <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                        </div>
+                        <div class="kpi-valor text-dark" id="kpiTotalRecibos">0</div>
+                        <div class="kpi-subtexto d-flex align-items-center justify-content-center gap-2 mt-1">
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1" id="kpiRecibosHoyBadge">Hoy: 0</span>
+                            <span class="text-muted small" id="kpiTicketPromedio">(Prom: $0.00)</span>
+                        </div>
+                    </div>
+
+                    <!-- 5. Cuentas por Cobrar -> Ligar a tab_cxc -->
+                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_cxc')" title="Clic para ver detalle en Cuentas por Cobrar" style="cursor: pointer;">
                         <div class="kpi-icono" style="color: #eab308;"><i class="bi bi-wallet2"></i></div>
-                        <div class="kpi-titulo">Cuentas por Cobrar</div>
-                        <div class="kpi-valor" id="kpiCuentasCobrar">$0.00</div>
-                        <div class="kpi-subtexto text-warning fw-bold">(Privadas)</div>
+                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
+                            Cuentas por Cobrar <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                        </div>
+                        <div class="kpi-valor text-warning" id="kpiCuentasCobrar">$0.00</div>
+                        <div class="kpi-subtexto text-warning fw-bold">(Saldos Privados)</div>
                     </div>
 PAGE_HTML
 
     if ($has_pacientes_estado) {
         print <<'PAGE_HTML';
-                    <!-- Cuentas por Cobrar al Estado -->
-                    <div class="kpi-acrilico">
+                    <!-- 6. CxC Estado (Públicas) -> Ligar a tab_cxc_estado -->
+                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_cxc_estado')" title="Clic para ver detalle en CxC Estado" style="cursor: pointer;">
                         <div class="kpi-icono" style="color: #0ea5e9;"><i class="bi bi-bank"></i></div>
-                        <div class="kpi-titulo">CxC (Estado)</div>
-                        <div class="kpi-valor" id="kpiCxcEstado">$0.00</div>
-                        <div class="kpi-subtexto text-info fw-bold">(Públicas)</div>
+                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
+                            CxC (Estado) <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                        </div>
+                        <div class="kpi-valor text-info" id="kpiCxcEstado">$0.00</div>
+                        <div class="kpi-subtexto text-info fw-bold">(Convenios Públicos)</div>
                     </div>
 PAGE_HTML
     }
 
     print <<'PAGE_HTML';
-                    <!-- Cotizaciones Activas -->
+                    <!-- 7. Cotizaciones Activas -->
                     <div class="kpi-acrilico">
                         <div class="kpi-icono" style="color: #f59e0b;"><i class="bi bi-file-earmark-text"></i></div>
                         <div class="kpi-titulo">Cotizado</div>
-                        <div class="kpi-valor" id="kpiPresupuestosActivos">$0.00</div>
-                        <div class="kpi-subtexto text-warning fw-bold">(Cotizaciones)</div>
+                        <div class="kpi-valor text-muted" id="kpiPresupuestosActivos">$0.00</div>
+                        <div class="kpi-subtexto text-secondary fw-bold">(Presupuestos)</div>
                     </div>
-                    <!-- Facturación del Mes -->
-                    <div class="kpi-acrilico">
-                        <div class="kpi-icono" style="color: #3b82f6;"><i class="bi bi-file-earmark-text"></i></div>
-                        <div class="kpi-titulo">Facturación del Mes</div>
-                        <div class="kpi-valor" id="kpiFacturacion">$0.00</div>
-                        <div class="kpi-subtexto text-primary fw-bold">(CFDI)</div>
+
+                    <!-- 8. Facturación del Mes -> Ligar a tab_facturacion -->
+                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_facturacion')" title="Clic para ver detalle en Facturación" style="cursor: pointer;">
+                        <div class="kpi-icono" style="color: #3b82f6;"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
+                            Facturación <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                        </div>
+                        <div class="kpi-valor text-primary" id="kpiFacturacion">$0.00</div>
+                        <div class="kpi-subtexto text-primary fw-bold">(Comprobantes CFDI)</div>
                     </div>
-                    <!-- Eficiencia de Cobro -->
+
+                    <!-- 9. Eficiencia de Cobro -->
                     <div class="kpi-acrilico">
                         <div class="kpi-icono" style="color: #059669;"><i class="bi bi-percent"></i></div>
                         <div class="kpi-titulo">Eficiencia de Cobro</div>
-                        <div class="kpi-valor" id="kpiEficiencia">0%</div>
-                        <div class="kpi-subtexto text-success fw-bold">(Tasa Real)</div>
+                        <div class="kpi-valor text-success" id="kpiEficiencia">0%</div>
+                        <div class="kpi-subtexto text-success fw-bold">(Tasa de Recuperación)</div>
                     </div>
                 </div>
 
+                <!-- Analítica Visual Avanzada: Evolución & Distribución -->
                 <div class="row g-4 mb-4">
                     <div class="col-lg-7">
                         <div class="card-acrilico h-100">
-                            <h6 class="fw-bold plus-jakarta mb-4 text-dark">Evolución de Ingresos</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h6 class="fw-bold plus-jakarta mb-1 text-dark">Evolución Financiera Semestral</h6>
+                                    <p class="text-muted small mb-0">Comparativa mensual de ingresos cobrados vs egresos operativos</p>
+                                </div>
+                            </div>
                             <div style="height: 250px; width: 100%;">
                                 <canvas id="lineEvolucionIngresos"></canvas>
                             </div>
@@ -274,9 +350,11 @@ PAGE_HTML
                     
                     <div class="col-lg-5">
                         <div class="card-acrilico h-100 d-flex flex-column justify-content-center">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h6 class="fw-bold plus-jakarta m-0 text-dark">Ingresos vs Egresos</h6>
-                                <select class="form-select form-select-sm w-auto rounded-pill text-muted fw-bold bg-light border-0"><option>Histórico</option></select>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h6 class="fw-bold plus-jakarta mb-1 text-dark">Balance del Periodo</h6>
+                                    <p class="text-muted small mb-0">Distribución porcentual de flujo de efectivo</p>
+                                </div>
                             </div>
                             
                             <div class="d-flex flex-column align-items-center g-0">
@@ -284,7 +362,7 @@ PAGE_HTML
                                     <canvas id="pieResumenFinanzas"></canvas>
                                     <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
                                         <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValFinanzas" style="font-size: 1.1rem;">$0</h5>
-                                        <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Total</span>
+                                        <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Total Flujo</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-center gap-4 w-100">
@@ -308,39 +386,6 @@ PAGE_HTML
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Resumen de Ingresos (Table) -->
-                <div class="bento-card mb-5">
-                    <h6 class="fw-bold plus-jakarta mb-4 text-dark">Resumen de Ingresos Recientes</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped table-hover table-bordered align-middle mb-0 table-diamond" id="tablaResumenIngresos">
-                            <thead class="text-muted small">
-                                <tr>
-                                    <th class="border-0">Fecha</th>
-                                    <th class="border-0">Concepto</th>
-                                    <th class="border-0">Folio</th>
-                                    <th class="border-0">Paciente</th>
-                                    <th class="border-0">Monto</th>
-                                    <th class="border-0">Tipo</th>
-                                    <th class="border-0 text-center">Opciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyResumenIngresos">
-                                <!-- JS fills this -->
-                            </tbody>
-                            <tfoot class="bg-light fw-bold">
-                                <tr>
-                                    <td colspan="4" class="text-end">Total:</td>
-                                    <td id="tfootResumenMonto"></td>
-                                    <td colspan="2"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                    <div class="text-center mt-4">
-                        <button class="btn btn-sm btn-link text-decoration-none fw-bold" onclick="swTab('tab_ingresos', document.querySelectorAll('.sub-link')[1])" style="color: var(--md-blue-deep);">Ver historial completo de ingresos <i class="bi bi-chevron-right"></i></button>
                     </div>
                 </div>
             </div>
@@ -1516,11 +1561,26 @@ PAGE_HTML
 <script>
     window.bootFinanzas = function() {
         console.log("[SPA Debug] Ejecutando bootFinanzas...");
+        
+        // Inicializar fechas por defecto del dashboard (Este Mes)
+        const now = new Date();
+        const pad = n => n.toString().padStart(2, '0');
+        const firstDay = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
+        const lastDay = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate())}`;
+        const inStart = document.getElementById('dashFechaInicio');
+        const inEnd = document.getElementById('dashFechaFin');
+        if (inStart && !inStart.value) inStart.value = firstDay;
+        if (inEnd && !inEnd.value) inEnd.value = lastDay;
+
         if(typeof window.initModuloFinanciero === 'function') {
             console.log("[SPA Debug] Llamando a initModuloFinanciero");
             window.initModuloFinanciero('', 'bento', ''); 
         } else {
             console.warn("[SPA Debug] initModuloFinanciero no está definido en el contexto window");
+        }
+
+        if (typeof window.cargarDashboardKPIs === 'function') {
+            window.cargarDashboardKPIs(inStart ? inStart.value : '', inEnd ? inEnd.value : '');
         }
 
         const urlParams = new URLSearchParams(window.location.search);

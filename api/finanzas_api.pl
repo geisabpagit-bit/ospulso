@@ -285,59 +285,265 @@ elsif ($action eq 'get_ingresos') {
     print encode_json({ success => 1, data => \@ingresos });
 }
 elsif ($action eq 'get_dashboard') {
-    # 1. Ingresos y CxC (desde estado_cuenta.dat)
+    my $f_inicio = $q->param('f_inicio') || '';
+    my $f_fin    = $q->param('f_fin') || '';
+    
+    my $id_empresa = $session_data->{id_empresa} // '';
+    my $role       = $session_data->{role} // 'Invitado';
+    my $id_medico  = $session_data->{id_medico} // '';
+    my $es_admin_global = ($role eq 'Administrador Global') ? 1 : 0;
+
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
+    my $hoy_str = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
+
+    # 1. Mapear pacientes que pertenecen a la organización del usuario
+    my %pacientes_org;
+    my $pac_file = "$FindBin::Bin/../dat/pacientes.dat";
+    if (-e $pac_file && open(my $fhp, '<:utf8', $pac_file)) {
+        while (my $line = <$fhp>) {
+            chomp $line;
+            next if $line =~ /^ID_PACIENTE/ || $line =~ /^\s*$/;
+            my @f = split(/\|/, $line);
+            my $id_pac = $f[0];
+            my $tenant_pac = $f[13] // '';
+            my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
+            
+            if ($es_admin_global) {
+                $pacientes_org{$id_pac} = 1;
+            } elsif ($org_pac && $org_pac eq $id_empresa) {
+                $pacientes_org{$id_pac} = 1;
+            } elsif (!$org_pac) {
+                $pacientes_org{$id_pac} = 1;
+            }
+        }
+        close $fhp;
+    }
+
+    # 2. Mapear usuarios de la organización (para gastos y autorizaciones)
+    my %usuarios_org;
+    my $user_file = "$FindBin::Bin/../dat/usuarios.dat";
+    if (-e $user_file && open(my $fhu, '<:utf8', $user_file)) {
+        while (my $l = <$fhu>) {
+            chomp $l;
+            next if $l =~ /^id!/ || $l =~ /^\s*$/;
+            my @u = split(/!/, $l, -1);
+            my $u_name = $u[1] || '';
+            my $u_biz  = $u[6] || '0:0';
+            my ($u_org) = split(/:/, $u_biz);
+            if ($es_admin_global || $u_org eq $id_empresa || $u_biz eq '0:0') {
+                $usuarios_org{$u_name} = 1;
+            }
+        }
+        close $fhu;
+    }
+
+    # 3. Ingresos y CxC (desde estado_cuenta.dat)
     my @movs = @{ leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat") };
     my ($ingresos_totales, $cxc) = (0, 0);
     my %saldos;
+
     for my $m (@movs) {
-        my $id_pac = $m->[2];
+        my $id_pac = $m->[2] || '';
         my $tipo   = $m->[3] || '';
         my $notas  = $m->[10] || '';
         my $total  = $m->[7] || 0;
+        my $fecha  = $m->[8] || '';
 
         # Excluir entradas legadas tipo cotizacion/presupuesto del balance
         next if $tipo eq 'Cargo' && $notas =~ /Presupuesto|Cotizacion/i;
 
+        # Filtro multi-tenant
+        next unless $es_admin_global || $pacientes_org{$id_pac};
+
+        # Si el rol es Medico, filtrar solo sus propios movimientos
+        if ($role eq 'Medico') {
+            next if ($m->[9] || '') ne $id_medico;
+        }
+
+        # Saldos acumulados para cálculo de CxC
         $saldos{$id_pac} ||= { cargo => 0, abono => 0 };
         if ($tipo eq 'Cargo') { $saldos{$id_pac}{cargo} += $total; }
-        if ($tipo eq 'Abono') { $saldos{$id_pac}{abono} += $total; $ingresos_totales += $total; }
+        if ($tipo eq 'Abono') { $saldos{$id_pac}{abono} += $total; }
+
+        # Ingresos reales en el periodo
+        my $dentro_de_rango = 1;
+        if ($f_inicio && $f_fin) {
+            $dentro_de_rango = ($fecha ge $f_inicio && $fecha le $f_fin) ? 1 : 0;
+        } elsif ($f_inicio) {
+            $dentro_de_rango = ($fecha ge $f_inicio) ? 1 : 0;
+        } elsif ($f_fin) {
+            $dentro_de_rango = ($fecha le $f_fin) ? 1 : 0;
+        }
+
+        if ($dentro_de_rango && $tipo eq 'Abono') {
+            $ingresos_totales += $total;
+        }
     }
 
+    # Calcular CxC privada y pública (Estado)
+    my $cxc_estado = 0;
     for my $id (keys %saldos) {
         my $pend = $saldos{$id}{cargo} - $saldos{$id}{abono};
-        $cxc += $pend if $pend > 0;
+        if ($pend > 0) {
+            $cxc += $pend;
+            if ($id =~ /^EMP-/) {
+                $cxc_estado += $pend;
+            }
+        }
     }
 
-    # 2. Egresos
+    # 4. Egresos (desde gastos.dat)
     my @gastos_raw = @{ leer_tabla("$FindBin::Bin/../dat/gastos.dat") };
     my $egresos_totales = 0;
     for my $g (@gastos_raw) {
+        my $g_fecha   = $g->[1] || '';
+        my $g_creador = $g->[10] || '';
+
+        # Filtro multi-tenant por usuario creador
+        next unless $es_admin_global || $usuarios_org{$g_creador};
+
+        # Filtro por rango de fechas
+        if ($f_inicio && $f_fin) {
+            next if ($g_fecha lt $f_inicio || $g_fecha gt $f_fin);
+        } elsif ($f_inicio) {
+            next if ($g_fecha lt $f_inicio);
+        } elsif ($f_fin) {
+            next if ($g_fecha gt $f_fin);
+        }
+
         $egresos_totales += ($g->[6] || 0);
     }
 
-    # 3. Cotizaciones: total global desde cotizaciones.dat (fuente canonica)
+    # 5. Cotizaciones activas (desde cotizaciones.dat)
     my $cotizaciones = 0;
     my $cot_dat = "$FindBin::Bin/../dat/cotizaciones.dat";
-    if (-e $cot_dat) {
-        open(my $fhc, '<:encoding(UTF-8)', $cot_dat);
+    if (-e $cot_dat && open(my $fhc, '<:encoding(UTF-8)', $cot_dat)) {
         <$fhc>; # saltar cabecera
         while (my $cline = <$fhc>) {
             chomp $cline;
             next if $cline =~ /^\s*$/;
             my @cv = split /\|/, $cline, -1;
-            # ID_COT|ID_PACIENTE|NOMBRE|TOTAL|FECHA|ID_MEDICO
-            next unless scalar(@cv) >= 4;
-            $cotizaciones += ($cv[3] + 0);
+            next unless scalar(@cv) >= 5;
+            my $c_id_pac = $cv[1] || '';
+            my $c_monto  = $cv[3] + 0;
+            my $c_fecha  = $cv[4] || '';
+
+            # Filtro multi-tenant
+            next unless $es_admin_global || $pacientes_org{$c_id_pac};
+
+            if ($f_inicio && $f_fin) {
+                next if ($c_fecha lt $f_inicio || $c_fecha gt $f_fin);
+            }
+            $cotizaciones += $c_monto;
         }
         close $fhc;
     }
 
+    # 6. Conteo de Recibos Emitidos (folios_recibos_privados y publicos)
+    my $total_recibos_periodo = 0;
+    my $total_recibos_hoy = 0;
+    my %metodos_pago;
+
+    foreach my $rf ("$FindBin::Bin/../dat/folios_recibos_privados.dat", "$FindBin::Bin/../dat/folios_recibos_publicos.dat") {
+        if (-e $rf && open(my $fhr, '<:encoding(UTF-8)', $rf)) {
+            <$fhr>; # cabecera
+            while (my $rline = <$fhr>) {
+                chomp $rline;
+                next if $rline =~ /^\s*$/;
+                my @r = split(/\|/, $rline, -1);
+                next if scalar(@r) < 7;
+                my $r_negocio = $r[2] // '';
+                my $r_fecha   = $r[6] // '';
+                my $r_estatus = $r[14] // '';
+                my $r_metodo  = $r[10] // 'Efectivo';
+                my $r_monto   = $r[9] || 0;
+
+                next if $r_estatus =~ /Cancelado/i;
+
+                # Filtro multi-tenant
+                next unless $es_admin_global || $r_negocio eq $id_empresa || $r_negocio eq '' || $r_negocio eq '0';
+
+                if ($r_fecha eq $hoy_str) {
+                    $total_recibos_hoy++;
+                }
+
+                if ($f_inicio && $f_fin) {
+                    next if ($r_fecha lt $f_inicio || $r_fecha gt $f_fin);
+                } elsif ($f_inicio) {
+                    next if ($r_fecha lt $f_inicio);
+                } elsif ($f_fin) {
+                    next if ($r_fecha gt $f_fin);
+                }
+
+                $total_recibos_periodo++;
+                $metodos_pago{$r_metodo} += $r_monto;
+            }
+            close $fhr;
+        }
+    }
+
+    my $ticket_promedio = $total_recibos_periodo > 0 ? ($ingresos_totales / $total_recibos_periodo) : 0;
+    my $utilidad_neta = $ingresos_totales - $egresos_totales;
+
+    # 7. Serie Mensual Real de los últimos 6 meses
+    my @meses_info;
+    my %meses_ingresos;
+    my %meses_gastos;
+    my @nombres_mes = qw(Ene Feb Mar Abr May Jun Jul Ago Sep Oct Nov Dic);
+
+    for (my $i = 5; $i >= 0; $i--) {
+        my ($s,$mn,$h,$md,$mo,$yr) = localtime(time - ($i * 30 * 86400));
+        my $ym = sprintf("%04d-%02d", $yr+1900, $mo+1);
+        my $label = $nombres_mes[$mo] . " " . substr($yr+1900, 2, 2);
+        push @meses_info, { ym => $ym, label => $label };
+        $meses_ingresos{$ym} = 0;
+        $meses_gastos{$ym} = 0;
+    }
+
+    for my $m (@movs) {
+        my $id_pac = $m->[2] || '';
+        my $tipo   = $m->[3] || '';
+        my $total  = $m->[7] || 0;
+        my $fecha  = $m->[8] || '';
+        next unless $tipo eq 'Abono';
+        next unless $es_admin_global || $pacientes_org{$id_pac};
+        my ($ym) = $fecha =~ /^(\d{4}-\d{2})/;
+        if ($ym && exists $meses_ingresos{$ym}) {
+            $meses_ingresos{$ym} += $total;
+        }
+    }
+
+    for my $g (@gastos_raw) {
+        my $g_fecha   = $g->[1] || '';
+        my $g_creador = $g->[10] || '';
+        next unless $es_admin_global || $usuarios_org{$g_creador};
+        my ($ym) = $g_fecha =~ /^(\d{4}-\d{2})/;
+        if ($ym && exists $meses_gastos{$ym}) {
+            $meses_gastos{$ym} += ($g->[6] || 0);
+        }
+    }
+
+    my @chart_labels   = map { $_->{label} } @meses_info;
+    my @chart_ingresos = map { $meses_ingresos{$_->{ym}} || 0 } @meses_info;
+    my @chart_gastos   = map { $meses_gastos{$_->{ym}} || 0 } @meses_info;
+
     print encode_json({
-        success      => 1,
-        ingresos     => $ingresos_totales,
-        cxc          => $cxc,
-        gastos       => $egresos_totales,
-        cotizaciones => $cotizaciones
+        success         => 1,
+        ingresos        => $ingresos_totales,
+        cxc             => $cxc,
+        cxc_estado      => $cxc_estado,
+        gastos          => $egresos_totales,
+        utilidad        => $utilidad_neta,
+        cotizaciones    => $cotizaciones,
+        recibos_periodo => $total_recibos_periodo,
+        recibos_hoy     => $total_recibos_hoy,
+        ticket_promedio => sprintf("%.2f", $ticket_promedio),
+        metodos_pago    => \%metodos_pago,
+        chart_series    => {
+            labels   => \@chart_labels,
+            ingresos => \@chart_ingresos,
+            gastos   => \@chart_gastos
+        }
     });
 }
 elsif ($action eq 'get_categorias_gastos') {

@@ -1019,54 +1019,58 @@ function _initRadioCotizacion() {
 }
 
 var lineChartInstance = lineChartInstance || null;
-function renderEvolucionIngresosGlobal() {
+function renderEvolucionIngresosGlobal(seriesData) {
     const canvas = document.getElementById("lineEvolucionIngresos");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     
     if (lineChartInstance) lineChartInstance.destroy();
 
-    const gradBlue = ctx.createLinearGradient(0, 0, 0, 250);
-    gradBlue.addColorStop(0, "rgba(59, 130, 246, 0.4)");
-    gradBlue.addColorStop(1, "rgba(59, 130, 246, 0.0)");
+    const gradGreen = ctx.createLinearGradient(0, 0, 0, 250);
+    gradGreen.addColorStop(0, "rgba(16, 185, 129, 0.35)");
+    gradGreen.addColorStop(1, "rgba(16, 185, 129, 0.0)");
 
-    const gradGold = ctx.createLinearGradient(0, 0, 0, 250);
-    gradGold.addColorStop(0, "rgba(234, 179, 8, 0.4)");
-    gradGold.addColorStop(1, "rgba(234, 179, 8, 0.0)");
+    const gradRed = ctx.createLinearGradient(0, 0, 0, 250);
+    gradRed.addColorStop(0, "rgba(239, 68, 68, 0.25)");
+    gradRed.addColorStop(1, "rgba(239, 68, 68, 0.0)");
+
+    const labels = (seriesData && seriesData.labels && seriesData.labels.length) ? seriesData.labels : ["Ene", "Feb", "Mar", "Abr", "May", "Jun"];
+    const dataIngresos = (seriesData && seriesData.ingresos) ? seriesData.ingresos : [0, 0, 0, 0, 0, 0];
+    const dataGastos = (seriesData && seriesData.gastos) ? seriesData.gastos : [0, 0, 0, 0, 0, 0];
 
     lineChartInstance = new Chart(ctx, {
         type: "line",
         data: {
-            labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
+            labels: labels,
             datasets: [
                 {
-                    label: "Este A\xF1o",
-                    data: [80000, 150000, 220000, 190000, 260000, 290000],
-                    borderColor: "#2563eb",
-                    backgroundColor: gradBlue,
+                    label: "Ingresos (Cobrado)",
+                    data: dataIngresos,
+                    borderColor: "#10b981",
+                    backgroundColor: gradGreen,
                     borderWidth: 3,
                     pointBackgroundColor: "#fff",
-                    pointBorderColor: "#2563eb",
+                    pointBorderColor: "#10b981",
                     pointBorderWidth: 2,
                     pointRadius: 4,
                     pointHoverRadius: 6,
                     fill: true,
-                    tension: 0.4
+                    tension: 0.35
                 },
                 {
-                    label: "A\xF1o Anterior",
-                    data: [60000, 110000, 130000, 120000, 170000, 180000],
-                    borderColor: "#eab308",
-                    backgroundColor: gradGold,
-                    borderWidth: 3,
-                    borderDash: [5, 5],
+                    label: "Gastos (Pagado)",
+                    data: dataGastos,
+                    borderColor: "#ef4444",
+                    backgroundColor: gradRed,
+                    borderWidth: 2,
+                    borderDash: [4, 4],
                     pointBackgroundColor: "#fff",
-                    pointBorderColor: "#eab308",
+                    pointBorderColor: "#ef4444",
                     pointBorderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
                     fill: true,
-                    tension: 0.4
+                    tension: 0.35
                 }
             ]
         },
@@ -1083,11 +1087,30 @@ function renderEvolucionIngresosGlobal() {
                         boxWidth: 8,
                         font: { family: "sans-serif", weight: "bold", size: 11 }
                     }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== null) {
+                                label += formatter.format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
                 }
             },
             scales: {
                 x: { grid: { display: false } },
-                y: { grid: { color: "rgba(0,0,0,0.04)" } }
+                y: { 
+                    grid: { color: "rgba(0,0,0,0.04)" },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + (value >= 1000 ? (value/1000) + 'k' : value);
+                        }
+                    }
+                }
             }
         }
     });
@@ -2222,38 +2245,141 @@ window.editarOrigenDinero = async function(id, oldName, oldDesc) {
 }
 
 
-window.cargarDashboardKPIs = function() {
+window.cargarDashboardKPIs = function(f_inicio, f_fin) {
     if (document.getElementById('kpiIngresosTotales')) {
-        fetch('../api/finanzas_api.pl', { method: 'POST', body: new URLSearchParams({action: 'get_dashboard'}), credentials: 'same-origin' })
+        const refreshIcon = document.getElementById('dashRefreshIcon');
+        if (refreshIcon) refreshIcon.classList.add('bi-spin');
+
+        const params = new URLSearchParams({ action: 'get_dashboard' });
+        if (f_inicio) params.append('f_inicio', f_inicio);
+        if (f_fin) params.append('f_fin', f_fin);
+
+        fetch('../api/finanzas_api.pl', { method: 'POST', body: params, credentials: 'same-origin' })
             .then(r => r.json())
             .then(dash => {
+                if (refreshIcon) refreshIcon.classList.remove('bi-spin');
                 if (dash.success) {
                     const eIT = document.getElementById('kpiIngresosTotales');
                     const eCC = document.getElementById('kpiCuentasCobrar');
+                    const eCCE = document.getElementById('kpiCxcEstado');
                     const eF = document.getElementById('kpiFacturacion');
                     const eEC = document.getElementById('kpiEficiencia');
                     const eEgresos = document.getElementById('kpiTotalEgresos');
                     const eCotizaciones = document.getElementById('kpiPresupuestosActivos');
+                    const eUtilidad = document.getElementById('kpiUtilidadNeta');
+                    const eMargenSub = document.getElementById('kpiMargenSubtexto');
+                    const eRecibosTot = document.getElementById('kpiTotalRecibos');
+                    const eRecibosHoy = document.getElementById('kpiRecibosHoyBadge');
+                    const eTicketProm = document.getElementById('kpiTicketPromedio');
                     
                     if (eIT) eIT.innerText = formatter.format(dash.ingresos || 0);
+                    if (eEgresos) eEgresos.innerText = formatter.format(dash.gastos || 0);
                     if (eCotizaciones) eCotizaciones.innerText = formatter.format(dash.cotizaciones || 0);
                     if (eCC) eCC.innerText = formatter.format(dash.cxc || 0);
-                    if (eEgresos) eEgresos.innerText = formatter.format(dash.gastos || 0);
+                    if (eCCE) eCCE.innerText = formatter.format(dash.cxc_estado || 0);
                     if (eF) eF.innerText = formatter.format(dash.ingresos || 0);
+
+                    // Utilidad Neta
+                    const utilidad = (dash.utilidad !== undefined) ? dash.utilidad : ((dash.ingresos || 0) - (dash.gastos || 0));
+                    if (eUtilidad) {
+                        eUtilidad.innerText = formatter.format(utilidad);
+                        eUtilidad.className = utilidad >= 0 ? 'kpi-valor text-success fw-bold' : 'kpi-valor text-danger fw-bold';
+                    }
+                    if (eMargenSub) {
+                        const margen = (dash.ingresos && dash.ingresos > 0) ? ((utilidad / dash.ingresos) * 100).toFixed(1) : 0;
+                        eMargenSub.innerHTML = `Margen: <span class="fw-bold ${margen >= 0 ? 'text-success' : 'text-danger'}">${margen}%</span>`;
+                    }
+
+                    // Recibos Emitidos
+                    if (eRecibosTot) eRecibosTot.innerText = (dash.recibos_periodo || 0).toLocaleString();
+                    if (eRecibosHoy) eRecibosHoy.innerText = `Hoy: ${dash.recibos_hoy || 0}`;
+                    if (eTicketProm) eTicketProm.innerText = `(Prom: ${formatter.format(dash.ticket_promedio || 0)})`;
+
+                    // Eficiencia de Cobro
                     if (eEC) {
                         let cargos_totales = (dash.ingresos || 0) + (dash.cxc || 0);
                         let eff = cargos_totales > 0 ? (dash.ingresos / cargos_totales * 100) : 0;
                         eEC.innerText = eff.toFixed(1) + '%';
                     }
+
+                    // Gráficos con Datos Reales
                     if (typeof actualizarPieChartDashboard === 'function') {
                         actualizarPieChartDashboard(dash.ingresos || 0, dash.gastos || 0);
                     }
                     if (typeof renderEvolucionIngresosGlobal === 'function') {
-                        renderEvolucionIngresosGlobal();
+                        renderEvolucionIngresosGlobal(dash.chart_series);
                     }
                 }
+            })
+            .catch(err => {
+                if (refreshIcon) refreshIcon.classList.remove('bi-spin');
+                console.error("Error cargando dashboard:", err);
             });
     }
+};
+
+window.seleccionarPeriodoDashboard = function(tipo, btnEl) {
+    if (btnEl) {
+        document.querySelectorAll('#filterPillsGroup .btn-filter-pill').forEach(b => {
+            b.classList.remove('active', 'btn-primary');
+            b.classList.add('btn-light', 'text-secondary');
+        });
+        btnEl.classList.remove('btn-light', 'text-secondary');
+        btnEl.classList.add('active', 'btn-primary');
+    }
+
+    const now = new Date();
+    let fInicio = '';
+    let fFin = '';
+
+    const pad = n => n.toString().padStart(2, '0');
+    const toYMD = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    if (tipo === 'hoy') {
+        fInicio = toYMD(now);
+        fFin = toYMD(now);
+    } else if (tipo === 'semana') {
+        const d = new Date(now);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(d.setDate(diff));
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        fInicio = toYMD(monday);
+        fFin = toYMD(sunday);
+    } else if (tipo === 'mes') {
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        fInicio = toYMD(firstDay);
+        fFin = toYMD(lastDay);
+    } else if (tipo === 'ano') {
+        const firstDay = new Date(now.getFullYear(), 0, 1);
+        const lastDay = new Date(now.getFullYear(), 11, 31);
+        fInicio = toYMD(firstDay);
+        fFin = toYMD(lastDay);
+    } else if (tipo === 'todo') {
+        fInicio = '';
+        fFin = '';
+    }
+
+    const inStart = document.getElementById('dashFechaInicio');
+    const inEnd = document.getElementById('dashFechaFin');
+    if (inStart) inStart.value = fInicio;
+    if (inEnd) inEnd.value = fFin;
+
+    window.cargarDashboardKPIs(fInicio, fFin);
+};
+
+window.aplicarRangoManualDashboard = function() {
+    const fInicio = document.getElementById('dashFechaInicio')?.value || '';
+    const fFin = document.getElementById('dashFechaFin')?.value || '';
+    
+    document.querySelectorAll('#filterPillsGroup .btn-filter-pill').forEach(b => {
+        b.classList.remove('active', 'btn-primary');
+        b.classList.add('btn-light', 'text-secondary');
+    });
+
+    window.cargarDashboardKPIs(fInicio, fFin);
 };
 
 var pieFinanzasInstance = pieFinanzasInstance || null;
