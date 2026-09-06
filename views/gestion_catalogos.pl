@@ -47,8 +47,6 @@ if (!$org_clues) {
     exit;
 }
 
-print $q->header(-type => 'text/html', -charset => 'UTF-8');
-
 render_header(
     titulo => 'Gestión de Catálogos (CRUD) - OSPulso',
     role  => $role,
@@ -66,7 +64,7 @@ print <<'HTML';
 <div id="wrapper">
 HTML
 
-render_sidebar(
+utils::sub_sidebar::render_sidebar(
     usuario => $usuario,
     role => $role,
     id_medico => $id_medico,
