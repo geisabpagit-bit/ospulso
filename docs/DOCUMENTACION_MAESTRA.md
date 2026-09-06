@@ -100,3 +100,7 @@ El sistema soporta tres escenarios operativos integrales para el cobro de la con
 - **Seguridad en MÃ³dulo de Backups**: PrevenciÃ³n de autobackups al ingresar a la vista y soporte de borrado para prefijos `auto_backup_` y `ospulso_backup_`.
 
 **Software Dental Mexicano - Diamond Edition v4.4.1**
+
+### 2.7 Módulo de Gestión Dinámica de Catálogos (Enterprise)
+- **Aislamiento de Configuración Base**: Un administrador puede mantener archivos .dat de listas maestras a nivel tenant (CLUE) bajo un sistema CRUD agnóstico y validado.
+- Ver detalles técnicos y arquitectura Frontend (Hooks de Catálogo) en: [Módulo Gestión de Catálogos](modulo_gestion_catalogos.md)
