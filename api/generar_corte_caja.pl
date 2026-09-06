@@ -135,6 +135,19 @@ my $total_ingresos = 0;
 if (-e $archivo_ingresos) {
     my $ing_data = leer_tabla($archivo_ingresos);
     foreach my $f (@$ing_data) {
+        my $id_negocio = $f->[2] || '';
+        if ($id_empresa && $id_negocio && $id_negocio ne $id_empresa) {
+            next;
+        }
+
+        # Filtro RBAC Recepcionista
+        my $elaborado_por = $f->[11] || '';
+        if ($session_data->{role} eq 'Recepcionista') {
+            my $mi_user = $session_data->{usuario};
+            my $mi_nombre = $session_data->{nombre_completo} || $medicos{$mi_user} || $mi_user;
+            next unless ($elaborado_por eq $mi_user || $elaborado_por eq $mi_nombre);
+        }
+
         my $fecha = $f->[6] || '';
         my $estatus = $f->[14] || '';
         my $is_cancelado = ($estatus =~ /Cancelado/i) ? 1 : 0;
@@ -249,6 +262,19 @@ if ($org_clues) {
 if (-e $archivo_publicos) {
     my $pub_data = leer_tabla($archivo_publicos);
     foreach my $f (@$pub_data) {
+        my $id_negocio = $f->[2] || '';
+        if ($id_empresa && $id_negocio && $id_negocio ne $id_empresa) {
+            next;
+        }
+
+        # Filtro RBAC Recepcionista
+        my $elaborado_por = $f->[11] || '';
+        if ($session_data->{role} eq 'Recepcionista') {
+            my $mi_user = $session_data->{usuario};
+            my $mi_nombre = $session_data->{nombre_completo} || $medicos{$mi_user} || $mi_user;
+            next unless ($elaborado_por eq $mi_user || $elaborado_por eq $mi_nombre);
+        }
+
         my $fecha = $f->[6] || '';
         my $estatus = $f->[14] || '';
         my $is_cancelado = ($estatus =~ /Cancelado/i) ? 1 : 0;
