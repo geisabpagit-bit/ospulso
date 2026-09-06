@@ -1,1 +1,29 @@
 ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDICO|NOTAS|ALIAS
+27759|MOV-1788670482-100|PRIV-1788670381306|Cargo|Aplicacion IN|55|0|55|2026-09-05||Cargo Walk-in | Paciente: Santiago Vellaniegos | Concepto: Enfermeria|Santiago Vellaniegos
+27759|MOV-1788670482-ABONO|PRIV-1788670381306|Abono|Abono en Caja - Efectivo|55|0|55|2026-09-05||Pago Recibo Rápido | Metodo: Efectivo | Concepto: Enfermeria|Santiago Vellaniegos
+6846|MOV-1788670980-100|EMP-4672|Cargo|Consulta|0|0|0|2026-09-05|17|Cargo Walk-in | Paciente: García Avilés Jorge | Concepto: Consulta|García Avilés Jorge
+6846|MOV-1788670980-101|EMP-4672|Cargo|CRANEO AP|390|0|390|2026-09-05|17|Cargo Walk-in | Paciente: García Avilés Jorge | Concepto: Consulta|García Avilés Jorge
+6846|MOV-1788670980-102|EMP-4672|Cargo|COLUMNA CERVICAL AP- LATERAL|715|0|715|2026-09-05|17|Cargo Walk-in | Paciente: García Avilés Jorge | Concepto: Consulta|García Avilés Jorge
+6846|MOV-1788670980-ABONO|EMP-4672|Abono|Abono en Caja - Efectivo|1105|0|1105|2026-09-05|17|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|García Avilés Jorge
+27760|MOV-1788671809-100|PRIV-1788671809651|Cargo|Consulta|220|0|220|2026-09-05|52|Cargo Walk-in | Paciente: wendy | Concepto: Consulta|wendy
+27760|MOV-1788671809-ABONO|PRIV-1788671809651|Abono|Abono en Caja - Efectivo|220|0|220|2026-09-05|52|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|wendy
+6847|MOV-1788671849-100|EMP-6113|Cargo|Consulta|0|0|0|2026-09-05|6|Cargo Walk-in | Paciente: Martinez Lopez Margarita Concepcion | Concepto: Consulta|Martinez Lopez Margarita Concepcion
+6847|MOV-1788671849-ABONO|EMP-6113|Abono|Abono en Caja - Efectivo|0|0|0|2026-09-05|6|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|Martinez Lopez Margarita Concepcion
+27761|MOV-1788673613-100|PRIV-1788240311707|Cargo|consulta|220|0|220|2026-09-05|37|Cargo Walk-in | Paciente: israel garay | Concepto: Consulta|israel garay
+27761|MOV-1788673613-ABONO|PRIV-1788240311707|Abono|Abono en Caja - Efectivo|220|0|220|2026-09-05|37|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|israel garay
+6848|MOV-1788673671-100|EMP-6113|Cargo|Consulta|0|0|0|2026-09-05|63|Cargo Walk-in | Paciente: Martinez Lopez Margarita Concepcion | Concepto: Consulta|Martinez Lopez Margarita Concepcion
+6848|MOV-1788673671-ABONO|EMP-6113|Abono|Abono en Caja - Efectivo|0|0|0|2026-09-05|63|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|Martinez Lopez Margarita Concepcion
+27762|MOV-1788673754-100|PRIV-1788671809651|Cargo|Consulta|230|0|230|2026-09-05|70|Cargo Walk-in | Paciente: wendy | Concepto: Consulta|wendy
+27762|MOV-1788673754-ABONO|PRIV-1788671809651|Abono|Abono en Caja - Efectivo|230|0|230|2026-09-05|70|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|wendy
+27763|MOV-1788676935-100|PRIV-1788676935569|Cargo|Consulta|220|0|220|2026-09-06|37|Cargo Walk-in | Paciente: fernando rivera | Concepto: Consulta|fernando rivera
+27763|MOV-1788676935-ABONO|PRIV-1788676935569|Abono|Abono en Caja - Efectivo|220|0|220|2026-09-06|37|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|fernando rivera
+6849|MOV-1788676994-100|EMP-6113|Cargo|Consulta|0|0|0|2026-09-06|52|Cargo Walk-in | Paciente: Martinez Lopez Margarita Concepcion | Concepto: Consulta|Martinez Lopez Margarita Concepcion
+6849|MOV-1788676994-ABONO|EMP-6113|Abono|Abono en Caja - Efectivo|0|0|0|2026-09-06|52|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|Martinez Lopez Margarita Concepcion
+27764|MOV-1788677061-100|PRIV-1788677061143|Cargo|Consulta 500|0|0|0|2026-09-06|27|Cargo Walk-in | Paciente: wendy | Concepto: Consulta|wendy
+27764|MOV-1788677061-ABONO|PRIV-1788677061143|Abono|Abono en Caja - Efectivo|0|0|0|2026-09-06|27|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|wendy
+27765|MOV-1788677124-100|PRIV-1788677061143|Cargo|Consulta|250|0|250|2026-09-06|62|Cargo Walk-in | Paciente: wendy | Concepto: Consulta|wendy
+27765|MOV-1788677124-ABONO|PRIV-1788677061143|Abono|Abono en Caja - Efectivo|250|0|250|2026-09-06|62|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|wendy
+6850|MOV-1788677172-100|EMP-6154|Cargo|Consulta|0|0|0|2026-09-06|27|Cargo Walk-in | Paciente: Juarez Garcia Beatriz | Concepto: Consulta|Juarez Garcia Beatriz
+6850|MOV-1788677172-ABONO|EMP-6154|Abono|Abono en Caja - Efectivo|0|0|0|2026-09-06|27|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|Juarez Garcia Beatriz
+27766|MOV-1788680039-100|PRIV-1788680039783|Cargo|consulta|500|0|500|2026-09-06|54|Cargo Walk-in | Paciente: simon perez | Concepto: Consulta|simon perez
+27766|MOV-1788680039-ABONO|PRIV-1788680039783|Abono|Abono en Caja - Efectivo|500|0|500|2026-09-06|54|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|simon perez

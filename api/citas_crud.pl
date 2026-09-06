@@ -191,7 +191,7 @@ sub crear_cita {
         motivo => $motivo, notas => '', estado => 'Programada', event_id => $gid // '',
         color => '', prioridad => $query->param('prioridad') // 'Normal',
         sucursal => $query->param('sucursal') // '', consultorio => $query->param('consultorio') // '',
-        id_negocio => $session_data->{id_empresa} // '', elaborado_por => $session_data->{id_usuario} // ''
+        id_negocio => $session_data->{id_empresa} // '', elaborado_por => $session_data->{uid} // ''
     };
     
     guardar_citas($arr);

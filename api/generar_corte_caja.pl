@@ -144,8 +144,9 @@ if (-e $archivo_ingresos) {
         my $elaborado_por = $f->[11] || '';
         if ($session_data->{role} eq 'Recepcionista') {
             my $mi_user = $session_data->{usuario};
+            my $mi_uid = $session_data->{uid};
             my $mi_nombre = $session_data->{nombre_completo} || $medicos{$mi_user} || $mi_user;
-            next unless ($elaborado_por eq $mi_user || $elaborado_por eq $mi_nombre);
+            next unless ($elaborado_por eq $mi_user || $elaborado_por eq $mi_nombre || $elaborado_por eq $mi_uid);
         }
 
         my $fecha = $f->[6] || '';
@@ -271,8 +272,9 @@ if (-e $archivo_publicos) {
         my $elaborado_por = $f->[11] || '';
         if ($session_data->{role} eq 'Recepcionista') {
             my $mi_user = $session_data->{usuario};
+            my $mi_uid = $session_data->{uid};
             my $mi_nombre = $session_data->{nombre_completo} || $medicos{$mi_user} || $mi_user;
-            next unless ($elaborado_por eq $mi_user || $elaborado_por eq $mi_nombre);
+            next unless ($elaborado_por eq $mi_user || $elaborado_por eq $mi_nombre || $elaborado_por eq $mi_uid);
         }
 
         my $fecha = $f->[6] || '';
