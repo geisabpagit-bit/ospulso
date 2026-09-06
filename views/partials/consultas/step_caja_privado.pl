@@ -764,7 +764,8 @@ sub render_step_caja_privado {
                 if (fFecha && !fFecha.value) {
                     const tmr = new Date();
                     tmr.setDate(tmr.getDate() + 1);
-                    fFecha.value = tmr.toISOString().split('T')[0];
+                    const tzoffset = tmr.getTimezoneOffset() * 60000;
+                    fFecha.value = (new Date(tmr.getTime() - tzoffset)).toISOString().split('T')[0];
                 }
                 
                 const myModal = bootstrap.Modal.getOrCreateInstance(modalEl);

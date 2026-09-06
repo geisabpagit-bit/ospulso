@@ -669,7 +669,8 @@ HTML
                 }
 
                 document.addEventListener('DOMContentLoaded', function() {
-                    let hoy = new Date().toISOString().split('T')[0];
+                    const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+                    let hoy = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
 
                     $.ajax({
                         url: '../api/generar_corte_caja.pl',

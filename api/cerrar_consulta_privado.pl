@@ -471,7 +471,7 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
             utils::db_manager::actualizar_archivo($contadores_file, $cabecera, \@nuevas_cont);
         }
         
-        my $folio_str = sprintf("REC-%06d", $next_folio);
+        my $folio_str = $next_folio;
         my $id_recibo = "RC-" . time() . "-" . int(rand(1000));
         my $elaborado_por = $session_data->{usuario} || $id_medico;
         

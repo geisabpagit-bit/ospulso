@@ -278,36 +278,47 @@ if ($accion eq 'get_catalogo') {
     my $f = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $lt[5]+1900, $lt[4]+1, $lt[3], $lt[2], $lt[1], $lt[0]);
     my $f_folio = sprintf("%04d%02d%02d", $lt[5]+1900, $lt[4]+1, $lt[3]);
 
-    # GENERACIÓN DE FOLIO DE RECIBO (REC)
-    my ($id_neg, $id_mat) = (1, 0);
-    my $inc = 0;
+    # GENERACIÓN DE FOLIO DE RECIBO (ABONO)
+    my $id_neg = $session_data->{id_empresa} || 1;
+    my $id_suc = $session_data->{id_sucursal} || 0;
+    my $next_folio = 1;
+    my @nuevas_cont;
+    my $encontrado = 0;
+    my $contadores_file = File::Spec->catfile($dat_path, 'contadores_recibos_privados.dat');
     
-    # 1. ID_Negocio del Médico
-    my $u_file = File::Spec->catfile($dat_path, 'usuarios.dat');
-    if (-e $u_file) {
-        open(my $fh, "<:encoding(UTF-8)", $u_file); <$fh>;
-        while(<$fh>) { chomp; my @c = split /!/; if($c[0] eq $id_m_req) { $id_neg = $c[6] // 1; last; } }
-        close $fh;
+    if (-e $contadores_file && open(my $fh_c, '<:encoding(UTF-8)', $contadores_file)) {
+        my @lines_c = <$fh_c>;
+        close $fh_c;
+        my $cab = shift @lines_c;
+        chomp $cab if defined $cab;
+        foreach my $lc (@lines_c) {
+            chomp $lc;
+            my @cc = split /\|/, $lc, -1;
+            if ($cc[0] eq $id_neg && $cc[1] eq $id_suc) {
+                $next_folio = ($cc[2] || 0) + 1;
+                $cc[2] = $next_folio;
+                $lc = join('|', @cc);
+                $encontrado = 1;
+            }
+            push @nuevas_cont, $lc;
+        }
+        if (!$encontrado) {
+            push @nuevas_cont, join('|', $id_neg, $id_suc, $next_folio);
+        }
+        if (open(my $out, '>:encoding(UTF-8)', $contadores_file)) {
+            print $out "$cab\n";
+            print $out "$_\n" for @nuevas_cont;
+            close $out;
+        }
+    } else {
+        if (open(my $out, '>:encoding(UTF-8)', $contadores_file)) {
+            print $out "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n";
+            print $out "$id_neg|$id_suc|$next_folio\n";
+            close $out;
+        }
     }
     
-    # 2. ID_Matriz del Negocio
-    my $n_file = File::Spec->catfile($dat_path, 'negocios.dat');
-    if (-e $n_file) {
-        open(my $fh, "<:encoding(UTF-8)", $n_file); <$fh>;
-        while(<$fh>) { chomp; my @c = split /\|/; if($c[0] eq $id_neg) { $id_mat = $c[2] // 0; last; } }
-        close $fh;
-    }
-    
-    # 3. Incremental Abonos
-    my $inc_file = File::Spec->catfile($dat_path, 'abono_incremental.dat');
-    if (-e $inc_file) {
-        open(my $fh, "+<:encoding(UTF-8)", $inc_file);
-        $inc = <$fh> // 0; chomp $inc; $inc++;
-        seek($fh, 0, 0); truncate($fh, 0); print $fh "$inc\n";
-        close $fh;
-    }
-    
-    my $id_os = "REC-$f_folio-$id_neg$id_mat-$id_m_req-$id_p-$inc";
+    my $id_os = $next_folio;
     my $id_mov = time();
     my $ec_file = File::Spec->catfile($dat_path, 'estado_cuenta.dat');
 

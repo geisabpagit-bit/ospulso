@@ -139,7 +139,7 @@ if (open my $fh_c, '<:encoding(UTF-8)', $contadores_file) {
     utils::db_manager::actualizar_archivo($contadores_file, $cab, \@nuevas_cont);
 }
 
-my $folio_impreso = sprintf("%s-%s-%06d", $id_neg, $id_suc, $next_folio);
+my $folio_impreso = $next_folio;
 my $folios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', $is_estado ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat');
 unless (-s $folios_file) {
     open my $fh_f2, '>:encoding(UTF-8)', $folios_file;

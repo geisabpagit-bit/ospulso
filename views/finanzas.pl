@@ -819,7 +819,8 @@ PAGE_HTML
 <script>
     window.renderIngresos = function() {
         console.log("[Ingresos] Inicializando vista de ingresos");
-        let hoy = new Date().toISOString().split('T')[0];
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        let hoy = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
         const elInicio = document.getElementById('ing_fecha_inicio');
         const elFin = document.getElementById('ing_fecha_fin');
         if (elInicio) elInicio.value = hoy;
@@ -893,7 +894,8 @@ PAGE_HTML
     window.cargarIngresos = function() {
         const elInicio = document.getElementById('ing_fecha_inicio');
         const elFin = document.getElementById('ing_fecha_fin');
-        let hoy = new Date().toISOString().split('T')[0];
+        const tzoffset2 = (new Date()).getTimezoneOffset() * 60000;
+        let hoy = (new Date(Date.now() - tzoffset2)).toISOString().split('T')[0];
 
         if (elInicio && !elInicio.value) elInicio.value = hoy;
         if (elFin && !elFin.value) elFin.value = hoy;
@@ -1098,7 +1100,8 @@ PAGE_HTML
 
     window.renderCorteCaja = function() {
         console.log("[Corte Caja] Inicializando vista");
-        let hoy = new Date().toISOString().split('T')[0];
+        const tzoffset3 = (new Date()).getTimezoneOffset() * 60000;
+        let hoy = (new Date(Date.now() - tzoffset3)).toISOString().split('T')[0];
         if(!document.getElementById('cc_fecha_inicio').value) document.getElementById('cc_fecha_inicio').value = hoy;
         if(!document.getElementById('cc_fecha_fin').value) document.getElementById('cc_fecha_fin').value = hoy;
         
