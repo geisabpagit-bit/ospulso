@@ -164,6 +164,8 @@ print <<'JS';
     let modalMode = 'add'; // 'add' or 'edit'
 
     document.addEventListener("DOMContentLoaded", function() {
+        // Fix: Mover modal al body para evitar que quede atrapado en capas inferiores (z-index bug)
+        document.body.appendChild(document.getElementById('crudModal'));
         crudModal = new bootstrap.Modal(document.getElementById('crudModal'));
         loadCatalogs();
         
