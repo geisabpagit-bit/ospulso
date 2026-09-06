@@ -178,10 +178,18 @@ if (-e $archivo_ingresos) {
             my $id_pac = $f->[5] || '';
             my $nombre_pac = $pacientes{$id_pac} || $id_pac || 'Público General';
 
+            # Determinar origen del recibo privado
+            my $id_consulta = $f->[4] || '';
+            my $origen = 'Caja Rápida';
+            if ($id_consulta =~ /^CONS-/ || ($id_pac !~ /^PRIV-/ && $id_consulta && $id_consulta ne $folio_raw && $id_consulta ne $folio_corto)) {
+                $origen = 'Consulta Médica';
+            }
+
             push @ingresos_filtrados, {
                 folio      => $folio_corto || $folio_raw,
                 folio_raw  => $folio_raw,
                 fecha      => $fecha . ' ' . ($f->[7] || ''),
+                origen     => $origen,
                 paciente   => $nombre_pac,
                 medico     => $nombre_med,
                 forma_pago => $f->[10] || 'Efectivo',
@@ -328,10 +336,16 @@ if (-e $archivo_publicos) {
                 $nombre_pac = $trabajador_nom || $id_pac || 'Empleado Estatal';
             }
 
+            my $origen_pub = 'Convenio Municipio';
+            if ($id_consulta =~ /^CONS-/) {
+                $origen_pub = 'Consulta Municipio';
+            }
+
             push @cxc_filtrados, {
                 folio             => $folio_corto || $folio_raw,
                 folio_raw         => $folio_raw,
                 fecha             => $fecha . ' ' . ($f->[7] || ''),
+                origen            => $origen_pub,
                 paciente          => $nombre_pac,
                 num_empleado      => $num_emp,
                 trabajador_nombre => $trabajador_nom,

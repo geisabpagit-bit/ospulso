@@ -424,19 +424,20 @@ PAGE_HTML
                                 <table id="dtIngresosPrivados" class="table table-hover table-sm align-middle w-100" style="font-size: 10px !important;">
                                     <thead class="table-light text-muted" style="font-size: 10.5px !important;">
                                         <tr>
-                                            <th style="width: 8%;">Folio</th>
+                                            <th style="width: 7%;">Folio</th>
                                             <th style="width: 12%;">Fecha</th>
-                                            <th style="width: 30%;">Paciente</th>
-                                            <th style="width: 20%;">Médico</th>
-                                            <th style="width: 12%;">Forma Pago</th>
-                                            <th style="width: 10%;" class="text-end">Monto</th>
+                                            <th style="width: 12%;">Origen</th>
+                                            <th style="width: 25%;">Paciente</th>
+                                            <th style="width: 18%;">Médico / Cajero</th>
+                                            <th style="width: 10%;">Forma Pago</th>
+                                            <th style="width: 8%;" class="text-end">Monto</th>
                                             <th style="width: 8%;" class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody style="font-size: 10px !important;"></tbody>
                                     <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                         <tr>
-                                            <th colspan="5" class="text-end">Total Ingresos Privados:</th>
+                                            <th colspan="6" class="text-end">Total Ingresos Privados:</th>
                                             <th class="text-end text-success" id="tfootTotalPrivados">$0.00</th>
                                             <th></th>
                                         </tr>
@@ -977,6 +978,16 @@ PAGE_HTML
                             let f = parts[0] || '';
                             let h = parts[1] || '';
                             return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
+                        }
+                    },
+                    { 
+                        data: 'origen',
+                        render: function(d) {
+                            if (d === 'Consulta Médica') {
+                                return `<span class="badge rounded-pill px-2 py-1" style="background:#f3e8ff; color:#7e22ce; border: 1px solid #e9d5ff; font-size: 9px;"><i class="bi bi-journal-medical me-1"></i>Consulta</span>`;
+                            } else {
+                                return `<span class="badge rounded-pill px-2 py-1" style="background:#e0f2fe; color:#0369a1; border: 1px solid #bae6fd; font-size: 9px;"><i class="bi bi-shop me-1"></i>Caja Rápida</span>`;
+                            }
                         }
                     },
                     { 
