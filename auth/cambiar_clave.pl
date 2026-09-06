@@ -122,9 +122,9 @@ print <<'HTML';
 <body>
 
 <nav class="navbar-medentia">
-    <div class="container-fluid justify-content-center text-center">
-        <a class="navbar-brand m-0" href="../index.html">
-            <img src="../img/logo_ospulso.png" alt="OSPulso Logo" style="height: 45px;">
+    <div class="container-fluid d-flex justify-content-start align-items-center">
+        <a class="nav-link text-white fw-bold d-flex align-items-center" href="../index.html" style="font-size: 1.1rem; opacity: 0.9; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.9'">
+            <i class="bi bi-house-door-fill me-2 fs-5"></i> Inicio
         </a>
     </div>
 </nav>
@@ -134,13 +134,16 @@ HTML
 
 if ($is_valid) {
     print <<"HTML";
-    <div class="glass-card card-mobile-flush p-3 p-md-5 animate__animated animate__fadeInUp">
-        <div class="text-center mb-4 mb-md-5">
-            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
-                <i class="bi bi-shield-lock-fill fs-1"></i>
-            </div>
+    <div class="glass-card card-mobile-flush p-4 p-md-5 animate__animated animate__fadeInUp border-0 shadow-lg">
+        <div class="text-center mb-4">
+            <svg width="180" height="56" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-3">
+                <text x="5" y="38" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-weight="800" font-size="34" letter-spacing="-1">
+                    <tspan fill="#0A2A66">Os</tspan><tspan fill="#00C4C4">Pulso</tspan>
+                </text>
+                <path d="M0 40 H115 L121 22 L128 42 L134 6 L141 34 L146 40 H160" stroke="#00C4C4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            </svg>
             <h2 class="fw-extrabold text-dark" style="font-weight: 800; font-family: var(--font-primary);">Nueva Clave</h2>
-            <p class="text-muted small">Configurando acceso para:<br><span class="badge bg-light text-primary border mt-1" style="font-size: 0.9rem;">$valid_correo</span></p>
+            <p class="text-muted small">Configurando acceso para:<br><span class="badge bg-light text-primary border mt-1 px-3 py-2 rounded-pill" style="font-size: 0.9rem;">$valid_correo</span></p>
         </div>
 
         <form action="actualizar_clave.pl" method="POST" id="recoveryForm">
@@ -148,19 +151,19 @@ if ($is_valid) {
             
             <div class="mb-3">
                 <label for="newPass" class="form-label text-muted small fw-bold">Nueva Contraseña</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-white text-muted"><i class="bi bi-key"></i></span>
-                    <input type="text" name="h_nueva_clave" id="newPass" class="form-control form-control-lg border-end-0" placeholder="Escribe tu nueva clave" required minlength="8">
-                    <span class="input-group-text bg-white text-muted toggle-password" data-target="newPass"><i class="bi bi-eye-slash-fill"></i></span>
+                <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                    <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-key"></i></span>
+                    <input type="text" name="h_nueva_clave" id="newPass" class="form-control border-start-0 border-end-0" placeholder="Escribe tu nueva clave" required minlength="8" style="box-shadow: none;">
+                    <span class="input-group-text bg-white text-muted toggle-password border-start-0" data-target="newPass" style="cursor: pointer;"><i class="bi bi-eye-slash-fill"></i></span>
                 </div>
             </div>
 
             <div class="mb-4">
                 <label for="confPass" class="form-label text-muted small fw-bold">Confirmar Contraseña</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-white text-muted"><i class="bi bi-check2-all"></i></span>
-                    <input type="text" name="h_confirmar_clave" id="confPass" class="form-control form-control-lg border-end-0" placeholder="Repite la clave" required minlength="8">
-                    <span class="input-group-text bg-white text-muted toggle-password" data-target="confPass"><i class="bi bi-eye-slash-fill"></i></span>
+                <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden" id="confGroup">
+                    <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-check2-all"></i></span>
+                    <input type="text" name="h_confirmar_clave" id="confPass" class="form-control border-start-0 border-end-0" placeholder="Repite la clave" required minlength="8" style="box-shadow: none;">
+                    <span class="input-group-text bg-white text-muted toggle-password border-start-0" data-target="confPass" style="cursor: pointer;"><i class="bi bi-eye-slash-fill"></i></span>
                 </div>
             </div>
 
@@ -205,18 +208,22 @@ HTML
 
         // Validacion en vivo
         function validateMatch() {
+            const confGroup = document.getElementById('confGroup');
+            const spans = confGroup.querySelectorAll('.input-group-text');
+            
             if (conf.value.length > 0 && pass.value !== conf.value) {
-                conf.classList.add('is-invalid');
-                conf.classList.remove('is-valid');
+                conf.style.borderColor = '#dc3545';
+                spans.forEach(s => s.style.borderColor = '#dc3545');
                 error.style.display = 'block';
                 btn.disabled = true;
             } else if (conf.value.length > 0) {
-                conf.classList.remove('is-invalid');
-                conf.classList.add('is-valid');
+                conf.style.borderColor = '#198754';
+                spans.forEach(s => s.style.borderColor = '#198754');
                 error.style.display = 'none';
                 btn.disabled = false;
             } else {
-                conf.classList.remove('is-invalid', 'is-valid');
+                conf.style.borderColor = '';
+                spans.forEach(s => s.style.borderColor = '');
                 error.style.display = 'none';
                 btn.disabled = false;
             }
