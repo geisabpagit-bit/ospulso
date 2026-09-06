@@ -202,10 +202,35 @@ print <<'JS';
         });
     }
 
+    let especialidadesOptions = '';
+
     function loadTableData(filename) {
         currentCatalog = filename;
         Swal.fire({ title: 'Cargando datos...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
         
+        // Si es médicos, primero cargar especialidades
+        if (filename.startsWith('medicos_')) {
+            let espFile = filename.replace('medicos_', 'especialidades_');
+            $.post('../api/gestion_catalogos_api.pl', { action: 'read', filename: espFile }, function(resEsp) {
+                especialidadesOptions = '<option value="">-- Seleccionar Especialidad --</option>';
+                if (!resEsp.error && resEsp.rows) {
+                    resEsp.rows.forEach(r => {
+                        let id = r[0] || '';
+                        let name = r[1] || 'Sin Nombre';
+                        especialidadesOptions += `<option value="${id}">${name}</option>`;
+                    });
+                }
+                fetchMainCatalog(filename);
+            }).fail(function() {
+                especialidadesOptions = '<option value="">Error al cargar especialidades</option>';
+                fetchMainCatalog(filename);
+            });
+        } else {
+            fetchMainCatalog(filename);
+        }
+    }
+
+    function fetchMainCatalog(filename) {
         $.post('../api/gestion_catalogos_api.pl', { action: 'read', filename: filename }, function(res) {
             if (res.error) {
                 Swal.fire('Error', res.msg, 'error');
@@ -295,15 +320,53 @@ print <<'JS';
             document.getElementById('crudModalTitle').innerHTML = '<i class="bi bi-plus-circle me-2 text-primary"></i> Nuevo Registro';
         }
         
+        let isMedicos = currentCatalog.startsWith('medicos_');
+        let autoId = '';
+        if (isMedicos && mode === 'add' && dataTable) {
+            let allData = dataTable.rows().data().toArray();
+            let maxId = 0;
+            allData.forEach(r => {
+                let currentId = parseInt(r.col_0, 10);
+                if (!isNaN(currentId) && currentId > maxId) {
+                    maxId = currentId;
+                }
+            });
+            autoId = maxId + 1;
+        }
+
         currentHeaders.forEach((h, i) => {
             let val = rowData[i] || '';
             let readonly = (i === 0 && mode === 'edit') ? 'readonly' : ''; // ID column readonly in edit mode
-            html += `
-                <div class="col-md-6 form-group">
-                    <label class="form-label fw-semibold text-muted small">${h || 'Columna ' + i}</label>
-                    <input type="text" class="form-control shadow-none" id="input_col_${i}" value="${val}" ${readonly}>
-                </div>
-            `;
+            
+            if (isMedicos && mode === 'add' && i === 0) {
+                val = autoId;
+                readonly = 'readonly';
+            }
+
+            if (isMedicos && h === '$T_medidespeciali') {
+                html += `
+                    <div class="col-md-6 form-group">
+                        <label class="form-label fw-semibold text-muted small">${h}</label>
+                        <select class="form-select shadow-none" id="input_col_${i}">
+                            ${especialidadesOptions}
+                        </select>
+                    </div>
+                `;
+                // Add script to pre-select value
+                if (val) {
+                    setTimeout(() => {
+                        let sel = document.getElementById(`input_col_${i}`);
+                        if (sel) sel.value = val;
+                    }, 50);
+                }
+            } else {
+                html += `
+                    <div class="col-md-6 form-group">
+                        <label class="form-label fw-semibold text-muted small">${h || 'Columna ' + i}</label>
+                        <input type="text" class="form-control shadow-none" id="input_col_${i}" value="${val}" ${readonly}>
+                    </div>
+                `;
+            }
         });
         
         container.innerHTML = html;
