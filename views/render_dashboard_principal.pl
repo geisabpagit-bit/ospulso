@@ -141,6 +141,12 @@ HTML
                     chomp($line);
                     next if $line =~ /^\s*$/;
                     my @r = split(/\|/, $line, -1);
+                    my $id_negocio = $r[2] // '';
+                    
+                    if ($id_empresa && $id_negocio) {
+                        next if $id_negocio ne $id_empresa;
+                    }
+                    
                     my $elaborado = $r[11] // '';
                     if ($elaborado eq $usuario || $elaborado eq $mi_nombre) {
                         $total_cargos += ($r[8] || 0);

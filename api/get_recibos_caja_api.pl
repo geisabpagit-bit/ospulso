@@ -140,6 +140,12 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
             next if $id_paciente =~ /^EMP-/;
         }
         
+        # Filtro de Tenant (CLUE)
+        my $ses_id_neg = $session_data->{id_empresa} || '';
+        if ($ses_id_neg && $id_neg) {
+            next if $id_neg ne $ses_id_neg;
+        }
+        
         # Filtro RBAC: Recepcionista solo ve lo que elaboró
         if ($session_data->{role} eq 'Recepcionista') {
             my $mi_user = $session_data->{usuario};
