@@ -309,7 +309,7 @@ my $texto_pie_recibo = join(", ", @pie_partes);
 
 # Buscar también en pacientes_privados
 if ($paciente_nombre eq 'Paciente Desconocido' || $paciente_nombre eq $recibo->{id_paciente}) {
-    my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "pacientes_privados__$negocio->{clues}.dat");
+    my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $negocio->{clues}, "pacientes_privados_$negocio->{clues}.dat");
     if (-e $priv_file && open(my $fhp, '<:encoding(UTF-8)', $priv_file)) {
         my $hp = <$fhp>;
         while (my $lp = <$fhp>) {

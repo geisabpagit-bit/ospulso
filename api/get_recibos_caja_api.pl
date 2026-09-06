@@ -67,7 +67,7 @@ if (-e $edo_file && open(my $fhe, '<:encoding(UTF-8)', $edo_file)) {
     close $fhe;
 }
 
-my $priv_pacs_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "pacientes_privados__${org_clues}.dat");
+my $priv_pacs_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $org_clues, "pacientes_privados_${org_clues}.dat");
 if (-e $priv_pacs_file && open(my $fhp, '<:encoding(UTF-8)', $priv_pacs_file)) {
     my $header = <$fhp>;
     while (my $line = <$fhp>) {

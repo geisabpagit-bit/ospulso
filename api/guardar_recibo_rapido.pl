@@ -93,7 +93,7 @@ if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
 if (!$has_portal_paciente && $id_paciente eq $nombre_empleado && $id_paciente !~ /^EMP-|^PRIV-/) {
     # Es un nombre nuevo (tag free-text)
     my $new_id = 'PRIV-' . time() . int(rand(1000));
-    my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "pacientes_privados__${org_clues}.dat");
+    my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $org_clues, "pacientes_privados_${org_clues}.dat");
     my $header_exists = (-e $priv_file) ? 1 : 0;
     if (open(my $fhp, '>>:utf8', $priv_file)) {
         flock($fhp, 2);

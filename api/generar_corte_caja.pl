@@ -71,7 +71,7 @@ if (-e $pac_file) {
     }
 }
 if ($org_clues) {
-    my $priv_file = File::Spec->catfile($dat_dir, "pacientes_privados__${org_clues}.dat");
+    my $priv_file = File::Spec->catfile($dat_dir, 'catalogos_CLUE', $org_clues, "pacientes_privados_${org_clues}.dat");
     if (-e $priv_file) {
         my $priv_data = leer_tabla($priv_file);
         foreach my $p (@$priv_data) {

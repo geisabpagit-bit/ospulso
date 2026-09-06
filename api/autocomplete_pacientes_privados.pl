@@ -31,7 +31,7 @@ if (length($term) < 2 || !$clues) {
     exit;
 }
 
-my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', "pacientes_privados__${clues}.dat");
+my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "pacientes_privados_${clues}.dat");
 my @matches;
 
 if (-e $priv_file && open(my $fh, '<:encoding(UTF-8)', $priv_file)) {

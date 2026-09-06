@@ -53,7 +53,7 @@ my @allowed_patterns = (
     qr/^empleadosmun_$org_clues\.dat$/,
     qr/^medicos_$org_clues\.dat$/,
     qr/^especialidades_$org_clues\.dat$/,
-    qr/^pacientes_privados__$org_clues\.dat$/,
+    qr/^pacientes_privados_$org_clues\.dat$/,
     qr/^contadores_recibos_privados_$org_clues\.dat$/,
     qr/^contadores_recibos_publicos_$org_clues\.dat$/
 );
@@ -77,12 +77,7 @@ sub get_safe_catalog_path {
     
     return undef unless $is_allowed;
     
-    # Casos especiales de rutas (pacientes privados y contadores estan en la raiz o en CLUE?)
     my $file_path = File::Spec->catfile($catalog_dir, $filename);
-    
-    if ($filename =~ /^pacientes_privados__/) {
-        $file_path = File::Spec->catfile($global_dat_dir, $filename);
-    }
     
     return $file_path;
 }
@@ -120,7 +115,7 @@ if ($action eq 'list_files') {
     }
     
     # Añadir explicitamente pacientes si existe
-    my $pac_file = "pacientes_privados__${org_clues}.dat";
+    my $pac_file = "pacientes_privados_${org_clues}.dat";
     if (get_safe_catalog_path($pac_file) && -e get_safe_catalog_path($pac_file)) {
         push @files, $pac_file;
     }
