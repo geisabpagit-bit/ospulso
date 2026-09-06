@@ -88,17 +88,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Verificación de Correo en Tiempo Real (Debounce)
         let emailTimer;
-        emailInput.addEventListener('input', function() {
+        function verificarCorreo() {
             clearTimeout(emailTimer);
-            const correo = this.value.trim().toLowerCase();
+            const correo = emailInput.value.trim().toLowerCase();
             
             // Reset visual inmediato
-            this.classList.remove('is-valid', 'is-invalid');
+            emailInput.classList.remove('is-valid', 'is-invalid');
             feedbackDiv.className = 'form-text mt-1';
             feedbackDiv.textContent = 'Verificando disponibilidad...';
             
             if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
                 feedbackDiv.textContent = 'Introduce un correo válido.';
+                emailInput.dataset.exists = '0';
+                updateLoginBtnState();
                 return;
             }
 
@@ -133,16 +135,51 @@ document.addEventListener('DOMContentLoaded', function() {
                     feedbackDiv.textContent = 'Error de conexión.';
                 }
                 updateLoginBtnState();
-            }, 600); // 600ms de espera tras terminar de teclear
-        });
+            }, 500); // 500ms de espera tras terminar de teclear
+        }
+
+        emailInput.addEventListener('input', verificarCorreo);
+        emailInput.addEventListener('change', verificarCorreo);
+
+        // Recordar correos ingresados (localStorage + datalist)
+        function cargarCorreosRecordados() {
+            try {
+                const recents = JSON.parse(localStorage.getItem('ospulso_recent_emails') || '[]');
+                const datalist = document.getElementById('recentEmailsList');
+                if (datalist && recents.length > 0) {
+                    datalist.innerHTML = recents.map(em => `<option value="${em}"></option>`).join('');
+                }
+                const lastEmail = localStorage.getItem('ospulso_last_email');
+                if (lastEmail && (!emailInput.value || emailInput.value.trim() === '')) {
+                    emailInput.value = lastEmail;
+                    verificarCorreo();
+                }
+            } catch (err) {}
+        }
+
+        const loginModalEl = document.getElementById('loginModal');
+        if (loginModalEl) {
+            loginModalEl.addEventListener('show.bs.modal', cargarCorreosRecordados);
+        }
+        cargarCorreosRecordados();
 
         passInput.addEventListener('input', updateLoginBtnState);
 
-        // Salida cinematográfica con frases aleatorias
+        // Salida cinematográfica con frases aleatorias y almacenamiento del correo
         loginForm.addEventListener('submit', function(e) {
-            // NOTA: Se elimina e.preventDefault() y setTimeout() para garantizar 
-            // compatibilidad con iOS/iPadOS y prevenir el bloqueo del "User Gesture Token".
-            
+            // Guardar correo para recordarlo en futuros inicios de sesión
+            const userEmail = emailInput.value.trim().toLowerCase();
+            if (userEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
+                try {
+                    let recents = JSON.parse(localStorage.getItem('ospulso_recent_emails') || '[]');
+                    recents = recents.filter(item => item !== userEmail);
+                    recents.unshift(userEmail);
+                    if (recents.length > 5) recents.pop();
+                    localStorage.setItem('ospulso_recent_emails', JSON.stringify(recents));
+                    localStorage.setItem('ospulso_last_email', userEmail);
+                } catch (err) {}
+            }
+
             // Elegir frase aleatoria
             const randomQuote = dentalQuotes[Math.floor(Math.random() * dentalQuotes.length)];
             loadingText.textContent = randomQuote;

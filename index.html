@@ -1104,11 +1104,12 @@
                     </div>
                 </div>
                 <div class="modal-body p-4">
-                    <form action="auth/acceso.pl" method="POST" id="premiumLoginForm">
+                    <form action="auth/acceso.pl" method="POST" id="premiumLoginForm" autocomplete="on">
                         <div class="form-floating mb-3">
                             <input type="email" class="form-control" id="email" name="h_correo"
-                                placeholder="nombre@clinica.com" autocomplete="email" required
+                                placeholder="nombre@clinica.com" autocomplete="username email" list="recentEmailsList" required
                                 style="border: 2px solid #e2e8f0; border-radius: 12px;">
+                            <datalist id="recentEmailsList"></datalist>
                             <label for="email"><i class="bi bi-envelope me-2"></i>Correo electrónico</label>
                             <div id="emailFeedback" class="form-text mt-1 text-muted">Ingresa tu correo para verificar la cuenta.</div>
                         </div>
