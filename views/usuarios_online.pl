@@ -2,9 +2,12 @@
 use strict;
 use warnings;
 use utf8;
+use open qw(:std :utf8);
 use FindBin;
 use lib "$FindBin::Bin/..";
 use CGI;
+
+binmode(STDOUT, ':encoding(UTF-8)');
 
 BEGIN {
     $ENV{TZ} = 'America/Mexico_City';
@@ -200,7 +203,11 @@ function guardarConfiguracion() {
 }
 </script>
 
-</main>
+HTML
+
+utils::sub_sidebar::render_sidebar_footer();
+
+print <<'HTML';
 <!-- DataTables & Plugins -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>

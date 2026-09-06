@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use utf8;
+use open qw(:std :utf8);
 use CGI;
 
 sub render_header {
@@ -98,6 +99,7 @@ SEARCH_HTML
 
     # 1. Control de cabeceras CGI (Protocolo 11.2)
     # Solo imprimimos el header HTTP si NO se solicita omitirlo
+    binmode(STDOUT, ':encoding(UTF-8)');
     if (!$skip) {
         my $q = CGI->new;
         print $q->header(
