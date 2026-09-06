@@ -3,6 +3,7 @@ use cPanelUserConfig;
 use strict;
 use warnings;
 use utf8;
+binmode STDOUT, ":utf8";
 use CGI;
 use JSON;
 use File::Spec;

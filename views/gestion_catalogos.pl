@@ -3,6 +3,7 @@ use cPanelUserConfig;
 use strict;
 use warnings;
 use utf8;
+binmode STDOUT, ":utf8";
 use CGI;
 use FindBin;
 use File::Spec;
@@ -54,6 +55,12 @@ render_header(
 );
 
 print <<'HTML';
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<!-- DataTables JS (necesario antes de su uso) -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
 <style>
     /* Estilos específicos de la vista */
     .catalog-wrapper { padding: 20px; }
