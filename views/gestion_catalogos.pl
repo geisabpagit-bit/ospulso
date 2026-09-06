@@ -11,7 +11,7 @@ use lib $FindBin::Bin . '/..';
 require "$FindBin::Bin/../auth/check_session.pl";
 require "$FindBin::Bin/../utils/sub_header.pl";
 require "$FindBin::Bin/../utils/sub_sidebar.pl";
-require "$FindBin::Bin/../utils/sub_footer.pl";
+
 
 my $q = CGI->new;
 my $session_data = check_session();
