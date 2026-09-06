@@ -2277,7 +2277,7 @@ window.cargarDashboardKPIs = function(f_inicio, f_fin) {
                     if (eCotizaciones) eCotizaciones.innerText = formatter.format(dash.cotizaciones || 0);
                     if (eCC) eCC.innerText = formatter.format(dash.cxc || 0);
                     if (eCCE) eCCE.innerText = formatter.format(dash.cxc_estado || 0);
-                    if (eF) eF.innerText = formatter.format(dash.ingresos || 0);
+                    if (eF) eF.innerText = formatter.format(dash.facturacion !== undefined ? dash.facturacion : 0);
 
                     // Utilidad Neta
                     const utilidad = (dash.utilidad !== undefined) ? dash.utilidad : ((dash.ingresos || 0) - (dash.gastos || 0));

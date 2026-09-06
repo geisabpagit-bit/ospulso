@@ -292,12 +292,28 @@ elsif ($action eq 'get_dashboard') {
     my $role       = $session_data->{role} // 'Invitado';
     my $id_medico  = $session_data->{id_medico} // '';
     my $es_admin_global = ($role eq 'Administrador Global') ? 1 : 0;
-
     my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
     my $hoy_str = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
 
-    # 1. Mapear pacientes que pertenecen a la organización del usuario
+    # 0. Resolver CLUES de la organización
+    my $org_clues = '';
+    my $negocios_file = "$FindBin::Bin/../dat/negocios.dat";
+    if (-e $negocios_file) {
+        my $neg_data = leer_tabla($negocios_file);
+        foreach my $n (@$neg_data) {
+            if ($n->[0] eq $id_empresa || (!$id_empresa && $n->[0] eq '0')) {
+                $org_clues = $n->[18] // '';
+                last;
+            }
+        }
+    }
+    $org_clues ||= 'QTSMP000116';
+
+    # 1. Mapear pacientes y médicos de la organización
     my %pacientes_org;
+    my %medicos_org;
+
+    # 1.1 Pacientes estándar
     my $pac_file = "$FindBin::Bin/../dat/pacientes.dat";
     if (-e $pac_file && open(my $fhp, '<:utf8', $pac_file)) {
         while (my $line = <$fhp>) {
@@ -306,17 +322,49 @@ elsif ($action eq 'get_dashboard') {
             my @f = split(/\|/, $line);
             my $id_pac = $f[0];
             my $tenant_pac = $f[13] // '';
-            my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
-            
-            if ($es_admin_global) {
-                $pacientes_org{$id_pac} = 1;
-            } elsif ($org_pac && $org_pac eq $id_empresa) {
-                $pacientes_org{$id_pac} = 1;
-            } elsif (!$org_pac) {
+            my ($org_pac) = split(/:/, $tenant_pac);
+            if ($es_admin_global || !$org_pac || $org_pac eq $id_empresa || $org_pac eq '0') {
                 $pacientes_org{$id_pac} = 1;
             }
         }
         close $fhp;
+    }
+
+    # 1.2 Pacientes Privados y Empleados Municipio (CLUE)
+    if ($org_clues) {
+        my $priv_file = "$FindBin::Bin/../dat/catalogos_CLUE/$org_clues/pacientes_privados_${org_clues}.dat";
+        if (-e $priv_file && open(my $fhpriv, '<:utf8', $priv_file)) {
+            while (my $line = <$fhpriv>) {
+                chomp $line;
+                next if $line =~ /^ID_PACIENTE/ || $line =~ /^\s*$/;
+                my @f = split(/\|/, $line);
+                $pacientes_org{$f[0]} = 1 if $f[0];
+            }
+            close $fhpriv;
+        }
+
+        my $emp_file = "$FindBin::Bin/../dat/catalogos_CLUE/$org_clues/empleadosmun_${org_clues}.dat";
+        if (-e $emp_file && open(my $fhemp, '<:utf8', $emp_file)) {
+            while (my $line = <$fhemp>) {
+                chomp $line;
+                my @f = split(/!/, $line);
+                if (@f >= 2 && $f[0] ne '$c_clinumempleado') {
+                    $pacientes_org{"EMP-$f[0]"} = 1;
+                    $pacientes_org{$f[0]} = 1;
+                }
+            }
+            close $fhemp;
+        }
+
+        my $med_file = "$FindBin::Bin/../dat/catalogos_CLUE/$org_clues/medicos_${org_clues}.dat";
+        if (-e $med_file && open(my $fhmed, '<:utf8', $med_file)) {
+            while (my $line = <$fhmed>) {
+                chomp $line;
+                my @f = split(/\|/, $line);
+                $medicos_org{$f[0]} = 1 if $f[0];
+            }
+            close $fhmed;
+        }
     }
 
     # 2. Mapear usuarios de la organización (para gastos y autorizaciones)
@@ -337,155 +385,13 @@ elsif ($action eq 'get_dashboard') {
         close $fhu;
     }
 
-    # 3. Ingresos y CxC (desde estado_cuenta.dat)
-    my @movs = @{ leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat") };
-    my ($ingresos_totales, $cxc) = (0, 0);
-    my %saldos;
-
-    for my $m (@movs) {
-        my $id_pac = $m->[2] || '';
-        my $tipo   = $m->[3] || '';
-        my $notas  = $m->[10] || '';
-        my $total  = $m->[7] || 0;
-        my $fecha  = $m->[8] || '';
-
-        # Excluir entradas legadas tipo cotizacion/presupuesto del balance
-        next if $tipo eq 'Cargo' && $notas =~ /Presupuesto|Cotizacion/i;
-
-        # Filtro multi-tenant
-        next unless $es_admin_global || $pacientes_org{$id_pac};
-
-        # Si el rol es Medico, filtrar solo sus propios movimientos
-        if ($role eq 'Medico') {
-            next if ($m->[9] || '') ne $id_medico;
-        }
-
-        # Saldos acumulados para cálculo de CxC
-        $saldos{$id_pac} ||= { cargo => 0, abono => 0 };
-        if ($tipo eq 'Cargo') { $saldos{$id_pac}{cargo} += $total; }
-        if ($tipo eq 'Abono') { $saldos{$id_pac}{abono} += $total; }
-
-        # Ingresos reales en el periodo
-        my $dentro_de_rango = 1;
-        if ($f_inicio && $f_fin) {
-            $dentro_de_rango = ($fecha ge $f_inicio && $fecha le $f_fin) ? 1 : 0;
-        } elsif ($f_inicio) {
-            $dentro_de_rango = ($fecha ge $f_inicio) ? 1 : 0;
-        } elsif ($f_fin) {
-            $dentro_de_rango = ($fecha le $f_fin) ? 1 : 0;
-        }
-
-        if ($dentro_de_rango && $tipo eq 'Abono') {
-            $ingresos_totales += $total;
-        }
-    }
-
-    # Calcular CxC privada y pública (Estado)
-    my $cxc_estado = 0;
-    for my $id (keys %saldos) {
-        my $pend = $saldos{$id}{cargo} - $saldos{$id}{abono};
-        if ($pend > 0) {
-            $cxc += $pend;
-            if ($id =~ /^EMP-/) {
-                $cxc_estado += $pend;
-            }
-        }
-    }
-
-    # 4. Egresos (desde gastos.dat)
-    my @gastos_raw = @{ leer_tabla("$FindBin::Bin/../dat/gastos.dat") };
-    my $egresos_totales = 0;
-    for my $g (@gastos_raw) {
-        my $g_fecha   = $g->[1] || '';
-        my $g_creador = $g->[10] || '';
-
-        # Filtro multi-tenant por usuario creador
-        next unless $es_admin_global || $usuarios_org{$g_creador};
-
-        # Filtro por rango de fechas
-        if ($f_inicio && $f_fin) {
-            next if ($g_fecha lt $f_inicio || $g_fecha gt $f_fin);
-        } elsif ($f_inicio) {
-            next if ($g_fecha lt $f_inicio);
-        } elsif ($f_fin) {
-            next if ($g_fecha gt $f_fin);
-        }
-
-        $egresos_totales += ($g->[6] || 0);
-    }
-
-    # 5. Cotizaciones activas (desde cotizaciones.dat)
-    my $cotizaciones = 0;
-    my $cot_dat = "$FindBin::Bin/../dat/cotizaciones.dat";
-    if (-e $cot_dat && open(my $fhc, '<:encoding(UTF-8)', $cot_dat)) {
-        <$fhc>; # saltar cabecera
-        while (my $cline = <$fhc>) {
-            chomp $cline;
-            next if $cline =~ /^\s*$/;
-            my @cv = split /\|/, $cline, -1;
-            next unless scalar(@cv) >= 5;
-            my $c_id_pac = $cv[1] || '';
-            my $c_monto  = $cv[3] + 0;
-            my $c_fecha  = $cv[4] || '';
-
-            # Filtro multi-tenant
-            next unless $es_admin_global || $pacientes_org{$c_id_pac};
-
-            if ($f_inicio && $f_fin) {
-                next if ($c_fecha lt $f_inicio || $c_fecha gt $f_fin);
-            }
-            $cotizaciones += $c_monto;
-        }
-        close $fhc;
-    }
-
-    # 6. Conteo de Recibos Emitidos (folios_recibos_privados y publicos)
+    # 3. Recibos Emitidos e Ingresos en Caja (folios_recibos_privados y publicos)
     my $total_recibos_periodo = 0;
     my $total_recibos_hoy = 0;
+    my $ingresos_recibos = 0;
     my %metodos_pago;
 
-    foreach my $rf ("$FindBin::Bin/../dat/folios_recibos_privados.dat", "$FindBin::Bin/../dat/folios_recibos_publicos.dat") {
-        if (-e $rf && open(my $fhr, '<:encoding(UTF-8)', $rf)) {
-            <$fhr>; # cabecera
-            while (my $rline = <$fhr>) {
-                chomp $rline;
-                next if $rline =~ /^\s*$/;
-                my @r = split(/\|/, $rline, -1);
-                next if scalar(@r) < 7;
-                my $r_negocio = $r[2] // '';
-                my $r_fecha   = $r[6] // '';
-                my $r_estatus = $r[14] // '';
-                my $r_metodo  = $r[10] // 'Efectivo';
-                my $r_monto   = $r[9] || 0;
-
-                next if $r_estatus =~ /Cancelado/i;
-
-                # Filtro multi-tenant
-                next unless $es_admin_global || $r_negocio eq $id_empresa || $r_negocio eq '' || $r_negocio eq '0';
-
-                if ($r_fecha eq $hoy_str) {
-                    $total_recibos_hoy++;
-                }
-
-                if ($f_inicio && $f_fin) {
-                    next if ($r_fecha lt $f_inicio || $r_fecha gt $f_fin);
-                } elsif ($f_inicio) {
-                    next if ($r_fecha lt $f_inicio);
-                } elsif ($f_fin) {
-                    next if ($r_fecha gt $f_fin);
-                }
-
-                $total_recibos_periodo++;
-                $metodos_pago{$r_metodo} += $r_monto;
-            }
-            close $fhr;
-        }
-    }
-
-    my $ticket_promedio = $total_recibos_periodo > 0 ? ($ingresos_totales / $total_recibos_periodo) : 0;
-    my $utilidad_neta = $ingresos_totales - $egresos_totales;
-
-    # 7. Serie Mensual Real de los últimos 6 meses
+    # Pre-cargar meses para serie histórica
     my @meses_info;
     my %meses_ingresos;
     my %meses_gastos;
@@ -500,28 +406,194 @@ elsif ($action eq 'get_dashboard') {
         $meses_gastos{$ym} = 0;
     }
 
-    for my $m (@movs) {
-        my $id_pac = $m->[2] || '';
-        my $tipo   = $m->[3] || '';
-        my $total  = $m->[7] || 0;
-        my $fecha  = $m->[8] || '';
-        next unless $tipo eq 'Abono';
-        next unless $es_admin_global || $pacientes_org{$id_pac};
-        my ($ym) = $fecha =~ /^(\d{4}-\d{2})/;
-        if ($ym && exists $meses_ingresos{$ym}) {
-            $meses_ingresos{$ym} += $total;
+    foreach my $rf ("$FindBin::Bin/../dat/folios_recibos_privados.dat", "$FindBin::Bin/../dat/folios_recibos_publicos.dat") {
+        if (-e $rf && open(my $fhr, '<:encoding(UTF-8)', $rf)) {
+            <$fhr>; # cabecera
+            while (my $rline = <$fhr>) {
+                chomp $rline;
+                next if $rline =~ /^\s*$/;
+                my @r = split(/\|/, $rline, -1);
+                next if scalar(@r) < 7;
+                my $r_negocio = $r[2] // '';
+                my $r_fecha   = $r[6] // '';
+                my $r_estatus = $r[14] // '';
+                my $r_metodo  = $r[10] // 'Efectivo';
+                my $r_monto   = $r[9] || 0;
+                $r_monto =~ s/[^\d\.]//g;
+
+                # Filtro multi-tenant por negocio
+                next unless $es_admin_global || $r_negocio eq $id_empresa || $r_negocio eq '' || $r_negocio eq '0';
+
+                # Filtro por rol
+                if ($role eq 'Recepcionista') {
+                    my $r_elab = $r[11] || '';
+                    next unless ($r_elab eq $session_data->{usuario} || $r_elab eq $session_data->{uid});
+                } elsif ($role eq 'Medico') {
+                    my $r_med = $r[15] || '';
+                    next unless ($r_med eq $id_medico);
+                }
+
+                if ($r_fecha eq $hoy_str) {
+                    $total_recibos_hoy++;
+                }
+
+                # Histórico semestral (solo cobrados)
+                my ($ym_r) = $r_fecha =~ /^(\d{4}-\d{2})/;
+                if ($ym_r && exists $meses_ingresos{$ym_r} && $r_estatus !~ /Cancelado/i) {
+                    $meses_ingresos{$ym_r} += $r_monto;
+                }
+
+                # Filtro por rango
+                if ($f_inicio && $f_fin) {
+                    next if ($r_fecha lt $f_inicio || $r_fecha gt $f_fin);
+                } elsif ($f_inicio) {
+                    next if ($r_fecha lt $f_inicio);
+                } elsif ($f_fin) {
+                    next if ($r_fecha gt $f_fin);
+                }
+
+                $total_recibos_periodo++;
+
+                if ($r_estatus !~ /Cancelado/i) {
+                    $ingresos_recibos += $r_monto;
+                    $metodos_pago{$r_metodo} += $r_monto;
+                }
+            }
+            close $fhr;
         }
     }
 
+    # 4. Movimientos y Cuentas por Cobrar (desde estado_cuenta.dat)
+    my @movs = @{ leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat") };
+    my ($ingresos_edc, $cxc) = (0, 0);
+    my %saldos;
+
+    for my $m (@movs) {
+        my $id_pac = $m->[2] || '';
+        my $tipo   = $m->[3] || '';
+        my $notas  = $m->[10] || '';
+        my $total  = $m->[7] || 0;
+        my $fecha  = $m->[8] || '';
+        my $id_med = $m->[9] || '';
+
+        # Excluir cotizaciones del balance de cargos
+        next if $tipo eq 'Cargo' && $notas =~ /Presupuesto|Cotizacion/i;
+
+        # Filtro multi-tenant permisivo e inteligente
+        my $pertenece = $es_admin_global ? 1 : 0;
+        $pertenece = 1 if $pacientes_org{$id_pac};
+        $pertenece = 1 if $id_med && $medicos_org{$id_med};
+        $pertenece = 1 if $id_pac =~ /^PRIV-|^EMP-/;
+        next unless $pertenece;
+
+        if ($role eq 'Medico') {
+            next if ($id_med ne $id_medico);
+        }
+
+        $saldos{$id_pac} ||= { cargo => 0, abono => 0 };
+        if ($tipo eq 'Cargo') { $saldos{$id_pac}{cargo} += $total; }
+        if ($tipo eq 'Abono') { $saldos{$id_pac}{abono} += $total; }
+
+        my $dentro_de_rango = 1;
+        if ($f_inicio && $f_fin) {
+            $dentro_de_rango = ($fecha ge $f_inicio && $fecha le $f_fin) ? 1 : 0;
+        } elsif ($f_inicio) {
+            $dentro_de_rango = ($fecha ge $f_inicio) ? 1 : 0;
+        } elsif ($f_fin) {
+            $dentro_de_rango = ($fecha le $f_fin) ? 1 : 0;
+        }
+
+        if ($dentro_de_rango && $tipo eq 'Abono') {
+            $ingresos_edc += $total;
+        }
+
+        # Complementar histórico si no hubo recibos en ese mes
+        my ($ym_m) = $fecha =~ /^(\d{4}-\d{2})/;
+        if ($ym_m && exists $meses_ingresos{$ym_m} && $tipo eq 'Abono' && $ingresos_recibos == 0) {
+            $meses_ingresos{$ym_m} += $total;
+        }
+    }
+
+    # Ingreso mandante: de recibos o de estado de cuenta
+    my $ingresos_totales = ($ingresos_recibos > 0) ? $ingresos_recibos : $ingresos_edc;
+
+    # Calcular CxC privada y pública (Estado)
+    my $cxc_estado = 0;
+    for my $id (keys %saldos) {
+        my $pend = $saldos{$id}{cargo} - $saldos{$id}{abono};
+        if ($pend > 0.01) {
+            $cxc += $pend;
+            if ($id =~ /^EMP-/) {
+                $cxc_estado += $pend;
+            }
+        }
+    }
+
+    # 5. Egresos (desde gastos.dat)
+    my @gastos_raw = @{ leer_tabla("$FindBin::Bin/../dat/gastos.dat") };
+    my $egresos_totales = 0;
     for my $g (@gastos_raw) {
         my $g_fecha   = $g->[1] || '';
         my $g_creador = $g->[10] || '';
-        next unless $es_admin_global || $usuarios_org{$g_creador};
-        my ($ym) = $g_fecha =~ /^(\d{4}-\d{2})/;
-        if ($ym && exists $meses_gastos{$ym}) {
-            $meses_gastos{$ym} += ($g->[6] || 0);
+        my $monto     = $g->[6] || 0;
+        $monto =~ s/[^\d\.]//g;
+
+        # Filtro multi-tenant por creador
+        next unless $es_admin_global || $usuarios_org{$g_creador} || !$g_creador;
+
+        if ($role eq 'Recepcionista') {
+            next unless ($g_creador eq $session_data->{usuario});
         }
+
+        # Serie histórica de gastos
+        my ($ym_g) = $g_fecha =~ /^(\d{4}-\d{2})/;
+        if ($ym_g && exists $meses_gastos{$ym_g}) {
+            $meses_gastos{$ym_g} += $monto;
+        }
+
+        # Filtro por rango
+        if ($f_inicio && $f_fin) {
+            next if ($g_fecha lt $f_inicio || $g_fecha gt $f_fin);
+        } elsif ($f_inicio) {
+            next if ($g_fecha lt $f_inicio);
+        } elsif ($f_fin) {
+            next if ($g_fecha gt $f_fin);
+        }
+
+        $egresos_totales += $monto;
     }
+
+    # 6. Cotizaciones activas (desde cotizaciones.dat)
+    my $cotizaciones = 0;
+    my $cot_dat = "$FindBin::Bin/../dat/cotizaciones.dat";
+    if (-e $cot_dat && open(my $fhc, '<:encoding(UTF-8)', $cot_dat)) {
+        <$fhc>; # cabecera
+        while (my $cline = <$fhc>) {
+            chomp $cline;
+            next if $cline =~ /^\s*$/;
+            my @cv = split /\|/, $cline, -1;
+            next unless scalar(@cv) >= 5;
+            my $c_id_pac = $cv[1] || '';
+            my $c_monto  = $cv[3] + 0;
+            my $c_fecha  = $cv[4] || '';
+
+            # Filtro multi-tenant
+            next unless $es_admin_global || $pacientes_org{$c_id_pac} || $c_id_pac =~ /^PRIV-|^EMP-/;
+
+            if ($f_inicio && $f_fin) {
+                next if ($c_fecha lt $f_inicio || $c_fecha gt $f_fin);
+            } elsif ($f_inicio) {
+                next if ($c_fecha lt $f_inicio);
+            } elsif ($f_fin) {
+                next if ($c_fecha gt $f_fin);
+            }
+            $cotizaciones += $c_monto;
+        }
+        close $fhc;
+    }
+
+    my $ticket_promedio = $total_recibos_periodo > 0 ? ($ingresos_totales / $total_recibos_periodo) : 0;
+    my $utilidad_neta = $ingresos_totales - $egresos_totales;
 
     my @chart_labels   = map { $_->{label} } @meses_info;
     my @chart_ingresos = map { $meses_ingresos{$_->{ym}} || 0 } @meses_info;
@@ -535,6 +607,7 @@ elsif ($action eq 'get_dashboard') {
         gastos          => $egresos_totales,
         utilidad        => $utilidad_neta,
         cotizaciones    => $cotizaciones,
+        facturacion     => 0,
         recibos_periodo => $total_recibos_periodo,
         recibos_hoy     => $total_recibos_hoy,
         ticket_promedio => sprintf("%.2f", $ticket_promedio),

@@ -25,5 +25,7 @@ ID_OS|ID_MOVIMIENTO|ID_PACIENTE|TIPO|CONCEPTO|MONTO_BASE|IVA|TOTAL|FECHA|ID_MEDI
 27765|MOV-1788677124-ABONO|PRIV-1788677061143|Abono|Abono en Caja - Efectivo|250|0|250|2026-09-06|62|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|wendy
 6850|MOV-1788677172-100|EMP-6154|Cargo|Consulta|0|0|0|2026-09-06|27|Cargo Walk-in | Paciente: Juarez Garcia Beatriz | Concepto: Consulta|Juarez Garcia Beatriz
 6850|MOV-1788677172-ABONO|EMP-6154|Abono|Abono en Caja - Efectivo|0|0|0|2026-09-06|27|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|Juarez Garcia Beatriz
-27766|MOV-1788680039-100|PRIV-1788680039783|Cargo|consulta|500|0|500|2026-09-06|54|Cargo Walk-in | Paciente: simon perez | Concepto: Consulta|simon perez
-27766|MOV-1788680039-ABONO|PRIV-1788680039783|Abono|Abono en Caja - Efectivo|500|0|500|2026-09-06|54|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|simon perez
+27766|MOV-1788680039-100|PRIV-1788680039783|Cargo|consulta|550|0|550|2026-09-06|54|Cargo Walk-in | Paciente: simon perez | Concepto: Consulta|simon perez
+27766|MOV-1788680039-ABONO|PRIV-1788680039783|Abono|Abono en Caja - Efectivo|550|0|550|2026-09-06|54|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|simon perez
+27767|MOV-1788680145-100|PRIV-1788680145123|Cargo|Consulta|550|0|550|2026-09-06|63|Cargo Walk-in | Paciente: wendy dos | Concepto: Consulta|wendy dos
+27767|MOV-1788680145-ABONO|PRIV-1788680145123|Abono|Abono en Caja - Efectivo|550|0|550|2026-09-06|63|Pago Recibo Rápido | Metodo: Efectivo | Concepto: Consulta|wendy dos
