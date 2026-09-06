@@ -90,11 +90,18 @@ if ($recibo->{items_json} && $recibo->{items_json} ne '[]') {
         if ($@) { $items = decode_json(encode_utf8($recibo->{items_json})); }
         
         foreach my $it (@$items) {
+            my $cubierto = $it->{cubierto_convenio} // ((defined $it->{precio_paciente} && $it->{precio_paciente} == 0) ? 1 : 0);
+            # Si el concepto es consulta médica y no viene explícito, es por convenio
+            if (!defined $it->{precio_paciente} && $it->{nombre} && $it->{nombre} =~ /CONSULTA/i) {
+                $cubierto = 1;
+            }
             push @cargos, {
-                concepto => $it->{nombre},
-                precio   => $it->{precio},
-                cantidad => $it->{cantidad},
-                subtotal => $it->{precio} * $it->{cantidad}
+                concepto          => $it->{nombre},
+                precio            => $it->{precio},
+                precio_paciente   => $it->{precio_paciente} // ($cubierto ? 0 : $it->{precio}),
+                cubierto_convenio => $cubierto,
+                cantidad          => $it->{cantidad} || 1,
+                subtotal          => ($it->{precio} || 0) * ($it->{cantidad} || 1)
             };
         }
     };
@@ -603,13 +610,18 @@ my %seen;
 foreach my $c (@cargos) {
     next if $seen{$c->{concepto}}++;
     my $concepto_txt = $c->{concepto};
-    my $precio_fmt = formato_moneda($c->{precio});
-    my $subtotal_fmt = formato_moneda($c->{subtotal});
+    my $precio_col_html = '';
+    if ($c->{cubierto_convenio} || (defined $c->{precio_paciente} && $c->{precio_paciente} == 0)) {
+        $precio_col_html = qq{<span style="font-size: 9.5px; font-weight: bold; color: #0284c7; background: #f0f9ff; padding: 2px 6px; border-radius: 4px; border: 1px solid #bae6fd;">[Cubierto por Convenio]</span>};
+    } else {
+        my $subtotal_fmt = formato_moneda($c->{subtotal});
+        $precio_col_html = qq{<span style="font-size: 10px; font-weight: bold; color: #1e293b;">$subtotal_fmt</span>};
+    }
     
     print qq{
                         <tr>
                             <td style="text-align: left; font-size: 10px; text-transform: uppercase;">$concepto_txt</td>
-                            <td style="text-align: right; font-size: 10px;">$subtotal_fmt</td>
+                            <td style="text-align: right; font-size: 10px;">$precio_col_html</td>
                         </tr>
     };
 }
@@ -627,13 +639,31 @@ print <<HTML;
                                     Nombre y Firma del Paciente
                                 </div>
                             </td>
-                            <td style="width: 50%; text-align: left; vertical-align: middle; padding: 15px; border: 1px solid #ccc; border-top: none; border-left: none;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px; font-weight: normal;">
-                                    <span>Cuentas x cobrar</span>
-                                    <span>@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
+                            <td style="width: 50%; text-align: left; vertical-align: middle; padding: 12px; border: 1px solid #ccc; border-top: none; border-left: none;">
+HTML
+
+if ($recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
+    print qq{
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; font-weight: bold; color: #059669;">
+                                    <span>Pago en Ventanilla</span>
+                                    <span>@{[ formato_moneda($recibo->{total_abonos}) ]}</span>
                                 </div>
-                                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 15px;">
-                                    <span style="font-size: 11px; text-align: right; white-space: nowrap; font-weight: normal; color: #334155;">Elaboró : $elaborado_por</span>
+    };
+} else {
+    print qq{
+                                <div style="margin-bottom: 8px; font-size: 9.5px; font-weight: bold; color: #0369a1; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 4px; padding: 4px 6px; text-align: center;">
+                                    Servicio Amparado bajo Convenio Municipal de Salud
+                                </div>
+    };
+}
+
+print <<HTML;
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: #64748b;">
+                                    <span>Cargo a Convenio (CXC)</span>
+                                    <span style="font-weight: bold; color: #334155;">@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 10px;">
+                                    <span style="font-size: 10px; text-align: right; white-space: nowrap; font-weight: normal; color: #64748b;">Elaboró : $elaborado_por</span>
                                 </div>
                             </td>
                         </tr>

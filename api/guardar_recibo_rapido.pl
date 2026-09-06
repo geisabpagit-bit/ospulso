@@ -150,10 +150,115 @@ unless (-s $folios_file) {
     close $fh_f2;
 }
 
+# Función auxiliar para resolver costo de convenio de consulta médica por catálogo de la organización
+sub resolver_costo_convenio_medico {
+    my ($clues, $id_med) = @_;
+    return 550.0 unless ($clues && $id_med);
+
+    my $cat_items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "catalogo_items_${clues}.dat");
+    my $cat_prec_file  = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "catalogo_precios_${clues}.dat");
+    my $med_file       = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "medicos_${clues}.dat");
+    my $esp_file       = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "especialidades_${clues}.dat");
+
+    my $id_esp = '';
+    my $nom_med = '';
+    if (-e $med_file && open(my $fm, '<:utf8', $med_file)) {
+        while (my $l = <$fm>) {
+            chomp $l;
+            my @f = split(/\|/, $l, -1);
+            if ($f[0] eq $id_med) {
+                $id_esp = $f[1] || '';
+                $nom_med = $f[2] || '';
+                last;
+            }
+        }
+        close($fm);
+    }
+
+    my $nom_esp = '';
+    if ($id_esp && -e $esp_file && open(my $fe, '<:utf8', $esp_file)) {
+        while (my $l = <$fe>) {
+            chomp $l;
+            my @f = split(/\|/, $l, -1);
+            if ($f[0] eq $id_esp) {
+                $nom_esp = uc($f[1] || '');
+                last;
+            }
+        }
+        close($fe);
+    }
+
+    my @tokens_med = grep { length($_) > 3 && $_ !~ /^(DRA?|LIC|ING|MTRO)$/i } split(/\s+/, uc($nom_med));
+
+    my $target_item = '';
+    if (-e $cat_items_file && open(my $fi, '<:utf8', $cat_items_file)) {
+        while (my $li = <$fi>) {
+            chomp $li;
+            my @f = split(/\|/, $li, -1);
+            next if $f[0] =~ /^ID_ITEM/;
+            my $item_id = $f[0];
+            my $concepto = uc($f[3] || '');
+            if ($concepto =~ /CONSULTA/i) {
+                # 1. Match por tokens del médico (al menos 2 palabras coincidentes)
+                my $hits = 0;
+                foreach my $tk (@tokens_med) {
+                    $hits++ if $concepto =~ /\Q$tk\E/;
+                }
+                if ($hits >= 2) {
+                    $target_item = $item_id;
+                    last;
+                }
+                # 2. Match por nombre de especialidad
+                if ($nom_esp && $concepto =~ /\Q$nom_esp\E/ && !$target_item) {
+                    $target_item = $item_id;
+                }
+            }
+        }
+        close($fi);
+    }
+
+    if ($target_item && -e $cat_prec_file && open(my $fp, '<:utf8', $cat_prec_file)) {
+        while (my $lp = <$fp>) {
+            chomp $lp;
+            my @f = split(/\|/, $lp, -1);
+            if ($f[1] eq $target_item) {
+                my $precio = $f[3] || 0;
+                $precio =~ s/[^\d\.]//g;
+                close($fp);
+                return $precio if $precio > 0;
+            }
+        }
+        close($fp);
+    }
+
+    return 550.0;
+}
+
+# Calcular cargos y enriquecer items
+my $total_cargos_calculado = 0;
+foreach my $it (@$caja_items) {
+    if ($is_estado) {
+        if (!defined $it->{precio} || $it->{precio} == 0) {
+            my $costo_convenio = resolver_costo_convenio_medico($org_clues, $id_medico);
+            $it->{precio} = $costo_convenio;
+            $it->{cubierto_convenio} = 1;
+            $it->{precio_paciente} = 0;
+        }
+    }
+    my $cant = $it->{cantidad} || 1;
+    $total_cargos_calculado += ($it->{precio} || 0) * $cant;
+}
+
+my $total_cargos_final = ($total_cargos_calculado > 0) ? $total_cargos_calculado : ($caja_monto_abono || 0);
+my $total_abonos_final = $is_estado ? ($caja_monto_abono || 0) : ($caja_monto_abono || $total_cargos_final);
+
+# Re-serializar items JSON
+$caja_items_json = encode_json($caja_items);
+
 my $id_recibo_folio = 'R-' . time() . '-' . int(rand(1000));
 my $hoy_hora = sprintf("%02d:%02d", $hour, $min);
 my $estatus = 'Cobrado';
-my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $folio_impreso, $id_paciente, $hoy_fecha, $hoy_hora, $caja_monto_abono, $caja_monto_abono, $caja_metodo_pago, $usuario, $concepto_recibo, $caja_items_json, $estatus, $id_medico);
+my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $folio_impreso, $id_paciente, $hoy_fecha, $hoy_hora, $total_cargos_final, $total_abonos_final, $caja_metodo_pago, $usuario, $concepto_recibo, $caja_items_json, $estatus, $id_medico);
 utils::db_manager::guardar_registro($folios_file, $linea_folio);
 
 # 2. Guardar Cargos y Abonos en estado_cuenta.dat usando el FOLIO ABSOLUTO como ID_OS
@@ -180,17 +285,20 @@ foreach my $it (@$caja_items) {
     utils::db_manager::guardar_registro($fin_file, $linea_cargo);
 }
 
-my $id_mov_abono = 'MOV-' . time() . '-ABONO';
-my $nota_abono = "Pago Recibo Rápido | Metodo: $caja_metodo_pago";
-if ($concepto_recibo) {
-    $nota_abono .= " | Concepto: $concepto_recibo";
+# Solo registrar Abono en caja si el paciente realizó un pago físico en ventanilla (copago o privado)
+if ($total_abonos_final > 0) {
+    my $id_mov_abono = 'MOV-' . time() . '-ABONO';
+    my $nota_abono = "Pago Recibo Rápido | Metodo: $caja_metodo_pago";
+    if ($concepto_recibo) {
+        $nota_abono .= " | Concepto: $concepto_recibo";
+    }
+    my $linea_abono = join('|',
+        $folio_impreso, $id_mov_abono, $id_paciente, 'Abono', "Abono en Caja - $caja_metodo_pago",
+        $total_abonos_final, 0, $total_abonos_final, $hoy_fecha, $id_medico,
+        $nota_abono, ($nombre_empleado || '')
+    );
+    utils::db_manager::guardar_registro($fin_file, $linea_abono);
 }
-my $linea_abono = join('|',
-    $folio_impreso, $id_mov_abono, $id_paciente, 'Abono', "Abono en Caja - $caja_metodo_pago",
-    $caja_monto_abono, 0, $caja_monto_abono, $hoy_fecha, $id_medico,
-    $nota_abono, ($nombre_empleado || '')
-);
-utils::db_manager::guardar_registro($fin_file, $linea_abono);
 
 print encode_json({ ok => JSON::true, id_tratamiento => $folio_impreso, folio => $folio_impreso, is_estado => $is_estado });
 1;

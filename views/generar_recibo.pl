@@ -837,11 +837,25 @@ print <<'JS';
         }
 
         let html = '';
-        let total = 0;
+        let totalCobrar = 0;
+        let totalConvenio = 0;
         
         cartItems.forEach((item, idx) => {
-            const sub = item.precio * item.cantidad;
-            total += sub;
+            let isCubierto = (pacienteTipoActual === 'estado' && (item.cubierto_convenio || item.precio_paciente === 0));
+            const sub = (item.precio || 0) * (item.cantidad || 1);
+            if (isCubierto) {
+                totalConvenio += sub;
+            } else {
+                totalCobrar += ((item.precio_paciente !== undefined ? item.precio_paciente : item.precio) * (item.cantidad || 1));
+            }
+            
+            let badgePrecio = isCubierto ?
+                `<span class="badge rounded-pill ms-2" style="background:#e0f2fe; color:#0369a1; font-size: 0.65rem; border: 1px solid #bae6fd;">[Cubierto por Convenio]</span>` :
+                `<span class="fw-bold ms-2" style="font-size: 0.72rem; color: var(--md-blue-deep, #0A2A66);">${formatCurrency(sub)}</span>`;
+                
+            let subtexto = isCubierto ?
+                `<small class="text-muted fw-bold" style="font-size: 0.68rem;">Convenio Municipio</small>` :
+                `<small class="text-muted fw-bold" style="font-size: 0.68rem;">${formatCurrency(item.precio)} c/u</small>`;
             
             html += `
                 <div class="bg-light p-2 rounded-3 border mb-2 d-flex flex-column gap-1">
@@ -850,12 +864,12 @@ print <<'JS';
                         <button type="button" class="btn btn-sm text-danger p-0 border-0 shadow-none" style="font-size: 0.75rem;" onclick="removeConcepto(${idx})"><i class="bi bi-trash"></i></button>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-1">
-                        <small class="text-muted fw-bold" style="font-size: 0.68rem;">${formatCurrency(item.precio)} c/u</small>
+                        ${subtexto}
                         <div class="d-flex align-items-center gap-1">
                             <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:20px; height:20px; line-height:1; font-size: 0.65rem;" onclick="updateCantidad(${idx}, -1)">-</button>
                             <span class="fw-bold px-1" style="font-size: 0.7rem;">${item.cantidad}</span>
                             <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:20px; height:20px; line-height:1; font-size: 0.65rem;" onclick="updateCantidad(${idx}, 1)">+</button>
-                            <span class="fw-bold ms-2" style="font-size: 0.72rem; color: var(--md-blue-deep, #0A2A66);">${formatCurrency(sub)}</span>
+                            ${badgePrecio}
                         </div>
                     </div>
                 </div>
@@ -866,13 +880,13 @@ print <<'JS';
         
         let iva = 0;
         if ($('#chkIva').length && $('#chkIva').is(':checked')) {
-            iva = total * 0.16;
+            iva = totalCobrar * 0.16;
         }
         
         let totalIvaText = iva > 0 ? formatCurrency(iva) : '$0.00';
         $('#taxAmountText').text(totalIvaText);
         
-        let totalFmt = formatCurrency(total + iva);
+        let totalFmt = formatCurrency(totalCobrar + iva);
         $('#cartTotalText').text(totalFmt);
     }
     
@@ -991,10 +1005,34 @@ print <<'JS';
         
         const id_medico = $('#selMedico').val();
         const metodo = $('#selMetodoPago').val();
-        let total = cartItems.reduce((acc, it) => acc + (it.precio * it.cantidad), 0);
+
+        // Si es paciente de Estado y el carrito está vacío, agregar automáticamente la consulta de convenio
+        if (tipo === 'estado' && cartItems.length === 0) {
+            let medNombre = $('#selMedico option:selected').text() || 'MÉDICO GENERAL';
+            cartItems.push({
+                id: 'CONS-' + (id_medico || 'GEN'),
+                nombre: 'CONSULTA MÉDICA - ' + medNombre,
+                precio: 0,
+                precio_paciente: 0,
+                cubierto_convenio: 1,
+                cantidad: 1
+            });
+        }
+
+        let totalCobroVentanilla = 0;
+        cartItems.forEach(it => {
+            if (tipo === 'estado') {
+                if (!it.cubierto_convenio && it.precio_paciente > 0) {
+                    totalCobroVentanilla += (it.precio_paciente * (it.cantidad || 1));
+                }
+            } else {
+                totalCobroVentanilla += ((it.precio || 0) * (it.cantidad || 1));
+            }
+        });
+
         let con_iva = 0;
-        if ($('#chkIva').length && $('#chkIva').is(':checked')) {
-            total += (total * 0.16);
+        if ($('#chkIva').length && $('#chkIva').is(':checked') && totalCobroVentanilla > 0) {
+            totalCobroVentanilla += (totalCobroVentanilla * 0.16);
             con_iva = 1;
         }
         
@@ -1007,7 +1045,7 @@ print <<'JS';
             form.append('id_medico', id_medico);
             form.append('caja_items_json', JSON.stringify(cartItems));
             form.append('caja_metodo_pago', metodo);
-            form.append('caja_monto_abono', total);
+            form.append('caja_monto_abono', totalCobroVentanilla);
             form.append('caja_con_iva', con_iva);
             if ($('#selConceptoRecibo').length) {
                 form.append('caja_concepto', $('#selConceptoRecibo').val());

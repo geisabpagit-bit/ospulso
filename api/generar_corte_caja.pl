@@ -290,11 +290,16 @@ if (-e $archivo_publicos) {
         my $is_cancelado = ($estatus =~ /Cancelado/i) ? 1 : 0;
         
         if ($fecha ge $f_inicio && $fecha le $f_fin) {
+            my $cargo = $f->[8] || 0;
+            $cargo =~ s/[^\d\.]//g;
             my $abono = $f->[9] || 0;
             $abono =~ s/[^\d\.]//g;
             
+            # Para Cuentas por Cobrar de Municipio, el importe del servicio es TOTAL_CARGOS (o abono si cargo es 0)
+            my $monto_cxc = ($cargo > 0) ? $cargo : ($abono || 0);
+            
             if (!$is_cancelado) {
-                $total_cxc += $abono;
+                $total_cxc += $monto_cxc;
             }
             
             my $id_med = $f->[15] || '';
@@ -352,7 +357,7 @@ if (-e $archivo_publicos) {
                 dependencia       => $dep_nom || 'Municipio',
                 medico            => $nombre_med,
                 forma_pago        => $f->[10] || 'Crédito CxC',
-                monto             => $abono,
+                monto             => $monto_cxc,
                 estatus           => $is_cancelado ? 'Cancelado' : 'Activo',
                 motivo            => $is_cancelado ? ($f->[16] || $f->[15] || 'Sin motivo registrado') : ''
             };
