@@ -331,6 +331,7 @@ HTML
             'servicios'   => { file => 'manage_servicios.pl', icon => 'bi-heart-pulse-fill', title => 'Gesti&oacute;n de Servicios' },
             'productos'   => { file => 'manage_productos.pl', icon => 'bi-box-seam-fill', title => 'Gesti&oacute;n de Productos' },
             'tecnico'     => { file => 'administracion_catalogo.pl', icon => 'bi-tools', title => 'Cat&aacute;logos y Mantenimiento' },
+            'gestion_catalogos' => { file => 'gestion_catalogos.pl', icon => 'bi-database-gear', title => 'Gesti&oacute;n de Cat&aacute;logos' },
             'sync_google' => { file => '#', icon => 'bi-google', title => 'Sincronizaci&oacute;n Google', onclick => "iniciarVinculacionGoogle('$id_medico'); return false;" }
         );
 
@@ -356,7 +357,14 @@ HTML
             $is_allowed{'productos'} = 0;
         }
         
-        foreach my $k ('clinicas', 'usuarios', 'servicios', 'productos', 'tecnico', 'sync_google') {
+        # Only allow gestion_catalogos for Administrador Organizacion with CLUE
+        if ($role eq 'Administrador Organizacion' && $org_clues ne '') {
+            $is_allowed{'gestion_catalogos'} = 1;
+        } else {
+            $is_allowed{'gestion_catalogos'} = 0;
+        }
+        
+        foreach my $k ('clinicas', 'usuarios', 'servicios', 'productos', 'tecnico', 'gestion_catalogos', 'sync_google') {
             if ($is_allowed{$k}) {
                 my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
                 my $cfg = $admin_mod_names{$k};
