@@ -439,6 +439,17 @@ if ($id_medico) {
             close $fu;
         }
     }
+    
+    if ($medico_nombre eq "NO ESPECIFICADO") {
+        foreach my $c (@cargos) {
+            my $conc = $c->{concepto} || '';
+            if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                $especialidad_nombre = uc($1) unless $especialidad_nombre;
+                $medico_nombre = uc($2);
+                last;
+            }
+        }
+    }
 }
 
 sub formato_moneda {

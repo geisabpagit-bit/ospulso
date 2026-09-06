@@ -297,45 +297,29 @@ print <<"HTML";
                         <!-- Concepto del Recibo (Movido inmediatamente después de Número de Empleado) -->
                         <div class="col-12">
                             <div class="mb-3 diamond-input-armor rounded-3">
-                                <label class="small fw-bold text-muted mb-2 ps-1">Concepto del Recibo</label>
-                                <select id="selConceptoRecibo" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="evaluarVisibilidadMedico()" required>
-                                    $motivos_html
+                                <label class="small fw-bold text-muted mb-2 ps-1">Concepto del Recibo (Departamento)</label>
+                                <select id="selConceptoRecibo" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="onConceptoDepartamentoChange()" required>
+                                    <option value="">-- Cargando Departamentos... --</option>
                                 </select>
                             </div>
                         </div>
 
-HTML
-
-if ($has_custom_medicos) {
-print <<"HTML";
-                        <!-- Especialidad (Visibilidad dinámica según Concepto) -->
+                        <!-- Especialidad (Categorías de Consultas) -->
                         <div class="col-12" id="containerEspecialidad">
                             <div class="mb-3 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Especialidad</label>
-                                <select id="selEspecialidadCustom" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="filtrarMedicosCustom()">
-                                    $espe_options
+                                <select id="selEspecialidadCustom" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="onEspecialidadChange()">
+                                    <option value="">-- Selecciona Especialidad --</option>
                                 </select>
                             </div>
                         </div>
-HTML
-}
 
-print <<"HTML";
-                        
-                        <!-- Médico Tratante (Visibilidad dinámica según Concepto) -->
+                        <!-- Médico Tratante (Ítems de Consulta del Catálogo Universal) -->
                         <div class="col-12" id="containerMedico">
                             <div class="mb-3 diamond-input-armor rounded-3">
                                 <label class="small fw-bold text-muted mb-2 ps-1">Médico Tratante</label>
-                                <select id="selMedico" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent">
-HTML
-
-if ($has_custom_medicos) {
-    print "<option value=''>-- Selec. Médico --</option>";
-} else {
-    print $medicos_options;
-}
-
-print <<"HTML";
+                                <select id="selMedico" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="onMedicoItemChange()">
+                                    <option value="">-- Selecciona Médico --</option>
                                 </select>
                             </div>
                         </div>
@@ -431,30 +415,164 @@ print <<'JS';
     let pacienteSeleccionado = null;
     let cargoSeleccionadoManual = null;
 
-    function filtrarMedicosCustom() {
-        const idEspe = document.getElementById('selEspecialidadCustom').value;
-        const selMedico = document.getElementById('selMedico');
-        if (!selMedico) return;
+    function _poblarDepartamentosSegunPaciente() {
+        if (!window.RAW_CATALOGO || !window.RAW_CATALOGO.departamentos) return;
+        const selDep = document.getElementById('selConceptoRecibo');
+        if (!selDep) return;
         
-        selMedico.innerHTML = "<option value=''>-- Selecciona Médico --</option>";
-        if (idEspe && MEDICOS_CUSTOM_JSON[idEspe]) {
-            const medicos = MEDICOS_CUSTOM_JSON[idEspe];
-            medicos.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id;
-                opt.textContent = m.nombre;
-                selMedico.appendChild(opt);
+        let esEstado = (pacienteTipoActual === 'estado');
+        let currentVal = selDep.value;
+        
+        let depsActivos = (window.RAW_CATALOGO.departamentos || []).filter(d => {
+            if (String(d.id_dep) === '1') return true;
+            let itemsDep = (window.RAW_CATALOGO.items || []).filter(it => {
+                let cat = (window.RAW_CATALOGO.categorias || []).find(c => String(c.id_cat) === String(it.id_cat));
+                return cat && String(cat.id_dep) === String(d.id_dep);
+            });
+            if (itemsDep.length === 0) return false;
+            if (esEstado) {
+                return itemsDep.some(it => (it.precios || []).some(p => p.tipo_tarifa === 'MUNICIPIO' && parseFloat(p.precio_publico) > 0));
+            } else {
+                return itemsDep.some(it => (it.precios || []).some(p => (p.tipo_tarifa === 'ESTANDAR' || p.tipo_tarifa === 'DIA' || p.tipo_tarifa === 'BASE') && parseFloat(p.precio_publico) > 0));
+            }
+        });
+        
+        let html = '<option value="">-- Selecciona Departamento --</option>';
+        depsActivos.forEach(d => {
+            let sel = (currentVal && String(currentVal) === String(d.id_dep)) || (!currentVal && String(d.id_dep) === '1') ? 'selected' : '';
+            html += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
+        });
+        selDep.innerHTML = html;
+        onConceptoDepartamentoChange();
+    }
+
+    function onConceptoDepartamentoChange() {
+        const selDep = document.getElementById('selConceptoRecibo');
+        const depId = selDep ? selDep.value : '';
+        const contEspe = document.getElementById('containerEspecialidad');
+        const contMed  = document.getElementById('containerMedico');
+        const selMed   = document.getElementById('selMedico');
+        
+        if (String(depId) === '1') {
+            if (contEspe) contEspe.style.display = '';
+            if (contMed) contMed.style.display = '';
+            if (selMed) selMed.setAttribute('required', 'required');
+            _poblarEspecialidades('1');
+        } else {
+            if (contEspe) contEspe.style.display = 'none';
+            if (contMed) contMed.style.display = 'none';
+            if (selMed) {
+                selMed.removeAttribute('required');
+                selMed.value = '';
+            }
+            cartItems = cartItems.filter(it => !it.is_consulta_principal);
+            renderCart();
+        }
+    }
+
+    function _poblarEspecialidades(depId) {
+        if (!window.RAW_CATALOGO || !window.RAW_CATALOGO.categorias) return;
+        const selEspe = document.getElementById('selEspecialidadCustom');
+        if (!selEspe) return;
+        
+        let currentVal = selEspe.value;
+        let cats = (window.RAW_CATALOGO.categorias || []).filter(c => String(c.id_dep) === String(depId));
+        cats.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        
+        let html = '<option value="">-- Selecciona Especialidad --</option>';
+        cats.forEach(c => {
+            let sel = (currentVal && String(currentVal) === String(c.id_cat)) ? 'selected' : '';
+            html += `<option value="${c.id_cat}" ${sel}>${escapeHtml(c.nombre)}</option>`;
+        });
+        selEspe.innerHTML = html;
+        
+        if (!selEspe.value && cats.length > 0) {
+            let medGral = cats.find(c => c.nombre.toUpperCase() === 'MEDICINA GENERAL');
+            if (medGral) {
+                selEspe.value = medGral.id_cat;
+            } else {
+                selEspe.selectedIndex = 1;
+            }
+        }
+        onEspecialidadChange();
+    }
+
+    function onEspecialidadChange() {
+        if (!window.RAW_CATALOGO || !window.RAW_CATALOGO.items) return;
+        const selEspe = document.getElementById('selEspecialidadCustom');
+        const selMed = document.getElementById('selMedico');
+        if (!selEspe || !selMed) return;
+        
+        const catId = selEspe.value;
+        if (!catId) {
+            selMed.innerHTML = '<option value="">-- Selecciona Especialidad Primero --</option>';
+            cartItems = cartItems.filter(it => !it.is_consulta_principal);
+            renderCart();
+            return;
+        }
+        
+        let esEstado = (pacienteTipoActual === 'estado');
+        let itemsCat = (window.RAW_CATALOGO.items || []).filter(it => String(it.id_cat) === String(catId));
+        itemsCat.sort((a, b) => (a.concepto || '').localeCompare(b.concepto || ''));
+        
+        let html = '<option value="">-- Selecciona Médico / Concepto --</option>';
+        itemsCat.forEach(it => {
+            let pMunObj = (it.precios || []).find(p => p.tipo_tarifa === 'MUNICIPIO');
+            let pEstObj = (it.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (it.precios || [])[0];
+            let pMun = pMunObj ? parseFloat(pMunObj.precio_publico || 0) : 0;
+            let pEst = pEstObj ? parseFloat(pEstObj.precio_publico || 0) : 0;
+            let precioActivo = esEstado ? (pMun || pEst) : pEst;
+            
+            let displayNom = it.concepto || it.nombre;
+            let labelMedico = displayNom;
+            if (displayNom.includes(' - ')) {
+                labelMedico = displayNom.split(' - ')[1].trim();
+            }
+            
+            let precioLabel = esEstado ? '[Cubierto Convenio]' : formatCurrency(precioActivo);
+            html += `<option value="${it.id_item}" data-item-id="${it.id_item}" data-concepto="${escapeHtml(displayNom)}" data-precio-mun="${pMun}" data-precio-est="${pEst}" data-precio="${precioActivo}">${escapeHtml(labelMedico)} (${precioLabel})</option>`;
+        });
+        
+        selMed.innerHTML = html;
+        if (itemsCat.length === 1) {
+            selMed.selectedIndex = 1;
+        }
+        onMedicoItemChange();
+    }
+
+    function onMedicoItemChange() {
+        const selMed = document.getElementById('selMedico');
+        if (!selMed) return;
+        
+        const opt = selMed.options[selMed.selectedIndex];
+        const itemId = selMed.value;
+        
+        cartItems = cartItems.filter(it => !it.is_consulta_principal);
+        
+        if (itemId && opt && opt.value) {
+            let esEstado = (pacienteTipoActual === 'estado');
+            let pMun = parseFloat(opt.getAttribute('data-precio-mun')) || 0;
+            let pEst = parseFloat(opt.getAttribute('data-precio-est')) || 0;
+            let precioActivo = esEstado ? (pMun || pEst) : pEst;
+            let conceptoStr = opt.getAttribute('data-concepto') || opt.text;
+            
+            cartItems.unshift({
+                id: itemId,
+                id_item: itemId,
+                nombre: conceptoStr,
+                precio: precioActivo,
+                precio_paciente: esEstado ? 0 : precioActivo,
+                cubierto_convenio: esEstado ? 1 : 0,
+                cantidad: 1,
+                is_consulta_principal: true
             });
         }
+        renderCart();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         initSelect2Paciente();
         _cargarCatalogoRecibo();
-        
-        if (document.getElementById('selEspecialidadCustom')) {
-            filtrarMedicosCustom();
-        }
     });
 
     let pacienteEstadoSeleccionado = { id: '', nombre: '' };
@@ -598,6 +716,11 @@ print <<'JS';
 
     function _actualizarTarifasSegunPaciente() {
         let esEstado = (pacienteTipoActual === 'estado');
+        
+        // 1. Conmutar departamentos y cascada de consulta de la cabecera
+        _poblarDepartamentosSegunPaciente();
+        
+        // 2. Conmutar precios del catalogo modal (servicios adicionales)
         (masterCatalogoRecibo || []).forEach(it => {
             it.precio = esEstado ? (it.precio_municipio || it.precio_estandar || 0) : (it.precio_estandar || 0);
         });
@@ -612,11 +735,28 @@ print <<'JS';
             if (typeof _renderizarCarritoModalRecibo === 'function') _renderizarCarritoModalRecibo();
         }
         
+        // 3. Conmutar items en el carrito activo
         if (cartItems && cartItems.length > 0) {
             cartItems.forEach(it => {
-                let master = masterCatalogoRecibo.find(m => m.id === it.id);
-                if (master) {
-                    it.precio = esEstado ? (master.precio_municipio || master.precio_estandar || 0) : (master.precio_estandar || 0);
+                if (it.is_consulta_principal) {
+                    const selMed = document.getElementById('selMedico');
+                    const opt = selMed ? selMed.options[selMed.selectedIndex] : null;
+                    if (opt && opt.value) {
+                        let pMun = parseFloat(opt.getAttribute('data-precio-mun')) || 0;
+                        let pEst = parseFloat(opt.getAttribute('data-precio-est')) || 0;
+                        let pActivo = esEstado ? (pMun || pEst) : pEst;
+                        it.precio = pActivo;
+                        it.precio_paciente = esEstado ? 0 : pActivo;
+                        it.cubierto_convenio = esEstado ? 1 : 0;
+                    }
+                } else {
+                    let master = masterCatalogoRecibo.find(m => m.id === it.id);
+                    if (master) {
+                        it.precio = esEstado ? (master.precio_municipio || master.precio_estandar || 0) : (master.precio_estandar || 0);
+                        if (esEstado && it.cubierto_convenio) {
+                            it.precio_paciente = 0;
+                        }
+                    }
                 }
             });
             if (typeof renderCart === 'function') renderCart();
@@ -644,15 +784,30 @@ print <<'JS';
             recCatsMap = {};
 
             if (res.is_universal && res.catalogo) {
-                (res.catalogo.departamentos || []).forEach(d => { recDepsMap[d.id_dep] = d.nombre; });
-                (res.catalogo.categorias || []).forEach(c => { recCatsMap[c.id_cat] = { n: c.nombre, d: c.id_dep }; });
+                window.RAW_CATALOGO = res.catalogo;
 
+                // REGLA DE EXCLUSIÓN: Omitir ID_DEP = 1 (CONSULTAS) del mapa de departamentos del modal del carrito
+                (res.catalogo.departamentos || []).forEach(d => {
+                    if (String(d.id_dep) !== '1') {
+                        recDepsMap[d.id_dep] = d.nombre;
+                    }
+                });
+
+                (res.catalogo.categorias || []).forEach(c => {
+                    recCatsMap[c.id_cat] = { n: c.nombre, d: c.id_dep };
+                });
+
+                // REGLA DE EXCLUSIÓN: Omitir ítems con departamento 1 (CONSULTAS) del carrito modal
                 (res.catalogo.items || []).forEach(c => {
+                    var catInfo = recCatsMap[c.id_cat] || { d: '' };
+                    if (String(catInfo.d) === '1') {
+                        return; // Omitir del catálogo del modal del carrito
+                    }
+
                     var pEst = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (c.precios || [])[0];
                     var pMun = (c.precios || []).find(p => p.tipo_tarifa === 'MUNICIPIO');
                     var precioEst = pEst ? parseFloat(pEst.precio_publico || 0) : 0;
                     var precioMun = pMun ? parseFloat(pMun.precio_publico || 0) : precioEst;
-                    var catInfo = recCatsMap[c.id_cat] || { d: '' };
                     var esEstado = (pacienteTipoActual === 'estado');
                     
                     masterCatalogoRecibo.push({
@@ -665,6 +820,7 @@ print <<'JS';
                         dep: catInfo.d
                     });
                 });
+
                 (res.catalogo.productos || []).forEach(p => {
                     masterCatalogoRecibo.push({
                         id: p.id_prod,
@@ -674,7 +830,9 @@ print <<'JS';
                         dep: ''
                     });
                 });
+
                 _poblarFiltrosRecibo();
+                _poblarDepartamentosSegunPaciente();
             } else {
                 (res.servicios || []).forEach(s => {
                     masterCatalogoRecibo.push({ id: s.id, nombre: s.nombre, precio: parseFloat(s.precio) || 0, cat: '', dep: '' });
@@ -946,34 +1104,11 @@ print <<'JS';
     }
     
     function evaluarVisibilidadMedico() {
-        let val = $('#selConceptoRecibo').val() || '';
-        let valNorm = val.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-        
-        let esVisible = (valNorm.includes('consulta') || valNorm.includes('hospitalizacion'));
-        
-        const contEspe = document.getElementById('containerEspecialidad');
-        const contMed  = document.getElementById('containerMedico');
-        const selMed   = document.getElementById('selMedico');
-        
-        if (contEspe) {
-            contEspe.style.display = esVisible ? '' : 'none';
-        }
-        if (contMed) {
-            contMed.style.display = esVisible ? '' : 'none';
-        }
-        if (selMed) {
-            if (esVisible) {
-                selMed.setAttribute('required', 'required');
-            } else {
-                selMed.removeAttribute('required');
-                selMed.value = '';
-            }
-        }
+        onConceptoDepartamentoChange();
     }
 
     $(document).ready(function() {
-        $('#selConceptoRecibo').on('change', evaluarVisibilidadMedico);
-        evaluarVisibilidadMedico();
+        $('#selConceptoRecibo').on('change', onConceptoDepartamentoChange);
     });
 
     function mostrarReciboPrevio() {
@@ -991,17 +1126,16 @@ print <<'JS';
         
         const id_medico = $('#selMedico').val();
         let conceptoVal = $('#selConceptoRecibo').val() || '';
-        let conceptoNorm = conceptoVal.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-        let requiereMedico = (conceptoNorm.includes('consulta') || conceptoNorm.includes('hospitalizacion'));
+        let requiereMedico = (String(conceptoVal) === '1');
         
         if (!id_paciente) {
             return Swal.fire('Atención', 'Debes seleccionar un Paciente o registrarlo previamente.', 'warning');
         }
         if ($('#selConceptoRecibo').length && !$('#selConceptoRecibo').val()) {
-            return Swal.fire('Atención', 'Debes seleccionar el Concepto del Recibo.', 'warning');
+            return Swal.fire('Atención', 'Debes seleccionar el Concepto del Recibo (Departamento).', 'warning');
         }
         if (requiereMedico && !id_medico) {
-            return Swal.fire('Atención', 'Debes seleccionar al Médico responsable.', 'warning');
+            return Swal.fire('Atención', 'Debes seleccionar la Especialidad y el Médico responsable.', 'warning');
         }
         if (cartItems.length === 0) {
             return Swal.fire('Atención', 'Agrega al menos un concepto a cobrar en el carrito.', 'warning');
@@ -1073,9 +1207,15 @@ print <<'JS';
         
         const id_medico = $('#selMedico').val();
         const metodo = $('#selMetodoPago').val();
+        const conceptoVal = $('#selConceptoRecibo').val() || '';
+        const requiereMedico = (String(conceptoVal) === '1');
+
+        if (requiereMedico && !id_medico) {
+            return Swal.fire('Atención', 'Debes seleccionar la Especialidad y el Médico responsable.', 'warning');
+        }
 
         // Si es paciente de Estado y el carrito está vacío, agregar automáticamente la consulta de convenio
-        if (tipo === 'estado' && cartItems.length === 0) {
+        if (tipo === 'estado' && cartItems.length === 0 && requiereMedico) {
             let medNombre = $('#selMedico option:selected').text() || 'MÉDICO GENERAL';
             cartItems.push({
                 id: 'CONS-' + (id_medico || 'GEN'),
@@ -1116,7 +1256,7 @@ print <<'JS';
             form.append('caja_monto_abono', totalCobroVentanilla);
             form.append('caja_con_iva', con_iva);
             if ($('#selConceptoRecibo').length) {
-                form.append('caja_concepto', $('#selConceptoRecibo').val());
+                form.append('caja_concepto', $('#selConceptoRecibo option:selected').text());
             }
             
             console.log("Enviando petición a guardar_recibo_rapido.pl con datos:", Object.fromEntries(form.entries()));
