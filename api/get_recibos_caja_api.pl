@@ -140,6 +140,13 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
             next if $id_paciente =~ /^EMP-/;
         }
         
+        # Filtro RBAC: Recepcionista solo ve lo que elaboró
+        if ($session_data->{role} eq 'Recepcionista') {
+            my $mi_user = $session_data->{usuario};
+            my $mi_nombre = $session_data->{nombre_completo} || $map_medicos{$mi_user} || $mi_user;
+            next unless ($elaborado_por eq $mi_user || $elaborado_por eq $mi_nombre);
+        }
+        
         my $nombre_final = $map_pacientes{$id_paciente} || $id_paciente;
         $nombre_final =~ s/.*Paciente:\s*//i;
         

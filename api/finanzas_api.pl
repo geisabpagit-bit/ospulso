@@ -121,6 +121,11 @@ elsif ($action eq 'get_gastos') {
         if ($f_inicio && $f_fin) {
             next if ($fecha_gasto lt $f_inicio || $fecha_gasto gt $f_fin);
         }
+        
+        my $id_creador = $g->[10] || '';
+        if ($session_data->{role} eq 'Recepcionista') {
+            next unless $id_creador eq $session_data->{usuario};
+        }
 
         my $id_cat = $g->[2] || '';
         my $id_subcat = $g->[3] || '';
@@ -189,7 +194,8 @@ elsif ($action eq 'save_gasto') {
             $q->param('monto') || 0,
             $q->param('proveedor') || '',
             $factura_path,
-            $q->param('id_origen') || ''
+            $q->param('id_origen') || '',
+            $session_data->{usuario} || ''
         );
         guardar_registro("$FindBin::Bin/../dat/gastos.dat", $linea);
     } else {
@@ -217,7 +223,8 @@ elsif ($action eq 'save_gasto') {
                         $q->param('monto') || $campos[6],
                         $q->param('proveedor') || $campos[7],
                         $final_factura,
-                        $q->param('id_origen') || $campos[9]
+                        $q->param('id_origen') || $campos[9],
+                        $campos[10] || $session_data->{usuario} || ''
                     );
                 }
                 print $fh_out "$l\n";
