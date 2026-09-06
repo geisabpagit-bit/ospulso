@@ -3,6 +3,13 @@ use cPanelUserConfig;
 use strict;
 use warnings;
 use utf8;
+
+BEGIN {
+    $ENV{TZ} = 'America/Mexico_City';
+}
+use POSIX qw(tzset);
+eval { tzset(); };
+
 use CGI;
 use CGI::Session;
 use CGI::Carp qw(fatalsToBrowser);

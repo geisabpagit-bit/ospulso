@@ -544,31 +544,32 @@ HTML
         print <<HTML;
             <div class="row g-4 mt-2 mb-4">
                 <div class="col-12">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="text-uppercase fw-bold m-0" style="color: var(--md-blue-deep); font-size: 1.1rem;"><i class="bi bi-person-check text-primary me-2"></i>MOVIMIENTOS DE RECIBOS DE PARTICULARES</h6>
-                    </div>
-                    <div class="bg-white p-3 rounded-4 shadow-sm" style="border: 1px solid var(--md-teal-clinical);">
+                    <div class="card card-medentia-aura border-0 shadow-sm p-4 rounded-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);"><i class="bi bi-wallet2 me-2 text-primary"></i>Ingresos (Efectivo / Privados)</h5>
+                                <p class="text-muted small m-0">Detalle de ingresos recibidos por servicios privados (Últimas 24 Hrs).</p>
+                            </div>
+                        </div>
                         <div class="table-responsive">
-                            <table id="dtPrivados" class="table table-hover align-middle w-100">
-                                <thead class="table-light" style="color: var(--md-blue-deep);">
+                            <table id="dtIngresosPrivados" class="table table-hover table-sm align-middle w-100" style="font-size: 10px !important;">
+                                <thead class="table-light text-muted" style="font-size: 10.5px !important;">
                                     <tr>
-                                        <th>Folio</th>
-                                        <th>Fecha</th>
-                                        <th>Paciente</th>
-                                        <th>Concepto</th>
-                                        <th>Médico</th>
-                                        <th>Detalle</th>
-                                        <th>Total</th>
-                                        <th>Estatus</th>
-                                        <th class="text-center">Opciones</th>
+                                        <th style="width: 8%;">Folio</th>
+                                        <th style="width: 12%;">Fecha</th>
+                                        <th style="width: 30%;">Paciente</th>
+                                        <th style="width: 20%;">Médico</th>
+                                        <th style="width: 12%;">Forma Pago</th>
+                                        <th style="width: 10%;" class="text-end">Monto</th>
+                                        <th style="width: 8%;" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody></tbody>
-                                <tfoot>
+                                <tbody style="font-size: 10px !important;"></tbody>
+                                <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                     <tr>
-                                        <th colspan="6" style="text-align:right; font-weight:bold;">Total:</th>
-                                        <th style="font-weight:bold; color: var(--md-success);"></th>
-                                        <th colspan="2"></th>
+                                        <th colspan="5" class="text-end">Total Ingresos Privados:</th>
+                                        <th class="text-end text-success" id="tfootTotalPrivados">$0.00</th>
+                                        <th></th>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -579,31 +580,32 @@ HTML
             
             <div class="row g-4 mt-4 mb-5">
                 <div class="col-12">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="text-uppercase fw-bold m-0" style="color: var(--md-blue-deep); font-size: 1.1rem;"><i class="bi bi-building text-secondary me-2"></i>MOVIMIENTOS DE RECIBOS DE ESTADO / MUNICIPIO</h6>
-                    </div>
-                    <div class="bg-white p-3 rounded-4 shadow-sm" style="border: 1px solid var(--md-teal-clinical);">
+                    <div class="card card-medentia-aura border-0 shadow-sm p-3 rounded-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold m-0" style="color: var(--md-blue-deep); font-size: 14px;"><i class="bi bi-building me-2 text-info"></i>Ingresos Municipio</h5>
+                                <p class="text-muted small m-0" style="font-size: 11px;">Detalle de ingresos generados por derechohabientes del Municipio (Últimas 24 Hrs).</p>
+                            </div>
+                        </div>
                         <div class="table-responsive">
-                            <table id="dtPublicos" class="table table-hover align-middle w-100">
-                                <thead class="table-light" style="color: var(--md-blue-deep);">
+                            <table id="dtIngresosMunicipio" class="table table-hover table-sm align-middle w-100" style="font-size: 10px !important;">
+                                <thead class="table-light text-muted" style="font-size: 10.5px !important;">
                                     <tr>
-                                        <th>Folio</th>
-                                        <th>Fecha</th>
-                                        <th>Paciente</th>
-                                        <th>Concepto</th>
-                                        <th>Médico</th>
-                                        <th>Detalle</th>
-                                        <th>Total</th>
-                                        <th>Estatus</th>
-                                        <th class="text-center">Opciones</th>
+                                        <th style="width: 8%;">Folio OS</th>
+                                        <th style="width: 12%;">Fecha</th>
+                                        <th style="width: 32%;">Paciente / Trabajador</th>
+                                        <th style="width: 18%;">Dependencia</th>
+                                        <th style="width: 15%;">Médico</th>
+                                        <th style="width: 7%;" class="text-end">Monto</th>
+                                        <th style="width: 8%;" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody></tbody>
-                                <tfoot>
+                                <tbody style="font-size: 10px !important;"></tbody>
+                                <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                     <tr>
-                                        <th colspan="6" style="text-align:right; font-weight:bold;">Total:</th>
-                                        <th style="font-weight:bold; color: var(--md-success);"></th>
-                                        <th colspan="2"></th>
+                                        <th colspan="5" class="text-end">Total Ingresos Municipio:</th>
+                                        <th class="text-end text-info" id="tfootTotalMunicipio">$0.00</th>
+                                        <th></th>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -625,48 +627,243 @@ HTML
             <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
             <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 HTML
-    print <<'JS';
+        print <<'JS';
             <script>
+                function escapeHtml(unsafe) {
+                    if (!unsafe) return '';
+                    return (unsafe + '').replace(/[&<"'>]/g, function (m) {
+                        return {
+                            '&': '&amp;',
+                            '<': '&lt;',
+                            '>': '&gt;',
+                            '"': '&quot;',
+                            "'": '&#039;'
+                        }[m];
+                    });
+                }
+
+                function renderTablaCorte(selector, dataSource, columnsConfig) {
+                    if ($.fn.DataTable.isDataTable(selector)) {
+                        $(selector).DataTable().clear().rows.add(dataSource).draw();
+                    } else {
+                        // Eliminamos la barra de búsqueda modificando la propiedad dom
+                        const dtConfig = {
+                            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+                            dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                            buttons: [
+                                { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export fw-bold' },
+                                { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export fw-bold' },
+                                { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export fw-bold' },
+                                { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export fw-bold' }
+                            ],
+                            pageLength: 10,
+                            lengthChange: false,
+                            data: dataSource,
+                            columns: columnsConfig,
+                            createdRow: function(row, data, dataIndex) {
+                                // For mobile views if needed
+                            }
+                        };
+                        $(selector).DataTable(dtConfig);
+                    }
+                }
+
                 document.addEventListener('DOMContentLoaded', function() {
-                    const dtConfig = {
-                        language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
-                        dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
-                        buttons: [
-                            { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPIAR', className: 'btn btn-sm btn-export fw-bold', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] } },
-                            { extend: 'excel', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> EXCEL', className: 'btn btn-sm btn-export fw-bold', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] } },
-                            { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-sm btn-export fw-bold', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] } },
-                            { extend: 'print', text: '<i class="bi bi-printer me-1"></i> IMPRIMIR', className: 'btn btn-sm btn-export fw-bold', exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7] } }
-                        ],
-                        pageLength: 10,
-                        lengthChange: false,
-                        createdRow: function(row, data, dataIndex) {
-                            const labels = ['Folio', 'Fecha', 'Paciente', 'Concepto', 'Médico', 'Detalle', 'Total', 'Estatus', 'Opciones'];
-                            $('td', row).each(function(index) {
-                                if (index < 8) {
-                                    $(this).attr('data-label', labels[index]);
-                                } else {
-                                    $(this).addClass('text-center border-0');
+                    let hoy = new Date().toISOString().split('T')[0];
+
+                    $.ajax({
+                        url: '../api/generar_corte_caja.pl',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: { f_inicio: hoy, f_fin: hoy },
+                        success: function(res) {
+                            if (res.error) {
+                                if (typeof Swal !== 'undefined') Swal.fire('Error', res.msg || 'Error al cargar ingresos', 'error');
+                                return;
+                            }
+
+                            let dataIngresos = (res && Array.isArray(res.ingresos)) ? res.ingresos : [];
+                            let dataMunicipio = (res && Array.isArray(res.cxc)) ? res.cxc : [];
+
+                            renderTablaCorte('#dtIngresosPrivados', dataIngresos, [
+                                { 
+                                    data: 'folio',
+                                    render: function(d) {
+                                        return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
+                                    }
+                                },
+                                { 
+                                    data: 'fecha',
+                                    render: function(d) {
+                                        if (!d) return '';
+                                        let parts = d.split(' ');
+                                        let f = parts[0] || '';
+                                        let h = parts[1] || '';
+                                        return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
+                                    }
+                                },
+                                { 
+                                    data: 'paciente',
+                                    render: function(data, type, row) {
+                                        let isCancel = (row.estatus === 'Cancelado');
+                                        let pacHtml = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;">${data || ''}</div>`;
+                                        if (isCancel) {
+                                            pacHtml += `<div class="d-flex align-items-center gap-1 mt-1">
+                                                <span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>
+                                                <span class="text-danger fw-semibold" style="font-size: 9.5px;">Motivo: ${row.motivo || 'Sin motivo registrado'}</span>
+                                            </div>`;
+                                        }
+                                        return pacHtml;
+                                    }
+                                },
+                                { 
+                                    data: 'medico',
+                                    render: function(d) {
+                                        return `<span class="text-muted fw-semibold d-block text-truncate" style="max-width: 140px; font-size: 10px;" title="${d || 'N/D'}">${d || 'N/D'}</span>`;
+                                    }
+                                },
+                                { 
+                                    data: 'forma_pago',
+                                    render: function(data, type, row) {
+                                        if (row.estatus === 'Cancelado') {
+                                            return `<span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>`;
+                                        }
+                                        return `<span class="badge bg-light text-dark border px-2 py-1" style="font-size: 9.5px;">${data || 'Efectivo'}</span>`;
+                                    }
+                                },
+                                { 
+                                    data: 'monto', 
+                                    className: 'text-end',
+                                    render: function(data, type, row) {
+                                        let val = parseFloat(data) || 0;
+                                        let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                        if (row.estatus === 'Cancelado') {
+                                            return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+                                        }
+                                        return `<span class="text-success fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+                                    }
+                                },
+                                {
+                                    data: null,
+                                    className: 'text-center',
+                                    orderable: false,
+                                    render: function(data, type, row) {
+                                        let f = row.folio_raw || row.folio || '';
+                                        let isCancel = (row.estatus === 'Cancelado');
+                                        let btnDelete = isCancel ?
+                                            `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0 disabled text-nowrap" style="font-size: 9px;" title="Ya está cancelado"><i class="bi bi-x-circle me-1"></i>Cancelado</button>` :
+                                            `<button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9px;" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>`;
+                                        return `<div class="d-flex justify-content-center align-items-center gap-1 text-nowrap">
+                                            <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9.5px;" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Privado"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
+                                            ${btnDelete}
+                                        </div>`;
+                                    }
                                 }
-                            });
+                            ]);
+
+                            renderTablaCorte('#dtIngresosMunicipio', dataMunicipio, [
+                                { 
+                                    data: 'folio',
+                                    render: function(d) {
+                                        return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
+                                    }
+                                },
+                                { 
+                                    data: 'fecha',
+                                    render: function(d) {
+                                        if (!d) return '';
+                                        let parts = d.split(' ');
+                                        let f = parts[0] || '';
+                                        let h = parts[1] || '';
+                                        return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
+                                    }
+                                },
+                                { 
+                                    data: 'paciente',
+                                    render: function(data, type, row) {
+                                        let isCancel = (row.estatus === 'Cancelado');
+                                        let rawPac = (data || '').replace(/^Paciente:\s*/i, '').trim();
+                                        if (!rawPac || /^Metodo:/i.test(rawPac)) {
+                                            rawPac = row.trabajador_nombre || 'Empleado Estatal';
+                                        }
+                                        let empNum = row.num_empleado || '';
+                                        let empNom = row.trabajador_nombre || '';
+
+                                        let txtTrabajador = empNom ? (empNum ? `${empNum} - ${empNom}` : empNom) : (empNum ? empNum : '');
+
+                                        let html = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
+                                        
+                                        if (txtTrabajador && rawPac.toLowerCase() !== empNom.toLowerCase()) {
+                                            html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i><strong>Trabajador:</strong> ${escapeHtml(txtTrabajador)}</div>`;
+                                        } else if (empNum) {
+                                            html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-card-text me-1 text-secondary"></i><strong>Num. Empleado:</strong> ${escapeHtml(empNum)}</div>`;
+                                        }
+
+                                        if (isCancel) {
+                                            html += `<div class="d-flex align-items-center gap-1 mt-1">
+                                                <span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>
+                                                <span class="text-danger fw-semibold" style="font-size: 9.5px;">Motivo: ${escapeHtml(row.motivo || 'Sin motivo registrado')}</span>
+                                            </div>`;
+                                        }
+                                        return html;
+                                    }
+                                },
+                                { 
+                                    data: 'dependencia',
+                                    render: function(data, type, row) {
+                                        let dep = data || 'Municipio';
+                                        let isCancel = (row.estatus === 'Cancelado');
+                                        return `<div class="d-inline-block text-truncate border rounded px-2 py-0 bg-light text-dark ${isCancel ? 'text-decoration-line-through opacity-75' : ''}" style="max-width: 150px; font-size: 9.5px;" title="${dep}"><i class="bi bi-building me-1 text-info"></i>${dep}</div>`;
+                                    }
+                                },
+                                { 
+                                    data: 'medico',
+                                    render: function(d) {
+                                        return `<span class="text-muted fw-semibold d-block text-truncate" style="max-width: 130px; font-size: 10px;" title="${d || 'N/D'}">${d || 'N/D'}</span>`;
+                                    }
+                                },
+                                { 
+                                    data: 'monto', 
+                                    className: 'text-end',
+                                    render: function(data, type, row) {
+                                        let val = parseFloat(data) || 0;
+                                        let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                        if (row.estatus === 'Cancelado') {
+                                            return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+                                        }
+                                        return `<span class="text-info fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+                                    }
+                                },
+                                {
+                                    data: null,
+                                    className: 'text-center',
+                                    orderable: false,
+                                    render: function(data, type, row) {
+                                        let f = row.folio_raw || row.folio || '';
+                                        let isCancel = (row.estatus === 'Cancelado');
+                                        let btnDelete = isCancel ?
+                                            `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0 disabled text-nowrap" style="font-size: 9px;" title="Ya está cancelado"><i class="bi bi-x-circle me-1"></i>Cancelado</button>` :
+                                            `<button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9px;" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>`;
+                                        return `<div class="d-flex justify-content-center align-items-center gap-1 text-nowrap">
+                                            <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9.5px;" onclick="window.open('../api/ver_recibo.pl?tipo=publicos&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Municipio"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
+                                            ${btnDelete}
+                                        </div>`;
+                                    }
+                                }
+                            ]);
+
+                            let totPriv = dataIngresos.reduce((acc, curr) => acc + (curr.estatus === 'Cancelado' ? 0 : (parseFloat(curr.monto) || 0)), 0);
+                            let totMuni = dataMunicipio.reduce((acc, curr) => acc + (curr.estatus === 'Cancelado' ? 0 : (parseFloat(curr.monto) || 0)), 0);
+
+                            let elTotPriv = document.getElementById('tfootTotalPrivados');
+                            let elTotMuni = document.getElementById('tfootTotalMunicipio');
+                            if (elTotPriv) elTotPriv.textContent = '$' + totPriv.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            if (elTotMuni) elTotMuni.textContent = '$' + totMuni.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                         },
-                        footerCallback: function(row, data, start, end, display) {
-                            var api = this.api();
-                            var intVal = function(i) {
-                                return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
-                            };
-                            var total = api.column(6, { page: 'current' }).data().reduce(function(a, b) {
-                                return intVal(a) + intVal(b);
-                            }, 0);
-                            $(api.column(6).footer()).html('$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        error: function() {
+                            if (typeof Swal !== 'undefined') Swal.fire('Error', 'Fallo al comunicarse con la API', 'error');
                         }
-                    };
-                    
-                    $('#dtPrivados').DataTable(Object.assign({}, dtConfig, { 
-                        ajax: '../api/get_recibos_caja_api.pl?tipo=privados'
-                    }));
-                    $('#dtPublicos').DataTable(Object.assign({}, dtConfig, { 
-                        ajax: '../api/get_recibos_caja_api.pl?tipo=publicos'
-                    }));
+                    });
                 });
                 
                 function cancelarRecibo(id, tipo) {
@@ -697,9 +894,9 @@ HTML
                             let motivo = result.value;
                             $.post('../api/cancelar_recibo_api.pl', { id_recibo: id, tipo: tipo, motivo: motivo }, function(res) {
                                 if (res.ok) {
-                                    Swal.fire('Cancelado', res.msg, 'success');
-                                    $('#dtPrivados').DataTable().ajax.reload(null, false);
-                                    $('#dtPublicos').DataTable().ajax.reload(null, false);
+                                    Swal.fire('Cancelado', res.msg, 'success').then(() => {
+                                        window.location.reload(); // Simple reload para refrescar datos rápidos en el dashboard
+                                    });
                                 } else {
                                     Swal.fire('Error', res.msg, 'error');
                                 }
