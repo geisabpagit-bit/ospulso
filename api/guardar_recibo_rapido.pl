@@ -218,17 +218,26 @@ sub resolver_costo_convenio_medico {
     }
 
     if ($target_item && -e $cat_prec_file && open(my $fp, '<:utf8', $cat_prec_file)) {
+        my $precio_mun = 0;
+        my $precio_fallback = 0;
         while (my $lp = <$fp>) {
             chomp $lp;
             my @f = split(/\|/, $lp, -1);
             if ($f[1] eq $target_item) {
-                my $precio = $f[3] || 0;
-                $precio =~ s/[^\d\.]//g;
-                close($fp);
-                return $precio if $precio > 0;
+                my $tarifa = uc($f[2] || '');
+                my $p = $f[3] || 0;
+                $p =~ s/[^\d\.]//g;
+                if ($tarifa eq 'MUNICIPIO' && $p > 0) {
+                    $precio_mun = $p;
+                    last;
+                } elsif ($p > 0 && !$precio_fallback) {
+                    $precio_fallback = $p;
+                }
             }
         }
         close($fp);
+        return $precio_mun if ($precio_mun > 0);
+        return $precio_fallback if ($precio_fallback > 0);
     }
 
     return 550.0;

@@ -527,6 +527,8 @@ print <<'JS';
 
     function seleccionarEmpleadoEstado(id, nombre) {
         pacienteEstadoSeleccionado = { id: id, nombre: nombre };
+        pacienteTipoActual = 'estado';
+        _actualizarTarifasSegunPaciente();
     }
 
     function initSelect2Paciente() {
@@ -548,8 +550,17 @@ print <<'JS';
                 delay: 350,
                 data: ajaxDataFn,
                 processResults: function (data) {
-                    return { results: data.map(function(item) { return { id: item.id, text: item.label }; }) };
-                }
+                    return {
+                        results: $.map(data, function (item) {
+                            return {
+                                id: item.id,
+                                text: item.label,
+                                nombre: item.label
+                            }
+                        })
+                    };
+                },
+                cache: true
             },
             createTag: function(params) {
                 if(HAS_PORTAL_PACIENTE) return null; // No permitir crear si el portal global manda
@@ -562,6 +573,10 @@ print <<'JS';
                 noResults: function() { return HAS_PORTAL_PACIENTE ? "No se encontraron resultados" : "Presiona enter para agregar como nuevo paciente"; },
                 searching: function() { return "Buscando..."; }
             }
+        });
+
+        $('#selPaciente').on('select2:select', function (e) {
+            seleccionarPacientePrivado();
         });
     }
 
@@ -578,6 +593,36 @@ print <<'JS';
         $('#resultadosEmpleadoContainer').hide();
         $('#iptNumEmpleado').val('');
         pacienteEstadoSeleccionado = { id: '', nombre: '' };
+        _actualizarTarifasSegunPaciente();
+    }
+
+    function _actualizarTarifasSegunPaciente() {
+        let esEstado = (pacienteTipoActual === 'estado');
+        (masterCatalogoRecibo || []).forEach(it => {
+            it.precio = esEstado ? (it.precio_municipio || it.precio_estandar || 0) : (it.precio_estandar || 0);
+        });
+        
+        if (modalCartItems && modalCartItems.length > 0) {
+            modalCartItems.forEach(it => {
+                let master = masterCatalogoRecibo.find(m => m.id === it.id);
+                if (master) {
+                    it.precio = esEstado ? (master.precio_municipio || master.precio_estandar || 0) : (master.precio_estandar || 0);
+                }
+            });
+            if (typeof _renderizarCarritoModalRecibo === 'function') _renderizarCarritoModalRecibo();
+        }
+        
+        if (cartItems && cartItems.length > 0) {
+            cartItems.forEach(it => {
+                let master = masterCatalogoRecibo.find(m => m.id === it.id);
+                if (master) {
+                    it.precio = esEstado ? (master.precio_municipio || master.precio_estandar || 0) : (master.precio_estandar || 0);
+                }
+            });
+            if (typeof renderCart === 'function') renderCart();
+        }
+        
+        if (typeof _renderizarCatalogoRecibo === 'function') _renderizarCatalogoRecibo();
     }
 
     let masterCatalogoRecibo = [];
@@ -603,13 +648,19 @@ print <<'JS';
                 (res.catalogo.categorias || []).forEach(c => { recCatsMap[c.id_cat] = { n: c.nombre, d: c.id_dep }; });
 
                 (res.catalogo.items || []).forEach(c => {
-                    var pObj = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (c.precios || [])[0];
-                    var precio = pObj ? parseFloat(pObj.precio_publico || 0) : 0;
+                    var pEst = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (c.precios || [])[0];
+                    var pMun = (c.precios || []).find(p => p.tipo_tarifa === 'MUNICIPIO');
+                    var precioEst = pEst ? parseFloat(pEst.precio_publico || 0) : 0;
+                    var precioMun = pMun ? parseFloat(pMun.precio_publico || 0) : precioEst;
                     var catInfo = recCatsMap[c.id_cat] || { d: '' };
+                    var esEstado = (pacienteTipoActual === 'estado');
+                    
                     masterCatalogoRecibo.push({
                         id: c.id_item,
                         nombre: c.concepto || c.nombre,
-                        precio: precio,
+                        precio_estandar: precioEst,
+                        precio_municipio: precioMun,
+                        precio: esEstado ? precioMun : precioEst,
                         cat: c.id_cat,
                         dep: catInfo.d
                     });
@@ -956,11 +1007,21 @@ print <<'JS';
             return Swal.fire('Atención', 'Agrega al menos un concepto a cobrar en el carrito.', 'warning');
         }
         
-        let total = cartItems.reduce((acc, it) => acc + (it.precio * it.cantidad), 0);
+        let totalCobro = 0;
+        let isEstado = (tipo === 'estado');
+        cartItems.forEach(it => {
+            if (isEstado) {
+                let pp = (it.precio_paciente !== undefined) ? it.precio_paciente : (it.cubierto_convenio ? 0 : it.precio);
+                totalCobro += (pp * (it.cantidad || 1));
+            } else {
+                totalCobro += ((it.precio || 0) * (it.cantidad || 1));
+            }
+        });
+
         let iva = 0;
-        if ($('#chkIva').length && $('#chkIva').is(':checked')) {
-            iva = total * 0.16;
-            total += iva;
+        if ($('#chkIva').length && $('#chkIva').is(':checked') && totalCobro > 0) {
+            iva = totalCobro * 0.16;
+            totalCobro += iva;
         }
         const metodo = $('#selMetodoPago').val();
         
@@ -975,13 +1036,20 @@ print <<'JS';
                 <tr style="background:#f1f5f9;"><th style="padding:8px;text-align:left;">Concepto</th><th style="padding:8px;text-align:center;">Cant.</th><th style="padding:8px;text-align:right;">Subtotal</th></tr>
         `;
         cartItems.forEach(it => {
-            const s = it.precio * it.cantidad;
-            draftHtml += `<tr><td style="padding:8px; border-bottom:1px solid #e2e8f0;">${escapeHtml(it.nombre)}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:center;">${escapeHtml(it.cantidad)}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:right;">${formatCurrency(s)}</td></tr>`;
+            let isCubierto = isEstado && (it.cubierto_convenio || it.precio_paciente === 0);
+            let s = isCubierto ? 0 : ((it.precio_paciente !== undefined ? it.precio_paciente : it.precio) * it.cantidad);
+            let subtotalHtml = isCubierto ?
+                `<span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; border:1px solid #bae6fd;">[Cubierto por Convenio]</span>` :
+                formatCurrency(s);
+            draftHtml += `<tr><td style="padding:8px; border-bottom:1px solid #e2e8f0;">${escapeHtml(it.nombre)}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:center;">${escapeHtml(it.cantidad)}</td><td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:right;">${subtotalHtml}</td></tr>`;
         });
         if (iva > 0) {
             draftHtml += `<tr><td colspan="2" style="padding:8px;text-align:right;font-size:14px;color:#666;">Tax (IVA 16%):</td><td style="padding:8px;text-align:right;font-size:14px;color:#666;">${formatCurrency(iva)}</td></tr>`;
         }
-        draftHtml += `<tr><td colspan="2" style="padding:8px;text-align:right;font-weight:bold;font-size:16px;">TOTAL PAGADO:</td><td style="padding:8px;text-align:right;font-weight:bold;font-size:16px;color:#10b981;">${formatCurrency(total)}</td></tr>`;
+        let totalDisplayHtml = (isEstado && totalCobro === 0) ?
+            `<span style="background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold; border:1px solid #bae6fd;">[Cubierto por Convenio]</span>` :
+            `<span style="color:#10b981;">${formatCurrency(totalCobro)}</span>`;
+        draftHtml += `<tr><td colspan="2" style="padding:8px;text-align:right;font-weight:bold;font-size:16px;">TOTAL PAGADO:</td><td style="padding:8px;text-align:right;font-weight:bold;font-size:16px;">${totalDisplayHtml}</td></tr>`;
         draftHtml += `</table></body></html>`;
         
         const doc = document.getElementById('iframePreview').contentWindow.document;
