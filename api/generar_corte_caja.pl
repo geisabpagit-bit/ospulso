@@ -48,6 +48,7 @@ foreach my $neg (@$negocios_data) {
 
 # Diccionario de médicos para resolver ID a Nombre
 my %medicos = ();
+my %items_catalogo = ();
 if ($org_clues) {
     require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
     my $med_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{medicos};
@@ -56,6 +57,13 @@ if ($org_clues) {
         foreach my $m (@$m_data) {
             # Índice 2 suele ser el Nombre_Completo en medicos_CLUE.dat
             $medicos{$m->[0]} = $m->[2] || $m->[1] || $m->[0];
+        }
+    }
+    my $it_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{items};
+    if (-e $it_file) {
+        my $i_data = leer_tabla($it_file);
+        foreach my $it (@$i_data) {
+            $items_catalogo{$it->[0]} = $it->[3] || '';
         }
     }
 }
@@ -127,6 +135,47 @@ if ($org_clues) {
     }
 }
 
+sub resolver_nombre_medico_recibo {
+    my ($id_med, $items_raw) = @_;
+    my $nombre_med = '';
+    if ($id_med && exists $medicos{$id_med}) {
+        $nombre_med = $medicos{$id_med};
+    } elsif ($id_med && exists $items_catalogo{$id_med}) {
+        my $conc = $items_catalogo{$id_med};
+        if ($conc =~ /-\s*(.+)$/) {
+            my $cand = $1;
+            $cand =~ s/\s*\(.*?\)//g;
+            $nombre_med = $cand;
+        }
+    }
+    if (!$nombre_med || $nombre_med =~ /^\d+$/) {
+        if ($items_raw && $items_raw ne '[]') {
+            eval {
+                my $its = decode_json($items_raw);
+                foreach my $it (@$its) {
+                    my $nom = $it->{nombre} || '';
+                    if ($nom =~ /-\s*(.+)$/) {
+                        my $cand = $1;
+                        $cand =~ s/\s*\(.*?\)//g;
+                        if ($cand =~ /(?:DRA?|LIC|ING|MTRO|MEDICO)\b/i) {
+                            $nombre_med = $cand;
+                            last;
+                        } elsif (!$nombre_med || $nombre_med =~ /^\d+$/) {
+                            $nombre_med = $cand;
+                        }
+                    }
+                }
+            };
+        }
+    }
+    if (!$nombre_med && $id_med && $id_med !~ /^\d+$/) {
+        $nombre_med = $id_med;
+    }
+    $nombre_med ||= 'N/D';
+    $nombre_med =~ s/^\s+|\s+$//g;
+    return $nombre_med;
+}
+
 # 4. Procesar Ingresos (Recibos Privados)
 my $archivo_ingresos = File::Spec->catfile($dat_dir, 'folios_recibos_privados.dat');
 my @ingresos_filtrados = ();
@@ -164,7 +213,8 @@ if (-e $archivo_ingresos) {
             
             # Resolver nombre del médico
             my $id_med = $f->[15] || '';
-            my $nombre_med = $id_med ? ($medicos{$id_med} || $id_med || 'N/D') : 'N/D';
+            my $items_raw = $f->[13] || '';
+            my $nombre_med = resolver_nombre_medico_recibo($id_med, $items_raw);
 
             # Simplificar Folio (Extraer el último segmento)
             my $folio_raw = $f->[1] || '';
@@ -303,7 +353,8 @@ if (-e $archivo_publicos) {
             }
             
             my $id_med = $f->[15] || '';
-            my $nombre_med = $id_med ? ($medicos{$id_med} || $id_med || 'N/D') : 'N/D';
+            my $items_raw = $f->[13] || '';
+            my $nombre_med = resolver_nombre_medico_recibo($id_med, $items_raw);
 
             my $folio_raw = $f->[1] || '';
             my $id_recibo = $f->[0] || '';

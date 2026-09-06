@@ -390,8 +390,10 @@ if ($num_empleado && $negocio->{clues}) {
 
 my $medico_nombre = "NO ESPECIFICADO";
 my $especialidad_nombre = '';
+my $rutas = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
+
+# 1. Buscar en medicos_${clues}.dat si $id_medico existe
 if ($id_medico) {
-    my $rutas = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
     my $med_file = $rutas->{medicos};
     my $id_especialidad = '';
     
@@ -423,7 +425,30 @@ if ($id_medico) {
             close $fe;
         }
     }
+
+    # 2. Si no se encontró y $id_medico es ID_ITEM de catalogo_items_${clues}.dat
+    if ($medico_nombre eq "NO ESPECIFICADO") {
+        my $it_file = $rutas->{items};
+        if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
+            while (my $li = <$fi>) {
+                chomp $li;
+                my @f = split /\|/, $li, -1;
+                if ($f[0] eq $id_medico) {
+                    my $conc = $f[3] // '';
+                    if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                        $especialidad_nombre = uc($1) unless $especialidad_nombre;
+                        my $cand = $2;
+                        $cand =~ s/\s*\(.*?\)//g;
+                        $medico_nombre = uc($cand);
+                    }
+                    last;
+                }
+            }
+            close $fi;
+        }
+    }
     
+    # 3. Fallback a usuarios.dat
     if ($medico_nombre eq "NO ESPECIFICADO") {
         my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
         if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
@@ -439,15 +464,23 @@ if ($id_medico) {
             close $fu;
         }
     }
-    
-    if ($medico_nombre eq "NO ESPECIFICADO") {
-        foreach my $c (@cargos) {
-            my $conc = $c->{concepto} || '';
-            if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
-                $especialidad_nombre = uc($1) unless $especialidad_nombre;
-                $medico_nombre = uc($2);
-                last;
-            }
+}
+
+# 4. Extraer de los cargos o items del recibo si aún no está resuelto
+if ($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) {
+    foreach my $c (@cargos) {
+        my $conc = $c->{concepto} || '';
+        if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+            $especialidad_nombre = uc($1) unless $especialidad_nombre;
+            my $cand = $2;
+            $cand =~ s/\s*\(.*?\)//g;
+            $medico_nombre = uc($cand);
+            last;
+        } elsif ($conc =~ /-\s*(DRA?\.?\s+[^-\(\)]+)/i) {
+            my $cand = $1;
+            $cand =~ s/\s*\(.*?\)//g;
+            $medico_nombre = uc($cand);
+            last;
         }
     }
 }

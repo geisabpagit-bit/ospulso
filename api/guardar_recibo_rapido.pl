@@ -57,8 +57,8 @@ my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
 my $hoy_fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
 
 my $id_tratamiento = 'TX-EXP-' . time() . '-' . int(rand(1000));
-my $id_neg = $sd->{id_empresa} || 'ORG-000';
-my $id_suc = $sd->{id_sucursal} || 'SUC-000';
+my $id_neg = (defined $sd->{id_empresa} && $sd->{id_empresa} ne '') ? $sd->{id_empresa} : '0';
+my $id_suc = (defined $sd->{id_sucursal} && $sd->{id_sucursal} ne '') ? $sd->{id_sucursal} : '0';
 my $usuario = $sd->{uid} || 'Sistema';
 
 # 0. Lógica de Pacientes Privados (Sin Portal)
@@ -75,6 +75,7 @@ if (-e $negocios_file && open(my $nf, '<:utf8', $negocios_file)) {
     }
     close($nf);
 }
+$org_clues ||= 'QTSMP000116' if ($id_neg eq '0');
 
 my $has_portal_paciente = 1;
 my $config_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
@@ -146,7 +147,7 @@ my $folio_impreso = $next_folio;
 my $folios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', $is_estado ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat');
 unless (-s $folios_file) {
     open my $fh_f2, '>:encoding(UTF-8)', $folios_file;
-    print $fh_f2 "ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON\n";
+    print $fh_f2 "ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON|ESTATUS|ID_MEDICO\n";
     close $fh_f2;
 }
 
@@ -160,6 +161,31 @@ sub resolver_costo_convenio_medico {
     my $med_file       = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "medicos_${clues}.dat");
     my $esp_file       = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "especialidades_${clues}.dat");
 
+    # 1. Si $id_med ya es un ID_ITEM directo en catalogo_precios, buscar su tarifa MUNICIPIO
+    if (-e $cat_prec_file && open(my $fp_dir, '<:utf8', $cat_prec_file)) {
+        my $p_mun = 0;
+        my $p_fall = 0;
+        while (my $lp = <$fp_dir>) {
+            chomp $lp;
+            my @f = split(/\|/, $lp, -1);
+            if ($f[1] eq $id_med) {
+                my $tarifa = uc($f[2] || '');
+                my $p = $f[3] || 0;
+                $p =~ s/[^\d\.]//g;
+                if ($tarifa eq 'MUNICIPIO' && $p > 0) {
+                    $p_mun = $p;
+                    last;
+                } elsif ($p > 0 && !$p_fall) {
+                    $p_fall = $p;
+                }
+            }
+        }
+        close($fp_dir);
+        return $p_mun if ($p_mun > 0);
+        return $p_fall if ($p_fall > 0);
+    }
+
+    # 2. Si $id_med es ID de médico legacy, resolver por match de médico
     my $id_esp = '';
     my $nom_med = '';
     if (-e $med_file && open(my $fm, '<:utf8', $med_file)) {
@@ -199,7 +225,7 @@ sub resolver_costo_convenio_medico {
             my $item_id = $f[0];
             my $concepto = uc($f[3] || '');
             if ($concepto =~ /CONSULTA/i) {
-                # 1. Match por tokens del médico (al menos 2 palabras coincidentes)
+                # 1. Match por tokens del médico
                 my $hits = 0;
                 foreach my $tk (@tokens_med) {
                     $hits++ if $concepto =~ /\Q$tk\E/;
@@ -260,6 +286,48 @@ foreach my $it (@$caja_items) {
 
 my $total_cargos_final = ($total_cargos_calculado > 0) ? $total_cargos_calculado : ($caja_monto_abono || 0);
 my $total_abonos_final = $is_estado ? ($caja_monto_abono || 0) : ($caja_monto_abono || $total_cargos_final);
+
+# Resolver ID de médico legacy si $id_medico viene como id_item
+my $id_medico_guardar = $id_medico;
+if ($org_clues && $id_medico) {
+    my $cat_items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $org_clues, "catalogo_items_${org_clues}.dat");
+    my $med_file       = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $org_clues, "medicos_${org_clues}.dat");
+    if (-e $cat_items_file && -e $med_file) {
+        my $concepto_med = '';
+        if (open(my $fi, '<:utf8', $cat_items_file)) {
+            while (my $li = <$fi>) {
+                chomp $li;
+                my @f = split(/\|/, $li, -1);
+                if ($f[0] eq $id_medico) {
+                    $concepto_med = uc($f[3] || '');
+                    last;
+                }
+            }
+            close($fi);
+        }
+        if ($concepto_med) {
+            if (open(my $fm, '<:utf8', $med_file)) {
+                while (my $lm = <$fm>) {
+                    chomp $lm;
+                    my @f = split(/\|/, $lm, -1);
+                    my $nom = uc($f[2] || $f[1] || '');
+                    next unless $nom;
+                    my @tokens = grep { length($_) > 3 && $_ !~ /^(DRA?|LIC|ING|MTRO)$/i } split(/\s+/, $nom);
+                    my $hits = 0;
+                    foreach my $tk (@tokens) {
+                        $hits++ if $concepto_med =~ /\Q$tk\E/;
+                    }
+                    if ($hits >= 2) {
+                        $id_medico_guardar = $f[0];
+                        last;
+                    }
+                }
+                close($fm);
+            }
+        }
+    }
+}
+$id_medico = $id_medico_guardar;
 
 # Re-serializar items JSON
 $caja_items_json = encode_json($caja_items);

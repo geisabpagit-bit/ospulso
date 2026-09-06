@@ -1231,7 +1231,7 @@ PAGE_HTML
                         { data: 'fecha' },
                         { data: 'paciente' },
                         { data: 'medico' },
-                        { data: 'forma_pago' },
+                        { data: 'dependencia' },
                         { data: 'monto', className: 'text-end text-info fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
                     ]);
                 }
@@ -1248,29 +1248,29 @@ PAGE_HTML
 
     window.renderTablaCorte = function(selector, data, columns) {
         if($.fn.DataTable.isDataTable(selector)) {
-            $(selector).DataTable().clear().rows.add(data).draw();
-        } else {
-            $(selector).DataTable({
-                data: data,
-                columns: columns,
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
-                dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
-                buttons: [
-                    { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export' },
-                    { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export' },
-                    { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export' },
-                    { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export' }
-                ],
-                responsive: false, // Handle via SDM mobile styles data-label
-                createdRow: function(row, data, dataIndex) {
-                    // Inject data-label for SDM Mobile Standards point 7
-                    $(row).find('td').each(function(i) {
-                        let header = $(selector).find('thead th').eq(i).text();
-                        $(this).attr('data-label', header);
-                    });
-                }
-            });
+            $(selector).DataTable().clear().destroy();
         }
+        $(selector).DataTable({
+            data: data || [],
+            columns: columns,
+            destroy: true,
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+            dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+            buttons: [
+                { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
+                { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
+                { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
+                { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } }
+            ],
+            responsive: false, // Handle via SDM mobile styles data-label
+            createdRow: function(row, data, dataIndex) {
+                // Inject data-label for SDM Mobile Standards point 7
+                $(row).find('td').each(function(i) {
+                    let header = $(selector).find('thead th').eq(i).text();
+                    $(this).attr('data-label', header);
+                });
+            }
+        });
     };
 
     window.calcularFaltante = function() {
