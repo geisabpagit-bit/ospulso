@@ -937,7 +937,11 @@ PAGE_HTML
         });
     };
 
+    let cargandoIngresos = false;
     window.cargarIngresos = function() {
+        if (cargandoIngresos) return;
+        cargandoIngresos = true;
+
         const elInicio = document.getElementById('ing_fecha_inicio');
         const elFin = document.getElementById('ing_fecha_fin');
         const tzoffset2 = (new Date()).getTimezoneOffset() * 60000;
@@ -954,6 +958,9 @@ PAGE_HTML
             type: 'POST',
             dataType: 'json',
             data: { f_inicio: f_inicio, f_fin: f_fin },
+            complete: function() {
+                cargandoIngresos = false;
+            },
             success: function(res) {
                 if (res.error) {
                     if (typeof Swal !== 'undefined') Swal.fire('Error', res.msg || 'Error al cargar ingresos', 'error');
@@ -1247,30 +1254,60 @@ PAGE_HTML
     };
 
     window.renderTablaCorte = function(selector, data, columns) {
-        if($.fn.DataTable.isDataTable(selector)) {
-            $(selector).DataTable().clear().destroy();
+        if (!$(selector).length) return;
+
+        if (!$.fn.DataTable) {
+            console.error("[DataTables] Librería DataTables no disponible al renderizar " + selector);
+            return;
         }
-        $(selector).DataTable({
-            data: data || [],
-            columns: columns,
-            destroy: true,
-            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
-            dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
-            buttons: [
-                { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
-                { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
-                { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
-                { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } }
-            ],
-            responsive: false, // Handle via SDM mobile styles data-label
-            createdRow: function(row, data, dataIndex) {
-                // Inject data-label for SDM Mobile Standards point 7
-                $(row).find('td').each(function(i) {
-                    let header = $(selector).find('thead th').eq(i).text();
-                    $(this).attr('data-label', header);
-                });
+
+        // Si la tabla ya fue inicializada como DataTable, actualizar datos sin destruir el DOM
+        if ($.fn.DataTable.isDataTable(selector)) {
+            try {
+                let dt = $(selector).DataTable();
+                dt.clear();
+                if (data && data.length > 0) {
+                    dt.rows.add(data);
+                }
+                dt.draw();
+                return;
+            } catch (err) {
+                console.warn("[DataTables] Error al refrescar filas, reinicializando...", err);
+                try { $(selector).DataTable().destroy(); } catch(e) {}
             }
-        });
+        }
+
+        // Si no está inicializada, validar concordancia de columnas con el thead
+        let thCount = $(selector).find('thead th').length;
+        if (columns && thCount > 0 && columns.length !== thCount) {
+            console.error(`[DataTables Error] Desfase de columnas en ${selector}: thead=${thCount}, config=${columns.length}`);
+            return;
+        }
+
+        try {
+            $(selector).DataTable({
+                data: data || [],
+                columns: columns,
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+                dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                buttons: [
+                    { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
+                    { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
+                    { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
+                    { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } }
+                ],
+                responsive: false, // Handle via SDM mobile styles data-label
+                createdRow: function(row, data, dataIndex) {
+                    // Inject data-label for SDM Mobile Standards point 7
+                    $(row).find('td').each(function(i) {
+                        let header = $(selector).find('thead th').eq(i).text();
+                        $(this).attr('data-label', header);
+                    });
+                }
+            });
+        } catch (err) {
+            console.error("[DataTables Init Error] en " + selector, err);
+        }
     };
 
     window.calcularFaltante = function() {
@@ -1567,7 +1604,7 @@ PAGE_HTML
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="../js/estado_cuenta_spa.js?v=5"></script>
+<script src="../js/estado_cuenta_spa.js?v=20260906_4"></script>
 
 <script>
     window.bootFinanzas = function() {
@@ -1592,12 +1629,6 @@ PAGE_HTML
 
         if (typeof window.cargarDashboardKPIs === 'function') {
             window.cargarDashboardKPIs(inStart ? inStart.value : '', inEnd ? inEnd.value : '');
-        }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const activeTab = urlParams.get('tab') || '';
-        if (activeTab === 'ingresos' && typeof window.renderIngresos === 'function') {
-            window.renderIngresos();
         }
     };
     document.addEventListener("DOMContentLoaded", window.bootFinanzas);
