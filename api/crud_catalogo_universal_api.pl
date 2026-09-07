@@ -46,16 +46,26 @@ if (!$rutas->{is_universal}) {
 
 my $action = $cgi->param('action') || '';
 
+sub sanitizar_campo {
+    my ($val) = @_;
+    return '' unless defined $val;
+    $val =~ s/\|//g;
+    $val =~ s/[\r\n]+/ /g;
+    $val =~ s/^\s+|\s+$//g;
+    return $val;
+}
+
 sub get_next_id {
     my ($file) = @_;
     return 1 unless -e $file;
-    open(my $fh, '<:encoding(UTF-8)', $file) or return 1;
+    open(my $fh, '<:raw :encoding(UTF-8)', $file) or return 1;
     <$fh>; # skip header
     my $max = 0;
     while (<$fh>) {
-        chomp; next if /^\s*$/;
-        my @c = split /\|/;
-        $max = $c[0] if $c[0] =~ /^\d+$/ && $c[0] > $max;
+        $_ =~ s/[\r\n]+$//;
+        next if /^\s*$/;
+        my @c = split /\|/, $_, -1;
+        $max = $c[0] if defined $c[0] && $c[0] =~ /^\d+$/ && $c[0] > $max;
     }
     close $fh;
     return $max + 1;
@@ -63,12 +73,16 @@ sub get_next_id {
 
 sub actualizar_archivo {
     my ($file, $header, $lines_ref) = @_;
-    open(my $fh, '>:encoding(UTF-8)', $file) or return 0;
+    return 0 unless $file;
+    open(my $fh, '>:raw :encoding(UTF-8)', $file) or return 0;
     flock($fh, LOCK_EX);
+    $header =~ s/[\r\n]+$//;
     print $fh "$header\n";
     foreach my $line (@$lines_ref) {
+        $line =~ s/[\r\n]+$//;
         print $fh "$line\n";
     }
+    flock($fh, LOCK_UN);
     close $fh;
     return 1;
 }
@@ -78,11 +92,12 @@ sub leer_archivo {
     my @lines = ();
     my $header = "";
     if (-e $file) {
-        open(my $fh, '<:encoding(UTF-8)', $file) or return ("", \@lines);
+        open(my $fh, '<:raw :encoding(UTF-8)', $file) or return ("", \@lines);
         $header = <$fh>;
-        chomp $header if $header;
+        $header =~ s/[\r\n]+$// if $header;
         while (<$fh>) {
-            chomp; next if /^\s*$/;
+            $_ =~ s/[\r\n]+$//;
+            next if /^\s*$/;
             push @lines, $_;
         }
         close $fh;
@@ -90,11 +105,69 @@ sub leer_archivo {
     return ($header, \@lines);
 }
 
-if ($action eq 'save_departamento') {
-    my $id = $cgi->param('id') || '';
-    my $nombre = $cgi->param('nombre') || '';
-    $nombre =~ s/\|//g; # limpiar
-    $nombre = uc($nombre);
+if ($action eq 'get_servicio') {
+    my $id_item = $cgi->param('id_item') || '';
+    if (!$id_item) { responder({ error => 'ID de servicio requerido.' }); }
+
+    my ($header_i, $lines_i) = leer_archivo($rutas->{items});
+    my ($header_p, $lines_p) = leer_archivo($rutas->{precios});
+    my ($header_c, $lines_c) = leer_archivo($rutas->{categorias});
+
+    my $item_encontrado;
+    foreach my $l (@$lines_i) {
+        my @c = split /\|/, $l, -1;
+        if ($c[0] eq $id_item) {
+            # ID_ITEM|CODIGO_SKU|ID_CAT|CONCEPTO|APLICA_IVA|INDICACIONES|TIEMPO_ENTREGA
+            $item_encontrado = {
+                id_item        => $c[0],
+                codigo_sku     => $c[1] // '',
+                id_cat         => $c[2] // '',
+                concepto       => $c[3] // '',
+                aplica_iva     => ($c[4] && $c[4] eq '1') ? 1 : 0,
+                indicaciones   => $c[5] // '',
+                tiempo_entrega => $c[6] // '',
+                tarifas        => []
+            };
+            last;
+        }
+    }
+
+    if (!$item_encontrado) {
+        responder({ error => 'Servicio no encontrado.' });
+    }
+
+    # Resolver id_dep a través de la categoría
+    my $id_dep = '';
+    foreach my $cl (@$lines_c) {
+        my @cc = split /\|/, $cl, -1;
+        if ($cc[0] eq $item_encontrado->{id_cat}) {
+            $id_dep = $cc[1];
+            last;
+        }
+    }
+    $item_encontrado->{id_dep} = $id_dep;
+
+    # Extraer todas las tarifas asociadas a este ítem
+    foreach my $pl (@$lines_p) {
+        my @pc = split /\|/, $pl, -1;
+        if ($pc[1] eq $id_item) {
+            # ID_PRECIO|ID_ITEM|TIPO_TARIFA|PRECIO_PUBLICO|COSTO_PROVEEDOR|ID_PROV
+            push @{$item_encontrado->{tarifas}}, {
+                id_precio       => $pc[0],
+                id_item         => $pc[1],
+                tipo_tarifa     => $pc[2] // 'ESTANDAR',
+                precio_publico  => $pc[3] // '0.00',
+                costo_proveedor => $pc[4] // '0.00',
+                id_prov         => $pc[5] // 1
+            };
+        }
+    }
+
+    responder({ success => 1, servicio => $item_encontrado });
+}
+elsif ($action eq 'save_departamento') {
+    my $id = sanitizar_campo($cgi->param('id'));
+    my $nombre = uc(sanitizar_campo($cgi->param('nombre')));
     if (!$nombre) { responder({ error => 'Nombre es requerido' }); }
 
     my ($header, $lines) = leer_archivo($rutas->{departamentos});
@@ -103,7 +176,7 @@ if ($action eq 'save_departamento') {
 
     if ($id) { # Editar
         foreach my $l (@$lines) {
-            my @c = split /\|/, $l;
+            my @c = split /\|/, $l, -1;
             if ($c[0] eq $id) {
                 $l = "$id|$nombre";
                 $found = 1;
@@ -124,11 +197,11 @@ if ($action eq 'save_departamento') {
     }
 }
 elsif ($action eq 'delete_departamento') {
-    my $id = $cgi->param('id') || '';
+    my $id = sanitizar_campo($cgi->param('id'));
     my ($header, $lines) = leer_archivo($rutas->{departamentos});
-    my @new_lines = grep { (split /\|/, $_)[0] ne $id } @$lines;
+    my @new_lines = grep { (split /\|/, $_, -1)[0] ne $id } @$lines;
     my (undef, $cat_lines) = leer_archivo($rutas->{categorias});
-    my $has_children = grep { (split /\|/, $_)[1] eq $id } @$cat_lines;
+    my $has_children = grep { (split /\|/, $_, -1)[1] eq $id } @$cat_lines;
     if ($has_children) {
         responder({ error => 'No se puede eliminar porque tiene categorias asignadas' });
     }
@@ -136,11 +209,9 @@ elsif ($action eq 'delete_departamento') {
     responder({ success => 1, msg => 'Departamento eliminado' });
 }
 elsif ($action eq 'save_categoria') {
-    my $id = $cgi->param('id') || '';
-    my $id_dep = $cgi->param('id_dep') || '';
-    my $nombre = $cgi->param('nombre') || '';
-    $nombre =~ s/\|//g;
-    $nombre = uc($nombre);
+    my $id = sanitizar_campo($cgi->param('id'));
+    my $id_dep = sanitizar_campo($cgi->param('id_dep'));
+    my $nombre = uc(sanitizar_campo($cgi->param('nombre')));
     if (!$nombre || !$id_dep) { responder({ error => 'Datos requeridos' }); }
 
     my ($header, $lines) = leer_archivo($rutas->{categorias});
@@ -149,7 +220,7 @@ elsif ($action eq 'save_categoria') {
 
     if ($id) {
         foreach my $l (@$lines) {
-            my @c = split /\|/, $l;
+            my @c = split /\|/, $l, -1;
             if ($c[0] eq $id) {
                 $l = "$id|$id_dep|$nombre";
                 $found = 1;
@@ -170,11 +241,11 @@ elsif ($action eq 'save_categoria') {
     }
 }
 elsif ($action eq 'delete_categoria') {
-    my $id = $cgi->param('id') || '';
+    my $id = sanitizar_campo($cgi->param('id'));
     my ($header, $lines) = leer_archivo($rutas->{categorias});
-    my @new_lines = grep { (split /\|/, $_)[0] ne $id } @$lines;
+    my @new_lines = grep { (split /\|/, $_, -1)[0] ne $id } @$lines;
     my (undef, $item_lines) = leer_archivo($rutas->{items});
-    my $has_children = grep { (split /\|/, $_)[1] eq $id } @$item_lines;
+    my $has_children = grep { (split /\|/, $_, -1)[2] eq $id } @$item_lines; # ID_CAT es columna 2 en items
     if ($has_children) {
         responder({ error => 'No se puede eliminar porque tiene servicios asignados' });
     }
@@ -182,14 +253,12 @@ elsif ($action eq 'delete_categoria') {
     responder({ success => 1, msg => 'Categoria eliminada' });
 }
 elsif ($action eq 'save_producto') {
-    my $id = $cgi->param('id') || '';
-    my $nombre = $cgi->param('nombre') || '';
-    my $precio = $cgi->param('precio') || '0.00';
-    my $cantidad = $cgi->param('cantidad') || '0';
-    my $presentacion = $cgi->param('presentacion') || '';
-    my $descripcion = $cgi->param('descripcion') || '';
-    
-    $nombre =~ s/\|//g; $presentacion =~ s/\|//g; $descripcion =~ s/\|//g;
+    my $id = sanitizar_campo($cgi->param('id'));
+    my $nombre = uc(sanitizar_campo($cgi->param('nombre')));
+    my $precio = sanitizar_campo($cgi->param('precio')) || '0.00';
+    my $cantidad = sanitizar_campo($cgi->param('cantidad')) || '0';
+    my $presentacion = sanitizar_campo($cgi->param('presentacion'));
+    my $descripcion = sanitizar_campo($cgi->param('descripcion'));
     
     my ($header, $lines) = leer_archivo($rutas->{productos});
     my @new_lines;
@@ -197,7 +266,7 @@ elsif ($action eq 'save_producto') {
 
     if ($id) {
         foreach my $l (@$lines) {
-            my @c = split /\|/, $l;
+            my @c = split /\|/, $l, -1;
             if ($c[0] eq $id) {
                 $l = "$id|$nombre|$precio|$cantidad|$presentacion|$descripcion";
                 $found = 1;
@@ -214,79 +283,165 @@ elsif ($action eq 'save_producto') {
     responder({ success => 1, msg => 'Producto guardado' });
 }
 elsif ($action eq 'delete_producto') {
-    my $id = $cgi->param('id') || '';
+    my $id = sanitizar_campo($cgi->param('id'));
     my ($header, $lines) = leer_archivo($rutas->{productos});
-    my @new_lines = grep { (split /\|/, $_)[0] ne $id } @$lines;
+    my @new_lines = grep { (split /\|/, $_, -1)[0] ne $id } @$lines;
     actualizar_archivo($rutas->{productos}, $header, \@new_lines);
     responder({ success => 1, msg => 'Producto eliminado' });
 }
 elsif ($action eq 'save_servicio') {
-    # Servicios requires updating items AND precios
-    my $id_item = $cgi->param('id_item') || '';
-    my $id_cat = $cgi->param('id_cat') || '';
-    my $sku = uc($cgi->param('codigo_sku') || '');
-    my $concepto = uc($cgi->param('concepto') || '');
-    my $precio = $cgi->param('precio') || '0.00';
-    $sku =~ s/\|//g; $concepto =~ s/\|//g;
-    
-    if (!$precio || $precio <= 0) {
-        responder({ error => 'No se permiten servicios con precio igual o menor a cero ($0.00).' });
+    my $id_item        = sanitizar_campo($cgi->param('id_item'));
+    my $id_cat         = sanitizar_campo($cgi->param('id_cat'));
+    my $sku            = uc(sanitizar_campo($cgi->param('codigo_sku')));
+    my $concepto       = uc(sanitizar_campo($cgi->param('concepto')));
+    my $aplica_iva     = sanitizar_campo($cgi->param('aplica_iva')) ? 1 : 0;
+    my $indicaciones   = sanitizar_campo($cgi->param('indicaciones'));
+    my $tiempo_entrega = sanitizar_campo($cgi->param('tiempo_entrega'));
+    my $tarifas_json   = $cgi->param('tarifas_json') || '';
+    my $precio_legado  = sanitizar_campo($cgi->param('precio'));
+
+    if (!$id_cat || !$concepto) {
+        responder({ error => 'Categoría y Concepto son campos obligatorios.' });
     }
-    
+
+    $indicaciones   ||= 'Sin preparación previa';
+    $tiempo_entrega ||= 'Inmediato';
+
+    my @tarifas_input = ();
+    if ($tarifas_json) {
+        eval {
+            my $parsed = decode_json($tarifas_json);
+            if (ref($parsed) eq 'ARRAY') {
+                @tarifas_input = @$parsed;
+            }
+        };
+    }
+
+    # Compatibilidad con formularios legados de precio simple
+    if (!@tarifas_input && defined $precio_legado && $precio_legado ne '') {
+        push @tarifas_input, {
+            tipo_tarifa => 'ESTANDAR',
+            precio      => $precio_legado,
+            costo       => 0.00
+        };
+    }
+
+    if (!@tarifas_input) {
+        responder({ error => 'Debe ingresar al menos una tarifa válida para el servicio.' });
+    }
+
+    # Validación de montos
+    foreach my $t (@tarifas_input) {
+        my $p = (defined $t->{precio} && $t->{precio} ne '') ? $t->{precio} : ($t->{precio_publico} || 0);
+        if ($p <= 0) {
+            my $nom_t = $t->{tipo_tarifa} || 'DESCONOCIDA';
+            responder({ error => "El precio de la tarifa $nom_t debe ser mayor a \$0.00." });
+        }
+    }
+
     my ($header_i, $lines_i) = leer_archivo($rutas->{items});
     my ($header_p, $lines_p) = leer_archivo($rutas->{precios});
-    
+
+    $header_i ||= "ID_ITEM|CODIGO_SKU|ID_CAT|CONCEPTO|APLICA_IVA|INDICACIONES|TIEMPO_ENTREGA";
+    $header_p ||= "ID_PRECIO|ID_ITEM|TIPO_TARIFA|PRECIO_PUBLICO|COSTO_PROVEEDOR|ID_PROV";
+
     my @new_i;
+    my $es_nuevo = 0;
+
     if ($id_item) {
+        my $encontrado = 0;
         foreach my $l (@$lines_i) {
-            my @c = split /\|/, $l;
+            my @c = split /\|/, $l, -1;
             if ($c[0] eq $id_item) {
-                $l = "$id_item|$id_cat|$sku|$concepto|0";
+                # ID_ITEM|CODIGO_SKU|ID_CAT|CONCEPTO|APLICA_IVA|INDICACIONES|TIEMPO_ENTREGA
+                $l = "$id_item|$sku|$id_cat|$concepto|$aplica_iva|$indicaciones|$tiempo_entrega";
+                $encontrado = 1;
             }
             push @new_i, $l;
         }
-        
-        my @new_p;
-        my $updated_precio = 0;
-        foreach my $l (@$lines_p) {
-            my @c = split /\|/, $l;
-            if ($c[1] eq $id_item) {
-                $c[2] = 'ESTANDAR' if (!defined $c[2] || $c[2] eq '');
-                $c[3] = $precio;
-                $l = join("|", @c);
-                $updated_precio = 1;
-            }
-            push @new_p, $l;
-        }
-        if (!$updated_precio) {
-            my $id_p = get_next_id($rutas->{precios});
-            push @new_p, "$id_p|$id_item|ESTANDAR|$precio|0.00|1";
-        }
-        actualizar_archivo($rutas->{items}, $header_i, \@new_i);
-        actualizar_archivo($rutas->{precios}, $header_p, \@new_p);
-        responder({ success => 1, msg => 'Servicio guardado' });
+        if (!$encontrado) { responder({ error => 'Servicio no encontrado para actualizar.' }); }
     } else {
+        $es_nuevo = 1;
         $id_item = get_next_id($rutas->{items});
-        push @$lines_i, "$id_item|$id_cat|$sku|$concepto|0";
-        my $id_p = get_next_id($rutas->{precios});
-        push @$lines_p, "$id_p|$id_item|ESTANDAR|$precio|0.00|1";
-        
-        actualizar_archivo($rutas->{items}, $header_i || "ID_ITEM|ID_CAT|CODIGO_SKU|CONCEPTO|APLICA_IVA", $lines_i);
-        actualizar_archivo($rutas->{precios}, $header_p || "ID_PRECIO|ID_ITEM|TIPO_TARIFA|PRECIO_PUBLICO|COSTO_PROVEEDOR|ID_PROV", $lines_p);
-        responder({ success => 1, msg => 'Servicio creado' });
+        if (!$sku) {
+            $sku = "SRV-" . sprintf("%04d", $id_item);
+        }
+        @new_i = @$lines_i;
+        # ID_ITEM|CODIGO_SKU|ID_CAT|CONCEPTO|APLICA_IVA|INDICACIONES|TIEMPO_ENTREGA
+        push @new_i, "$id_item|$sku|$id_cat|$concepto|$aplica_iva|$indicaciones|$tiempo_entrega";
     }
+
+    # Mapear tarifas existentes para preservar ID_PRECIO e ID_PROV
+    my %precios_existentes;
+    foreach my $l (@$lines_p) {
+        my @c = split /\|/, $l, -1;
+        if ($c[1] eq $id_item) {
+            $precios_existentes{uc($c[2])} = {
+                id_precio => $c[0],
+                id_prov   => $c[5] || 1,
+                costo     => $c[4] || '0.00'
+            };
+        }
+    }
+
+    # Filtrar todas las tarifas que NO pertenecen a este ítem
+    my @new_p = grep { (split /\|/, $_, -1)[1] ne $id_item } @$lines_p;
+
+    # Insertar/actualizar las tarifas indicadas
+    my $next_id_precio = get_next_id($rutas->{precios});
+    my %tipos_procesados;
+
+    foreach my $t (@tarifas_input) {
+        my $tipo = uc(sanitizar_campo($t->{tipo_tarifa} || 'ESTANDAR'));
+        next if $tipos_procesados{$tipo}++;
+
+        my $p_val = (defined $t->{precio} && $t->{precio} ne '') ? $t->{precio} : ($t->{precio_publico} || 0);
+        my $c_val = (defined $t->{costo} && $t->{costo} ne '') ? $t->{costo} : ($t->{costo_proveedor} || 0);
+
+        my $precio_pub = sprintf("%.2f", $p_val);
+        my $costo_prov = sprintf("%.2f", $c_val);
+
+        my $id_p;
+        my $id_prov = 1;
+        if ($precios_existentes{$tipo}) {
+            $id_p    = $precios_existentes{$tipo}->{id_precio};
+            $id_prov = $precios_existentes{$tipo}->{id_prov} || 1;
+        } else {
+            $id_p = $next_id_precio++;
+        }
+
+        # ID_PRECIO|ID_ITEM|TIPO_TARIFA|PRECIO_PUBLICO|COSTO_PROVEEDOR|ID_PROV
+        push @new_p, "$id_p|$id_item|$tipo|$precio_pub|$costo_prov|$id_prov";
+    }
+
+    # Guardado atómico en ambos archivos
+    if (!actualizar_archivo($rutas->{items}, $header_i, \@new_i)) {
+        responder({ error => 'Fallo al escribir en catálogo de ítems.' });
+    }
+    if (!actualizar_archivo($rutas->{precios}, $header_p, \@new_p)) {
+        responder({ error => 'Fallo al escribir en catálogo de precios.' });
+    }
+
+    responder({
+        success => 1,
+        msg => $es_nuevo ? 'Servicio creado exitosamente con sus tarifas.' : 'Servicio actualizado exitosamente.',
+        id_item => $id_item
+    });
 }
 elsif ($action eq 'delete_servicio') {
-    my $id_item = $cgi->param('id') || '';
+    my $id_item = sanitizar_campo($cgi->param('id_item') // $cgi->param('id'));
+    if (!$id_item) {
+        responder({ error => 'ID de servicio no especificado.' });
+    }
     my ($header_i, $lines_i) = leer_archivo($rutas->{items});
     my ($header_p, $lines_p) = leer_archivo($rutas->{precios});
     
-    my @new_i = grep { (split /\|/, $_)[0] ne $id_item } @$lines_i;
-    my @new_p = grep { (split /\|/, $_)[1] ne $id_item } @$lines_p;
+    my @new_i = grep { (split /\|/, $_, -1)[0] ne $id_item } @$lines_i;
+    my @new_p = grep { (split /\|/, $_, -1)[1] ne $id_item } @$lines_p;
     
     actualizar_archivo($rutas->{items}, $header_i, \@new_i);
     actualizar_archivo($rutas->{precios}, $header_p, \@new_p);
-    responder({ success => 1, msg => 'Servicio eliminado' });
+    responder({ success => 1, msg => 'Servicio eliminado exitosamente.' });
 }
 else {
     responder({ error => 'Accion invalida' });

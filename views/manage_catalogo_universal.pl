@@ -175,23 +175,30 @@ foreach my $item (@{$cat_univ->{items} || []}) {
     my $dep_cat_label = $dep_name ? "$dep_name / $cat_name" : $cat_name;
     
     my $precios_html = "";
-    my $precio_base = 0;
     foreach my $p (@{$item->{precios} || []}) {
-        if (!$precio_base || (defined $p->{tipo_tarifa} && ($p->{tipo_tarifa} eq 'ESTANDAR' || $p->{tipo_tarifa} eq 'DIA' || $p->{tipo_tarifa} eq 'BASE'))) {
-            $precio_base = $p->{precio_publico};
-        }
-        $precios_html .= "<span class='badge me-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span>";
+        $precios_html .= "<span class='badge me-1 mb-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span>";
+    }
+    
+    my $extra_info = "";
+    if ($item->{indicaciones} && $item->{indicaciones} ne 'Sin preparación previa') {
+        $extra_info .= "<div class='text-muted small text-truncate' style='max-width: 320px; font-size: 0.72rem;' title='$item->{indicaciones}'><i class='bi bi-info-circle me-1 text-primary'></i>$item->{indicaciones}</div>";
+    }
+    if ($item->{tiempo_entrega} && $item->{tiempo_entrega} ne 'Inmediato') {
+        $extra_info .= "<span class='badge bg-light text-secondary border' style='font-size: 0.65rem;'><i class='bi bi-clock me-1'></i>$item->{tiempo_entrega}</span>";
     }
     
     print <<HTML;
                                         <tr data-dep-id="$dep_id" data-cat-id="$cat_id">
                                             <td data-label="SKU"><span class="badge" style="background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700;">$item->{codigo_sku}</span></td>
-                                            <td data-label="Concepto" class="fw-bold" style="color: var(--inst-navy-deep);">$item->{concepto}</td>
+                                            <td data-label="Concepto">
+                                                <div class="fw-bold" style="color: var(--inst-navy-deep);">$item->{concepto}</div>
+                                                $extra_info
+                                            </td>
                                             <td data-label="Dep/Cat" class="small text-muted">$dep_cat_label</td>
-                                            <td data-label="Precios" style="width: 140px; max-width: 140px;">$precios_html</td>
+                                            <td data-label="Precios" style="width: 150px; max-width: 150px;">$precios_html</td>
                                             <td class="text-end text-nowrap" style="width: 95px; min-width: 95px;">
                                                 <div class="d-inline-flex align-items-center justify-content-end gap-1">
-                                                    <button class="btn btn-sm btn-navy-outline rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('servicio', '$item->{id_item}', '$item->{codigo_sku}', '$item->{concepto}', '$item->{id_cat}', '$precio_base')" title="Editar Servicio"><i class="bi bi-pencil"></i></button>
+                                                    <button class="btn btn-sm btn-navy-outline rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('servicio', '$item->{id_item}')" title="Editar Servicio"><i class="bi bi-pencil"></i></button>
                                                     <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEntity('servicio', '$item->{id_item}')" title="Eliminar Servicio"><i class="bi bi-trash"></i></button>
                                                 </div>
                                             </td>
@@ -541,22 +548,101 @@ print <<'JS';
                 generarNomenclaturaSku();
             }
 
-            function abrirFormulario(tipo, ...args) {
+            const TIPOS_TARIFAS_DISPONIBLES = [
+                { id: 'ESTANDAR', label: 'ESTÁNDAR (Público General / Base)' },
+                { id: 'MUNICIPIO', label: 'MUNICIPIO (Convenio Sindical / Estatal)' },
+                { id: 'LUNES_A_SABADO', label: 'LUNES A SÁBADO (Tarifa Ordinaria)' },
+                { id: 'DOMINGOS_Y_FESTIVOS', label: 'DOMINGOS Y FESTIVOS (Recargo)' },
+                { id: 'FESTIVO', label: 'DÍA FESTIVO' },
+                { id: 'NORMAL', label: 'TURNO NORMAL' },
+                { id: 'MATUTINO', label: 'TURNO MATUTINO' },
+                { id: 'NOCTURNO', label: 'TURNO NOCTURNO / URGENCIAS' },
+                { id: 'SABADO_TARDE_DOMINGO_FESTIVO', label: 'SÁBADO TARDE / DOMINGO / FESTIVO' },
+                { id: 'PAQUETE_TODO_INCLUIDO', label: 'PAQUETE TODO INCLUIDO' },
+                { id: 'PAQUETE_SOLO_CLINICA', label: 'PAQUETE SOLO CLÍNICA' }
+            ];
+
+            function renderFilaTarifa(tipo, precio, costo, canDelete = true) {
+                const tbody = document.getElementById('tbodyTarifas');
+                if (!tbody) return;
+
+                let optionsHtml = '';
+                TIPOS_TARIFAS_DISPONIBLES.forEach(t => {
+                    const sel = (t.id === tipo) ? 'selected' : '';
+                    optionsHtml += `<option value="${t.id}" ${sel}>${escapeHtml(t.label)}</option>`;
+                });
+
+                const isEstandar = (tipo === 'ESTANDAR');
+                const tr = document.createElement('tr');
+                tr.className = 'tarifa-row align-middle';
+                tr.innerHTML = `
+                    <td class="py-1.5">
+                        ${isEstandar ? `
+                            <input type="hidden" class="tarifa-tipo" value="ESTANDAR">
+                            <span class="badge px-2.5 py-1.5 fw-bold" style="background:#e0f2fe; color:#0369a1; border: 1px solid #bae6fd; font-size: 0.8rem;">
+                                <i class="bi bi-shield-check me-1"></i>ESTÁNDAR (Público General / Base)
+                            </span>
+                        ` : `
+                            <select class="form-select form-select-sm tarifa-tipo" style="font-size: 0.8rem;" required>
+                                ${optionsHtml}
+                            </select>
+                        `}
+                    </td>
+                    <td class="py-1.5">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted fw-bold">$</span>
+                            <input type="number" step="0.01" min="0.01" class="form-control form-control-sm fw-bold text-dark tarifa-precio" value="${precio || ''}" placeholder="0.00" required>
+                        </div>
+                    </td>
+                    <td class="py-1.5">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted">$</span>
+                            <input type="number" step="0.01" min="0.00" class="form-control form-control-sm tarifa-costo" value="${costo || '0.00'}" placeholder="0.00">
+                        </div>
+                    </td>
+                    <td class="text-center py-1.5">
+                        ${isEstandar ? `
+                            <span class="text-muted small" title="Tarifa obligatoria requerida"><i class="bi bi-lock-fill"></i></span>
+                        ` : `
+                            <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" onclick="this.closest('tr').remove()" title="Quitar Tarifa">
+                                <i class="bi bi-x-circle-fill fs-6"></i>
+                            </button>
+                        `}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            function agregarFilaTarifa(tipo = '', precio = '', costo = '0.00') {
+                if (!tipo) {
+                    const tiposActuales = Array.from(document.querySelectorAll('#tbodyTarifas .tarifa-tipo')).map(el => el.value);
+                    const disponibles = TIPOS_TARIFAS_DISPONIBLES.filter(t => !tiposActuales.includes(t.id));
+                    tipo = disponibles.length > 0 ? disponibles[0].id : 'NORMAL';
+                }
+                renderFilaTarifa(tipo, precio, costo, true);
+            }
+
+            function agregarTarifaRapidaMunicipio() {
+                const tiposActuales = Array.from(document.querySelectorAll('#tbodyTarifas .tarifa-tipo')).map(el => el.value);
+                if (tiposActuales.includes('MUNICIPIO')) {
+                    Swal.fire('Información', 'La tarifa MUNICIPIO ya está agregada en la matriz.', 'info');
+                    return;
+                }
+                renderFilaTarifa('MUNICIPIO', '', '0.00', true);
+            }
+
+            async function abrirFormulario(tipo, ...args) {
                 document.getElementById('mainCard').classList.add('d-none');
                 const container = document.getElementById('formContainer');
                 container.classList.remove('d-none');
                 const title = document.getElementById('formTitle');
                 const body = document.getElementById('formBody');
                 
-                let html = '';
-                let currentDepId = '';
-                let id_cat = '';
-                
                 if (tipo === 'departamento') {
                     const id = args[0] || '';
                     const nombre = args[1] || '';
                     title.innerHTML = `<i class="bi bi-diagram-2 me-2"></i>${id ? 'Editar' : 'Nuevo'} Departamento`;
-                    html = `
+                    body.innerHTML = `
                         <form id="crudForm" onsubmit="saveEntity(event, 'departamento')">
                             <input type="hidden" name="action" value="save_departamento">
                             <input type="hidden" name="id" value="${id}">
@@ -584,7 +670,7 @@ print <<'JS';
                     }
 
                     title.innerHTML = `<i class="bi bi-tags me-2"></i>${id ? 'Editar' : 'Nueva'} Categoría`;
-                    html = `
+                    body.innerHTML = `
                         <form id="crudForm" onsubmit="saveEntity(event, 'categoria')">
                             <input type="hidden" name="action" value="save_categoria">
                             <input type="hidden" name="id" value="${id}">
@@ -604,6 +690,7 @@ print <<'JS';
                             </div>
                         </form>
                     `;
+                    if (id_dep) document.getElementById('sel_dep').value = id_dep;
                 } else if (tipo === 'producto') {
                     const id = args[0] || '';
                     const nombre = args[1] || '';
@@ -612,7 +699,7 @@ print <<'JS';
                     const presentacion = args[4] || '';
                     const descripcion = args[5] || '';
                     title.innerHTML = `<i class="bi bi-box-seam me-2"></i>${id ? 'Editar' : 'Nuevo'} Producto`;
-                    html = `
+                    body.innerHTML = `
                         <form id="crudForm" onsubmit="saveEntity(event, 'producto')">
                             <input type="hidden" name="action" value="save_producto">
                             <input type="hidden" name="id" value="${id}">
@@ -646,74 +733,198 @@ print <<'JS';
                     `;
                 } else if (tipo === 'servicio') {
                     const id = args[0] || '';
-                    const sku = args[1] || '';
-                    const concepto = args[2] || '';
-                    id_cat = args[3] || '';
-                    const precio = args[4] || '';
-                    
-                    if (id_cat && window.CATALOGO_CATS) {
-                        const foundCat = window.CATALOGO_CATS.find(c => String(c.id_cat) === String(id_cat));
-                        if (foundCat) {
-                            currentDepId = foundCat.id_dep;
-                        }
-                    }
+                    title.innerHTML = `<i class="bi bi-activity me-2"></i>${id ? 'Editar' : 'Nuevo'} Servicio`;
 
-                    let depOptions = '<option value="">-- Seleccione Departamento --</option>';
-                    if (window.CATALOGO_DEPS) {
-                        window.CATALOGO_DEPS.forEach(d => {
-                            const sel = String(d.id_dep) === String(currentDepId) ? 'selected' : '';
-                            depOptions += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
+                    if (id) {
+                        body.innerHTML = `
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="text-muted small mt-2">Cargando datos y tarifas del servicio...</p>
+                            </div>
+                        `;
+                        try {
+                            const res = await fetch(`../api/crud_catalogo_universal_api.pl?action=get_servicio&id_item=${id}`);
+                            const data = await res.json();
+                            if (!data.success || !data.servicio) {
+                                Swal.fire('Error', data.error || 'No se pudieron obtener los datos del servicio.', 'error');
+                                cerrarFormulario();
+                                return;
+                            }
+                            renderFormServicio(data.servicio);
+                        } catch (err) {
+                            Swal.fire('Error', 'Error de conexión al cargar el servicio.', 'error');
+                            cerrarFormulario();
+                        }
+                    } else {
+                        renderFormServicio({
+                            id_item: '',
+                            codigo_sku: '',
+                            id_cat: '',
+                            id_dep: '',
+                            concepto: '',
+                            aplica_iva: 0,
+                            indicaciones: 'Sin preparación previa',
+                            tiempo_entrega: 'Inmediato',
+                            tarifas: [
+                                { tipo_tarifa: 'ESTANDAR', precio_publico: '', costo_proveedor: '0.00' }
+                            ]
                         });
                     }
-
-                    title.innerHTML = `<i class="bi bi-activity me-2"></i>${id ? 'Editar' : 'Nuevo'} Servicio`;
-                    html = `
-                        <form id="crudForm" onsubmit="saveEntity(event, 'servicio')">
-                            <input type="hidden" name="action" value="save_servicio">
-                            <input type="hidden" name="id_item" value="${id}">
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold small text-muted">Departamento</label>
-                                    <select class="form-select" id="sel_dep_servicio" onchange="onServicioDepChange(this.value)" required>
-                                        ${depOptions}
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold small text-muted">Categoría Mapeada</label>
-                                    <select class="form-select" name="id_cat" id="sel_cat" onchange="onServicioCatChange(this.value)" required>
-                                        <option value="">-- Primero seleccione Departamento --</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold small text-muted">Código SKU</label>
-                                    <input type="text" class="form-control text-uppercase" name="codigo_sku" id="input_sku" value="${sku}" oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;" placeholder="Ej: PATC-00" required>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold small text-muted">Precio Base (DIA)</label>
-                                    <input type="number" step="0.01" min="0.01" class="form-control" name="precio" value="${precio}" placeholder="Monto mayor a 0" required>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold small text-muted">Concepto / Descripción</label>
-                                    <input type="text" class="form-control text-uppercase" name="concepto" value="${concepto}" oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;" required>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-light border" onclick="cerrarFormulario()">Cancelar</button>
-                                <button type="submit" class="btn btn-navy-primary px-4"><i class="bi bi-save me-2"></i>Guardar</button>
-                            </div>
-                        </form>
-                    `;
                 }
-                
+            }
+
+            function renderFormServicio(s) {
+                const body = document.getElementById('formBody');
+                const id = s.id_item || '';
+                const currentDepId = s.id_dep || '';
+                const id_cat = s.id_cat || '';
+
+                let depOptions = '<option value="">-- Seleccione Departamento --</option>';
+                if (window.CATALOGO_DEPS) {
+                    window.CATALOGO_DEPS.forEach(d => {
+                        const sel = String(d.id_dep) === String(currentDepId) ? 'selected' : '';
+                        depOptions += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
+                    });
+                }
+
+                const html = `
+                    <form id="crudForm" onsubmit="saveEntity(event, 'servicio')">
+                        <input type="hidden" name="action" value="save_servicio">
+                        <input type="hidden" name="id_item" value="${id}">
+
+                        <datalist id="datalistIndicaciones">
+                            <option value="Sin preparación previa">
+                            <option value="Ayuno mínimo de 8 a 12 horas (agua simple permitida)">
+                            <option value="Presentarse con vejiga llena (ingerir 1L de agua 1h antes)">
+                            <option value="Suspender medicamentos previos bajo indicación médica">
+                            <option value="Aseo de la zona con agua y jabón neutro">
+                            <option value="Presentar estudios previos o recetas médicas">
+                            <option value="Reposo previo de 15 minutos en clínica">
+                            <option value="Cita previa requerida con especialista">
+                        </datalist>
+
+                        <datalist id="datalistTiempos">
+                            <option value="Inmediato">
+                            <option value="Mismo día">
+                            <option value="2 a 4 horas (Urgencias)">
+                            <option value="24 horas hábiles">
+                            <option value="48 horas hábiles">
+                            <option value="3 a 5 días hábiles">
+                        </datalist>
+
+                        <!-- SECCIÓN 1: CLASIFICACIÓN Y SKU -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-bold small text-muted mb-1"><i class="bi bi-diagram-3 me-1"></i>Departamento</label>
+                                <select class="form-select form-select-sm" id="sel_dep_servicio" onchange="onServicioDepChange(this.value)" required>
+                                    ${depOptions}
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-bold small text-muted mb-1"><i class="bi bi-tags me-1"></i>Categoría</label>
+                                <select class="form-select form-select-sm" name="id_cat" id="sel_cat" onchange="onServicioCatChange(this.value)" required>
+                                    <option value="">-- Primero seleccione Departamento --</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-bold small text-muted mb-1"><i class="bi bi-upc-scan me-1"></i>Código SKU</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm text-uppercase font-monospace fw-bold" name="codigo_sku" id="input_sku" value="${escapeHtml(s.codigo_sku)}" oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;" placeholder="Ej: CON-MG-0001" required>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="generarNomenclaturaSku()" title="Autogenerar SKU"><i class="bi bi-magic"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN 2: CONCEPTO E IVA -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-12 col-md-9">
+                                <label class="form-label fw-bold small text-muted mb-1"><i class="bi bi-file-earmark-text me-1"></i>Concepto / Descripción del Servicio</label>
+                                <input type="text" class="form-control form-control-sm text-uppercase fw-semibold" name="concepto" value="${escapeHtml(s.concepto)}" oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;" placeholder="Nombre completo del servicio o procedimiento" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label fw-bold small text-muted mb-1"><i class="bi bi-percent me-1"></i>Régimen IVA</label>
+                                <select class="form-select form-select-sm" name="aplica_iva">
+                                    <option value="0" ${s.aplica_iva ? '' : 'selected'}>Exento (Tasa 0% Médico)</option>
+                                    <option value="1" ${s.aplica_iva ? 'selected' : ''}>Grava IVA (16%)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN 3: CAMPOS CLÍNICOS PRE-ESTUDIO -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-12 col-md-8">
+                                <label class="form-label fw-bold small text-muted mb-1"><i class="bi bi-info-circle me-1"></i>Indicaciones / Preparación Previa al Paciente</label>
+                                <input type="text" list="datalistIndicaciones" class="form-control form-control-sm" name="indicaciones" value="${escapeHtml(s.indicaciones || 'Sin preparación previa')}" placeholder="Ej: Ayuno de 8 hrs, Vejiga llena...">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-bold small text-muted mb-1"><i class="bi bi-clock-history me-1"></i>Tiempo Estimado de Entrega</label>
+                                <input type="text" list="datalistTiempos" class="form-control form-control-sm" name="tiempo_entrega" value="${escapeHtml(s.tiempo_entrega || 'Inmediato')}" placeholder="Ej: Inmediato, 24 horas...">
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN 4: MATRIZ DINÁMICA DE PRECIOS Y TARIFAS -->
+                        <div class="card border-0 shadow-sm bg-white rounded-3 p-3 mb-3" style="border: 1px solid #e2e8f0 !important;">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-cash-stack me-1 text-success"></i>Matriz de Tarifas y Precios</h6>
+                                    <small class="text-muted">Configure las tarifas aplicables (Privado, Convenio Municipio, Horarios Especiales).</small>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-2.5 fw-semibold" onclick="agregarTarifaRapidaMunicipio()" title="Agregar Tarifa Municipio">
+                                        <i class="bi bi-building me-1"></i>+ Municipio
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-navy-outline rounded-pill px-2.5 fw-semibold" onclick="agregarFilaTarifa()" title="Añadir otra tarifa">
+                                        <i class="bi bi-plus-circle me-1"></i>+ Otra Tarifa
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0" id="tablaTarifasForm">
+                                    <thead class="table-light small text-muted">
+                                        <tr>
+                                            <th style="width: 46%;">Tipo de Tarifa / Condición</th>
+                                            <th style="width: 25%;">Precio Público ($)</th>
+                                            <th style="width: 20%;">Costo / Honorario ($)</th>
+                                            <th style="width: 9%;" class="text-center">Quitar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbodyTarifas">
+                                        <!-- Inyectado dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+                            <button type="button" class="btn btn-light border px-3" onclick="cerrarFormulario()">Cancelar</button>
+                            <button type="submit" class="btn btn-navy-primary px-4 fw-bold"><i class="bi bi-save me-2"></i>Guardar Servicio</button>
+                        </div>
+                    </form>
+                `;
+
                 body.innerHTML = html;
-                if (tipo === 'categoria' && args[1]) document.getElementById('sel_dep').value = args[1];
-                if (tipo === 'servicio') {
-                    if (currentDepId) {
-                        filtrarCategoriasPorDep(currentDepId, 'sel_cat', id_cat);
-                    } else {
-                        const selCat = document.getElementById('sel_cat');
-                        if (selCat) selCat.disabled = true;
-                    }
+
+                // Hidratar categorías en cascada
+                if (currentDepId) {
+                    filtrarCategoriasPorDep(currentDepId, 'sel_cat', id_cat);
+                } else {
+                    const selCat = document.getElementById('sel_cat');
+                    if (selCat) selCat.disabled = true;
+                }
+
+                // Hidratar filas de tarifas
+                const tbody = document.getElementById('tbodyTarifas');
+                tbody.innerHTML = '';
+                const tarifas = s.tarifas || [];
+                let hasEstandar = false;
+
+                tarifas.forEach(t => {
+                    if (t.tipo_tarifa === 'ESTANDAR') hasEstandar = true;
+                    renderFilaTarifa(t.tipo_tarifa, t.precio_publico, t.costo_proveedor, t.tipo_tarifa !== 'ESTANDAR');
+                });
+
+                if (!hasEstandar) {
+                    renderFilaTarifa('ESTANDAR', '', '0.00', false);
                 }
             }
 
@@ -722,12 +933,53 @@ print <<'JS';
                 const form = e.target;
                 const fd = new FormData(form);
 
-                if (tipo === 'servicio' || tipo === 'producto') {
+                if (tipo === 'producto') {
                     const precioVal = parseFloat(fd.get('precio'));
                     if (isNaN(precioVal) || precioVal <= 0) {
-                        Swal.fire('Atención', 'No se permiten precios iguales o menores a cero ($0.00). El monto debe ser mayor a cero.', 'warning');
+                        Swal.fire('Atención', 'No se permiten productos con precio menor o igual a cero ($0.00).', 'warning');
                         return;
                     }
+                }
+
+                if (tipo === 'servicio') {
+                    const filas = document.querySelectorAll('#tbodyTarifas .tarifa-row');
+                    const tarifas = [];
+                    let tieneEstandar = false;
+                    let tieneInvalido = false;
+                    const tiposSet = new Set();
+
+                    filas.forEach(f => {
+                        const tTipo = f.querySelector('.tarifa-tipo').value;
+                        const tPrecio = parseFloat(f.querySelector('.tarifa-precio').value) || 0;
+                        const tCosto = parseFloat(f.querySelector('.tarifa-costo').value) || 0;
+
+                        if (tPrecio <= 0) {
+                            tieneInvalido = true;
+                        }
+                        if (tTipo === 'ESTANDAR') tieneEstandar = true;
+                        if (tiposSet.has(tTipo)) {
+                            Swal.fire('Atención', `La tarifa ${tTipo} está duplicada en la matriz. Cada tipo debe ser único.`, 'warning');
+                            return;
+                        }
+                        tiposSet.add(tTipo);
+
+                        tarifas.push({
+                            tipo_tarifa: tTipo,
+                            precio: tPrecio,
+                            costo: tCosto
+                        });
+                    });
+
+                    if (!tieneEstandar) {
+                        Swal.fire('Atención', 'La tarifa ESTÁNDAR (Público General / Base) es obligatoria.', 'warning');
+                        return;
+                    }
+                    if (tieneInvalido) {
+                        Swal.fire('Atención', 'Todas las tarifas ingresadas deben tener un precio mayor a $0.00.', 'warning');
+                        return;
+                    }
+
+                    fd.append('tarifas_json', JSON.stringify(tarifas));
                 }
 
                 try {
@@ -738,7 +990,7 @@ print <<'JS';
                     } else {
                         Swal.fire('Error', data.error || 'Ocurrió un error al guardar.', 'error');
                     }
-                } catch(e) {
+                } catch(err) {
                     Swal.fire('Error', 'Problema de conexión con el servidor.', 'error');
                 }
             }
