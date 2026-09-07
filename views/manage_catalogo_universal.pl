@@ -103,17 +103,20 @@ print <<HTML;
                         <div class="tab-pane fade show active" id="servicios" role="tabpanel">
 HTML
 
+my @deps_ordenados = sort { lc($a->{nombre} // '') cmp lc($b->{nombre} // '') } @{$cat_univ->{departamentos} || []};
+my @cats_ordenadas = sort { lc($a->{nombre} // '') cmp lc($b->{nombre} // '') } @{$cat_univ->{categorias} || []};
+
 my %cats_map;
-foreach my $c (@{$cat_univ->{categorias} || []}) { $cats_map{$c->{id_cat}} = { n => $c->{nombre}, d => $c->{id_dep} }; }
+foreach my $c (@cats_ordenadas) { $cats_map{$c->{id_cat}} = { n => $c->{nombre}, d => $c->{id_dep} }; }
 my %deps_map;
-foreach my $d (@{$cat_univ->{departamentos} || []}) { $deps_map{$d->{id_dep}} = $d->{nombre}; }
+foreach my $d (@deps_ordenados) { $deps_map{$d->{id_dep}} = $d->{nombre}; }
 
 my $filter_deps_options = "<option value=''>-- Todos los Deptos --</option>";
-foreach my $dep (@{$cat_univ->{departamentos} || []}) {
+foreach my $dep (@deps_ordenados) {
     $filter_deps_options .= "<option value='$dep->{id_dep}'>$dep->{nombre}</option>";
 }
 my $filter_cats_options = "<option value=''>-- Todas las Categorías --</option>";
-foreach my $cat (@{$cat_univ->{categorias} || []}) {
+foreach my $cat (@cats_ordenadas) {
     $filter_cats_options .= "<option value='$cat->{id_cat}' data-dep-id='$cat->{id_dep}'>$cat->{nombre}</option>";
 }
 
@@ -274,7 +277,7 @@ print <<HTML;
                                     <ul class="list-group list-group-flush border rounded-4 shadow-sm overflow-hidden">
 HTML
 
-foreach my $dep (@{$cat_univ->{departamentos} || []}) {
+foreach my $dep (@deps_ordenados) {
     print <<HTML;
                                         <li class="list-group-item d-flex justify-content-between align-items-center py-3">
                                             <div>
@@ -301,7 +304,7 @@ print <<HTML;
                                     <ul class="list-group list-group-flush border rounded-4 shadow-sm overflow-hidden">
 HTML
 
-foreach my $cat (@{$cat_univ->{categorias} || []}) {
+foreach my $cat (@cats_ordenadas) {
     print <<HTML;
                                         <li class="list-group-item d-flex justify-content-between align-items-center py-3">
                                             <div>
@@ -342,16 +345,16 @@ print <<HTML;
 HTML
 
 my $cats_options = "<option value=''>Seleccione...</option>";
-foreach my $cat (@{$cat_univ->{categorias} || []}) {
+foreach my $cat (@cats_ordenadas) {
     $cats_options .= "<option value='$cat->{id_cat}'>$cat->{nombre}</option>";
 }
 my $deps_options = "<option value=''>Seleccione...</option>";
-foreach my $dep (@{$cat_univ->{departamentos} || []}) {
+foreach my $dep (@deps_ordenados) {
     $deps_options .= "<option value='$dep->{id_dep}'>$dep->{nombre}</option>";
 }
 
-my $deps_json = encode_json($cat_univ->{departamentos} || []);
-my $cats_json = encode_json($cat_univ->{categorias} || []);
+my $deps_json = encode_json(\@deps_ordenados);
+my $cats_json = encode_json(\@cats_ordenadas);
 
 print <<HTML;
 <div id="config-catalogo" style="display:none;" data-cats="$cats_options" data-deps="$deps_options"></div>
@@ -387,7 +390,10 @@ print <<'JS';
                     return;
                 }
                 
-                const filtered = (window.CATALOGO_CATS || []).filter(c => String(c.id_dep) === String(depId));
+                const filtered = (window.CATALOGO_CATS || [])
+                    .filter(c => String(c.id_dep) === String(depId))
+                    .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es', { sensitivity: 'base' }));
+
                 let options = '<option value="">-- Seleccione Categoría --</option>';
                 
                 if (filtered.length === 0) {
@@ -435,12 +441,16 @@ print <<'JS';
                 
                 if (!depId) {
                     let options = '<option value="">-- Todas las Categorías --</option>';
-                    (window.CATALOGO_CATS || []).forEach(c => {
+                    const allSorted = [...(window.CATALOGO_CATS || [])]
+                        .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es', { sensitivity: 'base' }));
+                    allSorted.forEach(c => {
                         options += `<option value="${c.id_cat}" data-dep-id="${c.id_dep}">${escapeHtml(c.nombre)}</option>`;
                     });
                     catSelect.html(options);
                 } else {
-                    const filtered = (window.CATALOGO_CATS || []).filter(c => String(c.id_dep) === String(depId));
+                    const filtered = (window.CATALOGO_CATS || [])
+                        .filter(c => String(c.id_dep) === String(depId))
+                        .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es', { sensitivity: 'base' }));
                     let options = '<option value="">-- Todas las Categorías --</option>';
                     if (filtered.length === 0) {
                         options = '<option value="">-- Sin categorías --</option>';
@@ -662,12 +672,12 @@ print <<'JS';
                     const nombre = args[2] || '';
                     
                     let depOptionsCat = '<option value="">-- Seleccione Departamento --</option>';
-                    if (window.CATALOGO_DEPS) {
-                        window.CATALOGO_DEPS.forEach(d => {
-                            const sel = String(d.id_dep) === String(id_dep) ? 'selected' : '';
-                            depOptionsCat += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
-                        });
-                    }
+                    const depsSorted = [...(window.CATALOGO_DEPS || [])]
+                        .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es', { sensitivity: 'base' }));
+                    depsSorted.forEach(d => {
+                        const sel = String(d.id_dep) === String(id_dep) ? 'selected' : '';
+                        depOptionsCat += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
+                    });
 
                     title.innerHTML = `<i class="bi bi-tags me-2"></i>${id ? 'Editar' : 'Nueva'} Categoría`;
                     body.innerHTML = `
@@ -780,12 +790,12 @@ print <<'JS';
                 const id_cat = s.id_cat || '';
 
                 let depOptions = '<option value="">-- Seleccione Departamento --</option>';
-                if (window.CATALOGO_DEPS) {
-                    window.CATALOGO_DEPS.forEach(d => {
-                        const sel = String(d.id_dep) === String(currentDepId) ? 'selected' : '';
-                        depOptions += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
-                    });
-                }
+                const depsSorted = [...(window.CATALOGO_DEPS || [])]
+                    .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es', { sensitivity: 'base' }));
+                depsSorted.forEach(d => {
+                    const sel = String(d.id_dep) === String(currentDepId) ? 'selected' : '';
+                    depOptions += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
+                });
 
                 const html = `
                     <form id="crudForm" onsubmit="saveEntity(event, 'servicio')">
