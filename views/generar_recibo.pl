@@ -327,7 +327,7 @@ print <<"HTML";
                         <!-- Tarifa de Consulta (Solo Paciente Privado) -->
                         <div class="col-12" id="containerTarifaConsulta" style="display: none;">
                             <div class="mb-3 diamond-input-armor rounded-3">
-                                <label class="small fw-bold text-muted mb-2 ps-1"><i class="bi bi-tag-fill text-success me-1"></i>Tarifa de Consulta (TIPO_TARIFA)</label>
+                                <label class="small fw-bold text-muted mb-2 ps-1"><i class="bi bi-tag-fill text-success me-1"></i>Tarifa de Consulta</label>
                                 <select id="selTarifaConsulta" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="onTarifaConsultaChange()">
                                     <option value="ESTANDAR">ESTÁNDAR (Público General / Base)</option>
                                 </select>
@@ -526,24 +526,28 @@ print <<'JS';
         
         let esEstado = (pacienteTipoActual === 'estado');
         let itemsCat = (window.RAW_CATALOGO.items || []).filter(it => String(it.id_cat) === String(catId));
-        itemsCat.sort((a, b) => (a.concepto || '').localeCompare(b.concepto || ''));
         
-        let html = '<option value="">-- Selecciona Médico / Concepto --</option>';
+        // Extraer nombre del doctor y ordenar alfabéticamente
+        itemsCat.forEach(it => {
+            let displayNom = it.concepto || it.nombre || '';
+            let labelMedico = displayNom;
+            if (displayNom.includes(' - ')) {
+                labelMedico = displayNom.split(' - ')[1].trim();
+            }
+            it._labelMedico = labelMedico;
+        });
+        itemsCat.sort((a, b) => (a._labelMedico || '').localeCompare(b._labelMedico || ''));
+        
+        let html = '<option value="">-- Selecciona Médico --</option>';
         itemsCat.forEach(it => {
             let pMunObj = (it.precios || []).find(p => p.tipo_tarifa === 'MUNICIPIO');
             let pEstObj = (it.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (it.precios || [])[0];
             let pMun = pMunObj ? parseFloat(pMunObj.precio_publico || 0) : 0;
             let pEst = pEstObj ? parseFloat(pEstObj.precio_publico || 0) : 0;
             let precioActivo = esEstado ? (pMun || pEst) : pEst;
-            
             let displayNom = it.concepto || it.nombre;
-            let labelMedico = displayNom;
-            if (displayNom.includes(' - ')) {
-                labelMedico = displayNom.split(' - ')[1].trim();
-            }
             
-            let precioLabel = esEstado ? '[Cubierto Convenio]' : formatCurrency(precioActivo);
-            html += `<option value="${it.id_item}" data-item-id="${it.id_item}" data-concepto="${escapeHtml(displayNom)}" data-precio-mun="${pMun}" data-precio-est="${pEst}" data-precio="${precioActivo}">${escapeHtml(labelMedico)} (${precioLabel})</option>`;
+            html += `<option value="${it.id_item}" data-item-id="${it.id_item}" data-concepto="${escapeHtml(displayNom)}" data-precio-mun="${pMun}" data-precio-est="${pEst}" data-precio="${precioActivo}">${escapeHtml(it._labelMedico)}</option>`;
         });
         
         selMed.innerHTML = html;
