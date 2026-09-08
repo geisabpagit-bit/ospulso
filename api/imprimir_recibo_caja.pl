@@ -347,7 +347,6 @@ if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~
 my $medico_row_html = '';
 if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /^\d+$/) {
     my $display_med = $medico_nombre;
-    $display_med .= " - $especialidad_nombre" if $especialidad_nombre;
     $medico_row_html = qq{
             <tr>
                 <td class="info-label-cell">Médico :</td>
@@ -611,6 +610,17 @@ foreach my $c (@cargos) {
     my $precio_fmt   = formato_moneda($c->{precio});
     my $subtotal_fmt = formato_moneda($c->{subtotal});
     my $concepto_txt = $c->{concepto};
+    
+    if ($concepto_txt =~ /CONSULTA/i) {
+        $concepto_txt =~ s/\s*-\s*(?:DRA?|LIC|ING|MTRO|MEDICO)?\.?\s*.+$//i;
+    }
+    if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO') {
+        my $clean_m = $medico_nombre;
+        $clean_m =~ s/^(?:DRA?|LIC|ING|MTRO)\.?\s*//i;
+        $clean_m =~ s/^\s+|\s+$//g;
+        $concepto_txt =~ s/\s*-\s*(?:DRA?|LIC|ING|MTRO)?\.?\s*\Q$clean_m\E.*$//i;
+    }
+    
     print qq{
                         <tr>
                             <td style="text-align: left; font-size: 10px; text-transform: uppercase;">$concepto_txt</td>

@@ -485,6 +485,36 @@ if ($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) {
     }
 }
 
+# 4.1 Si aún no está resuelto, buscar si algún cargo es directamente un nombre de médico
+if (($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && $rutas->{medicos} && -e $rutas->{medicos} && open(my $fmc, '<:encoding(UTF-8)', $rutas->{medicos})) {
+    my %nombres_meds;
+    while (my $lm = <$fmc>) {
+        chomp $lm;
+        my @f = split(/\|/, $lm, -1);
+        my $nom = uc($f[2] || $f[1] || '');
+        if ($nom) {
+            my $clean = $nom;
+            $clean =~ s/^(?:DRA?|LIC|ING|MTRO)\.?\s*//i;
+            $clean =~ s/^\s+|\s+$//g;
+            $nombres_meds{$clean} = $nom;
+            $nombres_meds{$nom} = $nom;
+        }
+    }
+    close($fmc);
+    
+    foreach my $c (@cargos) {
+        my $nom_c = uc($c->{concepto} || '');
+        my $clean_c = $nom_c;
+        $clean_c =~ s/^(?:DRA?|LIC|ING|MTRO)\.?\s*//i;
+        $clean_c =~ s/^\s+|\s+$//g;
+        if ($nombres_meds{$clean_c} || $nombres_meds{$nom_c}) {
+            $medico_nombre = $nombres_meds{$clean_c} || $nombres_meds{$nom_c};
+            $c->{es_medico_directo} = 1;
+            last;
+        }
+    }
+}
+
 sub formato_moneda {
     my ($monto) = @_;
     $monto ||= 0;
@@ -641,7 +671,7 @@ print <<HTML;
             <tr>
                 <td class="info-label-cell">Médico:</td>
                 <td colspan="2" style="font-size: 10px; text-transform: uppercase;">
-                    $medico_nombre @{[ $especialidad_nombre ? "- $especialidad_nombre" : "" ]}
+                    $medico_nombre
                 </td>
             </tr>
             <tr>
@@ -654,10 +684,24 @@ my %seen;
 foreach my $c (@cargos) {
     next if $seen{$c->{concepto}}++;
     my $concepto_txt = $c->{concepto};
+
+    # Si el concepto era únicamente el nombre del médico, sustituir por el concepto/departamento del recibo
+    if ($c->{es_medico_directo} || ($medico_nombre ne "NO ESPECIFICADO" && uc($concepto_txt) eq uc($medico_nombre))) {
+        $concepto_txt = ($recibo->{concepto} && $recibo->{concepto} !~ /^(?:Servicios|)$/i) ? uc($recibo->{concepto}) : "CONSULTA";
+    } elsif ($concepto_txt =~ /CONSULTA/i) {
+        $concepto_txt =~ s/\s*-\s*(?:DRA?|LIC|ING|MTRO|MEDICO)?\.?\s*.+$//i;
+    }
+    
+    if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO') {
+        my $clean_m = $medico_nombre;
+        $clean_m =~ s/^(?:DRA?|LIC|ING|MTRO)\.?\s*//i;
+        $clean_m =~ s/^\s+|\s+$//g;
+        $concepto_txt =~ s/\s*-\s*(?:DRA?|LIC|ING|MTRO)?\.?\s*\Q$clean_m\E.*$//i;
+    }
+
     my $precio_col_html = '';
-    if ($c->{cubierto_convenio} || (defined $c->{precio_paciente} && $c->{precio_paciente} == 0)) {
-        $precio_col_html = qq{<span style="font-size: 9.5px; font-weight: bold; color: #0284c7; background: #f0f9ff; padding: 2px 6px; border-radius: 4px; border: 1px solid #bae6fd;">[Cubierto por Convenio]</span>};
-    } else {
+    # En recibos públicos los conceptos cubiertos por convenio no imprimen precio ni etiquetas
+    if (!$c->{cubierto_convenio} && defined $c->{precio_paciente} && $c->{precio_paciente} > 0 && $recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
         my $subtotal_fmt = formato_moneda($c->{subtotal});
         $precio_col_html = qq{<span style="font-size: 10px; font-weight: bold; color: #1e293b;">$subtotal_fmt</span>};
     }
@@ -693,19 +737,9 @@ if ($recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
                                     <span>@{[ formato_moneda($recibo->{total_abonos}) ]}</span>
                                 </div>
     };
-} else {
-    print qq{
-                                <div style="margin-bottom: 8px; font-size: 9.5px; font-weight: bold; color: #0369a1; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 4px; padding: 4px 6px; text-align: center;">
-                                    Servicio Amparado bajo Convenio Municipal de Salud
-                                </div>
-    };
 }
 
 print <<HTML;
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: #64748b;">
-                                    <span>Cargo a Convenio (CXC)</span>
-                                    <span style="font-weight: bold; color: #334155;">@{[ formato_moneda($recibo->{total_cargos}) ]}</span>
-                                </div>
                                 <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 10px;">
                                     <span style="font-size: 10px; text-align: right; white-space: nowrap; font-weight: normal; color: #64748b;">Elaboró : $elaborado_por</span>
                                 </div>

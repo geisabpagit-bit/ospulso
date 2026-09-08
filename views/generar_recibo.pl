@@ -323,6 +323,16 @@ print <<"HTML";
                                 </select>
                             </div>
                         </div>
+
+                        <!-- Tarifa de Consulta (Solo Paciente Privado) -->
+                        <div class="col-12" id="containerTarifaConsulta" style="display: none;">
+                            <div class="mb-3 diamond-input-armor rounded-3">
+                                <label class="small fw-bold text-muted mb-2 ps-1"><i class="bi bi-tag-fill text-success me-1"></i>Tarifa de Consulta (TIPO_TARIFA)</label>
+                                <select id="selTarifaConsulta" class="form-select py-2 fw-bold border-0 shadow-none bg-transparent" onchange="onTarifaConsultaChange()">
+                                    <option value="ESTANDAR">ESTÁNDAR (Público General / Base)</option>
+                                </select>
+                            </div>
+                        </div>
                         
                         <!-- Método de Pago -->
                         <div class="col-12">
@@ -433,11 +443,11 @@ print <<'JS';
             if (esEstado) {
                 return itemsDep.some(it => (it.precios || []).some(p => p.tipo_tarifa === 'MUNICIPIO' && parseFloat(p.precio_publico) > 0));
             } else {
-                return itemsDep.some(it => (it.precios || []).some(p => (p.tipo_tarifa === 'ESTANDAR' || p.tipo_tarifa === 'DIA' || p.tipo_tarifa === 'BASE') && parseFloat(p.precio_publico) > 0));
+                return itemsDep.some(it => (it.precios || []).some(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0) || (it.precios || []).some(p => parseFloat(p.precio_publico) > 0));
             }
         });
         
-        let html = '<option value="">-- Selecciona Departamento --</option>';
+        let html = '<option value="">-- Selecciona Departamento / Concepto --</option>';
         depsActivos.forEach(d => {
             let sel = (currentVal && String(currentVal) === String(d.id_dep)) || (!currentVal && String(d.id_dep) === '1') ? 'selected' : '';
             html += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
@@ -451,16 +461,19 @@ print <<'JS';
         const depId = selDep ? selDep.value : '';
         const contEspe = document.getElementById('containerEspecialidad');
         const contMed  = document.getElementById('containerMedico');
+        const contTarifa = document.getElementById('containerTarifaConsulta');
         const selMed   = document.getElementById('selMedico');
         
         if (String(depId) === '1') {
             if (contEspe) contEspe.style.display = '';
             if (contMed) contMed.style.display = '';
+            if (contTarifa && pacienteTipoActual !== 'estado') contTarifa.style.display = '';
             if (selMed) selMed.setAttribute('required', 'required');
             _poblarEspecialidades('1');
         } else {
             if (contEspe) contEspe.style.display = 'none';
             if (contMed) contMed.style.display = 'none';
+            if (contTarifa) contTarifa.style.display = 'none';
             if (selMed) {
                 selMed.removeAttribute('required');
                 selMed.value = '';
@@ -542,6 +555,8 @@ print <<'JS';
 
     function onMedicoItemChange() {
         const selMed = document.getElementById('selMedico');
+        const contTarifa = document.getElementById('containerTarifaConsulta');
+        const selTarifa = document.getElementById('selTarifaConsulta');
         if (!selMed) return;
         
         const opt = selMed.options[selMed.selectedIndex];
@@ -555,6 +570,32 @@ print <<'JS';
             let pEst = parseFloat(opt.getAttribute('data-precio-est')) || 0;
             let precioActivo = esEstado ? (pMun || pEst) : pEst;
             let conceptoStr = opt.getAttribute('data-concepto') || opt.text;
+            let tarifaSeleccionada = 'ESTANDAR';
+
+            // Poblar selector de tarifas para paciente privado en consultas
+            if (!esEstado && contTarifa && selTarifa && window.RAW_CATALOGO && window.RAW_CATALOGO.items) {
+                contTarifa.style.display = '';
+                const itObj = (window.RAW_CATALOGO.items || []).find(it => String(it.id_item) === String(itemId));
+                let preciosPrivados = (itObj && itObj.precios) ? itObj.precios.filter(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0) : [];
+                
+                if (preciosPrivados.length > 0) {
+                    let optHtml = '';
+                    preciosPrivados.forEach(p => {
+                        let labelTarifa = p.tipo_tarifa.replace(/_/g, ' ');
+                        optHtml += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}">${labelTarifa} (${formatCurrency(p.precio_publico)})</option>`;
+                    });
+                    selTarifa.innerHTML = optHtml;
+                    let primerOpt = selTarifa.options[0];
+                    if (primerOpt) {
+                        tarifaSeleccionada = primerOpt.value;
+                        precioActivo = parseFloat(primerOpt.getAttribute('data-precio')) || precioActivo;
+                    }
+                } else {
+                    selTarifa.innerHTML = `<option value="ESTANDAR" data-precio="${pEst}">ESTÁNDAR (${formatCurrency(pEst)})</option>`;
+                }
+            } else if (contTarifa) {
+                contTarifa.style.display = 'none';
+            }
             
             cartItems.unshift({
                 id: itemId,
@@ -564,10 +605,31 @@ print <<'JS';
                 precio_paciente: esEstado ? 0 : precioActivo,
                 cubierto_convenio: esEstado ? 1 : 0,
                 cantidad: 1,
+                tipo_tarifa: tarifaSeleccionada,
                 is_consulta_principal: true
             });
+        } else {
+            if (contTarifa) contTarifa.style.display = 'none';
         }
         renderCart();
+    }
+
+    function onTarifaConsultaChange() {
+        const selTarifa = document.getElementById('selTarifaConsulta');
+        if (!selTarifa) return;
+        const opt = selTarifa.options[selTarifa.selectedIndex];
+        if (!opt) return;
+
+        const nuevaTarifa = opt.value;
+        const nuevoPrecio = parseFloat(opt.getAttribute('data-precio')) || 0;
+
+        let consultaItem = cartItems.find(it => it.is_consulta_principal);
+        if (consultaItem) {
+            consultaItem.precio = nuevoPrecio;
+            consultaItem.precio_paciente = nuevoPrecio;
+            consultaItem.tipo_tarifa = nuevaTarifa;
+            renderCart();
+        }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
