@@ -1251,6 +1251,17 @@ print <<'JS';
             form.append('id_paciente', id_paciente);
             form.append('nombre_paciente_empleado', name_paciente);
             form.append('id_medico', id_medico);
+
+            let medNombreExacto = '';
+            if ($('#selMedico option:selected').length && $('#selMedico').val()) {
+                medNombreExacto = $('#selMedico option:selected').text();
+                if (medNombreExacto.includes(' - ')) {
+                    medNombreExacto = medNombreExacto.split(' - ')[1].trim();
+                }
+                medNombreExacto = medNombreExacto.replace(/\s*\(.*?\)\s*$/, '').trim();
+            }
+            form.append('nombre_medico', medNombreExacto);
+
             form.append('caja_items_json', JSON.stringify(cartItems));
             form.append('caja_metodo_pago', metodo);
             form.append('caja_monto_abono', totalCobroVentanilla);

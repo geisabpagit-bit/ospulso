@@ -6,6 +6,7 @@ use utf8;
 use CGI qw(-utf8);
 use File::Spec;
 use FindBin;
+use JSON qw(decode_json);
 use lib "$FindBin::Bin/..";
 
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
@@ -278,6 +279,29 @@ if ($id_medico && $id_medico ne 'N/D') {
         }
     }
     
+    # 2. Si no se encontró en medicos y $id_medico es ID_ITEM de catalogo_items_${clues}.dat
+    if (!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") {
+        my $it_file = $rutas->{items};
+        if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
+            while (my $li = <$fi>) {
+                chomp $li;
+                my @f = split /\|/, $li, -1;
+                if ($f[0] eq $id_medico) {
+                    my $conc = $f[3] // '';
+                    if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                        $especialidad_nombre = uc($1) unless $especialidad_nombre;
+                        my $cand = $2;
+                        $cand =~ s/\s*\(.*?\)//g;
+                        $medico_nombre = uc($cand);
+                    }
+                    last;
+                }
+            }
+            close $fi;
+        }
+    }
+    
+    # 3. Fallback a usuarios.dat
     if (!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") {
         my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
         if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
@@ -295,8 +319,33 @@ if ($id_medico && $id_medico ne 'N/D') {
     }
 }
 
+# 4. Extraer de los items del recibo si aún no está resuelto o si es puramente numérico
+if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && $recibo->{items_json}) {
+    eval {
+        require JSON;
+        my $items_arr = JSON::decode_json($recibo->{items_json});
+        if (ref($items_arr) eq 'ARRAY') {
+            foreach my $it (@$items_arr) {
+                my $conc = $it->{concepto} || '';
+                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                    $especialidad_nombre = uc($1) unless $especialidad_nombre;
+                    my $cand = $2;
+                    $cand =~ s/\s*\(.*?\)//g;
+                    $medico_nombre = uc($cand);
+                    last;
+                } elsif ($conc =~ /-\s*(DRA?\.?\s+[^-\(\)]+)/i) {
+                    my $cand = $1;
+                    $cand =~ s/\s*\(.*?\)//g;
+                    $medico_nombre = uc($cand);
+                    last;
+                }
+            }
+        }
+    };
+}
+
 my $medico_row_html = '';
-if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO') {
+if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /^\d+$/) {
     my $display_med = $medico_nombre;
     $display_med .= " - $especialidad_nombre" if $especialidad_nombre;
     $medico_row_html = qq{

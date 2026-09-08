@@ -439,41 +439,7 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         my $id_suc = $session_data->{id_sucursal} || 'SUC-000';
         
         my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_neg);
-        my $rutas_contadores = catalogo_org_utils::obtener_rutas_contadores($id_raiz);
-        my $contadores_file = $rutas_contadores->{privados};
-        unless (-e $contadores_file) {
-            open my $fh_c, '>:encoding(UTF-8)', $contadores_file;
-            print $fh_c "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n";
-            close $fh_c;
-        }
-        
-        my $next_folio = 1;
-        my @nuevas_cont;
-        my $encontrado = 0;
-        if (open my $fh_c, '<:encoding(UTF-8)', $contadores_file) {
-            my @lines = <$fh_c>;
-            close $fh_c;
-            my $cabecera = shift @lines;
-            chomp $cabecera if defined $cabecera;
-            
-            foreach my $l (@lines) {
-                chomp $l;
-                my @c = split /\|/, $l, -1;
-                if ($c[0] eq $id_neg && $c[1] eq $id_suc) {
-                    $next_folio = ($c[2] || 0) + 1;
-                    $c[2] = $next_folio;
-                    $encontrado = 1;
-                    $l = join('|', @c);
-                }
-                push @nuevas_cont, $l;
-            }
-            if (!$encontrado) {
-                push @nuevas_cont, "$id_neg|$id_suc|1";
-                $next_folio = 1;
-            }
-            utils::db_manager::actualizar_archivo($contadores_file, $cabecera, \@nuevas_cont);
-        }
-        
+        my $next_folio = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 0, $id_neg, $id_suc);
         my $folio_str = $next_folio;
         my $id_recibo = "RC-" . time() . "-" . int(rand(1000));
         my $elaborado_por = $session_data->{usuario} || $id_medico;

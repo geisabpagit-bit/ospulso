@@ -17,7 +17,28 @@ our @EXPORT_OK = qw(
     catalogo_org_existe
     get_catalogo_universal
     obtener_rutas_contadores
+    obtener_siguiente_folio_blindado
 );
+
+# ─────────────────────────────────────────────────────────────
+# _resolver_dat_dir()
+# Determina la ruta absoluta del directorio /dat de forma inmune
+# al punto de invocación del proceso.
+# ─────────────────────────────────────────────────────────────
+sub _resolver_dat_dir {
+    my $d1 = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+    return $d1 if -d $d1;
+
+    my ($vol, $dirs, $f) = File::Spec->splitpath(__FILE__);
+    my $this_dir = File::Spec->catpath($vol, $dirs, '');
+    my $d2 = File::Spec->catdir($this_dir, '..', 'dat');
+    return $d2 if -d $d2;
+
+    my $d3 = File::Spec->catdir($FindBin::Bin, 'dat');
+    return $d3 if -d $d3;
+
+    return 'c:/xampp/htdocs/ospulso/dat';
+}
 
 # ─────────────────────────────────────────────────────────────
 # resolver_id_raiz_catalogo($id_empresa)
@@ -28,7 +49,8 @@ sub resolver_id_raiz_catalogo {
     my ($id_empresa) = @_;
     return 0 unless $id_empresa;
 
-    my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+    my $dat = _resolver_dat_dir();
+    my $negocios_file = File::Spec->catfile($dat, 'negocios.dat');
     return $id_empresa unless -e $negocios_file;
 
     open(my $fh, '<:encoding(UTF-8)', $negocios_file) or return $id_empresa;
@@ -62,7 +84,7 @@ sub resolver_id_raiz_catalogo {
 # ─────────────────────────────────────────────────────────────
 sub obtener_rutas_por_clue {
     my ($clues) = @_;
-    my $dat = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+    my $dat = _resolver_dat_dir();
     my $clue_dir = File::Spec->catdir($dat, 'catalogos_CLUE', $clues);
     return {
         is_universal => 1,
@@ -88,7 +110,7 @@ sub obtener_rutas_por_clue {
 # ─────────────────────────────────────────────────────────────
 sub obtener_rutas_catalogo {
     my ($id_raiz) = @_;
-    my $dat = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+    my $dat = _resolver_dat_dir();
     
     # Resolver CLUE
     my $clues = '';
@@ -134,7 +156,7 @@ sub obtener_rutas_catalogo {
 # ─────────────────────────────────────────────────────────────
 sub obtener_rutas_contadores {
     my ($id_raiz) = @_;
-    my $dat = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+    my $dat = _resolver_dat_dir();
     
     # Resolver CLUE
     my $clues = '';
@@ -284,7 +306,7 @@ sub crear_catalogo_org_desde_global {
     return { ok => 0, error => 'ID raiz invalido' } unless $id_raiz;
 
     my $rutas       = obtener_rutas_catalogo($id_raiz);
-    my $dat_path    = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+    my $dat_path    = _resolver_dat_dir();
     my $serv_global = File::Spec->catfile($dat_path, 'servicios.dat');
     my $prod_global = File::Spec->catfile($dat_path, 'productos.dat');
 
@@ -329,13 +351,13 @@ sub crear_catalogo_org_desde_global {
             # ── Catalogo Items ────────────────────────────────────
             unless (-e $rutas->{items}) {
                 open(my $fh_out, '>:encoding(UTF-8)', $rutas->{items}) or die "Error: $!";
-                print $fh_out "ID_ITEM|ID_CAT|CODIGO_SKU|CONCEPTO|APLICA_IVA\n1|1|CG001|Consulta Medica General|0\n";
+                print $fh_out "ID_ITEM|CODIGO_SKU|ID_CAT|CONCEPTO|APLICA_IVA|INDICACIONES|TIEMPO_ENTREGA\n1|CONS-0001|1|Consulta Medica General|0|Sin preparación previa|Inmediato\n";
                 close $fh_out;
             }
             # ── Catalogo Precios ──────────────────────────────────
             unless (-e $rutas->{precios}) {
                 open(my $fh_out, '>:encoding(UTF-8)', $rutas->{precios}) or die "Error: $!";
-                print $fh_out "ID_PRECIO|ID_ITEM|ID_PROV|TIPO_TARIFA|COSTO_BASE|PRECIO_PUBLICO|HONORARIO_FIJO|HONORARIO_PORCENTAJE\n1|1|1|DIA|100.00|500.00|150.00|0\n";
+                print $fh_out "ID_PRECIO|ID_ITEM|ID_PROV|TIPO_TARIFA|COSTO_BASE|PRECIO_PUBLICO|HONORARIO_FIJO|HONORARIO_PORCENTAJE\n1|1|1|ESTANDAR|100.00|500.00|150.00|0\n";
                 close $fh_out;
             }
         } else {
@@ -383,6 +405,110 @@ sub crear_catalogo_org_desde_global {
     }
 
     return { ok => 1 };
+}
+
+# ─────────────────────────────────────────────────────────────
+# obtener_siguiente_folio_blindado($id_raiz, $is_publico, $id_neg, $id_suc)
+# Genera de forma atómica y blindada el siguiente folio consecutivo:
+# 1. Lee el LAST_FOLIO registrado en el archivo de contadores de la org.
+# 2. Inspecciona folios_recibos_*.dat para encontrar el folio máximo existente.
+# 3. Toma max(contador, max_folio_dat) para jamás retroceder ni duplicar.
+# 4. Incrementa en 1, actualiza contadores_recibos_*.dat y devuelve el folio.
+# ─────────────────────────────────────────────────────────────
+sub obtener_siguiente_folio_blindado {
+    my ($id_raiz, $is_publico, $id_neg, $id_suc) = @_;
+    $id_neg = '0' unless defined $id_neg && length($id_neg);
+    $id_suc = '0' unless defined $id_suc && length($id_suc);
+
+    my $rutas_cont = obtener_rutas_contadores($id_raiz);
+    my $contadores_file = $is_publico ? $rutas_cont->{publicos} : $rutas_cont->{privados};
+
+    # Asegurar que exista el directorio padre
+    my ($vol, $dirs, $f) = File::Spec->splitpath($contadores_file);
+    my $parent_dir = File::Spec->catpath($vol, $dirs, '');
+    if ($parent_dir && !-d $parent_dir) {
+        mkdir $parent_dir;
+    }
+
+    # 1. Asegurar existencia de archivo contador
+    unless (-e $contadores_file) {
+        if (open my $fh_init, '>:encoding(UTF-8)', $contadores_file) {
+            flock($fh_init, LOCK_EX);
+            print $fh_init "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n";
+            close $fh_init;
+        }
+    }
+
+    # 2. Obtener el máximo folio numérico ya guardado en folios_recibos_*.dat
+    my $dat_dir = _resolver_dat_dir();
+    my $folios_file = File::Spec->catfile($dat_dir, $is_publico ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat');
+    my $max_guardado_dat = 0;
+
+    if (-e $folios_file && open(my $fh_dat, '<:encoding(UTF-8)', $folios_file)) {
+        <$fh_dat>; # Saltar cabecera
+        while (my $line = <$fh_dat>) {
+            chomp $line;
+            next if $line =~ /^\s*$/;
+            my @cols = split(/\|/, $line, -1);
+            # Columna 1: FOLIO, Columna 2: ID_NEGOCIO, Columna 3: ID_SUCURSAL
+            my $f_num = $cols[1] || 0;
+            my $f_neg = $cols[2] // '';
+            my $f_suc = $cols[3] // '';
+
+            if (($f_neg eq $id_neg || $id_neg eq '0') && ($f_suc eq $id_suc || $id_suc eq '0')) {
+                if ($f_num =~ /^(\d+)$/) {
+                    $max_guardado_dat = $1 if $1 > $max_guardado_dat;
+                }
+            }
+        }
+        close $fh_dat;
+    }
+
+    # 3. Leer y bloquear contador para calcular y escribir el siguiente folio
+    my $next_folio = 1;
+    my @nuevas_lineas;
+    my $encontrado = 0;
+
+    if (open my $fh_c, '+<:encoding(UTF-8)', $contadores_file) {
+        flock($fh_c, LOCK_EX);
+        my @lineas = <$fh_c>;
+        my $cabecera = shift @lineas;
+        chomp $cabecera if defined $cabecera;
+        $cabecera ||= "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO";
+
+        foreach my $l (@lineas) {
+            chomp $l;
+            next if $l =~ /^\s*$/;
+            my @c = split /\|/, $l, -1;
+            if ($c[0] eq $id_neg && $c[1] eq $id_suc) {
+                my $curr_val = int($c[2] || 0);
+                my $base = ($curr_val > $max_guardado_dat) ? $curr_val : $max_guardado_dat;
+                $next_folio = $base + 1;
+                $c[2] = $next_folio;
+                $l = join('|', @c);
+                $encontrado = 1;
+            }
+            push @nuevas_lineas, $l;
+        }
+
+        if (!$encontrado) {
+            my $base = $max_guardado_dat;
+            $next_folio = $base + 1;
+            push @nuevas_lineas, join('|', $id_neg, $id_suc, $next_folio);
+        }
+
+        seek($fh_c, 0, 0);
+        truncate($fh_c, 0);
+        print $fh_c "$cabecera\n";
+        foreach my $nl (@nuevas_lineas) {
+            print $fh_c "$nl\n";
+        }
+        close $fh_c;
+    } else {
+        $next_folio = $max_guardado_dat + 1;
+    }
+
+    return $next_folio;
 }
 
 1;

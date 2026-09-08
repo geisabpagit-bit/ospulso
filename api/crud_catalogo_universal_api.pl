@@ -4,6 +4,7 @@ use warnings;
 use utf8;
 use CGI;
 use JSON;
+use Encode qw(decode_utf8 is_utf8);
 use FindBin;
 use File::Spec;
 use lib File::Spec->catdir($FindBin::Bin, '..', 'utils');
@@ -49,6 +50,7 @@ my $action = $cgi->param('action') || '';
 sub sanitizar_campo {
     my ($val) = @_;
     return '' unless defined $val;
+    eval { $val = decode_utf8($val) unless is_utf8($val); };
     $val =~ s/\|//g;
     $val =~ s/[\r\n]+/ /g;
     $val =~ s/^\s+|\s+$//g;

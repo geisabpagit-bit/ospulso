@@ -115,6 +115,22 @@ if (-e $usuarios_file) {
 }
 $map_medicos{'rec'} = 'Recepción' unless $map_medicos{'rec'};
 
+# Cargar también conceptos de catálogo universal (items de consulta médica)
+my $cat_items_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{items};
+if ($org_clues && -e $cat_items_file && open(my $fci, '<:encoding(UTF-8)', $cat_items_file)) {
+    while (my $lci = <$fci>) {
+        chomp $lci;
+        my @fc = split /\|/, $lci, -1;
+        if (@fc >= 4 && $fc[3] =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+            my $cand = $2;
+            $cand =~ s/\s*\(.*?\)//g;
+            $cand =~ s/^\s+|\s+$//g;
+            $map_medicos{$fc[0]} = uc($cand) unless exists $map_medicos{$fc[0]};
+        }
+    }
+    close $fci;
+}
+
 my @data = ();
 if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
     my $header = <$fh>;
@@ -167,7 +183,31 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
         
         # El ID del médico (si se guardó) viene en $r[15], de lo contrario fallback a elaborado_por
         my $id_medico_saved = $r[15] || $elaborado_por;
-        my $medico = $map_medicos{$id_medico_saved} || $id_medico_saved || "Médico Tratante";
+        my $medico = $map_medicos{$id_medico_saved} || '';
+
+        # Si aún es numérico o vacío, intentar extraer de ITEMS_JSON
+        if ((!$medico || $medico =~ /^\d+$/) && $r[13]) {
+            eval {
+                my $items_list = JSON::decode_json($r[13]);
+                if (ref($items_list) eq 'ARRAY') {
+                    foreach my $it (@$items_list) {
+                        my $conc = $it->{concepto} || '';
+                        if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                            my $c = $2;
+                            $c =~ s/\s*\(.*?\)//g;
+                            $medico = uc($c);
+                            last;
+                        } elsif ($conc =~ /-\s*(DRA?\.?\s+[^-\(\)]+)/i) {
+                            my $c = $1;
+                            $c =~ s/\s*\(.*?\)//g;
+                            $medico = uc($c);
+                            last;
+                        }
+                    }
+                }
+            };
+        }
+        $medico = $map_medicos{$elaborado_por} || "Médico Tratante" if (!$medico || $medico =~ /^\d+$/);
         my $detalle = "Caja";
         
         my $folio_mostrar = $folio_absoluto;

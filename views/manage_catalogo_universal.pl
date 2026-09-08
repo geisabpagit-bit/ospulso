@@ -355,12 +355,14 @@ foreach my $dep (@deps_ordenados) {
 
 my $deps_json = encode_json(\@deps_ordenados);
 my $cats_json = encode_json(\@cats_ordenadas);
+my $items_min_json = encode_json([ map { { id_item => $_->{id_item}, codigo_sku => ($_->{codigo_sku} // ''), id_cat => ($_->{id_cat} // '') } } @{$cat_univ->{items} || []} ]);
 
 print <<HTML;
 <div id="config-catalogo" style="display:none;" data-cats="$cats_options" data-deps="$deps_options"></div>
 <script>
     window.CATALOGO_DEPS = $deps_json;
     window.CATALOGO_CATS = $cats_json;
+    window.CATALOGO_ITEMS = $items_min_json;
 </script>
 HTML
 
@@ -525,37 +527,172 @@ print <<'JS';
                 document.getElementById('mainCard').classList.remove('d-none');
             }
 
-            function generarNomenclaturaSku() {
+            function generarNomenclaturaSku(force = false) {
                 const idInput = document.querySelector('#crudForm input[name="id_item"]');
-                if (idInput && idInput.value) return; // En edición, conservar SKU existente
+                const isEdicion = idInput && idInput.value;
+                if (!force && isEdicion) return; // En edición, conservar SKU existente salvo clic explícito en varita mágica
 
                 const selDep = document.getElementById('sel_dep_servicio');
                 const selCat = document.getElementById('sel_cat');
                 const skuInput = document.getElementById('input_sku');
                 if (!selDep || !selCat || !skuInput) return;
 
+                const items = window.CATALOGO_ITEMS || [];
+                const valorActual = (skuInput.value || '').trim().toUpperCase();
+
+                // Si se activa por varita mágica ("force") y ya hay un valor o prefijo escrito en el input
+                if (force && valorActual) {
+                    const matchInput = valorActual.match(/^([A-Z0-9]+)[-_]?(\d*)$/);
+                    if (matchInput) {
+                        const prefijoBuscado = matchInput[1] + '-';
+                        let maxNum = 0;
+                        let digitosMin = matchInput[2] ? matchInput[2].length : 2;
+                        if (digitosMin < 2) digitosMin = 2;
+
+                        items.forEach(it => {
+                            const s = (it.codigo_sku || '').toUpperCase();
+                            if (s.startsWith(prefijoBuscado)) {
+                                const suf = s.substring(prefijoBuscado.length);
+                                const m = suf.match(/^(\d+)/);
+                                if (m) {
+                                    const n = parseInt(m[1], 10);
+                                    if (n > maxNum) {
+                                        maxNum = n;
+                                        if (m[1].length > digitosMin) digitosMin = m[1].length;
+                                    }
+                                }
+                            }
+                        });
+
+                        const sigConsecutivo = maxNum + 1;
+                        const skuConfirmado = `${prefijoBuscado}${String(sigConsecutivo).padStart(digitosMin, '0')}`;
+                        skuInput.value = skuConfirmado;
+
+                        skuInput.focus();
+                        skuInput.classList.add('border-primary');
+                        setTimeout(() => skuInput.classList.remove('border-primary'), 1500);
+                        const toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2200
+                        });
+                        toast.fire({
+                            icon: 'success',
+                            title: `SKU confirmado: ${skuConfirmado}`
+                        });
+                        return;
+                    }
+                }
+
+                // Obtener textos y valores de Departamento y Categoría
+                const depId = selDep.value || '';
+                const catId = selCat.value || '';
                 const depText = selDep.options[selDep.selectedIndex] ? selDep.options[selDep.selectedIndex].text : '';
                 const catText = selCat.options[selCat.selectedIndex] ? selCat.options[selCat.selectedIndex].text : '';
 
-                if (!depText || depText.includes('--') || !catText || catText.includes('--')) return;
+                if (!depText || depText.includes('--') || !catText || catText.includes('--')) {
+                    if (force) {
+                        Swal.fire('Atención', 'Selecciona primero el Departamento y la Categoría para calcular o confirmar el SKU.', 'info');
+                    }
+                    return;
+                }
 
                 const depClean = depText.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
                 const catClean = catText.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                if (depClean.length < 3 || catClean.length < 1) return;
 
-                if (depClean.length >= 3 && catClean.length >= 1) {
-                    const dep3 = depClean.substring(0, 3);
-                    const cat1 = catClean.substring(0, 1);
-                    skuInput.value = `${dep3}${cat1}-00`;
+                const dep3 = depClean.substring(0, 3);
+                const cat1 = catClean.substring(0, 1);
+                const prefijoNomenclatura = `${dep3}${cat1}-`;
+
+                let nuevoSku = '';
+
+                // 1. Verificar si existen ítems en la categoría seleccionada (continuidad de origen)
+                const itemsEnCat = items.filter(it => String(it.id_cat) === String(catId));
+                let prefijoOrigenCat = '';
+                let maxNumCat = 0;
+                let digitosMinCat = 2;
+
+                if (itemsEnCat.length > 0) {
+                    // Tomar el último registro guardado en esta categoría
+                    const ultimoItemCat = itemsEnCat[itemsEnCat.length - 1];
+                    const skuUltimo = (ultimoItemCat.codigo_sku || '').toUpperCase();
+                    const mUlt = skuUltimo.match(/^([A-Z0-9]+)[-_]?(\d+)$/);
+                    if (mUlt) {
+                        prefijoOrigenCat = mUlt[1] + '-';
+                        digitosMinCat = mUlt[2].length;
+                        
+                        // Buscar el máximo con ese prefijo de origen en la categoría o global
+                        items.forEach(it => {
+                            const s = (it.codigo_sku || '').toUpperCase();
+                            if (s.startsWith(prefijoOrigenCat)) {
+                                const suf = s.substring(prefijoOrigenCat.length);
+                                const m = suf.match(/^(\d+)/);
+                                if (m) {
+                                    const n = parseInt(m[1], 10);
+                                    if (n > maxNumCat) {
+                                        maxNumCat = n;
+                                        if (m[1].length > digitosMinCat) digitosMinCat = m[1].length;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // 2. Si la categoría ya tenía un prefijo de origen (ej: CONS-0752), conservar su continuidad
+                if (prefijoOrigenCat && maxNumCat > 0) {
+                    const sigNum = maxNumCat + 1;
+                    nuevoSku = `${prefijoOrigenCat}${String(sigNum).padStart(digitosMinCat, '0')}`;
+                } else {
+                    // 3. Si es una categoría nueva o sin ítems previos, usar prefijo departamental-categoría (${dep3}${cat1}-)
+                    let maxNumComp = 0;
+                    let digitosComp = 2;
+                    items.forEach(it => {
+                        const s = (it.codigo_sku || '').toUpperCase();
+                        if (s.startsWith(prefijoNomenclatura)) {
+                            const suf = s.substring(prefijoNomenclatura.length);
+                            const m = suf.match(/^(\d+)/);
+                            if (m) {
+                                const n = parseInt(m[1], 10);
+                                if (n > maxNumComp) {
+                                    maxNumComp = n;
+                                    if (m[1].length > digitosComp) digitosComp = m[1].length;
+                                }
+                            }
+                        }
+                    });
+                    const sigNum = maxNumComp + 1;
+                    nuevoSku = `${prefijoNomenclatura}${String(sigNum).padStart(digitosComp, '0')}`;
+                }
+
+                skuInput.value = nuevoSku;
+
+                if (force) {
+                    skuInput.focus();
+                    skuInput.classList.add('border-primary');
+                    setTimeout(() => skuInput.classList.remove('border-primary'), 1500);
+                    const toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2200
+                    });
+                    toast.fire({
+                        icon: 'success',
+                        title: `SKU calculado: ${nuevoSku}`
+                    });
                 }
             }
 
             function onServicioDepChange(depId) {
                 filtrarCategoriasPorDep(depId, 'sel_cat');
-                generarNomenclaturaSku();
+                generarNomenclaturaSku(false);
             }
 
             function onServicioCatChange(catId) {
-                generarNomenclaturaSku();
+                generarNomenclaturaSku(false);
             }
 
             const TIPOS_TARIFAS_DISPONIBLES = [
@@ -840,7 +977,7 @@ print <<'JS';
                                 <label class="form-label fw-bold small text-muted mb-1"><i class="bi bi-upc-scan me-1"></i>Código SKU</label>
                                 <div class="input-group input-group-sm">
                                     <input type="text" class="form-control form-control-sm text-uppercase font-monospace fw-bold" name="codigo_sku" id="input_sku" value="${escapeHtml(s.codigo_sku)}" oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;" placeholder="Ej: CON-MG-0001" required>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="generarNomenclaturaSku()" title="Autogenerar SKU"><i class="bi bi-magic"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="generarNomenclaturaSku(true)" title="Autogenerar / Confirmar SKU consecutivo"><i class="bi bi-magic text-primary"></i></button>
                                 </div>
                             </div>
                         </div>

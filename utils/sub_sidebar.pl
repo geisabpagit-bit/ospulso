@@ -333,6 +333,7 @@ HTML
             'productos'   => { file => 'manage_productos.pl', icon => 'bi-box-seam-fill', title => 'Gesti&oacute;n de Productos' },
             'tecnico'     => { file => 'administracion_catalogo.pl', icon => 'bi-tools', title => 'Cat&aacute;logos y Mantenimiento' },
             'gestion_catalogos' => { file => 'gestion_catalogos.pl', icon => 'bi-database-gear', title => 'Gesti&oacute;n de Cat&aacute;logos' },
+            'reset_datos_org'   => { file => 'admin_organizacion_reset.pl', icon => 'bi-arrow-counterclockwise text-danger', title => 'Reset Operativo Org' },
             'sync_google' => { file => '#', icon => 'bi-google', title => 'Sincronizaci&oacute;n Google', onclick => "iniciarVinculacionGoogle('$id_medico'); return false;" }
         );
 
@@ -365,10 +366,17 @@ HTML
             $is_allowed{'gestion_catalogos'} = 0;
         }
         
+        # Allow reset_datos_org for Administrador Organizacion & Global
+        if ($role eq 'Administrador Organizacion' || $role eq 'Administrador Global') {
+            $is_allowed{'reset_datos_org'} = 1;
+        } else {
+            $is_allowed{'reset_datos_org'} = 0;
+        }
+
         # Allow usuarios_online for all admins
         $is_allowed{'usuarios_online'} = 1;
         
-        foreach my $k ('clinicas', 'usuarios', 'usuarios_online', 'servicios', 'productos', 'tecnico', 'gestion_catalogos', 'sync_google') {
+        foreach my $k ('clinicas', 'usuarios', 'usuarios_online', 'servicios', 'productos', 'tecnico', 'gestion_catalogos', 'reset_datos_org', 'sync_google') {
             if ($is_allowed{$k}) {
                 my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
                 my $cfg = $admin_mod_names{$k};

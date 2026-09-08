@@ -29,6 +29,7 @@ my $id_paciente = $q->param('id_paciente') || '';
 my $nombre_empleado = $q->param('nombre_paciente_empleado') || '';
 $nombre_empleado =~ s/.*Paciente:\s*//i; # Limpiar el texto arrastrado del select2
 my $id_medico = $q->param('id_medico') || '';
+my $nombre_medico_in = $q->param('nombre_medico') || '';
 my $caja_items_json = $q->param('caja_items_json') || '[]';
 my $caja_metodo_pago = $q->param('caja_metodo_pago') // 'Efectivo';
 my $caja_monto_abono = $q->param('caja_monto_abono') || 0;
@@ -36,6 +37,7 @@ my $concepto_recibo = $q->param('caja_concepto') // '';
 
 $id_paciente =~ s/^\s+|\s+$//g;
 $id_medico =~ s/^\s+|\s+$//g;
+$nombre_medico_in =~ s/^\s+|\s+$//g;
 
 if (!$id_paciente) {
     print encode_json({ ok => JSON::false, msg => 'Falta seleccionar el paciente.' });
@@ -107,42 +109,10 @@ if (!$has_portal_paciente && $id_paciente eq $nombre_empleado && $id_paciente !~
     $id_paciente = $new_id;
 }
 
-# 1. Generar Folio Consecutivo
+# 1. Generar Folio Consecutivo Blindado
 my $is_estado = ($id_paciente =~ /^EMP-/) ? 1 : 0;
 my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_neg);
-my $rutas_contadores = catalogo_org_utils::obtener_rutas_contadores($id_raiz);
-my $contadores_file = $is_estado ? $rutas_contadores->{publicos} : $rutas_contadores->{privados};
-unless (-e $contadores_file) {
-    open my $fh_c, '>:encoding(UTF-8)', $contadores_file;
-    print $fh_c "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n";
-    close $fh_c;
-}
-
-my $next_folio = 1;
-my @nuevas_cont;
-my $encontrado = 0;
-if (open my $fh_c, '<:encoding(UTF-8)', $contadores_file) {
-    my @lines_c = <$fh_c>;
-    close $fh_c;
-    my $cab = shift @lines_c;
-    chomp $cab if defined $cab;
-    foreach my $lc (@lines_c) {
-        chomp $lc;
-        my @cc = split /\|/, $lc, -1;
-        if ($cc[0] eq $id_neg && $cc[1] eq $id_suc) {
-            $next_folio = ($cc[2] || 0) + 1;
-            $cc[2] = $next_folio;
-            $lc = join('|', @cc);
-            $encontrado = 1;
-        }
-        push @nuevas_cont, $lc;
-    }
-    if (!$encontrado) {
-        push @nuevas_cont, join('|', $id_neg, $id_suc, $next_folio);
-    }
-    utils::db_manager::actualizar_archivo($contadores_file, $cab, \@nuevas_cont);
-}
-
+my $next_folio = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, $is_estado, $id_neg, $id_suc);
 my $folio_impreso = $next_folio;
 my $folios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', $is_estado ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat');
 unless (-s $folios_file) {
@@ -287,44 +257,52 @@ foreach my $it (@$caja_items) {
 my $total_cargos_final = ($total_cargos_calculado > 0) ? $total_cargos_calculado : ($caja_monto_abono || 0);
 my $total_abonos_final = $is_estado ? ($caja_monto_abono || 0) : ($caja_monto_abono || $total_cargos_final);
 
-# Resolver ID de médico legacy si $id_medico viene como id_item
+# Resolver ID de médico asegurando exactitud
 my $id_medico_guardar = $id_medico;
 if ($org_clues && $id_medico) {
     my $cat_items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $org_clues, "catalogo_items_${org_clues}.dat");
     my $med_file       = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $org_clues, "medicos_${org_clues}.dat");
-    if (-e $cat_items_file && -e $med_file) {
-        my $concepto_med = '';
-        if (open(my $fi, '<:utf8', $cat_items_file)) {
-            while (my $li = <$fi>) {
-                chomp $li;
-                my @f = split(/\|/, $li, -1);
-                if ($f[0] eq $id_medico) {
-                    $concepto_med = uc($f[3] || '');
-                    last;
-                }
-            }
-            close($fi);
-        }
-        if ($concepto_med) {
-            if (open(my $fm, '<:utf8', $med_file)) {
-                while (my $lm = <$fm>) {
-                    chomp $lm;
-                    my @f = split(/\|/, $lm, -1);
-                    my $nom = uc($f[2] || $f[1] || '');
-                    next unless $nom;
-                    my @tokens = grep { length($_) > 3 && $_ !~ /^(DRA?|LIC|ING|MTRO)$/i } split(/\s+/, $nom);
-                    my $hits = 0;
-                    foreach my $tk (@tokens) {
-                        $hits++ if $concepto_med =~ /\Q$tk\E/;
-                    }
-                    if ($hits >= 2) {
-                        $id_medico_guardar = $f[0];
-                        last;
-                    }
-                }
-                close($fm);
+    
+    my $concepto_med = '';
+    if (-e $cat_items_file && open(my $fi, '<:encoding(UTF-8)', $cat_items_file)) {
+        while (my $li = <$fi>) {
+            chomp $li;
+            my @f = split(/\|/, $li, -1);
+            if ($f[0] eq $id_medico) {
+                $concepto_med = uc($f[3] || '');
+                last;
             }
         }
+        close($fi);
+    }
+    
+    my $med_candidato = $nombre_medico_in;
+    if (!$med_candidato && $concepto_med =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+        my $cand = $2;
+        $cand =~ s/\s*\(.*?\)//g;
+        $cand =~ s/^\s+|\s+$//g;
+        $med_candidato = uc($cand);
+    }
+
+    # Si encontramos un médico en medicos_${org_clues}.dat con coincidencia exacta de nombre
+    if ($med_candidato && -e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
+        while (my $lm = <$fm>) {
+            chomp $lm;
+            my @f = split(/\|/, $lm, -1);
+            my $nom_m = uc($f[2] || $f[1] || '');
+            next unless $nom_m;
+            # Normalizar prefijos médicos
+            my $nom_clean = $nom_m;
+            $nom_clean =~ s/^(DRA?|LIC|ING|MTRO)\.?\s*//i;
+            my $cand_clean = $med_candidato;
+            $cand_clean =~ s/^(DRA?|LIC|ING|MTRO)\.?\s*//i;
+            
+            if ($nom_clean eq $cand_clean || $nom_m eq $med_candidato) {
+                $id_medico_guardar = $f[0];
+                last;
+            }
+        }
+        close($fm);
     }
 }
 $id_medico = $id_medico_guardar;
