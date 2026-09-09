@@ -470,22 +470,27 @@ if ($id_medico) {
 if ($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) {
     foreach my $c (@cargos) {
         my $conc = $c->{concepto} || '';
-        if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+        if ($c->{medico} || $c->{nombre_medico}) {
+            $medico_nombre = uc($c->{medico} || $c->{nombre_medico});
+            last;
+        } elsif ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
             $especialidad_nombre = uc($1) unless $especialidad_nombre;
             my $cand = $2;
             $cand =~ s/\s*\(.*?\)//g;
+            $cand =~ s/^\s+|\s+$//g;
             $medico_nombre = uc($cand);
             last;
         } elsif ($conc =~ /-\s*(DRA?\.?\s+[^-\(\)]+)/i) {
             my $cand = $1;
             $cand =~ s/\s*\(.*?\)//g;
+            $cand =~ s/^\s+|\s+$//g;
             $medico_nombre = uc($cand);
             last;
         }
     }
 }
 
-# 4.1 Si aún no está resuelto, buscar si algún cargo es directamente un nombre de médico
+# 4.1 Si aún no está resuelto, buscar si algún cargo es directamente un nombre de médico en medicos.dat
 if (($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && $rutas->{medicos} && -e $rutas->{medicos} && open(my $fmc, '<:encoding(UTF-8)', $rutas->{medicos})) {
     my %nombres_meds;
     while (my $lm = <$fmc>) {
@@ -513,6 +518,55 @@ if (($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && $rutas
             last;
         }
     }
+}
+
+# 4.2 Si el concepto del recibo es CONSULTAS y aún no está resuelto:
+# El concepto del cargo contiene el nombre del médico (ej: "RAMIRO LOPEZ CARRILLO")
+if (($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && ($recibo->{concepto} && $recibo->{concepto} =~ /CONSULTA/i)) {
+    foreach my $c (@cargos) {
+        my $conc = $c->{concepto} || '';
+        if ($conc && $conc !~ /^(?:ARETES|APLICACI|PROCEDIMIENTO|CIRUG|CURACI|SUTURA|INYECCI|SUERO|NEBULIZ)/i) {
+            if ($conc =~ /-\s*(.+)$/) {
+                my $cand = $1;
+                $cand =~ s/\s*\(.*?\)//g;
+                $cand =~ s/^\s+|\s+$//g;
+                $medico_nombre = uc($cand);
+            } else {
+                $medico_nombre = uc($conc);
+            }
+            $c->{es_medico_directo} = 1;
+            last if $medico_nombre ne "NO ESPECIFICADO";
+        }
+    }
+}
+
+# 4.3 Resolver especialidad si aún está vacía
+if (!$especialidad_nombre || $especialidad_nombre eq '') {
+    my $id_target_cat = '';
+    if ($recibo->{id_medico} && $recibo->{id_medico} =~ /^\d+$/ && $rutas->{items} && -e $rutas->{items} && open(my $fit, '<:encoding(UTF-8)', $rutas->{items})) {
+        while (my $lit = <$fit>) {
+            chomp $lit;
+            my @f = split(/\|/, $lit, -1);
+            if ($f[0] eq $recibo->{id_medico}) {
+                $id_target_cat = $f[2] // '';
+                last;
+            }
+        }
+        close($fit);
+    }
+    
+    if ($id_target_cat && $rutas->{categorias} && -e $rutas->{categorias} && open(my $fcat, '<:encoding(UTF-8)', $rutas->{categorias})) {
+        while (my $lcat = <$fcat>) {
+            chomp $lcat;
+            my @fc = split(/\|/, $lcat, -1);
+            if ($fc[0] eq $id_target_cat) {
+                $especialidad_nombre = uc($fc[2] // '');
+                last;
+            }
+        }
+        close($fcat);
+    }
+    $especialidad_nombre ||= 'MEDICINA GENERAL';
 }
 
 sub formato_moneda {
@@ -685,9 +739,21 @@ foreach my $c (@cargos) {
     next if $seen{$c->{concepto}}++;
     my $concepto_txt = $c->{concepto};
 
-    # Si el concepto era únicamente el nombre del médico, sustituir por el concepto/departamento del recibo
-    if ($c->{es_medico_directo} || ($medico_nombre ne "NO ESPECIFICADO" && uc($concepto_txt) eq uc($medico_nombre))) {
-        $concepto_txt = ($recibo->{concepto} && $recibo->{concepto} !~ /^(?:Servicios|)$/i) ? uc($recibo->{concepto}) : "CONSULTA";
+    # Si en la caja rápida el campo de Concepto del Recibo (Departamento) es "CONSULTAS":
+    if ($recibo->{concepto} && $recibo->{concepto} =~ /CONSULTA/i) {
+        if ($c->{es_medico_directo} || $concepto_txt =~ /CONSULTA/i || ($medico_nombre ne "NO ESPECIFICADO" && uc($concepto_txt) eq uc($medico_nombre))) {
+            my $esp = $c->{especialidad} || $especialidad_nombre || 'MEDICINA GENERAL';
+            $esp =~ s/^CONSULTA\s*(?:-\s*)?//i;
+            $esp =~ s/\s*-\s*.*$//;
+            $esp = uc($esp);
+            $concepto_txt = "Consulta - $esp";
+        }
+    } elsif ($c->{es_medico_directo} || ($medico_nombre ne "NO ESPECIFICADO" && uc($concepto_txt) eq uc($medico_nombre))) {
+        my $esp = $c->{especialidad} || $especialidad_nombre || 'MEDICINA GENERAL';
+        $esp =~ s/^CONSULTA\s*(?:-\s*)?//i;
+        $esp =~ s/\s*-\s*.*$//;
+        $esp = uc($esp);
+        $concepto_txt = "Consulta - $esp";
     } elsif ($concepto_txt =~ /CONSULTA/i) {
         $concepto_txt =~ s/\s*-\s*(?:DRA?|LIC|ING|MTRO|MEDICO)?\.?\s*.+$//i;
     }

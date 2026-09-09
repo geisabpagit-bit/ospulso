@@ -576,6 +576,20 @@ print <<'JS';
             let conceptoStr = opt.getAttribute('data-concepto') || opt.text;
             let tarifaSeleccionada = 'ESTANDAR';
 
+            // Si el departamento es CONSULTAS (depId == 1), armar concepto: "Consulta - [ESPECIALIDAD]"
+            const selDep = document.getElementById('selConceptoRecibo');
+            const depId = selDep ? selDep.value : '';
+            const selEspe = document.getElementById('selEspecialidadCustom');
+            let espTexto = (selEspe && selEspe.selectedIndex >= 0 && selEspe.options[selEspe.selectedIndex].value) 
+                ? selEspe.options[selEspe.selectedIndex].text.trim() 
+                : '';
+            
+            let medNombre = opt.text.trim();
+            let conceptoFinal = conceptoStr;
+            if (String(depId) === '1' && espTexto) {
+                conceptoFinal = `Consulta - ${espTexto}`;
+            }
+
             // Poblar selector de tarifas para paciente privado en consultas
             if (!esEstado && contTarifa && selTarifa && window.RAW_CATALOGO && window.RAW_CATALOGO.items) {
                 contTarifa.style.display = '';
@@ -604,7 +618,11 @@ print <<'JS';
             cartItems.unshift({
                 id: itemId,
                 id_item: itemId,
-                nombre: conceptoStr,
+                nombre: conceptoFinal,
+                concepto: conceptoFinal,
+                medico: medNombre,
+                nombre_medico: medNombre,
+                especialidad: espTexto,
                 precio: precioActivo,
                 precio_paciente: esEstado ? 0 : precioActivo,
                 cubierto_convenio: esEstado ? 1 : 0,

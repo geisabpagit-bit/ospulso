@@ -344,6 +344,26 @@ if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~
     };
 }
 
+if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && ($recibo->{concepto} && $recibo->{concepto} =~ /CONSULTA/i)) {
+    eval {
+        require JSON;
+        my $items_arr = JSON::decode_json($recibo->{items_json});
+        if (ref($items_arr) eq 'ARRAY') {
+            foreach my $it (@$items_arr) {
+                if ($it->{medico} || $it->{nombre_medico}) {
+                    $medico_nombre = uc($it->{medico} || $it->{nombre_medico});
+                    last;
+                }
+                my $conc = $it->{nombre} || $it->{concepto} || '';
+                if ($conc && $conc !~ /^(?:CONSULTA|ARETES|APLICACI|PROCEDIMIENTO|CIRUG|CURACI)/i) {
+                    $medico_nombre = uc($conc);
+                    last;
+                }
+            }
+        }
+    };
+}
+
 my $medico_row_html = '';
 if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /^\d+$/) {
     my $display_med = $medico_nombre;
@@ -611,7 +631,15 @@ foreach my $c (@cargos) {
     my $subtotal_fmt = formato_moneda($c->{subtotal});
     my $concepto_txt = $c->{concepto};
     
-    if ($concepto_txt =~ /CONSULTA/i) {
+    if ($recibo->{concepto} && $recibo->{concepto} =~ /CONSULTA/i) {
+        if ($concepto_txt =~ /CONSULTA/i || ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && uc($concepto_txt) eq uc($medico_nombre))) {
+            my $esp = $c->{especialidad} || $especialidad_nombre || 'MEDICINA GENERAL';
+            $esp =~ s/^CONSULTA\s*(?:-\s*)?//i;
+            $esp =~ s/\s*-\s*.*$//;
+            $esp = uc($esp);
+            $concepto_txt = "Consulta - $esp";
+        }
+    } elsif ($concepto_txt =~ /CONSULTA/i) {
         $concepto_txt =~ s/\s*-\s*(?:DRA?|LIC|ING|MTRO|MEDICO)?\.?\s*.+$//i;
     }
     if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO') {
