@@ -86,6 +86,26 @@ sub obtener_rutas_por_clue {
     my ($clues) = @_;
     my $dat = _resolver_dat_dir();
     my $clue_dir = File::Spec->catdir($dat, 'catalogos_CLUE', $clues);
+    my $tipos_tar_file = File::Spec->catfile($clue_dir, "tipos_tarifas_${clues}.dat");
+    if (!-e $tipos_tar_file && -d $clue_dir) {
+        if (open(my $fht, '>:encoding(UTF-8)', $tipos_tar_file)) {
+            print $fht "ID_TARIFA|CLAVE|NOMBRE_TARIFA|DESCRIPCION|ACTIVO\n";
+            print $fht "1|ESTANDAR|ESTÁNDAR|Público General / Tarifa Base|1\n";
+            print $fht "2|MUNICIPIO|MUNICIPIO|Convenio Sindical / Estatal|1\n";
+            print $fht "3|URGENCIAS|URGENCIAS|Tarifa de Atención de Urgencias|1\n";
+            print $fht "4|LUNES_A_SABADO|LUNES A SÁBADO|Tarifa Ordinaria|1\n";
+            print $fht "5|DOMINGOS_Y_FESTIVOS|DOMINGOS Y FESTIVOS|Recargo Dominical / Festivo|1\n";
+            print $fht "6|FESTIVO|DÍA FESTIVO|Atención en Día Festivo Oficial|1\n";
+            print $fht "7|NORMAL|TURNO NORMAL|Horario Habitual de Consulta|1\n";
+            print $fht "8|MATUTINO|TURNO MATUTINO|Horario Matutino|1\n";
+            print $fht "9|NOCTURNO|TURNO NOCTURNO|Turno Nocturno|1\n";
+            print $fht "10|SABADO_TARDE_DOMINGO_FESTIVO|SÁBADO TARDE / DOMINGO / FESTIVO|Guardia Fin de Semana y Festivo|1\n";
+            print $fht "11|PAQUETE_TODO_INCLUIDO|PAQUETE TODO INCLUIDO|Paquete Integral Quirúrgico / Procedimiento|1\n";
+            print $fht "12|PAQUETE_SOLO_CLINICA|PAQUETE SOLO CLÍNICA|Paquete Quirúrgico sin Honorarios Médicos|1\n";
+            close($fht);
+        }
+    }
+
     return {
         is_universal => 1,
         departamentos => File::Spec->catfile($clue_dir, "departamentos_${clues}.dat"),
@@ -100,6 +120,7 @@ sub obtener_rutas_por_clue {
         empleadosmun => File::Spec->catfile($clue_dir, "empleadosmun_${clues}.dat"),
         municipios => File::Spec->catfile($clue_dir, "municipios_${clues}.dat"),
         motivos => File::Spec->catfile($clue_dir, "motivos_${clues}.dat"),
+        tipos_tarifas => $tipos_tar_file,
     };
 }
 
@@ -272,13 +293,33 @@ sub get_catalogo_universal {
         close $fh;
     }
 
+    # Leer Tipos de Tarifas
+    my @tipos_tarifas;
+    if (exists $rutas->{tipos_tarifas} && -e $rutas->{tipos_tarifas}) {
+        open(my $fh, '<:encoding(UTF-8)', $rutas->{tipos_tarifas});
+        <$fh>; # saltar header
+        while (<$fh>) {
+            chomp; next if /^\s*$/;
+            my @c = split /\|/, $_, -1;
+            push @tipos_tarifas, {
+                id_tarifa     => $c[0],
+                clave         => $c[1],
+                nombre_tarifa => $c[2],
+                descripcion   => $c[3],
+                activo        => ($c[4] // 1) + 0
+            };
+        }
+        close $fh;
+    }
+
     return {
         is_universal => 1,
         departamentos => \@deps,
         categorias => \@cats,
         proveedores => \@provs,
         items => \@items,
-        productos => \@productos
+        productos => \@productos,
+        tipos_tarifas => \@tipos_tarifas
     };
 }
 

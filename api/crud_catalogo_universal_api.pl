@@ -291,6 +291,103 @@ elsif ($action eq 'delete_producto') {
     actualizar_archivo($rutas->{productos}, $header, \@new_lines);
     responder({ success => 1, msg => 'Producto eliminado' });
 }
+elsif ($action eq 'save_tipo_tarifa') {
+    my $id            = sanitizar_campo($cgi->param('id'));
+    my $clave         = uc(sanitizar_campo($cgi->param('clave')));
+    my $nombre_tarifa = sanitizar_campo($cgi->param('nombre_tarifa') // $cgi->param('nombre'));
+    my $descripcion   = sanitizar_campo($cgi->param('descripcion'));
+    my $activo        = defined $cgi->param('activo') ? ($cgi->param('activo') ? 1 : 0) : 1;
+
+    # Limpiar clave: solo alfanuméricos y guiones bajos
+    $clave =~ s/\s+/_/g;
+    $clave =~ s/[^A-Z0-9_]//g;
+
+    if (!$clave || !$nombre_tarifa) {
+        responder({ error => 'La clave y el nombre de la tarifa son obligatorios.' });
+    }
+
+    my ($header, $lines) = leer_archivo($rutas->{tipos_tarifas});
+    $header ||= "ID_TARIFA|CLAVE|NOMBRE_TARIFA|DESCRIPCION|ACTIVO";
+
+    my @new_lines;
+    my $found = 0;
+
+    # Validar que la clave no esté duplicada en otro registro
+    foreach my $l (@$lines) {
+        my @c = split /\|/, $l, -1;
+        if ($c[1] eq $clave && (!$id || $c[0] ne $id)) {
+            responder({ error => "Ya existe un tipo de tarifa registrado con la clave '$clave'." });
+        }
+    }
+
+    if ($id) {
+        foreach my $l (@$lines) {
+            my @c = split /\|/, $l, -1;
+            if ($c[0] eq $id) {
+                # ID_TARIFA|CLAVE|NOMBRE_TARIFA|DESCRIPCION|ACTIVO
+                # Si es ESTANDAR, MUNICIPIO o URGENCIAS, proteger la clave para que no se altere accidentalmente
+                if ($c[1] =~ /^(ESTANDAR|MUNICIPIO|URGENCIAS)$/i) {
+                    $clave = $c[1]; # Mantener clave de sistema protegida
+                }
+                $l = "$id|$clave|$nombre_tarifa|$descripcion|$activo";
+                $found = 1;
+            }
+            push @new_lines, $l;
+        }
+        if (!$found) { responder({ error => 'Tipo de tarifa no encontrado.' }); }
+    } else {
+        $id = get_next_id($rutas->{tipos_tarifas});
+        @new_lines = @$lines;
+        push @new_lines, "$id|$clave|$nombre_tarifa|$descripcion|$activo";
+    }
+
+    if (actualizar_archivo($rutas->{tipos_tarifas}, $header, \@new_lines)) {
+        responder({ success => 1, msg => 'Tipo de tarifa guardado exitosamente.' });
+    } else {
+        responder({ error => 'Error al guardar el archivo de tipos de tarifa.' });
+    }
+}
+elsif ($action eq 'delete_tipo_tarifa') {
+    my $id = sanitizar_campo($cgi->param('id'));
+    if (!$id) { responder({ error => 'ID de tarifa no especificado.' }); }
+
+    my ($header, $lines) = leer_archivo($rutas->{tipos_tarifas});
+    my $tarifa_a_borrar;
+    foreach my $l (@$lines) {
+        my @c = split /\|/, $l, -1;
+        if ($c[0] eq $id) {
+            $tarifa_a_borrar = \@c;
+            last;
+        }
+    }
+
+    if (!$tarifa_a_borrar) {
+        responder({ error => 'Tipo de tarifa no encontrado.' });
+    }
+
+    my $clave_tarifa = $tarifa_a_borrar->[1];
+
+    # Protección de tarifas base del sistema
+    if ($clave_tarifa =~ /^(ESTANDAR|MUNICIPIO|URGENCIAS)$/i) {
+        responder({ error => "La tarifa '$clave_tarifa' es parte de la arquitectura del sistema y no puede eliminarse." });
+    }
+
+    # Verificar si está asignada en el catálogo de precios
+    if (-e $rutas->{precios}) {
+        my (undef, $precios_lines) = leer_archivo($rutas->{precios});
+        my $en_uso = grep { (split /\|/, $_, -1)[2] eq $clave_tarifa } @$precios_lines;
+        if ($en_uso) {
+            responder({ error => "No se puede eliminar la tarifa '$clave_tarifa' porque actualmente está asignada a uno o más servicios ($en_uso asignación(es)). Modifique o elimine los precios asociados primero." });
+        }
+    }
+
+    my @new_lines = grep { (split /\|/, $_, -1)[0] ne $id } @$lines;
+    if (actualizar_archivo($rutas->{tipos_tarifas}, $header, \@new_lines)) {
+        responder({ success => 1, msg => "Tipo de tarifa '$clave_tarifa' eliminado exitosamente." });
+    } else {
+        responder({ error => 'Error al actualizar el archivo de tipos de tarifas.' });
+    }
+}
 elsif ($action eq 'save_servicio') {
     my $id_item        = sanitizar_campo($cgi->param('id_item'));
     my $id_cat         = sanitizar_campo($cgi->param('id_cat'));

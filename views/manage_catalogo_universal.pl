@@ -94,6 +94,9 @@ print <<HTML;
                         <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill fw-bold py-1.5" data-bs-toggle="tab" data-bs-target="#deptos" type="button" role="tab"><i class="bi bi-diagram-3 me-2"></i>Departamentos y Categorías</button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill fw-bold py-1.5" data-bs-toggle="tab" data-bs-target="#tarifas" type="button" role="tab"><i class="bi bi-cash-coin me-2"></i>Tipos de Tarifa</button>
+                        </li>
                     </ul>
                 </div>
                 
@@ -324,6 +327,82 @@ print <<HTML;
                                 </div>
                             </div>
                         </div>
+
+                        <!-- PESTAÑA TIPOS DE TARIFA -->
+                        <div class="tab-pane fade" id="tarifas" role="tabpanel">
+                            <div class="card card-filter-diamond mb-3">
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                                    <div>
+                                        <h5 class="fw-bold mb-0" style="color: var(--inst-navy-deep);"><i class="bi bi-cash-coin me-2 text-success"></i>Catálogo de Tipos de Tarifa y Condiciones</h5>
+                                        <small class="text-muted">Gestión dinámica de esquemas de cobro (Privado, Convenio Municipio, Urgencias, Turnos y Horarios Especiales) por organización.</small>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-navy-primary rounded-pill px-3 fw-bold shadow-sm" onclick="abrirFormulario('tipo_tarifa')">
+                                            <i class="bi bi-plus-circle me-1"></i>Nuevo Tipo de Tarifa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card card-table-diamond">
+                                <div class="table-responsive dataTables_wrapper p-0">
+                                    <table id="tablaTarifasCatalogo" class="table table-hover align-middle w-100 table-custom-header" style="font-size: 0.82rem;">
+                                        <thead>
+                                            <tr>
+                                                <th class="border-0" style="width: 70px;">ID</th>
+                                                <th class="border-0" style="width: 220px;">Clave Interna</th>
+                                                <th class="border-0" style="width: 260px;">Nombre de la Tarifa</th>
+                                                <th class="border-0">Descripción / Criterio</th>
+                                                <th class="border-0 text-center" style="width: 110px;">Estado</th>
+                                                <th class="border-0 text-end text-nowrap" style="width: 95px; min-width: 95px;">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+HTML
+
+foreach my $tar (@{$cat_univ->{tipos_tarifas} || []}) {
+    my $id_t       = $tar->{id_tarifa} // '';
+    my $clave_t    = $tar->{clave} // '';
+    my $nombre_t   = $tar->{nombre_tarifa} || $clave_t;
+    my $desc_t     = $tar->{descripcion} || 'Sin descripción';
+    my $activo_t   = $tar->{activo} // 1;
+    my $es_sistema = ($clave_t =~ /^(ESTANDAR|MUNICIPIO|URGENCIAS)$/i) ? 1 : 0;
+    
+    my $badge_estado = $activo_t 
+        ? '<span class="badge" style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;"><i class="bi bi-check-circle me-1"></i>Activo</span>'
+        : '<span class="badge bg-light text-secondary border"><i class="bi bi-x-circle me-1"></i>Inactivo</span>';
+
+    my $btn_eliminar = $es_sistema
+        ? '<button class="btn btn-sm btn-light border text-muted rounded-circle" style="width: 32px; height: 32px; padding: 0;" disabled title="Tarifa protegida de sistema"><i class="bi bi-shield-lock-fill text-secondary"></i></button>'
+        : "<button class=\"btn btn-sm btn-outline-danger rounded-circle\" style=\"width: 32px; height: 32px; padding: 0;\" onclick=\"deleteEntity('tipo_tarifa', '$id_t')\" title=\"Eliminar Tarifa\"><i class=\"bi bi-trash\"></i></button>";
+
+    print <<HTML;
+                                            <tr>
+                                                <td><span class="badge bg-secondary">$id_t</span></td>
+                                                <td>
+                                                    <span class="badge font-monospace px-2.5 py-1.5" style="background:#e0f2fe; color:#0369a1; border: 1px solid #bae6fd; font-size: 0.8rem;">
+                                                        <i class="bi bi-tag-fill me-1"></i>$clave_t
+                                                    </span>
+                                                </td>
+                                                <td class="fw-bold" style="color: var(--inst-navy-deep);">$nombre_t</td>
+                                                <td class="text-muted small">$desc_t</td>
+                                                <td class="text-center">$badge_estado</td>
+                                                <td class="text-end text-nowrap">
+                                                    <div class="d-inline-flex align-items-center justify-content-end gap-1">
+                                                        <button class="btn btn-sm btn-navy-outline rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('tipo_tarifa', '$id_t', '$clave_t', '$nombre_t', '$desc_t', '$activo_t')" title="Editar Tarifa"><i class="bi bi-pencil"></i></button>
+                                                        $btn_eliminar
+                                                    </div>
+                                                </td>
+                                            </tr>
+HTML
+}
+
+print <<HTML;
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -356,6 +435,7 @@ foreach my $dep (@deps_ordenados) {
 my $deps_json = encode_json(\@deps_ordenados);
 my $cats_json = encode_json(\@cats_ordenadas);
 my $items_min_json = encode_json([ map { { id_item => $_->{id_item}, codigo_sku => ($_->{codigo_sku} // ''), id_cat => ($_->{id_cat} // '') } } @{$cat_univ->{items} || []} ]);
+my $tipos_tarifas_json = encode_json($cat_univ->{tipos_tarifas} || []);
 
 print <<HTML;
 <div id="config-catalogo" style="display:none;" data-cats="$cats_options" data-deps="$deps_options"></div>
@@ -363,6 +443,7 @@ print <<HTML;
     window.CATALOGO_DEPS = $deps_json;
     window.CATALOGO_CATS = $cats_json;
     window.CATALOGO_ITEMS = $items_min_json;
+    window.CATALOGO_TIPOS_TARIFAS = $tipos_tarifas_json;
 </script>
 HTML
 
@@ -519,6 +600,7 @@ print <<'JS';
             $(document).ready(function() {
                 initCatalogoTable('#tablaServicios', 'Catálogo Universal - Servicios');
                 initCatalogoTable('#tablaProductos', 'Catálogo Universal - Productos');
+                initCatalogoTable('#tablaTarifasCatalogo', 'Catálogo Universal - Tipos de Tarifa');
             });
 
             // LOGICA DE CRUD FRONTEND
@@ -695,19 +777,16 @@ print <<'JS';
                 generarNomenclaturaSku(false);
             }
 
-            const TIPOS_TARIFAS_DISPONIBLES = [
-                { id: 'ESTANDAR', label: 'ESTÁNDAR (Público General / Base)' },
-                { id: 'MUNICIPIO', label: 'MUNICIPIO (Convenio Sindical / Estatal)' },
-                { id: 'LUNES_A_SABADO', label: 'LUNES A SÁBADO (Tarifa Ordinaria)' },
-                { id: 'DOMINGOS_Y_FESTIVOS', label: 'DOMINGOS Y FESTIVOS (Recargo)' },
-                { id: 'FESTIVO', label: 'DÍA FESTIVO' },
-                { id: 'NORMAL', label: 'TURNO NORMAL' },
-                { id: 'MATUTINO', label: 'TURNO MATUTINO' },
-                { id: 'NOCTURNO', label: 'TURNO NOCTURNO / URGENCIAS' },
-                { id: 'SABADO_TARDE_DOMINGO_FESTIVO', label: 'SÁBADO TARDE / DOMINGO / FESTIVO' },
-                { id: 'PAQUETE_TODO_INCLUIDO', label: 'PAQUETE TODO INCLUIDO' },
-                { id: 'PAQUETE_SOLO_CLINICA', label: 'PAQUETE SOLO CLÍNICA' }
-            ];
+            const TIPOS_TARIFAS_DISPONIBLES = (window.CATALOGO_TIPOS_TARIFAS && window.CATALOGO_TIPOS_TARIFAS.length > 0)
+                ? window.CATALOGO_TIPOS_TARIFAS.filter(t => t.activo != 0).map(t => ({
+                    id: t.clave,
+                    label: `${t.clave} - ${t.nombre_tarifa || t.clave}`
+                  }))
+                : [
+                    { id: 'ESTANDAR', label: 'ESTÁNDAR (Público General / Base)' },
+                    { id: 'MUNICIPIO', label: 'MUNICIPIO (Convenio Sindical / Estatal)' },
+                    { id: 'URGENCIAS', label: 'URGENCIAS (Tarifa de Urgencias)' }
+                  ];
 
             function renderFilaTarifa(tipo, precio, costo, canDelete = true) {
                 const tbody = document.getElementById('tbodyTarifas');
@@ -875,6 +954,47 @@ print <<'JS';
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="button" class="btn btn-light border" onclick="cerrarFormulario()">Cancelar</button>
                                 <button type="submit" class="btn btn-navy-primary px-4"><i class="bi bi-save me-2"></i>Guardar</button>
+                            </div>
+                        </form>
+                    `;
+                } else if (tipo === 'tipo_tarifa') {
+                    const id            = args[0] || '';
+                    const clave         = args[1] || '';
+                    const nombre_tarifa = args[2] || '';
+                    const descripcion   = args[3] || '';
+                    const activo        = (args[4] !== undefined) ? args[4] : 1;
+                    const esProtegido   = ['ESTANDAR', 'MUNICIPIO', 'URGENCIAS'].includes(clave.toUpperCase());
+
+                    title.innerHTML = `<i class="bi bi-cash-coin me-2"></i>${id ? 'Editar' : 'Nuevo'} Tipo de Tarifa`;
+                    body.innerHTML = `
+                        <form id="crudForm" onsubmit="saveEntity(event, 'tipo_tarifa')">
+                            <input type="hidden" name="action" value="save_tipo_tarifa">
+                            <input type="hidden" name="id" value="${id}">
+                            <div class="row g-3 mb-3">
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label fw-bold small text-muted">Clave Interna (Código Único)</label>
+                                    <input type="text" class="form-control text-uppercase font-monospace fw-bold" name="clave" value="${escapeHtml(clave)}" ${esProtegido ? 'readonly' : ''} oninput="this.value = this.value.toUpperCase().replace(/\\s+/g, '_')" placeholder="Ej: URGENCIAS, INAPAM" required>
+                                    ${esProtegido ? '<small class="text-muted"><i class="bi bi-shield-lock text-primary me-1"></i>Clave de sistema protegida</small>' : '<small class="text-muted">Alfanumérico y guión bajo (sin espacios)</small>'}
+                                </div>
+                                <div class="col-12 col-md-5">
+                                    <label class="form-label fw-bold small text-muted">Nombre Legible de la Tarifa</label>
+                                    <input type="text" class="form-control fw-semibold" name="nombre_tarifa" value="${escapeHtml(nombre_tarifa)}" placeholder="Ej: Urgencias, Descuento Tercera Edad" required>
+                                </div>
+                                <div class="col-12 col-md-3">
+                                    <label class="form-label fw-bold small text-muted">Estado</label>
+                                    <select class="form-select" name="activo">
+                                        <option value="1" ${activo == 1 ? 'selected' : ''}>Activa</option>
+                                        <option value="0" ${activo == 0 ? 'selected' : ''}>Inactiva</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small text-muted">Descripción / Criterio de Aplicación</label>
+                                    <input type="text" class="form-control" name="descripcion" value="${escapeHtml(descripcion)}" placeholder="Descripción o condiciones especiales para aplicar esta tarifa">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-light border" onclick="cerrarFormulario()">Cancelar</button>
+                                <button type="submit" class="btn btn-navy-primary px-4"><i class="bi bi-save me-2"></i>Guardar Tarifa</button>
                             </div>
                         </form>
                     `;

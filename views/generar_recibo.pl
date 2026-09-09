@@ -598,8 +598,10 @@ print <<'JS';
                 
                 if (preciosPrivados.length > 0) {
                     let optHtml = '';
+                    const tarifasMeta = (window.RAW_CATALOGO && window.RAW_CATALOGO.tipos_tarifas) ? window.RAW_CATALOGO.tipos_tarifas : [];
                     preciosPrivados.forEach(p => {
-                        let labelTarifa = p.tipo_tarifa.replace(/_/g, ' ');
+                        let metaObj = tarifasMeta.find(tm => tm.clave === p.tipo_tarifa);
+                        let labelTarifa = (metaObj && metaObj.nombre_tarifa) ? metaObj.nombre_tarifa : p.tipo_tarifa.replace(/_/g, ' ');
                         optHtml += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}">${labelTarifa} (${formatCurrency(p.precio_publico)})</option>`;
                     });
                     selTarifa.innerHTML = optHtml;
