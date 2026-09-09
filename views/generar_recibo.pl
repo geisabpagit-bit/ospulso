@@ -447,12 +447,23 @@ print <<'JS';
             }
         });
         
+        // 1. Ordenar departamentos alfabéticamente
+        depsActivos.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es', { sensitivity: 'base' }));
+
+        // 2. Determinar departamento a preseleccionar: 'CONSULTAS' por default si no hay selección previa
+        let valToSelect = currentVal;
+        if (!valToSelect || !depsActivos.some(d => String(d.id_dep) === String(valToSelect))) {
+            let depConsultas = depsActivos.find(d => (d.nombre || '').toUpperCase() === 'CONSULTAS' || String(d.id_dep) === '1');
+            valToSelect = depConsultas ? String(depConsultas.id_dep) : (depsActivos[0] ? String(depsActivos[0].id_dep) : '');
+        }
+        
         let html = '<option value="">-- Selecciona Departamento / Concepto --</option>';
         depsActivos.forEach(d => {
-            let sel = (currentVal && String(currentVal) === String(d.id_dep)) || (!currentVal && String(d.id_dep) === '1') ? 'selected' : '';
+            let sel = (String(valToSelect) === String(d.id_dep)) ? 'selected' : '';
             html += `<option value="${d.id_dep}" ${sel}>${escapeHtml(d.nombre)}</option>`;
         });
         selDep.innerHTML = html;
+        selDep.value = valToSelect;
         onConceptoDepartamentoChange();
     }
 
@@ -489,8 +500,33 @@ print <<'JS';
         if (!selEspe) return;
         
         let currentVal = selEspe.value;
-        let cats = (window.RAW_CATALOGO.categorias || []).filter(c => String(c.id_dep) === String(depId));
-        cats.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        let esEstado = (pacienteTipoActual === 'estado');
+
+        // Filtrar especialidades según tarifas activas (> 0) del tipo de paciente
+        let cats = (window.RAW_CATALOGO.categorias || []).filter(c => {
+            if (String(c.id_dep) !== String(depId)) return false;
+            
+            // Si es CONSULTAS (depId == 1), validar que exista al menos un médico con tarifa > 0 aplicable
+            if (String(depId) === '1') {
+                let itemsDeEspecialidad = (window.RAW_CATALOGO.items || []).filter(it => String(it.id_cat) === String(c.id_cat));
+                if (itemsDeEspecialidad.length === 0) return false;
+
+                if (esEstado) {
+                    // Para Municipio/Convenio: Al menos un médico debe tener tarifa MUNICIPIO > 0
+                    return itemsDeEspecialidad.some(it => 
+                        (it.precios || []).some(p => p.tipo_tarifa === 'MUNICIPIO' && parseFloat(p.precio_publico) > 0)
+                    );
+                } else {
+                    // Para Paciente Privado: Al menos un médico debe tener tarifa privada (ESTANDAR u otra != MUNICIPIO) > 0
+                    return itemsDeEspecialidad.some(it => 
+                        (it.precios || []).some(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0)
+                    );
+                }
+            }
+            return true;
+        });
+
+        cats.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es', { sensitivity: 'base' }));
         
         let html = '<option value="">-- Selecciona Especialidad --</option>';
         cats.forEach(c => {
@@ -499,8 +535,10 @@ print <<'JS';
         });
         selEspe.innerHTML = html;
         
-        if (!selEspe.value && cats.length > 0) {
-            let medGral = cats.find(c => c.nombre.toUpperCase() === 'MEDICINA GENERAL');
+        if (currentVal && cats.some(c => String(c.id_cat) === String(currentVal))) {
+            selEspe.value = currentVal;
+        } else if (cats.length > 0) {
+            let medGral = cats.find(c => (c.nombre || '').toUpperCase() === 'MEDICINA GENERAL');
             if (medGral) {
                 selEspe.value = medGral.id_cat;
             } else {
@@ -525,7 +563,15 @@ print <<'JS';
         }
         
         let esEstado = (pacienteTipoActual === 'estado');
-        let itemsCat = (window.RAW_CATALOGO.items || []).filter(it => String(it.id_cat) === String(catId));
+        // Filtrar médicos de la especialidad cuya tarifa correspondiente sea mayor a 0
+        let itemsCat = (window.RAW_CATALOGO.items || []).filter(it => {
+            if (String(it.id_cat) !== String(catId)) return false;
+            if (esEstado) {
+                return (it.precios || []).some(p => p.tipo_tarifa === 'MUNICIPIO' && parseFloat(p.precio_publico) > 0);
+            } else {
+                return (it.precios || []).some(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0);
+            }
+        });
         
         // Extraer nombre del doctor y ordenar alfabéticamente
         itemsCat.forEach(it => {
@@ -536,7 +582,7 @@ print <<'JS';
             }
             it._labelMedico = labelMedico;
         });
-        itemsCat.sort((a, b) => (a._labelMedico || '').localeCompare(b._labelMedico || ''));
+        itemsCat.sort((a, b) => (a._labelMedico || '').localeCompare(b._labelMedico || '', 'es', { sensitivity: 'base' }));
         
         let html = '<option value="">-- Selecciona Médico --</option>';
         itemsCat.forEach(it => {
@@ -659,6 +705,16 @@ print <<'JS';
     document.addEventListener('DOMContentLoaded', () => {
         initSelect2Paciente();
         _cargarCatalogoRecibo();
+
+        $('#iptNumEmpleado').on('input', function() {
+            if (!$(this).val().trim() && pacienteTipoActual === 'estado') {
+                pacienteTipoActual = 'privado';
+                $('#resultadosEmpleado').html('');
+                $('#resultadosEmpleadoContainer').hide();
+                pacienteEstadoSeleccionado = { id: '', nombre: '' };
+                _actualizarTarifasSegunPaciente();
+            }
+        });
     });
 
     let pacienteEstadoSeleccionado = { id: '', nombre: '' };
