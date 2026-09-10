@@ -206,7 +206,7 @@ function renderTable(headers, rows) {
         data: tableData,
         columns: columns,
         language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
-        pageLength: 25,
+        pageLength: 10,
         responsive: true,
         order: [[0, 'asc']]
     });

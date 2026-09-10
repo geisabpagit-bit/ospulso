@@ -553,8 +553,8 @@ elsif ($action eq 'delete_servicio') {
 elsif ($action eq 'datatable_servicios') {
     my $draw         = int($cgi->param('draw') || 1);
     my $start        = int($cgi->param('start') || 0);
-    my $length       = int($cgi->param('length') || 25);
-    $length          = 25 if $length <= 0;
+    my $length       = int($cgi->param('length') || 10);
+    $length          = 10 if $length <= 0;
     
     my $filtro_dep   = sanitizar_campo($cgi->param('filtro_dep') || '');
     my $filtro_cat   = sanitizar_campo($cgi->param('filtro_cat') || '');

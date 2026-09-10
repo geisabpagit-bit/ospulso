@@ -557,7 +557,7 @@ print <<'JS';
                             { data: 'acciones_html', orderable: false, className: 'text-end text-nowrap' }
                         ],
                         language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-                        pageLength: 25,
+                        pageLength: 10,
                         responsive: true,
                         dom: '<"d-flex flex-wrap justify-content-between align-items-center mb-3"B>rt<"d-flex justify-content-between align-items-center mt-3 flex-wrap"i p>',
                         buttons: {
@@ -580,6 +580,7 @@ print <<'JS';
                 if ($(tableId).length) {
                     $(tableId).DataTable({
                         destroy: true,
+                        pageLength: 10,
                         language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                         dom: '<"d-flex flex-wrap justify-content-between align-items-center mb-3"B>rt<"d-flex justify-content-between align-items-center mt-3 flex-wrap"i p>',
                         buttons: {
