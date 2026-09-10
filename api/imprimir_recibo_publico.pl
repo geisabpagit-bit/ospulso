@@ -591,7 +591,25 @@ if ($saldo > 0) {
     };
 }
 
-my $elaborado_por = $recibo->{elaborado_por} || $session_data->{usuario} || $session_data->{nombre_usuario} || 'Sistema';
+my $raw_elaborado = $recibo->{elaborado_por} || $session_data->{usuario} || $session_data->{nombre_usuario} || '';
+my $elaborado_por = $raw_elaborado;
+
+if ($raw_elaborado) {
+    my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+    if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
+        while (my $lu = <$fu>) {
+            chomp $lu;
+            next if $lu =~ /^\s*$/ || $lu =~ /^#/ || $lu =~ /^ID!/i;
+            my @u = split /!/, $lu, -1;
+            if (@u >= 3 && ($u[0] eq $raw_elaborado || lc($u[2]) eq lc($raw_elaborado) || lc($u[1]) eq lc($raw_elaborado))) {
+                $elaborado_por = $u[1] if $u[1];
+                last;
+            }
+        }
+        close $fu;
+    }
+}
+$elaborado_por ||= 'Sistema';
 
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print <<HTML;
@@ -821,6 +839,18 @@ print <<HTML;
             </tr>
         </table>
     </div>
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() { window.print(); }, 300);
+        });
+        window.addEventListener('afterprint', function() {
+            if (window.opener) {
+                window.close();
+            } else {
+                window.location.href = '../views/generar_recibo.pl';
+            }
+        });
+    </script>
 </body>
 </html>
 HTML

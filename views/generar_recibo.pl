@@ -573,13 +573,16 @@ print <<'JS';
             }
         });
         
-        // Extraer nombre del doctor y ordenar alfabéticamente
+        // Extraer nombre del doctor y ordenar alfabéticamente (limpiando cualquier precio o sufijo)
         itemsCat.forEach(it => {
             let displayNom = it.concepto || it.nombre || '';
             let labelMedico = displayNom;
             if (displayNom.includes(' - ')) {
-                labelMedico = displayNom.split(' - ')[1].trim();
+                let parts = displayNom.split(' - ');
+                labelMedico = parts[parts.length - 1].trim();
             }
+            // Quitar cualquier precio en formato $... o (...) del nombre del médico
+            labelMedico = labelMedico.replace(/\s*(?:-\s*)?\$[\d.,]+.*/g, '').replace(/\s*\(.*?\)/g, '').trim();
             it._labelMedico = labelMedico;
         });
         itemsCat.sort((a, b) => (a._labelMedico || '').localeCompare(b._labelMedico || '', 'es', { sensitivity: 'base' }));
@@ -1490,7 +1493,7 @@ print <<'JS';
                     $('#modalReciboPrevio').modal('hide');
                     const ticketUrl = '../api/imprimir_recibo_' + (pacienteTipoActual === 'estado' ? 'publico' : 'caja') + '.pl?id_consulta=' + encodeURIComponent(res.folio);
                     window.open(ticketUrl, '_blank');
-                    window.location.href = 'inicial.pl';
+                    window.location.href = 'generar_recibo.pl';
                 });
             } else {
                 Swal.fire('Error', res.error || res.msg || 'No se pudo emitir el recibo.', 'error');
