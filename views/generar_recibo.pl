@@ -988,6 +988,7 @@ print <<'JS';
                         precio_estandar: precioEst,
                         precio_municipio: precioMun,
                         precio: esEstado ? precioMun : precioEst,
+                        precios: c.precios || [],
                         indicaciones: c.indicaciones || '',
                         cat: c.id_cat,
                         dep: catInfo.d
@@ -1017,6 +1018,27 @@ print <<'JS';
         } catch (e) {
             console.error("Error al cargar catálogo de recibo:", e);
         }
+    }
+
+    function getTarifaNombre(clave) {
+        if (!clave) return 'ESTÁNDAR';
+        if (window.RAW_CATALOGO && window.RAW_CATALOGO.tipos_tarifas) {
+            let tMeta = window.RAW_CATALOGO.tipos_tarifas.find(tm => tm.clave === clave);
+            if (tMeta && tMeta.nombre_tarifa) return tMeta.nombre_tarifa;
+        }
+        return clave.replace(/_/g, ' ');
+    }
+
+    function getTarifasAplicables(item) {
+        let precios = item.precios || item.precios_disponibles || [];
+        let esEstado = (pacienteTipoActual === 'estado');
+        if (esEstado) {
+            let pMun = precios.filter(p => p.tipo_tarifa === 'MUNICIPIO');
+            if (pMun.length > 0) return pMun;
+        }
+        let pPrivados = precios.filter(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0);
+        if (pPrivados.length > 0) return pPrivados;
+        return [{ tipo_tarifa: 'ESTANDAR', precio_publico: item.precio || item.precio_estandar || 0 }];
     }
 
     function _poblarFiltrosRecibo() {
@@ -1127,9 +1149,24 @@ print <<'JS';
 
         filtered.forEach(it => {
             const tr = document.createElement('tr');
+            let tarifas = getTarifasAplicables(it);
+            let colPrecioHtml = '';
+            
+            if (tarifas.length > 1) {
+                let optionsHtml = '';
+                tarifas.forEach((p, idx) => {
+                    let sel = (idx === 0) ? 'selected' : '';
+                    let label = getTarifaNombre(p.tipo_tarifa);
+                    optionsHtml += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}" ${sel}>${escapeHtml(label)} (${formatCurrency(p.precio_publico)})</option>`;
+                });
+                colPrecioHtml = `<select id="selTarifaModal_${escapeHtml(it.id)}" class="form-select form-select-sm border-secondary text-primary font-monospace py-0 px-1" style="font-size:0.75rem; width:100%; max-width:180px;">${optionsHtml}</select>`;
+            } else {
+                colPrecioHtml = `<span class="fw-bold text-success small">${formatCurrency(it.precio)}</span>`;
+            }
+
             tr.innerHTML = `
                 <td class="ps-3 fw-bold small text-dark align-middle">${escapeHtml(it.nombre)}</td>
-                <td class="text-end fw-bold text-success small align-middle">${formatCurrency(it.precio)}</td>
+                <td class="text-end align-middle px-2">${colPrecioHtml}</td>
                 <td class="text-center align-middle">
                     <button type="button" class="btn btn-sm text-white rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-sm" style="width:26px; height:26px; background: var(--md-blue-deep, #0A2A66);" onclick="agregarAlCarritoModalRecibo('${escapeHtml(it.id)}')">
                         <i class="bi bi-plus" style="font-size:1.1rem;"></i>
@@ -1158,11 +1195,34 @@ print <<'JS';
     function agregarAlCarritoModalRecibo(id) {
         const item = masterCatalogoRecibo.find(x => x.id === id);
         if (!item) return;
-        let ex = modalCartItems.find(x => x.nombre === item.nombre);
+        
+        let tarifas = getTarifasAplicables(item);
+        let selectedTarifaClave = 'ESTANDAR';
+        let selectedPrecio = item.precio;
+
+        const selElem = document.getElementById(`selTarifaModal_${id}`);
+        if (selElem) {
+            selectedTarifaClave = selElem.value;
+            const opt = selElem.options[selElem.selectedIndex];
+            if (opt) selectedPrecio = parseFloat(opt.getAttribute('data-precio')) || selectedPrecio;
+        } else if (tarifas.length > 0) {
+            selectedTarifaClave = tarifas[0].tipo_tarifa;
+            selectedPrecio = parseFloat(tarifas[0].precio_publico) || selectedPrecio;
+        }
+
+        let ex = modalCartItems.find(x => x.id === item.id && x.tipo_tarifa === selectedTarifaClave);
         if (ex) {
             ex.cantidad++;
         } else {
-            modalCartItems.push({ id: item.id, nombre: item.nombre, precio: parseFloat(item.precio), indicaciones: item.indicaciones || '', cantidad: 1 });
+            modalCartItems.push({
+                id: item.id,
+                nombre: item.nombre,
+                precio: selectedPrecio,
+                tipo_tarifa: selectedTarifaClave,
+                precios_disponibles: item.precios || [],
+                indicaciones: item.indicaciones || '',
+                cantidad: 1
+            });
         }
         _renderizarCarritoModalRecibo();
     }
@@ -1208,11 +1268,31 @@ print <<'JS';
         modalCartItems.forEach((it, idx) => {
             const sub = it.precio * it.cantidad;
             total += sub;
+            
+            let masterObj = masterCatalogoRecibo.find(m => m.id === it.id);
+            let preciosArr = it.precios_disponibles || (masterObj ? masterObj.precios : []);
+            let masterTemp = masterObj ? Object.assign({}, masterObj, { precios: preciosArr }) : { precios: preciosArr };
+            let tarifas = getTarifasAplicables(masterTemp);
+
+            let subtextoTarifa = '';
+            if (tarifas.length > 1) {
+                let opts = '';
+                tarifas.forEach(p => {
+                    let sel = (p.tipo_tarifa === it.tipo_tarifa) ? 'selected' : '';
+                    let label = getTarifaNombre(p.tipo_tarifa);
+                    opts += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}" ${sel}>${escapeHtml(label)} (${formatCurrency(p.precio_publico)})</option>`;
+                });
+                subtextoTarifa = `<select class="form-select form-select-sm border-0 bg-light text-primary font-monospace py-0 ps-1 pe-3 mt-1" style="font-size:0.7rem; cursor:pointer;" onchange="updateModalItemTarifaRecibo(${idx}, this)">${opts}</select>`;
+            } else {
+                let labelT = getTarifaNombre(it.tipo_tarifa);
+                subtextoTarifa = `<div class="text-muted small" style="font-size:0.75rem;">${formatCurrency(it.precio)} c/u <span class="badge bg-light text-secondary border ms-1" style="font-size:0.65rem;">${escapeHtml(labelT)}</span></div>`;
+            }
+
             html += `
                 <div class="bg-white p-2 mb-2 rounded-3 border shadow-sm d-flex align-items-center justify-content-between gap-2">
                     <div class="lh-sm flex-grow-1 overflow-hidden">
                         <div class="fw-bold text-dark text-truncate small">${escapeHtml(it.nombre)}</div>
-                        <div class="text-muted small" style="font-size:0.75rem;">${formatCurrency(it.precio)} c/u</div>
+                        ${subtextoTarifa}
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         <button type="button" class="btn btn-sm btn-light border p-0 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:22px; height:22px; line-height:1;" onclick="updateModalQtyRecibo(${idx}, -1)">-</button>
@@ -1225,6 +1305,15 @@ print <<'JS';
         });
         container.innerHTML = html;
         if (totalEl) totalEl.textContent = formatCurrency(total);
+    }
+
+    function updateModalItemTarifaRecibo(idx, selectElem) {
+        if (!modalCartItems[idx]) return;
+        const opt = selectElem.options[selectElem.selectedIndex];
+        if (!opt) return;
+        modalCartItems[idx].tipo_tarifa = selectElem.value;
+        modalCartItems[idx].precio = parseFloat(opt.getAttribute('data-precio')) || modalCartItems[idx].precio;
+        _renderizarCarritoModalRecibo();
     }
 
     function updateModalQtyRecibo(idx, delta) {
@@ -1292,14 +1381,31 @@ print <<'JS';
                 totalCobrar += ((item.precio_paciente !== undefined ? item.precio_paciente : item.precio) * (item.cantidad || 1));
             }
             
+            let masterObj = masterCatalogoRecibo.find(m => m.id === item.id);
+            let preciosArr = item.precios_disponibles || (masterObj ? masterObj.precios : []);
+            let masterTemp = masterObj ? Object.assign({}, masterObj, { precios: preciosArr }) : { precios: preciosArr };
+            let tarifas = getTarifasAplicables(masterTemp);
+
+            let subtexto = '';
+            if (isCubierto) {
+                subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">Convenio Municipio</small>`;
+            } else if (tarifas.length > 1 && !item.is_consulta_principal) {
+                let opts = '';
+                tarifas.forEach(p => {
+                    let sel = (p.tipo_tarifa === item.tipo_tarifa) ? 'selected' : '';
+                    let label = getTarifaNombre(p.tipo_tarifa);
+                    opts += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}" ${sel}>${escapeHtml(label)} (${formatCurrency(p.precio_publico)})</option>`;
+                });
+                subtexto = `<select class="form-select form-select-sm border-0 bg-transparent text-primary fw-bold p-0" style="font-size:0.7rem; cursor:pointer;" onchange="updateCartItemTarifa(${idx}, this)">${opts}</select>`;
+            } else {
+                let labelT = item.tipo_tarifa ? ` [${getTarifaNombre(item.tipo_tarifa)}]` : '';
+                subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u${escapeHtml(labelT)}</small>`;
+            }
+
             let badgePrecio = isCubierto ?
                 `<span class="badge rounded-pill ms-1" style="background:#e0f2fe; color:#0369a1; font-size: 0.68rem; border: 1px solid #bae6fd;">[Convenio Estado]</span>` :
                 `<span class="fw-bold ms-1" style="font-size: 0.78rem; color: var(--md-blue-deep, #0A2A66);">${formatCurrency(sub)}</span>`;
-                
-            let subtexto = isCubierto ?
-                `<small class="text-muted fw-bold" style="font-size: 0.7rem;">Convenio Municipio</small>` :
-                `<small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u</small>`;
-            
+
             html += `
                 <div class="cart-item-card p-2.5 rounded-3 mb-2 d-flex flex-column gap-1.5 w-100">
                     <div class="d-flex justify-content-between align-items-start gap-2">
@@ -1331,6 +1437,19 @@ print <<'JS';
         
         let totalFmt = formatCurrency(totalCobrar + iva);
         $('#cartTotalText').text(totalFmt);
+    }
+    
+    function updateCartItemTarifa(idx, selectElem) {
+        if (!cartItems[idx]) return;
+        const opt = selectElem.options[selectElem.selectedIndex];
+        if (!opt) return;
+        cartItems[idx].tipo_tarifa = selectElem.value;
+        let nPrec = parseFloat(opt.getAttribute('data-precio')) || cartItems[idx].precio;
+        cartItems[idx].precio = nPrec;
+        if (cartItems[idx].precio_paciente !== undefined && pacienteTipoActual !== 'estado') {
+            cartItems[idx].precio_paciente = nPrec;
+        }
+        renderCart();
     }
     
     async function irAlPaso2() {
