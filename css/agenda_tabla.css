@@ -1,0 +1,13 @@
+/* agenda_tabla.css */
+#tabla_citas {
+  font-size: 0.9rem;
+}
+
+#tabla_citas th {
+  text-align: center;
+  vertical-align: middle;
+}
+
+#tabla_citas td {
+  vertical-align: middle;
+}

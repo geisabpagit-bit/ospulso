@@ -1,0 +1,18 @@
+CLAVE_MENU|ARCHIVO_DESTINO|TÍTULO|DESCRIPCIÓN|ICONO_BS|COLOR_BS
+dashboard|views/inicial.pl|Visión General|Resumen de citas y métricas.|bi-speedometer2|info
+admin_global|views/admin_global.pl|Admin Global|Gestión de licencias y servidores.|bi-globe|info
+clinicas|views/manage_clinicas.pl|Gestión de Clínicas|Agregar, modificar y desactivar sucursales.|bi-building-gear|info
+usuarios|views/administracion_usuarios.pl|Gestión de Personal|Administrar el personal de la clínica.|bi-people-fill|info
+reportes|views/reportes.pl|Reportes y Análisis|Generar informes financieros y de actividad.|bi-file-bar-chart|info
+agenda|views/agenda_main.pl|Agenda Dinámica|Gestión interactiva SPA de todas las citas y calendarios.|bi-calendar-week|info
+pacientes|views/pacientes.pl|Pacientes|PHI Acceso Información de Salud Protegida.|bi-clipboard-pulse|info
+finanzas|views/finanzas.pl|Finanzas|Dashboard financiero y estado de cuenta global.|bi-cash|info
+mis_citas|views/mis_citas.pl|Citas|Ver y gestionar citas personales.|bi-calendar-event|info
+tecnico|views/administracion_catalogo.pl|Catálogos y Mantenimiento|Catálogos y mantenimiento del sistema.|bi-tools|info
+sync_google|sync_google_handler.pl|Sincronización Google|Vincular o renovar acceso a Google Calendar.|bi-google|primary
+crm_ventas|views/crm_ventas.pl|CRM Ventas|Plataforma Comercial para Alta de Organizaciones.|bi-briefcase-fill|primary
+servicios|views/manage_servicios.pl|Gestión de Servicios|Administrar catálogo de servicios.|bi-heart-pulse|info
+productos|views/manage_productos.pl|Gestión de Productos|Administrar catálogo de productos e insumos.|bi-box-seam|info
+mi_estado_cuenta|views/mi_estado_cuenta.pl|Mi Estado de Cuenta|Historial consolidado y saldos.|bi-wallet2|info
+inbox_paciente|views/inbox_paciente.pl|Bandeja de Entrada|Comunicaciones y notificaciones.|bi-inbox|primary
+mis_consultas|views/mis_consultas.pl|Consultas|Historial de consultas médicas.|bi-file-earmark-medical|info

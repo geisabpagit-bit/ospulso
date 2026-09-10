@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- SEO Meta Tags -->
+    <title>OSPulso - El Sistema Operativo para Clínicas Modernas</title>
+    <meta name="description" content="Software médico y sistema operativo para clínicas modernas. Agenda médica, expediente clínico electrónico (NOM), y control financiero.">
+    <meta name="keywords" content="software médico, expediente clínico electrónico, agenda clínica, administración de clínicas, software dental, OSPulso">
+    <link rel="canonical" href="https://ospulso.com/" />
+    
+    <!-- OpenGraph (Social Media) -->
+    <meta property="og:title" content="OSPulso - El Sistema Operativo para Clínicas Modernas">
+    <meta property="og:description" content="Software médico y sistema operativo para clínicas modernas. Agenda médica, expediente clínico electrónico (NOM), y control financiero.">
+    <meta property="og:image" content="https://ospulso.com/img/solucion_bg.png">
+    <meta property="og:url" content="https://ospulso.com/">
+    <meta property="og:type" content="website">
+
+    <!-- OSPulso Brand Identity (Favicons) -->
+    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon/favicon-64x64.png">
+    <link rel="icon" type="image/png" sizes="128x128" href="favicon/favicon-128x128.png">
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="css/ospulso_master.css" rel="stylesheet" />
+    <style>
+        .btn-holo-acrylic {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.2)) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.8) !important;
+            box-shadow: 0 8px 32px 0 rgba(10, 42, 102, 0.07), inset 0 0 10px rgba(255, 255, 255, 0.5) !important;
+            border-radius: 1.25rem !important;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-holo-acrylic::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(30deg) translateY(-50%);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+        .btn-holo-acrylic:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px 0 rgba(10, 42, 102, 0.12), inset 0 0 15px rgba(255, 255, 255, 0.8) !important;
+            border-color: rgba(24, 209, 230, 0.5) !important;
+        }
+        .btn-holo-acrylic:hover::before {
+            opacity: 1;
+            transform: rotate(30deg) translateY(50%);
+        }
+        
+        /* Modificar el fondo del modal-body para que el glassmorphism resalte */
+        #demoPatientModal .modal-body {
+            background: radial-gradient(circle at top right, #e0f2f1 0%, #f8fafc 60%) !important;
+        }
+    </style>
+</head>
+
+
+<body class="d-flex flex-column min-vh-100" style="padding-bottom: 70px;">
+    <!-- Responsive Hybrid Preloader -->
+    <div id="pagePreloader" style="padding: 0; background: #000;">
+        <!-- Desktop Video -->
+        <div id="desktopPreloader" class="d-none d-md-block w-100 h-100 position-relative">
+            <video id="preloaderVideoEl" autoplay muted playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
+                <source src="https://ospulso.pdigitalesm.com/video/hero_video_2.mp4" type="video/mp4">
+            </video>
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 20, 50, 0.3); z-index: 1;"></div>
+        </div>
+
+        <!-- Mobile EKG Fallback -->
+        <div id="mobilePreloader" class="d-md-none w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background: radial-gradient(circle at center, rgba(10, 42, 102, 0.95) 0%, rgba(5, 20, 50, 1) 100%);">
+            <div class="holo-spinner-container">
+                <div class="holo-pulse-ring"></div>
+                <div class="holo-pulse-ring"></div>
+                <svg class="holo-logo-center" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="3" result="blur" />
+                            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                        </filter>
+                        <linearGradient id="cyberGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#18d1e6" /><stop offset="100%" stop-color="#00c4c4" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M50 5 L90 25 L90 75 L50 95 L10 75 L10 25 Z" fill="none" stroke="rgba(24,209,230,0.3)" stroke-width="2" />
+                    <path d="M50 15 L80 30 L80 70 L50 85 L20 70 L20 30 Z" fill="rgba(0,196,196,0.1)" stroke="rgba(24,209,230,0.5)" stroke-width="1.5" />
+                    <path d="M42 35 h16 v12 h12 v16 h-12 v12 h-16 v-12 h-12 v-16 h12 z" fill="url(#cyberGradient)" filter="url(#neonGlow)" />
+                    <path d="M25 50 h15 l5 -15 l10 30 l5 -15 h15" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="50" cy="5" r="3" fill="#ffffff" filter="url(#neonGlow)"/>
+                    <circle cx="90" cy="25" r="3" fill="#ffffff" filter="url(#neonGlow)"/>
+                    <circle cx="90" cy="75" r="3" fill="#ffffff" filter="url(#neonGlow)"/>
+                    <circle cx="50" cy="95" r="3" fill="#ffffff" filter="url(#neonGlow)"/>
+                    <circle cx="10" cy="75" r="3" fill="#ffffff" filter="url(#neonGlow)"/>
+                    <circle cx="10" cy="25" r="3" fill="#ffffff" filter="url(#neonGlow)"/>
+                </svg>
+            </div>
+            <p class="loading-text" style="color: #18d1e6; text-shadow: 0 0 10px rgba(24,209,230,0.8); margin-top:30px;">Cargando OSPulso...</p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            let isLoaded = false;
+            let isVideoEnded = false;
+            const isMobile = window.innerWidth < 768; // Bootstrap md breakpoint
+
+            function hidePreloader() {
+                // Si es móvil, solo esperamos la carga de ventana
+                // Si es desktop, esperamos ventana Y video
+                if (isLoaded && (isMobile || isVideoEnded)) {
+                    const preloader = document.getElementById('pagePreloader');
+                    if (preloader && !preloader.classList.contains('hidden')) {
+                        preloader.classList.add('hidden');
+                        setTimeout(() => preloader.style.display = 'none', 800);
+                    }
+                }
+            }
+
+            window.addEventListener('load', () => {
+                isLoaded = true;
+                
+                if (isMobile) {
+                    // En móvil, agregamos un pequeño delay estético extra al holograma
+                    setTimeout(hidePreloader, 500);
+                } else {
+                    hidePreloader();
+                    
+                    // Fallback de seguridad para desktop
+                    setTimeout(() => {
+                        isVideoEnded = true;
+                        hidePreloader();
+                    }, 12000);
+                }
+            });
+
+            if (!isMobile) {
+                const heroVideo = document.getElementById('preloaderVideoEl');
+                if (heroVideo) {
+                    heroVideo.addEventListener('ended', () => {
+                        isVideoEnded = true;
+                        hidePreloader();
+                    });
+                    heroVideo.addEventListener('error', () => {
+                        isVideoEnded = true;
+                        hidePreloader();
+                    });
+                } else {
+                    isVideoEnded = true;
+                }
+            }
+        });
+    </script>
+
+    <!-- HEADER -->
+    <header class="navbar navbar-expand-lg fixed-top glass-navbar py-2 px-3">
+        <a href="index.html" class="logo text-decoration-none d-flex align-items-center justify-content-center" style="margin-bottom: -10px;">
+            <svg class="ospulso-logo-svg" viewBox="0 0 165 50" xmlns="http://www.w3.org/2000/svg" style="height: 55px; width: auto; overflow: visible;">
+                <text x="0" y="32" font-family="'Outfit', sans-serif" font-weight="900" font-size="28" letter-spacing="0.5">
+                    <tspan fill="#0A2A66">Os</tspan><tspan fill="#00C4C4">Pulso</tspan>
+                </text>
+                <path class="ekg-line-anim" d="M0 40 H115 L121 22 L128 42 L134 6 L141 34 L146 40 H160" stroke="#00C4C4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            </svg>
+            <span class="d-none d-md-inline-block text-secondary small border-start ps-3 ms-2 align-self-center py-1 fw-medium" style="font-size: 0.72rem; letter-spacing: 0.5px;">Sistema Operativo para Clínicas Modernas</span>
+        </a>
+        <nav class="menu d-none d-lg-flex">
+            <a href="#inicio">Producto</a>
+            <a href="#problema">El Reto</a>
+            <a href="#demo">Demo Interactiva</a>
+            <a href="#planes">Planes</a>
+        </nav>
+        <div class="acciones d-none d-lg-flex gap-2">
+            <a href="#" class="btn btn-premium-secondary fw-bold px-4 btn-pill-unify btn-magnetic-pulse" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
+            <a href="https://wa.me/525643555072" target="_blank" class="btn btn-premium-primary fw-bold px-4 btn-pill-unify btn-magnetic-pulse">Solicitar Acceso</a>
+        </div>
+        <!-- Mobile Toggle -->
+        <button class="d-lg-none btn-mobile-toggle" type="button" id="openMobileMenu">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+    </header>
+
+    <!-- Mobile Sidebar Menu -->
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <button class="btn-close-sidebar" id="closeMobileMenu">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="sidebar-body">
+            <div class="nav-links-container">
+                <a href="#inicio" class="sidebar-nav-link">Producto</a>
+                <a href="#problema" class="sidebar-nav-link">El Reto</a>
+                <a href="#demo" class="sidebar-nav-link">Demo Interactiva</a>
+                <a href="#planes" class="sidebar-nav-link">Planes</a>
+                <a href="#" class="sidebar-nav-link" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
+            </div>
+            <div class="sidebar-bottom">
+                <a href="https://wa.me/525643555072" target="_blank" class="btn-solicitar-cita-mobile text-white">Solicitar Acceso</a>
+            </div>
+        </div>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- HERO -->
+    <main>
+    <section id="inicio" class="hero-immersive align-items-center d-flex mt-0 pt-4">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-teal"></div>
+        <div class="floating-orb orb-navy"></div>
+        
+        <div class="container h-100 position-relative z-2">
+            <div class="row w-100 m-0">
+                <div class="col-12 col-lg-7 col-xl-6 p-0">
+                    <div class="hero-glass-card p-4 p-md-5 rounded-5 shadow-premium">
+                        <h1 class="fw-bold text-navy mb-3 reveal-1 hero-title-responsive">¡No dejes que el caos administre tu clínica!</h1>
+                        <h2 class="fs-4 text-secondary fw-normal mb-4 reveal-2">Recupérala hoy con OSPulso. Deja atrás agendas perdidas, expedientes incompletos y finanzas confusas — administra tu clínica sin estrés ni sobresaltos.</h2>
+                        <div class="d-flex flex-column flex-md-row gap-3 reveal-3">
+                            <a href="https://wa.me/525643555072" target="_blank" class="btn btn-premium-primary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse w-100 w-md-auto text-center" style="font-size: 1.1rem; padding: 14px 30px;"><i class="bi bi-calendar2-check-fill me-2"></i> Agendar Demo VIP</a>
+                            <a href="#demo" class="btn btn-premium-secondary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse w-100 w-md-auto text-center" style="font-size: 1.1rem; padding: 14px 30px;">Explorar Interactividad</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ECOSISTEMA MODULAR INTEGRADO -->
+    <section id="modulos" class="py-5 position-relative" style="background-color: var(--md-white-clinical); border-bottom: 1px solid rgba(0,0,0,0.05);">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-teal" style="top: 20%; left: -5%; opacity: 0.3;"></div>
+        <div class="floating-orb orb-navy" style="bottom: 10%; right: -5%; opacity: 0.3;"></div>
+
+        <div class="container position-relative z-2" style="max-width: 1200px;">
+            <div class="text-center mb-5 scroll-reveal">
+                <span class="badge-premium mb-3">Tecnología de Grado Empresarial</span>
+                <h2 class="fw-bold text-navy">Módulos Integrados y escalables</h2>
+                <p class="text-muted">Un ecosistema diseñado para conectar cada proceso de tu clínica sin fisuras.</p>
+            </div>
+            
+            <div id="modulesCarousel" class="carousel slide shadow-premium rounded-5 overflow-hidden holo-card" data-bs-ride="carousel" data-bs-interval="3000" style="border: 1px solid rgba(0, 196, 196, 0.3);">
+                <div class="carousel-inner bg-white">
+                    
+                    <!-- 1 -->
+                    <div class="carousel-item active">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/agenda.png" alt="Smart Agenda" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">Smart Agenda</h3>
+                                <ul class="list-unstyled text-muted fs-6">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i> Algoritmo anti-colisión en tiempo real</li>
+                                    <li><i class="bi bi-check-circle-fill text-info me-2"></i> Asignación inteligente multi-médico</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 2 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/expediente.png" alt="Pacientes y Expediente" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">Expediente Clínico 5.0</h3>
+                                <ul class="list-unstyled text-muted fs-6">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i> Cumplimiento total NOM-004-SSA3</li>
+                                    <li><i class="bi bi-check-circle-fill text-info me-2"></i> Receta electrónica con firma digital</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 3 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/caja.png" alt="Control de Caja" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">Finanzas y Caja</h3>
+                                <ul class="list-unstyled text-muted fs-6">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i> Arqueo ciego y cortes sin error</li>
+                                    <li><i class="bi bi-check-circle-fill text-info me-2"></i> Dispersión de comisiones automática</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/inventario.png" alt="Farmacia e Inventarios" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">Control de Insumos</h3>
+                                <ul class="list-unstyled text-muted fs-6">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i> Alertas preventivas de caducidad</li>
+                                    <li><i class="bi bi-check-circle-fill text-info me-2"></i> Trazabilidad de lotes en tiempo real</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/dicom.png" alt="Visor DICOM" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">Visor DICOM Nativo</h3>
+                                <ul class="list-unstyled text-muted fs-6">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i> Renderizado 3D de alto contraste</li>
+                                    <li><i class="bi bi-check-circle-fill text-info me-2"></i> Integración transparente al expediente</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/telemedicina.png" alt="Telemedicina" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">Consultorio Virtual</h3>
+                                <ul class="list-unstyled text-muted fs-6">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i> Encriptación de extremo a extremo</li>
+                                    <li><i class="bi bi-check-circle-fill text-info me-2"></i> Transferencia médica P2P segura</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 7 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/ai.png" alt="Doctor Assistant AI" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">Copiloto Clínico AI</h3>
+                                <ul class="list-unstyled text-muted fs-6">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i> Análisis predictivo de riesgos</li>
+                                    <li><i class="bi bi-check-circle-fill text-info me-2"></i> Resumen inteligente de historiales</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 8 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/seguridad.png" alt="Gobernanza de Datos" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">Bóveda Criptográfica</h3>
+                                <ul class="list-unstyled text-muted fs-6">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i> Cifrado de grado militar AES-256</li>
+                                    <li><i class="bi bi-check-circle-fill text-info me-2"></i> Protocolos de seguridad HIPAA Ready</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <!-- Controles -->
+                <button class="carousel-control-prev premium-chevron-prev" type="button" data-bs-target="#modulesCarousel" data-bs-slide="prev">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-left text-navy fs-4" aria-hidden="true"></i>
+                    </div>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next premium-chevron-next" type="button" data-bs-target="#modulesCarousel" data-bs-slide="next">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-right text-navy fs-4" aria-hidden="true"></i>
+                    </div>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
+                <div class="carousel-indicators" style="bottom: -15px;">
+                    <button type="button" data-bs-target="#modulesCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#modulesCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#modulesCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    <button type="button" data-bs-target="#modulesCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                    <button type="button" data-bs-target="#modulesCarousel" data-bs-slide-to="4" aria-label="Slide 5"></button>
+                    <button type="button" data-bs-target="#modulesCarousel" data-bs-slide-to="5" aria-label="Slide 6"></button>
+                    <button type="button" data-bs-target="#modulesCarousel" data-bs-slide-to="6" aria-label="Slide 7"></button>
+                    <button type="button" data-bs-target="#modulesCarousel" data-bs-slide-to="7" aria-label="Slide 8"></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EL PROBLEMA (Storytelling & Data) -->
+    <section id="problema" class="py-5 text-center position-relative demo-gradient-bg">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-teal" style="top: 10%; left: 5%;"></div>
+        <div class="floating-orb orb-navy" style="bottom: 10%; right: 10%;"></div>
+        
+        <div class="container position-relative z-2" style="max-width: 900px;">
+            <span class="badge-premium mb-3">El Desafío Clínico</span>
+            <h2 class="fw-bold text-white mb-2 scroll-reveal">El Caos que Nadie Quiere Admitir</h2>
+            <p class="text-light fw-semibold mb-4 scroll-reveal" style="font-size: 1.15rem;">¿Cuántos pacientes perdiste esta semana?</p>
+            <p class="lead text-white opacity-75 mb-4 scroll-reveal">Según la Asociación Mexicana de Gestión de Clínicas, <strong>7 de cada 10 clínicas pierden pacientes</strong> por fallas administrativas. Uno de ellos puede ser tu clínica si sigues con Excel y papel.</p>
+            
+            <!-- Animated Losses Counter -->
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-5 scroll-reveal">
+                <span class="fs-4 text-white">Tasa de Fuga Operativa:</span>
+                <span id="animatedCounter" class="fs-2 fw-bold text-danger">0%</span>
+            </div>
+
+            <!-- Leak Calculator Widget (Gamified Problem) -->
+            <div class="p-4 rounded-5 holo-card text-start mx-auto mb-5 scroll-reveal" style="max-width: 600px;">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-calculator text-danger me-2"></i>Calculadora de Pacientes Perdidos</h5>
+                <p class="small text-muted mb-4">Mueve la barra para estimar cuántos pacientes e ingresos podrías estar perdiendo por fallas operativas menores:</p>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-navy d-flex justify-content-between">
+                        <span>Citas estimadas al mes:</span>
+                        <span id="citasValue" class="text-primary fs-5">150</span>
+                    </label>
+                    <input type="range" class="leak-slider" id="citasSlider" min="50" max="1000" step="10" value="150">
+                </div>
+
+                <div class="row g-3 text-center mb-3">
+                    <div class="col-6">
+                        <div class="p-3 bg-white border rounded-4">
+                            <span class="fs-6 text-muted">Pacientes en Riesgo/Año</span>
+                            <h3 class="fw-bold text-danger mt-1 mb-0" id="lostPatientsVal">36</h3>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-white border rounded-4">
+                            <span class="fs-6 text-muted">Fuga Estimada</span>
+                            <h3 class="fw-bold text-danger mt-1 mb-0" id="lostMoneyVal">$43,200 MXN</h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="text-secondary small fst-italic mb-0" style="font-weight: 500;">
+                    ⚠️ <span id="leakCalculatedMicrocopy">Eso equivale a pagar a tu equipo por trabajar gratis cada mes.</span>
+                </p>
+                <div class="mt-2 text-muted x-small">
+                    * Cálculo basado en una tasa promedio del 24% de ausencias y descuidos administrativos anuales en agendas sin software automatizado.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LA SOLUCIÓN -->
+    <section id="solucion" class="py-5 text-center scroll-reveal parallax-section position-relative overflow-hidden" style="background: var(--bg-ospulso-gradient); min-height: 50vh; display: flex; align-items: center;">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-teal" style="top: 10%; right: 10%; opacity: 0.4;"></div>
+        <div class="floating-orb orb-navy" style="bottom: 10%; left: 10%; opacity: 0.4;"></div>
+        
+        <div class="container position-relative z-2" style="max-width: 900px;">
+            <div class="holo-card p-5 rounded-5" style="background: rgba(10, 42, 102, 0.4) !important; border: 1px solid rgba(24, 209, 230, 0.3) !important;">
+                <span class="badge-premium mb-3">La Solución</span>
+                <h2 class="fw-bold text-white mb-4">OSPulso — El guardián que transforma tu clínica caótica en una máquina rentable.</h2>
+                <p class="lead text-light mb-0 opacity-75">Convierte cada cita y expediente en ganancias claras y crecimiento real. Desde el primer mes, OSPulso centraliza todo para que tu clínica funcione como un reloj suizo.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- LOS 3 PILARES (with social proof quotes) -->
+    <section id="pilares" class="py-5 bg-white">
+        <div class="container" style="max-width: 1100px;">
+            <div class="text-center mb-5 scroll-reveal">
+                <span class="badge-premium mb-3">Arquitectura de Operación</span>
+                <h2 class="fw-bold text-navy">Los 3 Pilares del Éxito Clínico</h2>
+            </div>
+            <div id="pilaresCarousel" class="carousel slide shadow-premium rounded-5 overflow-hidden holo-card" data-bs-ride="carousel" data-bs-interval="4000" style="border: 1px solid rgba(0, 196, 196, 0.3);">
+                <div class="carousel-inner bg-white">
+                    
+                    <!-- 1 -->
+                    <div class="carousel-item active">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/pilar_agenda_v2.png" alt="Agenda Anti-Colisión" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">1. Agenda Inteligente</h3>
+                                <ul class="list-unstyled text-muted fs-5 mb-4">
+                                    <li class="mb-2"><i class="bi bi-check2-square text-primary me-2"></i> Algoritmo anti-colisión 24/7</li>
+                                    <li><i class="bi bi-check2-square text-primary me-2"></i> Reducción de ausentismo del 35%</li>
+                                </ul>
+                                <div class="border-top pt-4 d-flex align-items-center justify-content-center justify-content-md-start">
+                                    <img src="https://i.pravatar.cc/150?u=silva" alt="Dr. Roberto Silva" class="rounded-circle me-3" width="50" height="50" style="border: 2px solid var(--md-teal-clinical);">
+                                    <span class="small fst-italic text-success lh-sm">“El ausentismo bajó radicalmente. El ROI es inmediato.”<br><strong class="text-muted">Dr. Roberto Silva, Cirujano Maxilofacial</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 2 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/pilar_expediente_v2.png" alt="Expediente Inteligente" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">2. Expediente Electrónico NOM</h3>
+                                <ul class="list-unstyled text-muted fs-5 mb-4">
+                                    <li class="mb-2"><i class="bi bi-check2-square text-primary me-2"></i> Validado bajo NOM-004-SSA3</li>
+                                    <li><i class="bi bi-check2-square text-primary me-2"></i> CIE-10 y firma electrónica integrada</li>
+                                </ul>
+                                <div class="border-top pt-4 d-flex align-items-center justify-content-center justify-content-md-start">
+                                    <img src="https://i.pravatar.cc/150?u=gomez" alt="Dra. Karina Gómez" class="rounded-circle me-3" width="50" height="50" style="border: 2px solid var(--md-teal-clinical);">
+                                    <span class="small fst-italic text-success lh-sm">“Pasamos la auditoría de COFEPRIS sin una sola observación.”<br><strong class="text-muted">Dra. Karina Gómez, Dermatóloga</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 3 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-5" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/pilar_finanzas_v2.png" alt="Finanzas Diamond Sync" class="holo-carousel-img">
+                            </div>
+                            <div class="col-md-6 p-5 text-center text-md-start">
+                                <h3 class="fw-bold text-navy mb-3">3. Finanzas y Arqueo Ciego</h3>
+                                <ul class="list-unstyled text-muted fs-5 mb-4">
+                                    <li class="mb-2"><i class="bi bi-check2-square text-primary me-2"></i> Reportes financieros automáticos</li>
+                                    <li><i class="bi bi-check2-square text-primary me-2"></i> Sin fugas ni discrepancias de caja</li>
+                                </ul>
+                                <div class="border-top pt-4 d-flex align-items-center justify-content-center justify-content-md-start">
+                                    <img src="https://i.pravatar.cc/150?u=pena" alt="Dr. Javier Peña" class="rounded-circle me-3" width="50" height="50" style="border: 2px solid var(--md-teal-clinical);">
+                                    <span class="small fst-italic text-success lh-sm">“La dispersión de comisiones ya no es un dolor de cabeza mensual.”<br><strong class="text-muted">Dr. Javier Peña, Director Médico</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <!-- Controles -->
+                <button class="carousel-control-prev premium-chevron-prev" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="prev">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-left text-navy fs-4" aria-hidden="true"></i>
+                    </div>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next premium-chevron-next" type="button" data-bs-target="#pilaresCarousel" data-bs-slide="next">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-right text-navy fs-4" aria-hidden="true"></i>
+                    </div>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
+                <div class="carousel-indicators" style="bottom: -15px;">
+                    <button type="button" data-bs-target="#pilaresCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#pilaresCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#pilaresCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DEMO PEPITO (Gamified and Autoplay search) -->
+    <section id="demo" class="py-5 text-center position-relative demo-gradient-bg">
+        <div class="container" style="max-width: 900px;">
+            <span class="badge-premium mb-3">Experiencia Interactiva</span>
+            <h2 class="fw-bold text-white mb-3">Prueba OSPulso en un Clic</h2>
+            <p class="text-light mb-4">Haz clic y mira cómo OSPulso organiza tu clínica en segundos — sin escribir nada.</p>
+            
+            <!-- Autoplay Trigger Button -->
+            <div class="d-flex justify-content-center gap-3 mb-4 flex-wrap">
+                <button id="btnAutoPlayDemo" class="btn btn-premium-primary btn-lg px-4 py-3 fw-bold btn-magnetic-pulse" style="border-radius: 12px;">
+                    <i class="bi bi-play-circle me-2"></i> Simular Operación
+                </button>
+                <a href="https://wa.me/525643555072" target="_blank" class="btn btn-premium-secondary btn-lg px-4 py-3 fw-bold d-inline-flex align-items-center gap-2" style="border-radius: 12px;">
+                    Agendar Demo Personalizada <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Mini Carousel of Screens -->
+            <div id="demoCarousel" class="carousel slide mx-auto mb-5 holo-card rounded-5 p-0 overflow-hidden" data-bs-ride="carousel" data-bs-interval="3500" style="max-width: 900px; border: 1px solid rgba(0, 196, 196, 0.3);">
+                <div class="carousel-inner">
+                    <!-- 1 -->
+                    <div class="carousel-item active">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-4" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/agenda.png" alt="Agenda Inteligente" class="holo-carousel-img img-fluid" style="max-height: 280px;">
+                            </div>
+                            <div class="col-md-6 p-4 text-center text-md-start">
+                                <h4 class="fw-bold text-navy mb-3">Así se ve tu agenda sin caos</h4>
+                                <p class="text-muted fs-6">Visualiza citas por colores, estados de confirmación y gestiona el tiempo de tus médicos en segundos.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 2 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-4" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/expediente.png" alt="Expediente Clínico" class="holo-carousel-img img-fluid" style="max-height: 280px;">
+                            </div>
+                            <div class="col-md-6 p-4 text-center text-md-start">
+                                <h4 class="fw-bold text-navy mb-3">Expedientes listos en segundos</h4>
+                                <p class="text-muted fs-6">Accede al historial clínico completo, recetas previas y archivos de tu paciente al instante.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 3 -->
+                    <div class="carousel-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-6 text-center p-4" style="background: radial-gradient(circle, rgba(24,209,230,0.1) 0%, rgba(255,255,255,0) 70%);">
+                                <img src="img/holo/caja.png" alt="Finanzas" class="holo-carousel-img img-fluid" style="max-height: 280px;">
+                            </div>
+                            <div class="col-md-6 p-4 text-center text-md-start">
+                                <h4 class="fw-bold text-navy mb-3">Corte de caja sin errores</h4>
+                                <p class="text-muted fs-6">Cobros exactos, facturación rápida y reportes financieros automáticos al final del día.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Controles -->
+                <button class="carousel-control-prev premium-chevron-prev" type="button" data-bs-target="#demoCarousel" data-bs-slide="prev">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-left text-navy fs-4" aria-hidden="true"></i>
+                    </div>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next premium-chevron-next" type="button" data-bs-target="#demoCarousel" data-bs-slide="next">
+                    <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-chevron-right text-navy fs-4" aria-hidden="true"></i>
+                    </div>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
+            </div>
+
+            <div class="search-demo-container mx-auto p-4 rounded-5 holo-card position-relative" style="max-width: 600px;">
+                <!-- Tooltip guide -->
+                <div id="demoTooltip" class="tooltip-custom d-none" style="top: -45px; left: 50%; transform: translateX(-50%);">
+                    ¡Simulando búsqueda de paciente... !
+                </div>
+                
+                <!-- Progress bar simulation -->
+                <div id="demoProgressBarContainer" class="d-none mb-3">
+                    <span class="small text-navy fw-bold d-block mb-1">Cargando expediente...</span>
+                    <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div id="demoProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div id="demoInputGroup" class="input-group mb-2">
+                    <span class="input-group-text bg-white border-end-0" style="border-radius: 1rem 0 0 1rem; border: 2px solid #e2e8f0;">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" id="demoSearchInput" class="form-control border-start-0 py-3" placeholder="Escribe un nombre de paciente..." style="border-radius: 0 1rem 1rem 0; border: 2px solid #e2e8f0; font-weight: 500;">
+                </div>
+                
+                                  <!-- Disclaimer Transparencia -->
+                  <div class="mt-4 pt-3 border-top text-center animate__animated animate__fadeIn">
+                      <p class="small text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4;">
+                          <i class="bi bi-info-circle-fill text-info me-1"></i>
+                          <strong>Nota de Transparencia:</strong> Estás probando una maqueta de la próxima interfaz de <strong>OSPulso Diamond 2.0</strong>. Al contratar hoy, accedes a la versión Classic, un entorno hiper-estable y 100% certificado en NOM-024, que se está actualizando progresivamente a este nuevo diseño sin costo adicional.
+                      </p>
+                  </div>
+<!-- Result card -->
+                </div>
+              </div>
+    </section>
+
+    <!-- SOCIAL PROOF (CASOS REALES) -->
+    <section id="testimonios" class="py-5 bg-light text-center">
+        <div class="container" style="max-width: 900px;">
+            <span class="badge-premium mb-3">Casos Reales</span>
+            <h2 class="fw-bold text-navy mb-5">La Experiencia de Clínicas Reales</h2>
+            <div class="row g-4 text-start">
+                <div class="col-md-6">
+                    <div class="holo-card p-5 border-0 rounded-4 shadow-sm h-100 d-flex flex-column position-relative">
+                        <p class="fst-italic text-secondary mb-4 fs-6">“Gracias a OSPulso, redujimos el tiempo administrativo un 50% y la facturación subió.”</p>
+                        <div class="border-top pt-4 d-flex align-items-center justify-content-between mt-auto">
+                            <div class="d-flex align-items-center">
+                                <img src="https://i.pravatar.cc/150?img=47" alt="Dra. María López" class="rounded-circle me-3" width="50" height="50" style="border: 2px solid var(--md-teal-clinical);">
+                                <span class="small lh-sm text-navy fw-bold">Dra. María López<br><span class="text-muted fw-normal">Odontología Integral</span></span>
+                            </div>
+                        </div>
+                        <a href="https://wa.me/525643555072" target="_blank" class="btn btn-premium-outline btn-sm w-100 mt-4 rounded-pill fw-bold">Ver Historia Completa →</a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="holo-card p-5 border-0 rounded-4 shadow-sm h-100 d-flex flex-column position-relative">
+                        <p class="fst-italic text-secondary mb-4 fs-6">“Ahora todo está bajo control, sin caos ni estrés. La agenda fluye de manera natural.”</p>
+                        <div class="border-top pt-4 d-flex align-items-center justify-content-between mt-auto">
+                            <div class="d-flex align-items-center">
+                                <img src="https://i.pravatar.cc/150?img=68" alt="Dr. Carlos Ruiz" class="rounded-circle me-3" width="50" height="50" style="border: 2px solid var(--md-teal-clinical);">
+                                <span class="small lh-sm text-navy fw-bold">Dr. Carlos Ruiz<br><span class="text-muted fw-normal">Clínica San Rafael</span></span>
+                            </div>
+                        </div>
+                        <a href="https://wa.me/525643555072" target="_blank" class="btn btn-premium-outline btn-sm w-100 mt-4 rounded-pill fw-bold">Ver Historia Completa →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PLANES / PRECIOS (Tailored Pricing) -->
+    <section id="planes" class="py-5 text-center scroll-reveal position-relative" style="background-color: var(--md-white-clinical); border-top: 1px solid rgba(0,0,0,0.05);">
+        <div class="container" style="max-width: 900px;">
+            <div class="text-center mb-5">
+                <span class="badge-premium mb-3">Escalabilidad Total</span>
+                <h2 class="fw-bold text-navy">Planes a tu Medida</h2>
+                <p class="text-muted fw-semibold mt-2 fs-5">Tecnología de élite para clínicas que exigen lo mejor, sin costos ocultos.</p>
+            </div>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="p-5 premium-panel holo-card d-flex flex-column flex-md-row align-items-center text-start gap-4" style="border: 2px solid var(--md-teal-clinical) !important; z-index: 2; background: linear-gradient(145deg, #ffffff, #f0f7f7);">
+                        <div class="flex-grow-1">
+                            <h3 class="fw-bold text-navy mb-3"><i class="bi bi-gem text-primary me-2"></i> OSPulso Diamond</h3>
+                            <ul class="list-unstyled text-muted mb-4 fs-6">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Migración de datos históricos sin costo</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Capacitación guiada 1 a 1 para tu equipo</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Certificación NOM-024 (SIRES) y NOM-004</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Soporte técnico prioritario 24/7</li>
+                            </ul>
+                            <div class="mt-2 text-muted x-small fst-italic">
+                                * La arquitectura se dimensiona a la medida exacta de tu volumen de pacientes y médicos.
+                            </div>
+                        </div>
+                        <div class="text-center" style="min-width: 250px;">
+                            <a href="https://wa.me/525643555072" target="_blank" class="btn btn-premium-primary btn-magnetic-pulse w-100 py-3 fw-bold mb-3" style="border-radius: 12px; font-size: 1.1rem;"><i class="bi bi-calendar-event me-2"></i> Agendar Cotización VIP</a>
+                            <span class="d-block small text-muted"><i class="bi bi-shield-check text-success me-1"></i> Garantía de implementación</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="py-5 bg-white text-center position-relative">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-navy" style="top: -5%; right: -5%; opacity: 0.5;"></div>
+        <div class="floating-orb orb-teal" style="bottom: 5%; left: 0; opacity: 0.5;"></div>
+        
+        <div class="container position-relative z-2" style="max-width: 800px;">
+            <div class="text-center mb-5" id="faqHeadingContainer">
+                <span class="badge-premium mb-3">Preguntas Frecuentes</span>
+                <h2 class="fw-bold text-navy">Resolvemos tus dudas antes de empezar</h2>
+                <p class="text-muted small mt-2">“Aquí respondemos las dudas que más nos hacen.”</p>
+            </div>
+            
+            <div class="accordion accordion-premium text-start" id="accordionFAQ">
+                <!-- FAQ 1 -->
+                <div class="accordion-item border-0 mb-3 rounded-4 shadow-sm">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button fw-bold text-navy rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            ¿Mi clínica es demasiado pequeña o grande para OSPulso?
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body text-secondary">
+                            OSPulso está diseñado de forma modular. <strong>Desde un solo especialista que gestiona y administra su consultorio hasta clínicas u hospitales con grupos de trabajo del flujo médico.</strong> Escala contigo sin importar el volumen.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ 2 -->
+                <div class="accordion-item border-0 mb-3 rounded-4 shadow-sm">
+                    <h2 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed fw-bold text-navy rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            ¿Voy a perder mis históricos y registros actuales en Excel?
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body text-secondary">
+                            De ninguna manera. Contamos con un proceso de migración de <strong>"Cero Riesgos"</strong>. Nuestro Setup incluye la transición segura de todos tus datos históricos, blindando tus expedientes bajo normativas de salud oficiales (NOM, HL7, CIE-10).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ 3 -->
+                <div class="accordion-item border-0 mb-3 rounded-4 shadow-sm">
+                    <h2 class="accordion-header" id="headingThree">
+                        <button class="accordion-button collapsed fw-bold text-navy rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            ¿Mi equipo de recepción y asistentes sabrán usar el sistema?
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body text-secondary">
+                            Sí. El sistema tiene un <strong>enfoque en la curva de aprendizaje "Fricción Cero"</strong>. La adopción es rápida y natural. Además, el Día 1 les entregamos la agenda precargada para que comiencen a operar sin estrés ni configuraciones complejas.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ 4 -->
+                <div class="accordion-item border-0 mb-3 rounded-4 shadow-sm">
+                    <h2 class="accordion-header" id="headingFour">
+                        <button class="accordion-button collapsed fw-bold text-navy rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            ¿Hay cobros ocultos por agregar más usuarios, médicos o pacientes?
+                        </button>
+                    </h2>
+                    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body text-secondary">
+                            <strong>No, Sin cargos extra, lo que ves es lo que pagas.</strong> Creemos en el modelo SaaS as Infrastructure con una tarifa plana ilimitada. Tu clínica puede crecer libremente sin penalizaciones por éxito.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ 5 -->
+                <div class="accordion-item border-0 mb-3 rounded-4 shadow-sm">
+                    <h2 class="accordion-header" id="headingFive">
+                        <button class="accordion-button collapsed fw-bold text-navy rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                            ¿Por qué debería pagar por esto si Excel es gratis?
+                        </button>
+                    </h2>
+                    <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body text-secondary">
+                            Porque <strong>Excel no es gratis; te está costando dinero.</strong> Cada cita olvidada, cada fuga de presupuesto y cada hora administrativa perdida es un costo oculto altísimo. OSPulso no es un gasto, es la protección financiera para asegurar tu rentabilidad y paz mental.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ 6 -->
+                <div class="accordion-item border-0 mb-3 rounded-4 shadow-sm">
+                    <h2 class="accordion-header" id="headingSix">
+                        <button class="accordion-button collapsed fw-bold text-navy rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                            ¿Miedo a soltar tu viejo Excel? 😱
+                        </button>
+                    </h2>
+                    <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body text-secondary">
+                            Tranquilo, soltar duele, pero crecer lo cura todo. Te acompañaremos en cada paso de manera segura; hacemos la migración por ti. Sin dramas, ¡solo soluciones rápidas!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ 7 -->
+                <div class="accordion-item border-0 mb-3 rounded-4 shadow-sm">
+                    <h2 class="accordion-header" id="headingSeven">
+                        <button class="accordion-button collapsed fw-bold text-navy rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                            ¿Puedo usarlo desde mi smartphone tomando café? ☕
+                        </button>
+                    </h2>
+                    <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body text-secondary">
+                            ¡Claro! OSPulso vive en la nube y cabe en tu bolsillo. Gestiona tu agenda y revisa finanzas mientras te tomas ese americano. Cero estrés.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- FAQ 8 -->
+                <div class="accordion-item border-0 mb-3 rounded-4 shadow-sm">
+                    <h2 class="accordion-header" id="headingEight">
+                        <button class="accordion-button collapsed fw-bold text-navy rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                            ¿Tengo que amarrarme a un contrato largo? 🔒
+                        </button>
+                    </h2>
+                    <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body text-secondary">
+                            ¡Para nada! Sin letras chiquitas ni plazos forzosos. Queremos que te quedes por lo mucho que ahorras mes a mes, no por un papel firmado.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="py-5 text-center demo-gradient-bg position-relative overflow-hidden">
+        <!-- Floating Ambient Orbs -->
+        <div class="floating-orb orb-teal" style="top: 20%; left: 10%; opacity: 0.5;"></div>
+        <div class="floating-orb orb-navy" style="bottom: 20%; right: 10%; opacity: 0.5;"></div>
+
+        <div class="container py-4 position-relative z-2" style="max-width: 800px;">
+            <div class="holo-card p-5 rounded-5 shadow-premium text-white" style="background: rgba(255, 255, 255, 0.05) !important;">
+                <h2 class="fw-bold mb-3">¿Listo para transformar tu clínica?</h2>
+                <p class="lead mb-4 opacity-75">No dejes para mañana los pacientes que puedes atender (y cobrar) hoy. ¡Agenda una demo y siente la diferencia!</p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="#demo" class="btn btn-premium-primary fw-bold px-4 py-3 btn-pill-unify btn-magnetic-pulse shadow-lg">Siente la diferencia (Demo)</a>
+                    <a href="https://wa.me/525643555072" target="_blank" class="btn btn-outline-light fw-bold px-4 py-3 btn-pill-unify btn-magnetic-pulse">Contactar a Soporte</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="background: rgba(232, 243, 255, 0.96) !important; backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important; color: var(--md-blue-deep) !important; padding: 4rem 0 2rem !important; margin-top: auto; border-top: 1px solid rgba(10, 42, 102, 0.08) !important;">
+        <div class="container" style="max-width: 1100px;">
+            <div class="row align-items-center g-4 text-center text-lg-start">
+                <div class="col-lg-6">
+                    <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2 mb-3">
+                        <img src="https://www.pdigitalesm.com/assets/logo-geisabpa.webp" alt="Logo GEISABPA" width="25" height="25">
+                        <h5 class="plus-jakarta fw-bold mb-0" style="font-size: 1.1rem; color: var(--md-blue-deep);">GEISABPA <span style="font-weight:400; font-size:0.85rem; opacity:0.7">Plataformas Digitales de México</span></h5>
+                    </div>
+                                        <div style="font-size: 0.9rem; opacity: 0.9;">
+                        <p class="mb-1"><i class="bi bi-geo-alt-fill me-2" style="color: #00C4C4;"></i>Sierra Madre Oriental #163, La Pradera. CP 07500, CDMX</p>
+                        <p class="mb-4"><i class="bi bi-telephone-fill me-2" style="color: #00C4C4;"></i>Tel: +52 56 4355 5072 | +52 55 7575 4269</p>
+                        <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
+                            <span class="badge bg-white text-navy border py-2 px-3 shadow-sm" style="font-size:0.75rem;"><i class="bi bi-shield-check text-success me-1"></i> NOM-024-SSA3 (SIRES)</span>
+                            <span class="badge bg-white text-navy border py-2 px-3 shadow-sm" style="font-size:0.75rem;"><i class="bi bi-file-earmark-medical text-success me-1"></i> NOM-004-SSA3 (Expediente)</span>
+                            <span class="badge bg-white text-navy border py-2 px-3 shadow-sm" style="font-size:0.75rem;"><i class="bi bi-lock-fill text-success me-1"></i> HIPAA & AES-256</span>
+                        </div>
+                    </div>
+
+                  </div>
+                  <div class="col-lg-6 text-lg-end">
+                    <div class="d-flex flex-column align-items-center align-items-lg-end">
+                        <div class="d-flex gap-4 mb-3 justify-content-center justify-content-lg-end">
+                            <a href="https://www.facebook.com/pdigitalesm/" target="_blank" style="color: var(--md-blue-deep); text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#00C4C4';" onmouseout="this.style.color='var(--md-blue-deep)';"><i class="bi bi-facebook me-2" style="color: #00C4C4;"></i>Facebook</a>
+                            <a href="#" style="color: var(--md-blue-deep); text-decoration: none; opacity: 0.9; transition: color 0.3s;" onmouseover="this.style.color='#00C4C4';" onmouseout="this.style.color='var(--md-blue-deep)';">Soporte</a>
+                            <a href="#" style="color: var(--md-blue-deep); text-decoration: none; opacity: 0.9; transition: color 0.3s;" onmouseover="this.style.color='#00C4C4';" onmouseout="this.style.color='var(--md-blue-deep)';">Privacidad</a>
+                        </div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;">
+                            &copy; 2026 Todos los derechos reservados. OsPulso - Inteligencia Clínica Operativa.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MOBILE STICKY BAR -->
+    <div class="mobile-sticky-cta d-lg-none d-flex align-items-center justify-content-between">
+        <span class="small fw-bold text-navy">Digitaliza tu clínica hoy</span>
+        <a href="https://wa.me/525643555072" target="_blank" class="btn btn-success fw-bold px-3 py-2 btn-pill-unify btn-magnetic-pulse shadow" style="font-size: 0.85rem;">Agendar Demo</a>
+    </div>
+
+    <!-- ROI Calculator Modal -->
+    <div class="modal fade" id="roiModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 bg-light p-4" style="border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold text-navy"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Calculadora de ROI OSPulso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-4">Ingresa tus datos promedio para calcular cuánto tiempo y dinero dejas de perder al mes:</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-navy">Número de Médicos/Staff:</label>
+                        <input type="number" id="roiStaff" class="form-control" value="3" min="1" style="border-radius: 8px;">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-navy">Horas administrativas perdidas/médico al mes:</label>
+                        <input type="number" id="roiHours" class="form-control" value="15" min="1" style="border-radius: 8px;">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-navy">Precio promedio de consulta ($ MXN):</label>
+                        <input type="number" id="roiPrice" class="form-control" value="500" min="100" style="border-radius: 8px;">
+                    </div>
+
+                    <div class="p-3 bg-light rounded-4" style="border-radius: 12px !important;">
+                        <h6 class="fw-bold text-navy mb-3">Tu Retorno Estimado:</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small text-muted">Tiempo administrativo recuperado:</span>
+                            <strong class="text-primary" id="roiTimeOutput">45 horas/mes</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small text-muted">Ahorro / Ingreso extra potencial:</span>
+                            <strong class="text-success" id="roiMoneyOutput">$22,500 MXN/mes</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Cerrar</button>
+                    <a href="auth/registro.pl" class="btn btn-premium-primary btn-magnetic-pulse px-4 py-2 text-center" style="border-radius: 8px; border: none;">Dejar el Caos Atrás</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Modal Demo Paciente Interactivo -->
+    <div class="modal fade" id="demoPatientModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem; overflow: hidden; background: #f8fafc;">
+                <!-- Header Navy -->
+                <div class="modal-header text-white px-4 py-3" style="background: var(--md-blue-deep); border-bottom: none;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-person-lines-fill me-2 text-info"></i> Expediente: <span id="demoModalNameHeader">Ana Lopez</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                
+                <div class="modal-body p-4 p-md-5">
+                    <div class="row g-4">
+                        <!-- Left Column -->
+                        <div class="col-lg-5">
+                            <div class="bg-white rounded-4 p-4 shadow-sm border mb-4 d-flex align-items-center">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold me-3 shadow-sm" style="width: 65px; height: 65px; font-size: 1.8rem; background: var(--md-blue-deep);" id="demoModalInitials">
+                                    AL
+                                </div>
+                                <div>
+                                    <h4 class="fw-bold text-navy mb-1" id="demoModalName">Ana Lopez</h4>
+                                    <span class="text-success small fw-bold"><i class="bi bi-shield-check"></i> ID: <span id="demoModalId">1</span> • Activo</span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 gap-md-3 text-center">
+                                <div class="flex-fill bg-white rounded-4 p-3 shadow-sm border" style="border-top: 4px solid var(--md-teal-clinical) !important;">
+                                    <div class="text-muted small fw-bold mb-1">CARGOS</div>
+                                    <div class="fw-bold fs-5 text-navy">$0.00</div>
+                                </div>
+                                <div class="flex-fill bg-white rounded-4 p-3 shadow-sm border" style="border-top: 4px solid #10b981 !important;">
+                                    <div class="text-muted small fw-bold mb-1">ABONOS</div>
+                                    <div class="fw-bold fs-5 text-success">$0.00</div>
+                                </div>
+                                <div class="flex-fill bg-white rounded-4 p-3 shadow-sm border" style="border-top: 4px solid #8b5cf6 !important;">
+                                    <div class="text-muted small fw-bold mb-1">SALDO</div>
+                                    <div class="fw-bold fs-5 text-navy">$0.00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column (Actions) -->
+                        <div class="col-lg-7">
+                            <div class="row g-3 mb-4">
+                                <div class="col-6 col-md-4">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-folder2-open fs-3 text-primary d-block mb-1"></i>
+                                        <span class="small fw-bold">EXPEDIENTE</span>
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-cash-stack fs-3 text-success d-block mb-1"></i>
+                                        <span class="small fw-bold">FINANZAS</span>
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-calendar-plus fs-3 d-block mb-1" style="color: #8b5cf6;"></i>
+                                        <span class="small fw-bold">CITA</span>
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-envelope-paper fs-3 text-warning d-block mb-1"></i>
+                                        <span class="small fw-bold">CORREO</span>
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-whatsapp fs-3 text-success d-block mb-1"></i>
+                                        <span class="small fw-bold">WHATSAPP</span>
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <button class="btn w-100 py-3 btn-holo-acrylic hover-lift text-navy" onclick="alert('Esta función está disponible en tu cuenta completa.');">
+                                        <i class="bi bi-printer fs-3 text-secondary d-block mb-1"></i>
+                                        <span class="small fw-bold">IMPRIMIR</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Historial (Consultas Previas) -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-navy fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i> Consultas Previas</h6>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle" disabled><i class="bi bi-chevron-left"></i></button>
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle" disabled><i class="bi bi-chevron-right"></i></button>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-4 p-3 shadow-sm border d-inline-block" style="border-left: 4px solid var(--md-teal-clinical) !important; min-width: 200px;">
+                                <div class="fw-bold text-navy mb-1">Primera Vez</div>
+                                <div class="text-muted small mb-2">04 JUL • 09:00</div>
+                                <span class="badge bg-success rounded-pill px-3">Realizado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Iniciar Sesión (Diamond Refactor) -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg"
+                style="border-radius: 20px; overflow: hidden; border: 1px solid var(--md-green-medical) !important; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(25px);">
+                <div class="login-header-premium text-start py-4 px-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h4 class="fw-bold text-navy mb-0">
+                            <i class="bi bi-shield-lock-fill me-2"></i>Acceso Clínico
+                        </h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                </div>
+                <div class="modal-body p-4">
+                    <form action="auth/acceso.pl" method="POST" id="premiumLoginForm" autocomplete="on">
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="email" name="h_correo"
+                                placeholder="nombre@clinica.com" autocomplete="username email" list="recentEmailsList" required
+                                style="border: 2px solid #e2e8f0; border-radius: 12px;">
+                            <datalist id="recentEmailsList"></datalist>
+                            <label for="email"><i class="bi bi-envelope me-2"></i>Correo electrónico</label>
+                            <div id="emailFeedback" class="form-text mt-1 text-muted">Ingresa tu correo para verificar la cuenta.</div>
+                        </div>
+
+                        <div class="form-floating mb-3 position-relative">
+                            <input type="password" class="form-control" id="password" name="h_clave"
+                                placeholder="Contraseña" autocomplete="current-password" required
+                                style="border: 2px solid #e2e8f0; border-radius: 12px; padding-right: 3.5rem;">
+                            <label for="password"><i class="bi bi-key-fill me-2"></i>Contraseña</label>
+                            <button type="button" class="btn btn-outline-secondary position-absolute end-0 top-50 translate-middle-y border-0 me-2"
+                                id="togglePassword" style="border-radius: 50%; width: 2.5rem; height: 2.5rem; z-index: 10;">
+                                <i class="bi bi-eye-slash-fill" id="eyeIcon"></i>
+                            </button>
+                        </div>
+
+                        <div id="passwordHelp" class="form-text text-center px-1 mb-3 text-muted"
+                            style="font-size: 0.72rem;">
+                            * Requerimos un correo registrado y contraseña de mínimo 4 caracteres.
+                        </div>
+
+                        <button type="submit" class="btn btn-medentia-action w-100 fw-bold py-2 mb-3 shadow"
+                            id="loginSubmitBtn" disabled>
+                            INICIAR SESIÓN
+                        </button>
+
+                        <div class="d-flex justify-content-between align-items-center gap-2 pt-3 border-top"
+                            style="font-size: 0.82rem;">
+                            <a href="auth/registro.pl" class="text-decoration-none fw-bold text-primary">
+                                <i class="bi bi-plus-circle-fill me-1"></i>¿Nuevo? Regístrate aquí
+                            </a>
+                            <a href="#" class="text-decoration-none text-secondary" data-bs-toggle="modal"
+                                 data-bs-target="#forgotPasswordModal" onclick="bootstrap.Modal.getOrCreateInstance(document.getElementById('loginModal')).hide();">
+                                <i class="bi bi-question-circle me-1"></i>¿Olvidaste tu clave?
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Recuperar Contraseña -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg"
+                style="border-radius: 20px; overflow: hidden; border: 1px solid var(--md-green-medical) !important; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(25px);">
+                <div class="login-header-premium text-start py-4 px-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h4 class="fw-bold text-navy mb-0">
+                            <i class="bi bi-key-fill me-2"></i>Recuperar Contraseña
+                        </h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"
+                             onclick="bootstrap.Modal.getOrCreateInstance(document.getElementById('loginModal')).show();"></button>
+                    </div>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-navy-50 small mb-4">
+                        Ingresa el correo electrónico asociado a tu cuenta. Te enviaremos un enlace para restablecer tu contraseña.
+                    </p>
+                    <form id="recoverForm">
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="recoverEmail" name="h_correo_recuperacion"
+                                placeholder="name@example.com" autocomplete="email" required
+                                style="border: 2px solid #e2e8f0; border-radius: 12px;">
+                            <label for="recoverEmail"><i class="bi bi-envelope me-2"></i>Correo electrónico</label>
+                            <div id="emailValidationFeedback" class="form-text mt-1 text-muted">Ingresa tu correo para verificar la cuenta.</div>
+                        </div>
+                        <div id="recoverMessage" class="small mt-2 px-1"></div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal"
+                        onclick="bootstrap.Modal.getOrCreateInstance(document.getElementById('loginModal')).show();"
+                        style="border-radius: 12px; font-weight: 600;">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4 py-2" id="sendRecoveryLinkBtn" disabled
+                        style="border-radius: 12px; font-weight: 700; background: var(--md-blue-medical); border: none; box-shadow: 0 5px 15px rgba(18,74,158,0.2);">Enviar enlace</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Specialist Chat / Back to Top -->
+    <a href="https://wa.me/525643555072" target="_blank" class="btn-whatsapp-global" title="Chatea con un especialista">
+        <i class="bi bi-whatsapp"></i>
+    </a>
+
+    <a href="#inicio" class="btn-back-to-top" title="Volver al inicio">
+        <i class="bi bi-arrow-up"></i>
+    </a>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/indexLogic.js"></script>
+    <script src="js/validarCorreoLogin.js"></script>
+    <script src="js/loginScript.js"></script>
+
+    <script>
+        // Lógica Sidebar Móvil
+        const openBtn = document.getElementById('openMobileMenu');
+        const closeBtn = document.getElementById('closeMobileMenu');
+        const sidebar = document.getElementById('mobileSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+        }
+
+        if (openBtn) openBtn.addEventListener('click', toggleSidebar);
+        if (closeBtn) closeBtn.addEventListener('click', toggleSidebar);
+        if (overlay) overlay.addEventListener('click', toggleSidebar);
+
+        document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+            link.addEventListener('click', toggleSidebar);
+        });
+
+        // Obsolete Hero Graphics Loop Animation removed.
+
+        // Problem Statement Animated Counter
+        const counterEl = document.getElementById('animatedCounter');
+        let count = 0;
+        const countInterval = setInterval(() => {
+            if (count < 70) {
+                count += 2;
+                counterEl.textContent = count + "%";
+            } else {
+                clearInterval(countInterval);
+            }
+        }, 45);
+
+        // Leak Calculator Interactive Logic
+        const citasSlider = document.getElementById('citasSlider');
+        const citasValue = document.getElementById('citasValue');
+        const lostPatientsVal = document.getElementById('lostPatientsVal');
+        const lostMoneyVal = document.getElementById('lostMoneyVal');
+        const leakMicrocopy = document.getElementById('leakCalculatedMicrocopy');
+
+        function updateLeakCalc() {
+            const citas = parseInt(citasSlider.value);
+            citasValue.textContent = citas;
+            // 7 de cada 10 pierden algo; asumimos una tasa de fuga del 24% al año
+            const lostPatients = Math.round(citas * 0.24); 
+            const lostMoney = lostPatients * 1200; // Asumiendo $1,200 MXN por paciente
+            
+            lostPatientsVal.textContent = lostPatients;
+            lostMoneyVal.textContent = `$${lostMoney.toLocaleString('es-MX')} MXN`;
+
+            // Gamification logic (pulse effect)
+            lostPatientsVal.classList.remove('animate__animated', 'animate__headShake', 'text-danger');
+            lostMoneyVal.classList.remove('animate__animated', 'animate__headShake', 'text-danger');
+            // Trigger reflow
+            void lostPatientsVal.offsetWidth;
+            
+            lostPatientsVal.classList.add('animate__animated', 'animate__headShake', 'text-danger');
+            lostMoneyVal.classList.add('animate__animated', 'animate__headShake', 'text-danger');
+
+            if (lostMoney > 50000) {
+                leakMicrocopy.textContent = "⚠️ Esto equivale a pagarle el sueldo a un recepcionista a tiempo completo que solo destruye tus expedientes.";
+            } else {
+                leakMicrocopy.textContent = "⚠️ Eso equivale a pagar a tu equipo por trabajar gratis cada mes.";
+            }
+        }
+        if (citasSlider) {
+            citasSlider.addEventListener('input', updateLeakCalc);
+            updateLeakCalc();
+        }
+
+        // ROI Calculator Modal Logic
+        const roiStaff = document.getElementById('roiStaff');
+        const roiHours = document.getElementById('roiHours');
+        const roiPrice = document.getElementById('roiPrice');
+        const roiTimeOutput = document.getElementById('roiTimeOutput');
+        const roiMoneyOutput = document.getElementById('roiMoneyOutput');
+
+        function updateRoiCalc() {
+            const staff = parseInt(roiStaff.value) || 0;
+            const hours = parseInt(roiHours.value) || 0;
+            const price = parseInt(roiPrice.value) || 0;
+            
+            const totalHoursSaved = staff * hours;
+            // Estimamos que el 50% de esas horas liberadas se transforman en nuevas consultas
+            const extraConsultations = Math.floor(totalHoursSaved * 0.5);
+            const extraRevenue = extraConsultations * price;
+            
+            roiTimeOutput.textContent = `${totalHoursSaved} horas/mes`;
+            roiMoneyOutput.textContent = `$${extraRevenue.toLocaleString('es-MX')} MXN/mes`;
+        }
+        [roiStaff, roiHours, roiPrice].forEach(input => {
+            if (input) input.addEventListener('input', updateRoiCalc);
+        });
+        updateRoiCalc();
+
+        // Autoplay/Gamified Live Search simulation with Progress Bar
+                const btnAutoPlay = document.getElementById('btnAutoPlayDemo');
+        const demoInput = document.getElementById('demoSearchInput');
+        const demoInputGroup = document.getElementById('demoInputGroup');
+        const demoTooltip = document.getElementById('demoTooltip');
+        const progressBarContainer = document.getElementById('demoProgressBarContainer');
+        const progressBar = document.getElementById('demoProgressBar');
+
+        function triggerPatientModal(name) {
+            // Update Modal UI
+            const nameToUse = name || "Ana Lopez";
+            let initials = nameToUse.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+            if(!initials) initials = 'PA';
+            
+            document.getElementById('demoModalNameHeader').textContent = nameToUse;
+            document.getElementById('demoModalName').textContent = nameToUse;
+            document.getElementById('demoModalInitials').textContent = initials;
+            document.getElementById('demoModalId').textContent = Math.floor(Math.random() * 90000) + 10000;
+            
+            // Show modal
+            const modalEl = document.getElementById('demoPatientModal');
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+
+        if (btnAutoPlay) {
+            btnAutoPlay.addEventListener('click', function () {
+                demoInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                demoTooltip.classList.remove('d-none');
+                demoInput.value = '';
+                const names = ["Ana Lopez", "Carlos Rivera", "Sofia Garcia", "Roberto Silva", "Maria Jose Perez"];
+                const word = names[Math.floor(Math.random() * names.length)];
+                let i = 0;
+                
+                const typingInterval = setInterval(() => {
+                    if (i < word.length) {
+                        demoInput.value += word.charAt(i);
+                        i++;
+                    } else {
+                        clearInterval(typingInterval);
+                        demoTooltip.classList.add('d-none');
+                        demoInputGroup.classList.add('d-none');
+                        progressBarContainer.classList.remove('d-none');
+                        
+                        let width = 0;
+                        const progressInterval = setInterval(() => {
+                            if (width >= 100) {
+                                clearInterval(progressInterval);
+                                progressBarContainer.classList.add('d-none');
+                                triggerPatientModal(demoInput.value);
+                                
+                                setTimeout(() => {
+                                    demoInputGroup.classList.remove('d-none');
+                                    demoInput.value = '';
+                                }, 1000);
+                            } else {
+                                width += 10;
+                                progressBar.style.width = width + '%';
+                            }
+                        }, 70);
+                    }
+                }, 100);
+            });
+        }
+
+        if (demoInput) {
+            demoInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    const val = demoInput.value.trim();
+                    if (val.length > 0) {
+                        demoInputGroup.classList.add('d-none');
+                        progressBarContainer.classList.remove('d-none');
+                        let width = 0;
+                        const progressInterval = setInterval(() => {
+                            if (width >= 100) {
+                                clearInterval(progressInterval);
+                                progressBarContainer.classList.add('d-none');
+                                triggerPatientModal(val);
+                                
+                                setTimeout(() => {
+                                    demoInputGroup.classList.remove('d-none');
+                                    demoInput.value = '';
+                                }, 1000);
+                            } else {
+                                width += 15;
+                                progressBar.style.width = width + '%';
+                            }
+                        }, 50);
+                    }
+                }
+            });
+        }
+
+
+        const btnToggleFaqs = document.getElementById('btnToggleMoreFaqs');
+        if (btnToggleFaqs && moreFaqs) {
+            moreFaqs.addEventListener('shown.bs.collapse', function () {
+                btnToggleFaqs.textContent = "Ver menos preguntas";
+            });
+            moreFaqs.addEventListener('hidden.bs.collapse', function () {
+                btnToggleFaqs.textContent = "Ver más preguntas";
+                document.getElementById('faqHeadingContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
+        // Scroll Reveal Intersection Observer
+        document.addEventListener('DOMContentLoaded', function() {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15
+            };
+
+            const revealObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            const revealElements = document.querySelectorAll('.scroll-reveal');
+            revealElements.forEach(el => {
+                revealObserver.observe(el);
+            });
+        });
+    </script>
+    <!-- Unify Carousel Heights for Mobile -->
+    <script>
+        window.addEventListener('load', () => {
+            function unifyCarouselHeights() {
+                if (window.innerWidth < 768) {
+                    const demoCarousel = document.getElementById('demoCarousel');
+                    if (demoCarousel) {
+                        // Obtain height of demoCarousel and reduce by 5%
+                        const targetHeight = demoCarousel.offsetHeight * 0.95;
+                        
+                        // Apply to all holo-card carousels
+                        const carousels = document.querySelectorAll('.carousel.holo-card .carousel-inner');
+                        carousels.forEach(inner => {
+                            inner.style.height = targetHeight + 'px';
+                            inner.style.display = 'flex';
+                            inner.style.alignItems = 'center';
+                            inner.style.overflow = 'hidden'; // Ensure no scrollbars
+                        });
+
+                        // Adjust layout and padding for mobile to prevent clipping
+                        const carouselRows = document.querySelectorAll('.carousel.holo-card .carousel-item .row');
+                        carouselRows.forEach(row => {
+                            row.style.height = '100%';
+                            row.style.display = 'flex';
+                            row.style.flexDirection = 'column';
+                            row.style.justifyContent = 'center';
+                            row.style.alignItems = 'center';
+                        });
+
+                        // Override huge padding (p-5, p-4) dynamically on mobile which contain !important
+                        const cols = document.querySelectorAll('.carousel.holo-card .carousel-item .col-md-6');
+                        cols.forEach(col => {
+                            col.classList.remove('p-5', 'p-4');
+                            col.classList.add('p-2', 'px-4'); // px-4 protects text from chevron overlap
+                        });
+                        
+                        // Scale images proportionally (approx 45% of available height)
+                        const imgs = document.querySelectorAll('.carousel.holo-card .holo-carousel-img');
+                        imgs.forEach(img => {
+                            img.style.setProperty('max-height', (targetHeight * 0.45) + 'px', 'important');
+                            img.style.setProperty('width', 'auto', 'important');
+                            img.style.setProperty('object-fit', 'contain', 'important');
+                            img.style.setProperty('margin-bottom', '10px', 'important');
+                        });
+                        
+                        // Slightly reduce text sizes inside carousels for mobile
+                        const titles = document.querySelectorAll('.carousel.holo-card h3, .carousel.holo-card h4');
+                        titles.forEach(title => {
+                            title.style.setProperty('font-size', '1.1rem', 'important');
+                            title.style.setProperty('margin-bottom', '0.5rem', 'important');
+                            title.style.setProperty('line-height', '1.2', 'important');
+                        });
+                        const texts = document.querySelectorAll('.carousel.holo-card p');
+                        texts.forEach(text => {
+                            text.style.setProperty('font-size', '0.85rem', 'important');
+                            text.style.setProperty('margin-bottom', '0', 'important');
+                            text.style.setProperty('line-height', '1.3', 'important');
+                        });
+                    }
+                } else {
+                    // Reset for desktop
+                    const carousels = document.querySelectorAll('.carousel.holo-card .carousel-inner');
+                    carousels.forEach(inner => {
+                        inner.style.height = 'auto';
+                        inner.style.display = 'block';
+                        inner.style.overflow = 'visible';
+                    });
+                    
+                    const carouselRows = document.querySelectorAll('.carousel.holo-card .carousel-item .row');
+                    carouselRows.forEach(row => {
+                        row.style.height = '';
+                        row.style.display = '';
+                        row.style.flexDirection = '';
+                    });
+
+                    // We re-add p-5 to modulesCarousel/pilaresCarousel and p-4 to demoCarousel
+                    // by removing our mobile overrides (though technically a reload on resize is rare, we do our best)
+                    const cols = document.querySelectorAll('.carousel.holo-card .carousel-item .col-md-6');
+                    cols.forEach(col => {
+                        col.classList.remove('p-2', 'px-4');
+                        // Simplistic fallback: add p-4 universally for desktop if resized up
+                        col.classList.add('p-4'); 
+                    });
+
+                    const imgs = document.querySelectorAll('.carousel.holo-card .holo-carousel-img');
+                    imgs.forEach(img => {
+                        img.style.maxHeight = ''; 
+                        img.style.width = '';
+                        img.style.marginBottom = '';
+                    });
+                    
+                    const titles = document.querySelectorAll('.carousel.holo-card h3, .carousel.holo-card h4');
+                    titles.forEach(title => {
+                        title.style.fontSize = '';
+                        title.style.marginBottom = '';
+                        title.style.lineHeight = '';
+                    });
+                    const texts = document.querySelectorAll('.carousel.holo-card p');
+                    texts.forEach(text => {
+                        text.style.fontSize = '';
+                        text.style.marginBottom = '';
+                        text.style.lineHeight = '';
+                    });
+                }
+            }
+
+            unifyCarouselHeights();
+            window.addEventListener('resize', unifyCarouselHeights);
+        });
+    </script>
+</body>
+
+</html>
+

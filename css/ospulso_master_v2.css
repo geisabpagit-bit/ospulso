@@ -1,0 +1,1377 @@
+/* 
+   💎 OSPulso Diamond - SaaS Botox UI (v2.0)
+   Clases específicas para inyectar el diseño de la Landing Page en el SaaS Legacy.
+*/
+
+/* --- Tipografía Estricta --- */
+.font-primary { font-family: 'Outfit', sans-serif !important; }
+.font-secondary { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+.font-mono { font-family: 'Space Mono', monospace !important; }
+
+/* --- Bordes y Sombras Modernas --- */
+.rounded-4 { border-radius: 1rem !important; }
+.rounded-5 { border-radius: 1.5rem !important; }
+.shadow-sm { box-shadow: 0 2px 10px rgba(10, 42, 102, 0.05) !important; }
+.shadow-md { box-shadow: 0 10px 25px rgba(10, 42, 102, 0.08) !important; }
+
+/* --- Glassmorphism para el Navbar (sub_header.pl) --- */
+.glass-navbar {
+    background: rgba(232, 243, 255, 0.96) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border-bottom: 1px solid var(--md-teal-clinical, #19B7A5) !important;
+}
+
+/* Modificando la barra de búsqueda superior */
+.search-pill {
+    border-radius: 50rem !important;
+    background-color: var(--md-white-clinical, #F8FBFF) !important;
+    border: 1px solid var(--md-gray-soft, #D9E2EC) !important;
+    padding-left: 20px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02) !important;
+    transition: all 0.3s ease;
+}
+.search-pill:focus {
+    background-color: #fff !important;
+    border-color: var(--md-cyan-ia, #18D1E6) !important;
+    box-shadow: 0 0 0 3px rgba(24, 209, 230, 0.2) !important;
+}
+
+/* --- Botones Premium --- */
+.btn-premium-primary {
+    background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66), var(--md-blue-medical, #124A9E));
+    color: white !important;
+    border: none;
+    border-radius: 50rem !important; /* Pill */
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(10, 42, 102, 0.15);
+}
+.btn-premium-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(10, 42, 102, 0.25);
+    background: linear-gradient(135deg, var(--md-blue-medical, #124A9E), var(--md-blue-deep, #0A2A66));
+}
+
+.btn-holo-acrylic {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--md-blue-deep, #0A2A66);
+    border-radius: 12px !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.btn-holo-acrylic:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Estilos para la Tabla (pacientes.pl) --- */
+.table-diamond {
+    background: white;
+    border-radius: 1rem !important;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(10, 42, 102, 0.06) !important;
+    border: 1px solid rgba(10, 42, 102, 0.05) !important;
+}
+.table-diamond thead th {
+    background-color: var(--md-white-clinical, #F8FBFF) !important;
+    color: var(--md-text-secondary, #486581) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 15px 20px !important;
+    border-bottom: 2px solid var(--md-gray-soft, #D9E2EC) !important;
+    border-top: none !important;
+}
+.table-diamond tbody td {
+    padding: 15px 20px !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid var(--md-gray-soft, #D9E2EC) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    color: var(--md-text-primary, #102A43) !important;
+    font-size: 0.95rem !important;
+}
+.table-diamond tbody tr {
+    transition: all 0.2s ease !important;
+}
+.table-diamond tbody tr:hover {
+    background-color: #fcfdfe !important;
+    transform: scale(1.001) !important;
+}
+
+/* Iconos de Tabla (Acrílico independiente) */
+.icon-container-acrylic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(10, 42, 102, 0.04);
+    color: var(--md-blue-deep, #0A2A66);
+    border: 1px solid rgba(10, 42, 102, 0.05);
+    transition: all 0.2s ease;
+}
+/* Efecto hover SÓLO al pasar sobre el icono, no sobre la fila completa */
+.icon-container-acrylic:hover {
+    background: var(--md-blue-deep, #0A2A66) !important;
+    color: white !important;
+    box-shadow: 0 4px 10px rgba(10, 42, 102, 0.2);
+}
+/* Para el botón de eliminar, color rojo al hover */
+.action-btn-delete:hover .icon-container-acrylic {
+    background: var(--md-danger, #dc3545) !important;
+    color: white !important;
+    border-color: #dc3545 !important;
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+}
+
+/* ---------------------------------------------------
+ * RESPONSIVIDAD: Transformación de Tabla a Cards
+ * --------------------------------------------------- */
+@media (max-width: 768px) {
+    .table-diamond thead {
+        display: none;
+    }
+    .table-diamond, 
+    .table-diamond tbody, 
+    .table-diamond tr, 
+    .table-diamond td {
+        display: block;
+        width: 100%;
+    }
+    .table-diamond tr {
+        background-color: #ffffff !important;
+        border-radius: 16px !important;
+        box-shadow: 0 8px 24px rgba(10,42,102,0.06) !important;
+        margin-bottom: 1.5rem !important;
+        padding: 0 !important;
+        border: 1px solid rgba(10,42,102,0.08) !important;
+        position: relative;
+        overflow: hidden;
+    }
+    .table-diamond tbody td {
+        border-bottom: 1px solid rgba(10,42,102,0.05) !important;
+        padding: 1.25rem 1.5rem !important;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    .table-diamond tbody td.text-end {
+        text-align: left !important;
+    }
+    
+    /* Ocultar la columna de ID */
+    .table-diamond tbody td[data-label="ID"] {
+        display: none !important;
+    }
+
+    /* Etiqueta por defecto */
+    .table-diamond tbody td::before {
+        content: attr(data-label);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #94a3b8;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    /* Diseño Premium para la Cabecera de Tarjeta (Paciente) */
+    .table-diamond tbody td[data-label="PACIENTE"],
+    .table-diamond tbody td[data-label="NOMBRE COMPLETO"],
+    .table-diamond tbody td[data-label="Nombre Completo"] {
+        background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(10, 42, 102, 0.02) 100%);
+        border-bottom: 1px solid rgba(10,42,102,0.08) !important;
+    }
+    .table-diamond tbody td[data-label="PACIENTE"]::before,
+    .table-diamond tbody td[data-label="NOMBRE COMPLETO"]::before,
+    .table-diamond tbody td[data-label="Nombre Completo"]::before {
+        display: none !important;
+    }
+    .table-diamond tbody td[data-label="PACIENTE"] .patient-name,
+    .table-diamond tbody td[data-label="NOMBRE COMPLETO"] .patient-name,
+    .table-diamond tbody td[data-label="Nombre Completo"] .patient-name {
+        font-size: 1.4rem !important;
+        color: #0A2A66 !important;
+        font-weight: 800 !important;
+        margin-bottom: 0.25rem;
+        line-height: 1.2;
+    }
+    .table-diamond tbody td[data-label="PACIENTE"] .patient-info-sub,
+    .table-diamond tbody td[data-label="NOMBRE COMPLETO"] .patient-info-sub,
+    .table-diamond tbody td[data-label="Nombre Completo"] .patient-info-sub {
+        color: #14b8a6 !important;
+        font-weight: 700;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+    
+    /* Estilizar sub-informacion */
+    .patient-info-sub {
+        display: block !important;
+        width: 100%;
+    }
+    .patient-info-sub span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.4rem;
+        font-weight: 500;
+        color: #475569;
+    }
+    .patient-info-sub span i {
+        color: #14b8a6;
+    }
+
+    /* Contenedor de Acciones como Footer */
+    .table-diamond tbody td:last-child {
+        border-bottom: none !important;
+        background-color: #f8fafc !important;
+        padding: 1.25rem 1.5rem !important;
+    }
+    .table-diamond tbody td[data-label="ACCIONES"]::before {
+        display: none !important;
+    }
+    .d-flex.justify-content-end.gap-2 {
+        width: 100%;
+        justify-content: space-between !important;
+        flex-wrap: nowrap;
+        gap: 0.5rem !important;
+    }
+    
+    /* Expandir botones para llenar espacio en movil */
+    .d-flex.justify-content-end.gap-2 .btn,
+    .d-flex.justify-content-end.gap-2 .text-decoration-none {
+        flex: 1;
+        display: flex;
+    }
+    .d-flex.justify-content-end.gap-2 .icon-container-acrylic {
+        width: 100%;
+        border-radius: 12px;
+        height: 44px;
+    }
+}
+
+/* Modal Botox */
+.modal-diamond .modal-content {
+    border: none !important;
+    border-radius: 20px !important;
+    box-shadow: 0 25px 50px -12px rgba(10, 42, 102, 0.25) !important;
+    overflow: hidden !important;
+}
+.modal-diamond .modal-header {
+    background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66), var(--md-blue-medical, #124A9E)) !important;
+    color: white !important;
+    border-bottom: none !important;
+    padding: 20px 25px !important;
+}
+.modal-diamond .modal-title {
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 1.25rem !important;
+    color: white !important;
+}
+.modal-diamond .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%) !important;
+    opacity: 0.8 !important;
+}
+.modal-diamond .modal-body {
+    padding: 25px !important;
+    background: var(--md-white-clinical, #F8FBFF) !important;
+}
+.modal-diamond .form-control, .modal-diamond .form-select {
+    border-radius: 10px !important;
+    border: 1px solid var(--md-gray-soft, #D9E2EC) !important;
+    padding: 12px 15px !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.modal-diamond .form-control:focus, .modal-diamond .form-select:focus {
+    border-color: var(--md-cyan-ia, #18D1E6) !important;
+    box-shadow: 0 0 0 3px rgba(24, 209, 230, 0.15) !important;
+}
+.modal-diamond .form-label {
+    font-weight: 600 !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    font-size: 0.9rem !important;
+    margin-bottom: 6px !important;
+}
+
+/* --- Fix Z-Index SweetAlert2 y Offcanvas --- */
+.swal2-container { 
+    z-index: 106000 !important; 
+}
+.offcanvas {
+    z-index: 105500 !important;
+}
+.offcanvas-backdrop {
+    z-index: 105400 !important;
+}
+
+/* --- Selectores Desplegables Teal --- */
+.form-select {
+    border-radius: 12px !important;
+    border: 1px solid rgba(20, 184, 166, 0.3) !important;
+    transition: all 0.3s ease;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2314b8a6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+}
+.form-select:focus {
+    border-color: #14b8a6 !important;
+    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15) !important;
+    border-radius: 12px !important;
+    outline: none !important;
+}
+/* Intentamos forzar estilos en la lista desplegable nativa (sujeto a soporte del navegador) */
+.form-select option {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    padding: 12px !important;
+    border: 1px solid rgba(20, 184, 166, 0.2) !important;
+    border-radius: 8px !important;
+}
+.form-select option:checked, .form-select option:hover {
+    background-color: #14b8a6 !important;
+    color: #ffffff !important;
+}
+
+/* --- Premium Bento UI (Finanzas & Ajustes) --- */
+.bento-card { 
+    background: #ffffff; 
+    border-radius: 20px; 
+    padding: 1.5rem; 
+    transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); 
+    border: 1px solid rgba(10, 42, 102, 0.05); 
+}
+.bento-card:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 12px 30px rgba(10, 42, 102, 0.08) !important; 
+}
+.kpi-card { 
+    position: relative; 
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+}
+.kpi-label { 
+    font-size: 0.85rem; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    color: #64748b; 
+    letter-spacing: 1px; 
+    margin-bottom: 0.5rem; 
+    display: block; 
+}
+.kpi-value { 
+    font-size: 2.2rem; 
+    font-weight: 800; 
+    color: #0A2A66; 
+    margin: 0; 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+    line-height: 1; 
+}
+.kpi-icon { 
+    position: absolute; 
+    right: -15px; 
+    bottom: -20px; 
+    font-size: 6rem; 
+    opacity: 0.04; 
+    color: #0A2A66; 
+    transform: rotate(-15deg); 
+}
+
+/* --- Estado Cuenta y Header Compacto --- */
+.diamond-header-compact {
+    background: linear-gradient(165deg, #040c1f 0%, #0d1e3d 100%);
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 1.5rem;
+    color: white;
+}
+.btn-sdm-primary {
+    background: var(--md-teal-bright, #00C4C4) !important;
+    color: white !important;
+    border: none !important;
+    transition: all 0.3s ease;
+}
+.btn-sdm-primary:hover {
+    background: var(--md-blue-medical, #124A9E) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(13, 30, 61, 0.2);
+}
+.btn-sdm-primary i { color: white !important; }
+
+.financial-dock {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 2rem;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    z-index: 1050;
+    padding: 0 10px;
+}
+.dock-item {
+    color: #64748b;
+    font-size: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    background: none;
+    border: none;
+    padding: 10px;
+}
+.dock-item:active { transform: scale(0.9); color: var(--md-blue-deep, #0A2A66); }
+.dock-fab {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #0d1e3d 0%, #1e40af 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white !important;
+    font-size: 1.8rem;
+    margin-top: -40px;
+    box-shadow: 0 10px 20px rgba(13, 30, 61, 0.3);
+    border: 4px solid white;
+}
+.dock-fab:active { transform: scale(0.9) translateY(5px); }
+.print-header { display: none; }
+
+@media print {
+    .print-header { display: block !important; border-bottom: 3px solid #000 !important; padding-bottom: 15px; margin-bottom: 25px; color: black !important; }
+    .print-header h1 { color: black !important; margin-bottom: 5px; }
+    .navbar, .btn, .dropdown, .modal, .bi, .btn-close, .col-lg-4, #btnLiquidarTodo, .financial-dock, .top-actions-desktop, .breadcrumb, .diamond-header-compact { display: none !important; }
+    body { background: white !important; padding: 0 !important; color: black !important; }
+    .bento-card { border: none !important; box-shadow: none !important; padding: 10px 0 !important; width: 100% !important; }
+    #tbEdoCuenta tr td:last-child, table thead tr th:last-child { display: none !important; }
+    #bentoTransactionsContainer { display: none !important; }
+    .table-responsive { display: block !important; overflow: visible !important; width: 100% !important; }
+    table { display: table !important; width: 100% !important; font-size: 8pt !important; border-collapse: collapse !important; color: black !important; }
+    thead { display: table-header-group !important; }
+    tbody { display: table-row-group !important; }
+    tfoot { display: table-footer-group !important; font-weight: bold !important; border-top: 2px solid #000 !important; }
+    tr { page-break-inside: avoid !important; border-bottom: 1px solid #eee !important; }
+    td, th { color: black !important; background: transparent !important; }
+    .d-none-print { display: none !important; }
+    .container-fluid { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+}
+
+@media (max-width: 768px) {
+    .top-actions-desktop { display: none !important; }
+    body { padding-bottom: 100px !important; }
+    .diamond-header-compact { border-radius: 0 !important; padding: 1rem !important; }
+}
+@media (min-width: 769px) {
+    .financial-dock { display: none !important; }
+}
+
+/* Estilos personalizados para DataTables (Diamond Theme) */
+.dataTables_wrapper .dataTables_filter input, .dataTables_wrapper .dataTables_length select { border-radius: 20px; border: 1px solid var(--md-gray-200); padding: 5px 15px; outline: none; transition: all 0.2s ease; }
+.dataTables_wrapper .dataTables_filter input:focus, .dataTables_wrapper .dataTables_length select:focus { border-color: var(--md-blue-primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.dataTables_wrapper .dataTables_paginate .paginate_button { border-radius: 8px !important; border: none !important; margin: 0 2px; }
+.dataTables_wrapper .dataTables_paginate .paginate_button.current { background: var(--md-blue-primary) !important; color: white !important; font-weight: bold; box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) { background: var(--md-blue-light) !important; color: var(--md-blue-deep) !important; }
+
+/* Estilos compactos e conos de color para DataTables (Diamond Theme) */
+.table-diamond.table-sm { font-size: 0.85rem; }
+.table-diamond.table-sm td, .table-diamond.table-sm th { padding: 0.5rem 0.5rem; }
+.table-diamond i.bi { margin-right: 4px; }
+.table-diamond i.bi-person-circle, .table-diamond i.bi-person-fill { color: var(--md-blue-primary) !important; }
+.table-diamond i.bi-cash-coin, .table-diamond i.bi-currency-dollar { color: var(--md-success) !important; }
+.table-diamond i.bi-exclamation-circle, .table-diamond i.bi-exclamation-triangle { color: var(--md-danger) !important; }
+.table-diamond i.bi-file-earmark-pdf { color: var(--md-danger) !important; }
+.table-diamond tfoot td { font-size: 0.95rem; font-weight: bold; background-color: var(--md-gray-50) !important; border-top: 2px solid var(--md-gray-300); }
+
+/* Colores de filas financieras */
+#tablaIngresos tbody tr { color: var(--md-success) !important; }
+#tablaIngresos tbody tr td { color: var(--md-success) !important; }
+#tablaGastos tbody tr { color: var(--md-danger) !important; }
+#tablaGastos tbody tr td { color: var(--md-danger) !important; }
+.tr-ingreso, .tr-ingreso td { color: var(--md-success) !important; }
+.tr-egreso, .tr-egreso td { color: var(--md-danger) !important; }
+
+
+
+/* Botones Blue Deep (CRM) */
+.btn-blue-deep {
+    background-color: var(--md-blue-deep) !important;
+    color: #ffffff !important;
+    border: none !important;
+    transition: all 0.2s ease-in-out;
+}
+.btn-blue-deep:hover {
+    background-color: var(--md-blue-medical) !important;
+    color: #ffffff !important;
+    opacity: 0.9;
+}
+.nav-pills .nav-link.btn-blue-deep.active {
+    background-color: var(--md-blue-deep) !important;
+    color: #ffffff !important;
+}
+.nav-pills .nav-link.btn-light {
+    background-color: #f8f9fa !important;
+    color: var(--md-text-secondary) !important;
+}
+
+/* ==========================================================================
+   💎 DATATABLES PREMIUM RESPONSIVE CARD VIEW & COMPACT TOOLBAR
+   ========================================================================== */
+
+/* 1. Contraste de Búsqueda y Fondo de DataTable (Aplica a cualquier modo) */
+.dataTables_wrapper {
+    background-color: #f8fafc !important; /* Fondo grisáceo claro / off-white clínico */
+    border: 1px solid rgba(25, 183, 165, 0.2) !important; /* Borde teal clínico muy delgado */
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 4px 15px rgba(10, 42, 102, 0.04) !important;
+    margin-bottom: 1.5rem !important;
+}
+
+/* Forzar que el buscador resalte con borde teal clínico y fondo contrastado */
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    background-color: #f8fbff !important; /* Fondo azul sutil */
+    color: var(--md-blue-deep, #0A2A66) !important;
+    border-radius: 20px !important;
+    padding: 6px 16px !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+}
+.dataTables_wrapper .dataTables_filter input:focus,
+.dataTables_wrapper .dataTables_length select:focus {
+    border-color: var(--md-cyan-ia, #18D1E6) !important;
+    box-shadow: 0 0 0 3px rgba(24, 209, 230, 0.2) !important;
+    background-color: #ffffff !important;
+}
+
+/* Filas interiores con fondo blanco y transición */
+.dataTables_wrapper table.dataTable,
+.dataTables_wrapper .table-diamond {
+    background-color: transparent !important;
+    border-collapse: separate !important;
+    border-spacing: 0 8px !important;
+}
+.dataTables_wrapper table.dataTable tbody tr,
+.dataTables_wrapper .table-diamond tbody tr {
+    background-color: #ffffff !important;
+    border: 1px solid rgba(10, 42, 102, 0.05) !important;
+    border-radius: 8px !important;
+}
+.dataTables_wrapper table.dataTable tbody tr:hover,
+.dataTables_wrapper .table-diamond tbody tr:hover {
+    background-color: #fbfdff !important;
+    box-shadow: 0 4px 10px rgba(10, 42, 102, 0.04) !important;
+}
+
+@media (max-width: 768px) {
+    .dataTables_wrapper {
+        padding: 0.75rem !important;
+    }
+
+    /* 2. Barra de Exportación Compacta en una Sola Fila */
+    .dt-buttons, .export-toolbar {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important; /* Evita envolverse en varias filas */
+        justify-content: center !important;
+        gap: 6px !important;
+        width: 100% !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .dt-buttons .btn, 
+    .export-toolbar .btn, 
+    .buttons-html5, 
+    .buttons-print {
+        font-size: 0 !important; /* Oculta texto */
+        padding: 6px 10px !important;
+        min-width: 44px !important;
+        height: 40px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        border-radius: 8px !important;
+        box-sizing: border-box !important;
+    }
+    
+    .dt-buttons .btn i, 
+    .export-toolbar .btn i, 
+    .buttons-html5 i, 
+    .buttons-print i {
+        font-size: 1.25rem !important; /* Mantiene icono grande */
+        margin: 0 !important;
+    }
+
+    /* 3. Transformación Card View en una Sola Columna Vertical (UX Refined) */
+    table.dataTable, 
+    table.dataTable tbody, 
+    table.dataTable tr, 
+    table.dataTable td,
+    .table-diamond,
+    .table-diamond tbody,
+    .table-diamond tr,
+    .table-diamond td {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    table.dataTable thead,
+    .table-diamond thead {
+        display: none !important; /* Oculta cabecera */
+    }
+
+    table.dataTable tbody tr,
+    .table-diamond tbody tr {
+        background-color: #ffffff !important;
+        border: 1px solid rgba(25, 183, 165, 0.3) !important; /* Borde Teal muy delgado y visible */
+        border-radius: 8px !important;
+        margin-bottom: 12px !important;
+        padding: 10px !important;
+        box-shadow: 0 4px 10px rgba(10, 42, 102, 0.05) !important;
+        position: relative !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    table.dataTable tbody td,
+    .table-diamond tbody td {
+        border: none !important;
+        border-bottom: 1px dashed #f1f5f9 !important;
+        position: relative !important;
+        padding: 24px 8px 8px 8px !important; /* Espacio superior para la etiqueta */
+        text-align: left !important; /* Valor a la izquierda */
+        white-space: normal !important;
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    table.dataTable tbody td:last-child,
+    .table-diamond tbody td:last-child {
+        border-bottom: none !important;
+    }
+
+    /* Inyectar las etiquetas de cabecera en una línea superior flotante */
+    table.dataTable tbody td::before,
+    .table-diamond tbody td::before {
+        content: attr(data-label) !important;
+        position: absolute !important;
+        top: 6px !important; /* Posicionado arriba */
+        left: 8px !important;
+        width: calc(100% - 16px) !important; /* Todo el ancho de la celda */
+        text-align: left !important;
+        font-weight: 700 !important;
+        color: var(--md-blue-deep, #0A2A66) !important;
+        font-size: 0.7rem !important; /* Muted y pequeño */
+        text-transform: uppercase !important;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Columnas sin nombre, checkbox o acciones */
+    table.dataTable tbody td[data-label=""]::before,
+    table.dataTable tbody td[data-label="Acciones"]::before,
+    table.dataTable tbody td[data-label="Acción"]::before,
+    .table-diamond tbody td[data-label=""]::before,
+    .table-diamond tbody td[data-label="Acciones"]::before,
+    .table-diamond tbody td[data-label="Acción"]::before {
+        display: none !important;
+    }
+
+    table.dataTable tbody td[data-label=""],
+    table.dataTable tbody td[data-label="Acciones"],
+    table.dataTable tbody td[data-label="Acción"],
+    .table-diamond tbody td[data-label=""],
+    .table-diamond tbody td[data-label="Acciones"],
+    .table-diamond tbody td[data-label="Acción"] {
+        padding: 8px !important;
+        text-align: center !important;
+    }
+
+    /* 4. Paginación y Control de Información Compactos en Celular (Evita colisiones e inline floats) */
+    .dataTables_info,
+    .dataTables_paginate,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate,
+    [id$="_info"],
+    [id$="_paginate"] {
+        float: none !important;
+        width: 100% !important;
+        text-align: center !important;
+        display: block !important;
+        margin: 8px auto !important;
+        color: var(--md-text-secondary, #475569) !important;
+        font-size: 0.75rem !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate,
+    [id$="_paginate"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button,
+    [id$="_paginate"] .paginate_button {
+        padding: 4px 8px !important;
+        font-size: 0.7rem !important;
+        margin: 0 !important;
+        border-radius: 4px !important;
+        min-width: 28px !important;
+        box-sizing: border-box !important;
+        display: inline-block !important;
+    }
+
+    /* 5. Homogeneización Global de Cabeceras (Módulo y Expediente) en Celular */
+    header.bg-medentia-gradient,
+    .diamond-header-compact {
+        background: var(--bg-medentia-gradient, linear-gradient(135deg, #0A2A66, #124A9E)) !important;
+        padding: 12px 16px !important;
+        margin-bottom: 0.75rem !important;
+        border-radius: 0 0 16px 16px !important;
+        min-height: auto !important;
+        box-sizing: border-box !important;
+        box-shadow: 0 4px 12px rgba(10, 42, 102, 0.08) !important;
+        position: relative !important;
+        border: none !important;
+    }
+
+    header.bg-medentia-gradient,
+    header.bg-medentia-gradient .d-flex,
+    .diamond-header-compact,
+    .diamond-header-compact .d-flex {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    header.bg-medentia-gradient .d-flex > div,
+    .diamond-header-compact > div {
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    /* Títulos unificados en blanco puro de alta legibilidad */
+    header.bg-medentia-gradient h2,
+    .diamond-header-compact h4 {
+        font-size: 1.15rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        text-align: center !important;
+        margin: 0 !important;
+        letter-spacing: -0.3px !important;
+    }
+
+    /* Ocultar subtítulos para maximizar la pantalla útil */
+    header.bg-medentia-gradient p,
+    header.bg-medentia-gradient .text-white-50,
+    .diamond-header-compact p,
+    .diamond-header-compact .text-white-50 {
+        display: none !important;
+    }
+
+    /* Botones de acción a todo lo ancho de forma limpia y redondeada */
+    header.bg-medentia-gradient a.btn,
+    header.bg-medentia-gradient button.btn,
+    .diamond-header-compact a.btn,
+    .diamond-header-compact button.btn {
+        width: 100% !important;
+        padding: 8px 16px !important;
+        font-size: 0.8rem !important;
+        border-radius: 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        box-sizing: border-box !important;
+    }
+    }
+}
+
+/* ==========================================================================
+   💎 ESTILOS CENTRALIZADOS DE MÓDULOS (PREVENCIÓN DE INLINE <STYLE>)
+   ========================================================================== */
+
+/* 1. Modal Backdrop - Corrección de Z-Index (de pacientes.pl) */
+.modal-backdrop.show { 
+    z-index: 104900 !important; 
+}
+
+/* 2. Odontograma Toolbar & Impresión (de render_expediente_clinico.pl) */
+#odontograma-toolbar .btn {
+    border-radius: 24px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    border-width: 1.5px;
+    display: flex;
+    align-items: center;
+}
+#odontograma-toolbar .btn-outline-danger { border-color: #e63946; color: #e63946; }
+#odontograma-toolbar .btn-outline-danger:hover, 
+#odontograma-toolbar .btn-danger { background-color: #e63946; border-color: #e63946; color: #fff; }
+
+#odontograma-toolbar .btn-outline-primary { border-color: #3b82f6; color: #3b82f6; }
+#odontograma-toolbar .btn-outline-primary:hover, 
+#odontograma-toolbar .btn-primary { background-color: #3b82f6; border-color: #3b82f6; color: #fff; }
+
+#odontograma-toolbar .btn-outline-dark { border-color: #1e293b; color: #1e293b; }
+#odontograma-toolbar .btn-outline-dark:hover, 
+#odontograma-toolbar .btn-dark { background-color: #1e293b; border-color: #1e293b; color: #fff; }
+
+#odontograma-toolbar .btn-outline-info { border-color: #06b6d4; color: #06b6d4; }
+#odontograma-toolbar .btn-outline-info:hover, 
+#odontograma-toolbar .btn-info { background-color: #06b6d4; border-color: #06b6d4; color: #fff; }
+
+#odontograma-toolbar .btn-outline-warning { border-color: #f59e0b; color: #f59e0b; }
+#odontograma-toolbar .btn-outline-warning:hover, 
+#odontograma-toolbar .btn-warning { background-color: #f59e0b; border-color: #f59e0b; color: #fff; }
+
+#odontograma-toolbar .btn-outline-success { border-color: #10b981; color: #10b981; }
+#odontograma-toolbar .btn-outline-success:hover, 
+#odontograma-toolbar .btn-success { background-color: #10b981; border-color: #10b981; color: #fff; }
+
+@media print {
+    body * { 
+        visibility: hidden; 
+    }
+    #seccion-diagnostico-print, 
+    #seccion-diagnostico-print * { 
+        visibility: visible; 
+    }
+    #seccion-diagnostico-print { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        border: none !important; 
+        box-shadow: none !important; 
+    }
+}
+
+/* 3. Estructura Bento Grid (de render_expediente_clinico.pl) */
+.bento-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 1.5rem; 
+}
+.bento-card { 
+    border-radius: 2rem; 
+    padding: 2rem; 
+    position: relative; 
+    overflow: hidden; 
+}
+.bento-card.alert { background: #fff1f2 !important; border-color: #fecdd3 !important; }
+.bento-card.info { background: #f0f9ff !important; border-color: #e0f2fe !important; }
+.bento-card.dark { background: var(--md-blue-deep) !important; color: white !important; border: none !important; }
+
+.bento-icon { 
+    position: absolute; 
+    right: -10px; 
+    bottom: -10px; 
+    font-size: 4rem; 
+    opacity: 0.08; 
+    color: var(--md-teal-clinical); 
+}
+.bento-label { 
+    font-size: 0.7rem; 
+    font-weight: 800; 
+    color: var(--md-text-secondary); 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    display: block; 
+    margin-bottom: 0.5rem; 
+}
+.bento-value { 
+    font-size: 1.5rem; 
+    font-weight: 800; 
+    color: var(--md-blue-deep); 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+}
+.dark .bento-label { color: rgba(255,255,255,0.6); }
+.dark .bento-value { color: white; }
+.dark .bento-icon { color: white; opacity: 0.1; }
+
+.bento-big { grid-column: span 2; grid-row: span 2; }
+.bento-wide { grid-column: span 2; }
+
+@media (max-width: 991px) {
+    .bento-grid { 
+        grid-template-columns: 1fr; 
+    }
+    .bento-big, 
+    .bento-wide { 
+        grid-column: span 1; 
+        grid-row: span 1; 
+    }
+}
+
+/* 4. Rejilla Coherente de Botones para Odontograma */
+.odontograma-tools-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+.odontograma-tools-grid .btn {
+    width: 100% !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 38px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+}
+@media (max-width: 768px) {
+    .odontograma-tools-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* 5. Botón Finalizador del Wizard Homogeneizado */
+.wizard-btn-finish {
+    background: var(--md-teal-clinical) !important;
+    color: white !important;
+}
+.wizard-btn-finish:hover {
+    background: #14b8a6 !important;
+    color: white !important;
+    box-shadow: 0 10px 20px rgba(20, 184, 166, 0.2) !important;
+}
+
+/* 6. Botones de Continuar / Siguiente Homogeneizados (Píldora Azul Profundo) */
+.wizard-btn-next {
+    background: var(--md-blue-deep, #0A2A66) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.8rem 2rem !important;
+    border-radius: 2rem !important;
+    font-weight: 800 !important;
+    transition: all 0.3s !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+}
+.wizard-btn-next:hover {
+    background: var(--md-blue-light, #124A9E) !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 20px rgba(10, 42, 102, 0.2) !important;
+}
+
+/* 7. Estilos de Modal de Cita Migrados (de render_consultas_privado.pl) */
+.ui-autocomplete { 
+    z-index: 105001 !important; 
+}
+.floating-label-premium label { 
+    font-size: 0.65rem !important; 
+    text-transform: uppercase; 
+    color: #64748b; 
+    font-weight: 700; 
+    padding: 1rem 0.75rem; 
+}
+.floating-label-premium .form-control, 
+.floating-label-premium .form-select { 
+    border-radius: 1rem; 
+    background-color: #f8fafc; 
+    border: 1px solid transparent; 
+    transition: all 0.2s; 
+    box-shadow: none; 
+}
+.floating-label-premium .form-control:focus, 
+.floating-label-premium .form-select:focus { 
+    background-color: #ffffff; 
+    border-color: rgba(59, 130, 246, 0.4); 
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); 
+}
+.dur-bar-premium .btn { 
+    border-radius: 12px !important; 
+    margin: 0; 
+    border: 1px solid rgba(59, 130, 246, 0.2) !important; 
+    background-color: #ffffff; 
+    color: #64748b; 
+    font-weight: 600; 
+    font-size: 0.85rem; 
+    padding: 10px 0; 
+    transition: all 0.2s; 
+}
+.dur-bar-premium .btn.active { 
+    background-color: var(--md-blue-medical) !important; 
+    color: #ffffff !important; 
+    border-color: var(--md-blue-medical) !important; 
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); 
+    transform: scale(1.05); 
+    z-index: 2; 
+}
+.dur-bar-premium .btn:hover:not(.active) { 
+    background-color: #f0f7ff; 
+    color: #1e293b; 
+}
+#modalCita .slot-grid-compact { 
+    display: grid !important; 
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; 
+    gap: 10px !important; 
+    padding: 12px !important; 
+}
+#modalCita .btn-slot { 
+    font-size: 0.70rem !important; 
+    padding: 6px 0 !important; 
+    border-radius: 8px !important; 
+    background-color: #dcfce7 !important; 
+    color: #166534 !important; 
+    border: 1px solid #bbf7d0 !important; 
+    font-weight: 700; 
+}
+#modalCita .btn-slot:hover:not(:disabled) { 
+    background-color: #bbf7d0 !important; 
+    border-color: #86efac !important; 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 8px rgba(22, 101, 52, 0.15); 
+}
+#modalCita .btn-slot.active { 
+    background-color: #16a34a !important; 
+    color: #ffffff !important; 
+    border-color: #15803d !important; 
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); 
+}
+#modalCita .slot-lunch { 
+    background-color: #fee2e2 !important; 
+    color: #991b1b !important; 
+    border-color: #fecaca !important; 
+}
+#modalCita .slot-busy { 
+    background-color: #fef9c3 !important; 
+    color: #854d0e !important; 
+    border-color: #fde047 !important; 
+}
+@media (min-width: 768px) {
+    .border-md-end-soft { 
+        border-right: 1px solid var(--md-gray-soft) !important; 
+    }
+}
+
+/* 8. Refactorización Responsiva Estrecha para Vistas Móviles del Wizard (Ajuste Perfecto) */
+@media (max-width: 768px) {
+    .wizard-container {
+        margin: 0.25rem auto !important;
+        padding: 0 6px !important;
+        padding-bottom: 50px !important;
+    }
+    
+    .wizard-stepper {
+        margin-bottom: 0.75rem !important;
+        padding: 0 !important;
+        overflow-x: auto !important;
+        display: flex !important;
+        justify-content: flex-start !important;
+        gap: 4px !important;
+        scrollbar-width: none;
+    }
+    .wizard-stepper::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .wizard-step {
+        flex: 0 0 auto !important;
+        min-width: 48px !important;
+        padding: 2px !important;
+    }
+    
+    .wizard-step-icon {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.85rem !important;
+        margin-bottom: 2px !important;
+        border-width: 1px !important;
+    }
+    
+    .wizard-step-label {
+        font-size: 0.52rem !important;
+        letter-spacing: -0.2px !important;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 52px;
+    }
+    
+    .wizard-panel {
+        padding: 1rem 0.75rem !important;
+        border-radius: 1rem !important;
+        border-width: 1.5px !important;
+    }
+    
+    .wizard-label {
+        font-size: 0.72rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    
+    .wizard-input {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.82rem !important;
+        border-radius: 0.5rem !important;
+        border-width: 1.5px !important;
+    }
+    
+    /* Botones de navegación muy estrechos y optimizados en móviles */
+    .wizard-btn-prev,
+    .wizard-btn-next {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.78rem !important;
+        border-radius: 1.25rem !important;
+    }
+}
+
+/* --- Catálogo Universal 3NF - Estilos Institucionales & Layout Plano --- */
+:root {
+    --inst-navy-deep: #0A2A66;
+    --inst-navy-mid: #124A9E;
+    --inst-navy-hover: #071f4f;
+}
+
+/* Pestañas de Navegación Institucionales (Alta Especificidad) */
+.nav-pills#catalogoTabs .nav-link,
+#catalogoTabs .nav-link {
+    color: #475569 !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    padding: 0.55rem 1.5rem !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease-in-out !important;
+}
+.nav-pills#catalogoTabs .nav-link:hover,
+#catalogoTabs .nav-link:hover {
+    color: var(--inst-navy-deep) !important;
+    background: rgba(10, 42, 102, 0.05) !important;
+    border-color: rgba(10, 42, 102, 0.3) !important;
+}
+.nav-pills#catalogoTabs .nav-link.active,
+.nav-pills#catalogoTabs .show > .nav-link,
+#catalogoTabs .nav-link.active {
+    background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;
+    color: #ffffff !important;
+    border-color: var(--inst-navy-deep) !important;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.25) !important;
+}
+
+/* Panel de Filtros Institucional & Controles Unificados */
+.filter-panel-premium,
+.filter-panel-flat {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.filter-panel-premium label,
+.filter-panel-flat label {
+    color: var(--inst-navy-deep) !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.35rem !important;
+    display: block;
+}
+
+/* Estandarización de Altura Unificada (38px) para Todos los Controles del Filtro */
+.filter-panel-premium .form-select,
+.filter-panel-premium .form-control,
+.filter-panel-premium .btn,
+.filter-panel-flat .form-select,
+.filter-panel-flat .form-control,
+.filter-panel-flat .btn,
+.filter-control-equal {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    font-size: 0.82rem !important;
+    line-height: 1.4 !important;
+    border-radius: 50rem !important;
+    box-sizing: border-box !important;
+}
+
+.filter-panel-premium .form-select,
+.filter-panel-premium .form-control,
+.filter-panel-flat .form-select,
+.filter-panel-flat .form-control {
+    border: 1.5px solid #cbd5e1 !important;
+    padding-top: 0.38rem !important;
+    padding-bottom: 0.38rem !important;
+    padding-left: 0.85rem !important;
+    background-color: #ffffff !important;
+}
+
+.filter-panel-premium .form-select:focus,
+.filter-panel-premium .form-control:focus,
+.filter-panel-flat .form-select:focus,
+.filter-panel-flat .form-control:focus {
+    border-color: var(--inst-navy-deep) !important;
+    box-shadow: 0 0 0 3px rgba(10, 42, 102, 0.1) !important;
+}
+
+/* Botones Institucionales Navy */
+.btn-navy-primary {
+    background: linear-gradient(135deg, var(--inst-navy-deep) 0%, var(--inst-navy-mid) 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 10px rgba(10, 42, 102, 0.2) !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.35rem !important;
+    padding: 0.45rem 1.15rem !important;
+    border-radius: 50rem !important;
+    transition: all 0.2s ease !important;
+}
+.btn-navy-primary:hover {
+    background: linear-gradient(135deg, var(--inst-navy-hover) 0%, var(--inst-navy-deep) 100%) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 15px rgba(10, 42, 102, 0.3) !important;
+}
+
+.btn-navy-outline {
+    background: #ffffff !important;
+    color: var(--inst-navy-deep) !important;
+    border: 1.5px solid var(--inst-navy-deep) !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.45rem 1rem !important;
+    border-radius: 50rem !important;
+    transition: all 0.2s ease !important;
+}
+.btn-navy-outline:hover {
+    background: rgba(10, 42, 102, 0.08) !important;
+    color: var(--inst-navy-deep) !important;
+}
+
+/* DataTables Export Toolbar Buttons - Compact & Sleek */
+.dataTables_wrapper .dt-buttons {
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.5rem !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+.dataTables_wrapper .dt-buttons .btn,
+.btn-export {
+    background: #ffffff !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 50rem !important;
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
+    margin-right: 0.3rem !important;
+    height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+.dataTables_wrapper .dt-buttons .btn:hover,
+.btn-export:hover {
+    background: #f8fafc !important;
+    color: var(--inst-navy-deep) !important;
+    border-color: var(--inst-navy-deep) !important;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 50rem !important;
+    border: 1.5px solid #cbd5e1 !important;
+    padding: 0.35rem 0.85rem !important;
+    font-size: 0.8rem !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+    height: 34px !important;
+}
+
+/* Eliminación Absoluta de Capas, Marcos y Bordes Envolventes en Catálogo Universal */
+.catalogo-container-flat,
+.catalogo-container-flat #mainCard,
+.catalogo-container-flat .tab-content,
+.catalogo-container-flat .tab-pane {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    outline: none !important;
+}
+
+/* --- Punto 7 GUIA_ESTILO_SDM.md: Marcos Independientes Diamond (Filtros y Tabla) --- */
+.card-filter-diamond,
+.card-table-diamond {
+    background: #ffffff !important;
+    border: 1px solid rgba(25, 183, 165, 0.4) !important; /* Teal Clínico Diamond (Punto 7 SDM) */
+    border-radius: 1rem !important;
+    box-shadow: 0 8px 24px rgba(10, 42, 102, 0.06) !important;
+    padding: 1rem 1.25rem !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.75rem !important;
+}
+
+.card-table-diamond .dataTables_wrapper,
+.card-table-diamond .table-responsive {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.table-custom-header thead th,
+.table-custom-header tbody td {
+    padding: 0.45rem 0.5rem !important;
+}
+.table-custom-header thead th {
+    background-color: #f1f5f9 !important;
+    color: #1e293b !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    font-size: 0.73rem !important;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0 !important;
+}
+
+
+
+

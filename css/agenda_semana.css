@@ -1,0 +1,30 @@
+/* Contenedor semanal responsivo */
+.agenda-semana {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+.agenda-dia {
+  min-width: 250px; /* en móvil se ve como tarjeta scrollable */
+  flex: 1;
+}
+
+/* Estados de citas */
+.agenda-cita-programada { background-color: #f8f9fa; }
+.agenda-cita-confirmada { background-color: #d1e7dd; }
+.agenda-cita-cancelada  { background-color: #f8d7da; }
+.agenda-cita-realizada  { background-color: #cff4fc; }
+
+.agenda-cita {
+  font-size: 0.9rem;
+  border-left: 4px solid transparent;
+}
+.agenda-cita-programada { border-left-color: #6c757d; }
+.agenda-cita-confirmada { border-left-color: #198754; }
+.agenda-cita-cancelada  { border-left-color: #dc3545; }
+.agenda-cita-realizada  { border-left-color: #0dcaf0; }
+
+.agenda-dia-header {
+  font-size: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}

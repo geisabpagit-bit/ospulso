@@ -1,0 +1,13 @@
+ID_TARIFA|CLAVE|NOMBRE_TARIFA|DESCRIPCION|ACTIVO
+1|ESTANDAR|ESTÁNDAR|Público General / Tarifa Base|1
+2|MUNICIPIO|MUNICIPIO|Convenio Sindical / Estatal|1
+3|URGENCIAS|URGENCIAS|Tarifa de Atención de Urgencias|1
+4|LUNES_A_SABADO|LUNES A SÁBADO|Tarifa Ordinaria|1
+5|DOMINGOS_Y_FESTIVOS|DOMINGOS Y FESTIVOS|Recargo Dominical / Festivo|1
+6|FESTIVO|DÍA FESTIVO|Atención en Día Festivo Oficial|1
+7|NORMAL|TURNO NORMAL|Horario Habitual de Consulta|1
+8|MATUTINO|TURNO MATUTINO|Horario Matutino|1
+9|NOCTURNO|TURNO NOCTURNO|Turno Nocturno|1
+10|SABADO_TARDE_DOMINGO_FESTIVO|SÁBADO TARDE / DOMINGO / FESTIVO|Guardia Fin de Semana y Festivo|1
+11|PAQUETE_TODO_INCLUIDO|PAQUETE TODO INCLUIDO|Paquete Integral Quirúrgico / Procedimiento|1
+12|PAQUETE_SOLO_CLINICA|PAQUETE SOLO CLÍNICA|Paquete Quirúrgico sin Honorarios Médicos|1

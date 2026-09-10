@@ -1,0 +1,379 @@
+.diamond-sidebar {
+    width: 280px;
+    background: #ffffff;
+    border: 1px solid var(--md-teal-clinical) !important;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.19, 1, 0.22, 1), transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    z-index: 5000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    flex-shrink: 0;
+    height: fit-content;
+    max-height: calc(100vh - 2rem);
+    margin: 1rem;
+    border-radius: 1.5rem;
+}
+
+
+.diamond-sidebar.compact {
+    width: 80px;
+}
+
+/* Sidebar Brand */
+.sidebar-brand {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(25, 183, 165, 0.15) !important;
+    overflow: hidden;
+    white-space: nowrap;
+    height: 70px;
+}
+
+.sidebar-brand-text { transition: opacity 0.2s; }
+.diamond-sidebar.compact .sidebar-brand-text, 
+.diamond-sidebar.compact .sidebar-text,
+.diamond-sidebar.compact .accordion-button::after {
+    opacity: 0;
+    pointer-events: none;
+    display: none;
+}
+
+.btn-sidebar-toggle {
+    background: transparent; border: none; font-size: 1.2rem; color: #94a3b8; transition: 0.2s;
+}
+.btn-sidebar-toggle:hover { color: var(--sdm-accent); }
+
+/* Sidebar Accordion Menu (Premium Glassmorphism & Animations) */
+.sidebar-menu {
+    padding: 0.5rem !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.sidebar-menu::-webkit-scrollbar { width: 4px; }
+.sidebar-menu::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+/* Variables de Paleta Institucional (MedentIA) inyectadas localmente */
+.diamond-sidebar {
+    --md-blue-deep: #0A2A66;
+    --md-blue-medical: #124A9E;
+    --md-teal-clinical: #19B7A5;
+    --md-cyan-ia: #18D1E6;
+}
+
+.diamond-sidebar .accordion-item {
+    transition: all 0.3s ease;
+}
+
+.diamond-sidebar .accordion-button {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    padding: 12px 15px;
+    border-radius: 12px;
+    color: #475569;
+    font-weight: 800;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efecto Glassmorphism Hover (Botones Principales) */
+.diamond-sidebar .accordion-button:hover {
+    background: rgba(25, 183, 165, 0.08) !important; /* Fondo suave Teal */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(25, 183, 165, 0.15) !important;
+    color: var(--md-blue-deep);
+    transform: translateX(6px);
+    box-shadow: 0 4px 15px rgba(25, 183, 165, 0.1);
+}
+
+.diamond-sidebar .accordion-button:not(.collapsed) {
+    background: rgba(10, 42, 102, 0.04) !important;
+    color: var(--md-blue-deep);
+    border-left: 3px solid var(--md-teal-clinical) !important;
+}
+
+/* Invertir la dirección del chevron en acordeones (abajo al expandir, arriba al colapsar) */
+.diamond-sidebar .accordion-button.collapsed::after {
+    transform: rotate(180deg) !important;
+}
+.diamond-sidebar .accordion-button:not(.collapsed)::after {
+    transform: rotate(0deg) !important;
+}
+
+/* Uniformidad de color en los iconos principales y animación */
+.diamond-sidebar .accordion-button i { 
+    font-size: 1.2rem; 
+    min-width: 24px; 
+    text-align: center;
+    color: var(--md-teal-clinical) !important; /* Color institucional unificado */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.27);
+}
+
+.diamond-sidebar .accordion-button:hover i {
+    transform: scale(1.15);
+    color: var(--md-blue-deep) !important;
+}
+
+.diamond-sidebar .accordion-body {
+    padding: 0.25rem 0 0.25rem 1.5rem;
+}
+.diamond-sidebar.compact .accordion-body { display: none !important; }
+
+/* Sub-links dentro de Acordeones (Glassmorphism & Animations) */
+.sub-link {
+    border-radius: 10px;
+    padding: 10px 15px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    background: transparent;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+/* Efecto Glassmorphism Hover (Sub-links) */
+.sub-link:hover {
+    background: rgba(24, 209, 230, 0.08); /* Fondo suave Cyan IA */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(24, 209, 230, 0.15);
+    color: var(--md-blue-deep);
+    transform: translateX(6px);
+    box-shadow: 0 4px 12px rgba(24, 209, 230, 0.1);
+}
+
+/* Iconos de sub-links unificados y animados */
+.sub-link i {
+    color: var(--md-teal-clinical) !important;
+    transition: all 0.3s ease;
+}
+
+.sub-link:hover i {
+    color: var(--md-blue-deep) !important;
+    transform: scale(1.1) translateX(2px);
+}
+
+/* Sub-link Activo (Estado Premium) */
+.sub-link.active {
+    background: linear-gradient(135deg, rgba(10, 42, 102, 0.95) 0%, rgba(18, 74, 158, 0.95) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(10, 42, 102, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateX(6px);
+}
+.sub-link.active i {
+    color: var(--md-cyan-ia) !important;
+}
+
+/* Main Content Area */
+.sdm-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Prevent flex blowout */
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #f1f5f9;
+}
+
+/* Compact Header */
+.diamond-header-compact {
+    background: linear-gradient(165deg, #040c1f 0%, #0d1e3d 100%);
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    min-height: 80px;
+}
+
+.sdm-content { padding: 0.5rem 1.5rem 5rem 1.5rem; }
+
+/* =========================================================================
+   RESPONSIVE MOBILE / TABLET OVERRIDES
+   ========================================================================= */
+@media (max-width: 991px) {
+    .diamond-sidebar {
+        position: fixed;
+        left: -320px;
+        top: 1rem;
+        bottom: auto;
+        height: fit-content;
+        max-height: calc(100vh - 2rem);
+        width: 290px !important;
+        border-radius: 1.5rem !important;
+        margin: 0;
+        border: 1px solid var(--md-teal-clinical) !important;
+    }
+    .diamond-sidebar.show {
+        transform: translateX(336px);
+    }
+    
+    .diamond-header-compact { padding: 1rem 1.5rem; border-radius: 0 0 1.5rem 1.5rem; }
+    .sdm-content { padding: 0.5rem 0.25rem 6rem 0.25rem !important; }
+    .sdm-content .container-fluid, 
+    .sdm-content .container { 
+        padding-left: 0.25rem !important; 
+        padding-right: 0.25rem !important; 
+    }
+}
+
+/* Overrides for hardcoded elements inside sub_sidebar.pl */
+.sidebar-separator {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.avatar-diamond {
+    font-size: 1.2rem; 
+    border-width: 2px;
+    width: 45px; 
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    
+    /* PREMIUM UI/UX enhancements */
+    overflow: hidden; 
+    background: linear-gradient(135deg, #0A2A66, #00C4C4);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.avatar-diamond:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.avatar-initials {
+    font-weight: 800;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    letter-spacing: 1px;
+}
+
+.diamond-sidebar.compact .sidebar-brand .avatar-diamond {
+    margin: 0 auto;
+}
+.diamond-sidebar.compact .user-details {
+    display: none !important;
+}
+.diamond-sidebar.compact .sub-link {
+    justify-content: center !important;
+    padding: 0.75rem !important;
+    margin-left: 0 !important;
+}
+.diamond-sidebar.compact .sub-link i,
+.diamond-sidebar.compact .sub-link .material-icons {
+    margin-right: 0 !important;
+}
+.diamond-sidebar.compact .sidebar-footer {
+    padding: 1rem !important;
+}
+
+/* Layout Wrapper */
+.sdm-layout-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f1f5f9;
+    overflow: hidden;
+}
+
+/* Sidebar Overlay para Móvil */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 42, 102, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 4999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.sidebar-overlay.show {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+/* Botón Hamburguesa Inline (Únicamente en Móvil <768px) */
+.btn-menu-toggle-inline {
+    background: #0A2A66 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    width: 38px !important;
+    height: 38px !important;
+    display: none !important; /* Oculto por defecto en Desktop y Tableta (>=768px) */
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.25rem !important;
+    box-shadow: 0 4px 10px rgba(10, 42, 102, 0.15) !important;
+    transition: all 0.3s ease !important;
+    animation: pulse-menu 2.5s infinite !important;
+    flex-shrink: 0;
+}
+
+@media (max-width: 767.98px) {
+    .btn-menu-toggle-inline {
+        display: flex !important; /* Visible EXCLUSIVAMENTE en teléfonos (<768px) */
+    }
+}
+
+@keyframes pulse-menu {
+    0% {
+        box-shadow: 0 0 0 0 rgba(10, 42, 102, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(10, 42, 102, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(10, 42, 102, 0);
+    }
+}
+
+.btn-menu-toggle-inline:hover {
+    background: #124A9E !important;
+    transform: scale(1.05) !important;
+}
+
+/* Premium Outline Button */
+.btn-outline-unify {
+    border: 2px solid var(--md-blue-medical) !important;
+    color: var(--md-blue-medical) !important;
+    background: transparent !important;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+.btn-outline-unify:hover {
+    background: var(--md-blue-medical) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(18, 74, 158, 0.15);
+}
