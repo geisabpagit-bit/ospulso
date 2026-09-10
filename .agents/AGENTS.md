@@ -23,9 +23,18 @@
 - **PROTECCIÓN Y GOBERNANZA RBAC (Role-Based Access Control)**: Al crear o modificar endpoints del backend (`api/*.pl`) o vistas (`views/*.pl`), es OBLIGATORIO respetar la segregación de funciones. En backend, SIEMPRE verifica la variable de sesión (ej. `$rol`) para bloquear accesos indebidos (API-RBAC). En frontend, renderiza componentes condicionalmente (UI-RBAC) para ocultar acciones que el rol autenticado no deba operar (ej. no mostrar el botón de "Cobrar" a un Médico, ni el "Wizard Clínico" a una Recepcionista).
 
 - **REGLAS DE ORO DE ARQUITECTURA FINANCIERA, CAJA Y COBRANZA**:
-  Toda modificación, cálculo o refactorización en el módulo financiero (`views/finanzas.pl`, `api/finanzas_api.pl`, `api/generar_corte_caja.pl`, `api/*recibo*.pl`, reportes o estado de cuenta) DEBE consultar y apegarse estrictamente a la fuente de verdad canónica documentada en [docs/ARQUITECTURA_FINANCIERA_TENANT.md](file:///c:/xampp/htdocs/ospulso/docs/ARQUITECTURA_FINANCIERA_TENANT.md):
+  Toda modificación, cálculo o refactorización en el módulo financiero (`views/finanzas.pl`, `api/finanzas_api.pl`, `api/generar_corte_caja.pl`, `api/*recibo*.pl`, reportes o estado de cuenta) DEBE consultar y apegarse strictly a la fuente de verdad canónica documentada en [docs/02_data_and_rules/arquitectura_financiera.md](file:///c:/xampp/htdocs/ospulso/docs/02_data_and_rules/arquitectura_financiera.md):
   1. **Integridad Contable Bidireccional (Drilldown Transparente)**: Los totales de los KPIs del Tablero Ejecutivo DEBEN cuadrar exactamente al centavo con el desglose en las tablas DataTables del periodo seleccionado.
   2. **Canales de Ingreso Coexistentes**: El sistema reconoce dos canales: (a) *Flujo Clínico Canónico* (con expediente, consulta SOAP y estado de cuenta) y (b) *Caja Rápida / Mostrador* (servicios directos, ambulatorios o eventuales). Ambos alimentan el flujo de caja real.
-  3. **Fuente Canónica de Flujo de Efectivo (Anti-Doble Contabilidad)**: La fuente canónica e inviolable de ingresos cobrados en caja es `dat/folios_recibos_privados.dat`. Está estrictamente PROHIBIDO sumar en paralelo `estado_cuenta.dat` y `folios_recibos_privados.dat` para calcular ingresos totales, ya que esto duplicaría la recaudación.
+  3. **Fuente Canónica de Flujo de Efectivo (Anti-Doble Contabilidad)**: La fuente canónica e inviolable de ingresos cobrados en caja es `dat/folios_recibos_privados.dat`. Está strictly PROHIBIDO sumar en paralelo `estado_cuenta.dat` y `folios_recibos_privados.dat` para calcular ingresos totales, ya que esto duplicaría la recaudación.
   4. **Segregación de Flujo Real vs Cuentas por Cobrar (Municipio/Convenios)**: El efectivo cobrado en ventanilla es ingreso de caja real. Los convenios y órdenes públicas con subsidio al 100% de `dat/folios_recibos_publicos.dat` NO son efectivo físico en caja; son Cuentas por Cobrar (CXC Estado) y deben computarse en su respectivo KPI y tabla hasta su liquidación por la entidad pública.
+
+- **GOBERNANZA Y SINCRONIZACIÓN DE DOCUMENTACIÓN (SINGLE SOURCE OF TRUTH)**:
+  1. **Estructura Obligatoria y Restricción de Rutas**: Está estrictamente PROHIBIDO crear o dejar archivos `.md` sueltos en `dat/`, `api/`, `views/`, raíz del proyecto o carpetas temporales. Toda nueva documentación o modificación documental DEBE generarse de forma exclusiva en una de las 4 capas de `docs/` o en `docs/README.md`:
+     - `docs/01_architecture/`: Blueprint general, pipeline core y evolución.
+     - `docs/02_data_and_rules/`: Diccionario de datos (`.dat`), reglas de negocio y finanzas.
+     - `docs/03_modules_and_workflows/`: Especificación por módulo (Caja, Consultas, Visor, Catálogos, etc.).
+     - `docs/04_standards_and_ops/`: Guías de UI/UX responsivo, estándares de código y protocolos de error.
+  2. **Actualización Sincronizada con el Código**: Toda creación o modificación de endpoints (`api/`), vistas (`views/`), hojas de estilo (`css/`) o estructuras flat-file (`dat/`) exige la actualización inmediata del archivo `.md` correspondiente en `docs/`. Nunca se debe dar por terminada una tarea técnica sin refrescar la documentación representativa.
+
 
