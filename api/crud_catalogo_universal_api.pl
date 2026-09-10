@@ -550,6 +550,160 @@ elsif ($action eq 'delete_servicio') {
     actualizar_archivo($rutas->{precios}, $header_p, \@new_p);
     responder({ success => 1, msg => 'Servicio eliminado exitosamente.' });
 }
+elsif ($action eq 'datatable_servicios') {
+    my $draw         = int($cgi->param('draw') || 1);
+    my $start        = int($cgi->param('start') || 0);
+    my $length       = int($cgi->param('length') || 25);
+    $length          = 25 if $length <= 0;
+    
+    my $filtro_dep   = sanitizar_campo($cgi->param('filtro_dep') || '');
+    my $filtro_cat   = sanitizar_campo($cgi->param('filtro_cat') || '');
+    my $filtro_texto = sanitizar_campo($cgi->param('filtro_texto') || $cgi->param('search[value]') || '');
+
+    my ($header_d, $lines_d) = leer_archivo($rutas->{departamentos});
+    my ($header_c, $lines_c) = leer_archivo($rutas->{categorias});
+    my ($header_i, $lines_i) = leer_archivo($rutas->{items});
+    my ($header_p, $lines_p) = leer_archivo($rutas->{precios});
+
+    my %deps_map;
+    foreach my $dl (@$lines_d) {
+        my @dc = split /\|/, $dl, -1;
+        $deps_map{$dc[0]} = $dc[1] if defined $dc[0];
+    }
+
+    my %cats_map;
+    foreach my $cl (@$lines_c) {
+        my @cc = split /\|/, $cl, -1;
+        if (defined $cc[0]) {
+            $cats_map{$cc[0]} = { id_cat => $cc[0], id_dep => $cc[1] // '', nombre => $cc[2] // '' };
+        }
+    }
+
+    my %precios_map;
+    foreach my $pl (@$lines_p) {
+        my @pc = split /\|/, $pl, -1;
+        my $id_item = $pc[1];
+        if (defined $id_item) {
+            push @{$precios_map{$id_item}}, {
+                tipo_tarifa => $pc[2] // 'ESTANDAR',
+                precio_publico => $pc[3] // '0.00',
+                costo_proveedor => $pc[4] // '0.00'
+            };
+        }
+    }
+
+    my @filtered_items;
+    my $total_records = scalar(@$lines_i);
+
+    foreach my $il (@$lines_i) {
+        my @c = split /\|/, $il, -1;
+        next if @c < 4;
+        my $id_item        = $c[0];
+        my $sku            = $c[1] // '';
+        my $cat_id         = $c[2] // '';
+        my $concepto       = $c[3] // '';
+        my $aplica_iva     = ($c[4] && $c[4] eq '1') ? 1 : 0;
+        my $indicaciones   = $c[5] // '';
+        my $tiempo_entrega = $c[6] // '';
+
+        my $cat = $cats_map{$cat_id};
+        my $dep_id = $cat ? $cat->{id_dep} : '';
+        my $cat_name = $cat ? $cat->{nombre} : '';
+        my $dep_name = ($cat && $deps_map{$cat->{id_dep}}) ? $deps_map{$cat->{id_dep}} : '';
+        
+        # Filtrado por Departamento
+        if ($filtro_dep ne '' && $dep_id ne $filtro_dep) {
+            next;
+        }
+
+        # Filtrado por Categoría
+        if ($filtro_cat ne '' && $cat_id ne $filtro_cat) {
+            next;
+        }
+
+        # Filtrado por Texto (SKU, Concepto, Indicaciones, Depto, Cat)
+        if ($filtro_texto ne '') {
+            my $search_target = lc("$sku $concepto $indicaciones $dep_name $cat_name");
+            my $term = lc($filtro_texto);
+            next if index($search_target, $term) == -1;
+        }
+
+        push @filtered_items, {
+            id_item => $id_item,
+            sku => $sku,
+            concepto => $concepto,
+            aplica_iva => $aplica_iva,
+            indicaciones => $indicaciones,
+            tiempo_entrega => $tiempo_entrega,
+            cat_id => $cat_id,
+            dep_id => $dep_id,
+            cat_name => $cat_name,
+            dep_name => $dep_name,
+            precios => $precios_map{$id_item} // []
+        };
+    }
+
+    my $records_filtered = scalar(@filtered_items);
+
+    # Paginación (Slice)
+    my @slice;
+    my $end = $start + $length - 1;
+    $end = $records_filtered - 1 if $end >= $records_filtered;
+    if ($start < $records_filtered && $start <= $end) {
+        @slice = @filtered_items[$start .. $end];
+    }
+
+    my @data;
+    foreach my $item (@slice) {
+        my $sku = $item->{sku};
+        my $sku_html = "<span class='badge' style='background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700;'>$sku</span>";
+        
+        my $extra_info = "";
+        if ($item->{indicaciones} && $item->{indicaciones} ne 'Sin preparación previa') {
+            $extra_info .= "<div class='text-muted small text-truncate' style='max-width: 320px; font-size: 0.72rem;' title='$item->{indicaciones}'><i class='bi bi-info-circle me-1 text-primary'></i>$item->{indicaciones}</div>";
+        }
+        if ($item->{tiempo_entrega} && $item->{tiempo_entrega} ne 'Inmediato') {
+            $extra_info .= "<span class='badge bg-light text-secondary border' style='font-size: 0.65rem;'><i class='bi bi-clock me-1'></i>$item->{tiempo_entrega}</span>";
+        }
+
+        my $concepto_html = "<div class='fw-bold' style='color: var(--inst-navy-deep);'>$item->{concepto}</div>$extra_info";
+        
+        my $dep_cat_label = $item->{dep_name} ? "$item->{dep_name} / $item->{cat_name}" : $item->{cat_name};
+
+        my $precios_html = "";
+        foreach my $p (@{$item->{precios}}) {
+            my $p_val = $p->{precio_publico} // 0;
+            if ($p_val > 0) {
+                $precios_html .= "<span class='badge me-1 mb-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p_val</span>";
+            } else {
+                $precios_html .= "<span class='badge me-1 mb-1' style='background-color: #f8fafc; color: #64748b; border: 1px solid #e2e8f0;'>$p->{tipo_tarifa}: \$0.00</span>";
+            }
+        }
+
+        my $acciones_html = qq{
+            <div class="d-inline-flex align-items-center justify-content-end gap-1">
+                <button class="btn btn-sm btn-navy-outline rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('servicio', '$item->{id_item}')" title="Editar Servicio"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEntity('servicio', '$item->{id_item}')" title="Eliminar Servicio"><i class="bi bi-trash"></i></button>
+            </div>
+        };
+
+        push @data, {
+            sku_html => $sku_html,
+            concepto_html => $concepto_html,
+            dep_cat_label => $dep_cat_label,
+            precios_html => $precios_html,
+            acciones_html => $acciones_html
+        };
+    }
+
+    responder({
+        draw => $draw,
+        recordsTotal => $total_records,
+        recordsFiltered => $records_filtered,
+        data => \@data
+    });
+}
+
 else {
     responder({ error => 'Accion invalida' });
 }

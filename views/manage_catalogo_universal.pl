@@ -169,54 +169,7 @@ print <<HTML;
                                                 <th class="border-0 text-end text-nowrap" style="width: 95px; min-width: 95px;">Acciones</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-HTML
-
-foreach my $item (@{$cat_univ->{items} || []}) {
-    my $cat = $cats_map{$item->{id_cat}};
-    my $cat_id = $item->{id_cat} // '';
-    my $cat_name = $cat ? $cat->{n} : 'Desc';
-    my $dep_id = $cat ? ($cat->{d} // '') : '';
-    my $dep_name = ($cat && $deps_map{$cat->{d}}) ? $deps_map{$cat->{d}} : '';
-    my $dep_cat_label = $dep_name ? "$dep_name / $cat_name" : $cat_name;
-    
-    my $precios_html = "";
-    foreach my $p (@{$item->{precios} || []}) {
-        if (($p->{precio_publico} // 0) > 0) {
-            $precios_html .= "<span class='badge me-1 mb-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span>";
-        } else {
-            $precios_html .= "<span class='badge me-1 mb-1' style='background-color: #f8fafc; color: #64748b; border: 1px solid #e2e8f0;' title='Tarifa no disponible / Inactiva'>$p->{tipo_tarifa}: \$0.00</span>";
-        }
-    }
-    
-    my $extra_info = "";
-    if ($item->{indicaciones} && $item->{indicaciones} ne 'Sin preparación previa') {
-        $extra_info .= "<div class='text-muted small text-truncate' style='max-width: 320px; font-size: 0.72rem;' title='$item->{indicaciones}'><i class='bi bi-info-circle me-1 text-primary'></i>$item->{indicaciones}</div>";
-    }
-    if ($item->{tiempo_entrega} && $item->{tiempo_entrega} ne 'Inmediato') {
-        $extra_info .= "<span class='badge bg-light text-secondary border' style='font-size: 0.65rem;'><i class='bi bi-clock me-1'></i>$item->{tiempo_entrega}</span>";
-    }
-    
-    print <<HTML;
-                                        <tr data-dep-id="$dep_id" data-cat-id="$cat_id">
-                                            <td data-label="SKU"><span class="badge" style="background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700;">$item->{codigo_sku}</span></td>
-                                            <td data-label="Concepto">
-                                                <div class="fw-bold" style="color: var(--inst-navy-deep);">$item->{concepto}</div>
-                                                $extra_info
-                                            </td>
-                                            <td data-label="Dep/Cat" class="small text-muted">$dep_cat_label</td>
-                                            <td data-label="Precios" style="width: 150px; max-width: 150px;">$precios_html</td>
-                                            <td class="text-end text-nowrap" style="width: 95px; min-width: 95px;">
-                                                <div class="d-inline-flex align-items-center justify-content-end gap-1">
-                                                    <button class="btn btn-sm btn-navy-outline rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('servicio', '$item->{id_item}')" title="Editar Servicio"><i class="bi bi-pencil"></i></button>
-                                                    <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEntity('servicio', '$item->{id_item}')" title="Eliminar Servicio"><i class="bi bi-trash"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-HTML
-}
-
-print <<HTML;
+                                        <tbody id="tbodyServicios">
                                         </tbody>
                                     </table>
                                 </div>
@@ -579,6 +532,50 @@ print <<'JS';
                 }
             }
 
+            function initServiciosServerTable() {
+                if ($('#tablaServicios').length) {
+                    $('#tablaServicios').DataTable({
+                        destroy: true,
+                        serverSide: true,
+                        deferRender: true,
+                        processing: true,
+                        ajax: {
+                            url: '../api/crud_catalogo_universal_api.pl',
+                            type: 'POST',
+                            data: function(d) {
+                                d.action = 'datatable_servicios';
+                                d.filtro_dep = $('#filtro_dep').val() || '';
+                                d.filtro_cat = $('#filtro_cat').val() || '';
+                                d.filtro_texto = $('#filtro_texto').val() || '';
+                            }
+                        },
+                        columns: [
+                            { data: 'sku_html' },
+                            { data: 'concepto_html' },
+                            { data: 'dep_cat_label' },
+                            { data: 'precios_html' },
+                            { data: 'acciones_html', orderable: false, className: 'text-end text-nowrap' }
+                        ],
+                        language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                        pageLength: 25,
+                        responsive: true,
+                        dom: '<"d-flex flex-wrap justify-content-between align-items-center mb-3"B>rt<"d-flex justify-content-between align-items-center mt-3 flex-wrap"i p>',
+                        buttons: {
+                            dom: {
+                                container: { className: 'dt-buttons export-toolbar' },
+                                button: { className: 'btn-export' }
+                            },
+                            buttons: [
+                                { extend: 'copy', text: '<i class="bi bi-clipboard"></i> Copiar', exportOptions: { columns: ':not(:last-child)' } },
+                                { extend: 'excel', text: '<i class="bi bi-file-earmark-excel"></i> Excel', title: 'Catálogo Universal - Servicios', exportOptions: { columns: ':not(:last-child)' } },
+                                { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf"></i> PDF', title: 'Catálogo Universal - Servicios', exportOptions: { columns: ':not(:last-child)' } },
+                                { extend: 'print', text: '<i class="bi bi-printer"></i> Imprimir', exportOptions: { columns: ':not(:last-child)' } }
+                            ]
+                        }
+                    });
+                }
+            }
+
             function initCatalogoTable(tableId, titleExport) {
                 if ($(tableId).length) {
                     $(tableId).DataTable({
@@ -602,7 +599,7 @@ print <<'JS';
             }
 
             $(document).ready(function() {
-                initCatalogoTable('#tablaServicios', 'Catálogo Universal - Servicios');
+                initServiciosServerTable();
                 initCatalogoTable('#tablaProductos', 'Catálogo Universal - Productos');
                 initCatalogoTable('#tablaTarifasCatalogo', 'Catálogo Universal - Tipos de Tarifa');
             });

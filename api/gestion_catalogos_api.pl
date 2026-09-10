@@ -51,10 +51,19 @@ my $global_dat_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
 
 # Whitelist de patrones permitidos (archivos especificos)
 my @allowed_patterns = (
+    qr/^catalogo_items_$org_clues\.dat$/,
+    qr/^catalogo_precios_$org_clues\.dat$/,
+    qr/^categorias_$org_clues\.dat$/,
+    qr/^departamentos_$org_clues\.dat$/,
     qr/^empleadosmun_$org_clues\.dat$/,
-    qr/^medicos_$org_clues\.dat$/,
     qr/^especialidades_$org_clues\.dat$/,
+    qr/^medicos_$org_clues\.dat$/,
+    qr/^motivos_$org_clues\.dat$/,
+    qr/^municipios_$org_clues\.dat$/,
     qr/^pacientes_privados_$org_clues\.dat$/,
+    qr/^productos_$org_clues\.dat$/,
+    qr/^proveedores_$org_clues\.dat$/,
+    qr/^tipos_tarifas_$org_clues\.dat$/,
     qr/^contadores_recibos_privados_$org_clues\.dat$/,
     qr/^contadores_recibos_publicos_$org_clues\.dat$/
 );
