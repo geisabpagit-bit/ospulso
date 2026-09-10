@@ -76,11 +76,3 @@ Captura trazas de auditoría de forma asíncrona, inmutable y append-only. Entid
 * **Fase 1:** Consolidación del Core Multitenant.
 * **Fase 2:** Interoperabilidad y Flexibilidad Comercial.
 * **Fase 3:** Escalabilidad y Automatización Inteligente.
-
----
-**Document Status**
-* **Document:** Architecture Baseline
-* **Version:** 1.0
-* **Status:** APPROVED
-* **Owner:** MedentOS Architecture Review Board
-* **Next Document Link:** `02_MEDENTOS_DOMAIN_MODEL_SPECIFICATION_v1.0.md`

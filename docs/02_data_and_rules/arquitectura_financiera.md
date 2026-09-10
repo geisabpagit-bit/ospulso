@@ -18,7 +18,7 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
 ### 2.3 Fuente Canónica de Efectivo Real (Anti-Doble Contabilidad)
 - La **fuente única e inviolable** de ingresos cobrados en efectivo/ventanilla es:
   `dat/folios_recibos_privados.dat` (o `dat/catalogos_CLUE/<CLUES>/folios_recibos_privados.dat`).
-- **Regla Anti-Duplicación**: Queda estrictamente prohibido sumar de forma paralela `estado_cuenta.dat` y `folios_recibos_privados.dat` para calcular el flujo de efectivo global, dado que un estado de cuenta liquidado genera su recibo privado en `folios_recibos_privados.dat`, lo que duplicaría contablemente la recaudación.
+- **Regla Anti-Duplicación**: Queda strictly prohibido sumar de forma paralela `estado_cuenta.dat` y `folios_recibos_privados.dat` para calcular el flujo de efectivo global, dado que un estado de cuenta liquidado genera su recibo privado en `folios_recibos_privados.dat`, lo que duplicaría contablemente la recaudación.
 
 ### 2.4 Segregación de Flujo Real vs Cuentas por Cobrar (CXC Estado)
 - **Ingreso Físico en Caja**: Efectivo, tarjetas bancarias y transferencias ingresadas vía recibos privados (`folios_recibos_privados.dat`).
