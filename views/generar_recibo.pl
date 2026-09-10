@@ -964,6 +964,7 @@ print <<'JS';
                         precio_estandar: precioEst,
                         precio_municipio: precioMun,
                         precio: esEstado ? precioMun : precioEst,
+                        indicaciones: c.indicaciones || '',
                         cat: c.id_cat,
                         dep: catInfo.d
                     });
@@ -1137,7 +1138,7 @@ print <<'JS';
         if (ex) {
             ex.cantidad++;
         } else {
-            modalCartItems.push({ id: item.id, nombre: item.nombre, precio: parseFloat(item.precio), cantidad: 1 });
+            modalCartItems.push({ id: item.id, nombre: item.nombre, precio: parseFloat(item.precio), indicaciones: item.indicaciones || '', cantidad: 1 });
         }
         _renderizarCarritoModalRecibo();
     }

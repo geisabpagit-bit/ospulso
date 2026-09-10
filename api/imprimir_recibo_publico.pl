@@ -823,7 +823,85 @@ if ($recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
     };
 }
 
+# 5. Obtener Indicaciones / Preparación Previa de los ítems
+my %mapa_indicaciones_cat = ();
+if ($negocio->{clues}) {
+    eval {
+        require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+        my $rutas_clue = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
+        if (-e $rutas_clue->{items} && open(my $fhi, '<:encoding(UTF-8)', $rutas_clue->{items})) {
+            <$fhi>;
+            while (my $li = <$fhi>) {
+                chomp $li;
+                next if $li =~ /^\s*$/;
+                my @c = split /\|/, $li, -1;
+                if (@c >= 6 && $c[5]) {
+                    $mapa_indicaciones_cat{$c[0]} = $c[5];
+                    $mapa_indicaciones_cat{uc($c[3])} = $c[5] if $c[3];
+                }
+            }
+            close $fhi;
+        }
+    };
+}
+
+sub es_indicacion_valida {
+    my ($ind) = @_;
+    return 0 unless defined $ind;
+    $ind =~ s/^\s+|\s+$//g;
+    return 0 if $ind eq '' || $ind =~ /^null$/i || $ind =~ /^nulo$/i;
+    return 0 if $ind =~ /^seg[uú]n\s+procedimiento$/i;
+    return 0 if $ind =~ /^sin\s+preparaci[oó]n\s+previa$/i;
+    return 0 if $ind =~ /^sin\s+indicaciones\s+particulares$/i;
+    return 0 if $ind =~ /^n\/?a$/i || $ind =~ /^ninguna$/i;
+    return 1;
+}
+
+sub formatear_indicacion {
+    my ($text) = @_;
+    return '' unless defined $text;
+    $text =~ s/^\s+|\s+$//g;
+    return '' if $text eq '';
+    $text = lc($text);
+    return ucfirst($text);
+}
+
+my @indicaciones_lista = ();
+my %seen_ind = ();
+
+if ($recibo->{items_json}) {
+    eval {
+        require JSON;
+        my $items_arr = JSON::decode_json($recibo->{items_json});
+        if (ref($items_arr) eq 'ARRAY') {
+            foreach my $it (@$items_arr) {
+                my $ind_raw = $it->{indicaciones};
+                if (!es_indicacion_valida($ind_raw)) {
+                    my $id_item = $it->{id} || $it->{id_item} || '';
+                    my $nom_item = uc($it->{nombre} || $it->{concepto} || '');
+                    $ind_raw = $mapa_indicaciones_cat{$id_item} || $mapa_indicaciones_cat{$nom_item} || '';
+                }
+                if (es_indicacion_valida($ind_raw)) {
+                    my $ind_fmt = formatear_indicacion($ind_raw);
+                    if ($ind_fmt && !$seen_ind{$ind_fmt}++) {
+                        push @indicaciones_lista, $ind_fmt;
+                    }
+                }
+            }
+        }
+    };
+}
+
+my $indicaciones_html = '';
+if (@indicaciones_lista) {
+    my $txt_ind = join('; ', @indicaciones_lista);
+    $indicaciones_html = qq{
+        <div style="text-align: left; font-size: 10px; font-weight: bold; color: #1e293b; margin-top: 8px; margin-bottom: 4px;">Indicaciones: $txt_ind</div>
+    };
+}
+
 print <<HTML;
+                                $indicaciones_html
                                 <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 10px;">
                                     <span style="font-size: 10px; text-align: right; white-space: nowrap; font-weight: normal; color: #64748b;">Elaboró : $elaborado_por</span>
                                 </div>
