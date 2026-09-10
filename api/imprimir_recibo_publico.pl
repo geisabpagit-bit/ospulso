@@ -798,31 +798,6 @@ foreach my $c (@cargos) {
     };
 }
 
-print <<HTML;
-                    </table>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="3" style="padding: 0; border: none;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                        <tr>
-                            <td style="width: 50%; text-align: center; vertical-align: bottom; height: 60px; padding-bottom: 5px; border: 1px solid #ccc; border-top: none;">
-                                <div class="signature-box">
-                                    Nombre y Firma del Paciente
-                                </div>
-                            </td>
-                            <td style="width: 50%; text-align: left; vertical-align: middle; padding: 12px; border: 1px solid #ccc; border-top: none; border-left: none;">
-HTML
-
-if ($recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
-    print qq{
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; font-weight: bold; color: #059669;">
-                                    <span>Pago en Ventanilla</span>
-                                    <span>@{[ formato_moneda($recibo->{total_abonos}) ]}</span>
-                                </div>
-    };
-}
-
 # 5. Obtener Indicaciones / Preparación Previa de los ítems
 my %mapa_indicaciones_cat = ();
 if ($negocio->{clues}) {
@@ -892,16 +867,41 @@ if ($recibo->{items_json}) {
     };
 }
 
-my $indicaciones_html = '';
+my $indicaciones_col_html = '';
 if (@indicaciones_lista) {
     my $txt_ind = join('; ', @indicaciones_lista);
-    $indicaciones_html = qq{
-        <div style="text-align: left; font-size: 10px; font-weight: bold; color: #1e293b; margin-top: 8px; margin-bottom: 4px;">Indicaciones: $txt_ind</div>
+    $indicaciones_col_html = qq{
+        <div style="font-size: 10px; font-weight: bold; color: #1e293b; text-align: left; margin-bottom: 12px;">Indicaciones: $txt_ind</div>
     };
 }
 
 print <<HTML;
-                                $indicaciones_html
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="padding: 0; border: none;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                        <tr>
+                            <td style="width: 50%; text-align: left; vertical-align: top; padding: 10px 12px; border: 1px solid #ccc; border-top: none;">
+                                $indicaciones_col_html
+                                <div class="signature-box" style="margin-top: 15px; text-align: center;">
+                                    Nombre y Firma del Paciente
+                                </div>
+                            </td>
+                            <td style="width: 50%; text-align: left; vertical-align: middle; padding: 12px; border: 1px solid #ccc; border-top: none; border-left: none;">
+HTML
+
+if ($recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
+    print qq{
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; font-weight: bold; color: #059669;">
+                                    <span>Pago en Ventanilla</span>
+                                    <span>@{[ formato_moneda($recibo->{total_abonos}) ]}</span>
+                                </div>
+    };
+}
+
+print <<HTML;
                                 <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 10px;">
                                     <span style="font-size: 10px; text-align: right; white-space: nowrap; font-weight: normal; color: #64748b;">Elaboró : $elaborado_por</span>
                                 </div>
