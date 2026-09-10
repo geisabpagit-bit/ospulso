@@ -866,6 +866,9 @@ print <<'JS';
         (masterCatalogoRecibo || []).forEach(it => {
             it.precio = esEstado ? (it.precio_municipio || it.precio_estandar || 0) : (it.precio_estandar || 0);
         });
+
+        // Refrescar los filtros de departamento y categoría del modal según las tarifas del paciente
+        if (typeof _poblarFiltrosRecibo === 'function') _poblarFiltrosRecibo();
         
         if (modalCartItems && modalCartItems.length > 0) {
             modalCartItems.forEach(it => {
@@ -992,11 +995,37 @@ print <<'JS';
         const selDep = document.getElementById('reciboSelDep');
         const selCat = document.getElementById('reciboSelCat');
         if (!selDep || !selCat) return;
+
+        let curDepVal = selDep.value;
         selDep.innerHTML = '<option value="">Todos los Departamentos</option>';
         selCat.innerHTML = '<option value="">Todas las Categorías</option>';
+
+        let esEstado = (pacienteTipoActual === 'estado');
+
+        // Identificar departamentos con al menos 1 ítem con tarifa > 0 para el paciente activo
+        let depsValidos = new Set();
+        (masterCatalogoRecibo || []).forEach(it => {
+            let pVal = esEstado ? 
+                ((it.precio_municipio !== undefined) ? parseFloat(it.precio_municipio) : parseFloat(it.precio)) :
+                ((it.precio_estandar !== undefined) ? parseFloat(it.precio_estandar) : parseFloat(it.precio));
+            if (pVal > 0 && it.dep) {
+                depsValidos.add(String(it.dep));
+            }
+        });
+
+        let depsArray = [];
         for (var k in recDepsMap) {
-            selDep.insertAdjacentHTML('beforeend', `<option value="${k}">${escapeHtml(recDepsMap[k])}</option>`);
+            if (depsValidos.has(String(k))) {
+                depsArray.push({ id: k, nombre: recDepsMap[k] });
+            }
         }
+        depsArray.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+        depsArray.forEach(d => {
+            let sel = (String(curDepVal) === String(d.id)) ? 'selected' : '';
+            selDep.insertAdjacentHTML('beforeend', `<option value="${d.id}" ${sel}>${escapeHtml(d.nombre)}</option>`);
+        });
+
+        _onDepChangeRecibo();
     }
 
     function _onDepChangeRecibo() {
@@ -1004,12 +1033,35 @@ print <<'JS';
         const selCat = document.getElementById('reciboSelCat');
         if (!selDep || !selCat) return;
         const dep = selDep.value;
+        let curCatVal = selCat.value;
         selCat.innerHTML = '<option value="">Todas las Categorías</option>';
+
+        let esEstado = (pacienteTipoActual === 'estado');
+
+        // Filtrar categorías que posean ítems válidos (> 0) según el departamento seleccionado
+        let catsConItemsValidos = new Set();
+        (masterCatalogoRecibo || []).forEach(it => {
+            let pVal = esEstado ? 
+                ((it.precio_municipio !== undefined) ? parseFloat(it.precio_municipio) : parseFloat(it.precio)) :
+                ((it.precio_estandar !== undefined) ? parseFloat(it.precio_estandar) : parseFloat(it.precio));
+            if (pVal > 0 && (!dep || String(it.dep) === String(dep)) && it.cat) {
+                catsConItemsValidos.add(String(it.cat));
+            }
+        });
+
+        let catsArray = [];
         for (var k in recCatsMap) {
-            if (dep === '' || recCatsMap[k].d == dep) {
-                selCat.insertAdjacentHTML('beforeend', `<option value="${k}">${escapeHtml(recCatsMap[k].n)}</option>`);
+            if (catsConItemsValidos.has(String(k))) {
+                if (dep === '' || String(recCatsMap[k].d) === String(dep)) {
+                    catsArray.push({ id: k, nombre: recCatsMap[k].n });
+                }
             }
         }
+        catsArray.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+        catsArray.forEach(c => {
+            let sel = (String(curCatVal) === String(c.id)) ? 'selected' : '';
+            selCat.insertAdjacentHTML('beforeend', `<option value="${c.id}" ${sel}>${escapeHtml(c.nombre)}</option>`);
+        });
         _filtrarCatalogoRecibo();
     }
 
@@ -1025,12 +1077,19 @@ print <<'JS';
         const filterText = (document.getElementById('reciboBuscador') ? document.getElementById('reciboBuscador').value : '').toLowerCase();
         const selDep = document.getElementById('reciboSelDep') ? document.getElementById('reciboSelDep').value : '';
         const selCat = document.getElementById('reciboSelCat') ? document.getElementById('reciboSelCat').value : '';
+        const esEstado = (pacienteTipoActual === 'estado');
 
         const filtered = masterCatalogoRecibo.filter(item => {
             const matchText = (item.nombre || '').toLowerCase().includes(filterText);
             const matchDep = !selDep || item.dep == selDep;
             const matchCat = !selCat || item.cat == selCat;
-            return matchText && matchDep && matchCat;
+
+            // Filtrar ítems cuyo precio para el tipo de paciente activo sea mayor a 0
+            let pVal = esEstado ? 
+                ((item.precio_municipio !== undefined) ? parseFloat(item.precio_municipio) : parseFloat(item.precio)) :
+                ((item.precio_estandar !== undefined) ? parseFloat(item.precio_estandar) : parseFloat(item.precio));
+
+            return matchText && matchDep && matchCat && (pVal > 0);
         });
 
         if (filtered.length === 0) {
