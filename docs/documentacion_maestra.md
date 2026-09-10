@@ -1,8 +1,18 @@
 # Documentación Maestra del Sistema OSPulso / SDM 2.0
 
-## 1. Índice General de Documentación Consolidada
+## 1. Índice General y Rama Documental Principal (`docs/OSPulso 2.0/`)
 
 Esta Documentación Maestra sirve como mapa centralizado para todos los aspectos de arquitectura, diseño de base de datos 3NF, reglas de negocio, flujos financieros, impresión y normatividad del sistema.
+
+### 🌟 Rama Principal y Guías Canónicas (`docs/OSPulso 2.0/`)
+- **[ARQUITECTURA_SOAP_ESPECIALIDADES.md](file:///c:/xampp/htdocs/ospulso/docs/OSPulso%202.0/ARQUITECTURA_SOAP_ESPECIALIDADES.md)**: Guía canónica de la Arquitectura SOAP Polimórfica, Contrato JSON Canónico y las 3 Reglas de Oro de Especialidades.
+- **[Analisis_Flujo_Consultas_Privado.md](file:///c:/xampp/htdocs/ospulso/docs/OSPulso%202.0/Analisis_Flujo_Consultas_Privado.md)**: Especificación técnica del Wizard Clínico, Guardia de Consulta Única Activa, Tratamientos Abiertos, Cargos Directos y Hub PACS.
+- **[OSPulso_Master_Blueprint v2.md](file:///c:/xampp/htdocs/ospulso/docs/OSPulso%202.0/OSPulso_Master_Blueprint%20v2.md)**: Blueprint estratégico de producto, sistema UI/UX Mobile-First, Onboarding de 24h y modelo operativo.
+- **[OSPulso_Master_Specification_v1.0.md](file:///c:/xampp/htdocs/ospulso/docs/OSPulso%202.0/OSPulso_Master_Specification_v1.0.md)**: Constitución técnica del ecosistema OSPulso / SDM, motor Multi-Tarifa, Server-Side DataTables e impresión controlada.
+
+---
+
+## 2. Documentos Específicos por Dominio Funcional
 
 ### 📚 Arquitectura, Datos y Reglas de Negocio
 - **[diccionario_datos_sdm.md](file:///c:/xampp/htdocs/ospulso/docs/diccionario_datos_sdm.md)**: Especificación técnica detallada de la estructura de archivos `.dat`, campos, llaves y tipos de datos por tenant.
@@ -28,7 +38,7 @@ Esta Documentación Maestra sirve como mapa centralizado para todos los aspectos
 
 ---
 
-## 2. Diagrama de la Arquitectura Global
+## 3. Diagrama de la Arquitectura Global
 
 ```mermaid
 graph TD
