@@ -182,7 +182,11 @@ foreach my $item (@{$cat_univ->{items} || []}) {
     
     my $precios_html = "";
     foreach my $p (@{$item->{precios} || []}) {
-        $precios_html .= "<span class='badge me-1 mb-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span>";
+        if (($p->{precio_publico} // 0) > 0) {
+            $precios_html .= "<span class='badge me-1 mb-1' style='background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;'>$p->{tipo_tarifa}: \$$p->{precio_publico}</span>";
+        } else {
+            $precios_html .= "<span class='badge me-1 mb-1' style='background-color: #f8fafc; color: #64748b; border: 1px solid #e2e8f0;' title='Tarifa no disponible / Inactiva'>$p->{tipo_tarifa}: \$0.00</span>";
+        }
     }
     
     my $extra_info = "";
@@ -817,7 +821,7 @@ print <<'JS';
                     <td class="py-1.5">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text bg-light text-muted fw-bold">$</span>
-                            <input type="number" step="0.01" min="0.01" class="form-control form-control-sm fw-bold text-dark tarifa-precio" value="${precio || ''}" placeholder="0.00" required>
+                            <input type="number" step="0.01" min="0.00" class="form-control form-control-sm fw-bold text-dark tarifa-precio" value="${(precio !== undefined && precio !== null && precio !== '') ? precio : '0.00'}" placeholder="0.00" required>
                         </div>
                     </td>
                     <td class="py-1.5">
@@ -1213,15 +1217,20 @@ print <<'JS';
                     const tarifas = [];
                     let tieneEstandar = false;
                     let tieneInvalido = false;
+                    let tieneAlMenosUnPositivo = false;
                     const tiposSet = new Set();
 
                     filas.forEach(f => {
                         const tTipo = f.querySelector('.tarifa-tipo').value;
-                        const tPrecio = parseFloat(f.querySelector('.tarifa-precio').value) || 0;
+                        const tPrecioStr = f.querySelector('.tarifa-precio').value;
+                        const tPrecio = parseFloat(tPrecioStr);
                         const tCosto = parseFloat(f.querySelector('.tarifa-costo').value) || 0;
 
-                        if (tPrecio <= 0) {
+                        if (isNaN(tPrecio) || tPrecio < 0) {
                             tieneInvalido = true;
+                        }
+                        if (tPrecio > 0) {
+                            tieneAlMenosUnPositivo = true;
                         }
                         if (tTipo === 'ESTANDAR') tieneEstandar = true;
                         if (tiposSet.has(tTipo)) {
@@ -1232,7 +1241,7 @@ print <<'JS';
 
                         tarifas.push({
                             tipo_tarifa: tTipo,
-                            precio: tPrecio,
+                            precio: isNaN(tPrecio) ? 0 : tPrecio,
                             costo: tCosto
                         });
                     });
@@ -1242,7 +1251,11 @@ print <<'JS';
                         return;
                     }
                     if (tieneInvalido) {
-                        Swal.fire('Atención', 'Todas las tarifas ingresadas deben tener un precio mayor a $0.00.', 'warning');
+                        Swal.fire('Atención', 'Las tarifas ingresadas no pueden tener precios negativos o vacíos.', 'warning');
+                        return;
+                    }
+                    if (!tieneAlMenosUnPositivo) {
+                        Swal.fire('Atención', 'El servicio debe contar con al menos una tarifa con precio mayor a $0.00.', 'warning');
                         return;
                     }
 

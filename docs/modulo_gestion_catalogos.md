@@ -46,6 +46,12 @@ Al inicializarse el catálogo de una organización, se crean 12 tipos base:
 2. **Anti-Orfandad**: No es posible eliminar un tipo de tarifa si actualmente se encuentra asignado a uno o más servicios en `catalogo_precios_<CLUES>.dat`.
 3. **Clave Única**: Las claves internas se formatean en mayúsculas sin espacios (`[A-Z0-9_]`) y son estrictamente únicas por organización.
 
+### 3.3 Soporte de Tarifas con Precio Cero ($0.00)
+El sistema permite explícitamente configurar precios en `$0.00` en tarifas como `ESTANDAR`, `MUNICIPIO` o cualquier otra cuando el servicio o médico especialista **no está disponible o no aplica para dicho esquema**:
+- **Caso Especialista Exclusivo Municipio**: Un médico de convenio (ej. *Angiología* o *Cardiología*) puede tener `ESTANDAR = $0.00` y `MUNICIPIO = $1,760.00`.
+- **Caso Especialista Exclusivo Privado**: Un médico particular (ej. *Geriatría* o *Ginecología Urgencias*) puede tener `ESTANDAR = $800.00` y `MUNICIPIO = $0.00`.
+- **Regla de Validación**: La matriz permite montos `>= $0.00`, exigiendo únicamente que al menos una tarifa del servicio cuente con un precio mayor a `$0.00` y bloqueando montos negativos o vacíos.
+
 ---
 
 ## 4. Generación y Respeto de SKU (Nomenclatura y Varita Mágica)

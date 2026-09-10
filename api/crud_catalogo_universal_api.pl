@@ -429,13 +429,21 @@ elsif ($action eq 'save_servicio') {
         responder({ error => 'Debe ingresar al menos una tarifa válida para el servicio.' });
     }
 
-    # Validación de montos
+    # Validación de montos (se permite tarifa en $0.00 para esquemas donde el servicio no está disponible)
+    my $tiene_precio_positivo = 0;
     foreach my $t (@tarifas_input) {
-        my $p = (defined $t->{precio} && $t->{precio} ne '') ? $t->{precio} : ($t->{precio_publico} || 0);
-        if ($p <= 0) {
+        my $p = (defined $t->{precio} && $t->{precio} ne '') ? $t->{precio} : ($t->{precio_publico} // 0);
+        if ($p < 0) {
             my $nom_t = $t->{tipo_tarifa} || 'DESCONOCIDA';
-            responder({ error => "El precio de la tarifa $nom_t debe ser mayor a \$0.00." });
+            responder({ error => "El precio de la tarifa $nom_t no puede ser negativo." });
         }
+        if ($p > 0) {
+            $tiene_precio_positivo = 1;
+        }
+    }
+
+    if (!$tiene_precio_positivo) {
+        responder({ error => 'El servicio debe contar con al menos una tarifa con precio mayor a $0.00.' });
     }
 
     my ($header_i, $lines_i) = leer_archivo($rutas->{items});
