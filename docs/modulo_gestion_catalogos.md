@@ -1,4 +1,4 @@
-# Módulo de Gestión de Catálogo Universal 3NF
+# Módulo de Gestión de Catálogo Universal 3NF y Arquitectura Server-Side
 
 ## 1. Visión General y Arquitectura
 El Módulo de **Catálogo Universal** (`views/manage_catalogo_universal.pl`) implementa una arquitectura relacional normalizada (3NF) aislada por organización/tenant bajo la clave sanitaria CLUES (`dat/catalogos_CLUE/<CLUES>/`).
@@ -20,50 +20,45 @@ Cada tenant opera con su propio conjunto de datos bajo `dat/catalogos_CLUE/<CLUE
 
 ---
 
-## 3. Catálogo Dinámico de Tipos de Tarifa (`tipos_tarifas_<CLUES>.dat`)
-Con la evolución arquitectónica, las tarifas ya no son valores hardcodeados en código. Cada organización dispone de un catálogo extensible que alimenta dinámicamente:
-1. **Matriz de Tarifas en Edición/Alta de Servicios** (`views/manage_catalogo_universal.pl`).
-2. **Selector de Tarifa en Caja Rápida para Consultas Privadas** (`views/generar_recibo.pl`).
-3. **Módulos de Cotizaciones y Estados de Cuenta** (`js/cotizaciones_spa.js`, `js/estado_cuenta_spa.js`).
+## 3. Arquitectura DataTables Server-Side AJAX y `deferRender: true`
 
-### 3.1 Contenido Base Oficial (Auto-Semillado)
-Al inicializarse el catálogo de una organización, se crean 12 tipos base:
-- `1|ESTANDAR|ESTÁNDAR|Público General / Tarifa Base|1`
-- `2|MUNICIPIO|MUNICIPIO|Convenio Sindical / Estatal|1`
-- `3|URGENCIAS|URGENCIAS|Tarifa de Atención de Urgencias|1`
-- `4|LUNES_A_SABADO|LUNES A SÁBADO|Tarifa Ordinaria|1`
-- `5|DOMINGOS_Y_FESTIVOS|DOMINGOS Y FESTIVOS|Recargo Dominical / Festivo|1`
-- `6|FESTIVO|DÍA FESTIVO|Atención en Día Festivo Oficial|1`
-- `7|NORMAL|TURNO NORMAL|Horario Habitual de Consulta|1`
-- `8|MATUTINO|TURNO MATUTINO|Horario Matutino|1`
-- `9|NOCTURNO|TURNO NOCTURNO|Turno Nocturno|1`
-- `10|SABADO_TARDE_DOMINGO_FESTIVO|SÁBADO TARDE / DOMINGO / FESTIVO|Guardia Fin de Semana y Festivo|1`
-- `11|PAQUETE_TODO_INCLUIDO|PAQUETE TODO INCLUIDO|Paquete Integral Quirúrgico / Procedimiento|1`
-- `12|PAQUETE_SOLO_CLINICA|PAQUETE SOLO CLÍNICA|Paquete Quirúrgico sin Honorarios Médicos|1`
+Para optimizar el rendimiento y la memoria en el navegador frente a catálogos extensos (más de 800 servicios):
 
-### 3.2 Reglas de Integridad y Protección
-1. **Protección de Sistema**: Las claves `ESTANDAR`, `MUNICIPIO` y `URGENCIAS` no pueden ser eliminadas ni alteradas en su clave interna para evitar descalces en flujos críticos (Caja Rápida, Convenios de Cabildo y Urgencias).
-2. **Anti-Orfandad**: No es posible eliminar un tipo de tarifa si actualmente se encuentra asignado a uno o más servicios en `catalogo_precios_<CLUES>.dat`.
-3. **Clave Única**: Las claves internas se formatean en mayúsculas sin espacios (`[A-Z0-9_]`) y son estrictamente únicas por organización.
-
-### 3.3 Soporte de Tarifas con Precio Cero ($0.00)
-El sistema permite explícitamente configurar precios en `$0.00` en tarifas como `ESTANDAR`, `MUNICIPIO` o cualquier otra cuando el servicio o médico especialista **no está disponible o no aplica para dicho esquema**:
-- **Caso Especialista Exclusivo Municipio**: Un médico de convenio (ej. *Angiología* o *Cardiología*) puede tener `ESTANDAR = $0.00` y `MUNICIPIO = $1,760.00`.
-- **Caso Especialista Exclusivo Privado**: Un médico particular (ej. *Geriatría* o *Ginecología Urgencias*) puede tener `ESTANDAR = $800.00` y `MUNICIPIO = $0.00`.
-- **Regla de Validación**: La matriz permite montos `>= $0.00`, exigiendo únicamente que al menos una tarifa del servicio cuente con un precio mayor a `$0.00` y bloqueando montos negativos o vacíos.
+1. **Backend Server-Side (`api/crud_catalogo_universal_api.pl`)**:
+   - Incorpora la acción `datatable_servicios` que recibe `draw`, `start`, `length`, `filtro_dep`, `filtro_cat` y `filtro_texto`.
+   - Efectúa el filtrado, ordenamiento y paginación en el servidor Perl devolviendo exclusivamente los registros del segmento solicitado formateados en JSON.
+2. **Frontend con Renderizado Diferido (`views/manage_catalogo_universal.pl`)**:
+   - Configura DataTables con `serverSide: true`, `deferRender: true` y `processing: true`.
+   - Se eliminó la inyección masiva de filas `<tr>` en el HTML inicial, reduciendo el tiempo de carga del DOM a **0 ms**.
+3. **Paginación Estándar de 10 Registros por Página**:
+   - Ajuste global a `pageLength: 10` en `views/manage_catalogo_universal.pl` y en `js/gestion_catalogos.js`.
+4. **Lista Blanca de Permisos de Edición (`api/gestion_catalogos_api.pl`)**:
+   - Inclusión explícita de todos los archivos del catálogo CLUE (`catalogo_items_...`, `catalogo_precios_...`, `categorias_...`, `departamentos_...`, `productos_...`, `proveedores_...`, `tipos_tarifas_...`).
 
 ---
 
-## 4. Generación y Respeto de SKU (Nomenclatura y Varita Mágica)
-- **Modo Alta**: Al seleccionar Departamento y Categoría, el frontend calcula el prefijo correspondiente (ej. `CON-MG-`) y busca el número consecutivo más alto existente en `window.CATALOGO_ITEMS` para proponer el siguiente número formateado con ceros a la izquierda (ej. `CON-MG-0001`).
-- **Modo Edición**: El SKU asignado originalmente se preserva de manera intacta, evitando alterar históricos o códigos de barras ya impresos.
-- **Varita Mágica (`<button><i class="bi bi-magic"></i></button>`)**:
-  - Si el campo SKU ya contiene un prefijo o texto, la varita mágica respeta la familia y calcula/confirma el número consecutivo más alto correspondiente.
-  - Muestra un toast de confirmación visual en pantalla.
+## 4. Reestructuración y Normalización de Catálogos por CLUE (Caso QTSMP000116)
+
+### 4.1 Jerarquía Departamento vs Categoría
+- **`departamentos_QTSMP000116.dat`**: `ID_DEP 4` corregido a **`IMAGENOLOGIA`** (Departamento General).
+- **`categorias_QTSMP000116.dat`**: `ID_CAT 16|4` corregido a **`RAYOS X`** (Categoría perteneciente a Imagenología).
+
+### 4.2 Reasignación de Inconsistencias SKU vs Categoría (31 Registros)
+- **`LAB-0789` a `LAB-0795`**: Reasignados de Cat 16 (Rayos X) a `ID_CAT 15` (**Análisis Clínicos / Laboratorio**).
+- **`US-0796` a `US-0814`**: Reasignados de Cat 17 (Hematología) a `ID_CAT 28` (**Ecografía / Ultrasonido**).
+- **`RX-0815` a `RX-0818`**: Reasignados de Cat 15 (Análisis Clínicos) a `ID_CAT 16` (**Rayos X**).
+- **`CONS-0760`**: Reasignado de Cat 39 (huérfano) a `ID_CAT 61` (**Hematología**).
+
+### 4.3 Secuencia Canónica de SKUs en Consultas Médicas
+- Reordenamiento de códigos en `catalogo_items_QTSMP000116.dat`:
+  - `ID_ITEM 830`: `CONC-01` ➔ **`CONS-0830`** (Consulta Cardiología Valoración P.O.).
+  - `ID_ITEM 831`: `CONH-01` ➔ **`CONS-0831`** (Consulta Hematología).
+  - `ID_ITEM 832`: `CONS-0830` ➔ **`CONS-0832`** (Consulta Medicina Interna / Geriatría).
+- El 100% del catálogo de consultas médicas mantiene la secuencia estandarizada `CONS-0001` a `CONS-0832`.
 
 ---
 
-## 5. Protocolo de Persistencia UTF-8 y Pure LF
-- Todos los archivos `.dat` se leen y escriben con capas explícitas `:raw :encoding(UTF-8)`.
-- Bloqueo exclusivo con `flock($fh, LOCK_EX)` durante operaciones de guardado.
+## 5. Protocolo de Persistencia y Seguridad UTF-8
+- Modificaciones a catálogos se realizan bajo codificación `:raw :encoding(UTF-8)`.
+- Bloqueo concurrente mediante `flock($fh, LOCK_EX)`.
 - Formato de fin de línea estricto: **Pure LF (`\n`, 0 CRLF)**.
