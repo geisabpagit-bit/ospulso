@@ -700,6 +700,9 @@ print <<HTML;
             margin-top: 5px;
             color: #000;
         }
+        \@media print {
+            .no-print { display: none !important; }
+        }
         \@media screen {
             body { background: #e0e0e0; padding: 20px; }
             .receipt-container {
@@ -709,7 +712,21 @@ print <<HTML;
         }
     </style>
 </head>
-<body onload="window.print()">
+<body>
+    <div class="no-print" style="max-width: 8.5in; margin: 0 auto 15px auto; padding: 12px 20px; background: #0A2A66; color: white; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(10,42,102,0.15); font-family: 'Plus Jakarta Sans', sans-serif;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">Recibo Público / Convenio</span>
+            <span style="font-weight: 700; font-size: 14px;">Folio #$folio_corto</span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button type="button" onclick="volverPadre()" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 7px 16px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; transition: all 0.2s;">
+                ← Volver / Cerrar
+            </button>
+            <button type="button" onclick="window.print()" style="background: #19B7A5; color: white; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 2px 6px rgba(25,183,165,0.4); transition: all 0.2s;">
+                🖨️ Imprimir Recibo
+            </button>
+        </div>
+    </div>
     <div class="receipt-container" style="font-family: Arial, sans-serif;">
         <table class="grid-receipt">
             <tr class="header-row">
@@ -918,16 +935,14 @@ print <<HTML;
         </table>
     </div>
     <script>
-        window.addEventListener('load', function() {
-            setTimeout(function() { window.print(); }, 300);
-        });
-        window.addEventListener('afterprint', function() {
-            if (window.opener) {
+        function volverPadre() {
+            if (window.opener && !window.opener.closed) {
+                window.opener.focus();
                 window.close();
             } else {
                 window.location.href = '../views/generar_recibo.pl';
             }
-        });
+        }
     </script>
 </body>
 </html>
