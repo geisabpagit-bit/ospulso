@@ -1,10 +1,15 @@
 # Documentación Maestra del Sistema OSPulso / SDM 2.0
 
-## 1. Índice General y Rama Documental Principal (`docs/OSPulso 2.0/`)
+## 1. Índice General y Alineación de Arquitectura
 
 Esta Documentación Maestra sirve como mapa centralizado para todos los aspectos de arquitectura, diseño de base de datos 3NF, reglas de negocio, flujos financieros, impresión y normatividad del sistema.
 
-### 🌟 Rama Principal y Guías Canónicas (`docs/OSPulso 2.0/`)
+### 🏛️ Arquitectura Origen y Baseline Teórico (`docs/ospulsoVsMedentos/`)
+- **[01_MEDENTOS_CORE_ARCHITECTURE_v1.0_APPROVED.md](file:///c:/xampp/htdocs/ospulso/docs/ospulsoVsMedentos/01_MEDENTOS_CORE_ARCHITECTURE_v1.0_APPROVED.md)**: Manifiesto infraestructural y reglas globales (`Const-001` a `Const-004`) de la plataforma SaaS multitenant.
+- **[02_MEDENTOS_DOMAIN_MODEL_SPECIFICATION_v1.0.md](file:///c:/xampp/htdocs/ospulso/docs/ospulsoVsMedentos/02_MEDENTOS_DOMAIN_MODEL_SPECIFICATION_v1.0.md)**: Especificación de Bounded Contexts, Entidades (`DM-xxx`) y Casos de Uso.
+- **[03_MEDENTOS_LOGICAL_ARCHITECTURE_v1.0.md](file:///c:/xampp/htdocs/ospulso/docs/ospulsoVsMedentos/03_MEDENTOS_LOGICAL_ARCHITECTURE_v1.0.md)**: Arquitectura lógica de implementación, CQRS, aislamiento de persistenica `DAT` y resolución runtime de capacidades.
+
+### 🌟 Rama Principal de Producción y Guías Canónicas (`docs/OSPulso 2.0/`)
 - **[ARQUITECTURA_SOAP_ESPECIALIDADES.md](file:///c:/xampp/htdocs/ospulso/docs/OSPulso%202.0/ARQUITECTURA_SOAP_ESPECIALIDADES.md)**: Guía canónica de la Arquitectura SOAP Polimórfica, Contrato JSON Canónico y las 3 Reglas de Oro de Especialidades.
 - **[Analisis_Flujo_Consultas_Privado.md](file:///c:/xampp/htdocs/ospulso/docs/OSPulso%202.0/Analisis_Flujo_Consultas_Privado.md)**: Especificación técnica del Wizard Clínico, Guardia de Consulta Única Activa, Tratamientos Abiertos, Cargos Directos y Hub PACS.
 - **[OSPulso_Master_Blueprint v2.md](file:///c:/xampp/htdocs/ospulso/docs/OSPulso%202.0/OSPulso_Master_Blueprint%20v2.md)**: Blueprint estratégico de producto, sistema UI/UX Mobile-First, Onboarding de 24h y modelo operativo.
@@ -42,14 +47,28 @@ Esta Documentación Maestra sirve como mapa centralizado para todos los aspectos
 
 ```mermaid
 graph TD
-    Sub1["Caja Rápida (views/generar_recibo.pl)"] --> MultiTarifa["Módulo Multi-Tarifa (tipos_tarifas_<CLUES>.dat)"]
-    MultiTarifa --> Cart["Carrito Resumen Adaptable (flex flex-grow)"]
-    Cart --> ReciboPriv["Recibo Privado (api/imprimir_recibo_caja.pl)"]
-    Cart --> ReciboPub["Recibo Público (api/imprimir_recibo_publico.pl)"]
-    
-    Sub2["Catálogo Universal (views/manage_catalogo_universal.pl)"] --> ServerSide["DataTables Server-Side AJAX (api/crud_catalogo_universal_api.pl)"]
-    ServerSide --> DATFiles["Archivos 3NF (.dat por CLUES)"]
-    
-    ReciboPriv --> CashFlow["Efectivo Real (folios_recibos_privados.dat)"]
-    ReciboPub --> CXCFlow["CXC Estado / Municipio (folios_recibos_publicos.dat)"]
+    subgraph CoreBaseline ["🏛️ MedentOS Baseline (docs/ospulsoVsMedentos/)"]
+        EN001["EN-001 Tenant Engine"]
+        EN003["EN-003 Identity & RBAC"]
+        EN005["EN-005 Feature Engine"]
+        EN007["EN-007 Clinical Engine"]
+    end
+
+    subgraph OSPulsoProd ["🌟 OSPulso 2.0 (docs/OSPulso 2.0/ & Production)"]
+        CR["Caja Rápida (views/generar_recibo.pl)"] --> MultiTarifa["Motor Multi-Tarifa (tipos_tarifas_<CLUES>.dat)"]
+        MultiTarifa --> Cart["Carrito Resumen Adaptable (flex flex-grow)"]
+        Cart --> ReciboPriv["Recibo Privado (api/imprimir_recibo_caja.pl)"]
+        Cart --> ReciboPub["Recibo Público (api/imprimir_recibo_publico.pl)"]
+        
+        CU["Catálogo Universal (views/manage_catalogo_universal.pl)"] --> ServerSide["DataTables Server-Side AJAX (api/crud_catalogo_universal_api.pl)"]
+        ServerSide --> DATFiles["Archivos 3NF (.dat por CLUES)"]
+        
+        ReciboPriv --> CashFlow["Efectivo Real (folios_recibos_privados.dat)"]
+        ReciboPub --> CXCFlow["CXC Estado / Municipio (folios_recibos_publicos.dat)"]
+    end
+
+    EN001 -.-> CU
+    EN003 -.-> CR
+    EN005 -.-> MultiTarifa
+    EN007 -.-> CR
 ```
