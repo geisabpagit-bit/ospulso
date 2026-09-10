@@ -258,6 +258,28 @@ print <<"HTML";
         color: white !important;
         padding: 0 1.5rem !important;
     }
+    .custom-cart-container {
+        padding-right: 2px;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+    .custom-cart-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-cart-container::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 4px;
+    }
+    .cart-item-card {
+        background: #F8FBFF;
+        border: 1px solid #e9ecef !important;
+        border-radius: 0.85rem !important;
+        transition: all 0.2s ease-in-out;
+    }
+    .cart-item-card:hover {
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
 </style>
 
 <main class="container-fluid container-mobile-flush pt-4 px-lg-4 pb-5 animate__animated animate__fadeIn">
@@ -362,25 +384,27 @@ print <<"HTML";
             <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm d-flex flex-column" style="border-radius: 1.5rem;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-teal-clinical);"></i>Resumen</h5>
-                    <button type="button" class="btn btn-sm text-white px-3 py-1 fw-bold rounded-3 shadow-sm" style="background: var(--md-blue-deep, #0A2A66);" onclick="abrirModalConceptosRecibo()">
-                        <i class="bi bi-cart-plus me-1"></i> Agregar
+                    <button type="button" class="btn btn-sm text-white px-3 py-2 fw-bold rounded-3 shadow-sm btn-mobile-standard d-inline-flex align-items-center gap-1" style="background: var(--md-blue-deep, #0A2A66);" onclick="abrirModalConceptosRecibo()">
+                        <i class="bi bi-cart-plus fs-6"></i> <span>Agregar</span>
                     </button>
                 </div>
                 
-                <div id="cartContainer" class="d-flex flex-column overflow-auto mb-3 pe-2" style="height: 250px;">
-                    <div class="text-center text-muted small py-4" id="cartEmpty">
-                        Ningún concepto agregado
+                <div id="cartContainer" class="d-flex flex-column custom-cart-container mb-3" style="flex: 1 1 auto; min-height: 100px; max-height: 420px; overflow-y: auto;">
+                    <div class="text-center text-muted py-4 px-3 rounded-3 border border-dashed my-auto bg-light" id="cartEmpty">
+                        <i class="bi bi-cart-x text-secondary opacity-50 fs-2 d-block mb-2"></i>
+                        <div class="fw-bold text-dark mb-1 small">Ningún concepto agregado</div>
+                        <div class="text-muted" style="font-size: 0.72rem;">Selecciona una consulta o pulsa <b>+ Agregar</b> para incluir conceptos.</div>
                     </div>
                 </div>
                 
-                <hr class="border-light mt-auto">
+                <hr class="border-light mt-auto mb-3">
                 
                 <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
                     <div class="form-check form-switch m-0">
                         <input class="form-check-input" type="checkbox" id="chkIva" onchange="renderCart()">
                         <label class="form-check-label fw-bold" style="cursor: pointer;" for="chkIva">Tax (IVA 16%)</label>
                     </div>
-                    <span class="fw-bold text-dark" id="taxAmountText">\$0.00</span>
+                    <span class="fw-bold text-dark fs-6" id="taxAmountText">\$0.00</span>
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -388,8 +412,8 @@ print <<"HTML";
                     <span class="fw-black fs-3" style="color: var(--md-blue-deep);" id="cartTotalText">\$0.00</span>
                 </div>
                 
-                <button type="button" class="btn rounded-3 py-3 fw-bold w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm" style="background: var(--md-blue-deep); color: white;" onclick="mostrarReciboPrevio()">
-                    <i class="bi bi-check2-circle fs-5"></i> Emitir Recibo
+                <button type="button" class="btn rounded-3 py-3 fw-bold w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm btn-mobile-standard" style="background: var(--md-blue-deep); color: white;" onclick="mostrarReciboPrevio()">
+                    <i class="bi bi-check2-circle fs-5"></i> <span>Emitir Recibo</span>
                 </button>
             </div>
         </div>
@@ -1243,7 +1267,12 @@ print <<'JS';
         const cMain = $('#cartContainer');
         
         if (cartItems.length === 0) {
-            let emptyHtml = '<div class="text-center text-muted small py-4" id="cartEmpty"><i class="bi bi-cart-x fs-2 d-block mb-2 text-black-50"></i>Ningún concepto agregado</div>';
+            let emptyHtml = `
+                <div class="text-center text-muted py-4 px-3 rounded-3 border border-dashed my-auto bg-light" id="cartEmpty">
+                    <i class="bi bi-cart-x text-secondary opacity-50 fs-2 d-block mb-2"></i>
+                    <div class="fw-bold text-dark mb-1 small">Ningún concepto agregado</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">Selecciona una consulta o pulsa <b>+ Agregar</b> para incluir conceptos.</div>
+                </div>`;
             cMain.html(emptyHtml);
             $('#taxAmountText').text('$0.00');
             $('#cartTotalText').text('$0.00');
@@ -1264,25 +1293,25 @@ print <<'JS';
             }
             
             let badgePrecio = isCubierto ?
-                `<span class="badge rounded-pill ms-2" style="background:#e0f2fe; color:#0369a1; font-size: 0.65rem; border: 1px solid #bae6fd;">[Cubierto por Convenio]</span>` :
-                `<span class="fw-bold ms-2" style="font-size: 0.72rem; color: var(--md-blue-deep, #0A2A66);">${formatCurrency(sub)}</span>`;
+                `<span class="badge rounded-pill ms-1" style="background:#e0f2fe; color:#0369a1; font-size: 0.68rem; border: 1px solid #bae6fd;">[Convenio Estado]</span>` :
+                `<span class="fw-bold ms-1" style="font-size: 0.78rem; color: var(--md-blue-deep, #0A2A66);">${formatCurrency(sub)}</span>`;
                 
             let subtexto = isCubierto ?
-                `<small class="text-muted fw-bold" style="font-size: 0.68rem;">Convenio Municipio</small>` :
-                `<small class="text-muted fw-bold" style="font-size: 0.68rem;">${formatCurrency(item.precio)} c/u</small>`;
+                `<small class="text-muted fw-bold" style="font-size: 0.7rem;">Convenio Municipio</small>` :
+                `<small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u</small>`;
             
             html += `
-                <div class="bg-light p-2 rounded-3 border mb-2 d-flex flex-column gap-1">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <span class="fw-bold text-dark text-uppercase flex-grow-1 me-2" style="font-size: 0.7rem; line-height: 1.25; letter-spacing: 0.1px;">${escapeHtml(item.nombre)}</span>
-                        <button type="button" class="btn btn-sm text-danger p-0 border-0 shadow-none" style="font-size: 0.75rem;" onclick="removeConcepto(${idx})"><i class="bi bi-trash"></i></button>
+                <div class="cart-item-card p-2.5 rounded-3 mb-2 d-flex flex-column gap-1.5 w-100">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <span class="fw-bold text-dark text-uppercase flex-grow-1" style="font-size: 0.73rem; line-height: 1.3; letter-spacing: 0.1px;">${escapeHtml(item.nombre)}</span>
+                        <button type="button" class="btn btn-sm text-danger p-0 border-0 shadow-none btn-mobile-standard" style="font-size: 0.82rem;" onclick="removeConcepto(${idx})" title="Quitar concepto"><i class="bi bi-trash"></i></button>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-1">
                         ${subtexto}
-                        <div class="d-flex align-items-center gap-1">
-                            <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:20px; height:20px; line-height:1; font-size: 0.65rem;" onclick="updateCantidad(${idx}, -1)">-</button>
-                            <span class="fw-bold px-1" style="font-size: 0.7rem;">${item.cantidad}</span>
-                            <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:20px; height:20px; line-height:1; font-size: 0.65rem;" onclick="updateCantidad(${idx}, 1)">+</button>
+                        <div class="d-flex align-items-center gap-1.5 ms-auto">
+                            <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:22px; height:22px; line-height:1; font-size: 0.68rem;" onclick="updateCantidad(${idx}, -1)">-</button>
+                            <span class="fw-bold px-1" style="font-size: 0.73rem; color: #0f172a;">${item.cantidad}</span>
+                            <button type="button" class="btn btn-sm btn-white border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:22px; height:22px; line-height:1; font-size: 0.68rem;" onclick="updateCantidad(${idx}, 1)">+</button>
                             ${badgePrecio}
                         </div>
                     </div>
