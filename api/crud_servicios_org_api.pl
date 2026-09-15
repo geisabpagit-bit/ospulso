@@ -10,6 +10,7 @@ use File::Spec;
 use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
 
 my $q = CGI->new;
 my $sd = check_session($q);
@@ -24,12 +25,13 @@ unless ($sd->{session_ok}) {
 my $role = $sd->{role};
 my $id_empresa = $sd->{id_empresa};
 
-if ($role ne 'Administrador Organizacion' && $role ne 'Administrador Global') {
-    print encode_json({ status => 'error', message => 'Permisos insuficientes.' });
+my $action = $q->param('action') || '';
+my $accion_req = ($action eq 'delete') ? 'D' : (($action eq 'create') ? 'C' : 'U');
+
+unless (utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, 'servicios', $accion_req)) {
+    print encode_json({ status => 'error', message => 'Permisos insuficientes para realizar esta acción en Servicios.' });
     exit;
 }
-
-my $action = $q->param('action') || '';
 my $rutas_cat = catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
 my $archivo_serv = $rutas_cat->{servicios};
 

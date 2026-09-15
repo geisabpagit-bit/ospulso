@@ -16,6 +16,7 @@ require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
 use utils::db_manager qw(leer_tabla);
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
 
 my $sd = check_session();
 my $q  = $sd->{q};
@@ -29,12 +30,12 @@ my $usuario    = $sd->{usuario};
 my $role       = $sd->{role};
 my $id_empresa = $sd->{id_empresa};
 
-# Seguridad: Sólo Administrador de Organización puede ver/gestionar Productos
-if ($role ne 'Administrador Organizacion' && $role ne 'Administrador Global') {
+# Seguridad: Validar si la matriz RBAC otorga permiso de Lectura en Productos
+unless (utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, 'productos', 'R')) {
     render_acceso_denegado(
         q => $q, usuario => $usuario, role => $role,
-        mensaje => 'Esta sección es exclusiva para el Administrador de la Organización.',
-        rol_requerido => 'Administrador Organización'
+        mensaje => 'No cuenta con facultades para acceder al módulo de Productos de la Organización.',
+        rol_requerido => 'Facultad de Lectura (R) en Productos'
     );
     exit;
 }

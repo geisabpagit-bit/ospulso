@@ -45,12 +45,24 @@ if (!$nombre || !$correo || !$clave || !$rol || !$id_sucursal) {
     exit;
 }
 
-if ($rol ne 'Medico' && $rol ne 'Recepcionista') {
+my $roles_file_chk = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'roles.dat');
+my %roles_validos_chk = ('Administrador Organizacion' => 1);
+if (-e $roles_file_chk && open(my $rf, '<:encoding(UTF-8)', $roles_file_chk)) {
+    while (my $l = <$rf>) {
+        chomp $l;
+        next if $l =~ /^\s*$/ || $l =~ /^#/;
+        my ($rn) = split(/\|/, $l, -1);
+        $roles_validos_chk{$rn} = 1 if $rn;
+    }
+    close $rf;
+}
+
+unless ($roles_validos_chk{$rol}) {
     print encode_json({ status => 'error', message => 'Rol no válido.' });
     exit;
 }
 
-if ($rol eq 'Recepcionista') {
+if ($rol ne 'Medico') {
     $id_espe    = '0';
     $id_subespe = '0';
 }

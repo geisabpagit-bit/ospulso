@@ -77,4 +77,29 @@ En código backend (`utils/permisos_utils.pl` y `api/gestion_permisos_roles_api.
    - Desde la Matriz: Clic en *"X usu."* -> Abre modal de personal -> Enlace a edición de usuario.
    - Desde Usuarios: Clic en *"Permisos"* -> Clic en *"Personalizar Facultades"* -> Abre Matriz enfocada en `?rol=NombreRol`.
 
+---
 
+## 5. Diagnóstico de Impacto y Matriz de Bugs en Procesos CRUD Globales
+
+### 5.1 Calificación del Diagnóstico de Cambio: MODERADO / TRANSPARENTE
+- **Operación General (Transparente)**: Para las clínicas y empresas operativas, la integración de la Matriz RBAC es **100% transparente**. El mecanismo de *Fallback Automático* en `utils/permisos_utils.pl` garantiza que si no se ha guardado un archivo personalizado `permisos_roles_*.dat`, el sistema hereda intactas las reglas predeterminadas de `dat/roles.dat` sin interrumpir la operación ni provocar pantallas de error.
+- **Arquitectura Backend & APIs (Moderado)**: El acoplamiento entre la UI (menú lateral responsivo) y el Kernel RBAC es total para la facultad de lectura (`R`). No obstante, a nivel de backend existían endpoints legacy (`api/*.pl`) que realizaban validaciones estáticas `if ($role ne 'Administrador Organizacion')` en lugar de consultar la función canónica `tiene_permiso_modulo($id_empresa, $role, $mod, $accion)`.
+
+### 5.2 Matriz de Diagnóstico de Bugs e Inconsistencias
+
+| ID Bug | Módulo / Archivo Afectado | Descripción de la Inconsistencia | Nivel de Severidad | Diagnóstico de Cambio | Solución Técnica Aplicada / Recomendada |
+|---|---|---|---|---|---|
+| **BUG-01** | `api/crud_servicios_org_api.pl`, `api/crud_productos_org_api.pl` | Los endpoints de creación/edición/borrado de servicios y productos verificaban `$role ne 'Administrador Organizacion'`, bloqueando roles autorizados en la matriz o ignorando restricciones de borrado (`D`). | **Alta** | **Moderado** | Reemplazar validación estática por `tiene_permiso_modulo($id_empresa, $role, 'servicios', 'C'/'U'/'D')`. |
+| **BUG-02** | `api/alta_usuario_api.pl`, `api/editar_usuario_api.pl` | Las APIs de gestión de personal rechazaban roles canónicos válidos como *Enfermería*, *Ejecutivo Ventas* o *Soporte* al tener una validación estática `if ($rol ne 'Medico' && $rol ne 'Recepcionista')`. | **Alta** | **Moderado** | Reemplazar la lista rígida por la comprobación de existencia del rol en el catálogo dinámico `dat/roles.dat`. |
+| **BUG-03** | `views/manage_servicios.pl`, `views/manage_productos.pl` | Los encabezados de las vistas de servicios y productos verificaban únicamente el rol estático de administrador, impidiendo el acceso a roles que la matriz habilitó para lectura. | **Media** | **Moderado** | Modificar la guarda del encabezado para evaluar `tiene_permiso_modulo($id_empresa, $role, 'servicios', 'R')`. |
+| **BUG-04** | `api/pacientes_crud_api.pl` | Las operaciones de modificación y eliminación de expediente verificaban regex de roles antiguos (`/Recepcionista|Asistente/i`) sin sincronizar con facultades de borrado (`D`) del rol actual. | **Media** | **Moderado** | Integrar `tiene_permiso_modulo($id_empresa, $role, 'pacientes', 'U'/'D')` antes de alterar expedientes. |
+| **BUG-05** | `views/administracion_usuarios.pl` | En navegadores móviles o resoluciones estrechas, la tabla de usuarios presentaba desbordamiento horizontal sin selector táctil enfocado por rol. | **Baja** | **Transparente** | Integrar filtrado por rol y utilidades de la guía de estándares móviles `sdm_mobile_standards.css`. |
+
+---
+
+## 6. Plan de Alineación & Blindaje Backend/Vistas
+
+1. **Blindaje de APIs Backend (Fase 1)**: Actualizar endpoints en `api/` para sustituir comparaciones rígidas por evaluaciones dinámicas con `tiene_permiso_modulo()`.
+2. **Sincronización de Roles Canónicos en Alta de Personal (Fase 2)**: Permitir la creación de cualquier usuario cuyo rol exista en `dat/roles.dat`.
+3. **Acceso Consistente a Vistas (Fase 3)**: Proteger las vistas de administración validando la facultad `R` (Read) contra la matriz multi-tenant.
+4. **Validación Automática y Control de Versiones (Fase 4)**: Ejecutar pruebas de sintaxis `perl -c`, sincronizar git mediante commit & push automático e informar el Plan de Verificación al usuario.
