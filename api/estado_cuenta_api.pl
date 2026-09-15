@@ -281,46 +281,9 @@ if ($accion eq 'get_catalogo') {
     my $id_neg = $session_data->{id_empresa} || 1;
     my $id_suc = $session_data->{id_sucursal} || 0;
     
-    # Resolver ID raiz
+    # Resolver ID raiz y obtener folio blindado
     my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_neg);
-    my $rutas_contadores = catalogo_org_utils::obtener_rutas_contadores($id_raiz);
-    
-    my $next_folio = 1;
-    my @nuevas_cont;
-    my $encontrado = 0;
-    my $contadores_file = $rutas_contadores->{privados};
-    
-    if (-e $contadores_file && open(my $fh_c, '<:encoding(UTF-8)', $contadores_file)) {
-        my @lines_c = <$fh_c>;
-        close $fh_c;
-        my $cab = shift @lines_c;
-        chomp $cab if defined $cab;
-        foreach my $lc (@lines_c) {
-            chomp $lc;
-            my @cc = split /\|/, $lc, -1;
-            if ($cc[0] eq $id_neg && $cc[1] eq $id_suc) {
-                $next_folio = ($cc[2] || 0) + 1;
-                $cc[2] = $next_folio;
-                $lc = join('|', @cc);
-                $encontrado = 1;
-            }
-            push @nuevas_cont, $lc;
-        }
-        if (!$encontrado) {
-            push @nuevas_cont, join('|', $id_neg, $id_suc, $next_folio);
-        }
-        if (open(my $out, '>:encoding(UTF-8)', $contadores_file)) {
-            print $out "$cab\n";
-            print $out "$_\n" for @nuevas_cont;
-            close $out;
-        }
-    } else {
-        if (open(my $out, '>:encoding(UTF-8)', $contadores_file)) {
-            print $out "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n";
-            print $out "$id_neg|$id_suc|$next_folio\n";
-            close $out;
-        }
-    }
+    my $next_folio = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 0, $id_neg, $id_suc);
     
     my $id_os = $next_folio;
     my $id_mov = time();

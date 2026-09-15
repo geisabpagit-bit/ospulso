@@ -182,8 +182,10 @@ sub obtener_rutas_contadores {
     # Resolver CLUE
     my $clues = '';
     
-    if (defined $id_raiz && $id_raiz eq '0') {
+    if (defined $id_raiz && ($id_raiz eq '0' || $id_raiz eq '')) {
         $clues = 'QTSMP000116';
+    } elsif (defined $id_raiz && -d File::Spec->catdir($dat, 'catalogos_CLUE', $id_raiz)) {
+        $clues = $id_raiz;
     } else {
         my $n_file = File::Spec->catfile($dat, 'negocios.dat');
         if (-e $n_file && open(my $nf, '<:encoding(UTF-8)', $n_file)) {
@@ -191,7 +193,7 @@ sub obtener_rutas_contadores {
             while (my $line = <$nf>) {
                 chomp $line;
                 my @f = split(/\|/, $line, -1);
-                if ($f[0] eq $id_raiz) {
+                if (defined $f[0] && defined $id_raiz && $f[0] eq $id_raiz) {
                     $clues = $f[18] // '';
                     last;
                 }
@@ -476,6 +478,7 @@ sub obtener_siguiente_folio_blindado {
         if (open my $fh_init, '>:encoding(UTF-8)', $contadores_file) {
             flock($fh_init, LOCK_EX);
             print $fh_init "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO\n";
+            print $fh_init "0|0|0\n";
             close $fh_init;
         }
     }
@@ -491,51 +494,63 @@ sub obtener_siguiente_folio_blindado {
             chomp $line;
             next if $line =~ /^\s*$/;
             my @cols = split(/\|/, $line, -1);
-            # Columna 1: FOLIO, Columna 2: ID_NEGOCIO, Columna 3: ID_SUCURSAL
+            # Columna 1: FOLIO
             my $f_num = $cols[1] || 0;
-            my $f_neg = $cols[2] // '';
-            my $f_suc = $cols[3] // '';
-
-            if (($f_neg eq $id_neg || $id_neg eq '0') && ($f_suc eq $id_suc || $id_suc eq '0')) {
-                if ($f_num =~ /^(\d+)$/) {
-                    $max_guardado_dat = $1 if $1 > $max_guardado_dat;
-                }
+            if ($f_num =~ /^(\d+)$/) {
+                $max_guardado_dat = $1 if $1 > $max_guardado_dat;
             }
         }
         close $fh_dat;
     }
 
-    # 3. Leer y bloquear contador para calcular y escribir el siguiente folio
-    my $next_folio = 1;
-    my @nuevas_lineas;
-    my $encontrado = 0;
+    # 3. Leer y bloquear contador para calcular y escribir el siguiente folio unificado
+    my $max_contador_file = 0;
+    my @lineas_existentes;
+    my $cabecera = "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO";
 
     if (open my $fh_c, '+<:encoding(UTF-8)', $contadores_file) {
         flock($fh_c, LOCK_EX);
-        my @lineas = <$fh_c>;
-        my $cabecera = shift @lineas;
-        chomp $cabecera if defined $cabecera;
-        $cabecera ||= "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO";
-
-        foreach my $l (@lineas) {
-            chomp $l;
-            next if $l =~ /^\s*$/;
-            my @c = split /\|/, $l, -1;
-            if ($c[0] eq $id_neg && $c[1] eq $id_suc) {
-                my $curr_val = int($c[2] || 0);
-                my $base = ($curr_val > $max_guardado_dat) ? $curr_val : $max_guardado_dat;
-                $next_folio = $base + 1;
-                $c[2] = $next_folio;
-                $l = join('|', @c);
-                $encontrado = 1;
+        my @raw_lines = <$fh_c>;
+        if (@raw_lines) {
+            my $first = shift @raw_lines;
+            chomp $first if defined $first;
+            $cabecera = $first if $first =~ /LAST_FOLIO/;
+            
+            foreach my $l (@raw_lines) {
+                chomp $l;
+                next if $l =~ /^\s*$/;
+                my @c = split /\|/, $l, -1;
+                my $val = int($c[2] || 0);
+                $max_contador_file = $val if $val > $max_contador_file;
+                push @lineas_existentes, \@c;
             }
-            push @nuevas_lineas, $l;
         }
 
-        if (!$encontrado) {
-            my $base = $max_guardado_dat;
-            $next_folio = $base + 1;
+        # El nuevo folio consecutivo es max(max_contador_file, max_guardado_dat) + 1
+        my $base = ($max_contador_file > $max_guardado_dat) ? $max_contador_file : $max_guardado_dat;
+        my $next_folio = $base + 1;
+
+        # Homologar todas las entradas existentes al nuevo folio consecutivo y asegurar la entrada actual
+        my $found_id_neg = 0;
+        my $found_default = 0;
+        my @nuevas_lineas;
+
+        foreach my $c_ref (@lineas_existentes) {
+            $c_ref->[2] = $next_folio; # Homologar al consecutivo único de la organización
+            if ($c_ref->[0] eq $id_neg && $c_ref->[1] eq $id_suc) {
+                $found_id_neg = 1;
+            }
+            if ($c_ref->[0] eq '0' && $c_ref->[1] eq '0') {
+                $found_default = 1;
+            }
+            push @nuevas_lineas, join('|', @$c_ref);
+        }
+
+        if (!$found_id_neg) {
             push @nuevas_lineas, join('|', $id_neg, $id_suc, $next_folio);
+        }
+        if (!$found_default && $id_neg ne '0') {
+            push @nuevas_lineas, join('|', '0', '0', $next_folio);
         }
 
         seek($fh_c, 0, 0);
@@ -545,11 +560,11 @@ sub obtener_siguiente_folio_blindado {
             print $fh_c "$nl\n";
         }
         close $fh_c;
-    } else {
-        $next_folio = $max_guardado_dat + 1;
-    }
 
-    return $next_folio;
+        return $next_folio;
+    } else {
+        return $max_guardado_dat + 1;
+    }
 }
 
 1;
