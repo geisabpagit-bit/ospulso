@@ -59,18 +59,22 @@ print <<"HTML";
 <link rel="stylesheet" href="../css/ospulso_master_v2.css" />
 
 <style>
-    /* Estilos de alta densidad, scroll bidireccional y fuente muy pequeña */
-    .table-permisos-sticky {
+    /* Estilos de alta densidad, navegabilidad por rol y scroll horizontal corregido */
+    .table-permisos-container {
         position: relative;
-        max-height: calc(100vh - 210px);
-        overflow-x: auto;
-        overflow-y: auto;
+        max-height: calc(100vh - 250px);
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+        width: 100%;
+        display: block;
     }
-    .table-permisos-sticky table {
+    .table-permisos-container table {
         font-size: 0.68rem;
         font-weight: 400;
+        min-width: 100%;
+        white-space: nowrap;
     }
-    .table-permisos-sticky thead th {
+    .table-permisos-container thead th {
         position: sticky;
         top: 0;
         z-index: 1020;
@@ -78,14 +82,14 @@ print <<"HTML";
         font-weight: 500;
         box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
-    .table-permisos-sticky .col-sticky-left {
+    .table-permisos-container .col-sticky-left {
         position: sticky;
         left: 0;
         z-index: 1010;
         background: #ffffff;
         box-shadow: 2px 0 4px rgba(0,0,0,0.05);
     }
-    .table-permisos-sticky thead th.col-sticky-left {
+    .table-permisos-container thead th.col-sticky-left {
         z-index: 1030;
         background: #f8f9fa;
     }
@@ -125,6 +129,25 @@ print <<"HTML";
         border-radius: 8px;
         padding: 6px 12px;
         font-size: 0.72rem;
+    }
+
+    .role-tab-btn {
+        font-size: 0.70rem;
+        font-weight: 500;
+        padding: 3px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+        cursor: pointer;
+        border: 1px solid #dee2e6;
+        background: #ffffff;
+        color: #495057;
+        transition: all 0.15s ease;
+    }
+    .role-tab-btn:hover, .role-tab-btn.active {
+        background: #0d6efd;
+        color: #ffffff;
+        border-color: #0d6efd;
+        box-shadow: 0 2px 4px rgba(13,110,253,0.2);
     }
 </style>
 
@@ -194,6 +217,18 @@ print <<"HTML";
             </div>
         </div>
 
+        <!-- Selector de Vista por Rol / Pestañas Fichas -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 bg-light p-1.5 rounded-2 border mb-2">
+            <div class="d-flex align-items-center gap-1 overflow-x-auto py-0.5 px-1" id="rolePillTabs" style="max-width: 100%;">
+                <!-- Generado por JS: [Matriz Completa] [Recepcionista] [Medico] ... -->
+            </div>
+            <div class="d-flex align-items-center gap-1 ms-auto">
+                <span class="text-muted" style="font-size: 0.68rem;">Filtrar Rol:</span>
+                <select id="selectRolFocus" class="form-select form-select-sm py-0 px-2 text-primary" style="font-size: 0.70rem; min-width: 170px;" onchange="cambiarVistaRol(this.value)">
+                </select>
+            </div>
+        </div>
+
         <!-- Estado de Carga -->
         <div id="loaderPermisos" class="text-center py-3">
             <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
@@ -202,15 +237,49 @@ print <<"HTML";
 
         <!-- Contenedor Matriz -->
         <div id="containerMatriz" style="display: none;">
-            <div class="table-responsive border rounded-2 overflow-hidden shadow-sm bg-white mb-2 table-permisos-sticky">
-                <table class="table table-bordered table-hover align-middle m-0 p-0" id="tablaPermisos">
-                    <thead>
-                        <tr id="trHeader" class="bg-light text-dark">
-                            <th class="ps-3 py-1.5 col-sticky-left" style="min-width: 240px;">Módulo / Sección</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyMatriz"></tbody>
-                </table>
+            
+            <!-- VISTA A: Matriz Completa Multicolumna (con Scroll Horizontal Corregido) -->
+            <div id="vistaMatrizCompleta">
+                <div class="table-responsive border rounded-2 shadow-sm bg-white mb-2 table-permisos-container">
+                    <table class="table table-bordered table-hover align-middle m-0 p-0" id="tablaPermisos">
+                        <thead>
+                            <tr id="trHeader" class="bg-light text-dark">
+                                <th class="ps-3 py-1.5 col-sticky-left" style="min-width: 250px;">Módulo / Sección</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyMatriz"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VISTA B: Enfoque Rol Individual (Tarjeta Espaciosa y Limpia) -->
+            <div id="vistaSingleRole" style="display: none;">
+                <div class="card border rounded-2 shadow-sm bg-white p-2.5 mb-2">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 pb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-person-badge-fill text-primary fs-5"></i>
+                            <div>
+                                <h6 class="m-0 text-dark" style="font-weight: 500;" id="singleRoleNombre">Rol</h6>
+                                <span class="text-muted" style="font-size: 0.68rem;" id="singleRoleSubtext">Configuración de facultades exclusivas para este rol</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-xs btn-light border rounded-pill px-2" id="btnSingleRoleUsers" onclick="verUsuariosRolCurrent()">
+                                <i class="bi bi-people-fill text-teal me-1"></i> <span id="singleRoleUserCount">0</span> usuarios asignados
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-success rounded-2 px-2" onclick="marcarCurrentSingleRole(true)">
+                                <i class="bi bi-check-all me-1"></i> Activar Todos los Módulos
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-danger rounded-2 px-2" onclick="marcarCurrentSingleRole(false)">
+                                <i class="bi bi-x-circle me-1"></i> Desactivar Todos
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row g-2" id="gridSingleRoleModulos">
+                        <!-- Generado por JS: Tarjetas limpias de permisos por módulo -->
+                    </div>
+                </div>
             </div>
 
             <!-- Leyenda Compacta -->
@@ -239,7 +308,7 @@ print <<"HTML";
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-3">
-                <p class="text-muted mb-2" style="font-size: 0.72rem;">Listado de colaboradores registrados con el rol <span id="modalRolNombre" class="text-dark"></span> en esta organización:</p>
+                <p class="text-muted mb-2" style="font-size: 0.72rem;">Listado de colaboradores registrados con el rol <span id="modalRolNombre" class="text-dark fw-bold"></span> en esta organización:</p>
                 <div class="list-group list-group-flush border rounded-2 overflow-hidden" id="listadoUsuariosRol"></div>
             </div>
             <div class="modal-footer bg-light py-1.5 px-3 d-flex justify-content-between">
@@ -256,6 +325,7 @@ HTML
 print <<'JS';
 <script>
     let rawPermisosData = null;
+    let currentVistaRol = 'ALL'; // 'ALL' para matriz completa o nombre del rol individual
 
     document.addEventListener('DOMContentLoaded', () => {
         const modalEl = document.getElementById('modalUsuariosRol');
@@ -273,7 +343,11 @@ print <<'JS';
             const res = await fetch('../api/gestion_permisos_roles_api.pl?accion=get_matrix').then(r => r.json());
             if (res.ok) {
                 rawPermisosData = res;
+                construirPillsYSelectRoles(res);
                 renderizarTablaMatriz(res);
+                renderizarSingleRoleView(res);
+                actualizarVisibilidadVistas();
+
                 $('#loaderPermisos').hide();
                 $('#containerMatriz').fadeIn();
             } else {
@@ -282,6 +356,57 @@ print <<'JS';
         } catch (e) {
             console.error("Error al cargar matriz:", e);
             Swal.fire('Error', 'Hubo un error de conexión al cargar la matriz de permisos.', 'error');
+        }
+    }
+
+    function construirPillsYSelectRoles(data) {
+        const roles = data.roles || [];
+        const containerPills = $('#rolePillTabs');
+        const select = $('#selectRolFocus');
+
+        containerPills.empty();
+        select.empty();
+
+        containerPills.append(`
+            <button type="button" class="role-tab-btn ${currentVistaRol === 'ALL' ? 'active' : ''}" onclick="cambiarVistaRol('ALL')">
+                <i class="bi bi-grid-3x3-gap-fill me-1"></i> Ver Todos (Matriz Completa)
+            </button>
+        `);
+
+        select.append(`<option value="ALL" ${currentVistaRol === 'ALL' ? 'selected' : ''}>-- Todos los Roles --</option>`);
+
+        roles.forEach(r => {
+            const activeCls = (currentVistaRol === r) ? 'active' : '';
+            containerPills.append(`
+                <button type="button" class="role-tab-btn ${activeCls}" onclick="cambiarVistaRol('${escapeHtml(r)}')">
+                    ${escapeHtml(r)}
+                </button>
+            `);
+            select.append(`<option value="${escapeHtml(r)}" ${currentVistaRol === r ? 'selected' : ''}>${escapeHtml(r)}</option>`);
+        });
+    }
+
+    function cambiarVistaRol(rolTarget) {
+        currentVistaRol = rolTarget;
+        
+        $('.role-tab-btn').removeClass('active');
+        $(`.role-tab-btn:contains("${rolTarget}")`).addClass('active');
+        if (rolTarget === 'ALL') {
+            $('.role-tab-btn:first').addClass('active');
+        }
+        $('#selectRolFocus').val(rolTarget);
+
+        actualizarVisibilidadVistas();
+    }
+
+    function actualizarVisibilidadVistas() {
+        if (currentVistaRol === 'ALL') {
+            $('#vistaSingleRole').hide();
+            $('#vistaMatrizCompleta').fadeIn();
+        } else {
+            $('#vistaMatrizCompleta').hide();
+            renderizarSingleRoleView(rawPermisosData);
+            $('#vistaSingleRole').fadeIn();
         }
     }
 
@@ -295,7 +420,6 @@ print <<'JS';
         const matriz = data.matriz || {};
         const conteoUsuarios = data.conteo_usuarios || {};
 
-        // Actualizar KPIs
         $('#kpiTotalRoles').text(roles.length);
         $('#kpiTotalModulos').text(modulos.length);
         
@@ -304,7 +428,7 @@ print <<'JS';
         $('#kpiTotalUsuarios').text(totalUsuarios);
 
         trHeader.innerHTML = `
-            <th class="ps-3 py-1.5 bg-light border-end col-sticky-left" style="min-width: 230px;">
+            <th class="ps-3 py-1.5 bg-light border-end col-sticky-left" style="min-width: 250px;">
                 <div class="d-flex align-items-center justify-content-between">
                     <span class="text-dark" style="font-size: 0.68rem; font-weight: 500;"><i class="bi bi-grid-fill me-1 text-primary"></i> Módulo / Sección</span>
                 </div>
@@ -314,16 +438,16 @@ print <<'JS';
         roles.forEach(rol => {
             const numUsers = conteoUsuarios[rol] || 0;
             const th = document.createElement('th');
-            th.className = 'text-center py-1 px-2 border-end bg-light';
-            th.style.minWidth = '180px';
+            th.className = 'text-center py-1.5 px-2 border-end bg-light';
+            th.style.minWidth = '185px';
             th.innerHTML = `
-                <div class="text-dark lh-sm text-truncate" style="font-size: 0.68rem; font-weight: 500;" title="${escapeHtml(rol)}">${escapeHtml(rol)}</div>
-                <div class="d-flex align-items-center justify-content-center gap-1 my-0.5">
+                <div class="text-dark lh-sm text-truncate px-1" style="font-size: 0.68rem; font-weight: 500;" title="${escapeHtml(rol)}">${escapeHtml(rol)}</div>
+                <div class="d-flex align-items-center justify-content-center gap-1 my-1">
                     <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 user-count-badge rounded-pill text-primary" style="font-size: 0.65rem;" onclick="verUsuariosRol('${escapeHtml(rol)}')">
                         <i class="bi bi-people-fill text-teal me-1"></i>${numUsers} usu.
                     </button>
                 </div>
-                <div class="d-flex justify-content-center gap-1" style="font-size: 0.62rem;">
+                <div class="d-flex justify-content-center gap-2 mt-1" style="font-size: 0.62rem;">
                     <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" onclick="marcarTodoRol('${escapeHtml(rol)}', true)">[Todos]</button>
                     <span class="text-muted">|</span>
                     <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" onclick="marcarTodoRol('${escapeHtml(rol)}', false)">[Ninguno]</button>
@@ -341,19 +465,19 @@ print <<'JS';
             tr.setAttribute('data-mod-nombre', mod.nombre.toLowerCase());
 
             let colModHtml = `
-                <td class="ps-3 py-1 align-middle border-end bg-white col-sticky-left">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-1.5">
+                <td class="ps-3 py-1.5 align-middle border-end bg-white col-sticky-left" style="min-width: 250px;">
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                        <div class="d-flex align-items-center gap-2">
                             <i class="bi ${escapeHtml(mod.icono || 'bi-folder')} text-primary" style="font-size: 0.85rem;"></i>
                             <div>
                                 <div class="text-dark lh-1" style="font-size: 0.68rem; font-weight: 400;">${escapeHtml(mod.nombre)}</div>
                                 <code class="text-muted" style="font-size: 0.60rem;">id: ${escapeHtml(mod.id)}</code>
                             </div>
                         </div>
-                        <div class="d-flex gap-1 ms-2" style="font-size: 0.62rem;">
-                            <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" onclick="marcarTodoModulo('${escapeHtml(mod.id)}', true)" title="Activar módulo para todos los roles">[Fila All]</button>
+                        <div class="d-flex align-items-center gap-1 text-nowrap" style="font-size: 0.62rem;">
+                            <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" onclick="marcarTodoModulo('${escapeHtml(mod.id)}', true)" title="Activar módulo para todos">[Fila All]</button>
                             <span class="text-muted">|</span>
-                            <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" onclick="marcarTodoModulo('${escapeHtml(mod.id)}', false)" title="Desactivar módulo para todos los roles">[Fila Off]</button>
+                            <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" onclick="marcarTodoModulo('${escapeHtml(mod.id)}', false)" title="Desactivar módulo para todos">[Fila Off]</button>
                         </div>
                     </div>
                 </td>
@@ -374,7 +498,7 @@ print <<'JS';
                 const disabledAttr = isCriticalAdminMod ? 'disabled' : '';
 
                 colsRolesHtml += `
-                    <td class="text-center align-middle py-1 px-1 border-end">
+                    <td class="text-center align-middle py-1.5 px-1 border-end" style="min-width: 185px;">
                         <div class="d-inline-flex flex-wrap justify-content-center gap-1 p-0.5 rounded-1 bg-light border">
                             <label class="perm-badge-pill badge-c" title="Crear / Registrar">
                                 <span>C</span>
@@ -402,9 +526,98 @@ print <<'JS';
         });
     }
 
+    function renderizarSingleRoleView(data) {
+        if (!data || currentVistaRol === 'ALL') return;
+
+        const rol = currentVistaRol;
+        const modulos = data.modulos || [];
+        const matriz = data.matriz || {};
+        const conteoUsuarios = data.conteo_usuarios || {};
+
+        $('#singleRoleNombre').text(rol);
+        $('#singleRoleUserCount').text(conteoUsuarios[rol] || 0);
+
+        const grid = $('#gridSingleRoleModulos');
+        grid.empty();
+
+        const isAdmin = (rol === 'Administrador Organizacion' || rol === 'Administrador Global');
+
+        modulos.forEach(mod => {
+            const isCriticalAdminMod = isAdmin && (mod.id === 'usuarios' || mod.id === 'gestion_permisos' || mod.id === 'pacientes');
+            const perm = (matriz[rol] && matriz[rol][mod.id]) ? matriz[rol][mod.id] : { C: 0, R: 0, U: 0, D: 0 };
+
+            const cChecked = (isCriticalAdminMod || perm.C) ? 'checked' : '';
+            const rChecked = (isCriticalAdminMod || perm.R) ? 'checked' : '';
+            const uChecked = (isCriticalAdminMod || perm.U) ? 'checked' : '';
+            const dChecked = (isCriticalAdminMod || perm.D) ? 'checked' : '';
+            const disabledAttr = isCriticalAdminMod ? 'disabled' : '';
+
+            grid.append(`
+                <div class="col-12 col-md-6 col-lg-4 modulo-card-single" data-mod-id="${escapeHtml(mod.id)}" data-mod-nombre="${escapeHtml(mod.nombre.toLowerCase())}">
+                    <div class="border rounded-2 p-2 bg-light h-100 shadow-sm">
+                        <div class="d-flex align-items-center gap-2 mb-1.5 pb-1 border-bottom">
+                            <i class="bi ${escapeHtml(mod.icono || 'bi-folder')} text-primary fs-5"></i>
+                            <div>
+                                <div class="text-dark lh-1" style="font-size: 0.72rem; font-weight: 500;">${escapeHtml(mod.nombre)}</div>
+                                <code class="text-muted" style="font-size: 0.60rem;">id: ${escapeHtml(mod.id)}</code>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mt-2">
+                            <label class="d-flex align-items-center gap-1.5 p-1 px-2 rounded border bg-white cursor-pointer" title="Crear / Registrar">
+                                <span class="badge badge-c">C</span>
+                                <span style="font-size: 0.65rem;">Crear</span>
+                                <input class="form-check-input m-0 perm-check" style="width:13px; height:13px;" type="checkbox" data-rol="${escapeHtml(rol)}" data-mod="${escapeHtml(mod.id)}" data-act="C" ${cChecked} ${disabledAttr}>
+                            </label>
+
+                            <label class="d-flex align-items-center gap-1.5 p-1 px-2 rounded border bg-white cursor-pointer" title="Leer / Ver en Menú">
+                                <span class="badge badge-r">R</span>
+                                <span style="font-size: 0.65rem;">Leer</span>
+                                <input class="form-check-input m-0 perm-check" style="width:13px; height:13px;" type="checkbox" data-rol="${escapeHtml(rol)}" data-mod="${escapeHtml(mod.id)}" data-act="R" ${rChecked} ${disabledAttr}>
+                            </label>
+
+                            <label class="d-flex align-items-center gap-1.5 p-1 px-2 rounded border bg-white cursor-pointer" title="Actualizar / Modificar">
+                                <span class="badge badge-u">U</span>
+                                <span style="font-size: 0.65rem;">Editar</span>
+                                <input class="form-check-input m-0 perm-check" style="width:13px; height:13px;" type="checkbox" data-rol="${escapeHtml(rol)}" data-mod="${escapeHtml(mod.id)}" data-act="U" ${uChecked} ${disabledAttr}>
+                            </label>
+
+                            <label class="d-flex align-items-center gap-1.5 p-1 px-2 rounded border bg-white cursor-pointer" title="Borrar / Anular">
+                                <span class="badge badge-d">D</span>
+                                <span style="font-size: 0.65rem;">Borrar</span>
+                                <input class="form-check-input m-0 perm-check" style="width:13px; height:13px;" type="checkbox" data-rol="${escapeHtml(rol)}" data-mod="${escapeHtml(mod.id)}" data-act="D" ${dChecked} ${disabledAttr}>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+    }
+
+    function marcarCurrentSingleRole(estado) {
+        if (currentVistaRol === 'ALL') return;
+        marcarTodoRol(currentVistaRol, estado);
+        renderizarSingleRoleView(rawPermisosData);
+    }
+
+    function verUsuariosRolCurrent() {
+        if (currentVistaRol === 'ALL') return;
+        verUsuariosRol(currentVistaRol);
+    }
+
     function filtrarModulos() {
         const query = ($('#inputBuscarModulo').val() || '').toLowerCase().trim();
         $('.modulo-row').each(function() {
+            const nom = $(this).attr('data-mod-nombre') || '';
+            const id  = $(this).attr('data-mod-id') || '';
+            if (nom.includes(query) || id.includes(query)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+
+        $('.modulo-card-single').each(function() {
             const nom = $(this).attr('data-mod-nombre') || '';
             const id  = $(this).attr('data-mod-id') || '';
             if (nom.includes(query) || id.includes(query)) {
