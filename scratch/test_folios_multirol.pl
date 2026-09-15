@@ -10,63 +10,50 @@ require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl
 
 binmode STDOUT, ':utf8';
 
-print "=== PRUEBA DE UNIFICACIÓN DE FOLIOS MULTI-ROL (CLUE QTSMP000116) ===\n\n";
+print "=== PRUEBA DE FOLIOS SEPARADOS POR ID_NEGOCIO|ID_SUCURSAL CON CONSUMO MULTI-ROL ===\n\n";
 
 my $id_raiz = 'QTSMP000116';
 
-# Simular consumo de folios privados por diferentes roles / id_negocio
-print "--- Simulando generación de Recibos Privados ---\n";
-my @roles_privados = (
-    { rol => 'Rol A (Recepcionista)', id_neg => '723800' },
-    { rol => 'Rol B (Médico)',        id_neg => '0' },
-    { rol => 'Rol C (Administrador)', id_neg => '723800' },
-    { rol => 'Rol N (Especialista)',  id_neg => '99999' },
-);
+# 1. Sucursal 723800|0 - Privados
+print "--- Sucursal 723800|0 (Recibos Privados) ---\n";
+my $f1 = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 0, '723800', '0'); # Rol A (Recepcionista)
+print "[Rol A Recepcionista | 723800|0] -> Folio Privado: $f1\n";
 
-my @folios_priv_generados;
-foreach my $r (@roles_privados) {
-    my $f = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 0, $r->{id_neg}, '0');
-    push @folios_priv_generados, $f;
-    print "[$r->{rol} | id_neg: $r->{id_neg}] -> Folio Privado Generado: $f\n";
-}
+my $f2 = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 0, '723800', '0'); # Rol B (Médico)
+print "[Rol B Médico        | 723800|0] -> Folio Privado: $f2\n";
 
-# Simular consumo de folios públicos por diferentes roles / id_negocio
-print "\n--- Simulando generación de Recibos Públicos ---\n";
-my @roles_publicos = (
-    { rol => 'Rol B (Médico)',        id_neg => '0' },
-    { rol => 'Rol C (Administrador)', id_neg => '723800' },
-    { rol => 'Rol N (Especialista)',  id_neg => '88888' },
-);
+my $f3 = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 0, '723800', '0'); # Rol C (Admin)
+print "[Rol C Administrador | 723800|0] -> Folio Privado: $f3\n";
 
-my @folios_pub_generados;
-foreach my $r (@roles_publicos) {
-    my $f = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 1, $r->{id_neg}, '0');
-    push @folios_pub_generados, $f;
-    print "[$r->{rol} | id_neg: $r->{id_neg}] -> Folio Público Generado: $f\n";
-}
+# 2. Sucursal 0|0 - Privados
+print "\n--- Sucursal 0|0 (Recibos Privados) ---\n";
+my $f4 = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 0, '0', '0'); # Rol B (Médico en Sucursal 0|0)
+print "[Rol B Médico        | 0|0]      -> Folio Privado: $f4\n";
 
-# Validación de correlatividad estricta (+1 entre cada llamada)
-my $priv_ok = 1;
-for (my $i = 1; $i < @folios_priv_generados; $i++) {
-    if ($folios_priv_generados[$i] != $folios_priv_generados[$i-1] + 1) {
-        $priv_ok = 0;
-    }
-}
+my $f5 = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 0, '0', '0'); # Rol D (Recepcionista en Sucursal 0|0)
+print "[Rol D Recepcionista | 0|0]      -> Folio Privado: $f5\n";
 
-my $pub_ok = 1;
-for (my $i = 1; $i < @folios_pub_generados; $i++) {
-    if ($folios_pub_generados[$i] != $folios_pub_generados[$i-1] + 1) {
-        $pub_ok = 0;
-    }
-}
+# 3. Sucursal 723800|0 - Públicos
+print "\n--- Sucursal 723800|0 (Recibos Públicos) ---\n";
+my $fp1 = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 1, '723800', '0'); # Rol B
+print "[Rol B Médico        | 723800|0] -> Folio Público: $fp1\n";
+
+my $fp2 = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 1, '723800', '0'); # Rol C
+print "[Rol C Administrador | 723800|0] -> Folio Público: $fp2\n";
+
+# Validaciones
+my $ok_suc1_priv = ($f1 == 25001 && $f2 == 25002 && $f3 == 25003);
+my $ok_suc0_priv = ($f4 == 27768 && $f5 == 27769);
+my $ok_suc1_pub  = ($fp1 == 2802  && $fp2 == 2803);
 
 print "\n=== RESULTADOS DE VERIFICACIÓN ===\n";
-print "Folios Privados Consecutivos: " . ($priv_ok ? "CORRECTO (Secuencia estricta +1)" : "ERROR") . "\n";
-print "Folios Públicos Consecutivos: " . ($pub_ok  ? "CORRECTO (Secuencia estricta +1)" : "ERROR") . "\n";
+print "Secuencia 723800|0 Privados (25001, 25002, 25003): " . ($ok_suc1_priv ? "CORRECTO" : "FALLÓ ($f1, $f2, $f3)") . "\n";
+print "Secuencia 0|0 Privados      (27768, 27769):        " . ($ok_suc0_priv ? "CORRECTO" : "FALLÓ ($f4, $f5)") . "\n";
+print "Secuencia 723800|0 Públicos (2802, 2803):         " . ($ok_suc1_pub  ? "CORRECTO" : "FALLÓ ($fp1, $fp2)") . "\n";
 
-if ($priv_ok && $pub_ok) {
+if ($ok_suc1_priv && $ok_suc0_priv && $ok_suc1_pub) {
     print "\n¡TODAS LAS PRUEBAS PASARON EXITOSAMENTE!\n";
 } else {
-    print "\n¡ALERTA! SE DETECTÓ FALLA EN LA SECUENCIA DE FOLIOS.\n";
+    print "\n¡ERROR EN LA PRUEBA DE AISLAMIENTO POR SUCURSAL!\n";
     exit 1;
 }

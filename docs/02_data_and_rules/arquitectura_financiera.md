@@ -24,9 +24,9 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
 - **Ingreso Físico en Caja**: Efectivo, tarjetas bancarias y transferencias ingresadas vía recibos privados (`folios_recibos_privados.dat`).
 - **Cuentas por Cobrar Convenios / Municipio**: Las atenciones registradas en `dat/folios_recibos_publicos.dat` corresponden a servicios amparados por convenio gubernamental con subsidio. **NO constituyen dinero en efectivo físico en caja**. Se computan en la categoría de **CXC Estado** hasta su cobro institucional.
 
-### 2.5 Unificación Atómica Multi-Rol de Folios por CLUE / Organización
-- Toda generación de recibos (privados o públicos) realizada por cualquier usuario o rol dentro de una organización / CLUE (Recepcionista, Médico, Administrador, Especialista, etc.) DEBE consultar e incrementar una **única secuencia consecutiva atómica unificada** alojada en `dat/catalogos_CLUE/<CLUES>/contadores_recibos_privados_<CLUES>.dat` y `contadores_recibos_publicos_<CLUES>.dat`.
-- Queda estrictamente prohibida la fragmentación o bifurcación de contadores por `ID_NEGOCIO` o por rol dentro de una misma entidad CLUE.
+### 2.5 Aislamiento por Empresa/Sucursal (ID_NEGOCIO|ID_SUCURSAL) con Consumo Multi-Rol Unificado
+- Toda generación de recibos (privados o públicos) realizada por cualquier usuario o rol dentro de una misma empresa y sucursal (`ID_NEGOCIO|ID_SUCURSAL`) DEBE consultar e incrementar una **única secuencia consecutiva atómica compartida** para dicha sucursal en `dat/catalogos_CLUE/<CLUES>/contadores_recibos_privados_<CLUES>.dat` y `contadores_recibos_publicos_<CLUES>.dat`.
+- Cada sucursal (`ID_NEGOCIO|ID_SUCURSAL`) mantiene su propio contador independiente dentro del catálogo de la organización, pero todos los roles de dicha sucursal (Recepcionista, Médico, Administrador, Especialista, etc.) consumen de forma unificada la misma secuencia consecutiva.
 
 ---
 
