@@ -38,11 +38,31 @@ En código backend (`utils/permisos_utils.pl` y `api/gestion_permisos_roles_api.
 - Si el usuario posee facultad de lectura (`R`), la opción se renderiza en pantalla; si no, permanece oculta.
 
 ### 3.3 Consola de Administración UI (`views/gestion_permisos_roles.pl`)
-- Interfaz interactiva exclusiva para Administradores de Organización.
-- Presenta una matriz responsiva con switches para `C`, `R`, `U`, `D` agrupados por rol.
-- Permite seleccionar todos / ninguno por columna de rol.
+- Interfaz interactiva de **alta densidad (Compact Premium UI)** exclusiva para Administradores de Organización.
+- **Roles Canónicos Dinámicos**: Carga automática de todos los roles de `dat/roles.dat` (incluyendo *Recepcionista*, *Médico*, *Enfermería*, *Ejecutivo Ventas*, *Soporte*), asegurando visibilidad independientemente de la existencia de usuarios previamente creados.
+- **Drilldown Rol vs Usuarios**: Badges táctiles en cabeceras de columnas que exhiben el conteo de usuarios activos por rol en la organización y despliegan un modal interactivo con el desglose de personal.
+- **Buscador de Módulos & Acciones Masivas**: Input de filtrado instantáneo por nombre/id de módulo y toggles masivos por fila (*Fila All/Off*) y por columna (*Todos/Ninguno*).
+- Badges colorimétricos intuitivos para facultades CRUD:
+  - `C`: Crear / Registrar (Verde)
+  - `R`: Leer / Ver en Menú (Azul)
+  - `U`: Actualizar / Editar (Naranja)
+  - `D`: Borrar / Anular (Rojo)
 - Envía actualizaciones AJAX a `api/gestion_permisos_roles_api.pl`.
 
 ### 3.4 API Backend (`api/gestion_permisos_roles_api.pl`)
-- `get_matrix`: Retorna la lista de módulos, roles y el estado de la matriz en JSON.
+- `get_matrix`: Parsea dinámicamente `dat/roles.dat` y `dat/usuarios.dat`, retornando la lista de módulos, roles canónicos, matriz CRUD, `conteo_usuarios` y `usuarios_por_rol` en JSON.
 - `save_matrix`: Valida los datos recibidos, aplica la salvaguarda de lockout y persiste atómicamente la matriz.
+
+---
+
+## 4. Flujo Integrado Rol vs Usuarios
+
+```
+[Roles Canónicos] ──> [Configuración Matriz RBAC] ──> [Drilldown Personal / Asignación]
+ (dat/roles.dat)      (gestion_permisos_roles.pl)       (administracion_usuarios.pl)
+```
+
+1. **Gestión de Menú y Poderes**: El Administrador de Organización ajusta las facultades `C`, `R`, `U`, `D` para cada rol.
+2. **Monitoreo de Impacto**: Visualización inmediata en la cabecera de la matriz sobre cuántos colaboradores serán afectados por los cambios de permisos del rol.
+3. **Mantenimiento de Usuarios**: Enlace directo con la Gestión de Personal para añadir colaboradores con el rol deseado.
+

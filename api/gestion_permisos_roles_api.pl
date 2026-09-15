@@ -45,26 +45,67 @@ if ($accion eq 'get_matrix') {
         { id => 'reset_datos_org',    nombre => 'Reset Operativo Org',            icono => 'bi-arrow-counterclockwise' }
     );
 
-    # Cargar lista de roles de la organización desde usuarios.dat / roles.dat
     my $dat_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
     my %roles_set = ();
+    
+    # 1. Cargar roles base canónicos dinámicamente desde dat/roles.dat
+    my $roles_file = File::Spec->catfile($dat_dir, 'roles.dat');
+    if (-e $roles_file && open(my $rf, '<:encoding(UTF-8)', $roles_file)) {
+        <$rf>; # Saltar encabezado ROL|PUEDE_BUSCAR...
+        while (my $line = <$rf>) {
+            chomp $line;
+            next if $line =~ /^\s*$/ || $line =~ /^#/;
+            my ($rname) = split(/\|/, $line, -1);
+            $rname =~ s/^\s+|\s+$//g;
+            next unless length($rname);
+            next if ($rname eq 'Administrador Global' || $rname eq 'Paciente'); # Roles de sistema/paciente externa
+            $roles_set{$rname} = 1;
+        }
+        close $rf;
+    }
+
+    # Asegurar roles esenciales de organización
     $roles_set{'Administrador Organizacion'} = 1;
     $roles_set{'Medico'} = 1;
     $roles_set{'Recepcionista'} = 1;
     $roles_set{'Enfermeria'} = 1;
 
-    # Cargar roles adicionales de usuarios de esta empresa
+    my %conteo_usuarios = ();
+    my %usuarios_por_rol = ();
+
+    # 2. Cargar usuarios activos y relacionarlos con sus roles para la empresa activa
     my $usr_file = File::Spec->catfile($dat_dir, 'usuarios.dat');
     if (-e $usr_file) {
         my $users = leer_tabla($usr_file, '!');
         foreach my $u (@$users) {
             next unless @$u >= 7;
-            my $rol_u = $u->[5] // '';
-            my $emp_u = $u->[6] // '';
-            if ($rol_u && ($emp_u eq $id_empresa || $id_empresa eq '0')) {
-                $roles_set{$rol_u} = 1;
+            my $u_id     = $u->[0] // '';
+            my $u_nom    = $u->[1] // '';
+            my $u_email  = $u->[2] // '';
+            my $u_act    = $u->[4] // '1';
+            my $rol_u    = $u->[5] // '';
+            my $emp_u    = $u->[6] // '';
+
+            next if ($u_id =~ /^id$/i); # Encabezado
+
+            # Filtrar por empresa activa (o todas si id_empresa es 0)
+            if ($rol_u && ($emp_u eq $id_empresa || $id_empresa eq '0' || $emp_u =~ /^0:/)) {
+                $roles_set{$rol_u} = 1; # Incluir si existe un usuario con rol personalizado
+                $conteo_usuarios{$rol_u} = ($conteo_usuarios{$rol_u} // 0) + 1;
+                push @{$usuarios_por_rol{$rol_u}}, {
+                    id => $u_id,
+                    nombre => $u_nom,
+                    correo => $u_email,
+                    activo => $u_act
+                };
             }
         }
+    }
+
+    # Inicializar conteos en 0 para roles sin usuarios
+    foreach my $r (keys %roles_set) {
+        $conteo_usuarios{$r} //= 0;
+        $usuarios_por_rol{$r} //= [];
     }
 
     my @roles_list = sort keys %roles_set;
@@ -74,6 +115,8 @@ if ($accion eq 'get_matrix') {
         modulos => \@modulos,
         roles => \@roles_list,
         matriz => $matriz,
+        conteo_usuarios => \%conteo_usuarios,
+        usuarios_por_rol => \%usuarios_por_rol,
         id_empresa => $id_empresa,
         ruta_archivo => utils::permisos_utils::obtener_ruta_permisos_org($id_empresa)
     });
