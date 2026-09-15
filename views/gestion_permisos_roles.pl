@@ -12,7 +12,6 @@ use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
-require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
 
@@ -57,64 +56,22 @@ utils::sub_sidebar::render_sidebar(
 
 print <<"HTML";
 <link rel="stylesheet" href="../css/sdm_mobile_standards.css" />
-
-<style>
-    .permisos-card {
-        background: #ffffff;
-        border-radius: 1.25rem;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    }
-    .table-permisos th {
-        background: #f8fafc;
-        color: #0F172A;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
-        padding: 0.85rem 1rem;
-        border-bottom: 2px solid #e2e8f0;
-    }
-    .table-permisos td {
-        padding: 0.75rem 1rem;
-        vertical-align: middle;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .badge-crud {
-        font-size: 0.65rem;
-        font-weight: 800;
-        padding: 0.2rem 0.45rem;
-        border-radius: 0.35rem;
-    }
-    .crud-box {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.5rem;
-    }
-    .form-check-input:checked {
-        background-color: #19B7A5;
-        border-color: #19B7A5;
-    }
-</style>
+<link rel="stylesheet" href="../css/ospulso_master_v2.css" />
 
 <main class="container-fluid container-mobile-flush pt-4 px-lg-4 pb-5 animate__animated animate__fadeIn">
     <div class="row g-4 mb-4">
         <div class="col-12">
-            <div class="permisos-card p-4 p-md-5">
+            <div class="card-medentia-aura p-4 p-md-5 rounded-4 shadow-sm border-0">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-shield-lock-fill me-2" style="color: var(--md-teal-clinical);"></i>Matriz Dinámica de Permisos por Rol</h4>
+                        <h4 class="fw-black m-0 text-primary"><i class="bi bi-shield-lock-fill me-2 text-teal"></i>Matriz Dinámica de Permisos por Rol</h4>
                         <p class="text-muted small m-0 mt-1">Configura el acceso al menú lateral y las facultades CRUD (Crear, Leer, Actualizar, Borrar) para cada rol de tu organización.</p>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold" onclick="cargarMatrizPermisos()">
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold btn-mobile-standard" onclick="cargarMatrizPermisos()">
                             <i class="bi bi-arrow-clockwise me-1"></i> Recargar
                         </button>
-                        <button type="button" class="btn text-white btn-mobile-standard px-4 py-2.5 fw-bold rounded-3 shadow-sm" style="background: var(--md-blue-deep, #0A2A66);" onclick="guardarMatrizPermisos()">
+                        <button type="button" class="btn btn-primary text-white btn-mobile-standard px-4 py-2.5 fw-bold rounded-3 shadow-sm" onclick="guardarMatrizPermisos()">
                             <i class="bi bi-check2-circle me-1 fs-5"></i> Guardar Cambios
                         </button>
                     </div>
@@ -127,7 +84,7 @@ print <<"HTML";
 
                 <div id="containerMatriz" style="display: none;">
                     <div class="table-responsive border rounded-4 overflow-hidden shadow-sm bg-white mb-3">
-                        <table class="table table-hover table-permisos align-middle m-0" id="tablaPermisos">
+                        <table class="table table-hover align-middle m-0" id="tablaPermisos">
                             <thead>
                                 <tr id="trHeader">
                                     <th class="ps-4">Módulo / Sección</th>
@@ -141,10 +98,10 @@ print <<"HTML";
                         <i class="bi bi-info-circle-fill fs-3 text-info"></i>
                         <div class="small">
                             <strong>Leyenda de Facultades CRUD:</strong><br>
-                            <span class="badge bg-success badge-crud me-1">C</span> <b>Crear</b> (Registrar / Emitir) &nbsp;|&nbsp;
-                            <span class="badge bg-primary badge-crud me-1">R</span> <b>Leer</b> (Ver en Menú / Consultar) &nbsp;|&nbsp;
-                            <span class="badge bg-warning text-dark badge-crud me-1">U</span> <b>Actualizar</b> (Editar / Modificar) &nbsp;|&nbsp;
-                            <span class="badge bg-danger badge-crud me-1">D</span> <b>Borrar</b> (Eliminar / Anular)<br>
+                            <span class="badge bg-success me-1">C</span> <b>Crear</b> (Registrar / Emitir) &nbsp;|&nbsp;
+                            <span class="badge bg-primary me-1">R</span> <b>Leer</b> (Ver en Menú / Consultar) &nbsp;|&nbsp;
+                            <span class="badge bg-warning text-dark me-1">U</span> <b>Actualizar</b> (Editar / Modificar) &nbsp;|&nbsp;
+                            <span class="badge bg-danger me-1">D</span> <b>Borrar</b> (Eliminar / Anular)<br>
                             <span class="text-muted mt-1 d-block">* El rol <b>Administrador Organización</b> conserva acceso seguro de administración sin riesgo de auto-bloqueo.</span>
                         </div>
                     </div>
@@ -153,7 +110,9 @@ print <<"HTML";
         </div>
     </div>
 </main>
+HTML
 
+print <<'JS';
 <script>
     let rawPermisosData = null;
 
@@ -239,20 +198,20 @@ print <<"HTML";
                 colsRolesHtml += `
                     <td class="text-center align-middle">
                         <div class="d-inline-flex flex-wrap justify-content-center gap-1.5 p-1 rounded-3 bg-light border">
-                            <label class="crud-box" title="Crear / Registrar">
-                                <span class="badge bg-success badge-crud">C</span>
+                            <label class="d-inline-flex align-items-center gap-1 p-1 rounded border bg-white" title="Crear / Registrar">
+                                <span class="badge bg-success">C</span>
                                 <input class="form-check-input m-0 perm-check" type="checkbox" data-rol="${escapeHtml(rol)}" data-mod="${escapeHtml(mod.id)}" data-act="C" ${cChecked} ${disabledAttr}>
                             </label>
-                            <label class="crud-box" title="Leer / Ver en Menú">
-                                <span class="badge bg-primary badge-crud">R</span>
+                            <label class="d-inline-flex align-items-center gap-1 p-1 rounded border bg-white" title="Leer / Ver en Menú">
+                                <span class="badge bg-primary">R</span>
                                 <input class="form-check-input m-0 perm-check" type="checkbox" data-rol="${escapeHtml(rol)}" data-mod="${escapeHtml(mod.id)}" data-act="R" ${rChecked} ${disabledAttr}>
                             </label>
-                            <label class="crud-box" title="Actualizar / Modificar">
-                                <span class="badge bg-warning text-dark badge-crud">U</span>
+                            <label class="d-inline-flex align-items-center gap-1 p-1 rounded border bg-white" title="Actualizar / Modificar">
+                                <span class="badge bg-warning text-dark">U</span>
                                 <input class="form-check-input m-0 perm-check" type="checkbox" data-rol="${escapeHtml(rol)}" data-mod="${escapeHtml(mod.id)}" data-act="U" ${uChecked} ${disabledAttr}>
                             </label>
-                            <label class="crud-box" title="Borrar / Anular">
-                                <span class="badge bg-danger badge-crud">D</span>
+                            <label class="d-inline-flex align-items-center gap-1 p-1 rounded border bg-white" title="Borrar / Anular">
+                                <span class="badge bg-danger">D</span>
                                 <input class="form-check-input m-0 perm-check" type="checkbox" data-rol="${escapeHtml(rol)}" data-mod="${escapeHtml(mod.id)}" data-act="D" ${dChecked} ${disabledAttr}>
                             </label>
                         </div>
@@ -332,9 +291,9 @@ print <<"HTML";
              .replace(/'/g, "&#039;");
     }
 </script>
-
-HTML
+JS
 
 utils::sub_sidebar::render_sidebar_footer();
+render_bottom_nav('usuarios');
 print "</body></html>\n";
 1;
