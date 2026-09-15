@@ -62,7 +62,7 @@ print <<"HTML";
     /* Estilos de alta densidad, navegabilidad por rol y scroll horizontal corregido */
     .table-permisos-container {
         position: relative;
-        max-height: calc(100vh - 250px);
+        max-height: calc(100vh - 240px);
         overflow-x: auto !important;
         overflow-y: auto !important;
         width: 100%;
@@ -72,26 +72,27 @@ print <<"HTML";
         font-size: 0.68rem;
         font-weight: 400;
         min-width: 100%;
-        white-space: nowrap;
+        border-collapse: separate;
+        border-spacing: 0;
     }
     .table-permisos-container thead th {
         position: sticky;
         top: 0;
         z-index: 1020;
-        background: #f8f9fa;
+        background-color: #f8f9fa !important;
         font-weight: 500;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        border-bottom: 2px solid #dee2e6;
     }
     .table-permisos-container .col-sticky-left {
         position: sticky;
         left: 0;
         z-index: 1010;
-        background: #ffffff;
-        box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+        background-color: #ffffff !important;
+        box-shadow: 3px 0 6px rgba(0,0,0,0.06);
     }
     .table-permisos-container thead th.col-sticky-left {
-        z-index: 1030;
-        background: #f8f9fa;
+        z-index: 1035;
+        background-color: #f8f9fa !important;
     }
     .perm-badge-pill {
         user-select: none;
@@ -148,6 +149,11 @@ print <<"HTML";
         color: #ffffff;
         border-color: #0d6efd;
         box-shadow: 0 2px 4px rgba(13,110,253,0.2);
+    }
+    .btn-group-xs > .btn, .btn-xs {
+        padding: 1px 5px;
+        font-size: 0.62rem;
+        border-radius: 3px;
     }
 </style>
 
@@ -238,13 +244,13 @@ print <<"HTML";
         <!-- Contenedor Matriz -->
         <div id="containerMatriz" style="display: none;">
             
-            <!-- VISTA A: Matriz Completa Multicolumna (con Scroll Horizontal Corregido) -->
+            <!-- VISTA A: Matriz Completa Multicolumna (con Scroll Horizontal Corregido y Toggles Modernos) -->
             <div id="vistaMatrizCompleta">
                 <div class="table-responsive border rounded-2 shadow-sm bg-white mb-2 table-permisos-container">
                     <table class="table table-bordered table-hover align-middle m-0 p-0" id="tablaPermisos">
                         <thead>
                             <tr id="trHeader" class="bg-light text-dark">
-                                <th class="ps-3 py-1.5 col-sticky-left" style="min-width: 250px;">Módulo / Sección</th>
+                                <th class="ps-3 py-1.5 col-sticky-left" style="width: 270px; min-width: 270px;">Módulo / Sección</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyMatriz"></tbody>
@@ -428,7 +434,7 @@ print <<'JS';
         $('#kpiTotalUsuarios').text(totalUsuarios);
 
         trHeader.innerHTML = `
-            <th class="ps-3 py-1.5 bg-light border-end col-sticky-left" style="min-width: 250px;">
+            <th class="ps-3 py-1.5 border-end col-sticky-left" style="width: 270px; min-width: 270px;">
                 <div class="d-flex align-items-center justify-content-between">
                     <span class="text-dark" style="font-size: 0.68rem; font-weight: 500;"><i class="bi bi-grid-fill me-1 text-primary"></i> Módulo / Sección</span>
                 </div>
@@ -439,18 +445,22 @@ print <<'JS';
             const numUsers = conteoUsuarios[rol] || 0;
             const th = document.createElement('th');
             th.className = 'text-center py-1.5 px-2 border-end bg-light';
-            th.style.minWidth = '185px';
+            th.style.width = '195px';
+            th.style.minWidth = '195px';
             th.innerHTML = `
                 <div class="text-dark lh-sm text-truncate px-1" style="font-size: 0.68rem; font-weight: 500;" title="${escapeHtml(rol)}">${escapeHtml(rol)}</div>
-                <div class="d-flex align-items-center justify-content-center gap-1 my-1">
+                <div class="d-flex align-items-center justify-content-center gap-1 my-0.5">
                     <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 user-count-badge rounded-pill text-primary" style="font-size: 0.65rem;" onclick="verUsuariosRol('${escapeHtml(rol)}')">
                         <i class="bi bi-people-fill text-teal me-1"></i>${numUsers} usu.
                     </button>
                 </div>
-                <div class="d-flex justify-content-center gap-2 mt-1" style="font-size: 0.62rem;">
-                    <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" onclick="marcarTodoRol('${escapeHtml(rol)}', true)">[Todos]</button>
-                    <span class="text-muted">|</span>
-                    <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" onclick="marcarTodoRol('${escapeHtml(rol)}', false)">[Ninguno]</button>
+                <div class="btn-group btn-group-xs my-0.5" role="group">
+                    <button type="button" class="btn btn-xs btn-outline-success py-0 px-1.5" style="font-size:0.60rem;" onclick="marcarTodoRol('${escapeHtml(rol)}', true)" title="Marcar todos los permisos para este rol">
+                        <i class="bi bi-check-all me-0.5"></i>Todos
+                    </button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" style="font-size:0.60rem;" onclick="marcarTodoRol('${escapeHtml(rol)}', false)" title="Desmarcar todos los permisos para este rol">
+                        <i class="bi bi-dash-circle me-0.5"></i>Ninguno
+                    </button>
                 </div>
             `;
             trHeader.appendChild(th);
@@ -465,19 +475,22 @@ print <<'JS';
             tr.setAttribute('data-mod-nombre', mod.nombre.toLowerCase());
 
             let colModHtml = `
-                <td class="ps-3 py-1.5 align-middle border-end bg-white col-sticky-left" style="min-width: 250px;">
+                <td class="ps-3 py-1 align-middle border-end col-sticky-left" style="width: 270px; min-width: 270px;">
                     <div class="d-flex align-items-center justify-content-between gap-2">
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-1.5 text-truncate" style="max-width: 190px;">
                             <i class="bi ${escapeHtml(mod.icono || 'bi-folder')} text-primary" style="font-size: 0.85rem;"></i>
-                            <div>
-                                <div class="text-dark lh-1" style="font-size: 0.68rem; font-weight: 400;">${escapeHtml(mod.nombre)}</div>
+                            <div class="text-truncate">
+                                <div class="text-dark lh-1 text-truncate" style="font-size: 0.68rem; font-weight: 400;" title="${escapeHtml(mod.nombre)}">${escapeHtml(mod.nombre)}</div>
                                 <code class="text-muted" style="font-size: 0.60rem;">id: ${escapeHtml(mod.id)}</code>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center gap-1 text-nowrap" style="font-size: 0.62rem;">
-                            <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" onclick="marcarTodoModulo('${escapeHtml(mod.id)}', true)" title="Activar módulo para todos">[Fila All]</button>
-                            <span class="text-muted">|</span>
-                            <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" onclick="marcarTodoModulo('${escapeHtml(mod.id)}', false)" title="Desactivar módulo para todos">[Fila Off]</button>
+                        <div class="btn-group btn-group-xs text-nowrap ms-auto" role="group">
+                            <button type="button" class="btn btn-xs btn-light border py-0 px-1 text-success" style="font-size:0.60rem;" onclick="marcarTodoModulo('${escapeHtml(mod.id)}', true)" title="Activar este módulo para todos los roles">
+                                <i class="bi bi-check-all"></i>
+                            </button>
+                            <button type="button" class="btn btn-xs btn-light border py-0 px-1 text-secondary" style="font-size:0.60rem;" onclick="marcarTodoModulo('${escapeHtml(mod.id)}', false)" title="Desactivar este módulo para todos los roles">
+                                <i class="bi bi-x"></i>
+                            </button>
                         </div>
                     </div>
                 </td>
@@ -498,7 +511,7 @@ print <<'JS';
                 const disabledAttr = isCriticalAdminMod ? 'disabled' : '';
 
                 colsRolesHtml += `
-                    <td class="text-center align-middle py-1.5 px-1 border-end" style="min-width: 185px;">
+                    <td class="text-center align-middle py-1 px-1 border-end" style="width: 195px; min-width: 195px;">
                         <div class="d-inline-flex flex-wrap justify-content-center gap-1 p-0.5 rounded-1 bg-light border">
                             <label class="perm-badge-pill badge-c" title="Crear / Registrar">
                                 <span>C</span>
