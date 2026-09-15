@@ -242,6 +242,10 @@ print <<'JS';
     let rawPermisosData = null;
 
     document.addEventListener('DOMContentLoaded', () => {
+        const modalEl = document.getElementById('modalUsuariosRol');
+        if (modalEl && modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
         cargarMatrizPermisos();
     });
 
@@ -441,7 +445,11 @@ print <<'JS';
             });
         }
 
-        const modal = new bootstrap.Modal(document.getElementById('modalUsuariosRol'));
+        const modalEl = document.getElementById('modalUsuariosRol');
+        if (modalEl && modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     }
 
