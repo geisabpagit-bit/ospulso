@@ -117,6 +117,53 @@ if (-e $archivo_medicos) {
     }
 }
 
+# 2.6 Cargar Roles Canónicos Dinámicos desde dat/roles.dat
+my $archivo_roles = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'roles.dat');
+my %roles_canonicos_map = (
+    'Medico'                    => 'Médico (Acceso a Expedientes y Consultas)',
+    'Recepcionista'             => 'Recepcionista (Agenda, Registro y Pagos)',
+    'Enfermeria'                => 'Enfermería (Triaje y Apoyo Clínico)',
+    'Ejecutivo Ventas'          => 'Ejecutivo Ventas (CRM y Cotizaciones)',
+    'Soporte'                   => 'Soporte Técnico (Mantenimiento)',
+    'Administrador Organizacion'=> 'Administrador Organización (Control Total)'
+);
+
+if (-e $archivo_roles && open(my $rf_roles, '<:encoding(UTF-8)', $archivo_roles)) {
+    <$rf_roles>; # Saltar encabezado ROL|PUEDE_BUSCAR...
+    while (my $line = <$rf_roles>) {
+        chomp $line;
+        next if $line =~ /^\s*$/ || $line =~ /^#/;
+        my ($rname) = split(/\|/, $line, -1);
+        $rname =~ s/^\s+|\s+$//g;
+        next unless length($rname);
+        next if ($rname eq 'Administrador Global' || $rname eq 'Paciente');
+        $roles_canonicos_map{$rname} //= "$rname (Perfil Operativo)";
+    }
+    close $rf_roles;
+}
+
+my @lista_roles_canonicos = sort keys %roles_canonicos_map;
+
+sub get_rol_badge {
+    my ($r_name) = @_;
+    $r_name //= '';
+    if ($r_name eq 'Medico') {
+        return qq{<span class="badge bg-primary text-white px-2.5 py-1.5 rounded-pill"><i class="bi bi-stethoscope me-1"></i>Médico</span>};
+    } elsif ($r_name eq 'Recepcionista') {
+        return qq{<span class="badge bg-success text-white px-2.5 py-1.5 rounded-pill"><i class="bi bi-headset me-1"></i>Recepcionista</span>};
+    } elsif ($r_name eq 'Enfermeria') {
+        return qq{<span class="badge bg-warning text-dark px-2.5 py-1.5 rounded-pill"><i class="bi bi-heart-pulse me-1"></i>Enfermería</span>};
+    } elsif ($r_name eq 'Ejecutivo Ventas') {
+        return qq{<span class="badge bg-info text-dark px-2.5 py-1.5 rounded-pill"><i class="bi bi-graph-up-arrow me-1"></i>Ejecutivo Ventas</span>};
+    } elsif ($r_name eq 'Soporte') {
+        return qq{<span class="badge bg-dark text-white px-2.5 py-1.5 rounded-pill"><i class="bi bi-tools me-1"></i>Soporte</span>};
+    } elsif ($r_name eq 'Administrador Organizacion') {
+        return qq{<span class="badge text-white px-2.5 py-1.5 rounded-pill" style="background:#4b0082;"><i class="bi bi-shield-lock-fill me-1"></i>Admin Org</span>};
+    } else {
+        return qq{<span class="badge bg-secondary text-white px-2.5 py-1.5 rounded-pill"><i class="bi bi-person-badge me-1"></i>$r_name</span>};
+    }
+}
+
 # 3. Obtener usuarios (activos e inactivos)
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
@@ -190,8 +237,12 @@ print <<HTML;
                             <div class="col-12 col-md-6">
                                 <label class="form-label small fw-bold text-muted"><i class="bi bi-shield-lock-fill text-primary me-1"></i>Rol Operativo</label>
                                 <select class="form-select form-select-sm shadow-sm border-primary fw-bold" id="form_rol" name="rol" required onchange="cambiarRol(this.value)">
-                                    <option value="Medico">Médico (Acceso a Expedientes y Consultas)</option>
-                                    <option value="Recepcionista">Recepcionista (Agenda, Registro y Pagos)</option>
+HTML
+foreach my $r_opt (@lista_roles_canonicos) {
+    my $lbl = $roles_canonicos_map{$r_opt};
+    print qq|                                    <option value="$r_opt">$lbl</option>\n|;
+}
+print <<HTML;
                                 </select>
                             </div>
                             <div class="col-12 col-md-6">
@@ -324,7 +375,8 @@ HTML
 
 if (@mi_personal) {
     foreach my $per (@mi_personal) {
-        my $badge_espe = ($$per{rol} eq 'Medico') ? qq{<span class="badge bg-info text-white ms-1 px-3 py-2">$$per{espe_nombre}</span>} : '';
+        my $badge_espe = ($$per{rol} eq 'Medico') ? qq{<span class="badge bg-info text-white ms-1 px-2.5 py-1.5 rounded-pill">$$per{espe_nombre}</span>} : '';
+        my $rol_badge_html = get_rol_badge($$per{rol});
         print <<HTML;
                                         <tr>
                                             <td>
@@ -339,12 +391,15 @@ if (@mi_personal) {
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-secondary px-3 py-2">$$per{rol}</span>
+                                                $rol_badge_html
                                                 $badge_espe
                                             </td>
                                             <td class="text-muted small fw-bold">$$per{sucursal}</td>
                                             <td class="text-end pe-4">
                                                 <div class="d-flex justify-content-end gap-2">
+                                                    <button onclick="verPermisosUsuario('$$per{nombre}', '$$per{rol}')" class="btn p-0 border-0 btn-expediente" title="Ver Facultades y Permisos del Rol">
+                                                        <div class="icon-container-acrylic text-primary border-primary border-opacity-25" style="background: rgba(13, 110, 253, 0.08);"><i class="bi bi-shield-check"></i></div>
+                                                    </button>
                                                     <button onclick="confirmEnviarReset('$$per{correo}', '$$per{nombre}')" class="btn p-0 border-0 btn-expediente" title="Enviar Restablecimiento">
                                                         <div class="icon-container-acrylic text-warning border-warning border-opacity-25" style="background: rgba(255, 193, 7, 0.05);"><i class="bi bi-envelope-at"></i></div>
                                                     </button>
@@ -397,6 +452,7 @@ HTML
 
 if (@personal_inactivo) {
     foreach my $per (@personal_inactivo) {
+        my $rol_badge_html = get_rol_badge($$per{rol});
         print <<HTML;
                                         <tr>
                                             <td>
@@ -410,10 +466,13 @@ if (@personal_inactivo) {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td><span class="badge bg-light text-muted px-3 py-2">$$per{rol}</span></td>
+                                            <td>$rol_badge_html</td>
                                             <td class="text-muted small fw-bold">$$per{sucursal}</td>
                                             <td class="text-end pe-4">
                                                 <div class="d-flex justify-content-end gap-2">
+                                                    <button onclick="verPermisosUsuario('$$per{nombre}', '$$per{rol}')" class="btn p-0 border-0 btn-expediente" title="Ver Facultades y Permisos del Rol">
+                                                        <div class="icon-container-acrylic text-primary border-primary border-opacity-25" style="background: rgba(13, 110, 253, 0.08);"><i class="bi bi-shield-check"></i></div>
+                                                    </button>
                                                     <button onclick="confirmReactivar('$$per{id}')" class="btn p-0 border-0 btn-expediente" title="Reactivar">
                                                         <div class="icon-container-acrylic text-success" style="background: rgba(25, 135, 84, 0.05); border-color: rgba(25, 135, 84, 0.25);"><i class="bi bi-arrow-counterclockwise"></i></div>
                                                     </button>
@@ -440,12 +499,55 @@ HTML
 print <<HTML;
                                     </tbody>
                                 </table>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal de Facultades y Permisos del Colaborador -->
+<div class="modal fade" id="modalPermisosUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white py-2 px-3">
+                <h6 class="modal-title fw-bold" id="modalPermisosUsuarioTitulo">
+                    <i class="bi bi-shield-lock-fill me-2"></i>Facultades del Colaborador
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="d-flex align-items-center justify-content-between bg-light p-2 rounded-3 border mb-3">
+                    <div>
+                        <span class="text-muted small d-block" style="font-size:0.72rem;">Colaborador:</span>
+                        <strong class="text-dark fs-6" id="modalUserNombre"></strong>
+                    </div>
+                    <div class="text-end">
+                        <span class="text-muted small d-block" style="font-size:0.72rem;">Rol Asignado:</span>
+                        <span class="badge bg-primary px-3 py-1.5 rounded-pill" id="modalUserRol"></span>
+                    </div>
+                </div>
+
+                <p class="small text-muted mb-2" style="font-size:0.72rem;">Desglose de módulos del sistema y facultades CRUD (Crear, Leer, Editar, Borrar) configuradas para este rol:</p>
+                
+                <div id="loaderPermisosUser" class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <span class="text-muted small ms-2">Cargando facultades del colaborador...</span>
+                </div>
+
+                <div id="gridPermisosUser" class="row g-2" style="display:none; max-height: 350px; overflow-y: auto;">
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2 px-3 d-flex justify-content-between">
+                <button type="button" class="btn btn-sm btn-outline-primary fw-bold rounded-pill" id="btnIrAMatrizRol">
+                    <i class="bi bi-gear-fill me-1"></i> Personalizar Facultades de este Rol en la Matriz
+                </button>
+                <button type="button" class="btn btn-sm btn-secondary fw-semibold rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 HTML
 print <<HTML;
 
@@ -946,6 +1048,88 @@ print <<'JS';
             }
         });
     };
+
+    let matrixDataUserCache = null;
+
+    window.verPermisosUsuario = async function(uNombre, uRol) {
+        $('#modalUserNombre').text(uNombre);
+        $('#modalUserRol').text(uRol);
+        $('#btnIrAMatrizRol').attr('onclick', `window.location.href='gestion_permisos_roles.pl?rol=${encodeURIComponent(uRol)}'`);
+
+        const modalEl = document.getElementById('modalPermisosUsuario');
+        if (modalEl && modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+
+        $('#loaderPermisosUser').show();
+        $('#gridPermisosUser').hide();
+
+        try {
+            if (!matrixDataUserCache) {
+                const res = await fetch('../api/gestion_permisos_roles_api.pl?accion=get_matrix').then(r => r.json());
+                if (res.ok) matrixDataUserCache = res;
+            }
+
+            if (matrixDataUserCache) {
+                const modulos = matrixDataUserCache.modulos || [];
+                const matriz = matrixDataUserCache.matriz || {};
+                const grid = $('#gridPermisosUser');
+                grid.empty();
+
+                const isAdmin = (uRol === 'Administrador Organizacion' || uRol === 'Administrador Global');
+
+                modulos.forEach(mod => {
+                    const isCriticalAdminMod = isAdmin && (mod.id === 'usuarios' || mod.id === 'gestion_permisos' || mod.id === 'pacientes');
+                    const perm = (matriz[uRol] && matriz[uRol][mod.id]) ? matriz[uRol][mod.id] : { C: 0, R: 0, U: 0, D: 0 };
+
+                    const cHas = isCriticalAdminMod || perm.C;
+                    const rHas = isCriticalAdminMod || perm.R;
+                    const uHas = isCriticalAdminMod || perm.U;
+                    const dHas = isCriticalAdminMod || perm.D;
+
+                    const cBadge = cHas ? '<span class="badge bg-success">C</span>' : '<span class="badge bg-light text-muted border">C</span>';
+                    const rBadge = rHas ? '<span class="badge bg-primary">R</span>' : '<span class="badge bg-light text-muted border">R</span>';
+                    const uBadge = uHas ? '<span class="badge bg-warning text-dark">U</span>' : '<span class="badge bg-light text-muted border">U</span>';
+                    const dBadge = dHas ? '<span class="badge bg-danger">D</span>' : '<span class="badge bg-light text-muted border">D</span>';
+
+                    grid.append(`
+                        <div class="col-12 col-md-6">
+                            <div class="border rounded-2 p-2 bg-white d-flex align-items-center justify-content-between shadow-sm">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi ${escapeHtml(mod.icono || 'bi-folder')} text-primary"></i>
+                                    <div>
+                                        <div class="fw-bold text-dark small lh-1">${escapeHtml(mod.nombre)}</div>
+                                        <code class="text-muted" style="font-size:0.65rem;">id: ${escapeHtml(mod.id)}</code>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    ${cBadge} ${rBadge} ${uBadge} ${dBadge}
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                });
+
+                $('#loaderPermisosUser').hide();
+                $('#gridPermisosUser').fadeIn();
+            }
+        } catch (e) {
+            console.error("Error al obtener matriz de permisos:", e);
+            $('#loaderPermisosUser').html('<div class="text-danger small py-3">No se pudieron cargar las facultades del colaborador.</div>');
+        }
+    };
+
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe)
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
 </script>
 JS
 

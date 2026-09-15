@@ -338,6 +338,13 @@ print <<'JS';
         if (modalEl && modalEl.parentElement !== document.body) {
             document.body.appendChild(modalEl);
         }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetRol = urlParams.get('rol');
+        if (targetRol) {
+            currentVistaRol = targetRol;
+        }
+
         cargarMatrizPermisos();
     });
 

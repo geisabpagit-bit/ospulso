@@ -55,14 +55,26 @@ En código backend (`utils/permisos_utils.pl` y `api/gestion_permisos_roles_api.
 
 ---
 
-## 4. Flujo Integrado Rol vs Usuarios
+### 3.5 Consola de Gestión de Personal (`views/administracion_usuarios.pl`)
+- **Consumo Dinámico de Roles**: El selector `<select id="form_rol">` consume dinámicamente todos los roles canónicos de `dat/roles.dat` (*Administrador Organización*, *Médico*, *Recepcionista*, *Enfermería*, *Ejecutivo Ventas*, *Soporte*).
+- **Badges Visuales Colorimétricos**: Cada colaborador en DataTables exhibe un badge estilizado y codificado por color según su rol.
+- **Botón Táctico [🛡️ Permisos]**: Permite abrir el modal `#modalPermisosUsuario` en la fila de cualquier colaborador para consultar en tiempo real las facultades CRUD activas del rol de ese usuario.
+- **Puerta de Enlace a la Matriz (`?rol=XXXX`)**: El modal de permisos incluye el botón *"Personalizar Facultades de este Rol en la Matriz"*, el cual redirige a `gestion_permisos_roles.pl?rol=NombreRol` auto-enfocando la vista del rol seleccionado.
+
+---
+
+## 4. Flujo Integrado Bidireccional Rol vs Usuarios
 
 ```
-[Roles Canónicos] ──> [Configuración Matriz RBAC] ──> [Drilldown Personal / Asignación]
- (dat/roles.dat)      (gestion_permisos_roles.pl)       (administracion_usuarios.pl)
+[Roles Canónicos] ──> [Matriz RBAC por Rol] <──────> [Gestión de Personal / Usuarios]
+ (dat/roles.dat)   (gestion_permisos_roles.pl)       (administracion_usuarios.pl)
 ```
 
-1. **Gestión de Menú y Poderes**: El Administrador de Organización ajusta las facultades `C`, `R`, `U`, `D` para cada rol.
-2. **Monitoreo de Impacto**: Visualización inmediata en la cabecera de la matriz sobre cuántos colaboradores serán afectados por los cambios de permisos del rol.
-3. **Mantenimiento de Usuarios**: Enlace directo con la Gestión de Personal para añadir colaboradores con el rol deseado.
+1. **Gestión de Menú y Poderes**: El Administrador de Organización ajusta las facultades `C`, `R`, `U`, `D` por rol en la matriz.
+2. **Asignación a Usuarios**: En la Gestión de Personal, al crear o editar colaboradores, se seleccionan los mismos roles canónicos.
+3. **Consulta Instantánea de Permisos**: Al hacer clic en `[🛡️ Permisos]` en la fila de un usuario, se inspeccionan sus módulos y facultades activas.
+4. **Navegación Enfocada Bidireccional**:
+   - Desde la Matriz: Clic en *"X usu."* -> Abre modal de personal -> Enlace a edición de usuario.
+   - Desde Usuarios: Clic en *"Permisos"* -> Clic en *"Personalizar Facultades"* -> Abre Matriz enfocada en `?rol=NombreRol`.
+
 
