@@ -163,9 +163,14 @@ print <<HTML;
                     <h2 class="fw-black mb-0"><i class="bi bi-people-fill me-2"></i>Gestión de Personal</h2>
                     <p class="text-white-50 small mb-0 mt-1">Directorio de Médicos, Recepcionistas y Auxiliares</p>
                 </div>
-                <button class="btn btn-sdm-primary rounded-pill px-4 fw-bold shadow-sm" onclick="prepararNuevoUsuario()">
-                    <i class="bi bi-person-plus-fill me-2"></i>Añadir Personal
-                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="gestion_permisos_roles.pl" class="btn btn-outline-light rounded-pill px-3 py-2 fw-bold shadow-sm d-inline-flex align-items-center">
+                        <i class="bi bi-shield-lock-fill me-2 fs-6"></i>Matriz de Permisos
+                    </a>
+                    <button class="btn btn-sdm-primary rounded-pill px-4 py-2 fw-bold shadow-sm" onclick="prepararNuevoUsuario()">
+                        <i class="bi bi-person-plus-fill me-2"></i>Añadir Personal
+                    </button>
+                </div>
             </div>
         </header>
 

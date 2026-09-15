@@ -178,11 +178,30 @@ sub render_sidebar {
 HTML
     
 
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
+
+    # Evaluar si la organización posee matriz personalizada de permisos
+    my $ruta_permisos_dyn = utils::permisos_utils::obtener_ruta_permisos_org($id_empresa);
+    my $has_custom_matrix = (-e $ruta_permisos_dyn) ? 1 : 0;
+
     my %is_allowed = ();
-    foreach my $mod (@allowed_modules) {
-        my $trimmed = $mod;
-        $trimmed =~ s/^\s+|\s+$//g;
-        $is_allowed{$trimmed} = 1;
+
+    if ($has_custom_matrix) {
+        # Matriz dinámica personalizada para esta organización (CLUE o Privada No-CLUE)
+        foreach my $mod ('pacientes', 'agenda', 'quirofano', 'finanzas', 'servicios', 'productos', 'usuarios', 'gestion_permisos', 'reportes', 'gestion_catalogos', 'tecnico', 'reset_datos_org', 'clinicas') {
+            $is_allowed{$mod} = utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, $mod, 'R');
+        }
+    } else {
+        # Fallback estándar a roles.dat
+        foreach my $mod (@allowed_modules) {
+            my $trimmed = $mod;
+            $trimmed =~ s/^\s+|\s+$//g;
+            $is_allowed{$trimmed} = 1;
+        }
+    }
+
+    if ($role =~ /Administrador/i) {
+        $is_allowed{'gestion_permisos'} = 1;
     }
 
     # 1. Dashboard
@@ -328,6 +347,7 @@ HTML
         my %admin_mod_names = (
             'clinicas'    => { file => 'manage_clinicas.pl', icon => 'bi-building-gear', title => 'Gesti&oacute;n de Cl&iacute;nicas' },
             'usuarios'    => { file => 'administracion_usuarios.pl', icon => 'bi-people-fill', title => 'Gesti&oacute;n de Personal' },
+            'gestion_permisos' => { file => 'gestion_permisos_roles.pl', icon => 'bi-shield-lock-fill text-info', title => 'Matriz de Permisos' },
             'usuarios_online' => { file => 'usuarios_online.pl', icon => 'bi-activity text-success', title => 'Usuarios en L&iacute;nea' },
             'servicios'   => { file => 'manage_servicios.pl', icon => 'bi-heart-pulse-fill', title => 'Gesti&oacute;n de Servicios' },
             'productos'   => { file => 'manage_productos.pl', icon => 'bi-box-seam-fill', title => 'Gesti&oacute;n de Productos' },
@@ -376,7 +396,12 @@ HTML
         # Allow usuarios_online for all admins
         $is_allowed{'usuarios_online'} = 1;
         
-        foreach my $k ('clinicas', 'usuarios', 'usuarios_online', 'servicios', 'productos', 'tecnico', 'gestion_catalogos', 'reset_datos_org', 'sync_google') {
+        # Allow gestion_permisos for Administrador Organizacion & Global
+        if ($role =~ /Administrador/i) {
+            $is_allowed{'gestion_permisos'} = 1;
+        }
+
+        foreach my $k ('clinicas', 'usuarios', 'gestion_permisos', 'usuarios_online', 'servicios', 'productos', 'tecnico', 'gestion_catalogos', 'reset_datos_org', 'sync_google') {
             if ($is_allowed{$k}) {
                 my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
                 my $cfg = $admin_mod_names{$k};
