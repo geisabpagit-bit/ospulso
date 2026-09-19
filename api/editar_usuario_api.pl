@@ -11,6 +11,7 @@ use File::Spec;
 
 use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
 use utils::db_manager qw(leer_tabla actualizar_archivo);
 
 my $sd = check_session();
@@ -143,6 +144,11 @@ if ($regs_usuarios) {
                     $sd->{session}->param('usuario', $nombre);
                     $sd->{session}->param('role', $rol);
                 }
+            }
+
+            # Si el rol cambia, eliminar automáticamente las excepciones individuales previas (Regla de Gobernanza)
+            if (($r->[5] // '') ne $rol) {
+                utils::permisos_utils::eliminar_overrides_usuario_org($id_org_matriz, $id_usuario_edit);
             }
 
             $r->[1]  = $nombre;

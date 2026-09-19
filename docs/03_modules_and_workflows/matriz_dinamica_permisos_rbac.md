@@ -103,3 +103,45 @@ En código backend (`utils/permisos_utils.pl` y `api/gestion_permisos_roles_api.
 2. **Sincronización de Roles Canónicos en Alta de Personal (Fase 2)**: Permitir la creación de cualquier usuario cuyo rol exista en `dat/roles.dat`.
 3. **Acceso Consistente a Vistas (Fase 3)**: Proteger las vistas de administración validando la facultad `R` (Read) contra la matriz multi-tenant.
 4. **Validación Automática y Control de Versiones (Fase 4)**: Ejecutar pruebas de sintaxis `perl -c`, sincronizar git mediante commit & push automático e informar el Plan de Verificación al usuario.
+
+---
+
+## 7. Arquitectura de Excepciones y Permisos Especiales por Usuario (User Overrides)
+
+### 7.1 Modelo Híbrido Granular (RBAC + Excepciones Individuales)
+El sistema evoluciona de un modelo **RBAC Puro** a una arquitectura **Híbrida con Excepciones Individuales**. Este mecanismo permite otorgar o revocar facultades específicas (`C`, `R`, `U`, `D`) a un colaborador en particular (ej. conceder permiso al módulo `servicios` únicamente a un usuario con el rol de *Recepcionista*), sin modificar las reglas generales de su rol ni crear roles duplicados.
+
+```
++-------------------------------------------------------------------------+
+|                  Cadena de Evaluación de Permisos                       |
++-------------------------------------------------------------------------+
+|  1. ¿Es Administrador Global o Lockout Protection?                      |
+|     └─> Sí: Concede Acceso Total (1)                                    |
+|                                                                         |
+|  2. ¿El ID_USUARIO tiene Excepción Grabada en permisos_usuarios_*.dat?  |
+|     └─> Sí: Retorna Permiso Explicito del Usuario (C, R, U, D)          |
+|                                                                         |
+|  3. Fallback a Matriz por Rol (permisos_roles_*.dat o dat/roles.dat)     |
+|     └─> Retorna Permiso del Rol (C, R, U, D)                            |
++-------------------------------------------------------------------------+
+```
+
+### 7.2 Persistencia de Excepciones por Organización
+* **Archivo de Persistencia:** `dat/permisos_usuarios_[ID_EMPRESA].dat` (o en su catálogo CLUE correspondiente).
+* **Formato Canónico:**
+  `ID_USUARIO|MODULO|CAN_CREATE|CAN_READ|CAN_UPDATE|CAN_DELETE`
+
+### 7.3 Firma del Kernel y APIs
+* **Kernel (`utils/permisos_utils.pl`):**
+  - `tiene_permiso_modulo($id_empresa, $role, $modulo, $accion, $id_usuario)`
+  - `obtener_overrides_usuario_org($id_empresa, $id_usuario)`
+  - `guardar_overrides_usuario_org($id_empresa, $id_usuario, $overrides_hashref)`
+  - `eliminar_overrides_usuario_org($id_empresa, $id_usuario)`
+* **API AJAX (`api/gestion_permisos_usuario_api.pl`):**
+  - `action=get`: Obtiene la combinación de matriz de rol + excepciones activas del usuario.
+  - `action=save`: Persiste las casillas sobreescritas para el colaborador.
+  - `action=reset`: Elimina todas las excepciones y restablece al rol.
+
+### 7.4 Reglas de Gobernanza en Cambio de Rol
+Cuando el Administrador edita a un colaborador en `views/administracion_usuarios.pl` (`api/editar_usuario_api.pl`) y modifica su **Rol Operativo**, el sistema **elimina automáticamente las excepciones individuales previas** (`eliminar_overrides_usuario_org`), garantizando que el usuario asuma de forma limpia la matriz de su nuevo rol sin arrastrar privilegios u omisiones obsoletas.
+

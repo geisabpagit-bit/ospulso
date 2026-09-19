@@ -13,6 +13,10 @@ our @EXPORT_OK = qw(
     obtener_ruta_permisos_org
     obtener_matriz_permisos_org
     guardar_matriz_permisos_org
+    obtener_ruta_permisos_usuario_org
+    obtener_overrides_usuario_org
+    guardar_overrides_usuario_org
+    eliminar_overrides_usuario_org
     tiene_permiso_modulo
 );
 
@@ -59,6 +63,103 @@ sub obtener_ruta_permisos_org {
     }
 
     return File::Spec->catfile($dat, "permisos_roles_${id_raiz}.dat");
+}
+
+# ─────────────────────────────────────────────────────────────
+# obtener_ruta_permisos_usuario_org($id_empresa)
+# Resuelve la ruta del archivo de excepciones/overrides por usuario.
+# ─────────────────────────────────────────────────────────────
+sub obtener_ruta_permisos_usuario_org {
+    my ($id_empresa) = @_;
+    my $ruta_roles = obtener_ruta_permisos_org($id_empresa);
+    $ruta_roles =~ s/permisos_roles_/permisos_usuarios_/g;
+    return $ruta_roles;
+}
+
+# ─────────────────────────────────────────────────────────────
+# obtener_overrides_usuario_org($id_empresa, [$id_usuario])
+# Si se provee $id_usuario, devuelve { MODULO => { C=>1, R=>1, U=>1, D=>1 } } o undef.
+# Si no se provee, devuelve { ID_USUARIO => { MODULO => { C=>1... } } }.
+# ─────────────────────────────────────────────────────────────
+sub obtener_overrides_usuario_org {
+    my ($id_empresa, $id_usuario) = @_;
+    my $ruta_usr_perm = obtener_ruta_permisos_usuario_org($id_empresa);
+    my %todos_overrides = ();
+
+    if (-e $ruta_usr_perm && open(my $fh, '<:encoding(UTF-8)', $ruta_usr_perm)) {
+        <$fh>; # Saltar cabecera ID_USUARIO|MODULO|CAN_CREATE|CAN_READ|CAN_UPDATE|CAN_DELETE
+        while (my $line = <$fh>) {
+            chomp $line;
+            next if $line =~ /^\s*$/ || $line =~ /^#/;
+            my ($uid, $mod, $c, $r, $u, $d) = split(/\|/, $line, -1);
+            next unless ($uid && $mod);
+            $todos_overrides{$uid}{$mod} = {
+                C => int($c // 0),
+                R => int($r // 0),
+                U => int($u // 0),
+                D => int($d // 0),
+            };
+        }
+        close $fh;
+    }
+
+    if (defined $id_usuario && length($id_usuario)) {
+        return exists $todos_overrides{$id_usuario} ? $todos_overrides{$id_usuario} : undef;
+    }
+
+    return \%todos_overrides;
+}
+
+# ─────────────────────────────────────────────────────────────
+# guardar_overrides_usuario_org($id_empresa, $id_usuario, $overrides_hashref)
+# Persiste o actualiza las excepciones individuales de un usuario.
+# ─────────────────────────────────────────────────────────────
+sub guardar_overrides_usuario_org {
+    my ($id_empresa, $id_usuario, $overrides_ref) = @_;
+    return { ok => 0, msg => 'ID Usuario requerido' } unless (defined $id_usuario && length($id_usuario));
+
+    my $todos = obtener_overrides_usuario_org($id_empresa);
+    
+    if (defined $overrides_ref && ref($overrides_ref) eq 'HASH' && keys %$overrides_ref) {
+        $todos->{$id_usuario} = $overrides_ref;
+    } else {
+        delete $todos->{$id_usuario};
+    }
+
+    my $ruta_usr_perm = obtener_ruta_permisos_usuario_org($id_empresa);
+    my ($vol, $dirs, $file) = File::Spec->splitpath($ruta_usr_perm);
+    my $parent_dir = File::Spec->catpath($vol, $dirs, '');
+    if ($parent_dir && !-d $parent_dir) {
+        mkdir $parent_dir;
+    }
+
+    if (open(my $fh, '>:encoding(UTF-8)', $ruta_usr_perm)) {
+        flock($fh, 2); # LOCK_EX
+        print $fh "ID_USUARIO|MODULO|CAN_CREATE|CAN_READ|CAN_UPDATE|CAN_DELETE\n";
+        foreach my $uid (sort keys %$todos) {
+            foreach my $mod (sort keys %{$todos->{$uid}}) {
+                my $perm = $todos->{$uid}{$mod};
+                my $c = int($perm->{C} // 0);
+                my $r = int($perm->{R} // 0);
+                my $u = int($perm->{U} // 0);
+                my $d = int($perm->{D} // 0);
+                print $fh "$uid|$mod|$c|$r|$u|$d\n";
+            }
+        }
+        close $fh;
+        return { ok => 1, msg => 'Excepciones de usuario guardadas exitosamente' };
+    } else {
+        return { ok => 0, msg => "Error al escribir archivo: $!" };
+    }
+}
+
+# ─────────────────────────────────────────────────────────────
+# eliminar_overrides_usuario_org($id_empresa, $id_usuario)
+# Elimina totalmente las excepciones de un usuario (al cambiar de rol o reseteo).
+# ─────────────────────────────────────────────────────────────
+sub eliminar_overrides_usuario_org {
+    my ($id_empresa, $id_usuario) = @_;
+    return guardar_overrides_usuario_org($id_empresa, $id_usuario, undef);
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -164,11 +265,12 @@ sub guardar_matriz_permisos_org {
 }
 
 # ─────────────────────────────────────────────────────────────
-# tiene_permiso_modulo($id_empresa, $role, $modulo, $accion)
-# Evalua si el rol posee permiso para la accion ('C','R','U','D') en el modulo.
+# tiene_permiso_modulo($id_empresa, $role, $modulo, $accion, [$id_usuario])
+# Evalua si el usuario pose una excepcion directa o en su defecto si su ROL
+# posee permiso para la accion ('C','R','U','D') en el modulo.
 # ─────────────────────────────────────────────────────────────
 sub tiene_permiso_modulo {
-    my ($id_empresa, $role, $modulo, $accion) = @_;
+    my ($id_empresa, $role, $modulo, $accion, $id_usuario) = @_;
     $role //= '';
     $modulo //= '';
     $accion //= 'R';
@@ -182,6 +284,15 @@ sub tiene_permiso_modulo {
         return 1;
     }
 
+    # 1. EVALUAR EXCEPCIÓN INDIVIDUAL POR USUARIO (SI EXISTE)
+    if (defined $id_usuario && length($id_usuario)) {
+        my $user_overrides = obtener_overrides_usuario_org($id_empresa, $id_usuario);
+        if ($user_overrides && exists $user_overrides->{$modulo}) {
+            return int($user_overrides->{$modulo}{$accion} // 0);
+        }
+    }
+
+    # 2. FALLBACK A LA MATRIZ DE ROL PREDETERMINADA
     my $matriz = obtener_matriz_permisos_org($id_empresa);
     
     if (exists $matriz->{$role} && exists $matriz->{$role}{$modulo}) {

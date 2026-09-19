@@ -14,6 +14,7 @@ require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
 use utils::db_manager qw(leer_tabla);
 
 my $sd = check_session();
@@ -170,6 +171,8 @@ my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
 my @mi_personal = ();
 my @personal_inactivo = ();
 
+my $mapa_overrides_org = utils::permisos_utils::obtener_overrides_usuario_org($id_empresa);
+
 if ($regs_usuarios) {
     foreach my $r (@$regs_usuarios) {
         next if @$r < 7;
@@ -177,11 +180,13 @@ if ($regs_usuarios) {
         my ($org_id, $suc_id) = split(/:/, $extra);
         my $id_espe = $r->[7] // '0';
         my $id_subespe = $r->[8] // '0';
+        my $u_id = $r->[0];
+        my $has_ovr = (exists $mapa_overrides_org->{$u_id} && ref($mapa_overrides_org->{$u_id}) eq 'HASH' && keys %{$mapa_overrides_org->{$u_id}}) ? 1 : 0;
         
         # Si el usuario pertenece a mi organización y NO es el administrador global
         if ($org_id && $org_id eq $id_empresa && $r->[5] ne 'Administrador Organizacion') {
             my $item = {
-                id => $r->[0],
+                id => $u_id,
                 nombre => $r->[1],
                 correo => $r->[2],
                 rol => $r->[5],
@@ -190,7 +195,8 @@ if ($regs_usuarios) {
                 id_espe => $id_espe,
                 id_subespe => $id_subespe,
                 espe_nombre => $espe_hash{$id_espe} || 'General / Ninguna',
-                subespe_nombre => $subespe_hash{$id_subespe} || ''
+                subespe_nombre => $subespe_hash{$id_subespe} || '',
+                has_overrides => $has_ovr
             };
             if ($r->[4] eq '1') {
                 push @mi_personal, $item;
@@ -376,6 +382,7 @@ HTML
 if (@mi_personal) {
     foreach my $per (@mi_personal) {
         my $badge_espe = ($$per{rol} eq 'Medico') ? qq{<span class="badge bg-info text-white ms-1 px-2.5 py-1.5 rounded-pill">$$per{espe_nombre}</span>} : '';
+        my $badge_ovr = $$per{has_overrides} ? qq{<span class="badge bg-warning text-dark ms-1 px-2 py-1 rounded-pill" style="font-size:0.68rem;" title="Tiene facultades y excepciones personalizadas"><i class="bi bi-lightning-charge-fill me-1"></i>Excepción</span>} : '';
         my $rol_badge_html = get_rol_badge($$per{rol});
         print <<HTML;
                                         <tr>
@@ -393,11 +400,12 @@ if (@mi_personal) {
                                             <td>
                                                 $rol_badge_html
                                                 $badge_espe
+                                                $badge_ovr
                                             </td>
                                             <td class="text-muted small fw-bold">$$per{sucursal}</td>
                                             <td class="text-end pe-4">
                                                 <div class="d-flex justify-content-end gap-2">
-                                                    <button onclick="verPermisosUsuario('$$per{nombre}', '$$per{rol}')" class="btn p-0 border-0 btn-expediente" title="Ver Facultades y Permisos del Rol">
+                                                    <button onclick="verPermisosUsuario('$$per{id}', '$$per{nombre}', '$$per{rol}')" class="btn p-0 border-0 btn-expediente" title="Ver Facultades y Configurar Permisos del Usuario">
                                                         <div class="icon-container-acrylic text-primary border-primary border-opacity-25" style="background: rgba(13, 110, 253, 0.08);"><i class="bi bi-shield-check"></i></div>
                                                     </button>
                                                     <button onclick="confirmEnviarReset('$$per{correo}', '$$per{nombre}')" class="btn p-0 border-0 btn-expediente" title="Enviar Restablecimiento">
@@ -452,6 +460,7 @@ HTML
 
 if (@personal_inactivo) {
     foreach my $per (@personal_inactivo) {
+        my $badge_ovr = $$per{has_overrides} ? qq{<span class="badge bg-warning text-dark ms-1 px-2 py-1 rounded-pill" style="font-size:0.68rem;" title="Tiene facultades y excepciones personalizadas"><i class="bi bi-lightning-charge-fill me-1"></i>Excepción</span>} : '';
         my $rol_badge_html = get_rol_badge($$per{rol});
         print <<HTML;
                                         <tr>
@@ -466,11 +475,11 @@ if (@personal_inactivo) {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>$rol_badge_html</td>
+                                            <td>$rol_badge_html $badge_ovr</td>
                                             <td class="text-muted small fw-bold">$$per{sucursal}</td>
                                             <td class="text-end pe-4">
                                                 <div class="d-flex justify-content-end gap-2">
-                                                    <button onclick="verPermisosUsuario('$$per{nombre}', '$$per{rol}')" class="btn p-0 border-0 btn-expediente" title="Ver Facultades y Permisos del Rol">
+                                                    <button onclick="verPermisosUsuario('$$per{id}', '$$per{nombre}', '$$per{rol}')" class="btn p-0 border-0 btn-expediente" title="Ver Facultades y Configurar Permisos del Usuario">
                                                         <div class="icon-container-acrylic text-primary border-primary border-opacity-25" style="background: rgba(13, 110, 253, 0.08);"><i class="bi bi-shield-check"></i></div>
                                                     </button>
                                                     <button onclick="confirmReactivar('$$per{id}')" class="btn p-0 border-0 btn-expediente" title="Reactivar">
@@ -513,7 +522,7 @@ print <<HTML;
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-primary text-white py-2 px-3">
                 <h6 class="modal-title fw-bold" id="modalPermisosUsuarioTitulo">
-                    <i class="bi bi-shield-lock-fill me-2"></i>Facultades del Colaborador
+                    <i class="bi bi-shield-lock-fill me-2"></i>Facultades y Permisos del Colaborador
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -522,6 +531,7 @@ print <<HTML;
                     <div>
                         <span class="text-muted small d-block" style="font-size:0.72rem;">Colaborador:</span>
                         <strong class="text-dark fs-6" id="modalUserNombre"></strong>
+                        <span id="badgeModalUserOverride" class="badge bg-warning text-dark ms-2 d-none" style="font-size:0.7rem;"><i class="bi bi-lightning-charge-fill me-1"></i>Excepciones Activas</span>
                     </div>
                     <div class="text-end">
                         <span class="text-muted small d-block" style="font-size:0.72rem;">Rol Asignado:</span>
@@ -529,21 +539,61 @@ print <<HTML;
                     </div>
                 </div>
 
-                <p class="small text-muted mb-2" style="font-size:0.72rem;">Desglose de módulos del sistema y facultades CRUD (Crear, Leer, Editar, Borrar) configuradas para este rol:</p>
-                
+                <!-- Pestañas internas del Modal -->
+                <ul class="nav nav-tabs nav-tabs-sm mb-3" id="modalPermisosTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold small py-1" id="tabRolView-tab" data-bs-toggle="tab" data-bs-target="#tabRolView" type="button" role="tab">
+                            <i class="bi bi-shield-check me-1"></i>Permisos del Rol
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold small py-1 text-dark" id="tabUserEdit-tab" data-bs-toggle="tab" data-bs-target="#tabUserEdit" type="button" role="tab">
+                            <i class="bi bi-sliders me-1"></i>Personalizar Excepciones del Usuario
+                        </button>
+                    </li>
+                </ul>
+
                 <div id="loaderPermisosUser" class="text-center py-4">
                     <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
                     <span class="text-muted small ms-2">Cargando facultades del colaborador...</span>
                 </div>
 
-                <div id="gridPermisosUser" class="row g-2" style="display:none; max-height: 350px; overflow-y: auto;">
+                <div class="tab-content" id="modalPermisosTabContent">
+                    <!-- Tab 1: Vista de Rol -->
+                    <div class="tab-pane fade show active" id="tabRolView" role="tabpanel">
+                        <p class="small text-muted mb-2" style="font-size:0.72rem;">Desglose de módulos y facultades heredadas por defecto de su rol (las marcadas con <span class="badge bg-warning text-dark">Excepción</span> son asignaciones individuales directas):</p>
+                        <div id="gridPermisosUser" class="row g-2" style="display:none; max-height: 320px; overflow-y: auto;">
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Excepciones por Usuario (Edición) -->
+                    <div class="tab-pane fade" id="tabUserEdit" role="tabpanel">
+                        <div class="alert alert-warning p-2 mb-2 d-flex align-items-center gap-2" style="font-size:0.75rem;">
+                            <i class="bi bi-info-circle-fill fs-5 text-warning"></i>
+                            <div>
+                                <strong>Personalización de Permisos:</strong> Marca o desmarca las facultades individuales. Al guardar, estas casillas sobreescribirán la matriz de su rol solo para este colaborador.
+                            </div>
+                        </div>
+                        <div id="gridUserOverrides" class="row g-2" style="display:none; max-height: 300px; overflow-y: auto;">
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer bg-light py-2 px-3 d-flex justify-content-between">
-                <button type="button" class="btn btn-sm btn-outline-primary fw-bold rounded-pill" id="btnIrAMatrizRol">
-                    <i class="bi bi-gear-fill me-1"></i> Personalizar Facultades de este Rol en la Matriz
-                </button>
-                <button type="button" class="btn btn-sm btn-secondary fw-semibold rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill d-none me-2" id="btnResetUserOverrides" onclick="resetearOverridesUsuario()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Restablecer a Permisos del Rol
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold rounded-pill" id="btnIrAMatrizRol">
+                        <i class="bi bi-gear-fill me-1"></i>Ver Matriz de Permisos General
+                    </button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-success fw-bold rounded-pill px-3" id="btnSaveUserOverrides" onclick="guardarOverridesUsuario()">
+                        <i class="bi bi-save me-1"></i>Guardar Excepciones
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary fw-semibold rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1049,9 +1099,10 @@ print <<'JS';
         });
     };
 
-    let matrixDataUserCache = null;
+    let currentModalUser = { id: '', nombre: '', rol: '' };
 
-    window.verPermisosUsuario = async function(uNombre, uRol) {
+    window.verPermisosUsuario = async function(uId, uNombre, uRol) {
+        currentModalUser = { id: uId, nombre: uNombre, rol: uRol };
         $('#modalUserNombre').text(uNombre);
         $('#modalUserRol').text(uRol);
         $('#btnIrAMatrizRol').attr('onclick', `window.location.href='gestion_permisos_roles.pl?rol=${encodeURIComponent(uRol)}'`);
@@ -1065,60 +1116,216 @@ print <<'JS';
 
         $('#loaderPermisosUser').show();
         $('#gridPermisosUser').hide();
+        $('#gridUserOverrides').hide();
+        $('#badgeModalUserOverride').addClass('d-none');
+        $('#btnResetUserOverrides').addClass('d-none');
+
+        // Enfocar pestaña 1 (Permisos del Rol) por defecto
+        const firstTab = document.querySelector('#tabRolView-tab');
+        if (firstTab && typeof bootstrap.Tab !== 'undefined') {
+            bootstrap.Tab.getOrCreateInstance(firstTab).show();
+        }
 
         try {
-            if (!matrixDataUserCache) {
-                const res = await fetch('../api/gestion_permisos_roles_api.pl?accion=get_matrix').then(r => r.json());
-                if (res.ok) matrixDataUserCache = res;
-            }
-
-            if (matrixDataUserCache) {
-                const modulos = matrixDataUserCache.modulos || [];
-                const matriz = matrixDataUserCache.matriz || {};
-                const grid = $('#gridPermisosUser');
-                grid.empty();
-
-                const isAdmin = (uRol === 'Administrador Organizacion' || uRol === 'Administrador Global');
-
-                modulos.forEach(mod => {
-                    const isCriticalAdminMod = isAdmin && (mod.id === 'usuarios' || mod.id === 'gestion_permisos' || mod.id === 'pacientes');
-                    const perm = (matriz[uRol] && matriz[uRol][mod.id]) ? matriz[uRol][mod.id] : { C: 0, R: 0, U: 0, D: 0 };
-
-                    const cHas = isCriticalAdminMod || perm.C;
-                    const rHas = isCriticalAdminMod || perm.R;
-                    const uHas = isCriticalAdminMod || perm.U;
-                    const dHas = isCriticalAdminMod || perm.D;
-
-                    const cBadge = cHas ? '<span class="badge bg-success">C</span>' : '<span class="badge bg-light text-muted border">C</span>';
-                    const rBadge = rHas ? '<span class="badge bg-primary">R</span>' : '<span class="badge bg-light text-muted border">R</span>';
-                    const uBadge = uHas ? '<span class="badge bg-warning text-dark">U</span>' : '<span class="badge bg-light text-muted border">U</span>';
-                    const dBadge = dHas ? '<span class="badge bg-danger">D</span>' : '<span class="badge bg-light text-muted border">D</span>';
-
-                    grid.append(`
-                        <div class="col-12 col-md-6">
-                            <div class="border rounded-2 p-2 bg-white d-flex align-items-center justify-content-between shadow-sm">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="bi ${escapeHtml(mod.icono || 'bi-folder')} text-primary"></i>
-                                    <div>
-                                        <div class="fw-bold text-dark small lh-1">${escapeHtml(mod.nombre)}</div>
-                                        <code class="text-muted" style="font-size:0.65rem;">id: ${escapeHtml(mod.id)}</code>
-                                    </div>
-                                </div>
-                                <div class="d-flex gap-1">
-                                    ${cBadge} ${rBadge} ${uBadge} ${dBadge}
-                                </div>
-                            </div>
-                        </div>
-                    `);
-                });
-
-                $('#loaderPermisosUser').hide();
-                $('#gridPermisosUser').fadeIn();
+            const res = await fetch(`../api/gestion_permisos_usuario_api.pl?action=get&id_usuario=${encodeURIComponent(uId)}`).then(r => r.json());
+            if (res.ok) {
+                renderModalUserViews(res);
+            } else {
+                $('#loaderPermisosUser').html(`<div class="text-danger small py-3">${escapeHtml(res.msg || 'Error al cargar permisos')}</div>`);
             }
         } catch (e) {
-            console.error("Error al obtener matriz de permisos:", e);
+            console.error("Error al obtener permisos del usuario:", e);
             $('#loaderPermisosUser').html('<div class="text-danger small py-3">No se pudieron cargar las facultades del colaborador.</div>');
         }
+    };
+
+    function renderModalUserViews(data) {
+        const modulos = data.modulos || [];
+        const roleMatrix = data.role_matrix || {};
+        const userOverrides = data.user_overrides || {};
+        const hasOverrides = data.has_overrides || 0;
+        const uRol = data.rol || currentModalUser.rol;
+
+        if (hasOverrides) {
+            $('#badgeModalUserOverride').removeClass('d-none');
+            $('#btnResetUserOverrides').removeClass('d-none');
+        }
+
+        // 1. Render Tab 1: Vista General / Efectiva de Permisos
+        const gridRol = $('#gridPermisosUser');
+        gridRol.empty();
+
+        const isAdmin = (uRol === 'Administrador Organizacion' || uRol === 'Administrador Global');
+
+        modulos.forEach(mod => {
+            const isCriticalAdminMod = isAdmin && (mod.id === 'usuarios' || mod.id === 'gestion_permisos' || mod.id === 'pacientes');
+            
+            const isOvrMod = (userOverrides && userOverrides[mod.id]);
+            const perm = isOvrMod ? userOverrides[mod.id] : (roleMatrix[mod.id] || { C: 0, R: 0, U: 0, D: 0 });
+
+            const cHas = isCriticalAdminMod || perm.C;
+            const rHas = isCriticalAdminMod || perm.R;
+            const uHas = isCriticalAdminMod || perm.U;
+            const dHas = isCriticalAdminMod || perm.D;
+
+            const cBadge = cHas ? '<span class="badge bg-success">C</span>' : '<span class="badge bg-light text-muted border">C</span>';
+            const rBadge = rHas ? '<span class="badge bg-primary">R</span>' : '<span class="badge bg-light text-muted border">R</span>';
+            const uBadge = uHas ? '<span class="badge bg-warning text-dark">U</span>' : '<span class="badge bg-light text-muted border">U</span>';
+            const dBadge = dHas ? '<span class="badge bg-danger">D</span>' : '<span class="badge bg-light text-muted border">D</span>';
+            
+            const ovrTag = isOvrMod ? '<span class="badge bg-warning text-dark me-1" style="font-size:0.6rem;">Excepción</span>' : '';
+
+            gridRol.append(`
+                <div class="col-12 col-md-6">
+                    <div class="border rounded-2 p-2 bg-white d-flex align-items-center justify-content-between shadow-sm">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi ${escapeHtml(mod.icono || 'bi-folder')} text-primary"></i>
+                            <div>
+                                <div class="fw-bold text-dark small lh-1">${ovrTag}${escapeHtml(mod.nombre)}</div>
+                                <code class="text-muted" style="font-size:0.65rem;">id: ${escapeHtml(mod.id)}</code>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-1">
+                            ${cBadge} ${rBadge} ${uBadge} ${dBadge}
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+
+        // 2. Render Tab 2: Matriz de Checkboxes Interactivas para Excepciones
+        const gridOvr = $('#gridUserOverrides');
+        gridOvr.empty();
+
+        modulos.forEach(mod => {
+            const rPerm = roleMatrix[mod.id] || { C: 0, R: 0, U: 0, D: 0 };
+            const uPerm = (userOverrides && userOverrides[mod.id]) ? userOverrides[mod.id] : rPerm;
+
+            gridOvr.append(`
+                <div class="col-12 col-md-6">
+                    <div class="border rounded-3 p-2 bg-white shadow-sm">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi ${escapeHtml(mod.icono || 'bi-folder')} text-primary fs-5"></i>
+                            <div>
+                                <div class="fw-bold text-dark small lh-1">${escapeHtml(mod.nombre)}</div>
+                                <code class="text-muted" style="font-size:0.65rem;">id: ${escapeHtml(mod.id)}</code>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between bg-light p-1.5 rounded border small">
+                            <div class="form-check form-check-inline me-0 mb-0">
+                                <input class="form-check-input ovr-chk" type="checkbox" data-mod="${escapeHtml(mod.id)}" data-perm="C" id="ovr_${escapeHtml(mod.id)}_C" ${uPerm.C ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold text-success" for="ovr_${escapeHtml(mod.id)}_C" style="font-size:0.75rem;">C</label>
+                            </div>
+                            <div class="form-check form-check-inline me-0 mb-0">
+                                <input class="form-check-input ovr-chk" type="checkbox" data-mod="${escapeHtml(mod.id)}" data-perm="R" id="ovr_${escapeHtml(mod.id)}_R" ${uPerm.R ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold text-primary" for="ovr_${escapeHtml(mod.id)}_R" style="font-size:0.75rem;">R</label>
+                            </div>
+                            <div class="form-check form-check-inline me-0 mb-0">
+                                <input class="form-check-input ovr-chk" type="checkbox" data-mod="${escapeHtml(mod.id)}" data-perm="U" id="ovr_${escapeHtml(mod.id)}_U" ${uPerm.U ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold text-warning text-dark" for="ovr_${escapeHtml(mod.id)}_U" style="font-size:0.75rem;">U</label>
+                            </div>
+                            <div class="form-check form-check-inline me-0 mb-0">
+                                <input class="form-check-input ovr-chk" type="checkbox" data-mod="${escapeHtml(mod.id)}" data-perm="D" id="ovr_${escapeHtml(mod.id)}_D" ${uPerm.D ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold text-danger" for="ovr_${escapeHtml(mod.id)}_D" style="font-size:0.75rem;">D</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+
+        $('#loaderPermisosUser').hide();
+        $('#gridPermisosUser').fadeIn();
+        $('#gridUserOverrides').fadeIn();
+    }
+
+    window.guardarOverridesUsuario = async function() {
+        if (!currentModalUser.id) return;
+
+        const payload = {};
+        $('.ovr-chk').each(function() {
+            const mod = $(this).data('mod');
+            const perm = $(this).data('perm');
+            const isChecked = $(this).is(':checked') ? 1 : 0;
+            if (!payload[mod]) payload[mod] = { C: 0, R: 0, U: 0, D: 0 };
+            payload[mod][perm] = isChecked;
+        });
+
+        const btn = $('#btnSaveUserOverrides');
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Guardando...');
+
+        try {
+            const fd = new FormData();
+            fd.append('action', 'save');
+            fd.append('id_usuario', currentModalUser.id);
+            fd.append('payload', JSON.stringify(payload));
+
+            const res = await fetch('../api/gestion_permisos_usuario_api.pl', {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: fd
+            }).then(r => r.json());
+
+            btn.prop('disabled', false).html('<i class="bi bi-save me-1"></i>Guardar Excepciones');
+
+            if (res.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Excepciones Guardadas!',
+                    text: res.msg || 'Se han aplicado los permisos especiales para este colaborador.',
+                    confirmButtonColor: '#18D1E6'
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Error', res.msg || 'No se pudieron guardar las excepciones.', 'error');
+            }
+        } catch (e) {
+            console.error("Error al guardar excepciones:", e);
+            btn.prop('disabled', false).html('<i class="bi bi-save me-1"></i>Guardar Excepciones');
+            Swal.fire('Error', 'Falla de conexión al guardar.', 'error');
+        }
+    };
+
+    window.resetearOverridesUsuario = function() {
+        if (!currentModalUser.id) return;
+
+        Swal.fire({
+            title: '¿Restablecer Permisos?',
+            text: `Se eliminarán las excepciones personalizadas de ${currentModalUser.nombre} y volverá a usar exactamente los permisos de su rol (${currentModalUser.rol}).`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, Restablecer al Rol',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const fd = new FormData();
+                    fd.append('action', 'reset');
+                    fd.append('id_usuario', currentModalUser.id);
+
+                    const res = await fetch('../api/gestion_permisos_usuario_api.pl', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        body: fd
+                    }).then(r => r.json());
+
+                    if (res.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Restablecido!',
+                            text: res.msg,
+                            confirmButtonColor: '#18D1E6'
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', res.msg || 'Error al restablecer.', 'error');
+                    }
+                } catch (e) {
+                    console.error("Error al restablecer permisos:", e);
+                    Swal.fire('Error', 'Falla de conexión al restablecer.', 'error');
+                }
+            }
+        });
     };
 
     function escapeHtml(unsafe) {
