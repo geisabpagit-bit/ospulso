@@ -178,24 +178,27 @@ sub render_sidebar {
 HTML
     
 
+    my $id_usuario_sesion = '';
+    eval {
+        my $sd = main::check_session();
+        $id_usuario_sesion = $sd->{id_registro} // $sd->{id_medico} // '';
+    };
+
     require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
 
-    # Evaluar si la organización posee matriz personalizada de permisos
-    my $ruta_permisos_dyn = utils::permisos_utils::obtener_ruta_permisos_org($id_empresa);
-    my $has_custom_matrix = (-e $ruta_permisos_dyn) ? 1 : 0;
-
+    my @modulos_evaluar = ('pacientes', 'agenda', 'quirofano', 'finanzas', 'servicios', 'productos', 'usuarios', 'gestion_permisos', 'reportes', 'gestion_catalogos', 'tecnico', 'reset_datos_org', 'clinicas');
     my %is_allowed = ();
 
-    if ($has_custom_matrix) {
-        # Matriz dinámica personalizada para esta organización (CLUE o Privada No-CLUE)
-        foreach my $mod ('pacientes', 'agenda', 'quirofano', 'finanzas', 'servicios', 'productos', 'usuarios', 'gestion_permisos', 'reportes', 'gestion_catalogos', 'tecnico', 'reset_datos_org', 'clinicas') {
-            $is_allowed{$mod} = utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, $mod, 'R');
-        }
-    } else {
-        # Fallback estándar a roles.dat
-        foreach my $mod (@allowed_modules) {
-            my $trimmed = $mod;
-            $trimmed =~ s/^\s+|\s+$//g;
+    # Evaluar permisos de lectura (R) por módulo incluyendo excepciones por usuario ($id_usuario_sesion)
+    foreach my $mod (@modulos_evaluar) {
+        $is_allowed{$mod} = utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, $mod, 'R', $id_usuario_sesion);
+    }
+
+    # Fallback adicional para módulos de roles.dat
+    foreach my $mod (@allowed_modules) {
+        my $trimmed = $mod;
+        $trimmed =~ s/^\s+|\s+$//g;
+        if (!exists $is_allowed{$trimmed}) {
             $is_allowed{$trimmed} = 1;
         }
     }
