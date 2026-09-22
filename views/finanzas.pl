@@ -49,6 +49,7 @@ render_header(usuario => $session_data->{usuario}, titulo => "Finanzas - SDM", r
 
 print <<'PAGE_HTML';
 <link rel="stylesheet" href="../css/expediente_completo.css?v=3">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.4.1/css/rowGroup.bootstrap5.min.css">
@@ -428,7 +429,7 @@ PAGE_HTML
                                             <th style="width: 12%;">Fecha</th>
                                             <th style="width: 12%;">Origen</th>
                                             <th style="width: 25%;">Paciente</th>
-                                            <th style="width: 18%;">Médico / Cajero</th>
+                                            <th style="width: 18%;">Médico</th>
                                             <th style="width: 10%;">Forma Pago</th>
                                             <th style="width: 8%;" class="text-end">Monto</th>
                                             <th style="width: 8%;" class="text-center">Acciones</th>
@@ -1046,10 +1047,10 @@ PAGE_HTML
                             let f = row.folio_raw || row.folio || '';
                             let isCancel = (row.estatus === 'Cancelado');
                             let btnDelete = isCancel ?
-                                `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0 disabled text-nowrap" style="font-size: 9px;" title="Ya está cancelado"><i class="bi bi-x-circle me-1"></i>Cancelado</button>` :
-                                `<button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9px;" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>`;
-                            return `<div class="d-flex justify-content-center align-items-center gap-1 text-nowrap">
-                                <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9.5px;" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Privado"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
+                                `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
+                                `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
+                            return `<div class="d-flex justify-content-center align-items-center gap-2">
+                                <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Privado"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
                                 ${btnDelete}
                             </div>`;
                         }
@@ -1137,10 +1138,10 @@ PAGE_HTML
                             let f = row.folio_raw || row.folio || '';
                             let isCancel = (row.estatus === 'Cancelado');
                             let btnDelete = isCancel ?
-                                `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0 disabled text-nowrap" style="font-size: 9px;" title="Ya está cancelado"><i class="bi bi-x-circle me-1"></i>Cancelado</button>` :
-                                `<button class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9px;" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill me-1"></i>Eliminar</button>`;
-                            return `<div class="d-flex justify-content-center align-items-center gap-1 text-nowrap">
-                                <button class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-2 py-0 text-nowrap" style="font-size: 9.5px;" onclick="window.open('../api/ver_recibo.pl?tipo=publicos&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Municipio"><i class="bi bi-printer-fill me-1"></i>Ver Recibo</button>
+                                `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
+                                `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
+                            return `<div class="d-flex justify-content-center align-items-center gap-2">
+                                <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=publicos&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Municipio"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
                                 ${btnDelete}
                             </div>`;
                         }

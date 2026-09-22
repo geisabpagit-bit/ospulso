@@ -138,39 +138,57 @@ if ($org_clues) {
 sub resolver_nombre_medico_recibo {
     my ($id_med, $items_raw) = @_;
     my $nombre_med = '';
-    if ($id_med && exists $medicos{$id_med}) {
-        $nombre_med = $medicos{$id_med};
-    } elsif ($id_med && exists $items_catalogo{$id_med}) {
-        my $conc = $items_catalogo{$id_med};
-        if ($conc =~ /-\s*(.+)$/) {
+
+    # 1. Si $id_med es un ID_ITEM de catalogo_items_${clues}.dat (Caja Rápida)
+    if ($id_med && exists $items_catalogo{$id_med}) {
+        my $conc = $items_catalogo{$id_med} || '';
+        if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+            my $cand = $2;
+            $cand =~ s/\s*\(.*?\)//g;
+            $cand =~ s/^\s+|\s+$//g;
+            $nombre_med = uc($cand);
+        } elsif ($conc =~ /-\s*(.+)$/) {
             my $cand = $1;
             $cand =~ s/\s*\(.*?\)//g;
-            $nombre_med = $cand;
+            $cand =~ s/^\s+|\s+$//g;
+            $nombre_med = uc($cand);
         }
     }
-    if (!$nombre_med || $nombre_med =~ /^\d+$/) {
-        if ($items_raw && $items_raw ne '[]') {
-            eval {
-                my $its = decode_json($items_raw);
+
+    # 2. Extraer de items_json si el concepto cobrado contiene el médico
+    if ((!$nombre_med || $nombre_med eq "NO ESPECIFICADO" || $nombre_med =~ /^\d+$/) && $items_raw && $items_raw ne '[]') {
+        eval {
+            my $its = decode_json($items_raw);
+            if (ref($its) eq 'ARRAY') {
                 foreach my $it (@$its) {
-                    my $nom = $it->{nombre} || '';
-                    if ($nom =~ /-\s*(.+)$/) {
+                    my $conc = $it->{concepto} || $it->{nombre} || $it->{descripcion} || '';
+                    if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                        my $cand = $2;
+                        $cand =~ s/\s*\(.*?\)//g;
+                        $cand =~ s/^\s+|\s+$//g;
+                        $nombre_med = uc($cand);
+                        last;
+                    } elsif ($conc =~ /-\s*(DRA?\.?\s+[^-\(\)]+)/i) {
                         my $cand = $1;
                         $cand =~ s/\s*\(.*?\)//g;
-                        if ($cand =~ /(?:DRA?|LIC|ING|MTRO|MEDICO)\b/i) {
-                            $nombre_med = $cand;
-                            last;
-                        } elsif (!$nombre_med || $nombre_med =~ /^\d+$/) {
-                            $nombre_med = $cand;
-                        }
+                        $cand =~ s/^\s+|\s+$//g;
+                        $nombre_med = uc($cand);
+                        last;
                     }
                 }
-            };
-        }
+            }
+        };
     }
+
+    # 3. Si no es ítem de catálogo ni del carrito, buscar en plantilla de médicos (Citas de Agenda)
+    if ((!$nombre_med || $nombre_med eq "NO ESPECIFICADO" || $nombre_med =~ /^\d+$/) && $id_med && exists $medicos{$id_med}) {
+        $nombre_med = uc($medicos{$id_med});
+    }
+
     if (!$nombre_med && $id_med && $id_med !~ /^\d+$/) {
-        $nombre_med = $id_med;
+        $nombre_med = uc($id_med);
     }
+
     $nombre_med ||= 'N/D';
     $nombre_med =~ s/^\s+|\s+$//g;
     return $nombre_med;
