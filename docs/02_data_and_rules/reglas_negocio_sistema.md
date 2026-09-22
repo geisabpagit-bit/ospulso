@@ -54,3 +54,17 @@
 1. **Escape de Comillas en JavaScript Inyectado desde Perl**: Al inyectar JavaScript en HEREDOCs dobles de Perl (`print <<"HTML"`), evitar comillas simples escapadas `\'` en cadenas JS delimitadas por comillas simples. Usar comillas dobles internamente o backticks de ES6.
 2. **Protección de Sigilos**: Escapar símbolos de arroba como `\@media` en HEREDOCs dobles de Perl para prevenir errores de compilación `"Global symbol requires explicit package name"`.
 3. **Persistencia UTF-8 LF**: Todo archivo de datos `.dat` debe manipularse con `:raw :encoding(UTF-8)`, bloqueo `flock` y fin de línea `\n` (0 CRLF).
+
+---
+
+## 8. Gobernanza RBAC y Excepciones por Usuario (User Overrides)
+1. **Firma Canónica de Evaluación de 5 Parámetros**:
+   - `utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, $modulo, $accion, $id_usuario)`.
+   - Evalúa primero si el `$id_usuario` cuenta con una excepción grabada en `permisos_usuarios_[ID_EMPRESA].dat`. Si existe, su valor `C, R, U, D` prevalece sobre la matriz del rol.
+2. **Lockout Protection Inviolable**:
+   - Los roles `Administrador Global` y `Administrador Organizacion` mantienen garantizado de forma física en código el acceso CRUD completo a `usuarios`, `gestion_permisos`, `pacientes` y `agenda`, imposibilitando el autobloqueo administrativo accidental.
+3. **Auto-Limpieza de Excepciones en Cambio de Rol**:
+   - Al editar la cuenta de un colaborador en `api/editar_usuario_api.pl` y modificar su rol operativo, el backend ejecuta automáticamente `eliminar_overrides_usuario_org()` para purgar cualquier permiso excepcional previo y forzar la adopción limpia de su nuevo rol.
+4. **Sincronización Dinámica de Menú Lateral**:
+   - El componente `utils/sub_sidebar.pl` evalúa `tiene_permiso_modulo()` pasando el `$id_usuario_sesion` de la sesión activa, garantizando que si a un colaborador se le otorga o revoca un módulo mediante excepción individual, la opción se dibuje u oculte en tiempo real en la navegación.
+

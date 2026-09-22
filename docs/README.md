@@ -28,6 +28,7 @@ graph TD
 - **[arquitectura_financiera.md](file:///c:/xampp/htdocs/ospulso/docs/02_data_and_rules/arquitectura_financiera.md)**: Fuente Canónica de Verdad para ingresos, segregación de Efectivo Real en Caja vs Cuentas por Cobrar (CXC Estado) e integridad contable al centavo.
 
 ### ⚙️ Capa 3: Guías Operativas de Módulos (`docs/03_modules_and_workflows/`)
+- **[matriz_dinamica_permisos_rbac.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/matriz_dinamica_permisos_rbac.md)**: Arquitectura Híbrida de Permisos RBAC y User Overrides, blindaje de APIs (`C`, `R`, `U`, `D`), resolución de 5 parámetros, matriz de diagnóstico de bugs y sincronización del menú lateral.
 - **[caja_rapida_y_multitarifa.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/caja_rapida_y_multitarifa.md)**: Proceso operativo de Caja Rápida, arquitectura Multi-Tarifa dinámica en conceptos y estándares UI/UX del carrito.
 - **[gestion_catalogos_serverside.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/gestion_catalogos_serverside.md)**: Arquitectura del Catálogo Universal 3NF, DataTables Server-Side AJAX (`deferRender: true`), paginación por defecto (10 registros) y normalización por CLUE.
 - **[atencion_medica_y_consultas.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/atencion_medica_y_consultas.md)**: Pipeline global de atención médica, Guardia de Consulta Única Activa por Médico, Tratamientos Abiertos, Cargos Directos y Hub PACS.
@@ -48,9 +49,17 @@ graph TD
 graph TD
     subgraph CoreBaseline ["🏛️ Capa 1: Arquitectura Baseline"]
         EN001["Tenant Engine (CLUES)"]
-        EN003["Identity & RBAC Engine"]
+        EN003["Identity & RBAC Engine (utils/permisos_utils.pl)"]
         EN005["Feature Engine (negocios_config.dat)"]
         EN007["Clinical Engine (SOAP JSON)"]
+    end
+
+    subgraph RBACFlow ["🛡️ Capa 3: Kernel RBAC Híbrido & Overrides"]
+        UserSession["Sesión Activa ($id_usuario_sesion)"] --> RBACCheck["tiene_permiso_modulo($id_empresa, $role, $mod, $accion, $id_usuario)"]
+        RBACCheck -->|1. User Override| UserDAT["Excepciones por Usuario (permisos_usuarios_<ID_EMPRESA>.dat)"]
+        RBACCheck -->|2. Fallback Rol| RoleDAT["Matriz por Rol (permisos_roles_<ID_EMPRESA>.dat / dat/roles.dat)"]
+        RBACCheck --> NavSidebar["Menú Lateral Izquierdo Dinámico (utils/sub_sidebar.pl)"]
+        RBACCheck --> APIsProtect["Protección de Endpoints CRUD (api/*.pl) & Vistas"]
     end
 
     subgraph OSPulsoProd ["⚙️ Capa 3: Operación de Módulos"]
@@ -66,10 +75,12 @@ graph TD
     subgraph DataStorage ["💾 Capa 2: Persistencia DAT"]
         ReciboPriv --> CashFlow["Efectivo Real (folios_recibos_privados.dat)"]
         ReciboPub --> CXCFlow["CXC Estado / Municipio (folios_recibos_publicos.dat)"]
+        APIsProtect --> UserDAT
     end
 
     EN001 -.-> CU
-    EN003 -.-> CR
+    EN003 -.-> RBACFlow
     EN005 -.-> MultiTarifa
     EN007 -.-> CR
 ```
+

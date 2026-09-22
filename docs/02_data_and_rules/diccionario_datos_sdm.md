@@ -194,3 +194,41 @@ Registro de órdenes subsidiadas bajo convenio gubernamental (CXC Estado). Delim
 | `PACIENTE_NOMBRE`| String | Nombre del beneficiario | `MARIA LOPEZ` |
 | `TOTAL_SUBSIDIO`| Decimal | Valor abonado a CXC Estado | `1760.00` |
 | `DESGLOSE_JSON` | JSON | Lista de conceptos autorizados | `[{...}]` |
+
+---
+
+## 6. Archivos de Control RBAC y Excepciones por Usuario (`dat/`)
+
+### 6.1 `roles.dat`
+Catálogo maestro de roles base del sistema y asignación predeterminada de módulos (Fallback). Delimitador: `|`.
+
+| Campo | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| 1 | `ROL` | String (PK) | Nombre canónico del rol | `Recepcionista` |
+| 2 | `DESCRIPCION` | String | Descripción u opciones de búsqueda | `Agenda, Registro y Pagos` |
+| 3..N | `MODULOS` | List(String) | Módulos predeterminados asignados al rol | `agenda`, `pacientes`, `finanzas` |
+
+### 6.2 `permisos_roles_[ID_EMPRESA].dat`
+Matriz de permisos por rol personalizada por organización (CLUE o Privada). Delimitador: `|`.
+
+| Campo | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| 1 | `ROL` | String | Nombre del rol evaluado | `Medico` |
+| 2 | `MODULO` | String | Clave del módulo del sistema | `servicios` |
+| 3 | `CAN_CREATE` | Char(1) | Facultad de creación `C` (`1`/`0`) | `1` |
+| 4 | `CAN_READ` | Char(1) | Facultad de lectura `R` (`1`/`0`) | `1` |
+| 5 | `CAN_UPDATE` | Char(1) | Facultad de modificación `U` (`1`/`0`) | `0` |
+| 6 | `CAN_DELETE` | Char(1) | Facultad de eliminación `D` (`1`/`0`) | `0` |
+
+### 6.3 `permisos_usuarios_[ID_EMPRESA].dat`
+Matriz de excepciones individuales y facultades sobreescritas por colaborador (User Overrides). Delimitador: `|`.
+
+| Campo | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| 1 | `ID_USUARIO` | String (FK) | ID del colaborador en `usuarios.dat` | `190726041` |
+| 2 | `MODULO` | String | Clave del módulo con excepción | `servicios` |
+| 3 | `CAN_CREATE` | Char(1) | Excepción de creación `C` (`1`/`0`) | `1` |
+| 4 | `CAN_READ` | Char(1) | Excepción de lectura `R` (`1`/`0`) | `1` |
+| 5 | `CAN_UPDATE` | Char(1) | Excepción de modificación `U` (`1`/`0`) | `1` |
+| 6 | `CAN_DELETE` | Char(1) | Excepción de eliminación `D` (`1`/`0`) | `0` |
+
