@@ -44,9 +44,10 @@ Todo recibo incluye una barra superior de acciones visible únicamente en pantal
 
 ---
 
-## 3.3 Jerarquía de Resolución de Médico y Especialidad en Impresión
-Para evitar colisiones de IDs entre archivos flat-file (`catalogo_items_${clues}.dat` vs `medicos_${clues}.dat`), la resolución del médico y la especialidad en la impresión de recibos se rige bajo el siguiente orden prioritario:
-1. **Match por Ítem de Catálogo (`catalogo_items_${clues}.dat`)**: Si `$id_medico` coincide con el `ID_ITEM` de un concepto de consulta (ej. `CONSULTA PEDIATRIA - DRA ROSA MARIA GONZALEZ`), se extrae la especialidad y el médico directamente de la descripción del concepto pagado.
-2. **Match por Carrito/Cargos (`items_json`)**: Si no hay coincidencia directa en catálogo pero `items_json` / `@cargos` especifica la especialidad o médico en la descripción, se extrae de la transacción.
-3. **Plantilla de Médicos (`medicos_${clues}.dat`)**: Solo se consulta si no es un ítem de catálogo ni se parseó del carrito (aplica para citas directas de la Agenda).
+### 3.3 Jerarquía Unificada de Resolución de Médico y Especialidad en Impresión (`api/imprimir_recibo_caja.pl` y `api/imprimir_recibo_publico.pl`)
+Para evitar colisiones de IDs entre archivos flat-file (`catalogo_items_${clues}.dat` vs `medicos_${clues}.dat`), la resolución del médico y la especialidad en la impresión de recibos (privados y públicos/convenio) se rige estrictamente bajo el siguiente orden prioritario:
+1. **Match por Ítem de Catálogo (`catalogo_items_${clues}.dat`)**: Si `$id_medico` coincide con el `ID_ITEM` de un concepto de consulta de caja rápida (ej. `CONSULTA PEDIATRIA - DRA ROSA MARIA GONZALEZ`), se extrae la especialidad (`PEDIATRIA`) y el médico (`DRA ROSA MARIA GONZALEZ`) directamente de la descripción del concepto seleccionado.
+2. **Match por Carrito/Cargos (`items_json` / `@cargos`)**: Si no hay coincidencia directa en catálogo pero el arreglo de cargos especifica la especialidad o médico en la descripción del concepto, se extrae de la transacción real.
+3. **Plantilla de Médicos (`medicos_${clues}.dat`)**: Solo se consulta si el `$id_medico` no corresponde a un ítem de catálogo (aplica para citas directas de la Agenda donde `$id_medico` es la clave de médico en la sucursal).
 4. **Fallback General**: Consulta en `usuarios.dat` o asignación de `"NO ESPECIFICADO"`.
+5. **Formateo Limpio de Tabla**: Si la especialidad fue resuelta, el renglón de la tabla imprime `"Consulta - <ESPECIALIDAD>"` y omite redundancias del médico, mostrando su nombre de manera limpia únicamente en la fila `"Médico:"` del encabezado.
