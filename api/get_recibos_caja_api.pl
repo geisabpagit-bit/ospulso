@@ -183,15 +183,19 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
         
         # El ID del médico (si se guardó) viene en $r[15], de lo contrario fallback a elaborado_por
         my $id_medico_saved = $r[15] || $elaborado_por;
-        my $medico = $map_medicos{$id_medico_saved} || '';
+        my $medico = '';
 
-        # Si aún es numérico o vacío, intentar extraer de ITEMS_JSON
-        if ((!$medico || $medico =~ /^\d+$/) && $r[13]) {
+        # 1. Extraer primero de ITEMS_JSON si el ítem guardó 'medico' o 'nombre_medico' de la transacción
+        if ($r[13] && $r[13] ne '[]') {
             eval {
                 my $items_list = JSON::decode_json($r[13]);
                 if (ref($items_list) eq 'ARRAY') {
                     foreach my $it (@$items_list) {
-                        my $conc = $it->{concepto} || '';
+                        if ($it->{medico} || $it->{nombre_medico}) {
+                            $medico = uc($it->{medico} || $it->{nombre_medico});
+                            last;
+                        }
+                        my $conc = $it->{concepto} || $it->{nombre} || '';
                         if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
                             my $c = $2;
                             $c =~ s/\s*\(.*?\)//g;
@@ -207,7 +211,13 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
                 }
             };
         }
-        $medico = $map_medicos{$elaborado_por} || "Médico Tratante" if (!$medico || $medico =~ /^\d+$/);
+
+        # 2. Si no viene en el JSON, buscar en $map_medicos
+        if ((!$medico || $medico =~ /^\d+$/) && $id_medico_saved) {
+            $medico = $map_medicos{$id_medico_saved} || '';
+        }
+
+        $medico ||= $map_medicos{$elaborado_por} || "Médico Tratante";
         my $detalle = "Caja";
         
         my $folio_mostrar = $folio_absoluto;
