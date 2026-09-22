@@ -392,8 +392,59 @@ my $medico_nombre = "NO ESPECIFICADO";
 my $especialidad_nombre = '';
 my $rutas = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
 
-# 1. Buscar en medicos_${clues}.dat si $id_medico existe
-if ($id_medico) {
+# 1. Si $id_medico es ID_ITEM de catalogo_items_${clues}.dat (Caja Rápida)
+if ($id_medico && $id_medico ne 'N/D') {
+    my $it_file = $rutas->{items};
+    if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
+        while (my $li = <$fi>) {
+            chomp $li;
+            my @f = split /\|/, $li, -1;
+            if ($f[0] eq $id_medico) {
+                my $conc = $f[3] // '';
+                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                    my $esp_tmp = $1;
+                    my $med_tmp = $2;
+                    $esp_tmp =~ s/^\s+|\s+$//g;
+                    $med_tmp =~ s/\s*\(.*?\)//g;
+                    $med_tmp =~ s/^\s+|\s+$//g;
+                    $especialidad_nombre = uc($esp_tmp);
+                    $medico_nombre = uc($med_tmp);
+                }
+                last;
+            }
+        }
+        close $fi;
+    }
+}
+
+# 2. Extraer de los cargos si aún no se ha resuelto el médico
+if ($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) {
+    foreach my $c (@cargos) {
+        my $conc = $c->{concepto} || $c->{nombre} || $c->{descripcion} || '';
+        if ($c->{medico} || $c->{nombre_medico}) {
+            $medico_nombre = uc($c->{medico} || $c->{nombre_medico});
+            last;
+        } elsif ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+            my $esp_tmp = $1;
+            my $med_tmp = $2;
+            $esp_tmp =~ s/^\s+|\s+$//g;
+            $med_tmp =~ s/\s*\(.*?\)//g;
+            $med_tmp =~ s/^\s+|\s+$//g;
+            $especialidad_nombre = uc($esp_tmp) unless $especialidad_nombre;
+            $medico_nombre = uc($med_tmp);
+            last;
+        } elsif ($conc =~ /-\s*(DRA?\.?\s+[^-\(\)]+)/i) {
+            my $cand = $1;
+            $cand =~ s/\s*\(.*?\)//g;
+            $cand =~ s/^\s+|\s+$//g;
+            $medico_nombre = uc($cand);
+            last;
+        }
+    }
+}
+
+# 3. Buscar en medicos_${clues}.dat si $id_medico no fue un ítem de catálogo
+if (($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && $id_medico && $id_medico ne 'N/D') {
     my $med_file = $rutas->{medicos};
     my $id_especialidad = '';
     
@@ -425,44 +476,22 @@ if ($id_medico) {
             close $fe;
         }
     }
+}
 
-    # 2. Si no se encontró y $id_medico es ID_ITEM de catalogo_items_${clues}.dat
-    if ($medico_nombre eq "NO ESPECIFICADO") {
-        my $it_file = $rutas->{items};
-        if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
-            while (my $li = <$fi>) {
-                chomp $li;
-                my @f = split /\|/, $li, -1;
-                if ($f[0] eq $id_medico) {
-                    my $conc = $f[3] // '';
-                    if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
-                        $especialidad_nombre = uc($1) unless $especialidad_nombre;
-                        my $cand = $2;
-                        $cand =~ s/\s*\(.*?\)//g;
-                        $medico_nombre = uc($cand);
-                    }
-                    last;
-                }
+# 4. Fallback a usuarios.dat
+if (($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && $id_medico && $id_medico ne 'N/D') {
+    my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+    if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
+        my $hu = <$fu>;
+        while (my $lu = <$fu>) {
+            chomp $lu;
+            my @u = split /!/, $lu, -1;
+            if ($u[0] eq $id_medico) {
+                $medico_nombre = uc($u[1] // '');
+                last;
             }
-            close $fi;
         }
-    }
-    
-    # 3. Fallback a usuarios.dat
-    if ($medico_nombre eq "NO ESPECIFICADO") {
-        my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
-        if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
-            my $hu = <$fu>;
-            while (my $lu = <$fu>) {
-                chomp $lu;
-                my @u = split /!/, $lu, -1;
-                if ($u[0] eq $id_medico) {
-                    $medico_nombre = uc($u[1] // '');
-                    last;
-                }
-            }
-            close $fu;
-        }
+        close $fu;
     }
 }
 

@@ -244,9 +244,65 @@ my $id_medico = $recibo->{id_medico} || '';
 my $medico_nombre = '';
 my $especialidad_nombre = '';
 
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+my $rutas = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
+
+# 1. Si $id_medico es un ID_ITEM de catalogo_items_${clues}.dat (Caja Rápida)
 if ($id_medico && $id_medico ne 'N/D') {
-    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
-    my $rutas = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
+    my $it_file = $rutas->{items};
+    if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
+        while (my $li = <$fi>) {
+            chomp $li;
+            my @f = split /\|/, $li, -1;
+            if ($f[0] eq $id_medico) {
+                my $conc = $f[3] // '';
+                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                    my $esp_tmp = $1;
+                    my $med_tmp = $2;
+                    $esp_tmp =~ s/^\s+|\s+$//g;
+                    $med_tmp =~ s/\s*\(.*?\)//g;
+                    $med_tmp =~ s/^\s+|\s+$//g;
+                    $especialidad_nombre = uc($esp_tmp);
+                    $medico_nombre = uc($med_tmp);
+                }
+                last;
+            }
+        }
+        close $fi;
+    }
+}
+
+# 2. Extraer directamente de items_json si el concepto contiene el médico (garantiza coincidencia con el concepto cobrado)
+if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $recibo->{items_json}) {
+    eval {
+        require JSON;
+        my $items_arr = JSON::decode_json($recibo->{items_json});
+        if (ref($items_arr) eq 'ARRAY') {
+            foreach my $it (@$items_arr) {
+                my $conc = $it->{concepto} || $it->{nombre} || $it->{descripcion} || '';
+                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                    my $esp_tmp = $1;
+                    my $med_tmp = $2;
+                    $esp_tmp =~ s/^\s+|\s+$//g;
+                    $med_tmp =~ s/\s*\(.*?\)//g;
+                    $med_tmp =~ s/^\s+|\s+$//g;
+                    $especialidad_nombre = uc($esp_tmp) unless $especialidad_nombre;
+                    $medico_nombre = uc($med_tmp);
+                    last;
+                } elsif ($conc =~ /-\s*(DRA?\.?\s+[^-\(\)]+)/i) {
+                    my $cand = $1;
+                    $cand =~ s/\s*\(.*?\)//g;
+                    $cand =~ s/^\s+|\s+$//g;
+                    $medico_nombre = uc($cand);
+                    last;
+                }
+            }
+        }
+    };
+}
+
+# 3. Si no es un ítem de catálogo con médico parseable, buscar en medicos_${clues}.dat (Citas directas de Agenda)
+if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $id_medico && $id_medico ne 'N/D') {
     my $med_file = $rutas->{medicos};
     my $id_especialidad = '';
     
@@ -278,71 +334,26 @@ if ($id_medico && $id_medico ne 'N/D') {
             close $fe;
         }
     }
-    
-    # 2. Si no se encontró en medicos y $id_medico es ID_ITEM de catalogo_items_${clues}.dat
-    if (!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") {
-        my $it_file = $rutas->{items};
-        if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
-            while (my $li = <$fi>) {
-                chomp $li;
-                my @f = split /\|/, $li, -1;
-                if ($f[0] eq $id_medico) {
-                    my $conc = $f[3] // '';
-                    if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
-                        $especialidad_nombre = uc($1) unless $especialidad_nombre;
-                        my $cand = $2;
-                        $cand =~ s/\s*\(.*?\)//g;
-                        $medico_nombre = uc($cand);
-                    }
-                    last;
-                }
+}
+
+# 4. Fallback a usuarios.dat
+if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $id_medico && $id_medico ne 'N/D') {
+    my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+    if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
+        my $hu = <$fu>;
+        while (my $lu = <$fu>) {
+            chomp $lu;
+            my @u = split /!/, $lu, -1;
+            if ($u[0] eq $id_medico) {
+                $medico_nombre = uc($u[1] // '');
+                last;
             }
-            close $fi;
         }
-    }
-    
-    # 3. Fallback a usuarios.dat
-    if (!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") {
-        my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
-        if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
-            my $hu = <$fu>;
-            while (my $lu = <$fu>) {
-                chomp $lu;
-                my @u = split /!/, $lu, -1;
-                if ($u[0] eq $id_medico) {
-                    $medico_nombre = uc($u[1] // '');
-                    last;
-                }
-            }
-            close $fu;
-        }
+        close $fu;
     }
 }
 
-# 4. Extraer de los items del recibo si aún no está resuelto o si es puramente numérico
-if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && $recibo->{items_json}) {
-    eval {
-        require JSON;
-        my $items_arr = JSON::decode_json($recibo->{items_json});
-        if (ref($items_arr) eq 'ARRAY') {
-            foreach my $it (@$items_arr) {
-                my $conc = $it->{concepto} || '';
-                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
-                    $especialidad_nombre = uc($1) unless $especialidad_nombre;
-                    my $cand = $2;
-                    $cand =~ s/\s*\(.*?\)//g;
-                    $medico_nombre = uc($cand);
-                    last;
-                } elsif ($conc =~ /-\s*(DRA?\.?\s+[^-\(\)]+)/i) {
-                    my $cand = $1;
-                    $cand =~ s/\s*\(.*?\)//g;
-                    $medico_nombre = uc($cand);
-                    last;
-                }
-            }
-        }
-    };
-}
+$medico_nombre ||= "NO ESPECIFICADO";
 
 if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && ($recibo->{concepto} && $recibo->{concepto} =~ /CONSULTA/i)) {
     eval {
