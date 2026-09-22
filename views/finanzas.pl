@@ -186,9 +186,6 @@ print <<'PAGE_HTML';
         <!-- Header Compacto -->
         <div class="diamond-header-compact d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">
-                <button class="btn btn-menu-toggle-inline d-lg-none" onclick="toggleSidebar()">
-                    <i class="bi bi-list"></i>
-                </button>
                 <div class="profile-hero text-start">
                     <h4 id="mainPageTitle" class="text-truncate m-0 text-white fw-bold" style="max-width: 60vw; letter-spacing: -0.5px;">Módulo Financiero</h4>
                     <p id="mainPageSubtitle" class="text-white-50 small m-0 d-none" style="font-size: 0.8rem;"></p>
@@ -796,52 +793,52 @@ PAGE_HTML
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="cc_tab_ingresos" role="tabpanel">
                         <div class="table-responsive">
-                            <table id="dtCorteIngresos" class="table table-hover dt-responsive-mobile nowrap w-100">
-                                <thead class="table-light text-muted small">
+                            <table id="dtCorteIngresos" class="table table-hover table-sm align-middle w-100" style="font-size: 10px !important;">
+                                <thead class="table-light text-muted" style="font-size: 10.5px !important;">
                                     <tr>
-                                        <th>Folio</th>
-                                        <th>Fecha</th>
-                                        <th>Paciente</th>
-                                        <th>Médico</th>
-                                        <th>Forma de Pago</th>
-                                        <th class="text-end">Monto</th>
+                                        <th style="width: 8%;">Folio</th>
+                                        <th style="width: 12%;">Fecha</th>
+                                        <th style="width: 27%;">Paciente</th>
+                                        <th style="width: 20%;">Médico</th>
+                                        <th style="width: 15%;">Forma Pago</th>
+                                        <th style="width: 18%;" class="text-end">Monto</th>
                                     </tr>
                                 </thead>
-                                <tbody></tbody>
+                                <tbody style="font-size: 10px !important;"></tbody>
                             </table>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="cc_tab_cxc" role="tabpanel">
                         <div class="table-responsive">
-                            <table id="dtCorteCxC" class="table table-hover dt-responsive-mobile nowrap w-100">
-                                <thead class="table-light text-muted small">
+                            <table id="dtCorteCxC" class="table table-hover table-sm align-middle w-100" style="font-size: 10px !important;">
+                                <thead class="table-light text-muted" style="font-size: 10.5px !important;">
                                     <tr>
-                                        <th>Folio OS</th>
-                                        <th>Fecha</th>
-                                        <th>Paciente</th>
-                                        <th>Médico</th>
-                                        <th>Categoría</th>
-                                        <th class="text-end">Monto</th>
+                                        <th style="width: 8%;">Folio OS</th>
+                                        <th style="width: 12%;">Fecha</th>
+                                        <th style="width: 27%;">Paciente</th>
+                                        <th style="width: 20%;">Médico</th>
+                                        <th style="width: 15%;">Dependencia</th>
+                                        <th style="width: 18%;" class="text-end">Monto</th>
                                     </tr>
                                 </thead>
-                                <tbody></tbody>
+                                <tbody style="font-size: 10px !important;"></tbody>
                             </table>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="cc_tab_egresos" role="tabpanel">
                         <div class="table-responsive">
-                            <table id="dtCorteEgresos" class="table table-hover dt-responsive-mobile nowrap w-100">
-                                <thead class="table-light text-muted small">
+                            <table id="dtCorteEgresos" class="table table-hover table-sm align-middle w-100" style="font-size: 10px !important;">
+                                <thead class="table-light text-muted" style="font-size: 10.5px !important;">
                                     <tr>
-                                        <th>Folio</th>
-                                        <th>Fecha</th>
-                                        <th>Categoría</th>
-                                        <th>Proveedor</th>
-                                        <th>Concepto</th>
-                                        <th class="text-end">Monto</th>
+                                        <th style="width: 8%;">Folio</th>
+                                        <th style="width: 12%;">Fecha</th>
+                                        <th style="width: 15%;">Categoría</th>
+                                        <th style="width: 20%;">Proveedor</th>
+                                        <th style="width: 27%;">Concepto</th>
+                                        <th style="width: 18%;" class="text-end">Monto</th>
                                     </tr>
                                 </thead>
-                                <tbody></tbody>
+                                <tbody style="font-size: 10px !important;"></tbody>
                             </table>
                         </div>
                     </div>
@@ -1216,31 +1213,162 @@ PAGE_HTML
                 
                 // Actualizar tablas
                 renderTablaCorte('#dtCorteIngresos', res.ingresos, [
-                    { data: 'folio' },
-                    { data: 'fecha' },
-                    { data: 'paciente' },
-                    { data: 'medico' },
-                    { data: 'forma_pago' },
-                    { data: 'monto', className: 'text-end text-success fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                    { 
+                        data: 'folio',
+                        render: function(d) {
+                            return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'fecha',
+                        render: function(d) {
+                            if (!d) return '';
+                            let parts = d.split(' ');
+                            let f = parts[0] || '';
+                            let h = parts[1] || '';
+                            return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
+                        }
+                    },
+                    { 
+                        data: 'paciente',
+                        render: function(data, type, row) {
+                            let isCancel = (row.estatus === 'Cancelado');
+                            let pacHtml = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;">${data || ''}</div>`;
+                            if (isCancel) {
+                                pacHtml += `<div class="d-flex align-items-center gap-1 mt-1"><span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span></div>`;
+                            }
+                            return pacHtml;
+                        }
+                    },
+                    { 
+                        data: 'medico',
+                        render: function(d) {
+                            return `<span class="text-muted fw-semibold d-block text-truncate" style="max-width: 140px; font-size: 10px;" title="${d || 'N/D'}">${d || 'N/D'}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'forma_pago',
+                        render: function(data, type, row) {
+                            if (row.estatus === 'Cancelado') {
+                                return `<span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>`;
+                            }
+                            return `<span class="badge bg-light text-dark border px-2 py-1" style="font-size: 9.5px;">${data || 'Efectivo'}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'monto', 
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let val = parseFloat(data) || 0;
+                            let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            if (row.estatus === 'Cancelado') {
+                                return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+                            }
+                            return `<span class="text-success fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+                        }
+                    }
                 ]);
                 
                 renderTablaCorte('#dtCorteEgresos', res.egresos, [
-                    { data: 'folio' },
-                    { data: 'fecha' },
-                    { data: 'categoria' },
-                    { data: 'responsable' },
-                    { data: 'concepto' },
-                    { data: 'monto', className: 'text-end text-danger fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                    { 
+                        data: 'folio',
+                        render: function(d) {
+                            return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'fecha',
+                        render: function(d) {
+                            if (!d) return '';
+                            let parts = d.split(' ');
+                            let f = parts[0] || '';
+                            let h = parts[1] || '';
+                            return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
+                        }
+                    },
+                    { 
+                        data: 'categoria',
+                        render: function(d) {
+                            return `<span class="badge bg-light text-dark border px-2 py-1" style="font-size: 9.5px;">${d || 'General'}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'responsable',
+                        render: function(d) {
+                            return `<span class="text-dark fw-semibold" style="font-size: 10px;">${d || 'N/D'}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'concepto',
+                        render: function(d) {
+                            return `<span class="text-muted text-truncate d-block" style="max-width: 200px; font-size: 10px;" title="${d || ''}">${d || ''}</span>`;
+                        }
+                    },
+                    { 
+                        data: 'monto', 
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let val = parseFloat(data) || 0;
+                            let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            return `<span class="text-danger fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+                        }
+                    }
                 ]);
 
                 if(res.cxc) {
                     renderTablaCorte('#dtCorteCxC', res.cxc, [
-                        { data: 'folio' },
-                        { data: 'fecha' },
-                        { data: 'paciente' },
-                        { data: 'medico' },
-                        { data: 'dependencia' },
-                        { data: 'monto', className: 'text-end text-info fw-bold', render: $.fn.dataTable.render.number(',', '.', 2, '$') }
+                        { 
+                            data: 'folio',
+                            render: function(d) {
+                                return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
+                            }
+                        },
+                        { 
+                            data: 'fecha',
+                            render: function(d) {
+                                if (!d) return '';
+                                let parts = d.split(' ');
+                                let f = parts[0] || '';
+                                let h = parts[1] || '';
+                                return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
+                            }
+                        },
+                        { 
+                            data: 'paciente',
+                            render: function(data, type, row) {
+                                let isCancel = (row.estatus === 'Cancelado');
+                                let rawPac = (data || '').replace(/^Paciente:\s*/i, '').trim();
+                                if (!rawPac || /^Metodo:/i.test(rawPac)) {
+                                    rawPac = row.trabajador_nombre || 'Empleado Estatal';
+                                }
+                                return `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
+                            }
+                        },
+                        { 
+                            data: 'medico',
+                            render: function(d) {
+                                return `<span class="text-muted fw-semibold d-block text-truncate" style="max-width: 130px; font-size: 10px;" title="${d || 'N/D'}">${d || 'N/D'}</span>`;
+                            }
+                        },
+                        { 
+                            data: 'dependencia',
+                            render: function(data, type, row) {
+                                let dep = data || 'Municipio';
+                                return `<div class="d-inline-block text-truncate border rounded px-2 py-0 bg-light text-dark" style="max-width: 150px; font-size: 9.5px;" title="${dep}"><i class="bi bi-building me-1 text-info"></i>${dep}</div>`;
+                            }
+                        },
+                        { 
+                            data: 'monto', 
+                            className: 'text-end',
+                            render: function(data, type, row) {
+                                let val = parseFloat(data) || 0;
+                                let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                if (row.estatus === 'Cancelado') {
+                                    return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+                                }
+                                return `<span class="text-info fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+                            }
+                        }
                     ]);
                 }
 
