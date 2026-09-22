@@ -247,38 +247,18 @@ my $especialidad_nombre = '';
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 my $rutas = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
 
-# 1. Si $id_medico es un ID_ITEM de catalogo_items_${clues}.dat (Caja Rápida)
-if ($id_medico && $id_medico ne 'N/D') {
-    my $it_file = $rutas->{items};
-    if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
-        while (my $li = <$fi>) {
-            chomp $li;
-            my @f = split /\|/, $li, -1;
-            if ($f[0] eq $id_medico) {
-                my $conc = $f[3] // '';
-                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
-                    my $esp_tmp = $1;
-                    my $med_tmp = $2;
-                    $esp_tmp =~ s/^\s+|\s+$//g;
-                    $med_tmp =~ s/\s*\(.*?\)//g;
-                    $med_tmp =~ s/^\s+|\s+$//g;
-                    $especialidad_nombre = uc($esp_tmp);
-                    $medico_nombre = uc($med_tmp);
-                }
-                last;
-            }
-        }
-        close $fi;
-    }
-}
-
-# 2. Extraer directamente de items_json si el concepto contiene el médico (garantiza coincidencia con el concepto cobrado)
+# 1. Extraer directamente de items_json si el ítem contiene el médico y especialidad (garantiza coincidencia con el concepto cobrado)
 if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $recibo->{items_json}) {
     eval {
         require JSON;
         my $items_arr = JSON::decode_json($recibo->{items_json});
         if (ref($items_arr) eq 'ARRAY') {
             foreach my $it (@$items_arr) {
+                if ($it->{medico} || $it->{nombre_medico}) {
+                    $medico_nombre = uc($it->{medico} || $it->{nombre_medico});
+                    $especialidad_nombre = uc($it->{especialidad}) if ($it->{especialidad} && !$especialidad_nombre);
+                    last;
+                }
                 my $conc = $it->{concepto} || $it->{nombre} || $it->{descripcion} || '';
                 if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
                     my $esp_tmp = $1;
@@ -299,6 +279,31 @@ if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $recibo->{items_
             }
         }
     };
+}
+
+# 2. Si no viene en el carrito, verificar si $id_medico es un ID_ITEM de catalogo_items_${clues}.dat (Caja Rápida)
+if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $id_medico && $id_medico ne 'N/D') {
+    my $it_file = $rutas->{items};
+    if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
+        while (my $li = <$fi>) {
+            chomp $li;
+            my @f = split /\|/, $li, -1;
+            if ($f[0] eq $id_medico) {
+                my $conc = $f[3] // '';
+                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                    my $esp_tmp = $1;
+                    my $med_tmp = $2;
+                    $esp_tmp =~ s/^\s+|\s+$//g;
+                    $med_tmp =~ s/\s*\(.*?\)//g;
+                    $med_tmp =~ s/^\s+|\s+$//g;
+                    $especialidad_nombre = uc($esp_tmp) unless $especialidad_nombre;
+                    $medico_nombre = uc($med_tmp);
+                }
+                last;
+            }
+        }
+        close $fi;
+    }
 }
 
 # 3. Si no es un ítem de catálogo con médico parseable, buscar en medicos_${clues}.dat (Citas directas de Agenda)

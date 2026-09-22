@@ -96,12 +96,15 @@ if ($recibo->{items_json} && $recibo->{items_json} ne '[]') {
                 $cubierto = 1;
             }
             push @cargos, {
-                concepto          => $it->{nombre},
+                concepto          => $it->{nombre} || $it->{concepto} || 'Concepto Médico',
                 precio            => $it->{precio},
                 precio_paciente   => $it->{precio_paciente} // ($cubierto ? 0 : $it->{precio}),
                 cubierto_convenio => $cubierto,
                 cantidad          => $it->{cantidad} || 1,
-                subtotal          => ($it->{precio} || 0) * ($it->{cantidad} || 1)
+                subtotal          => ($it->{precio} || 0) * ($it->{cantidad} || 1),
+                medico            => $it->{medico} || $it->{nombre_medico} || '',
+                nombre_medico     => $it->{nombre_medico} || $it->{medico} || '',
+                especialidad      => $it->{especialidad} || ''
             };
         }
     };
@@ -392,37 +395,13 @@ my $medico_nombre = "NO ESPECIFICADO";
 my $especialidad_nombre = '';
 my $rutas = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
 
-# 1. Si $id_medico es ID_ITEM de catalogo_items_${clues}.dat (Caja Rápida)
-if ($id_medico && $id_medico ne 'N/D') {
-    my $it_file = $rutas->{items};
-    if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
-        while (my $li = <$fi>) {
-            chomp $li;
-            my @f = split /\|/, $li, -1;
-            if ($f[0] eq $id_medico) {
-                my $conc = $f[3] // '';
-                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
-                    my $esp_tmp = $1;
-                    my $med_tmp = $2;
-                    $esp_tmp =~ s/^\s+|\s+$//g;
-                    $med_tmp =~ s/\s*\(.*?\)//g;
-                    $med_tmp =~ s/^\s+|\s+$//g;
-                    $especialidad_nombre = uc($esp_tmp);
-                    $medico_nombre = uc($med_tmp);
-                }
-                last;
-            }
-        }
-        close $fi;
-    }
-}
-
-# 2. Extraer de los cargos si aún no se ha resuelto el médico
+# 1. Extraer del carrito / cargos si la transacción ya contiene el médico y especialidad seleccionados
 if ($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) {
     foreach my $c (@cargos) {
         my $conc = $c->{concepto} || $c->{nombre} || $c->{descripcion} || '';
         if ($c->{medico} || $c->{nombre_medico}) {
             $medico_nombre = uc($c->{medico} || $c->{nombre_medico});
+            $especialidad_nombre = uc($c->{especialidad}) if ($c->{especialidad} && !$especialidad_nombre);
             last;
         } elsif ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
             my $esp_tmp = $1;
@@ -440,6 +419,31 @@ if ($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) {
             $medico_nombre = uc($cand);
             last;
         }
+    }
+}
+
+# 2. Si $id_medico es ID_ITEM de catalogo_items_${clues}.dat (Caja Rápida)
+if (($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && $id_medico && $id_medico ne 'N/D') {
+    my $it_file = $rutas->{items};
+    if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
+        while (my $li = <$fi>) {
+            chomp $li;
+            my @f = split /\|/, $li, -1;
+            if ($f[0] eq $id_medico) {
+                my $conc = $f[3] // '';
+                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                    my $esp_tmp = $1;
+                    my $med_tmp = $2;
+                    $esp_tmp =~ s/^\s+|\s+$//g;
+                    $med_tmp =~ s/\s*\(.*?\)//g;
+                    $med_tmp =~ s/^\s+|\s+$//g;
+                    $especialidad_nombre = uc($esp_tmp) unless $especialidad_nombre;
+                    $medico_nombre = uc($med_tmp);
+                }
+                last;
+            }
+        }
+        close $fi;
     }
 }
 
@@ -462,7 +466,7 @@ if (($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && $id_me
         close $fm;
     }
     
-    if ($id_especialidad) {
+    if ($id_especialidad && !$especialidad_nombre) {
         my $esp_file = $rutas->{especialidades};
         if (-e $esp_file && open(my $fe, '<:encoding(UTF-8)', $esp_file)) {
             while (my $le = <$fe>) {

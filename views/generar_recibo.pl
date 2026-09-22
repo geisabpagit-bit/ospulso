@@ -1570,9 +1570,24 @@ print <<'JS';
         // Si es paciente de Estado y el carrito está vacío, agregar automáticamente la consulta de convenio
         if (tipo === 'estado' && cartItems.length === 0 && requiereMedico) {
             let medNombre = $('#selMedico option:selected').text() || 'MÉDICO GENERAL';
+            if (medNombre.includes(' - ')) {
+                medNombre = medNombre.split(' - ').pop().trim();
+            }
+            medNombre = medNombre.replace(/\s*\(.*?\)\s*$/, '').trim();
+
+            let selEspe = document.getElementById('selEspecialidadCustom');
+            let espTexto = (selEspe && selEspe.selectedIndex >= 0 && selEspe.options[selEspe.selectedIndex].value) 
+                ? selEspe.options[selEspe.selectedIndex].text.trim() 
+                : 'GENERAL';
+
             cartItems.push({
                 id: 'CONS-' + (id_medico || 'GEN'),
-                nombre: 'CONSULTA MÉDICA - ' + medNombre,
+                id_item: id_medico || '',
+                nombre: 'Consulta - ' + espTexto,
+                concepto: 'Consulta - ' + espTexto,
+                medico: medNombre,
+                nombre_medico: medNombre,
+                especialidad: espTexto,
                 precio: 0,
                 precio_paciente: 0,
                 cubierto_convenio: 1,
