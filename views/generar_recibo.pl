@@ -1159,7 +1159,7 @@ print <<'JS';
                     let label = getTarifaNombre(p.tipo_tarifa);
                     optionsHtml += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}" ${sel}>${escapeHtml(label)} (${formatCurrency(p.precio_publico)})</option>`;
                 });
-                colPrecioHtml = `<select id="selTarifaModal_${escapeHtml(it.id)}" class="form-select form-select-sm border-secondary text-primary font-monospace py-0 px-1" style="font-size:0.75rem; width:100%; max-width:180px;">${optionsHtml}</select>`;
+                colPrecioHtml = `<select id="selTarifaModal_${escapeHtml(it.id)}" class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-1" style="font-size:0.72rem; width:100%; max-width:190px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;">${optionsHtml}</select>`;
             } else {
                 colPrecioHtml = `<span class="fw-bold text-success small">${formatCurrency(it.precio)}</span>`;
             }
@@ -1282,7 +1282,7 @@ print <<'JS';
                     let label = getTarifaNombre(p.tipo_tarifa);
                     opts += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}" ${sel}>${escapeHtml(label)} (${formatCurrency(p.precio_publico)})</option>`;
                 });
-                subtextoTarifa = `<select class="form-select form-select-sm border-0 bg-light text-primary font-monospace py-0 ps-1 pe-3 mt-1" style="font-size:0.7rem; cursor:pointer;" onchange="updateModalItemTarifaRecibo(${idx}, this)">${opts}</select>`;
+                subtextoTarifa = `<select class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-0.5 mt-1" style="font-size:0.7rem; max-width:185px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" onchange="updateModalItemTarifaRecibo(${idx}, this)">${opts}</select>`;
             } else {
                 let labelT = getTarifaNombre(it.tipo_tarifa);
                 subtextoTarifa = `<div class="text-muted small" style="font-size:0.75rem;">${formatCurrency(it.precio)} c/u <span class="badge bg-light text-secondary border ms-1" style="font-size:0.65rem;">${escapeHtml(labelT)}</span></div>`;
@@ -1396,7 +1396,7 @@ print <<'JS';
                     let label = getTarifaNombre(p.tipo_tarifa);
                     opts += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}" ${sel}>${escapeHtml(label)} (${formatCurrency(p.precio_publico)})</option>`;
                 });
-                subtexto = `<select class="form-select form-select-sm border-0 bg-transparent text-primary fw-bold p-0" style="font-size:0.7rem; cursor:pointer;" onchange="updateCartItemTarifa(${idx}, this)">${opts}</select>`;
+                subtexto = `<select class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-0.5 mt-0.5" style="font-size:0.7rem; max-width:185px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" onchange="updateCartItemTarifa(${idx}, this)">${opts}</select>`;
             } else {
                 let labelT = item.tipo_tarifa ? ` [${getTarifaNombre(item.tipo_tarifa)}]` : '';
                 subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u${escapeHtml(labelT)}</small>`;
