@@ -57,27 +57,24 @@ utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_ac
 
 print <<'HTML';
         <!-- TOPBAR -->
-        <header class="bg-medentia-gradient text-white p-4 shadow-sm" style="border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; margin-bottom: 2rem;">
+        <header class="bg-medentia-gradient text-white p-4 shadow-sm mb-4" style="border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2 class="fw-black mb-0"><i class="bi bi-arrow-repeat me-2"></i>Reset Operativo de Organización</h2>
                     <p class="text-white-50 small mb-0 mt-1">Limpieza de movimientos transaccionales y reinicio personalizado de folios</p>
                 </div>
-                <a href="../views/inicial.pl" class="btn btn-outline-light rounded-pill px-4 fw-semibold shadow-sm">
-                    <i class="bi bi-house-door me-2"></i>Inicio
-                </a>
             </div>
         </header>
 
-        <div class="container-fluid px-4 pb-5">
-            <div class="row justify-content-center">
-                <div class="col-12 col-xl-9">
+        <div class="container-fluid container-mobile-flush px-2 px-md-4 pb-5">
+            <div class="row g-3">
+                <div class="col-12">
                     <!-- Tarjeta Principal de Información y Advertencia -->
-                    <div class="card card-medentia-aura border-0 shadow-sm rounded-4 mb-4">
-                        <div class="card-body p-4 p-md-5">
+                    <div class="card card-medentia-aura card-mobile-flush border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card-body p-3 p-md-5">
                             
                             <!-- Alerta Informativa de Alto Nivel -->
-                            <div class="alert alert-warning border-0 rounded-4 p-4 mb-4 d-flex align-items-start gap-3 shadow-sm" style="background-color: #fffbeb; border-left: 5px solid #f59e0b !important;">
+                            <div class="alert alert-warning border-0 rounded-4 p-3 p-md-4 mb-4 d-flex align-items-start gap-3 shadow-sm" style="background-color: #fffbeb; border-left: 5px solid #f59e0b !important;">
                                 <i class="bi bi-exclamation-triangle-fill text-warning fs-2 flex-shrink-0"></i>
                                 <div>
                                     <h5 class="fw-bold text-dark mb-1">Atención: Operación de Mantenimiento y Purga Operativa</h5>
@@ -87,51 +84,53 @@ print <<'HTML';
                                 </div>
                             </div>
 
-                            <div class="row g-4 mb-4">
+                            <div class="row g-3 g-md-4 mb-4">
                                 <div class="col-12 col-md-6">
-                                    <div class="p-3 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 h-100">
-                                        <h6 class="fw-bold text-danger mb-2"><i class="bi bi-trash3-fill me-2"></i>¿Qué datos SE ELIMINAN?</h6>
+                                    <div class="p-3 p-md-4 rounded-4 bg-danger bg-opacity-10 border border-danger border-opacity-25 h-100 shadow-sm">
+                                        <h6 class="fw-bold text-danger mb-2"><i class="bi bi-trash3-fill me-2"></i>¿Qué datos SE ELIMINAN? (Reset Operativo)</h6>
                                         <ul class="small text-muted mb-0 ps-3">
-                                            <li>Recibos de cobro de caja rápida (privados y públicos).</li>
-                                            <li>Historial de estado de cuenta y transacciones de caja.</li>
-                                            <li>Citas en agenda médica.</li>
-                                            <li>Consultas clínicas, recetas y consentimientos.</li>
-                                            <li>Registro de egresos y gastos de la organización.</li>
-                                            <li>Pacientes temporales de mostrador.</li>
+                                            <li class="mb-1">Recibos de cobro de caja rápida (privados y públicos / convenios).</li>
+                                            <li class="mb-1">Historial de estado de cuenta y transacciones de caja.</li>
+                                            <li class="mb-1">Citas en agenda médica e historial de movimientos.</li>
+                                            <li class="mb-1">Consultas clínicas (SOAP), recetas, consentimientos y borradores.</li>
+                                            <li class="mb-1">Registro de egresos y gastos operativos de la organización.</li>
+                                            <li class="mb-1">Pacientes temporales de mostrador / caja rápida.</li>
+                                            <li>Cotizaciones, tratamientos y archivos adjuntos temporales.</li>
                                         </ul>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6">
-                                    <div class="p-3 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 h-100">
+                                    <div class="p-3 p-md-4 rounded-4 bg-success bg-opacity-10 border border-success border-opacity-25 h-100 shadow-sm">
                                         <h6 class="fw-bold text-success mb-2"><i class="bi bi-shield-check me-2"></i>¿Qué datos SE CONSERVAN INTACTOS?</h6>
                                         <ul class="small text-muted mb-0 ps-3">
-                                            <li><strong>Todos los usuarios creados</strong> (Médicos, Recepcionistas, Administradores).</li>
-                                            <li>Especialidades y catálogo de médicos vinculados.</li>
-                                            <li>Catálogo universal de servicios, categorías y departamentos.</li>
-                                            <li>Tarifas, matriz de precios y convenios institucionales.</li>
-                                            <li>Configuración del tenant y datos de la clínica.</li>
+                                            <li class="mb-1"><strong>Todos los usuarios del sistema</strong> (IDs, roles, correos, passwords de Médicos, Recepcionistas, Admins).</li>
+                                            <li class="mb-1">Especialidades, médicos y catálogo de personal configurado.</li>
+                                            <li class="mb-1">Catálogo universal de servicios, productos, categorías y departamentos.</li>
+                                            <li class="mb-1">Matriz de tarifas y convenios institucionales (públicos y privados).</li>
+                                            <li class="mb-1">Directorio de dependencias y empleados municipales.</li>
+                                            <li>Configuración del tenant, clínica y parámetros del negocio.</li>
                                         </ul>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Formulario de Configuración de Folios y Ejecución -->
-                            <form id="formResetOrg" onsubmit="ejecutarResetOrg(event)" class="mt-4 pt-3 border-top">
-                                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-sliders me-2 text-primary"></i>Configuración de Folios Consecutivos Iniciales</h5>
+                            <form id="formResetOrg" onsubmit="ejecutarResetOrg(event)" class="mt-4 pt-4 border-top">
+                                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-sliders me-2 text-primary"></i>Configuración de Folios Consecutivos Iniciales</h5>
                                 <p class="text-muted small mb-4">Defina los números de folio a partir de los cuales se comenzará a emitir la foliatura en caja al concluir el reset:</p>
 
                                 <div class="row g-3 mb-4">
                                     <div class="col-12 col-md-6">
-                                        <label class="form-label fw-bold small text-muted"><i class="bi bi-receipt me-1"></i>Folio Inicial de Recibos Privados</label>
-                                        <div class="input-group">
+                                        <label class="form-label fw-bold small text-secondary"><i class="bi bi-receipt me-1"></i>Folio Inicial de Recibos Privados</label>
+                                        <div class="input-group input-group-lg">
                                             <span class="input-group-text bg-light fw-bold">#</span>
                                             <input type="number" min="1" step="1" class="form-control fw-bold" name="folio_privados" id="folio_privados" value="1" required>
                                         </div>
                                         <div class="form-text small">El primer recibo privado cobrado tendrá este número de folio.</div>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label class="form-label fw-bold small text-muted"><i class="bi bi-building me-1"></i>Folio Inicial de Recibos Públicos (Convenios)</label>
-                                        <div class="input-group">
+                                        <label class="form-label fw-bold small text-secondary"><i class="bi bi-building me-1"></i>Folio Inicial de Recibos Públicos (Convenios)</label>
+                                        <div class="input-group input-group-lg">
                                             <span class="input-group-text bg-light fw-bold">#</span>
                                             <input type="number" min="1" step="1" class="form-control fw-bold" name="folio_publicos" id="folio_publicos" value="1" required>
                                         </div>
@@ -139,15 +138,15 @@ print <<'HTML';
                                     </div>
                                 </div>
 
-                                <div class="p-3 rounded-3 bg-light border mb-4">
+                                <div class="p-3 p-md-4 rounded-4 bg-light border mb-4 shadow-sm">
                                     <label class="form-label fw-bold small text-danger"><i class="bi bi-lock-fill me-1"></i>Confirmación de Seguridad Obligatoria</label>
                                     <p class="small text-muted mb-2">Para confirmar que comprende la purga de datos operativos, escriba la palabra <strong>CONFIRMAR</strong> en el siguiente campo:</p>
-                                    <input type="text" class="form-control text-uppercase fw-bold text-danger font-monospace" name="confirmacion" id="confirmacion" placeholder="Escriba CONFIRMAR aquí" style="max-width: 320px; text-transform: uppercase;" required>
+                                    <input type="text" class="form-control form-control-lg text-uppercase fw-bold text-danger font-monospace" name="confirmacion" id="confirmacion" placeholder="Escriba CONFIRMAR aquí" style="max-width: 360px; text-transform: uppercase;" required>
                                 </div>
 
-                                <div class="d-flex flex-wrap justify-content-end gap-3 pt-2">
-                                    <a href="../views/inicial.pl" class="btn btn-light border px-4 py-2">Cancelar</a>
-                                    <button type="submit" id="btnSubmitReset" class="btn btn-danger px-4 py-2 fw-bold shadow-sm">
+                                <div class="d-flex flex-column flex-sm-row justify-content-end gap-3 pt-2">
+                                    <a href="../views/inicial.pl" class="btn btn-mobile-standard btn-mobile-outline btn-light border px-4 py-2">Cancelar</a>
+                                    <button type="submit" id="btnSubmitReset" class="btn btn-mobile-standard btn-mobile-action btn-danger px-4 py-2 fw-bold shadow-sm">
                                         <i class="bi bi-arrow-counterclockwise me-2"></i>Ejecutar Reset de Organización
                                     </button>
                                 </div>
@@ -177,9 +176,9 @@ print <<'HTML';
 
                 const confirmResult = await Swal.fire({
                     title: '¿Confirmar Reset de Organización?',
-                    html: `Se purgarán los movimientos operativos y los folios iniciarán en:<br><br>
-                           <strong>Privados: #${folioPriv}</strong> | <strong>Públicos: #${folioPub}</strong><br><br>
-                           <span class="text-success fw-bold">Los usuarios permanecerán intactos.</span>`,
+                    html: `Se purgarán los movimientos operativos y los folios iniciarán en:<br><br>` +
+                           `<strong>Privados: #${folioPriv}</strong> | <strong>Públicos: #${folioPub}</strong><br><br>` +
+                           `<span class="text-success fw-bold">Los usuarios y configuraciones permanecerán intactos.</span>`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc2626',
@@ -224,4 +223,4 @@ print <<'HTML';
 HTML
 
 render_bottom_nav('ajustes');
-render_footer();
+

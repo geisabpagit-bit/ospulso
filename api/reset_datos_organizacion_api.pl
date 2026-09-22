@@ -243,7 +243,81 @@ eval {
         }
     }
 
-    # 9. Limpiar pacientes_privados_${org_clues}.dat (pacientes de mostrador)
+    # 9. Purga en cotizaciones.dat, cotizaciones_items.dat, tratamientos.dat, estudios.dat
+    my %cots_purgadas;
+    my $cot_file = File::Spec->catfile($dat_dir, 'cotizaciones.dat');
+    if (-e $cot_file && open(my $fh_cot, '<:encoding(UTF-8)', $cot_file)) {
+        my @lines = <$fh_cot>;
+        close $fh_cot;
+        my $cab = shift @lines;
+        chomp $cab if defined $cab;
+        my @conservar;
+        foreach my $l (@lines) {
+            chomp $l; next if $l =~ /^\s*$/;
+            my @c = split(/\|/, $l, -1);
+            my $id_cot = $c[0] // '';
+            my $m_id   = $c[5] // '';
+            if ($uids_org{$m_id}) {
+                $cots_purgadas{$id_cot} = 1 if $id_cot;
+            } else {
+                push @conservar, $l;
+            }
+        }
+        if (open(my $fh_out, '>:encoding(UTF-8)', $cot_file)) {
+            flock($fh_out, LOCK_EX);
+            print $fh_out "$cab\n" if defined $cab;
+            print $fh_out "$_\n" foreach @conservar;
+            close $fh_out;
+        }
+    }
+
+    my $coti_file = File::Spec->catfile($dat_dir, 'cotizaciones_items.dat');
+    if (%cots_purgadas && -e $coti_file && open(my $fh_coti, '<:encoding(UTF-8)', $coti_file)) {
+        my @lines = <$fh_coti>;
+        close $fh_coti;
+        my $cab = shift @lines;
+        chomp $cab if defined $cab;
+        my @conservar;
+        foreach my $l (@lines) {
+            chomp $l; next if $l =~ /^\s*$/;
+            my @c = split(/\|/, $l, -1);
+            my $id_cot = $c[0] // '';
+            if (!$cots_purgadas{$id_cot}) {
+                push @conservar, $l;
+            }
+        }
+        if (open(my $fh_out, '>:encoding(UTF-8)', $coti_file)) {
+            flock($fh_out, LOCK_EX);
+            print $fh_out "$cab\n" if defined $cab;
+            print $fh_out "$_\n" foreach @conservar;
+            close $fh_out;
+        }
+    }
+
+    my $trat_file = File::Spec->catfile($dat_dir, 'tratamientos.dat');
+    if (-e $trat_file && open(my $fh_tr, '<:encoding(UTF-8)', $trat_file)) {
+        my @lines = <$fh_tr>;
+        close $fh_tr;
+        my $cab = shift @lines;
+        chomp $cab if defined $cab;
+        my @conservar;
+        foreach my $l (@lines) {
+            chomp $l; next if $l =~ /^\s*$/;
+            my @c = split(/\|/, $l, -1);
+            my $m_id = $c[6] // '';
+            if (!$uids_org{$m_id}) {
+                push @conservar, $l;
+            }
+        }
+        if (open(my $fh_out, '>:encoding(UTF-8)', $trat_file)) {
+            flock($fh_out, LOCK_EX);
+            print $fh_out "$cab\n" if defined $cab;
+            print $fh_out "$_\n" foreach @conservar;
+            close $fh_out;
+        }
+    }
+
+    # 10. Limpiar pacientes_privados_${org_clues}.dat (pacientes de mostrador)
     if ($org_clues) {
         my $priv_pac_file = File::Spec->catfile($dat_dir, 'catalogos_CLUE', $org_clues, "pacientes_privados_${org_clues}.dat");
         if (-e $priv_pac_file) {
