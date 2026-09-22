@@ -13,7 +13,7 @@ use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 
-binmode STDOUT, ':utf8';
+binmode STDOUT, ':raw';
 
 my $q = CGI->new;
 my $sd = check_session($q);
