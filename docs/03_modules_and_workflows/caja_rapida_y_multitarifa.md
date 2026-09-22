@@ -5,6 +5,11 @@ El módulo de **Caja Rápida** (`views/generar_recibo.pl`) administra la emisió
 1. **Pacientes Privados** (`pacienteTipoActual === 'privado'`): Cobro directo en ventanilla con recibo comercial privado foliado.
 2. **Pacientes de Convenio / Estado / Municipio** (`pacienteTipoActual === 'estado'`): Órdenes médicas amparadas bajo subsidio público/municipal con recibo público foliado y liquidación vía Cuentas por Cobrar (CXC Estado).
 
+### 1.1 Roles Autorizados y Consecutivos de Folio
+Tanto el rol **Recepcionista** como **Administrador Organizacion** (y Administradores de Sucursal/Globales) cuentan con los permisos para emitir recibos en Caja Rápida. Todos los recibos emitidos comparten de forma atómica y continua la secuencia numérica de folios por organización y sucursal, tomando como fuente canónica de verdad los archivos de contador correspondientes:
+- Privados: `dat/catalogos_CLUE/${clues}/contadores_recibos_privados_${clues}.dat`
+- Públicos: `dat/catalogos_CLUE/${clues}/contadores_recibos_publicos_${clues}.dat`
+
 ---
 
 ## 2. Reglas de Negocio en la Interfaz (UX)
