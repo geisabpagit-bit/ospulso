@@ -41,3 +41,12 @@ Todo recibo incluye una barra superior de acciones visible únicamente en pantal
 - **Naturaleza**: Orden de atención médica amparada bajo convenio gubernamental/municipal con subsidio.
 - **Fuente Canónica**: Inserción en `dat/folios_recibos_publicos.dat`.
 - **Contabilidad CXC Estado**: **NO constituye ingreso de efectivo físico en caja**. Se computa como Cuentas por Cobrar (CXC Estado) hasta su cobro institucional.
+
+---
+
+## 3.3 Jerarquía de Resolución de Médico y Especialidad en Impresión
+Para evitar colisiones de IDs entre archivos flat-file (`catalogo_items_${clues}.dat` vs `medicos_${clues}.dat`), la resolución del médico y la especialidad en la impresión de recibos se rige bajo el siguiente orden prioritario:
+1. **Match por Ítem de Catálogo (`catalogo_items_${clues}.dat`)**: Si `$id_medico` coincide con el `ID_ITEM` de un concepto de consulta (ej. `CONSULTA PEDIATRIA - DRA ROSA MARIA GONZALEZ`), se extrae la especialidad y el médico directamente de la descripción del concepto pagado.
+2. **Match por Carrito/Cargos (`items_json`)**: Si no hay coincidencia directa en catálogo pero `items_json` / `@cargos` especifica la especialidad o médico en la descripción, se extrae de la transacción.
+3. **Plantilla de Médicos (`medicos_${clues}.dat`)**: Solo se consulta si no es un ítem de catálogo ni se parseó del carrito (aplica para citas directas de la Agenda).
+4. **Fallback General**: Consulta en `usuarios.dat` o asignación de `"NO ESPECIFICADO"`.
