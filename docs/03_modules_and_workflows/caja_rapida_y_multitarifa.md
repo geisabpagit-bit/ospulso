@@ -65,4 +65,15 @@ graph TD
     I --> J
     J --> K["Conmutar Tarifa en Vivo / Recalcular IVA y Total"]
     K --> L["Emitir Recibo (Vista Previa Pestaña Controlada)"]
+    L --> M["Guardar en folios_recibos_*.dat (items_json con medico y especialidad)"]
+    M --> N["Sincronización en Impresión y DataTables de Finanzas (Prioridad 1)"]
 ```
+
+---
+
+## 5. Propagación del Payload e Integridad en Módulos Financieros
+
+Para evitar discrepancias entre lo seleccionado por el cajero y lo reportado en pantalla/reportes:
+1. **Preservación en `ITEMS_JSON`**: Todo ítem del carrito conserva explícitamente los atributos `medico`, `nombre_medico` y `especialidad`.
+2. **Propagación a DataTables (`views/finanzas.pl`)**: Las llamadas AJAX de DataTables (`api/get_recibos_caja_api.pl` y `api/generar_corte_caja.pl`) leen con **Prioridad 1** el payload `ITEMS_JSON`, garantizando que la columna **Médico** muestre exactamente al facultativo que atendió la consulta.
+3. **Paridad de Impresión**: Las plantillas [api/imprimir_recibo_caja.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_caja.pl) y [api/imprimir_recibo_publico.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_publico.pl) leen la misma fuente de verdad, presentando el nombre limpio del médico en el encabezado y el concepto formateado `Consulta - <ESPECIALIDAD>` en el cuerpo.
