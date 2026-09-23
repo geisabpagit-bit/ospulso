@@ -72,8 +72,8 @@ if ($id_empresa eq '0') {
 }
 $org_clues ||= 'QTSMP000116' if ($id_empresa eq '0');
 
-# 2. Identificar usuarios y médicos pertenecientes a esta organización (para filtrar consultas y citas)
-# NOTA: En usuarios.dat NO se borra a ningún usuario.
+# 2. Identificar usuarios y médicos pertenecientes a esta organización (para filtrar consultas, citas y estado de cuenta)
+# NOTA: En usuarios.dat NO se borra a ningún usuario ni médico del catálogo.
 my %uids_org;
 my $usr_file = File::Spec->catfile($dat_dir, 'usuarios.dat');
 if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
@@ -82,16 +82,41 @@ if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
         chomp $line;
         next if $line =~ /^\s*$/;
         my @u = split(/!/, $line, -1);
-        # u[0]: ID/user, u[6]: ID_negocio (ej: "0:0" o "12:1")
         my $u_id = $u[0];
         my $u_neg = $u[6] // '';
         my ($u_biz) = split(/:/, $u_neg);
         $u_biz //= '';
         if ($u_biz eq $id_empresa || ($id_empresa eq '0' && ($u_biz eq '0' || $u_biz eq ''))) {
-            $uids_org{$u_id} = 1;
+            $uids_org{$u_id} = 1 if (defined $u_id && $u_id ne '');
         }
     }
     close $fu;
+}
+
+# Incluir catálogo de médicos de la CLUE de la organización
+if ($org_clues) {
+    my $med_cat_file = File::Spec->catfile($dat_dir, 'catalogos_CLUE', $org_clues, "medicos_${org_clues}.dat");
+    if (-e $med_cat_file && open(my $fm, '<:encoding(UTF-8)', $med_cat_file)) {
+        <$fm>; # cabecera
+        while (my $line = <$fm>) {
+            chomp $line; next if $line =~ /^\s*$/;
+            my @m = split(/\|/, $line, -1);
+            $uids_org{$m[0]} = 1 if (defined $m[0] && $m[0] ne '');
+        }
+        close $fm;
+    }
+}
+
+# Función auxiliar para determinar si un registro transaccional pertenece a la organización a resetear
+sub es_registro_de_org {
+    my ($m_id) = @_;
+    $m_id //= '';
+    $m_id =~ s/^\s+|\s+$//g;
+    # En la organización principal/default (0), todo movimiento operativo es de la organización
+    return 1 if ($id_empresa eq '0');
+    # En multi-tenant, pertenece a la org si el médico/usuario pertenece a la org o si no tiene médico asignado (walk-in)
+    return 1 if ($m_id eq '' || $uids_org{$m_id});
+    return 0;
 }
 
 eval {
@@ -157,7 +182,7 @@ eval {
             my @c = split(/\|/, $l, -1);
             # c[9]: ID_MEDICO
             my $m_id = $c[9] // '';
-            if (!$uids_org{$m_id}) {
+            if (!es_registro_de_org($m_id)) {
                 push @conservar, $l;
             }
         }
@@ -181,7 +206,7 @@ eval {
             chomp $l; next if $l =~ /^\s*$/;
             my @c = split(/\|/, $l, -1);
             my $m_id = $c[1] // '';
-            if (!$uids_org{$m_id}) {
+            if (!es_registro_de_org($m_id)) {
                 push @conservar, $l;
             }
         }
@@ -206,7 +231,7 @@ eval {
                 chomp $l; next if $l =~ /^\s*$/;
                 my @c = split(/\|/, $l, -1);
                 my $m_id = $c[3] // '';
-                if (!$uids_org{$m_id}) {
+                if (!es_registro_de_org($m_id)) {
                     push @conservar, $l;
                 }
             }
@@ -231,7 +256,7 @@ eval {
             chomp $l; next if $l =~ /^\s*$/;
             my @c = split(/\|/, $l, -1);
             my $m_id = $c[9] // '';
-            if (!$uids_org{$m_id}) {
+            if (!es_registro_de_org($m_id)) {
                 push @conservar, $l;
             }
         }
@@ -257,7 +282,7 @@ eval {
             my @c = split(/\|/, $l, -1);
             my $id_cot = $c[0] // '';
             my $m_id   = $c[5] // '';
-            if ($uids_org{$m_id}) {
+            if (es_registro_de_org($m_id)) {
                 $cots_purgadas{$id_cot} = 1 if $id_cot;
             } else {
                 push @conservar, $l;
@@ -305,7 +330,7 @@ eval {
             chomp $l; next if $l =~ /^\s*$/;
             my @c = split(/\|/, $l, -1);
             my $m_id = $c[6] // '';
-            if (!$uids_org{$m_id}) {
+            if (!es_registro_de_org($m_id)) {
                 push @conservar, $l;
             }
         }
