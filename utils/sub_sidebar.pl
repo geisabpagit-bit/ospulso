@@ -239,8 +239,8 @@ HTML
         };
     }
     
-    # 4. Quirófano / Hospitalización (Solo Médicos, Administrador Organizacion, Enfermería)
-    if ($role ne 'Administrador Global' && $role =~ /Medico|Administrador|Enfermeria/i) {
+    # 4. Quirófano / Hospitalización (RBAC y Excepciones Activas)
+    if ($is_allowed{quirofano}) {
         my $active_quirofano = ($pagina_actual eq 'quirofano_kanban') ? 'active' : '';
         print qq{
             <a href="../views/quirofano_kanban.pl" class="sub-link $active_quirofano w-100 text-start text-decoration-none d-flex align-items-center mb-1">
@@ -250,7 +250,7 @@ HTML
     }
 
     # Separador después de Pacientes / Agenda Dinámica / Quirófano
-    if ($is_allowed{pacientes} || $is_allowed{agenda}) {
+    if ($is_allowed{pacientes} || $is_allowed{agenda} || $is_allowed{quirofano}) {
         print qq{<hr class="my-2 opacity-25 sidebar-separator">};
     }
 

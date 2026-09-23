@@ -14,6 +14,7 @@ Este documento agrupa la especificación de los módulos complementarios y espec
 ### 2.2 Quirófano Kanban (`views/quirofano_kanban.pl`)
 - Tablero visual de flujo de cirugías en tiempo real.
 - Estados: *Programada*, *En Preparación*, *En Quirófano*, *Recuperación* y *Alta Quirúrgica*.
+- **Control de Acceso (RBAC & Excepciones Activas)**: La visibilidad del ítem *"Tablero Quirófano"* en el menú lateral (`utils/sub_sidebar.pl`) y el acceso directo al punto de entrada (`views/quirofano_kanban.pl`) están gobernados dinámicamente por la función `utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, 'quirofano', 'R', $id_usuario_sesion)`. Permite asignación por matriz de roles (`permisos_roles_*.dat`) u la invalidación/concesión explícita mediante excepciones activas individuales (`permisos_usuarios_*.dat`).
 
 ### 2.3 Odontograma SPA (`js/odontograma_spa.js`)
 - Lienzo gráfico interactivo sobre HTML5 Canvas para odontología.

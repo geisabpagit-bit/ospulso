@@ -14,6 +14,7 @@ require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
 use utils::db_manager qw(leer_tabla);
 
 my $sd = check_session();
@@ -21,12 +22,17 @@ my $q  = $sd->{q};
 my $usuario    = $sd->{usuario};
 my $role       = $sd->{role};
 my $id_empresa = $sd->{id_empresa} || '';
+my $id_usuario_sesion = $sd->{id_registro} // $sd->{id_medico} // '';
 
 binmode STDOUT, ":utf8";
 
-# Restringir
-if ($role !~ /Medico|Administrador|Enfermeria/i) {
-    print $q->redirect('inicial.pl');
+# Restringir según RBAC y Excepciones Activas por usuario
+unless (utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, 'quirofano', 'R', $id_usuario_sesion)) {
+    render_acceso_denegado(
+        q => $q, usuario => $usuario, role => $role,
+        mensaje => 'No cuenta con facultades para acceder al Tablero de Quirófano de la Organización.',
+        rol_requerido => 'Facultad de Lectura (R) en Quirófano'
+    );
     exit;
 }
 
