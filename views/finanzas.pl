@@ -171,10 +171,21 @@ print <<'PAGE_HTML';
                 let motivo = result.value;
                 $.post('../api/cancelar_recibo_api.pl', { id_recibo: id, tipo: tipo, motivo: motivo }, function(res) {
                     if (res.ok) {
-                        Swal.fire('Cancelado', res.msg, 'success');
-                        if ($.fn.DataTable.isDataTable('#dtPublicosCxC')) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Recibo Cancelado',
+                            text: res.msg || 'El recibo fue cancelado correctamente.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        if ($.fn.DataTable && $.fn.DataTable.isDataTable('#dtPublicosCxC')) {
                             $('#dtPublicosCxC').DataTable().ajax.reload(null, false);
                         }
+                        if ($.fn.DataTable && $.fn.DataTable.isDataTable('#dtIngresosPrivados')) {
+                            $('#dtIngresosPrivados').DataTable().ajax.reload(null, false);
+                        }
+                        if (typeof cargarIngresos === 'function') cargarIngresos();
+                        if (typeof cargarCorteCaja === 'function') cargarCorteCaja();
                     } else {
                         Swal.fire('Error', res.msg, 'error');
                     }
@@ -948,8 +959,8 @@ PAGE_HTML
         if (elInicio && !elInicio.value) elInicio.value = hoy;
         if (elFin && !elFin.value) elFin.value = hoy;
 
-        let f_inicio = elInicio ? elInicio.value : hoy;
-        let f_fin = elFin ? elFin.value : hoy;
+        let f_inicio = (elInicio && elInicio.value && elInicio.value.trim() !== '') ? elInicio.value.trim() : hoy;
+        let f_fin = (elFin && elFin.value && elFin.value.trim() !== '') ? elFin.value.trim() : hoy;
 
         $.ajax({
             url: '../api/generar_corte_caja.pl',
@@ -961,7 +972,7 @@ PAGE_HTML
             },
             success: function(res) {
                 if (res.error) {
-                    if (typeof Swal !== 'undefined') Swal.fire('Error', res.msg || 'Error al cargar ingresos', 'error');
+                    console.warn('[cargarIngresos] Respuesta con advertencia:', res.msg);
                     return;
                 }
 
@@ -1177,8 +1188,16 @@ PAGE_HTML
     let ultimoResCorte = null;
 
     window.cargarCorteCaja = function() {
-        let f_inicio = document.getElementById('cc_fecha_inicio').value;
-        let f_fin = document.getElementById('cc_fecha_fin').value;
+        const elCcInicio = document.getElementById('cc_fecha_inicio');
+        const elCcFin = document.getElementById('cc_fecha_fin');
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        let hoyCc = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+
+        if (elCcInicio && !elCcInicio.value) elCcInicio.value = hoyCc;
+        if (elCcFin && !elCcFin.value) elCcFin.value = hoyCc;
+
+        let f_inicio = (elCcInicio && elCcInicio.value && elCcInicio.value.trim() !== '') ? elCcInicio.value.trim() : hoyCc;
+        let f_fin = (elCcFin && elCcFin.value && elCcFin.value.trim() !== '') ? elCcFin.value.trim() : hoyCc;
 
         $.ajax({
             url: '../api/generar_corte_caja.pl',
@@ -1187,7 +1206,7 @@ PAGE_HTML
             data: { f_inicio: f_inicio, f_fin: f_fin },
             success: function(res) {
                 if(res.error) {
-                    Swal.fire('Error', res.msg || 'No autorizado', 'error');
+                    console.warn('[cargarCorteCaja] Respuesta con advertencia:', res.msg);
                     return;
                 }
                 

@@ -23,13 +23,11 @@ if (!$session_data->{session_ok} || $session_data->{role} !~ /Administrador Orga
 }
 
 # 2. Leer Parámetros
-my $f_inicio = $q->param('f_inicio') || '';
-my $f_fin    = $q->param('f_fin')    || '';
+my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+my $hoy_fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
 
-if (!$f_inicio || !$f_fin) {
-    print encode_json({ error => 1, msg => 'Debe proporcionar un rango de fechas.' });
-    exit;
-}
+my $f_inicio = $q->param('f_inicio') || $hoy_fecha;
+my $f_fin    = $q->param('f_fin')    || $hoy_fecha;
 
 # 3. Datos de la Organización
 my $dat_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
