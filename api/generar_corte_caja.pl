@@ -33,16 +33,113 @@ my $f_fin    = $q->param('f_fin')    || $hoy_fecha;
 my $dat_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
 my $id_empresa = $session_data->{id_empresa} // '';
 
-# Obtener CLUES para leer folios
+# Obtener datos del negocio, logo y dirección estructurada de sucursal
+my $negocio_nombre = 'Sucursal Clínica';
+my $negocio_domicilio = '';
+my $negocio_logo_url = '';
 my $org_clues = '';
+
 my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
-my $negocios_data = leer_tabla($negocios_file);
-foreach my $neg (@$negocios_data) {
-    if ($neg->[0] eq $id_empresa) {
-        $org_clues = $neg->[18] // '';
-        last;
+if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
+    my $hn = <$fhn>;
+    while (my $ln = <$fhn>) {
+        chomp $ln;
+        my @n = split /\|/, $ln, -1;
+        if ($n[0] eq $id_empresa) {
+            $negocio_nombre    = $n[1] // '';
+            $negocio_domicilio = ($n[3] // '') . ', ' . ($n[4] // '') . ', ' . ($n[7] // '') . ', ' . ($n[8] // '');
+            $negocio_logo_url  = $n[9] // '';
+            $org_clues         = $n[18] // $n[1] // '';
+            last;
+        }
+    }
+    close $fhn;
+}
+
+# Resolver logo_url
+if ($org_clues eq 'QTSMP000116' || ($org_clues && -e File::Spec->catfile($dat_dir, 'logos', "logo_${org_clues}.jpg"))) {
+    $negocio_logo_url = "../dat/logos/logo_${org_clues}.jpg";
+} elsif ($negocio_logo_url) {
+    $negocio_logo_url = "../$negocio_logo_url" unless $negocio_logo_url =~ /^\.\.\//;
+}
+
+# Dirección estructurada de la sucursal (Idéntica a api/imprimir_recibo_caja.pl)
+my $clue_encontrada = 0;
+my ($pie_calle_no, $pie_colonia, $pie_municipio, $pie_entidad, $pie_telefono, $pie_cp) = ('', '', '', '', '', '');
+
+if ($org_clues) {
+    my $cat_clues_file = File::Spec->catfile($dat_dir, 'catalogosOF', 'CAT_CLUES.dat');
+    if (-e $cat_clues_file && open(my $fh_clue, '<:encoding(UTF-8)', $cat_clues_file)) {
+        <$fh_clue>;
+        while (my $line = <$fh_clue>) {
+            chomp $line;
+            next unless $line;
+            my @c = split /\|/, $line, -1;
+            if (@c > 32 && $c[0] eq $org_clues) {
+                my $vialidad_tipo = $c[20] // '';
+                my $vialidad_nom  = $c[21] // '';
+                my $num_ext       = $c[22] // '';
+                
+                my $dir_calle = join(' ', grep { $_ ne '' } ($vialidad_tipo, $vialidad_nom, $num_ext));
+                $pie_calle_no  = $dir_calle || ($c[28] // '');
+                $pie_colonia   = $c[26] || $c[8] || '';
+                $pie_municipio = $c[6] // '';
+                $pie_entidad   = $c[4] // '';
+                $pie_telefono  = $c[32] // '';
+                $pie_cp        = $c[27] // '';
+                
+                $clue_encontrada = 1;
+                last;
+            }
+        }
+        close $fh_clue;
     }
 }
+
+if (!$clue_encontrada && $id_empresa && -e $negocios_file && open(my $fn_suc, '<:encoding(UTF-8)', $negocios_file)) {
+    <$fn_suc>;
+    while (my $line = <$fn_suc>) {
+        chomp $line;
+        my @n = split /\|/, $line, -1;
+        if ($n[0] eq $id_empresa) {
+            $pie_calle_no  = $n[6] // '';
+            $pie_colonia   = $n[17] // '';
+            $pie_municipio = $n[16] // '';
+            $pie_entidad   = $n[15] // '';
+            $pie_telefono  = $n[7] // '';
+            $pie_cp        = $n[14] // '';
+            last;
+        }
+    }
+    close $fn_suc;
+}
+
+foreach ($pie_calle_no, $pie_colonia, $pie_municipio, $pie_entidad, $pie_telefono, $pie_cp) {
+    s/[\(\)]//g;
+    s/^\s+|\s+$//g;
+}
+
+my @pie_partes;
+push @pie_partes, $pie_calle_no        if $pie_calle_no ne '';
+push @pie_partes, $pie_colonia         if $pie_colonia ne '';
+push @pie_partes, $pie_municipio       if $pie_municipio ne '';
+push @pie_partes, $pie_entidad         if $pie_entidad ne '';
+push @pie_partes, "Tel. $pie_telefono" if $pie_telefono ne '';
+push @pie_partes, "C.P. $pie_cp"       if $pie_cp ne '';
+
+my $direccion_sucursal = join(", ", @pie_partes) || $negocio_domicilio || 'Dirección de sucursal no registrada';
+
+# Responsable de la persona con sesión activa
+my $responsable_login = $session_data->{usuario} // 'Responsable de Caja';
+
+# Fecha y hora larga de generación
+my @dias_es = qw(Domingo Lunes Martes Miércoles Jueves Viernes Sábado);
+my @meses_es = qw(Enero Febrero Marzo Abril Mayo Junio Julio Agosto Septiembre Octubre Noviembre Diciembre);
+my ($s_c, $m_c, $h_c, $mday_c, $mon_c, $year_c, $wday_c) = localtime();
+my $ampm_c = $h_c >= 12 ? 'PM' : 'AM';
+my $h12_c = $h_c % 12; $h12_c = 12 if $h12_c == 0;
+my $fecha_hora_larga = sprintf("%s %d de %s de %d, %02d:%02d:%02d %s",
+    $dias_es[$wday_c], $mday_c, $meses_es[$mon_c], $year_c + 1900, $h12_c, $m_c, $s_c, $ampm_c);
 
 # Diccionario de médicos para resolver ID a Nombre
 my %medicos = ();
@@ -486,12 +583,17 @@ if (-e $archivo_egresos) {
 
 # 6. Responder JSON
 print encode_json({
-    ok       => JSON::true,
-    ingresos => \@ingresos_filtrados,
-    egresos  => \@egresos_filtrados,
-    cxc      => \@cxc_filtrados,
-    total_ingresos => $total_ingresos,
-    total_egresos  => $total_egresos,
-    total_cxc      => $total_cxc
+    ok                 => JSON::true,
+    ingresos           => \@ingresos_filtrados,
+    egresos            => \@egresos_filtrados,
+    cxc                => \@cxc_filtrados,
+    total_ingresos     => $total_ingresos,
+    total_egresos      => $total_egresos,
+    total_cxc          => $total_cxc,
+    responsable_login  => $responsable_login,
+    logo_url           => $negocio_logo_url,
+    negocio_nombre     => $negocio_nombre,
+    direccion_sucursal => $direccion_sucursal,
+    fecha_hora_larga   => $fecha_hora_larga
 });
 1;

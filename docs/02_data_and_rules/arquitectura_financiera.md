@@ -43,3 +43,17 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
 2. **Selección y Reevaluación Dinámica en Recibos**:
    - En **Caja Rápida** (`views/generar_recibo.pl`), el usuario puede seleccionar libremente la tarifa aplicable por cada concepto agregado al carrito.
    - El sistema reevalúa unitarios, subtotales, IVA y total global en tiempo real sin romper el acumulado contable.
+
+---
+
+## 4. Estándar de Reporte "Resumen Ejecutivo de Caja" (`views/finanzas.pl`)
+
+1. **Gobernanza del Reporte Imprimible**:
+   El informe generado al hacer clic en *"Imprimir Resumen"* en el tab de **Corte de Caja** (`tab=corte_caja`) debe incluir:
+   - **Isotipo / Logo Institucional**: Renderizado en el extremo superior izquierdo del reporte desde `$negocio_logo_url`.
+   - **Firma del Responsable**: Bloque centrado que muestra de forma explícita la firma y el nombre completo de la persona con sesión activa (`$session_data->{usuario}` / `responsable_login`).
+   - **Pie del Reporte**: 
+     - *Dirección de Sucursal*: Cadena estructurada igual a la del recibo de caja (`api/imprimir_recibo_caja.pl`).
+     - *Fecha y Hora Larga*: Timestamp completo en formato español (ej. *Martes 22 de Septiembre de 2026, 07:18:50 PM*).
+2. **Resiliencia de Payload**:
+   La API `api/generar_corte_caja.pl` provee `responsable_login`, `logo_url`, `direccion_sucursal` y `fecha_hora_larga` en su objeto JSON para garantizar consistencia entre vista previa e impresión física (`@media print`).

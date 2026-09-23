@@ -1508,7 +1508,30 @@ PAGE_HTML
         let difTexto = dif > 0 ? "Sobrante" : (dif < 0 ? "Faltante" : "Cuadrado Perfecto");
         let difColor = dif > 0 ? "green" : (dif < 0 ? "red" : "gray");
 
-        let htmlIngresos = ultimoResCorte.ingresos.length ? ultimoResCorte.ingresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.paciente + '</td><td>' + i.medico + '</td><td>' + i.forma_pago + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin ingresos en este periodo</td></tr>';
+        let logoUrl = (ultimoResCorte && ultimoResCorte.logo_url) ? ultimoResCorte.logo_url : '';
+        let negocioNombre = (ultimoResCorte && ultimoResCorte.negocio_nombre) ? ultimoResCorte.negocio_nombre : 'SDM OSPulso';
+        let logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height: 75px; max-width: 220px; object-fit: contain;">` : `<h3 style="margin: 0; color: #004d40; font-size: 18px;">${negocioNombre}</h3>`;
+
+        let responsableNombre = (ultimoResCorte && ultimoResCorte.responsable_login) ? ultimoResCorte.responsable_login : '';
+        let direccionSucursal = (ultimoResCorte && ultimoResCorte.direccion_sucursal) ? ultimoResCorte.direccion_sucursal : 'Dirección no registrada';
+        
+        let fechaHoraLarga = (ultimoResCorte && ultimoResCorte.fecha_hora_larga) ? ultimoResCorte.fecha_hora_larga : (function() {
+            const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const now = new Date();
+            let dNom = dias[now.getDay()];
+            let mNom = meses[now.getMonth()];
+            let dia = now.getDate();
+            let anio = now.getFullYear();
+            let hh = now.getHours();
+            let mm = String(now.getMinutes()).padStart(2, '0');
+            let ss = String(now.getSeconds()).padStart(2, '0');
+            let ampm = hh >= 12 ? 'PM' : 'AM';
+            let h12 = hh % 12 || 12;
+            return `${dNom} ${dia} de ${mNom} de ${anio}, ${String(h12).padStart(2, '0')}:${mm}:${ss} ${ampm}`;
+        })();
+
+        let htmlIngresos = (ultimoResCorte.ingresos && ultimoResCorte.ingresos.length) ? ultimoResCorte.ingresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.paciente + '</td><td>' + i.medico + '</td><td>' + i.forma_pago + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin ingresos en este periodo</td></tr>';
         
         let htmlEgresos = (ultimoResCorte.egresos && ultimoResCorte.egresos.length) ? ultimoResCorte.egresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.categoria + '</td><td>' + (i.origen_nombre || 'No Especificado') + '</td><td>' + i.concepto + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin egresos en este periodo</td></tr>';
 
@@ -1517,13 +1540,13 @@ PAGE_HTML
         <head>
             <title>Resumen Ejecutivo - Corte de Caja</title>
             <style>
-                body { font-family: 'Arial', sans-serif; padding: 20px; color: #333; }
-                .header { text-align: center; border-bottom: 2px solid #00C4C4; padding-bottom: 10px; margin-bottom: 20px; }
-                .header h2 { margin: 0; color: #004d40; }
-                .header p { margin: 5px 0 0; color: #666; font-size: 14px; }
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #00C4C4; padding-bottom: 12px; margin-bottom: 20px; }
+                .header h2 { margin: 0; color: #004d40; font-size: 20px; }
+                .header p { margin: 4px 0 0; color: #666; font-size: 13px; }
                 
-                .kpi-container { display: flex; justify-content: space-around; margin-bottom: 20px; }
-                .kpi-box { border: 1px solid #ddd; border-radius: 8px; padding: 15px; width: 30%; text-align: center; background: #f9f9f9; }
+                .kpi-container { display: flex; justify-content: space-around; margin-bottom: 20px; gap: 15px; }
+                .kpi-box { border: 1px solid #ddd; border-radius: 8px; padding: 15px; flex: 1; text-align: center; background: #f9f9f9; }
                 .kpi-box h4 { margin: 0 0 10px; font-size: 13px; color: #666; }
                 .kpi-box .val { font-size: 20px; font-weight: bold; color: #333; margin: 0; }
                 
@@ -1533,9 +1556,16 @@ PAGE_HTML
                 .text-right { text-align: right; }
                 .section-title { font-size: 15px; margin: 20px 0 10px; color: #004d40; border-bottom: 1px solid #eee; padding-bottom: 5px; }
                 
-                .footer-box { margin-top: 30px; border: 2px dashed #ccc; padding: 15px; text-align: center; background: #fcfcfc; }
-                .footer-box h3 { margin: 0 0 10px; color: #333; font-size: 16px; }
-                .footer-box p { margin: 5px 0; font-size: 14px; }
+                .footer-box { margin-top: 25px; border: 2px dashed #ccc; padding: 15px; text-align: center; background: #fcfcfc; border-radius: 8px; }
+                .footer-box h3 { margin: 0 0 10px; color: #333; font-size: 15px; }
+                .footer-box p { margin: 4px 0; font-size: 13px; }
+
+                .signature-section { margin-top: 45px; text-align: center; page-break-inside: avoid; }
+                .signature-box { display: inline-block; min-width: 260px; border-top: 1px solid #333; padding-top: 6px; }
+                .signature-name { font-weight: bold; font-size: 14px; color: #111; }
+                .signature-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+                .report-footer { margin-top: 35px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 10.5px; color: #555; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; page-break-inside: avoid; }
                 
                 @media print {
                     .no-print { display: none !important; }
@@ -1556,8 +1586,13 @@ PAGE_HTML
             </div>
 
             <div class="header">
-                <h2>Resumen Ejecutivo de Caja</h2>
-                <p>Periodo: ${fechaTexto}</p>
+                <div style="text-align: left; max-width: 45%;">
+                    ${logoHtml}
+                </div>
+                <div style="text-align: right;">
+                    <h2>Resumen Ejecutivo de Caja</h2>
+                    <p>Periodo: ${fechaTexto}</p>
+                </div>
             </div>
 
             <div class="kpi-container">
@@ -1602,9 +1637,19 @@ PAGE_HTML
                 <p>Resultado del Cuadre: <strong style="color: ${difColor};">${difTexto} por $${Math.abs(dif).toFixed(2)}</strong></p>
             </div>
             
-            <div style="margin-top: 50px; text-align: center;">
-                <div style="display: inline-block; width: 250px; border-top: 1px solid #000; padding-top: 5px;">
-                    Nombre y Firma del Responsable
+            <div class="signature-section">
+                <div class="signature-box">
+                    <div class="signature-name">${responsableNombre}</div>
+                    <div class="signature-label">Firma</div>
+                </div>
+            </div>
+
+            <div class="report-footer">
+                <div style="max-width: 60%; text-align: left;">
+                    <strong>Dirección:</strong> ${direccionSucursal}
+                </div>
+                <div style="text-align: right;">
+                    <strong>Generado el:</strong> ${fechaHoraLarga}
                 </div>
             </div>
         </body>
