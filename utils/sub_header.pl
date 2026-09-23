@@ -32,15 +32,20 @@ sub render_header {
     };
     
     my $nombre_org = 'OSPulso Clínicas';
-    my $clue_suc = "Sucursal $id_sucursal";
+    my $clue_suc = "ID : $id_sucursal";
     if ($id_empresa && open(my $fhn, '<:utf8', '../dat/negocios.dat')) {
         while (<$fhn>) {
             chomp;
             my @f = split /\|/;
             if ($f[0] eq $id_empresa) {
                 $nombre_org = $f[1] || $nombre_org;
-                my $clue = $f[18] || '';
-                $clue_suc = $clue ? "$clue - $id_sucursal" : "Sucursal $id_sucursal";
+                my $clue_val = $f[18] // '';
+                my $suc_val  = $id_sucursal || $f[0] || '';
+                if (length($clue_val)) {
+                    $clue_suc = "CLUE : $clue_val  ID : $suc_val";
+                } else {
+                    $clue_suc = "ID : $suc_val";
+                }
                 last;
             }
         }
@@ -288,16 +293,16 @@ HAM
 $hamburger_btn
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">
-                <a class="navbar-brand d-flex align-items-center justify-content-center m-0 text-decoration-none" href="inicial.pl" title="Inicio" style="margin-bottom: -10px;">
-                    <svg width="105" height="40" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="ms-1 sdm-brand-logo">
-                        <text x="5" y="38" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="34" letter-spacing="-1">
+                <a class="navbar-brand d-flex align-items-center justify-content-start m-0 text-decoration-none" href="inicial.pl" title="Inicio">
+                    <svg width="125" height="38" viewBox="0 0 160 45" fill="none" xmlns="http://www.w3.org/2000/svg" class="sdm-brand-logo flex-shrink-0">
+                        <text x="2" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="32" letter-spacing="-1">
                             <tspan fill="#0A2A66">Os</tspan><tspan fill="#00C4C4">Pulso</tspan>
                         </text>
-                        <path class="ekg-line-anim" d="M0 40 H115 L121 22 L128 42 L134 6 L141 34 L146 40 H160" stroke="#00C4C4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                        <path class="ekg-line-anim" d="M108 32 H112 L118 18 L124 38 L130 6 L136 28 L140 32 H156" stroke="#00C4C4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
                     </svg>
-                    <span class="d-none d-lg-inline-block text-secondary small border-start ps-3 ms-2 align-self-center py-1 fw-medium d-flex flex-column justify-content-center" style="font-size: 0.72rem; letter-spacing: 0.5px; line-height: 1.2;">
-                        <strong class="text-dark">$nombre_org</strong>
-                        <span>$clue_suc</span>
+                    <span class="d-none d-lg-inline-flex flex-column justify-content-center border-start ps-3 ms-2 text-secondary py-0" style="line-height: 1.25;">
+                        <strong class="text-dark fw-bold text-truncate" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.78rem; letter-spacing: 0.3px; max-width: 350px;" title="$nombre_org">$nombre_org</strong>
+                        <span class="text-secondary fw-semibold text-truncate" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.68rem; letter-spacing: 0.5px; margin-top: 2px; max-width: 350px;" title="$clue_suc">$clue_suc</span>
                     </span>
                 </a>
 
