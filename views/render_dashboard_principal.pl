@@ -450,28 +450,36 @@ JS
         backdrop-filter: blur(10px);
         border: 1px solid rgba(10, 42, 102, 0.15);
         border-radius: var(--radius-lg);
-        padding: 1.25rem;
+        padding: 0.85rem 0.5rem;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         transition: all 0.25s ease;
+        text-align: center;
     }
     .kpi-acrilico:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
         border-color: var(--md-teal-clinical);
     }
+    .kpi-icono {
+        font-size: 1.6rem;
+        margin-bottom: 0.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
     .kpi-titulo {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 700;
         text-transform: uppercase;
         color: var(--md-gray-text);
         letter-spacing: 0.5px;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.2rem;
     }
     .kpi-valor {
-        font-size: 1.8rem;
+        font-size: 1.45rem;
         font-weight: 800;
         color: var(--md-blue-deep);
-        letter-spacing: -1px;
+        letter-spacing: -0.5px;
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 </style>
@@ -490,14 +498,13 @@ HTML
             </script>
 JS
     print <<HTML;
-            <div class="row g-2 g-lg-4 mb-3 mb-lg-4 animate__animated animate__fadeIn card-mobile-flush">
-                <div class="col-6 col-lg-2">
-                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="kpi-titulo">Citas Hoy</span>
-                            <h2 class="kpi-valor counter-up m-0" data-value="$citas_hoy_count">$citas_hoy_count</h2>
-                        </div>
-                        <i class="bi bi-calendar-check text-primary fs-2 kpi-icon" style="opacity: 0.8;"></i>
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-2 g-lg-3 mb-3 mb-lg-4 animate__animated animate__fadeIn card-mobile-flush">
+                <!-- 1. Citas Hoy -->
+                <div class="col">
+                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
+                        <div class="kpi-icono text-primary mb-1"><i class="bi bi-calendar-check-fill"></i></div>
+                        <div class="kpi-titulo text-truncate">Citas Hoy</div>
+                        <h2 class="kpi-valor counter-up m-0 text-primary" data-value="$citas_hoy_count">$citas_hoy_count</h2>
                     </div>
                 </div>
 HTML
@@ -505,60 +512,56 @@ HTML
     if ($role eq 'Paciente') {
         my $citas_futuras = scalar(@proximas_citas);
         print <<HTML;
-                <div class="col-6 col-lg-2">
-                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="kpi-titulo">Citas Futuras</span>
-                            <h2 class="kpi-valor counter-up m-0" data-value="$citas_futuras">$citas_futuras</h2>
-                        </div>
-                        <i class="bi bi-calendar-range fs-2 kpi-icon" style="color: var(--md-teal-clinical); opacity: 0.8;"></i>
+                <!-- 2. Citas Futuras -->
+                <div class="col">
+                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
+                        <div class="kpi-icono mb-1" style="color: var(--md-teal-clinical);"><i class="bi bi-calendar-range-fill"></i></div>
+                        <div class="kpi-titulo text-truncate">Citas Futuras</div>
+                        <h2 class="kpi-valor counter-up m-0" data-value="$citas_futuras">$citas_futuras</h2>
                     </div>
                 </div>
 HTML
     } else {
         print <<HTML;
-                <div class="col-6 col-lg-2">
-                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="kpi-titulo">Pacientes</span>
-                            <h2 class="kpi-valor counter-up m-0" data-value="$t_pac">$t_pac</h2>
-                        </div>
-                        <i class="bi bi-people fs-2 kpi-icon" style="color: var(--md-teal-clinical); opacity: 0.8;"></i>
+                <!-- 2. Pacientes -->
+                <div class="col">
+                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
+                        <div class="kpi-icono mb-1" style="color: var(--md-teal-clinical);"><i class="bi bi-people-fill"></i></div>
+                        <div class="kpi-titulo text-truncate">Pacientes</div>
+                        <h2 class="kpi-valor counter-up m-0" data-value="$t_pac">$t_pac</h2>
                     </div>
                 </div>
 HTML
     }
 
     print <<HTML;
-                <div class="col-6 col-lg-2">
-                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="kpi-titulo">Cargos</span>
-                            <h2 class="kpi-valor counter-up m-0" data-value="$val_cargos_f" data-is-k="true">$str_cargos_k</h2>
-                        </div>
-                        <i class="bi bi-wallet2 text-cyan fs-2 kpi-icon" style="opacity: 0.8;"></i>
+                <!-- 3. Cargos -->
+                <div class="col">
+                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
+                        <div class="kpi-icono text-info mb-1"><i class="bi bi-wallet2"></i></div>
+                        <div class="kpi-titulo text-truncate">Cargos</div>
+                        <h2 class="kpi-valor counter-up m-0" data-value="$val_cargos_f" data-is-k="true">$str_cargos_k</h2>
                     </div>
                 </div>
-                <div class="col-6 col-lg-2">
-                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="kpi-titulo">Abonos</span>
-                            <h2 class="kpi-valor counter-up m-0" data-value="$val_abonos_f" data-is-k="true">$str_abonos_k</h2>
-                        </div>
-                        <i class="bi bi-cash-stack fs-2 kpi-icon" style="color: var(--md-blue-deep); opacity: 0.8;"></i>
+
+                <!-- 4. Abonos -->
+                <div class="col">
+                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
+                        <div class="kpi-icono text-success mb-1"><i class="bi bi-cash-stack"></i></div>
+                        <div class="kpi-titulo text-truncate text-success">Abonos</div>
+                        <h2 class="kpi-valor counter-up m-0 text-success" data-value="$val_abonos_f" data-is-k="true">$str_abonos_k</h2>
                     </div>
                 </div>
 HTML
 
-    if ($role eq 'Recepcionista') {
+    if ($role eq 'Recepcionista' || $role eq 'Medico' || $role =~ /Administrador/i) {
         print <<HTML;
-                <div class="col-6 col-lg-2">
-                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="kpi-titulo">CxC Estado</span>
-                            <h2 class="kpi-valor counter-up m-0" data-value="$val_cxc_estado_f" data-is-k="true">$str_cxc_estado_k</h2>
-                        </div>
-                        <i class="bi bi-bank text-secondary fs-2 kpi-icon" style="opacity: 0.8;"></i>
+                <!-- 5. CxC Estado -->
+                <div class="col">
+                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
+                        <div class="kpi-icono text-secondary mb-1"><i class="bi bi-building"></i></div>
+                        <div class="kpi-titulo text-truncate">CxC Estado</div>
+                        <h2 class="kpi-valor counter-up m-0 text-secondary" data-value="$val_cxc_estado_f" data-is-k="true">$str_cxc_estado_k</h2>
                     </div>
                 </div>
 HTML
@@ -566,13 +569,12 @@ HTML
 
     if ($role eq 'Paciente') {
         print <<HTML;
-                <div class="col-6 col-lg-3">
-                    <div class="kpi-acrilico h-100 d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="kpi-titulo">Saldo Pendiente</span>
-                            <h2 class="kpi-valor counter-up m-0" data-value="$val_saldo_f" data-is-k="true">$str_saldo_k</h2>
-                        </div>
-                        <i class="bi bi-bank text-danger fs-2 kpi-icon" style="opacity: 0.8;"></i>
+                <!-- 5. Saldo Pendiente -->
+                <div class="col">
+                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
+                        <div class="kpi-icono text-danger mb-1"><i class="bi bi-bank"></i></div>
+                        <div class="kpi-titulo text-truncate text-danger">Saldo Pendiente</div>
+                        <h2 class="kpi-valor counter-up m-0 text-danger" data-value="$val_saldo_f" data-is-k="true">$str_saldo_k</h2>
                     </div>
                 </div>
 HTML

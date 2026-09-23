@@ -45,3 +45,15 @@ Las tablas del sistema incorporan controles de exportación estandarizados estil
 ### 4.1 Unicidad del Botón Hamburguesa de Menú Lateral
 - **Fuente Única Canónica**: El botón de alternancia del menú desplegable de navegación móvil (botón hamburguesa `<button class="btn btn-menu-toggle-inline me-2 d-lg-none" onclick="toggleSidebar()">`) reside exclusivamente dentro del componente del encabezado global ([`utils/sub_header.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_header.pl)).
 - **Prohibición**: Queda prohibido duplicar o renderizar botones adicionales de alternancia de menú dentro de los encabezados de módulo o tarjetas secundarias (ej. en `.diamond-header-compact` o `.profile-hero`).
+
+---
+
+## 5. Tarjetas KPI Acrílicas Centradas (`.kpi-acrilico`)
+
+Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/inicial.pl` / `views/render_dashboard_principal.pl`) y en Finanzas / Corte de Caja (`views/finanzas.pl`) mantienen **estricta consistencia visual de diseño**:
+1. **Estructura Vertical Centrada**:
+   - Ícono superior centrado (`.kpi-icono` con tamaño responsivo ~1.6rem e ícono Bootstrap adhoc).
+   - Título en mayúsculas centrado (`.kpi-titulo` con `text-truncate`).
+   - Valor en negrita centrado (`.kpi-valor` con `counter-up`).
+2. **Disposición Grid en Fila Única**:
+   - Utilizan una distribución de 5 columnas en escritorio/tableta (`row row-cols-2 row-cols-sm-3 row-cols-md-5`) para garantizar que las 5 métricas caben en una sola fila continua sin desbordes.
