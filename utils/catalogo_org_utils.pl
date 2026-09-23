@@ -483,7 +483,7 @@ sub obtener_siguiente_folio_blindado {
         }
     }
 
-    # 2. Obtener el máximo folio numérico ya guardado en folios_recibos_*.dat para esta sucursal (ID_NEGOCIO, ID_SUCURSAL)
+    # 2. Obtener el máximo folio numérico ya guardado en folios_recibos_*.dat
     my $dat_dir = _resolver_dat_dir();
     my $folios_file = File::Spec->catfile($dat_dir, $is_publico ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat');
     my $max_guardado_dat = 0;
@@ -494,25 +494,18 @@ sub obtener_siguiente_folio_blindado {
             chomp $line;
             next if $line =~ /^\s*$/;
             my @cols = split(/\|/, $line, -1);
-            # Columna 1: FOLIO, Columna 2: ID_NEGOCIO, Columna 3: ID_SUCURSAL
             my $f_num = $cols[1] || 0;
-            my $f_neg = $cols[2] // '';
-            my $f_suc = $cols[3] // '';
-
-            if (($f_neg eq $id_neg || ($id_neg eq '0' && $f_neg eq '')) && 
-                ($f_suc eq $id_suc || ($id_suc eq '0' && $f_suc eq ''))) {
-                if ($f_num =~ /^(\d+)$/) {
-                    $max_guardado_dat = $1 if $1 > $max_guardado_dat;
-                }
+            if ($f_num =~ /^(\d+)$/) {
+                $max_guardado_dat = $1 if $1 > $max_guardado_dat;
             }
         }
         close $fh_dat;
     }
 
-    # 3. Leer y bloquear contador de la sucursal (ID_NEGOCIO, ID_SUCURSAL) compartida por todos sus roles
-    my $curr_branch_val = 0;
+    # 3. Leer y bloquear contador de la organización de forma atómica y compartida por todos los roles
+    my $curr_max_cont = 0;
     my @nuevas_lineas;
-    my $encontrado = 0;
+    my %filas_existentes;
     my $cabecera = "ID_NEGOCIO|ID_SUCURSAL|LAST_FOLIO";
 
     if (open my $fh_c, '+<:encoding(UTF-8)', $contadores_file) {
@@ -527,24 +520,32 @@ sub obtener_siguiente_folio_blindado {
                 chomp $l;
                 next if $l =~ /^\s*$/;
                 my @c = split /\|/, $l, -1;
-                if ($c[0] eq $id_neg && $c[1] eq $id_suc) {
-                    my $curr_val = int($c[2] || 0);
-                    my $base = ($curr_val > $max_guardado_dat) ? $curr_val : $max_guardado_dat;
-                    my $next_folio = $base + 1;
-                    $c[2] = $next_folio;
-                    $l = join('|', @c);
-                    $encontrado = 1;
-                    $curr_branch_val = $next_folio;
-                }
-                push @nuevas_lineas, $l;
+                my $v = int($c[2] || 0);
+                $curr_max_cont = $v if $v > $curr_max_cont;
+                $filas_existentes{$c[0] . '|' . $c[1]} = 1;
             }
         }
 
-        if (!$encontrado) {
-            my $base = $max_guardado_dat;
-            my $next_folio = $base + 1;
-            push @nuevas_lineas, join('|', $id_neg, $id_suc, $next_folio);
-            $curr_branch_val = $next_folio;
+        my $base_val = ($curr_max_cont > $max_guardado_dat) ? $curr_max_cont : $max_guardado_dat;
+        my $next_folio = $base_val + 1;
+
+        # Actualizar todas las filas existentes con el nuevo LAST_FOLIO unificado
+        if (@raw_lines) {
+            foreach my $l (@raw_lines) {
+                chomp $l; next if $l =~ /^\s*$/;
+                my @c = split /\|/, $l, -1;
+                $c[2] = $next_folio;
+                push @nuevas_lineas, join('|', @c);
+            }
+        }
+
+        unless ($filas_existentes{'0|0'}) {
+            push @nuevas_lineas, "0|0|$next_folio";
+            $filas_existentes{'0|0'} = 1;
+        }
+        unless ($filas_existentes{"$id_neg|$id_suc"}) {
+            push @nuevas_lineas, "$id_neg|$id_suc|$next_folio";
+            $filas_existentes{"$id_neg|$id_suc"} = 1;
         }
 
         seek($fh_c, 0, 0);
@@ -555,10 +556,13 @@ sub obtener_siguiente_folio_blindado {
         }
         close $fh_c;
 
-        return $curr_branch_val;
+        return $next_folio;
     } else {
         return $max_guardado_dat + 1;
     }
 }
+
+1;
+
 
 1;

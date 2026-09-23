@@ -567,11 +567,16 @@ if ($saldo > 0) {
     };
 }
 
-my $raw_elaborado = $recibo->{elaborado_por} || $session_data->{usuario} || $session_data->{nombre_usuario} || '';
+my $dat_dir = File::Spec->catfile($FindBin::Bin, '..', 'dat');
+my $org_clues = $negocio->{clues};
+
+my $raw_elaborado = $recibo->{elaborado_por} // '';
+$raw_elaborado =~ s/^\s+|\s+$//g;
 my $elaborado_por = $raw_elaborado;
 
-if ($raw_elaborado) {
-    my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+if ($raw_elaborado ne '') {
+    my $usr_file = File::Spec->catfile($dat_dir, 'usuarios.dat');
+    my $encontrado_usr = 0;
     if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
         while (my $lu = <$fu>) {
             chomp $lu;
@@ -579,10 +584,26 @@ if ($raw_elaborado) {
             my @u = split /!/, $lu, -1;
             if (@u >= 3 && ($u[0] eq $raw_elaborado || lc($u[2]) eq lc($raw_elaborado) || lc($u[1]) eq lc($raw_elaborado))) {
                 $elaborado_por = $u[1] if $u[1];
+                $encontrado_usr = 1;
                 last;
             }
         }
         close $fu;
+    }
+    if (!$encontrado_usr && $org_clues) {
+        my $med_file = File::Spec->catfile($dat_dir, 'catalogos_CLUE', $org_clues, "medicos_${org_clues}.dat");
+        if (-e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
+            while (my $lm = <$fm>) {
+                chomp $lm;
+                next if $lm =~ /^\s*$/ || $lm =~ /^\$/;
+                my @m = split /\|/, $lm, -1;
+                if (@m >= 3 && $m[0] eq $raw_elaborado) {
+                    $elaborado_por = $m[2] if $m[2];
+                    last;
+                }
+            }
+            close $fm;
+        }
     }
 }
 $elaborado_por ||= 'Sistema';
