@@ -110,51 +110,70 @@ HTML
         close($fh);
     }
 
+    # --- VERIFICAR SI LA ORGANIZACIÓN TIENE CLUE ---
+    my $has_clue = 0;
+    my $org_clues = '';
+    my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
+    if (-e $negocios_file && open(my $fhn, '<', $negocios_file)) {
+        my $first_clue = '';
+        while (my $line = <$fhn>) {
+            chomp($line);
+            next if $line =~ /^ID\|/ || $line =~ /^\s*$/;
+            my @f = split(/\|/, $line, -1);
+            my $row_id = $f[0] // '';
+            $row_id =~ s/^\s+|\s+$//g;
+            my $c_val = $f[18] // '';
+            $c_val =~ s/^\s+|\s+$//g;
+            $first_clue = $c_val if !$first_clue && length($c_val);
+            if ($row_id eq $id_empresa || ($id_empresa eq '0' && $row_id eq '0')) {
+                $org_clues = $c_val;
+                last;
+            }
+        }
+        close $fhn;
+        $org_clues = $first_clue if !length($org_clues) && (!defined $id_empresa || $id_empresa eq '' || $id_empresa eq '0');
+        $has_clue = length($org_clues) ? 1 : 0;
+    }
+
+    # Leer usuarios para mapeo de nombres de creadores/médicos
+    my %medicos = ();
+    my $usuarios_file = File::Spec->catfile($dat_dir, 'usuarios.dat');
+    if (-e $usuarios_file && open(my $fu, '<:utf8', $usuarios_file)) {
+        my $header = <$fu>;
+        while(my $line = <$fu>) {
+            chomp $line;
+            my @u = split /!/, $line, -1;
+            $medicos{$u[0]} = $u[1] if @u >= 2;
+        }
+        close $fu;
+    }
+    my $mi_nombre = $medicos{$usuario} || $usuario;
+
     my $total_cargos = 0;
     my $total_abonos = 0;
     my %saldos_estado = ();
 
     if ($role eq 'Recepcionista') {
-        # Para Recepcionista, leer folios_recibos_privados y publicos
-        my @recibos_files = (
-            File::Spec->catfile($dat_dir, 'folios_recibos_privados.dat'),
-            File::Spec->catfile($dat_dir, 'folios_recibos_publicos.dat')
-        );
-        
-        my %medicos = ();
-        my $usuarios_file = File::Spec->catfile($dat_dir, 'usuarios.dat');
-        if (-e $usuarios_file && open(my $fu, '<:utf8', $usuarios_file)) {
-            my $header = <$fu>;
-            while(my $line = <$fu>) {
-                chomp $line;
-                my @u = split /!/, $line, -1;
-                $medicos{$u[0]} = $u[1] if @u >= 2;
-            }
-            close $fu;
-        }
-        my $mi_nombre = $medicos{$usuario} || $usuario;
-        
-        foreach my $rfile (@recibos_files) {
-            if (-e $rfile && open(my $fh, '<:utf8', $rfile)) {
-                my $header = <$fh>;
-                while(my $line = <$fh>) {
-                    chomp($line);
-                    next if $line =~ /^\s*$/;
-                    my @r = split(/\|/, $line, -1);
-                    my $id_negocio = $r[2] // '';
-                    
-                    if ($id_empresa && $id_negocio) {
-                        next if $id_negocio ne $id_empresa;
-                    }
-                    
-                    my $elaborado = $r[11] // '';
-                    if ($elaborado eq $usuario || $elaborado eq $mi_nombre) {
-                        $total_cargos += ($r[8] || 0);
-                        $total_abonos += ($r[9] || 0);
-                    }
+        # Para Recepcionista, leer folios_recibos_privados (flujo de efectivo)
+        my $priv_file = File::Spec->catfile($dat_dir, 'folios_recibos_privados.dat');
+        if (-e $priv_file && open(my $fh, '<:utf8', $priv_file)) {
+            my $header = <$fh>;
+            while(my $line = <$fh>) {
+                chomp($line);
+                next if $line =~ /^\s*$/;
+                my @r = split(/\|/, $line, -1);
+                next if ($r[14] // '') =~ /Cancelado/i;
+                my $id_negocio = $r[2] // '';
+                if ($id_empresa && $id_negocio) {
+                    next if $id_negocio ne $id_empresa;
                 }
-                close($fh);
+                my $elaborado = $r[11] // '';
+                if ($is_admin || $elaborado eq $usuario || $elaborado eq $mi_nombre) {
+                    $total_cargos += ($r[8] || 0);
+                    $total_abonos += ($r[9] || 0);
+                }
             }
+            close($fh);
         }
     } else {
         if (-e $fin_file) {
@@ -184,14 +203,82 @@ HTML
             }
             close($fh);
         }
+        # Si total_cargos sigue en 0 para Admin/Medico, revisar también folios_recibos_privados.dat
+        if ($total_cargos == 0) {
+            my $priv_file = File::Spec->catfile($dat_dir, 'folios_recibos_privados.dat');
+            if (-e $priv_file && open(my $fh, '<:utf8', $priv_file)) {
+                my $header = <$fh>;
+                while(my $line = <$fh>) {
+                    chomp($line);
+                    next if $line =~ /^\s*$/;
+                    my @r = split(/\|/, $line, -1);
+                    next if ($r[14] // '') =~ /Cancelado/i;
+                    my $id_negocio = $r[2] // '';
+                    if ($id_empresa && $id_negocio) {
+                        next if $id_negocio ne $id_empresa;
+                    }
+                    my $m_id = $r[15] // '';
+                    if ($is_admin || $m_id eq $id_medico) {
+                        $total_cargos += ($r[8] || 0);
+                    }
+                }
+                close($fh);
+            }
+        }
     }
-    my $total_saldo = $total_cargos - $total_abonos;
+
+    # Egresos calculados desde gastos.dat
+    my $total_egresos = 0;
+    my $gastos_file = File::Spec->catfile($dat_dir, 'gastos.dat');
+    if (-e $gastos_file && open(my $fge, '<:utf8', $gastos_file)) {
+        my $h = <$fge>;
+        while(my $line = <$fge>) {
+            chomp($line);
+            next if $line =~ /^\s*$/;
+            my @g = split(/\|/, $line, -1);
+            my $monto = $g[6] || 0;
+            $monto =~ s/[^\d\.]//g;
+            my $creador = $g[10] || '';
+            if ($is_admin || $creador eq $usuario || $creador eq $mi_nombre || !$creador) {
+                $total_egresos += $monto;
+            }
+        }
+        close($fge);
+    }
+    # Respaldo si no hay gastos registrados pero existe abonos de pacientes
+    if ($total_egresos == 0 && $role eq 'Paciente') {
+        $total_egresos = $total_abonos;
+    }
+
+    my $total_saldo = $total_cargos - ($total_egresos > 0 ? $total_egresos : $total_abonos);
     
+    # CxC Estado
     my $cxc_estado_total = 0;
     foreach my $id_os (keys %saldos_estado) {
         my $ab = $saldos_estado{$id_os}{abonos} || 0;
         my $cg = $saldos_estado{$id_os}{cargos} || 0;
         $cxc_estado_total += ($ab > 0 ? $ab : $cg);
+    }
+    # Sumar folios_recibos_publicos.dat si aplica
+    my $recibos_pub_file = File::Spec->catfile($dat_dir, 'folios_recibos_publicos.dat');
+    if (-e $recibos_pub_file && open(my $fpub, '<:utf8', $recibos_pub_file)) {
+        my $h = <$fpub>;
+        while (my $line = <$fpub>) {
+            chomp($line);
+            next if $line =~ /^\s*$/;
+            my @r = split(/\|/, $line, -1);
+            next if ($r[14] // '') =~ /Cancelado/i;
+            my $id_negocio = $r[2] // '';
+            if ($id_empresa && $id_negocio) {
+                next if $id_negocio ne $id_empresa;
+            }
+            my $m_id = $r[15] // '';
+            my $elab = $r[11] // '';
+            if ($is_admin || $m_id eq $id_medico || $elab eq $usuario || $elab eq $mi_nombre) {
+                $cxc_estado_total += ($r[8] || $r[9] || 0) if !exists $saldos_estado{$r[0]};
+            }
+        }
+        close($fpub);
     }
 
     # --- CÁLCULO DE RANGO DE 7 DÍAS ---
@@ -236,14 +323,20 @@ HTML
     # Ordenar citas por fecha y hora
     @proximas_citas = sort { $a->{fecha} cmp $b->{fecha} || $a->{hora} cmp $b->{hora} } @proximas_citas;
 
-    my $str_cargos_k = format_compact_k($total_cargos);
-    my $str_abonos_k = format_compact_k($total_abonos);
-    my $str_saldo_k  = format_compact_k($total_saldo);
-    my $str_cxc_estado_k = format_compact_k($cxc_estado_total);
-    my $val_cargos_f = $total_cargos / 1000;
-    my $val_abonos_f = $total_abonos / 1000;
-    my $val_saldo_f  = $total_saldo / 1000;
-    my $val_cxc_estado_f = $cxc_estado_total / 1000;
+    my $str_ingresos   = format_currency($total_cargos);
+    my $str_egresos    = format_currency($total_egresos);
+    my $str_saldo      = format_currency($total_saldo);
+    my $str_cxc_estado = format_currency($cxc_estado_total);
+    my $val_cargos_f   = $total_cargos;
+    my $val_egresos_f  = $total_egresos;
+    my $val_saldo_f    = $total_saldo;
+    my $val_cxc_estado_f = $cxc_estado_total;
+
+    my $total_kpi_cards = 4;
+    if ($role eq 'Paciente' || ($has_clue && ($role eq 'Recepcionista' || $role eq 'Medico' || $role =~ /Administrador/i))) {
+        $total_kpi_cards = 5;
+    }
+    my $grid_cols_md = ($total_kpi_cards == 5) ? 'row-cols-md-5' : 'row-cols-md-4';
 
     # Homogenización de Etiquetas
     my $tit_modulos = "M&oacute;dulos de Gesti&oacute;n";
@@ -258,14 +351,19 @@ HTML
     );
     print <<'JS';
     <script>
-    function animateValue(obj, start, end, duration, isK) {
+    function animateValue(obj, start, end, duration, isCurrency) {
         let startTimestamp = null;
         let lastFormatted = null;
         const step = (timestamp) => {
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             const current = progress * (end - start) + start;
-            const formatted = isK ? ('$ ' + current.toFixed(2) + 'k') : Math.floor(current).toLocaleString();
+            let formatted;
+            if (isCurrency) {
+                formatted = '$' + current.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                formatted = Math.floor(current).toLocaleString();
+            }
             
             if (formatted !== lastFormatted) {
                 lastFormatted = formatted;
@@ -282,12 +380,12 @@ HTML
             const counters = document.querySelectorAll(".counter-up");
             counters.forEach(function(el) {
                 const val = parseFloat(el.getAttribute("data-value"));
-                const isK = el.getAttribute("data-is-k") === "true";
+                const isCurr = el.getAttribute("data-is-currency") === "true" || el.getAttribute("data-is-k") === "true";
                 if (!isNaN(val)) {
-                    animateValue(el, 0, val, 1500, isK);
+                    animateValue(el, 0, val, 1200, isCurr);
                 }
             });
-        }, 300);
+        }, 200);
     }
     
     if (document.readyState === 'loading') {
@@ -446,41 +544,68 @@ JS
         }
     }
     .kpi-acrilico {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(10, 42, 102, 0.15);
-        border-radius: var(--radius-lg);
-        padding: 0.85rem 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        transition: all 0.25s ease;
-        text-align: center;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.12) 100%) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 20px !important;
+        border-top: 1.5px solid rgba(0, 255, 255, 0.7) !important;
+        border-left: 1.5px solid rgba(0, 255, 255, 0.5) !important;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.15) !important;
+        border-right: 1px solid rgba(0, 255, 255, 0.15) !important;
+        box-shadow: 
+            inset 0px 4px 8px rgba(255, 255, 255, 0.85),
+            inset 0px -6px 10px rgba(0, 77, 77, 0.15),
+            inset 4px 0px 8px rgba(255, 255, 255, 0.55),
+            inset -4px 0px 8px rgba(0, 77, 77, 0.1),
+            0 15px 35px rgba(0, 0, 0, 0.16) !important;
+        padding: 1.15rem 0.5rem !important;
+        text-align: center !important;
+        transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+        width: 100%;
+        position: relative;
     }
     .kpi-acrilico:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-        border-color: var(--md-teal-clinical);
+        transform: translateY(-5px) !important;
+        box-shadow: 
+            inset 0px 4px 10px rgba(255, 255, 255, 0.95),
+            inset 0px -6px 12px rgba(0, 77, 77, 0.2),
+            inset 4px 0px 10px rgba(255, 255, 255, 0.65),
+            inset -4px 0px 10px rgba(0, 77, 77, 0.15),
+            0 20px 40px rgba(0, 0, 0, 0.22) !important;
     }
     .kpi-icono {
-        font-size: 1.6rem;
-        margin-bottom: 0.2rem;
+        font-size: 1.85rem;
+        margin-bottom: 0.35rem;
         display: flex;
         align-items: center;
         justify-content: center;
     }
     .kpi-titulo {
-        font-size: 0.7rem;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
         font-weight: 700;
+        font-size: 0.74rem;
+        color: #475569;
         text-transform: uppercase;
-        color: var(--md-gray-text);
         letter-spacing: 0.5px;
-        margin-bottom: 0.2rem;
+        margin-bottom: 0.35rem;
     }
     .kpi-valor {
-        font-size: 1.45rem;
+        font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+        font-size: 1.55rem;
         font-weight: 800;
-        color: var(--md-blue-deep);
+        color: #0A2A66;
         letter-spacing: -0.5px;
-        font-family: 'Plus Jakarta Sans', sans-serif;
+        white-space: nowrap;
+        line-height: 1.2;
+    }
+    \@media (max-width: 768px) {
+        .kpi-acrilico {
+            padding: 0.8rem 0.4rem !important;
+            border-radius: 16px !important;
+        }
+        .kpi-icono { font-size: 1.4rem; }
+        .kpi-titulo { font-size: 0.66rem; }
+        .kpi-valor { font-size: 1.25rem; }
     }
 </style>
 
@@ -498,11 +623,11 @@ HTML
             </script>
 JS
     print <<HTML;
-            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-2 g-lg-3 mb-3 mb-lg-4 animate__animated animate__fadeIn card-mobile-flush">
+            <div class="row row-cols-2 row-cols-sm-3 $grid_cols_md g-2 g-lg-3 mb-3 mb-lg-4 animate__animated animate__fadeIn card-mobile-flush">
                 <!-- 1. Citas Hoy -->
                 <div class="col">
                     <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono text-primary mb-1"><i class="bi bi-calendar-check-fill"></i></div>
+                        <div class="kpi-icono text-primary mb-1"><i class="bi bi-calendar-check"></i></div>
                         <div class="kpi-titulo text-truncate">Citas Hoy</div>
                         <h2 class="kpi-valor counter-up m-0 text-primary" data-value="$citas_hoy_count">$citas_hoy_count</h2>
                     </div>
@@ -515,7 +640,7 @@ HTML
                 <!-- 2. Citas Futuras -->
                 <div class="col">
                     <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono mb-1" style="color: var(--md-teal-clinical);"><i class="bi bi-calendar-range-fill"></i></div>
+                        <div class="kpi-icono mb-1" style="color: var(--md-teal-clinical);"><i class="bi bi-calendar-range"></i></div>
                         <div class="kpi-titulo text-truncate">Citas Futuras</div>
                         <h2 class="kpi-valor counter-up m-0" data-value="$citas_futuras">$citas_futuras</h2>
                     </div>
@@ -528,40 +653,40 @@ HTML
                     <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
                         <div class="kpi-icono mb-1" style="color: var(--md-teal-clinical);"><i class="bi bi-people-fill"></i></div>
                         <div class="kpi-titulo text-truncate">Pacientes</div>
-                        <h2 class="kpi-valor counter-up m-0" data-value="$t_pac">$t_pac</h2>
+                        <h2 class="kpi-valor counter-up m-0" style="color: var(--md-blue-deep);" data-value="$t_pac">$t_pac</h2>
                     </div>
                 </div>
 HTML
     }
 
     print <<HTML;
-                <!-- 3. Cargos -->
+                <!-- 3. Ingresos -->
                 <div class="col">
                     <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono text-info mb-1"><i class="bi bi-wallet2"></i></div>
-                        <div class="kpi-titulo text-truncate">Cargos</div>
-                        <h2 class="kpi-valor counter-up m-0" data-value="$val_cargos_f" data-is-k="true">$str_cargos_k</h2>
+                        <div class="kpi-icono text-success mb-1"><i class="bi bi-arrow-down-circle"></i></div>
+                        <div class="kpi-titulo text-truncate">Ingresos</div>
+                        <h2 class="kpi-valor counter-up m-0 text-success" data-value="$val_cargos_f" data-is-currency="true">$str_ingresos</h2>
                     </div>
                 </div>
 
-                <!-- 4. Abonos -->
+                <!-- 4. Egresos -->
                 <div class="col">
                     <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono text-success mb-1"><i class="bi bi-cash-stack"></i></div>
-                        <div class="kpi-titulo text-truncate text-success">Abonos</div>
-                        <h2 class="kpi-valor counter-up m-0 text-success" data-value="$val_abonos_f" data-is-k="true">$str_abonos_k</h2>
+                        <div class="kpi-icono text-danger mb-1"><i class="bi bi-arrow-up-circle"></i></div>
+                        <div class="kpi-titulo text-truncate text-danger">Egresos</div>
+                        <h2 class="kpi-valor counter-up m-0 text-danger" data-value="$val_egresos_f" data-is-currency="true">$str_egresos</h2>
                     </div>
                 </div>
 HTML
 
-    if ($role eq 'Recepcionista' || $role eq 'Medico' || $role =~ /Administrador/i) {
+    if ($has_clue && ($role eq 'Recepcionista' || $role eq 'Medico' || $role =~ /Administrador/i)) {
         print <<HTML;
-                <!-- 5. CxC Estado -->
+                <!-- 5. CxC Estado (Visible si la organización tiene CLUE) -->
                 <div class="col">
                     <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono text-secondary mb-1"><i class="bi bi-building"></i></div>
+                        <div class="kpi-icono text-info mb-1"><i class="bi bi-building"></i></div>
                         <div class="kpi-titulo text-truncate">CxC Estado</div>
-                        <h2 class="kpi-valor counter-up m-0 text-secondary" data-value="$val_cxc_estado_f" data-is-k="true">$str_cxc_estado_k</h2>
+                        <h2 class="kpi-valor counter-up m-0 text-info" data-value="$val_cxc_estado_f" data-is-currency="true">$str_cxc_estado</h2>
                     </div>
                 </div>
 HTML
@@ -574,7 +699,7 @@ HTML
                     <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
                         <div class="kpi-icono text-danger mb-1"><i class="bi bi-bank"></i></div>
                         <div class="kpi-titulo text-truncate text-danger">Saldo Pendiente</div>
-                        <h2 class="kpi-valor counter-up m-0 text-danger" data-value="$val_saldo_f" data-is-k="true">$str_saldo_k</h2>
+                        <h2 class="kpi-valor counter-up m-0 text-danger" data-value="$val_saldo_f" data-is-currency="true">$str_saldo</h2>
                     </div>
                 </div>
 HTML
