@@ -41,6 +41,14 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
   ```
 - Toda lectura de `folios_recibos_privados.dat`, `folios_recibos_publicos.dat`, `estado_cuenta.dat`, `gastos.dat` y `citas.dat` debe seguir esta convención para garantizar que una nueva organización inicie limpiamente en $0.00 de ingresos y egresos.
 
+### 2.7 Gobernanza de Capacidades SaaS (`PACIENTES_ESTADO`) y Visibilidad de Tablas de Municipio
+- Las organizaciones configuradas a través del módulo CRM SaaS (`views/crm_ventas.pl`) cuentan con flags de capacidades almacenados en `dat/negocios_config.dat` (`ID_ORG|PACIENTES_ESTADO|1|0`).
+- **Comportamiento en `views/finanzas.pl` (`tab=ingresos`)**: Cuando `PACIENTES_ESTADO` no está activo (`0` o ausente para organizaciones secundarias/privadas), el DataTable `#dtIngresosMunicipio` y su tarjeta contenedora quedan completamente invisibles en la interfaz de usuario, renderizando únicamente `#dtIngresosPrivados`.
+- **Comportamiento en Tablero Principal (`views/render_dashboard_principal.pl`)**:
+  - El 5º KPI card ("CxC Estado") solo se renderiza si la organización cuenta con CLUE y la capacidad `PACIENTES_ESTADO` activa (`$has_pacientes_estado && $has_clue`). De lo contrario, se despliegan únicamente 4 tarjetas en `row-cols-md-4`.
+  - En la vista de Recepcionista, el DataTable `#dtIngresosMunicipio` (últimas 24 hrs) también se suprime condicionalmente si `PACIENTES_ESTADO` no está activo.
+- **Resiliencia de JavaScript**: Las funciones `renderTablaCorte(selector, ...)` implementan chequeo de existencia (`if (!$(selector).length) return;`) y los totales de tfoot validan la existencia del nodo en el DOM antes de actualizar montos, previniendo errores de ejecución.
+
 ---
 
 ## 3. Matriz Multi-Tarifa por Organización (`tipos_tarifas_<CLUES>.dat`)

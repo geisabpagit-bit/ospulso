@@ -116,15 +116,17 @@ HTML
     my $has_clue = 0;
     my $org_clues = '';
     my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
-    if (-e $negocios_file && open(my $fhn, '<', $negocios_file)) {
+    if (-e $negocios_file && open(my $fhn, '<:raw', $negocios_file)) {
         my $first_clue = '';
         while (my $line = <$fhn>) {
             chomp($line);
             next if $line =~ /^ID\|/ || $line =~ /^\s*$/;
             my @f = split(/\|/, $line, -1);
             my $row_id = $f[0] // '';
+            $row_id =~ s/\x00//g;
             $row_id =~ s/^\s+|\s+$//g;
             my $c_val = $f[18] // '';
+            $c_val =~ s/\x00//g;
             $c_val =~ s/^\s+|\s+$//g;
             $first_clue = $c_val if !$first_clue && length($c_val);
             if ($row_id eq $id_empresa || ($id_empresa eq '0' && $row_id eq '0')) {
@@ -135,6 +137,27 @@ HTML
         close $fhn;
         $org_clues = $first_clue if !length($org_clues) && (!defined $id_empresa || $id_empresa eq '' || $id_empresa eq '0');
         $has_clue = length($org_clues) ? 1 : 0;
+    }
+
+    # SaaS Capabilities (PACIENTES_ESTADO)
+    my $has_pacientes_estado = 0;
+    my $found_pacientes_estado = 0;
+    my $negocios_config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
+    if (-e $negocios_config_file && open(my $cf, '<:utf8', $negocios_config_file)) {
+        while (my $line = <$cf>) {
+            chomp($line);
+            next if $line =~ /^#|^\s*$/;
+            my ($biz_id, $key, $val) = split(/\|/, $line);
+            if ($biz_id eq $id_empresa && $key eq 'PACIENTES_ESTADO') {
+                $has_pacientes_estado = ($val eq '1') ? 1 : 0;
+                $found_pacientes_estado = 1;
+                last;
+            }
+        }
+        close($cf);
+    }
+    if (!$found_pacientes_estado && ($id_empresa eq '0' || $id_empresa eq '')) {
+        $has_pacientes_estado = $has_clue ? 1 : 0;
     }
 
     # Leer usuarios para mapeo de nombres de creadores/médicos y blindaje multi-tenant
@@ -376,7 +399,7 @@ HTML
     my $val_cxc_estado_f = $cxc_estado_total;
 
     my $total_kpi_cards = 4;
-    if ($role eq 'Paciente' || ($has_clue && ($role eq 'Recepcionista' || $role eq 'Medico' || $role =~ /Administrador/i))) {
+    if ($role eq 'Paciente' || ($has_pacientes_estado && $has_clue && ($role eq 'Recepcionista' || $role eq 'Medico' || $role =~ /Administrador/i))) {
         $total_kpi_cards = 5;
     }
     my $grid_cols_md = ($total_kpi_cards == 5) ? 'row-cols-md-5' : 'row-cols-md-4';
@@ -722,7 +745,7 @@ HTML
                 </div>
 HTML
 
-    if ($has_clue && ($role eq 'Recepcionista' || $role eq 'Medico' || $role =~ /Administrador/i)) {
+    if ($has_pacientes_estado && $has_clue && ($role eq 'Recepcionista' || $role eq 'Medico' || $role =~ /Administrador/i)) {
         print <<HTML;
                 <!-- 5. CxC Estado (Visible si la organización tiene CLUE) -->
                 <div class="col">
@@ -791,7 +814,10 @@ HTML
                     </div>
                 </div>
             </div>
-            
+HTML
+
+        if ($has_pacientes_estado) {
+            print <<'HTML';
             <div class="row g-4 mt-4 mb-5">
                 <div class="col-12">
                     <div class="card card-medentia-aura border-0 shadow-sm p-3 rounded-4">
@@ -827,7 +853,10 @@ HTML
                     </div>
                 </div>
             </div>
+HTML
+        }
 
+        print <<HTML;
             <!-- Estilos y Scripts Datatables Premium -->
             <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
             <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">

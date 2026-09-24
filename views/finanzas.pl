@@ -29,6 +29,7 @@ my $id_paciente = $q->param('id') || '';
 
 # Verificar SaaS Capabilities (PACIENTES_ESTADO)
 my $has_pacientes_estado = 0;
+my $found_pacientes_estado = 0;
 my $config_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
 my $id_empresa = $session_data->{id_empresa} // '';
 if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
@@ -38,10 +39,32 @@ if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
         my ($biz_id, $key, $val) = split(/\|/, $line);
         if ($biz_id eq $id_empresa && $key eq 'PACIENTES_ESTADO') {
             $has_pacientes_estado = ($val eq '1') ? 1 : 0;
+            $found_pacientes_estado = 1;
             last;
         }
     }
     close($cf);
+}
+# Fallback para organización matriz (0 o vacía) sin configuración explícita previa pero con CLUE
+if (!$found_pacientes_estado && ($id_empresa eq '0' || $id_empresa eq '')) {
+    my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+    if (-e $negocios_file && open(my $fn, '<:raw', $negocios_file)) {
+        while(my $ln = <$fn>) {
+            chomp($ln);
+            my @f = split(/\|/, $ln, -1);
+            my $row_id = $f[0] // '';
+            $row_id =~ s/\x00//g;
+            $row_id =~ s/^\s+|\s+$//g;
+            my $c_val = $f[18] // '';
+            $c_val =~ s/\x00//g;
+            $c_val =~ s/^\s+|\s+$//g;
+            if ($row_id eq '0' && length($c_val)) {
+                $has_pacientes_estado = 1;
+                last;
+            }
+        }
+        close($fn);
+    }
 }
 
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
@@ -456,6 +479,10 @@ PAGE_HTML
                         </div>
                     </div>
 
+PAGE_HTML
+
+    if ($has_pacientes_estado) {
+        print <<'PAGE_HTML';
                     <!-- Tabla 2: Ingresos Municipio -->
                     <div class="col-12">
                         <div class="card card-medentia-aura border-0 shadow-sm p-3 rounded-4">
@@ -490,6 +517,10 @@ PAGE_HTML
                             </div>
                         </div>
                     </div>
+PAGE_HTML
+    }
+
+    print <<'PAGE_HTML';
                 </div>
             </div>
 
