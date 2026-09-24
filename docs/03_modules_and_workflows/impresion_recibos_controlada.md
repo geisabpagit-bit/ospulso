@@ -86,14 +86,16 @@ sequenceDiagram
 ### 4.2 Descripción de Etapas del Pipeline
 
 1. **Captura y Enriquecimiento de Atributos (UI Frontend)**:
-   - En `views/generar_recibo.pl`, al seleccionar un médico (`#selMedico`) y especialidad (`#selEspecialidadCustom`), se genera en `cartItems[0]` la llave explícita `medico` / `nombre_medico` y `especialidad`.
+   - En `views/generar_recibo.pl`, al seleccionar un médico (`#selMedico`), especialidad (`#selEspecialidadCustom`) y tarifa (`#selTarifaConsulta`), se generan en `cartItems[0]` las llaves explícitas `medico`, `nombre_medico`, `especialidad`, `tipo_tarifa` y `precio`.
+   - Si se selecciona la tarifa `"Otra (Personalizada)"`, el cajero asigna el costo libre en `#iptTarifaOtra`, el cual actualiza reactivamente el subtotal del ítem y el total de la transacción.
    - Si el carrito estaba vacío al emitir para un empleado de estado, la función `emitirReciboFinal()` inyecta automáticamente el concepto en formato `Consulta - <ESPECIALIDAD>` con los campos `medico` y `especialidad` limpios.
 
 2. **Persistencia Contable Canónica (Backend)**:
    - `api/guardar_recibo_rapido.pl` asigna el folio consecutivo correspondiente y serializa el arreglo `cartItems` en la columna `ITEMS_JSON` dentro de `dat/folios_recibos_privados.dat` (pacientes privados) o `dat/folios_recibos_publicos.dat` (municipio / convenio).
+   - Para pacientes privados con tarifa personalizada, el backend respeta directamente el campo `it->{precio}` ingresado sin sobreescribirlo con el catálogo base, garantizando el cuadre exacto con caja y con `dat/estado_cuenta.dat`.
 
 3. **Impresión Controlada Estática**:
-   - `api/imprimir_recibo_caja.pl` y `api/imprimir_recibo_publico.pl` leen la fila por folio, decodifican `ITEMS_JSON` y aplican la **Prioridad 1**: leen directamente los atributos `medico` y `especialidad` guardados en el JSON.
+   - `api/imprimir_recibo_caja.pl` y `api/imprimir_recibo_publico.pl` leen la fila por folio, decodifican `ITEMS_JSON` y aplican la **Prioridad 1**: leen directamente los atributos `medico`, `especialidad` y `precio` guardados en el JSON, imprimiendo en el cuerpo del ticket el concepto limpio, la cifra exacta convenida y el total liquidado.
 
 4. **Sincronización con Módulos Financieros (DataTables)**:
    - `api/get_recibos_caja_api.pl` (para tabs **Ingresos**, **CxC Privadas**, **CxC Estado**) y `api/generar_corte_caja.pl` (para tab **Corte de Caja**) leen `ITEMS_JSON` aplicando la **Prioridad 1**, garantizando que la columna **Médico** de DataTables coincida exactamente con la vista previa y el recibo impreso.

@@ -64,7 +64,13 @@ graph TD
     B -- "Estado / Municipio" --> D["Filtrar Tabulador MUNICIPIO > $0.00"]
     C --> E["Seleccionar Consulta / Facultativo"]
     D --> E
-    E --> F["Agregar Conceptos Adicionales (Modal Búsqueda)"]
+    E --> T{"Tarifa de Consulta"}
+    T -- "Catálogo (ESTANDAR / etc)" --> TC["Asignar Precio Catálogo"]
+    T -- "Otra (Personalizada)" --> TO["Desplegar Campo #iptTarifaOtra"]
+    TO --> TI["Ingresar Monto al Vuelo (oninput)"]
+    TI --> TC
+    TC --> CR["Actualizar Consulta en Carrito y Resumen en Vivo"]
+    CR --> F["Agregar Conceptos Adicionales (Modal Búsqueda)"]
     F --> G{"Concepto posee Multi-Tarifa?"}
     G -- "Sí" --> H["Desplegar Selector <select> de Tarifa Activa"]
     G -- "No" --> I["Cargar Tarifa Base Única"]
@@ -72,7 +78,7 @@ graph TD
     I --> J
     J --> K["Conmutar Tarifa en Vivo / Recalcular IVA y Total"]
     K --> L["Emitir Recibo (Vista Previa Pestaña Controlada)"]
-    L --> M["Guardar en folios_recibos_*.dat (items_json con medico y especialidad)"]
+    L --> M["Guardar en folios_recibos_*.dat (items_json con medico, especialidad, tarifa y precio)"]
     M --> N["Sincronización en Impresión y DataTables de Finanzas (Prioridad 1)"]
 ```
 
@@ -81,6 +87,7 @@ graph TD
 ## 5. Propagación del Payload e Integridad en Módulos Financieros
 
 Para evitar discrepancias entre lo seleccionado por el cajero y lo reportado en pantalla/reportes:
-1. **Preservación en `ITEMS_JSON`**: Todo ítem del carrito conserva explícitamente los atributos `medico`, `nombre_medico` y `especialidad`.
-2. **Propagación a DataTables (`views/finanzas.pl`)**: Las llamadas AJAX de DataTables (`api/get_recibos_caja_api.pl` y `api/generar_corte_caja.pl`) leen con **Prioridad 1** el payload `ITEMS_JSON`, garantizando que la columna **Médico** muestre exactamente al facultativo que atendió la consulta.
-3. **Paridad de Impresión**: Las plantillas [api/imprimir_recibo_caja.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_caja.pl) y [api/imprimir_recibo_publico.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_publico.pl) leen la misma fuente de verdad, presentando el nombre limpio del médico en el encabezado y el concepto formateado `Consulta - <ESPECIALIDAD>` en el cuerpo.
+1. **Preservación en `ITEMS_JSON`**: Todo ítem del carrito conserva explícitamente los atributos `medico`, `nombre_medico`, `especialidad`, `tipo_tarifa` y `precio`. Para tarifas personalizadas, `tipo_tarifa: 'OTRA'` viaja con el monto unitario exacto capturado en ventanilla.
+2. **Propagación a DataTables (`views/finanzas.pl`)**: Las llamadas AJAX de DataTables (`api/get_recibos_caja_api.pl` y `api/generar_corte_caja.pl`) leen con **Prioridad 1** el payload `ITEMS_JSON`, garantizando que la columna **Médico** muestre exactamente al facultativo que atendió la consulta y el total recaudado refleje el costo personalizado al centavo.
+3. **Paridad de Impresión**: Las plantillas [api/imprimir_recibo_caja.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_caja.pl) y [api/imprimir_recibo_publico.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_publico.pl) leen la misma fuente de verdad, presentando el nombre limpio del médico en el encabezado, el concepto formateado `Consulta - <ESPECIALIDAD>` en el cuerpo y el subtotal exacto de la tarifa elegida (sea estándar, preferencial o personalizada al vuelo).
+4. **Respaldo en Estado de Cuenta**: En [api/guardar_recibo_rapido.pl](file:///c:/xampp/htdocs/ospulso/api/guardar_recibo_rapido.pl), el movimiento de Cargo y el de Abono en `dat/estado_cuenta.dat` se insertan con el subtotal calculado a partir de `it->{precio}`, asegurando que el saldo de la cuenta del paciente cuadre perfectamente con el recibo emitido.

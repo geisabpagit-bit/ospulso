@@ -33,7 +33,7 @@ graph TD
 
 ### ⚙️ Capa 3: Guías Operativas de Módulos (`docs/03_modules_and_workflows/`)
 - **[matriz_dinamica_permisos_rbac.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/matriz_dinamica_permisos_rbac.md)**: Arquitectura Híbrida de Permisos RBAC y User Overrides, blindaje de APIs (`C`, `R`, `U`, `D`), resolución de 5 parámetros, matriz de diagnóstico de bugs y sincronización del menú lateral.
-- **[caja_rapida_y_multitarifa.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/caja_rapida_y_multitarifa.md)**: Proceso operativo de Caja Rápida, arquitectura Multi-Tarifa dinámica en conceptos y estándares UI/UX del carrito.
+- **[caja_rapida_y_multitarifa.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/caja_rapida_y_multitarifa.md)**: Proceso operativo de Caja Rápida, arquitectura Multi-Tarifa dinámica en conceptos, soporte para tarifas personalizadas al vuelo ("Otra") y estándares UI/UX del carrito.
 - **[gestion_catalogos_serverside.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/gestion_catalogos_serverside.md)**: Arquitectura del Catálogo Universal 3NF, DataTables Server-Side AJAX (`deferRender: true`), paginación por defecto (10 registros) y normalización por CLUE.
 - **[atencion_medica_y_consultas.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/atencion_medica_y_consultas.md)**: Pipeline global de atención médica, Guardia de Consulta Única Activa por Médico, Tratamientos Abiertos, Cargos Directos y Hub PACS.
 - **[impresion_recibos_controlada.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/impresion_recibos_controlada.md)**: Protocolo unificado de impresión controlada para Recibos Privados y Recibos Públicos con Toolbar `.no-print`.

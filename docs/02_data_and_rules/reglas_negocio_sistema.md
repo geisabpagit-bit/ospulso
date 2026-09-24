@@ -29,7 +29,11 @@
 2. **Multi-Tarifa por Concepto**:
    - Cuando un servicio cuenta con múltiples tarifas comerciales válidas (ej. `ESTÁNDAR`, `URGENCIAS`, `DOMINGOS Y FESTIVOS`), se despliega un selector `<select>` para que el usuario elija la tarifa aplicable.
    - La tarifa seleccionada se puede conmutar en el modal previo y directamente en la tarjeta del carrito (`.cart-item-card`), actualizando precios, subtotal, IVA y Total a Pagar en tiempo real.
-3. **Resumen de Carrito UI/UX**:
+3. **Tarifa Personalizada al Vuelo ("Otra") en Consultas**:
+   - Para el departamento `CONSULTAS` (`id_dep = 1`), el selector `#selTarifaConsulta` integra de forma canónica la opción `"Otra (Tarifa Personalizada)"`.
+   - Al seleccionarse, expone el campo numérico `#iptTarifaOtra` permitiendo al cajero establecer un costo libre/dinámico en caliente, el cual se propaga en tiempo real a `cartItems`, `renderCart()` y al total general.
+   - Guardas de validación obligatorias: se bloquea la previsualización y emisión si la tarifa elegida es "Otra" y el monto es menor o igual a $0.00 o se encuentra vacío.
+4. **Resumen de Carrito UI/UX**:
    - Contenedor flexible adaptable (`flex: 1 1 auto; min-height: 100px; max-height: 420px; overflow-y: auto;`).
    - Alineación al píxel exacto en la columna derecha para precios, subtotales, IVA y botón de emisión.
 
