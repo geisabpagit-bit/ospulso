@@ -36,6 +36,54 @@ unless (utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, 'quirofa
     exit;
 }
 
+# Restringir según Capacidad SaaS de la Organización (Hospitalización)
+my $has_hospitalizacion = 0;
+my $found_hospitalizacion = 0;
+my $config_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
+    while (my $line = <$cf>) {
+        chomp($line);
+        next if $line =~ /^#|^\s*$/;
+        my ($biz_id, $key, $val) = split(/\|/, $line);
+        if ($biz_id eq $id_empresa && $key eq 'MANEJA_HOSPITALIZACION') {
+            $has_hospitalizacion = ($val eq '1') ? 1 : 0;
+            $found_hospitalizacion = 1;
+            last;
+        }
+    }
+    close($cf);
+}
+# Fallback para organización matriz (0 o vacía) sin configuración explícita previa pero con CLUE
+if (!$found_hospitalizacion && ($id_empresa eq '0' || $id_empresa eq '')) {
+    my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+    if (-e $negocios_file && open(my $fn, '<:raw', $negocios_file)) {
+        while(my $ln = <$fn>) {
+            chomp($ln);
+            my @f = split(/\|/, $ln, -1);
+            my $row_id = $f[0] // '';
+            $row_id =~ s/\x00//g;
+            $row_id =~ s/^\s+|\s+$//g;
+            my $c_val = $f[18] // '';
+            $c_val =~ s/\x00//g;
+            $c_val =~ s/^\s+|\s+$//g;
+            if ($row_id eq '0' && length($c_val)) {
+                $has_hospitalizacion = 1;
+                last;
+            }
+        }
+        close($fn);
+    }
+}
+
+unless ($has_hospitalizacion) {
+    render_acceso_denegado(
+        q => $q, usuario => $usuario, role => $role,
+        mensaje => 'La organización no cuenta con la capacidad de Hospitalización / Quirófano activa en su suscripción SaaS.',
+        rol_requerido => 'Capacidad SaaS: Hospitalización'
+    );
+    exit;
+}
+
 # Cargar Médicos y Anestesiólogos para el modal
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $regs = leer_tabla($archivo_usuarios, '!');

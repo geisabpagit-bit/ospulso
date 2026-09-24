@@ -207,6 +207,51 @@ HTML
         $is_allowed{'gestion_permisos'} = 1;
     }
 
+    # --- GOBERNANZA SAAS: CAPACIDAD HOSPITALIZACIÓN ---
+    # Si en las capacidades del SaaS "Hospitalización" de la organización no está activa,
+    # en el menú principal izquierdo no debe aparecer la opción "Tablero Quirófano"
+    my $has_hospitalizacion = 0;
+    my $found_hospitalizacion = 0;
+    my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
+    if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
+        while (my $line = <$cf>) {
+            chomp($line);
+            next if $line =~ /^#|^\s*$/;
+            my ($biz_id, $key, $val) = split(/\|/, $line);
+            if ($biz_id eq $id_empresa && $key eq 'MANEJA_HOSPITALIZACION') {
+                $has_hospitalizacion = ($val eq '1') ? 1 : 0;
+                $found_hospitalizacion = 1;
+                last;
+            }
+        }
+        close($cf);
+    }
+    # Fallback para organización matriz (0 o vacía) sin configuración explícita previa pero con CLUE
+    if (!$found_hospitalizacion && ($id_empresa eq '0' || $id_empresa eq '')) {
+        my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
+        if (-e $negocios_file && open(my $fn, '<:raw', $negocios_file)) {
+            while(my $ln = <$fn>) {
+                chomp($ln);
+                my @f = split(/\|/, $ln, -1);
+                my $row_id = $f[0] // '';
+                $row_id =~ s/\x00//g;
+                $row_id =~ s/^\s+|\s+$//g;
+                my $c_val = $f[18] // '';
+                $c_val =~ s/\x00//g;
+                $c_val =~ s/^\s+|\s+$//g;
+                if ($row_id eq '0' && length($c_val)) {
+                    $has_hospitalizacion = 1;
+                    last;
+                }
+            }
+            close($fn);
+        }
+    }
+
+    if (!$has_hospitalizacion) {
+        $is_allowed{quirofano} = 0;
+    }
+
     # 1. Dashboard
     my $dash_active = ($pagina_actual eq 'dashboard') ? 'active' : '';
     print qq{
