@@ -462,220 +462,6 @@ HTML
     document.addEventListener("spa:contentLoaded", initDashboardCounters);
     </script>
 JS
-    print <<HTML;
-<style>
-    /* MedentIA Bento Dashboard v1.0 (Diamond Armor Style) */
-    .dash-kpi-card { 
-        background: white; 
-        border-radius: var(--radius-lg); 
-        padding: 1.5rem; 
-        border: 1px solid var(--md-teal-clinical); 
-        box-shadow: var(--shadow-sm);
-        transition: all 0.3s ease;
-    }
-    .dash-kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
-    
-    .kpi-value-medentia { 
-        font-size: 2.2rem; 
-        font-weight: 700; 
-        color: var(--md-blue-deep); 
-        font-family: var(--font-primary);
-        letter-spacing: -1px;
-    }
-    .kpi-label-medentia { 
-        font-size: 0.75rem; 
-        font-weight: 600; 
-        color: var(--md-text-secondary); 
-        text-transform: uppercase; 
-        letter-spacing: 0.1em; 
-        margin-bottom: 0.5rem;
-        display: block;
-    }
-    
-    .premium-kpi-card {
-        border-radius: var(--radius-lg);
-        padding: 1.5rem;
-        border: 1px solid rgba(255,255,255,0.2);
-        position: relative;
-        overflow: hidden;
-        transition: 0.3s;
-    }
-    
-    .kpi-icon-v2 { font-size: 2rem; opacity: 0.8; }
-    .kpi-title-v2 { font-family: var(--font-primary); font-weight: 600; opacity: 0.9; }
-    
-    /* Variaciones de Color MedentIA (Diamond Armor: sin bordes diferenciados) */
-    .bg-med-blue { background: #eef2ff; }
-    .bg-med-teal { background: #f0fdfa; }
-    .bg-med-cyan { background: #ecfeff; }
-    .bg-med-deep { background: #f8fbff; }
-
-    .mgmt-card {
-        background: white;
-        border-radius: var(--radius-md);
-        padding: 1.25rem;
-        border: 1px solid var(--md-teal-clinical);
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        text-decoration: none;
-        transition: 0.3s;
-    }
-    .mgmt-card:hover { 
-        background: var(--md-white-clinical);
-        border-color: var(--md-cyan-ia);
-        transform: scale(1.02);
-    }
-    .mgmt-card h3 { font-size: 1rem; margin: 0; color: var(--md-blue-deep); font-weight: 700; }
-    .mgmt-card p { font-size: 0.75rem; margin: 0; color: var(--md-text-secondary); }
-    
-    .icon-box {
-        width: 48px; height: 48px; border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.5rem;
-    }
-
-    /* --- Botón Flotante (FAB) Premium y Responsividad (Capa 2 y 4) --- */
-    .fab-btn-v2 {
-        position: fixed !important;
-        bottom: 85px !important; /* Fallback para navegadores antiguos */
-        bottom: calc(85px + env(safe-area-inset-bottom, 0px)) !important;
-        right: 20px !important;
-        width: 56px !important;
-        height: 56px !important;
-        border-radius: 50% !important;
-        background: #19B7A5 !important;
-        color: white !important;
-        border: none !important;
-        box-shadow: 0 4px 15px rgba(25, 183, 165, 0.4) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        z-index: 5000 !important; /* Debajo de bottom_nav (5500) pero encima de contenidos */
-        transition: transform 0.2s ease, background-color 0.2s !important;
-        cursor: pointer !important;
-    }
-    .fab-btn-v2:active {
-        transform: scale(0.92) !important;
-    }
-    .fab-btn-v2 .material-icons {
-        font-size: 24px !important;
-        color: white !important;
-    }
-
-    \@media (max-width: 576px) {
-        .app-container {
-            padding: 10px !important; /* Optimizar espacio horizontal */
-            padding-bottom: 90px !important; /* Evitar que el bottom_nav tape el contenido */
-        }
-        .dash-kpi-card {
-            padding: 1rem !important;
-        }
-        .kpi-value-medentia {
-            font-size: 1.6rem !important; /* Prevenir desborde de números */
-        }
-        .mgmt-card {
-            padding: 0.85rem !important;
-            gap: 0.75rem !important;
-        }
-        .icon-wrapper {
-            padding: 8px !important;
-            margin-right: 8px !important;
-        }
-        .card-content h3 {
-            font-size: 0.95rem !important;
-        }
-        .card-content p {
-            font-size: 0.75rem !important;
-        }
-        .timeline-container {
-            padding-left: 16px !important;
-            margin-left: 4px !important;
-        }
-        .appointment-item {
-            padding: 12px !important;
-        }
-        .patient-info h4 {
-            font-size: 0.95rem !important;
-        }
-        .fab-btn-v2 {
-            bottom: 75px !important; /* Fallback para navegadores antiguos */
-            bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
-            right: 15px !important;
-            width: 48px !important;
-            height: 48px !important;
-        }
-        .fab-btn-v2 .material-icons {
-            font-size: 20px !important;
-        }
-    }
-    .kpi-acrilico {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.12) 100%) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
-        border-radius: 20px !important;
-        border-top: 1.5px solid rgba(0, 255, 255, 0.7) !important;
-        border-left: 1.5px solid rgba(0, 255, 255, 0.5) !important;
-        border-bottom: 1px solid rgba(0, 255, 255, 0.15) !important;
-        border-right: 1px solid rgba(0, 255, 255, 0.15) !important;
-        box-shadow: 
-            inset 0px 4px 8px rgba(255, 255, 255, 0.85),
-            inset 0px -6px 10px rgba(0, 77, 77, 0.15),
-            inset 4px 0px 8px rgba(255, 255, 255, 0.55),
-            inset -4px 0px 8px rgba(0, 77, 77, 0.1),
-            0 15px 35px rgba(0, 0, 0, 0.16) !important;
-        padding: 1.15rem 0.5rem !important;
-        text-align: center !important;
-        transition: transform 0.3s ease, box-shadow 0.3s ease !important;
-        width: 100%;
-        position: relative;
-    }
-    .kpi-acrilico:hover {
-        transform: translateY(-5px) !important;
-        box-shadow: 
-            inset 0px 4px 10px rgba(255, 255, 255, 0.95),
-            inset 0px -6px 12px rgba(0, 77, 77, 0.2),
-            inset 4px 0px 10px rgba(255, 255, 255, 0.65),
-            inset -4px 0px 10px rgba(0, 77, 77, 0.15),
-            0 20px 40px rgba(0, 0, 0, 0.22) !important;
-    }
-    .kpi-icono {
-        font-size: 1.85rem;
-        margin-bottom: 0.35rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .kpi-titulo {
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-weight: 700;
-        font-size: 0.74rem;
-        color: #475569;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.35rem;
-    }
-    .kpi-valor {
-        font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
-        font-size: 1.55rem;
-        font-weight: 800;
-        color: #0A2A66;
-        letter-spacing: -0.5px;
-        white-space: nowrap;
-        line-height: 1.2;
-    }
-    \@media (max-width: 768px) {
-        .kpi-acrilico {
-            padding: 0.8rem 0.4rem !important;
-            border-radius: 16px !important;
-        }
-        .kpi-icono { font-size: 1.4rem; }
-        .kpi-titulo { font-size: 0.66rem; }
-        .kpi-valor { font-size: 1.25rem; }
-    }
-</style>
-
-HTML
     print <<'JS';
             <!-- Google Auth Script -->
             <script>
@@ -1177,19 +963,19 @@ HTML
             my $btn_accion = '';
             if ($role eq 'Medico') {
                 if ($cita->{estado} =~ /Atendida|Finalizada|Completada/i) {
-                    $btn_accion = qq{<a href="../views/consulta_detalles.pl?id_cita=$cita->{id}&id_paciente=$cita->{id_paciente}" class="btn btn-mobile-standard btn-mobile-outline mt-2 mt-sm-0 w-100"><i class="bi bi-file-earmark-medical fs-5"></i> Ver Consulta</a>};
+                    $btn_accion = qq{<a href="../views/consulta_detalles.pl?id_cita=$cita->{id}&id_paciente=$cita->{id_paciente}" class="btn btn-sm btn-mobile-standard btn-mobile-outline mt-1 mt-sm-0"><i class="bi bi-file-earmark-medical me-1"></i> Ver Consulta</a>};
                 } else {
-                    $btn_accion = qq{<a href="../views/render_consultas_privado.pl?id=$cita->{id_paciente}&id_cita=$cita->{id}" class="btn btn-mobile-standard btn-mobile-action mt-2 mt-sm-0 w-100" style="background: linear-gradient(135deg, #10b981, #059669); border:none;"><i class="bi bi-person-check fs-5"></i> Tomar Cita</a>};
+                    $btn_accion = qq{<a href="../views/render_consultas_privado.pl?id=$cita->{id_paciente}&id_cita=$cita->{id}" class="btn btn-sm btn-mobile-standard btn-mobile-action mt-1 mt-sm-0" style="background: linear-gradient(135deg, #10b981, #059669); border:none;"><i class="bi bi-person-check me-1"></i> Tomar Cita</a>};
                 }
             }
             print qq{
-                <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between p-3 bg-white rounded-4 mb-3 shadow-sm interactive-scale gap-3 gap-sm-0" style="border: 1px solid rgba(25, 183, 165, 0.4);">
+                <div class="appointment-card-mobile d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between p-2 p-sm-3 bg-white rounded-4 mb-2 mb-sm-3 shadow-sm interactive-scale gap-2 gap-sm-0" style="border: 1px solid rgba(25, 183, 165, 0.4);">
                     <div style="flex-grow:1; width: 100%;">
-                        <span class="d-block fw-bold text-navy mb-1" style="font-size:0.95rem;">$cita->{nombre_paciente}</span>
-                        <div class="d-flex gap-2 align-items-center"><span class="badge bg-light text-muted" style="font-size:0.75rem;">$date_label</span><small class="text-muted fw-semibold" style="font-size:0.8rem;"><i class="bi bi-clock me-1"></i>$cita->{hora}</small></div>
+                        <span class="d-block fw-bold text-navy mb-1" style="font-size:0.88rem;">$cita->{nombre_paciente}</span>
+                        <div class="d-flex gap-2 align-items-center"><span class="badge bg-light text-muted" style="font-size:0.7rem;">$date_label</span><small class="text-muted fw-semibold" style="font-size:0.75rem;"><i class="bi bi-clock me-1"></i>$cita->{hora}</small></div>
                     </div>
-                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100" style="max-width: 100%;">
-                        <span class="badge $bCol rounded-pill border-0 px-3 py-2 fw-bold align-self-start align-self-sm-center" style="font-size:0.75rem;">$cita->{estado}</span>
+                    <div class="d-flex flex-row align-items-center justify-content-between justify-content-sm-end gap-2 w-100" style="max-width: 100%;">
+                        <span class="badge $bCol rounded-pill border-0 px-2 py-1 fw-bold" style="font-size:0.7rem;">$cita->{estado}</span>
                         $btn_accion
                     </div>
                 </div>\n};

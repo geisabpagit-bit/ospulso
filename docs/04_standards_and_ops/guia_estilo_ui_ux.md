@@ -59,6 +59,17 @@ Las tablas del sistema incorporan controles de exportación estandarizados estil
 - **Regla Mandatoria**: Queda estrictamente prohibida la presencia de etiquetas `<style>` dentro de cualquier archivo con extensión `.pl` (`views/*.pl`, `utils/*.pl`).
 - **Hojas de Estilo Mandantes**: Todo estilo personalizado, animación o regla de diseño debe alojarse en los archivos CSS correspondientes (`css/ospulso_master_v2.css`, `css/agenda_diamond.css`, `css/theme_acrilico.css`).
 
+### 4.5 Arquitectura Móvil Ultra Compacta del Encabezado y Gaveta Lateral
+- **Encabezado en 2 Micro-Filas (`utils/sub_header.pl`)**:
+  - En pantallas `<768px`, el header se desacopla del flujo horizontal de escritorio y conmuta a un contenedor vertical `.d-flex.d-md-none` de dos filas ultra-compactas:
+    - **Fila 1 (Controles)**: Botón hamburguesa mini (32x32px `.btn-menu-toggle-mobile`), logo miniatura `.header-mobile-logo`, botón conmutador de perfil ultra-compacto `.btn-role-pill-mobile` (0.62rem) y avatar miniatura (30x30px `.avatar-diamond-mobile`).
+    - **Fila 2 (Buscador y Tiempo)**: Input de búsqueda expandido al 100% (30px de alto, 0.72rem) y fecha/hora en una sola línea no rompible (`0.62rem`, `white-space: nowrap`) para evitar saltos indeseados.
+- **Gaveta Lateral Deslizante Full-Height (`css/sub_sidebar.css`)**:
+  - En móviles (`@media (max-width: 991px)`), `.diamond-sidebar` se fija de borde superior a inferior (`top: 0; bottom: 0; height: 100vh; left: -320px; border-radius: 0 1.25rem 1.25rem 0`) con animación deslizante (`transform: translateX(320px)` al recibir `.show`), eliminando el efecto de tarjeta blanca recortada flotando sobre la pantalla.
+- **Micro-Tipografía y Paddings Nulos/Mínimos en Dashboard Móvil**:
+  - En `.sdm-content` y tarjetas KPI acrílicas, padding comprimido a `0.5rem 0.2rem` en móvil, con títulos KPI en `0.58rem` y valores en `1.05rem`.
+  - Tarjetas de Citas en el Dashboard aplican `.appointment-card-mobile` con botones de acción compactos (`.btn-sm`, iconos en `me-1`) evitando botones gigantescos desproporcionados.
+
 ---
 
 ## 5. Tarjetas KPI Acrílicas Centradas (`.kpi-acrilico`)

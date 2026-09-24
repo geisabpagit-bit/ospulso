@@ -208,23 +208,32 @@
    ========================================================================= */
 @media (max-width: 991px) {
     .diamond-sidebar {
-        position: fixed;
-        left: -320px;
-        top: 1rem;
-        bottom: auto;
-        height: fit-content;
-        max-height: calc(100vh - 2rem);
+        position: fixed !important;
+        left: -320px !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
         width: 290px !important;
-        border-radius: 1.5rem !important;
-        margin: 0;
-        border: 1px solid var(--md-teal-clinical) !important;
+        border-radius: 0 1.25rem 1.25rem 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        border-right: 2px solid var(--md-teal-clinical) !important;
+        box-shadow: 10px 0 35px rgba(10, 42, 102, 0.25) !important;
+        z-index: 10500 !important;
+        transition: transform 0.35s cubic-bezier(0.19, 1, 0.22, 1) !important;
+        transform: none !important;
     }
     .diamond-sidebar.show {
-        transform: translateX(336px);
+        transform: translateX(320px) !important;
     }
     
-    .diamond-header-compact { padding: 1rem 1.5rem; border-radius: 0 0 1.5rem 1.5rem; }
-    .sdm-content { padding: 0.5rem 0.25rem 6rem 0.25rem !important; }
+    .sidebar-overlay {
+        z-index: 10499 !important;
+    }
+    
+    .diamond-header-compact { padding: 0.5rem 1rem; border-radius: 0 0 1rem 1rem; }
+    .sdm-content { padding: 0.25rem 0.25rem 5rem 0.25rem !important; }
     .sdm-content .container-fluid, 
     .sdm-content .container { 
         padding-left: 0.25rem !important; 

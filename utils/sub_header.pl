@@ -124,33 +124,34 @@ sub render_header {
     my $fecha_hora_mobile  = "$mday $mes_corto $year • $hora_fmt hrs";
 
     my $search_html = '';
+    my $search_html_mobile = '';
     if ($puede_buscar) {
         $search_html = qq{
-            <!-- 1. Buscador con Fecha y Hora 24 hrs centrada debajo -->
+            <!-- 1. Buscador Desktop con Fecha y Hora 24 hrs centrada debajo -->
             <div class="search-container flex-grow-1 mx-md-auto d-flex flex-column align-items-center" style="max-width: 550px;">
                 <div class="position-relative w-100">
                     <input type="text" id="globalSearch" class="sdm-search-input search-pill" placeholder="Buscar expediente...">
                     <i class="bi bi-search search-icon"></i>
                 </div>
                 <div class="header-datetime-sub text-center mt-1">
-                    <span class="d-none d-md-inline-block header-datetime-text">
+                    <span class="header-datetime-text">
                         <i class="bi bi-calendar3 me-1 text-teal"></i>$fecha_hora_desktop
-                    </span>
-                    <span class="d-inline-block d-md-none header-datetime-text">
-                        <i class="bi bi-calendar3 me-1 text-teal"></i>$fecha_hora_mobile
                     </span>
                 </div>
             </div>};
+
+        $search_html_mobile = qq{
+            <div class="position-relative w-100 my-1">
+                <input type="text" id="globalSearchMobile" class="sdm-search-input-mobile search-pill" placeholder="Buscar expediente...">
+                <i class="bi bi-search search-icon-mobile"></i>
+            </div>};
     } else {
         $search_html = qq{
-            <!-- Fecha y Hora 24 hrs sin buscador -->
+            <!-- Fecha y Hora 24 hrs sin buscador Desktop -->
             <div class="search-container flex-grow-1 mx-md-auto d-flex flex-column align-items-center justify-content-center" style="max-width: 550px;">
                 <div class="header-datetime-sub text-center py-1">
-                    <span class="d-none d-md-inline-block header-datetime-text">
+                    <span class="header-datetime-text">
                         <i class="bi bi-calendar3 me-1 text-teal"></i>$fecha_hora_desktop
-                    </span>
-                    <span class="d-inline-block d-md-none header-datetime-text">
-                        <i class="bi bi-calendar3 me-1 text-teal"></i>$fecha_hora_mobile
                     </span>
                 </div>
             </div>};
@@ -232,10 +233,11 @@ sub render_header {
 
     <script>
     \$(document).ready(function() {
-        if (\$("#globalSearch").length) {
+        var \$searchInputs = \$("#globalSearch, #globalSearchMobile");
+        if (\$searchInputs.length) {
             // Si estamos en pacientes.pl o agenda y existe tablaPacientes, usar filtro de DataTables
             if (\$('#tablaPacientes').length) {
-                \$("#globalSearch").on('keyup', function() {
+                \$searchInputs.on('keyup', function() {
                     try {
                         var table = \$('#tablaPacientes').DataTable();
                         table.search(this.value).draw();
@@ -243,12 +245,10 @@ sub render_header {
                 });
             } else if (typeof \$.ui !== 'undefined') {
                 // Autocomplete estándar para el resto del sistema
-                console.log("Inicializando autocomplete para #globalSearch");
                 const acConfig = {
                     source: "../api/autocomplete_pacientes.pl",
                     minLength: 2,
                     select: function(e, ui) { 
-                        console.log("Autocomplete seleccionado:", ui.item);
                         if(ui.item.id) {
                             if (window.location.pathname.indexOf('estado_cuenta.pl') !== -1) {
                                 window.location.href = "../views/estado_cuenta.pl?id=" + ui.item.id;
@@ -260,7 +260,7 @@ sub render_header {
                         }
                     }
                 };
-                \$("#globalSearch").autocomplete(acConfig);
+                \$searchInputs.autocomplete(acConfig);
             }
         }
 
@@ -373,12 +373,13 @@ HTML
         my $role_label = uc($role);
         my $tiene_multirrol = ($roles_disponibles =~ /,/) ? 1 : 0;
         my $role_switcher_navbar = '';
+        my $role_switcher_mobile = '';
         my $role_switcher_drawer = '';
 
         if ($tiene_multirrol) {
             if ($role eq 'Administrador Organizacion') {
                 $role_switcher_navbar = qq{
-            <!-- Role Switcher Pill (Navbar) -->
+            <!-- Role Switcher Pill (Navbar Desktop) -->
             <div class="role-switcher-container me-2 d-flex align-items-center">
                 <button type="button" class="btn btn-sm btn-role-pill shadow-sm" onclick="osPulsoSwitchRole('Medico')" title="Cambiar a Modo Médico (Agenda y Consultas)">
                     <span class="badge-role-current"><i class="bi bi-shield-check me-1 text-primary"></i>Admin</span>
@@ -386,6 +387,10 @@ HTML
                     <span class="badge-role-target text-teal fw-bold"><i class="bi bi-stethoscope me-1"></i>Modo Médico</span>
                 </button>
             </div>};
+                $role_switcher_mobile = qq{
+                    <button type="button" class="btn btn-role-pill-mobile" onclick="osPulsoSwitchRole('Medico')" title="Cambiar a Modo Médico">
+                        <i class="bi bi-shield-check text-primary"></i><i class="bi bi-arrow-left-right text-muted mx-1"></i><span class="text-teal fw-bold">Med</span>
+                    </button>};
                 $role_switcher_drawer = qq{
                 <a href="javascript:void(0)" onclick="osPulsoSwitchRole('Medico')" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all mb-2" style="background: rgba(0, 196, 196, 0.08); border: 1px solid rgba(0, 196, 196, 0.25);">
                     <div class="option-icon bg-info-subtle text-info me-3">
@@ -399,7 +404,7 @@ HTML
                 </a>};
             } else {
                 $role_switcher_navbar = qq{
-            <!-- Role Switcher Pill (Navbar) -->
+            <!-- Role Switcher Pill (Navbar Desktop) -->
             <div class="role-switcher-container me-2 d-flex align-items-center">
                 <button type="button" class="btn btn-sm btn-role-pill shadow-sm" onclick="osPulsoSwitchRole('Administrador Organizacion')" title="Cambiar a Modo Administrador (Finanzas y Control)">
                     <span class="badge-role-current text-teal"><i class="bi bi-stethoscope me-1"></i>Médico</span>
@@ -407,6 +412,10 @@ HTML
                     <span class="badge-role-target text-primary fw-bold"><i class="bi bi-shield-check me-1"></i>Modo Admin</span>
                 </button>
             </div>};
+                $role_switcher_mobile = qq{
+                    <button type="button" class="btn btn-role-pill-mobile" onclick="osPulsoSwitchRole('Administrador Organizacion')" title="Cambiar a Modo Admin">
+                        <i class="bi bi-stethoscope text-teal"></i><i class="bi bi-arrow-left-right text-muted mx-1"></i><span class="text-primary fw-bold">Admin</span>
+                    </button>};
                 $role_switcher_drawer = qq{
                 <a href="javascript:void(0)" onclick="osPulsoSwitchRole('Administrador Organizacion')" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all mb-2" style="background: rgba(10, 42, 102, 0.06); border: 1px solid rgba(10, 42, 102, 0.18);">
                     <div class="option-icon bg-primary-subtle text-primary me-3">
@@ -421,20 +430,11 @@ HTML
             }
         }
 
-        my $hamburger_btn = '';
-        $hamburger_btn = <<'HAM';
-        <!-- Hamburger Menu Toggle (Solo Teléfonos Móviles) -->
-        <button class="btn btn-menu-toggle-inline me-2 d-lg-none" onclick="toggleSidebar()" aria-label="Abrir menú" type="button">
-            <i class="bi bi-list"></i>
-        </button>
-HAM
-
         print <<HTML;
-    <nav class="navbar sdm-navbar glass-navbar p-2 sticky-top flex-column align-items-stretch">
-        <div class="container-fluid px-lg-4 d-flex align-items-start justify-content-between flex-nowrap w-100 gap-3">
-$hamburger_btn
-            <!-- Navigation: Solo Desktop -->
-            <div class="d-none d-md-flex align-items-center gap-4 me-auto">
+    <nav class="navbar sdm-navbar glass-navbar p-1 p-md-2 sticky-top flex-column align-items-stretch">
+        <!-- 1. CONTENEDOR DESKTOP (d-none d-md-flex) -->
+        <div class="container-fluid px-lg-4 d-none d-md-flex align-items-start justify-content-between flex-nowrap w-100 gap-3">
+            <div class="d-flex align-items-center gap-4 me-auto">
                 <a class="navbar-brand d-flex align-items-center justify-content-start m-0 text-decoration-none" href="inicial.pl" title="Inicio">
                     <svg width="125" height="38" viewBox="0 0 160 45" fill="none" xmlns="http://www.w3.org/2000/svg" class="sdm-brand-logo flex-shrink-0">
                         <text x="2" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="32" letter-spacing="-1">
@@ -447,12 +447,10 @@ $hamburger_btn
                         <span class="text-secondary fw-semibold text-truncate" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.68rem; letter-spacing: 0.5px; margin-top: 2px; max-width: 350px;" title="$clue_suc">$clue_suc</span>
                     </span>
                 </a>
-
             </div>
 
 $search_html
 $role_switcher_navbar
-            <!-- 2. Perfil (Alineado a la derecha en móvil) -->
             <div class="profile-trigger-container">
                 <button class="btn user-dropdown border-0 d-flex align-items-center gap-2 py-1 px-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sdmSidebar">
                     <div class="text-end me-1 d-none d-sm-block profile-info-text">
@@ -465,7 +463,40 @@ $role_switcher_navbar
                 </button>
             </div>
         </div>
-        <!-- Navegación Breadcrumb debajo del logo/navbar principal -->
+
+        <!-- 2. CONTENEDOR EXCLUSIVO MÓVIL (<768px: d-flex d-md-none) -->
+        <div class="d-flex d-md-none flex-column w-100 px-1 py-0 gap-1">
+            <!-- Fila 1: Botón Hamburguesa + Logo Mini Izq | Role Switcher + Avatar Der -->
+            <div class="d-flex align-items-center justify-content-between w-100">
+                <div class="d-flex align-items-center gap-1">
+                    <button class="btn btn-menu-toggle-mobile" onclick="toggleSidebar()" aria-label="Abrir menú" type="button">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <a href="inicial.pl" class="text-decoration-none d-flex align-items-center ms-1" title="Inicio">
+                        <span class="header-mobile-logo">Os<span class="text-teal">Pulso</span></span>
+                    </a>
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                    $role_switcher_mobile
+                    <button class="btn p-0 border-0 ms-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#sdmSidebar" aria-label="Menú Usuario">
+                        <div class="avatar-diamond avatar-diamond-mobile shadow-sm">
+                            $avatar_html
+                        </div>
+                    </button>
+                </div>
+            </div>
+            <!-- Fila 2: Buscador y Fecha en una sola línea -->
+            <div class="d-flex flex-column align-items-center w-100 px-0 pt-0 pb-1">
+                $search_html_mobile
+                <div class="header-datetime-mobile text-center">
+                    <span class="header-datetime-text-mobile">
+                        <i class="bi bi-calendar3 me-1 text-teal"></i>$fecha_hora_mobile
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegación Breadcrumb debajo del logo/navbar principal (Desktop) -->
         <div class="container-fluid px-lg-4 mt-1 d-none d-md-block">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb m-0 plus-jakarta fw-semibold" style="font-size: 0.75rem;">

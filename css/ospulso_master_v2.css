@@ -1517,3 +1517,294 @@
     border: 1px solid rgba(25, 183, 165, 0.25);
     box-shadow: 0 1px 3px rgba(10, 42, 102, 0.04);
 }
+
+/* =========================================================================
+   ESTILOS DASHBOARD PRINCIPAL (Extraídos de render_dashboard_principal.pl)
+   ========================================================================= */
+.dash-kpi-card { 
+    background: white; 
+    border-radius: var(--radius-lg, 1rem); 
+    padding: 1.5rem; 
+    border: 1px solid var(--md-teal-clinical, #19B7A5); 
+    box-shadow: var(--shadow-sm, 0 2px 10px rgba(10, 42, 102, 0.05));
+    transition: all 0.3s ease;
+}
+.dash-kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md, 0 10px 25px rgba(10, 42, 102, 0.08)); }
+
+.kpi-value-medentia { 
+    font-size: 2.2rem; 
+    font-weight: 700; 
+    color: var(--md-blue-deep, #0A2A66); 
+    font-family: var(--font-primary, 'Outfit', sans-serif);
+    letter-spacing: -1px;
+}
+.kpi-label-medentia { 
+    font-size: 0.75rem; 
+    font-weight: 600; 
+    color: var(--md-text-secondary, #64748b); 
+    text-transform: uppercase; 
+    letter-spacing: 0.1em; 
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.premium-kpi-card {
+    border-radius: var(--radius-lg, 1rem);
+    padding: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    position: relative;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.kpi-icon-v2 { font-size: 2rem; opacity: 0.8; }
+.kpi-title-v2 { font-family: var(--font-primary, 'Outfit', sans-serif); font-weight: 600; opacity: 0.9; }
+
+.bg-med-blue { background: #eef2ff; }
+.bg-med-teal { background: #f0fdfa; }
+.bg-med-cyan { background: #ecfeff; }
+.bg-med-deep { background: #f8fbff; }
+
+.mgmt-card {
+    background: white;
+    border-radius: var(--radius-md, 0.75rem);
+    padding: 1.25rem;
+    border: 1px solid var(--md-teal-clinical, #19B7A5);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    transition: 0.3s;
+}
+.mgmt-card:hover { 
+    background: var(--md-white-clinical, #F8FBFF);
+    border-color: var(--md-cyan-ia, #18D1E6);
+    transform: scale(1.02);
+}
+.mgmt-card h3 { font-size: 1rem; margin: 0; color: var(--md-blue-deep, #0A2A66); font-weight: 700; }
+.mgmt-card p { font-size: 0.75rem; margin: 0; color: var(--md-text-secondary, #64748b); }
+
+.icon-box {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+}
+
+.fab-btn-v2 {
+    position: fixed !important;
+    bottom: calc(85px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 20px !important;
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    background: #19B7A5 !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(25, 183, 165, 0.4) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 5000 !important;
+    transition: transform 0.2s ease, background-color 0.2s !important;
+    cursor: pointer !important;
+}
+.fab-btn-v2:active { transform: scale(0.92) !important; }
+.fab-btn-v2 .material-icons { font-size: 24px !important; color: white !important; }
+
+/* Tarjetas Acrílicas Centradas */
+.kpi-acrilico {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.12) 100%) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-radius: 20px !important;
+    border-top: 1.5px solid rgba(0, 255, 255, 0.7) !important;
+    border-left: 1.5px solid rgba(0, 255, 255, 0.5) !important;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.15) !important;
+    border-right: 1px solid rgba(0, 255, 255, 0.15) !important;
+    box-shadow: 
+        inset 0px 4px 8px rgba(255, 255, 255, 0.85),
+        inset 0px -6px 10px rgba(0, 77, 77, 0.15),
+        inset 4px 0px 8px rgba(255, 255, 255, 0.55),
+        inset -4px 0px 8px rgba(0, 77, 77, 0.1),
+        0 15px 35px rgba(0, 0, 0, 0.16) !important;
+    padding: 1.15rem 0.5rem !important;
+    text-align: center !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+    width: 100%;
+    position: relative;
+}
+.kpi-acrilico:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 
+        inset 0px 4px 10px rgba(255, 255, 255, 0.95),
+        inset 0px -6px 12px rgba(0, 77, 77, 0.2),
+        inset 4px 0px 10px rgba(255, 255, 255, 0.65),
+        inset -4px 0px 10px rgba(0, 77, 77, 0.15),
+        0 20px 40px rgba(0, 0, 0, 0.22) !important;
+}
+.kpi-icono {
+    font-size: 1.85rem;
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.kpi-titulo {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 700;
+    font-size: 0.74rem;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.35rem;
+}
+.kpi-valor {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #0A2A66;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+/* =========================================================================
+   REGLAS EXCLUSIVAS DE RESPONSIVIDAD PARA TELÉFONOS MÓVILES (<768px)
+   ========================================================================= */
+@media (max-width: 767.98px) {
+    /* Navbar Ultra Compacto */
+    .sdm-navbar {
+        padding: 4px 8px !important;
+    }
+    .header-mobile-logo {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+    .btn-menu-toggle-mobile {
+        width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 8px !important;
+        background: #0A2A66 !important;
+        color: #ffffff !important;
+        border: none !important;
+        font-size: 1.1rem !important;
+        flex-shrink: 0;
+    }
+    .avatar-diamond-sm,
+    .avatar-diamond-mobile {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 0.75rem !important;
+        border-radius: 8px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0A2A66, #00C4C4);
+        color: #ffffff;
+        font-weight: 800;
+    }
+    .btn-role-pill-mobile {
+        background: #ffffff !important;
+        border: 1px solid rgba(25, 183, 165, 0.4) !important;
+        border-radius: 20px !important;
+        padding: 2px 7px !important;
+        font-size: 0.62rem !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+        color: #0A2A66 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    }
+    .sdm-search-input-mobile {
+        height: 30px !important;
+        font-size: 0.72rem !important;
+        border-radius: 20px !important;
+        padding-left: 28px !important;
+        padding-right: 10px !important;
+        background-color: #ffffff !important;
+        border: 1px solid #D9E2EC !important;
+        width: 100% !important;
+    }
+    .search-icon-mobile {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        color: #94a3b8;
+    }
+    .header-datetime-mobile {
+        font-size: 0.62rem !important;
+        margin-top: 1px !important;
+        margin-bottom: 0 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+    }
+    .header-datetime-text-mobile {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #627D98 !important;
+        font-weight: 600;
+    }
+
+    /* Dashboard Móvil Ultra Compacto */
+    .sdm-content {
+        padding: 4px 4px 60px 4px !important;
+    }
+    .sdm-content .container-fluid,
+    .sdm-content .container {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
+    .kpi-acrilico {
+        padding: 0.5rem 0.2rem !important;
+        border-radius: 12px !important;
+        min-height: auto !important;
+    }
+    .kpi-icono { 
+        font-size: 1.15rem !important; 
+        margin-bottom: 1px !important; 
+    }
+    .kpi-titulo { 
+        font-size: 0.58rem !important; 
+        letter-spacing: 0.2px !important; 
+        margin-bottom: 1px !important; 
+        line-height: 1.1 !important;
+    }
+    .kpi-valor { 
+        font-size: 1.05rem !important; 
+        letter-spacing: -0.5px !important;
+        line-height: 1.1 !important;
+    }
+    
+    /* Próximas Citas y Listados en Móvil */
+    .mobile-condensed-title {
+        font-size: 0.85rem !important;
+        margin-bottom: 6px !important;
+    }
+    .appointment-card-mobile {
+        padding: 0.55rem 0.75rem !important;
+        border-radius: 12px !important;
+        margin-bottom: 6px !important;
+    }
+    .appointment-card-mobile .btn-mobile-standard {
+        padding: 5px 12px !important;
+        font-size: 0.72rem !important;
+        min-height: 32px !important;
+        border-radius: 8px !important;
+    }
+    .appointment-card-mobile .badge {
+        font-size: 0.65rem !important;
+        padding: 2px 6px !important;
+    }
+}
