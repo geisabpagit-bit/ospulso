@@ -170,4 +170,11 @@ Para no comprometer la pureza de las matrices RBAC ni crear roles híbridos arti
 - Si el usuario tiene un solo rol (Cliente 1 / Policlínica con CLUE), el conmutador permanece **100% oculto e invisible**.
 - Si el usuario tiene multirrol activo, se renderiza un botón interactivo con micro-animación en la barra superior (`.btn-role-pill`) y una opción directa en el menú offcanvas (`#sdmSidebar`).
 
+### 8.5 Segregación de Finanzas y Privacidad en Consultorio Individual
+Para salvaguardar la confidencialidad de la información contable, cortes de caja y flujos financieros mientras el médico atiende a sus pacientes en consulta clínica:
+- **Catálogo Base (`dat/roles.dat`)**: El rol canónico `Medico` solo cuenta con `pacientes` y `agenda`. El módulo `finanzas` fue revocado de su definición por defecto.
+- **Menú Lateral (`utils/sub_sidebar.pl`)**: Se eliminó cualquier bypass artificial que forzara `finanzas` en consultorios individuales. En "Modo Médico", la opción **Finanzas** no es visible en el menú principal izquierdo.
+- **Protección de Endpoint (`views/finanzas.pl`)**: Si un usuario con rol activo `Medico` intenta acceder directamente por URL a `views/finanzas.pl`, el sistema evalúa RBAC (`tiene_permiso_modulo`). Si no cuenta con una excepción explícita, se bloquea la vista y se renderiza `render_acceso_denegado` informando que el módulo está reservado para el perfil de administración y orientando al usuario a utilizar el conmutador de roles en el encabezado.
+
+
 

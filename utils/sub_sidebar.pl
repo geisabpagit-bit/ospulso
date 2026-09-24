@@ -116,12 +116,8 @@ sub render_sidebar {
                         next;
                     }
                     # 3. 'finanzas' y 'reportes' siempre visibles para Administrador Organizacion y Recepcionista
-                    # Para Médico, solo si el tipo de organización es individual o compartido
                     if ($trimmed_mod eq 'finanzas' || $trimmed_mod eq 'reportes') {
                         if ($role eq 'Administrador Organizacion' || $role =~ /Recepcionista/i) {
-                            push @filtered_modules, $mod;
-                            next;
-                        } elsif ($role eq 'Medico' && ($tipo_org =~ /Individual/i || $tipo_org =~ /Compartido/i)) {
                             push @filtered_modules, $mod;
                             next;
                         }

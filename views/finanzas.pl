@@ -25,6 +25,25 @@ if (!$session_data->{session_ok} || $session_data->{role} !~ /Administrador|Caja
     exit;
 }
 
+# Gobernanza RBAC para Rol Médico en Finanzas
+if ($session_data->{role} eq 'Medico') {
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
+    my $id_usuario_sesion = $session_data->{id_registro} // $session_data->{id_medico} // '';
+    my $tiene_permiso = utils::permisos_utils::tiene_permiso_modulo($session_data->{id_empresa} // 0, $session_data->{role}, 'finanzas', 'R', $id_usuario_sesion);
+    unless ($tiene_permiso) {
+        require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
+        render_acceso_denegado(
+            q             => $q,
+            usuario       => $session_data->{usuario},
+            role          => $session_data->{role},
+            titulo        => "Finanzas - Acceso Restringido",
+            mensaje       => "El módulo de Finanzas no está disponible en Modo Médico para salvaguardar la privacidad financiera durante la atención clínica. Si usted es el Director del consultorio, conmute a su perfil de Administrador Organización en la barra superior.",
+            rol_requerido => "Administrador Organización"
+        );
+        exit;
+    }
+}
+
 my $id_paciente = $q->param('id') || '';
 
 # Verificar SaaS Capabilities (PACIENTES_ESTADO)
