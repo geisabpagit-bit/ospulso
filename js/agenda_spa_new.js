@@ -293,7 +293,7 @@ function loadFormMetadata() {
                 selSuc.empty();
                 res.sucursales.forEach(s => {
                     let text = s.nombre;
-                    if (s.tipo === 'Matriz') text += ' (Matriz)';
+                    if (s.tipo === 'Matriz' && !res.es_consultorio_ind) text += ' (Matriz)';
                     selSuc.append(`<option value="${s.id}">${text}</option>`);
                 });
             }

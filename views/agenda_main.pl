@@ -31,8 +31,28 @@ my $usuario   = $sd->{usuario};
 my $role      = $sd->{role};
 my $id_medico = $sd->{id_medico};
 my $id_negocio = $sd->{session} ? $sd->{session}->param('id_empresa') : '';
+$id_negocio = '0' if (!defined $id_negocio || $id_negocio eq '');
 my $id_sucursal = $sd->{session} ? $sd->{session}->param('id_sucursal') : '';
 my $id_negocio_activo = ($id_sucursal && $id_sucursal ne '0') ? $id_sucursal : $id_negocio;
+
+# Detección de Tipo de Organización
+my $tipo_organizacion = 'Clínica';
+my $archivo_config = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+if (-e $archivo_config && open my $fh_c, '<:encoding(UTF-8)', $archivo_config) {
+    my $cnt = 0;
+    while (my $line = <$fh_c>) {
+        $cnt++;
+        $line =~ s/\R//g;
+        next if $cnt == 1 || $line =~ /^\s*$/;
+        my @f = split(/\|/, $line);
+        if ($f[0] eq $id_negocio && $f[1] eq 'TIPO_ORGANIZACION') {
+            $tipo_organizacion = $f[2] // 'Clínica';
+            last;
+        }
+    }
+    close $fh_c;
+}
+my $es_consultorio_ind = ($tipo_organizacion eq 'Consultorio Individual') ? 1 : 0;
 
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
@@ -43,7 +63,7 @@ if ($usuarios) {
     foreach my $u (@$usuarios) {
         my $es_medico = ($u->[5] =~ /(?:^|,)Medico(?:,|$)/) || 
                         ($u->[5] =~ /Administrador/ && defined $u->[7] && $u->[7] ne '' && $u->[7] ne '0');
-        if ($es_medico && $u->[6] =~ /^$id_negocio:/) {
+        if ($es_medico && ($u->[6] =~ /^$id_negocio:/ || ($id_negocio eq '0' && $u->[6] =~ /^0:/))) {
             push @medicos, { id => $u->[0], nombre => $u->[1] };
         }
     }
@@ -64,6 +84,7 @@ if ($negocios) {
         }
     }
 }
+$nombre_sucursal = 'Consultorio Principal' if ($es_consultorio_ind && ($nombre_sucursal eq 'Clínica Principal' || $nombre_sucursal eq ''));
 my $html_sucursal = qq(<option value="$id_negocio_activo" selected>$nombre_sucursal</option>);
 
 # 1. Cabecera Corporativa
@@ -82,6 +103,7 @@ render_header(
 print <<HTML;
     <!-- Datos de Sesión para JS -->
     <input type="hidden" id="f_medico" value="$id_medico">
+    <input type="hidden" id="agenda_es_individual" value="$es_consultorio_ind">
     <script>
         window.idPacientePre = "$id_paciente_pre";
         window.nombrePacientePre = "$nombre_paciente_pre";
@@ -509,15 +531,26 @@ print <<'JS';
         document.addEventListener('DOMContentLoaded', function() {
             var fSucursal = document.getElementById('f_sucursal');
             var fConsultorio = document.getElementById('f_consultorio');
+            var esIndividual = document.getElementById('agenda_es_individual') && document.getElementById('agenda_es_individual').value === '1';
             
             window.cargarRecursos = function(idSucursal) {
                 if (!fConsultorio) return;
+
+                if (esIndividual) {
+                    fConsultorio.innerHTML = '<optgroup label="Consultorio"><option value="Consultorio 1" selected>Consultorio 1</option></optgroup><optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
+                    return;
+                }
+
                 fConsultorio.innerHTML = '<option value="">Cargando...</option>';
                 
-                fetch('../api/citas_crud.pl?accion=get_recursos&id_sucursal=' + idSucursal)
+                fetch('../api/citas_crud.pl?accion=get_recursos&id_sucursal=' + (idSucursal || ''))
                     .then(r => r.json())
                     .then(data => {
                         if (data.ok) {
+                            if (data.tipo_org === 'Consultorio Individual' || (data.consultorios === 1 && (!data.quirofanos || data.quirofanos === 0))) {
+                                fConsultorio.innerHTML = '<optgroup label="Consultorio"><option value="Consultorio 1" selected>Consultorio 1</option></optgroup><optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
+                                return;
+                            }
                             let html = '<optgroup label="Consultorios">';
                             for (let i = 1; i <= data.consultorios; i++) {
                                 html += `<option value="Consultorio ${i}">Consultorio ${i}</option>`;
@@ -538,12 +571,11 @@ print <<'JS';
                     })
                     .catch(e => {
                         console.error("Error cargando recursos", e);
-                        fConsultorio.innerHTML = '<option value="Virtual">Virtual (Error)</option>';
+                        fConsultorio.innerHTML = '<option value="Consultorio 1">Consultorio 1</option><option value="Virtual">Virtual</option>';
                     });
             };
 
             if (fSucursal) {
-                // Escuchar el cambio manual del usuario
                 fSucursal.addEventListener('change', function() {
                     window.cargarRecursos(this.value);
                     if (typeof renderSlots === 'function' && document.getElementById('f_fecha')) {
@@ -564,11 +596,15 @@ print <<'JS';
             let modalEl = document.getElementById('modalCita');
             if (modalEl) {
                 modalEl.addEventListener('show.bs.modal', function () {
-                    setTimeout(() => {
-                        if (fSucursal && fSucursal.value) {
-                            window.cargarRecursos(fSucursal.value);
-                        }
-                    }, 300); // Esperar a que agenda_spa_new.js pueble la sucursal
+                    if (esIndividual) {
+                        window.cargarRecursos('');
+                    } else {
+                        setTimeout(() => {
+                            if (fSucursal && fSucursal.value) {
+                                window.cargarRecursos(fSucursal.value);
+                            }
+                        }, 200);
+                    }
                 });
             }
         });

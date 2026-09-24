@@ -457,9 +457,41 @@ sub detectar_colisiones {
 sub enviar_eventos_oficial {
     my ($arr) = @_;
     my @eventos;
+    my $my_org = $session_data->{id_empresa} // '0';
+    $my_org = '0' if $my_org eq '';
+    my $filtro_medico = $q->param('id_medico') // '';
+
+    # Identificar los IDs de médicos de esta organización
+    my %meds_org;
+    my $file_usu = "$dirname/../dat/usuarios.dat";
+    if (-e $file_usu && open my $fh_u, '<:encoding(UTF-8)', $file_usu) {
+        my $cnt = 0;
+        while (my $l = <$fh_u>) {
+            $cnt++;
+            $l =~ s/\R//g;
+            next if $cnt == 1 || $l =~ /^\s*$/;
+            my @u = split(/!/, $l);
+            next unless scalar(@u) >= 7;
+            my ($u_biz) = split(/:/, $u[6] // '');
+            if ($u_biz eq $my_org || ($my_org eq '0' && ($u_biz eq '0' || $u_biz eq ''))) {
+                $meds_org{$u[0]} = 1;
+            }
+        }
+        close $fh_u;
+    }
+
     foreach my $c (@$arr) {
         next if $c->{estado} eq 'Cancelada';
         
+        # Filtro de seguridad multi-tenant: el médico de la cita debe pertenecer a la organización
+        if (keys %meds_org) {
+            next unless $meds_org{$c->{id_medico}};
+        }
+        
+        if ($filtro_medico && $filtro_medico ne 'all' && $filtro_medico ne '0') {
+            next unless $c->{id_medico} eq $filtro_medico;
+        }
+
         my $titulo = obtener_nombre_paciente($c->{id_paciente});
         my $motivo = $c->{motivo};
         
@@ -684,7 +716,29 @@ sub obtener_metadatos_formulario {
     my @medicos;
     my @sucursales;
     
-    # 1. Cargar Médicos
+    my $my_org = $session_data->{id_empresa} // '0';
+    $my_org = '0' if $my_org eq '';
+
+    # 0. Detectar Tipo de Organización
+    my $tipo_org = 'Clínica';
+    my $file_cfg = "$dirname/../dat/negocios_config.dat";
+    if (-e $file_cfg && open my $fh_cfg, '<:encoding(UTF-8)', $file_cfg) {
+        my $cnt = 0;
+        while (my $line = <$fh_cfg>) {
+            $cnt++;
+            $line =~ s/\R//g;
+            next if $cnt == 1 || $line =~ /^\s*$/;
+            my @f = split(/\|/, $line);
+            if ($f[0] eq $my_org && $f[1] eq 'TIPO_ORGANIZACION') {
+                $tipo_org = $f[2] // 'Clínica';
+                last;
+            }
+        }
+        close $fh_cfg;
+    }
+    my $es_consultorio_ind = ($tipo_org eq 'Consultorio Individual') ? 1 : 0;
+    
+    # 1. Cargar Médicos pertenecientes a ESTA organización
     my $file_usu = "$dirname/../dat/usuarios.dat";
     if (-e $file_usu && open my $fh, '<:encoding(UTF-8)', $file_usu) {
         my $cnt = 0;
@@ -693,33 +747,54 @@ sub obtener_metadatos_formulario {
             $line =~ s/\R//g;
             next if $cnt == 1 || $line =~ /^\s*$/;
             my @f = split(/!/, $line);
-            next unless scalar(@f) >= 6;
-            if ($f[4] == 1 && $f[5] =~ /Medico/i) {
+            next unless scalar(@f) >= 7;
+            
+            # Filtrar por pertenencia a este negocio
+            my ($u_biz) = split(/:/, $f[6] // '');
+            next unless ($u_biz eq $my_org || ($my_org eq '0' && ($u_biz eq '0' || $u_biz eq '')));
+            
+            my $es_med = ($f[5] =~ /(?:^|,)Medico(?:,|$)/) || 
+                         ($f[5] =~ /Administrador/ && defined $f[7] && $f[7] ne '' && $f[7] ne '0');
+            if ($f[4] == 1 && $es_med) {
                 push @medicos, { id => $f[0], nombre => $f[1] };
             }
         }
         close $fh;
     }
     
-    # 2. Cargar Sucursales (Matriz e Hijas)
+    # 2. Cargar Sucursales pertenecientes a ESTA organización
     my $file_neg = "$dirname/../dat/negocios.dat";
+    my $nombre_matriz = 'Sede Principal';
     if (-e $file_neg && open my $fh, '<:encoding(UTF-8)', $file_neg) {
         my $cnt = 0;
+        my @hijas;
         while (my $line = <$fh>) {
             $cnt++;
             $line =~ s/\R//g;
             next if $cnt == 1 || $line =~ /^\s*$/;
             my @f = split(/\|/, $line);
             next unless scalar(@f) >= 3;
-            if ($f[3] == 1 && $f[2] ne '0') { # Activo y NO es Matriz
-                push @sucursales, { id => $f[0], nombre => $f[1], tipo => "Sucursal" };
+            
+            # Localizar nombre de la matriz/sede principal de esta org
+            if ($f[0] eq $my_org) {
+                $nombre_matriz = $f[1];
+            }
+            # Si NO es consultorio individual, buscar sucursales hijas pertenecientes a esta matriz
+            if (!$es_consultorio_ind && $f[3] eq '1' && $f[2] eq $my_org) {
+                push @hijas, { id => $f[0], nombre => $f[1], tipo => "Sucursal" };
             }
         }
         close $fh;
+        
+        # Siempre incluir su sede principal como primera opción
+        push @sucursales, { id => $my_org, nombre => $nombre_matriz, tipo => "Matriz" };
+        push @sucursales, @hijas;
     }
     
     my %res = (
         ok => 1,
+        tipo_organizacion => $tipo_org,
+        es_consultorio_ind => $es_consultorio_ind,
         medicos => \@medicos,
         sucursales => \@sucursales
     );
@@ -729,12 +804,37 @@ sub obtener_metadatos_formulario {
 
 sub obtener_recursos_sucursal {
     my ($q) = @_;
-    my $id_sucursal = $q->param('id_sucursal');
-    unless ($id_sucursal) {
-        responder_json(0, "Falta id_sucursal");
-    }
+    my $id_sucursal = $q->param('id_sucursal') // '';
     
+    my $my_org = $session_data->{id_empresa} // '0';
+    $my_org = '0' if $my_org eq '';
+
     my $file_cfg = "$dirname/../dat/negocios_config.dat";
+
+    # Detectar si esta organización es Consultorio Individual
+    my $tipo_org = 'Clínica';
+    if (-e $file_cfg && open my $fh_c, '<:encoding(UTF-8)', $file_cfg) {
+        my $cnt = 0;
+        while (my $line = <$fh_c>) {
+            $cnt++;
+            $line =~ s/\R//g;
+            next if $cnt == 1 || $line =~ /^\s*$/;
+            my @f = split(/\|/, $line);
+            if ($f[0] eq $my_org && $f[1] eq 'TIPO_ORGANIZACION') {
+                $tipo_org = $f[2] // 'Clínica';
+                last;
+            }
+        }
+        close $fh_c;
+    }
+
+    # Si es Consultorio Individual, por regla de arquitectura clínica SOLO maneja 1 consultorio y 0 quirófanos
+    if ($tipo_org eq 'Consultorio Individual') {
+        print $q->header(-type => 'application/json', -charset => 'utf-8');
+        print encode_json({ ok => 1, consultorios => 1, quirofanos => 0, tipo_org => 'Consultorio Individual' });
+        return;
+    }
+
     my $consultorios = 1;
     my $quirofanos = 0;
     
@@ -754,8 +854,11 @@ sub obtener_recursos_sucursal {
         close $fh;
     }
     
+    $consultorios = 1 if $consultorios < 1;
+    $quirofanos   = 0 if $quirofanos < 0;
+
     print $q->header(-type => 'application/json', -charset => 'utf-8');
-    print encode_json({ ok => 1, consultorios => $consultorios, quirofanos => $quirofanos });
+    print encode_json({ ok => 1, consultorios => $consultorios, quirofanos => $quirofanos, tipo_org => $tipo_org });
 }
 
 sub cobrar_recepcion {
