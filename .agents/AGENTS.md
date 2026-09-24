@@ -1,0 +1,40 @@
+
+- Al terminar modificaciones, siempre realizar 'git add .', 'git commit' y 'git push' automaticamente.
+- Al terminar modificaciones y la sincronización de git, SIEMPRE mostrar al final la respuesta el 'Plan de Verificación' detallado con los resultados.
+- IMPORTANTE: Al crear o editar scripts .pl, si se inyecta CSS o Javascript dentro de bloques interpolados (como prints con comillas dobles o heredocs `<<"HTML"`), se deben escapar símbolos de arroba como `\@media` para evitar el error de compilación "Global symbol requires explicit package name".
+- **REGLAS DE ORO DE ARQUITECTURA SOAP POLIMÓRFICA Y MULTI-ESPECIALIDAD**:
+  1. **Contrato de Datos JSON SOAP Canónico**: Toda consulta privada debe serializarse bajo las llaves canónicas SOAP (`subjective`, `objective`, `assessment`, `plan`). Los datos dinámicos creados por especialistas DEBEN alojarse dentro de `soap.objective.especialidad_data`.
+  2. **Core Pipeline Único e Inviolable**: El flujo global (Paso 0 Registro, Agenda, Expediente, Firma y Cierre con Caja) es 100% ÚNICO y compartido. Está estrictamente PROHIBIDO duplicar vistas completas por especialidad (ej. NO crear `consulta_pediatria.pl` ni `consulta_ginecologia.pl`).
+  3. **Subformularios Desacoplados (Plugin Slot)**: Los subformularios de especialidad deben ser componentes modulares alojados en `views/partials/consultas/` o `views/partials/especialidades/`. Si una especialidad aún no cuenta con un subformulario propio, DEBE renderizarse el componente de fallback con Signos Vitales y la leyenda del módulo dinámico sin romper el flujo.
+- **ESTÁNDARES UI MÓVILES (Responsividad)**: Al crear, sanitizar o refactorizar vistas, se debe maximizar el espacio útil en móviles y mejorar la usabilidad táctil integrando el archivo `css/sdm_mobile_standards.css` y sus utilidades:
+  1. Utilizar `.container-mobile-flush` y `.card-mobile-flush` en contenedores y tarjetas para comprimir los márgenes (paddings) estorbosos en resoluciones menores a 768px.
+  2. Aplicar `.mobile-edge-to-edge` para expandir elementos al 100% de la pantalla cuando sea necesario eliminar todo margen sobrante.
+  3. Los botones de acción en móvil deben ser amigables. Utiliza la clase base `.btn-mobile-standard` en combinación con `.btn-mobile-action` o `.btn-mobile-outline`. Esto garantiza el `touch target` mínimo de 48px y bordes sutilmente redondeados estándar. Para que cubran todo el ancho, añade `.btn-mobile-full`.
+
+- **PREVENCIÓN DE ERRORES DE SIGILOS (PERL vs JS)**: ESTÁ ESTRICTAMENTE PROHIBIDO mezclar variables de Perl y código JavaScript/CSS extenso dentro de un mismo bloque HEREDOC doble (`<<"HTML"`) o `qq{}`. Esto provoca colisiones incontrolables de sigilos (ej. el símbolo `$` de jQuery vs variables de Perl, o secuencias de escape como `\'` que destruyen las comillas del JS en el navegador causando `SyntaxError: Unexpected identifier`).
+  **SOLUCIÓN (Obligatoria en refactorizaciones o vistas nuevas)**: 
+  1. **Aislamiento**: Si un bloque `<script>` o `<style>` es extenso y no requiere variables de Perl, se DEBE aislar cerrando el HEREDOC principal y abriendo uno de comilla simple (ej. `print <<'JS';`).
+  2. **Intercambio por DOM**: Si el script JS necesita datos del backend de Perl, se DEBEN inyectar como atributos `data-*` en el HTML (ej. `<div id="config" data-user="$usuario">`) y el JS puro debe leerlos desde el DOM (`dataset.user`), nunca interpolándolos directamente.
+
+- **SEPARACIÓN ESTRICTA DE ESTILOS (CSS)**: Está prohibido el uso de bloques `<style>` extensos o estilos en línea dentro de las vistas (`.pl` o `.html`). Todos los estilos personalizados deben residir en archivos CSS separados o, preferentemente, aprovechar las clases utilitarias del CSS mandante del proyecto (ej. `ospulso_master_v2.css`).
+
+- **PREVENCIÓN DE FUGAS DE HEREDOC EN CÓDIGO HTML**: Cuando sea necesario interrumpir un bloque HEREDOC principal para insertar lógica (ej. una validación `if` de Perl para renderizar HTML condicionalmente), SIEMPRE corrobora el nombre del tag original (como `PAGE_HTML` o `HTML`). Es un error gravísimo cerrarlo con otro nombre (ej. estabas en `PAGE_HTML` y cierras con `HTML`), ya que el bloque de Perl será considerado parte del HTML y escapará a la pantalla del usuario rompiendo la interfaz. Siempre cierra con el mismo tag y reabre con una declaración limpia (ej. `print <<'PAGE_HTML';`).
+
+- **PROTECCIÓN Y GOBERNANZA RBAC (Role-Based Access Control)**: Al crear o modificar endpoints del backend (`api/*.pl`) o vistas (`views/*.pl`), es OBLIGATORIO respetar la segregación de funciones. En backend, SIEMPRE verifica la variable de sesión (ej. `$rol`) para bloquear accesos indebidos (API-RBAC). En frontend, renderiza componentes condicionalmente (UI-RBAC) para ocultar acciones que el rol autenticado no deba operar (ej. no mostrar el botón de "Cobrar" a un Médico, ni el "Wizard Clínico" a una Recepcionista).
+
+- **REGLAS DE ORO DE ARQUITECTURA FINANCIERA, CAJA Y COBRANZA**:
+  Toda modificación, cálculo o refactorización en el módulo financiero (`views/finanzas.pl`, `api/finanzas_api.pl`, `api/generar_corte_caja.pl`, `api/*recibo*.pl`, reportes o estado de cuenta) DEBE consultar y apegarse strictly a la fuente de verdad canónica documentada en [docs/02_data_and_rules/arquitectura_financiera.md](file:///c:/xampp/htdocs/ospulso/docs/02_data_and_rules/arquitectura_financiera.md):
+  1. **Integridad Contable Bidireccional (Drilldown Transparente)**: Los totales de los KPIs del Tablero Ejecutivo DEBEN cuadrar exactamente al centavo con el desglose en las tablas DataTables del periodo seleccionado.
+  2. **Canales de Ingreso Coexistentes**: El sistema reconoce dos canales: (a) *Flujo Clínico Canónico* (con expediente, consulta SOAP y estado de cuenta) y (b) *Caja Rápida / Mostrador* (servicios directos, ambulatorios o eventuales). Ambos alimentan el flujo de caja real.
+  3. **Fuente Canónica de Flujo de Efectivo (Anti-Doble Contabilidad)**: La fuente canónica e inviolable de ingresos cobrados en caja es `dat/folios_recibos_privados.dat`. Está strictly PROHIBIDO sumar en paralelo `estado_cuenta.dat` y `folios_recibos_privados.dat` para calcular ingresos totales, ya que esto duplicaría la recaudación.
+  4. **Segregación de Flujo Real vs Cuentas por Cobrar (Municipio/Convenios)**: El efectivo cobrado en ventanilla es ingreso de caja real. Los convenios y órdenes públicas con subsidio al 100% de `dat/folios_recibos_publicos.dat` NO son efectivo físico en caja; son Cuentas por Cobrar (CXC Estado) y deben computarse en su respectivo KPI y tabla hasta su liquidación por la entidad pública.
+
+- **GOBERNANZA Y SINCRONIZACIÓN DE DOCUMENTACIÓN (SINGLE SOURCE OF TRUTH)**:
+  1. **Estructura Obligatoria y Restricción de Rutas**: Está estrictamente PROHIBIDO crear o dejar archivos `.md` sueltos en `dat/`, `api/`, `views/`, raíz del proyecto o carpetas temporales. Toda nueva documentación o modificación documental DEBE generarse de forma exclusiva en una de las 4 capas de `docs/` o en `docs/README.md`:
+     - `docs/01_architecture/`: Blueprint general, pipeline core y evolución.
+     - `docs/02_data_and_rules/`: Diccionario de datos (`.dat`), reglas de negocio y finanzas.
+     - `docs/03_modules_and_workflows/`: Especificación por módulo (Caja, Consultas, Visor, Catálogos, etc.).
+     - `docs/04_standards_and_ops/`: Guías de UI/UX responsivo, estándares de código y protocolos de error.
+  2. **Actualización Sincronizada con el Código**: Toda creación o modificación de endpoints (`api/`), vistas (`views/`), hojas de estilo (`css/`) o estructuras flat-file (`dat/`) exige la actualización inmediata del archivo `.md` correspondiente en `docs/`. Nunca se debe dar por terminada una tarea técnica sin refrescar la documentación representativa.
+
+

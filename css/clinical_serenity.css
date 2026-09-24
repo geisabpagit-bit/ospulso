@@ -1,0 +1,82 @@
+/* css/clinical_serenity.css */
+:root {
+  --bs-primary: #174975;
+  --bs-primary-rgb: 23, 73, 117;
+  --cs-primary: #174975;
+  --cs-primary-container: #103658;
+  --cs-background: #f6fafd;
+  --cs-surface: #ffffff;
+  --cs-surface-low: #f0f4f7;
+  --cs-text-main: #171c1e;
+  --cs-text-muted: #3e484d;
+  --cs-border-radius: 12px;
+}
+
+body {
+  background-color: var(--cs-background) !important;
+  font-family: 'Inter', sans-serif;
+  color: var(--cs-text-main);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Manrope', sans-serif;
+}
+
+.cs-card {
+  background: var(--cs-surface);
+  border-radius: var(--cs-border-radius);
+  border: none;
+  box-shadow: 0 4px 24px rgba(0, 100, 124, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cs-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 100, 124, 0.08);
+}
+
+.cs-kpi-val {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--cs-primary);
+  line-height: 1;
+}
+
+.cs-action-card {
+  background: var(--cs-surface-low);
+  border-radius: var(--cs-border-radius);
+  color: var(--cs-primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  gap: 1rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.cs-action-card:hover {
+  background: var(--cs-surface);
+  box-shadow: 0 4px 16px rgba(0, 100, 124, 0.06);
+  color: var(--cs-primary-container);
+}
+
+.cs-action-icon {
+  font-size: 1.5rem;
+  background: var(--cs-surface);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.cs-list-item {
+  background: var(--cs-surface);
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

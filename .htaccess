@@ -1,0 +1,21 @@
+# 1. Habilitar ejecución de scripts Perl/CGI (Protocolo 11.4)
+Options +ExecCGI
+AddHandler cgi-script .pl
+
+# 2. Forzar codificación UTF-8
+AddDefaultCharset UTF-8
+
+# 3. Bloquear acceso a archivos de PHP
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>
+
+# 4. Excepción para deploy.php si es necesario
+<Files "deploy.php">
+    Require all granted
+</Files>
+
+# 5. Silenciar 404 del favicon si no existe
+<Files "favicon.ico">
+    ErrorDocument 404 " "
+</Files>

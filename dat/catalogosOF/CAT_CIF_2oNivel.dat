@@ -1,0 +1,381 @@
+CODIGO!DESCRIPCION
+b110!Funciones de la conciencia
+b114!Funciones de la orientación
+b117!Funciones intelectuales
+b122!Funciones psicosociales globales
+b125!Funciones relacionadas con la predisposición y el funcionamiento intrapersonal
+b126!Funciones del temperamento y la personalidad
+b130!Funciones relacionadas con la energía y los impulsos
+b134!Funciones del sueño
+b139!Funciones mentales globales, otras especificadas y no especificadas
+b140!Funciones de la atención
+b144!Funciones de la memoria
+b147!Funciones psicomotoras
+b152!Funciones emocionales
+b156!Funciones de la percepción
+b160!Funciones del pensamiento
+b163!Funciones cognitivas básicas
+b164!Funciones cognitivas superiores
+b167!Funciones mentales del lenguaje
+b172!Funciones relacionadas con el cálculo
+b176!Funciones mentales relacionadas con el encadenamiento de movimientos complejos
+b180!Experiencias relacionadas con uno mismo y con el tiempo
+b189!Funciones mentales específicas, otras especificadas y no especificadas
+b198!Funciones mentales, otras especificadas
+b199!Funciones mentales, no especificadas
+b210!Funciones visuales
+b215!Funciones de las estructuras adyacentes al ojo
+b220!Sensaciones asociadas con el ojo y estructuras adyacentes
+b229!Vista y funciones relacionadas, otras especificadas y no especificadas
+b230!Funciones auditivas
+b235!Función vestibular
+b240!Sensaciones asociadas con la audición  y con la función vestibular
+b249!Funciones auditivas y vestibulares, otras especificadas y no especificadas
+b250!Función gustativa
+b255!Función olfativa
+b260!Función propioceptiva
+b265!Funciones táctiles
+b270!Funciones relacionadas con la temperatura y otros estímulos
+b279!Funciones sensoriales adicionales, otras especificadas y no especificadas
+b280!Sensación de dolor
+b289!Sensación de dolor, otra especificada y no especificada
+b298!Funciones sensoriales y dolor, otras especificadas
+b299!Funciones sensoriales y dolor, no especificadas
+b310!Funciones de la voz
+b320!Funciones de articulación
+b330!Funciones relacionadas con la fluidez y el ritmo del habla
+b340!Funciones alternativas de vocalización
+b398!Funciones de la voz y el habla, otras especificadas
+b399!Funciones de la voz y el habla, no especificadas
+b410!Funciones del corazón
+b415!Funciones de los vasos sanguíneos
+b420!Funciones de la presión arterial
+b429!Funciones del sistema cardiovascular, otras especificadas y no especificadas
+b430!Funciones del sistema hematológico
+b435!Funciones del sistema inmunológico
+b439!Funciones de los sistemas hematológico e inmunológico, otras especificadas y no especificadas
+b440!Funciones respiratorias
+b445!Funciones de los músculos respiratorios
+b449!Funciones del sistema respiratorio, otras especificadas y no especificadas
+b450!Funciones respiratorias adicionales
+b455!Funciones relacionadas con la tolerancia al ejercicio
+b460!Sensaciones asociadas con las funciones cardiovasculares y respiratorias
+b469!Funciones adicionales y sensaciones de los sistemas cardiovascular y respiratorio, otras especificadas y no especificadas
+b498!Funciones de los sistemas cardiovascular, hematológico e inmunológico y respiratorio, otras especificadas
+b499!Funciones de los sistemas cardiovascular, hematológico e inmunológico y respiratorio, no especificadas
+b510!Funciones relacionadas con la ingestión
+b515!Funciones relacionadas con la digestión
+b520!Funciones relacionadas con la asimilación
+b525!Funciones relacionadas con la defecación
+b530!Funciones relacionadas con el mantenimiento del peso
+b535!Sensaciones asociadas con el sistema digestivo
+b539!Funciones relacionadas con el sistema digestivo, otras especificadas y no especificadas
+b540!Funciones metabólicas generales
+b545!Funciones relacionadas con el balance hídrico, mineral y electrolítico
+b550!Funciones termorreguladoras
+b555!Funciones de las glándulas endocrinas
+b559!Funciones relacionadas con el metabolismo y el sistema endocrino, otras especificadas y no especificadas
+b560!Funciones relacionadas con el crecimiento
+b598!Funciones de los sistema digestivo,  metabólico y el sistema endocrino, otras especificadas
+b599!Funciones de los sistemas digestivo, metabólico y endocrino, no especificadas
+b610!Funciones relacionadas con la excreción urinaria
+b620!Funciones urinarias
+b630!Sensaciones  asociadas con las funciones urinarias
+b639!Funciones urinarias, otras especificadas y no especificadas
+b640!Funciones sexuales
+b650!Funciones relacionadas con la menstruación
+b660!Funciones relacionadas con la procreación
+b670!Sensaciones asociadas con las funciones genitales y reproductoras
+b679!Funciones genitales y reproductoras, otras especificadas y no especificadas
+b698!Funciones genitourinarias y reproductoras, otras especificadas
+b699!Funciones genitourinarias y reproductoras, no especificadas
+b710!Funciones relacionadas con la movilidad de las articulaciones
+b715!Funciones relacionadas con la estabilidad de las articulaciones
+b720!Funciones relacionadas con la movilidad de los huesos
+b729!Funciones de las articulaciones y los huesos, otras especificadas y no especificadas
+b730!Funciones relacionadas con la fuerza muscular
+b735!Funciones relacionadas con el tono muscular
+b740!Funciones relacionadas con la resistencia muscular
+b749!Funciones musculares, otras especificadas y no especificadas
+b750!Funciones relacionadas con los reflejos motores
+b755!Funciones relacionadas con los reflejos de movimiento involuntario
+b760!Funciones relacionadas con el control de los movimientos voluntarios
+b761!Funciones relacionadas con los movimientos espontáneos
+b765!Funciones relacionadas con los movimientos involuntarios
+b770!Funciones relacionadas con el patrón de la marcha
+b780!Sensaciones relacionadas con los músculos y las funciones del movimiento
+b789!Funciones relacionadas con el movimiento, otras especificadas y no especificadas
+b798!Funciones neuromusculoesqueléticas y relacionadas con el movimiento, otras especificadas
+b799!Funciones neuromusculoesqueléticas y relacionadas con el movimiento, no especificadas
+b810!Funciones protectoras de la piel
+b820!Funciones reparadoras de la piel
+b830!Otras funciones de la piel
+b840!Sensaciones relacionadas con la piel
+b849!Funciones de la piel, otras especificadas y no especificadas
+b850!Funciones del pelo
+b860!Funciones de las uñas
+b869!Funciones del pelo y las uñas, otras especificadas y no especificadas
+b898!Funciones de la piel y estructuras relacionadas, otras especificadas
+b899!Funciones de la piel y estructuras relacionadas, no especificadas
+s110!Estructura del cerebro
+s120!Médula espinal y estructuras relacionadas
+s130!Estructura de las meninges
+s140!Estructura del sistema nervioso simpático
+s150!Estructura del sistema nervioso parasimpático
+s198!Estructura del sistema nervioso, otra especificada
+s199!Estructura del sistema nervioso, no especificada
+s210!Estructura de la órbita ocular
+s220!Estructura del globo ocular
+s230!Estructura periféricas oculares
+s240!Estructura del oído externo
+s250!Estructura del oído medio
+s260!Estructura del oído interno
+s298!Estructuras del ojo, el oído y sus estructuras relacionadas, otras especificadas
+s299!Estructuras del ojo, el oído y sus estructuras relacionadas, no especificadas
+s310!Estructura de la nariz
+s320!Estructura de la boca
+s330!Estructura de la faringe
+s340!Estructura de la laringe
+s398!Estructuras involucradas en la voz y el habla, otras especificadas
+s399!Estructuras involucradas en la voz y el habla, no especificadas
+s410!Estructura del sistema cardiovascular
+s420!Estructura del sistema inmunológico
+s430!Estructura del sistema respiratorio
+s498!Estructuras de los sistemas cardiovascular, inmunológico y respiratorio, otras especificadas
+s499!Estructuras de los sistemas cardiovascular, inmunológico y respiratorio, no especificadas
+s510!Estructura de las glándulas salivales
+s520!Estructura del esófago
+s530!Estructura del estómago
+s540!Estructura del intestino
+s550!Estructura del páncreas
+s560!Estructura del hígado
+s570!Estructura de la vesícula y los conductos biliares
+s580!Estructura de las glándulas endocrinas
+s598!Estructuras relacionadas con los sistemas digestivo, metabólico y endocrino, otras especificadas
+s599!Estructuras relacionadas con los sistemas digestivo, metabólico y endocrino, no especificadas
+s610!Estructura del sistema urinario
+s620!Estructura del suelo pélvico
+s630!Estructura del sistema reproductor
+s698!Estructuras relacionadas con el sistema genitourinario y sistema reproductor, otras especificadas
+s699!Estructuras relacionadas con el sistema genitourinario y sistema reproductor, no especificadas
+s710!Estructuras de la cabeza y de la región del cuello
+s720!Estructura de la región del hombro
+s730!Estructura de la extremidad superior
+s740!Estructura de la región pélvica
+s750!Estructura de la extremidad inferior
+s760!Estructura del tronco
+s770!Estructuras musculoesqueléticas adicionales relacionadas con el movimiento
+s798!Estructuras relacionadas con el movimiento, otras especificadas
+s799!Estructuras relacionadas con el movimiento, no especificadas
+s810!Estructura de las áreas de la piel
+s820!Estructura de las glándulas de la piel
+s830!Estructura de las uñas
+s840!Estructura del pelo
+s898!Estructuras de la piel y estructuras relacionadas, otras especificadas
+s899!Estructuras de la piel y estructuras relacionadas, no especificadas
+d110!Mirar
+d115!Escuchar
+d120!Otras experiencias sensoriales intencionadas
+d129!Experiencias sensoriales intencionadas, otras especificadas y no especificadas
+d130!Copiar
+d131!Aprender mediante acciones con objetos
+d132!Adquirir información
+d133!Adquirir el lenguaje
+d134!Adquirir el lenguaje adicional
+d135!Repetir
+d137!Adquirir conceptos
+d140!Aprender a leer
+d145!Aprender a escribir
+d150!Aprender a calcular
+d155!Adquisición de habilidades
+d159!Aprendizaje básico, otro especificado y no especificado
+d160!Centrar la atención
+d161!Dirigir la atención
+d163!Pensar
+d166!Leer
+d170!Escribir
+d172!Calcular
+d175!Resolver problemas
+d177!Tomar decisiones
+d179!Aplicación del conocimiento, otra especificada y no especificada
+d198!Aprendizaje y aplicación del conocimiento, otro especificado
+d199!Aprendizaje y aplicación del conocimiento, no especificado
+d210!Llevar a cabo una única tarea
+d220!Llevar a cabo múltiples tareas
+d230!Llevar a cabo rutinas diarias
+d240!Manejo del estrés y otras demandas psicológicas
+d250!Manejo del comportamiento propio
+d298!Tareas y demandas generales, otras especificadas
+d299!Tareas y demandas generales, no especificadas
+d310!Comunicación-recepción de mensajes hablados
+d315!Comunicación-recepción de mensajes no verbales
+d320!Comunicación-recepción de mensajes en lenguaje de signos convencional
+d325!Comunicación-recepción de mensajes escritos
+d329!Comunicación-recepción, otra especificada y no especificada
+d330!Hablar
+d331!Pre-lenguaje
+d332!Cantar
+d335!Producción de mensajes no verbales
+d340!Producción de mensajes en lenguaje de signos convencional
+d345!Mensajes escritos
+d349!Comunicación-producción, otra especificada y no especificada
+d350!Conversación
+d355!Discusión
+d360!Utilización de dispositivos y técnicas de comunicación
+d369!Conversación y utilización de dispositivos y técnicas de comunicación, otros especificados y no especificados
+d398!Comunicación, otra especificada
+d399!Comunicación, no especificada
+d410!Cambiar las posturas corporales básicas
+d415!Mantener la posición del cuerpo
+d420!Transferir el propio cuerpo
+d429!Cambiar y mantener la posición del cuerpo, otra especificada y no especificada
+d430!Levantar y llevar objetos
+d435!Mover objetos con las extremidades inferiores
+d440!Uso fino de la mano
+d445!Uso de la mano y el brazo
+d446!Uso fino del pie
+d449!Llevar, mover y usar objetos, otros especificados y no es especificados
+d450!Andar
+d455!Desplazarse por el entorno
+d460!Desplazarse por distintos lugares
+d465!Desplazarse utilizando algún tipo de equipamiento
+d469!Andar y moverse, otro especificado y no especificado
+d470!Utilización de medios de transporte
+d475!Conducción
+d480!Montar en animales como medio de transporte
+d489!Desplazarse utilizando medios de transporte, otro especificado y no especificado
+d498!Movilidad, otro especificado
+d499!Movilidad, no especificado
+d510!Lavarse
+d520!Cuidado de partes del cuerpo
+d530!Higiene personal relacionada con los procesos de excreción
+d540!Vestirse
+d550!Comer
+d560!Beber
+d570!Cuidado de la propia salud
+d571!Cuidado de la propia seguridad
+d598!Autocuidado, otro especificado
+d599!Autocuidado, no especificado
+d610!Adquisición de un lugar para vivir
+d620!Adquisición de bienes y servicios
+d629!Adquisición de lo necesario para vivir, otra especificada y no especificada
+d630!Preparar comidas
+d640!Realizar los quehaceres de la casa
+d649!Tareas del hogar, otras especificadas y no especificadas
+d650!Cuidado de los objetos del hogar
+d660!Ayudar a los demás
+d669!Cuidado de los objetos del hogar y ayudar a los demás, otro especificado y no especificado
+d698!Vida doméstica, otras especificadas
+d699!Vida doméstica, no especificadas
+d710!Interacciones interpersonales básicas
+d720!Interacciones interpersonales complejas
+d729!Interacciones interpersonales generales, otras especificadas y no especificadas
+d730!Relacionarse con extraños
+d740!Relaciones formales
+d750!Relaciones sociales informales
+d760!Relaciones familiares
+d770!Relaciones íntimas
+d779!Relaciones interpersonales particulares, otras especificadas y no especificadas
+d798!Interacciones y relaciones interpersonales, otras especificadas
+d799!Interacciones y relaciones interpersonales, no especificadas
+d810!Educación no reglada
+d815!Educación preescolar
+d816!Vida preescolar y actividades relacionadas
+d820!Educación escolar
+d825!Formación profesional
+d830!Educación superior
+d835!Vida escolar y actividades relacionadas
+d839!Educación, otra especificada y no especificada
+d840!Aprendizaje (preparación para el trabajo)
+d845!Conseguir, mantener y finalizar un trabajo
+d850!Trabajo remunerado
+d855!Trabajo no remunerado
+d859!Trabajo y empleo, otro especificado y no especificado
+d860!Transacciones económicas básicas
+d865!Transacciones económicas complejas
+d870!Autosuficiencia económica
+d879!Vida económica, otra especificada y no especificada
+d880!Participación en el juego
+d898!Áreas principales de la vida, otras especificadas
+d899!Áreas principales de la vida, no especificadas
+d910!Vida comunitaria
+d920!Tiempo libre y ocio
+d930!Religión y espiritualidad
+d940!Derechos humanos
+d950!Vida política y ciudadanía
+d998!Vida comunitaria, social y cívica, otra especificada
+d999!Vida comunitaria, social y cívica, no especificada
+e110!Productos o sustancias para el consumo personal
+e115!Productos y tecnología para uso personal en la vida diaria
+e120!Productos y tecnología para la movilidad  y el transporte personal en espacios cerrados y abiertos
+e125!Productos y tecnología para la comunicación
+e130!Productos y tecnología para la educación
+e135!Productos y tecnología para el empleo
+e140!Productos y tecnología para las actividades culturales, recreativas y deportivas
+e145!Productos y tecnología para la práctica religiosa y la vida espiritual
+e150!Diseño, construcción, materiales de construcción y tecnología arquitectónica para edificios de uso público
+e155!Diseño, construcción, materiales de construcción y tecnología arquitectónica para edificios de uso privado
+e160!Productos y tecnología relacionados con el uso/ explotación del suelo
+e165!Pertenencias
+e198!Productos y tecnología, otros especificados
+e199!Productos y tecnología, no especificados
+e210!Geografía física
+e215!Población
+e220!Flora y fauna
+e225!Clima
+e230!Desastres naturales
+e235!Desastres causado por el hombres
+e240!Luz
+e245!Cambios relacionados con el paso del tiempo
+e250!Sonido
+e255!Vibración
+e260!Cualidad del aire
+e298!Entorno natural y cambios en el entorno derivados de la actividad humana, otros especificados
+e299!Entorno natural y cambios en el entorno derivados de la actividad humana, no especificados
+e310!Familiares cercanos
+e315!Otros familiares
+e320!Amigos
+e325!Conocidos, compañeros, colegas, vecinos y miembros de la comunidad
+e330!Personas en cargos de autoridad
+e335!Personas en cargos subordinados
+e340!Cuidadores y personal de ayuda
+e345!Extraños
+e350!Animales domésticos
+e355!Profesionales de la salud
+e360!Otros profesionales
+e398!Apoyo y relaciones, otros especificados
+e399!Apoyo y relaciones, no especificados
+e410!Actitudes individuales de miembros de la familia cercana
+e415!Actitudes individuales de otros familiares
+e420!Actitudes individuales de amigos
+e425!Actitudes individuales de conocidos, compañeros, colegas, vecinos y miembros de la comunidad
+e430!Actitudes individuales de personas en cargos de autoridad
+e435!Actitudes individuales de personas en cargos subordinados
+e440!Actitudes individuales de cuidadores y personal de ayuda
+e445!Actitudes individuales de extraños
+e450!Actitudes individuales de profesionales de la salud
+e455!Actitudes individuales de profesionales "relacionados con la salud"
+e460!Actitudes sociales
+e465!Normas, costumbres e ideologías sociales
+e498!Actitudes, otras especificadas
+e499!Actitudes, no especificadas
+e510!Servicios, sistemas y políticas de producción de artículos de consumo
+e515!Servicios, sistemas y políticas de producción de arquitectura y construcción
+e520!Servicios, sistemas y políticas de planificación de los espacios abiertos
+e525!Servicios, sistemas y políticas de vivienda
+e530!Servicios, sistemas y políticas de utilidad pública
+e535!Servicios, sistemas y políticas de comunicación
+e540!Servicios, sistemas y políticas de transporte
+e545!Servicios, sistemas y políticas de protección civil
+e550!Servicios, sistemas y políticas legales
+e555!Servicios, sistemas y políticas de asociación y organización
+e560!Servicios, sistemas y políticas de medios de comunicación
+e565!Servicios, sistemas y políticas económicas
+e570!Servicios, sistemas y políticas de seguridad social
+e575!Servicios, sistemas y políticas de apoyo social general
+e580!Servicios, sistemas y políticas sanitarias
+e585!Servicios, sistemas y políticas de educación y formación
+e590!Servicios, sistemas y políticas laborales y de empleo
+e595!Servicios, sistemas y políticas de gobierno
+e598!Servicios, sistemas y políticas, otros especificados
+e599!Servicios, sistemas y políticas, no  especificados

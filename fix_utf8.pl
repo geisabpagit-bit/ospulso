@@ -1,0 +1,10 @@
+use Encode;
+my $f = 'views/manage_catalogo_universal.pl';
+open my $in, '<:raw', $f or die;
+my $c = do { local $/; <$in> };
+close $in;
+$c = decode('utf8', $c);
+open my $out, '>:encoding(UTF-8)', $f or die;
+print $out $c;
+close $out;
+print "Done\n";

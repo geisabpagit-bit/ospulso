@@ -1,0 +1,95 @@
+/* SDM Premium Bottom Nav - Dock Edition */
+.sdm-main-bottom-nav { 
+    position: fixed !important; 
+    bottom: 20px !important;
+    left: 20px !important;
+    right: 20px !important;
+    width: auto !important;
+    max-width: 600px !important;
+    height: 58px !important;
+    background: rgba(232, 243, 255, 0.96) !important; /* Mismo azul tenue que cabecera/footer */
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border: 1px solid var(--md-teal-clinical, #19B7A5) !important;
+    border-radius: 5px !important;
+    display: flex !important; 
+    justify-content: space-around !important; 
+    align-items: center !important; 
+    z-index: 5500 !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+    padding: 0 10px !important;
+    margin: 0 auto !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.main-tab-item { 
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    background: transparent !important;
+    border: 1px solid transparent !important; /* Borde inicial transparente */
+    font-size: 1.25rem !important;
+    transition: all 0.2s !important;
+    text-decoration: none !important;
+    position: relative;
+    padding: 0 !important;
+}
+
+.main-tab-item span {
+    display: none !important; /* Esconde los textos para mantener el estilo Dock limpio */
+}
+
+.main-tab-item:hover, .main-tab-item:active, .main-tab-item.active {
+    background: rgba(10, 42, 102, 0.05) !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    border: 1.5px solid var(--md-blue-deep, #0A2A66) !important; /* Borde azul marino corporativo delgado */
+    transform: translateY(-3px) !important;
+}
+
+.dock-fab {
+    background: var(--md-teal-bright, #00C4C4) !important;
+    color: white !important;
+    box-shadow: 0 8px 20px rgba(0, 196, 196, 0.3) !important;
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.40rem !important;
+    transform: translateY(-8px) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    text-decoration: none !important;
+}
+
+.dock-fab span {
+    display: none !important;
+}
+
+.dock-fab:hover, .dock-fab:active {
+    background: var(--md-blue-medical, #124A9E) !important;
+    color: white !important;
+    transform: translateY(-10px) !important;
+}
+
+.main-tab-item i, .dock-fab i {
+    display: block !important;
+    margin: 0 !important;
+}
+
+.main-tab-item img, .dock-fab img {
+    display: block !important;
+    margin: 0 auto !important;
+    max-width: 26px !important;
+    max-height: 26px !important;
+    object-fit: contain !important;
+}
+
+@media (min-width: 768px) {
+    .sdm-main-bottom-nav { display: none !important; }
+}
+

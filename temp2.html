@@ -1,0 +1,220 @@
+Content-Type: text/html; charset=UTF-8
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Error de SesiÃ³n | OSPulso Diamond</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Libs Core -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- OSPulso Design System -->
+    <link rel="stylesheet" href="../css/ospulso_master.css">
+    <link rel="stylesheet" href="../css/ospulso_master_v2.css">
+    <link rel="stylesheet" href="../css/theme_acrilico.css">
+    <link rel="stylesheet" href="../css/sdm_mobile_standards.css">
+ 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 UI Alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+    <script>
+    $(document).ready(function() {
+        if ($("#globalSearch").length) {
+            // Si estamos en pacientes.pl o agenda y existe tablaPacientes, usar filtro de DataTables
+            if ($('#tablaPacientes').length) {
+                $("#globalSearch").on('keyup', function() {
+                    try {
+                        var table = $('#tablaPacientes').DataTable();
+                        table.search(this.value).draw();
+                    } catch(e) { console.error("DataTables no inicializado aún", e); }
+                });
+            } else if (typeof $.ui !== 'undefined') {
+                // Autocomplete estándar para el resto del sistema
+                console.log("Inicializando autocomplete para #globalSearch");
+                const acConfig = {
+                    source: "../api/autocomplete_pacientes.pl",
+                    minLength: 2,
+                    select: function(e, ui) { 
+                        console.log("Autocomplete seleccionado:", ui.item);
+                        if(ui.item.id) {
+                            if (window.location.pathname.indexOf('estado_cuenta.pl') !== -1) {
+                                window.location.href = "../views/estado_cuenta.pl?id=" + ui.item.id;
+                            } else if (window.location.pathname.indexOf('finanzas.pl') !== -1) {
+                                window.location.href = "../views/estado_cuenta.pl?id=" + ui.item.id;
+                            } else {
+                                window.location.href = "../views/render_expediente_clinico.pl?id=" + ui.item.id; 
+                            }
+                        }
+                    }
+                };
+                $("#globalSearch").autocomplete(acConfig);
+            }
+        }
+
+        // 💎 Reglas de Responsividad Premium para DataTables (GUIA ESTILO SDM Punto 7.4)
+        $(document).on('init.dt', function(e, settings) {
+            try {
+                var api = new $.fn.dataTable.Api(settings);
+                var table = api.table().node();
+                if (!table) return;
+
+                // 1. Mapear encabezados a data-label para Card View responsivo
+                var headers = [];
+                $(table).find('thead th').each(function() {
+                    headers.push($(this).text().trim());
+                });
+
+                function applyDataLabels() {
+                    $(table).find('tbody tr').each(function() {
+                        $(this).find('td').each(function(index) {
+                            if (headers[index]) {
+                                $(this).attr('data-label', headers[index]);
+                            } else {
+                                $(this).attr('data-label', '');
+                            }
+                        });
+                    });
+                }
+                
+                applyDataLabels();
+                api.on('draw', applyDataLabels);
+
+                // 2. Transformar botones de exportación a iconos con tooltips en móvil
+                if (typeof api.buttons === 'function') {
+                    var container = api.buttons().container();
+                    if (container && container.length) {
+                        container.find('.btn, button').each(function() {
+                            var $btn = $(this);
+                            var text = $btn.text().trim();
+                            if (text && !$btn.attr('title')) {
+                                $btn.attr('title', text);
+                                $btn.attr('data-bs-toggle', 'tooltip');
+                                $btn.attr('data-bs-placement', 'top');
+                            }
+                        });
+                        
+                        // Inicializar tooltips de Bootstrap
+                        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                            var tooltipTriggerList = [].slice.call(container[0].querySelectorAll('[data-bs-toggle="tooltip"]'));
+                            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                                return new bootstrap.Tooltip(tooltipTriggerEl);
+                            });
+                        }
+                    }
+                }
+            } catch(err) {
+                console.error("Error al aplicar responsividad en DataTable:", err);
+            }
+        });
+    });
+
+    function confirmLogout() {
+        if (confirm("¿Está seguro de que desea cerrar la sesión actual?")) {
+            window.location.href = "../auth/cerrar_sesion.pl";
+        }
+    }
+    </script>
+</head>
+<body>
+    <main class="container-fluid px-lg-4 pt-1 pb-4">
+    <style>
+        .error-card {
+            background: white;
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            padding: 4rem 2rem;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .icon-shield {
+            color: #ef4444;
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            display: inline-block;
+            filter: drop-shadow(0 10px 15px rgba(239, 68, 68, 0.1));
+        }
+        .btn-medentia-login {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1);
+        }
+        .btn-medentia-login:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
+            color: white;
+        }
+    </style>
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 75vh;">
+  <div class="error-card animate__animated animate__zoomIn">
+    <div class="icon-shield">
+        <i class="bi bi-shield-lock"></i>
+    </div>
+    <h3 class="fw-bold text-danger mb-3">Acceso Restringido - Sesi&oacute;n Expirada</h3>
+    <p class="text-muted mb-4 fs-5 px-4">Tu sesi&oacute;n ha expirado o no se pudo cargar. Por favor, vuelve a iniciar sesi&oacute;n.</p>
+    <div class="mt-2">
+      <a href="../index.html" class="btn-medentia-login">
+        <i class="bi bi-arrow-left me-2"></i>Volver al Login
+      </a>
+    </div>
+  </div>
+</div>
+    </main> <!-- Cerrar container principal -->
+    
+    <footer style="background: rgba(232, 243, 255, 0.96) !important; backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important; color: var(--md-blue-deep) !important; padding: 3rem 0 !important; margin-top: auto; border-top: 1px solid rgba(10, 42, 102, 0.08) !important;">
+        <div class="container-fluid px-5">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-6">
+                <img src="https://www.pdigitalesm.com/assets/logo-geisabpa.webp" alt="Logo GEISABPA" width="25" height="25">
+                    <h5 class="plus-jakarta fw-bold mb-3" style="color: var(--md-blue-deep) !important;">GEISABPA <span style="font-weight:400; font-size:0.85rem; opacity:0.7">Plataformas Digitales de México</span></h5>
+                    <div style="font-size: 0.9rem; opacity: 0.9;">
+                        <p class="mb-1"><i class="bi bi-geo-alt-fill me-2" style="color: #00C4C4;"></i>Sierra Madre Oriental #163, La Pradera. CP 07500, CDMX</p>
+                        <p class="mb-0"><i class="bi bi-telephone-fill me-2" style="color: #00C4C4;"></i>Tel: +52 56 4355 5072 | +52 55 7575 4269</p>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-lg-end">
+                    <div class="d-flex flex-column align-items-lg-end">
+                        <div class="d-flex gap-4 mb-3 justify-content-center justify-content-lg-end">
+                            <a href="https://www.facebook.com/pdigitalesm/" target="_blank" style="color: var(--md-blue-deep); text-decoration: none; font-weight: 600;"><i class="bi bi-facebook me-2" style="color: #00C4C4;"></i>Facebook</a>
+                            <a href="#" style="color: var(--md-blue-deep); text-decoration: none; opacity: 0.9;">Soporte</a>
+                            <a href="#" style="color: var(--md-blue-deep); text-decoration: none; opacity: 0.9;">Privacidad</a>
+                        </div>
+                        <div style="font-size: 0.75rem; opacity: 0.7;">
+                            &copy; 2026 Todos los derechos reservados. OSPulso.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/session_watcher.js"></script>
+</body>
+</html>
