@@ -22,7 +22,7 @@ unless ($sd->{session_ok}) {
     exit;
 }
 
-my $nuevo_rol = $q->param('nuevo_rol') // '';
+my $nuevo_rol = $q->param('nuevo_rol') || $q->url_param('nuevo_rol') || '';
 $nuevo_rol =~ s/^\s+|\s+$//g;
 
 unless ($nuevo_rol) {

@@ -80,17 +80,19 @@ HTML
             if ($role eq 'Administrador Global') {
                 $es_mi_paciente = 1;
             } elsif ($role =~ /Administrador Organizacion|Soporte|Recepcionista/i) {
-                if ($org_pac && $org_pac eq $id_empresa) {
-                    $es_mi_paciente = 1;
-                } elsif (!$org_pac) {
+                if (defined $org_pac && $org_pac ne '') {
+                    $es_mi_paciente = 1 if $org_pac eq $id_empresa;
+                } elsif ($id_empresa eq '0' || $id_empresa eq '') {
                     $es_mi_paciente = 1;
                 }
             } elsif ($role eq 'Medico') {
-                if ($org_pac && $org_pac eq $id_empresa) {
-                    if (($suc_pac eq $id_sucursal || !$suc_pac || !$id_sucursal) && $f[1] eq $id_medico) {
-                        $es_mi_paciente = 1;
+                if (defined $org_pac && $org_pac ne '') {
+                    if ($org_pac eq $id_empresa) {
+                        if (($suc_pac eq $id_sucursal || !$suc_pac || !$id_sucursal) && $f[1] eq $id_medico) {
+                            $es_mi_paciente = 1;
+                        }
                     }
-                } elsif (!$org_pac && $f[1] eq $id_medico) {
+                } elsif (($id_empresa eq '0' || $id_empresa eq '') && $f[1] eq $id_medico) {
                     $es_mi_paciente = 1;
                 }
             } elsif ($role eq 'Paciente' && $uid ne '') {
@@ -98,12 +100,12 @@ HTML
                 $c =~ s/^\s+|\s+$//g;
                 if ($c eq $uid) {
                     $es_mi_paciente = 1;
-                    $mis_pacientes_id{$f[0]} = 1;
                 }
             }
             
             if ($es_mi_paciente) {
                 $pacientes_map{$f[0]} = $f[2];
+                $mis_pacientes_id{$f[0]} = 1;
                 $t_pac++;
             }
         }
@@ -135,8 +137,10 @@ HTML
         $has_clue = length($org_clues) ? 1 : 0;
     }
 
-    # Leer usuarios para mapeo de nombres de creadores/médicos
+    # Leer usuarios para mapeo de nombres de creadores/médicos y blindaje multi-tenant
     my %medicos = ();
+    my %medicos_empresa = ();
+    my %usuarios_empresa = ();
     my $usuarios_file = File::Spec->catfile($dat_dir, 'usuarios.dat');
     if (-e $usuarios_file && open(my $fu, '<:utf8', $usuarios_file)) {
         my $header = <$fu>;
@@ -144,9 +148,18 @@ HTML
             chomp $line;
             my @u = split /!/, $line, -1;
             $medicos{$u[0]} = $u[1] if @u >= 2;
+            my $u_biz = $u[6] // '';
+            my ($u_org) = split(/:/, $u_biz);
+            if ($role eq 'Administrador Global' || (defined $u_org && $u_org ne '' && $u_org eq $id_empresa)) {
+                $medicos_empresa{$u[0]} = 1;
+                $usuarios_empresa{$u[1]} = 1 if $u[1];
+                $usuarios_empresa{$u[2]} = 1 if $u[2];
+            }
         }
         close $fu;
     }
+    $medicos_empresa{$id_medico} = 1 if $id_medico;
+    $usuarios_empresa{$usuario} = 1 if $usuario;
     my $mi_nombre = $medicos{$usuario} || $usuario;
 
     my $total_cargos = 0;
@@ -164,8 +177,9 @@ HTML
                 my @r = split(/\|/, $line, -1);
                 next if ($r[14] // '') =~ /Cancelado/i;
                 my $id_negocio = $r[2] // '';
-                if ($id_empresa && $id_negocio) {
-                    next if $id_negocio ne $id_empresa;
+                $id_negocio =~ s/^\s+|\s+$//g;
+                if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
+                    next if ($id_negocio ne $id_empresa);
                 }
                 my $elaborado = $r[11] // '';
                 if ($is_admin || $elaborado eq $usuario || $elaborado eq $mi_nombre) {
@@ -187,6 +201,15 @@ HTML
                 my $id_paciente = $f[2] // '';
                 my $monto = $f[7] || 0;
     
+                # Blindaje multi-tenant: el movimiento debe pertenecer a la empresa
+                my $pertenece_empresa = 0;
+                if (!defined $id_empresa || $id_empresa eq '' || $role eq 'Administrador Global') {
+                    $pertenece_empresa = 1;
+                } elsif ($mis_pacientes_id{$id_paciente} || ($m_id && $medicos_empresa{$m_id})) {
+                    $pertenece_empresa = 1;
+                }
+                next unless $pertenece_empresa;
+
                 if ($is_admin || $m_id eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$id_paciente})) {
                     if ($f[3] =~ /Cargo/i) { $total_cargos += $monto; }
                     elsif ($f[3] =~ /Abono/i) { $total_abonos += $monto; }
@@ -214,8 +237,9 @@ HTML
                     my @r = split(/\|/, $line, -1);
                     next if ($r[14] // '') =~ /Cancelado/i;
                     my $id_negocio = $r[2] // '';
-                    if ($id_empresa && $id_negocio) {
-                        next if $id_negocio ne $id_empresa;
+                    $id_negocio =~ s/^\s+|\s+$//g;
+                    if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
+                        next if ($id_negocio ne $id_empresa);
                     }
                     my $m_id = $r[15] // '';
                     if ($is_admin || $m_id eq $id_medico) {
@@ -238,7 +262,16 @@ HTML
             my @g = split(/\|/, $line, -1);
             my $monto = $g[6] || 0;
             $monto =~ s/[^\d\.]//g;
+            my $g_origen = $g[9] // '';
+            $g_origen =~ s/^\s+|\s+$//g;
             my $creador = $g[10] || '';
+            if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
+                if ($g_origen ne '') {
+                    next if ($g_origen ne $id_empresa);
+                } else {
+                    next unless ($usuarios_empresa{$creador} || $creador eq $usuario || $creador eq $mi_nombre);
+                }
+            }
             if ($is_admin || $creador eq $usuario || $creador eq $mi_nombre || !$creador) {
                 $total_egresos += $monto;
             }
@@ -269,7 +302,8 @@ HTML
             my @r = split(/\|/, $line, -1);
             next if ($r[14] // '') =~ /Cancelado/i;
             my $id_negocio = $r[2] // '';
-            if ($id_empresa && $id_negocio) {
+            $id_negocio =~ s/^\s+|\s+$//g;
+            if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
                 next if $id_negocio ne $id_empresa;
             }
             my $m_id = $r[15] // '';
@@ -297,6 +331,15 @@ HTML
             next if $line =~ /^id_cita/;
             my @f = split(/\|/, $line);
             # F1: ID_MEDICO, F2: ID_PACIENTE, F3: FECHA, F4: HORA_INI
+            # Filtrar citas multi-tenant
+            my $cita_pertenece = 0;
+            if (!defined $id_empresa || $id_empresa eq '' || $role eq 'Administrador Global') {
+                $cita_pertenece = 1;
+            } elsif ($medicos_empresa{$f[1]} || $mis_pacientes_id{$f[2]}) {
+                $cita_pertenece = 1;
+            }
+            next unless $cita_pertenece;
+
             if ($is_admin || $f[1] eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$f[2]})) {
                 # Comparación de fecha
                 my ($cy, $cm, $cd) = split(/-/, $f[3]);

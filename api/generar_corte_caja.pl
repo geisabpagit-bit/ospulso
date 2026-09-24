@@ -301,9 +301,10 @@ my $total_ingresos = 0;
 if (-e $archivo_ingresos) {
     my $ing_data = leer_tabla($archivo_ingresos);
     foreach my $f (@$ing_data) {
-        my $id_negocio = $f->[2] || '';
-        if ($id_empresa && $id_negocio && $id_negocio ne $id_empresa) {
-            next;
+        my $id_negocio = $f->[2] // '';
+        $id_negocio =~ s/^\s+|\s+$//g;
+        if (defined $id_empresa && $id_empresa ne '' && $session_data->{role} ne 'Administrador Global') {
+            next if $id_negocio ne $id_empresa;
         }
 
         # Filtro RBAC Recepcionista
@@ -438,9 +439,10 @@ if ($org_clues) {
 if (-e $archivo_publicos) {
     my $pub_data = leer_tabla($archivo_publicos);
     foreach my $f (@$pub_data) {
-        my $id_negocio = $f->[2] || '';
-        if ($id_empresa && $id_negocio && $id_negocio ne $id_empresa) {
-            next;
+        my $id_negocio = $f->[2] // '';
+        $id_negocio =~ s/^\s+|\s+$//g;
+        if (defined $id_empresa && $id_empresa ne '' && $session_data->{role} ne 'Administrador Global') {
+            next if $id_negocio ne $id_empresa;
         }
 
         # Filtro RBAC Recepcionista
@@ -556,6 +558,17 @@ if (-e $archivo_egresos) {
         $solo_fecha = '' unless defined $solo_fecha;
 
         if ($solo_fecha ge $f_inicio && $solo_fecha le $f_fin) {
+            my $id_origen = $f->[9] // '';
+            $id_origen =~ s/^\s+|\s+$//g;
+            my $creador = $f->[10] // '';
+            if (defined $id_empresa && $id_empresa ne '' && $session_data->{role} ne 'Administrador Global') {
+                if ($id_origen ne '') {
+                    next if ($id_origen ne $id_empresa);
+                } else {
+                    next unless ($creador eq $session_data->{usuario} || $creador eq $session_data->{uid});
+                }
+            }
+
             my $monto = $f->[6] || 0;
             $monto =~ s/[^\d\.]//g; # limpiar
             
@@ -564,7 +577,6 @@ if (-e $archivo_egresos) {
             my $id_cat = $f->[2] || '';
             my $concepto = $f->[5] || '';
             my $proveedor = $f->[7] || '';
-            my $id_origen = $f->[9] || '';
             my $origen_nombre = $id_origen ? ($o_map{$id_origen} || 'Desconocido') : 'No Especificado';
           
             push @egresos_filtrados, {

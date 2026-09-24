@@ -28,6 +28,19 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
 - Toda generación de recibos (privados o públicos) realizada por cualquier usuario o rol dentro de una misma empresa y sucursal (`ID_NEGOCIO|ID_SUCURSAL`) DEBE consultar e incrementar una **única secuencia consecutiva atómica compartida** para dicha sucursal en `dat/catalogos_CLUE/<CLUES>/contadores_recibos_privados_<CLUES>.dat` y `contadores_recibos_publicos_<CLUES>.dat`.
 - Cada sucursal (`ID_NEGOCIO|ID_SUCURSAL`) mantiene su propio contador independiente dentro del catálogo de la organización, pero todos los roles de dicha sucursal (Recepcionista, Médico, Administrador, Especialista, etc.) consumen de forma unificada la misma secuencia consecutiva.
 
+### 2.6 Blindaje Multi-Tenant Anti-Falsy '0' en Flat-Files (Regla de Oro)
+- En Perl, el string `'0'` es considerado evaluativamente **falso** (`falsy`).
+- Por tanto, está **estrictamente prohibido** utilizar condicionales de tipo `if ($id_empresa && $id_negocio)` o `$id_negocio = $f->[2] || ''`, ya que cuando una organización posee el ID `'0'` (ej. Cliente 1 / Matriz), el filtro se evalúa a falso y omite el descarte, filtrando datos de la organización 0 hacia nuevas organizaciones (ej. ID `1044365`).
+- **Sintaxis Canónica Obligatoria**:
+  ```perl
+  my $id_negocio = $r[2] // '';
+  $id_negocio =~ s/^\s+|\s+$//g;
+  if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
+      next if ($id_negocio ne $id_empresa);
+  }
+  ```
+- Toda lectura de `folios_recibos_privados.dat`, `folios_recibos_publicos.dat`, `estado_cuenta.dat`, `gastos.dat` y `citas.dat` debe seguir esta convención para garantizar que una nueva organización inicie limpiamente en $0.00 de ingresos y egresos.
+
 ---
 
 ## 3. Matriz Multi-Tarifa por Organización (`tipos_tarifas_<CLUES>.dat`)

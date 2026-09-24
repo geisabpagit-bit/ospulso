@@ -301,8 +301,11 @@ SEARCH_HTML
                 didOpen: () => { Swal.showLoading(); }
             });
         }
+        const fd = new FormData();
+        fd.append('nuevo_rol', targetRole);
         fetch('../api/switch_role_api.pl?nuevo_rol=' + encodeURIComponent(targetRole), {
             method: 'POST',
+            body: fd,
             credentials: 'same-origin'
         })
         .then(function(r) { return r.json(); })

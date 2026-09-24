@@ -323,7 +323,7 @@ elsif ($action eq 'get_dashboard') {
             my $id_pac = $f[0];
             my $tenant_pac = $f[13] // '';
             my ($org_pac) = split(/:/, $tenant_pac);
-            if ($es_admin_global || !$org_pac || $org_pac eq $id_empresa || $org_pac eq '0') {
+            if ($es_admin_global || (defined $org_pac && $org_pac ne '' && $org_pac eq $id_empresa) || (($id_empresa eq '0' || $id_empresa eq '') && (!defined $org_pac || $org_pac eq '' || $org_pac eq '0'))) {
                 $pacientes_org{$id_pac} = 1;
             }
         }
@@ -378,7 +378,7 @@ elsif ($action eq 'get_dashboard') {
             my $u_name = $u[1] || '';
             my $u_biz  = $u[6] || '0:0';
             my ($u_org) = split(/:/, $u_biz);
-            if ($es_admin_global || $u_org eq $id_empresa || $u_biz eq '0:0') {
+            if ($es_admin_global || (defined $u_org && $u_org ne '' && $u_org eq $id_empresa) || (($id_empresa eq '0' || $id_empresa eq '') && ($u_biz eq '0:0' || !defined $u_org || $u_org eq '0'))) {
                 $usuarios_org{$u_name} = 1;
             }
         }
@@ -422,7 +422,9 @@ elsif ($action eq 'get_dashboard') {
                 $r_monto =~ s/[^\d\.]//g;
 
                 # Filtro multi-tenant por negocio
-                next unless $es_admin_global || $r_negocio eq $id_empresa || $r_negocio eq '' || $r_negocio eq '0';
+                if (defined $id_empresa && $id_empresa ne '' && !$es_admin_global) {
+                    next if ($r_negocio ne $id_empresa);
+                }
 
                 # Filtro por rol
                 if ($role eq 'Recepcionista') {
@@ -483,7 +485,7 @@ elsif ($action eq 'get_dashboard') {
         my $pertenece = $es_admin_global ? 1 : 0;
         $pertenece = 1 if $pacientes_org{$id_pac};
         $pertenece = 1 if $id_med && $medicos_org{$id_med};
-        $pertenece = 1 if $id_pac =~ /^PRIV-|^EMP-/;
+        $pertenece = 1 if ($id_pac =~ /^PRIV-|^EMP-/ && ($pacientes_org{$id_pac} || $id_empresa eq '0'));
         next unless $pertenece;
 
         if ($role eq 'Medico') {
@@ -538,8 +540,16 @@ elsif ($action eq 'get_dashboard') {
         my $monto     = $g->[6] || 0;
         $monto =~ s/[^\d\.]//g;
 
-        # Filtro multi-tenant por creador
-        next unless $es_admin_global || $usuarios_org{$g_creador} || !$g_creador;
+        # Filtro multi-tenant por creador y origen
+        my $g_origen = $g->[9] // '';
+        $g_origen =~ s/^\s+|\s+$//g;
+        if (defined $id_empresa && $id_empresa ne '' && !$es_admin_global) {
+            if ($g_origen ne '') {
+                next if ($g_origen ne $id_empresa);
+            } else {
+                next unless ($usuarios_org{$g_creador} || $g_creador eq $session_data->{usuario});
+            }
+        }
 
         if ($role eq 'Recepcionista') {
             next unless ($g_creador eq $session_data->{usuario});

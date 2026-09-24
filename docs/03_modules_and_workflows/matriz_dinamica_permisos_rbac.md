@@ -161,7 +161,7 @@ Para no comprometer la pureza de las matrices RBAC ni crear roles híbridos arti
 - Los roles permitidos para conmutar residen en `$session->param('roles_disponibles')` (ej. `Administrador Organizacion,Medico`).
 
 ### 8.3 Endpoint de Conmutación Atómica (`api/switch_role_api.pl`)
-- **Parámetro:** `nuevo_rol` (`Medico` o `Administrador Organizacion`).
+- **Parámetro:** `nuevo_rol` (`Medico` o `Administrador Organizacion`). Resuelve tanto desde el cuerpo del POST (`FormData` vía `$q->param`) como desde la query string (`$q->url_param`), garantizando compatibilidad total con CGI.pm.
 - **Validación:** Verifica que `nuevo_rol` pertenezca a la lista de roles autorizados del usuario (extraída de sesión o [dat/usuarios.dat](file:///c:/xampp/htdocs/ospulso/dat/usuarios.dat)).
 - **Transacción:** Actualiza `$session->param('role', $nuevo_rol)` y ejecuta `$session->flush()`.
 - **Tiempo de Respuesta:** < 300 ms, recargando la interfaz sin requerir relogueo ni teclear credenciales.
