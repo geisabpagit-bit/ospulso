@@ -50,6 +50,15 @@ Las tablas del sistema incorporan controles de exportación estandarizados estil
 - **Logo Marca Vectorizado Sin Solapamiento**: La animación de la línea EKG en el SVG vectorial de `OsPulso` se despliega a la derecha de la palabra "Pulso" (`d="M108 32 H112 L118 18 L124 38..."`) evitando la colisión o encimado de trazos sobre las letras del nombre.
 - **Multilínea de Organización & CLUE/ID**: El nombre del establecimiento se renderiza en Línea 1 (`$nombre_org` en negrita), mientras que en Línea 2 se despliegan de forma subordinada los metadatos estructurados `CLUE : [CLUES]  ID : [SUCURSAL]`.
 
+### 4.3 Fecha y Hora en Formato 24 Horas en Encabezado Global
+- **Ubicación & Alineación**: Centrada de forma armónica directamente bajo el buscador de expediente `#globalSearch` en `utils/sub_header.pl`. Los elementos del navbar se alinean al top (`align-items-start`) con espaciado consistente (`gap-3`).
+- **Formato Desktop**: `[Día de la semana], [Día] de [Mes] de [Año] • [HH:MM] hrs` (ej. `Jueves, 24 de Septiembre de 2026 • 14:14 hrs`).
+- **Formato Móvil**: Formato compacto `[Día] [Mes corto] [Año] • [HH:MM] hrs` (ej. `24 Sep 2026 • 14:14 hrs`), garantizando legibilidad en pantallas táctiles sin desbordamientos.
+
+### 4.4 Erradicación Estricta de Secciones `<style>` en Archivos `.pl`
+- **Regla Mandatoria**: Queda estrictamente prohibida la presencia de etiquetas `<style>` dentro de cualquier archivo con extensión `.pl` (`views/*.pl`, `utils/*.pl`).
+- **Hojas de Estilo Mandantes**: Todo estilo personalizado, animación o regla de diseño debe alojarse en los archivos CSS correspondientes (`css/ospulso_master_v2.css`, `css/agenda_diamond.css`, `css/theme_acrilico.css`).
+
 ---
 
 ## 5. Tarjetas KPI Acrílicas Centradas (`.kpi-acrilico`)
@@ -71,3 +80,18 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
 4. **Gobierno y Visibilidad Condicional de "CxC Estado" por CLUE**:
    - La métrica **"CxC Estado"** (Cuentas por Cobrar de Pacientes Estado/Convenios) se muestra de forma **exclusiva y condicional si la organización cuenta con CLUE activo** registrado en `dat/negocios.dat`.
    - **Adaptabilidad de Fila Única**: Si la organización cuenta con CLUE (5 tarjetas activas: Citas Hoy, Pacientes, Ingresos, Egresos, CxC Estado), el contenedor aplica `row-cols-md-5`. Si la organización no cuenta con CLUE (4 tarjetas activas), el contenedor conmuta dinámicamente a `row-cols-md-4`, garantizando un despliegue armónico en una sola fila continua sin desbordes.
+
+---
+
+## 6. Estándares Visuales de la Agenda Diamond (`views/agenda_main.pl`, `css/agenda_diamond.css`)
+
+1. **Borde Teal Distintivo en Contenedores (`.agenda-side-card`)**:
+   - Tarjetas laterales, mini calendario y paneles modales aplican `border: 1px solid rgba(25, 183, 165, 0.4)` con acabado glassmorphism `backdrop-filter: blur(12px)`.
+2. **Mini Calendario Lateral Dinámico**:
+   - Controles de navegación mensual `< MES AÑO >` con botones circulares (`.side-cal-nav-btn`) y foco teal.
+   - Píldoras de día interactivas, con resaltado de día actual (`.side-cal-day.is-today`), días con citas registradas (`.has-apts`) y día activo seleccionado (`.active`).
+3. **Manejo de Días Pasados en Vista Diaria**:
+   - **Empty State con Ícono Teal (`.agenda-empty-day-card`)**: Si no existió actividad registrada en una fecha pasada, se muestra una tarjeta premium centrada con el mensaje *"Sin actividad registrada para este día"* y botón de retorno rápido *"Volver al Día de Hoy"*.
+   - **Historial Ejecutivo de Citas (`.agenda-past-day-container`)**: Si existieron citas pasadas, se muestra una lista cronológica ejecutiva detallando horario, paciente, motivo, badge de estado y accesos directos al expediente y ficha.
+4. **Estado de Citas "No realizada"**:
+   - Representación visual con tarjeta en tinte rojo sutil (`.apt-card-dia.no-realizada`), badge rojo (`.badge-no-realizada`) y acciones habilitadas para ver expediente, re-agendar o eliminar.

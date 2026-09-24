@@ -356,3 +356,194 @@ body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
     width: 4px; height: 4px; background: #3b82f6; border-radius: 50%; 
 }
 .side-cal-day.active.has-apts::after { background: var(--sdm-blue); }
+
+/* --- MODAL CITAS (Extraído de agenda_main.pl para CERO tags style) --- */
+.modal-backdrop.show { z-index: 104900 !important; }
+.ui-autocomplete { z-index: 105001 !important; }
+.bento-action-btn { 
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); 
+    border: 1px solid rgba(59, 130, 246, 0.3) !important; 
+    border-radius: 12px !important; 
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+    text-decoration: none; 
+    color: #1e293b; 
+}
+.bento-action-btn:hover { 
+    transform: translateY(-3px) scale(1.02) !important; 
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15) !important; 
+    border-color: rgba(59, 130, 246, 0.6) !important; 
+    background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%); 
+    color: #0A2A66; 
+}
+.floating-label-premium label { 
+    font-size: 0.65rem !important; 
+    text-transform: uppercase; 
+    color: #64748b; 
+    font-weight: 700; 
+    padding: 1rem 0.75rem; 
+}
+.floating-label-premium .form-control, .floating-label-premium .form-select { 
+    border-radius: 1rem; 
+    background-color: #f8fafc; 
+    border: 1px solid transparent; 
+    transition: all 0.2s; 
+    box-shadow: none; 
+}
+.floating-label-premium .form-control:focus, .floating-label-premium .form-select:focus { 
+    background-color: #ffffff; 
+    border-color: rgba(59, 130, 246, 0.4); 
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); 
+}
+.dur-bar-premium .btn { 
+    border-radius: 12px !important; 
+    margin: 0; 
+    border: 1px solid rgba(59, 130, 246, 0.2) !important; 
+    background-color: #ffffff; 
+    color: #64748b; 
+    font-weight: 600; 
+    font-size: 0.85rem; 
+    padding: 10px 0; 
+    transition: all 0.2s; 
+}
+.dur-bar-premium .btn.active { 
+    background-color: var(--md-blue-medical, #124A9E) !important; 
+    color: #ffffff !important; 
+    border-color: var(--md-blue-medical, #124A9E) !important; 
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); 
+    transform: scale(1.05); 
+    z-index: 2; 
+}
+.dur-bar-premium .btn:hover:not(.active) { background-color: #f0f7ff; color: #1e293b; }
+#modalCita .slot-grid-compact { 
+    display: grid !important; 
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; 
+    gap: 10px !important; 
+    padding: 12px !important; 
+}
+#modalCita .btn-slot { 
+    font-size: 0.70rem !important; 
+    padding: 6px 0 !important; 
+    border-radius: 8px !important; 
+    background-color: #dcfce7 !important; 
+    color: #166534 !important; 
+    border: 1px solid #bbf7d0 !important; 
+    font-weight: 700; 
+}
+#modalCita .btn-slot:hover:not(:disabled) { 
+    background-color: #bbf7d0 !important; 
+    border-color: #86efac !important; 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 8px rgba(22, 101, 52, 0.15); 
+}
+#modalCita .btn-slot.active { 
+    background-color: #16a34a !important; 
+    color: #ffffff !important; 
+    border-color: #15803d !important; 
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); 
+}
+#modalCita .slot-lunch { background-color: #fee2e2 !important; color: #991b1b !important; border-color: #fecaca !important; }
+#modalCita .slot-busy { background-color: #fef9c3 !important; color: #854d0e !important; border-color: #fde047 !important; }
+
+@media (min-width: 768px) {
+    .border-md-end-soft { border-right: 1px solid var(--md-gray-soft, #D9E2EC) !important; }
+}
+
+/* --- SIDE CARD NAVEGACIÓN Y MINI CALENDARIO --- */
+.agenda-side-card {
+    border: 1px solid rgba(25, 183, 165, 0.4) !important;
+    border-radius: 1.25rem !important;
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 10px 25px rgba(10, 42, 102, 0.04) !important;
+}
+
+.side-cal-nav-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(25, 183, 165, 0.3);
+    color: #0A2A66;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+.side-cal-nav-btn:hover {
+    background: rgba(25, 183, 165, 0.15);
+    border-color: var(--md-teal-clinical);
+    color: #0A2A66;
+    transform: scale(1.08);
+}
+.side-cal-month-title {
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+    text-transform: capitalize;
+}
+.side-cal-head-day {
+    font-size: 0.65rem;
+    padding: 4px 0;
+}
+.side-cal-day.is-today {
+    border: 1.5px solid var(--md-teal-clinical);
+    font-weight: 800;
+}
+
+/* --- ESTADO NO REALIZADA --- */
+.apt-card-dia.no-realizada {
+    background-color: #fff5f5 !important;
+    border-color: #fecaca !important;
+    color: #991b1b !important;
+    opacity: 0.92;
+}
+.badge-no-realizada {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+/* --- RESUMEN EJECUTIVO Y EMPTY STATE DÍAS PASADOS --- */
+.agenda-past-day-container {
+    border: 1px solid rgba(25, 183, 165, 0.35);
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(10, 42, 102, 0.04);
+}
+.past-apt-row {
+    background: #fbfcfe;
+    border-color: #e9ecef !important;
+    transition: all 0.2s ease;
+}
+.past-apt-row:hover {
+    background: #ffffff;
+    border-color: rgba(25, 183, 165, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.05);
+    transform: translateY(-1px);
+}
+.agenda-empty-day-card {
+    background: #ffffff;
+    border: 1px dashed rgba(25, 183, 165, 0.4);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 16px rgba(10, 42, 102, 0.02);
+}
+.empty-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(25, 183, 165, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-outline-teal {
+    color: #0d7468;
+    border-color: #19B7A5;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+.btn-outline-teal:hover {
+    background: #19B7A5;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(25, 183, 165, 0.25);
+}

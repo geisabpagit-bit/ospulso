@@ -98,8 +98,9 @@ sub _parse_config_file {
     }
 }
 
-# Fase 1: Carga de Datos
+# Fase 1: Carga de Datos y Saneamiento Automático de Citas Vencidas
 my $citas = cargar_citas();
+auto_actualizar_citas_vencidas($citas);
 
 # Fase 2: Enrutamiento de Operaciones
 if    ($accion eq 'create')     { crear_cita($citas, $q); }
@@ -156,6 +157,40 @@ sub guardar_citas {
         ) . "\n";
     }
     close $fh;
+}
+
+sub auto_actualizar_citas_vencidas {
+    my ($arr) = @_;
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+    my $hoy = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
+    my $hora_actual = sprintf("%02d:%02d", $hour, $min);
+    
+    my $cambios = 0;
+    foreach my $c (@$arr) {
+        my $estado = $c->{estado} // '';
+        # Omitir citas atendidas, canceladas o ya marcadas como no realizadas
+        next if $estado =~ /^(Atendida|Cancelada|No realizada)$/i;
+        
+        my $cita_fec = $c->{fecha} // '';
+        my $cita_hf  = $c->{hora_fin} // '';
+        next unless $cita_fec;
+        
+        my $vencida = 0;
+        if ($cita_fec lt $hoy) {
+            $vencida = 1;
+        } elsif ($cita_fec eq $hoy && $cita_hf && $cita_hf lt $hora_actual) {
+            $vencida = 1;
+        }
+        
+        if ($vencida) {
+            $c->{estado} = 'No realizada';
+            $cambios++;
+        }
+    }
+    
+    if ($cambios > 0) {
+        guardar_citas($arr);
+    }
 }
 
 # --- OPERACIONES CRUD (CON VALIDACIÓN) ---
@@ -412,6 +447,7 @@ sub detectar_colisiones {
         next if $exclude_id && $c->{id_cita} eq $exclude_id;
         next if $c->{fecha} ne $fec;
         next if $c->{estado} eq 'Cancelada';
+        next if $c->{estado} eq 'No realizada';
         next if $c->{estado} =~ /Atendida/i; # Excluir citas Atendidas del chequeo de colisión
         
         my ($chi_h, $chi_m) = split(/:/, $c->{hora_ini});
@@ -506,7 +542,7 @@ sub enviar_eventos_oficial {
             title => $titulo,
             start => "$c->{fecha}T$c->{hora_ini}:00",
             end => "$c->{fecha}T$c->{hora_fin}:00",
-            color => ($c->{consultorio} && $c->{consultorio} =~ /quir/i) ? '#dc3545' : ($c->{color} || '#3b82f6'),
+            color => ($c->{estado} eq 'No realizada') ? '#ef4444' : (($c->{consultorio} && $c->{consultorio} =~ /quir/i) ? '#dc3545' : ($c->{color} || '#3b82f6')),
 
             extendedProps => {
                 id_paciente => $c->{id_paciente},

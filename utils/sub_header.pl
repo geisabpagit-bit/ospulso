@@ -108,17 +108,52 @@ sub render_header {
         }
     }
     
+    # Fecha y hora actual formateada (Formato 24 hrs)
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+    $year += 1900;
+    my @dias = ('Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado');
+    my @meses = ('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre');
+    my @meses_cortos = ('Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic');
+    
+    my $dia_nombre = $dias[$wday];
+    my $mes_nombre = $meses[$mon];
+    my $mes_corto  = $meses_cortos[$mon];
+    my $hora_fmt   = sprintf("%02d:%02d", $hour, $min);
+    
+    my $fecha_hora_desktop = "$dia_nombre, $mday de $mes_nombre de $year • $hora_fmt hrs";
+    my $fecha_hora_mobile  = "$mday $mes_corto $year • $hora_fmt hrs";
+
     my $search_html = '';
     if ($puede_buscar) {
-        $search_html = <<'SEARCH_HTML';
-            <!-- 1. Buscador (Alineado a la izquierda en móvil) -->
-            <div class="search-container flex-grow-1 mx-md-auto" style="max-width: 550px;">
-                <div class="position-relative">
+        $search_html = qq{
+            <!-- 1. Buscador con Fecha y Hora 24 hrs centrada debajo -->
+            <div class="search-container flex-grow-1 mx-md-auto d-flex flex-column align-items-center" style="max-width: 550px;">
+                <div class="position-relative w-100">
                     <input type="text" id="globalSearch" class="sdm-search-input search-pill" placeholder="Buscar expediente...">
                     <i class="bi bi-search search-icon"></i>
                 </div>
-            </div>
-SEARCH_HTML
+                <div class="header-datetime-sub text-center mt-1">
+                    <span class="d-none d-md-inline-block header-datetime-text">
+                        <i class="bi bi-calendar3 me-1 text-teal"></i>$fecha_hora_desktop
+                    </span>
+                    <span class="d-inline-block d-md-none header-datetime-text">
+                        <i class="bi bi-calendar3 me-1 text-teal"></i>$fecha_hora_mobile
+                    </span>
+                </div>
+            </div>};
+    } else {
+        $search_html = qq{
+            <!-- Fecha y Hora 24 hrs sin buscador -->
+            <div class="search-container flex-grow-1 mx-md-auto d-flex flex-column align-items-center justify-content-center" style="max-width: 550px;">
+                <div class="header-datetime-sub text-center py-1">
+                    <span class="d-none d-md-inline-block header-datetime-text">
+                        <i class="bi bi-calendar3 me-1 text-teal"></i>$fecha_hora_desktop
+                    </span>
+                    <span class="d-inline-block d-md-none header-datetime-text">
+                        <i class="bi bi-calendar3 me-1 text-teal"></i>$fecha_hora_mobile
+                    </span>
+                </div>
+            </div>};
     }
 
     # 1. Control de cabeceras CGI (Protocolo 11.2)
@@ -396,7 +431,7 @@ HAM
 
         print <<HTML;
     <nav class="navbar sdm-navbar glass-navbar p-2 sticky-top flex-column align-items-stretch">
-        <div class="container-fluid px-lg-4 d-flex align-items-center justify-content-between flex-nowrap w-100">
+        <div class="container-fluid px-lg-4 d-flex align-items-start justify-content-between flex-nowrap w-100 gap-3">
 $hamburger_btn
             <!-- Navigation: Solo Desktop -->
             <div class="d-none d-md-flex align-items-center gap-4 me-auto">
@@ -483,108 +518,6 @@ $role_switcher_drawer
             </div>
         </div>
     </div>
-
-    <style>
-        /* Glassmorphism Premium User Menu */
-        .glass-user-menu {
-            width: 340px !important;
-            height: max-content !important;
-            max-height: 95vh;
-            border-radius: 24px !important;
-            border: 1px solid rgba(32, 201, 151, 0.3) !important;
-            background: rgba(255, 255, 255, 0.85) !important;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255,255,255,0.5) inset !important;
-            overflow: hidden;
-            z-index: 5000;
-        }
-        
-        .teal-accent-bar {
-            height: 6px;
-            background: linear-gradient(90deg, #20c997, #0dcaf0);
-            width: 100%;
-        }
-
-        .user-info-box {
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        }
-        
-        .text-teal {
-            color: #20c997 !important;
-        }
-
-        .option-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-        }
-
-        .user-menu-option {
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid transparent;
-            transition: all 0.2s ease-in-out;
-        }
-        
-        .user-menu-option:hover {
-            background: #ffffff;
-            border-color: rgba(13, 110, 253, 0.2);
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
-            transform: translateY(-2px);
-        }
-
-        .user-menu-option-danger {
-            background: rgba(220, 53, 69, 0.03);
-            border: 1px solid rgba(220, 53, 69, 0.1);
-            transition: all 0.2s ease-in-out;
-        }
-
-        .user-menu-option-danger:hover {
-            background: rgba(220, 53, 69, 0.08);
-            border-color: rgba(220, 53, 69, 0.2);
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.08);
-            transform: translateY(-2px);
-        }
-
-        .btn-role-pill {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(0, 196, 196, 0.4);
-            border-radius: 50px;
-            padding: 4px 12px;
-            font-size: 0.76rem;
-            transition: all 0.25s ease;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-        .btn-role-pill:hover {
-            background: #ffffff;
-            border-color: #00C4C4;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 196, 196, 0.2) !important;
-        }
-        .btn-role-pill .badge-role-current {
-            color: #495057;
-            font-weight: 600;
-        }
-
-        /* Responsive max-width para pantallas pequeñas */
-        \@media (max-width: 576px) {
-            .glass-user-menu {
-                width: auto !important;
-                left: 15px !important;
-                right: 15px !important;
-            }
-            .btn-role-pill {
-                padding: 3px 8px;
-                font-size: 0.7rem;
-            }
-        }
-    </style>
 HTML
     }
 

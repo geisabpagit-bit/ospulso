@@ -453,12 +453,91 @@ function renderTimeline() {
     cont.empty().html('<div class="timeline-container animate__animated animate__fadeIn"></div>');
     const inner = cont.find('.timeline-container');
     
+    const iso = getISO(selectedDate);
+    const todayIso = getISO(new Date());
+    const isPastDay = iso < todayIso;
+    const dayApts = appointments.filter(a => a.start.startsWith(iso));
+
+    // Si es un día pasado, renderizar vista ejecutiva o empty state estilizado
+    if (isPastDay) {
+        if (dayApts.length === 0) {
+            inner.html(`
+                <div class="agenda-empty-day-card p-5 text-center my-4 animate__animated animate__fadeIn">
+                    <div class="empty-icon-circle mx-auto mb-3">
+                        <i class="bi bi-calendar-event text-teal fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold text-navy mb-2">Sin actividad registrada para este día</h5>
+                    <p class="text-secondary small mb-4">No se programaron citas ni eventos en la fecha seleccionada (${selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}).</p>
+                    <button class="btn btn-outline-teal btn-sm rounded-pill px-4 fw-bold" onclick="goToday()">
+                        <i class="bi bi-calendar-check me-1"></i> Volver al Día de Hoy
+                    </button>
+                </div>
+            `);
+            return;
+        } else {
+            // Historial ejecutivo de citas del día pasado
+            let rowsHtml = '';
+            const sortedApts = [...dayApts].sort((a,b) => a.start.localeCompare(b.start));
+            sortedApts.forEach(a => {
+                const startH = a.start.split('T')[1].substring(0, 5);
+                const endH = a.end.split('T')[1].substring(0, 5);
+                const status = a.extendedProps.estado || 'No realizada';
+                const stLow = status.toLowerCase();
+                let badgeClass = 'bg-secondary';
+                if (stLow.includes('atendida')) badgeClass = 'bg-success';
+                else if (stLow.includes('cancelada')) badgeClass = 'bg-danger';
+                else if (stLow.includes('no realizada')) badgeClass = 'badge-no-realizada';
+                else if (stLow.includes('confirmada')) badgeClass = 'bg-primary';
+                else if (stLow.includes('espera')) badgeClass = 'bg-warning text-dark';
+
+                rowsHtml += `
+                    <div class="past-apt-row d-flex flex-wrap align-items-center justify-content-between p-3 mb-2 rounded-3 border">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="text-center px-2 py-1 rounded bg-light border">
+                                <span class="d-block fw-bold text-navy small">${startH}</span>
+                                <span class="d-block text-muted" style="font-size:0.65rem;">${endH}</span>
+                            </div>
+                            <div>
+                                <span class="d-block fw-bold text-navy">${a.title}</span>
+                                <small class="text-secondary d-block"><i class="bi bi-tag me-1"></i>${a.extendedProps.motivo || 'Consulta'}</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                            <span class="badge ${badgeClass} rounded-pill px-3 py-1 fw-bold text-uppercase" style="font-size:0.68rem;">${status}</span>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente">
+                                <i class="bi bi-person-vcard me-1"></i> Expediente
+                            </button>
+                            <button class="btn btn-sm btn-light border rounded-pill px-2" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Detalle">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            inner.html(`
+                <div class="agenda-past-day-container p-4 rounded-4 shadow-sm bg-white animate__animated animate__fadeIn">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div>
+                            <h5 class="fw-bold text-navy m-0"><i class="bi bi-clock-history me-2 text-teal"></i>Historial de Citas del Día</h5>
+                            <small class="text-secondary">${selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • ${sortedApts.length} cita(s) registrada(s)</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-teal rounded-pill px-3 fw-bold" onclick="goToday()">
+                            <i class="bi bi-calendar-check me-1"></i> Ir a Hoy
+                        </button>
+                    </div>
+                    <div class="past-apts-list">
+                        ${rowsHtml}
+                    </div>
+                </div>
+            `);
+            return;
+        }
+    }
+
     const s = parseInt(agendaConfig.laborStart?.split(':')[0] || 9);
     const e = parseInt(agendaConfig.laborEnd?.split(':')[0] || 20);
     const interval = parseInt(agendaConfig.intervalo_minutos || 30);
-    const iso = getISO(selectedDate);
-    
-    const dayApts = appointments.filter(a => a.start.startsWith(iso));
 
     for (let h = s; h < e; h++) {
         for (let m = 0; m < 60; m += interval) {
@@ -528,6 +607,9 @@ function renderTimeline() {
         } else if (stLow.includes('atendida')) {
             cardStyle += ` background-color: #e6fffa !important; border-color: #19B7A5 !important; color: #0d7468 !important; opacity: 0.95;`;
             badgeStyle = `background: #19B7A5; color: #ffffff;`;
+        } else if (stLow.includes('no realizada')) {
+            cardStyle += ` background-color: #fff5f5 !important; border-color: #fecaca !important; color: #991b1b !important; opacity: 0.95;`;
+            badgeStyle = `background: #ef4444; color: #ffffff;`;
         }
 
         let actionButtons = '';
@@ -540,6 +622,12 @@ function renderTimeline() {
             actionButtons = `
                 <button class="btn-apt-action btn-apt-exp" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente"><i class="bi bi-person-vcard"></i></button>
                 <button class="btn-apt-action" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Ficha (Solo Lectura)"><i class="bi bi-eye"></i></button>
+            `;
+        } else if (stLow.includes('no realizada')) {
+            actionButtons = `
+                <button class="btn-apt-action btn-apt-exp" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente"><i class="bi bi-person-vcard"></i></button>
+                <button class="btn-apt-action" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Re-agendar / Modificar"><i class="bi bi-pencil-square"></i></button>
+                <button class="btn-apt-action btn-apt-del" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"><i class="bi bi-trash"></i></button>
             `;
         } else {
             actionButtons = `
@@ -554,7 +642,7 @@ function renderTimeline() {
         const clickHandler = (stLow.includes('atendida')) ? `abrirModalCita('${a.id}', true)` : `handleAptClick('${a.id}')`;
 
         const card = $(`
-            <div class="apt-card-dia ${status.toLowerCase()} ${manualDragId == a.id ? 'is-dragging-manual' : ''}" 
+            <div class="apt-card-dia ${status.toLowerCase().replace(/\s+/g, '-')} ${manualDragId == a.id ? 'is-dragging-manual' : ''}" 
                  style="${cardStyle}"
                  onclick="event.stopPropagation(); ${clickHandler}">
                 <div class="d-flex justify-content-between align-items-start">
@@ -575,34 +663,74 @@ function renderTimeline() {
 
 function renderSideCalendar() {
     const cont = $("#side-datepicker"); if(!cont.length) return;
-    cont.empty().html('<div class="side-cal-grid"></div>');
-    const grid = cont.find('.side-cal-grid');
     
     const y = selectedDate.getFullYear(); const m = selectedDate.getMonth();
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     const fd = (new Date(y, m, 1).getDay() || 7) - 1;
     const days = new Date(y, m + 1, 0).getDate();
     
-    ['L','M','M','J','V','S','D'].forEach(d => grid.append(`<div class="text-center small fw-bold opacity-50">${d}</div>`));
+    let html = `
+        <div class="side-cal-wrapper">
+            <div class="side-cal-header d-flex align-items-center justify-content-between mb-3 px-1">
+                <button type="button" class="btn btn-sm side-cal-nav-btn" onclick="prevSideMonth()" title="Mes anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <span class="fw-bold text-navy side-cal-month-title">${meses[m]} ${y}</span>
+                <button type="button" class="btn btn-sm side-cal-nav-btn" onclick="nextSideMonth()" title="Mes siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+            <div class="side-cal-grid">
+    `;
     
-    for(let i=0; i<fd; i++) grid.append('<div></div>');
+    ['L','M','M','J','V','S','D'].forEach(d => {
+        html += `<div class="text-center small fw-bold text-muted side-cal-head-day">${d}</div>`;
+    });
+    
+    for(let i=0; i<fd; i++) html += '<div></div>';
+    
+    const todayIso = getISO(new Date());
     for(let d=1; d<=days; d++) {
         const iso = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
         const holiday = isHoliday(iso);
         const day = new Date(iso + 'T12:00:00').getDay();
         const isWeekend = (day === 0 || day === 6);
         const isActive = iso === getISO(selectedDate);
+        const isToday = iso === todayIso;
         
         const hasApts = appointments.some(a => a.start.startsWith(iso));
         const hasAptsClass = hasApts ? 'has-apts' : '';
         const isWork = isWorkDay(iso);
         let onclickAttr = `onclick="goDay('${iso}')"`;
         if (holiday || !isWork) {
-            onclickAttr = 'style="cursor:not-allowed; opacity:0.5;" title="Día no disponible"';
+            onclickAttr = 'style="cursor:not-allowed; opacity:0.4;" title="Día no disponible"';
         }
         
-        const dayEl = $(`<div class="side-cal-day ${isActive?'active':''} ${holiday?'holiday':''} ${isWeekend?'weekend':''} ${hasAptsClass}" ${onclickAttr}>${d}</div>`);
-        grid.append(dayEl);
+        html += `<div class="side-cal-day ${isActive ? 'active' : ''} ${isToday ? 'is-today' : ''} ${holiday ? 'holiday' : ''} ${isWeekend ? 'weekend' : ''} ${hasAptsClass}" ${onclickAttr}>
+            <span>${d}</span>
+        </div>`;
     }
+    
+    html += `</div></div>`;
+    cont.html(html);
+}
+
+function prevSideMonth() {
+    selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
+    renderHeaders();
+    if (currentView === 'dia') renderTimeline();
+    else if (currentView === 'mes') renderMonthlyGrid();
+    else if (currentView === 'semana_smart') renderWeeklySmartView();
+    else renderSideCalendar();
+}
+
+function nextSideMonth() {
+    selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1);
+    renderHeaders();
+    if (currentView === 'dia') renderTimeline();
+    else if (currentView === 'mes') renderMonthlyGrid();
+    else if (currentView === 'semana_smart') renderWeeklySmartView();
+    else renderSideCalendar();
 }
 
 function dummyReminder(id) {
@@ -658,8 +786,15 @@ function renderTable(type) {
                 {data:'fecha', render: d => `<span class="fw-bold">${d}</span>`},
                 {data:'hora', render: d => `<span class="text-primary fw-bold">${d}</span>`},
                 {data:'paciente'},
-                {data:'motivo'},
-                {data:'status', render: s => `<span class="badge rounded-pill ${s==='Confirmada'?'bg-success':'bg-secondary'}">${s}</span>`},
+                {data:'status', render: s => {
+                    const st = (s || '').toLowerCase();
+                    let cls = 'bg-secondary';
+                    if (st.includes('atendida')) cls = 'bg-teal text-white';
+                    else if (st.includes('no realizada')) cls = 'bg-danger text-white';
+                    else if (st.includes('confirmada')) cls = 'bg-primary text-white';
+                    else if (st.includes('espera')) cls = 'bg-warning text-dark';
+                    return `<span class="badge rounded-pill ${cls} px-2 py-1">${s}</span>`;
+                }},
                 {data:'id', render: (id, type, row) => `
                     <div class="d-flex gap-1 justify-content-end">
                         <button class="btn btn-sm btn-light border text-navy" onclick="goDay('${row.fecha}')" title="Ver Día"><i class="bi bi-calendar2-day"></i></button>

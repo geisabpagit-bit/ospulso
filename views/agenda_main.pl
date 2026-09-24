@@ -177,8 +177,9 @@ print <<HTML;
             <div id="view-dia" class="agenda-view-container">
                 <div class="row g-4">
                     <!-- Panel Izquierdo: Mini Calendario (Desktop Only) -->
+                    <!-- Panel Izquierdo: Mini Calendario (Sticky) -->
                     <div class="col-lg-3 d-none d-lg-block">
-                        <div class="card border-0 shadow-sm rounded-4 p-3 sticky-top" style="top:100px; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);">
+                        <div class="card border-0 shadow-sm p-3 sticky-top agenda-side-card" style="top:100px;">
                             <h6 class="fw-black text-navy mb-3 text-uppercase small tracking-widest">Navegación</h6>
                             <div id="side-datepicker"></div>
                             <hr class="opacity-10 my-3">
@@ -240,7 +241,7 @@ print <<HTML;
                 
                 <!-- Contenedor Móvil para el Grid (Calendario Compacto + Lista) -->
                 <div class="d-lg-none animate__animated animate__fadeIn">
-                    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card border-0 shadow-sm rounded-4 mb-4 agenda-side-card">
                         <div class="card-body">
                             <div id="mini-calendar-grid"></div>
                         </div>
@@ -252,27 +253,6 @@ print <<HTML;
     </div>
 
     <!-- MODAL CITAS (Aura Premium & Z-Index Guard) -->
-    <style>
-      .modal-backdrop.show { z-index: 104900 !important; }
-      .ui-autocomplete { z-index: 105001 !important; }
-      .bento-action-btn { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid rgba(59, 130, 246, 0.3) !important; border-radius: 12px !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-decoration: none; color: #1e293b; }
-      .bento-action-btn:hover { transform: translateY(-3px) scale(1.02) !important; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15) !important; border-color: rgba(59, 130, 246, 0.6) !important; background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%); color: #0A2A66; }
-      .floating-label-premium label { font-size: 0.65rem !important; text-transform: uppercase; color: #64748b; font-weight: 700; padding: 1rem 0.75rem; }
-      .floating-label-premium .form-control, .floating-label-premium .form-select { border-radius: 1rem; background-color: #f8fafc; border: 1px solid transparent; transition: all 0.2s; box-shadow: none; }
-      .floating-label-premium .form-control:focus, .floating-label-premium .form-select:focus { background-color: #ffffff; border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-      .dur-bar-premium .btn { border-radius: 12px !important; margin: 0; border: 1px solid rgba(59, 130, 246, 0.2) !important; background-color: #ffffff; color: #64748b; font-weight: 600; font-size: 0.85rem; padding: 10px 0; transition: all 0.2s; }
-      .dur-bar-premium .btn.active { background-color: var(--md-blue-medical) !important; color: #ffffff !important; border-color: var(--md-blue-medical) !important; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); transform: scale(1.05); z-index: 2; }
-      .dur-bar-premium .btn:hover:not(.active) { background-color: #f0f7ff; color: #1e293b; }
-      #modalCita .slot-grid-compact { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; gap: 10px !important; padding: 12px !important; }
-      #modalCita .btn-slot { font-size: 0.70rem !important; padding: 6px 0 !important; border-radius: 8px !important; background-color: #dcfce7 !important; color: #166534 !important; border: 1px solid #bbf7d0 !important; font-weight: 700; }
-      #modalCita .btn-slot:hover:not(:disabled) { background-color: #bbf7d0 !important; border-color: #86efac !important; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(22, 101, 52, 0.15); }
-      #modalCita .btn-slot.active { background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); }
-      #modalCita .slot-lunch { background-color: #fee2e2 !important; color: #991b1b !important; border-color: #fecaca !important; }
-      #modalCita .slot-busy { background-color: #fef9c3 !important; color: #854d0e !important; border-color: #fde047 !important; }
-      \@media (min-width: 768px) {
-          .border-md-end-soft { border-right: 1px solid var(--md-gray-soft) !important; }
-      }
-    </style>
     <div class="modal fade modal-diamond" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -348,6 +328,7 @@ print <<HTML;
                                         <option value="En Sala de Espera">En Sala de Espera</option>
                                         <option value="Confirmada">Confirmada</option>
                                         <option value="Atendida">Atendida</option>
+                                        <option value="No realizada">No realizada</option>
                                         <option value="Cancelada">Cancelada</option>
                                     </select>
                                     <label for="f_estado">ESTADO</label>
