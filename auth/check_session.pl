@@ -70,7 +70,8 @@ sub check_session {
                 }
             }
 
-            %user_data = ( uid => $uid, correo_login => $uid, usuario => $unm, role => $rol, id_medico => $idm, session => $session, q => $q, id_empresa => $session->param('id_empresa') || 0, id_sucursal => $session->param('id_sucursal') || 0 );
+            my $roles_disp = $session->param('roles_disponibles') || $rol;
+            %user_data = ( uid => $uid, correo_login => $uid, usuario => $unm, role => $rol, roles_disponibles => $roles_disp, id_medico => $idm, session => $session, q => $q, id_empresa => $session->param('id_empresa') || 0, id_sucursal => $session->param('id_sucursal') || 0 );
         }
     }
 

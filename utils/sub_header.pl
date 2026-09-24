@@ -24,12 +24,31 @@ sub render_header {
     my $uid = '';
     my $id_empresa = '';
     my $id_sucursal = '';
+    my $roles_disponibles = '';
     eval {
         my $s = main::check_session();
         $uid = $s->{uid} if $s;
         $id_empresa = $s->{id_empresa} if $s;
         $id_sucursal = $s->{id_sucursal} if $s;
+        $roles_disponibles = $s->{roles_disponibles} || ($s->{session} ? $s->{session}->param('roles_disponibles') : '') if $s;
     };
+    
+    if (!$roles_disponibles && $uid && open(my $fhu, '<:utf8', '../dat/usuarios.dat')) {
+        while (<$fhu>) {
+            chomp;
+            my @u = split /!/;
+            if (lc($u[2] // '') eq lc($uid)) {
+                my $r_raw = $u[5] // '';
+                my $esp = $u[7] // '0';
+                if ($r_raw =~ /Administrador/ && $esp ne '0' && $esp ne '' && $r_raw !~ /Medico/) {
+                    $r_raw .= ',Medico';
+                }
+                $roles_disponibles = $r_raw;
+                last;
+            }
+        }
+        close $fhu;
+    }
     
     my $nombre_org = 'OSPulso Clínicas';
     my $clue_suc = "ID : $id_sucursal";
@@ -272,6 +291,41 @@ SEARCH_HTML
             window.location.href = "../auth/cerrar_sesion.pl";
         }
     }
+
+    window.osPulsoSwitchRole = function(targetRole) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Cambiando Perfil...',
+                text: 'Alternando a ' + (targetRole === 'Medico' ? 'Modo Médico' : 'Modo Administrador'),
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+        }
+        fetch('../api/switch_role_api.pl?nuevo_rol=' + encodeURIComponent(targetRole), {
+            method: 'POST',
+            credentials: 'same-origin'
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (res.ok) {
+                window.location.href = res.redirect || window.location.href;
+            } else {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Error', res.error || 'No se pudo cambiar el perfil.', 'error');
+                } else {
+                    alert(res.error || 'Error al cambiar de rol');
+                }
+            }
+        })
+        .catch(function(err) {
+            console.error(err);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire('Error', 'Falla de red al alternar de perfil.', 'error');
+            } else {
+                alert('Falla de red al alternar perfil');
+            }
+        });
+    };
     </script>
 </head>
 <body>
@@ -279,6 +333,56 @@ HTML
 
     if ($show_nav) {
         my $role_label = uc($role);
+        my $tiene_multirrol = ($roles_disponibles =~ /,/) ? 1 : 0;
+        my $role_switcher_navbar = '';
+        my $role_switcher_drawer = '';
+
+        if ($tiene_multirrol) {
+            if ($role eq 'Administrador Organizacion') {
+                $role_switcher_navbar = qq{
+            <!-- Role Switcher Pill (Navbar) -->
+            <div class="role-switcher-container me-2 d-flex align-items-center">
+                <button type="button" class="btn btn-sm btn-role-pill shadow-sm" onclick="osPulsoSwitchRole('Medico')" title="Cambiar a Modo Médico (Agenda y Consultas)">
+                    <span class="badge-role-current"><i class="bi bi-shield-check me-1 text-primary"></i>Admin</span>
+                    <i class="bi bi-arrow-left-right mx-1 text-muted opacity-75" style="font-size: 0.7rem;"></i>
+                    <span class="badge-role-target text-teal fw-bold"><i class="bi bi-stethoscope me-1"></i>Modo Médico</span>
+                </button>
+            </div>};
+                $role_switcher_drawer = qq{
+                <a href="javascript:void(0)" onclick="osPulsoSwitchRole('Medico')" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all mb-2" style="background: rgba(0, 196, 196, 0.08); border: 1px solid rgba(0, 196, 196, 0.25);">
+                    <div class="option-icon bg-info-subtle text-info me-3">
+                        <i class="bi bi-stethoscope fs-5"></i>
+                    </div>
+                    <div class="text-start">
+                        <span class="d-block fw-bold text-teal" style="font-size: 0.95rem;">Cambiar a Modo Médico</span>
+                        <small class="text-muted" style="font-size: 0.72rem;">Atender consultas, agenda y recetas</small>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto text-muted opacity-50" style="font-size: 0.8rem;"></i>
+                </a>};
+            } else {
+                $role_switcher_navbar = qq{
+            <!-- Role Switcher Pill (Navbar) -->
+            <div class="role-switcher-container me-2 d-flex align-items-center">
+                <button type="button" class="btn btn-sm btn-role-pill shadow-sm" onclick="osPulsoSwitchRole('Administrador Organizacion')" title="Cambiar a Modo Administrador (Finanzas y Control)">
+                    <span class="badge-role-current text-teal"><i class="bi bi-stethoscope me-1"></i>Médico</span>
+                    <i class="bi bi-arrow-left-right mx-1 text-muted opacity-75" style="font-size: 0.7rem;"></i>
+                    <span class="badge-role-target text-primary fw-bold"><i class="bi bi-shield-check me-1"></i>Modo Admin</span>
+                </button>
+            </div>};
+                $role_switcher_drawer = qq{
+                <a href="javascript:void(0)" onclick="osPulsoSwitchRole('Administrador Organizacion')" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all mb-2" style="background: rgba(10, 42, 102, 0.06); border: 1px solid rgba(10, 42, 102, 0.18);">
+                    <div class="option-icon bg-primary-subtle text-primary me-3">
+                        <i class="bi bi-shield-check fs-5"></i>
+                    </div>
+                    <div class="text-start">
+                        <span class="d-block fw-bold text-navy" style="font-size: 0.95rem;">Cambiar a Modo Admin</span>
+                        <small class="text-muted" style="font-size: 0.72rem;">Finanzas, corte de caja y control</small>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto text-muted opacity-50" style="font-size: 0.8rem;"></i>
+                </a>};
+            }
+        }
+
         my $hamburger_btn = '';
         $hamburger_btn = <<'HAM';
         <!-- Hamburger Menu Toggle (Solo Teléfonos Móviles) -->
@@ -309,6 +413,7 @@ $hamburger_btn
             </div>
 
 $search_html
+$role_switcher_navbar
             <!-- 2. Perfil (Alineado a la derecha en móvil) -->
             <div class="profile-trigger-container">
                 <button class="btn user-dropdown border-0 d-flex align-items-center gap-2 py-1 px-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sdmSidebar">
@@ -357,6 +462,7 @@ $search_html
 
             <!-- Options -->
             <div class="d-flex flex-column gap-2">
+$role_switcher_drawer
                 <a href="../views/perfil.pl" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all">
                     <div class="option-icon bg-primary-subtle text-primary me-3">
                         <i class="bi bi-person-fill fs-5"></i>
@@ -442,12 +548,37 @@ $search_html
             transform: translateY(-2px);
         }
 
+        .btn-role-pill {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 196, 196, 0.4);
+            border-radius: 50px;
+            padding: 4px 12px;
+            font-size: 0.76rem;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .btn-role-pill:hover {
+            background: #ffffff;
+            border-color: #00C4C4;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 196, 196, 0.2) !important;
+        }
+        .btn-role-pill .badge-role-current {
+            color: #495057;
+            font-weight: 600;
+        }
+
         /* Responsive max-width para pantallas pequeñas */
         \@media (max-width: 576px) {
             .glass-user-menu {
                 width: auto !important;
                 left: 15px !important;
                 right: 15px !important;
+            }
+            .btn-role-pill {
+                padding: 3px 8px;
+                font-size: 0.7rem;
             }
         }
     </style>

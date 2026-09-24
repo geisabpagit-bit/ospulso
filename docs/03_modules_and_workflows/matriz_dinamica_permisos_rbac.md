@@ -145,3 +145,29 @@ El sistema evoluciona de un modelo **RBAC Puro** a una arquitectura **Híbrida c
 ### 7.4 Reglas de Gobernanza en Cambio de Rol
 Cuando el Administrador edita a un colaborador en `views/administracion_usuarios.pl` (`api/editar_usuario_api.pl`) y modifica su **Rol Operativo**, el sistema **elimina automáticamente las excepciones individuales previas** (`eliminar_overrides_usuario_org`), garantizando que el usuario asuma de forma limpia la matriz de su nuevo rol sin arrastrar privilegios u omisiones obsoletas.
 
+---
+
+## 8. Arquitectura de Conmutador de Perfil (Role Switcher Multirrol)
+
+### 8.1 Propósito y Casos de Uso
+Diseñado para consultorios unipersonales (ej. Consultorio Dental) donde un único usuario ejerce simultáneamente dos funciones esenciales:
+- **Director / Administrador de Organización**: Control de finanzas, cortes de caja, gestión de personal y catálogos.
+- **Médico Tratante / Especialista**: Agenda médica, expediente clínico SOAP, odontograma y emisión de recetas.
+
+### 8.2 Principio de Rol Activo Puro
+Para no comprometer la pureza de las matrices RBAC ni crear roles híbridos artificiales (como `Medico-Admin` que desestabilizarían las reglas):
+- En cualquier instante dado, la sesión tiene un único **Rol Activo** (`$session->param('role')`).
+- Los módulos, barras laterales ([utils/sub_sidebar.pl](file:///c:/xampp/htdocs/ospulso/utils/sub_sidebar.pl)) y endpoints de validación evalúan estrictamente el rol activo.
+- Los roles permitidos para conmutar residen en `$session->param('roles_disponibles')` (ej. `Administrador Organizacion,Medico`).
+
+### 8.3 Endpoint de Conmutación Atómica (`api/switch_role_api.pl`)
+- **Parámetro:** `nuevo_rol` (`Medico` o `Administrador Organizacion`).
+- **Validación:** Verifica que `nuevo_rol` pertenezca a la lista de roles autorizados del usuario (extraída de sesión o [dat/usuarios.dat](file:///c:/xampp/htdocs/ospulso/dat/usuarios.dat)).
+- **Transacción:** Actualiza `$session->param('role', $nuevo_rol)` y ejecuta `$session->flush()`.
+- **Tiempo de Respuesta:** < 300 ms, recargando la interfaz sin requerir relogueo ni teclear credenciales.
+
+### 8.4 UI Conmutador en Encabezado (`utils/sub_header.pl`)
+- Si el usuario tiene un solo rol (Cliente 1 / Policlínica con CLUE), el conmutador permanece **100% oculto e invisible**.
+- Si el usuario tiene multirrol activo, se renderiza un botón interactivo con micro-animación en la barra superior (`.btn-role-pill`) y una opción directa en el menú offcanvas (`#sdmSidebar`).
+
+

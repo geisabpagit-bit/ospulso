@@ -65,3 +65,13 @@ Cada organización opera con su catálogo aislado bajo norma 3NF:
 3. Tablero Financiero conectado con drilldown exacto al centavo.
 4. Experiencia Mobile-First & PWA.
 5. Estabilidad a prueba de caídas con Error 500 Guard activo.
+
+---
+
+## 🔄 7. Arquitectura Multirrol y Consultorios Unipersonales (Role Switcher)
+
+Para brindar soporte nativo a clínicas y consultorios de un solo profesional (ej. Consultorios Dentales) donde una misma persona funge como Director Administrativo y Médico/Odontólogo Tratante:
+1. **Conmutación de Perfil en 1 Clic**: El usuario posee una cuenta unificada ([dat/usuarios.dat](file:///c:/xampp/htdocs/ospulso/dat/usuarios.dat)) con roles autorizados en `$session->param('roles_disponibles')`. Mediante el endpoint atómico [api/switch_role_api.pl](file:///c:/xampp/htdocs/ospulso/api/switch_role_api.pl), el usuario alterna entre `Modo Médico` y `Modo Administrador` en < 300 ms sin requerir logout ni volver a autenticarse.
+2. **Blindaje de Cliente 1 (Policlínica con CLUE)**: En organizaciones con roles formalmente segregados (un solo rol asignado), el conmutador visual permanece 100% oculto e inactivo en cabeceras y menús, preservando intacto el comportamiento hospitalario estricto.
+3. **Sucursal Raíz (Matriz como Sucursal 0)**: Organizaciones sin sucursales hijas registradas operan naturalmente sobre `Sucursal 0 (Matriz Principal)`, eliminando bloqueos en asignación de consultorios o alta de personal colaborador.
+

@@ -55,6 +55,14 @@ if ($action eq 'create') {
     my $correo_admin = lc(decode_utf8($q->param('correo_admin') // ''));
     my $clave_admin  = decode_utf8($q->param('clave_admin')  // '');
 
+    # Campos médicos específicos de Consultorio Individual
+    my $id_espe_admin    = decode_utf8($q->param('id_espe_admin')    // '0');
+    my $id_subespe_admin = decode_utf8($q->param('id_subespe_admin') // '0');
+    my $cedula_admin     = decode_utf8($q->param('cedula_admin')     // '');
+    $id_espe_admin    =~ s/^\s+|\s+$//g;
+    $id_subespe_admin =~ s/^\s+|\s+$//g;
+    $cedula_admin     =~ s/^\s+|\s+$//g;
+
     my $cp_org        = decode_utf8($q->param('cp_org')        // '');
     my $entidad_org   = decode_utf8($q->param('entidad_org')   // '');
     my $municipio_org = decode_utf8($q->param('municipio_org') // '');
@@ -118,11 +126,35 @@ if ($action eq 'create') {
     );
     my $registro_negocio = join("|", @campos_negocio);
 
-    # Crear Administrador de Organización (usuarios.dat)
+    # Crear Administrador de Organización (usuarios.dat con 12 campos canónicos)
     my $id_admin_nuevo = int(rand(999999999)) + 100000000;
     my $hash = sha256_hex($clave_admin);
     my $extra_multi_tenant = "$id_org:0";
-    my $registro_usuario = join("!", $id_admin_nuevo, $nombre_admin, $correo_admin, $hash, 1, 'Administrador Organizacion', $extra_multi_tenant);
+    
+    my $rol_admin = 'Administrador Organizacion';
+    if ($tipo_organizacion eq 'Consultorio Individual') {
+        $rol_admin = 'Administrador Organizacion,Medico';
+        $id_espe_admin = '100' if (!$id_espe_admin || $id_espe_admin eq '0');
+    } else {
+        $id_espe_admin    = '0';
+        $id_subespe_admin = '0';
+        $cedula_admin     = '';
+    }
+
+    my $registro_usuario = join("!", 
+        $id_admin_nuevo, 
+        $nombre_admin, 
+        $correo_admin, 
+        $hash, 
+        1, 
+        $rol_admin, 
+        $extra_multi_tenant,
+        $id_espe_admin,
+        $id_subespe_admin,
+        $cedula_admin,
+        $dir_org,
+        ''
+    );
 
     # Configuración SaaS
     my @config_lines = ();
@@ -218,9 +250,12 @@ if ($action eq 'read') {
         my $multi_tenant = $r->[6];
         # Extraer id negocio "org:suc"
         my ($u_org, $u_suc) = split(/:/, $multi_tenant);
-        if ($r->[5] eq 'Administrador Organizacion' && defined $u_org && $u_org eq $id_org && $r->[4] eq '1') {
-            $data{nombre_admin} = $r->[1];
-            $data{correo_admin} = $r->[2];
+        if ($r->[5] =~ /^Administrador Organizacion/ && defined $u_org && $u_org eq $id_org && $r->[4] eq '1') {
+            $data{nombre_admin}     = $r->[1];
+            $data{correo_admin}     = $r->[2];
+            $data{id_espe_admin}    = $r->[7] // '0';
+            $data{id_subespe_admin} = $r->[8] // '0';
+            $data{cedula_admin}     = $r->[9] // '';
             last;
         }
     }
@@ -251,6 +286,14 @@ if ($action eq 'update') {
     my $nombre_admin = decode_utf8($q->param('nombre_admin') // '');
     my $correo_admin = lc(decode_utf8($q->param('correo_admin') // ''));
     my $clave_admin  = decode_utf8($q->param('clave_admin')  // '');
+
+    # Campos médicos específicos de Consultorio Individual
+    my $id_espe_admin    = decode_utf8($q->param('id_espe_admin')    // '0');
+    my $id_subespe_admin = decode_utf8($q->param('id_subespe_admin') // '0');
+    my $cedula_admin     = decode_utf8($q->param('cedula_admin')     // '');
+    $id_espe_admin    =~ s/^\s+|\s+$//g;
+    $id_subespe_admin =~ s/^\s+|\s+$//g;
+    $cedula_admin     =~ s/^\s+|\s+$//g;
 
     my $cp_org        = decode_utf8($q->param('cp_org')        // '');
     my $entidad_org   = decode_utf8($q->param('entidad_org')   // '');
@@ -324,17 +367,25 @@ if ($action eq 'update') {
         
         # Validar si otro usuario tiene el correo
         if (lc($r->[2] // '') eq $correo_admin) {
-            if ($r->[5] ne 'Administrador Organizacion' || !defined $u_org || $u_org ne $id_org) {
+            if ($r->[5] !~ /^Administrador Organizacion/ || !defined $u_org || $u_org ne $id_org) {
                 print encode_json({ status => 'error', message => 'El correo electrónico del administrador ya está en uso por otro usuario.' });
                 exit;
             }
         }
         
-        if ($r->[5] eq 'Administrador Organizacion' && defined $u_org && $u_org eq $id_org) {
+        if ($r->[5] =~ /^Administrador Organizacion/ && defined $u_org && $u_org eq $id_org) {
             $r->[1] = $nombre_admin;
             $r->[2] = $correo_admin;
             if ($clave_admin ne '') {
                 $r->[3] = sha256_hex($clave_admin);
+            }
+            if ($tipo_organizacion eq 'Consultorio Individual') {
+                $r->[5] = 'Administrador Organizacion,Medico';
+                $r->[7] = $id_espe_admin || '100';
+                $r->[8] = $id_subespe_admin || '0';
+                $r->[9] = $cedula_admin || '';
+            } else {
+                $r->[5] = 'Administrador Organizacion';
             }
         }
         push @nuevos_usuarios, join('!', @$r);
@@ -361,7 +412,7 @@ if ($action eq 'update') {
 
     eval {
         actualizar_archivo($archivo_negocios, "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud", \@nuevos_negocios);
-        actualizar_archivo($archivo_usuarios, "id!nombre!correo!clave!activo!rol!ID_negocio", \@nuevos_usuarios);
+        actualizar_archivo($archivo_usuarios, "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL", \@nuevos_usuarios);
         actualizar_archivo($archivo_config, "ID_NEGOCIO|CLAVE|VALOR", \@nueva_config);
     };
     if ($@) { print encode_json({status=>'error', message=>'Error: '.$@}); exit; }

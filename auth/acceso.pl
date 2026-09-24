@@ -83,13 +83,14 @@ if ($success) {
     }
 
     $session->expire('+2h');
-    $session->param('uid',             $usuario_data->{correo});
-    $session->param('usuario',         $usuario_data->{nombre});
-    $session->param('role',            $usuario_data->{rol});
-    $session->param('id_registro',     $usuario_data->{id});
-    $session->param('id_medico',       $usuario_data->{id});
-    $session->param('id_empresa',      $usuario_data->{id_empresa} // '');
-    $session->param('id_sucursal',     $usuario_data->{id_sucursal} // '');
+    $session->param('uid',               $usuario_data->{correo});
+    $session->param('usuario',           $usuario_data->{nombre});
+    $session->param('role',              $usuario_data->{rol});
+    $session->param('roles_disponibles', $usuario_data->{roles_disponibles} || $usuario_data->{rol});
+    $session->param('id_registro',       $usuario_data->{id});
+    $session->param('id_medico',         $usuario_data->{id});
+    $session->param('id_empresa',        $usuario_data->{id_empresa} // '');
+    $session->param('id_sucursal',       $usuario_data->{id_sucursal} // '');
     $session->flush();
 
     my $cookie = $q->cookie(

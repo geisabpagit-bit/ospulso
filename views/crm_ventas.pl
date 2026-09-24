@@ -9,6 +9,7 @@ use FindBin;
 use File::Spec;
 use open qw(:std :utf8);
 
+use JSON::PP;
 use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
@@ -45,6 +46,31 @@ render_header(
     titulo      => "CRM Ventas Corporativo",
     skip_header => 1
 );
+
+# Catálogos médicos para Consultorio Individual
+my $archivo_especialidades = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'especialidades.dat');
+my $regs_espe = leer_tabla($archivo_especialidades, '\|');
+my $html_opciones_especialidades = '';
+if ($regs_espe) {
+    shift @$regs_espe; # Omitir cabecera
+    foreach my $e (@$regs_espe) {
+        next if @$e < 2;
+        my $sel = ($e->[0] eq '100') ? 'selected' : '';
+        $html_opciones_especialidades .= qq{<option value="$e->[0]" $sel>$e->[0] - $e->[1]</option>};
+    }
+}
+
+my $archivo_sub_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'sub_especialidades.dat');
+my $regs_sub = leer_tabla($archivo_sub_espe, '\|');
+my %subespe_by_espe = ();
+if ($regs_sub) {
+    shift @$regs_sub;
+    foreach my $s (@$regs_sub) {
+        next if @$s < 3;
+        push @{$subespe_by_espe{$s->[0]}}, { id => $s->[1], nombre => $s->[2] };
+    }
+}
+my $subespe_json = JSON::PP->new->utf8(0)->encode(\%subespe_by_espe);
 
 # Leer Organizaciones Actuales del Ejecutivo
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
@@ -348,6 +374,38 @@ print <<HTML;
                             <small class="text-muted d-none" id="hint_clave_admin" style="font-size: 0.7rem;">Dejar en blanco para mantener la actual.</small>
                         </div>
 
+                        <!-- Perfil Médico para Consultorio Individual -->
+                        <div class="col-12 d-none" id="bloqueMedicoConsultorio">
+                            <div class="p-3 rounded-4 border bg-white shadow-sm" style="border-left: 5px solid #00C4C4 !important;">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-person-badge fs-5 text-teal me-2"></i>
+                                    <h6 class="fw-bold text-dark mb-0">Perfil Profesional Médico (Consultorio Individual)</h6>
+                                    <span class="badge bg-info-subtle text-teal ms-auto px-2 py-1 rounded-pill" style="font-size: 0.7rem;">Multirrol Automático</span>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold">Especialidad Médica Principal</label>
+                                        <select class="form-select form-select-sm shadow-sm" name="id_espe_admin" id="select_espe_admin">
+                                            $html_opciones_especialidades
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Subespecialidad (Opcional)</label>
+                                        <select class="form-select form-select-sm shadow-sm" name="id_subespe_admin" id="select_subespe_admin">
+                                            <option value="0">General / Ninguna</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Cédula Profesional</label>
+                                        <input type="text" class="form-control form-control-sm shadow-sm" name="cedula_admin" id="input_cedula_admin" placeholder="Ej: 12345678">
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mt-2" style="font-size: 0.72rem;">
+                                    <i class="bi bi-info-circle me-1 text-primary"></i>En consultorios individuales, el Director funge simultáneamente como Administrador y Médico Tratante. Tendrá conmutador de perfil en 1 clic y su cédula oficial se imprimirá en recetas y consultas.
+                                </small>
+                            </div>
+                        </div>
+
                         <!-- C. Operación -->
                         <div class="col-12 mt-4">
                             <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="bi bi-diagram-3 me-2"></i>Operación y Reportes</h6>
@@ -440,6 +498,8 @@ print <<HTML;
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 HTML
+
+print qq{<script type="application/json" id="crm_subespe_data">$subespe_json</script>\n};
 
 print <<'JS';
 <script>
@@ -622,6 +682,13 @@ print <<'JS';
         document.getElementById('hint_clave_admin').classList.add('d-none');
         document.getElementById('cajaInstituciones').classList.add('d-none');
         
+        const selEspe = document.getElementById('select_espe_admin');
+        if (selEspe) { selEspe.value = '100'; updateSubespeOptions('100', '0'); }
+        const inpCed = document.getElementById('input_cedula_admin');
+        if (inpCed) inpCed.value = '';
+        const bMed = document.getElementById('bloqueMedicoConsultorio');
+        if (bMed) bMed.classList.add('d-none');
+        
         document.getElementById('contenedorTarjetasPrincipales').classList.add('d-none');
         document.getElementById('contenedorFormularioSaaS').classList.remove('d-none');
     };
@@ -693,6 +760,19 @@ print <<'JS';
                 document.getElementById('saas_pacientes_estado').checked = (d.pacientes_estado === '1');
                 document.getElementById('saas_portal_paciente').checked = (d.portal_paciente === '1' || typeof d.portal_paciente === 'undefined');
                 document.getElementById('saas_maneja_hospitalizacion').checked = (d.maneja_hospitalizacion === '1');
+
+                if (d.id_espe_admin) {
+                    const selEspe = document.getElementById('select_espe_admin');
+                    if (selEspe) {
+                        selEspe.value = d.id_espe_admin;
+                        updateSubespeOptions(d.id_espe_admin, d.id_subespe_admin);
+                    }
+                }
+                if (d.cedula_admin) {
+                    const inpCed = document.getElementById('input_cedula_admin');
+                    if (inpCed) inpCed.value = d.cedula_admin;
+                }
+
                 const eventTipo = new Event('change');
                 document.querySelector('select[name="tipo_organizacion"]').dispatchEvent(eventTipo);
                 
@@ -800,16 +880,43 @@ print <<'JS';
         }
     });
 
-    // Toggle Hospitalizacion
+    // Toggle Hospitalizacion y Perfil Médico
     document.querySelector('select[name="tipo_organizacion"]').addEventListener('change', function() {
         const val = this.value;
         const chk = document.getElementById('saas_maneja_hospitalizacion');
-        if (val === 'Consultorio Individual' || val === 'Consultorio Compartido') {
+        const bMed = document.getElementById('bloqueMedicoConsultorio');
+        if (val === 'Consultorio Individual') {
             chk.checked = false;
             chk.disabled = true;
+            if (bMed) bMed.classList.remove('d-none');
+        } else if (val === 'Consultorio Compartido') {
+            chk.checked = false;
+            chk.disabled = true;
+            if (bMed) bMed.classList.add('d-none');
         } else {
             chk.disabled = false;
+            if (bMed) bMed.classList.add('d-none');
         }
+    });
+
+    // Manejo dinámico de subespecialidades
+    const subespeCatalog = JSON.parse(document.getElementById('crm_subespe_data')?.textContent || '{}');
+    window.updateSubespeOptions = function(idEspe, selectedSub) {
+        const selectSub = document.getElementById('select_subespe_admin');
+        if (!selectSub) return;
+        selectSub.innerHTML = '<option value="0">General / Ninguna</option>';
+        const list = subespeCatalog[idEspe] || [];
+        list.forEach(function(s) {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.id + ' - ' + s.nombre;
+            if (selectedSub && String(selectedSub) === String(s.id)) opt.selected = true;
+            selectSub.appendChild(opt);
+        });
+    };
+
+    document.getElementById('select_espe_admin')?.addEventListener('change', function() {
+        updateSubespeOptions(this.value, '0');
     });
 
     document.getElementById('form-alta-organizacion').addEventListener('submit', function(e) {

@@ -68,6 +68,12 @@ if ($regs_negocios) {
     }
 }
 
+# Si la organización no tiene sucursales hijas, reconocer la Matriz Principal como Sucursal 0
+$sucursales_hash{'0'} = 'Matriz Principal';
+if (!@mis_sucursales) {
+    push @mis_sucursales, { id => '0', nombre => 'Matriz Principal' };
+}
+
 # 2. Cargar Catálogos de Especialidades
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 my $rutas_cat = catalogo_org_utils::obtener_rutas_catalogo($id_empresa);

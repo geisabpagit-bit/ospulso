@@ -73,7 +73,10 @@ my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios
 # 1. Validar que la sucursal pertenezca a la Organización (Seguridad Multi-Tenant)
 my $regs_negocios = leer_tabla($archivo_negocios, '\|');
 my $sucursal_valida = 0;
-if ($regs_negocios) {
+if ($id_sucursal eq '0') {
+    # Sucursal 0 representa la Matriz Principal de la organización
+    $sucursal_valida = 1;
+} elsif ($regs_negocios) {
     foreach my $r (@$regs_negocios) {
         if ($r->[0] eq $id_sucursal && $r->[2] eq $id_org_matriz) {
             $sucursal_valida = 1;

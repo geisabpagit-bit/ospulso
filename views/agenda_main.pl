@@ -41,7 +41,9 @@ my $usuarios = leer_tabla($archivo_usuarios, '!');
 my @medicos;
 if ($usuarios) {
     foreach my $u (@$usuarios) {
-        if ($u->[5] eq 'Medico' && $u->[6] =~ /^$id_negocio:/) {
+        my $es_medico = ($u->[5] =~ /(?:^|,)Medico(?:,|$)/) || 
+                        ($u->[5] =~ /Administrador/ && defined $u->[7] && $u->[7] ne '' && $u->[7] ne '0');
+        if ($es_medico && $u->[6] =~ /^$id_negocio:/) {
             push @medicos, { id => $u->[0], nombre => $u->[1] };
         }
     }

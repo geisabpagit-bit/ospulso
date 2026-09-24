@@ -169,13 +169,31 @@ sub autenticar_usuario {
                     $id_empresa //= ''; 
                     $id_sucursal //= '';
                     
+                    my $rol_raw = $campos->[5] // 'Invitado';
+                    my @roles_lista = split /,/, $rol_raw;
+                    my $rol_activo = $roles_lista[0] // 'Invitado';
+                    my $roles_disponibles_str = join(',', @roles_lista);
+
+                    my $id_espe    = $campos->[7] // '0';
+                    my $id_subespe = $campos->[8] // '0';
+                    my $cedula     = $campos->[9] // '';
+
+                    # Si el rol es Administrador Organizacion con especialidad activa, habilitar multirrol
+                    if ($rol_raw =~ /Administrador/ && $id_espe ne '0' && $id_espe ne '' && $roles_disponibles_str !~ /Medico/) {
+                        $roles_disponibles_str .= ',Medico';
+                    }
+                    
                     my %data = (
-                        id          => $campos->[0],
-                        nombre      => $campos->[1],
-                        correo      => $campos->[2],
-                        rol         => $campos->[5],
-                        id_empresa  => $id_empresa,
-                        id_sucursal => $id_sucursal
+                        id                => $campos->[0],
+                        nombre            => $campos->[1],
+                        correo            => $campos->[2],
+                        rol               => $rol_activo,
+                        roles_disponibles => $roles_disponibles_str,
+                        id_empresa        => $id_empresa,
+                        id_sucursal       => $id_sucursal,
+                        id_espe           => $id_espe,
+                        id_subespe        => $id_subespe,
+                        cedula            => $cedula
                     );
                     return (1, "OK", \%data);
                 } else {
