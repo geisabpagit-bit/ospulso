@@ -355,6 +355,14 @@ print <<"HTML";
                                 </select>
                             </div>
                         </div>
+
+                        <!-- Tarifa Personalizada ("Otra") -->
+                        <div class="col-12" id="containerTarifaOtra" style="display: none;">
+                            <div class="mb-3 diamond-input-armor rounded-3">
+                                <label class="small fw-bold text-muted mb-2 ps-1"><i class="bi bi-cash-coin text-primary me-1"></i>Costo de Consulta Personalizado (\$)</label>
+                                <input type="number" id="iptTarifaOtra" class="form-control py-2 fw-bold border-0 shadow-none bg-transparent" placeholder="0.00" step="0.01" min="0" oninput="onTarifaOtraInput()">
+                            </div>
+                        </div>
                         
                         <!-- Método de Pago -->
                         <div class="col-12">
@@ -509,6 +517,10 @@ print <<'JS';
             if (contEspe) contEspe.style.display = 'none';
             if (contMed) contMed.style.display = 'none';
             if (contTarifa) contTarifa.style.display = 'none';
+            const contOtra = document.getElementById('containerTarifaOtra');
+            if (contOtra) contOtra.style.display = 'none';
+            const iptOtra = document.getElementById('iptTarifaOtra');
+            if (iptOtra) iptOtra.value = '';
             if (selMed) {
                 selMed.removeAttribute('required');
                 selMed.value = '';
@@ -664,27 +676,33 @@ print <<'JS';
             }
 
             // Poblar selector de tarifas para paciente privado en consultas
+            const contOtra = document.getElementById('containerTarifaOtra');
+            const iptOtra = document.getElementById('iptTarifaOtra');
+            if (contOtra) contOtra.style.display = 'none';
+            if (iptOtra) iptOtra.value = '';
+
             if (!esEstado && contTarifa && selTarifa && window.RAW_CATALOGO && window.RAW_CATALOGO.items) {
                 contTarifa.style.display = '';
                 const itObj = (window.RAW_CATALOGO.items || []).find(it => String(it.id_item) === String(itemId));
                 let preciosPrivados = (itObj && itObj.precios) ? itObj.precios.filter(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0) : [];
                 
+                let optHtml = '';
                 if (preciosPrivados.length > 0) {
-                    let optHtml = '';
                     const tarifasMeta = (window.RAW_CATALOGO && window.RAW_CATALOGO.tipos_tarifas) ? window.RAW_CATALOGO.tipos_tarifas : [];
                     preciosPrivados.forEach(p => {
                         let metaObj = tarifasMeta.find(tm => tm.clave === p.tipo_tarifa);
                         let labelTarifa = (metaObj && metaObj.nombre_tarifa) ? metaObj.nombre_tarifa : p.tipo_tarifa.replace(/_/g, ' ');
                         optHtml += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}">${labelTarifa} (${formatCurrency(p.precio_publico)})</option>`;
                     });
-                    selTarifa.innerHTML = optHtml;
-                    let primerOpt = selTarifa.options[0];
-                    if (primerOpt) {
-                        tarifaSeleccionada = primerOpt.value;
-                        precioActivo = parseFloat(primerOpt.getAttribute('data-precio')) || precioActivo;
-                    }
                 } else {
-                    selTarifa.innerHTML = `<option value="ESTANDAR" data-precio="${pEst}">ESTÁNDAR (${formatCurrency(pEst)})</option>`;
+                    optHtml = `<option value="ESTANDAR" data-precio="${pEst}">ESTÁNDAR (${formatCurrency(pEst)})</option>`;
+                }
+                optHtml += `<option value="OTRA" data-precio="0">Otra (Tarifa Personalizada)</option>`;
+                selTarifa.innerHTML = optHtml;
+                let primerOpt = selTarifa.options[0];
+                if (primerOpt) {
+                    tarifaSeleccionada = primerOpt.value;
+                    precioActivo = parseFloat(primerOpt.getAttribute('data-precio')) || precioActivo;
                 }
             } else if (contTarifa) {
                 contTarifa.style.display = 'none';
@@ -707,24 +725,54 @@ print <<'JS';
             });
         } else {
             if (contTarifa) contTarifa.style.display = 'none';
+            const contOtra = document.getElementById('containerTarifaOtra');
+            if (contOtra) contOtra.style.display = 'none';
         }
         renderCart();
     }
 
     function onTarifaConsultaChange() {
         const selTarifa = document.getElementById('selTarifaConsulta');
+        const contOtra = document.getElementById('containerTarifaOtra');
+        const iptOtra = document.getElementById('iptTarifaOtra');
         if (!selTarifa) return;
         const opt = selTarifa.options[selTarifa.selectedIndex];
         if (!opt) return;
 
         const nuevaTarifa = opt.value;
-        const nuevoPrecio = parseFloat(opt.getAttribute('data-precio')) || 0;
+        let nuevoPrecio = 0;
+
+        if (nuevaTarifa === 'OTRA') {
+            if (contOtra) contOtra.style.display = '';
+            if (iptOtra) {
+                iptOtra.focus();
+                nuevoPrecio = parseFloat(iptOtra.value) || 0;
+            }
+        } else {
+            if (contOtra) contOtra.style.display = 'none';
+            if (iptOtra) iptOtra.value = '';
+            nuevoPrecio = parseFloat(opt.getAttribute('data-precio')) || 0;
+        }
 
         let consultaItem = cartItems.find(it => it.is_consulta_principal);
         if (consultaItem) {
             consultaItem.precio = nuevoPrecio;
             consultaItem.precio_paciente = nuevoPrecio;
             consultaItem.tipo_tarifa = nuevaTarifa;
+            renderCart();
+        }
+    }
+
+    function onTarifaOtraInput() {
+        const iptOtra = document.getElementById('iptTarifaOtra');
+        if (!iptOtra) return;
+        let val = parseFloat(iptOtra.value) || 0;
+        if (val < 0) val = 0;
+
+        let consultaItem = cartItems.find(it => it.is_consulta_principal);
+        if (consultaItem && consultaItem.tipo_tarifa === 'OTRA') {
+            consultaItem.precio = val;
+            consultaItem.precio_paciente = val;
             renderCart();
         }
     }
@@ -1022,6 +1070,7 @@ print <<'JS';
 
     function getTarifaNombre(clave) {
         if (!clave) return 'ESTÁNDAR';
+        if (clave === 'OTRA') return 'Otra (Personalizada)';
         if (window.RAW_CATALOGO && window.RAW_CATALOGO.tipos_tarifas) {
             let tMeta = window.RAW_CATALOGO.tipos_tarifas.find(tm => tm.clave === clave);
             if (tMeta && tMeta.nombre_tarifa) return tMeta.nombre_tarifa;
@@ -1490,6 +1539,10 @@ print <<'JS';
         if (requiereMedico && !id_medico) {
             return Swal.fire('Atención', 'Debes seleccionar la Especialidad y el Médico responsable.', 'warning');
         }
+        let consultaPrincipal = cartItems.find(it => it.is_consulta_principal);
+        if (tipo !== 'estado' && consultaPrincipal && consultaPrincipal.tipo_tarifa === 'OTRA' && (parseFloat(consultaPrincipal.precio) || 0) <= 0) {
+            return Swal.fire('Atención', 'Por favor ingresa un costo mayor a $0.00 para la tarifa personalizada de la consulta.', 'warning');
+        }
         if (cartItems.length === 0) {
             return Swal.fire('Atención', 'Agrega al menos un concepto a cobrar en el carrito.', 'warning');
         }
@@ -1565,6 +1618,10 @@ print <<'JS';
 
         if (requiereMedico && !id_medico) {
             return Swal.fire('Atención', 'Debes seleccionar la Especialidad y el Médico responsable.', 'warning');
+        }
+        let consultaPrincipalEmision = cartItems.find(it => it.is_consulta_principal);
+        if (tipo !== 'estado' && consultaPrincipalEmision && consultaPrincipalEmision.tipo_tarifa === 'OTRA' && (parseFloat(consultaPrincipalEmision.precio) || 0) <= 0) {
+            return Swal.fire('Atención', 'Por favor ingresa un costo mayor a $0.00 para la tarifa personalizada de la consulta.', 'warning');
         }
 
         // Si es paciente de Estado y el carrito está vacío, agregar automáticamente la consulta de convenio

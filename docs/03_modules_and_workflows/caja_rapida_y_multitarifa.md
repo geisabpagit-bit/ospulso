@@ -22,6 +22,13 @@ Tanto el rol **Recepcionista** como **Administrador Organizacion** (y Administra
 - **Paciente Privado**: Se evalúan médicos y especialidades cuyas tarifas comerciales (`ESTANDAR` u otras distintas a `MUNICIPIO`) sean **mayores a $0.00**. Se excluyen especialidades de tarifa $0.00 reservadas para convenio.
 - **Paciente Convenio / Municipio**: Se filtran únicamente los facultativos con tarifa `MUNICIPIO` **mayor a $0.00** definida en el tabulador municipal.
 
+#### 2.2.1 Tarifa Personalizada al Vuelo ("Otra") en Consulta Médica
+Para consultas privadas (`id_dep = 1`), el selector `#selTarifaConsulta` incluye permanentemente la opción **"Otra (Tarifa Personalizada)"**:
+- **Campo Dinámico**: Al seleccionarse, despliega inmediatamente el contenedor `#containerTarifaOtra` con el campo numérico `#iptTarifaOtra` decorado bajo el estándar `.diamond-input-armor`.
+- **Reactividad Instantánea**: Al escribir en `#iptTarifaOtra`, el evento `oninput` captura el monto al vuelo, actualiza `consultaItem.precio` y `consultaItem.precio_paciente` en memoria, y refresca en tiempo real `renderCart()` (recalculando subtotal, desglose de IVA y Total a Pagar).
+- **Validación de Integridad**: Si el cajero selecciona "Otra" e intenta previsualizar o emitir el recibo con costo $0.00 o vacío, el sistema bloquea la acción mediante un modal de advertencia amigable solicitando un importe válido.
+- **Trazabilidad de Impresión**: El importe al vuelo viaja íntegro dentro de `caja_items_json` a `api/guardar_recibo_rapido.pl`, registrándose con precisión en `dat/folios_recibos_privados.dat`, `dat/estado_cuenta.dat` y presentándose en el recibo impreso oficial (`api/imprimir_recibo_caja.pl`).
+
 ### 2.3 Arquitectura Multi-Tarifa en Conceptos Adicionales
 Para servicios adicionales (Imagenología, Laboratorios, Urgencias, Curaciones, Paquetes, etc.):
 1. **Exclusión de Departamento Consultas**: El modal de búsqueda del carrito omite automáticamente los ítems pertenecientes al departamento `CONSULTAS` (`id_dep = 1`) para evitar duplicar el flujo clínico.
