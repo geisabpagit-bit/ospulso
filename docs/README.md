@@ -2,6 +2,10 @@
 
 Bienvenido a la Documentación Oficial de **OSPulso / SDM 2.0**. Este repositorio documental está estructurado bajo la **Metodología de 4 Capas Temáticas** para ofrecer una fuente de verdad única, libre de duplicidades y de fácil navegación.
 
+> **Versión Actual Estable**: `v3.1.0` (Fecha de Corte: 2026-09-23)  
+> **Punto de Restauración**: Tag `v3.1.0-estable-20260923` | Rama de Respaldo: `backup-historial-completo-20260923`
+
+
 ---
 
 ## 🗺️ Mapa de Navegación por Capas Temáticas
