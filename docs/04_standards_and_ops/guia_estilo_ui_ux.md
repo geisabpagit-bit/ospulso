@@ -167,4 +167,30 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - En pantallas móviles (`@media (max-width: 991px)`), `.sdm-main-content` opera estrictamente con `height: auto !important; overflow-y: visible !important;` eliminando el conflicto de doble barra de desplazamiento entre el contenedor interno y el viewport global del navegador.
    - En las tarjetas móviles de DataTables, las pseudo-etiquetas `::before` portan obligatoriamente `position: static !important; float: none !important; width: auto !important;`, anulando colisiones de posicionamiento absoluto heredadas y garantizando que la etiqueta (izquierda) y el valor (derecha) coexistan limpios en `display: flex; justify-content: space-between`.
    - El viewport principal `#app-viewport` incorpora `padding-bottom: 95px !important` para garantizar que la barra de navegación inferior fija y su botón de acción flotante no obstruyan la paginación ni los controles de reporte.
+7. **Unificación Tipográfica en Tablas de Reportes (Semanal y Mensual)**:
+   - Las tablas `#agendaTable` y `#mesTable` portan la clase corporativa `.table-diamond` y comparten la tipografía idéntica a la tabla del Directorio de Pacientes (`'Inter', sans-serif`).
+   - **Cabeceras Sin Negritas (`thead th`)**: Se establece de forma canónica `font-weight: 500 !important;` en tamaño `0.75rem`, erradicando negritas agresivas y unificando el color con `var(--md-text-secondary, #486581)` y fondo clínico `#F8FBFF`.
+   - **Cuerpo (`tbody td`)**: Tipografía en `0.8125rem` (13px), `font-weight: 400`, color `#102A43` y espaciado consistente.
+
+---
+
+## 7. Estándares UI Móviles del Directorio de Pacientes (`views/pacientes.pl`, `css/tabla_pacientes.css`)
+
+1. **Supresión del Hero Header en Modo Móvil (Imagen 2)**:
+   - El encabezado superior azul (`<header class="bg-medentia-gradient ...">`) con el título *"Directorio de Pacientes"* y el botón *"Agregar nuevo paciente"* porta la clase responsiva `d-none d-md-block`.
+   - **Razón Arquitectónica**: Al estar en vista móvil, la barra de navegación inferior global (`utils/sub_bottom_nav.pl`) ya proporciona el botón central flotante y los accesos rápidos para la gestión y creación de expedientes, eliminando redundancia visual y maximizando el espacio de lectura.
+2. **Barra de Exportación Icon-Only en Cápsula Compacta**:
+   - Los botones de exportación (Copiar, Excel, PDF, Imprimir) en `#tablaPacientes_wrapper` se renderizan como botones circulares de `36x36px` (`border-radius: 50%`) con borde turquesa clínico (`rgba(25, 183, 165, 0.35)`), fondo blanco y tooltip nativo Bootstrap (`titleAttr`).
+   - Las etiquetas de texto se ocultan en móvil con `<span class="export-label d-none d-md-inline ms-1">`, eliminando botones estirados o en forma de píldora desbordada.
+3. **Barra Inferior de Navegación Desacoplada en 2 Filas**:
+   - **Fila 1 (Información de Registros)**: `.dataTables_info` se centra horizontalmente en una sola fila con tipografía nítida `0.72rem` (`#64748b`), sin apretarse contra los botones.
+   - **Fila 2 (Paginador)**: `.dataTables_paginate` se ubica centrada inmediatamente abajo, con micro-botones de `28x28px`, borde suave y resaltado de página activa en turquesa corporativo (`#19b7a5`).
+4. **Optimización de Espacios y Densidad de Tarjetas**:
+   - Se reduce el margen inferior entre tarjetas a solo `8px` (anteriormente `24px` / `1.5rem`).
+   - Padding interno de celdas optimizado a `6px 12px` (anteriormente `1.25rem 1.5rem`), suprimiendo huecos vacíos innecesarios.
+   - Borde lateral izquierdo turquesa de `3.5px` (`var(--medentia-success, #19b7a5)`) para rápida jerarquía visual y toque Diamond.
+   - Botones de acción (ver y eliminar) ajustados a una altura ergonómica táctil de `38px` con bordes redondeados estándar.
+5. **Despeje de Viewport Inferior**:
+   - Se fija `padding-bottom: 95px !important` en `#tablaPacientes_wrapper` asegurando que la barra de navegación flotante nunca solape la paginación ni los últimos registros.
+
 

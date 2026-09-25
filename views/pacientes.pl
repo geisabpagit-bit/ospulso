@@ -146,8 +146,8 @@ utils::sub_sidebar::render_sidebar(
 );
 
 print <<HTML;
-        <!-- TOPBAR / HEADER CORPORATIVO (ESTÁNDAR IMAGEN 2) -->
-        <header class="bg-medentia-gradient text-white p-4 shadow-sm mb-4" style="border-radius: 1.5rem;">
+        <!-- TOPBAR / HEADER CORPORATIVO (ESTÁNDAR IMAGEN 2: Oculto en móvil al existir menú inferior/global) -->
+        <header class="bg-medentia-gradient text-white p-4 shadow-sm mb-4 d-none d-md-block" style="border-radius: 1.5rem;">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div class="d-flex align-items-center gap-3">
                     <div class="bg-white bg-opacity-10 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
@@ -166,9 +166,9 @@ print <<HTML;
             </div>
         </header>
 
-<div class="container-fluid p-0 p-md-3">
+<div class="container-fluid p-0 p-md-3 container-mobile-flush">
     <!-- Tabla / Lista de Pacientes -->
-    <div class="rounded-4 shadow-sm bg-white mb-4">
+    <div class="rounded-4 shadow-sm bg-white mb-4 card-mobile-flush">
         <div class="table-responsive">
             <table id="tablaPacientes" class="table table-diamond w-100 m-0 border-0">
                 <thead>
@@ -267,7 +267,7 @@ print <<'HTML';
                 },
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
                 // dom: B=Botones, t=Tabla, i=Info, p=Paginas. (Se quita 'f' de buscador interno)
-                dom: '<"p-3 d-flex justify-content-start align-items-center"B>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                dom: '<"pacientes-dt-header p-2 p-md-3 d-flex justify-content-center justify-content-md-start align-items-center"B>rt<"pacientes-dt-footer p-2 p-md-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2"i p>',
                 buttons: {
                     dom: {
                         container: {
@@ -280,12 +280,14 @@ print <<'HTML';
                     buttons: [
                         { 
                             extend: 'copy', 
-                            text: '<i class="bi bi-clipboard"></i> Copiar',
+                            text: '<i class="bi bi-clipboard"></i><span class="export-label d-none d-md-inline ms-1">Copiar</span>',
+                            titleAttr: 'Copiar al portapapeles',
                             exportOptions: { columns: [0, 1, 2, 3] }
                         },
                         { 
                             extend: 'excel', 
-                            text: '<i class="bi bi-file-earmark-excel"></i> Excel', 
+                            text: '<i class="bi bi-file-earmark-excel"></i><span class="export-label d-none d-md-inline ms-1">Excel</span>', 
+                            titleAttr: 'Exportar a Excel',
                             title: 'Hospital SDM',
                             messageTop: 'Módulo: Directorio de Pacientes',
                             messageBottom: 'Aviso de confidencialidad: Este documento contiene información confidencial destinada únicamente al receptor autorizado.\r\nCódigo interno: SDM-DIR-PAC',
@@ -297,7 +299,8 @@ print <<'HTML';
                         },
                         { 
                             extend: 'pdf', 
-                            text: '<i class="bi bi-file-earmark-pdf"></i> PDF', 
+                            text: '<i class="bi bi-file-earmark-pdf"></i><span class="export-label d-none d-md-inline ms-1">PDF</span>', 
+                            titleAttr: 'Exportar a PDF',
                             title: 'Hospital SDM',
                             messageTop: 'Módulo: Directorio de Pacientes',
                             exportOptions: { columns: [0, 1, 2, 3] },
@@ -350,7 +353,8 @@ print <<'HTML';
                         },
                         { 
                             extend: 'print', 
-                            text: '<i class="bi bi-printer"></i> Imprimir',
+                            text: '<i class="bi bi-printer"></i><span class="export-label d-none d-md-inline ms-1">Imprimir</span>',
+                            titleAttr: 'Imprimir listado',
                             title: '',
                             exportOptions: { columns: [0, 1, 2, 3] },
                             customize: function (win) {
@@ -374,6 +378,14 @@ print <<'HTML';
                             }
                         }
                     ]
+                },
+                initComplete: function() {
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('#tablaPacientes_wrapper [title]'));
+                        tooltipTriggerList.map(function (tooltipTriggerEl) {
+                            return new bootstrap.Tooltip(tooltipTriggerEl, { container: 'body' });
+                        });
+                    }
                 },
                 pageLength: 10,
                 responsive: true

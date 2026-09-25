@@ -529,6 +529,31 @@ body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
     background: #e6fffa !important;
     border-color: var(--md-teal-clinical, #19B7A5) !important;
     color: #0d7468 !important;
+/* --- Tipografía Unificada con tabla de pacientes.pl (Sin negritas en cabeceras) --- */
+#agendaTable, #mesTable {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+#agendaTable thead th, #mesTable thead th {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important; /* NO negritas en cabeceras */
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: var(--md-text-secondary, #486581) !important;
+    background-color: var(--md-white-clinical, #F8FBFF) !important;
+    border-bottom: 2px solid var(--md-gray-soft, #D9E2EC) !important;
+    border-top: none !important;
+    padding: 0.75rem 1rem !important;
+    white-space: nowrap !important;
+}
+#agendaTable tbody td, #mesTable tbody td {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 0.8125rem !important;
+    font-weight: 400 !important;
+    color: var(--md-text-primary, #102A43) !important;
+    padding: 0.75rem 1rem !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid var(--md-gray-soft, #D9E2EC) !important;
 }
 
 @media (max-width: 768px) {
@@ -650,7 +675,7 @@ body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
         width: auto !important;
         float: none !important;
         font-size: 0.65rem !important;
-        font-weight: 800 !important; 
+        font-weight: 600 !important; 
         color: #64748b !important; 
         text-transform: uppercase !important;
         letter-spacing: 0.05em !important;
