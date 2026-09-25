@@ -231,11 +231,20 @@ sub render_header {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- SweetAlert2 UI Alerts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
-    <script src="../js/sub_sidebar.js" defer></script>
-
-
+    <script src="../js/sub_sidebar.js"></script>
 
     <script>
+    window.toggleSidebar = window.toggleSidebar || function() {
+        var sidebar = document.getElementById("moduleSidebar");
+        var overlay = document.getElementById("sidebarOverlay");
+        if (sidebar) sidebar.classList.toggle("show");
+        if (overlay) overlay.classList.toggle("show");
+    };
+    window.toggleDesktopSidebar = window.toggleDesktopSidebar || function() {
+        var sidebar = document.getElementById("moduleSidebar");
+        if (sidebar) sidebar.classList.toggle("compact");
+    };
+
     \$(document).ready(function() {
         var \$searchInputs = \$("#globalSearch, #globalSearchMobile");
         if (\$searchInputs.length) {

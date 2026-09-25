@@ -64,24 +64,28 @@ Las tablas del sistema incorporan controles de exportación estandarizados estil
   - En pantallas `<768px`, el header se desacopla del flujo horizontal de escritorio y conmuta a un contenedor vertical `.d-flex.d-md-none` de dos filas ultra-compactas:
     - **Fila 1 (Controles)**: Botón hamburguesa mini (32x32px `.btn-menu-toggle-mobile`), logo miniatura `.header-mobile-logo`, botón conmutador de perfil ultra-compacto `.btn-role-pill-mobile` (0.62rem) y avatar miniatura (30x30px `.avatar-diamond-mobile`).
     - **Fila 2 (Buscador y Tiempo)**: Input de búsqueda expandido al 100% (30px de alto, 0.72rem) y fecha/hora en una sola línea no rompible (`0.62rem`, `white-space: nowrap`) para evitar saltos indeseados.
-- **Gaveta Lateral Deslizante Full-Height (`css/sub_sidebar.css`)**:
-  - En móviles (`@media (max-width: 991px)`), `.diamond-sidebar` se fija de borde superior a inferior (`top: 0; bottom: 0; height: 100vh; left: -320px; border-radius: 0 1.25rem 1.25rem 0`) con animación deslizante (`transform: translateX(320px)` al recibir `.show`), eliminando el efecto de tarjeta blanca recortada flotando sobre la pantalla.
+- **Gaveta Lateral Izquierda Flotante en Móvil (`css/sub_sidebar.css`)**:
+  - En móviles (`@media (max-width: 991px)`), `.diamond-sidebar` se desvincula de `top: 0` y `height: 100vh`. Pasa a ubicarse inmediatamente después del límite inferior del encabezado principal (`top: 86px !important; bottom: auto !important;`) con altura dinámica ajustada estrictamente a los ítems del rol activo (`height: auto; max-height: calc(100vh - 165px); overflow-y: auto;`).
+  - Cuenta con tarjeta flotante redondeada (`border-radius: 1.25rem; width: 275px;`), borde turquesa clínico (`1.5px solid var(--md-teal-clinical)`), fondo satinado y animación suave (`translateX(330px)`), dejando visible y despejado el encabezado principal superior y el bottom navigation inferior.
 - **Micro-Tipografía y Paddings Nulos/Mínimos en Dashboard Móvil**:
   - En `.sdm-content` y tarjetas KPI acrílicas, padding comprimido a `0.5rem 0.2rem` en móvil, con títulos KPI en `0.58rem` y valores en `1.05rem`.
   - Tarjetas de Citas en el Dashboard aplican `.appointment-card-mobile` con botones de acción compactos (`.btn-sm`, iconos en `me-1`) evitando botones gigantescos desproporcionados.
 
-### 4.6 Homologación del Menú Lateral de Usuario (`#sdmSidebar`) y Avatar Polimórfico
+### 4.6 Homologación del Menú Lateral de Usuario (`#sdmSidebar`), Capas Z-Index y Avatar Polimórfico
 - **Contenedor Flotante Estándar (`.mobile-sidebar`)**: El offcanvas de usuario `#sdmSidebar` en [`utils/sub_header.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_header.pl) adopta exactamente la misma arquitectura y clases visuales del menú responsivo de `index.html`:
   - Contenedor con borde turquesa clínico (`1.5px solid var(--md-teal-clinical)`), esquinas redondeadas (`border-radius: var(--radius-lg)`), fondo acrílico satinado con `backdrop-filter: blur(25px)`.
   - Botón de cierre cuadrado flotante `.btn-close-sidebar` (`width: 40px; height: 40px; border-radius: 12px;`) con ícono `bi-x-lg`.
   - Opciones de navegación con clase unificada `.sidebar-nav-link` (fondo blanco, borde `#e2e8f0`, hover con elevación sutil y borde turquesa).
   - Botón de cierre de sesión con estilo `.btn-solicitar-cita-mobile` adaptado con fondo semántico rojo peligroso (`background: #dc3545 !important;`).
+- **Gobernanza de Capas (Z-Index Anti-Oclusión)**:
+  - Para evitar que la cortina oscura de Bootstrap (`.offcanvas-backdrop` en `z-index: 105400`) tape y atrape al menú de usuario, `.offcanvas.mobile-sidebar` posee estrictamente `z-index: 105600 !important;`. El panel flota límpido y nítido por encima de la capa oscurecedora.
 - **Avatar Polimórfico (`.avatar-diamond`)**:
   - El avatar preserva su contenedor canónico `class="avatar-diamond shadow-sm flex-shrink-0"`.
   - **Resolución Foto / Siglas**: Mediante [`utils/sub_header.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_header.pl), se consulta el ID de usuario en `dat/usuarios.dat` a partir de `$session_data->{usuario}` y se busca su registro en `dat/perfiles.dat`. Si existe `avatar_url` físico en el servidor, se renderiza la imagen `<img>`; en su ausencia, se generan de forma automática las iniciales en mayúscula envueltas en `.avatar-initials`.
 - **Integridad Estructural en Vistas Privadas (`views/perfil.pl`)**:
   - Toda vista que requiera el sub-header DEBE encapsular su cuerpo dentro de `utils::sub_sidebar::render_sidebar(...)` y `utils::sub_sidebar::render_sidebar_footer()` finalizando con `render_bottom_nav(...)`, quedando totalmente prohibido el uso del obsoleto `utils/sub_footer.pl`.
-  - [`utils/sub_header.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_header.pl) importa directamente en el `<head>` las hojas `css/sub_sidebar.css` y `js/sub_sidebar.js` para asegurar que el botón hamburguesa y `toggleSidebar()` operen siempre de manera autónoma y consistente.
+  - [`utils/sub_header.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_header.pl) declara directamente en el `<head>` las funciones globales `window.toggleSidebar` y `window.toggleDesktopSidebar` para garantizar disponibilidad inmediata ante cualquier evento táctil o clic.
+  - En [`utils/sub_edita_perfil.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_edita_perfil.pl), el botón de envío "Actualizar Perfil" se ubica en el paso final (tab Seguridad) a la derecha del botón "Anterior", y los campos de contraseña incorporan los atributos estándares de accesibilidad `autocomplete="current-password"` y `autocomplete="new-password"`.
 
 ---
 

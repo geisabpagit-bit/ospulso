@@ -210,26 +210,37 @@
     .diamond-sidebar {
         position: fixed !important;
         left: -320px !important;
-        top: 0 !important;
-        bottom: 0 !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
-        width: 290px !important;
-        border-radius: 0 1.25rem 1.25rem 0 !important;
+        top: 86px !important;
+        bottom: auto !important;
+        height: auto !important;
+        max-height: calc(100vh - 165px) !important;
+        width: 275px !important;
+        border-radius: 1.25rem !important;
         margin: 0 !important;
-        border: none !important;
-        border-right: 2px solid var(--md-teal-clinical) !important;
-        box-shadow: 10px 0 35px rgba(10, 42, 102, 0.25) !important;
+        border: 1.5px solid var(--md-teal-clinical) !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 16px 36px rgba(10, 42, 102, 0.22) !important;
         z-index: 10500 !important;
         transition: transform 0.35s cubic-bezier(0.19, 1, 0.22, 1) !important;
         transform: none !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
     }
     .diamond-sidebar.show {
-        transform: translateX(320px) !important;
+        transform: translateX(330px) !important;
+    }
+    .diamond-sidebar .sidebar-brand {
+        padding: 0.75rem 1rem !important;
+        border-bottom: 1px solid #eef2f6 !important;
+    }
+    .diamond-sidebar .sidebar-menu {
+        padding: 0.5rem 0.65rem 0.85rem 0.65rem !important;
     }
     
     .sidebar-overlay {
-        z-index: 10499 !important;
+        z-index: 10490 !important;
     }
     
     .diamond-header-compact { padding: 0.5rem 1rem; border-radius: 0 0 1rem 1rem; }

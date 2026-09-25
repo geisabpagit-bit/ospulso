@@ -1512,7 +1512,7 @@
     -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
     box-shadow: 0 20px 45px rgba(10, 42, 102, 0.18) !important;
     padding: 1.35rem !important;
-    z-index: 10500 !important;
+    z-index: 105600 !important;
     overflow: hidden;
 }
 

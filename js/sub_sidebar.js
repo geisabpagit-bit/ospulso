@@ -14,17 +14,17 @@ document.addEventListener("keydown", function(e) {
     }
 });
 
-function toggleSidebar() {
+window.toggleSidebar = function() {
     const sidebar = document.getElementById("moduleSidebar");
     const overlay = document.getElementById("sidebarOverlay");
     if (sidebar) sidebar.classList.toggle("show");
     if (overlay) overlay.classList.toggle("show");
-}
+};
 
-function toggleDesktopSidebar() {
+window.toggleDesktopSidebar = function() {
     const sidebar = document.getElementById("moduleSidebar");
     if(sidebar) sidebar.classList.toggle("compact");
-}
+};
 
 function iniciarVinculacionGoogle(idMedico) {
     const clientId = "771205596556-64bfspdvs27aqogeot9mdelgvmqm4n7u.apps.googleusercontent.com";

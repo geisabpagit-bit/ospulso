@@ -117,11 +117,6 @@ print <<HTML;
                     <p class="text-muted small fw-bold mb-0 mt-1"><i class="bi bi-envelope-fill me-1" style="color: var(--md-teal-clinical);"></i>$u_correo</p>
                 </div>
             </div>
-            <div>
-                <button type="submit" form="perfilForm" class="btn btn-primary btn-aura-save py-2 px-4 shadow-sm" id="guardarBtn">
-                    <i class="bi bi-cloud-upload-fill me-2"></i>Actualizar Perfil
-                </button>
-            </div>
         </div>
     </div>
 HTML
@@ -751,25 +746,28 @@ print <<HTML;
             <div class="row g-3">
                 <div class="col-md-4">
                     <div class="form-floating diamond-input-armor">
-                        <input type="password" class="form-control border-warning fw-bold" id="clave_actual" name="clave_actual" placeholder="Clave Actual" required>
+                        <input type="password" class="form-control border-warning fw-bold" id="clave_actual" name="clave_actual" placeholder="Clave Actual" autocomplete="current-password" required>
                         <label for="clave_actual" class="text-dark fw-bold">Contrase&ntilde;a Actual *</label>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-floating diamond-input-armor">
-                        <input type="password" class="form-control fw-bold" id="clave_nueva" name="clave_nueva" placeholder="Nueva Clave">
+                        <input type="password" class="form-control fw-bold" id="clave_nueva" name="clave_nueva" placeholder="Nueva Clave" autocomplete="new-password">
                         <label for="clave_nueva">Nueva Contrase&ntilde;a (Opcional)</label>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-floating diamond-input-armor">
-                        <input type="password" class="form-control fw-bold" id="clave_confirmar" name="clave_confirmar" placeholder="Confirmar">
+                        <input type="password" class="form-control fw-bold" id="clave_confirmar" name="clave_confirmar" placeholder="Confirmar" autocomplete="new-password">
                         <label for="clave_confirmar">Confirmar Nueva Contrase&ntilde;a</label>
                     </div>
                 </div>
             </div>
-            <div class="d-flex justify-content-start mt-4">
+            <div class="d-flex justify-content-between align-items-center mt-4">
                 <button type="button" class="wizard-btn-prev" onclick="PerfilWizardController.prevStep()"><i class="bi bi-arrow-left me-2"></i>Anterior</button>
+                <button type="submit" form="perfilForm" class="btn btn-primary btn-aura-save py-2 px-4 shadow-sm" id="guardarBtn">
+                    <i class="bi bi-cloud-upload-fill me-2"></i>Actualizar Perfil
+                </button>
             </div>
         </div>
 
