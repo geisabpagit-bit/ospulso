@@ -314,18 +314,304 @@ body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
 .slot-locked { background: #f1f5f9 !important; cursor: not-allowed !important; opacity: 0.7; }
 .locked-overlay { position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px); pointer-events: none; }
 
-/* DataTables MiniCard for Mobile (Regla 5.2.1) */
+/* ==========================================================================
+   BORDES TEAL CORPORATIVOS EN CONTENEDORES PRINCIPALES
+   ========================================================================== */
+.agenda-header {
+    border-bottom: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+}
+.agenda-side-card {
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+}
+.agenda-report-card {
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+}
+#calendar-grid-sdm {
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    border-radius: 16px;
+    overflow: hidden;
+}
+.smart-slots-category-card {
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+}
+
+/* ==========================================================================
+   VISTA SEMANAL SMART: CARDS ACRÍLICOS Y SLOTS PASADOS (GLASS / ATENUADOS)
+   ========================================================================== */
+.smart-day-card.card-acrilico {
+    padding: 10px 4px !important;
+    margin: 4px 6px !important;
+    width: auto !important;
+    min-width: 95px !important;
+    height: 95px !important;
+    border-radius: 18px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.smart-day-card.card-acrilico:hover {
+    transform: translateY(-4px) scale(1.03);
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+}
+.smart-day-card.card-acrilico.active {
+    background: var(--diamond-gradient) !important;
+    color: white !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 10px 25px rgba(25, 183, 165, 0.35) !important;
+    transform: scale(1.06);
+}
 @media (max-width: 768px) {
-    #agendaTable thead, #mesTable thead { display: none; }
+    .smart-day-card.card-acrilico {
+        padding: 6px 3px !important;
+        margin: 2px 4px !important;
+        min-width: 76px !important;
+        height: 82px !important;
+    }
+}
+
+/* Slots de Horarios Pasados en Vista Semanal Smart */
+.slot-pasado-atenuado {
+    background: rgba(241, 245, 249, 0.45) !important;
+    border: 1px dashed #cbd5e1 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    opacity: 0.4 !important;
+    pointer-events: auto !important;
+    box-shadow: none !important;
+}
+.slot-pasado-atenuado:hover {
+    transform: none !important;
+    border-color: #cbd5e1 !important;
+    color: #94a3b8 !important;
+    box-shadow: none !important;
+}
+
+.slot-reservado-pasado-glass {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(240, 253, 250, 0.6) 100%) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    box-shadow: 0 4px 15px rgba(25, 183, 165, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+    color: #0A2A66 !important;
+    cursor: not-allowed !important;
+    opacity: 0.95 !important;
+    pointer-events: auto !important;
+}
+.slot-reservado-pasado-glass:hover {
+    transform: none !important;
+    box-shadow: 0 4px 15px rgba(25, 183, 165, 0.25) !important;
+}
+
+/* ==========================================================================
+   DATATABLES & REPORTES DE AGENDA: MODO RESPONSIVO MÓVIL PREMIUM
+   ========================================================================== */
+.agenda-table-responsive {
+    overflow-x: hidden !important;
+    width: 100% !important;
+}
+
+/* Buscador DataTables */
+.dataTables_wrapper .dataTables_filter {
+    margin: 0 !important;
+    text-align: right;
+    width: 100%;
+}
+.dataTables_wrapper .dataTables_filter label {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    color: #0d1e3d !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-bottom: 0 !important;
+    width: 100% !important;
+}
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 50rem !important;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    height: 32px !important;
+    outline: none !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+}
+.dataTables_wrapper .dataTables_filter input:focus {
+    box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.2) !important;
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+}
+
+/* Footer DataTables: Fila 1 Leyenda y Fila 2 Paginación Micro */
+.agenda-dt-footer-wrapper {
+    width: 100%;
+}
+.dataTables_wrapper .dataTables_info {
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    color: #64748b !important;
+    text-align: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+.dataTables_wrapper .dataTables_paginate {
+    font-size: 0.65rem !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 3px !important;
+    margin: 2px 0 0 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    text-align: center !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 2px 7px !important;
+    min-width: 24px !important;
+    height: 24px !important;
+    border-radius: 6px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #0d1e3d !important;
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 1px !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+    transition: all 0.15s ease !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--md-teal-clinical, #19B7A5) !important;
+    color: #ffffff !important;
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+    box-shadow: 0 2px 6px rgba(25, 183, 165, 0.3) !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    border-color: #f1f5f9 !important;
+    background: #f8fafc !important;
+    color: #94a3b8 !important;
+    box-shadow: none !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled):not(.current) {
+    background: #e6fffa !important;
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+    color: #0f766e !important;
+}
+
+@media (max-width: 768px) {
+    /* Barra de Exportación Móvil: Icon-Only en círculo con tooltip */
+    .export-toolbar {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 8px !important;
+        padding: 4px 8px !important;
+        margin: 0 auto 6px auto !important;
+        border-radius: 50rem !important;
+        width: auto !important;
+        max-width: 100% !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+        border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+        background: rgba(255, 255, 255, 0.9) !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    .export-toolbar .btn-export {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        border: 1px solid rgba(25, 183, 165, 0.35) !important;
+        background: #ffffff !important;
+        color: #0A2A66 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+        transition: all 0.2s ease !important;
+    }
+    .export-toolbar .btn-export i {
+        font-size: 1rem !important;
+        color: #0A2A66 !important;
+        margin: 0 !important;
+    }
+    .export-toolbar .btn-export:hover,
+    .export-toolbar .btn-export:active {
+        background: var(--md-teal-clinical, #19B7A5) !important;
+        border-color: var(--md-teal-clinical, #19B7A5) !important;
+        color: #ffffff !important;
+        transform: translateY(-2px);
+    }
+    .export-toolbar .btn-export:hover i,
+    .export-toolbar .btn-export:active i {
+        color: #ffffff !important;
+    }
+
+    /* Reducción radical de márgenes y paddings en contenedor de reporte */
+    .agenda-report-card {
+        padding: 8px 6px !important;
+        margin: 0 !important;
+        border-radius: 16px !important;
+    }
+    .agenda-report-title {
+        font-size: 0.85rem !important;
+        margin-bottom: 6px !important;
+        text-align: center !important;
+    }
+
+    /* Cards Móviles para DataTables en Reportes (SaaS Premium) */
+    #agendaTable thead, #mesTable thead { display: none !important; }
     #agendaTable tbody tr, #mesTable tbody tr { 
-        display: block; background: white; border-radius: 15px; margin-bottom: 15px; padding: 15px; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee;
+        display: block !important; 
+        background: #ffffff !important; 
+        border-radius: 12px !important; 
+        margin-bottom: 6px !important; 
+        padding: 6px 10px !important; 
+        box-shadow: 0 2px 6px rgba(10, 42, 102, 0.04) !important; 
+        border: 1px solid #f1f5f9 !important;
+        border-left: 3.5px solid var(--md-teal-clinical, #19B7A5) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
     #agendaTable tbody td, #mesTable tbody td { 
-        display: flex; justify-content: space-between; align-items: center; border: none; padding: 5px 0; text-align: right; 
+        display: flex !important; 
+        justify-content: space-between !important; 
+        align-items: center !important; 
+        border: none !important; 
+        padding: 3px 0 !important; 
+        text-align: right !important; 
+        font-size: 0.72rem !important;
+        border-bottom: 1px dashed rgba(226, 232, 240, 0.5) !important;
+    }
+    #agendaTable tbody td:last-child, #mesTable tbody td:last-child {
+        border-bottom: none !important;
+        padding-top: 4px !important;
     }
     #agendaTable tbody td::before, #mesTable tbody td::before { 
-        content: attr(data-label); font-weight: 700; color: #64748b; float: left; text-align: left; margin-right: 15px;
+        content: attr(data-label) !important; 
+        font-size: 0.62rem !important;
+        font-weight: 800 !important; 
+        color: #94a3b8 !important; 
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        float: left !important; 
+        text-align: left !important; 
+        margin-right: 10px !important;
     }
 }
 

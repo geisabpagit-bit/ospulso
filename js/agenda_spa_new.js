@@ -49,12 +49,10 @@ function renderWeeklySmartView() {
     const base = new Date(selectedDate);
     const todayISO = getISO(new Date());
     
-    // Determinamos número de días según el ancho de pantalla
-    const isMobile = window.innerWidth < 768;
-    const numDays = isMobile ? 3 : 7;
-    const offset = Math.floor(numDays / 2);
+    // Mostramos los 7 días de la semana con estilo card-acrilico
+    const numDays = 7;
+    const offset = 3; // -3 a +3 = 7 días centrados en selectedDate
     
-    // Limpiamos clases de centrado y aplicamos según necesidad
     scroll.removeClass('justify-content-start justify-content-center').addClass('justify-content-center');
 
     for (let i = -offset; i <= offset; i++) {
@@ -68,12 +66,12 @@ function renderWeeklySmartView() {
         const dayNum = d.getDate();
 
         const card = $(`
-            <div class="smart-day-card ${active ? 'active' : ''} ${holiday ? 'holiday' : ''}" 
+            <div class="smart-day-card card-acrilico ${active ? 'active' : ''} ${holiday ? 'holiday' : ''}" 
                  onclick="selectSmartDate('${iso}')"
-                 style="${isMobile ? 'min-width: 80px;' : 'min-width: 100px;'} flex: 0 0 auto;">
+                 style="flex: 0 0 auto;">
                 <span class="small text-uppercase fw-bold ${active ? 'text-white' : 'opacity-50'}" style="font-size:0.6rem;">${dayName}</span>
                 <span class="h4 fw-black m-0">${dayNum}</span>
-                ${isToday && !active ? '<div style="width:6px; height:6px; background:var(--sdm-accent); border-radius:50%; margin-top:5px;"></div>' : '<div style="height:11px"></div>'}
+                ${isToday && !active ? '<div style="width:6px; height:6px; background:var(--md-teal-clinical, #19B7A5); border-radius:50%; margin-top:5px;"></div>' : '<div style="height:11px"></div>'}
             </div>
         `);
         scroll.append(card);
@@ -106,6 +104,10 @@ function renderSmartSlots(date) {
     const interval = parseInt(agendaConfig.intervalo_minutos) || 30;
     const dayApts = appointments.filter(a => a.start.startsWith(date));
 
+    const now = new Date();
+    const todayISO = getISO(now);
+    const currentHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
     const sections = [
         { label: 'MAÑANA', start: s, end: 13, icon: 'bi-brightness-high-fill' },
         { label: 'TARDE', start: 13, end: e, icon: 'bi-moon-stars-fill' }
@@ -113,12 +115,14 @@ function renderSmartSlots(date) {
 
     sections.forEach(sec => {
         const col = $(`
-            <div class="col-md-6 mb-4">
-                <div class="slot-category-label">
-                    <div class="slot-category-icon"><i class="bi ${sec.icon}"></i></div>
-                    ${sec.label}
+            <div class="col-md-6 mb-3">
+                <div class="card p-3 shadow-sm rounded-4 border-0 smart-slots-category-card" style="border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);">
+                    <div class="slot-category-label mb-3">
+                        <div class="slot-category-icon"><i class="bi ${sec.icon}"></i></div>
+                        <span>${sec.label}</span>
+                    </div>
+                    <div class="row g-2" id="smart-slots-${sec.label}"></div>
                 </div>
-                <div class="row g-2" id="smart-slots-${sec.label}"></div>
             </div>
         `);
         cont.append(col);
@@ -138,20 +142,44 @@ function renderSmartSlots(date) {
                 });
                 const isOcc = !!aptInSlot;
                 const isEnConsulta = aptInSlot && (aptInSlot.extendedProps.estado || '').trim().toLowerCase() === 'en consulta';
+                const isPastSlot = (date < todayISO) || (date === todayISO && hhmm < currentHHMM);
 
                 let slotStyle = `animation-delay: ${delay}s;`;
                 let slotClass = '';
                 let slotLabel = hhmm;
                 let slotTitle = '';
+                let btnAttr = '';
 
-                if (isEnConsulta) {
-                    slotClass = 'slot-busy slot-en-consulta';
-                    slotStyle += ' background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; font-weight: bold;';
-                    slotLabel = `${hhmm} <span class="badge bg-danger text-white ms-1" style="font-size:0.5rem;">EN CONSULTA</span>`;
-                    slotTitle = `En Consulta - ${aptInSlot.title}`;
-                } else if (isOcc) {
-                    slotClass = 'opacity-25';
-                    slotTitle = `Ocupado - ${aptInSlot.title}`;
+                if (isPastSlot) {
+                    if (isOcc) {
+                        // Horario reservado en el pasado: resaltado pero bloqueado con glassmorphism
+                        slotClass = 'slot-reservado-pasado-glass';
+                        slotTitle = `Cita Reservada: ${aptInSlot.title} (${hhmm}) [Horario Pasado - Bloqueado]`;
+                        slotLabel = `<div class="d-flex align-items-center justify-content-center gap-1"><span>${hhmm}</span><i class="bi bi-lock-fill" style="font-size:0.65rem; color:var(--md-teal-clinical, #19B7A5);"></i></div><span class="badge bg-light text-navy border fw-bold d-block mt-1 text-truncate" style="font-size:0.55rem; max-width:95%;">${aptInSlot.title}</span>`;
+                        btnAttr = 'disabled';
+                    } else {
+                        // Horario vacío en el pasado: atenuado y no se pueden agendar citas
+                        slotClass = 'slot-pasado-atenuado';
+                        slotTitle = 'No se pueden agendar citas en horarios que ya han pasado';
+                        slotLabel = `<span class="opacity-60">${hhmm}</span> <i class="bi bi-slash-circle opacity-50 ms-1" style="font-size:0.6rem;"></i>`;
+                        btnAttr = 'disabled';
+                    }
+                } else {
+                    // Horario presente o futuro
+                    if (isEnConsulta) {
+                        slotClass = 'slot-busy slot-en-consulta';
+                        slotStyle += ' background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; font-weight: bold;';
+                        slotLabel = `${hhmm} <span class="badge bg-danger text-white ms-1" style="font-size:0.5rem;">EN CONSULTA</span>`;
+                        slotTitle = `En Consulta - ${aptInSlot.title}`;
+                        btnAttr = `onclick="window.location.href='render_consultas_privado.pl?id=${aptInSlot.extendedProps.id_paciente}&id_cita=${aptInSlot.id}'"`;
+                    } else if (isOcc) {
+                        slotClass = 'opacity-25';
+                        slotTitle = `Ocupado - ${aptInSlot.title}`;
+                        btnAttr = 'disabled';
+                    } else {
+                        slotTitle = `Disponible: ${hhmm}`;
+                        btnAttr = `onclick="abrirModalNuevaCita('${date}', '${hhmm}')"`;
+                    }
                 }
 
                 const btn = $(`
@@ -159,7 +187,7 @@ function renderSmartSlots(date) {
                         <button class="liquid-slot-btn liquid-anim ${slotClass}" 
                                 style="${slotStyle}"
                                 title="${slotTitle}"
-                                ${isOcc ? (isEnConsulta ? `onclick="window.location.href='render_consultas_privado.pl?id=${aptInSlot.extendedProps.id_paciente}&id_cita=${aptInSlot.id}'"` : 'disabled') : `onclick="abrirModalNuevaCita('${date}', '${hhmm}')"`}>
+                                ${btnAttr}>
                             ${slotLabel}
                         </button>
                     </div>
@@ -639,7 +667,7 @@ function renderTimeline() {
             `;
         }
 
-        const clickHandler = (stLow.includes('atendida')) ? `abrirModalCita('${a.id}', true)` : `handleAptClick('${a.id}')`;
+        const clickHandler = (stLow.includes('atendida')) ? `abrirModalCita('${a.id}', true)` : `abrirModalCita('${a.id}')`;
 
         const card = $(`
             <div class="apt-card-dia ${status.toLowerCase().replace(/\s+/g, '-')} ${manualDragId == a.id ? 'is-dragging-manual' : ''}" 
@@ -1101,22 +1129,33 @@ function saveCita() {
 }
 
 /**
- * Valida si una fecha y hora están en el futuro respecto al momento actual
+ * Valida si una fecha y hora están en el futuro o presente respecto al momento actual
  */
 function isFuture(dateStr, timeStr) {
+    if (!dateStr) return false;
     const now = new Date();
-    // Forzamos la creación de la fecha para evitar desfases de segundos
-    const targeted = new Date(`${dateStr}T${timeStr}:00`);
-    
-    // Si el día es hoy, comparamos también los minutos para mayor precisión
+    const time = (timeStr && timeStr.length >= 5) ? timeStr.substring(0, 5) : '00:00';
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const [hh, mm] = time.split(':').map(Number);
+    const targeted = new Date(y, m - 1, d, hh, mm, 0, 0);
     return targeted.getTime() >= now.getTime();
 }
 
 function dragS(id) { 
+    // REGLA: El drag and drop SOLO puede existir en la Vista Mensual Grid
+    if (currentView !== 'calendario') {
+        draggedId = null;
+        return;
+    }
     draggedId = id; 
 }
 
 function activateManualDrag(id) {
+    // REGLA: El drag and drop SOLO puede existir en la Vista Mensual Grid
+    if (currentView !== 'calendario') {
+        manualDragId = null;
+        return;
+    }
     const a = appointments.find(x => x.id == id);
     if (a) {
         const stLow = (a.extendedProps.estado || '').trim().toLowerCase();
@@ -1134,7 +1173,7 @@ function activateManualDrag(id) {
         if (typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'info', title: 'Modo Mover Desactivado' });
     } else {
         manualDragId = id;
-        if (typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'info', title: 'Modo Mover Activado', text: 'Haz clic en el destino (Día u Horario) para soltar la cita.' });
+        if (typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'info', title: 'Modo Mover Activado', text: 'Haz clic en el día destino en la vista mensual para mover la cita.' });
     }
     renderView(); // Refrescar para mostrar u ocultar la animación (is-dragging-manual)
 }
@@ -1150,7 +1189,7 @@ function handleSlotClick(event, iso, time) {
     if (!time) {
         const nowIso = getISO(new Date());
         if (iso < nowIso) {
-            goDay(iso); // NUEVO: Navegar a la vista diaria del día pasado
+            goDay(iso); // Navegar a la vista diaria del día pasado
             return;
         }
     }
@@ -1159,6 +1198,11 @@ function handleSlotClick(event, iso, time) {
 }
 
 function dropManualDrag(iso, time) {
+    if (currentView !== 'calendario') {
+        manualDragId = null;
+        renderView();
+        return;
+    }
     const id = manualDragId;
     const a = appointments.find(x => x.id == id);
     if (!a || isHoliday(iso)) {
@@ -1182,11 +1226,12 @@ function dropManualDrag(iso, time) {
 
     let targetTime = time || a.start.split('T')[1].substring(0,5);
 
+    // REGLA: El drop solo puede aceptar fechas y horas iguales o superiores a la fecha y hora actual
     if (!isFuture(iso, targetTime)) {
         Swal.fire({ 
             icon: 'warning', 
             title: 'Acción No Permitida', 
-            text: 'No puedes mover una cita a una fecha o un horario que ya ha pasado.',
+            text: 'El drop solo acepta fechas y horas iguales o superiores a la fecha y hora actual.',
             confirmButtonText: 'Entendido',
             customClass: { popup: 'rounded-4' }
         });
@@ -1256,20 +1301,25 @@ function dropManualDrag(iso, time) {
 
 function dropS(e, iso) {
     e.preventDefault(); 
+    if (currentView !== 'calendario') {
+        draggedId = null;
+        return;
+    }
     const a = appointments.find(x => x.id == draggedId); 
     if (!a || isHoliday(iso)) return;
 
     const horaIni = a.start.split('T')[1].substring(0,5);
 
-    // REGLA DE NEGOCIO: No permitir movimientos al pasado (Incluso el mismo día si la hora ya pasó)
+    // REGLA: El drop solo acepta fechas y horas iguales o superiores a la fecha y hora actual
     if (!isFuture(iso, horaIni)) {
         Swal.fire({ 
             icon: 'warning', 
             title: 'Acción No Permitida', 
-            text: 'No puedes mover una cita a una fecha o un horario que ya ha pasado.',
+            text: 'El drop solo acepta fechas y horas iguales o superiores a la fecha y hora actual.',
             confirmButtonText: 'Entendido',
             customClass: { popup: 'rounded-4' }
         });
+        draggedId = null;
         return;
     }
 
@@ -1766,10 +1816,11 @@ function sendWA(id) {
 }
 
 function handleAptClick(id) {
-    // Si el usuario hace clic en el cuerpo de la cita, le damos un hint
-    // o podemos simplemente activar el drag también.
-    // Vamos a usar la misma lógica que activateManualDrag:
-    activateManualDrag(id);
+    if (currentView === 'calendario') {
+        activateManualDrag(id);
+    } else {
+        abrirModalCita(id);
+    }
 }
 
 function initClock() { setInterval(() => { const n = new Date(); $("#digital-clock").text(n.toLocaleTimeString()); }, 1000); }
@@ -1842,22 +1893,35 @@ function renderTable(type) {
     });
 
     $(tableId).DataTable({
-        language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-        dom: '<"p-3 d-flex justify-content-start align-items-center"B>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+        language: { 
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+            search: '',
+            searchPlaceholder: 'Buscar cita o paciente...',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+            infoEmpty: 'Mostrando 0 registros',
+            infoFiltered: '(de _MAX_ totales)',
+            paginate: {
+                previous: '« Ant',
+                next: 'Sig »'
+            }
+        },
+        dom: '<"agenda-dt-toolbar-wrapper d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 mb-2"Bf>rt<"agenda-dt-footer-wrapper d-flex flex-column align-items-center gap-1 mt-2"ip>',
         buttons: {
             dom: {
-                container: { className: 'dt-buttons export-toolbar' },
+                container: { className: 'dt-buttons export-toolbar m-0' },
                 button: { className: 'btn-export' }
             },
             buttons: [
                 { 
                     extend: 'copy', 
-                    text: '<i class="bi bi-clipboard"></i> Copiar',
+                    text: '<i class="bi bi-clipboard"></i><span class="export-label d-none d-md-inline ms-1">Copiar</span>',
+                    titleAttr: 'Copiar al portapapeles',
                     exportOptions: { columns: [0, 1, 2, 3, 4] }
                 },
                 { 
                     extend: 'excel', 
-                    text: '<i class="bi bi-file-earmark-excel"></i> Excel', 
+                    text: '<i class="bi bi-file-earmark-excel"></i><span class="export-label d-none d-md-inline ms-1">Excel</span>', 
+                    titleAttr: 'Exportar a Excel',
                     title: 'Hospital SDM',
                     messageTop: 'Módulo: ' + title,
                     messageBottom: 'Aviso de confidencialidad: Este documento contiene información confidencial destinada únicamente al receptor autorizado.\r\nCódigo interno: SDM-AGENDA',
@@ -1869,7 +1933,8 @@ function renderTable(type) {
                 },
                 { 
                     extend: 'pdf', 
-                    text: '<i class="bi bi-file-earmark-pdf"></i> PDF', 
+                    text: '<i class="bi bi-file-earmark-pdf"></i><span class="export-label d-none d-md-inline ms-1">PDF</span>', 
+                    titleAttr: 'Exportar a PDF',
                     title: 'Hospital SDM',
                     messageTop: 'Módulo: ' + title,
                     exportOptions: { columns: [0, 1, 2, 3, 4] },
@@ -1918,7 +1983,8 @@ function renderTable(type) {
                 },
                 { 
                     extend: 'print', 
-                    text: '<i class="bi bi-printer"></i> Imprimir',
+                    text: '<i class="bi bi-printer"></i><span class="export-label d-none d-md-inline ms-1">Imprimir</span>',
+                    titleAttr: 'Imprimir Reporte',
                     title: '',
                     exportOptions: { columns: [0, 1, 2, 3, 4] },
                     customize: function (win) {
@@ -1946,6 +2012,16 @@ function renderTable(type) {
         pageLength: 15,
         responsive: true
     });
+
+    // Activar tooltips en botones de exportación
+    setTimeout(() => {
+        $(`${tableId}_wrapper .btn-export`).each(function() {
+            const tip = $(this).attr('title') || $(this).data('bs-original-title');
+            if (tip && typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                new bootstrap.Tooltip(this, { title: tip, placement: 'top', trigger: 'hover' });
+            }
+        });
+    }, 150);
 }
 /**
  * Ajustes de Agenda (Per-User Configuration)

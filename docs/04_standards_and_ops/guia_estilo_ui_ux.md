@@ -139,3 +139,28 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - **Historial Ejecutivo de Citas (`.agenda-past-day-container`)**: Si existieron citas pasadas, se muestra una lista cronológica ejecutiva detallando horario, paciente, motivo, badge de estado y accesos directos al expediente y ficha.
 4. **Estado de Citas "No realizada"**:
    - Representación visual con tarjeta en tinte rojo sutil (`.apt-card-dia.no-realizada`), badge rojo (`.badge-no-realizada`) y acciones habilitadas para ver expediente, re-agendar o eliminar.
+
+### 6.5 Modo Responsivo Móvil en Reportes de Agenda y DataTables (Reglas Mandantes)
+
+1. **Barra de Exportación Icon-Only con Tooltip**:
+   - En pantallas móviles (`<768px`), los botones de exportación (Copiar, Excel, PDF, Imprimir) muestran exclusivamente su ícono vectorial centrado dentro de una cápsula circular de 36x36px (`border-radius: 50%`) con borde turquesa clínico y sombra sutil.
+   - Las leyendas de texto se ocultan en móvil (`d-none d-md-inline`) y se transforman en tooltips flotantes Bootstrap (`titleAttr`) activados al interactuar.
+2. **Paginación y Navegación DataTables en 2 Filas Desacopladas**:
+   - **Fila 1 (Información)**: `.dataTables_info` se ubica centrada horizontalmente, ocupando el 100% del ancho con micro-tipografía de `0.65rem` y peso bold (`color: #64748b`).
+   - **Fila 2 (Navegación)**: `.dataTables_paginate` se posiciona inmediatamente debajo, centrada con micro-botones compactos (`height: 24px; min-width: 24px; font-size: 0.65rem`).
+   - La página activa se resalta con el turquesa clínico corporativo (`#19B7A5`) y sombra suave.
+3. **Buscador Reactivo Integrado**:
+   - Se integra obligatoriamente el control de búsqueda (`f`) en el DOM de DataTables (`Bf`) con borde turquesa corporativo (`1.5px solid var(--md-teal-clinical)`), esquinas redondeadas en píldora (`border-radius: 50rem`) y ancho completo en vista móvil.
+4. **Cards Móviles con Acento Lateral Turquesa y Cero Scroll Horizontal**:
+   - Cada fila de citas transmuta en una tarjeta compacta (`border-left: 3.5px solid var(--md-teal-clinical)`).
+   - Márgenes y paddings reducidos al mínimo (`padding: 6px 10px; margin-bottom: 6px`), eliminando espacios vacíos innecesarios.
+   - Forzado de `overflow-x: hidden !important` en `.agenda-table-responsive` para erradicar cualquier barra de desplazamiento horizontal indeseada.
+5. **Gobernanza de Drag & Drop y Vista Semanal Smart**:
+   - **Exclusividad de Drag & Drop**: El arrastre de citas solo existe en la **Vista Mensual Grid** (`currentView === 'calendario'`). En la Vista Diaria (`currentView === 'dia'`), al carecer de slots de destino, el clic abre de inmediato la ficha y no se activa el modo arrastre.
+   - **Drop con Validación Temporal >= Momento Actual**: El drop únicamente permite soltar citas en fechas y horas iguales o superiores a la fecha y hora presente (`isFuture(fecha, hora)`).
+   - **Tarjetas de 7 Días con Acabado Acrílico (`.card-acrilico`)**: Los 7 días visibles de la Vista Semanal Smart aplican la clase `.card-acrilico` con micro-paddings, bisel translúcido y elevación 3D.
+   - **Atenuación y Glassmorphism en Slots Pasados**:
+     - *Horarios pasados vacíos*: Atenuados (`.slot-pasado-atenuado`) con tooltip explicativo *"No se pueden agendar citas en horarios que ya han pasado"*.
+     - *Horarios pasados ocupados*: Resaltados con cristal satinado (`.slot-reservado-pasado-glass`), ícono de candado turquesa y ficha bloqueada contra re-agendamiento.
+   - **Bordes Corporativos**: Todos los contenedores principales (encabezado, tarjetas de reporte, categorías y calendario) incorporan el borde turquesa corporativo (`border: 1.5px solid var(--md-teal-clinical)`).
+

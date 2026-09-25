@@ -207,10 +207,10 @@ print <<HTML;
 
             <!-- REPORTE SEMANAL (DataTable) -->
             <div id="view-semana" class="agenda-view-container d-none">
-                <div class="card border-0 shadow-sm rounded-4 p-4">
-                    <h4 class="fw-black text-navy mb-4">REPORTE SEMANAL DE CITAS</h4>
-                    <div class="table-responsive">
-                        <table id="agendaTable" class="table table-hover w-100">
+                <div class="card border-0 shadow-sm rounded-4 p-2 p-md-4 agenda-report-card">
+                    <h4 class="fw-black text-navy mb-2 mb-md-4 agenda-report-title">REPORTE SEMANAL DE CITAS</h4>
+                    <div class="table-responsive agenda-table-responsive">
+                        <table id="agendaTable" class="table table-hover w-100 mb-0">
                             <thead>
                                 <tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Motivo</th><th>Status</th><th class="text-end">Acciones</th></tr>
                             </thead>
@@ -222,10 +222,10 @@ print <<HTML;
 
             <!-- REPORTE MENSUAL (DataTable) -->
             <div id="view-mes" class="agenda-view-container d-none">
-                <div class="card border-0 shadow-sm rounded-4 p-4">
-                    <h4 class="fw-black text-navy mb-4">REPORTE MENSUAL DE CITAS</h4>
-                    <div class="table-responsive">
-                        <table id="mesTable" class="table table-hover w-100">
+                <div class="card border-0 shadow-sm rounded-4 p-2 p-md-4 agenda-report-card">
+                    <h4 class="fw-black text-navy mb-2 mb-md-4 agenda-report-title">REPORTE MENSUAL DE CITAS</h4>
+                    <div class="table-responsive agenda-table-responsive">
+                        <table id="mesTable" class="table table-hover w-100 mb-0">
                             <thead>
                                 <tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Motivo</th><th>Status</th><th class="text-end">Acciones</th></tr>
                             </thead>
