@@ -87,6 +87,22 @@ Las tablas del sistema incorporan controles de exportación estandarizados estil
   - [`utils/sub_header.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_header.pl) declara directamente en el `<head>` las funciones globales `window.toggleSidebar` y `window.toggleDesktopSidebar` para garantizar disponibilidad inmediata ante cualquier evento táctil o clic.
   - En [`utils/sub_edita_perfil.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_edita_perfil.pl), el botón de envío "Actualizar Perfil" se ubica en el paso final (tab Seguridad) a la derecha del botón "Anterior", y los campos de contraseña incorporan los atributos estándares de accesibilidad `autocomplete="current-password"` y `autocomplete="new-password"`.
 
+### 4.7 Gobernanza del Menú Inferior Móvil y Estándar de Avatar en Perfil
+- **Segregación RBAC en Barra Inferior Móvil (`utils/sub_bottom_nav.pl`)**:
+  - El ícono del corazón (`<i class="bi bi-heart-pulse"></i>`, enlace a `render_consultas.pl`) está estrictamente restringido a nivel global para el rol **Médico**.
+  - Para los demás perfiles operativos y administrativos (Administrador de Organización, Administrador Global, Recepcionista, Cajero, etc.), la barra inferior prescinde de la opción clínica manteniendo únicamente accesos a Inicio, Citas y Pacientes.
+- **Unificación de Carga de Avatar en Perfil (`views/perfil.pl` / `utils/sub_edita_perfil.pl`)**:
+  - Se erradica la duplicidad de componentes de subida de foto eliminando el bloque redundante en Panel 0 (Identidad de Acceso), permitiendo que los campos de datos ocupen el ancho completo.
+  - La foto reside exclusivamente en la cabecera superior dentro de un **círculo perfecto** (`.profile-avatar-circle` con `aspect-ratio: 1/1`, `border-radius: 50%`, `92x92px`) con borde turquesa de 3px.
+  - En presencia de foto, se renderiza con `object-fit: cover` garantizando cero deformaciones o distorsiones.
+  - En ausencia de foto, se renderiza un ícono centrado `<i class="bi bi-person-fill"></i>`.
+  - La interacción de cambio de fotografía se asiste con una insignia flotante `.avatar-badge-edit`.
+- **Estándares y Límites para Subida de Foto**:
+  - Formatos admitidos: JPG, JPEG, PNG y WebP.
+  - Peso máximo: **2 MB**, con validación inmediata en frontend (`validarYPrevisualizarAvatar`) y validación en backend (`api/update_perfil.pl`).
+- **Borde Turquesa Corporativo en Contenedores de Perfil**:
+  - Todos los contenedores de `views/perfil.pl` (`.card-medentia-aura`, `.wizard-panel`, alertas informativas y previews de firma) portan de forma mandatoria el borde turquesa clínico corporativo (`border: 1.5px solid var(--md-teal-clinical)`).
+
 ---
 
 ## 5. Tarjetas KPI Acrílicas Centradas (`.kpi-acrilico`)

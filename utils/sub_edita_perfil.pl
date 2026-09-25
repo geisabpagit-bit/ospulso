@@ -102,12 +102,16 @@ print <<HTML;
 
 <div class="wizard-container animate__animated animate__fadeIn">
     <!-- Encabezado Perfil MedentIA Diamond -->
-    <div class="card-medentia-aura p-4 p-md-5 mb-4 border-0 shadow-sm" style="border-radius: 1.5rem; background: #ffffff;">
+    <div class="card-medentia-aura p-4 p-md-5 mb-4 shadow-sm" style="border-radius: 1.5rem; background: #ffffff; border: 1.5px solid var(--md-teal-clinical) !important;">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-4">
             <div class="d-flex align-items-center gap-4">
-                <div class="profile-avatar-circle" onclick="document.getElementById('avatar_file').click();" title="Haz clic para cambiar tu foto de perfil">
-                    @{[ $avatar_src ne '' ? qq(<img id="avatar_preview_header" src="$avatar_src" alt="Avatar">) : qq(<span id="avatar_initial_header">$inicial</span><img id="avatar_preview_header" src="" alt="Avatar" class="d-none">) ]}
-                    <div class="avatar-upload-overlay"><i class="bi bi-camera-fill"></i> Cambiar</div>
+                <div class="profile-avatar-wrapper position-relative flex-shrink-0" onclick="document.getElementById('avatar_file').click();" title="Haz clic para subir o cambiar foto de perfil">
+                    <div class="profile-avatar-circle">
+                        @{[ $avatar_src ne '' ? qq(<img id="avatar_preview_header" src="$avatar_src" alt="Avatar" class="avatar-img-circle">) : qq(<i id="avatar_placeholder_icon" class="bi bi-person-fill avatar-icon-fallback"></i><img id="avatar_preview_header" src="" alt="Avatar" class="avatar-img-circle d-none">) ]}
+                    </div>
+                    <div class="avatar-badge-edit shadow-sm" title="Subir o cambiar fotografía">
+                        <i class="bi bi-camera-fill"></i>
+                    </div>
                 </div>
                 <div>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -203,11 +207,11 @@ print <<HTML;
 
     <form id="perfilForm" enctype="multipart/form-data">
         <input type="hidden" name="user_role" value="$role">
-        <input type="file" id="avatar_file" name="avatar_file" accept="image/*" class="d-none" onchange="previewAvatarImage(this)">
-        <input type="file" id="firma_file" name="firma_file" accept="image/*" class="d-none" onchange="previewFirmaImage(this)">
+        <input type="file" id="avatar_file" name="avatar_file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="d-none" onchange="validarYPrevisualizarAvatar(this)">
+        <input type="file" id="firma_file" name="firma_file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="d-none" onchange="previewFirmaImage(this)">
 
         <div id="alertContainer"></div>
-        <div class="alert alert-warning border-0 shadow-sm rounded-4 d-flex align-items-center justify-content-between mb-3 py-2 px-3 animate__animated animate__fadeIn">
+        <div class="alert alert-warning shadow-sm rounded-4 d-flex align-items-center justify-content-between mb-3 py-2 px-3 animate__animated animate__fadeIn" style="border: 1.5px solid var(--md-teal-clinical) !important;">
             <span class="small fw-semibold text-dark"><i class="bi bi-shield-fill-exclamation text-warning me-2"></i>Para confirmar cualquier actualización de tu perfil es obligatorio ingresar tu contraseña actual.</span>
             <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark px-3" onclick="PerfilWizardController.jumpToStep(@{[ $is_paciente || $is_admin_org ? 3 : ($is_medico ? 2 : 1) ]}); setTimeout(function(){ \$('#clave_actual').focus(); }, 300);">
                 <i class="bi bi-key-fill me-1"></i>Ir a Contraseña
@@ -219,44 +223,28 @@ print <<HTML;
             <h5 class="fw-bold mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-person-badge-fill me-2" style="color: var(--md-teal-clinical);"></i>Identidad de Acceso</h5>
             
             <div class="row g-3">
-                <div class="col-md-3 text-center">
-                    <div class="p-3 border rounded-4 bg-light text-center">
-                        <label class="small fw-bold text-muted mb-2 d-block">Fotograf&iacute;a / Avatar</label>
-                        <div class="profile-avatar-circle mx-auto my-2" onclick="document.getElementById('avatar_file').click();" style="width: 100px; height: 100px; cursor: pointer;">
-                            @{[ $avatar_src ne '' ? qq(<img id="avatar_preview_panel" src="$avatar_src" alt="Avatar">) : qq(<span id="avatar_initial_panel">$inicial</span><img id="avatar_preview_panel" src="" alt="Avatar" class="d-none">) ]}
-                            <div class="avatar-upload-overlay"><i class="bi bi-camera-fill"></i> Cambiar</div>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 mt-2 fw-bold" onclick="document.getElementById('avatar_file').click();">
-                            <i class="bi bi-upload me-1"></i> Subir Foto
-                        </button>
+                <div class="col-md-6">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control fw-bold" id="nombre_completo" name="nombre_completo" placeholder="Nombre" value="$u_nombre" required>
+                        <label for="nombre_completo">Nombre Completo *</label>
                     </div>
                 </div>
-                <div class="col-md-9">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="form-floating diamond-input-armor">
-                                <input type="text" class="form-control fw-bold" id="nombre_completo" name="nombre_completo" placeholder="Nombre" value="$u_nombre" required>
-                                <label for="nombre_completo">Nombre Completo *</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-floating diamond-input-armor">
-                                <input type="email" class="form-control bg-light fw-bold text-muted" id="correo_login" value="$u_correo" readonly>
-                                <label for="correo_login">Correo Electr&oacute;nico Institucional</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-floating diamond-input-armor">
-                                <input type="text" class="form-control bg-light fw-bold text-muted" value="$role_title" readonly>
-                                <label>Rol de Usuario en la Plataforma</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-floating diamond-input-armor">
-                                <input type="text" class="form-control bg-light fw-bold text-muted" value="$b->{nombre}" readonly>
-                                <label>Cl&iacute;nica / Organizaci&oacute;n Asignada</label>
-                            </div>
-                        </div>
+                <div class="col-md-6">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="email" class="form-control bg-light fw-bold text-muted" id="correo_login" value="$u_correo" readonly>
+                        <label for="correo_login">Correo Electr&oacute;nico Institucional</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control bg-light fw-bold text-muted" value="$role_title" readonly>
+                        <label>Rol de Usuario en la Plataforma</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating diamond-input-armor">
+                        <input type="text" class="form-control bg-light fw-bold text-muted" value="$b->{nombre}" readonly>
+                        <label>Cl&iacute;nica / Organizaci&oacute;n Asignada</label>
                     </div>
                 </div>
             </div>
@@ -780,27 +768,8 @@ print <<HTML;
 <script src="../js/perfil_flow.js"></script>
 <script>
 function previewAvatarImage(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const previewHeader = document.getElementById('avatar_preview_header');
-            const initialHeader = document.getElementById('avatar_initial_header');
-            const previewPanel = document.getElementById('avatar_preview_panel');
-            const initialPanel = document.getElementById('avatar_initial_panel');
-
-            if (previewHeader) {
-                previewHeader.src = e.target.result;
-                previewHeader.classList.remove('d-none');
-            }
-            if (initialHeader) initialHeader.classList.add('d-none');
-
-            if (previewPanel) {
-                previewPanel.src = e.target.result;
-                previewPanel.classList.remove('d-none');
-            }
-            if (initialPanel) initialPanel.classList.add('d-none');
-        };
-        reader.readAsDataURL(input.files[0]);
+    if (typeof window.validarYPrevisualizarAvatar === 'function') {
+        window.validarYPrevisualizarAvatar(input);
     }
 }
 

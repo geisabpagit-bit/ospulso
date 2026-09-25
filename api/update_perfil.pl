@@ -176,18 +176,36 @@ eval {
 
         my $upload_avatar = $q->upload('avatar_file');
         if ($upload_avatar && $id_usuario) {
-            my $dir_avatar = '../uploads/avatars';
-            mkdir $dir_avatar unless -d $dir_avatar;
-            my $filename = "avatar_$id_usuario.png";
-            my $target_path = "$dir_avatar/$filename";
-            if (open(my $out, '>', $target_path)) {
-                binmode $out;
-                my $buffer;
-                while (read($upload_avatar, $buffer, 1024)) {
-                    print $out $buffer;
+            my $orig_name = $q->param('avatar_file') || '';
+            my ($ext) = ($orig_name =~ /\.([a-zA-Z0-9]+)$/);
+            $ext = lc($ext // 'png');
+            $ext = 'jpg' if $ext eq 'jpeg';
+            if ($ext =~ /^(png|jpg|webp)$/) {
+                my $dir_avatar = '../uploads/avatars';
+                mkdir $dir_avatar unless -d $dir_avatar;
+                my $filename = "avatar_${id_usuario}.$ext";
+                my $target_path = "$dir_avatar/$filename";
+                if (open(my $out, '>', $target_path)) {
+                    binmode $out;
+                    my $buffer;
+                    my $total_bytes = 0;
+                    my $max_bytes = 2 * 1024 * 1024; # 2 MB máx
+                    my $exceeded = 0;
+                    while (read($upload_avatar, $buffer, 1024)) {
+                        $total_bytes += length($buffer);
+                        if ($total_bytes > $max_bytes) {
+                            $exceeded = 1;
+                            last;
+                        }
+                        print $out $buffer;
+                    }
+                    close $out;
+                    if ($exceeded) {
+                        unlink $target_path if -e $target_path;
+                    } else {
+                        $avatar_url = "uploads/avatars/$filename";
+                    }
                 }
-                close $out;
-                $avatar_url = "uploads/avatars/$filename";
             }
         }
 

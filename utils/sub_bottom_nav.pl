@@ -23,6 +23,8 @@ sub render_bottom_nav {
         </a>
 HTML
 
+    my $is_medico = ($role =~ /Medico/i) ? 1 : 0;
+
     if ($role eq 'Paciente') {
         print <<HTML;
         <a href="inbox_paciente.pl" class="main-tab-item @{[$active eq 'inbox_paciente' ? 'active' : '']}" title="Inbox">
@@ -39,6 +41,13 @@ HTML
         </a>
 HTML
     } else {
+        my $consulta_item = $is_medico ? qq(
+            <a href="render_consultas.pl" class="main-tab-item @{[$active eq 'consulta' ? 'active' : '']}" title="Consulta">
+                <i class="bi bi-heart-pulse"></i>
+                <span>Consulta</span>
+            </a>
+        ) : '';
+
         print <<HTML;
         @{[ 
             $active eq 'agenda' ? qq(
@@ -50,10 +59,7 @@ HTML
                     <i class="bi bi-calendar-plus"></i>
                     <span>Nueva Cita</span>
                 </button>
-                <a href="render_consultas.pl" class="main-tab-item" title="Consulta">
-                    <i class="bi bi-heart-pulse"></i>
-                    <span>Consulta</span>
-                </a>
+                $consulta_item
             ) : $active eq 'pacientes' ? qq(
                 <a href="agenda_main.pl" class="main-tab-item" title="Citas">
                     <i class="bi bi-calendar3"></i>
@@ -63,10 +69,7 @@ HTML
                     <i class="bi bi-person-plus-fill"></i>
                     <span>Nuevo</span>
                 </a>
-                <a href="render_consultas.pl" class="main-tab-item" title="Consulta">
-                    <i class="bi bi-heart-pulse"></i>
-                    <span>Consulta</span>
-                </a>
+                $consulta_item
             ) : qq(
                 <a href="agenda_main.pl" class="main-tab-item @{[$active eq 'agenda' ? 'active' : '']}" title="Citas">
                     <i class="bi bi-calendar3"></i>
@@ -76,10 +79,7 @@ HTML
                     <i class="bi bi-people"></i>
                     <span>Pacientes</span>
                 </a>
-                <a href="render_consultas.pl" class="main-tab-item @{[$active eq 'consulta' ? 'active' : '']}" title="Consulta">
-                    <i class="bi bi-heart-pulse"></i>
-                    <span>Consulta</span>
-                </a>
+                $consulta_item
             )
         ]}
 HTML

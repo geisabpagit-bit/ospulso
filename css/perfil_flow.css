@@ -101,12 +101,19 @@
 }
 
 /* Formularios Modulares (Aura Diamond Armor) */
+.card-medentia-aura {
+    background: #ffffff !important;
+    border-radius: 1.5rem !important;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    box-shadow: 0 10px 30px rgba(10, 42, 102, 0.05) !important;
+}
+
 .wizard-panel {
     background: #ffffff;
     border-radius: 1.5rem;
     padding: 2.5rem;
     box-shadow: 0 10px 30px rgba(10, 42, 102, 0.05);
-    border: 2px solid #e2e8f0;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
     display: none;
     animation: fadeIn 0.4s ease;
     backdrop-filter: blur(10px);
@@ -186,25 +193,75 @@
     font-weight: 800; letter-spacing: 0.5px; transition: 0.3s;
 }
 .btn-aura-save:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
+/* Contenedor de Avatar Circular Perfecto y Badge */
+.profile-avatar-wrapper {
+    position: relative;
+    width: 92px;
+    height: 92px;
+    min-width: 92px;
+    min-height: 92px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
 .profile-avatar-circle {
-    width: 90px; height: 90px; border-radius: 50%;
+    width: 92px !important;
+    height: 92px !important;
+    min-width: 92px !important;
+    min-height: 92px !important;
+    max-width: 92px !important;
+    max-height: 92px !important;
+    border-radius: 50% !important;
+    aspect-ratio: 1 / 1 !important;
     background: linear-gradient(135deg, #0A2A66 0%, #19B7A5 100%);
-    color: #fff; font-size: 2.5rem; font-weight: 900;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden; position: relative; border: 3px solid #ffffff;
-    box-shadow: 0 8px 25px rgba(10, 42, 102, 0.15);
+    border: 3px solid var(--md-teal-clinical, #19B7A5) !important;
+    box-shadow: 0 8px 24px rgba(10, 42, 102, 0.15) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    flex-shrink: 0;
 }
-.profile-avatar-circle img {
-    width: 100%; height: 100%; object-fit: cover;
+.profile-avatar-wrapper:hover .profile-avatar-circle {
+    transform: scale(1.04);
+    box-shadow: 0 10px 28px rgba(25, 183, 165, 0.25) !important;
 }
-.avatar-upload-overlay {
-    position: absolute; bottom: 0; left: 0; right: 0; background: rgba(10,42,102,0.75);
-    color: #fff; text-align: center; font-size: 0.7rem; padding: 3px 0; cursor: pointer;
-    transition: all 0.2s ease; display: none;
+.profile-avatar-circle .avatar-img-circle {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+    display: block;
 }
-.profile-avatar-circle:hover .avatar-upload-overlay { display: block; }
+.profile-avatar-circle .avatar-icon-fallback {
+    font-size: 2.8rem;
+    color: #ffffff;
+    line-height: 1;
+}
+.avatar-badge-edit {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 30px;
+    height: 30px;
+    background: var(--md-teal-clinical, #19B7A5);
+    color: #ffffff;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+.profile-avatar-wrapper:hover .avatar-badge-edit {
+    transform: scale(1.1);
+    background: #0A2A66;
+}
 .signature-box-preview {
-    height: 120px; border: 2px dashed #cbd5e1; border-radius: 1rem;
+    height: 120px; border: 2px dashed var(--md-teal-clinical, #19B7A5); border-radius: 1rem;
     background: #f8fafc; display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;
 }
