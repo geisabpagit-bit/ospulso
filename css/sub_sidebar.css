@@ -244,6 +244,12 @@
     }
     
     .diamond-header-compact { padding: 0.5rem 1rem; border-radius: 0 0 1rem 1rem; }
+    .sdm-main-content {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
+    }
     .sdm-content { padding: 0.25rem 0.25rem 5rem 0.25rem !important; }
     .sdm-content .container-fluid, 
     .sdm-content .container { 

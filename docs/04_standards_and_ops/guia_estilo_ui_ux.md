@@ -163,4 +163,8 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
      - *Horarios pasados vacíos*: Atenuados (`.slot-pasado-atenuado`) con tooltip explicativo *"No se pueden agendar citas en horarios que ya han pasado"*.
      - *Horarios pasados ocupados*: Resaltados con cristal satinado (`.slot-reservado-pasado-glass`), ícono de candado turquesa y ficha bloqueada contra re-agendamiento.
    - **Bordes Corporativos**: Todos los contenedores principales (encabezado, tarjetas de reporte, categorías y calendario) incorporan el borde turquesa corporativo (`border: 1.5px solid var(--md-teal-clinical)`).
+6. **Erradicación de Doble Scroll Vertical y Anti-Solapamiento de Etiquetas**:
+   - En pantallas móviles (`@media (max-width: 991px)`), `.sdm-main-content` opera estrictamente con `height: auto !important; overflow-y: visible !important;` eliminando el conflicto de doble barra de desplazamiento entre el contenedor interno y el viewport global del navegador.
+   - En las tarjetas móviles de DataTables, las pseudo-etiquetas `::before` portan obligatoriamente `position: static !important; float: none !important; width: auto !important;`, anulando colisiones de posicionamiento absoluto heredadas y garantizando que la etiqueta (izquierda) y el valor (derecha) coexistan limpios en `display: flex; justify-content: space-between`.
+   - El viewport principal `#app-viewport` incorpora `padding-bottom: 95px !important` para garantizar que la barra de navegación inferior fija y su botón de acción flotante no obstruyan la paginación ni los controles de reporte.
 
