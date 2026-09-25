@@ -277,52 +277,72 @@
     }
 
     /* --- Optimizacion Movil Especifica para Directorio de Pacientes (tablaPacientes) --- */
+    /* 0. Eliminar Header Superior en Movil (Solicitado expresamente: ya existe menu de agregar) */
+    header#pacientesHeroHeader,
+    #pacientesHeroHeader,
+    header.bg-medentia-gradient.d-none {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
     #tablaPacientes_wrapper .pacientes-dt-header {
-        padding: 0.4rem 0.25rem !important;
-        margin-bottom: 0.25rem !important;
+        padding: 0.5rem 0.25rem !important;
+        margin-bottom: 0.5rem !important;
         justify-content: center !important;
     }
 
+    /* 1. Barra de Exportacion: Sin borde de pildora grueso, identica al menu inferior flotante */
     #tablaPacientes_wrapper .export-toolbar,
     .export-toolbar {
         display: flex !important;
         flex-direction: row !important;
-        justify-content: center !important;
+        justify-content: space-around !important;
         align-items: center !important;
-        gap: 8px !important;
-        padding: 4px 10px !important;
-        margin: 0 auto 0.5rem auto !important;
-        border-radius: 50rem !important;
+        gap: 12px !important;
+        padding: 0 16px !important;
+        margin: 0 auto 0.75rem auto !important;
+        border-radius: 5px !important; /* Mismo radio que .sdm-main-bottom-nav */
+        border: 1px solid var(--md-teal-clinical, #19B7A5) !important;
+        background: rgba(232, 243, 255, 0.96) !important; /* Mismo azul tenue del dock flotante */
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
         width: auto !important;
-        max-width: 100% !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
-        border: 1.5px solid var(--medentia-success, #19b7a5) !important;
-        background: rgba(255, 255, 255, 0.95) !important;
-        backdrop-filter: blur(10px) !important;
+        min-width: 220px !important;
+        max-width: 280px !important;
+        height: 48px !important;
     }
 
+    /* Botones de Exportacion: Sin bordes circulares individuales, identicos a .main-tab-item */
     #tablaPacientes_wrapper .export-toolbar .btn-export,
     .export-toolbar .btn-export {
-        width: 36px !important;
-        height: 36px !important;
-        min-width: 36px !important;
-        border-radius: 50% !important;
-        padding: 0 !important;
-        display: inline-flex !important;
+        display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        width: 38px !important;
+        height: 38px !important;
+        border-radius: 50% !important;
+        color: var(--md-blue-deep, #0A2A66) !important;
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        font-size: 1.25rem !important;
+        transition: all 0.2s !important;
+        text-decoration: none !important;
+        position: relative !important;
+        padding: 0 !important;
         margin: 0 !important;
-        border: 1px solid rgba(25, 183, 165, 0.35) !important;
-        background: #ffffff !important;
-        color: var(--medentia-primary, #0a2a66) !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
-        transition: all 0.2s ease !important;
+        box-shadow: none !important;
     }
 
     #tablaPacientes_wrapper .export-toolbar .btn-export i,
     .export-toolbar .btn-export i {
-        font-size: 1rem !important;
-        color: var(--medentia-primary, #0a2a66) !important;
+        font-size: 1.25rem !important;
+        color: var(--md-blue-deep, #0A2A66) !important;
+        display: block !important;
         margin: 0 !important;
     }
 
@@ -330,17 +350,10 @@
     #tablaPacientes_wrapper .export-toolbar .btn-export:active,
     .export-toolbar .btn-export:hover,
     .export-toolbar .btn-export:active {
-        background: var(--medentia-success, #19b7a5) !important;
-        border-color: var(--medentia-success, #19b7a5) !important;
-        color: #ffffff !important;
-        transform: translateY(-2px);
-    }
-
-    #tablaPacientes_wrapper .export-toolbar .btn-export:hover i,
-    #tablaPacientes_wrapper .export-toolbar .btn-export:active i,
-    .export-toolbar .btn-export:hover i,
-    .export-toolbar .btn-export:active i {
-        color: #ffffff !important;
+        background: rgba(10, 42, 102, 0.05) !important;
+        color: var(--md-blue-deep, #0A2A66) !important;
+        border: 1.5px solid var(--md-blue-deep, #0A2A66) !important;
+        transform: translateY(-2px) !important;
     }
 
     #tablaPacientes thead {
@@ -412,16 +425,25 @@
         margin-top: 2px !important;
     }
 
+    /* 2. Solucion al Solapamiento: position: static para que la etiqueta quede limpia arriba */
     #tablaPacientes.table-diamond tbody td::before {
         content: attr(data-label) !important;
+        position: static !important; /* CRÍTICO: Desactiva position: absolute para evitar solapamiento */
+        top: auto !important;
+        left: auto !important;
+        transform: none !important;
+        display: block !important;
+        width: 100% !important;
+        float: none !important;
         font-family: 'Inter', sans-serif !important;
         font-size: 0.65rem !important;
         font-weight: 600 !important;
         letter-spacing: 0.5px !important;
         text-transform: uppercase !important;
         color: #64748b !important;
-        margin-bottom: 2px !important;
-        display: block !important;
+        margin: 0 0 4px 0 !important;
+        padding: 0 !important;
+        text-align: left !important;
     }
 
     #tablaPacientes.table-diamond .patient-info-sub span {
@@ -455,12 +477,13 @@
         height: 38px !important;
     }
 
+    /* 3. Barra Inferior de Navegacion en 2 Filas Limpias */
     #tablaPacientes_wrapper .pacientes-dt-footer {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
         gap: 4px !important;
-        padding: 8px 4px !important;
+        padding: 8px 4px 20px 4px !important;
         width: 100% !important;
     }
 
@@ -521,7 +544,12 @@
         border-color: #e2e8f0 !important;
     }
 
+    /* 4. Despeje inferior generoso para que el boton flotante '+' del menu inferior no solape */
     #tablaPacientes_wrapper {
-        padding-bottom: 95px !important;
+        padding-bottom: 110px !important;
+    }
+    .card-mobile-flush,
+    .container-mobile-flush {
+        margin-bottom: 120px !important;
     }
 }

@@ -176,21 +176,28 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
 
 ## 7. Estándares UI Móviles del Directorio de Pacientes (`views/pacientes.pl`, `css/tabla_pacientes.css`)
 
-1. **Supresión del Hero Header en Modo Móvil (Imagen 2)**:
-   - El encabezado superior azul (`<header class="bg-medentia-gradient ...">`) con el título *"Directorio de Pacientes"* y el botón *"Agregar nuevo paciente"* porta la clase responsiva `d-none d-md-block`.
-   - **Razón Arquitectónica**: Al estar en vista móvil, la barra de navegación inferior global (`utils/sub_bottom_nav.pl`) ya proporciona el botón central flotante y los accesos rápidos para la gestión y creación de expedientes, eliminando redundancia visual y maximizando el espacio de lectura.
-2. **Barra de Exportación Icon-Only en Cápsula Compacta**:
-   - Los botones de exportación (Copiar, Excel, PDF, Imprimir) en `#tablaPacientes_wrapper` se renderizan como botones circulares de `36x36px` (`border-radius: 50%`) con borde turquesa clínico (`rgba(25, 183, 165, 0.35)`), fondo blanco y tooltip nativo Bootstrap (`titleAttr`).
-   - Las etiquetas de texto se ocultan en móvil con `<span class="export-label d-none d-md-inline ms-1">`, eliminando botones estirados o en forma de píldora desbordada.
-3. **Barra Inferior de Navegación Desacoplada en 2 Filas**:
-   - **Fila 1 (Información de Registros)**: `.dataTables_info` se centra horizontalmente en una sola fila con tipografía nítida `0.72rem` (`#64748b`), sin apretarse contra los botones.
+1. **Supresión Absoluta del Hero Header en Modo Móvil (Imagen 2)**:
+   - El encabezado superior azul (`<header id="pacientesHeroHeader" class="bg-medentia-gradient ...">`) con el título *"Directorio de Pacientes"* y el botón *"Agregar nuevo paciente"* queda estrictamente oculto en móvil mediante el selector `header#pacientesHeroHeader, #pacientesHeroHeader { display: none !important; }` anulando la especificidad de `header.bg-medentia-gradient`.
+   - **Razón Arquitectónica**: Al estar en vista móvil, la barra de navegación inferior global (`utils/sub_bottom_nav.pl`) ya proporciona el botón central flotante (`+`) para el registro de nuevos pacientes, eliminando redundancia visual.
+2. **Barra de Exportación Idéntica al Menú Inferior Flotante**:
+   - Se erradica el borde grueso de píldora verde en el contenedor y los bordes circulares individuales de los botones.
+   - En su lugar, el dock de exportación adopta el estilo del menú inferior flotante (`.sdm-main-bottom-nav`):
+     - Fondo con tinte azul translúcido: `background: rgba(232, 243, 255, 0.96)`.
+     - Desenfoque de cristal: `backdrop-filter: blur(15px)`.
+     - Borde sutil de 1px: `border: 1px solid var(--md-teal-clinical, #19B7A5)`.
+     - Esquinas ligeramente redondeadas: `border-radius: 5px`.
+     - Altura compacta de `48px`, ancho de `220px a 280px` centrado.
+     - Botones sin borde individual: `background: transparent; border: 1px solid transparent; color: #0A2A66; font-size: 1.25rem;` con hover suave (`transform: translateY(-2px)`).
+3. **Erradicación de Solapamiento de Etiquetas (`::before`) en Tarjetas**:
+   - Las pseudo-etiquetas de datos (`CONTACTO`, `F. NAC / SEXO`) utilizan de forma mandatoria `position: static !important; float: none !important; display: block !important; margin: 0 0 4px 0 !important;`.
+   - Esto anula la colisión generada por `position: absolute` en resoluciones móviles, garantizando que la etiqueta quede ubicada limpia y ordenadamente arriba de los datos (teléfono, correo, fecha de nacimiento y sexo).
+4. **Barra Inferior de Navegación Desacoplada en 2 Filas y Despeje Ampliado**:
+   - **Fila 1 (Información de Registros)**: `.dataTables_info` se centra horizontalmente en una sola fila con tipografía nítida `0.72rem` (`#64748b`).
    - **Fila 2 (Paginador)**: `.dataTables_paginate` se ubica centrada inmediatamente abajo, con micro-botones de `28x28px`, borde suave y resaltado de página activa en turquesa corporativo (`#19b7a5`).
-4. **Optimización de Espacios y Densidad de Tarjetas**:
-   - Se reduce el margen inferior entre tarjetas a solo `8px` (anteriormente `24px` / `1.5rem`).
-   - Padding interno de celdas optimizado a `6px 12px` (anteriormente `1.25rem 1.5rem`), suprimiendo huecos vacíos innecesarios.
-   - Borde lateral izquierdo turquesa de `3.5px` (`var(--medentia-success, #19b7a5)`) para rápida jerarquía visual y toque Diamond.
-   - Botones de acción (ver y eliminar) ajustados a una altura ergonómica táctil de `38px` con bordes redondeados estándar.
-5. **Despeje de Viewport Inferior**:
-   - Se fija `padding-bottom: 95px !important` en `#tablaPacientes_wrapper` asegurando que la barra de navegación flotante nunca solape la paginación ni los últimos registros.
+   - **Despeje Ampliado (Anti-Solapamiento FAB `+`)**: Se asigna `padding-bottom: 110px !important` a `#tablaPacientes_wrapper` y `margin-bottom: 120px !important` a los contenedores móviles para asegurar que el botón flotante central `+` del dock inferior flote sobre el área libre y nunca solape los controles de paginación.
+5. **Optimización de Espacios y Densidad de Tarjetas**:
+   - Se reduce el margen inferior entre tarjetas a solo `8px`.
+   - Padding interno de celdas optimizado a `6px 12px`, suprimiendo huecos vacíos innecesarios.
+   - Borde lateral izquierdo turquesa de `3.5px` (`var(--medentia-success, #19b7a5)`) para rápida jerarquía visual.
 
 
