@@ -1404,118 +1404,205 @@
     color: #486581;
 }
 
-.glass-user-menu {
-    width: 340px !important;
-    height: max-content !important;
-    max-height: 95vh;
-    border-radius: 24px !important;
-    border: 1px solid rgba(25, 183, 165, 0.3) !important;
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255,255,255,0.5) inset !important;
-    overflow: hidden;
-    z-index: 5000;
-}
-
-.teal-accent-bar {
-    height: 6px;
-    background: linear-gradient(90deg, #19B7A5, #0dcaf0);
-    width: 100%;
-}
-
-.user-info-box {
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-}
-
-.text-teal {
-    color: #19B7A5 !important;
-}
-
-.option-icon {
+/* =========================================================================
+   CANONICAL AVATAR & HEADER CONTROLS
+   ========================================================================= */
+.avatar-diamond {
+    font-size: 1.15rem;
+    border-width: 2px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0A2A66, #00C4C4);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0;
+}
+.avatar-diamond:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+    border-color: rgba(255, 255, 255, 0.9);
+}
+.avatar-diamond .avatar-initials {
+    font-weight: 800;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    letter-spacing: 1px;
 }
 
-.user-menu-option {
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid transparent;
-    transition: all 0.2s ease-in-out;
-}
-
-.user-menu-option:hover {
-    background: #ffffff;
-    border-color: rgba(25, 183, 165, 0.3);
-    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.08);
-    transform: translateY(-2px);
-}
-
-.user-menu-option-danger {
-    background: rgba(220, 53, 69, 0.03);
-    border: 1px solid rgba(220, 53, 69, 0.1);
-    transition: all 0.2s ease-in-out;
-}
-
-.user-menu-option-danger:hover {
-    background: rgba(220, 53, 69, 0.08);
-    border-color: rgba(220, 53, 69, 0.2);
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.08);
-    transform: translateY(-2px);
-}
-
+/* =========================================================================
+   ROLE SWITCHER CAPSULE & DATETIME (PUNTO 2 REFACTOR)
+   ========================================================================= */
 .btn-role-pill {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(25, 183, 165, 0.4);
-    border-radius: 50px;
-    padding: 4px 14px;
-    font-size: 0.76rem;
-    transition: all 0.25s ease;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: #ffffff !important;
+    border: 1.5px solid rgba(25, 183, 165, 0.4) !important;
+    border-radius: 50px !important;
+    padding: 5px 12px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    line-height: 1 !important;
+    color: #0A2A66 !important;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.05) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 .btn-role-pill:hover {
-    background: #ffffff;
-    border-color: #19B7A5;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(25, 183, 165, 0.2) !important;
+    background: #f8fdff !important;
+    border-color: #19B7A5 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(25, 183, 165, 0.18) !important;
 }
 .btn-role-pill .badge-role-current {
-    color: #486581;
-    font-weight: 600;
+    font-weight: 700;
+    white-space: nowrap;
 }
-
-@media (max-width: 576px) {
-    .glass-user-menu {
-        width: auto !important;
-        left: 15px !important;
-        right: 15px !important;
-    }
-    .btn-role-pill {
-        padding: 3px 8px;
-        font-size: 0.7rem;
-    }
+.btn-role-pill .badge-role-target {
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 /* --- Header Date/Time (24 hrs) --- */
 .header-datetime-sub {
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     letter-spacing: 0.2px;
-    line-height: 1.25;
+    line-height: 1;
+    margin-top: 3px;
 }
 .header-datetime-text {
     font-family: 'Plus Jakarta Sans', sans-serif;
     color: #486581 !important;
-    background: rgba(255, 255, 255, 0.7);
-    padding: 2px 10px;
-    border-radius: 20px;
-    border: 1px solid rgba(25, 183, 165, 0.25);
-    box-shadow: 0 1px 3px rgba(10, 42, 102, 0.04);
+    background: #ffffff !important;
+    padding: 5px 12px !important;
+    border-radius: 50px !important;
+    border: 1.5px solid rgba(25, 183, 165, 0.3) !important;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.04) !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+}
+
+/* =========================================================================
+   USER MENU OFFCANVAS (PUNTO 4: HOMOLOGADO CON CLASES DE INDEX.HTML)
+   ========================================================================= */
+.offcanvas.mobile-sidebar {
+    width: calc(100% - 30px) !important;
+    max-width: 340px !important;
+    height: auto !important;
+    max-height: calc(100vh - 30px) !important;
+    top: 15px !important;
+    right: 15px !important;
+    bottom: auto !important;
+    border-radius: var(--radius-lg, 1.5rem) !important;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(25px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+    box-shadow: 0 20px 45px rgba(10, 42, 102, 0.18) !important;
+    padding: 1.35rem !important;
+    z-index: 10500 !important;
+    overflow: hidden;
+}
+
+.offcanvas.mobile-sidebar .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding: 0 !important;
+}
+
+.btn-close-sidebar {
+    width: 40px;
+    height: 40px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--md-blue-deep, #0A2A66);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-close-sidebar:hover {
+    background: #f8fafc;
+    border-color: var(--md-teal-clinical);
+    color: #10b981;
+    transform: scale(1.05);
+}
+.btn-close-sidebar:active {
+    transform: scale(0.95);
+}
+
+.offcanvas.mobile-sidebar .user-info-box {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: var(--radius-md, 1rem);
+    padding: 1rem;
+    box-shadow: 0 4px 14px rgba(10, 42, 102, 0.04);
+}
+
+.offcanvas.mobile-sidebar .sidebar-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--md-blue-deep, #0A2A66);
+    text-decoration: none !important;
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 0.75rem;
+    border-radius: var(--radius-md, 0.85rem);
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(10, 42, 102, 0.03);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1 !important;
+    transform: none !important;
+}
+.offcanvas.mobile-sidebar .sidebar-nav-link:hover {
+    background: #ffffff;
+    border-color: var(--md-teal-clinical, #19B7A5);
+    color: var(--md-blue-medical, #124A9E);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(24, 209, 230, 0.15);
+}
+
+.btn-solicitar-cita-mobile {
+    background: var(--md-blue-deep, #0A2A66);
+    color: #ffffff !important;
+    text-align: center;
+    padding: 0.9rem 1.25rem;
+    border-radius: 1.25rem;
+    font-weight: 800;
+    font-size: 0.95rem;
+    text-decoration: none !important;
+    box-shadow: 0 8px 20px rgba(10, 42, 102, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    transition: all 0.25s ease;
+}
+.btn-solicitar-cita-mobile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(10, 42, 102, 0.25);
+    filter: brightness(1.08);
 }
 
 /* =========================================================================

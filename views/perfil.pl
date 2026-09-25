@@ -6,22 +6,24 @@ use CGI;
 use CGI::Session;
 use CGI::Carp qw(fatalsToBrowser warningsToBrowser);
 use Encode qw(decode_utf8);
-use lib '..';
+use FindBin;
+use File::Spec;
+use lib "$FindBin::Bin/..";
 binmode(STDOUT, ":encoding(UTF-8)");
 use utils::db_manager qw(leer_tabla verificar_estado_negocio);
 
 # --- Declaraciones de Subrutinas ---
 sub render_header;
-sub render_footer;
 sub render_edita_perfil; 
 sub render_error_sesion; 
 
-# --- Carga de Módulos ---
-require '../auth/check_session.pl';
-require '../utils/sub_header.pl';
-require '../utils/sub_footer.pl';
-require '../utils/sub_edita_perfil.pl';
-require '../utils/render_error_sesion.pl';
+# --- Carga de Módulos (Protocolo 11.1) ---
+require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_edita_perfil.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'render_error_sesion.pl');
 
 # --- 1. Validar Sesión y Obtener Datos ---
 my $session_data = check_session();
@@ -294,6 +296,13 @@ if ($session_ok) {
         skip_header => 1 
     );
 
+    utils::sub_sidebar::render_sidebar(
+        usuario       => $usuario,
+        role          => $role,
+        id_medico     => $user_data->{id} || '',
+        pagina_actual => 'perfil'
+    );
+
     render_edita_perfil(
         user_data           => $user_data,
         biz_data            => $biz_data,
@@ -308,7 +317,8 @@ if ($session_ok) {
         naturaleza_juridica => $naturaleza_juridica
     );
 
-    render_footer();
+    utils::sub_sidebar::render_sidebar_footer();
+    render_bottom_nav('perfil');
 } else {
     render_error_sesion(); 
 }

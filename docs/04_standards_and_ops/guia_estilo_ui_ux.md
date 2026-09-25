@@ -70,6 +70,19 @@ Las tablas del sistema incorporan controles de exportación estandarizados estil
   - En `.sdm-content` y tarjetas KPI acrílicas, padding comprimido a `0.5rem 0.2rem` en móvil, con títulos KPI en `0.58rem` y valores en `1.05rem`.
   - Tarjetas de Citas en el Dashboard aplican `.appointment-card-mobile` con botones de acción compactos (`.btn-sm`, iconos en `me-1`) evitando botones gigantescos desproporcionados.
 
+### 4.6 Homologación del Menú Lateral de Usuario (`#sdmSidebar`) y Avatar Polimórfico
+- **Contenedor Flotante Estándar (`.mobile-sidebar`)**: El offcanvas de usuario `#sdmSidebar` en [`utils/sub_header.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_header.pl) adopta exactamente la misma arquitectura y clases visuales del menú responsivo de `index.html`:
+  - Contenedor con borde turquesa clínico (`1.5px solid var(--md-teal-clinical)`), esquinas redondeadas (`border-radius: var(--radius-lg)`), fondo acrílico satinado con `backdrop-filter: blur(25px)`.
+  - Botón de cierre cuadrado flotante `.btn-close-sidebar` (`width: 40px; height: 40px; border-radius: 12px;`) con ícono `bi-x-lg`.
+  - Opciones de navegación con clase unificada `.sidebar-nav-link` (fondo blanco, borde `#e2e8f0`, hover con elevación sutil y borde turquesa).
+  - Botón de cierre de sesión con estilo `.btn-solicitar-cita-mobile` adaptado con fondo semántico rojo peligroso (`background: #dc3545 !important;`).
+- **Avatar Polimórfico (`.avatar-diamond`)**:
+  - El avatar preserva su contenedor canónico `class="avatar-diamond shadow-sm flex-shrink-0"`.
+  - **Resolución Foto / Siglas**: Mediante [`utils/sub_header.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_header.pl), se consulta el ID de usuario en `dat/usuarios.dat` a partir de `$session_data->{usuario}` y se busca su registro en `dat/perfiles.dat`. Si existe `avatar_url` físico en el servidor, se renderiza la imagen `<img>`; en su ausencia, se generan de forma automática las iniciales en mayúscula envueltas en `.avatar-initials`.
+- **Integridad Estructural en Vistas Privadas (`views/perfil.pl`)**:
+  - Toda vista que requiera el sub-header DEBE encapsular su cuerpo dentro de `utils::sub_sidebar::render_sidebar(...)` y `utils::sub_sidebar::render_sidebar_footer()` finalizando con `render_bottom_nav(...)`, quedando totalmente prohibido el uso del obsoleto `utils/sub_footer.pl`.
+  - [`utils/sub_header.pl`](file:///c:/xampp/htdocs/ospulso/utils/sub_header.pl) importa directamente en el `<head>` las hojas `css/sub_sidebar.css` y `js/sub_sidebar.js` para asegurar que el botón hamburguesa y `toggleSidebar()` operen siempre de manera autónoma y consistente.
+
 ---
 
 ## 5. Tarjetas KPI Acrílicas Centradas (`.kpi-acrilico`)

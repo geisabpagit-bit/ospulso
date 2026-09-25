@@ -33,17 +33,19 @@ sub render_header {
         $roles_disponibles = $s->{roles_disponibles} || ($s->{session} ? $s->{session}->param('roles_disponibles') : '') if $s;
     };
     
-    if (!$roles_disponibles && $uid && open(my $fhu, '<:utf8', '../dat/usuarios.dat')) {
+    my $id_usuario_num = '';
+    if ($uid && open(my $fhu, '<:utf8', '../dat/usuarios.dat')) {
         while (<$fhu>) {
             chomp;
             my @u = split /!/;
-            if (lc($u[2] // '') eq lc($uid)) {
+            if (lc($u[2] // '') eq lc($uid) || ($u[0] eq $uid)) {
+                $id_usuario_num = $u[0];
                 my $r_raw = $u[5] // '';
                 my $esp = $u[7] // '0';
                 if ($r_raw =~ /Administrador/ && $esp ne '0' && $esp ne '' && $r_raw !~ /Medico/) {
                     $r_raw .= ',Medico';
                 }
-                $roles_disponibles = $r_raw;
+                $roles_disponibles = $r_raw if !$roles_disponibles;
                 last;
             }
         }
@@ -70,12 +72,12 @@ sub render_header {
         }
         close $fhn;
     }
-    if ($uid && open(my $fh, '<:encoding(UTF-8)', '../dat/perfiles.dat')) {
+    if (($id_usuario_num || $uid) && open(my $fh, '<:encoding(UTF-8)', '../dat/perfiles.dat')) {
         my $header = <$fh>;
         while (<$fh>) {
             chomp;
             my @c = split /!/, $_, -1;
-            if ($c[1] && $c[1] eq $uid) {
+            if (($id_usuario_num && $c[1] eq $id_usuario_num) || ($c[1] && $c[1] eq $uid)) {
                 $avatar_url = $c[6] // '';
                 last;
             }
@@ -222,12 +224,14 @@ sub render_header {
     <link rel="stylesheet" href="../css/ospulso_master_v2.css">
     <link rel="stylesheet" href="../css/theme_acrilico.css">
     <link rel="stylesheet" href="../css/sdm_mobile_standards.css">
+    <link rel="stylesheet" href="../css/sub_sidebar.css">
  
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- SweetAlert2 UI Alerts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+    <script src="../js/sub_sidebar.js" defer></script>
 
 
 
@@ -382,25 +386,25 @@ HTML
             <!-- Role Switcher Pill (Navbar Desktop) -->
             <div class="role-switcher-container me-2 d-flex align-items-center">
                 <button type="button" class="btn btn-sm btn-role-pill shadow-sm" onclick="osPulsoSwitchRole('Medico')" title="Cambiar a Modo Médico (Agenda y Consultas)">
-                    <span class="badge-role-current"><i class="bi bi-shield-check me-1 text-primary"></i>Admin</span>
-                    <i class="bi bi-arrow-left-right mx-1 text-muted opacity-75" style="font-size: 0.7rem;"></i>
-                    <span class="badge-role-target text-teal fw-bold"><i class="bi bi-stethoscope me-1"></i>Modo Médico</span>
+                    <span class="badge-role-current text-primary"><i class="bi bi-shield-check me-1"></i>Admin</span>
+                    <i class="bi bi-arrow-left-right text-muted opacity-75 mx-1" style="font-size: 0.68rem;"></i>
+                    <span class="badge-role-target text-teal"><i class="bi bi-stethoscope me-1"></i>Modo Médico</span>
                 </button>
             </div>};
                 $role_switcher_mobile = qq{
                     <button type="button" class="btn btn-role-pill-mobile" onclick="osPulsoSwitchRole('Medico')" title="Cambiar a Modo Médico">
-                        <i class="bi bi-shield-check text-primary"></i><i class="bi bi-arrow-left-right text-muted mx-1"></i><span class="text-teal fw-bold">Med</span>
+                        <i class="bi bi-shield-check text-primary"></i><i class="bi bi-arrow-left-right text-muted mx-1"></i><span class="text-teal">Med</span>
                     </button>};
                 $role_switcher_drawer = qq{
-                <a href="javascript:void(0)" onclick="osPulsoSwitchRole('Medico')" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all mb-2" style="background: rgba(0, 196, 196, 0.08); border: 1px solid rgba(0, 196, 196, 0.25);">
-                    <div class="option-icon bg-info-subtle text-info me-3">
-                        <i class="bi bi-stethoscope fs-5"></i>
+                <a href="javascript:void(0)" onclick="osPulsoSwitchRole('Medico')" class="sidebar-nav-link d-flex align-items-center justify-content-between mb-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-stethoscope fs-5 text-teal"></i>
+                        <div class="text-start">
+                            <span class="d-block text-teal fw-bold">Modo Médico</span>
+                            <small class="text-muted d-block" style="font-size: 0.72rem; font-weight: normal;">Consultas, agenda y recetas</small>
+                        </div>
                     </div>
-                    <div class="text-start">
-                        <span class="d-block fw-bold text-teal" style="font-size: 0.95rem;">Cambiar a Modo Médico</span>
-                        <small class="text-muted" style="font-size: 0.72rem;">Atender consultas, agenda y recetas</small>
-                    </div>
-                    <i class="bi bi-chevron-right ms-auto text-muted opacity-50" style="font-size: 0.8rem;"></i>
+                    <i class="bi bi-chevron-right text-muted opacity-50" style="font-size: 0.85rem;"></i>
                 </a>};
             } else {
                 $role_switcher_navbar = qq{
@@ -408,24 +412,24 @@ HTML
             <div class="role-switcher-container me-2 d-flex align-items-center">
                 <button type="button" class="btn btn-sm btn-role-pill shadow-sm" onclick="osPulsoSwitchRole('Administrador Organizacion')" title="Cambiar a Modo Administrador (Finanzas y Control)">
                     <span class="badge-role-current text-teal"><i class="bi bi-stethoscope me-1"></i>Médico</span>
-                    <i class="bi bi-arrow-left-right mx-1 text-muted opacity-75" style="font-size: 0.7rem;"></i>
-                    <span class="badge-role-target text-primary fw-bold"><i class="bi bi-shield-check me-1"></i>Modo Admin</span>
+                    <i class="bi bi-arrow-left-right text-muted opacity-75 mx-1" style="font-size: 0.68rem;"></i>
+                    <span class="badge-role-target text-primary"><i class="bi bi-shield-check me-1"></i>Modo Admin</span>
                 </button>
             </div>};
                 $role_switcher_mobile = qq{
                     <button type="button" class="btn btn-role-pill-mobile" onclick="osPulsoSwitchRole('Administrador Organizacion')" title="Cambiar a Modo Admin">
-                        <i class="bi bi-stethoscope text-teal"></i><i class="bi bi-arrow-left-right text-muted mx-1"></i><span class="text-primary fw-bold">Admin</span>
+                        <i class="bi bi-stethoscope text-teal"></i><i class="bi bi-arrow-left-right text-muted mx-1"></i><span class="text-primary">Admin</span>
                     </button>};
                 $role_switcher_drawer = qq{
-                <a href="javascript:void(0)" onclick="osPulsoSwitchRole('Administrador Organizacion')" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all mb-2" style="background: rgba(10, 42, 102, 0.06); border: 1px solid rgba(10, 42, 102, 0.18);">
-                    <div class="option-icon bg-primary-subtle text-primary me-3">
-                        <i class="bi bi-shield-check fs-5"></i>
+                <a href="javascript:void(0)" onclick="osPulsoSwitchRole('Administrador Organizacion')" class="sidebar-nav-link d-flex align-items-center justify-content-between mb-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-shield-check fs-5 text-primary"></i>
+                        <div class="text-start">
+                            <span class="d-block text-navy fw-bold">Modo Admin</span>
+                            <small class="text-muted d-block" style="font-size: 0.72rem; font-weight: normal;">Finanzas, caja y control</small>
+                        </div>
                     </div>
-                    <div class="text-start">
-                        <span class="d-block fw-bold text-navy" style="font-size: 0.95rem;">Cambiar a Modo Admin</span>
-                        <small class="text-muted" style="font-size: 0.72rem;">Finanzas, corte de caja y control</small>
-                    </div>
-                    <i class="bi bi-chevron-right ms-auto text-muted opacity-50" style="font-size: 0.8rem;"></i>
+                    <i class="bi bi-chevron-right text-muted opacity-50" style="font-size: 0.85rem;"></i>
                 </a>};
             }
         }
@@ -507,44 +511,45 @@ $role_switcher_navbar
         </div>
     </nav>
 
-    <!-- User Menu Offcanvas Premium (Floating Panel) -->
-    <div class="offcanvas offcanvas-end m-3 shadow-lg glass-user-menu" tabindex="-1" id="sdmSidebar" aria-labelledby="sdmSidebarLabel">
-        <!-- Barra superior Teal Accent -->
-        <div class="teal-accent-bar"></div>
-
-        <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-2">
-            <h6 class="mb-0 fw-bold text-muted text-uppercase" style="letter-spacing: 1px; font-size: 0.75rem;">Men&uacute; de Usuario</h6>
-            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close" style="font-size: 0.8rem; opacity: 0.6;"></button>
+    <!-- User Menu Offcanvas Premium (Floating Panel Homologado con index.html) -->
+    <div class="offcanvas offcanvas-end shadow-lg mobile-sidebar" tabindex="-1" id="sdmSidebar" aria-labelledby="sdmSidebarLabel">
+        <!-- Header con botón cerrar estándar de index.html -->
+        <div class="sidebar-header d-flex justify-content-between align-items-center mb-3">
+            <span class="text-uppercase fw-bold text-muted" style="letter-spacing: 1px; font-size: 0.72rem;">Men&uacute; de Usuario</span>
+            <button type="button" class="btn-close-sidebar" data-bs-dismiss="offcanvas" aria-label="Cerrar menú">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
         
-        <div class="offcanvas-body px-4 pb-4 pt-2">
-            <!-- User Info Box -->
+        <div class="sidebar-body d-flex flex-column flex-grow-1 p-0">
+            <!-- User Info Box con Avatar Diamond -->
             <div class="user-info-box d-flex align-items-center mb-4 p-3 rounded-4">
                 <div class="avatar-diamond shadow-sm flex-shrink-0" style="width: 50px; height: 50px; font-size: 1.3rem;">
                     $avatar_html
                 </div>
                 <div class="ms-3 overflow-hidden">
-                    <span class="d-block fw-bold text-truncate text-dark" style="font-size: 1.1rem; line-height: 1.2;" title="$usuario">$usuario</span>
-                    <span class="d-block mt-1 text-truncate fw-semibold text-teal" style="font-size: 0.75rem; letter-spacing: 0.5px;" title="$role_label">$role_label</span>
+                    <span class="d-block fw-bold text-truncate text-navy" style="font-size: 1.05rem; line-height: 1.2;" title="$usuario">$usuario</span>
+                    <span class="d-block mt-1 text-truncate fw-bold text-teal" style="font-size: 0.72rem; letter-spacing: 0.5px;" title="$role_label">$role_label</span>
                 </div>
             </div>
 
-            <!-- Options -->
-            <div class="d-flex flex-column gap-2">
+            <!-- Options con clases .sidebar-nav-link de index.html -->
+            <div class="nav-links-container flex-grow-1">
 $role_switcher_drawer
-                <a href="../views/perfil.pl" class="btn user-menu-option d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all">
-                    <div class="option-icon bg-primary-subtle text-primary me-3">
-                        <i class="bi bi-person-fill fs-5"></i>
+                <a href="../views/perfil.pl" class="sidebar-nav-link d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-person-fill fs-5 text-primary"></i>
+                        <span>Editar Perfil</span>
                     </div>
-                    <span class="fw-bold" style="font-size: 0.95rem; color: #495057;">Editar Perfil</span>
-                    <i class="bi bi-chevron-right ms-auto text-muted opacity-50" style="font-size: 0.8rem;"></i>
+                    <i class="bi bi-chevron-right text-muted opacity-50" style="font-size: 0.85rem;"></i>
                 </a>
+            </div>
 
-                <a href="../auth/cerrar_sesion.pl" data-no-spa="true" class="btn user-menu-option-danger d-flex align-items-center px-3 py-3 rounded-4 text-decoration-none transition-all">
-                    <div class="option-icon bg-danger-subtle text-danger me-3">
-                        <i class="bi bi-box-arrow-right fs-5"></i>
-                    </div>
-                    <span class="fw-bold text-danger" style="font-size: 0.95rem;">Cerrar Sesi&oacute;n</span>
+            <!-- Botón Cerrar Sesión con clase .btn-solicitar-cita-mobile de index.html -->
+            <div class="sidebar-bottom mt-3">
+                <a href="../auth/cerrar_sesion.pl" data-no-spa="true" class="btn-solicitar-cita-mobile" style="background: #dc3545 !important;">
+                    <i class="bi bi-box-arrow-right fs-5"></i>
+                    <span>Cerrar Sesi&oacute;n</span>
                 </a>
             </div>
         </div>
