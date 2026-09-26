@@ -133,7 +133,8 @@ sub cargar_citas {
                     motivo => $f[6] // '', notas => $f[7] // '', 
                     estado => $f[8] // 'Programada', event_id => $f[9] // '',
                     color => $f[10] // '', prioridad => $f[11] // 'Normal',
-                    sucursal => $f[12] // '', consultorio => $f[13] // ''
+                    sucursal => $f[12] // '', consultorio => $f[13] // '',
+                    id_negocio => $f[14] // '', elaborado_por => $f[15] // ''
                 };
             }
             close $fh;
@@ -168,11 +169,14 @@ sub auto_actualizar_citas_vencidas {
     my $cambios = 0;
     foreach my $c (@$arr) {
         my $estado = $c->{estado} // '';
+        $estado =~ s/^\s+|\s+$//g;
         # Omitir citas atendidas, canceladas o ya marcadas como no realizadas
         next if $estado =~ /^(Atendida|Cancelada|No realizada)$/i;
         
         my $cita_fec = $c->{fecha} // '';
         my $cita_hf  = $c->{hora_fin} // '';
+        $cita_fec =~ s/^\s+|\s+$//g;
+        $cita_hf  =~ s/^\s+|\s+$//g;
         next unless $cita_fec;
         
         my $vencida = 0;
@@ -184,6 +188,7 @@ sub auto_actualizar_citas_vencidas {
         
         if ($vencida) {
             $c->{estado} = 'No realizada';
+            $c->{color}  = '#ef4444';
             $cambios++;
         }
     }

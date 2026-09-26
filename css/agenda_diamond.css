@@ -529,6 +529,7 @@ body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
     background: #e6fffa !important;
     border-color: var(--md-teal-clinical, #19B7A5) !important;
     color: #0d7468 !important;
+}
 /* --- Tipografía Unificada con tabla de pacientes.pl (Sin negritas en cabeceras) --- */
 #agendaTable, #mesTable {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
@@ -692,32 +693,63 @@ body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
 }
 
 /* Mini Calendar Side Styles Diamond */
-.side-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-.side-cal-day { 
-    aspect-ratio: 1; display: flex; align-items: center; justify-content: center; 
-    font-size: 0.7rem; font-weight: 700; border-radius: 8px; cursor: pointer; 
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-    position: relative;
+.side-cal-wrapper {
+    width: 100% !important;
 }
-.side-cal-day:hover { background: #e2e8f0; transform: scale(1.05); }
+.side-cal-grid { 
+    display: grid !important; 
+    grid-template-columns: repeat(7, 1fr) !important; 
+    gap: 2px !important; 
+    width: 100% !important;
+}
+.side-cal-day { 
+    aspect-ratio: 1 !important; 
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: center !important; 
+    font-size: 0.72rem !important; 
+    font-weight: 700 !important; 
+    border-radius: 8px !important; 
+    cursor: pointer !important; 
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; 
+    position: relative !important;
+    user-select: none !important;
+}
+.side-cal-day:hover { 
+    background: #e2e8f0 !important; 
+    transform: scale(1.06) !important; 
+}
 
 /* Diamond Active State for Side Calendar */
 .side-cal-day.active { 
-    background: rgba(25, 183, 165, 0.15); 
-    color: var(--sdm-blue);
-    border: 1px solid var(--md-teal-clinical);
-    box-shadow: 0 4px 10px rgba(25, 183, 165, 0.2);
-    transform: scale(1.1);
+    background: rgba(25, 183, 165, 0.15) !important; 
+    color: var(--sdm-blue, #0A2A66) !important;
+    border: 1px solid var(--md-teal-clinical, #19B7A5) !important;
+    box-shadow: 0 4px 10px rgba(25, 183, 165, 0.2) !important;
+    transform: scale(1.1) !important;
 }
-.side-cal-day.today { border: 2px solid #3b82f6; }
-.side-cal-day.holiday { color: #ef4444; background: #fee2e2; }
-.side-cal-day.weekend { color: #94a3b8; }
+.side-cal-day.today,
+.side-cal-day.is-today { 
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; 
+    font-weight: 800 !important;
+}
+.side-cal-day.holiday { color: #ef4444 !important; background: #fee2e2 !important; }
+.side-cal-day.weekend { color: #94a3b8 !important; }
 
 .side-cal-day.has-apts::after { 
-    content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); 
-    width: 4px; height: 4px; background: #3b82f6; border-radius: 50%; 
+    content: '' !important; 
+    position: absolute !important; 
+    bottom: 3px !important; 
+    left: 50% !important; 
+    transform: translateX(-50%) !important; 
+    width: 4px !important; 
+    height: 4px !important; 
+    background: var(--md-teal-clinical, #19B7A5) !important; 
+    border-radius: 50% !important; 
 }
-.side-cal-day.active.has-apts::after { background: var(--sdm-blue); }
+.side-cal-day.active.has-apts::after { 
+    background: var(--sdm-blue, #0A2A66) !important; 
+}
 
 /* --- MODAL CITAS (Extraído de agenda_main.pl para CERO tags style) --- */
 .modal-backdrop.show { z-index: 104900 !important; }
@@ -861,9 +893,11 @@ body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
     color: #991b1b !important;
     opacity: 0.92;
 }
-.badge-no-realizada {
+.badge-no-realizada,
+.badge.badge-no-realizada {
     background-color: #ef4444 !important;
     color: #ffffff !important;
+    border: 1px solid #dc2626 !important;
 }
 
 /* --- RESUMEN EJECUTIVO Y EMPTY STATE DÍAS PASADOS --- */

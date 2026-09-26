@@ -509,13 +509,20 @@ function renderTimeline() {
             sortedApts.forEach(a => {
                 const startH = a.start.split('T')[1].substring(0, 5);
                 const endH = a.end.split('T')[1].substring(0, 5);
-                const status = a.extendedProps.estado || 'No realizada';
-                const stLow = status.toLowerCase();
-                let badgeClass = 'bg-secondary';
-                if (stLow.includes('atendida')) badgeClass = 'bg-success';
-                else if (stLow.includes('cancelada')) badgeClass = 'bg-danger';
-                else if (stLow.includes('no realizada')) badgeClass = 'badge-no-realizada';
-                else if (stLow.includes('confirmada')) badgeClass = 'bg-primary';
+                let status = (a.extendedProps && a.extendedProps.estado) ? a.extendedProps.estado.trim() : 'No realizada';
+                let stLow = status.toLowerCase();
+                
+                // Regla clínica de oro SDM: En historial de días pasados, si la cita no fue atendida ni cancelada, se setea como "No realizada"
+                if (!stLow.includes('atendida') && !stLow.includes('cancelada')) {
+                    status = 'No realizada';
+                    stLow = 'no realizada';
+                }
+
+                let badgeClass = 'bg-secondary text-white';
+                if (stLow.includes('atendida')) badgeClass = 'bg-success text-white';
+                else if (stLow.includes('cancelada')) badgeClass = 'bg-danger text-white';
+                else if (stLow.includes('no realizada')) badgeClass = 'bg-danger text-white badge-no-realizada';
+                else if (stLow.includes('confirmada')) badgeClass = 'bg-primary text-white';
                 else if (stLow.includes('espera')) badgeClass = 'bg-warning text-dark';
 
                 rowsHtml += `
@@ -531,7 +538,7 @@ function renderTimeline() {
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
-                            <span class="badge ${badgeClass} rounded-pill px-3 py-1 fw-bold text-uppercase" style="font-size:0.68rem;">${status}</span>
+                            <span class="badge ${badgeClass} rounded-pill px-3 py-1 fw-bold text-uppercase" style="font-size:0.68rem; letter-spacing:0.5px;">${status}</span>
                             <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente">
                                 <i class="bi bi-person-vcard me-1"></i> Expediente
                             </button>
@@ -607,8 +614,18 @@ function renderTimeline() {
     dayApts.forEach(a => {
         const startH = a.start.split('T')[1].substring(0, 5);
         const endH = a.end.split('T')[1].substring(0, 5);
-        const status = a.extendedProps.estado || 'Programada';
-        const stLow = status.trim().toLowerCase();
+        let status = (a.extendedProps && a.extendedProps.estado) ? a.extendedProps.estado.trim() : 'Programada';
+        let stLow = status.toLowerCase();
+
+        // En la vista diaria del día de hoy, si la cita ya expiró en su hora fin y no fue atendida ni cancelada, se setea como "No realizada"
+        if (iso === todayIso && !stLow.includes('atendida') && !stLow.includes('cancelada') && !stLow.includes('en consulta')) {
+            const now = new Date();
+            const nowHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            if (endH < nowHHMM) {
+                status = 'No realizada';
+                stLow = 'no realizada';
+            }
+        }
         
         const [ah, am] = startH.split(':').map(Number);
         const [ahf, amf] = endH.split(':').map(Number);
@@ -795,14 +812,31 @@ function renderTable(type) {
         });
     }
 
-    const mappedData = data.map(a => ({ 
-        fecha: a.start.split('T')[0], 
-        hora: `${a.start.split('T')[1].substring(0,5)} - ${a.end.split('T')[1].substring(0,5)}`, 
-        paciente: a.title, 
-        motivo: a.extendedProps.motivo, 
-        status: a.extendedProps.estado, 
-        id: a.id 
-    }));
+    const todayIso = getISO(new Date());
+    const now = new Date();
+    const nowHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    const mappedData = data.map(a => {
+        const aptDate = a.start.split('T')[0];
+        const aptEnd = a.end.split('T')[1].substring(0,5);
+        let st = (a.extendedProps && a.extendedProps.estado) ? a.extendedProps.estado.trim() : 'Programada';
+        const stLow = st.toLowerCase();
+
+        if (!stLow.includes('atendida') && !stLow.includes('cancelada')) {
+            if (aptDate < todayIso || (aptDate === todayIso && aptEnd < nowHHMM && !stLow.includes('en consulta'))) {
+                st = 'No realizada';
+            }
+        }
+
+        return { 
+            fecha: aptDate, 
+            hora: `${a.start.split('T')[1].substring(0,5)} - ${aptEnd}`, 
+            paciente: a.title, 
+            motivo: (a.extendedProps && a.extendedProps.motivo) ? a.extendedProps.motivo : 'Consulta', 
+            status: st, 
+            id: a.id 
+        };
+    });
 
     if ($.fn.DataTable.isDataTable(el)) {
         const dt = el.DataTable();
@@ -814,11 +848,12 @@ function renderTable(type) {
                 {data:'fecha', render: d => `<span class="fw-bold">${d}</span>`},
                 {data:'hora', render: d => `<span class="text-primary fw-bold">${d}</span>`},
                 {data:'paciente'},
+                {data:'motivo', render: m => `<span class="text-secondary">${m || 'Consulta'}</span>`},
                 {data:'status', render: s => {
                     const st = (s || '').toLowerCase();
-                    let cls = 'bg-secondary';
+                    let cls = 'bg-secondary text-white';
                     if (st.includes('atendida')) cls = 'bg-teal text-white';
-                    else if (st.includes('no realizada')) cls = 'bg-danger text-white';
+                    else if (st.includes('no realizada')) cls = 'bg-danger text-white badge-no-realizada';
                     else if (st.includes('confirmada')) cls = 'bg-primary text-white';
                     else if (st.includes('espera')) cls = 'bg-warning text-dark';
                     return `<span class="badge rounded-pill ${cls} px-2 py-1">${s}</span>`;
@@ -1000,10 +1035,21 @@ function renderMobileDayList() {
     dayApts.forEach(a => {
         const hi = a.start.split('T')[1].substring(0, 5);
         const hf = a.end.split('T')[1].substring(0, 5);
-        const status = a.extendedProps.estado || 'Programada';
+        let status = (a.extendedProps && a.extendedProps.estado) ? a.extendedProps.estado.trim() : 'Programada';
+        const stLow = status.toLowerCase();
+        const todayISO = getISO(new Date());
+        const now = new Date();
+        const nowHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+        if (!stLow.includes('atendida') && !stLow.includes('cancelada')) {
+            if (iso < todayISO || (iso === todayISO && hf < nowHHMM && !stLow.includes('en consulta'))) {
+                status = 'No realizada';
+            }
+        }
+
         let color = a.color;
-        if (!color || status === 'Atendida' || status === 'atendida' || status === 'En Sala de Espera') {
-            color = (status === 'Atendida' || status === 'atendida') ? '#19B7A5' : (status === 'En Sala de Espera' ? '#f59e0b' : (status === 'Confirmada' ? '#10b981' : (status === 'Cancelada' ? '#ef4444' : '#103070')));
+        if (!color || status === 'No realizada' || status === 'Atendida' || status === 'atendida' || status === 'En Sala de Espera') {
+            color = (status === 'No realizada') ? '#ef4444' : ((status === 'Atendida' || status === 'atendida') ? '#19B7A5' : (status === 'En Sala de Espera' ? '#f59e0b' : (status === 'Confirmada' ? '#10b981' : (status === 'Cancelada' ? '#ef4444' : '#103070'))));
         }
         
         const card = $(`
