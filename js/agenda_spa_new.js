@@ -38,6 +38,104 @@ var tableInstance = tableInstance || null;
 var draggedId = draggedId || null;
 var manualDragId = manualDragId || null; // Para modo Doble Clic (Regla Smart-Drag)
 
+// --- DICCIONARIO CANÓNICO DE ESTADOS DE CITAS (Sincronizado con dat/catalogo_estados_citas.dat) ---
+const ESTADOS_CITAS_CONFIG = {
+    'programada': {
+        clave: 'Programada',
+        color: '#0A2A66',
+        bgCard: '#f0f4f8',
+        textColor: '#0A2A66',
+        badgeClass: 'bg-navy text-white',
+        border: '#0A2A66'
+    },
+    'confirmada': {
+        clave: 'Confirmada',
+        color: '#10b981',
+        bgCard: '#ecfdf5',
+        textColor: '#065f46',
+        badgeClass: 'bg-success text-white',
+        border: '#10b981'
+    },
+    'en sala de espera': {
+        clave: 'En Sala de Espera',
+        color: '#f59e0b',
+        bgCard: '#fef3c7',
+        textColor: '#92400e',
+        badgeClass: 'bg-warning text-dark',
+        border: '#f59e0b'
+    },
+    'en consulta': {
+        clave: 'En consulta',
+        color: '#059669',
+        bgCard: '#dcfce7',
+        textColor: '#166534',
+        badgeClass: 'bg-teal text-white',
+        border: '#86efac'
+    },
+    'atendida': {
+        clave: 'Atendida',
+        color: '#19B7A5',
+        bgCard: '#e6fffa',
+        textColor: '#0d7468',
+        badgeClass: 'bg-teal text-white',
+        border: '#19B7A5'
+    },
+    'no realizada': {
+        clave: 'No realizada',
+        color: '#ef4444',
+        bgCard: '#fff5f5',
+        textColor: '#991b1b',
+        badgeClass: 'bg-danger text-white badge-no-realizada',
+        border: '#fecaca'
+    },
+    'cancelada': {
+        clave: 'Cancelada',
+        color: '#dc2626',
+        bgCard: '#fee2e2',
+        textColor: '#991b1b',
+        badgeClass: 'bg-danger text-white',
+        border: '#fca5a5'
+    }
+};
+
+function resolverEstadoCita(estadoRaw, fechaIso, horaFinStr) {
+    let raw = (estadoRaw || 'Programada').trim();
+    let low = raw.toLowerCase();
+
+    // Homologar variantes operativas
+    if (low.includes('pagada') || low.includes('paciente')) low = 'confirmada';
+    if (low.includes('espera')) low = 'en sala de espera';
+    if (low.includes('asistió') || low.includes('asistio')) low = 'no realizada';
+
+    // Regla de Oro SDM: Si la fecha es pasada o la hora fin de hoy ya expiró y no fue atendida ni cancelada, se setea como "No realizada"
+    const todayIso = (typeof getISO === 'function') ? getISO(new Date()) : new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const nowHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    if (!low.includes('atendida') && !low.includes('cancelada')) {
+        const esFechaPasada = fechaIso && fechaIso < todayIso;
+        const esHoraPasadaHoy = (fechaIso === todayIso && horaFinStr && horaFinStr < nowHHMM && low !== 'en consulta');
+        if (esFechaPasada || esHoraPasadaHoy) {
+            low = 'no realizada';
+            raw = 'No realizada';
+        }
+    }
+
+    const cfg = ESTADOS_CITAS_CONFIG[low] || ESTADOS_CITAS_CONFIG['programada'];
+    return {
+        clave: (low === 'no realizada') ? 'No realizada' : (cfg.clave || raw),
+        color: cfg.color,
+        bgCard: cfg.bgCard,
+        textColor: cfg.textColor,
+        badgeClass: cfg.badgeClass,
+        border: cfg.border,
+        esNoRealizada: low === 'no realizada',
+        esAtendida: low.includes('atendida'),
+        esCancelada: low === 'cancelada',
+        esEnConsulta: low === 'en consulta'
+    };
+}
+
 /**
  * Vista Semanal Smart (Image 3 Style)
  */
@@ -325,6 +423,19 @@ function loadFormMetadata() {
                     selSuc.append(`<option value="${s.id}">${text}</option>`);
                 });
             }
+
+            // Sincronizar catálogo canónico de estados si viene del backend
+            if (res.estados && res.estados.length > 0) {
+                const selEst = $("#f_estado");
+                if (selEst.length) {
+                    const currentVal = selEst.val();
+                    selEst.empty();
+                    res.estados.forEach(e => {
+                        selEst.append(`<option value="${e.nombre}">${e.nombre}</option>`);
+                    });
+                    if (currentVal) selEst.val(currentVal);
+                }
+            }
         }
     });
 }
@@ -509,21 +620,10 @@ function renderTimeline() {
             sortedApts.forEach(a => {
                 const startH = a.start.split('T')[1].substring(0, 5);
                 const endH = a.end.split('T')[1].substring(0, 5);
-                let status = (a.extendedProps && a.extendedProps.estado) ? a.extendedProps.estado.trim() : 'No realizada';
-                let stLow = status.toLowerCase();
-                
-                // Regla clínica de oro SDM: En historial de días pasados, si la cita no fue atendida ni cancelada, se setea como "No realizada"
-                if (!stLow.includes('atendida') && !stLow.includes('cancelada')) {
-                    status = 'No realizada';
-                    stLow = 'no realizada';
-                }
-
-                let badgeClass = 'bg-secondary text-white';
-                if (stLow.includes('atendida')) badgeClass = 'bg-success text-white';
-                else if (stLow.includes('cancelada')) badgeClass = 'bg-danger text-white';
-                else if (stLow.includes('no realizada')) badgeClass = 'bg-danger text-white badge-no-realizada';
-                else if (stLow.includes('confirmada')) badgeClass = 'bg-primary text-white';
-                else if (stLow.includes('espera')) badgeClass = 'bg-warning text-dark';
+                const aDate = a.start.split('T')[0];
+                const res = resolverEstadoCita(a.extendedProps.estado, aDate, endH);
+                const status = res.clave;
+                const badgeClass = res.badgeClass;
 
                 rowsHtml += `
                     <div class="past-apt-row d-flex flex-wrap align-items-center justify-content-between p-3 mb-2 rounded-3 border">
@@ -614,18 +714,10 @@ function renderTimeline() {
     dayApts.forEach(a => {
         const startH = a.start.split('T')[1].substring(0, 5);
         const endH = a.end.split('T')[1].substring(0, 5);
-        let status = (a.extendedProps && a.extendedProps.estado) ? a.extendedProps.estado.trim() : 'Programada';
-        let stLow = status.toLowerCase();
-
-        // En la vista diaria del día de hoy, si la cita ya expiró en su hora fin y no fue atendida ni cancelada, se setea como "No realizada"
-        if (iso === todayIso && !stLow.includes('atendida') && !stLow.includes('cancelada') && !stLow.includes('en consulta')) {
-            const now = new Date();
-            const nowHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            if (endH < nowHHMM) {
-                status = 'No realizada';
-                stLow = 'no realizada';
-            }
-        }
+        const aDate = a.start.split('T')[0];
+        const res = resolverEstadoCita(a.extendedProps.estado, aDate, endH);
+        const status = res.clave;
+        const stLow = status.toLowerCase();
         
         const [ah, am] = startH.split(':').map(Number);
         const [ahf, amf] = endH.split(':').map(Number);
@@ -643,16 +735,16 @@ function renderTimeline() {
         let cardStyle = `top: ${topOffset}%; --calc-height: calc(${slotsSpanned * 100}% - 4px); z-index: 10;`;
         let badgeStyle = `background: white; color: #1e293b;`;
         
-        if (stLow === 'en consulta') {
+        if (res.esEnConsulta) {
             cardStyle += ` background-color: #dcfce7 !important; border-color: #86efac !important; color: #166534 !important;`;
             badgeStyle = `background: #166534; color: #ffffff;`;
         } else if (stLow.includes('sala de espera')) {
             cardStyle += ` background-color: #fef3c7 !important; border-color: #f59e0b !important; color: #92400e !important;`;
             badgeStyle = `background: #f59e0b; color: #ffffff;`;
-        } else if (stLow.includes('atendida')) {
+        } else if (res.esAtendida) {
             cardStyle += ` background-color: #e6fffa !important; border-color: #19B7A5 !important; color: #0d7468 !important; opacity: 0.95;`;
             badgeStyle = `background: #19B7A5; color: #ffffff;`;
-        } else if (stLow.includes('no realizada')) {
+        } else if (res.esNoRealizada) {
             cardStyle += ` background-color: #fff5f5 !important; border-color: #fecaca !important; color: #991b1b !important; opacity: 0.95;`;
             badgeStyle = `background: #ef4444; color: #ffffff;`;
         }
@@ -895,72 +987,80 @@ function renderGrid() {
     const container = $("#grid-inner");
     const y = selectedDate.getFullYear(); const m = selectedDate.getMonth();
     const fd = (new Date(y, m, 1).getDay() || 7) - 1; const days = new Date(y, m + 1, 0).getDate();
-    container.css({ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: '#eee', borderRadius:'15px', overflow:'hidden' });
-    ['LUN','MAR','MIE','JUE','VIE','SAB','DOM'].forEach(d => container.append(`<div class="bg-light p-2 text-center small fw-bold">${d}</div>`));
+    container.css({ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: '#cbd5e1', borderRadius:'15px', overflow:'hidden', border: '1px solid #cbd5e1' });
+    
+    // Titulos de dias con fondo azul marino corporativo y letras blancas (Req 3.1)
+    ['LUN','MAR','MIE','JUE','VIE','SAB','DOM'].forEach(d => container.append(`<div class="cal-grid-header-day">${d}</div>`));
+    
     for (let i=0; i<fd; i++) container.append('<div class="bg-white opacity-25"></div>');
     for (let d=1; d<=days; d++) {
         const iso = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
         const holiday = isHoliday(iso); const dayApts = appointments.filter(a => a.start.startsWith(iso));
         const isWork = isWorkDay(iso);
-        const bgColor = holiday ? '#fee2e2' : (isWork ? 'white' : '#f1f5f9');
+        const bgColor = holiday ? '#fee2e2' : (isWork ? 'white' : '#f8fafc');
         const borderColor = holiday ? 'border-top:3px solid #ef4444' : (!isWork ? 'border-top:3px solid #cbd5e1' : '');
 
         container.append(`
-            <div class="p-2 calendar-cell" ondragover="event.preventDefault()" ondrop="dropS(event, '${iso}')" onclick="handleSlotClick(event, '${iso}', '')" style="background:${bgColor}; min-height:110px; border:0.5px solid #f8fafc; ${borderColor}">
+            <div class="p-2 calendar-cell" ondragover="event.preventDefault()" ondrop="dropS(event, '${iso}')" onclick="handleSlotClick(event, '${iso}', '')" style="background:${bgColor}; min-height:115px; ${borderColor}">
                 <div class="d-flex justify-content-between align-items-start fw-bold small mb-1">
-                    <span class="${iso===getISO(new Date())?'text-primary':''}">${d}</span>
-                    ${holiday?'<small class="text-danger" style="font-size:0.5rem">FESTIVO</small>':(!isWork?'<small class="text-muted" style="font-size:0.5rem">NO LABORABLE</small>':'')}
+                    <span class="${iso===getISO(new Date()) ? 'badge bg-primary rounded-pill px-2 text-white' : 'text-navy'}">${d}</span>
+                    ${holiday ? '<small class="text-danger fw-bold" style="font-size:0.55rem">FESTIVO</small>' : (!isWork ? '<small class="text-muted" style="font-size:0.55rem">NO LABORABLE</small>' : '')}
                 </div>
                 ${dayApts.slice(0,3).map(a => {
-                    const st = a.extendedProps.estado || 'Programada';
-                    let bgColor = '#103070';
-                    let textColor = '#ffffff';
-                    const stLow = st.trim().toLowerCase();
-                    if (stLow === 'en consulta') { bgColor = '#dcfce7'; textColor = '#166534'; }
-                    else if (stLow === 'confirmada') bgColor = '#10b981';
-                    else if (stLow.includes('sala de espera')) bgColor = '#f59e0b';
-                    else if (stLow.includes('atendida')) bgColor = '#19B7A5';
-                    else if (stLow === 'cancelada') bgColor = '#ef4444';
-                    else if (stLow === 'no asistió' || stLow === 'no asistio') bgColor = '#f59e0b';
-                    
+                    const aHi = a.start.split('T')[1].substring(0, 5);
+                    const aHf = a.end.split('T')[1].substring(0, 5);
+                    const res = resolverEstadoCita(a.extendedProps.estado, iso, aHf);
+                    const st = res.clave;
+                    const bgColor = res.color;
+                    const textColor = '#ffffff';
+                    const isPast = res.esNoRealizada;
+
                     let actionIcons = '';
-                    if (stLow === 'en consulta') {
+                    if (res.esEnConsulta) {
                         actionIcons = `
-                            <i class="bi bi-play-circle cursor-pointer text-success" style="font-size:0.7rem;" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'" title="Ir a Consulta Activa"></i>
-                            <i class="bi bi-calendar2-event cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
+                            <i class="bi bi-play-circle cursor-pointer text-white" style="font-size:0.7rem;" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'" title="Ir a Consulta Activa"></i>
+                            <i class="bi bi-calendar2-event cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
                         `;
-                    } else if (stLow.includes('sala de espera')) {
+                    } else if (st.toLowerCase().includes('sala de espera')) {
                         actionIcons = `
-                            <i class="bi bi-clock-history cursor-pointer" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Ver Cita"></i>
-                            <i class="bi bi-calendar2-event cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
+                            <i class="bi bi-clock-history cursor-pointer text-white" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Ver Cita"></i>
+                            <i class="bi bi-calendar2-event cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
                         `;
-                    } else if (stLow.includes('atendida')) {
+                    } else if (res.esAtendida) {
                         actionIcons = `
-                            <i class="bi bi-eye cursor-pointer" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Ficha (Solo Lectura)"></i>
-                            <i class="bi bi-calendar2-event cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
+                            <i class="bi bi-eye cursor-pointer text-white" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Ficha (Solo Lectura)"></i>
+                            <i class="bi bi-calendar2-event cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
+                        `;
+                    } else if (isPast) {
+                        // Citas Pasadas No Realizadas (Req 3): Bloqueo de drag handle y acciones limpias
+                        actionIcons = `
+                            <i class="bi bi-eye cursor-pointer text-white" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Detalle"></i>
+                            <i class="bi bi-pencil-square cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Re-agendar"></i>
+                            <i class="bi bi-trash cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"></i>
                         `;
                     } else {
                         actionIcons = `
                             <i class="bi bi-grip-vertical cursor-pointer px-1 text-white opacity-75" style="font-size:0.8rem;" onclick="event.stopPropagation(); activateManualDrag('${a.id}')" title="Mover Cita (Drag Handle)"></i>
-                            <i class="bi bi-calendar2-event cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
-                            <i class="bi bi-pencil-square cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Editar Ficha"></i>
-                            <i class="bi bi-trash cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"></i>
+                            <i class="bi bi-calendar2-event cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
+                            <i class="bi bi-pencil-square cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Editar Ficha"></i>
+                            <i class="bi bi-trash cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"></i>
                         `;
                     }
                     
-                    const itemClick = (stLow.includes('atendida')) ? `abrirModalCita('${a.id}', true)` : `handleAptClick('${a.id}')`;
+                    const itemClick = (res.esAtendida || isPast) ? `abrirModalCita('${a.id}', true)` : `handleAptClick('${a.id}')`;
 
                     return `
-                    <div class="mini-apt-pro d-flex justify-content-between align-items-center ${a.id == manualDragId ? 'is-dragging-manual':''}" 
+                    <div class="mini-apt-pro d-flex justify-content-between align-items-center mb-1 ${a.id == manualDragId ? 'is-dragging-manual':''} ${isPast ? 'is-past-apt':''}" 
                          onclick="event.stopPropagation(); ${itemClick}"
-                         style="background:${bgColor}; color:${textColor}; ${stLow==='cancelada'?'text-decoration:line-through; opacity:0.6;':''} cursor:pointer;"
-                         title="Estado: ${st}">
-                        <span class="text-truncate fw-bold" style="font-size:0.55rem;">${a.start.split('T')[1].substring(0,5)} ${a.title.split(' ')[0]}</span>
+                         style="background:${bgColor} !important; color:${textColor} !important; ${res.esCancelada ? 'text-decoration:line-through; opacity:0.6;' : ''} cursor:pointer; border-radius:6px; padding:2px 6px;"
+                         title="Estado: ${st} | ${a.title} (${aHi} - ${aHf})">
+                        <span class="text-truncate fw-bold" style="font-size:0.62rem;">${aHi} ${a.title.split(' ')[0]}</span>
                         <div class="d-flex gap-1 align-items-center">
                             ${actionIcons}
                         </div>
-                    </div>`
+                    </div>`;
                 }).join('')}
+                ${dayApts.length > 3 ? `<div class="text-center mt-1"><span class="badge rounded-pill bg-light text-navy border fw-bold cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')">+${dayApts.length - 3} más</span></div>` : ''}
             </div>
         `);
     }
@@ -985,9 +1085,9 @@ function renderMobileMiniGrid() {
     const todayISO = getISO(new Date());
     const selectedISO = getISO(selectedDate);
 
-    // Días de la semana
+    // Días de la semana con fondo azul marino corporativo y texto blanco (Req 3.1)
     ['L','M','M','J','V','S','D'].forEach(d => {
-        grid.append(`<div class="text-center small fw-black opacity-40 mb-2" style="font-size:0.6rem;">${d}</div>`);
+        grid.append(`<div class="cal-grid-header-day-mobile">${d}</div>`);
     });
 
     // Celdas vacías
@@ -1035,22 +1135,9 @@ function renderMobileDayList() {
     dayApts.forEach(a => {
         const hi = a.start.split('T')[1].substring(0, 5);
         const hf = a.end.split('T')[1].substring(0, 5);
-        let status = (a.extendedProps && a.extendedProps.estado) ? a.extendedProps.estado.trim() : 'Programada';
-        const stLow = status.toLowerCase();
-        const todayISO = getISO(new Date());
-        const now = new Date();
-        const nowHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-        if (!stLow.includes('atendida') && !stLow.includes('cancelada')) {
-            if (iso < todayISO || (iso === todayISO && hf < nowHHMM && !stLow.includes('en consulta'))) {
-                status = 'No realizada';
-            }
-        }
-
-        let color = a.color;
-        if (!color || status === 'No realizada' || status === 'Atendida' || status === 'atendida' || status === 'En Sala de Espera') {
-            color = (status === 'No realizada') ? '#ef4444' : ((status === 'Atendida' || status === 'atendida') ? '#19B7A5' : (status === 'En Sala de Espera' ? '#f59e0b' : (status === 'Confirmada' ? '#10b981' : (status === 'Cancelada' ? '#ef4444' : '#103070'))));
-        }
+        const res = resolverEstadoCita(a.extendedProps.estado, iso, hf);
+        const status = res.clave;
+        const color = res.color;
         
         const card = $(`
             <div class="mob-apt-card" style="border-left-color: ${color}" onclick="abrirModalCita('${a.id}')">

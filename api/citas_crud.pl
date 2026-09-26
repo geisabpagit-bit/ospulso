@@ -832,12 +832,40 @@ sub obtener_metadatos_formulario {
         push @sucursales, @hijas;
     }
     
+    # 3. Cargar Catálogo Canónico de Estados de Citas
+    my @estados;
+    my $file_est = "$dirname/../dat/catalogo_estados_citas.dat";
+    if (-e $file_est && open my $fh_e, '<:encoding(UTF-8)', $file_est) {
+        my $cnt = 0;
+        while (my $line = <$fh_e>) {
+            $cnt++;
+            $line =~ s/\R//g;
+            next if $cnt == 1 || $line =~ /^\s*$/;
+            my @f = split(/\|/, $line);
+            next unless scalar(@f) >= 7;
+            push @estados, {
+                id => $f[0],
+                clave => $f[1],
+                nombre => $f[2],
+                color => $f[3],
+                bg_light => $f[4],
+                color_texto => $f[5],
+                badge_class => $f[6],
+                es_final => int($f[7] // 0),
+                es_vencible => int($f[8] // 0),
+                orden => int($f[9] // $cnt)
+            };
+        }
+        close $fh_e;
+    }
+
     my %res = (
         ok => 1,
         tipo_organizacion => $tipo_org,
         es_consultorio_ind => $es_consultorio_ind,
         medicos => \@medicos,
-        sucursales => \@sucursales
+        sucursales => \@sucursales,
+        estados => \@estados
     );
     print $q->header(-type => 'application/json', -charset => 'utf-8');
     print encode_json(\%res);

@@ -109,7 +109,7 @@ print <<HTML;
         window.nombrePacientePre = "$nombre_paciente_pre";
     </script>
 
-    <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.2.1">
+    <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.2.2">
 HTML
 
 utils::sub_sidebar::render_sidebar(
@@ -325,8 +325,9 @@ print <<HTML;
                                 <div class="form-floating floating-label-premium">
                                     <select name="estado" id="f_estado" class="form-select fw-bold">
                                         <option value="Programada">Programada</option>
-                                        <option value="En Sala de Espera">En Sala de Espera</option>
                                         <option value="Confirmada">Confirmada</option>
+                                        <option value="En Sala de Espera">En Sala de Espera</option>
+                                        <option value="En consulta">En consulta</option>
                                         <option value="Atendida">Atendida</option>
                                         <option value="No realizada">No realizada</option>
                                         <option value="Cancelada">Cancelada</option>
@@ -503,7 +504,7 @@ print <<HTML;
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/agenda_spa_new.js?v=20260926_0820"></script>
+    <script src="../js/agenda_spa_new.js?v=20260926_0925"></script>
 HTML
 
 print <<'JS';

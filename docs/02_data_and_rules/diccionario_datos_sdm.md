@@ -232,3 +232,42 @@ Matriz de excepciones individuales y facultades sobreescritas por colaborador (U
 | 5 | `CAN_UPDATE` | Char(1) | Excepción de modificación `U` (`1`/`0`) | `1` |
 | 6 | `CAN_DELETE` | Char(1) | Excepción de eliminación `D` (`1`/`0`) | `0` |
 
+---
+
+## 7. Archivos de Agenda y Estados de Citas (`dat/`)
+
+### 7.1 `catalogo_estados_citas.dat`
+Catálogo maestro canónico de estados de citas médicas. Delimitador: `|`. Fuente de verdad única para colores, badges, vencibilidad y comportamiento en backend y frontend.
+
+| Campo | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| 1 | `ID_ESTADO` | Int (PK) | Identificador entero único | `1` |
+| 2 | `CLAVE` | String | Clave interna en minúsculas | `programada` |
+| 3 | `NOMBRE` | String | Etiqueta canónica desplegada | `Programada` |
+| 4 | `COLOR_HEX` | String | Color principal de acento | `#0A2A66` |
+| 5 | `BG_LIGHT` | String | Fondo pastel para tarjetas | `#eff6ff` |
+| 6 | `COLOR_TEXTO` | String | Color de texto para contraste | `#0A2A66` |
+| 7 | `BADGE_CLASS` | String | Clase CSS representativa | `badge-programada` |
+| 8 | `ES_FINAL` | Char(1) | Estado de cierre (`1`/`0`) | `0` |
+| 9 | `ES_VENCIBLE` | Char(1) | Candidato a auto-expiración (`1`/`0`) | `1` |
+| 10 | `ORDEN` | Int | Orden de visualización en formularios | `1` |
+
+### 7.2 `citas.dat`
+Registro transaccional de citas médicas agendadas. Delimitador: `|`.
+
+| Campo | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| 1 | `ID_CITA` | String (PK) | Identificador único de la cita | `CITA_1711234567` |
+| 2 | `ID_PACIENTE` | String (FK) | Folio del paciente | `PAC-00123` |
+| 3 | `ID_MEDICO` | String (FK) | ID del médico asignado | `190726041` |
+| 4 | `FECHA` | Date (YYYY-MM-DD) | Fecha programada | `2026-09-26` |
+| 5 | `HORA_INICIO` | Time (HH:MM) | Hora de inicio | `09:00` |
+| 6 | `HORA_FIN` | Time (HH:MM) | Hora de finalización | `09:30` |
+| 7 | `ESTADO` | String | Estado canónico de la cita | `Programada` |
+| 8 | `MOTIVO` | String | Motivo o servicio | `Consulta General` |
+| 9 | `SUCURSAL` | String | ID o nombre de sede | `1` |
+| 10 | `CONSULTORIO` | String | Consultorio o recurso | `Consultorio 1` |
+| 11 | `ID_NEGOCIO` | String (FK) | Tenant / Organización | `1` |
+| 12 | `ELABORADO_POR` | String (FK) | Usuario creador | `recepcionista1` |
+
+
