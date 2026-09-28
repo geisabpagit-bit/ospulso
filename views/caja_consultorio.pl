@@ -71,13 +71,12 @@ if (-e $archivo_pacientes && open(my $fh_p, '<:encoding(UTF-8)', $archivo_pacien
 @pacientes = sort { $a->{nombre} cmp $b->{nombre} } @pacientes;
 
 # Renderizar Cabecera
-utils::sub_header::render_sub_header(
-    title => 'Caja Consultorio / Punto de Venta',
-    page_title => 'Caja - OSPulso',
+render_header(
     usuario => $usuario,
     role => $role,
     id_medico => $id_medico,
-    skip_header => 0
+    titulo => 'Caja Consultorio - OSPulso',
+    skip_header => 1
 );
 
 # Renderizar Menú Lateral
