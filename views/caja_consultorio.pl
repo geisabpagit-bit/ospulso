@@ -4,8 +4,10 @@ use strict;
 use warnings;
 use utf8;
 use CGI qw(-utf8);
+use CGI::Carp qw(fatalsToBrowser);
 use File::Spec;
 use FindBin;
+use open qw(:std :utf8);
 use JSON qw(encode_json);
 
 use lib "$FindBin::Bin/..";
@@ -23,10 +25,9 @@ my $role      = $sd->{role};
 my $id_medico = $sd->{id_medico} || '';
 my $id_empresa = $sd->{id_empresa} || '';
 
-binmode STDOUT, ":utf8";
-
-unless ($sd->{session_ok}) {
-    print $q->redirect('../index.html');
+# Validación de sesión y RBAC (Protocolos 500 y AGENTS.md)
+unless ($sd->{session_ok} && $role =~ /Administrador|Caja|Recepcionista|Medico|Especialista|Director/i) {
+    print $q->header(-status => '302 Found', -location => '../index.html');
     exit;
 }
 
@@ -70,20 +71,37 @@ if (-e $archivo_pacientes && open(my $fh_p, '<:encoding(UTF-8)', $archivo_pacien
 }
 @pacientes = sort { $a->{nombre} cmp $b->{nombre} } @pacientes;
 
-# Renderizar Cabecera
+# Pre-renderizar opciones HTML de Pacientes y Médicos (Anti-fuga HEREDOC)
+my $options_pacientes = qq{<option value="">-- Seleccionar Paciente --</option>\n};
+foreach my $p (@pacientes) {
+    my $p_id = $p->{id} // '';
+    my $p_nom = $p->{nombre} // '';
+    $options_pacientes .= qq{<option value="$p_id">$p_nom ($p_id)</option>\n};
+}
+
+my $options_medicos = '';
+foreach my $m (@medicos) {
+    my $m_id = $m->{id} // '';
+    my $m_nom = $m->{nombre} // '';
+    my $sel = ($m_id eq $id_medico) ? 'selected' : '';
+    $options_medicos .= qq{<option value="$m_id" $sel>$m_nom</option>\n};
+}
+
+# 1. Cabecera HTTP canónica y Renderizar Layout Corporativo
+print $q->header(-type => 'text/html', -charset => 'UTF-8');
 render_header(
-    usuario => $usuario,
-    role => $role,
-    id_medico => $id_medico,
-    titulo => 'Caja Consultorio - OSPulso',
+    usuario     => $usuario,
+    role        => $role,
+    id_medico   => $id_medico,
+    titulo      => 'Caja Consultorio - OSPulso',
     skip_header => 1
 );
 
-# Renderizar Menú Lateral
+# 2. Renderizar Menú Lateral
 utils::sub_sidebar::render_sidebar(
-    usuario => $usuario,
-    role => $role,
-    id_medico => $id_medico,
+    usuario       => $usuario,
+    role          => $role,
+    id_medico     => $id_medico,
     pagina_actual => 'caja_consultorio'
 );
 
@@ -125,14 +143,7 @@ print <<HTML;
                     <div class="col-md-7" id="div_selector_paciente" style="display: none;">
                         <label class="form-label small fw-bold text-muted text-uppercase">Paciente Registrado</label>
                         <select id="sel_paciente" class="form-select fw-bold rounded-3" onchange="seleccionarPacienteRegistrado()">
-                            <option value="">-- Seleccionar Paciente --</option>
-HTML
-
-foreach my $p (@pacientes) {
-    print qq{<option value="$p->{id}">$p->{nombre} ($p->{id})</option>\n};
-}
-
-print <<HTML;
+                            $options_pacientes
                         </select>
                     </div>
 
@@ -149,14 +160,7 @@ print <<HTML;
                     <div class="col-md-5">
                         <label class="form-label small fw-bold text-muted text-uppercase">Médico que Realiza</label>
                         <select id="sel_medico" class="form-select fw-bold rounded-3">
-HTML
-
-foreach my $m (@medicos) {
-    my $sel = ($m->{id} eq $id_medico) ? 'selected' : '';
-    print qq{<option value="$m->{id}" $sel>$m->{nombre}</option>\n};
-}
-
-print <<HTML;
+                            $options_medicos
                         </select>
                     </div>
                 </div>
@@ -194,9 +198,9 @@ print <<HTML;
                     <table class="table table-hover align-middle mb-0">
                         <thead style="background-color: #0A2A66; color: #ffffff; position: sticky; top: 0; z-index: 2;">
                             <tr>
-                                <th class="ps-3 py-2 small fw-bold text-uppercase">Concepto / Servicio</th>
-                                <th class="text-end py-2 small fw-bold text-uppercase">Precio Unit.</th>
-                                <th class="text-center py-2" style="width: 70px;">Acción</th>
+                                <th class="ps-3 py-2 text-uppercase" style="font-size: 0.75rem; font-weight: 500; letter-spacing: 0.5px;">Concepto / Servicio</th>
+                                <th class="text-end py-2 text-uppercase" style="font-size: 0.75rem; font-weight: 500; letter-spacing: 0.5px;">Precio Unit.</th>
+                                <th class="text-center py-2" style="width: 70px; font-size: 0.75rem; font-weight: 500;">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tbody_catalogo">
@@ -282,8 +286,6 @@ print <<HTML;
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 HTML
 
 print <<'JS';
@@ -343,7 +345,7 @@ print <<'JS';
             html += `
                 <tr style="cursor: pointer;" onclick="agregarAlCarrito('${idEsc}', '${nomEsc}', ${it.precio})">
                     <td class="ps-3 py-2 fw-bold text-dark small text-truncate" style="max-width: 280px;">${it.nombre}</td>
-                    <td class="text-end py-2 text-primary fw-bold small">\$${parseFloat(it.precio || 0).toFixed(2)}</td>
+                    <td class="text-end py-2 text-primary fw-bold small">$${parseFloat(it.precio || 0).toFixed(2)}</td>
                     <td class="text-center py-2">
                         <button type="button" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
                             <i class="bi bi-plus-lg"></i>
@@ -448,13 +450,13 @@ print <<'JS';
                 <div class="list-group-item px-2 py-2 d-flex justify-content-between align-items-center bg-transparent border-bottom">
                     <div class="me-2" style="max-width: 55%;">
                         <div class="fw-bold text-dark small text-truncate" title="${it.nombre}">${it.nombre}</div>
-                        <div class="text-muted small">\$${it.precio.toFixed(2)} c/u</div>
+                        <div class="text-muted small">$${it.precio.toFixed(2)} c/u</div>
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         <button type="button" class="btn btn-sm btn-light border p-0 rounded-circle" style="width: 24px; height: 24px;" onclick="cambiarCantidad(${idx}, -1)">-</button>
                         <span class="fw-bold px-1 small">${it.cantidad}</span>
                         <button type="button" class="btn btn-sm btn-light border p-0 rounded-circle" style="width: 24px; height: 24px;" onclick="cambiarCantidad(${idx}, 1)">+</button>
-                        <span class="fw-black text-navy ms-2 small" style="min-width: 60px; text-align: right;">\$${it.subtotal.toFixed(2)}</span>
+                        <span class="fw-black text-navy ms-2 small" style="min-width: 60px; text-align: right;">$${it.subtotal.toFixed(2)}</span>
                         <button type="button" class="btn btn-sm text-danger p-0 ms-1" onclick="eliminarItem(${idx})" title="Eliminar"><i class="bi bi-x-circle-fill"></i></button>
                     </div>
                 </div>
@@ -603,10 +605,12 @@ print <<'JS';
 JS
 
 utils::sub_sidebar::render_sidebar_footer();
+render_bottom_nav('finanzas');
+
 print <<HTML;
 </body>
 </html>
 HTML
 
-render_bottom_nav('finanzas');
 1;
+
