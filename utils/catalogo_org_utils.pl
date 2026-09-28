@@ -494,6 +494,11 @@ sub obtener_siguiente_folio_blindado {
             chomp $line;
             next if $line =~ /^\s*$/;
             my @cols = split(/\|/, $line, -1);
+            # Filtrar por negocio para no mezclar series de distintas organizaciones
+            my $row_neg = $cols[2] // '';
+            if (defined $id_neg && length($id_neg)) {
+                next unless ($row_neg eq $id_neg);
+            }
             my $f_num = $cols[1] || 0;
             if ($f_num =~ /^(\d+)$/) {
                 $max_guardado_dat = $1 if $1 > $max_guardado_dat;
@@ -520,8 +525,12 @@ sub obtener_siguiente_folio_blindado {
                 chomp $l;
                 next if $l =~ /^\s*$/;
                 my @c = split /\|/, $l, -1;
-                my $v = int($c[2] || 0);
-                $curr_max_cont = $v if $v > $curr_max_cont;
+                my $c_neg = $c[0] // '';
+                my $c_suc = $c[1] // '';
+                if ($c_neg eq $id_neg) {
+                    my $v = int($c[2] || 0);
+                    $curr_max_cont = $v if $v > $curr_max_cont;
+                }
                 $filas_existentes{$c[0] . '|' . $c[1]} = 1;
             }
         }
@@ -529,20 +538,18 @@ sub obtener_siguiente_folio_blindado {
         my $base_val = ($curr_max_cont > $max_guardado_dat) ? $curr_max_cont : $max_guardado_dat;
         my $next_folio = $base_val + 1;
 
-        # Actualizar todas las filas existentes con el nuevo LAST_FOLIO unificado
+        # Actualizar fila del negocio específico con el nuevo LAST_FOLIO
         if (@raw_lines) {
             foreach my $l (@raw_lines) {
                 chomp $l; next if $l =~ /^\s*$/;
                 my @c = split /\|/, $l, -1;
-                $c[2] = $next_folio;
+                if ($c[0] eq $id_neg && $c[1] eq $id_suc) {
+                    $c[2] = $next_folio;
+                }
                 push @nuevas_lineas, join('|', @c);
             }
         }
 
-        unless ($filas_existentes{'0|0'}) {
-            push @nuevas_lineas, "0|0|$next_folio";
-            $filas_existentes{'0|0'} = 1;
-        }
         unless ($filas_existentes{"$id_neg|$id_suc"}) {
             push @nuevas_lineas, "$id_neg|$id_suc|$next_folio";
             $filas_existentes{"$id_neg|$id_suc"} = 1;

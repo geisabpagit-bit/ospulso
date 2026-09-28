@@ -67,7 +67,7 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   1. Reutiliza la ontología clínica del paso de caja del wizard (`step_caja_privado.pl`): buscador de catálogo unificado, entrada manual rápida, tabla de catálogo y lista interactiva de conceptos con cantidades y subtotales.
   2. Selector dual de paciente: permite cobro rápido a "Público General" (mostrador / walk-in) o vinculación con pacientes de expediente clínico.
   3. Formas de pago: Efectivo, Tarjeta y Transferencia; modalidad de Liquidación completa o Abono parcial.
-  4. Persistencia e integridad: emite folios privados consecutivos e inscribe cargos y abonos en `dat/folios_recibos_privados.dat` y `dat/estado_cuenta.dat` a través de `api/guardar_recibo_rapido.pl`, con enlace para impresión inmediata mediante `api/imprimir_recibo_caja.pl`.
+  4. Persistencia e integridad: emite folios privados consecutivos e inscribe cargos y abonos en `dat/folios_recibos_privados.dat` y `dat/estado_cuenta.dat` a través de `api/guardar_recibo_rapido.pl`, con enlace para impresión inmediata mediante `api/imprimir_recibo_caja_consultorio.pl`.
 
 ### 2.6 Mapa de Módulos del Sistema
 - **Dashboard / Inicial**: `views/inicial.pl`, `views/render_dashboard_principal.pl`.

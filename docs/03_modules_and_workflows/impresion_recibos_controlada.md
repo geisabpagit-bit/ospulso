@@ -42,6 +42,13 @@ Todo recibo incluye una barra superior de acciones visible únicamente en pantal
 - **Fuente Canónica**: Inserción en `dat/folios_recibos_publicos.dat`.
 - **Contabilidad CXC Estado**: **NO constituye ingreso de efectivo físico en caja**. Se computa como Cuentas por Cobrar (CXC Estado) hasta su cobro institucional.
 
+### 3.3 Recibo de Consultorio Privado (`api/imprimir_recibo_caja_consultorio.pl`)
+- **Naturaleza**: Comprobante de cobro ágil emitido desde `views/caja_consultorio.pl` para organizaciones de tipo **Consultorio Individual** o **Consultorio Compartido**.
+- **Fuente Canónica**: Inserción en `dat/folios_recibos_privados.dat` con aislamiento estricto de multitenant (`ID_NEGOCIO == $id_empresa`).
+- **Desacoplamiento Institucional (Anti-CLUES)**: Diseñado 100% libre de catálogos gubernamentales o dependencias de `CAT_CLUES.dat`.
+- **Identidad Médica Profesional**: Membrete extraído de `negocios.dat` (nombre de consultorio, dirección, teléfono) y datos del médico titular (`usuarios.dat` y `especialidades.dat`: Nombre, Cédula Profesional y Especialidad).
+- **Aislamiento de Folios**: El correlativo es calculado exclusivamente dentro de la serie del negocio correspondiente en `catalogo_org_utils::obtener_siguiente_folio_blindado`.
+
 ---
 
 ### 3.3 Jerarquía Unificada de Resolución de Médico y Especialidad en Impresión (`api/imprimir_recibo_caja.pl` y `api/imprimir_recibo_publico.pl`)

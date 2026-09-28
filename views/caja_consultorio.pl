@@ -31,7 +31,24 @@ unless ($sd->{session_ok} && $role =~ /Administrador|Caja|Recepcionista|Medico|E
     exit;
 }
 
-# 1. Cargar Médicos / Profesionales de la Organización
+# 1. Detección de Tipo de Organización (Consultorio Individual / Compartido / Clínica)
+my $tipo_organizacion = 'Clínica';
+my $archivo_config = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+if (-e $archivo_config && open my $fh_c, '<:encoding(UTF-8)', $archivo_config) {
+    while (my $line = <$fh_c>) {
+        $line =~ s/\R//g;
+        next if $line =~ /^#|^\s*$/;
+        my @f = split(/\|/, $line);
+        if ($f[0] eq $id_empresa && $f[1] eq 'TIPO_ORGANIZACION') {
+            $tipo_organizacion = $f[2] // 'Clínica';
+            last;
+        }
+    }
+    close $fh_c;
+}
+my $es_consultorio = ($tipo_organizacion eq 'Consultorio Individual' || $tipo_organizacion eq 'Consultorio Compartido') ? 1 : 0;
+
+# 2. Cargar Médicos / Profesionales de la Organización
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my @medicos = ();
 if (-e $archivo_usuarios && open(my $fh_u, '<:encoding(UTF-8)', $archivo_usuarios)) {
@@ -45,7 +62,17 @@ if (-e $archivo_usuarios && open(my $fh_u, '<:encoding(UTF-8)', $archivo_usuario
         my $u_nom  = $f[1] // '';
         my $u_rol  = $f[5] // '';
         my $u_emp  = $f[6] // '';
-        if ($u_rol =~ /Medico|Especialista/i && (!$id_empresa || $u_emp eq $id_empresa)) {
+        my ($u_org, $u_suc) = split(/:/, $u_emp);
+        $u_org //= $u_emp;
+
+        my $es_med = ($u_rol =~ /(?:^|,)Medico(?:,|$)/i) || 
+                     ($u_rol =~ /Especialista/i) ||
+                     ($u_rol =~ /Administrador/i && defined $f[7] && $f[7] ne '' && $f[7] ne '0');
+
+        my $pertenece = (!$id_empresa && ($u_org eq '0' || $u_org eq '')) || 
+                        ($id_empresa ne '' && $u_org eq $id_empresa);
+
+        if ($es_med && $pertenece) {
             push @medicos, { id => $u_id, nombre => $u_nom };
         }
     }
@@ -53,7 +80,7 @@ if (-e $archivo_usuarios && open(my $fh_u, '<:encoding(UTF-8)', $archivo_usuario
 }
 @medicos = sort { $a->{nombre} cmp $b->{nombre} } @medicos;
 
-# 2. Cargar Pacientes para Selector Rápido
+# 3. Cargar Pacientes Exclusivos de la Organización (Aislamiento de Tenant)
 my $archivo_pacientes = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
 my @pacientes = ();
 if (-e $archivo_pacientes && open(my $fh_p, '<:encoding(UTF-8)', $archivo_pacientes)) {
@@ -63,28 +90,54 @@ if (-e $archivo_pacientes && open(my $fh_p, '<:encoding(UTF-8)', $archivo_pacien
         chomp $line;
         next if $cnt == 1 || $line =~ /^\s*$/;
         my @f = split(/\|/, $line);
+        next if @f < 3;
         my $p_id = $f[0] // '';
-        my $p_nom = join(' ', grep { $_ ne '' } ($f[1]//'', $f[2]//'', $f[3]//''));
-        push @pacientes, { id => $p_id, nombre => $p_nom } if $p_id;
+        my $p_nom = $f[2] // ''; # NOMBRE completo directo de la columna 2
+        my $tenant_pac = $f[13] // '';
+        my ($org_pac, $suc_pac) = split(/:/, $tenant_pac);
+        $org_pac //= $tenant_pac;
+
+        my $es_mi_tenant = 0;
+        if ($role eq 'Administrador Global') {
+            $es_mi_tenant = 1;
+        } elsif ($id_empresa ne '' && $id_empresa ne '0') {
+            $es_mi_tenant = 1 if ($org_pac eq $id_empresa);
+        } else {
+            # Organización 0 o vacía
+            $es_mi_tenant = 1 if ($org_pac eq '0' || $org_pac eq '');
+        }
+
+        if ($es_mi_tenant && $p_id && $p_nom) {
+            push @pacientes, { id => $p_id, nombre => $p_nom };
+        }
     }
     close($fh_p);
 }
 @pacientes = sort { $a->{nombre} cmp $b->{nombre} } @pacientes;
 
-# Pre-renderizar opciones HTML de Pacientes y Médicos (Anti-fuga HEREDOC)
+# Pre-renderizar opciones HTML de Pacientes (Solo Nombre Completo)
 my $options_pacientes = qq{<option value="">-- Seleccionar Paciente --</option>\n};
 foreach my $p (@pacientes) {
     my $p_id = $p->{id} // '';
     my $p_nom = $p->{nombre} // '';
-    $options_pacientes .= qq{<option value="$p_id">$p_nom ($p_id)</option>\n};
+    $options_pacientes .= qq{<option value="$p_id">$p_nom</option>\n};
+}
+
+# Pre-renderizar opciones de Médicos (En consultorio un solo doctor por default)
+my $medico_default_id = $id_medico;
+if (!$medico_default_id && @medicos > 0) {
+    $medico_default_id = $medicos[0]->{id};
 }
 
 my $options_medicos = '';
 foreach my $m (@medicos) {
     my $m_id = $m->{id} // '';
     my $m_nom = $m->{nombre} // '';
-    my $sel = ($m_id eq $id_medico) ? 'selected' : '';
+    my $sel = ($m_id eq $medico_default_id || ($es_consultorio && @medicos == 1)) ? 'selected' : '';
     $options_medicos .= qq{<option value="$m_id" $sel>$m_nom</option>\n};
+}
+if (!$options_medicos && $usuario) {
+    $options_medicos = qq{<option value="$id_medico" selected>$usuario</option>\n};
 }
 
 # 1. Cabecera HTTP canónica y Renderizar Layout Corporativo
@@ -492,7 +545,7 @@ print <<'JS';
         const sel = document.getElementById('sel_paciente');
         const txtNom = document.getElementById('txt_nombre_paciente');
         if (sel.selectedIndex > 0) {
-            txtNom.value = sel.options[sel.selectedIndex].text.replace(/\s*\(.*?\)$/, '');
+            txtNom.value = sel.options[sel.selectedIndex].text.trim();
         } else {
             txtNom.value = '';
         }
@@ -585,7 +638,7 @@ print <<'JS';
                     customClass: { popup: 'rounded-4' }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.open('../api/imprimir_recibo_caja.pl?id_consulta=' + encodeURIComponent(folioRecibo), '_blank');
+                        window.open('../api/imprimir_recibo_caja_consultorio.pl?id_consulta=' + encodeURIComponent(folioRecibo), '_blank');
                     }
                     limpiarCarrito();
                     document.getElementById('txt_concepto_recibo').value = '';
