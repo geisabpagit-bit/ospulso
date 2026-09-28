@@ -1400,8 +1400,8 @@ window.renderGastos = async function() {
                     <td class="fw-bold text-dark">${g.proveedor || '-'}</td>
                     <td><span class="badge bg-light text-dark border px-2 py-1" style="font-size: 9px;"><i class="bi bi-cash-coin me-1"></i>${g.origen_nombre || 'No Especificado'}</span></td>
                     <td class="text-muted">${facturaBtn}${g.concepto}</td>
-                    <td class="fw-bold text-danger">${formatter.format(g.monto)}</td>
-                    <td>
+                    <td class="fw-bold text-danger text-end">${formatter.format(g.monto)}</td>
+                    <td class="text-center">
                         <button class="btn btn-sm btn-outline-primary rounded-pill me-1" onclick="editarGastoUi('${g.id_gasto}')" title="Editar"><i class="bi bi-pencil"></i></button>
                         <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarGasto('${g.id_gasto}')" title="Borrar"><i class="bi bi-trash"></i></button>
                     </td>
@@ -1426,16 +1426,22 @@ window.renderGastos = async function() {
                     },
                     dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                     buttons: [
-                        { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export' },
-                        { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export' },
-                        { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export' },
-                        { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export' }
+                        { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
+                        { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
+                        { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
+                        { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } }
                     ],
                     language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json" },
                     order: [[0, "desc"]],
                     pageLength: 10,
                     responsive: true,
-                    destroy: true
+                    destroy: true,
+                    createdRow: function(row, data, dataIndex) {
+                        $(row).find('td').each(function(i) {
+                            let header = $('#tablaGastos').find('thead th').eq(i).text();
+                            $(this).attr('data-label', header);
+                        });
+                    }
                 });
             }
         } else if (tbody) {

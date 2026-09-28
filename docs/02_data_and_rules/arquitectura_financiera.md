@@ -50,7 +50,18 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
 - **Comportamiento en Tablero Principal (`views/render_dashboard_principal.pl`)**:
   - El 5º KPI card ("CxC Estado") solo se renderiza si la organización cuenta con CLUE y la capacidad `PACIENTES_ESTADO` activa (`$has_pacientes_estado && $has_clue`). De lo contrario, se despliegan únicamente 4 tarjetas en `row-cols-md-4`.
   - En la vista de Recepcionista, el DataTable `#dtIngresosMunicipio` (últimas 24 hrs) también se suprime condicionalmente si `PACIENTES_ESTADO` no está activo.
-- **Resiliencia de JavaScript**: Las funciones `renderTablaCorte(selector, ...)` implementan chequeo de existencia (`if (!$(selector).length) return;`) y los totales de tfoot validan la existencia del nodo en el DOM antes de actualizar montos, previniendo errores de ejecución.
+### 2.8 Aislamiento Multi-Tenant de Egresos, Categorías y Orígenes de Dinero
+- **Esquema de Gastos (`dat/gastos.dat`)**:
+  `ID_GASTO|FECHA|ID_CAT|ID_SUBCAT|ID_SUBCAT3|CONCEPTO|MONTO|PROVEEDOR|FACTURA_PATH|ID_ORIGEN|ID_CREADOR|ID_NEGOCIO`
+  Toda inserción o consulta de gastos DEBE aislarse por `ID_NEGOCIO` (columna índice `[11]`).
+- **Regla Anti-Confusión `ID_ORIGEN` vs `ID_NEGOCIO`**:
+  Queda estrictamente prohibido utilizar la columna `[9]` (`ID_ORIGEN`) para filtrar por empresa. El índice `[9]` corresponde al identificador del medio de pago en `dat/origen_dinero.dat`. Toda validación multi-tenant debe ejecutarse sobre el índice `[11]`.
+- **Orígenes del Dinero (`dat/origen_dinero.dat`)**:
+  `ID_ORIGEN|NOMBRE|DESC|ID_NEGOCIO`
+  Cada organización mantiene sus propios orígenes de dinero (cajas chicas, cuentas bancarias, terminales). Al registrar una nueva organización, el sistema auto-siembra los 4 orígenes iniciales vinculados a su `ID_NEGOCIO`.
+- **Categorías de Gastos (`dat/categorias.dat`, `dat/sub_categoria.dat`, `dat/sub_categoria_nivel3.dat`)**:
+  `ID|NOMBRE|DESC|ID_NEGOCIO`
+  Las categorías, subcategorías y niveles de detalle operan de manera autónoma por tenant. Si una organización no cuenta con categorías personalizadas, se auto-siembra el árbol base vinculado a su `ID_NEGOCIO`, garantizando que ediciones o eliminaciones no alteren a otros tenants.
 
 ---
 

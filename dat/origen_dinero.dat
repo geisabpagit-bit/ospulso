@@ -1,0 +1,5 @@
+ID_ORIGEN|NOMBRE|DESC|ID_NEGOCIO
+1|Efectivo / Caja Chica|Efectivo físico en sucursal|0
+2|Caja General|Efectivo principal|0
+3|Transferencia Bancaria|Pago electrónico|0
+4|Tarjeta de Crédito / Débito|Terminal bancaria|0

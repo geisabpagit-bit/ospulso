@@ -1,7 +1,7 @@
-id|id_subcat|nombre
-1|1|Salario Fijo
-2|1|Bonos y Comisiones
-3|2|Desechables
-4|2|Instrumental
-5|5|Energía Eléctrica
-6|5|Internet/Telefonía
+id|id_subcat|nombre|id_negocio
+1|1|Salario Fijo|0
+2|1|Bonos y Comisiones|0
+3|2|Desechables|0
+4|2|Instrumental|0
+5|5|Energía Eléctrica|0
+6|5|Internet/Telefonía|0

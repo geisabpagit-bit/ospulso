@@ -562,7 +562,7 @@ if (-e $archivo_egresos) {
     my @cat = @{ leer_tabla(File::Spec->catfile($dat_dir, 'categorias.dat')) };
     my %c_map = map { $_->[0] => $_->[1] } @cat;
 
-    my $od_file = File::Spec->catfile($dat_dir, 'origenes_dinero.dat');
+    my $od_file = File::Spec->catfile($dat_dir, 'origen_dinero.dat');
     my %o_map = ();
     if (-e $od_file) {
         my $od_data = leer_tabla($od_file);
@@ -576,15 +576,16 @@ if (-e $archivo_egresos) {
         $solo_fecha = '' unless defined $solo_fecha;
 
         if ($solo_fecha ge $f_inicio && $solo_fecha le $f_fin) {
-            my $id_origen = $f->[9] // '';
-            $id_origen =~ s/^\s+|\s+$//g;
+            # Filtro multi-tenant por ID_NEGOCIO real (columna 11)
+            my $g_negocio = $f->[11] // '0';
+            $g_negocio =~ s/^\s+|\s+$//g;
             my $creador = $f->[10] // '';
             if (defined $id_empresa && $id_empresa ne '' && $session_data->{role} ne 'Administrador Global') {
-                if ($id_origen ne '') {
-                    next if ($id_origen ne $id_empresa);
-                } else {
-                    next unless ($creador eq $session_data->{usuario} || $creador eq $session_data->{uid});
-                }
+                next if ($g_negocio ne $id_empresa);
+            }
+
+            if ($session_data->{role} eq 'Recepcionista') {
+                next unless ($creador eq $session_data->{usuario} || $creador eq $session_data->{uid});
             }
 
             my $monto = $f->[6] || 0;
@@ -595,6 +596,8 @@ if (-e $archivo_egresos) {
             my $id_cat = $f->[2] || '';
             my $concepto = $f->[5] || '';
             my $proveedor = $f->[7] || '';
+            my $id_origen = $f->[9] // '';
+            $id_origen =~ s/^\s+|\s+$//g;
             my $origen_nombre = $id_origen ? ($o_map{$id_origen} || 'Desconocido') : 'No Especificado';
           
             push @egresos_filtrados, {

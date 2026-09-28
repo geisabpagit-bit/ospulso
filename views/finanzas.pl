@@ -545,34 +545,37 @@ PAGE_HTML
 
             <!-- TAB: GASTOS -->
             <div id="tab_gastos" class="sdm-tab-pane d-none">
-                <div class="card card-mobile-flush border-0 shadow-sm rounded-4">
-                    <div class="card-body p-2 p-md-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                            <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
-                                <div class="d-flex align-items-center gap-1">
-                                    <span class="small text-muted fw-bold">Desde:</span>
-                                    <input type="date" id="gastos_f_inicio" class="form-control form-control-sm" title="Fecha Inicio">
-                                </div>
-                                <div class="d-flex align-items-center gap-1">
-                                    <span class="small text-muted fw-bold">Hasta:</span>
-                                    <input type="date" id="gastos_f_fin" class="form-control form-control-sm" title="Fecha Fin">
-                                </div>
-                                <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold" onclick="renderGastos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
-                                <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar</button>
-                            </div>
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <div>
+                        <h4 class="fw-bold plus-jakarta m-0 text-dark"><i class="bi bi-cash-stack me-2 text-danger"></i>Control de Egresos y Gastos Operativos</h4>
+                        <p class="text-muted m-0 small">Registro, comprobación y clasificación de egresos de la organización.</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="small text-muted fw-bold">Desde:</span>
+                            <input type="date" id="gastos_f_inicio" class="form-control form-control-sm" title="Fecha Inicio">
                         </div>
-                    
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="small text-muted fw-bold">Hasta:</span>
+                            <input type="date" id="gastos_f_fin" class="form-control form-control-sm" title="Fecha Fin">
+                        </div>
+                        <button class="btn btn-aura-save btn-mobile-standard btn-sm px-3 fw-bold" onclick="renderGastos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                        <button class="btn btn-primary btn-mobile-standard btn-sm px-3 fw-bold rounded-pill text-white shadow-sm" style="background: var(--md-blue-medical);" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar Gasto</button>
+                    </div>
+                </div>
+
+                <div class="card card-medentia-aura border-0 shadow-sm p-3 p-md-4 rounded-4 mb-4">
                     <div class="table-responsive">
-                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond mb-0" id="tablaGastos" style="font-size: 10px !important;">
-                            <thead class="text-muted" style="font-size: 10.5px !important;">
+                        <table class="table table-hover table-sm align-middle w-100" id="tablaGastos" style="font-size: 10px !important;">
+                            <thead class="table-light text-muted" style="font-size: 10.5px !important;">
                                 <tr>
-                                    <th>Fecha</th>
-                                    <th>Categoría / Sub</th>
-                                    <th>Proveedor</th>
-                                    <th>Origen</th>
-                                    <th>Concepto</th>
-                                    <th>Monto</th>
-                                    <th>Acciones</th>
+                                    <th style="width: 10%;">Fecha</th>
+                                    <th style="width: 18%;">Categoría / Sub</th>
+                                    <th style="width: 18%;">Proveedor</th>
+                                    <th style="width: 14%;">Origen</th>
+                                    <th style="width: 20%;">Concepto</th>
+                                    <th style="width: 10%;" class="text-end">Monto</th>
+                                    <th style="width: 10%;" class="text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tbodyGastos" style="font-size: 10px !important;">
@@ -581,7 +584,7 @@ PAGE_HTML
                             <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                 <tr>
                                     <td colspan="5" class="text-end">Total Gastos:</td>
-                                    <td id="tfootGastosMonto"></td>
+                                    <td id="tfootGastosMonto" class="text-end text-danger">$0.00</td>
                                     <td></td>
                                 </tr>
                             </tfoot>

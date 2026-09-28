@@ -24,7 +24,111 @@ if (0 && !$session_data->{session_ok}) {
     exit;
 }
 
+my $id_empresa = $session_data->{id_empresa} // '';
+$id_empresa =~ s/^\s+|\s+$//g;
+my $role = $session_data->{role} // '';
+my $es_admin_global = ($role eq 'Administrador Global');
 my $action = $q->param('action') || '';
+
+sub auto_seed_origenes_org {
+    my ($org_id) = @_;
+    return if (!defined $org_id || $org_id eq '' || $org_id eq '0');
+
+    my $orig_file = "$FindBin::Bin/../dat/origen_dinero.dat";
+    return unless (-e $orig_file);
+
+    my $origs = leer_tabla($orig_file);
+    my $has_org = 0;
+    foreach my $o (@$origs) {
+        my $biz = $o->[3] // '';
+        $biz =~ s/^\s+|\s+$//g;
+        if ($biz eq $org_id) {
+            $has_org = 1;
+            last;
+        }
+    }
+    return if $has_org;
+
+    foreach my $o (@$origs) {
+        my $biz = $o->[3] // '0';
+        $biz =~ s/^\s+|\s+$//g;
+        if ($biz eq '0') {
+            my $nid = obtener_nuevo_id("$FindBin::Bin/../dat/id_origen_dinero.counter");
+            open(my $fh, ">>:encoding(UTF-8)", $orig_file);
+            print $fh "$nid|$o->[1]|$o->[2]|$org_id\n";
+            close $fh;
+        }
+    }
+}
+
+sub auto_seed_categorias_org {
+    my ($org_id) = @_;
+    return if (!defined $org_id || $org_id eq '' || $org_id eq '0');
+    
+    my $cat_file = "$FindBin::Bin/../dat/categorias.dat";
+    my $sub_file = "$FindBin::Bin/../dat/sub_categoria.dat";
+    my $sub3_file = "$FindBin::Bin/../dat/sub_categoria_nivel3.dat";
+    return unless (-e $cat_file);
+
+    my $cats = leer_tabla($cat_file);
+    my $has_org = 0;
+    foreach my $c (@$cats) {
+        my $biz = $c->[3] // '';
+        $biz =~ s/^\s+|\s+$//g;
+        if ($biz eq $org_id) {
+            $has_org = 1;
+            last;
+        }
+    }
+    return if $has_org;
+
+    my %cat_id_map = ();
+    foreach my $c (@$cats) {
+        my $biz = $c->[3] // '0';
+        $biz =~ s/^\s+|\s+$//g;
+        if ($biz eq '0') {
+            my $old_id = $c->[0];
+            my $nid = obtener_nuevo_id("$FindBin::Bin/../dat/id_cat.counter");
+            $cat_id_map{$old_id} = $nid;
+            open(my $fh, ">>:encoding(UTF-8)", $cat_file);
+            print $fh "$nid|$c->[1]|$c->[2]|$org_id\n";
+            close $fh;
+        }
+    }
+
+    my %sub_id_map = ();
+    if (-e $sub_file) {
+        my $subs = leer_tabla($sub_file);
+        foreach my $s (@$subs) {
+            my $biz = $s->[4] // '0';
+            $biz =~ s/^\s+|\s+$//g;
+            if ($biz eq '0' && exists $cat_id_map{$s->[1]}) {
+                my $old_sub_id = $s->[0];
+                my $new_cat_id = $cat_id_map{$s->[1]};
+                my $nid = obtener_nuevo_id("$FindBin::Bin/../dat/id_subcat.counter");
+                $sub_id_map{$old_sub_id} = $nid;
+                open(my $fh, ">>:encoding(UTF-8)", $sub_file);
+                print $fh "$nid|$new_cat_id|$s->[2]|$s->[3]|$org_id\n";
+                close $fh;
+            }
+        }
+    }
+
+    if (-e $sub3_file) {
+        my $sub3s = leer_tabla($sub3_file);
+        foreach my $s3 (@$sub3s) {
+            my $biz = $s3->[3] // '0';
+            $biz =~ s/^\s+|\s+$//g;
+            if ($biz eq '0' && exists $sub_id_map{$s3->[1]}) {
+                my $new_sub_id = $sub_id_map{$s3->[1]};
+                my $nid = obtener_nuevo_id("$FindBin::Bin/../dat/id_subcat3.counter");
+                open(my $fh, ">>:encoding(UTF-8)", $sub3_file);
+                print $fh "$nid|$new_sub_id|$s3->[2]|$org_id\n";
+                close $fh;
+            }
+        }
+    }
+}
 
 if ($action eq 'get_cxc') {
     # Cuentas por Cobrar: se recorre estado_cuenta.dat y pacientes.dat
@@ -92,6 +196,9 @@ if ($action eq 'get_cxc') {
     print encode_json({ success => 1, data => \@cxc });
 }
 elsif ($action eq 'get_gastos') {
+    auto_seed_origenes_org($id_empresa);
+    auto_seed_categorias_org($id_empresa);
+
     my @gastos_raw = @{ leer_tabla("$FindBin::Bin/../dat/gastos.dat") };
     
     # We need to map category names for convenience
@@ -115,6 +222,13 @@ elsif ($action eq 'get_gastos') {
 
     my @gastos;
     for my $g (@gastos_raw) {
+        # Filtro multi-tenant estricto por ID_NEGOCIO (columna 11)
+        my $g_empresa = $g->[11] // '0';
+        $g_empresa =~ s/^\s+|\s+$//g;
+        if (defined $id_empresa && $id_empresa ne '' && !$es_admin_global) {
+            next if ($g_empresa ne $id_empresa);
+        }
+
         my $fecha_gasto = $g->[1] || '';
         
         # Filtrar por fecha
@@ -124,7 +238,7 @@ elsif ($action eq 'get_gastos') {
         
         my $id_creador = $g->[10] || '';
         if ($session_data->{role} eq 'Recepcionista') {
-            next unless $id_creador eq $session_data->{usuario};
+            next unless ($id_creador eq $session_data->{usuario} || $id_creador eq $session_data->{uid});
         }
 
         my $id_cat = $g->[2] || '';
@@ -146,7 +260,8 @@ elsif ($action eq 'get_gastos') {
             origen_nombre => $o_map{$id_origen} || 'Efectivo / Caja General',
             cat_nombre => $c_map{$id_cat} || 'N/A',
             subcat_nombre => $s_map{$id_subcat} || 'N/A',
-            subcat3_nombre => $s3_map{$id_subcat3} || 'N/A'
+            subcat3_nombre => $s3_map{$id_subcat3} || 'N/A',
+            id_negocio => $g_empresa
         };
     }
     
@@ -156,6 +271,7 @@ elsif ($action eq 'get_gastos') {
 }
 elsif ($action eq 'save_gasto') {
     my $id_gasto = $q->param('id_gasto') || '';
+    my $target_org = (defined $id_empresa && $id_empresa ne '') ? $id_empresa : '0';
     
     # Manejar subida de archivo factura
     my $factura_file = $q->upload('factura_file');
@@ -195,7 +311,8 @@ elsif ($action eq 'save_gasto') {
             $q->param('proveedor') || '',
             $factura_path,
             $q->param('id_origen') || '',
-            $session_data->{usuario} || ''
+            $session_data->{usuario} || '',
+            $target_org
         );
         guardar_registro("$FindBin::Bin/../dat/gastos.dat", $linea);
     } else {
@@ -212,7 +329,7 @@ elsif ($action eq 'save_gasto') {
                 my @campos = split(/\|/, $l, -1);
                 if ($campos[0] eq $id_gasto) {
                     # Conservar factura antigua si no se subió una nueva
-                    my $final_factura = $factura_path ne "" ? $factura_path : $campos[8];
+                    my $final_factura = $factura_path ne "" ? $factura_path : ($campos[8] || '');
                     $l = join("|", 
                         $id_gasto,
                         $q->param('fecha') || $campos[1],
@@ -224,7 +341,8 @@ elsif ($action eq 'save_gasto') {
                         $q->param('proveedor') || $campos[7],
                         $final_factura,
                         $q->param('id_origen') || $campos[9],
-                        $campos[10] || $session_data->{usuario} || ''
+                        $campos[10] || $session_data->{usuario} || '',
+                        $campos[11] // $target_org
                     );
                 }
                 print $fh_out "$l\n";
@@ -540,19 +658,15 @@ elsif ($action eq 'get_dashboard') {
         my $monto     = $g->[6] || 0;
         $monto =~ s/[^\d\.]//g;
 
-        # Filtro multi-tenant por creador y origen
-        my $g_origen = $g->[9] // '';
-        $g_origen =~ s/^\s+|\s+$//g;
+        # Filtro multi-tenant estricto por ID_NEGOCIO real (columna 11)
+        my $g_negocio = $g->[11] // '0';
+        $g_negocio =~ s/^\s+|\s+$//g;
         if (defined $id_empresa && $id_empresa ne '' && !$es_admin_global) {
-            if ($g_origen ne '') {
-                next if ($g_origen ne $id_empresa);
-            } else {
-                next unless ($usuarios_org{$g_creador} || $g_creador eq $session_data->{usuario});
-            }
+            next if ($g_negocio ne $id_empresa);
         }
 
         if ($role eq 'Recepcionista') {
-            next unless ($g_creador eq $session_data->{usuario});
+            next unless ($g_creador eq $session_data->{usuario} || $g_creador eq $session_data->{uid});
         }
 
         # Serie histórica de gastos
@@ -630,13 +744,40 @@ elsif ($action eq 'get_dashboard') {
     });
 }
 elsif ($action eq 'get_categorias_gastos') {
+    auto_seed_categorias_org($id_empresa);
+
     my @cat = @{ leer_tabla("$FindBin::Bin/../dat/categorias.dat") };
     my @subcat = @{ leer_tabla("$FindBin::Bin/../dat/sub_categoria.dat") };
     my @subcat3 = @{ leer_tabla("$FindBin::Bin/../dat/sub_categoria_nivel3.dat") };
     
-    my @cat_map = map { { id => $_->[0], nombre => $_->[1], desc => $_->[2] } } @cat;
-    my @subcat_map = map { { id => $_->[0], id_cat => $_->[1], nombre => $_->[2], desc => $_->[3] } } @subcat;
-    my @subcat3_map = map { { id => $_->[0], id_subcat => $_->[1], nombre => $_->[2] } } @subcat3;
+    my $target_org = (defined $id_empresa && $id_empresa ne '') ? $id_empresa : '0';
+
+    my @cat_map = ();
+    for my $c (@cat) {
+        my $biz = $c->[3] // '0';
+        $biz =~ s/^\s+|\s+$//g;
+        if ($es_admin_global || $biz eq $target_org) {
+            push @cat_map, { id => $c->[0], nombre => $c->[1], desc => $c->[2], id_negocio => $biz };
+        }
+    }
+
+    my @subcat_map = ();
+    for my $s (@subcat) {
+        my $biz = $s->[4] // '0';
+        $biz =~ s/^\s+|\s+$//g;
+        if ($es_admin_global || $biz eq $target_org) {
+            push @subcat_map, { id => $s->[0], id_cat => $s->[1], nombre => $s->[2], desc => $s->[3], id_negocio => $biz };
+        }
+    }
+
+    my @subcat3_map = ();
+    for my $s3 (@subcat3) {
+        my $biz = $s3->[3] // '0';
+        $biz =~ s/^\s+|\s+$//g;
+        if ($es_admin_global || $biz eq $target_org) {
+            push @subcat3_map, { id => $s3->[0], id_subcat => $s3->[1], nombre => $s3->[2], id_negocio => $biz };
+        }
+    }
     
     print encode_json({ success => 1, categorias => \@cat_map, subcategorias => \@subcat_map, subcategorias3 => \@subcat3_map });
 }
@@ -644,6 +785,7 @@ elsif ($action eq 'add_categoria') {
     my $nivel = $q->param('nivel') || '1';
     my $nombre = $q->param('nombre') || '';
     my $parent_id = $q->param('parent_id') || '';
+    my $target_org = (defined $id_empresa && $id_empresa ne '') ? $id_empresa : '0';
     
     if (!$nombre) {
         print encode_json({ success => 0, message => 'Nombre requerido' });
@@ -652,21 +794,21 @@ elsif ($action eq 'add_categoria') {
     
     if ($nivel eq '1') {
         my $nid = obtener_nuevo_id("$FindBin::Bin/../dat/id_cat.counter");
-        my $l = "$nid|$nombre|";
+        my $l = "$nid|$nombre||$target_org";
         open(my $f, ">>:encoding(UTF-8)", "$FindBin::Bin/../dat/categorias.dat");
         print $f "$l\n";
         close $f;
     } elsif ($nivel eq '2') {
         if (!$parent_id) { print encode_json({ success=>0, message=>'Padre requerido' }); exit; }
         my $nid = obtener_nuevo_id("$FindBin::Bin/../dat/id_subcat.counter");
-        my $l = "$nid|$parent_id|$nombre|";
+        my $l = "$nid|$parent_id|$nombre||$target_org";
         open(my $f, ">>:encoding(UTF-8)", "$FindBin::Bin/../dat/sub_categoria.dat");
         print $f "$l\n";
         close $f;
     } elsif ($nivel eq '3') {
         if (!$parent_id) { print encode_json({ success=>0, message=>'Padre requerido' }); exit; }
         my $nid = obtener_nuevo_id("$FindBin::Bin/../dat/id_subcat3.counter");
-        my $l = "$nid|$parent_id|$nombre";
+        my $l = "$nid|$parent_id|$nombre|$target_org";
         open(my $f, ">>:encoding(UTF-8)", "$FindBin::Bin/../dat/sub_categoria_nivel3.dat");
         print $f "$l\n";
         close $f;
@@ -768,35 +910,36 @@ elsif ($action eq 'delete_categoria') {
     print encode_json({ success => 1 });
 }
 elsif ($action eq 'get_origenes_dinero') {
+    auto_seed_origenes_org($id_empresa);
+
     my $origen_file = "$FindBin::Bin/../dat/origen_dinero.dat";
-    
-    # Auto-seed si no existe
-    if (!-e $origen_file) {
-        open(my $f, ">:encoding(UTF-8)", $origen_file);
-        print $f "1|Efectivo / Caja Chica|Efectivo físico en sucursal\n";
-        print $f "2|Caja General|Efectivo principal\n";
-        print $f "3|Transferencia Bancaria|Pago electrónico\n";
-        print $f "4|Tarjeta de Crédito / Débito|Terminal bancaria\n";
-        close $f;
-        open(my $c, ">", "$FindBin::Bin/../dat/id_origen_dinero.counter");
-        print $c "4";
-        close $c;
+    my @orig = ();
+    if (-e $origen_file) {
+        @orig = @{ leer_tabla($origen_file) };
     }
     
-    my @orig = @{ leer_tabla($origen_file) };
-    my @orig_map = map { { id => $_->[0], nombre => $_->[1], desc => $_->[2] } } @orig;
+    my $target_org = (defined $id_empresa && $id_empresa ne '') ? $id_empresa : '0';
+    my @orig_map = ();
+    for my $o (@orig) {
+        my $biz = $o->[3] // '0';
+        $biz =~ s/^\s+|\s+$//g;
+        if ($es_admin_global || $biz eq $target_org) {
+            push @orig_map, { id => $o->[0], nombre => $o->[1], desc => $o->[2], id_negocio => $biz };
+        }
+    }
     
     print encode_json({ success => 1, origenes => \@orig_map });
 }
 elsif ($action eq 'add_origen_dinero') {
     my $nombre = $q->param('nombre') || '';
     my $desc = $q->param('desc') || '';
+    my $target_org = (defined $id_empresa && $id_empresa ne '') ? $id_empresa : '0';
     if (!$nombre) {
         print encode_json({ success => 0, message => 'Nombre requerido' });
         exit;
     }
     my $nid = obtener_nuevo_id("$FindBin::Bin/../dat/id_origen_dinero.counter");
-    my $l = "$nid|$nombre|$desc";
+    my $l = "$nid|$nombre|$desc|$target_org";
     open(my $f, ">>:encoding(UTF-8)", "$FindBin::Bin/../dat/origen_dinero.dat");
     print $f "$l\n";
     close $f;

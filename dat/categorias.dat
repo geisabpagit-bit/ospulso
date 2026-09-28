@@ -1,5 +1,5 @@
-id|nombre|desc
-1|Operativos|Gastos del día a día
-2|Marketing|Publicidad y ventas
-3|Inmobiliario|Renta y mantenimiento
-4|Financieros|Comisiones e impuestos
+id|nombre|desc|id_negocio
+1|Operativos|Gastos del día a día|0
+2|Marketing|Publicidad y ventas|0
+3|Inmobiliario|Renta y mantenimiento|0
+4|Financieros|Comisiones e impuestos|0

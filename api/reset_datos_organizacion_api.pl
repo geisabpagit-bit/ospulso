@@ -282,8 +282,9 @@ eval {
         foreach my $l (@lines) {
             chomp $l; next if $l =~ /^\s*$/;
             my @c = split(/\|/, $l, -1);
-            my $m_id = $c[9] // '';
-            if (!es_registro_de_org($m_id)) {
+            my $m_neg = $c[11] // '';
+            my $creador = $c[10] // '';
+            if ($m_neg ne $id_empresa && !es_registro_de_org($creador)) {
                 push @conservar, $l;
             }
         }

@@ -285,15 +285,11 @@ HTML
             my @g = split(/\|/, $line, -1);
             my $monto = $g[6] || 0;
             $monto =~ s/[^\d\.]//g;
-            my $g_origen = $g[9] // '';
-            $g_origen =~ s/^\s+|\s+$//g;
+            my $g_negocio = $g[11] // '0';
+            $g_negocio =~ s/^\s+|\s+$//g;
             my $creador = $g[10] || '';
             if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
-                if ($g_origen ne '') {
-                    next if ($g_origen ne $id_empresa);
-                } else {
-                    next unless ($usuarios_empresa{$creador} || $creador eq $usuario || $creador eq $mi_nombre);
-                }
+                next if ($g_negocio ne $id_empresa);
             }
             if ($is_admin || $creador eq $usuario || $creador eq $mi_nombre || !$creador) {
                 $total_egresos += $monto;
