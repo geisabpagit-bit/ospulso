@@ -1184,6 +1184,18 @@ function saveCita() {
         return;
     }
 
+    const accion = $("#f_accion").val();
+    const estado = $("#f_estado").val();
+    if (accion === 'create' && (estado === 'Cancelada' || estado === 'No realizada' || estado === 'Atendida')) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Estado Inválido',
+            text: 'Una nueva cita no puede crearse en estado Cancelada, No realizada o Atendida.',
+            customClass: { popup: 'rounded-4' }
+        });
+        return;
+    }
+
     if (!hi) {
         Swal.fire({ icon: 'info', title: 'Horario Requerido', text: 'Por favor, selecciona un horario disponible de la lista.' });
         return;
@@ -1664,7 +1676,19 @@ function abrirModalNuevaCita(f, h, idP, nomP) {
     $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").show();
 
     $("#f_motivo").val(''); 
-    $("#f_estado").val('Programada'); 
+    
+    // Regla Canónica: En citas nuevas NO se permite Cancelada, No realizada ni Atendida
+    const opcionesNueva = [
+        { val: 'Programada', text: 'Programada' },
+        { val: 'Confirmada', text: 'Confirmada' },
+        { val: 'En Sala de Espera', text: 'En Sala de Espera' }
+    ];
+    let htmlOptsNueva = '';
+    opcionesNueva.forEach(op => {
+        htmlOptsNueva += `<option value="${op.val}">${op.text}</option>`;
+    });
+    $("#f_estado").html(htmlOptsNueva).val('Programada'); 
+
     $("#f_prioridad").val('Normal');
     $("#f_color").val('#3b82f6');
     $("#f_consultorio").prop("selectedIndex", 0);
@@ -1689,7 +1713,23 @@ function abrirModalCita(id, isReadonly) {
     $("#f_hi").val(hi); 
     $("#f_hf").val(hf);
     $("#f_motivo").val(a.extendedProps.motivo); 
-    $("#f_estado").val(a.extendedProps.estado || 'Programada'); 
+
+    // Restaurar lista completa canónica para edición
+    const opcionesEdicion = [
+        { val: 'Programada', text: 'Programada' },
+        { val: 'Confirmada', text: 'Confirmada' },
+        { val: 'En Sala de Espera', text: 'En Sala de Espera' },
+        { val: 'En consulta', text: 'En consulta' },
+        { val: 'Atendida', text: 'Atendida' },
+        { val: 'No realizada', text: 'No realizada' },
+        { val: 'Cancelada', text: 'Cancelada' }
+    ];
+    let htmlOptsEdicion = '';
+    opcionesEdicion.forEach(op => {
+        htmlOptsEdicion += `<option value="${op.val}">${op.text}</option>`;
+    });
+    $("#f_estado").html(htmlOptsEdicion).val(a.extendedProps.estado || 'Programada'); 
+
     if(a.color) $("#f_color").val(a.color); else $("#f_color").val('#3b82f6');
     if(a.extendedProps.prioridad) $("#f_prioridad").val(a.extendedProps.prioridad); else $("#f_prioridad").val('Normal');
     if(a.extendedProps.id_medico) $("#f_medico_select").val(a.extendedProps.id_medico);
@@ -1703,12 +1743,15 @@ function abrirModalCita(id, isReadonly) {
     const esFinalizada = (est.includes('atendida') || isReadonly);
     const esEnConsulta = (est === 'en consulta');
 
+    const tipoOrg = (document.getElementById('agenda_tipo_organizacion') ? document.getElementById('agenda_tipo_organizacion').value : '') || '';
+    const esConsultorio = (tipoOrg === 'Consultorio Individual' || tipoOrg === 'Consultorio Compartido' || (document.getElementById('agenda_es_consultorio') && document.getElementById('agenda_es_consultorio').value === '1'));
+
     if (esFinalizada || esEnConsulta) {
         $("#modalCita input, #modalCita select").prop('disabled', true);
         $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").hide();
         $("#btn-tomar-cita").addClass('d-none');
         $("#btn-cobrar-recepcion").addClass('d-none');
-        if (est.includes('pagada')) {
+        if (!esConsultorio && est.includes('pagada')) {
             $("#leyenda-cita-pagada").removeClass('d-none').html('<i class="bi bi-check-circle-fill me-1"></i> Consulta Pagada en Recepción');
         } else {
             $("#leyenda-cita-pagada").addClass('d-none');
@@ -1742,7 +1785,10 @@ function abrirModalCita(id, isReadonly) {
             $("#btn-tomar-cita").addClass('d-none');
         }
 
-        if (est.includes('pagada')) {
+        if (esConsultorio) {
+            $("#btn-cobrar-recepcion").addClass('d-none');
+            $("#leyenda-cita-pagada").addClass('d-none');
+        } else if (est.includes('pagada')) {
             $("#btn-cobrar-recepcion").addClass('d-none');
             $("#leyenda-cita-pagada").removeClass('d-none').html('<i class="bi bi-check-circle-fill me-1"></i> Consulta Pagada en Recepción');
         } else {

@@ -190,43 +190,43 @@ $hour_end = 0 if $hour_end == 24;
 my $hoy_hora_rounded = sprintf("%02d:%02d", $hour_start, $min_start);
 my $hoy_hora_fin_rounded = sprintf("%02d:%02d", $hour_end, $min_end);
 
-if ($id_cita) {
-    if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
-        my @lineas = <$fh_in>;
-        close $fh_in;
+my $encontrada = 0;
+if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
+    my @lineas = <$fh_in>;
+    close $fh_in;
+    
+    my @nuevas_lineas;
+    my $cabecera = shift @lineas;
+    chomp $cabecera if defined $cabecera;
+    
+    foreach my $l (@lineas) {
+        chomp $l;
+        my @c = split /\|/, $l, -1;
+        my $c0_clean = $c[0] // '';
+        $c0_clean =~ s/^\s+|\s+$//g;
+        my $c_id_pac = $c[2] // '';
+        $c_id_pac =~ s/^\s+|\s+$//g;
+        my $c_fec    = $c[3] // '';
+        $c_fec =~ s/^\s+|\s+$//g;
         
-        my @nuevas_lineas;
-        my $cabecera = shift @lineas;
-        chomp $cabecera if defined $cabecera;
-        
-        foreach my $l (@lineas) {
-            chomp $l;
-            my @c = split /\|/, $l, -1;
-            my $c0_clean = $c[0] // '';
-            $c0_clean =~ s/^\s+|\s+$//g;
-            
-            if ($c0_clean eq $id_cita) {
-                my $fecha_cita = $c[3] // '';
-                my $hora_cita  = $c[4] // '';
-                
-                # Si se tomó fuera de horario, mover al bloque de 30 mins actual
-                if ($fecha_cita ne $hoy_fecha || ($fecha_cita eq $hoy_fecha && $hora_cita lt $hoy_hora)) {
-                    $c[3] = $hoy_fecha;
-                    $c[4] = $hoy_hora_rounded;
-                    $c[5] = $hoy_hora_fin_rounded;
-                    $c[8] = 'Atendida';
-                } else {
-                    $c[8] = 'Atendida';
-                }
-                $l = join('|', @c);
-            }
-            push @nuevas_lineas, $l;
+        my $match = 0;
+        if ($id_cita && $c0_clean eq $id_cita) {
+            $match = 1;
+        } elsif (!$id_cita && $c_id_pac eq $id_paciente && $c_fec eq $hoy_fecha && ($c[8]//'') !~ /^(Atendida|Cancelada)$/i) {
+            $match = 1;
         }
-        utils::db_manager::actualizar_archivo($citas_file, $cabecera, \@nuevas_lineas);
+        
+        if ($match && !$encontrada) {
+            $c[8] = 'Atendida';
+            $l = join('|', @c);
+            $encontrada = 1;
+        }
+        push @nuevas_lineas, $l;
     }
-} else {
-    # Es una Consulta Express, insertar en la agenda retroactivamente
-    if (-e $citas_file) {
+    if ($encontrada) {
+        utils::db_manager::actualizar_archivo($citas_file, $cabecera, \@nuevas_lineas);
+    } elsif (!$id_cita) {
+        # Si no había cita programada para hoy, registrar consulta express automática
         my $new_id_cita = "EXP-" . time() . "-" . int(rand(1000));
         my $linea = join('|', $new_id_cita, $id_medico, $id_paciente, $hoy_fecha, $hoy_hora_rounded, $hoy_hora_fin_rounded, 'Consulta Express Automática', 'Originada desde consultorio', 'Atendida', '');
         utils::db_manager::guardar_registro($citas_file, $linea);

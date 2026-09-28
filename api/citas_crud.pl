@@ -224,11 +224,19 @@ sub crear_cita {
     my $gid = eval { google_sync_event(undef, $id_m, $pac_nom, $fec, $hi, $hf, $motivo) };
     if ($@) { log_google("CRITICAL ERROR: $@"); }
     
+    my $estado_solicitado = $query->param('estado') // 'Programada';
+    $estado_solicitado =~ s/^\s+|\s+$//g;
+    if ($estado_solicitado =~ /^(Cancelada|No realizada|Atendida)$/i) {
+        responder_json(0, "No está permitido crear una cita nueva con estado $estado_solicitado.");
+        return;
+    }
+    my $estado_final = ($estado_solicitado eq 'Confirmada' || $estado_solicitado eq 'En Sala de Espera') ? $estado_solicitado : 'Programada';
+
     my $new_id = time;
     push @$arr, { 
         id_cita => $new_id, id_medico => $id_m, id_paciente => $pac_id, 
         fecha => $fec, hora_ini => $hi, hora_fin => $hf, 
-        motivo => $motivo, notas => '', estado => 'Programada', event_id => $gid // '',
+        motivo => $motivo, notas => '', estado => $estado_final, event_id => $gid // '',
         color => '', prioridad => $query->param('prioridad') // 'Normal',
         sucursal => $query->param('sucursal') // '', consultorio => $query->param('consultorio') // '',
         id_negocio => $session_data->{id_empresa} // '', elaborado_por => $session_data->{uid} // ''

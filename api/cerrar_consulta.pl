@@ -54,54 +54,45 @@ my $linea = join('|', $id_consulta, $id_paciente, $id_cita, $id_medico, time(), 
 utils::db_manager::guardar_registro($consultas_file, $linea);
 
 # 2. Sincronizar estado en agenda.dat (citas.dat)
-if ($id_cita) {
-    my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
-    if (open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
-        my @lineas = <$fh_in>;
-        close $fh_in;
+my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
+if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
+    my @lineas = <$fh_in>;
+    close $fh_in;
+    
+    my @nuevas_lineas;
+    my $cabecera = shift @lineas;
+    chomp $cabecera if defined $cabecera;
+    
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+    my $hoy_fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
+    my $hoy_hora  = sprintf("%02d:%02d", $hour, $min);
+    my $modificado = 0;
+    
+    foreach my $l (@lineas) {
+        chomp $l;
+        my @c = split /\|/, $l, -1;
+        my $c0_clean = $c[0] // '';
+        $c0_clean =~ s/^\s+|\s+$//g;
+        my $c_id_pac = $c[2] // '';
+        $c_id_pac =~ s/^\s+|\s+$//g;
+        my $c_fec = $c[3] // '';
+        $c_fec =~ s/^\s+|\s+$//g;
         
-        my @nuevas_lineas;
-        my $cabecera = shift @lineas;
-        chomp $cabecera if defined $cabecera;
-        
-        my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
-        my $hoy_fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
-        my $hoy_hora  = sprintf("%02d:%02d", $hour, $min);
-        
-        foreach my $l (@lineas) {
-            chomp $l;
-            my @c = split /\|/, $l, -1;
-            my $c0_clean = $c[0] // '';
-            $c0_clean =~ s/^\s+|\s+$//g;
-            
-            if ($c0_clean eq $id_cita) {
-                my $fecha_cita = $c[3] // '';
-                my $hora_cita  = $c[4] // '';
-                
-                if ($fecha_cita ne $hoy_fecha || ($fecha_cita eq $hoy_fecha && $hora_cita lt $hoy_hora)) {
-                    $c[3] = $hoy_fecha;
-                    $c[4] = $hoy_hora;
-                    my $h_fin; my $m_fin;
-                    if ($c[5]) {
-                        my ($ho, $mo) = split /:/, $hora_cita;
-                        my ($hf, $mf) = split /:/, $c[5];
-                        my $dur = ($hf*60+$mf) - ($ho*60+$mo);
-                        $dur = 30 if $dur <= 0;
-                        my $tot = $hour*60 + $min + $dur;
-                        $h_fin = int($tot/60); $m_fin = $tot%60;
-                    } else {
-                        my $tot = $hour*60 + $min + 30;
-                        $h_fin = int($tot/60); $m_fin = $tot%60;
-                    }
-                    $c[5] = sprintf("%02d:%02d", $h_fin, $m_fin);
-                    $c[8] = 'Atendida';
-                } else {
-                    $c[8] = 'Atendida';
-                }
-                $l = join('|', @c);
-            }
-            push @nuevas_lineas, $l;
+        my $match = 0;
+        if ($id_cita && $c0_clean eq $id_cita) {
+            $match = 1;
+        } elsif (!$id_cita && $c_id_pac eq $id_paciente && $c_fec eq $hoy_fecha && ($c[8]//'') !~ /^(Atendida|Cancelada)$/i) {
+            $match = 1;
         }
+        
+        if ($match) {
+            $c[8] = 'Atendida';
+            $l = join('|', @c);
+            $modificado = 1;
+        }
+        push @nuevas_lineas, $l;
+    }
+    if ($modificado) {
         utils::db_manager::actualizar_archivo($citas_file, $cabecera, \@nuevas_lineas);
     }
 }

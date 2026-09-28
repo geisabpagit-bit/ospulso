@@ -53,6 +53,8 @@ if (-e $archivo_config && open my $fh_c, '<:encoding(UTF-8)', $archivo_config) {
     close $fh_c;
 }
 my $es_consultorio_ind = ($tipo_organizacion eq 'Consultorio Individual') ? 1 : 0;
+my $es_consultorio = ($tipo_organizacion eq 'Consultorio Individual' || $tipo_organizacion eq 'Consultorio Compartido') ? 1 : 0;
+my $btn_cobrar_recepcion_html = $es_consultorio ? '' : qq{<button type="button" id="btn-cobrar-recepcion" onclick="cobrarRecepcionModal()" class="btn btn-warning text-dark fw-bold d-none px-4 order-2 order-md-3 rounded-pill" style="background: linear-gradient(135deg, #f59e0b, #d97706); border:none;"><i class="bi bi-cash-coin me-1"></i> COBRAR EN RECEPCI\xD3N</button>};
 
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
@@ -104,6 +106,8 @@ print <<HTML;
     <!-- Datos de Sesión para JS -->
     <input type="hidden" id="f_medico" value="$id_medico">
     <input type="hidden" id="agenda_es_individual" value="$es_consultorio_ind">
+    <input type="hidden" id="agenda_es_consultorio" value="$es_consultorio">
+    <input type="hidden" id="agenda_tipo_organizacion" value="$tipo_organizacion">
     <script>
         window.idPacientePre = "$id_paciente_pre";
         window.nombrePacientePre = "$nombre_paciente_pre";
@@ -375,7 +379,7 @@ print <<HTML;
                             <div class="d-flex flex-column flex-md-row justify-content-end gap-2 ms-auto w-100 w-md-auto">
                                 <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger fw-bold d-none px-4 order-3 order-md-1 rounded-pill">ELIMINAR CITA</button>
                                 <button type="button" onclick="saveCita()" class="btn btn-premium-primary fw-bold px-4 order-1 order-md-2"><i class="bi bi-save me-1"></i> GUARDAR CITA</button>
-                                <button type="button" id="btn-cobrar-recepcion" onclick="cobrarRecepcionModal()" class="btn btn-warning text-dark fw-bold d-none px-4 order-2 order-md-3 rounded-pill" style="background: linear-gradient(135deg, #f59e0b, #d97706); border:none;"><i class="bi bi-cash-coin me-1"></i> COBRAR EN RECEPCIÓN</button>
+                                $btn_cobrar_recepcion_html
                                 <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-success fw-bold d-none px-4 order-2 order-md-4 rounded-pill" style="background: linear-gradient(135deg, #10b981, #059669); border:none;"><i class="bi bi-person-check me-1"></i> TOMAR CITA</button>
                             </div>
                         </div>
@@ -504,7 +508,7 @@ print <<HTML;
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/agenda_spa_new.js?v=20260926_0925"></script>
+    <script src="../js/agenda_spa_new.js?v=20260928_1410"></script>
 HTML
 
 print <<'JS';

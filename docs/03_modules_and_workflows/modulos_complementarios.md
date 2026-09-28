@@ -27,6 +27,10 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   1. **Doble Capa de Saneamiento (Backend & Frontend)**: Si una cita programada o confirmada no fue atendida ni cancelada y su fecha/hora de finalización ya expiró (`fecha < hoy` o `fecha == hoy && hora_fin < hora_actual`), el backend (`api/citas_crud.pl`) actualiza automáticamente su estado a `No realizada` al consultar la agenda y persiste el cambio en `dat/citas.dat` preservando `id_negocio` y `elaborado_por`. De forma complementaria y preventiva, el motor frontend (`js/agenda_spa_new.js`) evalúa la fecha y hora al renderizar tanto el *Historial de Días Pasados*, la *Vista Diaria de Hoy*, la *Vista Móvil*, la *Vista Mensual Grid* (Desktop y Móvil) y los *Reportes Semanal/Mensual*, garantizando que cualquier cita expirada no atendida ni cancelada se refleje visualmente como `No realizada` con su distintivo badge rojo visible (`#ef4444`).
   2. El modal de gestión de citas permite además la selección y edición manual del estado `No realizada`.
   3. Las citas con estado `No realizada` se excluyen de la detección de colisiones de horario para no bloquear nuevas reservas y se les inhabilita el drag-and-drop.
+- **Reglas de Creación de Citas y Ciclo de Vida**:
+  1. **Restricción de Estados en Nuevas Citas**: Está estrictamente prohibido crear una cita nueva con estado `Cancelada`, `No realizada` o `Atendida`. El selector en modal (`views/agenda_main.pl` / `js/agenda_spa_new.js`) solo expone `Programada`, `Confirmada` o `En Sala de Espera`, y el backend (`api/citas_crud.pl`) rechaza con error 400 cualquier intento directo.
+  2. **Seteo Automático a "Atendida" al Concluir Consulta**: El estado `Atendida` (#19B7A5) se establece de forma inviolable y automatizada al finalizar el wizard clínico de consultas tanto privadas (`api/cerrar_consulta_privado.pl`) como públicas (`api/cerrar_consulta.pl`), sincronizando el registro en `dat/citas.dat` ya sea mediante `id_cita` explícito o emparejamiento de cita del día para el binomio paciente-médico.
+  3. **Gobernanza de Cobro en Recepción**: Si la organización es de tipo `Consultorio Individual` o `Consultorio Compartido`, el botón de `Cobrar en Recepción` se oculta permanentemente del modal de gestión de citas, dado que estos entornos carecen de ventanilla receptiva hospitalaria y el cobro se realiza directamente en consultorio.
 - **Vista Mensual Grid Desktop & Móvil (`switchView('calendario')`)**:
   1. **Cabeceras de Días**: Fondo azul marino corporativo (`#0A2A66`) con texto blanco (`#ffffff`) en negrita (`font-weight: 700`) tanto para nombres completos/cortos en desktop (`.cal-grid-header-day`) como píldoras en móvil (`.cal-grid-header-day-mobile`).
   2. **Interacción Overmouse**: Al pasar el cursor sobre cualquier casilla de día (`.calendar-cell:hover`), se aplica un fondo suave contrastado (`#f0fdfa`) y un borde corporativo teal mandante (`outline: 2px solid var(--md-teal-clinical, #19B7A5); outline-offset: -2px`) sin desfasar el grid CSS.
@@ -56,11 +60,22 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   1. **Organizaciones con CLUE y `PACIENTES_ESTADO = 1`**: La UI despliega los campos numéricos de configuración para definir el folio inicial de recibos privados y recibos públicos (convenios municipales).
   2. **Consultorio Individual o sin `PACIENTES_ESTADO`**: Se oculta la solicitud de folios y el backend reinicia automáticamente a cero (`LAST_FOLIO = 0`, próximo recibo emitido #1) el único contador de recibos privados de la organización en `contadores_recibos_privados_*.dat`, sin requerir configuración manual ni tocar contadores públicos.
 
-### 2.5 Mapa de Módulos del Sistema
+### 2.5 Caja Consultorio / Punto de Venta (`views/caja_consultorio.pl`)
+- Módulo de cobro ágil y directo diseñado específicamente para **"Consultorio Individual"** y **"Consultorio Compartido"** que no operan bajo convenios públicos (`PACIENTES_ESTADO = 0`).
+- **Bifurcación en Menú Lateral**: Reemplaza el ítem *"Generar Recibo"* (`views/generar_recibo.pl`) por *"Caja"* (`views/caja_consultorio.pl`) en la sección de Finanzas de `utils/sub_sidebar.pl`.
+- **Arquitectura del Carrito Reactivo**:
+  1. Reutiliza la ontología clínica del paso de caja del wizard (`step_caja_privado.pl`): buscador de catálogo unificado, entrada manual rápida, tabla de catálogo y lista interactiva de conceptos con cantidades y subtotales.
+  2. Selector dual de paciente: permite cobro rápido a "Público General" (mostrador / walk-in) o vinculación con pacientes de expediente clínico.
+  3. Formas de pago: Efectivo, Tarjeta y Transferencia; modalidad de Liquidación completa o Abono parcial.
+  4. Persistencia e integridad: emite folios privados consecutivos e inscribe cargos y abonos en `dat/folios_recibos_privados.dat` y `dat/estado_cuenta.dat` a través de `api/guardar_recibo_rapido.pl`, con enlace para impresión inmediata mediante `api/imprimir_recibo_caja.pl`.
+
+### 2.6 Mapa de Módulos del Sistema
 - **Dashboard / Inicial**: `views/inicial.pl`, `views/render_dashboard_principal.pl`.
-- **Caja Rápida**: `views/generar_recibo.pl`.
+- **Caja Rápida (Pública/Hospitalaria)**: `views/generar_recibo.pl`.
+- **Caja Consultorio (Privada/Punto de Venta)**: `views/caja_consultorio.pl`.
 - **Catálogo Universal**: `views/manage_catalogo_universal.pl`.
-- **Expediente Clínico & Consultas**: `views/render_expediente_clinico.pl`, `views/render_consultas.pl`.
+- **Expediente Clínico & Consultas**: `views/render_expediente_clinico.pl`, `views/render_consultas.pl`, `views/render_consultas_privado.pl`.
 - **Visor Médico / PACS**: `views/render_visor_medico.pl`.
 - **Finanzas**: `views/finanzas.pl`, `views/estado_cuenta.pl`.
 - **Reset Operativo**: `views/admin_organizacion_reset.pl`.
+

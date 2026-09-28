@@ -467,24 +467,32 @@ HTML
 
     # 6. Finanzas Accordion (Justo al lado de Administración)
     if ($is_allowed{finanzas}) {
-        my $fin_active = ($pagina_actual eq 'finanzas' || $pagina_actual eq 'caja_rapida') ? 'show' : '';
+        my $fin_active = ($pagina_actual eq 'finanzas' || $pagina_actual eq 'caja_rapida' || $pagina_actual eq 'caja_consultorio') ? 'show' : '';
         my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
         
         my $has_pacientes_estado = 0;
-        my $id_empresa_fin = $args{id_empresa} || '';
+        my $id_empresa_fin = $args{id_empresa} || $id_empresa || '';
         my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
         if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
             while (my $line = <$cf>) {
                 chomp($line);
                 next if $line =~ /^#|^\s*$/;
                 my ($biz_id, $key, $val) = split(/\|/, $line);
-                if ($biz_id eq $id_empresa_fin && $key eq 'PACIENTES_ESTADO') {
-                    $has_pacientes_estado = ($val eq '1') ? 1 : 0;
-                    last;
+                if ($biz_id eq $id_empresa_fin) {
+                    if ($key eq 'PACIENTES_ESTADO') {
+                        $has_pacientes_estado = ($val eq '1') ? 1 : 0;
+                    } elsif ($key eq 'TIPO_ORGANIZACION' && !$tipo_org) {
+                        $tipo_org = $val;
+                    }
                 }
             }
             close($cf);
         }
+
+        my $es_consultorio_privado = (($tipo_org eq 'Consultorio Individual' || $tipo_org eq 'Consultorio Compartido') && !$has_pacientes_estado) ? 1 : 0;
+        my $link_caja_recibo_html = $es_consultorio_privado 
+            ? qq{<a href="../views/caja_consultorio.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-cart-check-fill text-success me-2"></i><span class="sidebar-text fw-bold">Caja</span></a>}
+            : qq{<a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>};
 
         print qq{
             <!-- Finanzas Integradas -->
@@ -496,7 +504,7 @@ HTML
                 </h2>
                 <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas" data-bs-parent="#accordionSidebar">
                     <div class="accordion-body pb-0 pt-1">
-                        <a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>
+                        $link_caja_recibo_html
                         <a href="../views/finanzas.pl?tab=corte_caja" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-safe text-primary me-2"></i><span class="sidebar-text fw-bold">Corte de Caja</span></a>
                         <hr class="my-2 opacity-25">
                         <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
