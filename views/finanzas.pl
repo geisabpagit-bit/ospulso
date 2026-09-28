@@ -796,15 +796,24 @@ PAGE_HTML
         </div>
     </div>
 
+PAGE_HTML
+
+    my $kpi_cc_col = $has_pacientes_estado ? 'col-12 col-sm-6 col-md-3' : 'col-12 col-sm-6 col-md-4';
+
+    print <<"PAGE_HTML";
     <!-- KPIs -->
     <div class="row g-3 mb-4">
-        <div class="col-12 col-sm-6 col-md-3">
+        <div class="$kpi_cc_col">
             <div class="kpi-acrilico h-100">
                 <div class="kpi-icono text-success"><i class="bi bi-arrow-down-circle"></i></div>
                 <div class="kpi-titulo">Ingresos (Efvo)</div>
-                <div class="kpi-valor" id="cc_ingresos">$0.00</div>
+                <div class="kpi-valor" id="cc_ingresos">\$0.00</div>
             </div>
         </div>
+PAGE_HTML
+
+    if ($has_pacientes_estado) {
+        print <<'PAGE_HTML';
         <div class="col-12 col-sm-6 col-md-3">
             <div class="kpi-acrilico h-100">
                 <div class="kpi-icono text-info"><i class="bi bi-building"></i></div>
@@ -812,14 +821,18 @@ PAGE_HTML
                 <div class="kpi-valor" id="cc_cxc">$0.00</div>
             </div>
         </div>
-        <div class="col-12 col-sm-6 col-md-3">
+PAGE_HTML
+    }
+
+    print <<"PAGE_HTML";
+        <div class="$kpi_cc_col">
             <div class="kpi-acrilico h-100">
                 <div class="kpi-icono text-danger"><i class="bi bi-arrow-up-circle"></i></div>
                 <div class="kpi-titulo">Egresos</div>
-                <div class="kpi-valor" id="cc_egresos">$0.00</div>
+                <div class="kpi-valor" id="cc_egresos">\$0.00</div>
             </div>
         </div>
-        <div class="col-12 col-sm-6 col-md-3">
+        <div class="$kpi_cc_col">
             <div class="kpi-acrilico bg-white bg-opacity-75 h-100">
                 <div class="kpi-icono text-warning"><i class="bi bi-cash"></i></div>
                 <div class="kpi-titulo">Efectivo Físico</div>
@@ -830,7 +843,7 @@ PAGE_HTML
             <div class="kpi-acrilico h-100" id="kpi_diferencia_box">
                 <div class="kpi-icono text-secondary" id="cc_dif_icon"><i class="bi bi-calculator"></i></div>
                 <div class="kpi-titulo">Faltante / Sobrante</div>
-                <div class="kpi-valor" id="cc_diferencia">$0.00</div>
+                <div class="kpi-valor" id="cc_diferencia">\$0.00</div>
                 <div class="kpi-subtexto" id="cc_dif_label">Efectivo Físico - (Ingresos - Egresos)</div>
             </div>
         </div>
@@ -844,9 +857,17 @@ PAGE_HTML
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_ingresos" type="button"><i class="bi bi-graph-up me-1 text-success"></i>Ingresos</button>
                     </li>
+PAGE_HTML
+
+    if ($has_pacientes_estado) {
+        print <<'PAGE_HTML';
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_cxc" type="button"><i class="bi bi-building me-1 text-info"></i>Ingresos Municipio</button>
                     </li>
+PAGE_HTML
+    }
+
+    print <<'PAGE_HTML';
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#cc_tab_egresos" type="button"><i class="bi bi-graph-down text-danger me-1"></i>Egresos</button>
                     </li>
@@ -859,16 +880,21 @@ PAGE_HTML
                                     <tr>
                                         <th style="width: 8%;">Folio</th>
                                         <th style="width: 12%;">Fecha</th>
-                                        <th style="width: 27%;">Paciente</th>
-                                        <th style="width: 20%;">Médico</th>
-                                        <th style="width: 15%;">Forma Pago</th>
-                                        <th style="width: 18%;" class="text-end">Monto</th>
+                                        <th style="width: 25%;">Paciente</th>
+                                        <th style="width: 18%;">Médico</th>
+                                        <th style="width: 14%;">Forma Pago</th>
+                                        <th style="width: 13%;" class="text-end">Monto</th>
+                                        <th style="width: 10%;" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody style="font-size: 10px !important;"></tbody>
                             </table>
                         </div>
                     </div>
+PAGE_HTML
+
+    if ($has_pacientes_estado) {
+        print <<'PAGE_HTML';
                     <div class="tab-pane fade" id="cc_tab_cxc" role="tabpanel">
                         <div class="table-responsive">
                             <table id="dtCorteCxC" class="table table-hover table-sm align-middle w-100" style="font-size: 10px !important;">
@@ -886,6 +912,10 @@ PAGE_HTML
                             </table>
                         </div>
                     </div>
+PAGE_HTML
+    }
+
+    print <<'PAGE_HTML';
                     <div class="tab-pane fade" id="cc_tab_egresos" role="tabpanel">
                         <div class="table-responsive">
                             <table id="dtCorteEgresos" class="table table-hover table-sm align-middle w-100" style="font-size: 10px !important;">
@@ -1334,6 +1364,22 @@ PAGE_HTML
                                 return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
                             }
                             return `<span class="text-success fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'text-center',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            let f = row.folio_raw || row.folio || '';
+                            let isCancel = (row.estatus === 'Cancelado');
+                            let btnDelete = isCancel ?
+                                `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
+                                `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
+                            return `<div class="d-flex justify-content-center align-items-center gap-2">
+                                <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
+                                ${btnDelete}
+                            </div>`;
                         }
                     }
                 ]);

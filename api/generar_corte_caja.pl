@@ -17,8 +17,8 @@ print $q->header(-type => 'application/json', -charset => 'UTF-8');
 my $session_data = check_session();
 
 # 1. Validar RBAC
-if (!$session_data->{session_ok} || $session_data->{role} !~ /Administrador Organizacion|Recepcionista/i) {
-    print encode_json({ error => 1, msg => 'Acceso denegado. Se requiere nivel de administrador o recepcionista.' });
+if (!$session_data->{session_ok} || $session_data->{role} !~ /Administrador|Caja|Recepcionista|Director|Medico/i) {
+    print encode_json({ error => 1, msg => 'Acceso denegado. Se requiere perfil financiero autorizado.' });
     exit;
 }
 
@@ -144,6 +144,19 @@ my $fecha_hora_larga = sprintf("%s %d de %s de %d, %02d:%02d:%02d %s",
 # Diccionario de médicos para resolver ID a Nombre
 my %medicos = ();
 my %items_catalogo = ();
+
+# 1. Cargar usuarios del sistema (médicos y administradores de la organización)
+my $u_file = File::Spec->catfile($dat_dir, 'usuarios.dat');
+if (-e $u_file) {
+    my $u_data = leer_tabla($u_file, '!');
+    foreach my $u (@$u_data) {
+        if ($u->[0]) {
+            $medicos{$u->[0]} = $u->[1] || $u->[0];
+            $medicos{$u->[2]} = $u->[1] if $u->[2];
+        }
+    }
+}
+
 if ($org_clues) {
     require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
     my $med_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{medicos};
@@ -344,7 +357,12 @@ if (-e $archivo_ingresos) {
 
             # Resolver nombre del paciente
             my $id_pac = $f->[5] || '';
-            my $nombre_pac = $pacientes{$id_pac} || $id_pac || 'Público General';
+            my $nombre_pac = ($id_pac eq 'PAC-GENERICO') ? 'Público General' : ($pacientes{$id_pac} || $id_pac || 'Público General');
+            if (($nombre_pac eq 'Público General' || $nombre_pac =~ /^PAC-/) && $f->[12] && $f->[12] =~ /Paciente:\s*([^\|]+)/i) {
+                my $cand = $1;
+                $cand =~ s/^\s+|\s+$//g;
+                $nombre_pac = $cand if $cand;
+            }
 
             # Determinar origen del recibo privado
             my $id_consulta = $f->[4] || '';

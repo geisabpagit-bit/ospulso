@@ -43,7 +43,10 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
 
 ### 2.7 Gobernanza de Capacidades SaaS (`PACIENTES_ESTADO`) y Visibilidad de Tablas de Municipio
 - Las organizaciones configuradas a través del módulo CRM SaaS (`views/crm_ventas.pl`) cuentan con flags de capacidades almacenados en `dat/negocios_config.dat` (`ID_ORG|PACIENTES_ESTADO|1|0`).
-- **Comportamiento en `views/finanzas.pl` (`tab=ingresos`)**: Cuando `PACIENTES_ESTADO` no está activo (`0` o ausente para organizaciones secundarias/privadas), el DataTable `#dtIngresosMunicipio` y su tarjeta contenedora quedan completamente invisibles en la interfaz de usuario, renderizando únicamente `#dtIngresosPrivados`.
+- **Comportamiento en `views/finanzas.pl` (`tab=ingresos` y `tab=corte_caja`)**: 
+  - En **Ingresos**: Cuando `PACIENTES_ESTADO` no está activo (`0` o ausente para organizaciones secundarias/privadas), el DataTable `#dtIngresosMunicipio` y su tarjeta contenedora quedan completamente invisibles en la interfaz de usuario, renderizando únicamente `#dtIngresosPrivados`.
+  - En **Corte de Caja Diario**: Si `PACIENTES_ESTADO` no está activo, el KPI `#cc_cxc` ("Ingresos Municipio") y la pestaña/tabla `#cc_tab_cxc` se omiten por completo, rebalanceando la grilla a 3 columnas (`col-md-4`) y manteniendo visibles exclusivamente `#dtCorteIngresos` y `#dtCorteEgresos`.
+  - Ambas tablas (`#dtIngresosPrivados` y `#dtCorteIngresos`) disponen de la columna interactiva de **Acciones** para reimpresión y cancelación de recibos vía `api/ver_recibo.pl`.
 - **Comportamiento en Tablero Principal (`views/render_dashboard_principal.pl`)**:
   - El 5º KPI card ("CxC Estado") solo se renderiza si la organización cuenta con CLUE y la capacidad `PACIENTES_ESTADO` activa (`$has_pacientes_estado && $has_clue`). De lo contrario, se despliegan únicamente 4 tarjetas en `row-cols-md-4`.
   - En la vista de Recepcionista, el DataTable `#dtIngresosMunicipio` (últimas 24 hrs) también se suprime condicionalmente si `PACIENTES_ESTADO` no está activo.

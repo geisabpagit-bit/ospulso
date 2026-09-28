@@ -49,9 +49,16 @@ Todo recibo incluye una barra superior de acciones visible únicamente en pantal
 - **Identidad Médica Profesional**: Membrete extraído de `negocios.dat` (nombre de consultorio, dirección, teléfono) y datos del médico titular (`usuarios.dat` y `especialidades.dat`: Nombre, Cédula Profesional y Especialidad).
 - **Aislamiento de Folios**: El correlativo es calculado exclusivamente dentro de la serie del negocio correspondiente en `catalogo_org_utils::obtener_siguiente_folio_blindado`.
 
+### 3.4 Enrutador Polimórfico de Visualización e Impresión (`api/ver_recibo.pl`)
+- **Punto Único de Entrada**: Permite invocar la visualización de un recibo mediante parámetros homogéneos (`tipo=privados|publicos&id_os=FOLIO`).
+- **Bifurcación Transparente**:
+  - Si el recibo es privado y la organización del tenant es `Consultorio Individual` o `Consultorio Compartido` (sin CLUES institucional configurado), redirige internamente a `api/imprimir_recibo_caja_consultorio.pl`.
+  - Si el tenant posee `CLUES` institucional o estructura hospitalaria/clínica, redirige a `api/imprimir_recibo_caja.pl`.
+  - Para recibos públicos o de convenio, canaliza siempre a `api/imprimir_recibo_publico.pl`.
+
 ---
 
-### 3.3 Jerarquía Unificada de Resolución de Médico y Especialidad en Impresión (`api/imprimir_recibo_caja.pl` y `api/imprimir_recibo_publico.pl`)
+### 3.5 Jerarquía Unificada de Resolución de Médico y Especialidad en Impresión (`api/imprimir_recibo_caja.pl` y `api/imprimir_recibo_publico.pl`)
 Para garantizar la exactitud entre lo seleccionado en la vista previa ([views/generar_recibo.pl](file:///c:/xampp/htdocs/ospulso/views/generar_recibo.pl)) y la impresión final (privada o pública/municipio), la resolución del médico y la especialidad se rige strictly por la siguiente jerarquía unificada:
 1. **Preservación Directa del Payload (`items_json` / `@cargos`)**: Prioridad absoluta. Se extrae `medico`, `nombre_medico` y `especialidad` directamente de los objetos guardados en `items_json`. Esto asegura que el médico y especialidad seleccionados en la UI viajen intactos sin distorsiones ni búsquedas heurísticas.
 2. **Match por Ítem de Catálogo (`catalogo_items_${clues}.dat`)**: Si no viene explícito en el JSON pero `$id_medico` coincide con un `ID_ITEM` del catálogo de caja rápida (ej. `CONSULTA PEDIATRIA - DRA ROSA MARIA GONZALEZ`), se extrae la especialidad (`PEDIATRIA`) y el médico (`DRA ROSA MARIA GONZALEZ`) de la descripción del catálogo.
@@ -106,3 +113,4 @@ sequenceDiagram
 
 4. **Sincronización con Módulos Financieros (DataTables)**:
    - `api/get_recibos_caja_api.pl` (para tabs **Ingresos**, **CxC Privadas**, **CxC Estado**) y `api/generar_corte_caja.pl` (para tab **Corte de Caja**) leen `ITEMS_JSON` aplicando la **Prioridad 1**, garantizando que la columna **Médico** de DataTables coincida exactamente con la vista previa y el recibo impreso.
+   - En `views/finanzas.pl`, tanto la tabla de Ingresos Privados (`#dtIngresosPrivados`) como la tabla de Corte de Caja Diario (`#dtCorteIngresos`) disponen de la columna interactiva **Acciones**, la cual invoca `api/ver_recibo.pl` para visualización/reimpresión del recibo sin alterar la exportación (excluida automáticamente de botones Copy/Excel/PDF/Print).
