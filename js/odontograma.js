@@ -447,12 +447,21 @@ function restoreDomFromState() {
 
     Object.entries(window.odontogramState.teeth).forEach(([tooth, tData]) => {
         const card = document.querySelector(`.tooth-card[data-tooth="${tooth}"]`);
-        
-        // Diente ausente
-        if (tData.status === 'ABSENT') {
-            if (card) card.classList.add('tooth-absent');
-        } else if (card) {
-            card.classList.remove('tooth-absent');
+        if (card) {
+            card.classList.remove('tooth-absent', 'tooth-extraction-req', 'tooth-endo-pending', 'tooth-endo-done');
+            
+            // Diente ausente o exodoncia requerida
+            if (tData.status === 'ABSENT' || tData.absent) {
+                card.classList.add('tooth-absent');
+            } else if (tData.status === 'EXTRACTION_REQUIRED') {
+                card.classList.add('tooth-extraction-req');
+            }
+
+            // Endodoncia en raíz
+            if (tData.root && tData.root.code) {
+                if (tData.root.code === 'ENDO_REQ') card.classList.add('tooth-endo-pending');
+                else if (tData.root.code === 'ENDO_DONE') card.classList.add('tooth-endo-done');
+            }
         }
 
         // Superficies
@@ -460,12 +469,20 @@ function restoreDomFromState() {
             Object.entries(tData.surfaces).forEach(([surf, sData]) => {
                 const surfaceEl = document.querySelector(`.tooth-surface[data-tooth="${tooth}"][data-surface="${surf}"]`);
                 if (surfaceEl) {
-                    const color = sData.colorHex || ((sData.state === 'PENDING_TREATMENT') ? ODONTO_COLORS.PENDING : ODONTO_COLORS.COMPLETED);
+                    const condCode = (typeof sData === 'object' && sData.code) ? sData.code : sData;
+                    const catObj = window.ODONTO_CATALOG ? window.ODONTO_CATALOG[condCode] : null;
+                    const state = (typeof sData === 'object' && sData.state) 
+                        ? sData.state 
+                        : ((catObj?.category === 'PENDING') ? 'PENDING_TREATMENT' : 'EXISTING_CONDITION');
+                    const color = (typeof sData === 'object' && sData.colorHex) 
+                        ? sData.colorHex 
+                        : (catObj?.colorHex || (state === 'PENDING_TREATMENT' ? ODONTO_COLORS.PENDING : ODONTO_COLORS.COMPLETED));
+
                     surfaceEl.style.fill = color;
                     surfaceEl.setAttribute('fill', color);
-                    surfaceEl.setAttribute('data-state', sData.state);
+                    surfaceEl.setAttribute('data-state', state);
                     surfaceEl.classList.add('has-condition');
-                    if (sData.state === 'PENDING_TREATMENT') {
+                    if (state === 'PENDING_TREATMENT') {
                         surfaceEl.classList.add('surface-pending');
                         surfaceEl.classList.remove('surface-completed');
                     } else {
@@ -477,6 +494,37 @@ function restoreDomFromState() {
         }
     });
 }
+
+/**
+ * Carga e hidrata un estado completo de odontograma (FDI) en memoria y en el lienzo SVG
+ */
+window.loadOdontogramState = function(stateObj) {
+    if (!stateObj || typeof stateObj !== 'object') return;
+
+    if (stateObj.patientId) window.odontogramState.patientId = stateObj.patientId;
+    if (stateObj.dentitionType) window.odontogramState.dentitionType = stateObj.dentitionType;
+    if (stateObj.periodontalSummary) window.odontogramState.periodontalSummary = stateObj.periodontalSummary;
+    if (stateObj.updatedAt) window.odontogramState.updatedAt = stateObj.updatedAt;
+
+    if (stateObj.teeth && typeof stateObj.teeth === 'object') {
+        window.odontogramState.teeth = stateObj.teeth;
+    } else {
+        window.odontogramState.teeth = {};
+        Object.keys(stateObj).forEach(key => {
+            if (/^\d{2}$/.test(key) && typeof stateObj[key] === 'object') {
+                window.odontogramState.teeth[key] = stateObj[key];
+            }
+        });
+    }
+
+    restoreDomFromState();
+    recalculateFinancialTotal();
+    updateLiveJsonViewer();
+
+    if (typeof refreshSidebarFindings === 'function') {
+        refreshSidebarFindings();
+    }
+};
 
 /**
  * Asigna los manejadores de eventos sobre cada cara vectorial y diente

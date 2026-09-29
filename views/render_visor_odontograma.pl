@@ -560,7 +560,7 @@ print <<'JS';
             refreshSidebarFindings();
         };
 
-        // Guardar Odontograma en Servidor
+        // Guardar Odontograma en Servidor (Persistencia Atómica Canónica)
         window.saveOdontogramaToServer = function() {
             const patientId = window.ID_PACIENTE;
             const notas = document.getElementById('odontograma-notas')?.value || '';
@@ -572,7 +572,7 @@ print <<'JS';
 
             Swal.fire({
                 title: 'Sincronizando Odontograma...',
-                text: 'Guardando registro clínico en OSPulso Cloud',
+                text: 'Guardando registro clínico atómicamente en OSPulso Cloud',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
@@ -581,7 +581,8 @@ print <<'JS';
             payload.append('accion', 'save');
             payload.append('id_paciente', patientId);
             payload.append('notas', notas);
-            payload.append('data', JSON.stringify(window.odontogramState.teeth || {}));
+            payload.append('financialTotalPending', window.odontogramState.financialTotalPending || 0);
+            payload.append('data', JSON.stringify(window.odontogramState));
 
             axios.post('../api/odontograma_api.pl', payload)
                 .then(res => {
@@ -589,7 +590,7 @@ print <<'JS';
                         Swal.fire({
                             icon: 'success',
                             title: 'Odontograma Guardado',
-                            text: 'El estado dental y presupuesto han sido actualizados con éxito.',
+                            text: 'El estado dental y presupuesto han sido sincronizados con éxito.',
                             timer: 2000,
                             showConfirmButton: false
                         });
@@ -603,7 +604,7 @@ print <<'JS';
                 });
         };
 
-        // Cargar Odontograma desde Servidor
+        // Cargar Odontograma desde Servidor (Soporte Dual: JSON Canónico y Tabla Dat)
         window.loadOdontogramaFromServer = function(patientId) {
             if (!patientId) return;
 
@@ -615,28 +616,14 @@ print <<'JS';
                             document.getElementById('odontograma-notas').value = data.notas;
                         }
 
-                        // Restaurar dientes en el SVG
-                        Object.keys(data).forEach(key => {
-                            if (key !== 'fecha' && key !== 'notas') {
-                                const toothId = key;
-                                const toothData = data[toothId];
-
-                                if (toothData && typeof toothData === 'object') {
-                                    // Restaurar superficies
-                                    Object.keys(toothData).forEach(surf => {
-                                        const condCode = toothData[surf];
-                                        if (condCode && typeof condCode === 'string') {
-                                            const condObj = window.ODONTO_CATALOG ? window.ODONTO_CATALOG[condCode] : null;
-                                            const category = condObj?.category || 'PENDING';
-                                            const state = category === 'PENDING' ? 'PENDING_TREATMENT' : 'EXISTING_CONDITION';
-                                            const color = condObj?.colorHex || (category === 'PENDING' ? '#FF3B30' : '#007AFF');
-                                            
-                                            window.applySurfaceCondition(toothId, surf, condCode, state, color);
-                                        }
-                                    });
-                                }
+                        if (typeof window.loadOdontogramState === 'function') {
+                            window.loadOdontogramState(data);
+                        } else {
+                            // Fallback de hidratación directa si la función no estuviera lista
+                            if (data.teeth) {
+                                window.odontogramState.teeth = data.teeth;
                             }
-                        });
+                        }
 
                         refreshSidebarFindings();
                     }

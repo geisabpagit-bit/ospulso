@@ -286,7 +286,7 @@ HTML
 
     # --- PROCESAMIENTO DEL HUB ODONTOLÓGICO ---
     my $ODONTO_FILE_PATH = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas.dat');
-    my $odonto_registros = -e $ODONTO_FILE_PATH ? leer_tabla($ODONTO_FILE_PATH, '\|') : [];
+    my $ODONTO_JSON_PATH = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas', "paciente_$d->{id_paciente}.json");
 
     my $odonto_fecha_act = 'Sin registros previos';
     my $odonto_notas = 'Sin observaciones clínicas registradas.';
@@ -304,6 +304,7 @@ HTML
         CROWN_REQ        => { nom => 'Corona Requerida',            cat => 'PENDING',  precio => 3500.00 },
         ENDO_REQ         => { nom => 'Endodoncia Indicada',         cat => 'PENDING',  precio => 2800.00 },
         EXO_REQ          => { nom => 'Exodoncia Requerida',         cat => 'PENDING',  precio => 1100.00 },
+        EXTRACTION_REQ   => { nom => 'Exodoncia Requerida',         cat => 'PENDING',  precio => 1100.00 },
         COMPOSITE        => { nom => 'Obturación con Resina',       cat => 'EXISTING', precio => 850.00 },
         AMALGAM          => { nom => 'Obturación con Amalgama',     cat => 'EXISTING', precio => 700.00 },
         CROWN_DONE       => { nom => 'Corona Existente',            cat => 'EXISTING', precio => 3500.00 },
@@ -327,72 +328,151 @@ HTML
         47 => 'Segundo Molar Inf. Der.',    48 => 'Tercer Molar Inf. Der.',
     );
 
-    foreach my $f (@$odonto_registros) {
-        if ($f->[0] eq $d->{id_paciente}) {
-            $odonto_fecha_act = $f->[2] if $f->[2];
-            $odonto_notas = $f->[3] if $f->[3];
+    # Prioridad 1: Leer JSON canónico atómico del paciente si existe
+    my $loaded_from_json = 0;
+    if (-e $ODONTO_JSON_PATH) {
+        my $json_raw = '';
+        if (open my $fh_j, '<', $ODONTO_JSON_PATH) {
+            local $/;
+            $json_raw = <$fh_j>;
+            close $fh_j;
+        }
+        my $patient_data = eval { decode_json($json_raw) };
+        if ($patient_data && ref($patient_data) eq 'HASH') {
+            $loaded_from_json = 1;
+            $odonto_fecha_act = $patient_data->{fechaLocal} || $patient_data->{updatedAt} || 'Recientemente';
+            $odonto_notas = $patient_data->{notas} if defined($patient_data->{notas}) && $patient_data->{notas} ne '';
 
-            for (my $i = 4; $i < @$f; $i++) {
-                if ($f->[$i] =~ /^(\d+)=(.+)$/) {
-                    my $tooth = $1;
-                    my $val_hash = eval { decode_json($2) } || {};
-                    $piezas_afectadas{$tooth} = 1;
-                    my $tooth_nom = $DENTAL_NAMES{$tooth} || "Pieza #$tooth";
+            my $teeth_map = $patient_data->{teeth} || {};
+            foreach my $tooth (sort keys %$teeth_map) {
+                my $t_data = $teeth_map->{$tooth};
+                next unless ref($t_data) eq 'HASH';
+                $piezas_afectadas{$tooth} = 1;
+                my $tooth_nom = $DENTAL_NAMES{$tooth} || "Pieza #$tooth";
 
-                    if ($val_hash->{absent}) {
+                if ($t_data->{status} && $t_data->{status} eq 'ABSENT' || $t_data->{absent}) {
+                    push @hallazgos_tabla, {
+                        pieza => $tooth,
+                        nombre => $tooth_nom,
+                        cara => 'Pieza Completa',
+                        diagnostico => 'Pieza Ausente ✕',
+                        categoria => 'EXISTING',
+                        costo => 0.00,
+                    };
+                    $count_existentes_hub++;
+                }
+
+                if ($t_data->{status} && $t_data->{status} eq 'EXTRACTION_REQUIRED') {
+                    push @hallazgos_tabla, {
+                        pieza => $tooth,
+                        nombre => $tooth_nom,
+                        cara => 'Pieza Completa',
+                        diagnostico => 'Exodoncia Requerida',
+                        categoria => 'PENDING',
+                        costo => 1100.00,
+                    };
+                    $total_presupuesto_hub += 1100.00;
+                    $count_pendientes_hub++;
+                }
+
+                if ($t_data->{surfaces} && ref($t_data->{surfaces}) eq 'HASH') {
+                    foreach my $surf (keys %{$t_data->{surfaces}}) {
+                        my $item = $t_data->{surfaces}->{$surf};
+                        my $code = ref($item) eq 'HASH' ? ($item->{code} || 'DESCONOCIDO') : $item;
+                        my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
+                        my $costo = (ref($item) eq 'HASH' && defined($item->{price})) ? $item->{price} : $info->{precio};
+
+                        if ($info->{cat} eq 'PENDING') {
+                            $total_presupuesto_hub += $costo;
+                            $count_pendientes_hub++;
+                        } else {
+                            $count_existentes_hub++;
+                        }
+
                         push @hallazgos_tabla, {
                             pieza => $tooth,
                             nombre => $tooth_nom,
-                            cara => 'Pieza Completa',
-                            diagnostico => 'Pieza Ausente ✕',
-                            categoria => 'EXISTING',
-                            costo => 0.00,
+                            cara => ucfirst($surf),
+                            diagnostico => $info->{nom},
+                            categoria => $info->{cat},
+                            costo => $costo,
                         };
-                        $count_existentes_hub++;
                     }
+                }
+            }
+        }
+    }
 
-                    if ($val_hash->{surfaces} && ref($val_hash->{surfaces}) eq 'HASH') {
-                        foreach my $surf (keys %{$val_hash->{surfaces}}) {
-                            my $item = $val_hash->{surfaces}->{$surf};
-                            my $code = ref($item) eq 'HASH' ? ($item->{code} || 'DESCONOCIDO') : $item;
-                            my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
-                            my $costo = (ref($item) eq 'HASH' && defined($item->{price})) ? $item->{price} : $info->{precio};
-                            
-                            if ($info->{cat} eq 'PENDING') {
-                                $total_presupuesto_hub += $costo;
-                                $count_pendientes_hub++;
-                            } else {
-                                $count_existentes_hub++;
-                            }
+    # Prioridad 2: Fallback a dat/odontogramas.dat si no se cargó de JSON
+    if (!$loaded_from_json) {
+        my $odonto_registros = -e $ODONTO_FILE_PATH ? leer_tabla($ODONTO_FILE_PATH, '\|') : [];
+        foreach my $f (@$odonto_registros) {
+            if ($f->[0] eq $d->{id_paciente}) {
+                $odonto_fecha_act = $f->[2] if $f->[2];
+                $odonto_notas = $f->[3] if $f->[3];
 
+                for (my $i = 4; $i < @$f; $i++) {
+                    if ($f->[$i] =~ /^(\d+)=(.+)$/) {
+                        my $tooth = $1;
+                        my $val_hash = eval { decode_json($2) } || {};
+                        $piezas_afectadas{$tooth} = 1;
+                        my $tooth_nom = $DENTAL_NAMES{$tooth} || "Pieza #$tooth";
+
+                        if ($val_hash->{status} && $val_hash->{status} eq 'ABSENT' || $val_hash->{absent}) {
                             push @hallazgos_tabla, {
                                 pieza => $tooth,
                                 nombre => $tooth_nom,
-                                cara => ucfirst($surf),
-                                diagnostico => $info->{nom},
-                                categoria => $info->{cat},
-                                costo => $costo,
+                                cara => 'Pieza Completa',
+                                diagnostico => 'Pieza Ausente ✕',
+                                categoria => 'EXISTING',
+                                costo => 0.00,
                             };
+                            $count_existentes_hub++;
                         }
-                    } elsif (ref($val_hash) eq 'HASH') {
-                        foreach my $surf (keys %$val_hash) {
-                            next if $surf eq 'absent' || $surf eq 'surfaces';
-                            my $code = $val_hash->{$surf};
-                            my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
-                            if ($info->{cat} eq 'PENDING') {
-                                $total_presupuesto_hub += $info->{precio};
-                                $count_pendientes_hub++;
-                            } else {
-                                $count_existentes_hub++;
+
+                        if ($val_hash->{surfaces} && ref($val_hash->{surfaces}) eq 'HASH') {
+                            foreach my $surf (keys %{$val_hash->{surfaces}}) {
+                                my $item = $val_hash->{surfaces}->{$surf};
+                                my $code = ref($item) eq 'HASH' ? ($item->{code} || 'DESCONOCIDO') : $item;
+                                my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
+                                my $costo = (ref($item) eq 'HASH' && defined($item->{price})) ? $item->{price} : $info->{precio};
+                                
+                                if ($info->{cat} eq 'PENDING') {
+                                    $total_presupuesto_hub += $costo;
+                                    $count_pendientes_hub++;
+                                } else {
+                                    $count_existentes_hub++;
+                                }
+
+                                push @hallazgos_tabla, {
+                                    pieza => $tooth,
+                                    nombre => $tooth_nom,
+                                    cara => ucfirst($surf),
+                                    diagnostico => $info->{nom},
+                                    categoria => $info->{cat},
+                                    costo => $costo,
+                                };
                             }
-                            push @hallazgos_tabla, {
-                                pieza => $tooth,
-                                nombre => $tooth_nom,
-                                cara => ucfirst($surf),
-                                diagnostico => $info->{nom},
-                                categoria => $info->{cat},
-                                costo => $info->{precio},
-                            };
+                        } elsif (ref($val_hash) eq 'HASH') {
+                            foreach my $surf (keys %$val_hash) {
+                                next if $surf eq 'absent' || $surf eq 'surfaces' || $surf eq 'status';
+                                my $code = $val_hash->{$surf};
+                                my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
+                                if ($info->{cat} eq 'PENDING') {
+                                    $total_presupuesto_hub += $info->{precio};
+                                    $count_pendientes_hub++;
+                                } else {
+                                    $count_existentes_hub++;
+                                }
+                                push @hallazgos_tabla, {
+                                    pieza => $tooth,
+                                    nombre => $tooth_nom,
+                                    cara => ucfirst($surf),
+                                    diagnostico => $info->{nom},
+                                    categoria => $info->{cat},
+                                    costo => $info->{precio},
+                                };
+                            }
                         }
                     }
                 }
