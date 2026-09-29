@@ -404,42 +404,138 @@ HTML
     my $presupuesto_fmt = sprintf("%.2f", $total_presupuesto_hub);
 
     print <<HTML;
-        <!-- 6: ODONTOGRAMA (HUB EJECUTIVO) -->
+        <!-- 6: ODONTOGRAMA (HUB EJECUTIVO FULL-WIDTH) -->
         <section class="sdm-tab-sec d-none" id="tab6">
-            <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+            <!-- NIVEL 1: ENCABEZADO PRINCIPAL Y ACCIONES -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-1">
                         <span class="badge bg-teal text-white rounded-pill px-3 py-1 fw-bold" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">FDI / ISO 3950</span>
-                        <span class="badge bg-navy text-white rounded-pill px-3 py-1 fw-bold">32 Piezas Permanentes</span>
+                        <span class="badge bg-navy text-white rounded-pill px-3 py-1 fw-bold">Dentici&oacute;n Permanente (32 Piezas)</span>
                     </div>
                     <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Hub Cl&iacute;nico Odontol&oacute;gico</h3>
-                    <p class="text-muted small fw-bold mb-0">DIAGNÓSTICO DENTAL, HALLAZGOS Y PLAN DE TRATAMIENTO</p>
+                    <p class="text-muted small fw-bold mb-0">PANEL EJECUTIVO DE HALLAZGOS DENTALES Y PLAN DE TRATAMIENTO</p>
                 </div>
-                <div class="d-flex gap-2 p-1 bg-transparent flex-wrap">
-                    <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-medentia btn-sm d-flex align-items-center px-4 shadow-sm">
-                        <i class="bi bi-display me-2" style="color: var(--md-cyan-ia);"></i>Lanzar OSOdontograma Viewer
+                <div class="d-flex gap-2 p-1 bg-transparent flex-wrap align-items-center">
+                    <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-medentia px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2">
+                        <i class="bi bi-display fs-5" style="color: var(--md-cyan-ia);"></i>
+                        <span>Lanzar OSOdontograma Viewer Pro</span>
                     </a>
                 </div>
             </div>
 
-            <!-- Bento Grid para el Hub Odontológico (Idéntico a Rayos X) -->
-            <div class="row g-4">
-                <!-- Columna Izquierda: Tabla DataTables de Hallazgos y Procedimientos -->
-                <div class="col-lg-8">
-                    <h5 class="fw-black mt-1 mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-clipboard2-pulse me-2" style="color: var(--md-teal-clinical);"></i>Hallazgos y Procedimientos Cl&iacute;nicos</h5>
-                    <div class="table-responsive card-medentia-aura p-4 h-100 border-0">
-                        <table class="table table-hover align-middle mb-0" id="tablaOdontoHub" style="width:100%">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-3 border-0 rounded-start-3">Pieza FDI</th>
-                                    <th class="border-0">Diente / Familia</th>
-                                    <th class="border-0">Cara / Zona</th>
-                                    <th class="border-0">Diagn&oacute;stico</th>
-                                    <th class="border-0">Estado</th>
-                                    <th class="border-0 text-end pe-3 rounded-end-3">Costo Sugerido</th>
-                                </tr>
-                            </thead>
-                            <tbody class="small">
+            <!-- NIVEL 2: FILA DE KPIs Y MÉTRICAS CLÍNICAS (4 CARDS HORIZONTALES) -->
+            <div class="row g-3 mb-4">
+                <!-- Card 1: Presupuesto Estimado -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card-medentia-aura border-0 p-4 h-100 position-relative overflow-hidden">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="small fw-bold text-muted text-uppercase">Presupuesto Estimado</span>
+                            <div class="p-2 bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                <i class="bi bi-wallet2 fs-5"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-black text-danger m-0 mb-1">\\\$$presupuesto_fmt <span class="fs-6 text-muted">MXN</span></h3>
+                        <span class="small text-muted fw-bold">Tratamientos pendientes de cobro</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Patologías Activas / Pendientes -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card-medentia-aura border-0 p-4 h-100 position-relative overflow-hidden">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="small fw-bold text-muted text-uppercase">Patolog&iacute;as Activas</span>
+                            <div class="p-2 bg-warning-subtle text-warning-emphasis rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                <i class="bi bi-exclamation-triangle-fill fs-5 text-warning"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-black m-0 mb-1" style="color: var(--md-blue-deep);">$count_pendientes_hub <span class="fs-6 text-muted">Pendientes</span></h3>
+                        <span class="small text-muted fw-bold">Caries, fracturas, endodoncias req.</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Tratamientos Previos / Existentes -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card-medentia-aura border-0 p-4 h-100 position-relative overflow-hidden">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="small fw-bold text-muted text-uppercase">Tratamientos Previos</span>
+                            <div class="p-2 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                <i class="bi bi-shield-check fs-5"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-black text-primary m-0 mb-1">$count_existentes_hub <span class="fs-6 text-muted">Realizados</span></h3>
+                        <span class="small text-muted fw-bold">Resinas, coronas, implantes previos</span>
+                    </div>
+                </div>
+
+                <!-- Card 4: Cobertura / Salud Bucal -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card-medentia-aura border-0 p-4 h-100 position-relative overflow-hidden">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="small fw-bold text-muted text-uppercase">Piezas Afectadas</span>
+                            <div class="p-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(25, 183, 165, 0.15); color: #19B7A5;">
+                                <i class="bi bi-pie-chart-fill fs-5"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-black m-0 mb-1" style="color: var(--md-blue-deep);">$total_piezas_afectadas <span class="fs-6 text-muted">/ 32</span></h3>
+                        <span class="small text-muted fw-bold">&Uacute;ltima act: $odonto_fecha_act</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NIVEL 3: BANNER DE OBSERVACIONES CLÍNICAS -->
+            <div class="card-medentia-aura border-0 p-3 mb-4 d-flex flex-row align-items-center justify-content-between flex-wrap gap-3" style="background: rgba(248, 250, 252, 0.9);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-2 bg-white rounded-circle shadow-xs" style="color: var(--md-teal-clinical, #19B7A5);">
+                        <i class="bi bi-chat-left-quote-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <span class="small fw-bold text-muted text-uppercase d-block lh-1 mb-1">Observaciones del Odont&oacute;logo Tratante:</span>
+                        <span class="fw-bold text-dark fs-6">$odonto_notas</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-white text-muted border px-3 py-2 fw-semibold">
+                        <i class="bi bi-clock-history me-1 text-teal" style="color: var(--md-teal-clinical, #19B7A5);"></i>Sincronizado: $odonto_fecha_act
+                    </span>
+                    <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-xs btn-outline-secondary rounded-pill px-3 fw-bold">
+                        <i class="bi bi-pencil-square me-1"></i>Editar Notas
+                    </a>
+                </div>
+            </div>
+
+            <!-- NIVEL 4: DATATABLE AL 100% DEL ANCHO DISPONIBLE -->
+            <div class="card-medentia-aura p-4 border-0 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <div>
+                        <h5 class="fw-black m-0" style="color: var(--md-blue-deep);">
+                            <i class="bi bi-clipboard2-pulse me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Detalle Cl&iacute;nico de Hallazgos y Procedimientos
+                        </h5>
+                        <p class="text-muted small fw-bold mb-0">REGISTRO COMPLETO POR CUADRANTE, DIENTE Y SUPERFICIE ANAT&Oacute;MICA</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-light text-navy border px-3 py-2 fw-bold">
+                            Total Registros: <span class="text-teal" style="color: var(--md-teal-clinical, #19B7A5); font-weight: 900;">@{[ scalar @hallazgos_tabla ]}</span>
+                        </span>
+                        <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-outline-medentia btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-1">
+                            <i class="bi bi-plus-circle"></i>Nuevo Hallazgo
+                        </a>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="tablaOdontoHub" style="width:100%">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3 border-0 rounded-start-3" style="width: 100px;">Pieza FDI</th>
+                                <th class="border-0">Diente y Familia Anat&oacute;mica</th>
+                                <th class="border-0" style="width: 140px;">Cara / Zona</th>
+                                <th class="border-0">Diagn&oacute;stico / Condici&oacute;n</th>
+                                <th class="border-0 text-center" style="width: 130px;">Estado Cl&iacute;nico</th>
+                                <th class="border-0 text-end pe-3 rounded-end-3" style="width: 150px;">Importe Sugerido</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
 HTML
     if (@hallazgos_tabla) {
         foreach my $h (@hallazgos_tabla) {
@@ -452,68 +548,42 @@ HTML
             my $costo_class = $is_pending ? 'text-danger fw-black' : 'text-primary fw-bold';
 
             print <<HTML;
-                                <tr>
-                                    <td class="ps-3 fw-black"><span class="badge bg-light border text-navy">#$h->{pieza}</span></td>
-                                    <td class="fw-bold text-dark">$h->{nombre}</td>
-                                    <td><span class="badge bg-secondary-subtle text-secondary">$h->{cara}</span></td>
-                                    <td class="fw-bold">$h->{diagnostico}</td>
-                                    <td>$badge_estado</td>
-                                    <td class="text-end pe-3 $costo_class">\\\$$costo_fmt</td>
-                                </tr>
+                            <tr>
+                                <td class="ps-3 fw-black">
+                                    <span class="badge bg-light border text-navy fs-6 px-3 py-1">#$h->{pieza}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">$h->{nombre}</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">$h->{cara}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">$h->{diagnostico}</div>
+                                </td>
+                                <td class="text-center">$badge_estado</td>
+                                <td class="text-end pe-3 $costo_class fs-6">\\\$$costo_fmt <span class="small text-muted fw-normal">MXN</span></td>
+                            </tr>
 HTML
         }
+    } else {
+        print <<HTML;
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="bi bi-shield-check display-4 d-block mb-3 opacity-25" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                                    <h6 class="fw-bold text-dark mb-1">Sin hallazgos cl&iacute;nicos registrados</h6>
+                                    <p class="small text-muted mb-3">La dentici&oacute;n permanente del paciente no tiene patolog&iacute;as ni restauraciones registradas a&uacute;n.</p>
+                                    <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-medentia btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                                        <i class="bi bi-plus-circle me-1"></i>Registrar Diagn&oacute;stico en OSOdontograma Viewer
+                                    </a>
+                                </td>
+                            </tr>
+HTML
     }
 
     print <<HTML;
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Columna Derecha: Tarjeta Resumen Ejecutivo y Presupuesto Odontológico -->
-                <div class="col-lg-4">
-                    <div class="card-medentia-aura p-4 border-0 h-100 d-flex flex-column justify-content-between">
-                        <div>
-                            <h6 class="fw-black mb-4 uppercase" style="color: var(--md-blue-deep); font-size: 0.8rem; letter-spacing: 1px;">Presupuesto Odontol&oacute;gico</h6>
-                            
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <h3 class="fw-black m-0 text-danger">\\\$$presupuesto_fmt <span class="fs-6 text-muted">MXN</span></h3>
-                                <i class="bi bi-wallet2 fs-3" style="color: var(--md-teal-clinical);"></i>
-                            </div>
-                            <p class="small text-muted fw-bold mb-4">Total estimado en tratamientos pendientes</p>
-
-                            <ul class="list-group list-group-flush small mb-4">
-                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-2">
-                                    <span><i class="bi bi-circle-fill text-danger me-2" style="font-size: 0.5rem;"></i>Patolog&iacute;as / Pendientes</span>
-                                    <span class="fw-black text-danger">$count_pendientes_hub</span>
-                                </li>
-                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-2">
-                                    <span><i class="bi bi-circle-fill text-primary me-2" style="font-size: 0.5rem;"></i>Tratamientos Existentes</span>
-                                    <span class="fw-bold text-primary">$count_existentes_hub</span>
-                                </li>
-                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-2">
-                                    <span><i class="bi bi-circle-fill text-teal me-2" style="font-size: 0.5rem;"></i>Piezas Diagnosticadas</span>
-                                    <span class="fw-bold text-dark">$total_piezas_afectadas / 32</span>
-                                </li>
-                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-2">
-                                    <span><i class="bi bi-clock-history text-muted me-2" style="font-size: 0.75rem;"></i>&Uacute;ltima actualizaci&oacute;n</span>
-                                    <span class="fw-bold text-muted">$odonto_fecha_act</span>
-                                </li>
-                            </ul>
-
-                            <div class="p-3 bg-light rounded-4 border mb-4">
-                                <label class="small text-muted fw-bold d-block mb-1"><i class="bi bi-journal-text me-1 text-teal" style="color: var(--md-teal-clinical);"></i>Observaciones Cl&iacute;nicas:</label>
-                                <p class="small text-dark mb-0 fw-bold">$odonto_notas</p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-medentia w-100 rounded-pill py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
-                                <i class="bi bi-box-arrow-up-right"></i>
-                                <span>Abrir OSOdontograma Viewer</span>
-                            </a>
-                        </div>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>

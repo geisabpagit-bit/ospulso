@@ -60,9 +60,13 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 
 ---
 
-### 2.6 OSOdontograma Viewer Pro & Hub Odontológico (Arquitectura Standalone)
+### 2.6 OSOdontograma Viewer Pro & Hub Odontológico (Arquitectura Standalone y Hub Refactorizado)
 - **Patrón PACS/Viewer**: Al igual que el Visor de Rayos X (`render_visor_medico.pl`), el Odontograma se desacopla del flujo embebido del expediente:
-  - **Hub Odontológico (`#tab6` en `views/render_expediente_clinico.pl`)**: Vista ejecutiva Bento Grid con tabla DataTables de hallazgos (`#tablaOdontoHub`), tarjetas de KPI con presupuesto total en $MXN y botón launcher `"Lanzar OSOdontograma Viewer"`.
+  - **Hub Odontológico (`#tab6` en `views/render_expediente_clinico.pl`)**: Layout ejecutivo optimizado a **100% del ancho disponible** con jerarquía visual de 4 niveles:
+    1. **Nivel 1 (Hero Header)**: Título clínico, badges FDI/ISO 3950 y CTA principal *"Lanzar OSOdontograma Viewer Pro"*.
+    2. **Nivel 2 (Bento KPI Grid Horizontal)**: 4 métricas críticas en fila (Presupuesto Estimado en rojo clínico, Patologías Activas en ámbar, Tratamientos Existentes en azul, Piezas Afectadas / 32 en teal).
+    3. **Nivel 3 (Observaciones del Odontólogo)**: Callout banner con estilo glassmorphism para notas diagnósticas y fecha de última sincronización.
+    4. **Nivel 4 (DataTables Full-Width)**: Tabla de hallazgos `#tablaOdontoHub` al **100% de ancho** (`col-12`) con columnas optimizadas (Pieza FDI, Familia Anatómica, Superficie, Diagnóstico, Estado, Costo $MXN), botones de exportación (Copy/Excel/PDF/Print) y empty-state interactivo.
   - **OSOdontograma Viewer (`views/render_visor_odontograma.pl`)**: Visor médico a pantalla completa (`100vw × 100vh`) con cabecera corporativa MedentIA, HUD flotante de zoom, lienzo anatómico espacioso sin scroll horizontal forzado, panel lateral con desglose en tiempo real y sincronización directa con `api/odontograma_api.pl`.
 
 ---
