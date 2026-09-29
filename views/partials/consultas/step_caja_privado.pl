@@ -5,6 +5,9 @@ use utf8;
 sub render_step_caja_privado {
     my ($paciente, $id_cita) = @_;
     $id_cita //= '';
+    my $id_espe = $paciente->{id_espe_medico} // '0';
+    my $espe_nombre = $paciente->{espe_nombre_medico} // 'Medicina General';
+    my $is_odontologia = ($id_espe eq '100' || $espe_nombre =~ /Odontolog/i) ? 1 : 0;
     
     # Obtener todas las cotizaciones del paciente para pasarlas a JSON
     my $id_p = $paciente->{id_paciente} || '';
@@ -162,6 +165,36 @@ sub render_step_caja_privado {
         saldo_pendiente => $saldo_pendiente
     });
     
+    my $banner_odonto_caja_html = '';
+    if ($is_odontologia) {
+        $banner_odonto_caja_html = qq{
+            <!-- Banner Módulo Dental: Odontograma y Procedimientos Presupuestados -->
+            <div id="caja-odonto-banner" class="card border-0 rounded-4 p-3 mb-4 shadow-sm" style="background: linear-gradient(135deg, rgba(25, 183, 165, 0.08), rgba(10, 42, 102, 0.03)); border: 1px solid rgba(25, 183, 165, 0.3) !important;">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-circle bg-white shadow-xs d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; color: var(--md-teal-clinical, #19B7A5); flex-shrink: 0;">
+                            <i class="bi bi-journal-medical fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-teal text-white rounded-pill px-2 py-0 small fw-bold" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">Especialidad Odontolog&iacute;a</span>
+                                <h6 class="fw-black text-navy mb-0">Tratamientos Presupuestados del Odontograma</h6>
+                            </div>
+                            <p class="text-muted small mb-0" id="odonto-caja-status-text">
+                                Verificando odontograma asignado en el Paso 3...
+                            </p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold shadow-xs" id="btn-cargar-odonto-caja" onclick="cargarTratamientosOdontoACaja()" style="border: 1px solid var(--md-teal-clinical, #19B7A5); color: var(--md-teal-clinical, #19B7A5); display: none;">
+                            <i class="bi bi-cart-plus me-1"></i> Cargar Tratamientos a Cobrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        };
+    }
+
     return qq{
         <div class="wizard-panel" id="step-panel-6">
             <input type="hidden" name="caja_items_json" id="f_caja_items_json" value="[]">
@@ -169,6 +202,8 @@ sub render_step_caja_privado {
             <h3 class="mb-4" style="color: var(--md-blue-deep); font-weight: 800;">
                 <i class="bi bi-wallet2 me-2" style="color: var(--md-teal-clinical);"></i>Caja y Registro de Pago
             </h3>
+            
+            $banner_odonto_caja_html
             
             <div id="caja-no-cotizacion" class="text-center py-5 border rounded-4 bg-light mb-4">
                 <i class="bi bi-info-circle text-muted fs-1 mb-3 d-block"></i>
@@ -687,6 +722,7 @@ sub render_step_caja_privado {
             }
             
             toggleCitaWorkflow();
+            verificarOdontoParaCaja();
         }
         
         function actualizarMontoPago() {
@@ -741,6 +777,114 @@ sub render_step_caja_privado {
             } else {
                 noReqCard.style.display = 'block';
                 reqCard.style.display = 'none';
+            }
+        }
+
+        function verificarOdontoParaCaja() {
+            const banner = document.getElementById('caja-odonto-banner');
+            if (!banner) return;
+            const statusTxt = document.getElementById('odonto-caja-status-text');
+            const btnCargar = document.getElementById('btn-cargar-odonto-caja');
+            
+            const chk = document.querySelector('.odonto-chk:checked');
+            if (chk) {
+                const alias = chk.getAttribute('data-alias') || 'Odontograma';
+                const importe = parseFloat(chk.getAttribute('data-importe') || '0');
+                const piezas = chk.getAttribute('data-piezas') || '0';
+                
+                if (statusTxt) {
+                    statusTxt.innerHTML = `Odontograma asignado: <b>\${alias}</b> (\${piezas} piezas) &bull; Presupuesto pendiente: <b class="text-danger">\\\$\${importe.toFixed(2)} MXN</b>.`;
+                }
+                
+                const yaCargados = carritoConsulta && carritoConsulta.some(c => c.id && c.id.startsWith('OD-T-'));
+                if (btnCargar) {
+                    btnCargar.style.display = 'inline-block';
+                    if (yaCargados) {
+                        btnCargar.className = 'btn btn-success btn-sm rounded-pill px-3 fw-bold';
+                        btnCargar.innerHTML = '<i class="bi bi-check-circle me-1"></i> Tratamientos en Cuenta';
+                        btnCargar.disabled = true;
+                    } else if (importe > 0) {
+                        btnCargar.className = 'btn btn-sm rounded-pill px-3 fw-bold shadow-xs';
+                        btnCargar.style.border = '1px solid var(--md-teal-clinical, #19B7A5)';
+                        btnCargar.style.color = 'var(--md-teal-clinical, #19B7A5)';
+                        btnCargar.innerHTML = '<i class="bi bi-cart-plus me-1"></i> Cargar a Conceptos a Cobrar';
+                        btnCargar.disabled = false;
+                    } else {
+                        btnCargar.style.display = 'none';
+                    }
+                }
+            } else {
+                if (statusTxt) {
+                    statusTxt.innerHTML = 'Sin odontograma asignado en el Paso 3. Puede registrar conceptos manuales o continuar.';
+                }
+                if (btnCargar) btnCargar.style.display = 'none';
+            }
+        }
+
+        async function cargarTratamientosOdontoACaja() {
+            const chk = document.querySelector('.odonto-chk:checked');
+            if (!chk) {
+                if (typeof Swal !== 'undefined') Swal.fire('Aviso', 'No hay ningún odontograma seleccionado en el Paso 3.', 'info');
+                return;
+            }
+            const idOdonto = chk.value;
+            const pacId = '$id_p';
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Cargando tratamientos dentales...',
+                    didOpen: () => { Swal.showLoading(); }
+                });
+            }
+
+            try {
+                const res = await fetch('../api/odontograma_api.pl', {
+                    method: 'POST',
+                    body: new URLSearchParams({ accion: 'get_treatments', id_paciente: pacId, id_odonto: idOdonto }),
+                    credentials: 'same-origin'
+                });
+                const data = await res.json();
+                if (typeof Swal !== 'undefined') Swal.close();
+
+                if (data.ok && data.items && data.items.length > 0) {
+                    // Remover consulta base general si se cargan tratamientos dentales específicos
+                    carritoConsulta = carritoConsulta.filter(c => c.id !== 'CONS-BASE');
+
+                    let agregados = 0;
+                    data.items.forEach(it => {
+                        const existe = carritoConsulta.find(c => c.id === it.id);
+                        if (!existe) {
+                            carritoConsulta.push({
+                                id: it.id,
+                                nombre: it.nombre,
+                                precio: parseFloat(it.precio),
+                                cantidad: parseInt(it.cantidad) || 1
+                            });
+                            agregados++;
+                        }
+                    });
+
+                    cargarCajaDesdeRegistro();
+                    verificarOdontoParaCaja();
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Tratamientos Agregados a Caja!',
+                            text: `Se cargaron \${agregados} tratamientos del odontograma (\${data.alias}) a los conceptos a cobrar.`,
+                            timer: 2200,
+                            showConfirmButton: false
+                        });
+                    }
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Información', 'Este odontograma no contiene tratamientos presupuestados pendientes.', 'info');
+                    }
+                }
+            } catch(e) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Error', 'No se pudieron consultar los tratamientos: ' + e.message, 'error');
+                }
             }
         }
         

@@ -463,6 +463,75 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
     }
 }
 
+# 3.6 Finalizar Odontograma asignado si aplica (Especialidad Odontología)
+my $odonto_sel = $q->param('odonto_estudios_seleccionados') || $payload{odonto_estudios_seleccionados} || '';
+my $odonto_finalizar = $q->param('odonto_finalizar_al_cerrar') // $payload{odonto_finalizar_al_cerrar} // '0';
+my $espe_check = $payload{especialidad} // $payload{espe_nombre_medico} // $session_data->{rol} // '';
+my $es_odontologia = ($espe_check =~ /odontolog/i || ($payload{id_espe_medico} && $payload{id_espe_medico} eq '100')) ? 1 : 0;
+
+if ($odonto_sel && ($odonto_finalizar eq '1' || $es_odontologia)) {
+    my @target_odontos = split /\s*,\s*/, $odonto_sel;
+    my %targets = map { $_ => 1 } grep { $_ ne '' } @target_odontos;
+    
+    if (keys %targets) {
+        my $odonto_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat', 'odontogramas');
+        my $json_file  = File::Spec->catfile($odonto_dir, "paciente_${id_paciente}.json");
+        my $dat_file   = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas.dat');
+        
+        my $modificado = 0;
+        my $perfil = undef;
+        
+        if (-e $json_file && open my $fh_j, '<:encoding(UTF-8)', $json_file) {
+            flock($fh_j, LOCK_SH);
+            local $/;
+            my $content = <$fh_j>;
+            close $fh_j;
+            eval { $perfil = decode_json(encode_utf8($content)); };
+        }
+        
+        if ($perfil && ref($perfil->{odontogramas}) eq 'ARRAY') {
+            foreach my $od (@{ $perfil->{odontogramas} }) {
+                if ($targets{$od->{id_odonto}}) {
+                    $od->{estado} = 'Finalizado';
+                    $od->{fecha_finalizado} = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year+1900, $mon+1, $mday, $hour, $min, $sec);
+                    $modificado = 1;
+                }
+            }
+            if ($modificado) {
+                if (open my $fh_jw, '>:encoding(UTF-8)', $json_file) {
+                    flock($fh_jw, LOCK_EX);
+                    print $fh_jw JSON->new->utf8(0)->pretty(1)->encode($perfil);
+                    flock($fh_jw, LOCK_UN);
+                    close $fh_jw;
+                }
+            }
+        }
+        
+        # Sincronizar estado en dat/odontogramas.dat si existe
+        if (-e $dat_file && open my $fh_d, '<:encoding(UTF-8)', $dat_file) {
+            my @d_lines = <$fh_d>;
+            close $fh_d;
+            my $d_cab = shift @d_lines;
+            chomp $d_cab if defined $d_cab;
+            my @nuevas_d;
+            my $d_mod = 0;
+            foreach my $dl (@d_lines) {
+                chomp $dl;
+                my @dc = split /\|/, $dl, -1;
+                if ($dc[0] eq $id_paciente && $targets{$dc[1]}) {
+                    $dc[3] = ($dc[3] // '') . " [Finalizado en Consulta $id_consulta]";
+                    $dl = join('|', @dc);
+                    $d_mod = 1;
+                }
+                push @nuevas_d, $dl;
+            }
+            if ($d_mod) {
+                utils::db_manager::actualizar_archivo($dat_file, $d_cab, \@nuevas_d);
+            }
+        }
+    }
+}
+
 # 4. Limpiar borrador de autosave
 my $draft_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consulta_draft.dat');
 my $id_draft = "DRAFT-$id_paciente"; 

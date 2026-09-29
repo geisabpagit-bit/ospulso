@@ -80,11 +80,36 @@ sub render_step_exploracion {
     # Construir listado HTML de odontogramas
     my $odonto_html = '';
     if (@odontogramas_pac) {
-        $odonto_html .= qq{
-            <div class="col-12 mt-4">
+        my $header_extra = '';
+        if ($is_odontologia) {
+            $header_extra = qq{
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                    <div>
+                        <h5 style="color: var(--md-teal-clinical); m-0">
+                            <i class="bi bi-journal-medical me-2"></i>Odontogramas Cl&iacute;nicos Disponibles (Planes y Detalle Anat&oacute;mico)
+                        </h5>
+                        <small class="text-muted">Asigne el odontograma para la consulta o cree una copia de evoluci&oacute;n para registrar el procedimiento del d&iacute;a.</small>
+                    </div>
+                    <div class="form-check form-switch bg-light px-3 py-2 rounded-pill border">
+                        <input class="form-check-input ms-0 me-2" type="checkbox" name="odonto_finalizar_al_cerrar" id="odonto_finalizar_al_cerrar" value="1" checked>
+                        <label class="form-check-label small fw-bold text-navy" for="odonto_finalizar_al_cerrar">
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>Finalizar odontograma al cerrar consulta
+                        </label>
+                    </div>
+                </div>
+            };
+        } else {
+            $header_extra = qq{
                 <h5 style="color: var(--md-teal-clinical); border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px;">
                     <i class="bi bi-journal-medical me-2"></i>Odontogramas Cl&iacute;nicos Disponibles (Planes y Detalle Anat&oacute;mico)
                 </h5>
+            };
+        }
+
+        my $th_visor_width = $is_odontologia ? '140px' : '80px';
+        $odonto_html .= qq{
+            <div class="col-12 mt-4">
+                $header_extra
                 <div class="table-responsive card-medentia-aura border-0 p-3 shadow-sm bg-white rounded-4">
                     <table class="table table-hover align-middle mb-0" id="tablaConsultaOdontogramas" style="width:100%">
                         <thead class="table-light">
@@ -94,7 +119,7 @@ sub render_step_exploracion {
                                 <th class="border-0" style="width: 100px;">Fecha</th>
                                 <th class="border-0" style="width: 90px;">Estado</th>
                                 <th class="border-0">Descripci&oacute;n / Alias</th>
-                                <th class="border-0 text-end pe-3 rounded-end-3" style="width: 80px;">Visor</th>
+                                <th class="border-0 text-end pe-3 rounded-end-3" style="width: $th_visor_width;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="small">
@@ -121,6 +146,15 @@ sub render_step_exploracion {
             $safe_alias =~ s/"/\\"/g;
             $safe_alias =~ s/'/\\'/g;
 
+            my $btn_evolucion = '';
+            if ($is_odontologia) {
+                $btn_evolucion = qq{
+                    <button type="button" class="btn btn-sm btn-outline-teal rounded-pill px-2 py-1 shadow-xs" style="font-size: 0.72rem; font-weight: 700; border-color: var(--md-teal-clinical, #19B7A5); color: var(--md-teal-clinical, #19B7A5);" title="Crear Copia para Evolución Clínica (Antes y Después)" onclick="crearEvolucionOdonto('$id_odonto', '$safe_alias')">
+                        <i class="bi bi-copy me-1"></i>Evoluci&oacute;n
+                    </button>
+                };
+            }
+
             $odonto_html .= qq{
                             <tr>
                                 <td class="ps-3 text-center">
@@ -144,7 +178,10 @@ sub render_step_exploracion {
                                     </div>
                                 </td>
                                 <td class="text-end pe-3">
-                                    <a href="render_visor_odontograma.pl?id=$id_paciente&id_odonto=$id_odonto" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle" style="width: 32px; height: 32px; padding: 0; line-height: 30px; display: inline-flex; align-items: center; justify-content: center;" title="Abrir Visor de Odontograma"><i class="bi bi-box-arrow-up-right"></i></a>
+                                    <div class="d-flex align-items-center justify-content-end gap-1">
+                                        $btn_evolucion
+                                        <a href="render_visor_odontograma.pl?id=$id_paciente&id_odonto=$id_odonto" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle" style="width: 30px; height: 30px; padding: 0; line-height: 28px; display: inline-flex; align-items: center; justify-content: center;" title="Abrir Visor de Odontograma"><i class="bi bi-box-arrow-up-right"></i></a>
+                                    </div>
                                 </td>
                             </tr>
             };
@@ -158,6 +195,8 @@ sub render_step_exploracion {
 
             <!-- Inicialización de DataTables e integración JS -->
             <script>
+                window.PACIENTE_ID_ODONTO = '$id_paciente';
+
                 \$(document).ready(function() {
                     if (!\$.fn.DataTable.isDataTable('#tablaConsultaOdontogramas')) {
                         \$('#tablaConsultaOdontogramas').DataTable({
@@ -191,6 +230,136 @@ sub render_step_exploracion {
                     }
 
                     textarea.dispatchEvent(new Event('input'));
+
+                    // Disparar sincronización con Caja si existe
+                    if (typeof verificarOdontoParaCaja === 'function') {
+                        verificarOdontoParaCaja();
+                    }
+                }
+
+                async function crearEvolucionOdonto(idFuente, aliasFuente) {
+                    if (typeof Swal === 'undefined') {
+                        alert('SweetAlert2 no disponible');
+                        return;
+                    }
+
+                    const { value: nuevoAlias } = await Swal.fire({
+                        title: 'Crear Evolución Clínica',
+                        html: `Se creará una copia de <b>\${aliasFuente || 'Odontograma Base'}</b> para registrar los procedimientos realizados hoy.<br><small class="text-muted">El odontograma inicial se conservará intacto como diagnóstico previo (Antes).</small>`,
+                        input: 'text',
+                        inputValue: 'Evolución - ' + new Date().toLocaleDateString('es-MX'),
+                        inputLabel: 'Nombre / Alias de la Evolución',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="bi bi-copy me-1"></i> Crear y Asignar',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#19B7A5'
+                    });
+
+                    if (!nuevoAlias) return;
+
+                    Swal.fire({
+                        title: 'Generando copia clínica...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    try {
+                        const fd = new FormData();
+                        fd.append('accion', 'clone');
+                        fd.append('id_paciente', window.PACIENTE_ID_ODONTO || '$id_paciente');
+                        fd.append('id_odonto', idFuente);
+                        fd.append('alias', nuevoAlias);
+
+                        const res = await fetch('../api/odontograma_api.pl', { method: 'POST', body: fd, credentials: 'same-origin' });
+                        const data = await res.json();
+
+                        if (data.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Evolución Creada!',
+                                html: `Se creó <b>\${data.alias}</b> y se asignó a esta consulta.<br>¿Desea abrir el Visor Odontológico ahora para editar los procedimientos realizados?`,
+                                showCancelButton: true,
+                                confirmButtonText: '<i class="bi bi-display me-1"></i> Abrir Visor Dental',
+                                cancelButtonText: 'Continuar en Consulta',
+                                confirmButtonColor: '#0A2A66'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.open(`render_visor_odontograma.pl?id=\${encodeURIComponent(window.PACIENTE_ID_ODONTO || '$id_paciente')}&id_odonto=\${encodeURIComponent(data.id_odonto)}`, '_blank');
+                                }
+                            });
+
+                            recargarTablaOdontogramas(data.id_odonto);
+                        } else {
+                            Swal.fire('Error', data.error || 'No se pudo crear la copia', 'error');
+                        }
+                    } catch (err) {
+                        Swal.fire('Error', 'Fallo de conexión al clonar: ' + err.message, 'error');
+                    }
+                }
+
+                async function recargarTablaOdontogramas(autoSelectId) {
+                    try {
+                        const pacId = window.PACIENTE_ID_ODONTO || '$id_paciente';
+                        const res = await fetch('../api/odontograma_api.pl', {
+                            method: 'POST',
+                            body: new URLSearchParams({ accion: 'list', id_paciente: pacId }),
+                            credentials: 'same-origin'
+                        });
+                        const resJson = await res.json();
+                        if (resJson.ok && resJson.data) {
+                            const tbody = document.querySelector('#tablaConsultaOdontogramas tbody');
+                            if (!tbody) return;
+                            tbody.innerHTML = '';
+                            resJson.data.forEach(od => {
+                                const isSelected = (autoSelectId && od.id_odonto === autoSelectId);
+                                const safeAlias = (od.alias || 'Odontograma').replace(/"/g, '&quot;');
+                                let badgeClass = 'bg-secondary-subtle text-secondary border';
+                                if ((od.estado || '').match(/En Proceso|Activo/i)) badgeClass = 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+                                else if ((od.estado || '').match(/Planificado|Presupuesto/i)) badgeClass = 'bg-info-subtle text-info-emphasis border border-info-subtle';
+                                else if ((od.estado || '').match(/Finalizado|Completado/i)) badgeClass = 'bg-success-subtle text-success border border-success-subtle';
+
+                                const tr = document.createElement('tr');
+                                tr.innerHTML = `
+                                    <td class="ps-3 text-center">
+                                        <div class="form-check form-switch d-inline-block">
+                                            <input class="form-check-input odonto-chk" type="checkbox" name="odonto_estudios_seleccionados" value="\${od.id_odonto}" data-alias="\${safeAlias}" data-fecha="\${od.fecha}" data-piezas="\${od.piezas || 0}" data-importe="\${od.importe || '0.00'}" onchange="toggleOdontoToExploracion(this)" \${isSelected ? 'checked' : ''}>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center justify-content-center rounded-3 border" style="width: 45px; height: 45px; background: rgba(25, 183, 165, 0.08); color: var(--md-teal-clinical, #19B7A5);" title="Odontograma Clínico">
+                                            <i class="bi bi-journal-medical fs-5"></i>
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold text-muted">\${od.fecha}</td>
+                                    <td><span class="badge \${badgeClass} px-2 py-1">\${od.estado}</span></td>
+                                    <td>
+                                        <div class="fw-bold text-dark">\${od.alias}</div>
+                                        <div class="small text-muted">
+                                            <span class="badge bg-light text-muted border me-1">#\${od.id_odonto}</span>
+                                            <span>\${od.piezas || 0} piezas</span> &bull; 
+                                            <span class="text-danger fw-semibold">\\\$\${od.importe} MXN</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                            <button type="button" class="btn btn-sm btn-outline-teal rounded-pill px-2 py-1 shadow-xs" style="font-size: 0.72rem; font-weight: 700; border-color: var(--md-teal-clinical, #19B7A5); color: var(--md-teal-clinical, #19B7A5);" title="Crear Copia para Evolución Clínica" onclick="crearEvolucionOdonto('\${od.id_odonto}', '\${safeAlias}')">
+                                                <i class="bi bi-copy me-1"></i>Evolución
+                                            </button>
+                                            <a href="render_visor_odontograma.pl?id=\${encodeURIComponent(pacId)}&id_odonto=\${encodeURIComponent(od.id_odonto)}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle" style="width: 30px; height: 30px; padding: 0; line-height: 28px; display: inline-flex; align-items: center; justify-content: center;" title="Abrir Visor"><i class="bi bi-box-arrow-up-right"></i></a>
+                                        </div>
+                                    </td>
+                                `;
+                                tbody.appendChild(tr);
+
+                                if (isSelected) {
+                                    const chk = tr.querySelector('.odonto-chk');
+                                    if (chk) toggleOdontoToExploracion(chk);
+                                }
+                            });
+                        }
+                    } catch(e) {
+                        console.error('Error al recargar tabla de odontogramas:', e);
+                    }
                 }
             </script>
         };

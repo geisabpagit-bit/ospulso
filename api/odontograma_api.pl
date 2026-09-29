@@ -377,6 +377,224 @@ eval {
     }
 
     # -------------------------------------------------------------
+    # ACCIÓN: CLONE (Clonar un Odontograma para Evolución Clínica)
+    # -------------------------------------------------------------
+    elsif ($accion eq 'clone') {
+        my $id_odonto_fuente = param_utf8($q, 'id_odonto');
+        my $nuevo_alias      = sanear_texto_mojibake(param_utf8($q, 'alias'));
+        
+        my $perfil = cargar_perfil_odontologia();
+        my $od_fuente = undef;
+
+        if ($id_odonto_fuente) {
+            foreach my $od (@{ $perfil->{odontogramas} }) {
+                if ($od->{id_odonto} eq $id_odonto_fuente) {
+                    $od_fuente = $od;
+                    last;
+                }
+            }
+        }
+        if (!$od_fuente && @{ $perfil->{odontogramas} }) {
+            $od_fuente = $perfil->{odontogramas}->[0];
+        }
+
+        if (!$od_fuente) {
+            print encode_json({ ok => 0, error => 'No se encontró el odontograma base para clonar' });
+            exit;
+        }
+
+        # Generar nuevo ID único
+        my $nuevo_id = "OD-${id_paciente}-" . time() . "_" . int(rand(1000));
+        my $alias_final = $nuevo_alias || ('Evolución - ' . strftime("%d/%m/%Y %H:%M", localtime));
+        my $fecha_actual = strftime("%d/%m/%Y %H:%M:%S", localtime);
+
+        # Clonar datos profundos de dientes y periodontal
+        my $raw_teeth = eval { JSON->new->utf8(0)->encode($od_fuente->{teeth} || {}) } || '{}';
+        my $cloned_teeth = eval { JSON->new->utf8(0)->decode($raw_teeth) } || {};
+
+        my $raw_periodontal = eval { JSON->new->utf8(0)->encode($od_fuente->{periodontalSummary} || {}) } || '{}';
+        my $cloned_periodontal = eval { JSON->new->utf8(0)->decode($raw_periodontal) } || {};
+
+        my $nuevo_od = {
+            id_odonto          => $nuevo_id,
+            alias              => $alias_final,
+            fecha              => $fecha_actual,
+            estado             => 'En Proceso',
+            importe            => $od_fuente->{importe} || 0,
+            notas              => 'Evolución clínica derivada de ' . ($od_fuente->{alias} || 'Odontograma Base'),
+            teeth              => $cloned_teeth,
+            periodontalSummary => $cloned_periodontal
+        };
+
+        # Insertar al inicio de la lista
+        unshift @{ $perfil->{odontogramas} }, $nuevo_od;
+        guardar_perfil_odontologia($perfil);
+
+        print encode_json({
+            ok        => 1,
+            msg       => 'Evolución dental creada con éxito',
+            id_odonto => $nuevo_id,
+            alias     => $alias_final,
+            data      => $nuevo_od
+        });
+        exit;
+    }
+
+    # -------------------------------------------------------------
+    # ACCIÓN: SET_STATUS (Cambiar Estado de un Odontograma)
+    # -------------------------------------------------------------
+    elsif ($accion eq 'set_status') {
+        my $id_odonto_req = param_utf8($q, 'id_odonto');
+        my $nuevo_estado  = param_utf8($q, 'estado') || 'Finalizado';
+
+        if (!$id_odonto_req) {
+            print encode_json({ ok => 0, error => 'ID de odontograma requerido' });
+            exit;
+        }
+
+        my $perfil = cargar_perfil_odontologia();
+        my $modificado = 0;
+        foreach my $od (@{ $perfil->{odontogramas} }) {
+            if ($od->{id_odonto} eq $id_odonto_req) {
+                $od->{estado} = $nuevo_estado;
+                $od->{fecha} = strftime("%d/%m/%Y %H:%M:%S", localtime);
+                $modificado = 1;
+                last;
+            }
+        }
+
+        if ($modificado) {
+            guardar_perfil_odontologia($perfil);
+            print encode_json({ ok => 1, msg => "Estado actualizado a $nuevo_estado" });
+        } else {
+            print encode_json({ ok => 0, error => 'Odontograma no encontrado' });
+        }
+        exit;
+    }
+
+    # -------------------------------------------------------------
+    # ACCIÓN: GET_TREATMENTS (Extraer Conceptos y Presupuesto Pendiente)
+    # -------------------------------------------------------------
+    elsif ($accion eq 'get_treatments') {
+        my $id_odonto_req = param_utf8($q, 'id_odonto');
+        my $perfil = cargar_perfil_odontologia();
+        my $od_target = undef;
+
+        if ($id_odonto_req) {
+            foreach my $od (@{ $perfil->{odontogramas} }) {
+                if ($od->{id_odonto} eq $id_odonto_req) {
+                    $od_target = $od;
+                    last;
+                }
+            }
+        }
+        if (!$od_target && @{ $perfil->{odontogramas} }) {
+            $od_target = $perfil->{odontogramas}->[0];
+        }
+
+        my %PRECIOS_REF = (
+            CARIES           => { nom => 'Caries Dental (Activa)',      cat => 'PENDING',  precio => 850.00 },
+            CARIES_RECURRENT => { nom => 'Caries Recurrente',           cat => 'PENDING',  precio => 950.00 },
+            FRACTURE         => { nom => 'Fractura Dental',             cat => 'PENDING',  precio => 1200.00 },
+            SEALANT_REQ      => { nom => 'Sellador Requerido',          cat => 'PENDING',  precio => 450.00 },
+            CROWN_REQ        => { nom => 'Corona Requerida',            cat => 'PENDING',  precio => 3500.00 },
+            ENDO_REQ         => { nom => 'Endodoncia Indicada',         cat => 'PENDING',  precio => 2800.00 },
+            EXO_REQ          => { nom => 'Exodoncia Requerida',         cat => 'PENDING',  precio => 1100.00 },
+            EXTRACTION_REQ   => { nom => 'Exodoncia Requerida',         cat => 'PENDING',  precio => 1100.00 },
+            COMPOSITE        => { nom => 'Obturación con Resina',       cat => 'EXISTING', precio => 850.00 },
+            AMALGAM          => { nom => 'Obturación con Amalgama',     cat => 'EXISTING', precio => 700.00 },
+            CROWN_DONE       => { nom => 'Corona Existente',            cat => 'EXISTING', precio => 3500.00 },
+            ENDO_DONE        => { nom => 'Endodoncia Realizada',        cat => 'EXISTING', precio => 2800.00 },
+            IMPLANT          => { nom => 'Implante Dental',             cat => 'EXISTING', precio => 14000.00 },
+            ABSENT           => { nom => 'Pieza Ausente',               cat => 'EXISTING', precio => 0.00 },
+        );
+
+        my @items_tratamiento;
+        my $total_presupuesto = 0.00;
+
+        if ($od_target && ref($od_target->{teeth}) eq 'HASH') {
+            my $teeth_map = $od_target->{teeth};
+            foreach my $t_num (sort { $a <=> $b } keys %$teeth_map) {
+                my $t_data = $teeth_map->{$t_num};
+                next unless ref($t_data) eq 'HASH';
+
+                if ($t_data->{status} && $t_data->{status} eq 'EXTRACTION_REQUIRED') {
+                    push @items_tratamiento, {
+                        id       => "OD-T-$t_num-EXO",
+                        pieza    => $t_num,
+                        nombre   => "Exodoncia Dental - Pieza #$t_num",
+                        precio   => 1100.00,
+                        cantidad => 1,
+                        subtotal => 1100.00
+                    };
+                    $total_presupuesto += 1100.00;
+                }
+
+                if ($t_data->{surfaces} && ref($t_data->{surfaces}) eq 'HASH') {
+                    foreach my $surf (keys %{$t_data->{surfaces}}) {
+                        my $item = $t_data->{surfaces}->{$surf};
+                        my $code = ref($item) eq 'HASH' ? ($item->{code} || 'CARIES') : $item;
+                        my $info = $PRECIOS_REF{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
+                        my $costo = (ref($item) eq 'HASH' && defined($item->{price})) ? $item->{price} + 0 : $info->{precio};
+                        
+                        if ($info->{cat} eq 'PENDING') {
+                            push @items_tratamiento, {
+                                id       => "OD-T-$t_num-" . lc($surf),
+                                pieza    => $t_num,
+                                cara     => ucfirst($surf),
+                                nombre   => "$info->{nom} (" . ucfirst($surf) . ") - Pieza #$t_num",
+                                precio   => $costo,
+                                cantidad => 1,
+                                subtotal => $costo
+                            };
+                            $total_presupuesto += $costo;
+                        }
+                    }
+                } elsif (ref($t_data) eq 'HASH') {
+                    foreach my $surf (keys %$t_data) {
+                        next if $surf eq 'absent' || $surf eq 'surfaces' || $surf eq 'status';
+                        my $code = $t_data->{$surf};
+                        my $info = $PRECIOS_REF{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
+                        if ($info->{cat} eq 'PENDING') {
+                            push @items_tratamiento, {
+                                id       => "OD-T-$t_num-" . lc($surf),
+                                pieza    => $t_num,
+                                cara     => ucfirst($surf),
+                                nombre   => "$info->{nom} (" . ucfirst($surf) . ") - Pieza #$t_num",
+                                precio   => $info->{precio},
+                                cantidad => 1,
+                                subtotal => $info->{precio}
+                            };
+                            $total_presupuesto += $info->{precio};
+                        }
+                    }
+                }
+            }
+        }
+
+        # Si el importe del odontograma estaba precalculado y no hubo desglose detallado
+        if (!@items_tratamiento && $od_target && ($od_target->{importe} || 0) > 0) {
+            push @items_tratamiento, {
+                id       => "OD-T-GLOBAL",
+                nombre   => "Tratamientos Odontológicos (" . ($od_target->{alias} || 'Odontograma') . ")",
+                precio   => $od_target->{importe} + 0,
+                cantidad => 1,
+                subtotal => $od_target->{importe} + 0
+            };
+            $total_presupuesto = $od_target->{importe} + 0;
+        }
+
+        print encode_json({
+            ok        => 1,
+            id_odonto => $od_target ? $od_target->{id_odonto} : '',
+            alias     => $od_target ? $od_target->{alias} : '',
+            items     => \@items_tratamiento,
+            total     => sprintf("%.2f", $total_presupuesto)
+        });
+        exit;
+    }
+
+    # -------------------------------------------------------------
     # ACCIÓN: DELETE (Eliminar un Odontograma Específico)
     # -------------------------------------------------------------
     elsif ($accion eq 'delete') {
