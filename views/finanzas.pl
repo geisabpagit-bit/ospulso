@@ -1309,9 +1309,12 @@ PAGE_HTML
                     });
                 }
                 
-                document.getElementById('cc_ingresos').textContent = '\$' + ccTotalIngresos.toFixed(2);
-                document.getElementById('cc_cxc').textContent = '\$' + ccTotalCxC.toFixed(2);
-                document.getElementById('cc_egresos').textContent = '\$' + ccTotalEgresos.toFixed(2);
+                let elCcIng = document.getElementById('cc_ingresos');
+                if (elCcIng) elCcIng.textContent = '\$' + ccTotalIngresos.toFixed(2);
+                let elCcCxc = document.getElementById('cc_cxc');
+                if (elCcCxc) elCcCxc.textContent = '\$' + ccTotalCxC.toFixed(2);
+                let elCcEgr = document.getElementById('cc_egresos');
+                if (elCcEgr) elCcEgr.textContent = '\$' + ccTotalEgresos.toFixed(2);
                 
                 // Actualizar tablas
                 renderTablaCorte('#dtCorteIngresos', res.ingresos, [
@@ -1568,24 +1571,35 @@ PAGE_HTML
         let labelDif = document.getElementById('cc_dif_label');
         let boxDif = document.getElementById('kpi_diferencia_box');
 
-        elDif.textContent = '\$' + Math.abs(diferencia).toFixed(2);
+        if (elDif) elDif.textContent = '\$' + Math.abs(diferencia).toFixed(2);
         if(diferencia > 0) {
-            elDif.className = 'kpi-valor text-success';
-            iconDif.style.color = '#10b981';
-            iconDif.innerHTML = '<i class="bi bi-arrow-up-right-circle-fill"></i>';
-            labelDif.textContent = 'Sobrante';
-            labelDif.className = 'kpi-subtexto text-success fw-bold';
-            boxDif.style.border = '2px solid #10b981';
-            boxDif.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
+            if (elDif) elDif.className = 'kpi-valor text-success';
+            if (iconDif) {
+                iconDif.style.color = '#10b981';
+                iconDif.innerHTML = '<i class="bi bi-arrow-up-right-circle-fill"></i>';
+            }
+            if (labelDif) {
+                labelDif.textContent = 'Sobrante';
+                labelDif.className = 'kpi-subtexto text-success fw-bold';
+            }
+            if (boxDif) {
+                boxDif.style.border = '2px solid #10b981';
+                boxDif.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
+            }
         } else if(diferencia < 0) {
-            elDif.className = 'kpi-valor text-danger';
-            iconDif.style.color = '#ef4444';
-            iconDif.innerHTML = '<i class="bi bi-arrow-down-right-circle-fill"></i>';
-            labelDif.textContent = 'Faltante';
-            labelDif.className = 'kpi-subtexto text-danger fw-bold';
-            boxDif.style.border = '2px solid #ef4444';
-            boxDif.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
-            boxDif.style.backgroundColor = '#f8f9fa';
+            if (elDif) elDif.className = 'kpi-valor text-danger';
+            if (iconDif) {
+                iconDif.style.color = '#ef4444';
+                iconDif.innerHTML = '<i class="bi bi-arrow-down-right-circle-fill"></i>';
+            }
+            if (labelDif) {
+                labelDif.textContent = 'Faltante';
+                labelDif.className = 'kpi-subtexto text-danger fw-bold';
+            }
+            if (boxDif) {
+                boxDif.style.border = '2px solid #ef4444';
+                boxDif.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+            }
         }
 
         actualizarGraficaCorte(ccTotalIngresos, ccTotalCxC, ccTotalEgresos, fisico);
