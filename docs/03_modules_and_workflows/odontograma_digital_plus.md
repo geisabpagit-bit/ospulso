@@ -38,6 +38,7 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 ---
 
 ## 3. Arquitectura de Archivos (Fase 1)
-- **CSS**: `css/odontograma_plus.css` (estilos vectoriales, cuadrantes, línea media, hover teal y badges).
-- **JavaScript**: `js/odontograma.js` (generador de 32 piezas, estado `window.odontogramState`, función `applySurfaceCondition` y reactividad SVG).
-- **Vista**: `views/render_expediente_clinico.pl` (sección `#tab6` en subitem 2.1 Odonto).
+- **CSS**: `css/odontograma_plus.css` (estilos vectoriales, dimensionado anti-scroll compacto 38px, cuadrantes, línea media, hover teal, persistencia de color y escalado responsivo).
+- **JavaScript**: `js/odontograma.js` (generador de 32 piezas, estado `window.odontogramState`, controles de zoom dinámico `changeOdontoZoom`/`resetOdontoZoom`, restauración de DOM `restoreDomFromState` y reactividad SVG).
+- **Vista**: `views/render_expediente_clinico.pl` (sección `#tab6` con toolbar de pruebas rápidas, controles de zoom interactivo y visor JSON en vivo).
+

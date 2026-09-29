@@ -1,7 +1,8 @@
 /**
  * ==========================================================================
- * ODONTOGRAMA DIGITAL PLUS - MOTOR FRONTEND v1.0
+ * ODONTOGRAMA DIGITAL PLUS - MOTOR FRONTEND v1.1
  * Nomenclatura Internacional FDI / ISO 3950 (32 Piezas Permanentes)
+ * Reactividad Vectorial SVG, Zoom Dinámico y Persistencia Visual
  * ==========================================================================
  */
 
@@ -19,6 +20,9 @@ window.odontogramState = window.odontogramState || {
     teeth: {},
     financialTotalPending: 0.00
 };
+
+// Nivel de Zoom actual
+window.currentOdontoZoom = window.currentOdontoZoom || 1.0;
 
 // Definición de Cuadrantes FDI
 const ODONTO_QUADRANTS = {
@@ -103,11 +107,12 @@ window.renderOdontogram = function(containerId, patientId) {
     if (patientId) window.odontogramState.patientId = patientId;
 
     let html = `
-        <div class="odonto-board-wrapper">
-            <!-- ARCADA SUPERIOR (MAXILAR) -->
-            <div class="odonto-arch-row upper-arch">
-                <!-- Cuadrante 1: Superior Derecho (18 al 11) -->
-                <div class="odonto-quadrant quadrant-1" data-quadrant="1">
+        <div class="odonto-board-outer">
+            <div class="odonto-board-wrapper" style="transform: scale(${window.currentOdontoZoom || 1});">
+                <!-- ARCADA SUPERIOR (MAXILAR) -->
+                <div class="odonto-arch-row upper-arch">
+                    <!-- Cuadrante 1: Superior Derecho (18 al 11) -->
+                    <div class="odonto-quadrant quadrant-1" data-quadrant="1">
     `;
 
     ODONTO_QUADRANTS.Q1.forEach(id => {
@@ -120,13 +125,13 @@ window.renderOdontogram = function(containerId, patientId) {
     });
 
     html += `
-                </div>
-                
-                <!-- Línea Media Superior -->
-                <div class="odonto-midline" title="Línea Media Dental"></div>
+                    </div>
+                    
+                    <!-- Línea Media Superior -->
+                    <div class="odonto-midline" title="Línea Media Dental"></div>
 
-                <!-- Cuadrante 2: Superior Izquierdo (21 al 28) -->
-                <div class="odonto-quadrant quadrant-2" data-quadrant="2">
+                    <!-- Cuadrante 2: Superior Izquierdo (21 al 28) -->
+                    <div class="odonto-quadrant quadrant-2" data-quadrant="2">
     `;
 
     ODONTO_QUADRANTS.Q2.forEach(id => {
@@ -139,18 +144,18 @@ window.renderOdontogram = function(containerId, patientId) {
     });
 
     html += `
+                    </div>
                 </div>
-            </div>
 
-            <!-- SEPARADOR DE ARCADAS -->
-            <div class="odonto-arch-separator">
-                <span>Línea Oclusal / Intermaxilar</span>
-            </div>
+                <!-- SEPARADOR DE ARCADAS -->
+                <div class="odonto-arch-separator">
+                    <span>Línea Oclusal / Intermaxilar</span>
+                </div>
 
-            <!-- ARCADA INFERIOR (MANDÍBULA) -->
-            <div class="odonto-arch-row lower-arch">
-                <!-- Cuadrante 4: Inferior Derecho (48 al 41) -->
-                <div class="odonto-quadrant quadrant-4" data-quadrant="4">
+                <!-- ARCADA INFERIOR (MANDÍBULA) -->
+                <div class="odonto-arch-row lower-arch">
+                    <!-- Cuadrante 4: Inferior Derecho (48 al 41) -->
+                    <div class="odonto-quadrant quadrant-4" data-quadrant="4">
     `;
 
     ODONTO_QUADRANTS.Q4.forEach(id => {
@@ -163,13 +168,13 @@ window.renderOdontogram = function(containerId, patientId) {
     });
 
     html += `
-                </div>
+                    </div>
 
-                <!-- Línea Media Inferior -->
-                <div class="odonto-midline" title="Línea Media Dental"></div>
+                    <!-- Línea Media Inferior -->
+                    <div class="odonto-midline" title="Línea Media Dental"></div>
 
-                <!-- Cuadrante 3: Inferior Izquierdo (31 al 38) -->
-                <div class="odonto-quadrant quadrant-3" data-quadrant="3">
+                    <!-- Cuadrante 3: Inferior Izquierdo (31 al 38) -->
+                    <div class="odonto-quadrant quadrant-3" data-quadrant="3">
     `;
 
     ODONTO_QUADRANTS.Q3.forEach(id => {
@@ -182,6 +187,7 @@ window.renderOdontogram = function(containerId, patientId) {
     });
 
     html += `
+                    </div>
                 </div>
             </div>
         </div>
@@ -192,9 +198,42 @@ window.renderOdontogram = function(containerId, patientId) {
     // Asignar Event Listeners para clics en superficies
     attachSurfaceClickEvents(container);
 
+    // Restaurar marcas existentes desde el estado en memoria
+    restoreDomFromState();
+
     // Actualizar vista previa del JSON si existe
     updateLiveJsonViewer();
+    recalculateFinancialTotal();
 };
+
+/**
+ * Restaura las clases y colores en el DOM SVG a partir del estado en memoria
+ */
+function restoreDomFromState() {
+    if (!window.odontogramState || !window.odontogramState.teeth) return;
+
+    Object.entries(window.odontogramState.teeth).forEach(([tooth, tData]) => {
+        if (tData.surfaces) {
+            Object.entries(tData.surfaces).forEach(([surf, sData]) => {
+                const surfaceEl = document.querySelector(`.tooth-surface[data-tooth="${tooth}"][data-surface="${surf}"]`);
+                if (surfaceEl) {
+                    const color = sData.colorHex || ((sData.state === 'PENDING_TREATMENT') ? ODONTO_COLORS.PENDING : ODONTO_COLORS.COMPLETED);
+                    surfaceEl.style.fill = color;
+                    surfaceEl.setAttribute('fill', color);
+                    surfaceEl.setAttribute('data-state', sData.state);
+                    surfaceEl.classList.add('has-condition');
+                    if (sData.state === 'PENDING_TREATMENT') {
+                        surfaceEl.classList.add('surface-pending');
+                        surfaceEl.classList.remove('surface-completed');
+                    } else {
+                        surfaceEl.classList.add('surface-completed');
+                        surfaceEl.classList.remove('surface-pending');
+                    }
+                }
+            });
+        }
+    });
+}
 
 /**
  * Asigna los manejadores de eventos sobre cada cara vectorial
@@ -259,11 +298,20 @@ window.applySurfaceCondition = function(tooth, surface, code, state, colorHex) {
 
     window.odontogramState.updatedAt = new Date().toISOString();
 
-    // Actualizar DOM SVG
+    // Actualizar DOM SVG con estilo directo y clases con !important
     const surfaceEl = document.querySelector(`.tooth-surface[data-tooth="${tooth}"][data-surface="${surface}"]`);
     if (surfaceEl) {
+        surfaceEl.style.fill = colorHex;
         surfaceEl.setAttribute('fill', colorHex);
+        surfaceEl.setAttribute('data-state', state);
         surfaceEl.classList.add('has-condition');
+        if (state === 'PENDING_TREATMENT') {
+            surfaceEl.classList.add('surface-pending');
+            surfaceEl.classList.remove('surface-completed');
+        } else {
+            surfaceEl.classList.add('surface-completed');
+            surfaceEl.classList.remove('surface-pending');
+        }
     }
 
     // Recalcular Total Pendiente
@@ -289,8 +337,10 @@ function removeSurfaceCondition(tooth, surface) {
 
     const surfaceEl = document.querySelector(`.tooth-surface[data-tooth="${tooth}"][data-surface="${surface}"]`);
     if (surfaceEl) {
+        surfaceEl.style.fill = '';
         surfaceEl.setAttribute('fill', ODONTO_COLORS.NEUTRAL);
-        surfaceEl.classList.remove('has-condition');
+        surfaceEl.removeAttribute('data-state');
+        surfaceEl.classList.remove('has-condition', 'surface-pending', 'surface-completed');
     }
 
     recalculateFinancialTotal();
@@ -306,15 +356,14 @@ window.clearOdontogram = function() {
     window.odontogramState.updatedAt = new Date().toISOString();
 
     document.querySelectorAll('.tooth-surface').forEach(el => {
+        el.style.fill = '';
         el.setAttribute('fill', ODONTO_COLORS.NEUTRAL);
-        el.classList.remove('has-condition');
+        el.removeAttribute('data-state');
+        el.classList.remove('has-condition', 'surface-pending', 'surface-completed');
     });
 
+    recalculateFinancialTotal();
     updateLiveJsonViewer();
-
-    if (typeof CrystalToast !== 'undefined') {
-        CrystalToast.fire({ icon: 'info', title: 'Odontograma reiniciado' });
-    }
 };
 
 /**
@@ -348,6 +397,32 @@ function updateLiveJsonViewer() {
         viewer.textContent = JSON.stringify(window.odontogramState, null, 2);
     }
 }
+
+/**
+ * Funciones de Control de Zoom
+ */
+window.changeOdontoZoom = function(delta) {
+    let newZoom = Math.round((window.currentOdontoZoom + delta) * 10) / 10;
+    if (newZoom < 0.6) newZoom = 0.6;
+    if (newZoom > 1.4) newZoom = 1.4;
+    window.setOdontoZoom(newZoom);
+};
+
+window.resetOdontoZoom = function() {
+    window.setOdontoZoom(1.0);
+};
+
+window.setOdontoZoom = function(zoomVal) {
+    window.currentOdontoZoom = zoomVal;
+    const board = document.querySelector('.odonto-board-wrapper');
+    if (board) {
+        board.style.transform = `scale(${zoomVal})`;
+    }
+    const label = document.getElementById('odonto-zoom-label');
+    if (label) {
+        label.textContent = `${Math.round(zoomVal * 100)}%`;
+    }
+};
 
 // Inicialización automática si existe el contenedor al cargar DOM
 document.addEventListener('DOMContentLoaded', () => {

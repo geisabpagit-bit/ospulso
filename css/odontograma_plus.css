@@ -21,7 +21,7 @@
     border-radius: 20px;
     border: 1.5px solid var(--odonto-teal) !important;
     box-shadow: 0 10px 30px rgba(10, 42, 102, 0.05);
-    padding: 2rem 1.5rem;
+    padding: 1.5rem;
     position: relative;
     overflow: hidden;
 }
@@ -31,8 +31,8 @@
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 14px;
-    padding: 12px 18px;
-    margin-bottom: 25px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -50,47 +50,58 @@
     border-radius: 20px;
 }
 
-/* Cuadrantes y Grilla Dental */
+/* Contenedor Exterior Anti-Scroll */
+.odonto-board-outer {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    justify-content: center;
+    padding: 6px 0;
+}
+
+/* Cuadrantes y Grilla Dental Vectorial */
 .odonto-board-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1rem 0;
-    overflow-x: auto;
+    padding: 0.5rem 0;
+    transform-origin: center top;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .odonto-arch-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 24px;
-    margin-bottom: 24px;
+    gap: 14px;
+    margin-bottom: 12px;
     position: relative;
 }
 
 .odonto-quadrant {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 3px;
 }
 
 /* Línea Divisoria Central (Línea Media Dental) */
 .odonto-midline {
     width: 2px;
-    height: 70px;
-    background: repeating-linear-gradient(to bottom, #19B7A5, #19B7A5 5px, transparent 5px, transparent 10px);
-    opacity: 0.7;
-    margin: 0 4px;
+    height: 52px;
+    background: repeating-linear-gradient(to bottom, #19B7A5, #19B7A5 4px, transparent 4px, transparent 8px);
+    opacity: 0.75;
+    margin: 0 2px;
 }
 
 /* Línea Divisoria de Arcadas (Maxilar vs Mandíbula) */
 .odonto-arch-separator {
-    width: 90%;
-    max-width: 960px;
+    width: 85%;
+    max-width: 720px;
     height: 1.5px;
     background: linear-gradient(90deg, transparent, #19B7A5, transparent);
-    margin: 10px 0 26px 0;
+    margin: 6px 0 16px 0;
     position: relative;
     display: flex;
     align-items: center;
@@ -99,22 +110,22 @@
 
 .odonto-arch-separator span {
     background: #ffffff;
-    padding: 2px 12px;
-    font-size: 0.65rem;
+    padding: 2px 10px;
+    font-size: 0.62rem;
     font-weight: 800;
     color: var(--odonto-teal);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.8px;
     border: 1px solid #19B7A5;
     border-radius: 10px;
 }
 
-/* Diente Individual */
+/* Diente Individual - Tamaño Compacto Anti-Scroll */
 .tooth-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 52px;
+    width: 38px;
     user-select: none;
     transition: transform 0.15s ease;
 }
@@ -124,46 +135,61 @@
 }
 
 .tooth-number {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 800;
     color: #475569;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     letter-spacing: -0.2px;
 }
 
 .tooth-card.lower-arch .tooth-number {
-    margin-top: 4px;
+    margin-top: 2px;
     margin-bottom: 0;
 }
 
-/* Superficies SVG */
+/* Superficies SVG Vectoriales */
 .tooth-svg-canvas {
-    width: 48px;
-    height: 48px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.04));
+    width: 36px;
+    height: 36px;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.05));
 }
 
 .tooth-surface {
     fill: #ffffff;
     stroke: #94a3b8;
-    stroke-width: 1.5;
+    stroke-width: 1.4;
     stroke-linejoin: round;
     cursor: pointer;
-    transition: fill 0.18s ease, stroke 0.18s ease;
+    transition: fill 0.18s ease, stroke 0.18s ease, filter 0.18s ease;
 }
 
-.tooth-surface:hover {
+/* Superficies Sin Condición: Hover Teal */
+.tooth-surface:not(.has-condition):hover {
     fill: var(--odonto-teal-hover) !important;
     stroke: var(--odonto-teal) !important;
-    stroke-width: 2.2;
+    stroke-width: 2;
 }
 
+/* Superficies Con Condición: Se mantienen en su color rojo o azul */
 .tooth-surface.has-condition {
     stroke-width: 1.5;
 }
 
 .tooth-surface.has-condition:hover {
-    filter: brightness(0.88);
+    filter: brightness(0.85);
+    stroke: var(--odonto-teal) !important;
+    stroke-width: 2.2;
+}
+
+/* Clases Mandantes para Condición Clínica (Garantizan Persistencia Visual) */
+.tooth-surface.surface-pending,
+.tooth-surface[data-state="PENDING_TREATMENT"] {
+    fill: var(--odonto-red-pending, #FF3B30) !important;
+}
+
+.tooth-surface.surface-completed,
+.tooth-surface[data-state="EXISTING_CONDITION"] {
+    fill: var(--odonto-blue-completed, #007AFF) !important;
 }
 
 /* Leyenda Clínica */
@@ -172,8 +198,8 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 20px;
-    padding: 12px 20px;
+    gap: 18px;
+    padding: 10px 16px;
     background: #f1f5f9;
     border-radius: 12px;
     margin-top: 15px;
@@ -183,14 +209,14 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: #334155;
 }
 
 .odonto-legend-color {
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
     border-radius: 4px;
 }
 
@@ -204,4 +230,19 @@
     font-size: 0.72rem;
     max-height: 220px;
     overflow-y: auto;
+}
+
+/* Responsive Zoom Out Automático en Pantallas Pequeñas (<768px) */
+@media (max-width: 768px) {
+    .odonto-board-wrapper {
+        transform: scale(0.75);
+        margin: -15px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .odonto-board-wrapper {
+        transform: scale(0.62);
+        margin: -30px 0;
+    }
 }

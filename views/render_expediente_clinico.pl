@@ -291,22 +291,38 @@ HTML
                     </div>
                 </div>
 
-                <!-- Barra con Botones de Prueba Rápida (Fase 1) -->
+                <!-- Barra con Botones de Prueba Rápida y Controles de Zoom -->
                 <div class="odonto-test-bar">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-lightning-charge-fill text-warning fs-5"></i>
-                        <span class="fw-bold small text-navy">Pruebas Rápidas de Reactividad:</span>
+                        <span class="fw-bold small text-navy">Pruebas Rápidas:</span>
                     </div>
-                    <div class="d-flex flex-wrap gap-2">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
                         <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 shadow-xs" onclick="applySurfaceCondition(16, 'mesial', 'CARIES', 'PENDING_TREATMENT', '#FF3B30')">
-                            <i class="bi bi-circle-fill me-1 text-danger"></i> Probar Caries Mesial (16)
+                            <i class="bi bi-circle-fill me-1 text-danger"></i> Caries Mesial (16)
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3 shadow-xs" onclick="applySurfaceCondition(21, 'occlusal', 'COMPOSITE', 'EXISTING_CONDITION', '#007AFF')">
-                            <i class="bi bi-check-circle-fill me-1 text-primary"></i> Probar Resina Oclusal (21)
+                            <i class="bi bi-check-circle-fill me-1 text-primary"></i> Resina Oclusal (21)
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold px-3 shadow-xs" onclick="clearOdontogram()">
                             <i class="bi bi-eraser-fill me-1"></i> Limpiar
                         </button>
+
+                        <div class="vr mx-1 d-none d-sm-block"></div>
+
+                        <!-- Controles de Zoom Dinámico -->
+                        <div class="d-flex align-items-center gap-1 bg-white p-1 rounded-pill border shadow-xs">
+                            <button type="button" class="btn btn-xs btn-light rounded-circle px-2 py-1 text-muted" onclick="changeOdontoZoom(-0.1)" title="Zoom Out (Alejar Cuadrantes)">
+                                <i class="bi bi-dash-lg"></i>
+                            </button>
+                            <span class="small fw-black text-navy px-1" id="odonto-zoom-label" style="min-width: 44px; text-align: center;">100%</span>
+                            <button type="button" class="btn btn-xs btn-light rounded-circle px-2 py-1 text-muted" onclick="changeOdontoZoom(0.1)" title="Zoom In (Acercar)">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1 ms-1 fw-bold" onclick="resetOdontoZoom()" title="Restablecer a 100%">
+                                <i class="bi bi-aspect-ratio me-1"></i>Ajustar
+                            </button>
+                        </div>
                     </div>
                 </div>
 
