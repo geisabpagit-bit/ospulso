@@ -110,6 +110,7 @@ if ($es_consultorio_ind) {
                                             <li class="mb-1">Historial de estado de cuenta y transacciones de caja.</li>
                                             <li class="mb-1">Citas en agenda médica e historial de movimientos.</li>
                                             <li class="mb-1">Consultas clínicas (SOAP), recetas, consentimientos y borradores.</li>
+                                            <li class="mb-1">Odontogramas clínicos y planes de tratamiento dental.</li>
                                             <li class="mb-1">Registro de egresos y gastos operativos del consultorio.</li>
                                             <li>Cotizaciones, tratamientos y archivos adjuntos temporales.</li>
                                         </ul>
@@ -121,6 +122,7 @@ HTML_DEL
                                             <li class="mb-1">Historial de estado de cuenta y transacciones de caja.</li>
                                             <li class="mb-1">Citas en agenda médica e historial de movimientos.</li>
                                             <li class="mb-1">Consultas clínicas (SOAP), recetas, consentimientos y borradores.</li>
+                                            <li class="mb-1">Odontogramas clínicos y planes de tratamiento dental.</li>
                                             <li class="mb-1">Registro de egresos y gastos operativos de la organización.</li>
                                             <li class="mb-1">Pacientes temporales de mostrador / caja rápida.</li>
                                             <li>Cotizaciones, tratamientos y archivos adjuntos temporales.</li>

@@ -178,6 +178,23 @@ if ($org_clues && $org_clues ne 'No asignada' && $org_clues ne '0') {
     }
 }
 
+# Mapear pacientes del directorio general (pacientes.dat) por TENANT o médico asignado
+my $pac_file = File::Spec->catfile($dat_dir, 'pacientes.dat');
+if (-e $pac_file && open(my $fhpac, '<:encoding(UTF-8)', $pac_file)) {
+    <$fhpac>;
+    while (my $line = <$fhpac>) {
+        chomp $line; next if $line =~ /^\s*$/;
+        my @p = split(/\|/, $line, -1);
+        my $p_id   = $p[0] // '';
+        my $m_id   = $p[1] // '';
+        my $tenant = $p[13] // '';
+        if ($tenant eq $id_empresa || ($id_empresa eq '0' && ($tenant eq '0' || $tenant eq '')) || ($m_id ne '' && $uids_org{$m_id})) {
+            $pacientes_org{$p_id} = 1 if $p_id ne '';
+        }
+    }
+    close $fhpac;
+}
+
 # Función auxiliar para determinar si un registro transaccional pertenece a la organización a resetear
 sub es_registro_de_org {
     my ($m_id) = @_;
@@ -435,6 +452,41 @@ eval {
                 print $fh_pp "ID_PACIENTE|NOMBRE_COMPLETO|FECHA_REGISTRO\n";
                 close $fh_pp;
             }
+        }
+    }
+
+    # 10.1 Purga de Odontogramas Clínicos (tabla odontogramas.dat y JSONs en dat/odontogramas/)
+    my $odonto_file = File::Spec->catfile($dat_dir, 'odontogramas.dat');
+    my $odonto_dir  = File::Spec->catdir($dat_dir, 'odontogramas');
+    if (-e $odonto_file && open(my $fh_od, '<:encoding(UTF-8)', $odonto_file)) {
+        my @lines = <$fh_od>;
+        close $fh_od;
+        my $cab = shift @lines;
+        chomp $cab if defined $cab;
+        my @conservar;
+        foreach my $l (@lines) {
+            chomp $l; next if $l =~ /^\s*$/;
+            my @c = split(/\|/, $l, -1);
+            my $p_id = $c[0] // '';
+            if ($p_id ne '' && ($pacientes_org{$p_id} || ($id_empresa eq '0' && scalar(keys %pacientes_org) == 0))) {
+                my $p_json = File::Spec->catfile($odonto_dir, "paciente_${p_id}.json");
+                unlink $p_json if -e $p_json;
+            } else {
+                push @conservar, $l;
+            }
+        }
+        if (open(my $fh_out, '>:encoding(UTF-8)', $odonto_file)) {
+            flock($fh_out, LOCK_EX);
+            print $fh_out "$cab\n" if defined $cab;
+            print $fh_out "$_\n" foreach @conservar;
+            close $fh_out;
+        }
+    }
+
+    if (-d $odonto_dir) {
+        foreach my $p_id (keys %pacientes_org) {
+            my $p_json = File::Spec->catfile($odonto_dir, "paciente_${p_id}.json");
+            unlink $p_json if -e $p_json;
         }
     }
 

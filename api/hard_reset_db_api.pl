@@ -112,6 +112,7 @@ eval {
     # 3. Limpiar carpetas de adjuntos, estudios RX, facturas, firmas y descargas
     limpiar_directorio(File::Spec->catdir($dir, "adjuntos_crm"));
     limpiar_directorio(File::Spec->catdir($dir, "estudiosRX"));
+    limpiar_directorio(File::Spec->catdir($dir, "odontogramas"));
     limpiar_directorio(File::Spec->catdir($FindBin::Bin, '..', 'uploads', 'firmas'));
     limpiar_directorio(File::Spec->catdir($FindBin::Bin, '..', 'uploads', 'facturas'));
     limpiar_directorio(File::Spec->catdir($FindBin::Bin, '..', 'uploads', 'estudios'));

@@ -77,6 +77,7 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 - **Visor Standalone**: `views/render_visor_odontograma.pl` (aplicación médica completa a `100vw × 100vh` para diagnóstico dental, impresión y sincronización atómica con feedback SweetAlert2).
 - **Hub Ejecutivo**: `views/render_expediente_clinico.pl` (sección `#tab6` con Bento Grid horizontal de 4 KPIs, banner de notas y DataTable al 100% de ancho con botones de exportación y lectura dual JSON/dat).
 - **Backend API**: `api/odontograma_api.pl` (persistencia JSON atómica por paciente con bloqueo `flock` exclusivo en `dat/odontogramas/paciente_<id>.json` y sincronización bidireccional en tabla `dat/odontogramas.dat`).
+- **Gobernanza y Reset Operativo**: Integración con `api/reset_datos_organizacion_api.pl` y `api/hard_reset_db_api.pl` para purgar odontogramas (tanto en `odontogramas.dat` como en los archivos atómicos `dat/odontogramas/paciente_<id>.json`) preservando intactos los registros de otros consultorios o tenants.
 
 ---
 
