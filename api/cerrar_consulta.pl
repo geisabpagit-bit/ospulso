@@ -23,7 +23,10 @@ unless ($session_data->{session_ok}) {
 }
 
 my %payload;
-foreach my $p ($q->param) { $payload{$p} = $q->param($p); }
+foreach my $p ($q->param) {
+    my @v = $q->param($p);
+    $payload{$p} = scalar(@v) > 1 ? \@v : $v[0];
+}
 if ($payload{medicamentos_json}) { eval { $payload{medicamentos} = decode_json($payload{medicamentos_json}); }; }
 
 my $id_cita = $q->param('id_cita') || $payload{id_cita} || '';

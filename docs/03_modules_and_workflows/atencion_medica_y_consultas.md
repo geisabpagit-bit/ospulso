@@ -66,3 +66,9 @@ graph LR
 - **Bitácora de Trazabilidad en Notas**: Para no perder el registro de la programación original, el sistema concatena automáticamente una marca de auditoría en el campo de notas (`col 7`): `[Atencion: YYYY-MM-DD HH:MM (Prog. original: YYYY-MM-DD HH:MM)]`.
 - **Cierre Integral y Cuadre de Caja**: Al finalizar la consulta en `api/cerrar_consulta_privado.pl` o `api/cerrar_consulta.pl`, la cita se sella de forma inmutable como `Atendida` en la fecha real, cuadrando al 100% con los recibos de caja, recetas médicas y consentimientos informados emitidos en esa misma jornada.
 
+### 4.8 Integración de Odontogramas Clínicos y Rayos X (PACS) en Consulta y Detalle
+- **Paso 3 Exploración Física (`step_exploracion.pl`)**: Integra la tabla interactiva `#tablaConsultaOdontogramas` (con 6 columnas: `Asignar`, `Preview`, `Fecha`, `Estado`, `Descripción / Alias` y `Visor`), permitiendo seleccionar y anexar hallazgos odontológicos previos directamente en el campo de texto de hallazgos mediante un toggle switch reactivo (`toggleOdontoToExploracion`).
+- **Persistencia Multi-Selección (`api/cerrar_consulta_privado.pl` y `api/cerrar_consulta.pl`)**: Almacenamiento dinámico como `ARRAY` o escalar para `odonto_estudios_seleccionados` y `pacs_estudios_seleccionados` dentro del payload JSON en `dat/consultas_clinicas.dat`.
+- **Despliegue Dinámico en `views/consulta_detalles.pl`**: Si se asignaron odontogramas o estudios de rayos X / PACS durante la consulta (detectados por ID en payload o por marcas canónicas en el texto clínico), se renderizan bloques visuales estructurados dentro de la tarjeta Bento de **Exploración Física (Paso 3)** con miniaturas, badges de estado/modalidad, desglose de piezas/presupuesto y enlaces directos a sus visores especializados (`render_visor_odontograma.pl` y `render_visor_medico.pl`).
+
+

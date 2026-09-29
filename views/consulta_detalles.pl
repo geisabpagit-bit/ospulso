@@ -132,6 +132,290 @@ sub parseFloatVal {
     return $val + 0;
 }
 
+# --- DETECCIÓN Y CARGA DE ODONTOGRAMAS ASIGNADOS EN LA CONSULTA ---
+my @assigned_odonto_ids;
+if ($d->{odonto_estudios_seleccionados}) {
+    if (ref($d->{odonto_estudios_seleccionados}) eq 'ARRAY') {
+        @assigned_odonto_ids = @{ $d->{odonto_estudios_seleccionados} };
+    } else {
+        push @assigned_odonto_ids, $d->{odonto_estudios_seleccionados};
+    }
+}
+
+# Cargar catálogo de odontogramas del paciente
+my $odonto_json_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas', "paciente_$consulta->{id_paciente}.json");
+my $odonto_dat_file  = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas.dat');
+my @todos_odontos;
+
+if (-e $odonto_json_file) {
+    my $json_raw = '';
+    if (open my $fh_j, '<:raw', $odonto_json_file) {
+        local $/; $json_raw = <$fh_j>; close $fh_j;
+    }
+    my $p_data = eval { decode_json($json_raw) };
+    if ($p_data && ref($p_data) eq 'HASH') {
+        if ($p_data->{odontogramas} && ref($p_data->{odontogramas}) eq 'ARRAY') {
+            @todos_odontos = @{ $p_data->{odontogramas} };
+        } elsif ($p_data->{teeth} && ref($p_data->{teeth}) eq 'HASH') {
+            push @todos_odontos, {
+                id_odonto => "OD-$consulta->{id_paciente}-1",
+                alias     => $p_data->{alias} || 'Diagnóstico Inicial',
+                fecha     => $p_data->{fechaLocal} || $p_data->{updatedAt} || 'Recientemente',
+                estado    => $p_data->{estado} || 'En Proceso',
+                importe   => $p_data->{financialTotalPending} || 0,
+                teeth     => $p_data->{teeth} || {}
+            };
+        }
+    }
+}
+if (!@todos_odontos && -e $odonto_dat_file) {
+    my $registros = eval { leer_tabla($odonto_dat_file, '\|') } || [];
+    my %teeth_found;
+    my $fecha_found = '';
+    my $alias_found = 'Diagnóstico Base';
+    foreach my $fila (@$registros) {
+        if ($fila->[0] eq $consulta->{id_paciente}) {
+            $alias_found = $fila->[1] if $fila->[1];
+            $fecha_found = $fila->[2] if $fila->[2];
+            for (my $i = 4; $i < @$fila; $i++) {
+                if ($fila->[$i] =~ /^(\d+)=(.+)$/) {
+                    my $tooth = $1;
+                    my $val_hash = eval { decode_json(encode_utf8($2)) } || {};
+                    $teeth_found{$tooth} = $val_hash;
+                }
+            }
+        }
+    }
+    if (%teeth_found || $fecha_found) {
+        push @todos_odontos, {
+            id_odonto => "OD-$consulta->{id_paciente}-1",
+            alias     => $alias_found,
+            fecha     => $fecha_found || 'Recientemente',
+            estado    => 'En Proceso',
+            importe   => 0.00,
+            teeth     => \%teeth_found
+        };
+    }
+}
+
+# Detección por texto si no vino el checkbox en el payload
+my $hallazgos_txt = $d->{exploracion_hallazgos} || $d->{hallazgos_exploracion} || '';
+if (!@assigned_odonto_ids && $hallazgos_txt =~ /\[Odontograma Cl[íi]nico - ([^-]+)/i) {
+    my $alias_buscado = $1;
+    $alias_buscado =~ s/^\s+|\s+$//g;
+    foreach my $od (@todos_odontos) {
+        if (($od->{alias} && $od->{alias} =~ /\Q$alias_buscado\E/i) || ($od->{id_odonto} && $alias_buscado =~ /\Q$od->{id_odonto}\E/i)) {
+            push @assigned_odonto_ids, $od->{id_odonto};
+        }
+    }
+    if (!@assigned_odonto_ids && @todos_odontos == 1) {
+        push @assigned_odonto_ids, $todos_odontos[0]->{id_odonto};
+    }
+}
+
+my @odontos_asignados;
+my %seen_odonto;
+foreach my $target_id (@assigned_odonto_ids) {
+    next if $seen_odonto{$target_id}++;
+    my ($matched) = grep { ($_->{id_odonto} || '') eq $target_id } @todos_odontos;
+    if ($matched) {
+        push @odontos_asignados, $matched;
+    } else {
+        push @odontos_asignados, {
+            id_odonto => $target_id,
+            alias     => 'Odontograma Clínico',
+            fecha     => 'Registrado en consulta',
+            estado    => 'En Proceso',
+            importe   => 0.00,
+            teeth     => {}
+        };
+    }
+}
+
+# Generar HTML para Odontogramas Asignados
+my $odontos_asignados_html = '';
+if (@odontos_asignados) {
+    $odontos_asignados_html .= qq{
+        <div class="mt-3 pt-3 border-top">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="data-label text-teal m-0" style="color: var(--md-teal-clinical, #19B7A5);">
+                    <i class="bi bi-journal-medical me-1"></i> Odontograma(s) Cl&iacute;nico(s) Asignado(s)
+                </div>
+                <span class="badge bg-light text-muted border rounded-pill small">Odontolog&iacute;a</span>
+            </div>
+            <div class="d-flex flex-column gap-2">
+    };
+
+    foreach my $od (@odontos_asignados) {
+        my $od_id = $od->{id_odonto} || '';
+        my $alias = $od->{alias} || 'Odontograma Clínico';
+        my $fecha = $od->{fecha} || 'Sin fecha';
+        my $estado = $od->{estado} || 'En Proceso';
+        my $importe = sprintf("%.2f", $od->{importe} || 0);
+        my $cnt_piezas = (ref($od->{teeth}) eq 'HASH') ? scalar(keys %{ $od->{teeth} }) : 0;
+        my $imp_label = '\$' . $importe . ' MXN';
+
+        my $badge_estado = '<span class="badge bg-secondary-subtle text-secondary border px-2 py-1">Histórico</span>';
+        if ($estado =~ /En Proceso|Activo/i) {
+            $badge_estado = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1"><i class="bi bi-clock-history me-1"></i>En Proceso</span>';
+        } elsif ($estado =~ /Planificado|Presupuesto/i) {
+            $badge_estado = '<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1"><i class="bi bi-calendar-check me-1"></i>Planificado</span>';
+        } elsif ($estado =~ /Finalizado|Completado/i) {
+            $badge_estado = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i>Finalizado</span>';
+        }
+
+        $odontos_asignados_html .= qq{
+                <div class="p-2 rounded-3 border d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: rgba(248, 250, 252, 0.8);">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(25, 183, 165, 0.12); color: var(--md-teal-clinical, #19B7A5); flex-shrink: 0;">
+                            <i class="bi bi-journal-medical fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem;">$alias</div>
+                            <div class="small text-muted d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge bg-white text-muted border" style="font-size: 0.7rem;">#$od_id</span>
+                                <span><i class="bi bi-calendar3 me-1"></i>$fecha</span>
+                                <span>&bull; $cnt_piezas piezas</span>
+                                <span>&bull; <strong class="text-danger">$imp_label</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 ms-auto">
+                        $badge_estado
+                        <a href="render_visor_odontograma.pl?id=$consulta->{id_paciente}&id_odonto=$od_id" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 d-print-none shadow-xs" style="font-size: 0.78rem; font-weight: 700;">
+                            <i class="bi bi-display me-1"></i>Ver Odontograma
+                        </a>
+                    </div>
+                </div>
+        };
+    }
+
+    $odontos_asignados_html .= qq{
+            </div>
+        </div>
+    };
+}
+
+# --- DETECCIÓN Y CARGA DE ESTUDIOS PACS / RAYOS X ASIGNADOS EN LA CONSULTA ---
+my @assigned_pacs_ids;
+if ($d->{pacs_estudios_seleccionados}) {
+    if (ref($d->{pacs_estudios_seleccionados}) eq 'ARRAY') {
+        @assigned_pacs_ids = @{ $d->{pacs_estudios_seleccionados} };
+    } else {
+        push @assigned_pacs_ids, $d->{pacs_estudios_seleccionados};
+    }
+}
+
+# Cargar estudios PACS del paciente desde dat/estudios.dat
+my $path_estudios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estudios.dat');
+my $res_estudios = -f $path_estudios ? eval { leer_tabla($path_estudios, '\|') } || [] : [];
+my @todos_estudios_pac = grep { ($_->[1] || '') eq $consulta->{id_paciente} } @$res_estudios;
+
+# Detección por texto si no vino el checkbox en el payload
+my $gabinete_txt = $d->{gabinete_solicitados} || '';
+if (!@assigned_pacs_ids && $gabinete_txt =~ /\[Estudio PACS - ([^-]+) - ([^-]+) - ([^\]]+)\]/) {
+    my ($mod_b, $fec_b, $desc_b) = ($1, $2, $3);
+    $mod_b =~ s/^\s+|\s+$//g;
+    $fec_b =~ s/^\s+|\s+$//g;
+    $desc_b =~ s/^\s+|\s+$//g;
+    foreach my $est (@todos_estudios_pac) {
+        if (($est->[3] || '') eq $mod_b || ($est->[4] || '') =~ /\Q$desc_b\E/i) {
+            push @assigned_pacs_ids, $est->[0];
+        }
+    }
+    if (!@assigned_pacs_ids && @todos_estudios_pac == 1) {
+        push @assigned_pacs_ids, $todos_estudios_pac[0]->[0];
+    }
+}
+
+my @pacs_asignados;
+my %seen_pacs;
+foreach my $target_id (@assigned_pacs_ids) {
+    next if $seen_pacs{$target_id}++;
+    my ($matched) = grep { ($_->[0] || '') eq $target_id } @todos_estudios_pac;
+    if ($matched) {
+        push @pacs_asignados, {
+            id_estudio  => $matched->[0],
+            fecha       => $matched->[2] || '',
+            modalidad   => $matched->[3] || 'XR',
+            descripcion => $matched->[4] || 'Estudio de Gabinete',
+            ruta        => $matched->[5] || ''
+        };
+    } else {
+        push @pacs_asignados, {
+            id_estudio  => $target_id,
+            fecha       => 'Registrado en consulta',
+            modalidad   => 'XR',
+            descripcion => 'Estudio de Gabinete / Imagenolog&iacute;a',
+            ruta        => ''
+        };
+    }
+}
+
+# Generar HTML para Estudios PACS / Rayos X Asignados
+my $pacs_asignados_html = '';
+if (@pacs_asignados) {
+    $pacs_asignados_html .= qq{
+        <div class="mt-3 pt-3 border-top">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="data-label text-primary m-0" style="color: var(--md-blue-deep, #0A2A66);">
+                    <i class="bi bi-display me-1"></i> Estudio(s) de Rayos X / Imagenolog&iacute;a Asignado(s)
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill small">PACS / DICOM</span>
+            </div>
+            <div class="d-flex flex-column gap-2">
+    };
+
+    foreach my $est (@pacs_asignados) {
+        my $id_estudio = $est->{id_estudio} || '';
+        my $fecha = $est->{fecha} || '';
+        my $modalidad = $est->{modalidad} || 'XR';
+        my $desc = $est->{descripcion} || 'Estudio de Gabinete';
+        my $ruta = $est->{ruta} || '';
+
+        my $mod_badge = 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+        if ($modalidad eq 'CT') { $mod_badge = 'bg-primary-subtle text-primary border border-primary-subtle'; }
+        elsif ($modalidad eq 'XR') { $mod_badge = 'bg-info-subtle text-info border border-info-subtle'; }
+        elsif ($modalidad eq 'MR') { $mod_badge = 'bg-warning-subtle text-warning border border-warning-subtle'; }
+
+        my $preview_thumb = qq{
+            <div class="rounded-3 bg-white border d-flex align-items-center justify-content-center text-primary" style="width: 38px; height: 38px; flex-shrink: 0;">
+                <i class="bi bi-file-earmark-medical fs-5"></i>
+            </div>
+        };
+        if ($ruta && $ruta =~ /\.(jpe?g|png|webp|gif)$/i) {
+            $preview_thumb = qq{
+                <img src="../$ruta" class="rounded-3 border shadow-xs" style="width: 38px; height: 38px; object-fit: cover; flex-shrink: 0;" alt="Preview">
+            };
+        }
+
+        $pacs_asignados_html .= qq{
+                <div class="p-2 rounded-3 border d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: rgba(248, 250, 252, 0.8);">
+                    <div class="d-flex align-items-center gap-2">
+                        $preview_thumb
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem;">$desc</div>
+                            <div class="small text-muted d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge $mod_badge" style="font-size: 0.7rem;">$modalidad</span>
+                                <span><i class="bi bi-calendar3 me-1"></i>$fecha</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 ms-auto">
+                        <a href="render_visor_medico.pl?id=$consulta->{id_paciente}&estudio_id=$id_estudio" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 d-print-none shadow-xs" style="font-size: 0.78rem; font-weight: 700;">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Abrir Visor PACS
+                        </a>
+                    </div>
+                </div>
+        };
+    }
+
+    $pacs_asignados_html .= qq{
+            </div>
+        </div>
+    };
+}
+
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 
 print <<HTML;
@@ -401,7 +685,7 @@ print <<HTML;
                 </div>
                 
                 <div class="data-label">Hallazgos Cl&iacute;nicos por Regi&oacute;n</div>
-                <div class="data-value" style="min-height: 120px;">@{[ $d->{exploracion_hallazgos} || $d->{hallazgos_exploracion} || 'Sin hallazgos patológicos registrados.' ]}</div>
+                <div class="data-value" style="min-height: 80px;">@{[ $d->{exploracion_hallazgos} || $d->{hallazgos_exploracion} || 'Sin hallazgos patológicos registrados.' ]}</div>
                 
                 <div class="data-label">Estudios Solicitados / Analizados</div>
                 <div class="data-value small">
@@ -409,6 +693,10 @@ print <<HTML;
                     <strong>Gabinete:</strong> @{[ $d->{gabinete_solicitados} || 'Ninguno' ]}<br>
                     <strong>Resultados Anteriores:</strong> @{[ $d->{resultados_estudios} || 'N/A' ]}
                 </div>
+
+                $odontos_asignados_html
+
+                $pacs_asignados_html
             </div>
         </div>
 
