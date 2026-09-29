@@ -50,48 +50,102 @@ function getSurfaceMapping(toothId) {
 }
 
 /**
+ * Clasifica la pieza dental según su familia anatómica FDI
+ */
+function getToothFamily(toothId) {
+    const digit = parseInt(toothId, 10) % 10;
+    if (digit === 1 || digit === 2) return 'INCISOR';
+    if (digit === 3) return 'CANINE';
+    if (digit === 4 || digit === 5) return 'PREMOLAR';
+    return 'MOLAR'; // 6, 7, 8
+}
+
+/**
+ * Catálogo de Rutas Vectoriales Anatómicas SVG Curvas por Familia Dental
+ */
+const ANATOMICAL_SURFACE_PATHS = {
+    MOLAR: {
+        center: "M 32,32 C 38,26 62,26 68,32 C 74,38 74,62 68,68 C 62,74 38,74 32,68 C 26,62 26,38 32,32 Z",
+        top: "M 14,18 C 28,6 72,6 86,18 C 82,24 76,28 68,32 C 62,26 38,26 32,32 C 24,28 18,24 14,18 Z",
+        bottom: "M 32,68 C 38,74 62,74 68,68 C 76,72 82,76 86,82 C 72,94 28,94 14,82 C 18,76 24,72 32,68 Z",
+        left: "M 14,18 C 18,24 24,28 32,32 C 26,38 26,62 32,68 C 24,72 18,76 14,82 C 6,68 6,32 14,18 Z",
+        right: "M 68,32 C 76,28 82,24 86,18 C 94,32 94,68 86,82 C 82,76 76,72 68,68 C 74,62 74,38 68,32 Z",
+        fissures: "M 32,32 L 68,68 M 68,32 L 32,68"
+    },
+    PREMOLAR: {
+        center: "M 34,35 C 42,28 58,28 66,35 C 72,42 72,58 66,65 C 58,72 42,72 34,65 C 28,58 28,42 34,35 Z",
+        top: "M 18,22 C 32,10 68,10 82,22 C 78,28 72,32 66,35 C 58,28 42,28 34,35 C 28,32 22,28 18,22 Z",
+        bottom: "M 34,65 C 42,72 58,72 66,65 C 72,68 78,72 82,78 C 68,90 32,90 18,78 C 22,72 28,68 34,65 Z",
+        left: "M 18,22 C 22,28 28,32 34,35 C 28,42 28,58 34,65 C 28,68 22,72 18,78 C 10,64 10,36 18,22 Z",
+        right: "M 66,35 C 72,32 78,28 82,22 C 90,36 90,64 82,78 C 78,72 72,68 66,65 C 72,58 72,42 66,35 Z",
+        fissures: "M 38,50 L 62,50"
+    },
+    CANINE: {
+        center: "M 38,36 C 46,28 54,28 62,36 C 68,44 66,56 60,63 C 54,68 46,68 40,63 C 34,56 32,44 38,36 Z",
+        top: "M 22,26 C 36,12 50,6 50,6 C 50,6 64,12 78,26 C 72,31 66,34 62,36 C 54,28 46,28 38,36 C 34,34 28,31 22,26 Z",
+        bottom: "M 40,63 C 46,68 54,68 60,63 C 66,68 72,73 76,80 C 64,92 36,92 24,80 C 28,73 34,68 40,63 Z",
+        left: "M 22,26 C 28,31 34,34 38,36 C 32,44 34,56 40,63 C 34,68 28,73 24,80 C 14,64 12,42 22,26 Z",
+        right: "M 62,36 C 66,34 72,31 78,26 C 88,42 86,64 76,80 C 72,73 66,68 60,63 C 66,56 68,44 62,36 Z",
+        fissures: "M 50,18 L 50,48"
+    },
+    INCISOR: {
+        center: "M 28,43 C 36,39 64,39 72,43 C 76,47 76,53 72,57 C 64,61 36,61 28,57 C 24,53 24,47 28,43 Z",
+        top: "M 18,22 C 32,12 68,12 82,22 C 78,32 74,38 72,43 C 64,39 36,39 28,43 C 26,38 22,32 18,22 Z",
+        bottom: "M 28,57 C 36,61 64,61 72,57 C 74,62 78,68 82,78 C 68,88 32,88 18,78 C 22,68 26,62 28,57 Z",
+        left: "M 18,22 C 22,32 26,38 28,43 C 24,47 24,53 28,57 C 26,62 22,68 18,78 C 12,62 12,38 18,22 Z",
+        right: "M 72,43 C 74,38 78,32 82,22 C 88,38 88,62 82,78 C 78,68 74,62 72,57 C 76,53 76,47 72,43 Z",
+        fissures: "M 32,50 L 68,50"
+    }
+};
+
+/**
  * Genera el SVG vectorial de una pieza dental con sus 5 superficies anatómicas independientes
  */
 function generateToothSvg(toothId) {
     const map = getSurfaceMapping(toothId);
+    const family = getToothFamily(toothId);
+    const paths = ANATOMICAL_SURFACE_PATHS[family];
 
     return `
-        <svg viewBox="0 0 100 100" class="tooth-svg-canvas" data-tooth="${toothId}">
-            <g class="tooth" data-tooth="${toothId}">
-                <!-- Superficie Superior -->
-                <polygon points="0,0 100,0 75,25 25,25" 
-                         class="tooth-surface" 
-                         data-tooth="${toothId}" 
-                         data-surface="${map.top}"
-                         title="Diente ${toothId} - ${map.top.toUpperCase()}"></polygon>
+        <svg viewBox="0 0 100 100" class="tooth-svg-canvas family-${family.toLowerCase()}" data-tooth="${toothId}">
+            <g class="tooth" data-tooth="${toothId}" data-family="${family}">
+                <!-- Superficie Superior (${map.top}) -->
+                <path d="${paths.top}" 
+                      class="tooth-surface surface-top" 
+                      data-tooth="${toothId}" 
+                      data-surface="${map.top}"
+                      title="Diente ${toothId} - ${map.top.toUpperCase()}"></path>
                 
-                <!-- Superficie Inferior -->
-                <polygon points="25,75 75,75 100,100 0,100" 
-                         class="tooth-surface" 
-                         data-tooth="${toothId}" 
-                         data-surface="${map.bottom}"
-                         title="Diente ${toothId} - ${map.bottom.toUpperCase()}"></polygon>
+                <!-- Superficie Inferior (${map.bottom}) -->
+                <path d="${paths.bottom}" 
+                      class="tooth-surface surface-bottom" 
+                      data-tooth="${toothId}" 
+                      data-surface="${map.bottom}"
+                      title="Diente ${toothId} - ${map.bottom.toUpperCase()}"></path>
                 
-                <!-- Superficie Izquierda -->
-                <polygon points="0,0 25,25 25,75 0,100" 
-                         class="tooth-surface" 
-                         data-tooth="${toothId}" 
-                         data-surface="${map.left}"
-                         title="Diente ${toothId} - ${map.left.toUpperCase()}"></polygon>
+                <!-- Superficie Izquierda (${map.left}) -->
+                <path d="${paths.left}" 
+                      class="tooth-surface surface-left" 
+                      data-tooth="${toothId}" 
+                      data-surface="${map.left}"
+                      title="Diente ${toothId} - ${map.left.toUpperCase()}"></path>
                 
-                <!-- Superficie Derecha -->
-                <polygon points="100,0 100,100 75,75 75,25" 
-                         class="tooth-surface" 
-                         data-tooth="${toothId}" 
-                         data-surface="${map.right}"
-                         title="Diente ${toothId} - ${map.right.toUpperCase()}"></polygon>
+                <!-- Superficie Derecha (${map.right}) -->
+                <path d="${paths.right}" 
+                      class="tooth-surface surface-right" 
+                      data-tooth="${toothId}" 
+                      data-surface="${map.right}"
+                      title="Diente ${toothId} - ${map.right.toUpperCase()}"></path>
                 
-                <!-- Superficie Oclusal / Central -->
-                <polygon points="25,25 75,25 75,75 25,75" 
-                         class="tooth-surface" 
-                         data-tooth="${toothId}" 
-                         data-surface="${map.center}"
-                         title="Diente ${toothId} - ${map.center.toUpperCase()}"></polygon>
+                <!-- Superficie Oclusal / Central (${map.center}) -->
+                <path d="${paths.center}" 
+                      class="tooth-surface surface-center" 
+                      data-tooth="${toothId}" 
+                      data-surface="${map.center}"
+                      title="Diente ${toothId} - ${map.center.toUpperCase()}"></path>
+
+                <!-- Líneas Anatómicas / Fisuras Oclusales (No clicables, decorativas) -->
+                ${paths.fissures ? `<path d="${paths.fissures}" class="tooth-fissure-line" />` : ''}
             </g>
         </svg>
     `;
@@ -116,8 +170,9 @@ window.renderOdontogram = function(containerId, patientId) {
     `;
 
     ODONTO_QUADRANTS.Q1.forEach(id => {
+        const fam = getToothFamily(id).toLowerCase();
         html += `
-            <div class="tooth-card upper-arch" data-tooth="${id}">
+            <div class="tooth-card upper-arch family-${fam}" data-tooth="${id}">
                 <span class="tooth-number">${id}</span>
                 ${generateToothSvg(id)}
             </div>
@@ -135,8 +190,9 @@ window.renderOdontogram = function(containerId, patientId) {
     `;
 
     ODONTO_QUADRANTS.Q2.forEach(id => {
+        const fam = getToothFamily(id).toLowerCase();
         html += `
-            <div class="tooth-card upper-arch" data-tooth="${id}">
+            <div class="tooth-card upper-arch family-${fam}" data-tooth="${id}">
                 <span class="tooth-number">${id}</span>
                 ${generateToothSvg(id)}
             </div>
@@ -159,8 +215,9 @@ window.renderOdontogram = function(containerId, patientId) {
     `;
 
     ODONTO_QUADRANTS.Q4.forEach(id => {
+        const fam = getToothFamily(id).toLowerCase();
         html += `
-            <div class="tooth-card lower-arch" data-tooth="${id}">
+            <div class="tooth-card lower-arch family-${fam}" data-tooth="${id}">
                 ${generateToothSvg(id)}
                 <span class="tooth-number">${id}</span>
             </div>
@@ -178,8 +235,9 @@ window.renderOdontogram = function(containerId, patientId) {
     `;
 
     ODONTO_QUADRANTS.Q3.forEach(id => {
+        const fam = getToothFamily(id).toLowerCase();
         html += `
-            <div class="tooth-card lower-arch" data-tooth="${id}">
+            <div class="tooth-card lower-arch family-${fam}" data-tooth="${id}">
                 ${generateToothSvg(id)}
                 <span class="tooth-number">${id}</span>
             </div>

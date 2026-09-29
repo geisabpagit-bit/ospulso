@@ -120,14 +120,30 @@
     border-radius: 10px;
 }
 
-/* Diente Individual - Tamaño Compacto Anti-Scroll */
+/* Diente Individual - Familias Anatómicas Proporcionales */
 .tooth-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 38px;
+    width: 36px;
     user-select: none;
     transition: transform 0.15s ease;
+}
+
+.tooth-card.family-molar {
+    width: 38px;
+}
+
+.tooth-card.family-premolar {
+    width: 35px;
+}
+
+.tooth-card.family-canine {
+    width: 33px;
+}
+
+.tooth-card.family-incisor {
+    width: 30px;
 }
 
 .tooth-card:hover {
@@ -135,7 +151,7 @@
 }
 
 .tooth-number {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 800;
     color: #475569;
     margin-bottom: 2px;
@@ -152,6 +168,31 @@
     width: 36px;
     height: 36px;
     filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+.tooth-svg-canvas.family-incisor {
+    width: 30px;
+}
+
+.tooth-svg-canvas.family-canine {
+    width: 33px;
+}
+
+.tooth-svg-canvas.family-premolar {
+    width: 35px;
+}
+
+.tooth-svg-canvas.family-molar {
+    width: 38px;
+}
+
+.tooth-fissure-line {
+    stroke: #94a3b8;
+    stroke-width: 1.2;
+    stroke-linecap: round;
+    pointer-events: none;
+    fill: none;
+    opacity: 0.6;
 }
 
 .tooth-surface {

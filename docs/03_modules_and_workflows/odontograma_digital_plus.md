@@ -35,10 +35,17 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 - ⚪ **Superficie Sana / Sin Hallazgo**: `#FFFFFF`
 - 🟢 **Hover Interactivo Healthcare**: `#19B7A5`
 
+### 2.4 Familias Anatómicas de Coronas (Fase 1.1)
+- **Molares (`18-16, 26-28, 38-36, 46-48`)**: Coronas cuadrangulares/romboidales amplias (38px) con cúspides orgánicas y fisuras oclusales en cruz.
+- **Premolares (`15-14, 24-25, 35-34, 44-45`)**: Coronas ovoides bicúspides (35px) con surco mesiodistal.
+- **Caninos (`13, 23, 33, 43`)**: Coronas pentagonales anguladas (33px) con cúspide prominente y vertientes anatómicas.
+- **Incisivos (`12-11, 21-22, 32-31, 41-42`)**: Coronas esbeltas alargadas (30px) con borde incisal estrecho y flancos proximales delgados.
+
 ---
 
-## 3. Arquitectura de Archivos (Fase 1)
-- **CSS**: `css/odontograma_plus.css` (estilos vectoriales, dimensionado anti-scroll compacto 38px, cuadrantes, línea media, hover teal, persistencia de color y escalado responsivo).
-- **JavaScript**: `js/odontograma.js` (generador de 32 piezas, estado `window.odontogramState`, controles de zoom dinámico `changeOdontoZoom`/`resetOdontoZoom`, restauración de DOM `restoreDomFromState` y reactividad SVG).
-- **Vista**: `views/render_expediente_clinico.pl` (sección `#tab6` con toolbar de pruebas rápidas, controles de zoom interactivo y visor JSON en vivo).
+## 3. Arquitectura de Archivos
+- **CSS**: `css/odontograma_plus.css` (estilos vectoriales biomórficos, anchos proporcionales por familia dental, hover teal, persistencia de color y escalado responsivo).
+- **JavaScript**: `js/odontograma.js` (generador de 32 piezas por familias anatómicas, rutas `<path>` curvas independientes, estado `window.odontogramState`, controles de zoom dinámico y reactividad SVG).
+- **Vista**: `views/render_expediente_clinico.pl` (sección `#tab6` con toolbar, controles de zoom interactivo y visor JSON en vivo).
+
 
