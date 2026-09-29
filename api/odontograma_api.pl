@@ -1,8 +1,11 @@
 #!/usr/bin/perl
+use cPanelUserConfig;
 use strict;
 use warnings;
 use utf8;
+use open qw(:std :utf8);
 use CGI;
+use CGI::Carp qw(fatalsToBrowser);
 use JSON;
 use File::Spec;
 use FindBin;
@@ -10,6 +13,8 @@ use Fcntl qw(:flock);
 use lib "$FindBin::Bin/..";
 use POSIX qw(strftime);
 use utils::db_manager qw(leer_tabla actualizar_archivo);
+
+binmode STDOUT, ':raw';
 
 my $q = CGI->new;
 my $accion = $q->param('accion') || 'get';
@@ -19,7 +24,7 @@ $id_paciente =~ s/[^\w\-]//g; # Sanitizar ID
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
 if (!$id_paciente) {
-    print encode_json({ ok => 0, msg => 'ID de paciente requerido' });
+    print encode_json({ ok => 0, error => 'ID de paciente requerido' });
     exit;
 }
 
@@ -30,116 +35,18 @@ unless (-d $dir_json) {
 my $archivo_paciente_json = File::Spec->catfile($dir_json, "paciente_${id_paciente}.json");
 my $archivo_dat = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas.dat');
 
-if ($accion eq 'save') {
-    my $json_raw = $q->param('data') || '{}';
-    my $parsed_data = eval { decode_json($json_raw) } || {};
-    
-    # Determinar si pasaron el objeto completo o solo el hash de dientes
-    my $teeth_hash = {};
-    if (ref($parsed_data) eq 'HASH') {
-        if (exists $parsed_data->{teeth} && ref($parsed_data->{teeth}) eq 'HASH') {
-            $teeth_hash = $parsed_data->{teeth};
-        } else {
-            $teeth_hash = $parsed_data;
-        }
-    }
-
-    my $notas_text = $q->param('notas') // ($parsed_data->{notas} || '');
-    my $financial_pending = $q->param('financialTotalPending');
-    if (!defined $financial_pending && ref($parsed_data) eq 'HASH' && defined $parsed_data->{financialTotalPending}) {
-        $financial_pending = $parsed_data->{financialTotalPending};
-    }
-    $financial_pending = sprintf("%.2f", $financial_pending || 0);
-
-    my $periodontal = (ref($parsed_data) eq 'HASH' && ref($parsed_data->{periodontalSummary}) eq 'HASH')
-        ? $parsed_data->{periodontalSummary}
-        : { bleedingOnProbing => JSON::false, maxProbingDepthMm => 0 };
-
-    my $iso_now = strftime("%Y-%m-%dT%H:%M:%SZ", gmtime);
-    my $fecha_fmt = strftime("%d/%m/%Y %H:%M:%S", localtime);
-
-    # Estructura canónica según docs/odontograma_plus.md
-    my $canonical_record = {
+# Función para cargar la estructura del paciente (con migración transparente)
+sub cargar_perfil_odontologia {
+    my $record = {
         patientId             => $id_paciente,
-        updatedAt             => $iso_now,
-        fechaLocal            => $fecha_fmt,
+        updatedAt             => '',
         dentitionType         => 'PERMANENT',
-        teeth                 => $teeth_hash,
-        periodontalSummary    => $periodontal,
-        financialTotalPending => $financial_pending + 0,
-        notas                 => $notas_text,
+        odontogramas          => [],
     };
 
-    # 1. Escritura Atómica en JSON del Paciente con FLOCK EXCLUSIVO
-    my $json_salida = eval {
-        my $coder = JSON->new->utf8->pretty(1);
-        $coder->encode($canonical_record);
-    } || '{}';
-
-    my $write_ok = 0;
-    if (open my $fh_json, '>', $archivo_paciente_json) {
-        if (flock($fh_json, LOCK_EX)) {
-            binmode $fh_json, ':raw';
-            print $fh_json $json_salida;
-            flock($fh_json, LOCK_UN);
-            $write_ok = 1;
-        }
-        close $fh_json;
-    }
-
-    # 2. Sincronización en dat/odontogramas.dat para índices y reportes globales
-    my $notas_dat = $notas_text;
-    $notas_dat =~ s/\|/ /g;
-    $notas_dat =~ s/\r?\n/ /g;
-
-    my @adult_cols;
-    my @child_cols;
-    foreach my $tooth (sort keys %$teeth_hash) {
-        my $val = encode_json($teeth_hash->{$tooth});
-        if ($tooth =~ /^[1234][1-8]$/) {
-            push @adult_cols, "$tooth=$val";
-        } elsif ($tooth =~ /^[5678][1-5]$/) {
-            push @child_cols, "$tooth=$val";
-        }
-    }
-
-    my $adult_line = join('|', $id_paciente, 'adulto', $fecha_fmt, $notas_dat, @adult_cols);
-    my $child_line = join('|', $id_paciente, 'nino', $fecha_fmt, $notas_dat, @child_cols);
-
-    my $registros = leer_tabla($archivo_dat, '\|');
-    my @nuevos_registros;
-    foreach my $fila (@$registros) {
-        if ($fila->[0] ne $id_paciente) {
-            push @nuevos_registros, join('|', @$fila);
-        }
-    }
-    push @nuevos_registros, $adult_line;
-    push @nuevos_registros, $child_line;
-
-    my $cabecera = "ID_PACIENTE|TIPO|FECHA|NOTAS|DATOS_FDI";
-    actualizar_archivo($archivo_dat, $cabecera, \@nuevos_registros);
-
-    if ($write_ok) {
-        print encode_json({
-            ok        => 1,
-            msg       => 'Odontograma guardado con persistencia JSON y tabla FDI exitosa',
-            updatedAt => $iso_now,
-            fecha     => $fecha_fmt,
-            patientId => $id_paciente
-        });
-    } else {
-        print encode_json({
-            ok  => 0,
-            msg => 'No se pudo escribir en el archivo JSON del paciente (bloqueo fallido)'
-        });
-    }
-} 
-else {
-    # ACCIÓN: GET (Recuperar Odontograma)
-    # Primero: Intentar leer el JSON canónico del paciente con LOCK_SH
     if (-e $archivo_paciente_json) {
         my $json_content = '';
-        if (open my $fh_in, '<', $archivo_paciente_json) {
+        if (open my $fh_in, '<:encoding(UTF-8)', $archivo_paciente_json) {
             if (flock($fh_in, LOCK_SH)) {
                 local $/;
                 $json_content = <$fh_in>;
@@ -151,27 +58,37 @@ else {
         if ($json_content) {
             my $parsed = eval { decode_json($json_content) };
             if ($parsed && ref($parsed) eq 'HASH') {
-                print encode_json({
-                    ok     => 1,
-                    source => 'patient_json',
-                    data   => $parsed
-                });
-                exit;
+                if (exists $parsed->{odontogramas} && ref($parsed->{odontogramas}) eq 'ARRAY') {
+                    return $parsed;
+                } elsif (exists $parsed->{teeth} && ref($parsed->{teeth}) eq 'HASH') {
+                    # Migración al vuelo de registro plano anterior a colección con Alias
+                    my $od_legacy = {
+                        id_odonto             => "OD-${id_paciente}-1",
+                        alias                 => $parsed->{alias} || 'Diagnóstico Inicial',
+                        fecha                 => $parsed->{fechaLocal} || $parsed->{updatedAt} || strftime("%d/%m/%Y %H:%M:%S", localtime),
+                        estado                => 'En Proceso',
+                        importe               => $parsed->{financialTotalPending} || 0,
+                        notas                 => $parsed->{notas} || '',
+                        teeth                 => $parsed->{teeth} || {},
+                        periodontalSummary    => $parsed->{periodontalSummary} || { bleedingOnProbing => JSON::false, maxProbingDepthMm => 0 }
+                    };
+                    $record->{odontogramas} = [ $od_legacy ];
+                    $record->{updatedAt} = $parsed->{updatedAt} || '';
+                    return $record;
+                }
             }
         }
     }
 
-    # Segundo: Fallback a dat/odontogramas.dat si el JSON aún no ha sido creado
+    # Fallback si no hay JSON: intentar leer desde odontogramas.dat
     my $registros = leer_tabla($archivo_dat, '\|');
-    my %teeth_found = ();
+    my %teeth_found;
     my $fecha_found = '';
     my $notas_found = '';
-
     foreach my $fila (@$registros) {
         if ($fila->[0] eq $id_paciente) {
             $fecha_found = $fila->[2] if $fila->[2];
             $notas_found = $fila->[3] if $fila->[3];
-
             for (my $i = 4; $i < @$fila; $i++) {
                 if ($fila->[$i] =~ /^(\d+)=(.+)$/) {
                     my $tooth = $1;
@@ -182,20 +99,289 @@ else {
         }
     }
 
-    my $legacy_adapter = {
-        patientId             => $id_paciente,
-        updatedAt             => '',
-        fechaLocal            => $fecha_found,
-        dentitionType         => 'PERMANENT',
-        teeth                 => \%teeth_found,
-        periodontalSummary    => { bleedingOnProbing => JSON::false, maxProbingDepthMm => 0 },
-        financialTotalPending => 0.00,
-        notas                 => $notas_found
-    };
+    if (%teeth_found) {
+        my $od_dat = {
+            id_odonto          => "OD-${id_paciente}-1",
+            alias              => 'Diagnóstico Base',
+            fecha              => $fecha_found || strftime("%d/%m/%Y %H:%M:%S", localtime),
+            estado             => 'En Proceso',
+            importe            => 0.00,
+            notas              => $notas_found,
+            teeth              => \%teeth_found,
+            periodontalSummary => { bleedingOnProbing => JSON::false, maxProbingDepthMm => 0 }
+        };
+        $record->{odontogramas} = [ $od_dat ];
+    }
 
+    return $record;
+}
+
+# Función para persistir atómicamente la estructura del paciente y sincronizar tabla .dat
+sub guardar_perfil_odontologia {
+    my ($perfil) = @_;
+    $perfil->{updatedAt} = strftime("%Y-%m-%dT%H:%M:%SZ", gmtime);
+
+    my $coder = JSON->new->utf8->pretty(1);
+    my $json_salida = eval { $coder->encode($perfil) } || '{}';
+
+    # 1. Escritura atómica con LOCK_EX
+    if (open my $fh_out, '>:encoding(UTF-8)', $archivo_paciente_json) {
+        if (flock($fh_out, LOCK_EX)) {
+            print $fh_out $json_salida;
+            flock($fh_out, LOCK_UN);
+        }
+        close $fh_out;
+    }
+
+    # 2. Sincronización en dat/odontogramas.dat (manteniendo filas de otros pacientes)
+    my $registros = leer_tabla($archivo_dat, '\|');
+    my @nuevos_registros;
+    foreach my $fila (@$registros) {
+        if ($fila->[0] ne $id_paciente) {
+            push @nuevos_registros, join('|', @$fila);
+        }
+    }
+
+    # Agregar filas de los odontogramas de este paciente
+    foreach my $od (@{ $perfil->{odontogramas} }) {
+        my $notas_clean = $od->{notas} || '';
+        $notas_clean =~ s/\|/ /g;
+        $notas_clean =~ s/\r?\n/ /g;
+
+        my @cols_teeth;
+        if (ref($od->{teeth}) eq 'HASH') {
+            foreach my $t (sort keys %{ $od->{teeth} }) {
+                my $encoded = eval { encode_json($od->{teeth}->{$t}) } || '{}';
+                push @cols_teeth, "$t=$encoded";
+            }
+        }
+        # Formato: ID_PACIENTE|ID_ODONTO|FECHA|NOTAS|DATOS_FDI...
+        my $linea = join('|', $id_paciente, ($od->{id_odonto} || 'adulto'), ($od->{fecha} || ''), $notas_clean, @cols_teeth);
+        push @nuevos_registros, $linea;
+    }
+
+    my $cabecera = "ID_PACIENTE|TIPO|FECHA|NOTAS|DATOS_FDI";
+    actualizar_archivo($archivo_dat, $cabecera, \@nuevos_registros);
+    return 1;
+}
+
+eval {
+    # -------------------------------------------------------------
+    # ACCIÓN: LIST (Listado de Odontogramas para DataTable Maestro)
+    # -------------------------------------------------------------
+    if ($accion eq 'list') {
+        my $perfil = cargar_perfil_odontologia();
+        my @listado;
+        foreach my $od (@{ $perfil->{odontogramas} }) {
+            my $cnt_piezas = 0;
+            if (ref($od->{teeth}) eq 'HASH') {
+                $cnt_piezas = scalar(keys %{ $od->{teeth} });
+            }
+            push @listado, {
+                id_odonto => $od->{id_odonto},
+                alias     => $od->{alias} || 'Odontograma General',
+                fecha     => $od->{fecha} || '',
+                estado    => $od->{estado} || 'En Proceso',
+                importe   => sprintf("%.2f", $od->{importe} || 0),
+                notas     => $od->{notas} || '',
+                piezas    => $cnt_piezas,
+            };
+        }
+        print encode_json({ ok => 1, data => \@listado });
+        exit;
+    }
+
+    # -------------------------------------------------------------
+    # ACCIÓN: GET (Obtener un Odontograma Específico o el más reciente)
+    # -------------------------------------------------------------
+    elsif ($accion eq 'get') {
+        my $id_odonto_req = $q->param('id_odonto') || '';
+        my $perfil = cargar_perfil_odontologia();
+        my $encontrado = undef;
+
+        if ($id_odonto_req) {
+            foreach my $od (@{ $perfil->{odontogramas} }) {
+                if ($od->{id_odonto} eq $id_odonto_req) {
+                    $encontrado = $od;
+                    last;
+                }
+            }
+        }
+
+        # Si no se encontró por ID o no se envió ID, tomar el primero disponible
+        if (!$encontrado && @{ $perfil->{odontogramas} }) {
+            $encontrado = $perfil->{odontogramas}->[0];
+        }
+
+        # Si todavía no hay odontogramas, retornar plantilla vacía
+        if (!$encontrado) {
+            $encontrado = {
+                id_odonto          => "OD-${id_paciente}-1",
+                alias              => 'Diagnóstico Inicial',
+                fecha              => strftime("%d/%m/%Y %H:%M:%S", localtime),
+                estado             => 'En Proceso',
+                importe            => 0.00,
+                notas              => '',
+                teeth              => {},
+                periodontalSummary => { bleedingOnProbing => JSON::false, maxProbingDepthMm => 0 }
+            };
+        }
+
+        print encode_json({
+            ok        => 1,
+            patientId => $id_paciente,
+            data      => $encontrado,
+        });
+        exit;
+    }
+
+    # -------------------------------------------------------------
+    # ACCIÓN: SAVE (Crear o Actualizar un Odontograma con Alias)
+    # -------------------------------------------------------------
+    elsif ($accion eq 'save') {
+        my $id_odonto_req = $q->param('id_odonto') || '';
+        my $alias_req     = $q->param('alias') || '';
+        my $estado_req    = $q->param('estado') || 'En Proceso';
+        my $notas_req     = $q->param('notas') // '';
+        my $imp_req       = $q->param('financialTotalPending') // $q->param('importe') // 0;
+        my $json_raw      = $q->param('data') || '{}';
+        my $parsed_teeth  = eval { decode_json($json_raw) } || {};
+
+        # Si pasaron el objeto envuelto con .teeth
+        if (ref($parsed_teeth) eq 'HASH' && exists $parsed_teeth->{teeth}) {
+            $parsed_teeth = $parsed_teeth->{teeth};
+        }
+
+        my $perfil = cargar_perfil_odontologia();
+        my $now_str = strftime("%d/%m/%Y %H:%M:%S", localtime);
+        my $target_od = undef;
+
+        if ($id_odonto_req && $id_odonto_req ne 'new') {
+            foreach my $od (@{ $perfil->{odontogramas} }) {
+                if ($od->{id_odonto} eq $id_odonto_req) {
+                    $target_od = $od;
+                    last;
+                }
+            }
+        }
+
+        if ($target_od) {
+            # Actualizar existente
+            $target_od->{alias}   = $alias_req if ($alias_req ne '');
+            $target_od->{estado}  = $estado_req;
+            $target_od->{fecha}   = $now_str;
+            $target_od->{notas}   = $notas_req;
+            $target_od->{importe} = sprintf("%.2f", $imp_req) + 0;
+            $target_od->{teeth}   = $parsed_teeth if (ref($parsed_teeth) eq 'HASH' && %$parsed_teeth);
+        } else {
+            # Crear nuevo odontograma
+            my $nuevo_idx = scalar(@{ $perfil->{odontogramas} }) + 1;
+            my $nuevo_id = "OD-${id_paciente}-${nuevo_idx}_" . time();
+            $alias_req ||= "Odontograma #" . $nuevo_idx;
+
+            $target_od = {
+                id_odonto          => $nuevo_id,
+                alias              => $alias_req,
+                fecha              => $now_str,
+                estado             => $estado_req,
+                importe            => sprintf("%.2f", $imp_req) + 0,
+                notas              => $notas_req,
+                teeth              => $parsed_teeth,
+                periodontalSummary => { bleedingOnProbing => JSON::false, maxProbingDepthMm => 0 }
+            };
+            unshift @{ $perfil->{odontogramas} }, $target_od;
+        }
+
+        guardar_perfil_odontologia($perfil);
+
+        print encode_json({
+            ok        => 1,
+            msg       => 'Odontograma guardado con éxito',
+            id_odonto => $target_od->{id_odonto},
+            alias     => $target_od->{alias},
+            fecha     => $target_od->{fecha}
+        });
+        exit;
+    }
+
+    # -------------------------------------------------------------
+    # ACCIÓN: RENAME (Modificar Alias, Estado o Notas de un Odontograma)
+    # -------------------------------------------------------------
+    elsif ($accion eq 'rename') {
+        my $id_odonto_req = $q->param('id_odonto') || '';
+        my $nuevo_alias   = $q->param('alias') || '';
+        my $nuevo_estado  = $q->param('estado') || '';
+        my $nuevas_notas  = $q->param('notas');
+
+        if (!$id_odonto_req || !$nuevo_alias) {
+            print encode_json({ ok => 0, error => 'ID de odontograma y nuevo alias son requeridos' });
+            exit;
+        }
+
+        my $perfil = cargar_perfil_odontologia();
+        my $modificado = 0;
+        foreach my $od (@{ $perfil->{odontogramas} }) {
+            if ($od->{id_odonto} eq $id_odonto_req) {
+                $od->{alias} = $nuevo_alias;
+                $od->{estado} = $nuevo_estado if ($nuevo_estado ne '');
+                $od->{notas} = $nuevas_notas if defined($nuevas_notas);
+                $od->{fecha} = strftime("%d/%m/%Y %H:%M:%S", localtime);
+                $modificado = 1;
+                last;
+            }
+        }
+
+        if ($modificado) {
+            guardar_perfil_odontologia($perfil);
+            print encode_json({ ok => 1, msg => 'Odontograma actualizado con éxito' });
+        } else {
+            print encode_json({ ok => 0, error => 'Odontograma no encontrado' });
+        }
+        exit;
+    }
+
+    # -------------------------------------------------------------
+    # ACCIÓN: DELETE (Eliminar un Odontograma Específico)
+    # -------------------------------------------------------------
+    elsif ($accion eq 'delete') {
+        my $id_odonto_req = $q->param('id_odonto') || '';
+        if (!$id_odonto_req) {
+            print encode_json({ ok => 0, error => 'ID de odontograma requerido' });
+            exit;
+        }
+
+        my $perfil = cargar_perfil_odontologia();
+        my @conservar;
+        my $eliminado = 0;
+        foreach my $od (@{ $perfil->{odontogramas} }) {
+            if ($od->{id_odonto} eq $id_odonto_req) {
+                $eliminado = 1;
+            } else {
+                push @conservar, $od;
+            }
+        }
+
+        if ($eliminado) {
+            $perfil->{odontogramas} = \@conservar;
+            guardar_perfil_odontologia($perfil);
+            print encode_json({ ok => 1, msg => 'Odontograma eliminado con éxito' });
+        } else {
+            print encode_json({ ok => 0, error => 'El odontograma especificado no existe' });
+        }
+        exit;
+    }
+
+    else {
+        print encode_json({ ok => 0, error => "Acción desconocida: $accion" });
+        exit;
+    }
+};
+
+# Error 500 Guard
+if ($@) {
     print encode_json({
-        ok     => 1,
-        source => 'dat_table',
-        data   => $legacy_adapter
+        ok    => 0,
+        error => "Error 500 interno en API Odontograma: $@"
     });
 }
+1;

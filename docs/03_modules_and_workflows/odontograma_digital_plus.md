@@ -60,23 +60,32 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 
 ---
 
-### 2.6 OSOdontograma Viewer Pro & Hub Odontológico (Arquitectura Standalone y Hub Refactorizado)
-- **Patrón PACS/Viewer**: Al igual que el Visor de Rayos X (`render_visor_medico.pl`), el Odontograma se desacopla del flujo embebido del expediente:
+### 2.6 OSOdontograma Viewer Pro & Hub Odontológico (Arquitectura Standalone y Multi-Estudio con Alias)
+- **Patrón PACS/Viewer Multi-Estudio**: Al igual que el Visor de Rayos X (`render_visor_medico.pl`), el Odontograma cuenta con una arquitectura multi-estudio que permite a cada paciente tener múltiples odontogramas (ej. "Diagnóstico Inicial 2026", "Plan Ortodoncia", "Evolución Post-Quirúrgica"):
   - **Hub Odontológico (`#tab6` en `views/render_expediente_clinico.pl`)**: Layout ejecutivo optimizado a **100% del ancho disponible** con jerarquía visual de 4 niveles:
-    1. **Nivel 1 (Hero Header)**: Título clínico, badges FDI/ISO 3950 y CTA principal *"Lanzar OSOdontograma Viewer Pro"*.
-    2. **Nivel 2 (Bento KPI Grid Horizontal)**: 4 métricas críticas en fila (Presupuesto Estimado en rojo clínico, Patologías Activas en ámbar, Tratamientos Existentes en azul, Piezas Afectadas / 32 en teal).
+    1. **Nivel 1 (Hero Header)**: Título clínico, badges FDI/ISO 3950, botón "+ Nuevo Odontograma" y CTA principal *"Lanzar Visor Pro"*.
+    2. **Nivel 2 (Bento KPI Grid Horizontal)**: 4 métricas críticas en fila (Presupuesto Estimado en rojo clínico formateado como `$0.00 MXN` sin barras invertidas, Patologías Activas en ámbar, Tratamientos Existentes en azul, Total Odontogramas Registrados en teal).
     3. **Nivel 3 (Observaciones del Odontólogo)**: Callout banner con estilo glassmorphism para notas diagnósticas y fecha de última sincronización.
-    4. **Nivel 4 (DataTables Full-Width)**: Tabla de hallazgos `#tablaOdontoHub` al **100% de ancho** (`col-12`) con columnas optimizadas (Pieza FDI, Familia Anatómica, Superficie, Diagnóstico, Estado, Costo $MXN), botones de exportación (Copy/Excel/PDF/Print) y empty-state interactivo.
-  - **OSOdontograma Viewer (`views/render_visor_odontograma.pl`)**: Visor médico a pantalla completa (`100vw × 100vh`) con cabecera corporativa MedentIA, HUD flotante de zoom, lienzo anatómico espacioso sin scroll horizontal forzado, panel lateral con desglose en tiempo real y sincronización directa con `api/odontograma_api.pl`.
+    4. **Nivel 4 (DataTables Maestro 5 Columnas)**: Tabla `#tablaOdontoHub` al **100% de ancho** (`col-12`) con las 5 columnas requeridas:
+       - **Nombre**: Alias descriptivo del odontograma (ej. "Plan Ortodoncia 2026"), badge `#ID` y contador de piezas registradas.
+       - **Fecha**: Fecha de registro o última actualización clínica.
+       - **Estado**: Badge con semántica visual (`En Proceso / Activo`, `Planificado / Presupuesto`, `Finalizado / Completado`, `Histórico`).
+       - **Importe**: Monto presupuestado sugerido formateado estrictamente como `$X.XX MXN` (sin prefijos `\$`).
+       - **Acciones (CRUD + Ojo 👁️)**:
+         - 👁️ **Ver Detalle Clínico**: Abre el modal `#modalDetalleOdonto` mostrando las 6 columnas anatómicas completas (Pieza FDI, Diente/Familia, Cara/Zona, Diagnóstico, Estado Clínico e Importe Sugerido).
+         - 🖥️ **Abrir Visor Pro**: Enlace directo al visor `render_visor_odontograma.pl?id=<id>&id_odonto=<id_odonto>`.
+         - 🏷️ **Renombrar / Metadatos**: Modal `#modalRenombrarOdonto` para actualizar Alias, Estado y Observaciones.
+         - 🗑️ **Eliminar**: Modal de confirmación SweetAlert2 y borrado seguro vía `api/odontograma_api.pl?accion=delete`.
+  - **OSOdontograma Viewer (`views/render_visor_odontograma.pl`)**: Visor médico a pantalla completa (`100vw × 100vh`) con sincronización de Alias en tiempo real, HUD flotante de zoom, lienzo anatómico espacioso y persistencia atómica con `api/odontograma_api.pl`.
 
 ---
 
 ## 3. Arquitectura de Archivos y Persistencia
 - **CSS**: `css/odontograma_plus.css` (estilos vectoriales biomórficos, anchos proporcionales por familia dental, hover teal, persistencia de color, clases `.tooth-absent`, `.tooth-extraction-req`, `.tooth-endo-pending`, `.tooth-endo-done`, modal glassmorphism y visor a pantalla completa).
 - **JavaScript**: `js/odontograma.js` (generador de 32 piezas por familias anatómicas, rutas `<path>` curvas independientes, estado reactivo `window.odontogramState`, hidratación con `window.loadOdontogramState()`, controles de zoom dinámico, modal contextual de 3 niveles, catálogo clínico y recálculo presupuestario).
-- **Visor Standalone**: `views/render_visor_odontograma.pl` (aplicación médica completa a `100vw × 100vh` para diagnóstico dental, impresión y sincronización atómica con feedback SweetAlert2).
-- **Hub Ejecutivo**: `views/render_expediente_clinico.pl` (sección `#tab6` con Bento Grid horizontal de 4 KPIs, banner de notas y DataTable al 100% de ancho con botones de exportación y lectura dual JSON/dat).
-- **Backend API**: `api/odontograma_api.pl` (persistencia JSON atómica por paciente con bloqueo `flock` exclusivo en `dat/odontogramas/paciente_<id>.json` y sincronización bidireccional en tabla `dat/odontogramas.dat`).
+- **Visor Standalone**: `views/render_visor_odontograma.pl` (aplicación médica completa a `100vw × 100vh` con selector de Alias, Protocolo 11.1 de rutas absolutas, captura de Error 500 y formato limpio `$0.00 MXN`).
+- **Hub Ejecutivo**: `views/render_expediente_clinico.pl` (sección `#tab6` con DataTable maestro de 5 columnas, modal de hallazgos anatómicos de 6 columnas, modales de creación/renombrado y cálculo de KPIs).
+- **Backend API**: `api/odontograma_api.pl` (soporta acciones `list`, `get`, `save`, `rename`, `delete` con persistencia JSON multi-odontograma en `dat/odontogramas/paciente_<id>.json`, `flock` concurrente y sincronización en `.dat`).
 - **Gobernanza y Reset Operativo**: Integración con `api/reset_datos_organizacion_api.pl` y `api/hard_reset_db_api.pl` para purgar odontogramas (tanto en `odontogramas.dat` como en los archivos atómicos `dat/odontogramas/paciente_<id>.json`) preservando intactos los registros de otros consultorios o tenants.
 
 ---
@@ -89,6 +98,8 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 | **Fase 2** | Menú Contextual, Selector en Cascada & Visor Standalone | Modal Glassmorphism de 3 niveles (Alcance, Condición, Precio), badges visuales y visor PACS a pantalla completa (`100vw × 100vh`). | ✅ COMPLETADA |
 | **Fase 3** | Backend Perl & Archivos Planos Canónicos | `api/odontograma_api.pl` con guardado JSON atómico por paciente (`dat/odontogramas/paciente_<id>.json`), `flock` concurrente y fallback a `.dat`. | ✅ COMPLETADA |
 | **Fase 4** | Integración Final & Hub Clínico Odontológico | Tab 6 en `views/render_expediente_clinico.pl` a 100% de ancho, 4 Bento cards de KPI, sincronización en vivo y empty state interactivo. | ✅ COMPLETADA |
+| **Fase 5** | Multi-Odontograma con Alias, CRUD y Drilldown Anatómico | Soporte multi-odontograma con Alias, DataTable maestro de 5 columnas (`Nombre`, `Fecha`, `Estado`, `Importe`, `Acciones`), modal de 6 columnas activado por 👁️, erradicación de backslash en `$0.00 MXN` y Protocolos 500/11.1. | ✅ COMPLETADA |
+
 
 
 

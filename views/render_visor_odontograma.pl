@@ -8,16 +8,16 @@ use CGI;
 use CGI::Session;
 use CGI::Carp qw(fatalsToBrowser);
 use JSON qw(decode_json encode_json);
-use lib '..';
 use FindBin;
 use File::Spec;
+use lib "$FindBin::Bin/..";
 
 # --- CONFIGURACIÓN DE RUTAS Y SESIÓN ---
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 use utils::db_manager qw(leer_tabla);
 
 my $q = CGI->new;
-my $session_data = check_session();
+my $session_data = eval { check_session() } || {};
 
 # Redireccionar si no hay sesión
 if (!$session_data->{session_ok}) {
@@ -25,10 +25,14 @@ if (!$session_data->{session_ok}) {
     exit;
 }
 
-my $id_target = $q->param('id') || '';
+eval {
+    my $id_target = $q->param('id') || '';
+    my $id_odonto_req = $q->param('id_odonto') || '';
+    my $alias_odonto_req = $q->param('alias') || '';
 
 my $PACIENTES_FILE   = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
 my $ODONTOGRAMA_FILE = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas.dat');
+my $PACIENTE_JSON_FILE = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas', "paciente_${id_target}.json");
 
 my $pacientes_ref = leer_tabla($PACIENTES_FILE, '\|');
 
@@ -59,17 +63,34 @@ if ($paciente->{f_nac} =~ /(\d{4})/) {
     $edad = $edad > 0 ? $edad : '-';
 }
 
-# Obtener notas preexistentes de odontograma si las hay
+# Inicializar Alias, Estado y Notas desde el JSON del paciente
+my $odonto_alias = $alias_odonto_req;
+my $odonto_estado = 'En Proceso';
 my $notas_guardadas = '';
-if (-e $ODONTOGRAMA_FILE) {
-    my $odonto_rows = leer_tabla($ODONTOGRAMA_FILE, '\|');
-    foreach my $row (@$odonto_rows) {
-        if ($row->[0] eq $id_target) {
-            $notas_guardadas = $row->[3] || '';
-            last;
+my $id_odonto_activo = $id_odonto_req;
+
+if (-e $PACIENTE_JSON_FILE && open my $fh_pj, '<:encoding(UTF-8)', $PACIENTE_JSON_FILE) {
+    local $/;
+    my $raw_json = <$fh_pj>;
+    close $fh_pj;
+    my $p_data = eval { decode_json($raw_json) };
+    if ($p_data && ref($p_data) eq 'HASH') {
+        if ($p_data->{odontogramas} && ref($p_data->{odontogramas}) eq 'ARRAY') {
+            foreach my $od (@{ $p_data->{odontogramas} }) {
+                if (!$id_odonto_activo || $od->{id_odonto} eq $id_odonto_activo) {
+                    $id_odonto_activo ||= $od->{id_odonto};
+                    $odonto_alias     ||= $od->{alias};
+                    $odonto_estado    = $od->{estado} if $od->{estado};
+                    $notas_guardadas  = $od->{notas} if $od->{notas};
+                    last;
+                }
+            }
         }
     }
 }
+
+$id_odonto_activo ||= "OD-${id_target}-" . time();
+$odonto_alias     ||= "Diagnóstico Clínico Inicial";
 
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 
@@ -211,13 +232,17 @@ print <<HTML;
                 </div>
             </div>
 
-            <!-- Ficha del Paciente (Centro) -->
+            <!-- Ficha del Paciente y Alias (Centro) -->
             <div class="d-none d-md-flex align-items-center gap-3 bg-white bg-opacity-10 px-3 py-1 rounded-pill border border-white border-opacity-10">
                 <div class="text-white">
                     <i class="bi bi-person-fill text-teal me-1" style="color: var(--md-teal-clinical);"></i>
                     <span class="fw-bold">$paciente->{nombre}</span>
-                    <span class="opacity-50 small ms-2">ID: $paciente->{id_paciente}</span>
-                    <span class="opacity-50 small ms-2">($edad a&ntilde;os, $paciente->{sexo})</span>
+                    <span class="opacity-50 small ms-1">($edad a&ntilde;os, $paciente->{sexo})</span>
+                </div>
+                <div class="vr bg-white opacity-25"></div>
+                <div class="d-flex align-items-center gap-1 text-white">
+                    <i class="bi bi-bookmark-star-fill text-warning me-1 small"></i>
+                    <input type="text" id="odonto-alias-input" class="form-control form-control-sm border-0 bg-transparent text-white fw-bold p-0 shadow-none" style="width: 200px; font-size: 0.85rem;" value="$odonto_alias" placeholder="Alias del Odontograma" title="Nombre / Alias de este estudio">
                 </div>
             </div>
 
@@ -243,14 +268,36 @@ print <<HTML;
             
             <!-- PANEL LATERAL IZQUIERDO (HALLAZGOS Y PRESUPUESTO) -->
             <aside class="odonto-sidebar-left" id="odontoSidebar">
-                <!-- Info Paciente Rápida -->
+                <!-- Info Paciente y Alias Rápido -->
                 <div class="p-3 border-bottom bg-light">
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <i class="bi bi-person-vcard fs-5 text-teal" style="color: var(--md-teal-clinical);"></i>
-                        <span class="fw-black text-navy small" style="color: var(--md-blue-deep);">$paciente->{nombre}</span>
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-person-vcard fs-5 text-teal" style="color: var(--md-teal-clinical);"></i>
+                            <span class="fw-black text-navy small" style="color: var(--md-blue-deep);">$paciente->{nombre}</span>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill border" style="font-size: 0.65rem;">$id_odonto_activo</span>
                     </div>
-                    <div class="text-muted small">
+                    <div class="text-muted small mb-3">
                         <span>CURP: $paciente->{curp}</span> &bull; <span>Edad: $edad</span>
+                    </div>
+
+                    <!-- Input de Alias en Sidebar -->
+                    <div class="mb-2">
+                        <label for="odonto-alias-sidebar" class="small fw-black text-muted text-uppercase d-block mb-1" style="font-size: 0.72rem;">
+                            <i class="bi bi-bookmark-star-fill text-warning me-1"></i>Nombre / Alias del Estudio:
+                        </label>
+                        <input type="text" id="odonto-alias-sidebar" class="form-control form-control-sm rounded-3 fw-bold shadow-xs" value="$odonto_alias" placeholder="Ej: Diagnóstico Inicial, Plan 2026">
+                    </div>
+
+                    <!-- Estado del Odontograma -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-bold text-muted" style="font-size: 0.75rem;">Estado Clínico:</span>
+                        <select id="odonto-estado-sidebar" class="form-select form-select-sm rounded-pill fw-bold" style="width: 140px; font-size: 0.75rem;">
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Presupuestado">Presupuestado</option>
+                            <option value="Completado">Completado</option>
+                            <option value="Borrador">Borrador</option>
+                        </select>
                     </div>
                 </div>
 
@@ -475,7 +522,10 @@ print <<HTML;
     <script src="../js/odontograma.js?v=$^T"></script>
 
     <script>
-        window.ID_PACIENTE = '$paciente->{id_paciente}';
+        window.ID_PACIENTE   = '$paciente->{id_paciente}';
+        window.ID_ODONTO     = '$id_odonto_activo';
+        window.ODONTO_ALIAS  = '$odonto_alias';
+        window.ODONTO_ESTADO = '$odonto_estado';
     </script>
 HTML
 
@@ -487,6 +537,16 @@ print <<'JS';
                 sidebar.classList.toggle('collapsed');
             }
         }
+
+        // Sincronizar inputs de Alias entre Cabecera y Barra Lateral
+        document.addEventListener('DOMContentLoaded', () => {
+            const aHead = document.getElementById('odonto-alias-input');
+            const aSide = document.getElementById('odonto-alias-sidebar');
+            if (aHead && aSide) {
+                aHead.addEventListener('input', function() { aSide.value = this.value; window.ODONTO_ALIAS = this.value; });
+                aSide.addEventListener('input', function() { aHead.value = this.value; window.ODONTO_ALIAS = this.value; });
+            }
+        });
 
         // Actualizar lista de hallazgos en la barra lateral
         function refreshSidebarFindings() {
@@ -506,7 +566,7 @@ print <<'JS';
 
             toothKeys.forEach(toothId => {
                 const tData = teeth[toothId];
-                if (tData.absent) {
+                if (tData.absent || tData.status === 'ABSENT') {
                     rowsHtml += `
                         <tr>
                             <td><span class="badge bg-secondary rounded-pill fw-bold">#${toothId}</span></td>
@@ -560,10 +620,13 @@ print <<'JS';
             refreshSidebarFindings();
         };
 
-        // Guardar Odontograma en Servidor (Persistencia Atómica Canónica)
+        // Guardar Odontograma en Servidor (Persistencia Atómica Canónica con Alias)
         window.saveOdontogramaToServer = function() {
             const patientId = window.ID_PACIENTE;
-            const notas = document.getElementById('odontograma-notas')?.value || '';
+            const idOdonto  = window.ID_ODONTO || '';
+            const alias     = document.getElementById('odonto-alias-sidebar')?.value || document.getElementById('odonto-alias-input')?.value || window.ODONTO_ALIAS || 'Diagnóstico Inicial';
+            const estado    = document.getElementById('odonto-estado-sidebar')?.value || window.ODONTO_ESTADO || 'En Proceso';
+            const notas     = document.getElementById('odontograma-notas')?.value || '';
 
             if (!patientId) {
                 Swal.fire('Error', 'ID de paciente no definido.', 'error');
@@ -572,7 +635,7 @@ print <<'JS';
 
             Swal.fire({
                 title: 'Sincronizando Odontograma...',
-                text: 'Guardando registro clínico atómicamente en OSPulso Cloud',
+                text: `Guardando "${alias}" atómicamente en OSPulso Cloud`,
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
@@ -580,6 +643,9 @@ print <<'JS';
             const payload = new URLSearchParams();
             payload.append('accion', 'save');
             payload.append('id_paciente', patientId);
+            payload.append('id_odonto', idOdonto);
+            payload.append('alias', alias);
+            payload.append('estado', estado);
             payload.append('notas', notas);
             payload.append('financialTotalPending', window.odontogramState.financialTotalPending || 0);
             payload.append('data', JSON.stringify(window.odontogramState));
@@ -587,15 +653,16 @@ print <<'JS';
             axios.post('../api/odontograma_api.pl', payload)
                 .then(res => {
                     if (res.data && res.data.ok) {
+                        if (res.data.id_odonto) window.ID_ODONTO = res.data.id_odonto;
                         Swal.fire({
                             icon: 'success',
                             title: 'Odontograma Guardado',
-                            text: 'El estado dental y presupuesto han sido sincronizados con éxito.',
+                            text: `El estudio "${alias}" ha sido sincronizado con éxito.`,
                             timer: 2000,
                             showConfirmButton: false
                         });
                     } else {
-                        Swal.fire('Error', res.data?.msg || 'No se pudo guardar el odontograma', 'error');
+                        Swal.fire('Error', res.data?.error || res.data?.msg || 'No se pudo guardar el odontograma', 'error');
                     }
                 })
                 .catch(err => {
@@ -605,13 +672,26 @@ print <<'JS';
         };
 
         // Cargar Odontograma desde Servidor (Soporte Dual: JSON Canónico y Tabla Dat)
-        window.loadOdontogramaFromServer = function(patientId) {
+        window.loadOdontogramaFromServer = function(patientId, idOdonto) {
             if (!patientId) return;
+            idOdonto = idOdonto || window.ID_ODONTO || '';
 
-            axios.get(`../api/odontograma_api.pl?accion=get&id_paciente=${encodeURIComponent(patientId)}`)
+            axios.get(`../api/odontograma_api.pl?accion=get&id_paciente=${encodeURIComponent(patientId)}&id_odonto=${encodeURIComponent(idOdonto)}`)
                 .then(res => {
                     if (res.data && res.data.ok && res.data.data) {
                         const data = res.data.data;
+                        if (data.id_odonto) window.ID_ODONTO = data.id_odonto;
+                        if (data.alias) {
+                            window.ODONTO_ALIAS = data.alias;
+                            const aH = document.getElementById('odonto-alias-input');
+                            const aS = document.getElementById('odonto-alias-sidebar');
+                            if (aH) aH.value = data.alias;
+                            if (aS) aS.value = data.alias;
+                        }
+                        if (data.estado) {
+                            const eS = document.getElementById('odonto-estado-sidebar');
+                            if (eS) eS.value = data.estado;
+                        }
                         if (data.notas && document.getElementById('odontograma-notas')) {
                             document.getElementById('odontograma-notas').value = data.notas;
                         }
@@ -619,7 +699,6 @@ print <<'JS';
                         if (typeof window.loadOdontogramState === 'function') {
                             window.loadOdontogramState(data);
                         } else {
-                            // Fallback de hidratación directa si la función no estuviera lista
                             if (data.teeth) {
                                 window.odontogramState.teeth = data.teeth;
                             }
@@ -635,13 +714,13 @@ print <<'JS';
 
         document.addEventListener('DOMContentLoaded', () => {
             const containerId = 'odontograma-svg-container';
-            const patientId = window.ID_PACIENTE;
+            const patientId   = window.ID_PACIENTE;
+            const idOdonto    = window.ID_ODONTO;
 
             if (typeof renderOdontogram === 'function') {
                 renderOdontogram(containerId, patientId);
-                // Cargar datos previos
                 setTimeout(() => {
-                    loadOdontogramaFromServer(patientId);
+                    loadOdontogramaFromServer(patientId, idOdonto);
                 }, 100);
             }
         });
@@ -649,3 +728,29 @@ print <<'JS';
 </body>
 </html>
 JS
+};
+
+if ($@) {
+    print $q->header(-status => '500 Internal Server Error', -type => 'text/html', -charset => 'UTF-8');
+    print <<HTML;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Error 500 - Odontograma</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center min-vh-100 p-4">
+    <div class="card shadow-sm border-0 rounded-4 p-5 text-center" style="max-width: 550px;">
+        <div class="text-danger mb-3"><i class="bi bi-exclamation-octagon-fill display-3"></i></div>
+        <h3 class="fw-bold text-dark">Error 500: Error Interno</h3>
+        <p class="text-muted small">Ocurrió un error inesperado al inicializar el visor odontológico.</p>
+        <div class="alert alert-danger text-start small font-monospace">$@</div>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">Volver Atrás</a>
+    </div>
+</body>
+</html>
+HTML
+    exit;
+}
+1;

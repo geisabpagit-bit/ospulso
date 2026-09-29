@@ -284,17 +284,9 @@ JS
         <div class="mt-4">
 HTML
 
-    # --- PROCESAMIENTO DEL HUB ODONTOLÓGICO ---
+    # --- PROCESAMIENTO DEL HUB MULTI-ODONTOGRAMA ---
     my $ODONTO_FILE_PATH = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas.dat');
     my $ODONTO_JSON_PATH = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas', "paciente_$d->{id_paciente}.json");
-
-    my $odonto_fecha_act = 'Sin registros previos';
-    my $odonto_notas = 'Sin observaciones clínicas registradas.';
-    my @hallazgos_tabla;
-    my $total_presupuesto_hub = 0.00;
-    my $count_pendientes_hub = 0;
-    my $count_existentes_hub = 0;
-    my %piezas_afectadas = ();
 
     my %PRECIOS_MAP = (
         CARIES           => { nom => 'Caries Dental (Activa)',      cat => 'PENDING',  precio => 850.00 },
@@ -328,11 +320,12 @@ HTML
         47 => 'Segundo Molar Inf. Der.',    48 => 'Tercer Molar Inf. Der.',
     );
 
-    # Prioridad 1: Leer JSON canónico atómico del paciente si existe
+    my @odontogramas_list;
     my $loaded_from_json = 0;
+
     if (-e $ODONTO_JSON_PATH) {
         my $json_raw = '';
-        if (open my $fh_j, '<', $ODONTO_JSON_PATH) {
+        if (open my $fh_j, '<:encoding(UTF-8)', $ODONTO_JSON_PATH) {
             local $/;
             $json_raw = <$fh_j>;
             close $fh_j;
@@ -340,148 +333,176 @@ HTML
         my $patient_data = eval { decode_json($json_raw) };
         if ($patient_data && ref($patient_data) eq 'HASH') {
             $loaded_from_json = 1;
-            $odonto_fecha_act = $patient_data->{fechaLocal} || $patient_data->{updatedAt} || 'Recientemente';
-            $odonto_notas = $patient_data->{notas} if defined($patient_data->{notas}) && $patient_data->{notas} ne '';
-
-            my $teeth_map = $patient_data->{teeth} || {};
-            foreach my $tooth (sort keys %$teeth_map) {
-                my $t_data = $teeth_map->{$tooth};
-                next unless ref($t_data) eq 'HASH';
-                $piezas_afectadas{$tooth} = 1;
-                my $tooth_nom = $DENTAL_NAMES{$tooth} || "Pieza #$tooth";
-
-                if ($t_data->{status} && $t_data->{status} eq 'ABSENT' || $t_data->{absent}) {
-                    push @hallazgos_tabla, {
-                        pieza => $tooth,
-                        nombre => $tooth_nom,
-                        cara => 'Pieza Completa',
-                        diagnostico => 'Pieza Ausente ✕',
-                        categoria => 'EXISTING',
-                        costo => 0.00,
-                    };
-                    $count_existentes_hub++;
-                }
-
-                if ($t_data->{status} && $t_data->{status} eq 'EXTRACTION_REQUIRED') {
-                    push @hallazgos_tabla, {
-                        pieza => $tooth,
-                        nombre => $tooth_nom,
-                        cara => 'Pieza Completa',
-                        diagnostico => 'Exodoncia Requerida',
-                        categoria => 'PENDING',
-                        costo => 1100.00,
-                    };
-                    $total_presupuesto_hub += 1100.00;
-                    $count_pendientes_hub++;
-                }
-
-                if ($t_data->{surfaces} && ref($t_data->{surfaces}) eq 'HASH') {
-                    foreach my $surf (keys %{$t_data->{surfaces}}) {
-                        my $item = $t_data->{surfaces}->{$surf};
-                        my $code = ref($item) eq 'HASH' ? ($item->{code} || 'DESCONOCIDO') : $item;
-                        my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
-                        my $costo = (ref($item) eq 'HASH' && defined($item->{price})) ? $item->{price} : $info->{precio};
-
-                        if ($info->{cat} eq 'PENDING') {
-                            $total_presupuesto_hub += $costo;
-                            $count_pendientes_hub++;
-                        } else {
-                            $count_existentes_hub++;
-                        }
-
-                        push @hallazgos_tabla, {
-                            pieza => $tooth,
-                            nombre => $tooth_nom,
-                            cara => ucfirst($surf),
-                            diagnostico => $info->{nom},
-                            categoria => $info->{cat},
-                            costo => $costo,
-                        };
-                    }
-                }
+            if (exists $patient_data->{odontogramas} && ref($patient_data->{odontogramas}) eq 'ARRAY') {
+                @odontogramas_list = @{ $patient_data->{odontogramas} };
+            } elsif (exists $patient_data->{teeth} && ref($patient_data->{teeth}) eq 'HASH') {
+                push @odontogramas_list, {
+                    id_odonto             => "OD-$d->{id_paciente}-1",
+                    alias                 => $patient_data->{alias} || 'Diagnóstico Inicial',
+                    fecha                 => $patient_data->{fechaLocal} || $patient_data->{updatedAt} || 'Recientemente',
+                    estado                => 'En Proceso',
+                    importe               => $patient_data->{financialTotalPending} || 0,
+                    notas                 => $patient_data->{notas} || '',
+                    teeth                 => $patient_data->{teeth} || {},
+                    periodontalSummary    => $patient_data->{periodontalSummary} || {}
+                };
             }
         }
     }
 
-    # Prioridad 2: Fallback a dat/odontogramas.dat si no se cargó de JSON
     if (!$loaded_from_json) {
         my $odonto_registros = -e $ODONTO_FILE_PATH ? leer_tabla($ODONTO_FILE_PATH, '\|') : [];
+        my %teeth_found;
+        my $fecha_found = '';
+        my $notas_found = '';
         foreach my $f (@$odonto_registros) {
             if ($f->[0] eq $d->{id_paciente}) {
-                $odonto_fecha_act = $f->[2] if $f->[2];
-                $odonto_notas = $f->[3] if $f->[3];
-
+                $fecha_found = $f->[2] if $f->[2];
+                $notas_found = $f->[3] if $f->[3];
                 for (my $i = 4; $i < @$f; $i++) {
                     if ($f->[$i] =~ /^(\d+)=(.+)$/) {
                         my $tooth = $1;
                         my $val_hash = eval { decode_json($2) } || {};
-                        $piezas_afectadas{$tooth} = 1;
-                        my $tooth_nom = $DENTAL_NAMES{$tooth} || "Pieza #$tooth";
-
-                        if ($val_hash->{status} && $val_hash->{status} eq 'ABSENT' || $val_hash->{absent}) {
-                            push @hallazgos_tabla, {
-                                pieza => $tooth,
-                                nombre => $tooth_nom,
-                                cara => 'Pieza Completa',
-                                diagnostico => 'Pieza Ausente ✕',
-                                categoria => 'EXISTING',
-                                costo => 0.00,
-                            };
-                            $count_existentes_hub++;
-                        }
-
-                        if ($val_hash->{surfaces} && ref($val_hash->{surfaces}) eq 'HASH') {
-                            foreach my $surf (keys %{$val_hash->{surfaces}}) {
-                                my $item = $val_hash->{surfaces}->{$surf};
-                                my $code = ref($item) eq 'HASH' ? ($item->{code} || 'DESCONOCIDO') : $item;
-                                my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
-                                my $costo = (ref($item) eq 'HASH' && defined($item->{price})) ? $item->{price} : $info->{precio};
-                                
-                                if ($info->{cat} eq 'PENDING') {
-                                    $total_presupuesto_hub += $costo;
-                                    $count_pendientes_hub++;
-                                } else {
-                                    $count_existentes_hub++;
-                                }
-
-                                push @hallazgos_tabla, {
-                                    pieza => $tooth,
-                                    nombre => $tooth_nom,
-                                    cara => ucfirst($surf),
-                                    diagnostico => $info->{nom},
-                                    categoria => $info->{cat},
-                                    costo => $costo,
-                                };
-                            }
-                        } elsif (ref($val_hash) eq 'HASH') {
-                            foreach my $surf (keys %$val_hash) {
-                                next if $surf eq 'absent' || $surf eq 'surfaces' || $surf eq 'status';
-                                my $code = $val_hash->{$surf};
-                                my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
-                                if ($info->{cat} eq 'PENDING') {
-                                    $total_presupuesto_hub += $info->{precio};
-                                    $count_pendientes_hub++;
-                                } else {
-                                    $count_existentes_hub++;
-                                }
-                                push @hallazgos_tabla, {
-                                    pieza => $tooth,
-                                    nombre => $tooth_nom,
-                                    cara => ucfirst($surf),
-                                    diagnostico => $info->{nom},
-                                    categoria => $info->{cat},
-                                    costo => $info->{precio},
-                                };
-                            }
-                        }
+                        $teeth_found{$tooth} = $val_hash;
                     }
                 }
             }
         }
+        if (%teeth_found) {
+            push @odontogramas_list, {
+                id_odonto          => "OD-$d->{id_paciente}-1",
+                alias              => 'Diagnóstico Base',
+                fecha              => $fecha_found || 'Recientemente',
+                estado             => 'En Proceso',
+                importe            => 0.00,
+                notas              => $notas_found,
+                teeth              => \%teeth_found,
+                periodontalSummary => {}
+            };
+        }
     }
 
-    my $total_piezas_afectadas = scalar(keys %piezas_afectadas);
+    # Procesar hallazgos de cada odontograma y calcular métricas globales
+    my $total_presupuesto_hub = 0.00;
+    my $count_pendientes_hub = 0;
+    my $count_existentes_hub = 0;
+    my $odonto_fecha_act = 'Sin registros';
+    my $odonto_notas = 'Sin observaciones clínicas registradas.';
+    my %odonto_collection_client;
+
+    foreach my $od (@odontogramas_list) {
+        my @od_hallazgos;
+        my $od_presupuesto = 0.00;
+        my $od_pendientes = 0;
+        my $od_existentes = 0;
+        my %od_piezas_map;
+
+        my $teeth_map = (ref($od->{teeth}) eq 'HASH') ? $od->{teeth} : {};
+        foreach my $tooth (sort { $a <=> $b } keys %$teeth_map) {
+            my $t_data = $teeth_map->{$tooth};
+            next unless ref($t_data) eq 'HASH';
+            $od_piezas_map{$tooth} = 1;
+            my $tooth_nom = $DENTAL_NAMES{$tooth} || "Pieza #$tooth";
+
+            if ($t_data->{status} && ($t_data->{status} eq 'ABSENT' || $t_data->{absent})) {
+                push @od_hallazgos, {
+                    pieza       => $tooth,
+                    nombre      => $tooth_nom,
+                    cara        => 'Pieza Completa',
+                    diagnostico => 'Pieza Ausente ✕',
+                    categoria   => 'EXISTING',
+                    costo       => 0.00,
+                };
+                $od_existentes++;
+            }
+
+            if ($t_data->{status} && $t_data->{status} eq 'EXTRACTION_REQUIRED') {
+                push @od_hallazgos, {
+                    pieza       => $tooth,
+                    nombre      => $tooth_nom,
+                    cara        => 'Pieza Completa',
+                    diagnostico => 'Exodoncia Requerida',
+                    categoria   => 'PENDING',
+                    costo       => 1100.00,
+                };
+                $od_presupuesto += 1100.00;
+                $od_pendientes++;
+            }
+
+            if ($t_data->{surfaces} && ref($t_data->{surfaces}) eq 'HASH') {
+                foreach my $surf (keys %{$t_data->{surfaces}}) {
+                    my $item = $t_data->{surfaces}->{$surf};
+                    my $code = ref($item) eq 'HASH' ? ($item->{code} || 'DESCONOCIDO') : $item;
+                    my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
+                    my $costo = (ref($item) eq 'HASH' && defined($item->{price})) ? $item->{price} : $info->{precio};
+
+                    if ($info->{cat} eq 'PENDING') {
+                        $od_presupuesto += $costo;
+                        $od_pendientes++;
+                    } else {
+                        $od_existentes++;
+                    }
+
+                    push @od_hallazgos, {
+                        pieza       => $tooth,
+                        nombre      => $tooth_nom,
+                        cara        => ucfirst($surf),
+                        diagnostico => $info->{nom},
+                        categoria   => $info->{cat},
+                        costo       => $costo,
+                    };
+                }
+            } elsif (ref($t_data) eq 'HASH') {
+                foreach my $surf (keys %$t_data) {
+                    next if $surf eq 'absent' || $surf eq 'surfaces' || $surf eq 'status';
+                    my $code = $t_data->{$surf};
+                    my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
+                    if ($info->{cat} eq 'PENDING') {
+                        $od_presupuesto += $info->{precio};
+                        $od_pendientes++;
+                    } else {
+                        $od_existentes++;
+                    }
+                    push @od_hallazgos, {
+                        pieza       => $tooth,
+                        nombre      => $tooth_nom,
+                        cara        => ucfirst($surf),
+                        diagnostico => $info->{nom},
+                        categoria   => $info->{cat},
+                        costo       => $info->{precio},
+                    };
+                }
+            }
+        }
+
+        # Actualizar importe si no estaba fijado
+        $od->{importe} = $od_presupuesto if (!defined($od->{importe}) || $od->{importe} == 0);
+        $od->{alias} ||= 'Odontograma General';
+        $od->{estado} ||= 'En Proceso';
+        $od->{fecha} ||= 'Recientemente';
+
+        $total_presupuesto_hub += $od->{importe};
+        $count_pendientes_hub += $od_pendientes;
+        $count_existentes_hub += $od_existentes;
+        $odonto_fecha_act = $od->{fecha} if $od->{fecha} && $odonto_fecha_act eq 'Sin registros';
+        $odonto_notas = $od->{notas} if $od->{notas} && $odonto_notas eq 'Sin observaciones clínicas registradas.';
+
+        $odonto_collection_client{$od->{id_odonto}} = {
+            id_odonto  => $od->{id_odonto},
+            alias      => $od->{alias},
+            fecha      => $od->{fecha},
+            estado     => $od->{estado},
+            importe    => sprintf("%.2f", $od->{importe}),
+            notas      => $od->{notas} || '',
+            hallazgos  => \@od_hallazgos,
+            tot_piezas => scalar(keys %od_piezas_map),
+        };
+    }
+
     my $presupuesto_fmt = sprintf("%.2f", $total_presupuesto_hub);
+    my $total_odonto_registros = scalar(@odontogramas_list);
+    my $odonto_json_data = eval { encode_json(\%odonto_collection_client) } || '{}';
+    $odonto_json_data =~ s/</\\u003c/g;
 
     print <<HTML;
         <!-- 6: ODONTOGRAMA (HUB EJECUTIVO FULL-WIDTH) -->
@@ -494,12 +515,16 @@ HTML
                         <span class="badge bg-navy text-white rounded-pill px-3 py-1 fw-bold">Dentici&oacute;n Permanente (32 Piezas)</span>
                     </div>
                     <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Hub Cl&iacute;nico Odontol&oacute;gico</h3>
-                    <p class="text-muted small fw-bold mb-0">PANEL EJECUTIVO DE HALLAZGOS DENTALES Y PLAN DE TRATAMIENTO</p>
+                    <p class="text-muted small fw-bold mb-0">GESTI&Oacute;N MULTI-ODONTOGRAMA Y PLAN DE TRATAMIENTO</p>
                 </div>
                 <div class="d-flex gap-2 p-1 bg-transparent flex-wrap align-items-center">
-                    <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-medentia px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2">
-                        <i class="bi bi-display fs-5" style="color: var(--md-cyan-ia);"></i>
-                        <span>Lanzar OSOdontograma Viewer Pro</span>
+                    <button type="button" class="btn btn-medentia px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2" onclick="abrirModalNuevoOdonto()">
+                        <i class="bi bi-plus-circle-fill fs-5" style="color: var(--md-cyan-ia);"></i>
+                        <span>Nuevo Odontograma</span>
+                    </button>
+                    <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-outline-medentia px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2">
+                        <i class="bi bi-display fs-5" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                        <span>Lanzar Visor Pro</span>
                     </a>
                 </div>
             </div>
@@ -515,8 +540,8 @@ HTML
                                 <i class="bi bi-wallet2 fs-5"></i>
                             </div>
                         </div>
-                        <h3 class="fw-black text-danger m-0 mb-1">\\\$$presupuesto_fmt <span class="fs-6 text-muted">MXN</span></h3>
-                        <span class="small text-muted fw-bold">Tratamientos pendientes de cobro</span>
+                        <h3 class="fw-black text-danger m-0 mb-1">\$$presupuesto_fmt <span class="fs-6 text-muted">MXN</span></h3>
+                        <span class="small text-muted fw-bold">Tratamientos pendientes acumulados</span>
                     </div>
                 </div>
 
@@ -548,16 +573,16 @@ HTML
                     </div>
                 </div>
 
-                <!-- Card 4: Cobertura / Salud Bucal -->
+                <!-- Card 4: Odontogramas Registrados -->
                 <div class="col-12 col-sm-6 col-xl-3">
                     <div class="card-medentia-aura border-0 p-4 h-100 position-relative overflow-hidden">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="small fw-bold text-muted text-uppercase">Piezas Afectadas</span>
+                            <span class="small fw-bold text-muted text-uppercase">Estudios Registrados</span>
                             <div class="p-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(25, 183, 165, 0.15); color: #19B7A5;">
-                                <i class="bi bi-pie-chart-fill fs-5"></i>
+                                <i class="bi bi-journals fs-5"></i>
                             </div>
                         </div>
-                        <h3 class="fw-black m-0 mb-1" style="color: var(--md-blue-deep);">$total_piezas_afectadas <span class="fs-6 text-muted">/ 32</span></h3>
+                        <h3 class="fw-black m-0 mb-1" style="color: var(--md-blue-deep);">$total_odonto_registros <span class="fs-6 text-muted">Odontogramas</span></h3>
                         <span class="small text-muted fw-bold">&Uacute;ltima act: $odonto_fecha_act</span>
                     </div>
                 </div>
@@ -578,28 +603,28 @@ HTML
                     <span class="badge bg-white text-muted border px-3 py-2 fw-semibold">
                         <i class="bi bi-clock-history me-1 text-teal" style="color: var(--md-teal-clinical, #19B7A5);"></i>Sincronizado: $odonto_fecha_act
                     </span>
-                    <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-xs btn-outline-secondary rounded-pill px-3 fw-bold">
-                        <i class="bi bi-pencil-square me-1"></i>Editar Notas
-                    </a>
+                    <button type="button" onclick="abrirModalNuevoOdonto()" class="btn btn-xs btn-outline-secondary rounded-pill px-3 fw-bold">
+                        <i class="bi bi-plus-circle me-1"></i>Nuevo Odontograma
+                    </button>
                 </div>
             </div>
 
-            <!-- NIVEL 4: DATATABLE AL 100% DEL ANCHO DISPONIBLE -->
+            <!-- NIVEL 4: DATATABLE AL 100% DEL ANCHO DISPONIBLE (5 COLUMNAS: NOMBRE, FECHA, ESTADO, IMPORTE, ACCIONES) -->
             <div class="card-medentia-aura p-4 border-0 mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                     <div>
                         <h5 class="fw-black m-0" style="color: var(--md-blue-deep);">
-                            <i class="bi bi-clipboard2-pulse me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Detalle Cl&iacute;nico de Hallazgos y Procedimientos
+                            <i class="bi bi-journal-medical me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Cat&aacute;logo de Odontogramas del Paciente
                         </h5>
-                        <p class="text-muted small fw-bold mb-0">REGISTRO COMPLETO POR CUADRANTE, DIENTE Y SUPERFICIE ANAT&Oacute;MICA</p>
+                        <p class="text-muted small fw-bold mb-0">GESTIONE ESTUDIOS, PLANES DE TRATAMIENTO Y DETALLES ANAT&Oacute;MICOS</p>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-light text-navy border px-3 py-2 fw-bold">
-                            Total Registros: <span class="text-teal" style="color: var(--md-teal-clinical, #19B7A5); font-weight: 900;">@{[ scalar @hallazgos_tabla ]}</span>
+                            Total Registros: <span class="text-teal" style="color: var(--md-teal-clinical, #19B7A5); font-weight: 900;">$total_odonto_registros</span>
                         </span>
-                        <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-outline-medentia btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-1">
-                            <i class="bi bi-plus-circle"></i>Nuevo Hallazgo
-                        </a>
+                        <button type="button" onclick="abrirModalNuevoOdonto()" class="btn btn-outline-medentia btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-1">
+                            <i class="bi bi-plus-circle"></i>Nuevo Odontograma
+                        </button>
                     </div>
                 </div>
 
@@ -607,55 +632,98 @@ HTML
                     <table class="table table-hover align-middle mb-0" id="tablaOdontoHub" style="width:100%">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-3 border-0 rounded-start-3" style="width: 100px;">Pieza FDI</th>
-                                <th class="border-0">Diente y Familia Anat&oacute;mica</th>
-                                <th class="border-0" style="width: 140px;">Cara / Zona</th>
-                                <th class="border-0">Diagn&oacute;stico / Condici&oacute;n</th>
-                                <th class="border-0 text-center" style="width: 130px;">Estado Cl&iacute;nico</th>
-                                <th class="border-0 text-end pe-3 rounded-end-3" style="width: 150px;">Importe Sugerido</th>
+                                <th class="ps-3 border-0 rounded-start-3">Nombre</th>
+                                <th class="border-0" style="width: 170px;">Fecha</th>
+                                <th class="border-0 text-center" style="width: 150px;">Estado</th>
+                                <th class="border-0 text-end" style="width: 170px;">Importe</th>
+                                <th class="border-0 text-center pe-3 rounded-end-3" style="width: 170px;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="small">
 HTML
-    if (@hallazgos_tabla) {
-        foreach my $h (@hallazgos_tabla) {
-            my $is_pending = ($h->{categoria} eq 'PENDING');
-            my $badge_estado = $is_pending
-                ? '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-circle-fill me-1"></i>Pendiente</span>'
-                : '<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-check-circle-fill me-1"></i>Existente</span>';
-            
-            my $costo_fmt = sprintf("%.2f", $h->{costo});
-            my $costo_class = $is_pending ? 'text-danger fw-black' : 'text-primary fw-bold';
+
+    if (@odontogramas_list) {
+        foreach my $od (@odontogramas_list) {
+            my $od_id = $od->{id_odonto} || '';
+            my $od_alias = $od->{alias} || 'Odontograma General';
+            my $od_fecha = $od->{fecha} || 'Sin fecha';
+            my $od_estado = $od->{estado} || 'En Proceso';
+            my $od_imp_fmt = sprintf("%.2f", $od->{importe} || 0);
+
+            # Escape para atributos JS
+            my $od_alias_js = $od_alias; $od_alias_js =~ s/'/\\'/g; $od_alias_js =~ s/"/&quot;/g;
+            my $od_id_js = $od_id; $od_id_js =~ s/'/\\'/g;
+            my $od_alias_html = $od_alias;
+            my $od_fecha_html = $od_fecha;
+
+            my $badge_estado = '<span class="badge bg-secondary-subtle text-secondary border px-3 py-1">Histórico</span>';
+            if ($od_estado =~ /En Proceso|Activo/i) {
+                $badge_estado = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1"><i class="bi bi-clock-history me-1"></i>En Proceso</span>';
+            } elsif ($od_estado =~ /Planificado|Presupuesto/i) {
+                $badge_estado = '<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-3 py-1"><i class="bi bi-calendar-check me-1"></i>Planificado</span>';
+            } elsif ($od_estado =~ /Finalizado|Completado/i) {
+                $badge_estado = '<span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1"><i class="bi bi-check-circle-fill me-1"></i>Finalizado</span>';
+            }
+
+            my $cnt_piezas = 0;
+            if (ref($od->{teeth}) eq 'HASH') {
+                $cnt_piezas = scalar(keys %{ $od->{teeth} });
+            }
 
             print <<HTML;
                             <tr>
-                                <td class="ps-3 fw-black">
-                                    <span class="badge bg-light border text-navy fs-6 px-3 py-1">#$h->{pieza}</span>
+                                <td class="ps-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="p-2 rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; flex-shrink: 0;">
+                                            <i class="bi bi-journal-medical fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark fs-6">$od_alias_html</div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge bg-light text-muted border" style="font-size: 0.72rem;">#$od_id</span>
+                                                <span class="small text-muted" style="font-size: 0.75rem;"><i class="bi bi-diagram-3 me-1"></i>$cnt_piezas piezas con registro</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
-                                    <div class="fw-bold text-dark">$h->{nombre}</div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">$h->{cara}</span>
-                                </td>
-                                <td>
-                                    <div class="fw-bold">$h->{diagnostico}</div>
+                                    <div class="fw-semibold text-secondary small"><i class="bi bi-calendar3 me-1" style="color: var(--md-teal-clinical, #19B7A5);"></i>$od_fecha_html</div>
                                 </td>
                                 <td class="text-center">$badge_estado</td>
-                                <td class="text-end pe-3 $costo_class fs-6">\\\$$costo_fmt <span class="small text-muted fw-normal">MXN</span></td>
+                                <td class="text-end fw-black text-danger fs-6">\$$od_imp_fmt <span class="small text-muted fw-normal">MXN</span></td>
+                                <td class="text-center pe-3">
+                                    <div class="d-flex align-items-center justify-content-center gap-1">
+                                        <!-- OJO: Abre modal con el detalle anatómico de dientes -->
+                                        <button type="button" class="btn btn-sm btn-outline-info rounded-circle shadow-xs" title="Ver Detalle Clínico Anatómico" onclick="verDetalleOdonto('$od_id_js')" style="width: 32px; height: 32px; padding: 0;">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </button>
+                                        <!-- VISOR: Abre en OSOdontograma Viewer Pro -->
+                                        <a href="render_visor_odontograma.pl?id=$d->{id_paciente}&id_odonto=$od_id" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle shadow-xs" title="Abrir y Editar en OSOdontograma Viewer" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-display"></i>
+                                        </a>
+                                        <!-- RENOMBRAR: Editar Alias, Estado y Notas -->
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle shadow-xs" title="Editar Alias, Estado u Observaciones" onclick="editarOdontoMeta('$od_id_js')" style="width: 32px; height: 32px; padding: 0;">
+                                            <i class="bi bi-tag-fill"></i>
+                                        </button>
+                                        <!-- ELIMINAR: Borrar Odontograma -->
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle shadow-xs" title="Eliminar Odontograma" onclick="eliminarOdonto('$od_id_js', '$od_alias_js')" style="width: 32px; height: 32px; padding: 0;">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
 HTML
         }
     } else {
         print <<HTML;
                             <tr>
-                                <td colspan="6" class="text-center py-5">
-                                    <i class="bi bi-shield-check display-4 d-block mb-3 opacity-25" style="color: var(--md-teal-clinical, #19B7A5);"></i>
-                                    <h6 class="fw-bold text-dark mb-1">Sin hallazgos cl&iacute;nicos registrados</h6>
-                                    <p class="small text-muted mb-3">La dentici&oacute;n permanente del paciente no tiene patolog&iacute;as ni restauraciones registradas a&uacute;n.</p>
-                                    <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-medentia btn-sm rounded-pill px-4 fw-bold shadow-sm">
-                                        <i class="bi bi-plus-circle me-1"></i>Registrar Diagn&oacute;stico en OSOdontograma Viewer
-                                    </a>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="bi bi-journal-plus display-4 d-block mb-3 opacity-25" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                                    <h6 class="fw-bold text-dark mb-1">Sin odontogramas registrados</h6>
+                                    <p class="small text-muted mb-3">La dentici&oacute;n permanente del paciente no tiene estudios ni planes de tratamiento registrados a&uacute;n.</p>
+                                    <button type="button" onclick="abrirModalNuevoOdonto()" class="btn btn-medentia btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                                        <i class="bi bi-plus-circle me-1"></i>Crear Primer Odontograma en OSOdontograma Viewer
+                                    </button>
                                 </td>
                             </tr>
 HTML
@@ -666,17 +734,196 @@ HTML
                     </table>
                 </div>
             </div>
+
+            <!-- MODAL 1: DETALLE CLÍNICO ANATÓMICO (ACTIVADO POR EL OJO 👁️) -->
+            <div class="modal fade" id="modalDetalleOdonto" tabindex="-1" aria-labelledby="modalDetalleOdontoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered">
+                    <div class="modal-content rounded-4 border-0 shadow-lg" style="background: rgba(255,255,255,0.98); backdrop-filter: blur(15px);">
+                        <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="p-3 rounded-circle text-white shadow-sm" style="background: linear-gradient(135deg, var(--md-teal-clinical, #19B7A5), #0d9488);">
+                                    <i class="bi bi-eye-fill fs-4"></i>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge bg-teal text-white rounded-pill px-3 py-1 fw-bold" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">FDI / ISO 3950</span>
+                                        <span class="badge bg-light text-muted border px-2 py-1" id="detalleOdontoFecha"></span>
+                                        <span id="detalleOdontoEstado"></span>
+                                    </div>
+                                    <h4 class="fw-black text-dark m-0" id="detalleOdontoAlias">Detalle del Odontograma</h4>
+                                    <p class="text-muted small fw-bold mb-0">HALLAZGOS CL&Iacute;NICOS Y TRATAMIENTOS ASIGNADOS POR PIEZA DENTAL</p>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <!-- Metadatos superiores del modal -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <div class="card bg-light border-0 p-3 rounded-3 d-flex flex-row align-items-center justify-content-between">
+                                        <div>
+                                            <span class="small fw-bold text-muted text-uppercase d-block">Piezas Afectadas</span>
+                                            <h5 class="fw-black text-dark m-0" id="detalleOdontoPiezas">0 Piezas</h5>
+                                        </div>
+                                        <i class="bi bi-diagram-3-fill fs-3 text-teal" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light border-0 p-3 rounded-3 d-flex flex-row align-items-center justify-content-between">
+                                        <div>
+                                            <span class="small fw-bold text-muted text-uppercase d-block">Presupuesto Estimado</span>
+                                            <h5 class="fw-black text-danger m-0" id="detalleOdontoImporte">$0.00 MXN</h5>
+                                        </div>
+                                        <i class="bi bi-wallet2 fs-3 text-danger"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="detalleOdontoNotas"></div>
+
+                            <!-- Tabla de Hallazgos Anatómicos (6 Columnas) -->
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="tablaDetalleHallazgos" style="width:100%">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="ps-3 border-0 rounded-start-3" style="width: 100px;">Pieza FDI</th>
+                                            <th class="border-0">Diente y Familia Anat&oacute;mica</th>
+                                            <th class="border-0" style="width: 140px;">Cara / Zona</th>
+                                            <th class="border-0">Diagn&oacute;stico / Condici&oacute;n</th>
+                                            <th class="border-0 text-center" style="width: 130px;">Estado Cl&iacute;nico</th>
+                                            <th class="border-0 text-end pe-3 rounded-end-3" style="width: 150px;">Importe Sugerido</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="small">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between">
+                            <a id="btnVisorDesdeModal" href="#" target="_blank" class="btn btn-medentia rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2">
+                                <i class="bi bi-display" style="color: var(--md-cyan-ia);"></i>
+                                <span>Abrir en OSOdontograma Viewer Pro</span>
+                            </a>
+                            <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL 2: CREAR NUEVO ODONTOGRAMA -->
+            <div class="modal fade" id="modalNuevoOdonto" tabindex="-1" aria-labelledby="modalNuevoOdontoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content rounded-4 border-0 shadow-lg">
+                        <div class="modal-header border-0 pb-0 pt-4 px-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="p-2 rounded-circle bg-primary-subtle text-primary">
+                                    <i class="bi bi-plus-circle-fill fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold m-0 text-dark">Nuevo Odontograma</h5>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form id="formNuevoOdonto" onsubmit="event.preventDefault(); guardarNuevoOdonto();">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">Nombre / Alias del Odontograma <span class="text-danger">*</span></label>
+                                    <input type="text" id="nuevo_alias" class="form-control rounded-3" placeholder="Ej. Diagnóstico Inicial 2026, Plan Ortodoncia" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">Estado del Estudio</label>
+                                    <select id="nuevo_estado" class="form-select rounded-3">
+                                        <option value="En Proceso" selected>En Proceso / Activo</option>
+                                        <option value="Planificado">Planificado / Presupuesto</option>
+                                        <option value="Finalizado">Finalizado / Completado</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">Observaciones Cl&iacute;nicas Iniciales</label>
+                                    <textarea id="nuevo_notas" class="form-control rounded-3" rows="3" placeholder="Notas, motivos de consulta dental o especificaciones..."></textarea>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2 mt-4">
+                                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-medentia rounded-pill px-4 fw-bold shadow-sm">
+                                        <i class="bi bi-arrow-right-circle me-1"></i>Crear y Abrir Visor
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL 3: RENOMBRAR / EDITAR METADATOS -->
+            <div class="modal fade" id="modalRenombrarOdonto" tabindex="-1" aria-labelledby="modalRenombrarOdontoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content rounded-4 border-0 shadow-lg">
+                        <div class="modal-header border-0 pb-0 pt-4 px-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="p-2 rounded-circle bg-secondary-subtle text-secondary">
+                                    <i class="bi bi-tag-fill fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold m-0 text-dark">Editar Metadatos del Odontograma</h5>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form id="formRenombrarOdonto" onsubmit="event.preventDefault(); guardarRenombrarOdonto();">
+                                <input type="hidden" id="edit_id_odonto">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">Nombre / Alias <span class="text-danger">*</span></label>
+                                    <input type="text" id="edit_alias" class="form-control rounded-3" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">Estado del Estudio</label>
+                                    <select id="edit_estado" class="form-select rounded-3">
+                                        <option value="En Proceso">En Proceso / Activo</option>
+                                        <option value="Planificado">Planificado / Presupuesto</option>
+                                        <option value="Finalizado">Finalizado / Completado</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">Observaciones Cl&iacute;nicas</label>
+                                    <textarea id="edit_notas" class="form-control rounded-3" rows="3"></textarea>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2 mt-4">
+                                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                                        <i class="bi bi-check2-circle me-1"></i>Guardar Cambios
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenedor JSON seguro para hidratar cliente JS -->
+            <script id="odontoCollectionJson" type="application/json">$odonto_json_data</script>
         </section>
 HTML
 
     print <<'JS';
-        <!-- Inicializador DataTables para el Hub Odontológico -->
+        <!-- Controladores y DataTables para el Hub Odontológico Multi-Estudio -->
         <script>
+            window.ID_PACIENTE_ODONTO = '';
+            const urlParams = new URLSearchParams(window.location.search);
+            window.ID_PACIENTE_ODONTO = urlParams.get('id') || '';
+
+            try {
+                const elJson = document.getElementById('odontoCollectionJson');
+                window.ODONTO_COLLECTION = elJson ? JSON.parse(elJson.textContent || '{}') : {};
+            } catch(e) {
+                console.error('Error parseando ODONTO_COLLECTION:', e);
+                window.ODONTO_COLLECTION = {};
+            }
+
             document.addEventListener('DOMContentLoaded', function() {
+                // 1. Inicializar DataTable Maestro de Odontogramas (5 columnas)
                 if (window.jQuery && $.fn.DataTable && !$.fn.DataTable.isDataTable('#tablaOdontoHub')) {
                     $('#tablaOdontoHub').DataTable({
                         language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
                         pageLength: 10,
+                        order: [[1, 'desc']],
                         dom: "<'row mb-3 align-items-center'<'col-sm-12 col-md-6 d-flex flex-wrap gap-2'B><'col-sm-12 col-md-6'f>>" +
                              "<'row'<'col-sm-12'tr>>" +
                              "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
@@ -688,10 +935,287 @@ HTML
                         ]
                     });
                     $('.dt-buttons .btn').css({ 'border-radius': '12px', 'font-weight': '800', 'color': '#475569', 'border-color': '#e2e8f0' });
-                    $('.dataTables_filter input').attr('placeholder', 'Buscar hallazgo...').addClass('form-control rounded-pill px-3 shadow-sm').css('border-color', '#e2e8f0');
-                    $('.dataTables_filter label').contents().filter(function(){ return this.nodeType === 3; }).remove();
+                    $('#tablaOdontoHub_filter input').attr('placeholder', 'Buscar odontograma...').addClass('form-control rounded-pill px-3 shadow-sm').css('border-color', '#e2e8f0');
+                    $('#tablaOdontoHub_filter label').contents().filter(function(){ return this.nodeType === 3; }).remove();
+                }
+
+                // 2. Inicializar DataTable de Detalle Anatómico (dentro del modal)
+                if (window.jQuery && $.fn.DataTable && !$.fn.DataTable.isDataTable('#tablaDetalleHallazgos')) {
+                    $('#tablaDetalleHallazgos').DataTable({
+                        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+                        pageLength: 10,
+                        order: [[0, 'asc']],
+                        dom: "<'row mb-3 align-items-center'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                             "<'row'<'col-sm-12'tr>>" +
+                             "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>"
+                    });
+                    $('#tablaDetalleHallazgos_filter input').attr('placeholder', 'Filtrar piezas o condiciones...').addClass('form-control rounded-pill px-3 shadow-sm').css('border-color', '#e2e8f0');
                 }
             });
+
+            // Función: Ver Detalle Anatómico en Modal (Ojo 👁️)
+            window.verDetalleOdonto = function(idOdonto) {
+                const item = window.ODONTO_COLLECTION[idOdonto];
+                if (!item) {
+                    if (window.Swal) Swal.fire({ icon: 'warning', title: 'Aviso', text: 'No se encontraron hallazgos registrados para este odontograma.' });
+                    return;
+                }
+
+                document.getElementById('detalleOdontoAlias').textContent = item.alias || 'Odontograma General';
+                document.getElementById('detalleOdontoFecha').innerHTML = '<i class="bi bi-clock-history me-1"></i>' + (item.fecha || 'Sin fecha');
+                
+                let badgeClass = 'bg-secondary-subtle text-secondary';
+                if (item.estado === 'En Proceso' || item.estado === 'Activo') badgeClass = 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+                else if (item.estado === 'Planificado') badgeClass = 'bg-info-subtle text-info-emphasis border border-info-subtle';
+                else if (item.estado === 'Finalizado') badgeClass = 'bg-success-subtle text-success border border-success-subtle';
+
+                document.getElementById('detalleOdontoEstado').className = 'badge ' + badgeClass + ' px-3 py-1';
+                document.getElementById('detalleOdontoEstado').textContent = item.estado || 'En Proceso';
+
+                document.getElementById('detalleOdontoPiezas').textContent = (item.tot_piezas || 0) + ' Piezas Afectadas';
+                document.getElementById('detalleOdontoImporte').textContent = '$' + (item.importe || '0.00') + ' MXN';
+
+                const notasEl = document.getElementById('detalleOdontoNotas');
+                if (item.notas && item.notas.trim() !== '') {
+                    notasEl.innerHTML = '<div class="alert alert-light border small text-dark mb-3"><i class="bi bi-chat-quote-fill me-2 text-teal"></i><strong>Observaciones:</strong> ' + $('<div>').text(item.notas).html() + '</div>';
+                } else {
+                    notasEl.innerHTML = '';
+                }
+
+                const btnVisor = document.getElementById('btnVisorDesdeModal');
+                if (btnVisor) {
+                    btnVisor.href = 'render_visor_odontograma.pl?id=' + window.ID_PACIENTE_ODONTO + '&id_odonto=' + encodeURIComponent(idOdonto);
+                }
+
+                if (window.jQuery && $.fn.DataTable) {
+                    const dt = $('#tablaDetalleHallazgos').DataTable();
+                    dt.clear();
+                    if (item.hallazgos && item.hallazgos.length > 0) {
+                        item.hallazgos.forEach(h => {
+                            const isPending = (h.categoria === 'PENDING');
+                            const badgeEst = isPending
+                                ? '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-circle-fill me-1"></i>Pendiente</span>'
+                                : '<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-check-circle-fill me-1"></i>Existente</span>';
+                            const costoClass = isPending ? 'text-danger fw-black' : 'text-primary fw-bold';
+                            const costoFmt = '$' + parseFloat(h.costo || 0).toFixed(2) + ' MXN';
+
+                            dt.row.add([
+                                '<span class="badge bg-light border text-navy fs-6 px-3 py-1">#' + h.pieza + '</span>',
+                                '<div class="fw-bold text-dark">' + h.nombre + '</div>',
+                                '<span class="badge bg-secondary-subtle text-secondary border px-2 py-1">' + h.cara + '</span>',
+                                '<div class="fw-bold">' + h.diagnostico + '</div>',
+                                '<div class="text-center">' + badgeEst + '</div>',
+                                '<div class="text-end ' + costoClass + ' fs-6">' + costoFmt + '</div>'
+                            ]);
+                        });
+                    }
+                    dt.draw();
+                }
+
+                const modalEl = document.getElementById('modalDetalleOdonto');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            };
+
+            // Función: Abrir modal para crear nuevo odontograma
+            window.abrirModalNuevoOdonto = function() {
+                document.getElementById('formNuevoOdonto').reset();
+                const now = new Date();
+                const fechaStr = now.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
+                document.getElementById('nuevo_alias').value = 'Plan Odontología ' + fechaStr;
+                const modalEl = document.getElementById('modalNuevoOdonto');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            };
+
+            // Función: Guardar nuevo odontograma vía API
+            window.guardarNuevoOdonto = function() {
+                const alias = document.getElementById('nuevo_alias').value.trim();
+                const estado = document.getElementById('nuevo_estado').value;
+                const notas = document.getElementById('nuevo_notas').value.trim();
+
+                if (!alias) {
+                    if (window.Swal) Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor asigna un nombre o alias al odontograma.' });
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('accion', 'save');
+                formData.append('id_paciente', window.ID_PACIENTE_ODONTO);
+                formData.append('id_odonto', 'new');
+                formData.append('alias', alias);
+                formData.append('estado', estado);
+                formData.append('notas', notas);
+                formData.append('data', JSON.stringify({}));
+
+                fetch('../api/odontograma_api.pl', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        const modalEl = document.getElementById('modalNuevoOdonto');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+
+                        const redirectUrl = 'render_visor_odontograma.pl?id=' + window.ID_PACIENTE_ODONTO + '&id_odonto=' + encodeURIComponent(res.id_odonto);
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Odontograma Creado!',
+                                text: 'Se ha creado el odontograma "' + alias + '". Abriendo visor...',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.open(redirectUrl, '_blank');
+                                location.reload();
+                            });
+                        } else {
+                            window.open(redirectUrl, '_blank');
+                            location.reload();
+                        }
+                    } else {
+                        if (window.Swal) Swal.fire({ icon: 'error', title: 'Error', text: res.error || 'No se pudo crear el odontograma.' });
+                        else alert(res.error || 'Error al crear odontograma');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (window.Swal) Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar al servidor.' });
+                });
+            };
+
+            // Función: Abrir modal para editar metadatos
+            window.editarOdontoMeta = function(idOdonto) {
+                const item = window.ODONTO_COLLECTION[idOdonto];
+                if (!item) return;
+
+                document.getElementById('edit_id_odonto').value = idOdonto;
+                document.getElementById('edit_alias').value = item.alias || '';
+                document.getElementById('edit_estado').value = item.estado || 'En Proceso';
+                document.getElementById('edit_notas').value = item.notas || '';
+
+                const modalEl = document.getElementById('modalRenombrarOdonto');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            };
+
+            // Función: Guardar cambios de metadatos vía API
+            window.guardarRenombrarOdonto = function() {
+                const idOdonto = document.getElementById('edit_id_odonto').value;
+                const alias = document.getElementById('edit_alias').value.trim();
+                const estado = document.getElementById('edit_estado').value;
+                const notas = document.getElementById('edit_notas').value.trim();
+
+                if (!alias) {
+                    if (window.Swal) Swal.fire({ icon: 'warning', title: 'Atención', text: 'El alias no puede estar vacío.' });
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('accion', 'rename');
+                formData.append('id_paciente', window.ID_PACIENTE_ODONTO);
+                formData.append('id_odonto', idOdonto);
+                formData.append('alias', alias);
+                formData.append('estado', estado);
+                formData.append('notas', notas);
+
+                fetch('../api/odontograma_api.pl', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        const modalEl = document.getElementById('modalRenombrarOdonto');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Actualizado',
+                                text: 'Metadatos del odontograma actualizados correctamente.',
+                                timer: 1200,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        if (window.Swal) Swal.fire({ icon: 'error', title: 'Error', text: res.error || 'No se pudo actualizar.' });
+                        else alert(res.error || 'Error al actualizar');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (window.Swal) Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar al servidor.' });
+                });
+            };
+
+            // Función: Eliminar odontograma con confirmación SweetAlert2
+            window.eliminarOdonto = function(idOdonto, alias) {
+                const procederEliminar = () => {
+                    const formData = new FormData();
+                    formData.append('accion', 'delete');
+                    formData.append('id_paciente', window.ID_PACIENTE_ODONTO);
+                    formData.append('id_odonto', idOdonto);
+
+                    fetch('../api/odontograma_api.pl', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.ok) {
+                            if (window.Swal) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Eliminado',
+                                    text: 'El odontograma ha sido eliminado.',
+                                    timer: 1200,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                location.reload();
+                            }
+                        } else {
+                            if (window.Swal) Swal.fire({ icon: 'error', title: 'Error', text: res.error || 'No se pudo eliminar el odontograma.' });
+                            else alert(res.error || 'Error al eliminar');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        if (window.Swal) Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar al servidor.' });
+                    });
+                };
+
+                if (window.Swal) {
+                    Swal.fire({
+                        title: '¿Eliminar odontograma?',
+                        html: 'Se eliminará el odontograma <strong>"' + $('<div>').text(alias).html() + '"</strong> y todos sus hallazgos asociados.<br><span class="text-danger small">Esta acción no se puede deshacer.</span>',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: '<i class="bi bi-trash3 me-1"></i> Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            procederEliminar();
+                        }
+                    });
+                } else {
+                    if (confirm('¿Eliminar el odontograma "' + alias + '"? Esta acción no se puede deshacer.')) {
+                        procederEliminar();
+                    }
+                }
+            };
         </script>
 JS
 
