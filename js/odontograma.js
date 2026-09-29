@@ -671,6 +671,11 @@ window.confirmApplyClinicalCondition = function() {
 
     // Si es estado SANO / LIMPIAR
     if (condition.code === 'HEALTHY') {
+        const card = document.querySelector(`.tooth-card[data-tooth="${tooth}"]`);
+        if (card) {
+            card.classList.remove('tooth-absent', 'tooth-extraction-req', 'tooth-endo-pending', 'tooth-endo-done');
+        }
+
         if (ctx.scope === 'SURFACE') {
             removeSurfaceCondition(tooth, surface);
         } else {
@@ -678,10 +683,9 @@ window.confirmApplyClinicalCondition = function() {
             ['occlusal', 'vestibular', 'lingual', 'mesial', 'distal'].forEach(s => {
                 removeSurfaceCondition(tooth, s);
             });
-            const card = document.querySelector(`.tooth-card[data-tooth="${tooth}"]`);
-            if (card) card.classList.remove('tooth-absent');
             if (window.odontogramState.teeth[tooth]) {
                 window.odontogramState.teeth[tooth].status = 'PRESENT';
+                delete window.odontogramState.teeth[tooth].absent;
             }
         }
     } 
@@ -693,11 +697,31 @@ window.confirmApplyClinicalCondition = function() {
         window.odontogramState.teeth[tooth].status = (condition.code === 'ABSENT') ? 'ABSENT' : 'EXTRACTION_REQUIRED';
         
         const card = document.querySelector(`.tooth-card[data-tooth="${tooth}"]`);
-        if (card) card.classList.add('tooth-absent');
+        if (card) {
+            card.classList.remove('tooth-absent', 'tooth-extraction-req', 'tooth-endo-pending', 'tooth-endo-done');
+            if (condition.code === 'EXTRACTION_REQ') {
+                card.classList.add('tooth-extraction-req');
+            } else {
+                card.classList.add('tooth-absent');
+            }
+        }
 
         if (condition.code === 'EXTRACTION_REQ') {
             window.applySurfaceCondition(tooth, 'occlusal', condition.code, condition.state, condition.colorHex, condition.price);
         }
+    }
+    // Si es ENDODONCIA (Indicada o Realizada - Efecto sobre Raíz / Conducto Central)
+    else if (condition.code === 'ENDO_REQ' || condition.code === 'ENDO_DONE') {
+        const card = document.querySelector(`.tooth-card[data-tooth="${tooth}"]`);
+        if (card) {
+            card.classList.remove('tooth-endo-pending', 'tooth-endo-done');
+            if (condition.code === 'ENDO_REQ') {
+                card.classList.add('tooth-endo-pending');
+            } else {
+                card.classList.add('tooth-endo-done');
+            }
+        }
+        window.applySurfaceCondition(tooth, 'occlusal', condition.code, condition.state, condition.colorHex, condition.price);
     }
     // Si es TODA LA CORONA (ej. Corona Protésica)
     else if (ctx.scope === 'CROWN') {
@@ -830,7 +854,9 @@ window.clearOdontogram = function() {
     window.odontogramState.financialTotalPending = 0.00;
     window.odontogramState.updatedAt = new Date().toISOString();
 
-    document.querySelectorAll('.tooth-card').forEach(card => card.classList.remove('tooth-absent'));
+    document.querySelectorAll('.tooth-card').forEach(card => {
+        card.classList.remove('tooth-absent', 'tooth-extraction-req', 'tooth-endo-pending', 'tooth-endo-done');
+    });
 
     document.querySelectorAll('.tooth-surface').forEach(el => {
         el.style.fill = '';
