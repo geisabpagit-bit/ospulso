@@ -150,6 +150,34 @@ if (-e $med_org_file && open(my $fmo, '<:encoding(UTF-8)', $med_org_file)) {
     close $fmo;
 }
 
+# Mapear pacientes de la organización para garantizar purga de cuentas por cobrar en estado_cuenta.dat
+my %pacientes_org;
+if ($org_clues && $org_clues ne 'No asignada' && $org_clues ne '0') {
+    my $priv_file = File::Spec->catfile($dat_dir, 'catalogos_CLUE', $org_clues, "pacientes_privados_${org_clues}.dat");
+    if (-e $priv_file && open(my $fhp, '<:encoding(UTF-8)', $priv_file)) {
+        <$fhp>;
+        while (my $line = <$fhp>) {
+            chomp $line; next if $line =~ /^\s*$/;
+            my @p = split(/\|/, $line, -1);
+            $pacientes_org{$p[0]} = 1 if (defined $p[0] && $p[0] ne '');
+        }
+        close $fhp;
+    }
+    my $emp_file = File::Spec->catfile($dat_dir, 'catalogos_CLUE', $org_clues, "empleadosmun_${org_clues}.dat");
+    if (-e $emp_file && open(my $fhe, '<:encoding(UTF-8)', $emp_file)) {
+        <$fhe>;
+        while (my $line = <$fhe>) {
+            chomp $line; next if $line =~ /^\s*$/;
+            my @e = split(/!/, $line, -1);
+            if (@e >= 2 && $e[0] ne '$c_clinumempleado') {
+                $pacientes_org{"EMP-$e[0]"} = 1;
+                $pacientes_org{$e[0]} = 1;
+            }
+        }
+        close $fhe;
+    }
+}
+
 # Función auxiliar para determinar si un registro transaccional pertenece a la organización a resetear
 sub es_registro_de_org {
     my ($m_id) = @_;
@@ -229,11 +257,11 @@ eval {
         foreach my $l (@lines) {
             chomp $l; next if $l =~ /^\s*$/;
             my @c = split(/\|/, $l, -1);
-            # c[9]: ID_MEDICO
+            # c[2]: ID_PACIENTE, c[9]: ID_MEDICO
+            my $p_id = $c[2] // '';
             my $m_id = $c[9] // '';
-            if (!es_registro_de_org($m_id)) {
-                push @conservar, $l;
-            }
+            my $es_de_esta_org = (es_registro_de_org($m_id) || ($p_id ne '' && $pacientes_org{$p_id})) ? 1 : 0;
+            push @conservar, $l unless $es_de_esta_org;
         }
         if (open(my $fh_out, '>:encoding(UTF-8)', $edo_file)) {
             flock($fh_out, LOCK_EX);

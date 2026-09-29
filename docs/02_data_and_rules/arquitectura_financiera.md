@@ -92,3 +92,23 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
      - *Fecha y Hora Larga*: Timestamp completo en formato español (ej. *Martes 22 de Septiembre de 2026, 07:18:50 PM*).
 2. **Resiliencia de Payload**:
    La API `api/generar_corte_caja.pl` provee `responsable_login`, `logo_url`, `direccion_sucursal` y `fecha_hora_larga` en su objeto JSON para garantizar consistencia entre vista previa e impresión física (`@media print`).
+
+---
+
+## 5. Gobernanza de Sincronización de Cuentas por Cobrar (CXC y CXC Estado) y Reset Operativo
+
+1. **Sincronización Bidireccional de CxC Privadas**:
+   - El KPI de *Cuentas por Cobrar (Saldos Privados)* en `views/finanzas.pl` (`#kpiCuentasCobrar`) y la API `api/finanzas_api.pl` (`get_resumen`) se calculan a partir de `dat/estado_cuenta.dat`, excluyendo de forma estricta los registros de pacientes institucionales (`^EMP-`).
+   - El valor del KPI coincide exactamente al centavo con la suma de la columna de saldos pendientes en `tab=cxc` (`#tablaCxC`).
+
+2. **Cómputo Canónico de CxC Estado (Convenios Públicos)**:
+   - Los servicios otorgados a derechohabientes del Estado con subsidio al 100% no se registran como cargos en `estado_cuenta.dat`, sino que se asientan como órdenes/recibos en `dat/folios_recibos_publicos.dat`.
+   - El KPI `#kpiCxcEstado` se obtiene sumando la columna `TOTAL_CARGOS` (índice 8) de `folios_recibos_publicos.dat` para recibos no cancelados del tenant (`id_negocio`), coincidiendo de forma idéntica con el pie de tabla de `tab=cxc_estado` (`#dtPublicosCxC`).
+
+3. **Gobernanza del Reset Operativo sobre Cuentas por Cobrar**:
+   - Al ejecutar el Reset Operativo (`api/reset_datos_organizacion_api.pl`), la purga de cuentas por cobrar en `estado_cuenta.dat` evalúa bidireccionalmente la pertenencia del registro tanto por médico tratante (`%uids_org`) como por paciente (`%pacientes_org`), garantizando que cargos generados sin médico asignado sean purgados y los saldos pendientes queden en $0.00.
+   - En `api/get_recibos_caja_api.pl`, el filtro multi-tenant sobre `folios_recibos_publicos.dat` aplica de forma estricta la regla 2.6 para evitar que recibos de la organización matriz 0 se filtren hacia nuevas organizaciones.
+
+4. **Autonomía de Categorías de Gastos**:
+   - Las operaciones de edición y eliminación (`edit_categoria`, `delete_categoria`) en `api/finanzas_api.pl` validan la columna `id_negocio`, y los contadores en `dat/id_cat.counter`, `dat/id_subcat.counter` y `dat/id_subcat3.counter` se mantienen inicializados con valores superiores a los catálogos base para prevenir colisiones de ID entre organizaciones.
+

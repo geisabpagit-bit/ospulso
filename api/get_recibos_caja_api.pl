@@ -156,10 +156,13 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
             next if $id_paciente =~ /^EMP-/;
         }
         
-        # Filtro de Tenant (CLUE)
-        my $ses_id_neg = $session_data->{id_empresa} || '';
-        if ($ses_id_neg && $id_neg) {
-            next if $id_neg ne $ses_id_neg;
+        # Filtro de Tenant (CLUE) conforme a Regla de Oro 2.6
+        my $ses_id_neg = $session_data->{id_empresa} // '';
+        $ses_id_neg =~ s/^\s+|\s+$//g;
+        my $rec_neg = $r[2] // '0';
+        $rec_neg =~ s/^\s+|\s+$//g;
+        if (defined $ses_id_neg && $ses_id_neg ne '' && $session_data->{role} ne 'Administrador Global') {
+            next if ($rec_neg ne $ses_id_neg);
         }
         
         # Filtro RBAC: Recepcionista solo ve lo que elaboró

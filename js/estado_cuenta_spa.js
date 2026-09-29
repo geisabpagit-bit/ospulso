@@ -1299,7 +1299,7 @@ window.filtrarSubcategorias = function() {
         return;
     }
     
-    const filtradas = subcatGastos.filter(s => s.id_cat === idCat);
+    const filtradas = subcatGastos.filter(s => String(s.id_cat) === String(idCat));
     if (filtradas.length > 0) {
         colSub.style.display = 'block';
         filtradas.forEach(s => {
@@ -1324,7 +1324,7 @@ window.filtrarSubcategorias3 = function() {
         return;
     }
     
-    const filtradas = subcat3Gastos.filter(s => s.id_subcat === idSub);
+    const filtradas = subcat3Gastos.filter(s => String(s.id_subcat) === String(idSub));
     if (filtradas.length > 0) {
         colSub3.style.display = 'block';
         filtradas.forEach(s => {
@@ -1458,7 +1458,7 @@ window.renderGastos = async function() {
 }
 
 window.abrirModalGasto = async function() {
-    await cargarCategoriasGastos();
+    await cargarCategoriasGastos(true);
     await cargarOrigenesDinero(true);
     const form = document.getElementById('formGasto');
     if (form) form.reset();
@@ -1467,23 +1467,20 @@ window.abrirModalGasto = async function() {
     document.getElementById('fecha_gasto').value = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
     const el = document.getElementById('modalGasto');
     if (el) {
-        // Garantizar que escape de contextos de apilamiento en DOM
         $(el).appendTo('body');
-        
-        // Reiniciar visibilidad de columnas
         document.getElementById('col_subcat_gasto').style.display = 'none';
         document.getElementById('col_subcat3_gasto').style.display = 'none';
-        
-        new bootstrap.Modal(el).show();
+        const mg = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+        mg.show();
     }
 }
 
 window.editarGastoUi = async function(id) {
     if (!window.currentGastos) return;
-    const g = window.currentGastos.find(x => x.id_gasto === id);
+    const g = window.currentGastos.find(x => String(x.id_gasto) === String(id));
     if (!g) return;
     
-    await cargarCategoriasGastos();
+    await cargarCategoriasGastos(true);
     await cargarOrigenesDinero(true);
     const form = document.getElementById('formGasto');
     if (form) form.reset();
@@ -1497,10 +1494,10 @@ window.editarGastoUi = async function(id) {
     if (g.id_origen) document.getElementById('origen_gasto').value = g.id_origen;
     if (g.id_cat) {
         document.getElementById('cat_gasto').value = g.id_cat;
-        await filtrarSubcategorias();
+        filtrarSubcategorias();
         if (g.id_subcat) {
             document.getElementById('subcat_gasto').value = g.id_subcat;
-            await filtrarSubcategorias3();
+            filtrarSubcategorias3();
             if (g.id_subcat3) {
                 document.getElementById('subcat3_gasto').value = g.id_subcat3;
             }
@@ -1510,7 +1507,8 @@ window.editarGastoUi = async function(id) {
     const el = document.getElementById('modalGasto');
     if (el) {
         $(el).appendTo('body');
-        new bootstrap.Modal(el).show();
+        const mg = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+        mg.show();
     }
 }
 
@@ -1604,13 +1602,14 @@ window.eliminarGasto = function(id) {
 // ==========================================
 // SPA: GESTION DINAMICA DE CATEGORIAS
 // ==========================================
-window.abrirModalCategorias = function() {
+window.abrirModalCategorias = async function() {
     const el = document.getElementById('modalCategorias');
     if (!el) return;
     $(el).appendTo('body');
     
     document.getElementById('mg_nombre').value = '';
     document.getElementById('mg_nivel').value = '1';
+    await cargarCategoriasGastos(true);
     cambiarNivelGestion();
     
     const modalGastoEl = document.getElementById('modalGasto');
@@ -1828,15 +1827,35 @@ window.editarCategoria = async function(id, nivel, oldName) {
             });
             const data = await res.json();
             if (data.success) {
-                await cargarCategoriasGastos(false);
+                const pId = document.getElementById('mg_parent') ? document.getElementById('mg_parent').value : '';
+                await cargarCategoriasGastos(true);
+                cambiarNivelGestion();
+                if (pId && document.getElementById('mg_parent')) {
+                    document.getElementById('mg_parent').value = pId;
+                }
                 renderListaCategorias();
-                Swal.fire('Guardado', 'Categoría editada', 'success');
+                Swal.fire({
+                    title: 'Guardado',
+                    text: 'Categoría editada',
+                    icon: 'success',
+                    target: document.getElementById('modalCategorias')
+                });
             } else {
-                Swal.fire('Error', data.message || 'Error al editar', 'error');
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message || 'Error al editar',
+                    icon: 'error',
+                    target: document.getElementById('modalCategorias')
+                });
             }
         } catch(e) {
             console.error(e);
-            Swal.fire('Error', 'Fallo de conexión', 'error');
+            Swal.fire({
+                title: 'Error',
+                text: 'Fallo de conexión',
+                icon: 'error',
+                target: document.getElementById('modalCategorias')
+            });
         }
     }
 }

@@ -327,7 +327,9 @@ elsif ($action eq 'save_gasto') {
             foreach my $l (@lineas) {
                 chomp $l;
                 my @campos = split(/\|/, $l, -1);
-                if ($campos[0] eq $id_gasto) {
+                my $g_neg = $campos[11] // '0';
+                $g_neg =~ s/^\s+|\s+$//g;
+                if ($campos[0] eq $id_gasto && ($es_admin_global || $g_neg eq $target_org)) {
                     # Conservar factura antigua si no se subió una nueva
                     my $final_factura = $factura_path ne "" ? $factura_path : ($campos[8] || '');
                     $l = join("|", 
@@ -524,22 +526,27 @@ elsif ($action eq 'get_dashboard') {
         $meses_gastos{$ym} = 0;
     }
 
+    my $cxc_estado = 0;
     foreach my $rf ("$FindBin::Bin/../dat/folios_recibos_privados.dat", "$FindBin::Bin/../dat/folios_recibos_publicos.dat") {
         if (-e $rf && open(my $fhr, '<:encoding(UTF-8)', $rf)) {
             <$fhr>; # cabecera
+            my $es_publico = ($rf =~ /folios_recibos_publicos\.dat/) ? 1 : 0;
             while (my $rline = <$fhr>) {
                 chomp $rline;
                 next if $rline =~ /^\s*$/;
                 my @r = split(/\|/, $rline, -1);
                 next if scalar(@r) < 7;
-                my $r_negocio = $r[2] // '';
+                my $r_negocio = $r[2] // '0';
+                $r_negocio =~ s/^\s+|\s+$//g;
                 my $r_fecha   = $r[6] // '';
                 my $r_estatus = $r[14] // '';
                 my $r_metodo  = $r[10] // 'Efectivo';
                 my $r_monto   = $r[9] || 0;
                 $r_monto =~ s/[^\d\.]//g;
+                my $r_cargos  = $r[8] || 0;
+                $r_cargos =~ s/[^\d\.]//g;
 
-                # Filtro multi-tenant por negocio
+                # Filtro multi-tenant por negocio conforme a regla 2.6
                 if (defined $id_empresa && $id_empresa ne '' && !$es_admin_global) {
                     next if ($r_negocio ne $id_empresa);
                 }
@@ -557,9 +564,9 @@ elsif ($action eq 'get_dashboard') {
                     $total_recibos_hoy++;
                 }
 
-                # Histórico semestral (solo cobrados)
+                # Histórico semestral (solo cobrados de recibos privados)
                 my ($ym_r) = $r_fecha =~ /^(\d{4}-\d{2})/;
-                if ($ym_r && exists $meses_ingresos{$ym_r} && $r_estatus !~ /Cancelado/i) {
+                if ($ym_r && exists $meses_ingresos{$ym_r} && $r_estatus !~ /Cancelado/i && !$es_publico) {
                     $meses_ingresos{$ym_r} += $r_monto;
                 }
 
@@ -575,8 +582,13 @@ elsif ($action eq 'get_dashboard') {
                 $total_recibos_periodo++;
 
                 if ($r_estatus !~ /Cancelado/i) {
-                    $ingresos_recibos += $r_monto;
-                    $metodos_pago{$r_metodo} += $r_monto;
+                    if (!$es_publico) {
+                        $ingresos_recibos += $r_monto;
+                        $metodos_pago{$r_metodo} += $r_monto;
+                    } else {
+                        # Pilar 2.4: Subsidios del Estado computan a CxC Estado (col 8 TOTAL_CARGOS)
+                        $cxc_estado += $r_cargos;
+                    }
                 }
             }
             close $fhr;
@@ -637,15 +649,12 @@ elsif ($action eq 'get_dashboard') {
     # Ingreso mandante: de recibos o de estado de cuenta
     my $ingresos_totales = ($ingresos_recibos > 0) ? $ingresos_recibos : $ingresos_edc;
 
-    # Calcular CxC privada y pública (Estado)
-    my $cxc_estado = 0;
+    # Calcular CxC privada estrictamente desde saldos de pacientes privados (no EMP-)
     for my $id (keys %saldos) {
+        next if $id =~ /^EMP-/;
         my $pend = $saldos{$id}{cargo} - $saldos{$id}{abono};
         if ($pend > 0.01) {
             $cxc += $pend;
-            if ($id =~ /^EMP-/) {
-                $cxc_estado += $pend;
-            }
         }
     }
 
@@ -819,6 +828,7 @@ elsif ($action eq 'edit_categoria') {
     my $id = $q->param('id');
     my $nivel = $q->param('nivel');
     my $nombre = $q->param('nombre') || '';
+    my $target_org = (defined $id_empresa && $id_empresa ne '') ? $id_empresa : '0';
     
     if (!$id || !$nivel || !$nombre) {
         print encode_json({ success=>0, message=>'ID, nivel o nombre faltante' });
@@ -837,7 +847,11 @@ elsif ($action eq 'edit_categoria') {
         my $line = $_;
         chomp($line);
         my @cols = split(/\|/, $line, -1);
-        if ($cols[0] eq $id) {
+        my $biz = $cols[-1] // '0';
+        $biz =~ s/^\s+|\s+$//g;
+        my $es_propio = ($es_admin_global || $biz eq $target_org);
+
+        if ($cols[0] eq $id && $es_propio) {
             if ($nivel eq '1') {
                 $cols[1] = $nombre;
             } elsif ($nivel eq '2' || $nivel eq '3') {
@@ -861,12 +875,17 @@ elsif ($action eq 'edit_categoria') {
 elsif ($action eq 'delete_categoria') {
     my $id = $q->param('id');
     my $nivel = $q->param('nivel');
+    my $target_org = (defined $id_empresa && $id_empresa ne '') ? $id_empresa : '0';
     
     if (!$id || !$nivel) { print encode_json({ success=>0, message=>'ID o nivel faltante' }); exit; }
     
-    # Validation against gastos
+    # Validation against gastos del tenant actual
     my @gastos = @{ leer_tabla("$FindBin::Bin/../dat/gastos.dat") };
     for my $g (@gastos) {
+        my $g_neg = $g->[11] // '0';
+        $g_neg =~ s/^\s+|\s+$//g;
+        next unless ($es_admin_global || $g_neg eq $target_org);
+
         # g[2] is id_cat, g[3] is id_subcat, g[4] is id_subcat3
         if ($nivel eq '1' && $g->[2] eq $id) {
             print encode_json({ success=>0, message=>'No se puede borrar porque hay gastos registrados con esta categoría.' });
@@ -880,7 +899,7 @@ elsif ($action eq 'delete_categoria') {
         }
     }
     
-    # Do deletion
+    # Do deletion aislada por tenant
     my $file = "";
     if ($nivel eq '1') { $file = "categorias.dat"; }
     elsif ($nivel eq '2') { $file = "sub_categoria.dat"; }
@@ -893,7 +912,11 @@ elsif ($action eq 'delete_categoria') {
         my $line = $_;
         chomp($line);
         my @cols = split(/\|/, $line, -1);
-        if ($cols[0] eq $id && $cols[0] ne 'id') { # Ensure not deleting header
+        my $biz = $cols[-1] // '0';
+        $biz =~ s/^\s+|\s+$//g;
+        my $es_propio = ($es_admin_global || $biz eq $target_org);
+
+        if ($cols[0] eq $id && $cols[0] ne 'id' && $es_propio) {
             # Skip this line
         } else {
             push @lines, $line;
