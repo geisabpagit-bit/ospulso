@@ -60,10 +60,20 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 
 ---
 
+### 2.6 OSOdontograma Viewer Pro & Hub Odontológico (Arquitectura Standalone)
+- **Patrón PACS/Viewer**: Al igual que el Visor de Rayos X (`render_visor_medico.pl`), el Odontograma se desacopla del flujo embebido del expediente:
+  - **Hub Odontológico (`#tab6` en `views/render_expediente_clinico.pl`)**: Vista ejecutiva Bento Grid con tabla DataTables de hallazgos (`#tablaOdontoHub`), tarjetas de KPI con presupuesto total en $MXN y botón launcher `"Lanzar OSOdontograma Viewer"`.
+  - **OSOdontograma Viewer (`views/render_visor_odontograma.pl`)**: Visor médico a pantalla completa (`100vw × 100vh`) con cabecera corporativa MedentIA, HUD flotante de zoom, lienzo anatómico espacioso sin scroll horizontal forzado, panel lateral con desglose en tiempo real y sincronización directa con `api/odontograma_api.pl`.
+
+---
+
 ## 3. Arquitectura de Archivos
-- **CSS**: `css/odontograma_plus.css` (estilos vectoriales biomórficos, anchos proporcionales por familia dental, hover teal, persistencia de color, clases `.tooth-absent`, modal glassmorphism y escalado responsivo).
+- **CSS**: `css/odontograma_plus.css` (estilos vectoriales biomórficos, anchos proporcionales por familia dental, hover teal, persistencia de color, clases `.tooth-absent`, modal glassmorphism y visor a pantalla completa).
 - **JavaScript**: `js/odontograma.js` (generador de 32 piezas por familias anatómicas, rutas `<path>` curvas independientes, estado `window.odontogramState`, controles de zoom dinámico, modal contextual de 3 niveles, catálogo y recálculo presupuestario).
-- **Vista**: `views/render_expediente_clinico.pl` (sección `#tab6` con toolbar, controles de zoom interactivo, modal `#modalOdontoClinico` y visor JSON en vivo).
+- **Visor Standalone**: `views/render_visor_odontograma.pl` (aplicación médica completa a 100vw/100vh para diagnóstico dental, impresión y sincronización cloud).
+- **Hub Ejecutivo**: `views/render_expediente_clinico.pl` (sección `#tab6` con DataTable de hallazgos, KPIs de presupuesto y launcher de visor).
+- **Backend**: `api/odontograma_api.pl` (persistencia atómica de datos FDI y notas por paciente en `dat/odontogramas.dat`).
+
 
 
 

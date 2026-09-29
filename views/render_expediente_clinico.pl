@@ -174,6 +174,17 @@ sub render_expediente_completo {
     print <<HTML;
 <link rel="stylesheet" href="../css/expediente_completo.css?v=$^T">
 <link rel="stylesheet" href="../css/odontograma_plus.css?v=$^T">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 HTML
 
     utils::sub_sidebar::render_sidebar(
@@ -217,11 +228,8 @@ HTML
         
         if (id === 'tab6') {
             setTimeout(() => {
-                if (typeof renderOdontogram === 'function') {
-                    renderOdontogram('odontograma-svg-container', '$d->{id_paciente}');
-                } else if (typeof initOdontograma === 'function' && !odontogramaInit) {
-                    initOdontograma('odontograma-svg-container', '$d->{id_paciente}');
-                    odontogramaInit = true;
+                if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable('#tablaOdontoHub')) {
+                    $('#tablaOdontoHub').DataTable().columns.adjust().draw();
                 }
             }, 60);
         }
@@ -271,262 +279,264 @@ HTML
         </header>
 
         <div class="mt-4">
-        <!-- 6: ODONTOGRAMA -->
+HTML
+
+    # --- PROCESAMIENTO DEL HUB ODONTOLÓGICO ---
+    my $ODONTO_FILE_PATH = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas.dat');
+    my $odonto_registros = -e $ODONTO_FILE_PATH ? leer_tabla($ODONTO_FILE_PATH, '\|') : [];
+
+    my $odonto_fecha_act = 'Sin registros previos';
+    my $odonto_notas = 'Sin observaciones clínicas registradas.';
+    my @hallazgos_tabla;
+    my $total_presupuesto_hub = 0.00;
+    my $count_pendientes_hub = 0;
+    my $count_existentes_hub = 0;
+    my %piezas_afectadas = ();
+
+    my %PRECIOS_MAP = (
+        CARIES           => { nom => 'Caries Dental (Activa)',      cat => 'PENDING',  precio => 850.00 },
+        CARIES_RECURRENT => { nom => 'Caries Recurrente',           cat => 'PENDING',  precio => 950.00 },
+        FRACTURE         => { nom => 'Fractura Dental',             cat => 'PENDING',  precio => 1200.00 },
+        SEALANT_REQ      => { nom => 'Sellador Requerido',          cat => 'PENDING',  precio => 450.00 },
+        CROWN_REQ        => { nom => 'Corona Requerida',            cat => 'PENDING',  precio => 3500.00 },
+        ENDO_REQ         => { nom => 'Endodoncia Indicada',         cat => 'PENDING',  precio => 2800.00 },
+        EXO_REQ          => { nom => 'Exodoncia Requerida',         cat => 'PENDING',  precio => 1100.00 },
+        COMPOSITE        => { nom => 'Obturación con Resina',       cat => 'EXISTING', precio => 850.00 },
+        AMALGAM          => { nom => 'Obturación con Amalgama',     cat => 'EXISTING', precio => 700.00 },
+        CROWN_DONE       => { nom => 'Corona Existente',            cat => 'EXISTING', precio => 3500.00 },
+        ENDO_DONE        => { nom => 'Endodoncia Realizada',        cat => 'EXISTING', precio => 2800.00 },
+        IMPLANT          => { nom => 'Implante Dental',             cat => 'EXISTING', precio => 14000.00 },
+        ABSENT           => { nom => 'Pieza Ausente',               cat => 'EXISTING', precio => 0.00 },
+    );
+
+    my %DENTAL_NAMES = (
+        18 => 'Tercer Molar Sup. Der.',    17 => 'Segundo Molar Sup. Der.',    16 => 'Primer Molar Sup. Der.',
+        15 => 'Segundo Premolar Sup. Der.', 14 => 'Primer Premolar Sup. Der.',   13 => 'Canino Sup. Der.',
+        12 => 'Incisivo Lateral Sup. Der.', 11 => 'Incisivo Central Sup. Der.',
+        21 => 'Incisivo Central Sup. Izq.', 22 => 'Incisivo Lateral Sup. Izq.', 23 => 'Canino Sup. Izq.',
+        24 => 'Primer Premolar Sup. Izq.',  25 => 'Segundo Premolar Sup. Izq.', 26 => 'Primer Molar Sup. Izq.',
+        27 => 'Segundo Molar Sup. Izq.',    28 => 'Tercer Molar Sup. Izq.',
+        38 => 'Tercer Molar Inf. Izq.',    37 => 'Segundo Molar Inf. Izq.',    36 => 'Primer Molar Inf. Izq.',
+        35 => 'Segundo Premolar Inf. Izq.', 34 => 'Primer Premolar Inf. Izq.',   33 => 'Canino Inf. Izq.',
+        32 => 'Incisivo Lateral Inf. Izq.', 31 => 'Incisivo Central Inf. Izq.',
+        41 => 'Incisivo Central Inf. Der.', 42 => 'Incisivo Lateral Inf. Der.', 43 => 'Canino Inf. Der.',
+        44 => 'Primer Premolar Inf. Der.',  45 => 'Segundo Premolar Inf. Der.', 46 => 'Primer Molar Inf. Der.',
+        47 => 'Segundo Molar Inf. Der.',    48 => 'Tercer Molar Inf. Der.',
+    );
+
+    foreach my $f (@$odonto_registros) {
+        if ($f->[0] eq $d->{id_paciente}) {
+            $odonto_fecha_act = $f->[2] if $f->[2];
+            $odonto_notas = $f->[3] if $f->[3];
+
+            for (my $i = 4; $i < @$f; $i++) {
+                if ($f->[$i] =~ /^(\d+)=(.+)$/) {
+                    my $tooth = $1;
+                    my $val_hash = eval { decode_json($2) } || {};
+                    $piezas_afectadas{$tooth} = 1;
+                    my $tooth_nom = $DENTAL_NAMES{$tooth} || "Pieza #$tooth";
+
+                    if ($val_hash->{absent}) {
+                        push @hallazgos_tabla, {
+                            pieza => $tooth,
+                            nombre => $tooth_nom,
+                            cara => 'Pieza Completa',
+                            diagnostico => 'Pieza Ausente ✕',
+                            categoria => 'EXISTING',
+                            costo => 0.00,
+                        };
+                        $count_existentes_hub++;
+                    }
+
+                    if ($val_hash->{surfaces} && ref($val_hash->{surfaces}) eq 'HASH') {
+                        foreach my $surf (keys %{$val_hash->{surfaces}}) {
+                            my $item = $val_hash->{surfaces}->{$surf};
+                            my $code = ref($item) eq 'HASH' ? ($item->{code} || 'DESCONOCIDO') : $item;
+                            my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
+                            my $costo = (ref($item) eq 'HASH' && defined($item->{price})) ? $item->{price} : $info->{precio};
+                            
+                            if ($info->{cat} eq 'PENDING') {
+                                $total_presupuesto_hub += $costo;
+                                $count_pendientes_hub++;
+                            } else {
+                                $count_existentes_hub++;
+                            }
+
+                            push @hallazgos_tabla, {
+                                pieza => $tooth,
+                                nombre => $tooth_nom,
+                                cara => ucfirst($surf),
+                                diagnostico => $info->{nom},
+                                categoria => $info->{cat},
+                                costo => $costo,
+                            };
+                        }
+                    } elsif (ref($val_hash) eq 'HASH') {
+                        foreach my $surf (keys %$val_hash) {
+                            next if $surf eq 'absent' || $surf eq 'surfaces';
+                            my $code = $val_hash->{$surf};
+                            my $info = $PRECIOS_MAP{$code} || { nom => $code, cat => 'PENDING', precio => 850.00 };
+                            if ($info->{cat} eq 'PENDING') {
+                                $total_presupuesto_hub += $info->{precio};
+                                $count_pendientes_hub++;
+                            } else {
+                                $count_existentes_hub++;
+                            }
+                            push @hallazgos_tabla, {
+                                pieza => $tooth,
+                                nombre => $tooth_nom,
+                                cara => ucfirst($surf),
+                                diagnostico => $info->{nom},
+                                categoria => $info->{cat},
+                                costo => $info->{precio},
+                            };
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    my $total_piezas_afectadas = scalar(keys %piezas_afectadas);
+    my $presupuesto_fmt = sprintf("%.2f", $total_presupuesto_hub);
+
+    print <<HTML;
+        <!-- 6: ODONTOGRAMA (HUB EJECUTIVO) -->
         <section class="sdm-tab-sec d-none" id="tab6">
-            <div class="odontograma-plus-card mb-4">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3 border-bottom">
-                    <div>
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <span class="badge bg-teal text-white rounded-pill px-3 py-1 fw-bold" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">FDI / ISO 3950</span>
-                            <span class="badge bg-navy text-white rounded-pill px-3 py-1 fw-bold">32 Piezas Permanentes</span>
-                        </div>
-                        <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Odontograma Digital Plus</h3>
-                        <p class="text-muted small fw-bold mb-0">MAPEO ANATÓMICO POR CUADRANTES CON REACTIVIDAD VECTORIAL SVG</p>
+            <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-teal text-white rounded-pill px-3 py-1 fw-bold" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">FDI / ISO 3950</span>
+                        <span class="badge bg-navy text-white rounded-pill px-3 py-1 fw-bold">32 Piezas Permanentes</span>
                     </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="text-end d-none d-md-block">
-                            <span class="small text-muted fw-bold d-block">Presupuesto Estimado</span>
-                            <span class="h5 fw-black text-danger m-0" id="odonto-total-pending">\$0.00</span>
-                        </div>
-                    </div>
+                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Hub Cl&iacute;nico Odontol&oacute;gico</h3>
+                    <p class="text-muted small fw-bold mb-0">DIAGNÓSTICO DENTAL, HALLAZGOS Y PLAN DE TRATAMIENTO</p>
                 </div>
-
-                <!-- Barra con Botones de Prueba Rápida y Controles de Zoom -->
-                <div class="odonto-test-bar">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-lightning-charge-fill text-warning fs-5"></i>
-                        <span class="fw-bold small text-navy">Pruebas Rápidas:</span>
-                    </div>
-                    <div class="d-flex flex-wrap align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 shadow-xs" onclick="applySurfaceCondition(16, 'mesial', 'CARIES', 'PENDING_TREATMENT', '#FF3B30')">
-                            <i class="bi bi-circle-fill me-1 text-danger"></i> Caries Mesial (16)
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3 shadow-xs" onclick="applySurfaceCondition(21, 'occlusal', 'COMPOSITE', 'EXISTING_CONDITION', '#007AFF')">
-                            <i class="bi bi-check-circle-fill me-1 text-primary"></i> Resina Oclusal (21)
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold px-3 shadow-xs" onclick="clearOdontogram()">
-                            <i class="bi bi-eraser-fill me-1"></i> Limpiar
-                        </button>
-
-                        <div class="vr mx-1 d-none d-sm-block"></div>
-
-                        <!-- Controles de Zoom Dinámico -->
-                        <div class="d-flex align-items-center gap-1 bg-white p-1 rounded-pill border shadow-xs">
-                            <button type="button" class="btn btn-xs btn-light rounded-circle px-2 py-1 text-muted" onclick="changeOdontoZoom(-0.1)" title="Zoom Out (Alejar Cuadrantes)">
-                                <i class="bi bi-dash-lg"></i>
-                            </button>
-                            <span class="small fw-black text-navy px-1" id="odonto-zoom-label" style="min-width: 44px; text-align: center;">100%</span>
-                            <button type="button" class="btn btn-xs btn-light rounded-circle px-2 py-1 text-muted" onclick="changeOdontoZoom(0.1)" title="Zoom In (Acercar)">
-                                <i class="bi bi-plus-lg"></i>
-                            </button>
-                            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1 ms-1 fw-bold" onclick="resetOdontoZoom()" title="Restablecer a 100%">
-                                <i class="bi bi-aspect-ratio me-1"></i>Ajustar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Contenedor del Mapa Dental SVG 32 Piezas -->
-                <div class="p-3 p-md-4 mb-4 rounded-4" style="background: rgba(248, 250, 252, 0.8); border: 1px dashed rgba(25, 183, 165, 0.4);">
-                    <div id="odontograma-svg-container" class="text-center w-100" data-patient-id="$d->{id_paciente}">
-                        <!-- Renderizado dinámico vía renderOdontogram() -->
-                        <div class="py-5 text-muted opacity-50"><div class="spinner-border text-primary mb-3"></div><br>Generando Mapa Dental Vectorial...</div>
-                    </div>
-                </div>
-
-                <!-- Leyenda de Convención Clínica -->
-                <div class="odonto-legend">
-                    <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #FF3B30;"></span>
-                        <span>Tratamiento Pendiente / Patología Activa (#FF3B30)</span>
-                    </div>
-                    <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #007AFF;"></span>
-                        <span>Tratamiento Realizado / Condición Existente (#007AFF)</span>
-                    </div>
-                    <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #FFFFFF; border: 1px solid #94a3b8;"></span>
-                        <span>Superficie Sana / Sin Hallazgo</span>
-                    </div>
-                    <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: rgba(25, 183, 165, 0.4); border: 1px solid #19B7A5;"></span>
-                        <span>Hover Interactivo Teal</span>
-                    </div>
-                </div>
-
-                <!-- Inspección de Estado en Vivo (JSON) -->
-                <div class="mt-4">
-                    <button class="btn btn-xs btn-light border rounded-pill px-3 fw-bold text-muted mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJsonViewer" aria-expanded="false">
-                        <i class="bi bi-code-slash me-1"></i> Ver Estado Reactivo en Vivo (JSON)
-                    </button>
-                    <div class="collapse" id="collapseJsonViewer">
-                        <div class="card card-body p-0 border-0">
-                            <pre id="odontogram-live-json" class="odonto-state-viewer mb-0">{}</pre>
-                        </div>
-                    </div>
-            </div>
-
-            <!-- Modal Clínico Contextual Glassmorphism (Fase 1.2 / Selector en Cascada) -->
-            <div class="modal fade" id="modalOdontoClinico" tabindex="-1" aria-labelledby="modalOdontoClinicoLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content odonto-modal-glass border-0 shadow-lg">
-                        <div class="modal-header border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center gap-3">
-                                <span class="badge bg-teal text-white rounded-pill px-3 py-2 fw-black fs-6" id="odonto-modal-tooth-badge" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">#16</span>
-                                <div>
-                                    <h5 class="fw-black mb-0 text-navy" id="odonto-modal-tooth-title" style="color: var(--md-blue-deep);">Primer Molar Superior Derecho</h5>
-                                    <span class="small text-muted fw-bold" id="odonto-modal-surface-label"><i class="bi bi-geo-alt-fill text-teal me-1" style="color: var(--md-teal-clinical);"></i>Zona activa: Superficie MESIAL</span>
-                                </div>
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                        </div>
-                        <div class="modal-body p-4">
-                            <!-- Nivel 1: Alcance -->
-                            <div class="mb-4">
-                                <label class="small text-muted fw-bold text-uppercase mb-2 d-block">1. Alcance del Diagnóstico</label>
-                                <div class="btn-group w-100 p-1 bg-light rounded-pill border" role="group" id="odonto-scope-group">
-                                    <input type="radio" class="btn-check" name="odonto-scope" id="scope-surface" value="SURFACE" checked onchange="handleScopeChange('SURFACE')">
-                                    <label class="btn btn-sm rounded-pill fw-bold" for="scope-surface" id="label-scope-surface"><i class="bi bi-bounding-box me-1"></i>Superficie Seleccionada</label>
-
-                                    <input type="radio" class="btn-check" name="odonto-scope" id="scope-crown" value="CROWN" onchange="handleScopeChange('CROWN')">
-                                    <label class="btn btn-sm rounded-pill fw-bold" for="scope-crown"><i class="bi bi-circle-square me-1"></i>Toda la Corona (5 caras)</label>
-
-                                    <input type="radio" class="btn-check" name="odonto-scope" id="scope-tooth" value="TOOTH" onchange="handleScopeChange('TOOTH')">
-                                    <label class="btn btn-sm rounded-pill fw-bold" for="scope-tooth"><i class="bi bi-x-circle me-1"></i>Pieza Completa (Ausente)</label>
-                                </div>
-                            </div>
-
-                            <!-- Nivel 2: Selector en Cascada por Categorías -->
-                            <div class="mb-4">
-                                <label class="small text-muted fw-bold text-uppercase mb-2 d-block">2. Categoría y Condición Clínica</label>
-                                <ul class="nav nav-pills nav-fill mb-3 odonto-category-pills" id="pills-odonto-cat" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active fw-bold text-danger" id="pills-pending-tab" data-bs-toggle="pill" data-bs-target="#pills-pending" type="button" role="tab"><i class="bi bi-exclamation-circle-fill me-1"></i>Patología / Pendiente</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link fw-bold text-primary" id="pills-existing-tab" data-bs-toggle="pill" data-bs-target="#pills-existing" type="button" role="tab"><i class="bi bi-check-circle-fill me-1"></i>Tratamiento Existente</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link fw-bold text-secondary" id="pills-healthy-tab" data-bs-toggle="pill" data-bs-target="#pills-healthy" type="button" role="tab"><i class="bi bi-eraser-fill me-1"></i>Sano / Limpiar</button>
-                                    </li>
-                                </ul>
-
-                                <div class="tab-content" id="pills-odonto-tabContent">
-                                    <!-- TAB 1: PENDIENTES / PATOLOGÍAS -->
-                                    <div class="tab-pane fade show active" id="pills-pending" role="tabpanel">
-                                        <div class="row g-2" id="grid-conditions-pending">
-                                            <!-- Inyectado por JS -->
-                                        </div>
-                                    </div>
-
-                                    <!-- TAB 2: TRATAMIENTOS EXISTENTES -->
-                                    <div class="tab-pane fade" id="pills-existing" role="tabpanel">
-                                        <div class="row g-2" id="grid-conditions-existing">
-                                            <!-- Inyectado por JS -->
-                                        </div>
-                                    </div>
-
-                                    <!-- TAB 3: SANO / LIMPIAR -->
-                                    <div class="tab-pane fade" id="pills-healthy" role="tabpanel">
-                                        <div class="p-4 bg-light rounded-4 text-center border">
-                                            <i class="bi bi-shield-check text-success display-5 d-block mb-2"></i>
-                                            <h6 class="fw-black text-navy mb-1" style="color: var(--md-blue-deep);">Restaurar a Estado Sano</h6>
-                                            <p class="small text-muted mb-3">Se removerán las marcas patológicas o restauraciones de la zona o diente seleccionado.</p>
-                                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" onclick="selectOdontoCondition('HEALTHY')">
-                                                <i class="bi bi-check-lg me-1"></i>Marcar Sano / Sin Hallazgo
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Nivel 3: Resumen y Precio -->
-                            <div class="p-3 bg-light rounded-4 border d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                <div>
-                                    <span class="small text-muted fw-bold d-block">Resumen de Selección:</span>
-                                    <span class="fw-bold" style="color: var(--md-blue-deep);" id="odonto-summary-condition">Caries Dental (Activa)</span>
-                                    <span class="badge bg-danger-subtle text-danger ms-2 rounded-pill px-2 py-1" id="odonto-summary-scope">Superficie Mesial</span>
-                                </div>
-                                <div class="text-end">
-                                    <span class="small text-muted fw-bold d-block">Importe Sugerido</span>
-                                    <span class="h5 fw-black text-danger m-0" id="odonto-summary-price">\$850.00 MXN</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer border-top py-3 px-4 d-flex justify-content-between">
-                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-medentia rounded-pill px-4 fw-bold" onclick="confirmApplyClinicalCondition()">
-                                <i class="bi bi-check2-circle me-1" style="color: var(--md-cyan-ia);"></i>Aplicar al Odontograma
-                            </button>
-                        </div>
-                    </div>
+                <div class="d-flex gap-2 p-1 bg-transparent flex-wrap">
+                    <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-medentia btn-sm d-flex align-items-center px-4 shadow-sm">
+                        <i class="bi bi-display me-2" style="color: var(--md-cyan-ia);"></i>Lanzar OSOdontograma Viewer
+                    </a>
                 </div>
             </div>
 
-            <!-- Notas Médicas -->
-            <div class="mb-4 diamond-input-armor">
-                <label for="odontograma-notas" class="small fw-bold text-muted mb-2 ps-1"><i class="bi bi-journal-medical me-2" style="color: var(--md-teal-clinical);"></i>Notas Médicas / Observaciones</label>
-                <textarea class="form-control py-3 fw-bold" id="odontograma-notas" rows="4" placeholder="Escriba las observaciones clínicas del odontograma aquí..."></textarea>
-            </div>
+            <!-- Bento Grid para el Hub Odontológico (Idéntico a Rayos X) -->
+            <div class="row g-4">
+                <!-- Columna Izquierda: Tabla DataTables de Hallazgos y Procedimientos -->
+                <div class="col-lg-8">
+                    <h5 class="fw-black mt-1 mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-clipboard2-pulse me-2" style="color: var(--md-teal-clinical);"></i>Hallazgos y Procedimientos Cl&iacute;nicos</h5>
+                    <div class="table-responsive card-medentia-aura p-4 h-100 border-0">
+                        <table class="table table-hover align-middle mb-0" id="tablaOdontoHub" style="width:100%">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3 border-0 rounded-start-3">Pieza FDI</th>
+                                    <th class="border-0">Diente / Familia</th>
+                                    <th class="border-0">Cara / Zona</th>
+                                    <th class="border-0">Diagn&oacute;stico</th>
+                                    <th class="border-0">Estado</th>
+                                    <th class="border-0 text-end pe-3 rounded-end-3">Costo Sugerido</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small">
+HTML
+    if (@hallazgos_tabla) {
+        foreach my $h (@hallazgos_tabla) {
+            my $is_pending = ($h->{categoria} eq 'PENDING');
+            my $badge_estado = $is_pending
+                ? '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-circle-fill me-1"></i>Pendiente</span>'
+                : '<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-check-circle-fill me-1"></i>Existente</span>';
+            
+            my $costo_fmt = sprintf("%.2f", $h->{costo});
+            my $costo_class = $is_pending ? 'text-danger fw-black' : 'text-primary fw-bold';
 
-            <!-- Listado Dinámico de Diagnóstico -->
-            <div class="card-medentia-aura p-4 border-0" id="seccion-diagnostico-print">
-                
-                <!-- Print Header (Hidden on screen) -->
-                <div class="d-none d-print-block mb-4 border-bottom pb-3">
-                    <div class="d-flex justify-content-between align-items-start">
+            print <<HTML;
+                                <tr>
+                                    <td class="ps-3 fw-black"><span class="badge bg-light border text-navy">#$h->{pieza}</span></td>
+                                    <td class="fw-bold text-dark">$h->{nombre}</td>
+                                    <td><span class="badge bg-secondary-subtle text-secondary">$h->{cara}</span></td>
+                                    <td class="fw-bold">$h->{diagnostico}</td>
+                                    <td>$badge_estado</td>
+                                    <td class="text-end pe-3 $costo_class">\\\$$costo_fmt</td>
+                                </tr>
+HTML
+        }
+    }
+
+    print <<HTML;
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Tarjeta Resumen Ejecutivo y Presupuesto Odontológico -->
+                <div class="col-lg-4">
+                    <div class="card-medentia-aura p-4 border-0 h-100 d-flex flex-column justify-content-between">
                         <div>
-                            <h3 class="fw-black m-0">Clínica Dental SDM</h3>
-                            <p class="text-muted small m-0">REPORTE CLÍNICO DE ODONTOGRAMA</p>
+                            <h6 class="fw-black mb-4 uppercase" style="color: var(--md-blue-deep); font-size: 0.8rem; letter-spacing: 1px;">Presupuesto Odontol&oacute;gico</h6>
+                            
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h3 class="fw-black m-0 text-danger">\\\$$presupuesto_fmt <span class="fs-6 text-muted">MXN</span></h3>
+                                <i class="bi bi-wallet2 fs-3" style="color: var(--md-teal-clinical);"></i>
+                            </div>
+                            <p class="small text-muted fw-bold mb-4">Total estimado en tratamientos pendientes</p>
+
+                            <ul class="list-group list-group-flush small mb-4">
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-2">
+                                    <span><i class="bi bi-circle-fill text-danger me-2" style="font-size: 0.5rem;"></i>Patolog&iacute;as / Pendientes</span>
+                                    <span class="fw-black text-danger">$count_pendientes_hub</span>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-2">
+                                    <span><i class="bi bi-circle-fill text-primary me-2" style="font-size: 0.5rem;"></i>Tratamientos Existentes</span>
+                                    <span class="fw-bold text-primary">$count_existentes_hub</span>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-2">
+                                    <span><i class="bi bi-circle-fill text-teal me-2" style="font-size: 0.5rem;"></i>Piezas Diagnosticadas</span>
+                                    <span class="fw-bold text-dark">$total_piezas_afectadas / 32</span>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-2">
+                                    <span><i class="bi bi-clock-history text-muted me-2" style="font-size: 0.75rem;"></i>&Uacute;ltima actualizaci&oacute;n</span>
+                                    <span class="fw-bold text-muted">$odonto_fecha_act</span>
+                                </li>
+                            </ul>
+
+                            <div class="p-3 bg-light rounded-4 border mb-4">
+                                <label class="small text-muted fw-bold d-block mb-1"><i class="bi bi-journal-text me-1 text-teal" style="color: var(--md-teal-clinical);"></i>Observaciones Cl&iacute;nicas:</label>
+                                <p class="small text-dark mb-0 fw-bold">$odonto_notas</p>
+                            </div>
                         </div>
-                        <div class="text-end">
-                            <h5 class="fw-bold m-0">Paciente: $d->{nombre}</h5>
-                            <p class="text-muted small m-0">Fecha de Impresión: <span id="print-date"></span></p>
+
+                        <div>
+                            <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-medentia w-100 rounded-pill py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                <span>Abrir OSOdontograma Viewer</span>
+                            </a>
                         </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
-                    <div>
-                        <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-clipboard2-pulse me-2" style="color: var(--md-teal-clinical);"></i>Registro de Diagnóstico</h5>
-                        <p class="text-muted small fw-bold mb-0">ESTADO ACTUAL DEL ODONTOGRAMA</p>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm" onclick="preparePrint()">
-                        <i class="bi bi-printer-fill me-1"></i>Imprimir
-                    </button>
-                </div>
-
-                <!-- Notas en Impresión -->
-                <div class="d-none d-print-block mb-4">
-                    <h6 class="fw-bold border-bottom pb-2">Observaciones Clínicas</h6>
-                    <p id="print-notas" class="small"></p>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table table-hover table-borderless align-middle" id="tabla-diagnostico">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="rounded-start-4 ps-4">Pieza (FDI)</th>
-                                <th>Diagnóstico / Estado</th>
-                                <th class="rounded-end-4">Detalle / Caras</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-diagnostico">
-                            <tr>
-                                <td colspan="3" class="text-center text-muted py-4 small fw-bold">No hay hallazgos registrados aún.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Print Footer -->
-                <div class="d-none d-print-block mt-5 pt-5 text-center">
-                    <div class="w-50 mx-auto border-top border-dark pt-2">
-                        <p class="fw-bold mb-0">Dr. $session_data->{usuario}</p>
-                        <p class="small text-muted">Firma del Médico Tratante</p>
                     </div>
                 </div>
             </div>
+
+            <!-- Inicializador DataTables para el Hub Odontológico -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    if (window.jQuery && $.fn.DataTable && !$.fn.DataTable.isDataTable('#tablaOdontoHub')) {
+                        $('#tablaOdontoHub').DataTable({
+                            language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+                            pageLength: 10,
+                            dom: "<'row mb-3 align-items-center'<'col-sm-12 col-md-6 d-flex flex-wrap gap-2'B><'col-sm-12 col-md-6'f>>" +
+                                 "<'row'<'col-sm-12'tr>>" +
+                                 "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                            buttons: [
+                                { extend: 'copy', text: '<i class=\"bi bi-clipboard me-1\"></i> COPY', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' },
+                                { extend: 'excel', text: '<i class=\"bi bi-file-earmark-excel me-1\"></i> EXCEL', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' },
+                                { extend: 'pdf', text: '<i class=\"bi bi-file-earmark-pdf me-1\"></i> PDF', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' },
+                                { extend: 'print', text: '<i class=\"bi bi-printer me-1\"></i> PRINT', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' }
+                            ]
+                        });
+                        $('.dt-buttons .btn').css({ 'border-radius': '12px', 'font-weight': '800', 'color': '#475569', 'border-color': '#e2e8f0' });
+                        $('.dataTables_filter input').attr('placeholder', 'Buscar hallazgo...').addClass('form-control rounded-pill px-3 shadow-sm').css('border-color', '#e2e8f0');
+                        $('.dataTables_filter label').contents().filter(function(){ return this.nodeType === 3; }).remove();
+                    }
+                });
+            </script>
         </section>
         <!-- 0: CITAS (TIMELINE) -->
         <section class="sdm-tab-sec d-none" id="tab0">
@@ -776,18 +786,7 @@ HTML
                     </div>
                 </div>
 
-                <!-- Incluir DataTables (jQuery ya se incluyó en sub_header) -->
-                <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-                <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
-                <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-                <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-                <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-                <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-                <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-                <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+                <!-- Axios para acciones de estudio -->
                 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 HTML
 
