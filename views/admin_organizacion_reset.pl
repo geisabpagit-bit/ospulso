@@ -93,13 +93,13 @@ if (-e $neg_file && open(my $fn, '<:encoding(UTF-8)', $neg_file)) {
 $clue_org ||= 'QTSMP000116' if ($id_empresa eq '0');
 
 my $has_clue = ($clue_org ne '' && $clue_org ne 'No asignada' && $clue_org ne '0') ? 1 : 0;
-my $es_consultorio_ind = ($tipo_organizacion eq 'Consultorio Individual') ? 1 : 0;
-# Los folios públicos y personalización de folios iniciales SOLO aplican si tiene CLUE y PACIENTES_ESTADO activo
+my $es_consultorio_ind = ($tipo_organizacion eq 'Consultorio Individual' || $tipo_organizacion eq 'Consultorio Compartido') ? 1 : 0;
+# Los folios públicos y personalización de folios públicos SOLO aplican si tiene CLUE y PACIENTES_ESTADO activo
 my $maneja_folios_publicos = ($has_clue && $has_pacientes_estado && !$es_consultorio_ind) ? 1 : 0;
 
 my $subtitulo_topbar = $maneja_folios_publicos 
-    ? 'Limpieza de movimientos transaccionales y reinicio personalizado de folios'
-    : 'Limpieza de movimientos transaccionales y reinicio automático de contadores a cero';
+    ? 'Limpieza de movimientos transaccionales y reinicio personalizado de folios institucionales'
+    : 'Limpieza de movimientos transaccionales y reinicio de foliatura de caja del consultorio';
 
 # Textos adaptados para Qué datos SE ELIMINAN
 my $html_datos_eliminados = '';
@@ -111,7 +111,6 @@ if ($es_consultorio_ind) {
                                             <li class="mb-1">Citas en agenda médica e historial de movimientos.</li>
                                             <li class="mb-1">Consultas clínicas (SOAP), recetas, consentimientos y borradores.</li>
                                             <li class="mb-1">Registro de egresos y gastos operativos del consultorio.</li>
-                                            <li class="mb-1">Pacientes registrados en caja rápida / mostrador.</li>
                                             <li>Cotizaciones, tratamientos y archivos adjuntos temporales.</li>
                                         </ul>
 HTML_DEL
@@ -134,9 +133,10 @@ my $html_datos_conservados = '';
 if ($es_consultorio_ind) {
     $html_datos_conservados = <<'HTML_KEEP';
                                         <ul class="small text-muted mb-0 ps-3">
-                                            <li class="mb-1"><strong>Usuario titular y accesos</strong> (ID, credenciales, especialidad y cédula profesional).</li>
-                                            <li class="mb-1">Catálogo de servicios, tarifas y tratamientos del consultorio.</li>
-                                            <li class="mb-1">Expedientes de pacientes clínicos base.</li>
+                                            <li class="mb-1"><strong>Médico titular y accesos</strong> (ID, credenciales, especialidad y cédula profesional).</li>
+                                            <li class="mb-1">Catálogo de servicios y precios privados del consultorio.</li>
+                                            <li class="mb-1">Categorías y fuentes de dinero de gastos configuradas.</li>
+                                            <li class="mb-1">Expedientes clínicos y directorio base de pacientes.</li>
                                             <li class="mb-1">Plantillas y formatos médicos predefinidos.</li>
                                             <li>Configuración general y parámetros del consultorio.</li>
                                         </ul>
@@ -181,17 +181,21 @@ if ($maneja_folios_publicos) {
                                 </div>
 HTML_FOLIOS
 } else {
-    $html_seccion_folios = <<'HTML_FOLIOS_AUTO';
-                                <div class="alert alert-success border-0 rounded-4 p-3 p-md-4 mb-4 d-flex align-items-start gap-3 shadow-sm" style="background-color: #f0fdf4; border-left: 5px solid #16a34a !important;">
-                                    <i class="bi bi-check-circle-fill text-success fs-3 flex-shrink-0"></i>
-                                    <div>
-                                        <h6 class="fw-bold text-dark mb-1">Reinicio Automático de Contadores</h6>
-                                        <p class="small text-muted mb-0">
-                                            Esta organización opera bajo esquema privado (sin convenios públicos del Estado). Su contador único de recibos privados se reiniciará <strong>automáticamente en 0</strong> (el próximo recibo cobrado iniciará con el <strong>#1</strong>). No se requiere configuración manual de folios.
-                                        </p>
+    $html_seccion_folios = <<'HTML_FOLIOS_IND';
+                                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-sliders me-2 text-primary"></i>Configuración de Folio Inicial de Caja</h5>
+                                <p class="text-muted small mb-3">Defina el número de folio con el que desea que inicie la foliatura de sus recibos de cobro en caja rápida (por defecto #1):</p>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label fw-bold small text-secondary"><i class="bi bi-receipt me-1"></i>Folio Inicial de Recibos Privados</label>
+                                        <div class="input-group input-group-lg">
+                                            <span class="input-group-text bg-light fw-bold">#</span>
+                                            <input type="number" min="1" step="1" class="form-control fw-bold" name="folio_privados" id="folio_privados" value="1" required>
+                                        </div>
+                                        <div class="form-text small">El primer recibo cobrado en caja tendrá este número de folio. Si migra de otro sistema, puede especificar el número inicial correlativo.</div>
                                     </div>
                                 </div>
-HTML_FOLIOS_AUTO
+HTML_FOLIOS_IND
 }
 
 print <<HTML;
@@ -282,18 +286,18 @@ print <<'JS';
 
                 const configEl = document.getElementById('configReset');
                 const manejaFolios = configEl && configEl.dataset.manejaFolios === '1';
+                const folioPriv = fd.get('folio_privados') || '1';
 
                 let confirmHtml = '';
                 if (manejaFolios) {
-                    const folioPriv = fd.get('folio_privados') || '1';
                     const folioPub = fd.get('folio_publicos') || '1';
-                    confirmHtml = `Se purgarán los movimientos operativos y los folios iniciarán en:<br><br>` +
+                    confirmHtml = `Se purgarán los movimientos operativos institucionales y los folios iniciarán en:<br><br>` +
                                   `<strong>Privados: #${folioPriv}</strong> | <strong>Públicos: #${folioPub}</strong><br><br>` +
-                                  `<span class="text-success fw-bold">Los usuarios y configuraciones permanecerán intactos.</span>`;
+                                  `<span class="text-success fw-bold">Los usuarios, médicos, convenios y catálogos permanecerán intactos.</span>`;
                 } else {
-                    confirmHtml = `Se purgarán los movimientos operativos de esta organización.<br><br>` +
-                                  `Su contador único de recibos privados se reiniciará automáticamente en <strong>#0</strong> (el próximo recibo cobrado será el <strong>#1</strong>).<br><br>` +
-                                  `<span class="text-success fw-bold">Los usuarios, catálogo y configuraciones permanecerán intactos.</span>`;
+                    confirmHtml = `Se purgarán los movimientos operativos de este consultorio.<br><br>` +
+                                  `El contador de recibos de caja se configurará para iniciar en el folio: <strong>#${folioPriv}</strong>.<br><br>` +
+                                  `<span class="text-success fw-bold">Los datos del médico titular, usuarios, catálogo y directorio de pacientes permanecerán intactos.</span>`;
                 }
 
                 const confirmResult = await Swal.fire({

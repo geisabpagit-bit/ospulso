@@ -79,17 +79,17 @@ if (-e $cfg_file && open(my $fh_cfg, '<:encoding(UTF-8)', $cfg_file)) {
 }
 
 my $has_clue = ($org_clues ne '' && $org_clues ne 'No asignada' && $org_clues ne '0') ? 1 : 0;
-my $es_consultorio_ind = ($tipo_organizacion eq 'Consultorio Individual') ? 1 : 0;
+my $es_consultorio_ind = ($tipo_organizacion eq 'Consultorio Individual' || $tipo_organizacion eq 'Consultorio Compartido') ? 1 : 0;
 # Los folios públicos y personalización solo aplican con CLUE y PACIENTES_ESTADO activo
 my $maneja_folios_publicos = ($has_clue && $has_pacientes_estado && !$es_consultorio_ind) ? 1 : 0;
 
 # Parámetros de entrada
-my $folio_priv_inicio = 1;
+my $folio_priv_inicio = int($q->param('folio_privados') || 1);
+$folio_priv_inicio = 1 if ($folio_priv_inicio < 1);
+
 my $folio_pub_inicio  = 1;
 if ($maneja_folios_publicos) {
-    $folio_priv_inicio = int($q->param('folio_privados') || 1);
     $folio_pub_inicio  = int($q->param('folio_publicos') || 1);
-    $folio_priv_inicio = 1 if ($folio_priv_inicio < 1);
     $folio_pub_inicio  = 1 if ($folio_pub_inicio < 1);
 }
 
@@ -110,17 +110,19 @@ if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
         next if $line =~ /^\s*$/;
         my @u = split(/!/, $line, -1);
         my $u_id = $u[0];
+        my $u_nom = $u[1] // '';
         my $u_neg = $u[6] // '';
         my ($u_biz) = split(/:/, $u_neg);
         $u_biz //= '';
         if ($u_biz eq $id_empresa || ($id_empresa eq '0' && ($u_biz eq '0' || $u_biz eq ''))) {
             $uids_org{$u_id} = 1 if (defined $u_id && $u_id ne '');
+            $uids_org{$u_nom} = 1 if (defined $u_nom && $u_nom ne '');
         }
     }
     close $fu;
 }
 
-# Incluir catálogo de médicos de la CLUE de la organización
+# Incluir catálogo de médicos de la CLUE de la organización (si aplica)
 if ($org_clues && $org_clues ne 'No asignada' && $org_clues ne '0') {
     my $med_cat_file = File::Spec->catfile($dat_dir, 'catalogos_CLUE', $org_clues, "medicos_${org_clues}.dat");
     if (-e $med_cat_file && open(my $fm, '<:encoding(UTF-8)', $med_cat_file)) {
@@ -129,9 +131,23 @@ if ($org_clues && $org_clues ne 'No asignada' && $org_clues ne '0') {
             chomp $line; next if $line =~ /^\s*$/;
             my @m = split(/\|/, $line, -1);
             $uids_org{$m[0]} = 1 if (defined $m[0] && $m[0] ne '');
+            $uids_org{$m[2]} = 1 if (defined $m[2] && $m[2] ne '');
         }
         close $fm;
     }
+}
+
+# Incluir médicos de la organización si tiene archivo medicos_${id_raiz}.dat
+my $med_org_file = File::Spec->catfile($dat_dir, "medicos_${id_raiz}.dat");
+if (-e $med_org_file && open(my $fmo, '<:encoding(UTF-8)', $med_org_file)) {
+    <$fmo>;
+    while (my $line = <$fmo>) {
+        chomp $line; next if $line =~ /^\s*$/;
+        my @m = split(/\|/, $line, -1);
+        $uids_org{$m[0]} = 1 if (defined $m[0] && $m[0] ne '');
+        $uids_org{$m[2]} = 1 if (defined $m[2] && $m[2] ne '');
+    }
+    close $fmo;
 }
 
 # Función auxiliar para determinar si un registro transaccional pertenece a la organización a resetear
@@ -139,10 +155,16 @@ sub es_registro_de_org {
     my ($m_id) = @_;
     $m_id //= '';
     $m_id =~ s/^\s+|\s+$//g;
-    # En la organización principal/default (0), todo movimiento operativo es de la organización si no es de otro tenant
-    return 1 if ($id_empresa eq '0');
-    # En multi-tenant, pertenece estrictamente a la org si el médico/usuario pertenece a la org
-    return 1 if ($m_id ne '' && $uids_org{$m_id});
+    return 0 if ($m_id eq '');
+    
+    # 1. Pertenencia por mapeo estricto de usuario o médico
+    return 1 if ($uids_org{$m_id});
+    
+    # 2. Casos legacy en organización 0 (si el médico es 0 o 1 y no pertenece a otro tenant)
+    if ($id_empresa eq '0' && ($m_id eq '0' || $m_id eq '1')) {
+        return 1;
+    }
+    
     return 0;
 }
 
@@ -284,9 +306,15 @@ eval {
             my @c = split(/\|/, $l, -1);
             my $m_neg = $c[11] // '';
             my $creador = $c[10] // '';
-            if ($m_neg ne $id_empresa && !es_registro_de_org($creador)) {
-                push @conservar, $l;
+
+            my $es_de_esta_org = 0;
+            if (defined $m_neg && $m_neg ne '') {
+                $es_de_esta_org = ($m_neg eq $id_empresa || ($id_empresa eq '0' && $m_neg eq '0')) ? 1 : 0;
+            } else {
+                $es_de_esta_org = es_registro_de_org($creador);
             }
+
+            push @conservar, $l unless $es_de_esta_org;
         }
         if (open(my $fh_out, '>:encoding(UTF-8)', $gastos_file)) {
             flock($fh_out, LOCK_EX);
@@ -382,19 +410,15 @@ eval {
         }
     }
 
-    # 10. Actualizar Contadores de Folios
-    # Si maneja_folios_publicos: usar los valores solicitados por el usuario
-    # Si NO maneja_folios_publicos (Consultorio Individual o sin PACIENTES_ESTADO): resetear su único contador a 0 automáticamente
-    my $last_priv_target = 0;
-    my $last_pub_target  = 0;
+    # 11. Actualizar Contadores de Folios
+    # Tanto organizaciones CLUE como Consultorios Privados pueden definir su folio de inicio privado
+    my $last_priv_target = $folio_priv_inicio - 1;
+    $last_priv_target = 0 if $last_priv_target < 0;
 
+    my $last_pub_target  = 0;
     if ($maneja_folios_publicos) {
-        $last_priv_target = $folio_priv_inicio - 1;
         $last_pub_target  = $folio_pub_inicio - 1;
-        $last_priv_target = 0 if $last_priv_target < 0;
         $last_pub_target  = 0 if $last_pub_target < 0;
-    } else {
-        $last_priv_target = 0;
     }
 
     my $rutas_contadores = catalogo_org_utils::obtener_rutas_contadores($id_raiz);
@@ -473,15 +497,15 @@ if ($@) {
 if ($maneja_folios_publicos) {
     print encode_json({
         success => 1,
-        msg => "Reset operativo completado exitosamente. Todos los usuarios creados permanecen intactos. Los folios iniciarán en: Recibos Privados #$folio_priv_inicio y Recibos Públicos #$folio_pub_inicio.",
+        msg => "Reset operativo completado exitosamente. Todos los usuarios creados y catálogos permanecen intactos. Los folios iniciarán en: Recibos Privados #$folio_priv_inicio y Recibos Públicos #$folio_pub_inicio.",
         folio_privados => $folio_priv_inicio,
         folio_publicos => $folio_pub_inicio
     });
 } else {
     print encode_json({
         success => 1,
-        msg => "Reset operativo completado exitosamente. Los usuarios, catálogo y configuración permanecen intactos. El contador de recibos privados se reinició en 0 (el próximo recibo cobrado será el #1).",
-        folio_privados => 1,
+        msg => "Reset operativo completado exitosamente. Los datos del médico titular, catálogo y configuración permanecen intactos. El contador de recibos privados se configuró para iniciar en el folio #$folio_priv_inicio.",
+        folio_privados => $folio_priv_inicio,
         folio_publicos => 0
     });
 }
