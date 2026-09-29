@@ -147,7 +147,7 @@ function renderWeeklySmartView() {
     const base = new Date(selectedDate);
     const todayISO = getISO(new Date());
     
-    // Mostramos los 7 días de la semana con estilo card-acrilico
+    // Mostramos los 7 días de la semana con estilo card-acrilico y contador de citas
     const numDays = 7;
     const offset = 3; // -3 a +3 = 7 días centrados en selectedDate
     
@@ -163,13 +163,19 @@ function renderWeeklySmartView() {
         const dayName = d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '');
         const dayNum = d.getDate();
 
+        // Conteo de citas del día para visibilidad inmediata
+        const dayAptsCount = appointments.filter(a => a.start && a.start.startsWith(iso)).length;
+        const countBadge = dayAptsCount > 0 
+            ? `<span class="badge rounded-pill ${active ? 'bg-white text-dark' : 'bg-teal text-white'} fw-bold" style="font-size:0.58rem; margin-top:3px; padding:2px 6px;">${dayAptsCount} cita${dayAptsCount > 1 ? 's' : ''}</span>`
+            : (isToday && !active ? '<div style="width:6px; height:6px; background:var(--md-teal-clinical, #19B7A5); border-radius:50%; margin-top:5px;"></div>' : '<div style="height:11px"></div>');
+
         const card = $(`
             <div class="smart-day-card card-acrilico ${active ? 'active' : ''} ${holiday ? 'holiday' : ''}" 
                  onclick="selectSmartDate('${iso}')"
                  style="flex: 0 0 auto;">
                 <span class="small text-uppercase fw-bold ${active ? 'text-white' : 'opacity-50'}" style="font-size:0.6rem;">${dayName}</span>
                 <span class="h4 fw-black m-0">${dayNum}</span>
-                ${isToday && !active ? '<div style="width:6px; height:6px; background:var(--md-teal-clinical, #19B7A5); border-radius:50%; margin-top:5px;"></div>' : '<div style="height:11px"></div>'}
+                ${countBadge}
             </div>
         `);
         scroll.append(card);
@@ -211,6 +217,8 @@ function renderSmartSlots(date) {
         { label: 'TARDE', start: 13, end: e, icon: 'bi-moon-stars-fill' }
     ];
 
+    const matchedAptIds = new Set();
+
     sections.forEach(sec => {
         const col = $(`
             <div class="col-md-6 mb-3">
@@ -239,63 +247,194 @@ function renderSmartSlots(date) {
                     return (hhmm < aHf && hhmmF > aHi);
                 });
                 const isOcc = !!aptInSlot;
-                const isEnConsulta = aptInSlot && (aptInSlot.extendedProps.estado || '').trim().toLowerCase() === 'en consulta';
+                if (isOcc) matchedAptIds.add(aptInSlot.id);
                 const isPastSlot = (date < todayISO) || (date === todayISO && hhmm < currentHHMM);
 
                 let slotStyle = `animation-delay: ${delay}s;`;
                 let slotClass = '';
-                let slotLabel = hhmm;
+                let slotContent = '';
                 let slotTitle = '';
-                let btnAttr = '';
+                let isSlotInteractive = true;
 
-                if (isPastSlot) {
-                    if (isOcc) {
-                        // Horario reservado en el pasado: resaltado pero bloqueado con glassmorphism
-                        slotClass = 'slot-reservado-pasado-glass';
-                        slotTitle = `Cita Reservada: ${aptInSlot.title} (${hhmm}) [Horario Pasado - Bloqueado]`;
-                        slotLabel = `<div class="d-flex align-items-center justify-content-center gap-1"><span>${hhmm}</span><i class="bi bi-lock-fill" style="font-size:0.65rem; color:var(--md-teal-clinical, #19B7A5);"></i></div><span class="badge bg-light text-navy border fw-bold d-block mt-1 text-truncate" style="font-size:0.55rem; max-width:95%;">${aptInSlot.title}</span>`;
-                        btnAttr = 'disabled';
-                    } else {
-                        // Horario vacío en el pasado: atenuado y no se pueden agendar citas
-                        slotClass = 'slot-pasado-atenuado';
-                        slotTitle = 'No se pueden agendar citas en horarios que ya han pasado';
-                        slotLabel = `<span class="opacity-60">${hhmm}</span> <i class="bi bi-slash-circle opacity-50 ms-1" style="font-size:0.6rem;"></i>`;
-                        btnAttr = 'disabled';
-                    }
-                } else {
-                    // Horario presente o futuro
-                    if (isEnConsulta) {
+                if (isOcc) {
+                    const aptEndH = aptInSlot.end.split('T')[1].substring(0, 5);
+                    const res = resolverEstadoCita(aptInSlot.extendedProps.estado, date, aptEndH);
+                    const st = res.clave;
+                    const stLow = st.toLowerCase();
+                    const esAtendida = res.esAtendida || stLow.includes('atendida');
+                    const esCancelada = res.esCancelada || stLow.includes('cancelada');
+                    const esEnConsulta = (stLow === 'en consulta');
+                    const esNoRealizada = res.esNoRealizada || stLow.includes('no realizada') || (isPastSlot && !esAtendida && !esCancelada);
+
+                    if (esEnConsulta) {
                         slotClass = 'slot-busy slot-en-consulta';
-                        slotStyle += ' background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; font-weight: bold;';
-                        slotLabel = `${hhmm} <span class="badge bg-danger text-white ms-1" style="font-size:0.5rem;">EN CONSULTA</span>`;
+                        slotStyle += ' background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important;';
                         slotTitle = `En Consulta - ${aptInSlot.title}`;
-                        btnAttr = `onclick="window.location.href='render_consultas_privado.pl?id=${aptInSlot.extendedProps.id_paciente}&id_cita=${aptInSlot.id}'"`;
-                    } else if (isOcc) {
-                        slotClass = 'opacity-25';
-                        slotTitle = `Ocupado - ${aptInSlot.title}`;
-                        btnAttr = 'disabled';
+                        slotContent = `
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <span class="fw-bold">${hhmm}</span>
+                                <span class="badge bg-danger text-white" style="font-size:0.55rem;">EN CONSULTA</span>
+                            </div>
+                            <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
+                            <div class="d-flex justify-content-end gap-1 mt-1">
+                                <button type="button" class="btn btn-sm btn-danger text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.location.href='render_consultas.pl?id=${aptInSlot.extendedProps.id_paciente}&id_cita=${aptInSlot.id}'" title="Ir a Consulta Activa"><i class="bi bi-play-fill"></i> Ir</button>
+                            </div>
+                        `;
+                    } else if (esAtendida) {
+                        slotClass = 'slot-busy slot-atendida';
+                        slotStyle += ' background-color: #e6fffa !important; border-color: #19B7A5 !important; color: #0d7468 !important;';
+                        slotTitle = `Cita Atendida: ${aptInSlot.title}`;
+                        slotContent = `
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <span class="fw-bold">${hhmm}</span>
+                                <span class="badge bg-teal text-white" style="font-size:0.55rem;">ATENDIDA</span>
+                            </div>
+                            <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
+                            <div class="d-flex justify-content-end gap-1 mt-1">
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}', true)" title="Ver Detalle"><i class="bi bi-eye"></i></button>
+                            </div>
+                        `;
+                    } else if (esCancelada) {
+                        slotClass = 'slot-busy slot-cancelada opacity-50';
+                        slotStyle += ' background-color: #fee2e2 !important; border-color: #fca5a5 !important; text-decoration: line-through;';
+                        slotTitle = `Cita Cancelada: ${aptInSlot.title}`;
+                        slotContent = `
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <span>${hhmm}</span>
+                                <span class="badge bg-secondary text-white" style="font-size:0.55rem;">CANCELADA</span>
+                            </div>
+                            <span class="d-block text-truncate mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
+                        `;
+                    } else if (esNoRealizada) {
+                        // Cita en el pasado no realizada: habilitar Tomar Cita y Re-agendar
+                        slotClass = 'slot-busy slot-no-realizada';
+                        slotStyle += ' background-color: #fff5f5 !important; border: 1.5px solid #ef4444 !important; color: #991b1b !important;';
+                        slotTitle = `Cita No Realizada (Pasada): ${aptInSlot.title}`;
+                        slotContent = `
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <span class="fw-bold text-danger">${hhmm}</span>
+                                <span class="badge bg-danger text-white" style="font-size:0.55rem;">NO REALIZADA</span>
+                            </div>
+                            <span class="d-block text-truncate fw-bold mt-1 text-dark" style="font-size:0.68rem;">${aptInSlot.title}</span>
+                            <div class="d-flex justify-content-end gap-1 mt-1">
+                                <button type="button" class="btn btn-sm btn-success text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${aptInSlot.id}', '${aptInSlot.extendedProps.id_paciente}')" title="Tomar Cita Ahora"><i class="bi bi-play-fill"></i> Tomar</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}')" title="Re-agendar"><i class="bi bi-pencil-square"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}', true)" title="Ver Detalle"><i class="bi bi-eye"></i></button>
+                            </div>
+                        `;
                     } else {
-                        slotTitle = `Disponible: ${hhmm}`;
-                        btnAttr = `onclick="abrirModalNuevaCita('${date}', '${hhmm}')"`;
+                        // Cita programada / confirmada / sala de espera (presente o futura)
+                        const bgProg = (stLow.includes('sala de espera')) ? '#fef3c7' : '#e0f2fe';
+                        const borderProg = (stLow.includes('sala de espera')) ? '#f59e0b' : '#38bdf8';
+                        const textProg = (stLow.includes('sala de espera')) ? '#92400e' : '#0369a1';
+                        slotClass = 'slot-busy';
+                        slotStyle += ` background-color: ${bgProg} !important; border: 1.5px solid ${borderProg} !important; color: ${textProg} !important;`;
+                        slotTitle = `${st}: ${aptInSlot.title}`;
+                        slotContent = `
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <span class="fw-bold">${hhmm}</span>
+                                <span class="badge bg-primary text-white" style="font-size:0.55rem;">${st.toUpperCase()}</span>
+                            </div>
+                            <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
+                            <div class="d-flex justify-content-end gap-1 mt-1">
+                                <button type="button" class="btn btn-sm btn-success text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${aptInSlot.id}', '${aptInSlot.extendedProps.id_paciente}')" title="Tomar Cita"><i class="bi bi-play-fill"></i> Tomar</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}')" title="Editar / Re-agendar"><i class="bi bi-pencil-square"></i></button>
+                            </div>
+                        `;
                     }
+                } else if (isPastSlot) {
+                    // Horario vacío en el pasado: atenuado y no se pueden agendar citas
+                    slotClass = 'slot-pasado-atenuado';
+                    slotTitle = 'No se pueden agendar citas en horarios pasados';
+                    slotContent = `<span class="opacity-60">${hhmm}</span> <i class="bi bi-slash-circle opacity-50 ms-1" style="font-size:0.6rem;"></i>`;
+                    isSlotInteractive = false;
+                } else {
+                    // Horario disponible para agendar
+                    slotTitle = `Disponible: ${hhmm}`;
+                    slotContent = hhmm;
                 }
 
-                const btn = $(`
-                    <div class="col-6 col-sm-4 col-md-4">
-                        <button class="liquid-slot-btn liquid-anim ${slotClass}" 
-                                style="${slotStyle}"
-                                title="${slotTitle}"
-                                ${btnAttr}>
-                            ${slotLabel}
-                        </button>
-                    </div>
-                `);
-                inner.append(btn);
+                let slotElement;
+                if (isOcc) {
+                    slotElement = $(`
+                        <div class="col-6 col-sm-4 col-md-4">
+                            <div class="liquid-slot-btn liquid-anim ${slotClass}" 
+                                 style="${slotStyle}; cursor:pointer;"
+                                 title="${slotTitle}"
+                                 onclick="abrirModalCita('${aptInSlot.id}')">
+                                ${slotContent}
+                            </div>
+                        </div>
+                    `);
+                } else if (!isSlotInteractive) {
+                    slotElement = $(`
+                        <div class="col-6 col-sm-4 col-md-4">
+                            <button type="button" class="liquid-slot-btn liquid-anim ${slotClass}" 
+                                    style="${slotStyle}"
+                                    title="${slotTitle}"
+                                    disabled>
+                                ${slotContent}
+                            </button>
+                        </div>
+                    `);
+                } else {
+                    slotElement = $(`
+                        <div class="col-6 col-sm-4 col-md-4">
+                            <button type="button" class="liquid-slot-btn liquid-anim ${slotClass}" 
+                                    style="${slotStyle}"
+                                    title="${slotTitle}"
+                                    onclick="abrirModalNuevaCita('${date}', '${hhmm}')">
+                                ${slotContent}
+                            </button>
+                        </div>
+                    `);
+                }
+
+                inner.append(slotElement);
                 delay += 0.03;
             }
         }
         if (inner.children().length === 0) inner.append('<div class="col-12 small text-muted opacity-50 p-3">No hay horarios disponibles en este turno.</div>');
     });
+
+    // Citas fuera de horario o extemporáneas del día (para garantizar que NUNCA desaparezcan en vista semanal)
+    const extemporaneas = dayApts.filter(a => !matchedAptIds.has(a.id));
+    if (extemporaneas.length > 0) {
+        let extRows = '';
+        extemporaneas.forEach(a => {
+            const aHi = a.start.split('T')[1].substring(0, 5);
+            const aHf = a.end.split('T')[1].substring(0, 5);
+            const res = resolverEstadoCita(a.extendedProps.estado, date, aHf);
+            const esAtendida = res.esAtendida || res.clave.toLowerCase().includes('atendida');
+            const esCancelada = res.esCancelada || res.clave.toLowerCase().includes('cancelada');
+            const esTomable = (!esAtendida && !esCancelada);
+
+            extRows += `
+                <div class="d-flex flex-wrap align-items-center justify-content-between p-2.5 mb-2 rounded-3 border bg-white shadow-xs">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary fw-bold">${aHi} - ${aHf}</span>
+                        <span class="fw-bold text-navy small">${a.title}</span>
+                        <span class="badge ${res.badgeClass} ms-1" style="font-size:0.6rem;">${res.clave}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 mt-1 mt-sm-0">
+                        ${esTomable ? `<button type="button" class="btn btn-sm btn-success text-white rounded-pill px-2.5 py-0.5 fw-bold" style="font-size:0.68rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${a.id}', '${a.extendedProps.id_paciente}')" title="Tomar Cita"><i class="bi bi-play-fill me-1"></i> Tomar</button>` : ''}
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0.5" style="font-size:0.68rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Editar / Re-agendar"><i class="bi bi-pencil-square"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size:0.68rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Detalle"><i class="bi bi-eye"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+        cont.append(`
+            <div class="col-12 mb-3">
+                <div class="card p-3 shadow-sm rounded-4 border-0" style="background: rgba(254, 242, 242, 0.7); border: 1.5px solid #f87171 !important;">
+                    <div class="d-flex align-items-center gap-2 mb-2 text-danger fw-bold small">
+                        <i class="bi bi-clock-history"></i> CITAS FUERA DE HORARIO / EXTEMPORÁNEAS (${extemporaneas.length})
+                    </div>
+                    ${extRows}
+                </div>
+            </div>
+        `);
+    }
 
     // Auto-scroll a la hora actual o primer slot
     setTimeout(() => {
@@ -625,6 +764,8 @@ function renderTimeline() {
                 const status = res.clave;
                 const badgeClass = res.badgeClass;
 
+                const esTomable = (!status.toLowerCase().includes('atendida') && !status.toLowerCase().includes('cancelada'));
+
                 rowsHtml += `
                     <div class="past-apt-row d-flex flex-wrap align-items-center justify-content-between p-3 mb-2 rounded-3 border">
                         <div class="d-flex align-items-center gap-3">
@@ -639,10 +780,18 @@ function renderTimeline() {
                         </div>
                         <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
                             <span class="badge ${badgeClass} rounded-pill px-3 py-1 fw-bold text-uppercase" style="font-size:0.68rem; letter-spacing:0.5px;">${status}</span>
-                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente">
+                            ${esTomable ? `
+                                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" onclick="event.stopPropagation(); window.tomarCitaDirecto('${a.id}', '${a.extendedProps.id_paciente}')" title="Tomar Cita Ahora">
+                                    <i class="bi bi-play-circle me-1"></i> Tomar Cita
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Re-agendar / Modificar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                            ` : ''}
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente">
                                 <i class="bi bi-person-vcard me-1"></i> Expediente
                             </button>
-                            <button class="btn btn-sm btn-light border rounded-pill px-2" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Detalle">
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Detalle">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </div>
@@ -763,13 +912,14 @@ function renderTimeline() {
         } else if (stLow.includes('no realizada')) {
             actionButtons = `
                 <button class="btn-apt-action btn-apt-exp" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente"><i class="bi bi-person-vcard"></i></button>
+                <button class="btn-apt-action btn-apt-run" onclick="event.stopPropagation(); window.tomarCitaDirecto('${a.id}', '${a.extendedProps.id_paciente}')" title="Tomar Cita"><i class="bi bi-play-fill"></i></button>
                 <button class="btn-apt-action" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Re-agendar / Modificar"><i class="bi bi-pencil-square"></i></button>
                 <button class="btn-apt-action btn-apt-del" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"><i class="bi bi-trash"></i></button>
             `;
         } else {
             actionButtons = `
                 <button class="btn-apt-action btn-apt-exp" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente"><i class="bi bi-person-vcard"></i></button>
-                <button class="btn-apt-action btn-apt-run" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'" title="Ir a Consulta"><i class="bi bi-play-fill"></i></button>
+                <button class="btn-apt-action btn-apt-run" onclick="event.stopPropagation(); window.tomarCitaDirecto('${a.id}', '${a.extendedProps.id_paciente}')" title="Tomar Cita"><i class="bi bi-play-fill"></i></button>
                 <button class="btn-apt-action btn-apt-wa" onclick="event.stopPropagation(); dummyReminder('${a.id}')" title="Enviar Recordatorio"><i class="bi bi-bell-fill"></i></button>
                 <button class="btn-apt-action" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Editar Ficha"><i class="bi bi-pencil-square"></i></button>
                 <button class="btn-apt-action btn-apt-del" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"><i class="bi bi-trash"></i></button>
@@ -1032,10 +1182,12 @@ function renderGrid() {
                             <i class="bi bi-calendar2-event cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
                         `;
                     } else if (isPast) {
-                        // Citas Pasadas No Realizadas (Req 3): Bloqueo de drag handle y acciones limpias
+                        // Citas Pasadas No Realizadas: permitir Tomar Cita, Ver Detalle y Re-agendar
+                        const esTomable = (!st.toLowerCase().includes('atendida') && !st.toLowerCase().includes('cancelada'));
                         actionIcons = `
+                            ${esTomable ? `<i class="bi bi-play-fill cursor-pointer text-white" style="font-size:0.75rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${a.id}', '${a.extendedProps.id_paciente}')" title="Tomar Cita Ahora"></i>` : ''}
                             <i class="bi bi-eye cursor-pointer text-white" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Detalle"></i>
-                            <i class="bi bi-pencil-square cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Re-agendar"></i>
+                            ${esTomable ? `<i class="bi bi-pencil-square cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Re-agendar"></i>` : ''}
                             <i class="bi bi-trash cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"></i>
                         `;
                     } else {
@@ -1740,15 +1892,18 @@ function abrirModalCita(id, isReadonly) {
     $("#f_paciente").val(a.title).prop('readonly', true).addClass('bg-light');
     $("#f_paciente").closest('.position-relative').find('.bi-search').hide();
 
-    const esFinalizada = (est.includes('atendida') || isReadonly);
+    const esAtendida = est.includes('atendida');
+    const esCancelada = est.includes('cancelada');
     const esEnConsulta = (est === 'en consulta');
+    const esCerrada = (esAtendida || esCancelada);
 
     const tipoOrg = (document.getElementById('agenda_tipo_organizacion') ? document.getElementById('agenda_tipo_organizacion').value : '') || '';
     const esConsultorio = (tipoOrg === 'Consultorio Individual' || tipoOrg === 'Consultorio Compartido' || (document.getElementById('agenda_es_consultorio') && document.getElementById('agenda_es_consultorio').value === '1'));
 
-    if (esFinalizada || esEnConsulta) {
+    if (esCerrada) {
         $("#modalCita input, #modalCita select").prop('disabled', true);
         $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").hide();
+        $("#btn-del-cita").addClass('d-none');
         $("#btn-tomar-cita").addClass('d-none');
         $("#btn-cobrar-recepcion").addClass('d-none');
         if (!esConsultorio && est.includes('pagada')) {
@@ -1756,34 +1911,46 @@ function abrirModalCita(id, isReadonly) {
         } else {
             $("#leyenda-cita-pagada").addClass('d-none');
         }
-        if (esFinalizada) {
+        if (esAtendida) {
             $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA FINALIZADA (SOLO LECTURA)');
         } else {
-            $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA EN CONSULTA (SOLO LECTURA)');
+            $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA CANCELADA (SOLO LECTURA)');
+        }
+    } else if (esEnConsulta) {
+        $("#modalCita input, #modalCita select").prop('disabled', true);
+        $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").hide();
+        $("#btn-del-cita").addClass('d-none');
+        $("#btn-tomar-cita").removeClass('d-none').html('<i class="bi bi-play-circle me-1"></i> IR A CONSULTA ACTIVA');
+        $("#btn-cobrar-recepcion").addClass('d-none');
+        $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA EN CONSULTA (ACTIVA)');
+    } else if (isReadonly) {
+        // Vista de solo lectura (ej. clic en el ojo de cita pasada o no atendida)
+        $("#modalCita input, #modalCita select").prop('disabled', true);
+        $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").hide();
+        $("#btn-del-cita").addClass('d-none');
+        // El médico SÍ puede tomar la cita directamente desde la ficha
+        $("#btn-tomar-cita").removeClass('d-none').html('<i class="bi bi-person-check me-1"></i> TOMAR CITA');
+        $("#modalCitaTitle").text('GESTIÓN DE CITAS / DETALLE DE CITA (NO ATENDIDA)');
+
+        if (esConsultorio) {
+            $("#btn-cobrar-recepcion").addClass('d-none');
+            $("#leyenda-cita-pagada").addClass('d-none');
+        } else if (est.includes('pagada')) {
+            $("#btn-cobrar-recepcion").addClass('d-none');
+            $("#leyenda-cita-pagada").removeClass('d-none').html('<i class="bi bi-check-circle-fill me-1"></i> Consulta Pagada en Recepción');
+        } else {
+            $("#btn-cobrar-recepcion").removeClass('d-none');
+            $("#leyenda-cita-pagada").addClass('d-none');
         }
     } else {
+        // Modo edición / re-agendar
         $("#modalCita input, #modalCita select").prop('disabled', false);
         $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").show();
-        $("#modalCitaTitle").text('GESTIÓN DE CITAS / EDITAR CITA');
+        $("#btn-del-cita").removeClass('d-none');
+        $("#modalCitaTitle").text('GESTIÓN DE CITAS / RE-AGENDAR O MODIFICAR CITA');
 
-        let mostrarTomarCita = false;
-        const aDate = a.start.split('T')[0];
-        const todayStr = getISO(new Date());
-
-        if ((est === 'programada' || est === 'confirmada' || est === 'no asistió' || est === 'no asistio') && aDate <= todayStr) {
-            const now = new Date();
-            const limitDate = new Date(now.getTime() + 60*60*1000); 
-            const aptDate = new Date(`${aDate}T${hi}:00`);
-            if (aptDate.getTime() <= limitDate.getTime()) {
-                mostrarTomarCita = true;
-            }
-        }
-
-        if (mostrarTomarCita) {
-            $("#btn-tomar-cita").removeClass('d-none');
-        } else {
-            $("#btn-tomar-cita").addClass('d-none');
-        }
+        // En modo edición/re-agendar SIEMPRE se permite tomar la cita directamente
+        $("#btn-tomar-cita").removeClass('d-none').html('<i class="bi bi-person-check me-1"></i> TOMAR CITA');
 
         if (esConsultorio) {
             $("#btn-cobrar-recepcion").addClass('d-none');
@@ -1802,29 +1969,26 @@ function abrirModalCita(id, isReadonly) {
     m.show();
 }
 
-function tomarCitaModal() {
-    const id_cita = $("#f_id_cita").val();
-    const id_paciente = $("#f_id_paciente").val();
+window.tomarCitaDirecto = function(id_cita, id_paciente) {
     if (!id_cita || !id_paciente) return;
     
     const a = appointments.find(x => x.id == id_cita);
-    if (!a) return;
-    const hi = a.start.split('T')[1].substring(0,5);
-    const fec = a.start.split('T')[0];
+    const hi = a ? a.start.split('T')[1].substring(0, 5) : '';
+    const fec = a ? a.start.split('T')[0] : '';
     
-    if (!isFuture(fec, hi)) {
-        // Es una cita en el pasado, se va a mover a "ahora"
+    if (fec && hi && !isFuture(fec, hi)) {
+        // Es una cita en el pasado, se va a atender extemporáneamente "ahora"
         const now = new Date();
-        const curH = now.getHours().toString().padStart(2,'0');
-        const curM = now.getMinutes().toString().padStart(2,'0');
+        const curH = now.getHours().toString().padStart(2, '0');
+        const curM = now.getMinutes().toString().padStart(2, '0');
         const curTime = `${curH}:${curM}`;
         const todayStr = getISO(now);
         
         const hasCollision = appointments.some(x => {
             if (x.id == id_cita) return false;
             if (!x.start.startsWith(todayStr)) return false;
-            const xHi = x.start.split('T')[1].substring(0,5);
-            const xHf = x.end.split('T')[1].substring(0,5);
+            const xHi = x.start.split('T')[1].substring(0, 5);
+            const xHf = x.end.split('T')[1].substring(0, 5);
             return (curTime >= xHi && curTime < xHf);
         });
         
@@ -1839,18 +2003,29 @@ function tomarCitaModal() {
                 cancelButtonText: 'Cancelar',
                 customClass: { popup: 'rounded-4' }
             }).then(r => {
-                if(r.isConfirmed) proceedTomarCita(id_cita, id_paciente);
+                if (r.isConfirmed) proceedTomarCita(id_cita, id_paciente);
             });
             return;
         }
     }
     
     proceedTomarCita(id_cita, id_paciente);
+};
+
+function tomarCitaModal() {
+    const id_cita = $("#f_id_cita").val();
+    const id_paciente = $("#f_id_paciente").val();
+    if (!id_cita || !id_paciente) return;
+    window.tomarCitaDirecto(id_cita, id_paciente);
 }
 
 function proceedTomarCita(id_cita, id_paciente) {
-    bootstrap.Modal.getInstance(document.getElementById('modalCita')).hide();
-    if(typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'info', title: 'Preparando Consulta...' });
+    const modalEl = document.getElementById('modalCita');
+    if (modalEl) {
+        const inst = bootstrap.Modal.getInstance(modalEl);
+        if (inst) inst.hide();
+    }
+    if (typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'info', title: 'Preparando Consulta...' });
     
     setTimeout(() => {
         window.location.href = `render_consultas.pl?id=${id_paciente}&id_cita=${id_cita}`;
