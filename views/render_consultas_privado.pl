@@ -180,7 +180,7 @@ HTML
     exit;
 }
 
-# 2. Procesar Cita Actual y actualizar a hora real
+# 2. Procesar Cita Actual y actualizar a fecha y hora real con trazabilidad
 if ($id_cita) {
     if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
         my @lineas = <$fh_in>;
@@ -196,8 +196,33 @@ if ($id_cita) {
             my $c0_clean = $c[0] // '';
             $c0_clean =~ s/^\s+|\s+$//g;
             if ($c0_clean eq $id_cita) {
-                $c[4] = $hoy_hora; # Actualizar la hora de inicio con la hora real
-                $paciente->{fecha_consulta} = $c[3] || $hoy_fecha;
+                # Calcular duración original de la cita (default 30 min)
+                my $dur_min = 30;
+                if (($c[4] // '') =~ /^(\d{1,2}):(\d{2})$/ && ($c[5] // '') =~ /^(\d{1,2}):(\d{2})$/) {
+                    my $m_ini = $1 * 60 + $2;
+                    my $m_fin = $3 * 60 + $4;
+                    my $diff = $m_fin - $m_ini;
+                    $dur_min = $diff if ($diff > 0 && $diff <= 240);
+                }
+                
+                my ($h_cur, $m_cur) = split(/:/, $hoy_hora);
+                my $m_tot_fin = ($h_cur * 60) + $m_cur + $dur_min;
+                my $nueva_hora_fin = sprintf("%02d:%02d", int($m_tot_fin / 60) % 24, $m_tot_fin % 60);
+
+                # Registrar auditoría de trazabilidad si la fecha/hora original difiere
+                my $fecha_orig = $c[3] // '';
+                my $hora_orig  = $c[4] // '';
+                if (($fecha_orig ne $hoy_fecha || $hora_orig ne $hoy_hora) && $fecha_orig ne '') {
+                    my $bitacora = "[Atencion: $hoy_fecha $hoy_hora (Prog. original: $fecha_orig $hora_orig)]";
+                    if (($c[7] // '') !~ /\Q$bitacora\E/) {
+                        $c[7] = ($c[7] && $c[7] !~ /^\s*$/) ? "$c[7] | $bitacora" : $bitacora;
+                    }
+                }
+
+                $c[3] = $hoy_fecha;         # Actualizar fecha de la cita al día de atención real
+                $c[4] = $hoy_hora;          # Actualizar hora de inicio con hora real
+                $c[5] = $nueva_hora_fin;    # Actualizar hora de fin calculada
+                $paciente->{fecha_consulta} = $hoy_fecha;
                 $paciente->{hora_consulta}  = $hoy_hora;
                 $paciente->{motivo_precargado} = $c[6] // '';
                 
@@ -549,6 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (Object.keys(draftData).length > 0) {
         for (const key in draftData) {
+            if (key === 'fecha_consulta' || key === 'hora_consulta') continue; // Preservar fecha y hora actual de atencion
             const val = draftData[key];
             const el = document.querySelector(`[name="${key}"]`);
             if (el) {

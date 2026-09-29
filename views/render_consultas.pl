@@ -64,14 +64,65 @@ my $id_paciente = $q->param('id') || $q->param('id_paciente') || '';
 my $id_cita     = $q->param('id_cita') || '';
 my $paciente    = cargar_datos_paciente($id_paciente);
 
+my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+my $hoy_fecha = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
+my $hoy_hora  = sprintf("%02d:%02d", $hour, $min);
+
+$paciente->{fecha_consulta} = $hoy_fecha;
+$paciente->{hora_consulta}  = $hoy_hora;
 $paciente->{motivo_precargado} = '';
+
 if ($id_cita) {
     my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
-    my $res = leer_tabla($citas_file, '\|');
-    foreach my $c (@$res) {
-        if ($c->[0] eq $id_cita) {
-            $paciente->{motivo_precargado} = "MOTIVO DE CITA PROGRAMADA:\n" . $c->[6] . "\n\nNotas previas: " . ($c->[7]||'Ninguna');
-            last;
+    if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
+        my @lineas = <$fh_in>;
+        close $fh_in;
+        my $cabecera = shift @lineas;
+        chomp $cabecera if defined $cabecera;
+        my @nuevas_lineas;
+        my $modificado = 0;
+        
+        foreach my $l (@lineas) {
+            chomp $l;
+            my @c = split /\|/, $l, -1;
+            my $c0_clean = $c[0] // '';
+            $c0_clean =~ s/^\s+|\s+$//g;
+            if ($c0_clean eq $id_cita) {
+                my $dur_min = 30;
+                if (($c[4] // '') =~ /^(\d{1,2}):(\d{2})$/ && ($c[5] // '') =~ /^(\d{1,2}):(\d{2})$/) {
+                    my $m_ini = $1 * 60 + $2;
+                    my $m_fin = $3 * 60 + $4;
+                    my $diff = $m_fin - $m_ini;
+                    $dur_min = $diff if ($diff > 0 && $diff <= 240);
+                }
+                
+                my ($h_cur, $m_cur) = split(/:/, $hoy_hora);
+                my $m_tot_fin = ($h_cur * 60) + $m_cur + $dur_min;
+                my $nueva_hora_fin = sprintf("%02d:%02d", int($m_tot_fin / 60) % 24, $m_tot_fin % 60);
+
+                my $fecha_orig = $c[3] // '';
+                my $hora_orig  = $c[4] // '';
+                if (($fecha_orig ne $hoy_fecha || $hora_orig ne $hoy_hora) && $fecha_orig ne '') {
+                    my $bitacora = "[Atencion: $hoy_fecha $hoy_hora (Prog. original: $fecha_orig $hora_orig)]";
+                    if (($c[7] // '') !~ /\Q$bitacora\E/) {
+                        $c[7] = ($c[7] && $c[7] !~ /^\s*$/) ? "$c[7] | $bitacora" : $bitacora;
+                    }
+                }
+
+                $c[3] = $hoy_fecha;
+                $c[4] = $hoy_hora;
+                $c[5] = $nueva_hora_fin;
+                if (($c[8] // '') !~ /Atendida|Cancelada/i) {
+                    $c[8] = 'En consulta';
+                }
+                $paciente->{motivo_precargado} = "MOTIVO DE CITA PROGRAMADA:\n" . ($c[6]||'') . "\n\nNotas previas: " . ($c[7]||'Ninguna');
+                $l = join('|', @c);
+                $modificado = 1;
+            }
+            push @nuevas_lineas, $l;
+        }
+        if ($modificado) {
+            utils::db_manager::actualizar_archivo($citas_file, $cabecera, \@nuevas_lineas);
         }
     }
 }

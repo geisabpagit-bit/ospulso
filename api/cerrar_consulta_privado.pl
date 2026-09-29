@@ -217,6 +217,7 @@ if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
         }
         
         if ($match && !$encontrada) {
+            $c[3] = $hoy_fecha; # Asegurar fecha de atención real en el cierre
             $c[8] = 'Atendida';
             $l = join('|', @c);
             $encontrada = 1;

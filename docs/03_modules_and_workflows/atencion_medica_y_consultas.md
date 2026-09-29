@@ -59,3 +59,10 @@ graph LR
 
 ### 4.6 Hub PACS e Integración de Estudios Complementarios
 - En `step_estudios.pl`, se consulta `dat/estudios.dat` por paciente. Muestra miniaturas de previsualización (`.jpg`, `.png`), enlace directo al Visor DICOM (`render_visor_medico.pl`) y switch de asignación para concatenar la descripción del estudio en las notas del informe.
+
+### 4.7 Sincronización Temporal al Momento Real y Trazabilidad de Citas
+- **Principio de Veracidad y Cronología Real (NOM-004-SSA3)**: Al tomar una cita médica desde la agenda (sea una cita extemporánea del pasado, del presente o reagendada), el sistema asume que el acto médico ocurre en tiempo presente. En consecuencia, el wizard clínico (`render_consultas_privado.pl` y `render_consultas.pl`) sincroniza automáticamente `fecha_consulta` y `hora_consulta` al día y hora actuales (`$hoy_fecha`, `$hoy_hora`), proyectando la hora de término calculada.
+- **Sincronización en `dat/citas.dat`**: La cita actualiza su fecha (`col 3`) y hora de inicio (`col 4`) al momento real de atención, fijando su estado en `En consulta`.
+- **Bitácora de Trazabilidad en Notas**: Para no perder el registro de la programación original, el sistema concatena automáticamente una marca de auditoría en el campo de notas (`col 7`): `[Atencion: YYYY-MM-DD HH:MM (Prog. original: YYYY-MM-DD HH:MM)]`.
+- **Cierre Integral y Cuadre de Caja**: Al finalizar la consulta en `api/cerrar_consulta_privado.pl` o `api/cerrar_consulta.pl`, la cita se sella de forma inmutable como `Atendida` en la fecha real, cuadrando al 100% con los recibos de caja, recetas médicas y consentimientos informados emitidos en esa misma jornada.
+
