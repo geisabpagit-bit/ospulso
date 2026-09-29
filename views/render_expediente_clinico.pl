@@ -194,7 +194,7 @@ HTML
         pagina_actual => 'expediente'
     );
 
-    print <<HTML;
+    print <<'JS';
 <script>
     let odontogramaInit = false;
 
@@ -243,13 +243,16 @@ HTML
         const hash = window.location.hash;
         if (hash) {
             const tabId = hash.substring(1);
-            const targetBtn = document.querySelector('.sub-link[onclick*="swTab(\\'' + tabId + '\\'"]');
+            const targetBtn = document.querySelector('.sub-link[onclick*="swTab(\'' + tabId + '\'"]');
             if(targetBtn) {
                 swTab(tabId, targetBtn);
             }
         }
     });
 </script>
+JS
+
+    print <<HTML;
 
         <!-- TOPBAR / HEADER CORPORATIVO (ESTÁNDAR IMAGEN 2) -->
         <header id="mainPatientHeader" class="bg-medentia-gradient text-white p-4 shadow-sm mb-4" style="border-radius: 1.5rem;">
@@ -513,31 +516,36 @@ HTML
                     </div>
                 </div>
             </div>
-
-            <!-- Inicializador DataTables para el Hub Odontológico -->
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    if (window.jQuery && $.fn.DataTable && !$.fn.DataTable.isDataTable('#tablaOdontoHub')) {
-                        $('#tablaOdontoHub').DataTable({
-                            language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
-                            pageLength: 10,
-                            dom: "<'row mb-3 align-items-center'<'col-sm-12 col-md-6 d-flex flex-wrap gap-2'B><'col-sm-12 col-md-6'f>>" +
-                                 "<'row'<'col-sm-12'tr>>" +
-                                 "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                            buttons: [
-                                { extend: 'copy', text: '<i class=\"bi bi-clipboard me-1\"></i> COPY', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' },
-                                { extend: 'excel', text: '<i class=\"bi bi-file-earmark-excel me-1\"></i> EXCEL', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' },
-                                { extend: 'pdf', text: '<i class=\"bi bi-file-earmark-pdf me-1\"></i> PDF', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' },
-                                { extend: 'print', text: '<i class=\"bi bi-printer me-1\"></i> PRINT', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' }
-                            ]
-                        });
-                        $('.dt-buttons .btn').css({ 'border-radius': '12px', 'font-weight': '800', 'color': '#475569', 'border-color': '#e2e8f0' });
-                        $('.dataTables_filter input').attr('placeholder', 'Buscar hallazgo...').addClass('form-control rounded-pill px-3 shadow-sm').css('border-color', '#e2e8f0');
-                        $('.dataTables_filter label').contents().filter(function(){ return this.nodeType === 3; }).remove();
-                    }
-                });
-            </script>
         </section>
+HTML
+
+    print <<'JS';
+        <!-- Inicializador DataTables para el Hub Odontológico -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.jQuery && $.fn.DataTable && !$.fn.DataTable.isDataTable('#tablaOdontoHub')) {
+                    $('#tablaOdontoHub').DataTable({
+                        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+                        pageLength: 10,
+                        dom: "<'row mb-3 align-items-center'<'col-sm-12 col-md-6 d-flex flex-wrap gap-2'B><'col-sm-12 col-md-6'f>>" +
+                             "<'row'<'col-sm-12'tr>>" +
+                             "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                        buttons: [
+                            { extend: 'copy', text: '<i class="bi bi-clipboard me-1"></i> COPY', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' },
+                            { extend: 'excel', text: '<i class="bi bi-file-earmark-excel me-1"></i> EXCEL', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' },
+                            { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i> PDF', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' },
+                            { extend: 'print', text: '<i class="bi bi-printer me-1"></i> PRINT', className: 'btn btn-light fw-bolder border shadow-sm', style: 'border-radius: 12px;' }
+                        ]
+                    });
+                    $('.dt-buttons .btn').css({ 'border-radius': '12px', 'font-weight': '800', 'color': '#475569', 'border-color': '#e2e8f0' });
+                    $('.dataTables_filter input').attr('placeholder', 'Buscar hallazgo...').addClass('form-control rounded-pill px-3 shadow-sm').css('border-color', '#e2e8f0');
+                    $('.dataTables_filter label').contents().filter(function(){ return this.nodeType === 3; }).remove();
+                }
+            });
+        </script>
+JS
+
+    print <<HTML;
         <!-- 0: CITAS (TIMELINE) -->
         <section class="sdm-tab-sec d-none" id="tab0">
             <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
