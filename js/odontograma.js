@@ -605,7 +605,10 @@ window.openOdontoClinicalModal = function(toothId, surface) {
     // Seleccionar por defecto la primera condición
     window.selectOdontoCondition('CARIES');
 
-    // Desplegar modal
+    // Desplegar modal (garantizar que resida directamente en document.body para evitar trampas de apilamiento)
+    if (modalEl && modalEl.parentNode !== document.body) {
+        document.body.appendChild(modalEl);
+    }
     const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
     modalInstance.show();
 };

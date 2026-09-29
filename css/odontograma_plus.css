@@ -291,6 +291,13 @@
 /* ==========================================================================
    MODAL CLÍNICO CONTEXTUAL GLASSMORPHISM (FASE 1.2 / FASE 2 UI)
    ========================================================================== */
+.modal {
+    z-index: 7500 !important;
+}
+.modal-backdrop {
+    z-index: 6900 !important;
+}
+
 .odonto-modal-glass {
     background: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(16px);

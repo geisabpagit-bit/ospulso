@@ -735,168 +735,6 @@ HTML
                 </div>
             </div>
 
-            <!-- MODAL 1: DETALLE CLÍNICO ANATÓMICO (ACTIVADO POR EL OJO 👁️) -->
-            <div class="modal fade" id="modalDetalleOdonto" tabindex="-1" aria-labelledby="modalDetalleOdontoLabel" aria-hidden="true">
-                <div class="modal-dialog modal-xl modal-dialog-centered">
-                    <div class="modal-content rounded-4 border-0 shadow-lg" style="background: rgba(255,255,255,0.98); backdrop-filter: blur(15px);">
-                        <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="p-3 rounded-circle text-white shadow-sm" style="background: linear-gradient(135deg, var(--md-teal-clinical, #19B7A5), #0d9488);">
-                                    <i class="bi bi-eye-fill fs-4"></i>
-                                </div>
-                                <div>
-                                    <div class="d-flex align-items-center gap-2 mb-1">
-                                        <span class="badge bg-teal text-white rounded-pill px-3 py-1 fw-bold" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">FDI / ISO 3950</span>
-                                        <span class="badge bg-light text-muted border px-2 py-1" id="detalleOdontoFecha"></span>
-                                        <span id="detalleOdontoEstado"></span>
-                                    </div>
-                                    <h4 class="fw-black text-dark m-0" id="detalleOdontoAlias">Detalle del Odontograma</h4>
-                                    <p class="text-muted small fw-bold mb-0">HALLAZGOS CL&Iacute;NICOS Y TRATAMIENTOS ASIGNADOS POR PIEZA DENTAL</p>
-                                </div>
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body p-4">
-                            <!-- Metadatos superiores del modal -->
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6">
-                                    <div class="card bg-light border-0 p-3 rounded-3 d-flex flex-row align-items-center justify-content-between">
-                                        <div>
-                                            <span class="small fw-bold text-muted text-uppercase d-block">Piezas Afectadas</span>
-                                            <h5 class="fw-black text-dark m-0" id="detalleOdontoPiezas">0 Piezas</h5>
-                                        </div>
-                                        <i class="bi bi-diagram-3-fill fs-3 text-teal" style="color: var(--md-teal-clinical, #19B7A5);"></i>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="card bg-light border-0 p-3 rounded-3 d-flex flex-row align-items-center justify-content-between">
-                                        <div>
-                                            <span class="small fw-bold text-muted text-uppercase d-block">Presupuesto Estimado</span>
-                                            <h5 class="fw-black text-danger m-0" id="detalleOdontoImporte">$0.00 MXN</h5>
-                                        </div>
-                                        <i class="bi bi-wallet2 fs-3 text-danger"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="detalleOdontoNotas"></div>
-
-                            <!-- Tabla de Hallazgos Anatómicos (6 Columnas) -->
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0" id="tablaDetalleHallazgos" style="width:100%">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="ps-3 border-0 rounded-start-3" style="width: 100px;">Pieza FDI</th>
-                                            <th class="border-0">Diente y Familia Anat&oacute;mica</th>
-                                            <th class="border-0" style="width: 140px;">Cara / Zona</th>
-                                            <th class="border-0">Diagn&oacute;stico / Condici&oacute;n</th>
-                                            <th class="border-0 text-center" style="width: 130px;">Estado Cl&iacute;nico</th>
-                                            <th class="border-0 text-end pe-3 rounded-end-3" style="width: 150px;">Importe Sugerido</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="small">
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between">
-                            <a id="btnVisorDesdeModal" href="#" target="_blank" class="btn btn-medentia rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2">
-                                <i class="bi bi-display" style="color: var(--md-cyan-ia);"></i>
-                                <span>Abrir en OSOdontograma Viewer Pro</span>
-                            </a>
-                            <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" data-bs-dismiss="modal">Cerrar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MODAL 2: CREAR NUEVO ODONTOGRAMA -->
-            <div class="modal fade" id="modalNuevoOdonto" tabindex="-1" aria-labelledby="modalNuevoOdontoLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content rounded-4 border-0 shadow-lg">
-                        <div class="modal-header border-0 pb-0 pt-4 px-4">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="p-2 rounded-circle bg-primary-subtle text-primary">
-                                    <i class="bi bi-plus-circle-fill fs-5"></i>
-                                </div>
-                                <h5 class="fw-bold m-0 text-dark">Nuevo Odontograma</h5>
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body p-4">
-                            <form id="formNuevoOdonto" onsubmit="event.preventDefault(); guardarNuevoOdonto();">
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted text-uppercase">Nombre / Alias del Odontograma <span class="text-danger">*</span></label>
-                                    <input type="text" id="nuevo_alias" class="form-control rounded-3" placeholder="Ej. Diagnóstico Inicial 2026, Plan Ortodoncia" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted text-uppercase">Estado del Estudio</label>
-                                    <select id="nuevo_estado" class="form-select rounded-3">
-                                        <option value="En Proceso" selected>En Proceso / Activo</option>
-                                        <option value="Planificado">Planificado / Presupuesto</option>
-                                        <option value="Finalizado">Finalizado / Completado</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted text-uppercase">Observaciones Cl&iacute;nicas Iniciales</label>
-                                    <textarea id="nuevo_notas" class="form-control rounded-3" rows="3" placeholder="Notas, motivos de consulta dental o especificaciones..."></textarea>
-                                </div>
-                                <div class="d-flex justify-content-end gap-2 mt-4">
-                                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-medentia rounded-pill px-4 fw-bold shadow-sm">
-                                        <i class="bi bi-arrow-right-circle me-1"></i>Crear y Abrir Visor
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MODAL 3: RENOMBRAR / EDITAR METADATOS -->
-            <div class="modal fade" id="modalRenombrarOdonto" tabindex="-1" aria-labelledby="modalRenombrarOdontoLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content rounded-4 border-0 shadow-lg">
-                        <div class="modal-header border-0 pb-0 pt-4 px-4">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="p-2 rounded-circle bg-secondary-subtle text-secondary">
-                                    <i class="bi bi-tag-fill fs-5"></i>
-                                </div>
-                                <h5 class="fw-bold m-0 text-dark">Editar Metadatos del Odontograma</h5>
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body p-4">
-                            <form id="formRenombrarOdonto" onsubmit="event.preventDefault(); guardarRenombrarOdonto();">
-                                <input type="hidden" id="edit_id_odonto">
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted text-uppercase">Nombre / Alias <span class="text-danger">*</span></label>
-                                    <input type="text" id="edit_alias" class="form-control rounded-3" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted text-uppercase">Estado del Estudio</label>
-                                    <select id="edit_estado" class="form-select rounded-3">
-                                        <option value="En Proceso">En Proceso / Activo</option>
-                                        <option value="Planificado">Planificado / Presupuesto</option>
-                                        <option value="Finalizado">Finalizado / Completado</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted text-uppercase">Observaciones Cl&iacute;nicas</label>
-                                    <textarea id="edit_notas" class="form-control rounded-3" rows="3"></textarea>
-                                </div>
-                                <div class="d-flex justify-content-end gap-2 mt-4">
-                                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                                        <i class="bi bi-check2-circle me-1"></i>Guardar Cambios
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Contenedor JSON seguro para hidratar cliente JS -->
             <script id="odontoCollectionJson" type="application/json">$odonto_json_data</script>
         </section>
@@ -918,6 +756,14 @@ HTML
             }
 
             document.addEventListener('DOMContentLoaded', function() {
+                // Mover modales odontológicos directamente a document.body para evitar trampas de apilamiento
+                ['modalDetalleOdonto', 'modalNuevoOdonto', 'modalRenombrarOdonto'].forEach(function(id) {
+                    var m = document.getElementById(id);
+                    if (m && m.parentNode !== document.body) {
+                        document.body.appendChild(m);
+                    }
+                });
+
                 // 1. Inicializar DataTable Maestro de Odontogramas (5 columnas)
                 if (window.jQuery && $.fn.DataTable && !$.fn.DataTable.isDataTable('#tablaOdontoHub')) {
                     $('#tablaOdontoHub').DataTable({
@@ -1013,6 +859,9 @@ HTML
                 }
 
                 const modalEl = document.getElementById('modalDetalleOdonto');
+                if (modalEl && modalEl.parentNode !== document.body) {
+                    document.body.appendChild(modalEl);
+                }
                 const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.show();
             };
@@ -1024,6 +873,9 @@ HTML
                 const fechaStr = now.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
                 document.getElementById('nuevo_alias').value = 'Plan Odontología ' + fechaStr;
                 const modalEl = document.getElementById('modalNuevoOdonto');
+                if (modalEl && modalEl.parentNode !== document.body) {
+                    document.body.appendChild(modalEl);
+                }
                 const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.show();
             };
@@ -1097,6 +949,9 @@ HTML
                 document.getElementById('edit_notas').value = item.notas || '';
 
                 const modalEl = document.getElementById('modalRenombrarOdonto');
+                if (modalEl && modalEl.parentNode !== document.body) {
+                    document.body.appendChild(modalEl);
+                }
                 const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.show();
             };
@@ -2568,6 +2423,168 @@ print <<HTML;
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4" id="previewBody">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 1: DETALLE CLÍNICO ANATÓMICO (ACTIVADO POR EL OJO 👁️) -->
+<div class="modal fade" id="modalDetalleOdonto" tabindex="-1" aria-labelledby="modalDetalleOdontoLabel" aria-hidden="true" style="z-index: 7500 !important;">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg" style="background: rgba(255,255,255,0.98); backdrop-filter: blur(15px);">
+            <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-circle text-white shadow-sm" style="background: linear-gradient(135deg, var(--md-teal-clinical, #19B7A5), #0d9488);">
+                        <i class="bi bi-eye-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-teal text-white rounded-pill px-3 py-1 fw-bold" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">FDI / ISO 3950</span>
+                            <span class="badge bg-light text-muted border px-2 py-1" id="detalleOdontoFecha"></span>
+                            <span id="detalleOdontoEstado"></span>
+                        </div>
+                        <h4 class="fw-black text-dark m-0" id="detalleOdontoAlias">Detalle del Odontograma</h4>
+                        <p class="text-muted small fw-bold mb-0">HALLAZGOS CL&Iacute;NICOS Y TRATAMIENTOS ASIGNADOS POR PIEZA DENTAL</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Metadatos superiores del modal -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="card bg-light border-0 p-3 rounded-3 d-flex flex-row align-items-center justify-content-between">
+                            <div>
+                                <span class="small fw-bold text-muted text-uppercase d-block">Piezas Afectadas</span>
+                                <h5 class="fw-black text-dark m-0" id="detalleOdontoPiezas">0 Piezas</h5>
+                            </div>
+                            <i class="bi bi-diagram-3-fill fs-3 text-teal" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light border-0 p-3 rounded-3 d-flex flex-row align-items-center justify-content-between">
+                            <div>
+                                <span class="small fw-bold text-muted text-uppercase d-block">Presupuesto Estimado</span>
+                                <h5 class="fw-black text-danger m-0" id="detalleOdontoImporte">$0.00 MXN</h5>
+                            </div>
+                            <i class="bi bi-wallet2 fs-3 text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="detalleOdontoNotas"></div>
+
+                <!-- Tabla de Hallazgos Anatómicos (6 Columnas) -->
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="tablaDetalleHallazgos" style="width:100%">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3 border-0 rounded-start-3" style="width: 100px;">Pieza FDI</th>
+                                <th class="border-0">Diente y Familia Anat&oacute;mica</th>
+                                <th class="border-0" style="width: 140px;">Cara / Zona</th>
+                                <th class="border-0">Diagn&oacute;stico / Condici&oacute;n</th>
+                                <th class="border-0 text-center" style="width: 130px;">Estado Cl&iacute;nico</th>
+                                <th class="border-0 text-end pe-3 rounded-end-3" style="width: 150px;">Importe Sugerido</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between">
+                <a id="btnVisorDesdeModal" href="#" target="_blank" class="btn btn-medentia rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2">
+                    <i class="bi bi-display" style="color: var(--md-cyan-ia);"></i>
+                    <span>Abrir en OSOdontograma Viewer Pro</span>
+                </a>
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 2: CREAR NUEVO ODONTOGRAMA -->
+<div class="modal fade" id="modalNuevoOdonto" tabindex="-1" aria-labelledby="modalNuevoOdontoLabel" aria-hidden="true" style="z-index: 7500 !important;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="p-2 rounded-circle bg-primary-subtle text-primary">
+                        <i class="bi bi-plus-circle-fill fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold m-0 text-dark">Nuevo Odontograma</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="formNuevoOdonto" onsubmit="event.preventDefault(); guardarNuevoOdonto();">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Nombre / Alias del Odontograma <span class="text-danger">*</span></label>
+                        <input type="text" id="nuevo_alias" class="form-control rounded-3" placeholder="Ej. Diagnóstico Inicial 2026, Plan Ortodoncia" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Estado del Estudio</label>
+                        <select id="nuevo_estado" class="form-select rounded-3">
+                            <option value="En Proceso" selected>En Proceso / Activo</option>
+                            <option value="Planificado">Planificado / Presupuesto</option>
+                            <option value="Finalizado">Finalizado / Completado</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Observaciones Cl&iacute;nicas Iniciales</label>
+                        <textarea id="nuevo_notas" class="form-control rounded-3" rows="3" placeholder="Notas, motivos de consulta dental o especificaciones..."></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-medentia rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="bi bi-arrow-right-circle me-1"></i>Crear y Abrir Visor
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 3: RENOMBRAR / EDITAR METADATOS -->
+<div class="modal fade" id="modalRenombrarOdonto" tabindex="-1" aria-labelledby="modalRenombrarOdontoLabel" aria-hidden="true" style="z-index: 7500 !important;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="p-2 rounded-circle bg-secondary-subtle text-secondary">
+                        <i class="bi bi-tag-fill fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold m-0 text-dark">Editar Metadatos del Odontograma</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="formRenombrarOdonto" onsubmit="event.preventDefault(); guardarRenombrarOdonto();">
+                    <input type="hidden" id="edit_id_odonto">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Nombre / Alias <span class="text-danger">*</span></label>
+                        <input type="text" id="edit_alias" class="form-control rounded-3" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Estado del Estudio</label>
+                        <select id="edit_estado" class="form-select rounded-3">
+                            <option value="En Proceso">En Proceso / Activo</option>
+                            <option value="Planificado">Planificado / Presupuesto</option>
+                            <option value="Finalizado">Finalizado / Completado</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Observaciones Cl&iacute;nicas</label>
+                        <textarea id="edit_notas" class="form-control rounded-3" rows="3"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="bi bi-check2-circle me-1"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
