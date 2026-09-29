@@ -7,6 +7,7 @@ use open qw(:std :utf8);
 use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use JSON;
+use Encode qw(decode encode);
 use File::Spec;
 use FindBin;
 use Fcntl qw(:flock);
@@ -16,9 +17,17 @@ use utils::db_manager qw(leer_tabla actualizar_archivo);
 
 binmode STDOUT, ':raw';
 
+# Helper robusto para obtener parámetros CGI decodificados en UTF-8 limpio
+sub param_utf8 {
+    my ($cgi, $nombre) = @_;
+    my $val = $cgi->param($nombre);
+    return '' unless defined $val;
+    return utf8::is_utf8($val) ? $val : Encode::decode('UTF-8', $val);
+}
+
 my $q = CGI->new;
-my $accion = $q->param('accion') || 'get';
-my $id_paciente = $q->param('id_paciente') || '';
+my $accion = param_utf8($q, 'accion') || 'get';
+my $id_paciente = param_utf8($q, 'id_paciente') || '';
 $id_paciente =~ s/[^\w\-]//g; # Sanitizar ID
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
@@ -35,6 +44,26 @@ unless (-d $dir_json) {
 my $archivo_paciente_json = File::Spec->catfile($dir_json, "paciente_${id_paciente}.json");
 my $archivo_dat = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas.dat');
 
+# Función para sanear cadenas con posible mojibake previo (ej. doble o triple codificación UTF-8)
+sub sanear_texto_mojibake {
+    my ($txt) = @_;
+    return '' unless defined $txt;
+    $txt =~ s/ÃƒÂ­/í/g;
+    $txt =~ s/Ã­/í/g;
+    $txt =~ s/Ã³/ó/g;
+    $txt =~ s/Ã¡/á/g;
+    $txt =~ s/Ã©/é/g;
+    $txt =~ s/Ãº/ú/g;
+    $txt =~ s/Ã±/ñ/g;
+    $txt =~ s/Ã/Á/g;
+    $txt =~ s/Ã‰/É/g;
+    $txt =~ s/Ã/Í/g;
+    $txt =~ s/Ã“/Ó/g;
+    $txt =~ s/Ãš/Ú/g;
+    $txt =~ s/Ã‘/Ñ/g;
+    return $txt;
+}
+
 # Función para cargar la estructura del paciente (con migración transparente)
 sub cargar_perfil_odontologia {
     my $record = {
@@ -46,7 +75,7 @@ sub cargar_perfil_odontologia {
 
     if (-e $archivo_paciente_json) {
         my $json_content = '';
-        if (open my $fh_in, '<:encoding(UTF-8)', $archivo_paciente_json) {
+        if (open my $fh_in, '<:raw', $archivo_paciente_json) {
             if (flock($fh_in, LOCK_SH)) {
                 local $/;
                 $json_content = <$fh_in>;
@@ -59,16 +88,20 @@ sub cargar_perfil_odontologia {
             my $parsed = eval { decode_json($json_content) };
             if ($parsed && ref($parsed) eq 'HASH') {
                 if (exists $parsed->{odontogramas} && ref($parsed->{odontogramas}) eq 'ARRAY') {
+                    foreach my $od (@{ $parsed->{odontogramas} }) {
+                        $od->{alias} = sanear_texto_mojibake($od->{alias}) if defined $od->{alias};
+                        $od->{notas} = sanear_texto_mojibake($od->{notas}) if defined $od->{notas};
+                    }
                     return $parsed;
                 } elsif (exists $parsed->{teeth} && ref($parsed->{teeth}) eq 'HASH') {
                     # Migración al vuelo de registro plano anterior a colección con Alias
                     my $od_legacy = {
                         id_odonto             => "OD-${id_paciente}-1",
-                        alias                 => $parsed->{alias} || 'Diagnóstico Inicial',
+                        alias                 => sanear_texto_mojibake($parsed->{alias}) || 'Diagnóstico Inicial',
                         fecha                 => $parsed->{fechaLocal} || $parsed->{updatedAt} || strftime("%d/%m/%Y %H:%M:%S", localtime),
-                        estado                => 'En Proceso',
+                        estado                => $parsed->{estado} || 'En Proceso',
                         importe               => $parsed->{financialTotalPending} || 0,
-                        notas                 => $parsed->{notas} || '',
+                        notas                 => sanear_texto_mojibake($parsed->{notas}) || '',
                         teeth                 => $parsed->{teeth} || {},
                         periodontalSummary    => $parsed->{periodontalSummary} || { bleedingOnProbing => JSON::false, maxProbingDepthMm => 0 }
                     };
@@ -88,11 +121,12 @@ sub cargar_perfil_odontologia {
     foreach my $fila (@$registros) {
         if ($fila->[0] eq $id_paciente) {
             $fecha_found = $fila->[2] if $fila->[2];
-            $notas_found = $fila->[3] if $fila->[3];
+            $notas_found = sanear_texto_mojibake($fila->[3]) if $fila->[3];
             for (my $i = 4; $i < @$fila; $i++) {
                 if ($fila->[$i] =~ /^(\d+)=(.+)$/) {
                     my $tooth = $1;
-                    my $val_hash = eval { decode_json($2) } || {};
+                    my $raw_t = Encode::encode('UTF-8', $2);
+                    my $val_hash = eval { decode_json($raw_t) } || {};
                     $teeth_found{$tooth} = $val_hash;
                 }
             }
@@ -121,11 +155,12 @@ sub guardar_perfil_odontologia {
     my ($perfil) = @_;
     $perfil->{updatedAt} = strftime("%Y-%m-%dT%H:%M:%SZ", gmtime);
 
-    my $coder = JSON->new->utf8->pretty(1);
+    # Serializar a octetos UTF-8 puros para almacenamiento JSON
+    my $coder = JSON->new->utf8(1)->pretty(1)->canonical(1);
     my $json_salida = eval { $coder->encode($perfil) } || '{}';
 
-    # 1. Escritura atómica con LOCK_EX
-    if (open my $fh_out, '>:encoding(UTF-8)', $archivo_paciente_json) {
+    # 1. Escritura atómica con LOCK_EX en modo :raw para preservar bytes UTF-8 exactos sin doble encoding
+    if (open my $fh_out, '>:raw', $archivo_paciente_json) {
         if (flock($fh_out, LOCK_EX)) {
             print $fh_out $json_salida;
             flock($fh_out, LOCK_UN);
@@ -151,7 +186,8 @@ sub guardar_perfil_odontologia {
         my @cols_teeth;
         if (ref($od->{teeth}) eq 'HASH') {
             foreach my $t (sort keys %{ $od->{teeth} }) {
-                my $encoded = eval { encode_json($od->{teeth}->{$t}) } || '{}';
+                # JSON como cadena de texto plano compatible con actualizar_archivo (:encoding(UTF-8))
+                my $encoded = eval { JSON->new->utf8(0)->encode($od->{teeth}->{$t}) } || '{}';
                 push @cols_teeth, "$t=$encoded";
             }
         }
@@ -160,7 +196,7 @@ sub guardar_perfil_odontologia {
         push @nuevos_registros, $linea;
     }
 
-    my $cabecera = "ID_PACIENTE|TIPO|FECHA|NOTAS|DATOS_FDI";
+    my $cabecera = 'ID_PACIENTE|TIPO|FECHA|NOTAS|DATOS_FDI';
     actualizar_archivo($archivo_dat, $cabecera, \@nuevos_registros);
     return 1;
 }
@@ -239,13 +275,13 @@ eval {
     # ACCIÓN: SAVE (Crear o Actualizar un Odontograma con Alias)
     # -------------------------------------------------------------
     elsif ($accion eq 'save') {
-        my $id_odonto_req = $q->param('id_odonto') || '';
-        my $alias_req     = $q->param('alias') || '';
-        my $estado_req    = $q->param('estado') || 'En Proceso';
-        my $notas_req     = $q->param('notas') // '';
+        my $id_odonto_req = param_utf8($q, 'id_odonto');
+        my $alias_req     = sanear_texto_mojibake(param_utf8($q, 'alias'));
+        my $estado_req    = param_utf8($q, 'estado') || 'En Proceso';
+        my $notas_req     = sanear_texto_mojibake(param_utf8($q, 'notas'));
         my $imp_req       = $q->param('financialTotalPending') // $q->param('importe') // 0;
-        my $json_raw      = $q->param('data') || '{}';
-        my $parsed_teeth  = eval { decode_json($json_raw) } || {};
+        my $json_raw      = param_utf8($q, 'data') || '{}';
+        my $parsed_teeth  = eval { decode_json(Encode::encode('UTF-8', $json_raw)) } || {};
 
         # Si pasaron el objeto envuelto con .teeth
         if (ref($parsed_teeth) eq 'HASH' && exists $parsed_teeth->{teeth}) {
@@ -308,10 +344,10 @@ eval {
     # ACCIÓN: RENAME (Modificar Alias, Estado o Notas de un Odontograma)
     # -------------------------------------------------------------
     elsif ($accion eq 'rename') {
-        my $id_odonto_req = $q->param('id_odonto') || '';
-        my $nuevo_alias   = $q->param('alias') || '';
-        my $nuevo_estado  = $q->param('estado') || '';
-        my $nuevas_notas  = $q->param('notas');
+        my $id_odonto_req = param_utf8($q, 'id_odonto');
+        my $nuevo_alias   = sanear_texto_mojibake(param_utf8($q, 'alias'));
+        my $nuevo_estado  = param_utf8($q, 'estado');
+        my $nuevas_notas  = sanear_texto_mojibake(param_utf8($q, 'notas'));
 
         if (!$id_odonto_req || !$nuevo_alias) {
             print encode_json({ ok => 0, error => 'ID de odontograma y nuevo alias son requeridos' });
@@ -344,7 +380,7 @@ eval {
     # ACCIÓN: DELETE (Eliminar un Odontograma Específico)
     # -------------------------------------------------------------
     elsif ($accion eq 'delete') {
-        my $id_odonto_req = $q->param('id_odonto') || '';
+        my $id_odonto_req = param_utf8($q, 'id_odonto');
         if (!$id_odonto_req) {
             print encode_json({ ok => 0, error => 'ID de odontograma requerido' });
             exit;

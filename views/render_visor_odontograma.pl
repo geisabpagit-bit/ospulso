@@ -69,7 +69,7 @@ my $odonto_estado = 'En Proceso';
 my $notas_guardadas = '';
 my $id_odonto_activo = $id_odonto_req;
 
-if (-e $PACIENTE_JSON_FILE && open my $fh_pj, '<:encoding(UTF-8)', $PACIENTE_JSON_FILE) {
+if (-e $PACIENTE_JSON_FILE && open my $fh_pj, '<:raw', $PACIENTE_JSON_FILE) {
     local $/;
     my $raw_json = <$fh_pj>;
     close $fh_pj;
@@ -77,6 +77,18 @@ if (-e $PACIENTE_JSON_FILE && open my $fh_pj, '<:encoding(UTF-8)', $PACIENTE_JSO
     if ($p_data && ref($p_data) eq 'HASH') {
         if ($p_data->{odontogramas} && ref($p_data->{odontogramas}) eq 'ARRAY') {
             foreach my $od (@{ $p_data->{odontogramas} }) {
+                if ($od->{alias}) {
+                    $od->{alias} =~ s/ÃƒÂ­/í/g; $od->{alias} =~ s/Ã­/í/g;
+                    $od->{alias} =~ s/Ã³/ó/g; $od->{alias} =~ s/Ã¡/á/g;
+                    $od->{alias} =~ s/Ã©/é/g; $od->{alias} =~ s/Ãº/ú/g;
+                    $od->{alias} =~ s/Ã±/ñ/g;
+                }
+                if ($od->{notas}) {
+                    $od->{notas} =~ s/ÃƒÂ­/í/g; $od->{notas} =~ s/Ã­/í/g;
+                    $od->{notas} =~ s/Ã³/ó/g; $od->{notas} =~ s/Ã¡/á/g;
+                    $od->{notas} =~ s/Ã©/é/g; $od->{notas} =~ s/Ãº/ú/g;
+                    $od->{notas} =~ s/Ã±/ñ/g;
+                }
                 if (!$id_odonto_activo || $od->{id_odonto} eq $id_odonto_activo) {
                     $id_odonto_activo ||= $od->{id_odonto};
                     $odonto_alias     ||= $od->{alias};

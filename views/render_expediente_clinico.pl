@@ -239,16 +239,20 @@ HTML
         }
     }
     
-    document.addEventListener('DOMContentLoaded', function() {
+    function checkHashTab() {
         const hash = window.location.hash;
         if (hash) {
             const tabId = hash.substring(1);
-            const targetBtn = document.querySelector('.sub-link[onclick*="swTab(\'' + tabId + '\'"]');
-            if(targetBtn) {
+            const targetBtn = document.querySelector('.sub-link[onclick*="' + tabId + '"]');
+            if (targetBtn) {
                 swTab(tabId, targetBtn);
+            } else {
+                swTab(tabId);
             }
         }
-    });
+    }
+    document.addEventListener('DOMContentLoaded', checkHashTab);
+    window.addEventListener('hashchange', checkHashTab);
 </script>
 JS
 
@@ -325,7 +329,7 @@ HTML
 
     if (-e $ODONTO_JSON_PATH) {
         my $json_raw = '';
-        if (open my $fh_j, '<:encoding(UTF-8)', $ODONTO_JSON_PATH) {
+        if (open my $fh_j, '<:raw', $ODONTO_JSON_PATH) {
             local $/;
             $json_raw = <$fh_j>;
             close $fh_j;
@@ -334,15 +338,39 @@ HTML
         if ($patient_data && ref($patient_data) eq 'HASH') {
             $loaded_from_json = 1;
             if (exists $patient_data->{odontogramas} && ref($patient_data->{odontogramas}) eq 'ARRAY') {
+                foreach my $od_item (@{ $patient_data->{odontogramas} }) {
+                    if ($od_item->{alias}) {
+                        $od_item->{alias} =~ s/ÃƒÂ­/í/g;
+                        $od_item->{alias} =~ s/Ã­/í/g;
+                        $od_item->{alias} =~ s/Ã³/ó/g;
+                        $od_item->{alias} =~ s/Ã¡/á/g;
+                        $od_item->{alias} =~ s/Ã©/é/g;
+                        $od_item->{alias} =~ s/Ãº/ú/g;
+                        $od_item->{alias} =~ s/Ã±/ñ/g;
+                    }
+                    if ($od_item->{notas}) {
+                        $od_item->{notas} =~ s/ÃƒÂ­/í/g;
+                        $od_item->{notas} =~ s/Ã­/í/g;
+                        $od_item->{notas} =~ s/Ã³/ó/g;
+                        $od_item->{notas} =~ s/Ã¡/á/g;
+                        $od_item->{notas} =~ s/Ã©/é/g;
+                        $od_item->{notas} =~ s/Ãº/ú/g;
+                        $od_item->{notas} =~ s/Ã±/ñ/g;
+                    }
+                }
                 @odontogramas_list = @{ $patient_data->{odontogramas} };
             } elsif (exists $patient_data->{teeth} && ref($patient_data->{teeth}) eq 'HASH') {
+                my $legacy_alias = $patient_data->{alias} || 'Diagnóstico Inicial';
+                $legacy_alias =~ s/ÃƒÂ­/í/g; $legacy_alias =~ s/Ã­/í/g;
+                my $legacy_notas = $patient_data->{notas} || '';
+                $legacy_notas =~ s/ÃƒÂ­/í/g; $legacy_notas =~ s/Ã­/í/g;
                 push @odontogramas_list, {
                     id_odonto             => "OD-$d->{id_paciente}-1",
-                    alias                 => $patient_data->{alias} || 'Diagnóstico Inicial',
+                    alias                 => $legacy_alias,
                     fecha                 => $patient_data->{fechaLocal} || $patient_data->{updatedAt} || 'Recientemente',
-                    estado                => 'En Proceso',
+                    estado                => $patient_data->{estado} || 'En Proceso',
                     importe               => $patient_data->{financialTotalPending} || 0,
-                    notas                 => $patient_data->{notas} || '',
+                    notas                 => $legacy_notas,
                     teeth                 => $patient_data->{teeth} || {},
                     periodontalSummary    => $patient_data->{periodontalSummary} || {}
                 };
@@ -501,13 +529,13 @@ HTML
 
     my $presupuesto_fmt = sprintf("%.2f", $total_presupuesto_hub);
     my $total_odonto_registros = scalar(@odontogramas_list);
-    my $odonto_json_data = eval { encode_json(\%odonto_collection_client) } || '{}';
+    my $odonto_json_data = eval { JSON->new->utf8(0)->encode(\%odonto_collection_client) } || '{}';
     $odonto_json_data =~ s/</\\u003c/g;
 
     print <<HTML;
         <!-- 6: ODONTOGRAMA (HUB EJECUTIVO FULL-WIDTH) -->
         <section class="sdm-tab-sec d-none" id="tab6">
-            <!-- NIVEL 1: ENCABEZADO PRINCIPAL Y ACCIONES -->
+            <!-- NIVEL 1: ENCABEZADO PRINCIPAL (SANITIZADO SIN BOTONES DUPLICADOS) -->
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-1">
@@ -516,16 +544,6 @@ HTML
                     </div>
                     <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Hub Cl&iacute;nico Odontol&oacute;gico</h3>
                     <p class="text-muted small fw-bold mb-0">GESTI&Oacute;N MULTI-ODONTOGRAMA Y PLAN DE TRATAMIENTO</p>
-                </div>
-                <div class="d-flex gap-2 p-1 bg-transparent flex-wrap align-items-center">
-                    <button type="button" class="btn btn-medentia px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2" onclick="abrirModalNuevoOdonto()">
-                        <i class="bi bi-plus-circle-fill fs-5" style="color: var(--md-cyan-ia);"></i>
-                        <span>Nuevo Odontograma</span>
-                    </button>
-                    <a href="render_visor_odontograma.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-outline-medentia px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2">
-                        <i class="bi bi-display fs-5" style="color: var(--md-teal-clinical, #19B7A5);"></i>
-                        <span>Lanzar Visor Pro</span>
-                    </a>
                 </div>
             </div>
 
@@ -588,7 +606,7 @@ HTML
                 </div>
             </div>
 
-            <!-- NIVEL 3: BANNER DE OBSERVACIONES CLÍNICAS -->
+            <!-- NIVEL 3: BANNER DE OBSERVACIONES CLÍNICAS (SANITIZADO SIN BOTÓN DUPLICADO) -->
             <div class="card-medentia-aura border-0 p-3 mb-4 d-flex flex-row align-items-center justify-content-between flex-wrap gap-3" style="background: rgba(248, 250, 252, 0.9);">
                 <div class="d-flex align-items-center gap-3">
                     <div class="p-2 bg-white rounded-circle shadow-xs" style="color: var(--md-teal-clinical, #19B7A5);">
@@ -603,9 +621,6 @@ HTML
                     <span class="badge bg-white text-muted border px-3 py-2 fw-semibold">
                         <i class="bi bi-clock-history me-1 text-teal" style="color: var(--md-teal-clinical, #19B7A5);"></i>Sincronizado: $odonto_fecha_act
                     </span>
-                    <button type="button" onclick="abrirModalNuevoOdonto()" class="btn btn-xs btn-outline-secondary rounded-pill px-3 fw-bold">
-                        <i class="bi bi-plus-circle me-1"></i>Nuevo Odontograma
-                    </button>
                 </div>
             </div>
 
@@ -622,6 +637,10 @@ HTML
                         <span class="badge bg-light text-navy border px-3 py-2 fw-bold">
                             Total Registros: <span class="text-teal" style="color: var(--md-teal-clinical, #19B7A5); font-weight: 900;">$total_odonto_registros</span>
                         </span>
+HTML
+
+    if (@odontogramas_list) {
+        print <<HTML;
                         <button type="button" onclick="abrirModalNuevoOdonto()" class="btn btn-outline-medentia btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-1">
                             <i class="bi bi-plus-circle"></i>Nuevo Odontograma
                         </button>
@@ -642,7 +661,6 @@ HTML
                         <tbody class="small">
 HTML
 
-    if (@odontogramas_list) {
         foreach my $od (@odontogramas_list) {
             my $od_id = $od->{id_odonto} || '';
             my $od_alias = $od->{alias} || 'Odontograma General';
@@ -714,25 +732,32 @@ HTML
                             </tr>
 HTML
         }
+
+        print <<HTML;
+                        </tbody>
+                    </table>
+                </div>
+HTML
     } else {
         print <<HTML;
-                            <tr>
-                                <td colspan="5" class="text-center py-5">
-                                    <i class="bi bi-journal-plus display-4 d-block mb-3 opacity-25" style="color: var(--md-teal-clinical, #19B7A5);"></i>
-                                    <h6 class="fw-bold text-dark mb-1">Sin odontogramas registrados</h6>
-                                    <p class="small text-muted mb-3">La dentici&oacute;n permanente del paciente no tiene estudios ni planes de tratamiento registrados a&uacute;n.</p>
-                                    <button type="button" onclick="abrirModalNuevoOdonto()" class="btn btn-medentia btn-sm rounded-pill px-4 fw-bold shadow-sm">
-                                        <i class="bi bi-plus-circle me-1"></i>Crear Primer Odontograma en OSOdontograma Viewer
-                                    </button>
-                                </td>
-                            </tr>
+                    </div>
+                </div>
+
+                <div class="text-center py-5">
+                    <div class="p-3 bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                        <i class="bi bi-journal-plus display-6" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">Sin odontogramas registrados</h5>
+                    <p class="text-muted small mb-4">La dentici&oacute;n permanente del paciente no tiene estudios ni planes de tratamiento registrados a&uacute;n.</p>
+                    <button type="button" onclick="abrirModalNuevoOdonto()" class="btn btn-medentia px-4 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>Crear Primer Odontograma en OSOdontograma Viewer</span>
+                    </button>
+                </div>
 HTML
     }
 
     print <<HTML;
-                        </tbody>
-                    </table>
-                </div>
             </div>
 
             <!-- Contenedor JSON seguro para hidratar cliente JS -->
@@ -764,8 +789,8 @@ HTML
                     }
                 });
 
-                // 1. Inicializar DataTable Maestro de Odontogramas (5 columnas)
-                if (window.jQuery && $.fn.DataTable && !$.fn.DataTable.isDataTable('#tablaOdontoHub')) {
+                // 1. Inicializar DataTable Maestro de Odontogramas (5 columnas) sólo si existe en el DOM
+                if (document.getElementById('tablaOdontoHub') && window.jQuery && $.fn.DataTable && !$.fn.DataTable.isDataTable('#tablaOdontoHub')) {
                     $('#tablaOdontoHub').DataTable({
                         language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
                         pageLength: 10,
@@ -911,7 +936,8 @@ HTML
                         const modal = bootstrap.Modal.getInstance(modalEl);
                         if (modal) modal.hide();
 
-                        const redirectUrl = 'render_visor_odontograma.pl?id=' + window.ID_PACIENTE_ODONTO + '&id_odonto=' + encodeURIComponent(res.id_odonto);
+                        const redirectUrl = 'render_visor_odontograma.pl?id=' + encodeURIComponent(window.ID_PACIENTE_ODONTO) + '&id_odonto=' + encodeURIComponent(res.id_odonto);
+                        const hubUrl = 'render_expediente_clinico.pl?id=' + encodeURIComponent(window.ID_PACIENTE_ODONTO) + '#tab6';
                         if (window.Swal) {
                             Swal.fire({
                                 icon: 'success',
@@ -921,11 +947,13 @@ HTML
                                 showConfirmButton: false
                             }).then(() => {
                                 window.open(redirectUrl, '_blank');
-                                location.reload();
+                                window.location.href = hubUrl;
+                                window.location.reload();
                             });
                         } else {
                             window.open(redirectUrl, '_blank');
-                            location.reload();
+                            window.location.href = hubUrl;
+                            window.location.reload();
                         }
                     } else {
                         if (window.Swal) Swal.fire({ icon: 'error', title: 'Error', text: res.error || 'No se pudo crear el odontograma.' });
@@ -987,6 +1015,7 @@ HTML
                         const modal = bootstrap.Modal.getInstance(modalEl);
                         if (modal) modal.hide();
 
+                        const hubUrl = 'render_expediente_clinico.pl?id=' + encodeURIComponent(window.ID_PACIENTE_ODONTO) + '#tab6';
                         if (window.Swal) {
                             Swal.fire({
                                 icon: 'success',
@@ -995,10 +1024,12 @@ HTML
                                 timer: 1200,
                                 showConfirmButton: false
                             }).then(() => {
-                                location.reload();
+                                window.location.href = hubUrl;
+                                window.location.reload();
                             });
                         } else {
-                            location.reload();
+                            window.location.href = hubUrl;
+                            window.location.reload();
                         }
                     } else {
                         if (window.Swal) Swal.fire({ icon: 'error', title: 'Error', text: res.error || 'No se pudo actualizar.' });
@@ -1026,6 +1057,7 @@ HTML
                     .then(r => r.json())
                     .then(res => {
                         if (res.ok) {
+                            const hubUrl = 'render_expediente_clinico.pl?id=' + encodeURIComponent(window.ID_PACIENTE_ODONTO) + '#tab6';
                             if (window.Swal) {
                                 Swal.fire({
                                     icon: 'success',
@@ -1034,10 +1066,12 @@ HTML
                                     timer: 1200,
                                     showConfirmButton: false
                                 }).then(() => {
-                                    location.reload();
+                                    window.location.href = hubUrl;
+                                    window.location.reload();
                                 });
                             } else {
-                                location.reload();
+                                window.location.href = hubUrl;
+                                window.location.reload();
                             }
                         } else {
                             if (window.Swal) Swal.fire({ icon: 'error', title: 'Error', text: res.error || 'No se pudo eliminar el odontograma.' });

@@ -99,6 +99,8 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 | **Fase 3** | Backend Perl & Archivos Planos Canónicos | `api/odontograma_api.pl` con guardado JSON atómico por paciente (`dat/odontogramas/paciente_<id>.json`), `flock` concurrente y fallback a `.dat`. | ✅ COMPLETADA |
 | **Fase 4** | Integración Final & Hub Clínico Odontológico | Tab 6 en `views/render_expediente_clinico.pl` a 100% de ancho, 4 Bento cards de KPI, sincronización en vivo y empty state interactivo. | ✅ COMPLETADA |
 | **Fase 5** | Multi-Odontograma con Alias, CRUD y Drilldown Anatómico | Soporte multi-odontograma con Alias, DataTable maestro de 5 columnas (`Nombre`, `Fecha`, `Estado`, `Importe`, `Acciones`), modal de 6 columnas activado por 👁️, erradicación de backslash en `$0.00 MXN` y Protocolos 500/11.1. | ✅ COMPLETADA |
+| **Fase 6** | Sanitización Visual, Prevención DataTables TN/4, Redirección #tab6 y Pipeline UTF-8 | Eliminación de botones redundantes en Nivel 1 y 3; supresión de `<table>` con `colspan` en 0 registros para erradicar alerta `tn/4` de DataTables; navegación persistente a `render_expediente_clinico.pl?id=[id]#tab6` en callbacks CRUD; pipeline atómico `:raw` con saneamiento automático de mojibake (`ÃƒÂ­` -> `í`). | ✅ COMPLETADA |
+
 
 
 
