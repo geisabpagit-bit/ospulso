@@ -677,9 +677,12 @@ HTML
                 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
                 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
                 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+HTML
+
+    print <<'JS';
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
-                        const tbl = \$('#tablaEstudiosRX').DataTable({
+                        const tbl = $('#tablaEstudiosRX').DataTable({
                             language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
                             pageLength: 10,
                             dom: "<'row mb-3 align-items-center'<'col-sm-12 col-md-6 d-flex flex-wrap gap-2'B><'col-sm-12 col-md-6'f>>" +
@@ -714,9 +717,9 @@ HTML
                         });
                         
                         // Aplicar estilos post-init a la barra de búsqueda y botones
-                        \$('.dt-buttons .btn').css({ 'border-radius': '12px', 'font-weight': '800', 'color': '#475569', 'border-color': '#e2e8f0' });
-                        \$('.dataTables_filter input').attr('placeholder', 'Buscar...').addClass('form-control rounded-pill px-3 shadow-sm').css('border-color', '#e2e8f0');
-                        \$('.dataTables_filter label').contents().filter(function(){ return this.nodeType === 3; }).remove();
+                        $('.dt-buttons .btn').css({ 'border-radius': '12px', 'font-weight': '800', 'color': '#475569', 'border-color': '#e2e8f0' });
+                        $('.dataTables_filter input').attr('placeholder', 'Buscar...').addClass('form-control rounded-pill px-3 shadow-sm').css('border-color', '#e2e8f0');
+                        $('.dataTables_filter label').contents().filter(function(){ return this.nodeType === 3; }).remove();
                     });
 
                     function eliminarEstudio(id) {
@@ -734,9 +737,10 @@ HTML
                                 .then(res => {
                                     if(res.data.ok) {
                                         Swal.fire('Eliminado', 'El estudio ha sido borrado.', 'success').then(() => {
-                                            // Remove row locally instead of reload
-                                            let dt = $('#estudiosTable').DataTable();
-                                            let row = $('button[onclick="eliminarEstudio(\''+id+'\')"]').closest('tr');
+                                            let dt = $('#tablaEstudiosRX').DataTable();
+                                            let row = $('button[onclick*="eliminarEstudio("]').filter(function() {
+                                                return $(this).attr('onclick').indexOf(String(id)) !== -1;
+                                            }).closest('tr');
                                             if (row.length) dt.row(row).remove().draw();
                                         });
                                     } else {
@@ -767,7 +771,9 @@ HTML
                                 .then(res => {
                                     if(res.data.ok) {
                                         Swal.fire('Actualizado', 'La descripción ha sido cambiada.', 'success').then(() => {
-                                            let td = $('button[onclick="editarEstudio(\''+id+'\', \''+descActual+'\')"]').closest('tr').find('td').eq(1);
+                                            let td = $('button[onclick*="editarEstudio("]').filter(function() {
+                                                return $(this).attr('onclick').indexOf(String(id)) !== -1;
+                                            }).closest('tr').find('td').eq(1);
                                             if(td.length) td.text(result.value);
                                         });
                                     } else {
@@ -778,6 +784,9 @@ HTML
                         });
                     }
                 </script>
+JS
+
+    print <<HTML;
 
 
                 <!-- Resumen de Almacenamiento -->
