@@ -1,15 +1,16 @@
 /**
  * ==========================================================================
- * ODONTOGRAMA DIGITAL PLUS - MOTOR FRONTEND v1.1
+ * ODONTOGRAMA DIGITAL PLUS - MOTOR FRONTEND v1.2
  * Nomenclatura Internacional FDI / ISO 3950 (32 Piezas Permanentes)
- * Reactividad Vectorial SVG, Zoom Dinámico y Persistencia Visual
+ * Modelado Anatómico, Selector Clínico en Cascada y Modal Glassmorphism
  * ==========================================================================
  */
 
 const ODONTO_COLORS = {
     PENDING: '#FF3B30',    // Rojo clínico / Patología Activa / Tratamiento Pendiente
     COMPLETED: '#007AFF',  // Azul eléctrico / Tratamiento Realizado / Condición Existente
-    NEUTRAL: '#FFFFFF'
+    NEUTRAL: '#FFFFFF',
+    ABSENT: '#64748B'
 };
 
 // Estado global de la dentición del paciente
@@ -24,6 +25,14 @@ window.odontogramState = window.odontogramState || {
 // Nivel de Zoom actual
 window.currentOdontoZoom = window.currentOdontoZoom || 1.0;
 
+// Variables de contexto para el modal clínico activo
+window.odontoModalContext = {
+    tooth: null,
+    surface: 'occlusal',
+    scope: 'SURFACE', // SURFACE | CROWN | TOOTH
+    selectedCondition: 'CARIES'
+};
+
 // Definición de Cuadrantes FDI
 const ODONTO_QUADRANTS = {
     Q1: [18, 17, 16, 15, 14, 13, 12, 11], // Superior Derecho
@@ -31,6 +40,172 @@ const ODONTO_QUADRANTS = {
     Q4: [48, 47, 46, 45, 44, 43, 42, 41], // Inferior Derecho
     Q3: [31, 32, 33, 34, 35, 36, 37, 38]  // Inferior Izquierdo
 };
+
+// Catálogo Clínico Canónico de Patologías y Procedimientos
+const ODONTO_CATALOG = {
+    // 🔴 PATOLOGÍAS Y TRATAMIENTOS PENDIENTES
+    CARIES: {
+        code: 'CARIES',
+        name: 'Caries Dental (Activa)',
+        category: 'PENDING',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF3B30',
+        price: 850.00,
+        icon: 'bi-circle-fill text-danger'
+    },
+    CARIES_RECURRENT: {
+        code: 'CARIES_RECURRENT',
+        name: 'Caries Recurrente / Filtrada',
+        category: 'PENDING',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF3B30',
+        price: 950.00,
+        icon: 'bi-exclamation-triangle-fill text-danger'
+    },
+    FRACTURE: {
+        code: 'FRACTURE',
+        name: 'Fractura Dental',
+        category: 'PENDING',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF3B30',
+        price: 1200.00,
+        icon: 'bi-slash-circle-fill text-danger'
+    },
+    SEALANT_REQ: {
+        code: 'SEALANT_REQ',
+        name: 'Sellador Requerido',
+        category: 'PENDING',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF3B30',
+        price: 450.00,
+        icon: 'bi-shield-shaded text-danger'
+    },
+    CROWN_REQ: {
+        code: 'CROWN_REQ',
+        name: 'Corona Requerida',
+        category: 'PENDING',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF3B30',
+        price: 3500.00,
+        icon: 'bi-gem text-danger'
+    },
+    ENDO_REQ: {
+        code: 'ENDO_REQ',
+        name: 'Endodoncia Indicada',
+        category: 'PENDING',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF3B30',
+        price: 2800.00,
+        icon: 'bi-activity text-danger'
+    },
+    EXTRACTION_REQ: {
+        code: 'EXTRACTION_REQ',
+        name: 'Exodoncia Indicada',
+        category: 'PENDING',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF3B30',
+        price: 700.00,
+        icon: 'bi-x-octagon-fill text-danger'
+    },
+
+    // 🔵 TRATAMIENTOS PREVIOS / EXISTENTES
+    COMPOSITE: {
+        code: 'COMPOSITE',
+        name: 'Resina / Composite',
+        category: 'EXISTING',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-check-circle-fill text-primary'
+    },
+    AMALGAM: {
+        code: 'AMALGAM',
+        name: 'Amalgama Metálica',
+        category: 'EXISTING',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-shield-fill text-primary'
+    },
+    CROWN_DONE: {
+        code: 'CROWN_DONE',
+        name: 'Corona Protésica',
+        category: 'EXISTING',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-trophy-fill text-primary'
+    },
+    ENDO_DONE: {
+        code: 'ENDO_DONE',
+        name: 'Endodoncia Concluida',
+        category: 'EXISTING',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-heart-pulse-fill text-primary'
+    },
+    IMPLANT: {
+        code: 'IMPLANT',
+        name: 'Implante Dental',
+        category: 'EXISTING',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-pin-angle-fill text-primary'
+    },
+    ABSENT: {
+        code: 'ABSENT',
+        name: 'Diente Ausente / Pérdida Previa',
+        category: 'EXISTING',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#64748B',
+        price: 0.00,
+        icon: 'bi-x-lg text-secondary'
+    },
+
+    // ⚪ SANO / LIMPIAR
+    HEALTHY: {
+        code: 'HEALTHY',
+        name: 'Sano / Sin Hallazgo (Limpiar)',
+        category: 'HEALTHY',
+        state: 'HEALTHY',
+        colorHex: '#FFFFFF',
+        price: 0.00,
+        icon: 'bi-shield-check text-success'
+    }
+};
+
+/**
+ * Retorna el nombre anatómico en español según FDI
+ */
+function getToothFullName(toothId) {
+    const id = parseInt(toothId, 10);
+    const quad = Math.floor(id / 10);
+    const num = id % 10;
+    
+    const quadNames = {
+        1: 'Superior Derecho',
+        2: 'Superior Izquierdo',
+        3: 'Inferior Izquierdo',
+        4: 'Inferior Derecho'
+    };
+    
+    const toothTypes = {
+        1: 'Incisivo Central',
+        2: 'Incisivo Lateral',
+        3: 'Canino',
+        4: 'Primer Premolar',
+        5: 'Segundo Premolar',
+        6: 'Primer Molar',
+        7: 'Segundo Molar',
+        8: 'Tercer Molar'
+    };
+    
+    const type = toothTypes[num] || 'Pieza';
+    const quadName = quadNames[quad] || '';
+    return `${type} ${quadName}`;
+}
 
 /**
  * Determina el nombre anatómico de cada superficie vectorial según la arcada y el cuadrante
@@ -253,7 +428,7 @@ window.renderOdontogram = function(containerId, patientId) {
 
     container.innerHTML = html;
 
-    // Asignar Event Listeners para clics en superficies
+    // Asignar Event Listeners para clics en superficies y dientes
     attachSurfaceClickEvents(container);
 
     // Restaurar marcas existentes desde el estado en memoria
@@ -271,6 +446,16 @@ function restoreDomFromState() {
     if (!window.odontogramState || !window.odontogramState.teeth) return;
 
     Object.entries(window.odontogramState.teeth).forEach(([tooth, tData]) => {
+        const card = document.querySelector(`.tooth-card[data-tooth="${tooth}"]`);
+        
+        // Diente ausente
+        if (tData.status === 'ABSENT') {
+            if (card) card.classList.add('tooth-absent');
+        } else if (card) {
+            card.classList.remove('tooth-absent');
+        }
+
+        // Superficies
         if (tData.surfaces) {
             Object.entries(tData.surfaces).forEach(([surf, sData]) => {
                 const surfaceEl = document.querySelector(`.tooth-surface[data-tooth="${tooth}"][data-surface="${surf}"]`);
@@ -294,50 +479,282 @@ function restoreDomFromState() {
 }
 
 /**
- * Asigna los manejadores de eventos sobre cada cara vectorial
+ * Asigna los manejadores de eventos sobre cada cara vectorial y diente
  */
 function attachSurfaceClickEvents(container) {
+    // Clic en superficie anatómica
     const surfaces = container.querySelectorAll('.tooth-surface');
     surfaces.forEach(surfaceEl => {
         surfaceEl.addEventListener('click', function(e) {
             e.stopPropagation();
             const tooth = this.getAttribute('data-tooth');
             const surface = this.getAttribute('data-surface');
-            
-            // Toggle interactivo para pruebas rápidas
-            handleSurfaceInteractiveClick(tooth, surface, this);
+            window.openOdontoClinicalModal(tooth, surface);
         });
+    });
+
+    // Clic en número o tarjeta dental
+    const cards = container.querySelectorAll('.tooth-card');
+    cards.forEach(cardEl => {
+        const numEl = cardEl.querySelector('.tooth-number');
+        if (numEl) {
+            numEl.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const tooth = cardEl.getAttribute('data-tooth');
+                window.openOdontoClinicalModal(tooth, 'occlusal');
+            });
+        }
     });
 }
 
 /**
- * Manejador de clic interactivo: Cicla entre Sin Condición -> Pendiente (Rojo) -> Realizado (Azul) -> Limpio
+ * ==========================================================================
+ * CONTROLADOR DEL MODAL CLÍNICO CONTEXTUAL GLASSMORPHISM (FASE 1.2 / 2 UI)
+ * ==========================================================================
  */
-function handleSurfaceInteractiveClick(tooth, surface, element) {
-    const toothStr = String(tooth);
-    const existing = window.odontogramState.teeth[toothStr]?.surfaces?.[surface];
 
-    if (!existing) {
-        // Asignar Pendiente (Rojo)
-        window.applySurfaceCondition(tooth, surface, 'CARIES', 'PENDING_TREATMENT', ODONTO_COLORS.PENDING);
-    } else if (existing.state === 'PENDING_TREATMENT') {
-        // Pasar a Realizado (Azul)
-        window.applySurfaceCondition(tooth, surface, 'RESTORATION', 'EXISTING_CONDITION', ODONTO_COLORS.COMPLETED);
-    } else {
-        // Limpiar superficie
-        removeSurfaceCondition(tooth, surface);
+/**
+ * Abre el Modal Clínico contextual con datos de la pieza y superficie seleccionada
+ */
+window.openOdontoClinicalModal = function(toothId, surface) {
+    toothId = String(toothId);
+    surface = String(surface || 'occlusal').toLowerCase();
+
+    window.odontoModalContext.tooth = toothId;
+    window.odontoModalContext.surface = surface;
+    window.odontoModalContext.scope = 'SURFACE';
+    window.odontoModalContext.selectedCondition = 'CARIES';
+
+    const modalEl = document.getElementById('modalOdontoClinico');
+    if (!modalEl) return;
+
+    // Actualizar encabezados
+    const badgeEl = document.getElementById('odonto-modal-tooth-badge');
+    const titleEl = document.getElementById('odonto-modal-tooth-title');
+    const surfaceLabelEl = document.getElementById('odonto-modal-surface-label');
+
+    if (badgeEl) badgeEl.textContent = `#${toothId}`;
+    if (titleEl) titleEl.textContent = getToothFullName(toothId);
+    if (surfaceLabelEl) {
+        surfaceLabelEl.innerHTML = `<i class="bi bi-geo-alt-fill text-teal me-1" style="color: var(--md-teal-clinical);"></i>Zona activa: Superficie <strong class="text-uppercase">${surface}</strong>`;
+    }
+
+    // Reset de botones de alcance
+    const scopeSurfaceRadio = document.getElementById('scope-surface');
+    if (scopeSurfaceRadio) scopeSurfaceRadio.checked = true;
+    const labelScopeSurface = document.getElementById('label-scope-surface');
+    if (labelScopeSurface) labelScopeSurface.innerHTML = `<i class="bi bi-bounding-box me-1"></i>Superficie (${surface.toUpperCase()})`;
+
+    // Resetear a pestaña Pendiente
+    const pendingTabBtn = document.getElementById('pills-pending-tab');
+    if (pendingTabBtn) {
+        bootstrap.Tab.getOrCreateInstance(pendingTabBtn).show();
+    }
+
+    // Renderizar grilla de opciones en las pestañas
+    renderModalConditionGrids();
+
+    // Seleccionar por defecto la primera condición
+    window.selectOdontoCondition('CARIES');
+
+    // Desplegar modal
+    const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modalInstance.show();
+};
+
+/**
+ * Renderiza dinámicamente las tarjetas de opciones clínicas en el modal
+ */
+function renderModalConditionGrids() {
+    const gridPending = document.getElementById('grid-conditions-pending');
+    const gridExisting = document.getElementById('grid-conditions-existing');
+
+    if (gridPending) {
+        let htmlP = '';
+        Object.values(ODONTO_CATALOG).filter(c => c.category === 'PENDING').forEach(item => {
+            htmlP += `
+                <div class="col-md-6">
+                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="odonto-condition-badge" style="background: ${item.colorHex};"></span>
+                            <span class="small fw-bold text-navy">${item.name}</span>
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">$${item.price.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+        });
+        gridPending.innerHTML = htmlP;
+    }
+
+    if (gridExisting) {
+        let htmlE = '';
+        Object.values(ODONTO_CATALOG).filter(c => c.category === 'EXISTING').forEach(item => {
+            htmlE += `
+                <div class="col-md-6">
+                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="odonto-condition-badge" style="background: ${item.colorHex};"></span>
+                            <span class="small fw-bold text-navy">${item.name}</span>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Previo</span>
+                    </div>
+                </div>
+            `;
+        });
+        gridExisting.innerHTML = htmlE;
     }
 }
 
 /**
+ * Selecciona una condición clínica y actualiza el resumen del modal
+ */
+window.selectOdontoCondition = function(code) {
+    const item = ODONTO_CATALOG[code];
+    if (!item) return;
+
+    window.odontoModalContext.selectedCondition = code;
+
+    // Resaltar tarjeta activa
+    document.querySelectorAll('.odonto-condition-card').forEach(card => {
+        if (card.getAttribute('data-code') === code) {
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+        }
+    });
+
+    // Actualizar resumen y precio
+    const summaryCond = document.getElementById('odonto-summary-condition');
+    const summaryScope = document.getElementById('odonto-summary-scope');
+    const summaryPrice = document.getElementById('odonto-summary-price');
+
+    if (summaryCond) summaryCond.textContent = item.name;
+    
+    if (summaryScope) {
+        const scope = window.odontoModalContext.scope;
+        if (scope === 'SURFACE') {
+            summaryScope.textContent = `Superficie ${window.odontoModalContext.surface.toUpperCase()}`;
+            summaryScope.className = 'badge bg-danger-subtle text-danger ms-2 rounded-pill px-2 py-1';
+        } else if (scope === 'CROWN') {
+            summaryScope.textContent = 'Toda la Corona (5 Caras)';
+            summaryScope.className = 'badge bg-warning-subtle text-warning-emphasis ms-2 rounded-pill px-2 py-1';
+        } else {
+            summaryScope.textContent = 'Pieza Completa';
+            summaryScope.className = 'badge bg-secondary-subtle text-secondary ms-2 rounded-pill px-2 py-1';
+        }
+    }
+
+    if (summaryPrice) {
+        summaryPrice.textContent = `$${item.price.toFixed(2)} MXN`;
+    }
+};
+
+/**
+ * Maneja el cambio de alcance (Superficie vs Corona vs Diente)
+ */
+window.handleScopeChange = function(newScope) {
+    window.odontoModalContext.scope = newScope;
+    window.selectOdontoCondition(window.odontoModalContext.selectedCondition);
+};
+
+/**
+ * Aplica el diagnóstico seleccionado desde el modal al Odontograma y al Estado
+ */
+window.confirmApplyClinicalCondition = function() {
+    const ctx = window.odontoModalContext;
+    const tooth = String(ctx.tooth);
+    const surface = String(ctx.surface);
+    const condition = ODONTO_CATALOG[ctx.selectedCondition];
+
+    if (!tooth || !condition) return;
+
+    // Si es estado SANO / LIMPIAR
+    if (condition.code === 'HEALTHY') {
+        if (ctx.scope === 'SURFACE') {
+            removeSurfaceCondition(tooth, surface);
+        } else {
+            // Limpiar toda la corona y pieza
+            ['occlusal', 'vestibular', 'lingual', 'mesial', 'distal'].forEach(s => {
+                removeSurfaceCondition(tooth, s);
+            });
+            const card = document.querySelector(`.tooth-card[data-tooth="${tooth}"]`);
+            if (card) card.classList.remove('tooth-absent');
+            if (window.odontogramState.teeth[tooth]) {
+                window.odontogramState.teeth[tooth].status = 'PRESENT';
+            }
+        }
+    } 
+    // Si es DIENTE AUSENTE / EXODONCIA
+    else if (condition.code === 'ABSENT' || condition.code === 'EXTRACTION_REQ' || ctx.scope === 'TOOTH') {
+        if (!window.odontogramState.teeth[tooth]) {
+            window.odontogramState.teeth[tooth] = { status: 'PRESENT', surfaces: {} };
+        }
+        window.odontogramState.teeth[tooth].status = (condition.code === 'ABSENT') ? 'ABSENT' : 'EXTRACTION_REQUIRED';
+        
+        const card = document.querySelector(`.tooth-card[data-tooth="${tooth}"]`);
+        if (card) card.classList.add('tooth-absent');
+
+        if (condition.code === 'EXTRACTION_REQ') {
+            window.applySurfaceCondition(tooth, 'occlusal', condition.code, condition.state, condition.colorHex, condition.price);
+        }
+    }
+    // Si es TODA LA CORONA (ej. Corona Protésica)
+    else if (ctx.scope === 'CROWN') {
+        const perSurfacePrice = (condition.price > 0) ? (condition.price / 5) : 0;
+        ['occlusal', 'vestibular', 'lingual', 'mesial', 'distal'].forEach(s => {
+            window.applySurfaceCondition(tooth, s, condition.code, condition.state, condition.colorHex, perSurfacePrice);
+        });
+    }
+    // Si es SUPERFICIE INDIVIDUAL
+    else {
+        window.applySurfaceCondition(tooth, surface, condition.code, condition.state, condition.colorHex, condition.price);
+    }
+
+    recalculateFinancialTotal();
+    updateLiveJsonViewer();
+
+    // Cerrar modal
+    const modalEl = document.getElementById('modalOdontoClinico');
+    if (modalEl) {
+        bootstrap.Modal.getInstance(modalEl)?.hide();
+    }
+
+    // Feedback visual
+    if (typeof Swal !== 'undefined') {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+        Toast.fire({
+            icon: condition.code === 'HEALTHY' ? 'info' : 'success',
+            title: `Pieza #${tooth} actualizada: ${condition.name}`
+        });
+    }
+};
+
+/**
+ * ==========================================================================
+ * APLICACIÓN DE ESTADO Y CONDICIÓN CLÍNICA SOBRE EL DOM Y MEMORIA
+ * ==========================================================================
+ */
+
+/**
  * Aplica una condición clínica y color a una superficie dental
  */
-window.applySurfaceCondition = function(tooth, surface, code, state, colorHex) {
+window.applySurfaceCondition = function(tooth, surface, code, state, colorHex, price) {
     tooth = String(tooth);
     surface = String(surface).toLowerCase();
     
     if (!colorHex) {
         colorHex = (state === 'PENDING_TREATMENT') ? ODONTO_COLORS.PENDING : ODONTO_COLORS.COMPLETED;
+    }
+
+    if (price === undefined || price === null) {
+        price = (state === 'PENDING_TREATMENT') ? 850.00 : 0.00;
     }
 
     if (!window.odontogramState.teeth[tooth]) {
@@ -351,7 +768,7 @@ window.applySurfaceCondition = function(tooth, surface, code, state, colorHex) {
         code: code || 'CARIES',
         state: state || 'PENDING_TREATMENT',
         colorHex: colorHex,
-        price: (state === 'PENDING_TREATMENT') ? 85.00 : 0.00
+        price: parseFloat(price) || 0.00
     };
 
     window.odontogramState.updatedAt = new Date().toISOString();
@@ -413,6 +830,8 @@ window.clearOdontogram = function() {
     window.odontogramState.financialTotalPending = 0.00;
     window.odontogramState.updatedAt = new Date().toISOString();
 
+    document.querySelectorAll('.tooth-card').forEach(card => card.classList.remove('tooth-absent'));
+
     document.querySelectorAll('.tooth-surface').forEach(el => {
         el.style.fill = '';
         el.setAttribute('fill', ODONTO_COLORS.NEUTRAL);
@@ -422,6 +841,16 @@ window.clearOdontogram = function() {
 
     recalculateFinancialTotal();
     updateLiveJsonViewer();
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: 'info',
+            title: 'Odontograma Limpio',
+            text: 'Se han reiniciado las marcas y el presupuesto.',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
 };
 
 /**

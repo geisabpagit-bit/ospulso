@@ -287,3 +287,98 @@
         margin: -30px 0;
     }
 }
+
+/* ==========================================================================
+   MODAL CLÍNICO CONTEXTUAL GLASSMORPHISM (FASE 1.2 / FASE 2 UI)
+   ========================================================================== */
+.odonto-modal-glass {
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 20px !important;
+    border: 1.5px solid var(--odonto-teal) !important;
+    box-shadow: 0 25px 50px -12px rgba(10, 42, 102, 0.25) !important;
+}
+
+.odonto-category-pills .nav-link {
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 0.82rem;
+    background: #f1f5f9;
+    color: #475569;
+    transition: all 0.2s ease;
+}
+
+.odonto-category-pills .nav-link.active {
+    background: #0A2A66 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.2);
+}
+
+.odonto-category-pills #pills-pending-tab.active {
+    background: #FF3B30 !important;
+}
+
+.odonto-category-pills #pills-existing-tab.active {
+    background: #007AFF !important;
+}
+
+.odonto-category-pills #pills-healthy-tab.active {
+    background: #64748B !important;
+}
+
+/* Tarjetas de Condición Clínica */
+.odonto-condition-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+}
+
+.odonto-condition-card:hover {
+    border-color: var(--odonto-teal);
+    background: #f8fafc;
+    transform: translateY(-1px);
+}
+
+.odonto-condition-card.active {
+    border-color: var(--odonto-teal);
+    background: rgba(25, 183, 165, 0.08);
+    box-shadow: 0 0 0 2px rgba(25, 183, 165, 0.3);
+}
+
+.odonto-condition-badge {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+/* Diente Ausente o Exodoncia Realizada */
+.tooth-card.tooth-absent {
+    position: relative;
+    opacity: 0.45;
+    filter: grayscale(0.5);
+}
+
+.tooth-card.tooth-absent::after {
+    content: "✕";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: 900;
+    color: #dc3545;
+    pointer-events: none;
+    z-index: 10;
+    line-height: 1;
+    text-shadow: 0 0 5px #ffffff, 0 0 8px #ffffff;
+}

@@ -43,9 +43,27 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 
 ---
 
+### 2.5 Menú Contextual Clínico y Selector en Cascada (Fase 1.2)
+- **Modal Glassmorphism `#modalOdontoClinico`**: Despliegue centrado y responsivo con estética Dark/Glassmorphism compatible con zoom SVG y mobile.
+- **Nivel 1 (Alcance / Estructura)**:
+  - `SURFACE`: Aplica a la cara seleccionada (Mesial, Distal, Oclusal, Vestibular, Lingual).
+  - `CROWN`: Aplica a las 5 superficies de la corona al unísono.
+  - `TOOTH`: Aplica a la pieza completa (ej. Diente Ausente con overlay `✕` visual y opacidad atenuada).
+- **Nivel 2 (Categorías y Catálogo)**:
+  - 🔴 **Patología / Pendiente**: Caries ($850), Fractura ($1,200), Sellador requerido ($450), Corona requerida ($4,500), Endodoncia ($3,200), Exodoncia requerida ($1,100).
+  - 🔵 **Tratamiento Existente**: Resina ($850), Amalgama ($700), Corona colocada ($4,500), Endodoncia realizada ($3,200), Implante óseo ($14,000).
+  - ⚪ **Sano / Limpiar**: Restaura la superficie o corona a su estado basal sin hallazgos.
+  - ❌ **Pieza Ausente**: Diagnóstico a nivel de pieza completa.
+- **Nivel 3 (Resumen y Presupuesto)**:
+  - Recálculo dinámico automático del presupuesto estimado en base a los tratamientos marcados como pendientes (`PENDING`).
+  - Sincronización bidireccional inmediata con `window.odontogramState` y visor JSON en vivo.
+
+---
+
 ## 3. Arquitectura de Archivos
-- **CSS**: `css/odontograma_plus.css` (estilos vectoriales biomórficos, anchos proporcionales por familia dental, hover teal, persistencia de color y escalado responsivo).
-- **JavaScript**: `js/odontograma.js` (generador de 32 piezas por familias anatómicas, rutas `<path>` curvas independientes, estado `window.odontogramState`, controles de zoom dinámico y reactividad SVG).
-- **Vista**: `views/render_expediente_clinico.pl` (sección `#tab6` con toolbar, controles de zoom interactivo y visor JSON en vivo).
+- **CSS**: `css/odontograma_plus.css` (estilos vectoriales biomórficos, anchos proporcionales por familia dental, hover teal, persistencia de color, clases `.tooth-absent`, modal glassmorphism y escalado responsivo).
+- **JavaScript**: `js/odontograma.js` (generador de 32 piezas por familias anatómicas, rutas `<path>` curvas independientes, estado `window.odontogramState`, controles de zoom dinámico, modal contextual de 3 niveles, catálogo y recálculo presupuestario).
+- **Vista**: `views/render_expediente_clinico.pl` (sección `#tab6` con toolbar, controles de zoom interactivo, modal `#modalOdontoClinico` y visor JSON en vivo).
+
 
 

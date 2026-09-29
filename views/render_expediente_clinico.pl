@@ -364,6 +364,102 @@ HTML
                             <pre id="odontogram-live-json" class="odonto-state-viewer mb-0">{}</pre>
                         </div>
                     </div>
+            </div>
+
+            <!-- Modal Clínico Contextual Glassmorphism (Fase 1.2 / Selector en Cascada) -->
+            <div class="modal fade" id="modalOdontoClinico" tabindex="-1" aria-labelledby="modalOdontoClinicoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content odonto-modal-glass border-0 shadow-lg">
+                        <div class="modal-header border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge bg-teal text-white rounded-pill px-3 py-2 fw-black fs-6" id="odonto-modal-tooth-badge" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">#16</span>
+                                <div>
+                                    <h5 class="fw-black mb-0 text-navy" id="odonto-modal-tooth-title" style="color: var(--md-blue-deep);">Primer Molar Superior Derecho</h5>
+                                    <span class="small text-muted fw-bold" id="odonto-modal-surface-label"><i class="bi bi-geo-alt-fill text-teal me-1" style="color: var(--md-teal-clinical);"></i>Zona activa: Superficie MESIAL</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <!-- Nivel 1: Alcance -->
+                            <div class="mb-4">
+                                <label class="small text-muted fw-bold text-uppercase mb-2 d-block">1. Alcance del Diagnóstico</label>
+                                <div class="btn-group w-100 p-1 bg-light rounded-pill border" role="group" id="odonto-scope-group">
+                                    <input type="radio" class="btn-check" name="odonto-scope" id="scope-surface" value="SURFACE" checked onchange="handleScopeChange('SURFACE')">
+                                    <label class="btn btn-sm rounded-pill fw-bold" for="scope-surface" id="label-scope-surface"><i class="bi bi-bounding-box me-1"></i>Superficie Seleccionada</label>
+
+                                    <input type="radio" class="btn-check" name="odonto-scope" id="scope-crown" value="CROWN" onchange="handleScopeChange('CROWN')">
+                                    <label class="btn btn-sm rounded-pill fw-bold" for="scope-crown"><i class="bi bi-circle-square me-1"></i>Toda la Corona (5 caras)</label>
+
+                                    <input type="radio" class="btn-check" name="odonto-scope" id="scope-tooth" value="TOOTH" onchange="handleScopeChange('TOOTH')">
+                                    <label class="btn btn-sm rounded-pill fw-bold" for="scope-tooth"><i class="bi bi-x-circle me-1"></i>Pieza Completa (Ausente)</label>
+                                </div>
+                            </div>
+
+                            <!-- Nivel 2: Selector en Cascada por Categorías -->
+                            <div class="mb-4">
+                                <label class="small text-muted fw-bold text-uppercase mb-2 d-block">2. Categoría y Condición Clínica</label>
+                                <ul class="nav nav-pills nav-fill mb-3 odonto-category-pills" id="pills-odonto-cat" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active fw-bold text-danger" id="pills-pending-tab" data-bs-toggle="pill" data-bs-target="#pills-pending" type="button" role="tab"><i class="bi bi-exclamation-circle-fill me-1"></i>Patología / Pendiente</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link fw-bold text-primary" id="pills-existing-tab" data-bs-toggle="pill" data-bs-target="#pills-existing" type="button" role="tab"><i class="bi bi-check-circle-fill me-1"></i>Tratamiento Existente</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link fw-bold text-secondary" id="pills-healthy-tab" data-bs-toggle="pill" data-bs-target="#pills-healthy" type="button" role="tab"><i class="bi bi-eraser-fill me-1"></i>Sano / Limpiar</button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content" id="pills-odonto-tabContent">
+                                    <!-- TAB 1: PENDIENTES / PATOLOGÍAS -->
+                                    <div class="tab-pane fade show active" id="pills-pending" role="tabpanel">
+                                        <div class="row g-2" id="grid-conditions-pending">
+                                            <!-- Inyectado por JS -->
+                                        </div>
+                                    </div>
+
+                                    <!-- TAB 2: TRATAMIENTOS EXISTENTES -->
+                                    <div class="tab-pane fade" id="pills-existing" role="tabpanel">
+                                        <div class="row g-2" id="grid-conditions-existing">
+                                            <!-- Inyectado por JS -->
+                                        </div>
+                                    </div>
+
+                                    <!-- TAB 3: SANO / LIMPIAR -->
+                                    <div class="tab-pane fade" id="pills-healthy" role="tabpanel">
+                                        <div class="p-4 bg-light rounded-4 text-center border">
+                                            <i class="bi bi-shield-check text-success display-5 d-block mb-2"></i>
+                                            <h6 class="fw-black text-navy mb-1" style="color: var(--md-blue-deep);">Restaurar a Estado Sano</h6>
+                                            <p class="small text-muted mb-3">Se removerán las marcas patológicas o restauraciones de la zona o diente seleccionado.</p>
+                                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" onclick="selectOdontoCondition('HEALTHY')">
+                                                <i class="bi bi-check-lg me-1"></i>Marcar Sano / Sin Hallazgo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Nivel 3: Resumen y Precio -->
+                            <div class="p-3 bg-light rounded-4 border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <span class="small text-muted fw-bold d-block">Resumen de Selección:</span>
+                                    <span class="fw-bold" style="color: var(--md-blue-deep);" id="odonto-summary-condition">Caries Dental (Activa)</span>
+                                    <span class="badge bg-danger-subtle text-danger ms-2 rounded-pill px-2 py-1" id="odonto-summary-scope">Superficie Mesial</span>
+                                </div>
+                                <div class="text-end">
+                                    <span class="small text-muted fw-bold d-block">Importe Sugerido</span>
+                                    <span class="h5 fw-black text-danger m-0" id="odonto-summary-price">\$850.00 MXN</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top py-3 px-4 d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-medentia rounded-pill px-4 fw-bold" onclick="confirmApplyClinicalCondition()">
+                                <i class="bi bi-check2-circle me-1" style="color: var(--md-cyan-ia);"></i>Aplicar al Odontograma
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
