@@ -84,10 +84,32 @@ sub resolver_id_raiz_catalogo {
 # ─────────────────────────────────────────────────────────────
 sub obtener_rutas_por_clue {
     my ($clues) = @_;
+    
+    # Blindaje contra CLUE vacío o indefinido (evita creación accidental de tipos_tarifas_.dat huérfanos)
+    if (!defined $clues || $clues !~ /\S/) {
+        return {
+            is_universal   => 0,
+            departamentos  => '',
+            categorias     => '',
+            proveedores    => '',
+            items          => '',
+            precios        => '',
+            productos      => '',
+            medicos        => '',
+            especialidades => '',
+            dependencia    => '',
+            empleadosmun   => '',
+            municipios     => '',
+            motivos        => '',
+            tipos_tarifas  => '',
+        };
+    }
+    
+    $clues =~ s/^\s+|\s+$//g;
     my $dat = _resolver_dat_dir();
     my $clue_dir = File::Spec->catdir($dat, 'catalogos_CLUE', $clues);
     my $tipos_tar_file = File::Spec->catfile($clue_dir, "tipos_tarifas_${clues}.dat");
-    if (!-e $tipos_tar_file && -d $clue_dir) {
+    if ($clues ne '' && -d $clue_dir && !-e $tipos_tar_file) {
         if (open(my $fht, '>:encoding(UTF-8)', $tipos_tar_file)) {
             print $fht "ID_TARIFA|CLAVE|NOMBRE_TARIFA|DESCRIPCION|ACTIVO\n";
             print $fht "1|ESTANDAR|ESTÁNDAR|Público General / Tarifa Base|1\n";

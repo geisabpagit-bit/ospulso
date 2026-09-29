@@ -62,3 +62,11 @@ Para optimizar el rendimiento y la memoria en el navegador frente a catálogos e
 - Modificaciones a catálogos se realizan bajo codificación `:raw :encoding(UTF-8)`.
 - Bloqueo concurrente mediante `flock($fh, LOCK_EX)`.
 - Formato de fin de línea estricto: **Pure LF (`\n`, 0 CRLF)**.
+
+---
+
+## 6. Blindaje Antihuérfanos en Rutas CLUE (`catalogo_org_utils.pl`)
+- **Problema Prevenido**: Cuando una organización privada, consultorio o sesión sin CLUE invocaba `obtener_rutas_por_clue($clues)` con `$clues` vacío o indefinido, la concatenación `File::Spec->catdir($dat, 'catalogos_CLUE', '')` resolvía a la raíz `catalogos_CLUE/`, provocando que el auto-sembrado creara el archivo erróneo `tipos_tarifas_.dat` fuera del subdirectorio correspondiente.
+- **Regla de Guarda Estricta**: La función `obtener_rutas_por_clue` implementa un guard clause temprano: si `$clues` está vacío o no contiene caracteres no vacíos (`!defined $clues || $clues !~ /\S/`), devuelve un hashref seguro con rutas vacías y `is_universal => 0`, omitiendo cualquier creación en disco.
+- **Creación Segura**: La condición de auto-sembrado exige que `$clues ne ''` y que el subdirectorio específico del CLUE (`-d $clue_dir`) exista físicamente antes de emitir cualquier archivo `.dat`.
+
