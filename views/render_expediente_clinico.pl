@@ -173,6 +173,7 @@ sub render_expediente_completo {
 
     print <<HTML;
 <link rel="stylesheet" href="../css/expediente_completo.css?v=$^T">
+<link rel="stylesheet" href="../css/odontograma_plus.css?v=$^T">
 HTML
 
     utils::sub_sidebar::render_sidebar(
@@ -214,11 +215,15 @@ HTML
             b.classList.add('active');
         }
         
-        if (id === 'tab6' && !odontogramaInit && typeof initOdontograma === 'function') {
+        if (id === 'tab6') {
             setTimeout(() => {
-                initOdontograma('odontograma-svg-container', '$d->{id_paciente}');
-                odontogramaInit = true;
-            }, 100);
+                if (typeof renderOdontogram === 'function') {
+                    renderOdontogram('odontograma-svg-container', '$d->{id_paciente}');
+                } else if (typeof initOdontograma === 'function' && !odontogramaInit) {
+                    initOdontograma('odontograma-svg-container', '$d->{id_paciente}');
+                    odontogramaInit = true;
+                }
+            }, 60);
         }
 
         if(b && b.classList.contains('sub-link')){
@@ -268,36 +273,82 @@ HTML
         <div class="mt-4">
         <!-- 6: ODONTOGRAMA -->
         <section class="sdm-tab-sec d-none" id="tab6">
-            <div class="d-flex justify-content-between align-items-center mb-5">
-                <div>
-                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Odontograma Digital v2.0</h3>
-                    <p class="text-muted small fw-bold">MAPEO DE PIEZAS DENTALES EN TIEMPO REAL</p>
+            <div class="odontograma-plus-card mb-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3 border-bottom">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-teal text-white rounded-pill px-3 py-1 fw-bold" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">FDI / ISO 3950</span>
+                            <span class="badge bg-navy text-white rounded-pill px-3 py-1 fw-bold">32 Piezas Permanentes</span>
+                        </div>
+                        <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Odontograma Digital Plus</h3>
+                        <p class="text-muted small fw-bold mb-0">MAPEO ANATÓMICO POR CUADRANTES CON REACTIVIDAD VECTORIAL SVG</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="text-end d-none d-md-block">
+                            <span class="small text-muted fw-bold d-block">Presupuesto Estimado</span>
+                            <span class="h5 fw-black text-danger m-0" id="odonto-total-pending">\$0.00</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="d-flex gap-2" id="odontograma-toolbar">
-                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 active-tool" data-tool="caries"><i class="bi bi-circle-fill me-1"></i>Caries</button>
-                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3" data-tool="corona"><i class="bi bi-square-fill me-1"></i>Corona</button>
-                    <button class="btn btn-outline-dark btn-sm rounded-pill px-3" data-tool="extraccion"><i class="bi bi-x-lg me-1"></i>Extracción</button>
-                    <button class="btn btn-outline-info btn-sm rounded-pill px-3" data-tool="implante"><i class="bi bi-vinyl-fill me-1"></i>Implante</button>
-                    <button class="btn btn-outline-warning btn-sm rounded-pill px-3" data-tool="protesis"><i class="bi bi-diagram-2-fill me-1"></i>Prótesis</button>
-                    <button class="btn btn-outline-success btn-sm rounded-pill px-3" data-tool="sano"><i class="bi bi-check-circle-fill me-1"></i>Sano</button>
-                    <div class="vr mx-2"></div>
-                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="resetOdontograma()"><i class="bi bi-trash3-fill me-1"></i>Resetear</button>
-                    <div class="vr mx-2"></div>
-                    <button class="btn btn-medentia btn-sm rounded-pill px-4" onclick="saveOdontogramaToServer()"><i class="bi bi-cloud-arrow-up-fill me-2" style="color: var(--md-cyan-ia);"></i>Sincronizar</button>
-                </div>
-            </div>
 
-            <div class="odontograma-container card-medentia-aura p-5 mb-4 overflow-auto border-0" style="border-radius: 20px; overflow: hidden !important;">
-                <div id="odontograma-svg-container" class="text-center" style="min-width: 800px;">
-                    <!-- El mapa dental se cargará aquí vía JS -->
-                    <div class="py-5 text-muted opacity-50"><div class="spinner-border text-primary mb-3"></div><br>Iniciando Mapa Dental...</div>
+                <!-- Barra con Botones de Prueba Rápida (Fase 1) -->
+                <div class="odonto-test-bar">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-lightning-charge-fill text-warning fs-5"></i>
+                        <span class="fw-bold small text-navy">Pruebas Rápidas de Reactividad:</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 shadow-xs" onclick="applySurfaceCondition(16, 'mesial', 'CARIES', 'PENDING_TREATMENT', '#FF3B30')">
+                            <i class="bi bi-circle-fill me-1 text-danger"></i> Probar Caries Mesial (16)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3 shadow-xs" onclick="applySurfaceCondition(21, 'occlusal', 'COMPOSITE', 'EXISTING_CONDITION', '#007AFF')">
+                            <i class="bi bi-check-circle-fill me-1 text-primary"></i> Probar Resina Oclusal (21)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold px-3 shadow-xs" onclick="clearOdontogram()">
+                            <i class="bi bi-eraser-fill me-1"></i> Limpiar
+                        </button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="card-medentia-aura p-4 d-flex gap-4 justify-content-center mb-4 border-0">
-                <div class="small fw-bold" style="color: var(--md-blue-deep);"><i class="bi bi-info-circle me-1" style="color: var(--md-teal-clinical);"></i> Instrucciones:</div>
-                <div class="small"><span class="badge bg-danger">1</span> Seleccione una condición en la barra superior.</div>
-                <div class="small"><span class="badge bg-primary">2</span> Haga clic sobre una de las caras de la pieza dental para marcarla.</div>
+
+                <!-- Contenedor del Mapa Dental SVG 32 Piezas -->
+                <div class="p-3 p-md-4 mb-4 rounded-4" style="background: rgba(248, 250, 252, 0.8); border: 1px dashed rgba(25, 183, 165, 0.4);">
+                    <div id="odontograma-svg-container" class="text-center w-100" data-patient-id="$d->{id_paciente}">
+                        <!-- Renderizado dinámico vía renderOdontogram() -->
+                        <div class="py-5 text-muted opacity-50"><div class="spinner-border text-primary mb-3"></div><br>Generando Mapa Dental Vectorial...</div>
+                    </div>
+                </div>
+
+                <!-- Leyenda de Convención Clínica -->
+                <div class="odonto-legend">
+                    <div class="odonto-legend-item">
+                        <span class="odonto-legend-color" style="background: #FF3B30;"></span>
+                        <span>Tratamiento Pendiente / Patología Activa (#FF3B30)</span>
+                    </div>
+                    <div class="odonto-legend-item">
+                        <span class="odonto-legend-color" style="background: #007AFF;"></span>
+                        <span>Tratamiento Realizado / Condición Existente (#007AFF)</span>
+                    </div>
+                    <div class="odonto-legend-item">
+                        <span class="odonto-legend-color" style="background: #FFFFFF; border: 1px solid #94a3b8;"></span>
+                        <span>Superficie Sana / Sin Hallazgo</span>
+                    </div>
+                    <div class="odonto-legend-item">
+                        <span class="odonto-legend-color" style="background: rgba(25, 183, 165, 0.4); border: 1px solid #19B7A5;"></span>
+                        <span>Hover Interactivo Teal</span>
+                    </div>
+                </div>
+
+                <!-- Inspección de Estado en Vivo (JSON) -->
+                <div class="mt-4">
+                    <button class="btn btn-xs btn-light border rounded-pill px-3 fw-bold text-muted mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJsonViewer" aria-expanded="false">
+                        <i class="bi bi-code-slash me-1"></i> Ver Estado Reactivo en Vivo (JSON)
+                    </button>
+                    <div class="collapse" id="collapseJsonViewer">
+                        <div class="card card-body p-0 border-0">
+                            <pre id="odontogram-live-json" class="odonto-state-viewer mb-0">{}</pre>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Notas Médicas -->
@@ -1280,6 +1331,7 @@ HTML
 print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script src="../js/estado_cuenta_spa.js?v=$^T"></script>
+<script src="../js/odontograma.js?v=$^T"></script>
 <script src="../js/odontograma_spa.js?v=$^T"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => { 
