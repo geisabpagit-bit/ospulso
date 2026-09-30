@@ -126,6 +126,7 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 | **Fase 8** | Evolución Dental ("Antes y Después"), Facturación en Caja y Sello | Clonación profunda (`clone`), extracción de presupuesto (`get_treatments`), inyección reactiva en Caja (Paso 6) y cambio atómico a estado `Finalizado` al cerrar la consulta en `api/cerrar_consulta_privado.pl`. | ✅ COMPLETADA |
 | **Fase 11** | Vistas Oclusales 2D en Porcelana Pulida e Interacción Híbrida SVG | Representación fotorrealista de coronas vistas desde arriba (`img/teeth/crown_*.png`) para Molares, Premolares, Caninos e Incisivos en porcelana blanca pura glaseada; capa interactiva SVG de 5 caras con trazado translúcido y vitrificación clínica en hover/click. | ✅ COMPLETADA |
 | **Fase 12** | Catálogo Autónomo Multi-Tenant, Provisión Onboarding 100-Odontología, Refactor Molar y CRUD AJAX | Corona molar oclusal en porcelana blanca pura sin caries (`crown_molar.png`); depuración de barra superior en visor (ícono Guardar en Cápsula 1 junto a Imprimir, retiro de botones redundantes); eliminación de hardcode clínico con Catálogo Autónomo Multi-Tenant (`dat/catalogo_odontograma_<id>.dat`), API REST (`api/catalogo_odontograma_api.pl`), modal AJAX en visor, menú lateral en rol Administrador de Organización y provisión automática al seleccionar especialidad `100 - ODONTOLOGÍA`. | ✅ COMPLETADA |
+| **Fase 13** | Modal Anatómico 3D/2D, Vista Impresión Split 3/4 + 1/4, Limpieza Total y Dark Glassmorphism | Refactorización de `#modalOdontoClinico` con doble preview (3D Upright Sagital + 2D Corona Oclusal con selector de cara); Vista Previa de Impresión fiel con desglose 75% mapa dental y 25% offcanvas clínico/financiero y membrete institucional; erradicación de hardcode de colores en CSS (`--surf-color`); corrección de visibilidad del botón "20" en dentición temporal; supresión del control central de zoom (HUD) y rediseño completo del sidebar offcanvas a Dark Surgical Glassmorphism. | ✅ COMPLETADA |
 
 ---
 
@@ -158,6 +159,31 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 5. **Gobernanza RBAC y Menú Lateral**:
    - Enlace `Gesti&oacute;n Odontograma` visible para `Administrador Organizacion` y `Administrador Global` en `utils/sub_sidebar.pl`.
    - Vista administrativa de gestión `views/manage_catalogo_odontograma.pl` con KPIs, DataTables y modal CRUD.
+
+---
+
+### 2.12 Interfaz Quirúrgica Dark Glassmorphism, Impresión Fiel 3/4 + 1/4 y Dinamismo Vectorial (Fase 13)
+1. **Modal Clínico con Visualización 3D y 2D (`#modalOdontoClinico`)**:
+   - Columna izquierda de previsualización anatómica con la pieza seleccionada renderizada en 3D Vertical (`tooth_upright_[FDI].png`) y la vista de la corona oclusal 2D (`crown_[FDI].png`) indicando la superficie activa.
+   - Estilo Dark Surgical Glassmorphism con fondo `rgba(10, 25, 55, 0.96)`, bordes de cian neón y tarjetas de selección de alto contraste.
+2. **Purga Integral de Limpieza (`clearOdontogram`)**:
+   - El proceso de borrado remueve completamente variables CSS (`--surf-color`, `--surf-stroke`), atributos `fill` y clases de estado de todas las superficies y tarjetas dentales.
+   - Ejecuta reactivamente `recalculateFinancialTotal()` y `refreshSidebarFindings()`, restableciendo contadores y presupuestos a cero de manera inmediata.
+3. **Erradicación de Hardcode de Colores**:
+   - Las superficies utilizan dinámicamente la variable CSS `--surf-color` inyectada desde el catálogo del consultorio, permitiendo reflejar con fidelidad cualquier color hex personalizado.
+4. **Vista Previa e Impresión Personalizada (`#modalPrintPreviewOdonto`)**:
+   - Despliegue de modal a pantalla completa con controles superiores `Volver al Visor` e `Imprimir`.
+   - Estructuración de la hoja médica:
+     - **Membrete Oficial**: Nombre de la clínica, CLUES, RFC, teléfono, dirección, fecha/hora y datos completos del paciente.
+     - **Cuerpo Split 3/4 + 1/4**: 75% izquierdo ocupado por el mapa anatómico dental completo del odontograma y 25% derecho ocupado por la ficha offcanvas (presupuesto estimado, tabla detallada de hallazgos, notas clínicas y firma del odontólogo tratante).
+     - Reglas de impresión `@media print` para aislar la hoja e imprimirla de forma limpia.
+5. **Corrección de Visibilidad en Dentición Temporal**:
+   - Retiro de la clase `.text-muted` del botón "20" en la Cápsula 4 y aplicación de la clase `.odonto-badge-dentition` con colores de alto contraste sobre fondo marino.
+6. **Eliminación del HUD Toolbar Central**:
+   - Eliminación de la barra flotante de zoom en el centro del escenario, unificando el control exclusivamente en las cápsulas superiores.
+7. **Rediseño del Sidebar Offcanvas (`#odontoSidebar`)**:
+   - Transformación de la barra lateral con estética Dark Glassmorphism quirúrgico, campos oscuros con glow cian, tarjeta de presupuesto con degradado profundo y tabla de hallazgos contrastada.
+
    - Modal AJAX `#modalGestionCatalogoOdonto` embebido en el visor para edición en vivo e hidratación reactiva de `window.ODONTO_CATALOG`.
 
 

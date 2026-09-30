@@ -748,11 +748,14 @@ function restoreDomFromState() {
                         ? sData.colorHex 
                         : (catObj?.colorHex || (isDefective ? '#FF9500' : (state === 'PENDING_TREATMENT' ? ODONTO_COLORS.PENDING : ODONTO_COLORS.COMPLETED)));
 
+                    surfaceEl.style.setProperty('--surf-color', color);
+                    surfaceEl.style.setProperty('--surf-stroke', color);
                     surfaceEl.style.fill = color;
                     surfaceEl.setAttribute('fill', color);
+                    surfaceEl.setAttribute('data-color', color);
                     surfaceEl.setAttribute('data-state', state);
                     surfaceEl.classList.add('has-condition');
-                    surfaceEl.classList.remove('surface-pending', 'surface-completed', 'surface-defective');
+                    surfaceEl.classList.remove('surface-pending', 'surface-completed', 'surface-defective', 'surface-healthy');
                     if (isDefective) {
                         surfaceEl.classList.add('surface-defective');
                     } else if (state === 'PENDING_TREATMENT') {
@@ -1070,7 +1073,30 @@ window.openOdontoClinicalModal = function(toothId, surface) {
     if (badgeEl) badgeEl.textContent = `#${toothId}`;
     if (titleEl) titleEl.textContent = getToothFullName(toothId);
     if (surfaceLabelEl) {
-        surfaceLabelEl.innerHTML = `<i class="bi bi-geo-alt-fill text-teal me-1" style="color: var(--md-teal-clinical);"></i>Zona activa: Superficie <strong class="text-uppercase">${surface}</strong>`;
+        surfaceLabelEl.innerHTML = `<i class="bi bi-geo-alt-fill text-info me-1"></i>Zona activa: Superficie <strong class="text-uppercase text-white">${surface}</strong>`;
+    }
+
+    // Actualizar imágenes anatómicas de la pieza elegida (3D Vertical Porcelain + 2D Corona Oclusal)
+    const uprightImgEl = document.getElementById('odonto-modal-tooth-img');
+    const crownImgEl   = document.getElementById('odonto-modal-crown-img');
+    const surfaceNameEl = document.getElementById('odonto-modal-surface-name');
+    const archId = getDeciduousArchetype(toothId);
+
+    if (uprightImgEl) {
+        uprightImgEl.src = getToothImgPath(`tooth_upright_${archId}.png`);
+        uprightImgEl.alt = `Pieza #${toothId} 3D`;
+    }
+    if (crownImgEl) {
+        crownImgEl.src = getToothImgPath(`crown_${toothId}.png`);
+        crownImgEl.onerror = function() {
+            if (!this.dataset.fallback) {
+                this.dataset.fallback = '1';
+                this.src = getToothImgPath(`crown_${archId}.png`);
+            }
+        };
+    }
+    if (surfaceNameEl) {
+        surfaceNameEl.textContent = surface.toUpperCase();
     }
 
     // Reset de botones de alcance
@@ -1113,12 +1139,14 @@ function renderModalConditionGrids() {
         Object.values(ODONTO_CATALOG).filter(c => c.group === 'PATHOLOGY').forEach(item => {
             htmlP += `
                 <div class="col-md-6">
-                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="odonto-condition-badge" style="background: ${item.colorHex};"></span>
-                            <span class="small fw-bold text-navy">${item.name}</span>
+                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')" style="background: rgba(15, 35, 75, 0.7); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 12px; padding: 10px; cursor: pointer; transition: all 0.2s ease;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="odonto-condition-badge" style="display:inline-block; width:14px; height:14px; border-radius:50%; background: ${item.colorHex}; box-shadow: 0 0 8px ${item.colorHex};"></span>
+                                <span class="small fw-bold text-white">${item.name}</span>
+                            </div>
+                            ${item.price > 0 ? `<span class="badge bg-danger text-white rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">$${item.price.toFixed(2)}</span>` : `<span class="badge bg-secondary text-white rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Ausente</span>`}
                         </div>
-                        ${item.price > 0 ? `<span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">$${item.price.toFixed(2)}</span>` : `<span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Ausente</span>`}
                     </div>
                 </div>
             `;
@@ -1132,23 +1160,25 @@ function renderModalConditionGrids() {
         Object.values(ODONTO_CATALOG).filter(c => c.group === 'RESTORATION').forEach(item => {
             let badgeHtml = '';
             if (item.substatus === 'DEFECTIVE') {
-                badgeHtml = `<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Desadaptada ($${item.price.toFixed(2)})</span>`;
+                badgeHtml = `<span class="badge bg-warning text-dark rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Desadaptada ($${item.price.toFixed(2)})</span>`;
             } else if (item.substatus === 'TEMPORARY') {
-                badgeHtml = `<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Provisional ($${item.price.toFixed(2)})</span>`;
+                badgeHtml = `<span class="badge bg-warning text-dark rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Provisional ($${item.price.toFixed(2)})</span>`;
             } else if (item.substatus === 'PONTIC') {
-                badgeHtml = `<span class="badge bg-info-subtle text-info-emphasis rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Póntico ($${item.price.toFixed(2)})</span>`;
+                badgeHtml = `<span class="badge bg-info text-dark rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Póntico ($${item.price.toFixed(2)})</span>`;
             } else {
-                badgeHtml = `<span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Adaptada</span>`;
+                badgeHtml = `<span class="badge bg-primary text-white rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Adaptada</span>`;
             }
 
             htmlE += `
                 <div class="col-md-6">
-                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="odonto-condition-badge" style="background: ${item.colorHex};"></span>
-                            <span class="small fw-bold text-navy">${item.name}</span>
+                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')" style="background: rgba(15, 35, 75, 0.7); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 12px; padding: 10px; cursor: pointer; transition: all 0.2s ease;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="odonto-condition-badge" style="display:inline-block; width:14px; height:14px; border-radius:50%; background: ${item.colorHex}; box-shadow: 0 0 8px ${item.colorHex};"></span>
+                                <span class="small fw-bold text-white">${item.name}</span>
+                            </div>
+                            ${badgeHtml}
                         </div>
-                        ${badgeHtml}
                     </div>
                 </div>
             `;
@@ -1162,12 +1192,14 @@ function renderModalConditionGrids() {
         Object.values(ODONTO_CATALOG).filter(c => c.group === 'NORMAL').forEach(item => {
             htmlH += `
                 <div class="col-md-6">
-                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="odonto-condition-badge" style="background: ${item.colorHex}; border: 1px solid #cbd5e1;"></span>
-                            <span class="small fw-bold text-navy">${item.name}</span>
+                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')" style="background: rgba(15, 35, 75, 0.7); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 12px; padding: 10px; cursor: pointer; transition: all 0.2s ease;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="odonto-condition-badge" style="display:inline-block; width:14px; height:14px; border-radius:50%; background: ${item.colorHex}; border: 1px solid #cbd5e1;"></span>
+                                <span class="small fw-bold text-white">${item.name}</span>
+                            </div>
+                            <span class="badge bg-success text-white rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Normal</span>
                         </div>
-                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Normal</span>
                     </div>
                 </div>
             `;
@@ -1373,11 +1405,14 @@ window.applySurfaceCondition = function(tooth, surface, code, state, colorHex, p
         const catObj = window.ODONTO_CATALOG ? window.ODONTO_CATALOG[code] : null;
         const isDefective = (catObj?.substatus === 'DEFECTIVE') || (colorHex === '#FF9500');
 
+        surfaceEl.style.setProperty('--surf-color', colorHex);
+        surfaceEl.style.setProperty('--surf-stroke', colorHex);
         surfaceEl.style.fill = colorHex;
         surfaceEl.setAttribute('fill', colorHex);
+        surfaceEl.setAttribute('data-color', colorHex);
         surfaceEl.setAttribute('data-state', state);
         surfaceEl.classList.add('has-condition');
-        surfaceEl.classList.remove('surface-pending', 'surface-completed', 'surface-defective');
+        surfaceEl.classList.remove('surface-pending', 'surface-completed', 'surface-defective', 'surface-healthy');
         if (isDefective) {
             surfaceEl.classList.add('surface-defective');
         } else if (state === 'PENDING_TREATMENT') {
@@ -1410,15 +1445,20 @@ function removeSurfaceCondition(tooth, surface) {
 
     const surfaceEl = document.querySelector(`.tooth-surface[data-tooth="${tooth}"][data-surface="${surface}"]`);
     if (surfaceEl) {
+        surfaceEl.style.removeProperty('--surf-color');
+        surfaceEl.style.removeProperty('--surf-stroke');
         surfaceEl.style.fill = '';
         surfaceEl.setAttribute('fill', ODONTO_COLORS.NEUTRAL);
         surfaceEl.removeAttribute('data-state');
-        surfaceEl.classList.remove('has-condition', 'surface-pending', 'surface-completed');
+        surfaceEl.removeAttribute('data-color');
+        surfaceEl.removeAttribute('data-condition');
+        surfaceEl.classList.remove('has-condition', 'surface-pending', 'surface-completed', 'surface-defective', 'surface-healthy');
     }
 
     recalculateFinancialTotal();
     updateLiveJsonViewer();
 }
+window.removeSurfaceCondition = removeSurfaceCondition;
 
 /**
  * Limpia todo el odontograma tanto en memoria como en el SVG
@@ -1433,20 +1473,33 @@ window.clearOdontogram = function() {
     });
 
     document.querySelectorAll('.tooth-surface').forEach(el => {
+        el.style.removeProperty('--surf-color');
+        el.style.removeProperty('--surf-stroke');
         el.style.fill = '';
         el.setAttribute('fill', ODONTO_COLORS.NEUTRAL);
         el.removeAttribute('data-state');
-        el.classList.remove('has-condition', 'surface-pending', 'surface-completed');
+        el.removeAttribute('data-color');
+        el.removeAttribute('data-condition');
+        el.classList.remove('has-condition', 'surface-pending', 'surface-completed', 'surface-defective', 'surface-healthy');
     });
 
-    recalculateFinancialTotal();
+    if (typeof window.recalculateFinancialTotal === 'function') {
+        window.recalculateFinancialTotal();
+    } else {
+        recalculateFinancialTotal();
+    }
+
+    if (typeof window.refreshSidebarFindings === 'function') {
+        window.refreshSidebarFindings();
+    }
+
     updateLiveJsonViewer();
 
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             icon: 'info',
             title: 'Odontograma Limpio',
-            text: 'Se han reiniciado las marcas y el presupuesto.',
+            text: 'Se han reiniciado todas las marcas, colores y el presupuesto.',
             timer: 1500,
             showConfirmButton: false
         });
@@ -1456,7 +1509,7 @@ window.clearOdontogram = function() {
 /**
  * Recalcula el total financiero pendiente en base a los tratamientos marcados
  */
-function recalculateFinancialTotal() {
+window.recalculateFinancialTotal = function() {
     let total = 0;
     Object.values(window.odontogramState.teeth).forEach(tooth => {
         if (tooth.surfaces) {
@@ -1473,6 +1526,13 @@ function recalculateFinancialTotal() {
     if (totalEl) {
         totalEl.textContent = `$${total.toFixed(2)}`;
     }
+
+    if (typeof window.refreshSidebarFindings === 'function') {
+        window.refreshSidebarFindings();
+    }
+};
+function recalculateFinancialTotal() {
+    window.recalculateFinancialTotal();
 }
 
 /**
@@ -1534,20 +1594,18 @@ window.setDentitionType = function(type) {
         }
     }
 
-    // Sincronizar botones de header
+    // Sincronizar botones de header (Sin text-muted para máxima legibilidad)
     const hdrP = document.getElementById('btn-hdr-perm');
     const hdrT = document.getElementById('btn-hdr-temp');
     if (hdrP && hdrT) {
         if (type === 'PERMANENT') {
             hdrP.classList.add('active');
             hdrP.classList.remove('text-muted');
-            hdrT.classList.remove('active');
-            hdrT.classList.add('text-muted');
+            hdrT.classList.remove('active', 'text-muted');
         } else {
             hdrT.classList.add('active');
             hdrT.classList.remove('text-muted');
-            hdrP.classList.remove('active');
-            hdrP.classList.add('text-muted');
+            hdrP.classList.remove('active', 'text-muted');
         }
     }
 
@@ -1559,6 +1617,86 @@ window.toggleDentitionType = function() {
     const current = window.odontogramState.dentitionType || 'PERMANENT';
     const next = (current === 'PERMANENT') ? 'TEMPORARY' : 'PERMANENT';
     window.setDentitionType(next);
+};
+
+/**
+ * ==========================================================================
+ * VISTA PREVIA PERSONALIZADA E IMPRESIÓN DEL ODONTOGRAMA (3/4 MAPA + 1/4 DATOS)
+ * ==========================================================================
+ */
+window.abrirVistaImpresionOdonto = function() {
+    const previewModal = document.getElementById('modalPrintPreviewOdonto');
+    if (!previewModal) {
+        window.print();
+        return;
+    }
+
+    // 1. Sincronizar Mapa Dental Fiel (3/4 de la página)
+    const printMapContainer = document.getElementById('print-odonto-map-container');
+    const liveContainer = document.getElementById('odontograma-svg-container');
+    if (printMapContainer && liveContainer) {
+        const clone = liveContainer.cloneNode(true);
+        const wrapper = clone.querySelector('.odonto-board-wrapper');
+        if (wrapper) {
+            wrapper.style.transform = 'scale(0.85)';
+            wrapper.style.transformOrigin = 'top center';
+        }
+        printMapContainer.innerHTML = '';
+        printMapContainer.appendChild(clone);
+    }
+
+    // 2. Sincronizar Datos Generales y Ficha Offcanvas (1/4 de la página)
+    const printFindingsTbody = document.getElementById('print-findings-tbody');
+    const liveFindingsTbody  = document.getElementById('tbody-sidebar-findings');
+    if (printFindingsTbody && liveFindingsTbody) {
+        printFindingsTbody.innerHTML = liveFindingsTbody.innerHTML;
+    }
+
+    const printBudgetPrice = document.getElementById('print-budget-price');
+    const liveBudgetPrice  = document.getElementById('odonto-sidebar-price');
+    if (printBudgetPrice && liveBudgetPrice) {
+        printBudgetPrice.textContent = liveBudgetPrice.textContent;
+    }
+
+    const printBudgetCount = document.getElementById('print-budget-count');
+    const liveBudgetCount  = document.getElementById('odonto-sidebar-count');
+    if (printBudgetCount && liveBudgetCount) {
+        printBudgetCount.textContent = liveBudgetCount.textContent;
+    }
+
+    const printNotes = document.getElementById('print-clinical-notes');
+    const liveNotes  = document.getElementById('odontograma-notas');
+    if (printNotes && liveNotes) {
+        printNotes.textContent = liveNotes.value || 'Sin observaciones clínicas particulares.';
+    }
+
+    const printAlias = document.getElementById('print-odonto-alias');
+    const liveAlias  = document.getElementById('odonto-alias-sidebar') || document.getElementById('odonto-alias-input');
+    if (printAlias && liveAlias) {
+        printAlias.textContent = liveAlias.value || window.ODONTO_ALIAS || 'Diagnóstico Inicial';
+    }
+
+    const printEstado = document.getElementById('print-odonto-estado');
+    const liveEstado  = document.getElementById('odonto-estado-sidebar');
+    if (printEstado && liveEstado) {
+        printEstado.textContent = liveEstado.value || window.ODONTO_ESTADO || 'En Proceso';
+    }
+
+    // Desplegar la vista previa de impresión
+    previewModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+};
+
+window.cerrarVistaImpresionOdonto = function() {
+    const previewModal = document.getElementById('modalPrintPreviewOdonto');
+    if (previewModal) {
+        previewModal.classList.remove('active');
+    }
+    document.body.style.overflow = '';
+};
+
+window.ejecutarImpresionOdonto = function() {
+    window.print();
 };
 
 /**

@@ -310,34 +310,33 @@
     stroke-width: 2.2;
 }
 
-/* 🔴 Grupo 1: Patología Activa (Rojo Neón) */
-.tooth-surface.surface-pending,
-.tooth-surface[data-category="PENDING"],
-.tooth-surface[data-state="PENDING_TREATMENT"] {
+/* 🎨 Superficies Con Condición Dinámica desde Catálogo (Anti-Hardcode) */
+.tooth-surface.has-condition {
+    stroke-width: 1.5;
+    fill: var(--surf-color, #FF3B30) !important;
+    stroke: var(--surf-stroke, rgba(255, 255, 255, 0.5)) !important;
+    filter: drop-shadow(0 0 6px var(--surf-color, rgba(255, 59, 48, 0.85))) !important;
+}
+
+/* Fallbacks por clases si no hay variable CSS inline */
+.tooth-surface.surface-pending:not([style*="--surf-color"]) {
     fill: #FF3B30 !important;
     stroke: #ff6b64 !important;
     filter: drop-shadow(0 0 6px rgba(255, 59, 48, 0.85)) !important;
 }
 
-/* 🔵 Grupo 2A: Restauración Adaptada / Buena (Azul Eléctrico) */
-.tooth-surface.surface-completed,
-.tooth-surface[data-category="EXISTING"],
-.tooth-surface[data-state="EXISTING_CONDITION"] {
+.tooth-surface.surface-completed:not([style*="--surf-color"]) {
     fill: #007AFF !important;
     stroke: #5ac8fa !important;
     filter: drop-shadow(0 0 6px rgba(0, 122, 255, 0.85)) !important;
 }
 
-/* 🟠 Grupo 2B: Restauración Desadaptada / Mala (Ámbar Neón) */
-.tooth-surface.surface-defective,
-.tooth-surface[data-condition*="DEFECTIVE"],
-.tooth-surface[data-category="DEFECTIVE"] {
+.tooth-surface.surface-defective:not([style*="--surf-color"]) {
     fill: #FF9500 !important;
     stroke: #ffcc00 !important;
     filter: drop-shadow(0 0 6px rgba(255, 149, 0, 0.9)) !important;
 }
 
-/* 🟢 Grupo 3: Sano / Sin Alteraciones */
 .tooth-surface.surface-healthy {
     fill: #ffffff !important;
     stroke: #cbd5e1 !important;
@@ -849,5 +848,208 @@
 }
 .odonto-stage-main.pan-mode:active {
     cursor: grabbing !important;
+}
+
+/* ==========================================================================
+   ESTILOS PREMIUM: MODAL CLÍNICO Y PREVISUALIZACIÓN DE PIEZA (3D & 2D)
+   ========================================================================== */
+.odonto-modal-tooth-showcase {
+    background: linear-gradient(145deg, rgba(13, 31, 68, 0.9), rgba(5, 16, 40, 0.95));
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    border-radius: 18px;
+    padding: 1.25rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    text-align: center;
+}
+
+.odonto-modal-upright-wrap {
+    background: radial-gradient(circle, rgba(0, 229, 255, 0.12) 0%, rgba(7, 19, 38, 0.4) 70%, transparent 100%);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.odonto-modal-upright-img {
+    max-height: 160px;
+    max-width: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.55));
+    transition: transform 0.3s ease;
+}
+
+.odonto-modal-upright-img:hover {
+    transform: scale(1.04);
+}
+
+.odonto-modal-crown-wrap {
+    background: rgba(10, 25, 55, 0.8);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 14px;
+    padding: 10px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.odonto-modal-crown-img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.odonto-surface-indicator-badge {
+    background: rgba(0, 229, 255, 0.15);
+    border: 1px solid rgba(0, 229, 255, 0.35);
+    color: #00E5FF;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 50px;
+    letter-spacing: 0.5px;
+}
+
+/* Selector de Dentición: Contraste y Visibilidad */
+.odonto-badge-dentition {
+    color: rgba(255, 255, 255, 0.85);
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.odonto-tool-btn:hover .odonto-badge-dentition,
+.odonto-tool-btn.active .odonto-badge-dentition {
+    color: #00E5FF !important;
+    text-shadow: 0 0 8px rgba(0, 229, 255, 0.8);
+}
+
+/* ==========================================================================
+   VISTA PREVIA DE IMPRESIÓN PERSONALIZADA (3/4 MAPA + 1/4 DATOS OFFCANVAS)
+   ========================================================================== */
+#modalPrintPreviewOdonto {
+    position: fixed;
+    inset: 0;
+    z-index: 10500;
+    background: rgba(4, 12, 28, 0.95);
+    backdrop-filter: blur(16px);
+    overflow-y: auto;
+    display: none;
+}
+
+#modalPrintPreviewOdonto.active {
+    display: block;
+}
+
+.odonto-print-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 25, 55, 0.95);
+    border-bottom: 1px solid rgba(0, 229, 255, 0.3);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.odonto-print-sheet {
+    background: #ffffff;
+    color: #1e293b;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 24px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.odonto-print-header {
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+}
+
+.odonto-print-split-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.odonto-print-map-col {
+    flex: 0 0 75%;
+    max-width: 75%;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.odonto-print-side-col {
+    flex: 0 0 25%;
+    max-width: 25%;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 14px;
+}
+
+/* Reglas Estrictas de Impresión @media print */
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    
+    #modalPrintPreviewOdonto,
+    #modalPrintPreviewOdonto * {
+        visibility: visible !important;
+    }
+
+    #modalPrintPreviewOdonto {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+
+    .odonto-print-toolbar {
+        display: none !important;
+    }
+
+    .odonto-print-sheet {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        border-radius: 0 !important;
+    }
+
+    .odonto-print-split-row {
+        display: flex !important;
+        flex-direction: row !important;
+    }
+
+    .odonto-print-map-col {
+        flex: 0 0 75% !important;
+        max-width: 75% !important;
+    }
+
+    .odonto-print-side-col {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+    }
+
+    .d-print-none {
+        display: none !important;
+    }
 }
 
