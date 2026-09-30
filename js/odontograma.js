@@ -33,13 +33,42 @@ window.odontoModalContext = {
     selectedCondition: 'CARIES'
 };
 
-// Definición de Cuadrantes FDI
-const ODONTO_QUADRANTS = {
+// Definición de Cuadrantes FDI (Permanente y Temporal)
+const ODONTO_QUADRANTS_PERMANENT = {
     Q1: [18, 17, 16, 15, 14, 13, 12, 11], // Superior Derecho
     Q2: [21, 22, 23, 24, 25, 26, 27, 28], // Superior Izquierdo
     Q4: [48, 47, 46, 45, 44, 43, 42, 41], // Inferior Derecho
     Q3: [31, 32, 33, 34, 35, 36, 37, 38]  // Inferior Izquierdo
 };
+
+const ODONTO_QUADRANTS_TEMPORARY = {
+    Q1: [55, 54, 53, 52, 51], // Superior Derecho Temporal (5)
+    Q2: [61, 62, 63, 64, 65], // Superior Izquierdo Temporal (6)
+    Q4: [85, 84, 83, 82, 81], // Inferior Derecho Temporal (8)
+    Q3: [71, 72, 73, 74, 75]  // Inferior Izquierdo Temporal (7)
+};
+
+const ODONTO_QUADRANTS = ODONTO_QUADRANTS_PERMANENT;
+
+function getDeciduousArchetype(id) {
+    const num = parseInt(id, 10);
+    const quad = Math.floor(num / 10);
+    const digit = num % 10;
+    if (quad === 5) {
+        const map5 = { 1: 11, 2: 12, 3: 13, 4: 14, 5: 16 };
+        return map5[digit] || 16;
+    } else if (quad === 6) {
+        const map6 = { 1: 21, 2: 22, 3: 23, 4: 24, 5: 26 };
+        return map6[digit] || 26;
+    } else if (quad === 7) {
+        const map7 = { 1: 31, 2: 32, 3: 33, 4: 34, 5: 36 };
+        return map7[digit] || 36;
+    } else if (quad === 8) {
+        const map8 = { 1: 41, 2: 42, 3: 43, 4: 44, 5: 46 };
+        return map8[digit] || 46;
+    }
+    return num;
+}
 
 // Catálogo Clínico Canónico de Patologías y Procedimientos
 // Catálogo Clínico Canónico de Patologías y Procedimientos (3 Grupos SaaS)
@@ -488,8 +517,14 @@ function getToothImgPath(filename) {
     return `img/teeth/${filename}`;
 }
 
+function getToothImgPathForTooth(toothId, upright = false) {
+    const archId = getDeciduousArchetype(toothId);
+    const prefix = upright ? 'tooth_upright_' : 'tooth_';
+    return getToothImgPath(`${prefix}${archId}.png`);
+}
+
 /**
- * Renderiza el Odontograma Completo de 32 Piezas agrupado por cuadrantes
+ * Renderiza el Odontograma Completo (32 Permanentes o 20 Temporales) agrupado por cuadrantes
  */
 window.renderOdontogram = function(containerId, patientId) {
     const container = document.getElementById(containerId);
@@ -497,22 +532,27 @@ window.renderOdontogram = function(containerId, patientId) {
 
     if (patientId) window.odontogramState.patientId = patientId;
 
+    const quads = (window.odontogramState.dentitionType === 'TEMPORARY') 
+        ? ODONTO_QUADRANTS_TEMPORARY 
+        : ODONTO_QUADRANTS_PERMANENT;
+
     let html = `
         <div class="odonto-board-outer">
             <div class="odonto-board-wrapper" style="transform: scale(${window.currentOdontoZoom || 1});">
                 <!-- ARCADA SUPERIOR (MAXILAR) -->
                 <div class="odonto-arch-row upper-arch">
-                    <!-- Cuadrante 1: Superior Derecho (18 al 11) -->
+                    <!-- Cuadrante 1: Superior Derecho -->
                     <div class="odonto-quadrant quadrant-1" data-quadrant="1">
     `;
 
-    ODONTO_QUADRANTS.Q1.forEach(id => {
+    quads.Q1.forEach(id => {
         const fam = getToothFamily(id).toLowerCase();
+        const archId = getDeciduousArchetype(id);
         html += `
             <div class="tooth-card upper-arch family-${fam}" data-tooth="${id}">
                 <span class="tooth-number">${id}</span>
                 <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
-                    <img src="${getToothImgPath('tooth_' + id + '.png')}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${id}.png';}" />
+                    <img src="${getToothImgPathForTooth(id, false)}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${archId}.png';}" />
                 </div>
                 ${generateToothSvg(id)}
             </div>
@@ -525,17 +565,18 @@ window.renderOdontogram = function(containerId, patientId) {
                     <!-- Línea Media Superior -->
                     <div class="odonto-midline" title="Línea Media Dental"></div>
 
-                    <!-- Cuadrante 2: Superior Izquierdo (21 al 28) -->
+                    <!-- Cuadrante 2: Superior Izquierdo -->
                     <div class="odonto-quadrant quadrant-2" data-quadrant="2">
     `;
 
-    ODONTO_QUADRANTS.Q2.forEach(id => {
+    quads.Q2.forEach(id => {
         const fam = getToothFamily(id).toLowerCase();
+        const archId = getDeciduousArchetype(id);
         html += `
             <div class="tooth-card upper-arch family-${fam}" data-tooth="${id}">
                 <span class="tooth-number">${id}</span>
                 <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
-                    <img src="${getToothImgPath('tooth_' + id + '.png')}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${id}.png';}" />
+                    <img src="${getToothImgPathForTooth(id, false)}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${archId}.png';}" />
                 </div>
                 ${generateToothSvg(id)}
             </div>
@@ -553,17 +594,18 @@ window.renderOdontogram = function(containerId, patientId) {
 
                 <!-- ARCADA INFERIOR (MANDÍBULA) -->
                 <div class="odonto-arch-row lower-arch">
-                    <!-- Cuadrante 4: Inferior Derecho (48 al 41) -->
+                    <!-- Cuadrante 4: Inferior Derecho -->
                     <div class="odonto-quadrant quadrant-4" data-quadrant="4">
     `;
 
-    ODONTO_QUADRANTS.Q4.forEach(id => {
+    quads.Q4.forEach(id => {
         const fam = getToothFamily(id).toLowerCase();
+        const archId = getDeciduousArchetype(id);
         html += `
             <div class="tooth-card lower-arch family-${fam}" data-tooth="${id}">
                 ${generateToothSvg(id)}
                 <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
-                    <img src="${getToothImgPath('tooth_' + id + '.png')}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${id}.png';}" />
+                    <img src="${getToothImgPathForTooth(id, false)}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${archId}.png';}" />
                 </div>
                 <span class="tooth-number">${id}</span>
             </div>
@@ -576,17 +618,18 @@ window.renderOdontogram = function(containerId, patientId) {
                     <!-- Línea Media Inferior -->
                     <div class="odonto-midline" title="Línea Media Dental"></div>
 
-                    <!-- Cuadrante 3: Inferior Izquierdo (31 al 38) -->
+                    <!-- Cuadrante 3: Inferior Izquierdo -->
                     <div class="odonto-quadrant quadrant-3" data-quadrant="3">
     `;
 
-    ODONTO_QUADRANTS.Q3.forEach(id => {
+    quads.Q3.forEach(id => {
         const fam = getToothFamily(id).toLowerCase();
+        const archId = getDeciduousArchetype(id);
         html += `
             <div class="tooth-card lower-arch family-${fam}" data-tooth="${id}">
                 ${generateToothSvg(id)}
                 <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
-                    <img src="${getToothImgPath('tooth_' + id + '.png')}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${id}.png';}" />
+                    <img src="${getToothImgPathForTooth(id, false)}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${archId}.png';}" />
                 </div>
                 <span class="tooth-number">${id}</span>
             </div>
@@ -818,11 +861,12 @@ function updateRadialMenuUI() {
     if (topBadge) topBadge.textContent = currentRadialTooth || '16';
     if (surfEl) surfEl.textContent = currentRadialSurface.toUpperCase();
     if (toothImg && currentRadialTooth) {
-        toothImg.src = getToothImgPath(`tooth_upright_${currentRadialTooth}.png`);
+        const archId = getDeciduousArchetype(currentRadialTooth);
+        toothImg.src = getToothImgPathForTooth(currentRadialTooth, true);
         toothImg.onerror = function() {
             if (!this.dataset.fallback) {
                 this.dataset.fallback = '1';
-                this.src = `../img/teeth/tooth_upright_${currentRadialTooth}.png`;
+                this.src = `../img/teeth/tooth_upright_${archId}.png`;
             }
         };
     }
@@ -1395,7 +1439,7 @@ function updateLiveJsonViewer() {
 window.changeOdontoZoom = function(delta) {
     let newZoom = Math.round((window.currentOdontoZoom + delta) * 10) / 10;
     if (newZoom < 0.6) newZoom = 0.6;
-    if (newZoom > 1.4) newZoom = 1.4;
+    if (newZoom > 1.8) newZoom = 1.8;
     window.setOdontoZoom(newZoom);
 };
 
@@ -1412,6 +1456,102 @@ window.setOdontoZoom = function(zoomVal) {
     const label = document.getElementById('odonto-zoom-label');
     if (label) {
         label.textContent = `${Math.round(zoomVal * 100)}%`;
+    }
+};
+
+/**
+ * Controladores de Dentición (Permanente 32 vs Temporal 20)
+ */
+window.setDentitionType = function(type) {
+    window.odontogramState.dentitionType = type;
+    
+    // Sincronizar botones de sidebar
+    const btnP = document.getElementById('btn-dentition-perm');
+    const btnT = document.getElementById('btn-dentition-temp');
+    if (btnP && btnT) {
+        if (type === 'PERMANENT') {
+            btnP.classList.add('active');
+            btnP.classList.remove('text-muted');
+            btnT.classList.remove('active');
+            btnT.classList.add('text-muted');
+        } else {
+            btnT.classList.add('active');
+            btnT.classList.remove('text-muted');
+            btnP.classList.remove('active');
+            btnP.classList.add('text-muted');
+        }
+    }
+
+    // Sincronizar botones de header
+    const hdrP = document.getElementById('btn-hdr-perm');
+    const hdrT = document.getElementById('btn-hdr-temp');
+    if (hdrP && hdrT) {
+        if (type === 'PERMANENT') {
+            hdrP.classList.add('active');
+            hdrP.classList.remove('text-muted');
+            hdrT.classList.remove('active');
+            hdrT.classList.add('text-muted');
+        } else {
+            hdrT.classList.add('active');
+            hdrT.classList.remove('text-muted');
+            hdrP.classList.remove('active');
+            hdrP.classList.add('text-muted');
+        }
+    }
+
+    // Re-renderizar odontograma conservando paciente
+    window.renderOdontogram('odontograma-svg-container', window.odontogramState.patientId);
+};
+
+window.toggleDentitionType = function() {
+    const current = window.odontogramState.dentitionType || 'PERMANENT';
+    const next = (current === 'PERMANENT') ? 'TEMPORARY' : 'PERMANENT';
+    window.setDentitionType(next);
+};
+
+/**
+ * Herramientas de la Barra Superior Estilo Rayos X
+ */
+window.setActiveOdontoTool = function(tool) {
+    ['btn-tool-pointer', 'btn-tool-pan'].forEach(id => {
+        document.getElementById(id)?.classList.remove('active');
+    });
+    if (tool === 'pointer') {
+        document.getElementById('btn-tool-pointer')?.classList.add('active');
+        document.querySelector('.odonto-stage-main')?.classList.remove('pan-mode');
+    } else if (tool === 'pan') {
+        document.getElementById('btn-tool-pan')?.classList.add('active');
+        document.querySelector('.odonto-stage-main')?.classList.add('pan-mode');
+    }
+};
+
+window.setOdontoDiagScope = function(scope) {
+    window.odontoModalContext.scope = scope;
+    ['btn-diag-faces', 'btn-diag-crown', 'btn-diag-tooth'].forEach(id => {
+        document.getElementById(id)?.classList.remove('active');
+    });
+    if (scope === 'SURFACE') document.getElementById('btn-diag-faces')?.classList.add('active');
+    if (scope === 'CROWN') document.getElementById('btn-diag-crown')?.classList.add('active');
+    if (scope === 'TOOTH') document.getElementById('btn-diag-tooth')?.classList.add('active');
+};
+
+window.focusOdontoNotes = function() {
+    const notes = document.getElementById('odontograma-notas');
+    if (notes) {
+        const sidebar = document.getElementById('odontoSidebar');
+        if (sidebar && sidebar.classList.contains('collapsed')) {
+            sidebar.classList.remove('collapsed');
+        }
+        notes.focus();
+        notes.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+};
+
+window.focusOdontoArch = function(arch) {
+    const selector = (arch === 'upper') ? '.upper-arch' : '.lower-arch';
+    const el = document.querySelector(selector);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 };
 

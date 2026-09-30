@@ -40,6 +40,7 @@ my $paciente = {
     id_paciente => $id_target,
     nombre      => 'Desconocido',
     curp        => '-',
+    correo      => '-',
     f_nac       => '-',
     sexo        => '-',
 };
@@ -47,7 +48,8 @@ my $paciente = {
 foreach my $p (@$pacientes_ref) {
     if ($p->[0] eq $id_target) {
         $paciente->{nombre} = $p->[2] || 'Desconocido';
-        $paciente->{curp}   = $p->[5] || '-';
+        $paciente->{curp}   = $p->[4] || '-';
+        $paciente->{correo} = $p->[5] || '-';
         $paciente->{f_nac}  = $p->[6] || '-';
         $paciente->{sexo}   = $p->[7] || '-';
         last;
@@ -133,9 +135,9 @@ print <<HTML;
 
     <style>
         :root {
-            --odonto-header-h: 70px;
+            --odonto-header-h: 68px;
             --odonto-sidebar-w: 360px;
-            --odonto-canvas-bg: #f8fafc;
+            --odonto-canvas-bg: #071326;
         }
         body.odonto-viewer-mode {
             margin: 0;
@@ -155,15 +157,56 @@ print <<HTML;
         }
         .odonto-viewer-header {
             height: var(--odonto-header-h);
-            background: linear-gradient(135deg, #0A2A66 0%, #082050 100%);
+            background: linear-gradient(135deg, #061938 0%, #030d1e 100%);
             color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 1.25rem;
             z-index: 30;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-            border-bottom: 2px solid var(--md-teal-clinical, #19B7A5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border-bottom: 1.5px solid rgba(0, 229, 255, 0.25);
+        }
+        .odonto-rayos-x-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .odonto-tool-capsule {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+        }
+        .odonto-tool-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .odonto-tool-btn:hover {
+            background: rgba(0, 229, 255, 0.25);
+            color: #00e5ff;
+            transform: translateY(-1px);
+        }
+        .odonto-tool-btn.active {
+            background: rgba(0, 229, 255, 0.35);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
         }
         .odonto-viewer-body {
             display: flex;
@@ -193,25 +236,45 @@ print <<HTML;
             flex-direction: column;
             overflow: auto;
             position: relative;
-            background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%);
+            background: radial-gradient(circle at 50% 30%, #0d2348 0%, #081730 60%, #030b17 100%);
             padding: 1.5rem;
             align-items: center;
             justify-content: flex-start;
+        }
+        .odonto-stage-main::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0, 229, 255, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.035) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
         }
         .odonto-hud-toolbar {
             position: sticky;
             top: 0;
             z-index: 15;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(10, 25, 55, 0.75);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(0, 229, 255, 0.25);
             border-radius: 50px;
             padding: 6px 16px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 1.5rem;
+        }
+        .btn-dentition-toggle {
+            transition: all 0.2s ease;
+            font-size: 0.75rem;
+        }
+        .btn-dentition-toggle.active {
+            background: #0A2A66 !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(10, 42, 102, 0.3);
         }
         .odonto-findings-table th {
             font-size: 0.72rem;
@@ -229,32 +292,84 @@ print <<HTML;
     <div class="odonto-viewer-layout">
         <!-- HEADER / NAVBAR CORPORATIVO MEDENTIA -->
         <header class="odonto-viewer-header">
-            <div class="d-flex align-items-center gap-3">
+            <!-- Botón Volver y Toggle Sidebar (Izquierda) -->
+            <div class="d-flex align-items-center gap-2">
                 <a href="render_expediente_clinico.pl?id=$paciente->{id_paciente}#tab6" class="btn btn-outline-light btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-2" title="Volver al Expediente Clínico">
                     <i class="bi bi-arrow-left"></i>
-                    <span class="d-none d-md-inline">Expediente</span>
+                    <span class="d-none d-lg-inline">Expediente</span>
                 </a>
-                <button class="btn btn-sm btn-link text-white text-decoration-none p-1" onclick="toggleOdontoSidebar()" title="Mostrar/Ocultar Panel Lateral">
-                    <i class="bi bi-layout-sidebar-inset fs-5"></i>
+                <button class="btn btn-sm btn-outline-light rounded-circle p-2 d-flex align-items-center justify-content-center" onclick="toggleOdontoSidebar()" title="Mostrar/Ocultar Panel de Información">
+                    <i class="bi bi-layout-sidebar-inset fs-6"></i>
                 </button>
-                <div class="vr bg-white opacity-25 d-none d-sm-block"></div>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-teal text-white rounded-pill px-3 py-1 fw-black" style="background-color: var(--md-teal-clinical, #19B7A5) !important;">FDI / ISO 3950</span>
-                    <h5 class="fw-black mb-0 text-white text-nowrap d-none d-lg-block">OSOdontograma Viewer Pro</h5>
-                </div>
             </div>
 
-            <!-- Ficha del Paciente y Alias (Centro) -->
-            <div class="d-none d-md-flex align-items-center gap-3 bg-white bg-opacity-10 px-3 py-1 rounded-pill border border-white border-opacity-10">
-                <div class="text-white">
-                    <i class="bi bi-person-fill text-teal me-1" style="color: var(--md-teal-clinical);"></i>
-                    <span class="fw-bold">$paciente->{nombre}</span>
-                    <span class="opacity-50 small ms-1">($edad a&ntilde;os, $paciente->{sexo})</span>
+            <!-- BARRA DE HERRAMIENTAS Y OPCIONES ESTILO RAYOS X (Centro - Imagen 4) -->
+            <div class="odonto-rayos-x-toolbar d-none d-md-flex">
+                <!-- Cápsula 1: Archivo y Acciones -->
+                <div class="odonto-tool-capsule" title="Herramientas de Estudio">
+                    <button type="button" class="odonto-tool-btn" onclick="toggleOdontoSidebar()" title="Ver Ficha y Hallazgos">
+                        <i class="bi bi-folder2-open"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" onclick="loadOdontogramaFromServer(window.ID_PACIENTE, window.ID_ODONTO)" title="Recargar del Servidor">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" onclick="window.print()" title="Imprimir Odontograma">
+                        <i class="bi bi-printer"></i>
+                    </button>
                 </div>
-                <div class="vr bg-white opacity-25"></div>
-                <div class="d-flex align-items-center gap-1 text-white">
-                    <i class="bi bi-bookmark-star-fill text-warning me-1 small"></i>
-                    <input type="text" id="odonto-alias-input" class="form-control form-control-sm border-0 bg-transparent text-white fw-bold p-0 shadow-none" style="width: 200px; font-size: 0.85rem;" value="$odonto_alias" placeholder="Alias del Odontograma" title="Nombre / Alias de este estudio">
+
+                <!-- Cápsula 2: Navegación y Zoom -->
+                <div class="odonto-tool-capsule" title="Navegación y Zoom">
+                    <button type="button" class="odonto-tool-btn active" id="btn-tool-pointer" onclick="setActiveOdontoTool('pointer')" title="Selección / Puntero">
+                        <i class="bi bi-cursor-fill"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" id="btn-tool-pan" onclick="setActiveOdontoTool('pan')" title="Modo Desplazamiento (Pan)">
+                        <i class="bi bi-arrows-move"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" onclick="changeOdontoZoom(0.1)" title="Acercar (Zoom +)">
+                        <i class="bi bi-zoom-in"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" onclick="changeOdontoZoom(-0.1)" title="Alejar (Zoom -)">
+                        <i class="bi bi-zoom-out"></i>
+                    </button>
+                </div>
+
+                <!-- Cápsula 3: Diagnóstico y Anotaciones -->
+                <div class="odonto-tool-capsule" title="Herramientas Clínicas">
+                    <button type="button" class="odonto-tool-btn active" id="btn-diag-faces" onclick="setOdontoDiagScope('SURFACE')" title="Diagnóstico por Cara Anatómica">
+                        <i class="bi bi-bounding-box"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" id="btn-diag-crown" onclick="setOdontoDiagScope('CROWN')" title="Diagnóstico Corona Completa">
+                        <i class="bi bi-square"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" id="btn-diag-tooth" onclick="setOdontoDiagScope('TOOTH')" title="Diagnóstico Pieza Completa / Extracción">
+                        <i class="bi bi-circle"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" onclick="focusOdontoNotes()" title="Anotaciones y Hallazgos">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn text-danger" onclick="clearOdontogram()" title="Limpiar Marcas (Borrador)">
+                        <i class="bi bi-eraser-fill"></i>
+                    </button>
+                </div>
+
+                <!-- Cápsula 4: Vistas y Dentición -->
+                <div class="odonto-tool-capsule" title="Vistas Anatómicas">
+                    <button type="button" class="odonto-tool-btn active" id="btn-hdr-perm" onclick="setDentitionType('PERMANENT')" title="Dentición Permanente (32)">
+                        <span class="fw-bold" style="font-size: 0.75rem;">32</span>
+                    </button>
+                    <button type="button" class="odonto-tool-btn text-muted" id="btn-hdr-temp" onclick="setDentitionType('TEMPORARY')" title="Dentición Temporal / Infantil (20)">
+                        <span class="fw-bold" style="font-size: 0.75rem;">20</span>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" onclick="focusOdontoArch('upper')" title="Vista Maxilar Superior">
+                        <i class="bi bi-chevron-bar-up"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" onclick="focusOdontoArch('lower')" title="Vista Mandíbula Inferior">
+                        <i class="bi bi-chevron-bar-down"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn" onclick="resetOdontoZoom()" title="Restablecer Vista (100%)">
+                        <i class="bi bi-aspect-ratio"></i>
+                    </button>
                 </div>
             </div>
 
@@ -289,8 +404,18 @@ print <<HTML;
                         </div>
                         <span class="badge bg-secondary-subtle text-secondary rounded-pill border" style="font-size: 0.65rem;">$id_odonto_activo</span>
                     </div>
-                    <div class="text-muted small mb-3">
-                        <span>CURP: $paciente->{curp}</span> &bull; <span>Edad: $edad</span>
+                    <div class="text-muted small mb-2">
+                        <span>CORREO: $paciente->{correo}</span> &bull; <span>Edad: $edad a&ntilde;os ($paciente->{sexo})</span>
+                    </div>
+
+                    <!-- Selector de Dentición (Permanente vs Temporal) -->
+                    <div class="mb-3 p-1 bg-white rounded-pill border shadow-xs d-flex">
+                        <button type="button" class="btn btn-xs rounded-pill flex-fill fw-bold py-1 btn-dentition-toggle active" id="btn-dentition-perm" onclick="setDentitionType('PERMANENT')">
+                            <i class="bi bi-grid-3x3-gap-fill me-1"></i>Permanente (32)
+                        </button>
+                        <button type="button" class="btn btn-xs rounded-pill flex-fill fw-bold py-1 btn-dentition-toggle text-muted" id="btn-dentition-temp" onclick="setDentitionType('TEMPORARY')">
+                            <i class="bi bi-stars me-1"></i>Temporal (20)
+                        </button>
                     </div>
 
                     <!-- Input de Alias en Sidebar -->
@@ -363,28 +488,19 @@ print <<HTML;
             <!-- ESCENARIO CENTRAL DEL ODONTOGRAMA (CANVAS COMPLETO) -->
             <main class="odonto-stage-main">
                 
-                <!-- HUD FLOTANTE SUPERIOR CON CONTROLES DE ZOOM Y ACCIONES -->
+                <!-- HUD FLOTANTE SUPERIOR CON CONTROLES DE ZOOM -->
                 <div class="odonto-hud-toolbar">
                     <div class="d-flex align-items-center gap-1">
-                        <button type="button" class="btn btn-xs btn-light rounded-circle px-2 py-1 text-muted border shadow-xs" onclick="changeOdontoZoom(-0.1)" title="Zoom Out (Alejar)">
+                        <button type="button" class="btn btn-xs btn-outline-light rounded-circle px-2 py-1 text-white border-0 shadow-xs" onclick="changeOdontoZoom(-0.1)" title="Zoom Out (Alejar)">
                             <i class="bi bi-dash-lg"></i>
                         </button>
-                        <span class="small fw-black text-navy px-2" id="odonto-zoom-label" style="min-width: 48px; text-align: center;">100%</span>
-                        <button type="button" class="btn btn-xs btn-light rounded-circle px-2 py-1 text-muted border shadow-xs" onclick="changeOdontoZoom(0.1)" title="Zoom In (Acercar)">
+                        <span class="small fw-black text-white px-2" id="odonto-zoom-label" style="min-width: 48px; text-align: center;">100%</span>
+                        <button type="button" class="btn btn-xs btn-outline-light rounded-circle px-2 py-1 text-white border-0 shadow-xs" onclick="changeOdontoZoom(0.1)" title="Zoom In (Acercar)">
                             <i class="bi bi-plus-lg"></i>
                         </button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1 ms-1 fw-bold" onclick="resetOdontoZoom()" title="Restablecer Zoom">
+                        <button type="button" class="btn btn-xs btn-outline-info rounded-pill px-2 py-1 ms-1 fw-bold text-info" onclick="resetOdontoZoom()" title="Restablecer Zoom a 100%">
                             <i class="bi bi-aspect-ratio me-1"></i>100%
                         </button>
-                    </div>
-
-                    <div class="vr bg-secondary opacity-25"></div>
-
-                    <!-- Botones de Acción de Prueba / Convención -->
-                    <div class="d-flex align-items-center gap-1">
-                        <span class="badge rounded-pill bg-light border text-muted px-2 py-1 small fw-bold">
-                            <i class="bi bi-cursor-fill text-teal me-1" style="color: var(--md-teal-clinical);"></i>Click en cara anatómica para diagnosticar
-                        </span>
                     </div>
                 </div>
 

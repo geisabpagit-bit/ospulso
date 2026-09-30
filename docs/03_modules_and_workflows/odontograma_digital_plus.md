@@ -124,7 +124,30 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 | **Fase 6** | Sanitización Visual, Prevención DataTables TN/4, Redirección #tab6 y Pipeline UTF-8 | Eliminación de botones redundantes en Nivel 1 y 3; supresión de `<table>` con `colspan` en 0 registros para erradicar alerta `tn/4` de DataTables; navegación persistente a `render_expediente_clinico.pl?id=[id]#tab6` en callbacks CRUD; pipeline atómico `:raw` con saneamiento automático de mojibake (`ÃƒÂ­` -> `í`). | ✅ COMPLETADA |
 | **Fase 7** | Integración en Wizard Clínico (Paso 3) y Consulta Detalles | Incorporación de `#tablaConsultaOdontogramas` (6 columnas) en `views/partials/consultas/step_exploracion.pl` con switch reactivo; soporte multi-estudio en APIs de cierre; despliegue de odontogramas y estudios de rayos X (PACS) en `views/consulta_detalles.pl` con enlace directo a visores clínicos. | ✅ COMPLETADA |
 | **Fase 8** | Evolución Dental ("Antes y Después"), Facturación en Caja y Sello | Clonación profunda (`clone`), extracción de presupuesto (`get_treatments`), inyección reactiva en Caja (Paso 6) y cambio atómico a estado `Finalizado` al cerrar la consulta en `api/cerrar_consulta_privado.pl`. | ✅ COMPLETADA |
-| **Fase 9** | Modelado Porcelana 3D en PNG Transparente, Puente Circular HUD y Catálogo SaaS 3 Grupos | 32 piezas de porcelana 3D en PNG transparente con raíces anatómicas (`img/teeth/`), HUD orbital concéntrico flotante con pieza 3D en núcleo, catálogo en 3 grupos (Patología, Restauración, Normal), badges adaptada/desadaptada y leyenda sanitizada. | ✅ COMPLETADA |
+| **Fase 10** | Visor Quirúrgico Pro, Dentición Dual (32/20), Toolbar Estilo Rayos X & Glassmorphism | Porcelana pulida blanca e impecable (Zirconia / Bleached E-Max); toolbar flotante modular inspirado en consolas radiológicas DICOM; soporte de Dentición Dual (Permanente 32 vs Temporal/Decidua 20); escala base 140% como 100% nativo; fondo azul marino quirúrgico (`#071326`); popup radial con glassmorphism translúcido; corrección de `CORREO:` en sidebar. | ✅ COMPLETADA |
+
+---
+
+### 2.9 Visor Quirúrgico Pro & Consola Estilo Rayos X (Fase 10)
+- **Header Depurado con Barra de Herramientas Estilo Rayos X**:
+  - Eliminación de datos redundantes en la cabecera (badges duplicados y cápsula del paciente, centralizados en el panel lateral *offcanvas*).
+  - Integración de 4 cápsulas modulares con glassmorphism en cabecera:
+    1. **Archivo / Estudio**: Ver ficha de paciente, recargar datos del servidor, impresión clínica rápida.
+    2. **Navegación / Zoom**: Modos Puntero y Paneo/Arrastre (`.pan-mode`), Zoom In/Out, Reset a 100%.
+    3. **Diagnóstico**: Modos por Cara Anatómica (`SURFACE`), Corona Completa (`CROWN`), Pieza Completa (`TOOTH`), Anotaciones y Limpiador/Borrador.
+    4. **Vistas y Dentición**: Selector de dentición 32/20, foco en arcada superior, foco en arcada inferior y reset de encuadre.
+- **Soporte de Dentición Dual (Permanente vs Temporal / Decidua)**:
+  - **Dentición Permanente (32 piezas)**: Cuadrantes 1, 2, 4, 3 (FDI 11 al 48).
+  - **Dentición Temporal / Infantil (20 piezas)**: Cuadrantes 5, 6, 8, 7 (FDI 51 al 85), con mapeo anatómico y resolución automática de arquetipos morfológicos (`getDeciduousArchetype`).
+  - Conmutador reactivo accesible tanto en la barra superior como en el panel lateral izquierdo.
+- **Lienzo Quirúrgico de Alto Contraste (Deep Dental Slate)**:
+  - Fondo azul marino quirúrgico (`radial-gradient` de `#0d2348` a `#030b17`) con sutil cuadrícula milimétrica médica translúcida (32px cyan grid).
+  - Escala base nativa aumentada a proporción 1.4x para que el nivel de zoom 100% ofrezca ergonomía táctil y visual óptima.
+- **Piezas de Porcelana Pulida Impecable (Zirconia / Bleached E-Max)**:
+  - Modelado fotorrealista de cerámica dental sin manchas de cemento ni forámenes oscuros, con acabado glaseado de alto brillo y canales alfa 100% limpios.
+  - Menú radial circular flotante con glassmorphism translúcido (`rgba(10, 25, 55, 0.70)` y `blur(16px)`).
+- **Sanitización de Datos de Paciente**:
+  - Corrección de mapeo en `dat/pacientes.dat` para mostrar `CORREO:` en lugar de la etiqueta errónea `CURP:`.
 
 
 
