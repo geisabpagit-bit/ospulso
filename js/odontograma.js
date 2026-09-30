@@ -454,56 +454,68 @@ const ANATOMICAL_SURFACE_PATHS = {
     }
 };
 
+function getCrownImgPathForTooth(toothId) {
+    const archId = getDeciduousArchetype(toothId);
+    if (window.location.pathname.includes('/views/')) {
+        return `../img/teeth/crown_${archId}.png`;
+    }
+    return `img/teeth/crown_${archId}.png`;
+}
+
 /**
- * Genera el mapa clínico de 5 zonas vectoriales independientes (caja azul)
+ * Genera el mapa clínico híbrido (Porcelana Oclusal 3D + Capa SVG de 5 Caras Interactivas)
  */
 function generateToothSvg(toothId) {
     const map = getSurfaceMapping(toothId);
     const family = getToothFamily(toothId);
     const paths = ANATOMICAL_SURFACE_PATHS[family] || ANATOMICAL_SURFACE_PATHS.MOLAR;
+    const archId = getDeciduousArchetype(toothId);
 
     return `
-        <svg viewBox="0 0 100 100" class="tooth-svg-canvas family-${family.toLowerCase()}" data-tooth="${toothId}">
-            <g class="tooth" data-tooth="${toothId}" data-family="${family}">
-                <!-- Superficie Superior (${map.top}) -->
-                <path d="${paths.top}" 
-                      class="tooth-surface surface-top" 
-                      data-tooth="${toothId}" 
-                      data-surface="${map.top}"
-                      title="Diente ${toothId} - ${map.top.toUpperCase()}"></path>
-                
-                <!-- Superficie Inferior (${map.bottom}) -->
-                <path d="${paths.bottom}" 
-                      class="tooth-surface surface-bottom" 
-                      data-tooth="${toothId}" 
-                      data-surface="${map.bottom}"
-                      title="Diente ${toothId} - ${map.bottom.toUpperCase()}"></path>
-                
-                <!-- Superficie Izquierda (${map.left}) -->
-                <path d="${paths.left}" 
-                      class="tooth-surface surface-left" 
-                      data-tooth="${toothId}" 
-                      data-surface="${map.left}"
-                      title="Diente ${toothId} - ${map.left.toUpperCase()}"></path>
-                
-                <!-- Superficie Derecha (${map.right}) -->
-                <path d="${paths.right}" 
-                      class="tooth-surface surface-right" 
-                      data-tooth="${toothId}" 
-                      data-surface="${map.right}"
-                      title="Diente ${toothId} - ${map.right.toUpperCase()}"></path>
-                
-                <!-- Superficie Oclusal / Central (${map.center}) -->
-                <path d="${paths.center}" 
-                      class="tooth-surface surface-center" 
-                      data-tooth="${toothId}" 
-                      data-surface="${map.center}"
-                      title="Diente ${toothId} - ${map.center.toUpperCase()}"></path>
+        <div class="tooth-crown-wrapper family-${family.toLowerCase()}" data-tooth="${toothId}">
+            <img src="${getCrownImgPathForTooth(toothId)}" alt="Corona ${toothId}" class="tooth-crown-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/crown_${archId}.png';}" />
+            <svg viewBox="0 0 100 100" class="tooth-svg-canvas family-${family.toLowerCase()}" data-tooth="${toothId}">
+                <g class="tooth" data-tooth="${toothId}" data-family="${family}">
+                    <!-- Superficie Superior (${map.top}) -->
+                    <path d="${paths.top}" 
+                          class="tooth-surface surface-top" 
+                          data-tooth="${toothId}" 
+                          data-surface="${map.top}"
+                          title="Diente ${toothId} - ${map.top.toUpperCase()}"></path>
+                    
+                    <!-- Superficie Inferior (${map.bottom}) -->
+                    <path d="${paths.bottom}" 
+                          class="tooth-surface surface-bottom" 
+                          data-tooth="${toothId}" 
+                          data-surface="${map.bottom}"
+                          title="Diente ${toothId} - ${map.bottom.toUpperCase()}"></path>
+                    
+                    <!-- Superficie Izquierda (${map.left}) -->
+                    <path d="${paths.left}" 
+                          class="tooth-surface surface-left" 
+                          data-tooth="${toothId}" 
+                          data-surface="${map.left}"
+                          title="Diente ${toothId} - ${map.left.toUpperCase()}"></path>
+                    
+                    <!-- Superficie Derecha (${map.right}) -->
+                    <path d="${paths.right}" 
+                          class="tooth-surface surface-right" 
+                          data-tooth="${toothId}" 
+                          data-surface="${map.right}"
+                          title="Diente ${toothId} - ${map.right.toUpperCase()}"></path>
+                    
+                    <!-- Superficie Oclusal / Central (${map.center}) -->
+                    <path d="${paths.center}" 
+                          class="tooth-surface surface-center" 
+                          data-tooth="${toothId}" 
+                          data-surface="${map.center}"
+                          title="Diente ${toothId} - ${map.center.toUpperCase()}"></path>
 
-                <!-- Fisuras Anatómicas Oclusales -->
-                ${paths.fissures ? `<path d="${paths.fissures}" class="tooth-fissure-line" />` : ''}
-            </g>
-        </svg>
+                    <!-- Fisuras Anatómicas Oclusales -->
+                    ${paths.fissures ? `<path d="${paths.fissures}" class="tooth-fissure-line" />` : ''}
+                </g>
+            </svg>
+        </div>
     `;
 }
 

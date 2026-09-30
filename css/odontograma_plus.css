@@ -203,49 +203,89 @@
     filter: drop-shadow(0 0 12px rgba(255, 59, 48, 0.9)) saturate(1.2);
 }
 
-/* Superficies SVG Vectoriales (Mapa de Zonas Clínicas - Rectángulo Azul) */
-.tooth-svg-canvas {
+/* Contenedor Híbrido de Corona Oclusal (Porcelana 3D + Capa SVG Interactivo) */
+.tooth-crown-wrapper {
+    position: relative;
     width: 54px;
     height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: transform 0.2s ease;
+}
+
+.tooth-crown-wrapper.family-incisor {
+    width: 44px;
+    height: 44px;
+}
+
+.tooth-crown-wrapper.family-canine {
+    width: 46px;
+    height: 46px;
+}
+
+.tooth-crown-wrapper.family-premolar {
+    width: 49px;
+    height: 49px;
+}
+
+.tooth-crown-wrapper.family-molar {
+    width: 54px;
+    height: 54px;
+}
+
+.tooth-crown-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    z-index: 1;
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.55));
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.tooth-card:hover .tooth-crown-img {
+    transform: scale(1.08);
+    filter: drop-shadow(0 6px 14px rgba(0, 229, 255, 0.7));
+}
+
+.tooth-card.tooth-absent .tooth-crown-img {
+    opacity: 0.18;
+    filter: grayscale(1) drop-shadow(none);
+}
+
+.tooth-card.tooth-extraction-req .tooth-crown-img {
+    filter: drop-shadow(0 0 10px rgba(255, 59, 48, 0.8));
+}
+
+/* Superficies SVG Vectoriales (Mapa de Zonas Clínicas - Rectángulo Azul) */
+.tooth-svg-canvas {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
     overflow: visible;
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
     transition: transform 0.2s ease, filter 0.2s ease;
 }
 
-.tooth-svg-canvas.family-incisor {
-    width: 44px;
-    height: 44px;
-}
-
-.tooth-svg-canvas.family-canine {
-    width: 46px;
-    height: 46px;
-}
-
-.tooth-svg-canvas.family-premolar {
-    width: 49px;
-    height: 49px;
-}
-
-.tooth-svg-canvas.family-molar {
-    width: 54px;
-    height: 54px;
-}
-
 .tooth-fissure-line {
-    stroke: #334155;
-    stroke-width: 1.1;
+    stroke: rgba(0, 229, 255, 0.3);
+    stroke-width: 0.8;
     stroke-linecap: round;
     pointer-events: none;
     fill: none;
-    opacity: 0.55;
+    opacity: 0.4;
 }
 
-/* Superficies Clickeables */
+/* Superficies Clickeables Translúcidas sobre la Porcelana */
 .tooth-surface {
-    fill: rgba(255, 255, 255, 0.88);
-    stroke: #94a3b8;
-    stroke-width: 1.2;
+    fill: rgba(255, 255, 255, 0.04);
+    stroke: rgba(0, 229, 255, 0.45);
+    stroke-width: 1.1;
     stroke-linejoin: round;
     cursor: pointer;
     transition: fill 0.18s ease, stroke 0.18s ease, filter 0.18s ease, transform 0.15s ease;
