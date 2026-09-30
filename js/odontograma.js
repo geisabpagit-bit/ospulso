@@ -70,9 +70,8 @@ function getDeciduousArchetype(id) {
     return num;
 }
 
-// Catálogo Clínico Canónico de Patologías y Procedimientos
 // Catálogo Clínico Canónico de Patologías y Procedimientos (3 Grupos SaaS)
-const ODONTO_CATALOG = {
+window.ODONTO_CATALOG = window.ODONTO_CATALOG || {
     // ==========================================
     // 🔴 GRUPO 1: PATOLOGÍA / HALLAZGO
     // ==========================================
@@ -333,14 +332,50 @@ const ODONTO_CATALOG = {
 };
 
 // Alias de retrocompatibilidad
-ODONTO_CATALOG.AMALGAM_ADAPTED     = ODONTO_CATALOG.AMALGAM;
-ODONTO_CATALOG.COMPOSITE_ADAPTED   = ODONTO_CATALOG.COMPOSITE;
-ODONTO_CATALOG.CROWN_GOOD          = ODONTO_CATALOG.CROWN_DONE;
-ODONTO_CATALOG.CROWN_REQ           = ODONTO_CATALOG.CROWN_DEFECTIVE;
-ODONTO_CATALOG.SEALANT_REQ         = ODONTO_CATALOG.SEALANT_DEFECTIVE;
-ODONTO_CATALOG.ENDO_REQ            = ODONTO_CATALOG.ENDO_DEFECTIVE;
-ODONTO_CATALOG.ENDO_GOOD           = ODONTO_CATALOG.ENDO_DONE;
-ODONTO_CATALOG.IMPLANT_GOOD        = ODONTO_CATALOG.IMPLANT;
+window.ODONTO_CATALOG.AMALGAM_ADAPTED     = window.ODONTO_CATALOG.AMALGAM;
+window.ODONTO_CATALOG.COMPOSITE_ADAPTED   = window.ODONTO_CATALOG.COMPOSITE;
+window.ODONTO_CATALOG.CROWN_GOOD          = window.ODONTO_CATALOG.CROWN_DONE;
+window.ODONTO_CATALOG.CROWN_REQ           = window.ODONTO_CATALOG.CROWN_DEFECTIVE;
+window.ODONTO_CATALOG.SEALANT_REQ         = window.ODONTO_CATALOG.SEALANT_DEFECTIVE;
+window.ODONTO_CATALOG.ENDO_REQ            = window.ODONTO_CATALOG.ENDO_DEFECTIVE;
+window.ODONTO_CATALOG.ENDO_GOOD           = window.ODONTO_CATALOG.ENDO_DONE;
+window.ODONTO_CATALOG.IMPLANT_GOOD        = window.ODONTO_CATALOG.IMPLANT;
+
+const ODONTO_CATALOG = window.ODONTO_CATALOG;
+
+/**
+ * Carga dinámica y asíncrona del catálogo de odontograma desde el API multi-tenant
+ */
+window.cargarCatalogoOdontogramaDinamico = async function() {
+    try {
+        const resp = await fetch('../api/catalogo_odontograma_api.pl?action=list');
+        const data = await resp.json();
+        if (data && data.status === 'success' && data.catalog) {
+            Object.keys(window.ODONTO_CATALOG).forEach(k => {
+                delete window.ODONTO_CATALOG[k];
+            });
+            Object.assign(window.ODONTO_CATALOG, data.catalog);
+
+            if (window.ODONTO_CATALOG.AMALGAM) window.ODONTO_CATALOG.AMALGAM_ADAPTED = window.ODONTO_CATALOG.AMALGAM;
+            if (window.ODONTO_CATALOG.COMPOSITE) window.ODONTO_CATALOG.COMPOSITE_ADAPTED = window.ODONTO_CATALOG.COMPOSITE;
+            if (window.ODONTO_CATALOG.CROWN_DONE) window.ODONTO_CATALOG.CROWN_GOOD = window.ODONTO_CATALOG.CROWN_DONE;
+            if (window.ODONTO_CATALOG.CROWN_DEFECTIVE) window.ODONTO_CATALOG.CROWN_REQ = window.ODONTO_CATALOG.CROWN_DEFECTIVE;
+            if (window.ODONTO_CATALOG.SEALANT_DEFECTIVE) window.ODONTO_CATALOG.SEALANT_REQ = window.ODONTO_CATALOG.SEALANT_DEFECTIVE;
+            if (window.ODONTO_CATALOG.ENDO_DEFECTIVE) window.ODONTO_CATALOG.ENDO_REQ = window.ODONTO_CATALOG.ENDO_DEFECTIVE;
+            if (window.ODONTO_CATALOG.ENDO_DONE) window.ODONTO_CATALOG.ENDO_GOOD = window.ODONTO_CATALOG.ENDO_DONE;
+            if (window.ODONTO_CATALOG.IMPLANT) window.ODONTO_CATALOG.IMPLANT_GOOD = window.ODONTO_CATALOG.IMPLANT;
+
+            if (typeof renderModalConditionGrids === 'function') {
+                renderModalConditionGrids();
+            }
+            if (typeof refreshSidebarFindings === 'function') {
+                refreshSidebarFindings();
+            }
+        }
+    } catch (e) {
+        console.warn('Aviso: Utilizando catálogo predeterminado de odontograma:', e);
+    }
+};
 
 /**
  * Retorna el nombre anatómico en español según FDI
@@ -543,6 +578,11 @@ window.renderOdontogram = function(containerId, patientId) {
     if (!container) return;
 
     if (patientId) window.odontogramState.patientId = patientId;
+
+    // Hidratar catálogo dinámico desde el backend multi-tenant
+    if (typeof window.cargarCatalogoOdontogramaDinamico === 'function') {
+        window.cargarCatalogoOdontogramaDinamico();
+    }
 
     const quads = (window.odontogramState.dentitionType === 'TEMPORARY') 
         ? ODONTO_QUADRANTS_TEMPORARY 

@@ -316,6 +316,12 @@ print <<HTML;
                     <button type="button" class="odonto-tool-btn" onclick="window.print()" title="Imprimir Odontograma">
                         <i class="bi bi-printer"></i>
                     </button>
+                    <button type="button" class="odonto-tool-btn text-success" onclick="saveOdontogramaToServer()" title="Guardar Odontograma en Servidor">
+                        <i class="bi bi-cloud-arrow-up-fill"></i>
+                    </button>
+                    <button type="button" class="odonto-tool-btn text-info" onclick="abrirModalGestionCatalogoOdonto()" title="Gestión de Catálogo (Patologías y Tratamientos)">
+                        <i class="bi bi-sliders2"></i>
+                    </button>
                 </div>
 
                 <!-- Cápsula 2: Navegación y Zoom -->
@@ -375,18 +381,10 @@ print <<HTML;
 
             <!-- Acciones Principales (Derecha) -->
             <div class="d-flex align-items-center gap-2">
-                <div class="text-end me-2 d-none d-xl-block">
+                <div class="text-end me-2">
                     <span class="small text-white-50 fw-bold d-block lh-1" style="font-size: 0.7rem;">PRESUPUESTO PENDIENTE</span>
                     <span class="h5 fw-black text-warning m-0 lh-1" id="odonto-total-pending">\$0.00</span>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-bold d-flex align-items-center gap-1 shadow-xs" onclick="window.print()">
-                    <i class="bi bi-printer-fill"></i>
-                    <span class="d-none d-sm-inline">Imprimir</span>
-                </button>
-                <button type="button" class="btn btn-sm btn-medentia rounded-pill px-3 fw-bold d-flex align-items-center gap-2 shadow-sm" onclick="saveOdontogramaToServer()">
-                    <i class="bi bi-cloud-arrow-up-fill" style="color: var(--md-cyan-ia);"></i>
-                    <span>Guardar</span>
-                </button>
             </div>
         </header>
 
@@ -642,6 +640,140 @@ print <<HTML;
         </div>
     </div>
 
+    <!-- MODAL GESTIÓN DE CATÁLOGO ODONTOGRAMA (CRUD AJAX) -->
+    <div class="modal fade" id="modalGestionCatalogoOdonto" tabindex="-1" aria-labelledby="modalGestionCatalogoOdontoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-2xl rounded-4" style="background: rgba(10, 25, 55, 0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0, 229, 255, 0.25) !important; color: #f8fafc;">
+                <div class="modal-header border-bottom py-3 px-4" style="border-color: rgba(255,255,255,0.1) !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle p-2 d-flex align-items-center justify-content-center" style="background: rgba(0, 229, 255, 0.15); border: 1px solid rgba(0, 229, 255, 0.3);">
+                            <i class="bi bi-sliders2 text-info fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-black mb-0 text-white" id="modalGestionCatalogoOdontoLabel">Gestión de Catálogo Clínico Odontológico</h5>
+                            <span class="small text-white-50">Configuración personalizada de patologías, tratamientos, aranceles base y códigos FDI</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Formulario de Edición / Alta (Colapsable) -->
+                    <div id="wrapperFormConceptoModal" class="d-none mb-4 p-3 rounded-4" style="background: rgba(15, 35, 75, 0.85); border: 1px solid rgba(0, 229, 255, 0.3);">
+                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: rgba(255,255,255,0.1) !important;">
+                            <h6 class="fw-bold text-info mb-0" id="tituloFormConceptoModal"><i class="bi bi-pencil-square me-2"></i>Editar Concepto</h6>
+                            <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="cancelarFormularioConceptoModal()">Cancelar</button>
+                        </div>
+                        <form id="formConceptoModalOdonto" onsubmit="guardarConceptoModal(event)">
+                            <input type="hidden" id="modal_form_id" name="id" value="">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label small text-white-50 fw-bold mb-1">Código FDI/ISO</label>
+                                    <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary text-uppercase fw-bold" id="modal_form_code" name="code" required placeholder="EJ: RESINA_3D">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label small text-white-50 fw-bold mb-1">Nombre Clínico / Procedimiento</label>
+                                    <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" id="modal_form_nombre" name="nombre" required placeholder="Ej: Resina Fotocurable">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-white-50 fw-bold mb-1">Grupo SaaS</label>
+                                    <select class="form-select form-select-sm bg-dark text-white border-secondary" id="modal_form_grupo" name="grupo" required onchange="ajustarGrupoModal(this.value)">
+                                        <option value="PATHOLOGY">Patología / Hallazgo</option>
+                                        <option value="RESTORATION">Tratamiento / Restauración</option>
+                                        <option value="NORMAL">Estado Normal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-white-50 fw-bold mb-1">Categoría</label>
+                                    <select class="form-select form-select-sm bg-dark text-white border-secondary" id="modal_form_categoria" name="categoria" required>
+                                        <option value="PENDING">Pendiente (Rojo / Presupuesto)</option>
+                                        <option value="EXISTING">Existente (Azul / Realizado)</option>
+                                        <option value="HEALTHY">Sano (Blanco / Neutro)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-white-50 fw-bold mb-1">Subestado Técnico</label>
+                                    <select class="form-select form-select-sm bg-dark text-white border-secondary" id="modal_form_substatus" name="substatus">
+                                        <option value="ACTIVE">Activa / Presente</option>
+                                        <option value="ADAPTED">Adaptada / Buena</option>
+                                        <option value="DEFECTIVE">Desadaptada / Defectuosa</option>
+                                        <option value="TEMPORARY">Provisional / Temporal</option>
+                                        <option value="PONTIC">Póntico de Puente</option>
+                                        <option value="ABSENT">Ausente</option>
+                                        <option value="HEALTHY">Sano</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-white-50 fw-bold mb-1">Precio Ref. (MXN)</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-secondary border-secondary text-white">\$</span>
+                                        <input type="number" step="0.01" min="0" class="form-control form-control-sm bg-dark text-white border-secondary fw-bold" id="modal_form_precio" name="precio" value="0.00" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-white-50 fw-bold mb-1">Color Odontograma</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="color" class="form-control form-control-color p-0 bg-transparent border-0" id="modal_form_color" name="color_hex" value="#FF3B30">
+                                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary text-uppercase" id="modal_form_color_text" value="#FF3B30" onchange="document.getElementById('modal_form_color').value = this.value">
+                                    </div>
+                                </div>
+                                <div class="col-md-9">
+                                    <label class="form-label small text-white-50 fw-bold mb-1">Ícono Bootstrap</label>
+                                    <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" id="modal_form_icono" name="icono" value="bi-circle-fill text-danger">
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-sm btn-info w-100 rounded-pill fw-bold shadow-sm">
+                                        <i class="bi bi-save me-1"></i> Guardar Concepto
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Barra de Filtros y Búsqueda -->
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                        <div class="btn-group btn-group-sm p-1 rounded-pill border" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15) !important;" role="group">
+                            <button type="button" class="btn btn-sm text-white rounded-pill px-3 active fw-bold btn-modal-filter" data-filter="ALL" onclick="filtrarCatalogoModal('ALL', this)">Todos</button>
+                            <button type="button" class="btn btn-sm text-white rounded-pill px-3 fw-bold btn-modal-filter" data-filter="PATHOLOGY" onclick="filtrarCatalogoModal('PATHOLOGY', this)">Patologías</button>
+                            <button type="button" class="btn btn-sm text-white rounded-pill px-3 fw-bold btn-modal-filter" data-filter="RESTORATION" onclick="filtrarCatalogoModal('RESTORATION', this)">Restauraciones</button>
+                            <button type="button" class="btn btn-sm text-white rounded-pill px-3 fw-bold btn-modal-filter" data-filter="NORMAL" onclick="filtrarCatalogoModal('NORMAL', this)">Normales</button>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="text" class="form-control form-control-sm rounded-pill bg-dark text-white border-secondary px-3" id="inputBuscarModalCatalogo" placeholder="Buscar concepto..." oninput="buscarConceptoModal(this.value)">
+                            <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-bold text-nowrap" onclick="mostrarFormularioNuevoModal()">
+                                <i class="bi bi-plus-circle me-1"></i> + Nuevo Concepto
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lista / Tabla de Conceptos -->
+                    <div class="table-responsive rounded-3" style="max-height: 480px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
+                        <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                            <thead class="text-uppercase small text-white-50" style="background: rgba(0,0,0,0.4); position: sticky; top: 0; z-index: 2;">
+                                <tr>
+                                    <th style="width: 50px;">ID</th>
+                                    <th>Código</th>
+                                    <th>Concepto Clínico</th>
+                                    <th>Grupo</th>
+                                    <th>Categoría</th>
+                                    <th>Color</th>
+                                    <th>Precio Ref.</th>
+                                    <th style="width: 90px;" class="text-end">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyModalCatalogoOdonto">
+                                <tr><td colspan="8" class="text-center py-4 text-white-50"><div class="spinner-border spinner-border-sm text-info me-2"></div>Cargando catálogo...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-2 px-4 d-flex justify-content-between" style="border-color: rgba(255,255,255,0.1) !important;">
+                    <span class="small text-white-50" id="infoTotalModalCatalogo"><i class="bi bi-info-circle me-1"></i>Los cambios se sincronizan en vivo con el visor clínico.</span>
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap 5.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- SweetAlert2 -->
@@ -841,6 +973,254 @@ print <<'JS';
                 .catch(err => {
                     console.warn('Aviso: No se pudo cargar datos previos de odontograma:', err);
                 });
+        };
+
+        // ==========================================
+        // CONTROLADOR MODAL GESTIÓN CATÁLOGO (CRUD AJAX)
+        // ==========================================
+        window.odontoModalCatalogData = [];
+        window.odontoModalCurrentFilter = 'ALL';
+        window.odontoModalSearchText = '';
+
+        window.abrirModalGestionCatalogoOdonto = function() {
+            const modalEl = document.getElementById('modalGestionCatalogoOdonto');
+            if (!modalEl) return;
+            cancelarFormularioConceptoModal();
+            new bootstrap.Modal(modalEl).show();
+            cargarTablaModalCatalogo();
+        };
+
+        window.cargarTablaModalCatalogo = async function() {
+            const tbody = document.getElementById('tbodyModalCatalogoOdonto');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-white-50"><div class="spinner-border spinner-border-sm text-info me-2"></div>Cargando conceptos...</td></tr>';
+            }
+            try {
+                const resp = await fetch('../api/catalogo_odontograma_api.pl?action=list');
+                const data = await resp.json();
+                if (data.status === 'success') {
+                    window.odontoModalCatalogData = data.items || [];
+                    if (data.catalog && typeof window.ODONTO_CATALOG !== 'undefined') {
+                        Object.assign(window.ODONTO_CATALOG, data.catalog);
+                    }
+                    renderTablaModalCatalogo();
+                } else {
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">${data.message || 'Error al cargar catálogo'}</td></tr>`;
+                }
+            } catch (e) {
+                console.error('Error cargando catalogo modal:', e);
+                if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Fallo de comunicación con el servidor</td></tr>';
+            }
+        };
+
+        window.filtrarCatalogoModal = function(grupo, btn) {
+            window.odontoModalCurrentFilter = grupo;
+            document.querySelectorAll('.btn-modal-filter').forEach(b => {
+                b.classList.remove('active', 'btn-info');
+                b.classList.add('text-white');
+            });
+            if (btn) {
+                btn.classList.add('active', 'btn-info');
+                btn.classList.remove('text-white');
+            }
+            renderTablaModalCatalogo();
+        };
+
+        window.buscarConceptoModal = function(txt) {
+            window.odontoModalSearchText = (txt || '').toLowerCase().trim();
+            renderTablaModalCatalogo();
+        };
+
+        function renderTablaModalCatalogo() {
+            const tbody = document.getElementById('tbodyModalCatalogoOdonto');
+            if (!tbody) return;
+
+            const items = (window.odontoModalCatalogData || []).filter(item => {
+                if (window.odontoModalCurrentFilter !== 'ALL' && item.grupo !== window.odontoModalCurrentFilter) {
+                    return false;
+                }
+                if (window.odontoModalSearchText) {
+                    const matchNombre = (item.nombre || '').toLowerCase().includes(window.odontoModalSearchText);
+                    const matchCode = (item.code || '').toLowerCase().includes(window.odontoModalSearchText);
+                    if (!matchNombre && !matchCode) return false;
+                }
+                return true;
+            });
+
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-white-50">No se encontraron conceptos clínicos.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            items.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                let badgeGrupo = '<span class="badge bg-secondary-subtle text-secondary rounded-pill border">Normal</span>';
+                if (item.grupo === 'PATHOLOGY') {
+                    badgeGrupo = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Patología</span>';
+                } else if (item.grupo === 'RESTORATION') {
+                    badgeGrupo = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Restauración</span>';
+                }
+
+                let badgeCat = '<span class="badge bg-dark text-white-50 border border-secondary">Normal</span>';
+                if (item.categoria === 'PENDING') {
+                    badgeCat = '<span class="badge bg-danger text-white">Pendiente</span>';
+                } else if (item.categoria === 'EXISTING') {
+                    badgeCat = '<span class="badge bg-primary text-white">Existente</span>';
+                }
+
+                tr.innerHTML = `
+                    <td class="text-white-50 small">${item.id}</td>
+                    <td><code class="text-info fw-bold">${item.code}</code></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi ${item.icono} fs-6"></i>
+                            <span class="text-white fw-semibold">${item.nombre}</span>
+                        </div>
+                    </td>
+                    <td>${badgeGrupo}</td>
+                    <td>${badgeCat}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="display:inline-block; width:18px; height:18px; border-radius:4px; background:${item.color_hex}; border:1px solid rgba(255,255,255,0.3);"></span>
+                            <small class="text-white-50 font-monospace">${item.color_hex}</small>
+                        </div>
+                    </td>
+                    <td class="text-warning fw-bold">$${parseFloat(item.precio).toFixed(2)}</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-outline-info rounded-circle p-1 me-1" onclick="editarConceptoModal(${item.id})" title="Editar Concepto">
+                            <i class="bi bi-pencil-fill" style="font-size:0.75rem;"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle p-1" onclick="eliminarConceptoModal(${item.id}, '${item.nombre}')" title="Desactivar">
+                            <i class="bi bi-trash-fill" style="font-size:0.75rem;"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.mostrarFormularioNuevoModal = function() {
+            document.getElementById('formConceptoModalOdonto').reset();
+            document.getElementById('modal_form_id').value = '';
+            document.getElementById('modal_form_code').readOnly = false;
+            document.getElementById('modal_form_color').value = '#FF3B30';
+            document.getElementById('modal_form_color_text').value = '#FF3B30';
+            document.getElementById('modal_form_precio').value = '0.00';
+            document.getElementById('tituloFormConceptoModal').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Nuevo Concepto Clínico';
+            document.getElementById('wrapperFormConceptoModal').classList.remove('d-none');
+            document.getElementById('wrapperFormConceptoModal').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.editarConceptoModal = function(id) {
+            const item = (window.odontoModalCatalogData || []).find(x => x.id == id);
+            if (!item) return;
+
+            document.getElementById('modal_form_id').value = item.id;
+            document.getElementById('modal_form_code').value = item.code;
+            document.getElementById('modal_form_code').readOnly = true;
+            document.getElementById('modal_form_nombre').value = item.nombre;
+            document.getElementById('modal_form_grupo').value = item.grupo;
+            document.getElementById('modal_form_categoria').value = item.categoria;
+            document.getElementById('modal_form_substatus').value = item.substatus;
+            document.getElementById('modal_form_precio').value = parseFloat(item.precio).toFixed(2);
+            document.getElementById('modal_form_color').value = item.color_hex;
+            document.getElementById('modal_form_color_text').value = item.color_hex;
+            document.getElementById('modal_form_icono').value = item.icono;
+
+            document.getElementById('tituloFormConceptoModal').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Editar: ${item.nombre}`;
+            document.getElementById('wrapperFormConceptoModal').classList.remove('d-none');
+            document.getElementById('wrapperFormConceptoModal').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.cancelarFormularioConceptoModal = function() {
+            document.getElementById('wrapperFormConceptoModal')?.classList.add('d-none');
+        };
+
+        window.ajustarGrupoModal = function(grupo) {
+            if (grupo === 'PATHOLOGY') {
+                document.getElementById('modal_form_categoria').value = 'PENDING';
+                document.getElementById('modal_form_color').value = '#FF3B30';
+                document.getElementById('modal_form_color_text').value = '#FF3B30';
+                document.getElementById('modal_form_icono').value = 'bi-circle-fill text-danger';
+            } else if (grupo === 'RESTORATION') {
+                document.getElementById('modal_form_categoria').value = 'EXISTING';
+                document.getElementById('modal_form_color').value = '#007AFF';
+                document.getElementById('modal_form_color_text').value = '#007AFF';
+                document.getElementById('modal_form_icono').value = 'bi-shield-check text-primary';
+            } else {
+                document.getElementById('modal_form_categoria').value = 'HEALTHY';
+                document.getElementById('modal_form_color').value = '#FFFFFF';
+                document.getElementById('modal_form_color_text').value = '#FFFFFF';
+                document.getElementById('modal_form_icono').value = 'bi-shield-check text-success';
+                document.getElementById('modal_form_precio').value = '0.00';
+            }
+        };
+
+        window.guardarConceptoModal = async function(e) {
+            e.preventDefault();
+            const fd = new FormData(document.getElementById('formConceptoModalOdonto'));
+            fd.append('action', 'save');
+
+            try {
+                const resp = await fetch('../api/catalogo_odontograma_api.pl', {
+                    method: 'POST',
+                    body: fd
+                });
+                const data = await resp.json();
+                if (data.status === 'success') {
+                    cancelarFormularioConceptoModal();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Catálogo Actualizado',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    await cargarTablaModalCatalogo();
+                    if (typeof window.cargarCatalogoOdontogramaDinamico === 'function') {
+                        window.cargarCatalogoOdontogramaDinamico();
+                    }
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo guardar el concepto', 'error');
+                }
+            } catch (err) {
+                console.error('Error guardando concepto:', err);
+                Swal.fire('Error', 'Fallo de comunicación con el servidor', 'error');
+            }
+        };
+
+        window.eliminarConceptoModal = async function(id, nombre) {
+            const res = await Swal.fire({
+                title: '¿Desactivar concepto?',
+                text: `El concepto "${nombre}" ya no aparecerá en la paleta del odontograma.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, desactivar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!res.isConfirmed) return;
+
+            try {
+                const resp = await fetch(`../api/catalogo_odontograma_api.pl?action=delete&id=${id}`);
+                const data = await resp.json();
+                if (data.status === 'success') {
+                    Swal.fire('Desactivado', data.message, 'success');
+                    await cargarTablaModalCatalogo();
+                    if (typeof window.cargarCatalogoOdontogramaDinamico === 'function') {
+                        window.cargarCatalogoOdontogramaDinamico();
+                    }
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo desactivar', 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'Fallo de conexión', 'error');
+            }
         };
 
         document.addEventListener('DOMContentLoaded', () => {

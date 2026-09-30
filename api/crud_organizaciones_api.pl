@@ -189,6 +189,11 @@ if ($action eq 'create') {
     # Crear catalogo de servicios y productos para la nueva organizacion
     catalogo_org_utils::crear_catalogo_org_desde_global($id_org);
 
+    # Provisionar catálogo especializado de odontograma si la especialidad médica es 100 - ODONTOLOGÍA
+    if ($id_espe_admin eq '100' || ($tipo_organizacion eq 'Consultorio Individual' && $id_espe_admin eq '100')) {
+        catalogo_org_utils::crear_catalogo_odontograma_si_no_existe($id_org);
+    }
+
     print encode_json({ status => 'success', id_organizacion => $id_org });
     exit;
 }
@@ -416,6 +421,10 @@ if ($action eq 'update') {
         actualizar_archivo($archivo_config, "ID_NEGOCIO|CLAVE|VALOR", \@nueva_config);
     };
     if ($@) { print encode_json({status=>'error', message=>'Error: '.$@}); exit; }
+
+    if ($id_espe_admin eq '100' || ($tipo_organizacion eq 'Consultorio Individual' && $id_espe_admin eq '100')) {
+        catalogo_org_utils::crear_catalogo_odontograma_si_no_existe($id_org);
+    }
 
     print encode_json({ status => 'success', message => 'Organización actualizada' });
     exit;

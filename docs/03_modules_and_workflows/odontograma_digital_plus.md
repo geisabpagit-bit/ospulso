@@ -125,6 +125,7 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 | **Fase 7** | Integración en Wizard Clínico (Paso 3) y Consulta Detalles | Incorporación de `#tablaConsultaOdontogramas` (6 columnas) en `views/partials/consultas/step_exploracion.pl` con switch reactivo; soporte multi-estudio en APIs de cierre; despliegue de odontogramas y estudios de rayos X (PACS) en `views/consulta_detalles.pl` con enlace directo a visores clínicos. | ✅ COMPLETADA |
 | **Fase 8** | Evolución Dental ("Antes y Después"), Facturación en Caja y Sello | Clonación profunda (`clone`), extracción de presupuesto (`get_treatments`), inyección reactiva en Caja (Paso 6) y cambio atómico a estado `Finalizado` al cerrar la consulta en `api/cerrar_consulta_privado.pl`. | ✅ COMPLETADA |
 | **Fase 11** | Vistas Oclusales 2D en Porcelana Pulida e Interacción Híbrida SVG | Representación fotorrealista de coronas vistas desde arriba (`img/teeth/crown_*.png`) para Molares, Premolares, Caninos e Incisivos en porcelana blanca pura glaseada; capa interactiva SVG de 5 caras con trazado translúcido y vitrificación clínica en hover/click. | ✅ COMPLETADA |
+| **Fase 12** | Catálogo Autónomo Multi-Tenant, Provisión Onboarding 100-Odontología, Refactor Molar y CRUD AJAX | Corona molar oclusal en porcelana blanca pura sin caries (`crown_molar.png`); depuración de barra superior en visor (ícono Guardar en Cápsula 1 junto a Imprimir, retiro de botones redundantes); eliminación de hardcode clínico con Catálogo Autónomo Multi-Tenant (`dat/catalogo_odontograma_<id>.dat`), API REST (`api/catalogo_odontograma_api.pl`), modal AJAX en visor, menú lateral en rol Administrador de Organización y provisión automática al seleccionar especialidad `100 - ODONTOLOGÍA`. | ✅ COMPLETADA |
 
 ---
 
@@ -136,6 +137,29 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
   - **Capa Base**: Imagen fotorrealista de la corona de porcelana (`.tooth-crown-img`), que dota al odontograma de una fidelidad visual fotorrealista.
   - **Capa Superior Interactiva**: Trazado SVG transparente (`fill: rgba(255, 255, 255, 0.04)`) con sutiles bordes cian que delimitan las 5 caras anatómicas (**Mesial, Distal, Oclusal, Vestibular y Lingual**).
   - **Resplandor Diagnóstico Translúcido**: Al diagnosticar una cara, esta se colorea con un efecto de vitrificación translúcida (rojo para caries, azul para restauración adaptada, naranja para desadaptada), preservando la tridimensionalidad de la porcelana de fondo.
+
+---
+
+### 2.11 Catálogo Clínico Autónomo Multi-Tenant, Provisión Onboarding y Refactorización Molar (Fase 12)
+1. **Tratamiento de Porcelana Oclusal Molar (`crown_molar.png`)**:
+   - Erradicación del sombreado central que simulaba caries.
+   - Nueva renderización en zirconio blanco perlado de alta translucidez, con cúspides naturales y fisuras claras sin manchas.
+   - Replicado espejo en todas las piezas molares permanentes (Q1-Q4) y temporales (Q5-Q8) en `img/teeth/` y `views/img/teeth/`.
+2. **Reingeniería del Menú Superior en el Visor**:
+   - Supresión de botones de texto redundantes `Imprimir` y `Guardar` en el extremo derecho (conservando únicamente el badge financiero `PRESUPUESTO PENDIENTE`).
+   - Reorganización de la Cápsula 1 (Acciones): Ícono de Guardar (`bi-cloud-arrow-up-fill`) e Ícono de Gestión de Catálogo (`bi-sliders2`) colocados inmediatamente junto al ícono de Impresión.
+3. **Catálogo Autónomo Desacoplado**:
+   - Independiente del catálogo general de bienes y servicios.
+   - Almacenamiento flat-file multi-tenant: `dat/catalogo_odontograma_<id_empresa>.dat` (sembrado desde `dat/catalogo_odontograma_default.dat`).
+   - 3 Grupos SaaS Canónicos: `PATHOLOGY` (Patologías), `RESTORATION` (Restauraciones) y `NORMAL` (Sano / Fisiológico).
+   - Backend API completo: `api/catalogo_odontograma_api.pl` con métodos `list`, `get`, `save`, `delete` y `reset_defaults`.
+4. **Provisión Automática en CRM Onboarding**:
+   - Cuando se da de alta un `Consultorio Individual` con especialidad médica `100 - ODONTOLOGÍA` en `api/crud_organizaciones_api.pl`, se instancia automáticamente su catálogo dental personalizado.
+5. **Gobernanza RBAC y Menú Lateral**:
+   - Enlace `Gesti&oacute;n Odontograma` visible para `Administrador Organizacion` y `Administrador Global` en `utils/sub_sidebar.pl`.
+   - Vista administrativa de gestión `views/manage_catalogo_odontograma.pl` con KPIs, DataTables y modal CRUD.
+   - Modal AJAX `#modalGestionCatalogoOdonto` embebido en el visor para edición en vivo e hidratación reactiva de `window.ODONTO_CATALOG`.
+
 
 
 

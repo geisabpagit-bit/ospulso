@@ -18,6 +18,8 @@ our @EXPORT_OK = qw(
     get_catalogo_universal
     obtener_rutas_contadores
     obtener_siguiente_folio_blindado
+    obtener_ruta_catalogo_odontograma
+    crear_catalogo_odontograma_si_no_existe
 );
 
 # ─────────────────────────────────────────────────────────────
@@ -190,6 +192,47 @@ sub obtener_rutas_catalogo {
         municipios => File::Spec->catfile($dat, "municipios_${id_raiz}.dat"),
         motivos => File::Spec->catfile($dat, "motivos_${id_raiz}.dat"),
     };
+}
+
+# ─────────────────────────────────────────────────────────────
+# obtener_ruta_catalogo_odontograma($id_empresa)
+# Devuelve la ruta absoluta del catalogo de odontograma del tenant
+# ─────────────────────────────────────────────────────────────
+sub obtener_ruta_catalogo_odontograma {
+    my ($id_empresa) = @_;
+    my $id_raiz = resolver_id_raiz_catalogo($id_empresa);
+    $id_raiz = '0' if !defined $id_raiz || $id_raiz eq '';
+    my $dat = _resolver_dat_dir();
+    my $file = File::Spec->catfile($dat, "catalogo_odontograma_${id_raiz}.dat");
+    if (!-e $file) {
+        crear_catalogo_odontograma_si_no_existe($id_raiz);
+    }
+    return $file;
+}
+
+# ─────────────────────────────────────────────────────────────
+# crear_catalogo_odontograma_si_no_existe($id_raiz)
+# Clona el catalogo default de odontograma para una organizacion
+# ─────────────────────────────────────────────────────────────
+sub crear_catalogo_odontograma_si_no_existe {
+    my ($id_raiz) = @_;
+    $id_raiz = '0' if !defined $id_raiz || $id_raiz eq '';
+    my $dat = _resolver_dat_dir();
+    my $file = File::Spec->catfile($dat, "catalogo_odontograma_${id_raiz}.dat");
+    return $file if -e $file;
+
+    my $default_file = File::Spec->catfile($dat, "catalogo_odontograma_default.dat");
+    if (-e $default_file) {
+        if (open(my $in, '<:encoding(UTF-8)', $default_file) && open(my $out, '>:encoding(UTF-8)', $file)) {
+            flock($out, LOCK_EX);
+            while (my $line = <$in>) {
+                print $out $line;
+            }
+            close($out);
+            close($in);
+        }
+    }
+    return $file;
 }
 
 # ─────────────────────────────────────────────────────────────
