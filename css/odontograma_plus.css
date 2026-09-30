@@ -163,102 +163,371 @@
     margin-bottom: 0;
 }
 
-/* Superficies SVG Vectoriales */
+/* Superficies SVG Vectoriales y Acabado Porcelana Biomórfica 3D */
 .tooth-svg-canvas {
-    width: 36px;
-    height: 36px;
-    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.05));
+    width: 44px;
+    height: 72px;
+    overflow: visible;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+    transition: transform 0.2s ease, filter 0.2s ease;
 }
 
 .tooth-svg-canvas.family-incisor {
-    width: 30px;
+    width: 36px;
+    height: 68px;
 }
 
 .tooth-svg-canvas.family-canine {
-    width: 33px;
+    width: 38px;
+    height: 74px;
 }
 
 .tooth-svg-canvas.family-premolar {
-    width: 35px;
+    width: 40px;
+    height: 70px;
 }
 
 .tooth-svg-canvas.family-molar {
-    width: 38px;
+    width: 46px;
+    height: 72px;
+}
+
+/* Raíces Anatómicas de Porcelana */
+.tooth-root {
+    fill: url(#porcelain-root-grad);
+    stroke: #64748b;
+    stroke-width: 0.8;
+    transition: fill 0.2s ease, stroke 0.2s ease, filter 0.2s ease;
+}
+
+/* Base de Corona Porcelánica */
+.tooth-crown-base {
+    fill: url(#porcelain-crown-grad);
+    stroke: #475569;
+    stroke-width: 0.9;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
 }
 
 .tooth-fissure-line {
-    stroke: #94a3b8;
-    stroke-width: 1.2;
+    stroke: #334155;
+    stroke-width: 1.1;
     stroke-linecap: round;
     pointer-events: none;
     fill: none;
-    opacity: 0.6;
+    opacity: 0.55;
 }
 
+/* Superficies Clickeables */
 .tooth-surface {
-    fill: #ffffff;
+    fill: rgba(255, 255, 255, 0.88);
     stroke: #94a3b8;
-    stroke-width: 1.4;
+    stroke-width: 1.2;
     stroke-linejoin: round;
     cursor: pointer;
-    transition: fill 0.18s ease, stroke 0.18s ease, filter 0.18s ease;
+    transition: fill 0.18s ease, stroke 0.18s ease, filter 0.18s ease, transform 0.15s ease;
 }
 
-/* Superficies Sin Condición: Hover Teal */
+/* Superficies Sin Condición: Hover Neón Cyan */
 .tooth-surface:not(.has-condition):hover {
-    fill: var(--odonto-teal-hover) !important;
-    stroke: var(--odonto-teal) !important;
+    fill: rgba(0, 229, 255, 0.35) !important;
+    stroke: #00E5FF !important;
     stroke-width: 2;
+    filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.75));
 }
 
-/* Superficies Con Condición: Se mantienen en su color rojo o azul */
+/* Superficies Con Condición */
 .tooth-surface.has-condition {
     stroke-width: 1.5;
 }
 
 .tooth-surface.has-condition:hover {
-    filter: brightness(0.85);
-    stroke: var(--odonto-teal) !important;
+    filter: brightness(1.2) drop-shadow(0 0 8px rgba(0, 229, 255, 0.8));
+    stroke: #00E5FF !important;
     stroke-width: 2.2;
 }
 
-/* Clases Mandantes para Condición Clínica (Garantizan Persistencia Visual) */
+/* 🔴 Grupo 1: Patología Activa (Rojo Neón) */
 .tooth-surface.surface-pending,
+.tooth-surface[data-category="PENDING"],
 .tooth-surface[data-state="PENDING_TREATMENT"] {
-    fill: var(--odonto-red-pending, #FF3B30) !important;
+    fill: #FF3B30 !important;
+    stroke: #ff6b64 !important;
+    filter: drop-shadow(0 0 6px rgba(255, 59, 48, 0.85)) !important;
 }
 
+/* 🔵 Grupo 2A: Restauración Adaptada / Buena (Azul Eléctrico) */
 .tooth-surface.surface-completed,
+.tooth-surface[data-category="EXISTING"],
 .tooth-surface[data-state="EXISTING_CONDITION"] {
-    fill: var(--odonto-blue-completed, #007AFF) !important;
+    fill: #007AFF !important;
+    stroke: #5ac8fa !important;
+    filter: drop-shadow(0 0 6px rgba(0, 122, 255, 0.85)) !important;
 }
 
-/* Leyenda Clínica */
+/* 🟠 Grupo 2B: Restauración Desadaptada / Mala (Ámbar Neón) */
+.tooth-surface.surface-defective,
+.tooth-surface[data-condition*="DEFECTIVE"],
+.tooth-surface[data-category="DEFECTIVE"] {
+    fill: #FF9500 !important;
+    stroke: #ffcc00 !important;
+    filter: drop-shadow(0 0 6px rgba(255, 149, 0, 0.9)) !important;
+}
+
+/* 🟢 Grupo 3: Sano / Sin Alteraciones */
+.tooth-surface.surface-healthy {
+    fill: #ffffff !important;
+    stroke: #cbd5e1 !important;
+    filter: none !important;
+}
+
+/* Leyenda Clínica Sanitizada (Sin nombres de colores) */
 .odonto-legend {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 18px;
-    padding: 10px 16px;
-    background: #f1f5f9;
-    border-radius: 12px;
+    gap: 20px;
+    padding: 10px 22px;
+    background: rgba(10, 25, 50, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    border-radius: 50px;
     margin-top: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
 
 .odonto-legend-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.75rem;
+    font-size: 0.76rem;
     font-weight: 700;
-    color: #334155;
+    color: #e2e8f0;
 }
 
 .odonto-legend-color {
     width: 13px;
     height: 13px;
     border-radius: 4px;
+}
+
+/* ==========================================================================
+   PUENTE CIRCULAR GLASSMORPHIC (RADIAL FLOATING POPUP MENU)
+   ========================================================================== */
+#odonto-radial-menu {
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    z-index: 1050;
+    pointer-events: auto;
+    display: none;
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0;
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+    user-select: none;
+}
+
+#odonto-radial-menu.active {
+    display: block;
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.radial-glass-disc {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(10, 25, 55, 0.90) 0%, rgba(4, 14, 32, 0.96) 100%);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 2px solid rgba(0, 229, 255, 0.65);
+    box-shadow: 0 0 35px rgba(0, 150, 255, 0.4), inset 0 0 25px rgba(0, 229, 255, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Anillo exterior decorativo */
+.radial-outer-ring {
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    border: 1px dashed rgba(0, 229, 255, 0.35);
+    pointer-events: none;
+    animation: rotateOuterRing 40s linear infinite;
+}
+
+@keyframes rotateOuterRing {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Núcleo Central (Preview + Doble Clic) */
+.radial-nucleus {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #0e244d 0%, #061329 100%);
+    border: 2px solid #00E5FF;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.6), inset 0 0 10px rgba(0, 229, 255, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.radial-nucleus:hover {
+    transform: translate(-50%, -50%) scale(1.08);
+    box-shadow: 0 0 28px rgba(0, 229, 255, 0.85);
+}
+
+.radial-nucleus .nucleus-tooth-number {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1;
+    letter-spacing: -0.5px;
+    text-shadow: 0 0 8px rgba(0, 229, 255, 0.7);
+}
+
+.radial-nucleus .nucleus-surface-name {
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #38bdf8;
+    letter-spacing: 0.6px;
+    margin-top: 2px;
+    max-width: 72px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.radial-nucleus .nucleus-action-hint {
+    font-size: 0.48rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-top: 1px;
+}
+
+/* Miniatura SVG en Núcleo */
+.radial-nucleus-preview-svg {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 2px;
+}
+
+/* Sectores Radiales de Caras (5 botones) */
+.radial-sector-btn {
+    position: absolute;
+    width: 62px;
+    height: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #e2e8f0;
+    transition: all 0.18s ease;
+    z-index: 5;
+    padding: 2px;
+    border-radius: 8px;
+}
+
+.radial-sector-btn:hover {
+    color: #00E5FF;
+    transform: scale(1.15);
+    background: rgba(0, 229, 255, 0.12);
+}
+
+.radial-sector-btn.active {
+    color: #00E5FF;
+    background: rgba(0, 229, 255, 0.22);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+}
+
+.radial-sector-btn .sector-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+    margin-bottom: 2px;
+    filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.5));
+}
+
+.radial-sector-btn .sector-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: capitalize;
+}
+
+/* Posiciones trigonométricas de las 5 caras */
+/* Oclusal (Top: -90deg / 12h) */
+.radial-sector-btn[data-surface="occlusal"] {
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.radial-sector-btn[data-surface="occlusal"]:hover {
+    transform: translateX(-50%) scale(1.15);
+}
+
+/* Mesial (Right: 0deg / 3h) */
+.radial-sector-btn[data-surface="mesial"] {
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+}
+.radial-sector-btn[data-surface="mesial"]:hover {
+    transform: translateY(-50%) scale(1.15);
+}
+
+/* Vestibular (Bottom Right: 54deg / 5h) */
+.radial-sector-btn[data-surface="vestibular"] {
+    bottom: 20px;
+    right: 32px;
+}
+
+/* Lingual (Bottom Left: 126deg / 7h) */
+.radial-sector-btn[data-surface="lingual"] {
+    bottom: 20px;
+    left: 32px;
+}
+
+/* Distal (Left: 180deg / 9h) */
+.radial-sector-btn[data-surface="distal"] {
+    top: 50%;
+    left: 8px;
+    transform: translateY(-50%);
+}
+.radial-sector-btn[data-surface="distal"]:hover {
+    transform: translateY(-50%) scale(1.15);
+}
+
+/* Botón cerrar sutil */
+.radial-close-btn {
+    position: absolute;
+    top: 8px;
+    right: 14px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1rem;
+    cursor: pointer;
+    z-index: 12;
+    transition: color 0.15s ease;
+}
+.radial-close-btn:hover {
+    color: #FF3B30;
 }
 
 /* Visualizador de Estado Reactivo */
@@ -322,16 +591,42 @@
     box-shadow: 0 4px 12px rgba(10, 42, 102, 0.2);
 }
 
-.odonto-category-pills #pills-pending-tab.active {
+.odonto-category-pills #pills-pending-tab.active,
+.odonto-category-pills #pills-pathology-tab.active {
     background: #FF3B30 !important;
+    color: #ffffff !important;
 }
 
-.odonto-category-pills #pills-existing-tab.active {
+.odonto-category-pills #pills-existing-tab.active,
+.odonto-category-pills #pills-restoration-tab.active {
     background: #007AFF !important;
+    color: #ffffff !important;
 }
 
-.odonto-category-pills #pills-healthy-tab.active {
-    background: #64748B !important;
+.odonto-category-pills #pills-healthy-tab.active,
+.odonto-category-pills #pills-normal-tab.active {
+    background: #10B981 !important;
+    color: #ffffff !important;
+}
+
+.badge-adapted {
+    background: rgba(0, 122, 255, 0.15);
+    color: #007AFF;
+    border: 1px solid rgba(0, 122, 255, 0.4);
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.badge-defective {
+    background: rgba(255, 149, 0, 0.15);
+    color: #ea580c;
+    border: 1px solid rgba(255, 149, 0, 0.4);
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 12px;
 }
 
 /* Tarjetas de Condición Clínica */

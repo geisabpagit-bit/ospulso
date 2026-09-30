@@ -493,20 +493,43 @@ eval {
         }
 
         my %PRECIOS_REF = (
-            CARIES           => { nom => 'Caries Dental (Activa)',      cat => 'PENDING',  precio => 850.00 },
-            CARIES_RECURRENT => { nom => 'Caries Recurrente',           cat => 'PENDING',  precio => 950.00 },
-            FRACTURE         => { nom => 'Fractura Dental',             cat => 'PENDING',  precio => 1200.00 },
-            SEALANT_REQ      => { nom => 'Sellador Requerido',          cat => 'PENDING',  precio => 450.00 },
-            CROWN_REQ        => { nom => 'Corona Requerida',            cat => 'PENDING',  precio => 3500.00 },
-            ENDO_REQ         => { nom => 'Endodoncia Indicada',         cat => 'PENDING',  precio => 2800.00 },
-            EXO_REQ          => { nom => 'Exodoncia Requerida',         cat => 'PENDING',  precio => 1100.00 },
-            EXTRACTION_REQ   => { nom => 'Exodoncia Requerida',         cat => 'PENDING',  precio => 1100.00 },
-            COMPOSITE        => { nom => 'Obturación con Resina',       cat => 'EXISTING', precio => 850.00 },
-            AMALGAM          => { nom => 'Obturación con Amalgama',     cat => 'EXISTING', precio => 700.00 },
-            CROWN_DONE       => { nom => 'Corona Existente',            cat => 'EXISTING', precio => 3500.00 },
-            ENDO_DONE        => { nom => 'Endodoncia Realizada',        cat => 'EXISTING', precio => 2800.00 },
-            IMPLANT          => { nom => 'Implante Dental',             cat => 'EXISTING', precio => 14000.00 },
-            ABSENT           => { nom => 'Pieza Ausente',               cat => 'EXISTING', precio => 0.00 },
+            # 🔴 Patología / Hallazgo
+            CARIES              => { nom => 'Caries Dental (Activa)',              cat => 'PENDING',  precio => 850.00 },
+            CARIES_RECURRENT    => { nom => 'Caries Recurrente / Filtrada',       cat => 'PENDING',  precio => 950.00 },
+            FRACTURE            => { nom => 'Fractura Dental',                     cat => 'PENDING',  precio => 1200.00 },
+            ABSENT              => { nom => 'Diente Ausente',                      cat => 'EXISTING', precio => 0.00 },
+            EXTRACTION_REQ      => { nom => 'Extracción Dental Indicada',          cat => 'PENDING',  precio => 1100.00 },
+            EXO_REQ             => { nom => 'Extracción Dental Indicada',          cat => 'PENDING',  precio => 1100.00 },
+
+            # 🟠 Estado de Tratamiento / Restauración
+            AMALGAM             => { nom => 'Amalgama Adaptada',                   cat => 'EXISTING', precio => 0.00 },
+            AMALGAM_ADAPTED     => { nom => 'Amalgama Adaptada',                   cat => 'EXISTING', precio => 0.00 },
+            AMALGAM_DEFECTIVE   => { nom => 'Amalgama Desadaptada (Recambio)',      cat => 'PENDING',  precio => 850.00 },
+            COMPOSITE           => { nom => 'Resina Adaptada',                     cat => 'EXISTING', precio => 0.00 },
+            COMPOSITE_ADAPTED   => { nom => 'Resina Adaptada',                     cat => 'EXISTING', precio => 0.00 },
+            COMPOSITE_DEFECTIVE => { nom => 'Resina Desadaptada (Filtrada)',       cat => 'PENDING',  precio => 950.00 },
+            CROWN_DONE          => { nom => 'Corona Buena / Adaptada',             cat => 'EXISTING', precio => 0.00 },
+            CROWN_GOOD          => { nom => 'Corona Buena / Adaptada',             cat => 'EXISTING', precio => 0.00 },
+            CROWN_DEFECTIVE     => { nom => 'Corona Desadaptada (Reemplazo)',       cat => 'PENDING',  precio => 3500.00 },
+            CROWN_REQ           => { nom => 'Corona Requerida',                    cat => 'PENDING',  precio => 3500.00 },
+            POST_GOOD           => { nom => 'Perno Bueno / Adaptado',              cat => 'EXISTING', precio => 0.00 },
+            POST_DEFECTIVE      => { nom => 'Perno Malo / Desajustado',            cat => 'PENDING',  precio => 1400.00 },
+            SEALANT_GOOD        => { nom => 'Sellante Bueno',                      cat => 'EXISTING', precio => 0.00 },
+            SEALANT_DEFECTIVE   => { nom => 'Sellante Desadaptado',                cat => 'PENDING',  precio => 450.00 },
+            SEALANT_REQ         => { nom => 'Sellante Requerido',                  cat => 'PENDING',  precio => 450.00 },
+            PROVISIONAL         => { nom => 'Restauración Provisional',            cat => 'PENDING',  precio => 500.00 },
+            ENDO_DONE           => { nom => 'Endodoncia Buena',                    cat => 'EXISTING', precio => 0.00 },
+            ENDO_GOOD           => { nom => 'Endodoncia Buena',                    cat => 'EXISTING', precio => 0.00 },
+            ENDO_DEFECTIVE      => { nom => 'Endodoncia Mala / Retratamiento',     cat => 'PENDING',  precio => 3200.00 },
+            ENDO_REQ            => { nom => 'Endodoncia Indicada',                 cat => 'PENDING',  precio => 2800.00 },
+            IMPLANT             => { nom => 'Implante Bueno / Integrado',          cat => 'EXISTING', precio => 0.00 },
+            IMPLANT_GOOD        => { nom => 'Implante Bueno / Integrado',          cat => 'EXISTING', precio => 0.00 },
+            IMPLANT_DEFECTIVE   => { nom => 'Implante Malo / Periimplantitis',     cat => 'PENDING',  precio => 4500.00 },
+            PONTIC              => { nom => 'Póntico de Puente Fijo',              cat => 'PENDING',  precio => 2800.00 },
+
+            # 🟢 Estado Normal
+            HEALTHY             => { nom => 'Diente Sano',                         cat => 'HEALTHY',  precio => 0.00 },
+            OTHER               => { nom => 'Otros Hallazgos Anatómicos',          cat => 'HEALTHY',  precio => 0.00 },
         );
 
         my @items_tratamiento;

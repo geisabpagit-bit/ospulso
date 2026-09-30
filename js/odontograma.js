@@ -42,11 +42,15 @@ const ODONTO_QUADRANTS = {
 };
 
 // Catálogo Clínico Canónico de Patologías y Procedimientos
+// Catálogo Clínico Canónico de Patologías y Procedimientos (3 Grupos SaaS)
 const ODONTO_CATALOG = {
-    // 🔴 PATOLOGÍAS Y TRATAMIENTOS PENDIENTES
+    // ==========================================
+    // 🔴 GRUPO 1: PATOLOGÍA / HALLAZGO
+    // ==========================================
     CARIES: {
         code: 'CARIES',
         name: 'Caries Dental (Activa)',
+        group: 'PATHOLOGY',
         category: 'PENDING',
         state: 'PENDING_TREATMENT',
         colorHex: '#FF3B30',
@@ -56,6 +60,7 @@ const ODONTO_CATALOG = {
     CARIES_RECURRENT: {
         code: 'CARIES_RECURRENT',
         name: 'Caries Recurrente / Filtrada',
+        group: 'PATHOLOGY',
         category: 'PENDING',
         state: 'PENDING_TREATMENT',
         colorHex: '#FF3B30',
@@ -65,116 +70,248 @@ const ODONTO_CATALOG = {
     FRACTURE: {
         code: 'FRACTURE',
         name: 'Fractura Dental',
+        group: 'PATHOLOGY',
         category: 'PENDING',
         state: 'PENDING_TREATMENT',
         colorHex: '#FF3B30',
         price: 1200.00,
         icon: 'bi-slash-circle-fill text-danger'
     },
-    SEALANT_REQ: {
-        code: 'SEALANT_REQ',
-        name: 'Sellador Requerido',
-        category: 'PENDING',
-        state: 'PENDING_TREATMENT',
-        colorHex: '#FF3B30',
-        price: 450.00,
-        icon: 'bi-shield-shaded text-danger'
-    },
-    CROWN_REQ: {
-        code: 'CROWN_REQ',
-        name: 'Corona Requerida',
-        category: 'PENDING',
-        state: 'PENDING_TREATMENT',
-        colorHex: '#FF3B30',
-        price: 3500.00,
-        icon: 'bi-gem text-danger'
-    },
-    ENDO_REQ: {
-        code: 'ENDO_REQ',
-        name: 'Endodoncia Indicada',
-        category: 'PENDING',
-        state: 'PENDING_TREATMENT',
-        colorHex: '#FF3B30',
-        price: 2800.00,
-        icon: 'bi-activity text-danger'
-    },
-    EXTRACTION_REQ: {
-        code: 'EXTRACTION_REQ',
-        name: 'Exodoncia Indicada',
-        category: 'PENDING',
-        state: 'PENDING_TREATMENT',
-        colorHex: '#FF3B30',
-        price: 700.00,
-        icon: 'bi-x-octagon-fill text-danger'
-    },
-
-    // 🔵 TRATAMIENTOS PREVIOS / EXISTENTES
-    COMPOSITE: {
-        code: 'COMPOSITE',
-        name: 'Resina / Composite',
-        category: 'EXISTING',
-        state: 'EXISTING_CONDITION',
-        colorHex: '#007AFF',
-        price: 0.00,
-        icon: 'bi-check-circle-fill text-primary'
-    },
-    AMALGAM: {
-        code: 'AMALGAM',
-        name: 'Amalgama Metálica',
-        category: 'EXISTING',
-        state: 'EXISTING_CONDITION',
-        colorHex: '#007AFF',
-        price: 0.00,
-        icon: 'bi-shield-fill text-primary'
-    },
-    CROWN_DONE: {
-        code: 'CROWN_DONE',
-        name: 'Corona Protésica',
-        category: 'EXISTING',
-        state: 'EXISTING_CONDITION',
-        colorHex: '#007AFF',
-        price: 0.00,
-        icon: 'bi-trophy-fill text-primary'
-    },
-    ENDO_DONE: {
-        code: 'ENDO_DONE',
-        name: 'Endodoncia Concluida',
-        category: 'EXISTING',
-        state: 'EXISTING_CONDITION',
-        colorHex: '#007AFF',
-        price: 0.00,
-        icon: 'bi-heart-pulse-fill text-primary'
-    },
-    IMPLANT: {
-        code: 'IMPLANT',
-        name: 'Implante Dental',
-        category: 'EXISTING',
-        state: 'EXISTING_CONDITION',
-        colorHex: '#007AFF',
-        price: 0.00,
-        icon: 'bi-pin-angle-fill text-primary'
-    },
     ABSENT: {
         code: 'ABSENT',
-        name: 'Diente Ausente / Pérdida Previa',
+        name: 'Diente Ausente',
+        group: 'PATHOLOGY',
         category: 'EXISTING',
         state: 'EXISTING_CONDITION',
         colorHex: '#64748B',
         price: 0.00,
         icon: 'bi-x-lg text-secondary'
     },
+    EXTRACTION_REQ: {
+        code: 'EXTRACTION_REQ',
+        name: 'Extracción Indicada',
+        group: 'PATHOLOGY',
+        category: 'PENDING',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF3B30',
+        price: 1100.00,
+        icon: 'bi-x-octagon-fill text-danger'
+    },
 
-    // ⚪ SANO / LIMPIAR
+    // ==========================================
+    // 🟠 GRUPO 2: ESTADO DE TRATAMIENTO / RESTAURACIÓN
+    // ==========================================
+    AMALGAM: {
+        code: 'AMALGAM',
+        name: 'Amalgama Adaptada',
+        group: 'RESTORATION',
+        category: 'EXISTING',
+        substatus: 'ADAPTED',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-shield-check text-primary'
+    },
+    AMALGAM_DEFECTIVE: {
+        code: 'AMALGAM_DEFECTIVE',
+        name: 'Amalgama Desadaptada (Recambio)',
+        group: 'RESTORATION',
+        category: 'PENDING',
+        substatus: 'DEFECTIVE',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF9500',
+        price: 850.00,
+        icon: 'bi-shield-exclamation text-warning'
+    },
+    COMPOSITE: {
+        code: 'COMPOSITE',
+        name: 'Resina Adaptada',
+        group: 'RESTORATION',
+        category: 'EXISTING',
+        substatus: 'ADAPTED',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-check-circle-fill text-primary'
+    },
+    COMPOSITE_DEFECTIVE: {
+        code: 'COMPOSITE_DEFECTIVE',
+        name: 'Resina Desadaptada (Filtrada)',
+        group: 'RESTORATION',
+        category: 'PENDING',
+        substatus: 'DEFECTIVE',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF9500',
+        price: 950.00,
+        icon: 'bi-exclamation-circle-fill text-warning'
+    },
+    CROWN_DONE: {
+        code: 'CROWN_DONE',
+        name: 'Corona Buena',
+        group: 'RESTORATION',
+        category: 'EXISTING',
+        substatus: 'ADAPTED',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-trophy-fill text-primary'
+    },
+    CROWN_DEFECTIVE: {
+        code: 'CROWN_DEFECTIVE',
+        name: 'Corona Desadaptada (Reemplazo)',
+        group: 'RESTORATION',
+        category: 'PENDING',
+        substatus: 'DEFECTIVE',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF9500',
+        price: 3500.00,
+        icon: 'bi-exclamation-triangle-fill text-warning'
+    },
+    POST_GOOD: {
+        code: 'POST_GOOD',
+        name: 'Perno Bueno',
+        group: 'RESTORATION',
+        category: 'EXISTING',
+        substatus: 'ADAPTED',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-pin-fill text-primary'
+    },
+    POST_DEFECTIVE: {
+        code: 'POST_DEFECTIVE',
+        name: 'Perno Malo / Desajustado',
+        group: 'RESTORATION',
+        category: 'PENDING',
+        substatus: 'DEFECTIVE',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF9500',
+        price: 1400.00,
+        icon: 'bi-pin-angle-fill text-warning'
+    },
+    SEALANT_GOOD: {
+        code: 'SEALANT_GOOD',
+        name: 'Sellante Bueno',
+        group: 'RESTORATION',
+        category: 'EXISTING',
+        substatus: 'ADAPTED',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-shield-shaded text-primary'
+    },
+    SEALANT_DEFECTIVE: {
+        code: 'SEALANT_DEFECTIVE',
+        name: 'Sellante Desadaptado',
+        group: 'RESTORATION',
+        category: 'PENDING',
+        substatus: 'DEFECTIVE',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF9500',
+        price: 450.00,
+        icon: 'bi-shield-slash text-warning'
+    },
+    PROVISIONAL: {
+        code: 'PROVISIONAL',
+        name: 'Restauración Provisional',
+        group: 'RESTORATION',
+        category: 'PENDING',
+        substatus: 'TEMPORARY',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF9500',
+        price: 500.00,
+        icon: 'bi-clock-history text-warning'
+    },
+    ENDO_DONE: {
+        code: 'ENDO_DONE',
+        name: 'Endodoncia Buena',
+        group: 'RESTORATION',
+        category: 'EXISTING',
+        substatus: 'ADAPTED',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-heart-pulse-fill text-primary'
+    },
+    ENDO_DEFECTIVE: {
+        code: 'ENDO_DEFECTIVE',
+        name: 'Endodoncia Mala / Retratamiento',
+        group: 'RESTORATION',
+        category: 'PENDING',
+        substatus: 'DEFECTIVE',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF9500',
+        price: 3200.00,
+        icon: 'bi-activity text-warning'
+    },
+    IMPLANT: {
+        code: 'IMPLANT',
+        name: 'Implante Bueno',
+        group: 'RESTORATION',
+        category: 'EXISTING',
+        substatus: 'ADAPTED',
+        state: 'EXISTING_CONDITION',
+        colorHex: '#007AFF',
+        price: 0.00,
+        icon: 'bi-pin-angle-fill text-primary'
+    },
+    IMPLANT_DEFECTIVE: {
+        code: 'IMPLANT_DEFECTIVE',
+        name: 'Implante Malo / Periimplantitis',
+        group: 'RESTORATION',
+        category: 'PENDING',
+        substatus: 'DEFECTIVE',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#FF9500',
+        price: 4500.00,
+        icon: 'bi-exclamation-diamond-fill text-warning'
+    },
+    PONTIC: {
+        code: 'PONTIC',
+        name: 'Póntico de Puente Fijo',
+        group: 'RESTORATION',
+        category: 'PENDING',
+        substatus: 'PONTIC',
+        state: 'PENDING_TREATMENT',
+        colorHex: '#007AFF',
+        price: 2800.00,
+        icon: 'bi-link-45deg text-primary'
+    },
+
+    // ==========================================
+    // 🟢 GRUPO 3: ESTADO NORMAL
+    // ==========================================
     HEALTHY: {
         code: 'HEALTHY',
-        name: 'Sano / Sin Hallazgo (Limpiar)',
+        name: 'Diente Sano (Sin Hallazgos)',
+        group: 'NORMAL',
         category: 'HEALTHY',
         state: 'HEALTHY',
         colorHex: '#FFFFFF',
         price: 0.00,
         icon: 'bi-shield-check text-success'
+    },
+    OTHER: {
+        code: 'OTHER',
+        name: 'Otros Hallazgos Fisiológicos',
+        group: 'NORMAL',
+        category: 'HEALTHY',
+        state: 'HEALTHY',
+        colorHex: '#94A3B8',
+        price: 0.00,
+        icon: 'bi-info-circle-fill text-secondary'
     }
 };
+
+// Alias de retrocompatibilidad
+ODONTO_CATALOG.AMALGAM_ADAPTED     = ODONTO_CATALOG.AMALGAM;
+ODONTO_CATALOG.COMPOSITE_ADAPTED   = ODONTO_CATALOG.COMPOSITE;
+ODONTO_CATALOG.CROWN_GOOD          = ODONTO_CATALOG.CROWN_DONE;
+ODONTO_CATALOG.CROWN_REQ           = ODONTO_CATALOG.CROWN_DEFECTIVE;
+ODONTO_CATALOG.SEALANT_REQ         = ODONTO_CATALOG.SEALANT_DEFECTIVE;
+ODONTO_CATALOG.ENDO_REQ            = ODONTO_CATALOG.ENDO_DEFECTIVE;
+ODONTO_CATALOG.ENDO_GOOD           = ODONTO_CATALOG.ENDO_DONE;
+ODONTO_CATALOG.IMPLANT_GOOD        = ODONTO_CATALOG.IMPLANT;
 
 /**
  * Retorna el nombre anatómico en español según FDI
@@ -236,8 +373,23 @@ function getToothFamily(toothId) {
 }
 
 /**
- * Catálogo de Rutas Vectoriales Anatómicas SVG Curvas por Familia Dental
+ * Modelado Anatómico Vectorial de Porcelana (Raíces + Coronas)
  */
+const PORCELAIN_ROOT_PATHS = {
+    UPPER: {
+        MOLAR: "M 18,65 C 14,35 10,12 18,5 C 24,5 26,28 34,65 Z M 42,65 C 45,30 48,6 52,4 C 56,6 58,30 60,65 Z M 66,65 C 74,28 78,12 84,5 C 90,5 86,35 82,65 Z",
+        PREMOLAR: "M 28,65 C 24,32 32,8 50,5 C 68,8 76,32 72,65 Z",
+        CANINE: "M 28,65 C 26,28 38,4 50,3 C 62,4 74,28 72,65 Z",
+        INCISOR: "M 32,65 C 32,32 40,6 50,5 C 60,6 68,32 68,65 Z"
+    },
+    LOWER: {
+        MOLAR: "M 16,75 C 12,105 14,132 22,136 C 28,136 34,112 42,88 C 47,84 53,84 58,88 C 66,112 72,136 78,136 C 86,132 88,105 84,75 Z",
+        PREMOLAR: "M 28,75 C 24,108 32,132 50,135 C 68,132 76,108 72,75 Z",
+        CANINE: "M 28,75 C 26,112 38,136 50,137 C 62,136 74,112 72,75 Z",
+        INCISOR: "M 32,75 C 32,108 40,134 50,135 C 60,134 68,108 68,75 Z"
+    }
+};
+
 const ANATOMICAL_SURFACE_PATHS = {
     MOLAR: {
         center: "M 32,32 C 38,26 62,26 68,32 C 74,38 74,62 68,68 C 62,74 38,74 32,68 C 26,62 26,38 32,32 Z",
@@ -274,53 +426,90 @@ const ANATOMICAL_SURFACE_PATHS = {
 };
 
 /**
- * Genera el SVG vectorial de una pieza dental con sus 5 superficies anatómicas independientes
+ * Genera el SVG vectorial de una pieza dental de porcelana anatómica 3D con raíces y sus 5 superficies independientes
  */
 function generateToothSvg(toothId) {
+    const id = parseInt(toothId, 10);
+    const quad = Math.floor(id / 10);
+    const isUpper = (quad === 1 || quad === 2);
     const map = getSurfaceMapping(toothId);
     const family = getToothFamily(toothId);
     const paths = ANATOMICAL_SURFACE_PATHS[family];
+    const rootPath = PORCELAIN_ROOT_PATHS[isUpper ? 'UPPER' : 'LOWER'][family];
+    
+    // Contorno anatómico de la base de porcelana de la corona según familia
+    const crownBases = {
+        MOLAR: "M 12,18 C 12,6 88,6 88,18 C 96,36 96,64 88,82 C 88,94 12,94 12,82 C 4,64 4,36 12,18 Z",
+        PREMOLAR: "M 16,20 C 16,8 84,8 84,20 C 92,36 92,64 84,80 C 84,92 16,92 16,80 C 8,64 8,36 16,20 Z",
+        CANINE: "M 20,24 C 20,8 80,8 80,24 C 88,40 88,62 80,80 C 80,92 20,92 20,80 C 12,62 12,40 20,24 Z",
+        INCISOR: "M 16,20 C 16,10 84,10 84,20 C 90,36 90,62 84,78 C 84,88 16,88 16,78 C 10,62 10,36 16,20 Z"
+    };
+    const crownBaseD = crownBases[family] || crownBases.MOLAR;
+    const crownTransform = isUpper ? 'translate(0, 56) scale(1, 0.85)' : 'translate(0, 4) scale(1, 0.85)';
 
     return `
-        <svg viewBox="0 0 100 100" class="tooth-svg-canvas family-${family.toLowerCase()}" data-tooth="${toothId}">
+        <svg viewBox="0 0 100 144" class="tooth-svg-canvas family-${family.toLowerCase()}" data-tooth="${toothId}">
+            <defs>
+                <linearGradient id="porcelain-root-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FFFFFF" />
+                    <stop offset="45%" stop-color="#E2E8F0" />
+                    <stop offset="85%" stop-color="#CBD5E1" />
+                    <stop offset="100%" stop-color="#94A3B8" />
+                </linearGradient>
+                <radialGradient id="porcelain-crown-grad" cx="45%" cy="38%" r="65%">
+                    <stop offset="0%" stop-color="#FFFFFF" />
+                    <stop offset="55%" stop-color="#F8FAFC" />
+                    <stop offset="85%" stop-color="#E2E8F0" />
+                    <stop offset="100%" stop-color="#CBD5E1" />
+                </radialGradient>
+            </defs>
             <g class="tooth" data-tooth="${toothId}" data-family="${family}">
-                <!-- Superficie Superior (${map.top}) -->
-                <path d="${paths.top}" 
-                      class="tooth-surface surface-top" 
-                      data-tooth="${toothId}" 
-                      data-surface="${map.top}"
-                      title="Diente ${toothId} - ${map.top.toUpperCase()}"></path>
-                
-                <!-- Superficie Inferior (${map.bottom}) -->
-                <path d="${paths.bottom}" 
-                      class="tooth-surface surface-bottom" 
-                      data-tooth="${toothId}" 
-                      data-surface="${map.bottom}"
-                      title="Diente ${toothId} - ${map.bottom.toUpperCase()}"></path>
-                
-                <!-- Superficie Izquierda (${map.left}) -->
-                <path d="${paths.left}" 
-                      class="tooth-surface surface-left" 
-                      data-tooth="${toothId}" 
-                      data-surface="${map.left}"
-                      title="Diente ${toothId} - ${map.left.toUpperCase()}"></path>
-                
-                <!-- Superficie Derecha (${map.right}) -->
-                <path d="${paths.right}" 
-                      class="tooth-surface surface-right" 
-                      data-tooth="${toothId}" 
-                      data-surface="${map.right}"
-                      title="Diente ${toothId} - ${map.right.toUpperCase()}"></path>
-                
-                <!-- Superficie Oclusal / Central (${map.center}) -->
-                <path d="${paths.center}" 
-                      class="tooth-surface surface-center" 
-                      data-tooth="${toothId}" 
-                      data-surface="${map.center}"
-                      title="Diente ${toothId} - ${map.center.toUpperCase()}"></path>
+                <!-- Raíz Anatómica de Porcelana -->
+                <path d="${rootPath}" class="tooth-root" data-tooth="${toothId}" title="Raíz Anatómica Pieza ${toothId}" />
 
-                <!-- Líneas Anatómicas / Fisuras Oclusales (No clicables, decorativas) -->
-                ${paths.fissures ? `<path d="${paths.fissures}" class="tooth-fissure-line" />` : ''}
+                <!-- Corona de Porcelana y Caras Anatómicas -->
+                <g class="tooth-crown" transform="${crownTransform}">
+                    <!-- Base Volumétrica de Porcelana Esmaltada -->
+                    <path d="${crownBaseD}" class="tooth-crown-base" />
+
+                    <!-- Superficie Superior (${map.top}) -->
+                    <path d="${paths.top}" 
+                          class="tooth-surface surface-top" 
+                          data-tooth="${toothId}" 
+                          data-surface="${map.top}"
+                          title="Diente ${toothId} - ${map.top.toUpperCase()}"></path>
+                    
+                    <!-- Superficie Inferior (${map.bottom}) -->
+                    <path d="${paths.bottom}" 
+                          class="tooth-surface surface-bottom" 
+                          data-tooth="${toothId}" 
+                          data-surface="${map.bottom}"
+                          title="Diente ${toothId} - ${map.bottom.toUpperCase()}"></path>
+                    
+                    <!-- Superficie Izquierda (${map.left}) -->
+                    <path d="${paths.left}" 
+                          class="tooth-surface surface-left" 
+                          data-tooth="${toothId}" 
+                          data-surface="${map.left}"
+                          title="Diente ${toothId} - ${map.left.toUpperCase()}"></path>
+                    
+                    <!-- Superficie Derecha (${map.right}) -->
+                    <path d="${paths.right}" 
+                          class="tooth-surface surface-right" 
+                          data-tooth="${toothId}" 
+                          data-surface="${map.right}"
+                          title="Diente ${toothId} - ${map.right.toUpperCase()}"></path>
+                    
+                    <!-- Superficie Oclusal / Central (${map.center}) -->
+                    <path d="${paths.center}" 
+                          class="tooth-surface surface-center" 
+                          data-tooth="${toothId}" 
+                          data-surface="${map.center}"
+                          title="Diente ${toothId} - ${map.center.toUpperCase()}"></path>
+
+                    <!-- Fisuras Anatómicas Oclusales -->
+                    ${paths.fissures ? `<path d="${paths.fissures}" class="tooth-fissure-line" />` : ''}
+                </g>
             </g>
         </svg>
     `;
@@ -474,20 +663,22 @@ function restoreDomFromState() {
                     const state = (typeof sData === 'object' && sData.state) 
                         ? sData.state 
                         : ((catObj?.category === 'PENDING') ? 'PENDING_TREATMENT' : 'EXISTING_CONDITION');
+                    const isDefective = (catObj?.substatus === 'DEFECTIVE') || (sData.colorHex === '#FF9500');
                     const color = (typeof sData === 'object' && sData.colorHex) 
                         ? sData.colorHex 
-                        : (catObj?.colorHex || (state === 'PENDING_TREATMENT' ? ODONTO_COLORS.PENDING : ODONTO_COLORS.COMPLETED));
+                        : (catObj?.colorHex || (isDefective ? '#FF9500' : (state === 'PENDING_TREATMENT' ? ODONTO_COLORS.PENDING : ODONTO_COLORS.COMPLETED)));
 
                     surfaceEl.style.fill = color;
                     surfaceEl.setAttribute('fill', color);
                     surfaceEl.setAttribute('data-state', state);
                     surfaceEl.classList.add('has-condition');
-                    if (state === 'PENDING_TREATMENT') {
+                    surfaceEl.classList.remove('surface-pending', 'surface-completed', 'surface-defective');
+                    if (isDefective) {
+                        surfaceEl.classList.add('surface-defective');
+                    } else if (state === 'PENDING_TREATMENT') {
                         surfaceEl.classList.add('surface-pending');
-                        surfaceEl.classList.remove('surface-completed');
                     } else {
                         surfaceEl.classList.add('surface-completed');
-                        surfaceEl.classList.remove('surface-pending');
                     }
                 }
             });
@@ -527,21 +718,201 @@ window.loadOdontogramState = function(stateObj) {
 };
 
 /**
+ * ==========================================================================
+ * PUENTE CIRCULAR GLASSMORPHIC (RADIAL FLOATING POPUP MENU CONTROLLER)
+ * ==========================================================================
+ */
+let currentRadialTooth = null;
+let currentRadialSurface = 'occlusal';
+
+/**
+ * Inicializa e inyecta el menú radial flotante en el body si no existe
+ */
+function initOdontoRadialMenu() {
+    if (document.getElementById('odonto-radial-menu')) return;
+
+    const radialHtml = `
+        <div id="odonto-radial-menu">
+            <div class="radial-glass-disc">
+                <div class="radial-outer-ring"></div>
+                <button type="button" class="radial-close-btn" onclick="closeOdontoRadialMenu()" title="Cerrar">&times;</button>
+                
+                <!-- 5 Botones Radiales de Caras Anatómicas -->
+                <button type="button" class="radial-sector-btn" data-surface="occlusal" onclick="selectRadialSurface('occlusal')" title="Cara Oclusal">
+                    <span class="sector-icon"><i class="bi bi-circle"></i></span>
+                    <span class="sector-label">Oclusal</span>
+                </button>
+                <button type="button" class="radial-sector-btn" data-surface="mesial" onclick="selectRadialSurface('mesial')" title="Cara Mesial">
+                    <span class="sector-icon"><i class="bi bi-arrow-right-short"></i></span>
+                    <span class="sector-label">Mesial</span>
+                </button>
+                <button type="button" class="radial-sector-btn" data-surface="vestibular" onclick="selectRadialSurface('vestibular')" title="Cara Vestibular">
+                    <span class="sector-icon"><i class="bi bi-arrow-down-right"></i></span>
+                    <span class="sector-label">Vestibular</span>
+                </button>
+                <button type="button" class="radial-sector-btn" data-surface="lingual" onclick="selectRadialSurface('lingual')" title="Cara Lingual / Palatina">
+                    <span class="sector-icon"><i class="bi bi-arrow-down-left"></i></span>
+                    <span class="sector-label">Lingual</span>
+                </button>
+                <button type="button" class="radial-sector-btn" data-surface="distal" onclick="selectRadialSurface('distal')" title="Cara Distal">
+                    <span class="sector-icon"><i class="bi bi-arrow-left-short"></i></span>
+                    <span class="sector-label">Distal</span>
+                </button>
+
+                <!-- Núcleo Central: Preview + Doble Clic para Diagnosticar -->
+                <div class="radial-nucleus" id="odonto-radial-nucleus" ondblclick="triggerModalFromRadial()" onclick="handleNucleusSingleClick()" title="Doble clic para abrir opciones clínicas">
+                    <span class="nucleus-tooth-number" id="radial-nucleus-tooth">#16</span>
+                    <span class="nucleus-surface-name" id="radial-nucleus-surface">OCLUSAL</span>
+                    <div class="radial-nucleus-preview-svg d-flex align-items-center justify-content-center" id="radial-nucleus-preview">
+                        <i class="bi bi-circle-fill text-white fs-5" id="radial-nucleus-indicator"></i>
+                    </div>
+                    <span class="nucleus-action-hint">2x Clic Abrir</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', radialHtml);
+
+    // Cerrar al hacer clic fuera del menú radial
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('odonto-radial-menu');
+        if (!menu || !menu.classList.contains('active')) return;
+        if (!menu.contains(e.target) && !e.target.closest('.tooth-card') && !e.target.closest('.tooth-surface')) {
+            closeOdontoRadialMenu();
+        }
+    });
+
+    // Cerrar al presionar tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeOdontoRadialMenu();
+        }
+    });
+}
+
+/**
+ * Abre el menú radial flotante centrado sobre la pieza dental seleccionada
+ */
+window.openOdontoRadialMenu = function(toothId, initialSurface, event) {
+    initOdontoRadialMenu();
+
+    const menu = document.getElementById('odonto-radial-menu');
+    if (!menu) return;
+
+    currentRadialTooth = String(toothId);
+    currentRadialSurface = String(initialSurface || 'occlusal').toLowerCase();
+
+    // Localizar tarjeta dental para posicionar el popup circular directamente encima
+    const card = document.querySelector(`.tooth-card[data-tooth="${currentRadialTooth}"]`);
+    if (card) {
+        const rect = card.getBoundingClientRect();
+        const centerX = rect.left + (rect.width / 2) + window.scrollX;
+        const centerY = rect.top + (rect.height / 2) + window.scrollY;
+
+        menu.style.left = `${centerX}px`;
+        menu.style.top = `${centerY}px`;
+    } else if (event) {
+        menu.style.left = `${event.pageX}px`;
+        menu.style.top = `${event.pageY}px`;
+    }
+
+    updateRadialMenuUI();
+    menu.classList.add('active');
+};
+
+/**
+ * Actualiza los elementos del menú radial (botón activo, textos del núcleo y preview)
+ */
+function updateRadialMenuUI() {
+    const toothEl = document.getElementById('radial-nucleus-tooth');
+    const surfEl = document.getElementById('radial-nucleus-surface');
+    const indicatorEl = document.getElementById('radial-nucleus-indicator');
+
+    if (toothEl) toothEl.textContent = `#${currentRadialTooth}`;
+    if (surfEl) surfEl.textContent = currentRadialSurface.toUpperCase();
+
+    // Actualizar botones de cara activa
+    document.querySelectorAll('.radial-sector-btn').forEach(btn => {
+        if (btn.getAttribute('data-surface') === currentRadialSurface) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Obtener estado actual de la superficie en memoria
+    if (indicatorEl && window.odontogramState?.teeth?.[currentRadialTooth]?.surfaces?.[currentRadialSurface]) {
+        const sData = window.odontogramState.teeth[currentRadialTooth].surfaces[currentRadialSurface];
+        const color = sData.colorHex || (sData.state === 'PENDING_TREATMENT' ? ODONTO_COLORS.PENDING : ODONTO_COLORS.COMPLETED);
+        indicatorEl.style.color = color;
+        indicatorEl.className = 'bi bi-record-circle-fill fs-5';
+    } else if (indicatorEl) {
+        indicatorEl.style.color = '#FFFFFF';
+        indicatorEl.className = 'bi bi-circle fs-5';
+    }
+}
+
+/**
+ * Selecciona una cara desde los botones radiales
+ */
+window.selectRadialSurface = function(surface) {
+    currentRadialSurface = String(surface).toLowerCase();
+    updateRadialMenuUI();
+};
+
+/**
+ * Cierra el menú radial
+ */
+window.closeOdontoRadialMenu = function() {
+    const menu = document.getElementById('odonto-radial-menu');
+    if (menu) menu.classList.remove('active');
+};
+
+/**
+ * Maneja el clic simple en el núcleo (da feedback y abre si es touch/segundo clic rápido)
+ */
+let lastNucleusClick = 0;
+function handleNucleusSingleClick() {
+    const now = Date.now();
+    if (now - lastNucleusClick < 350) {
+        // Doble clic detectado
+        triggerModalFromRadial();
+        return;
+    }
+    lastNucleusClick = now;
+}
+
+/**
+ * Abre el modal clínico contextual a partir de la selección en el Puente Circular
+ */
+window.triggerModalFromRadial = function() {
+    if (!currentRadialTooth) return;
+    const tooth = currentRadialTooth;
+    const surface = currentRadialSurface;
+    closeOdontoRadialMenu();
+    window.openOdontoClinicalModal(tooth, surface);
+};
+
+/**
  * Asigna los manejadores de eventos sobre cada cara vectorial y diente
  */
 function attachSurfaceClickEvents(container) {
-    // Clic en superficie anatómica
+    // Inicializar el Puente Circular si aún no existe en el DOM
+    initOdontoRadialMenu();
+
+    // Clic en superficie anatómica -> Abre el Puente Circular posicionado en la pieza
     const surfaces = container.querySelectorAll('.tooth-surface');
     surfaces.forEach(surfaceEl => {
         surfaceEl.addEventListener('click', function(e) {
             e.stopPropagation();
             const tooth = this.getAttribute('data-tooth');
             const surface = this.getAttribute('data-surface');
-            window.openOdontoClinicalModal(tooth, surface);
+            openOdontoRadialMenu(tooth, surface, e);
         });
     });
 
-    // Clic en número o tarjeta dental
+    // Clic en número o tarjeta dental -> Abre el Puente Circular en la pieza (oclusal por defecto)
     const cards = container.querySelectorAll('.tooth-card');
     cards.forEach(cardEl => {
         const numEl = cardEl.querySelector('.tooth-number');
@@ -549,9 +920,15 @@ function attachSurfaceClickEvents(container) {
             numEl.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const tooth = cardEl.getAttribute('data-tooth');
-                window.openOdontoClinicalModal(tooth, 'occlusal');
+                openOdontoRadialMenu(tooth, 'occlusal', e);
             });
         }
+        cardEl.addEventListener('click', function(e) {
+            // Si el clic fue directamente a la tarjeta o raíz y no en una cara
+            if (e.target.classList.contains('tooth-surface')) return;
+            const tooth = cardEl.getAttribute('data-tooth');
+            openOdontoRadialMenu(tooth, 'occlusal', e);
+        });
     });
 }
 
@@ -619,10 +996,12 @@ window.openOdontoClinicalModal = function(toothId, surface) {
 function renderModalConditionGrids() {
     const gridPending = document.getElementById('grid-conditions-pending');
     const gridExisting = document.getElementById('grid-conditions-existing');
+    const gridHealthy = document.getElementById('grid-conditions-healthy');
 
+    // GRUPO 1: PATOLOGÍA / HALLAZGO (Rojo Neón)
     if (gridPending) {
         let htmlP = '';
-        Object.values(ODONTO_CATALOG).filter(c => c.category === 'PENDING').forEach(item => {
+        Object.values(ODONTO_CATALOG).filter(c => c.group === 'PATHOLOGY').forEach(item => {
             htmlP += `
                 <div class="col-md-6">
                     <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
@@ -630,7 +1009,7 @@ function renderModalConditionGrids() {
                             <span class="odonto-condition-badge" style="background: ${item.colorHex};"></span>
                             <span class="small fw-bold text-navy">${item.name}</span>
                         </div>
-                        <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">$${item.price.toFixed(2)}</span>
+                        ${item.price > 0 ? `<span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">$${item.price.toFixed(2)}</span>` : `<span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Ausente</span>`}
                     </div>
                 </div>
             `;
@@ -638,9 +1017,21 @@ function renderModalConditionGrids() {
         gridPending.innerHTML = htmlP;
     }
 
+    // GRUPO 2: ESTADO DE TRATAMIENTO / RESTAURACIÓN (Azul Adaptada / Ámbar Desadaptada)
     if (gridExisting) {
         let htmlE = '';
-        Object.values(ODONTO_CATALOG).filter(c => c.category === 'EXISTING').forEach(item => {
+        Object.values(ODONTO_CATALOG).filter(c => c.group === 'RESTORATION').forEach(item => {
+            let badgeHtml = '';
+            if (item.substatus === 'DEFECTIVE') {
+                badgeHtml = `<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Desadaptada ($${item.price.toFixed(2)})</span>`;
+            } else if (item.substatus === 'TEMPORARY') {
+                badgeHtml = `<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Provisional ($${item.price.toFixed(2)})</span>`;
+            } else if (item.substatus === 'PONTIC') {
+                badgeHtml = `<span class="badge bg-info-subtle text-info-emphasis rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Póntico ($${item.price.toFixed(2)})</span>`;
+            } else {
+                badgeHtml = `<span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Adaptada</span>`;
+            }
+
             htmlE += `
                 <div class="col-md-6">
                     <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
@@ -648,12 +1039,31 @@ function renderModalConditionGrids() {
                             <span class="odonto-condition-badge" style="background: ${item.colorHex};"></span>
                             <span class="small fw-bold text-navy">${item.name}</span>
                         </div>
-                        <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Previo</span>
+                        ${badgeHtml}
                     </div>
                 </div>
             `;
         });
         gridExisting.innerHTML = htmlE;
+    }
+
+    // GRUPO 3: ESTADO NORMAL (Verde / Sin Hallazgo)
+    if (gridHealthy) {
+        let htmlH = '';
+        Object.values(ODONTO_CATALOG).filter(c => c.group === 'NORMAL').forEach(item => {
+            htmlH += `
+                <div class="col-md-6">
+                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="odonto-condition-badge" style="background: ${item.colorHex}; border: 1px solid #cbd5e1;"></span>
+                            <span class="small fw-bold text-navy">${item.name}</span>
+                        </div>
+                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Normal</span>
+                    </div>
+                </div>
+            `;
+        });
+        gridHealthy.innerHTML = htmlH;
     }
 }
 
@@ -851,16 +1261,20 @@ window.applySurfaceCondition = function(tooth, surface, code, state, colorHex, p
     // Actualizar DOM SVG con estilo directo y clases con !important
     const surfaceEl = document.querySelector(`.tooth-surface[data-tooth="${tooth}"][data-surface="${surface}"]`);
     if (surfaceEl) {
+        const catObj = window.ODONTO_CATALOG ? window.ODONTO_CATALOG[code] : null;
+        const isDefective = (catObj?.substatus === 'DEFECTIVE') || (colorHex === '#FF9500');
+
         surfaceEl.style.fill = colorHex;
         surfaceEl.setAttribute('fill', colorHex);
         surfaceEl.setAttribute('data-state', state);
         surfaceEl.classList.add('has-condition');
-        if (state === 'PENDING_TREATMENT') {
+        surfaceEl.classList.remove('surface-pending', 'surface-completed', 'surface-defective');
+        if (isDefective) {
+            surfaceEl.classList.add('surface-defective');
+        } else if (state === 'PENDING_TREATMENT') {
             surfaceEl.classList.add('surface-pending');
-            surfaceEl.classList.remove('surface-completed');
         } else {
             surfaceEl.classList.add('surface-completed');
-            surfaceEl.classList.remove('surface-pending');
         }
     }
 

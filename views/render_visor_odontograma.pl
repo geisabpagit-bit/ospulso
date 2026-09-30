@@ -398,27 +398,27 @@ print <<HTML;
                     </div>
                 </div>
 
-                <!-- LEYENDA CLÍNICA AL PIE -->
-                <div class="odonto-legend mt-4 bg-white p-3 rounded-pill border shadow-xs">
+                <!-- LEYENDA CLÍNICA AL PIE (SANITIZADA) -->
+                <div class="odonto-legend mt-4">
                     <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #FF3B30;"></span>
-                        <span class="small fw-bold">Patología / Pendiente (Rojo)</span>
+                        <span class="odonto-legend-color" style="background: #FF3B30; box-shadow: 0 0 8px rgba(255, 59, 48, 0.7);"></span>
+                        <span class="small fw-bold">Caries / Patología</span>
                     </div>
                     <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #007AFF;"></span>
-                        <span class="small fw-bold">Tratamiento Existente (Azul)</span>
+                        <span class="odonto-legend-color" style="background: #007AFF; box-shadow: 0 0 8px rgba(0, 122, 255, 0.7);"></span>
+                        <span class="small fw-bold">Restauración Adaptada</span>
                     </div>
                     <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #FFFFFF; border: 1px solid #94a3b8;"></span>
-                        <span class="small fw-bold">Superficie Sana (Blanco)</span>
-                    </div>
-                    <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: rgba(25, 183, 165, 0.4); border: 1px solid #19B7A5;"></span>
-                        <span class="small fw-bold">Hover Interactivo (Teal)</span>
+                        <span class="odonto-legend-color" style="background: #FF9500; box-shadow: 0 0 8px rgba(255, 149, 0, 0.7);"></span>
+                        <span class="small fw-bold">Restauración Desadaptada</span>
                     </div>
                     <div class="odonto-legend-item">
                         <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0 border">✕</span>
-                        <span class="small fw-bold">Pieza Ausente</span>
+                        <span class="small fw-bold">Diente Ausente</span>
+                    </div>
+                    <div class="odonto-legend-item">
+                        <span class="odonto-legend-color" style="background: #FFFFFF; border: 1px solid #94a3b8;"></span>
+                        <span class="small fw-bold">Sin alteraciones / Sano</span>
                     </div>
                 </div>
 
@@ -456,18 +456,18 @@ print <<HTML;
                         </div>
                     </div>
 
-                    <!-- Nivel 2: Selector en Cascada por Categorías -->
+                    <!-- Nivel 2: Selector en Cascada por Categorías (3 Grupos SaaS) -->
                     <div class="mb-4">
                         <label class="small text-muted fw-bold text-uppercase mb-2 d-block">2. Categoría y Condición Clínica</label>
                         <ul class="nav nav-pills nav-fill mb-3 odonto-category-pills" id="pills-odonto-cat" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active fw-bold text-danger" id="pills-pending-tab" data-bs-toggle="pill" data-bs-target="#pills-pending" type="button" role="tab"><i class="bi bi-exclamation-circle-fill me-1"></i>Patología / Pendiente</button>
+                                <button class="nav-link active fw-bold text-danger" id="pills-pending-tab" data-bs-toggle="pill" data-bs-target="#pills-pending" type="button" role="tab"><i class="bi bi-exclamation-octagon-fill me-1"></i>🔴 Patología / Hallazgo</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-bold text-primary" id="pills-existing-tab" data-bs-toggle="pill" data-bs-target="#pills-existing" type="button" role="tab"><i class="bi bi-check-circle-fill me-1"></i>Tratamiento Existente</button>
+                                <button class="nav-link fw-bold text-primary" id="pills-existing-tab" data-bs-toggle="pill" data-bs-target="#pills-existing" type="button" role="tab"><i class="bi bi-shield-shaded me-1"></i>🟠 Tratamiento / Restauración</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-bold text-secondary" id="pills-healthy-tab" data-bs-toggle="pill" data-bs-target="#pills-healthy" type="button" role="tab"><i class="bi bi-eraser-fill me-1"></i>Sano / Limpiar</button>
+                                <button class="nav-link fw-bold text-success" id="pills-healthy-tab" data-bs-toggle="pill" data-bs-target="#pills-healthy" type="button" role="tab"><i class="bi bi-check-circle-fill me-1"></i>🟢 Estado Normal</button>
                             </li>
                         </ul>
 
@@ -475,24 +475,27 @@ print <<HTML;
                             <!-- TAB 1: PENDIENTES / PATOLOGÍAS -->
                             <div class="tab-pane fade show active" id="pills-pending" role="tabpanel">
                                 <div class="row g-2" id="grid-conditions-pending">
-                                    <!-- Inyectado por JS -->
+                                    <!-- Inyectado dinámicamente por JS -->
                                 </div>
                             </div>
 
-                            <!-- TAB 2: TRATAMIENTOS EXISTENTES -->
+                            <!-- TAB 2: TRATAMIENTOS / RESTAURACIONES -->
                             <div class="tab-pane fade" id="pills-existing" role="tabpanel">
                                 <div class="row g-2" id="grid-conditions-existing">
-                                    <!-- Inyectado por JS -->
+                                    <!-- Inyectado dinámicamente por JS -->
                                 </div>
                             </div>
 
-                            <!-- TAB 3: SANO / LIMPIAR -->
+                            <!-- TAB 3: SANO / NORMAL -->
                             <div class="tab-pane fade" id="pills-healthy" role="tabpanel">
-                                <div class="p-4 bg-light rounded-4 text-center border">
-                                    <i class="bi bi-shield-check text-success display-5 d-block mb-2"></i>
+                                <div class="row g-2 mb-3" id="grid-conditions-healthy">
+                                    <!-- Inyectado dinámicamente por JS -->
+                                </div>
+                                <div class="p-3 bg-light rounded-4 text-center border">
+                                    <i class="bi bi-shield-check text-success display-6 d-block mb-1"></i>
                                     <h6 class="fw-black text-navy mb-1" style="color: var(--md-blue-deep);">Restaurar a Estado Sano</h6>
-                                    <p class="small text-muted mb-3">Se removerán las marcas patológicas o restauraciones de la zona o diente seleccionado.</p>
-                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" onclick="selectOdontoCondition('HEALTHY')">
+                                    <p class="small text-muted mb-2">Se removerán las marcas patológicas o restauraciones de la zona o diente seleccionado.</p>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-4 fw-bold" onclick="selectOdontoCondition('HEALTHY')">
                                         <i class="bi bi-check-lg me-1"></i>Marcar Sano / Sin Hallazgo
                                     </button>
                                 </div>

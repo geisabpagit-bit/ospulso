@@ -78,20 +78,31 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
          - 🗑️ **Eliminar**: Modal de confirmación SweetAlert2 y borrado seguro vía `api/odontograma_api.pl?accion=delete`.
   - **OSOdontograma Viewer (`views/render_visor_odontograma.pl`)**: Visor médico a pantalla completa (`100vw × 100vh`) con sincronización de Alias en tiempo real, HUD flotante de zoom, lienzo anatómico espacioso y persistencia atómica con `api/odontograma_api.pl`.
 
-### 2.7 Evolución Clínica ("Antes y Después"), Facturación y Sello en Consulta (Fase 8)
-- **Clonación Atómica (`accion=clone`)**: Permite derivar un nuevo odontograma a partir de uno existente, preservando la línea base ("Antes") y abriendo una nueva versión editable ("Después"). Copia de forma recursiva la topología anatómica de las 32 piezas y su estado periodontal.
-- **Extracción de Tratamientos Presupuestados (`accion=get_treatments`)**: Inspecciona la estructura de piezas y coteja contra `PRECIOS_REF` para desglosar ítems individuales `{ id, pieza, cara, nombre, precio, cantidad, subtotal }`.
-- **Integración con Carrito de Caja (`step_caja_privado.pl`)**: Inyecta los conceptos dentales en la orden de cobro, omitiendo cargos duplicados de consulta general.
-- **Sello Automático de Estado (`accion=set_status` / `api/cerrar_consulta_privado.pl`)**: Transiciona el odontograma a `Finalizado` con timestamp y bitácora de consulta.
+
+### 2.8 Modelado Porcelana 3D, Puente Circular Glassmorphic y Catálogo SaaS (Fase 9)
+- **Modelado Anatómico Porcelánico 3D**: Cada una de las 32 piezas (FDI 18 a 48) integra esmalte volumétrico de porcelana biomórfica con gradientes vectoriales (`porcelain-crown-grad`, `porcelain-root-grad`), sombras sutiles, fisuras oclusales y raíces anatómicas realistas:
+  - **Molares Superiores (18..16, 26..28)**: 3 raíces anatómicas divergentes apuntando hacia arriba.
+  - **Molares Inferiores (48..46, 36..38)**: 2 raíces robustas (mesial y distal) apuntando hacia abajo.
+  - **Premolares, Caninos e Incisivos**: Raíces cónicas estilizadas preservando la orientación maxilar/mandibular.
+- **Puente Circular Glassmorphic (Radial Floating HUD Dial)**: Al interactuar con cualquier pieza dental, emerge un HUD orbital concéntrico flotante con efecto `backdrop-filter: blur(18px)` y borde neón cyan:
+  - 5 botones radiales con iconos direccionales para las caras: **Oclusal** (12h), **Mesial** (3h), **Vestibular** (5h), **Lingual** (7h) y **Distal** (9h).
+  - **Núcleo Central Dinámico**: Despliega el número de pieza FDI (`#16`), la cara activa y un indicador en miniatura de su estado.
+  - **Interacción por Doble Clic**: Un doble clic en el núcleo central abre el modal clínico contextual de 3 niveles preconfigurado con la pieza y cara seleccionadas.
+- **Catálogo Clínico SaaS Reestructurado en 3 Grupos**:
+  - 🔴 **Grupo 1: Patología / Hallazgo**: Caries Activa, Caries Recurrente, Fractura, Diente Ausente, Extracción Indicada.
+  - 🟠 **Grupo 2: Estado de Tratamiento / Restauración**: Amalgama (Adaptada / Desadaptada), Resina (Adaptada / Desadaptada), Corona (Buena / Desadaptada), Perno (Bueno / Malo), Sellante (Bueno / Desadaptado), Provisional, Endodoncia (Buena / Mala), Implante (Bueno / Malo), Póntico de Puente Fijo.
+  - 🟢 **Grupo 3: Estado Normal**: Diente Sano (Sin Hallazgos), Otros Hallazgos Fisiológicos.
+- **Sanitización de la Leyenda Clínica**: Eliminación total de nombres literales de colores en la leyenda inferior (ej. "(Rojo)", "(Azul)", "(Blanco)"), sustituidos por terminología clínica limpia y badges luminosos.
+- **Inmutabilidad y Cero Rompimiento (Zero Breaking Changes)**: Contrato de selectores, DOM IDs (`#odontograma-svg-container`, `#modalOdontoClinico`, `.tooth-card`, `.tooth-surface`), nombres de métodos globales y contratos JSON intactos para transparencia total en toda la suite.
 
 ---
 
 ## 3. Arquitectura de Archivos y Persistencia
-- **CSS**: `css/odontograma_plus.css` (estilos vectoriales biomórficos, anchos proporcionales por familia dental, hover teal, persistencia de color, clases `.tooth-absent`, `.tooth-extraction-req`, `.tooth-endo-pending`, `.tooth-endo-done`, modal glassmorphism y visor a pantalla completa).
-- **JavaScript**: `js/odontograma.js` (generador de 32 piezas por familias anatómicas, rutas `<path>` curvas independientes, estado reactivo `window.odontogramState`, hidratación con `window.loadOdontogramState()`, controles de zoom dinámico, modal contextual de 3 niveles, catálogo clínico y recálculo presupuestario).
-- **Visor Standalone**: `views/render_visor_odontograma.pl` (aplicación médica completa a `100vw × 100vh` con selector de Alias, Protocolo 11.1 de rutas absolutas, captura de Error 500 y formato limpio `$0.00 MXN`).
+- **CSS**: `css/odontograma_plus.css` (estilos vectoriales biomórficos, anchos proporcionales por familia dental, hover teal, persistencia de color, clases `.tooth-absent`, `.tooth-extraction-req`, `.tooth-endo-pending`, `.tooth-endo-done`, puente circular `#odonto-radial-menu`, `.radial-glass-disc`, `.radial-nucleus`, `.surface-defective`, modal glassmorphism y visor a pantalla completa).
+- **JavaScript**: `js/odontograma.js` (generador de 32 piezas de porcelana 3D por familias anatómicas con raíces, rutas `<path>` curvas independientes, controlador del Puente Circular orbital, estado reactivo `window.odontogramState`, hidratación con `window.loadOdontogramState()`, controles de zoom dinámico, modal contextual de 3 niveles, catálogo SaaS de 3 grupos y recálculo presupuestario).
+- **Visor Standalone**: `views/render_visor_odontograma.pl` (aplicación médica completa a `100vw × 100vh` con selector de Alias, Protocolo 11.1 de rutas absolutas, leyenda sanitizada y modal estructurado en 3 grupos).
 - **Hub Ejecutivo**: `views/render_expediente_clinico.pl` (sección `#tab6` con DataTable maestro de 5 columnas, modal de hallazgos anatómicos de 6 columnas, modales de creación/renombrado y cálculo de KPIs).
-- **Backend API**: `api/odontograma_api.pl` (soporta acciones `list`, `get`, `save`, `rename`, `delete`, `clone`, `set_status`, `get_treatments` con persistencia JSON multi-odontograma en `dat/odontogramas/paciente_<id>.json`, `flock` concurrente y sincronización en `.dat`).
+- **Backend API**: `api/odontograma_api.pl` (soporta acciones `list`, `get`, `save`, `rename`, `delete`, `clone`, `set_status`, `get_treatments` con persistencia JSON multi-odontograma en `dat/odontogramas/paciente_<id>.json`, `%PRECIOS_REF` ampliado a las 3 categorías SaaS, `flock` concurrente y sincronización en `.dat`).
 - **Gobernanza y Reset Operativo**: Integración con `api/reset_datos_organizacion_api.pl` y `api/hard_reset_db_api.pl` para purgar odontogramas (tanto en `odontogramas.dat` como en los archivos atómicos `dat/odontogramas/paciente_<id>.json`) preservando intactos los registros de otros consultorios o tenants.
 
 ---
@@ -108,6 +119,8 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 | **Fase 6** | Sanitización Visual, Prevención DataTables TN/4, Redirección #tab6 y Pipeline UTF-8 | Eliminación de botones redundantes en Nivel 1 y 3; supresión de `<table>` con `colspan` en 0 registros para erradicar alerta `tn/4` de DataTables; navegación persistente a `render_expediente_clinico.pl?id=[id]#tab6` en callbacks CRUD; pipeline atómico `:raw` con saneamiento automático de mojibake (`ÃƒÂ­` -> `í`). | ✅ COMPLETADA |
 | **Fase 7** | Integración en Wizard Clínico (Paso 3) y Consulta Detalles | Incorporación de `#tablaConsultaOdontogramas` (6 columnas) en `views/partials/consultas/step_exploracion.pl` con switch reactivo; soporte multi-estudio en APIs de cierre; despliegue de odontogramas y estudios de rayos X (PACS) en `views/consulta_detalles.pl` con enlace directo a visores clínicos. | ✅ COMPLETADA |
 | **Fase 8** | Evolución Dental ("Antes y Después"), Facturación en Caja y Sello | Clonación profunda (`clone`), extracción de presupuesto (`get_treatments`), inyección reactiva en Caja (Paso 6) y cambio atómico a estado `Finalizado` al cerrar la consulta en `api/cerrar_consulta_privado.pl`. | ✅ COMPLETADA |
+| **Fase 9** | Modelado Porcelana 3D, Puente Circular Glassmorphic y Catálogo SaaS 3 Grupos | 32 piezas de porcelana 3D con raíces anatómicas (3 superiores, 2 inferiores), HUD orbital concéntrico flotante con doble clic, catálogo en 3 grupos (Patología, Restauración, Normal), badges adaptada/desadaptada y leyenda sanitizada. | ✅ COMPLETADA |
+
 
 
 
