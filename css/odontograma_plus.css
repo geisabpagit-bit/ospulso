@@ -163,49 +163,72 @@
     margin-bottom: 0;
 }
 
-/* Superficies SVG Vectoriales y Acabado Porcelana Biomórfica 3D */
+/* Morfología Anatómica de Porcelana 3D (PNG Transparente de Alta Fidelidad) */
+.tooth-porcelain-morphology {
+    width: 100%;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+    pointer-events: none;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.tooth-card.lower-arch .tooth-porcelain-morphology {
+    margin-top: 2px;
+    margin-bottom: 0;
+}
+
+.tooth-porcelain-img {
+    max-height: 60px;
+    max-width: 44px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.22));
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.tooth-card:hover .tooth-porcelain-img {
+    transform: scale(1.12);
+    filter: drop-shadow(0 6px 14px rgba(0, 229, 255, 0.55));
+}
+
+.tooth-card.tooth-absent .tooth-porcelain-img {
+    opacity: 0.18;
+    filter: grayscale(1) drop-shadow(none);
+}
+
+.tooth-card.tooth-extraction-req .tooth-porcelain-img {
+    filter: drop-shadow(0 0 10px rgba(255, 59, 48, 0.8)) saturate(1.2);
+}
+
+/* Superficies SVG Vectoriales (Mapa de Zonas Clínicas - Rectángulo Azul) */
 .tooth-svg-canvas {
     width: 44px;
-    height: 72px;
+    height: 44px;
     overflow: visible;
-    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
     transition: transform 0.2s ease, filter 0.2s ease;
 }
 
 .tooth-svg-canvas.family-incisor {
     width: 36px;
-    height: 68px;
+    height: 36px;
 }
 
 .tooth-svg-canvas.family-canine {
     width: 38px;
-    height: 74px;
+    height: 38px;
 }
 
 .tooth-svg-canvas.family-premolar {
     width: 40px;
-    height: 70px;
+    height: 40px;
 }
 
 .tooth-svg-canvas.family-molar {
-    width: 46px;
-    height: 72px;
-}
-
-/* Raíces Anatómicas de Porcelana */
-.tooth-root {
-    fill: url(#porcelain-root-grad);
-    stroke: #64748b;
-    stroke-width: 0.8;
-    transition: fill 0.2s ease, stroke 0.2s ease, filter 0.2s ease;
-}
-
-/* Base de Corona Porcelánica */
-.tooth-crown-base {
-    fill: url(#porcelain-crown-grad);
-    stroke: #475569;
-    stroke-width: 0.9;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    width: 44px;
+    height: 44px;
 }
 
 .tooth-fissure-line {
@@ -316,8 +339,8 @@
    ========================================================================== */
 #odonto-radial-menu {
     position: absolute;
-    width: 250px;
-    height: 250px;
+    width: 280px;
+    height: 280px;
     z-index: 1050;
     pointer-events: auto;
     display: none;
@@ -337,11 +360,11 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(10, 25, 55, 0.90) 0%, rgba(4, 14, 32, 0.96) 100%);
+    background: radial-gradient(circle, rgba(10, 25, 55, 0.92) 0%, rgba(4, 14, 32, 0.98) 100%);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     border: 2px solid rgba(0, 229, 255, 0.65);
-    box-shadow: 0 0 35px rgba(0, 150, 255, 0.4), inset 0 0 25px rgba(0, 229, 255, 0.15);
+    box-shadow: 0 0 40px rgba(0, 150, 255, 0.45), inset 0 0 25px rgba(0, 229, 255, 0.15);
     position: relative;
     overflow: hidden;
 }
@@ -349,7 +372,7 @@
 /* Anillo exterior decorativo */
 .radial-outer-ring {
     position: absolute;
-    inset: 6px;
+    inset: 8px;
     border-radius: 50%;
     border: 1px dashed rgba(0, 229, 255, 0.35);
     pointer-events: none;
@@ -361,67 +384,96 @@
     to { transform: rotate(360deg); }
 }
 
-/* Núcleo Central (Preview + Doble Clic) */
+/* Badge superior con número de pieza (Estilo Imagen 2) */
+.radial-top-badge {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, #0e2e5c 0%, #061833 100%);
+    border: 2px solid #00E5FF;
+    border-radius: 50px;
+    padding: 2px 14px;
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(0, 229, 255, 0.7);
+    z-index: 12;
+    letter-spacing: -0.5px;
+}
+
+/* Núcleo Central con Pieza de Porcelana 3D Realista (Estilo Imagen 2) */
 .radial-nucleus {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 84px;
-    height: 84px;
+    width: 116px;
+    height: 116px;
     border-radius: 50%;
-    background: radial-gradient(circle, #0e244d 0%, #061329 100%);
-    border: 2px solid #00E5FF;
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.6), inset 0 0 10px rgba(0, 229, 255, 0.3);
+    background: radial-gradient(circle, rgba(16, 42, 85, 0.85) 0%, rgba(6, 18, 40, 0.95) 100%);
+    border: 2px solid rgba(0, 229, 255, 0.75);
+    box-shadow: 0 0 25px rgba(0, 229, 255, 0.55), inset 0 0 15px rgba(0, 229, 255, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 10;
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    overflow: hidden;
 }
 
 .radial-nucleus:hover {
-    transform: translate(-50%, -50%) scale(1.08);
-    box-shadow: 0 0 28px rgba(0, 229, 255, 0.85);
+    transform: translate(-50%, -50%) scale(1.06);
+    box-shadow: 0 0 35px rgba(0, 229, 255, 0.85);
 }
 
-.radial-nucleus .nucleus-tooth-number {
-    font-size: 1.2rem;
-    font-weight: 900;
-    color: #ffffff;
-    line-height: 1;
-    letter-spacing: -0.5px;
-    text-shadow: 0 0 8px rgba(0, 229, 255, 0.7);
+/* Imagen de Porcelana 3D en el Núcleo */
+.radial-nucleus-porcelain-img {
+    width: 66px;
+    height: 66px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+    transition: transform 0.2s ease;
+    margin-top: 2px;
+}
+
+/* Resplandor del hallazgo sobre la pieza (Estilo mancha roja/azul en Imagen 2) */
+.radial-finding-spot {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ff3b30 20%, rgba(255, 59, 48, 0.7) 60%, transparent 100%);
+    box-shadow: 0 0 14px rgba(255, 59, 48, 0.95);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 11;
+}
+
+.radial-finding-spot.active {
+    opacity: 1;
 }
 
 .radial-nucleus .nucleus-surface-name {
-    font-size: 0.58rem;
+    font-size: 0.62rem;
     font-weight: 800;
     text-transform: uppercase;
     color: #38bdf8;
     letter-spacing: 0.6px;
-    margin-top: 2px;
-    max-width: 72px;
+    margin-top: 1px;
     text-align: center;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    text-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
 }
 
 .radial-nucleus .nucleus-action-hint {
-    font-size: 0.48rem;
+    font-size: 0.46rem;
     color: #94a3b8;
     text-transform: uppercase;
     letter-spacing: 0.4px;
-    margin-top: 1px;
-}
-
-/* Miniatura SVG en Núcleo */
-.radial-nucleus-preview-svg {
-    width: 28px;
-    height: 28px;
     margin-bottom: 2px;
 }
 

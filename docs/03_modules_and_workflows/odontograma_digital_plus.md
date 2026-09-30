@@ -80,14 +80,18 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 
 
 ### 2.8 Modelado Porcelana 3D, Puente Circular Glassmorphic y Catálogo SaaS (Fase 9)
-- **Modelado Anatómico Porcelánico 3D**: Cada una de las 32 piezas (FDI 18 a 48) integra esmalte volumétrico de porcelana biomórfica con gradientes vectoriales (`porcelain-crown-grad`, `porcelain-root-grad`), sombras sutiles, fisuras oclusales y raíces anatómicas realistas:
-  - **Molares Superiores (18..16, 26..28)**: 3 raíces anatómicas divergentes apuntando hacia arriba.
-  - **Molares Inferiores (48..46, 36..38)**: 2 raíces robustas (mesial y distal) apuntando hacia abajo.
-  - **Premolares, Caninos e Incisivos**: Raíces cónicas estilizadas preservando la orientación maxilar/mandibular.
-- **Puente Circular Glassmorphic (Radial Floating HUD Dial)**: Al interactuar con cualquier pieza dental, emerge un HUD orbital concéntrico flotante con efecto `backdrop-filter: blur(18px)` y borde neón cyan:
-  - 5 botones radiales con iconos direccionales para las caras: **Oclusal** (12h), **Mesial** (3h), **Vestibular** (5h), **Lingual** (7h) y **Distal** (9h).
-  - **Núcleo Central Dinámico**: Despliega el número de pieza FDI (`#16`), la cara activa y un indicador en miniatura de su estado.
-  - **Interacción por Doble Clic**: Un doble clic en el núcleo central abre el modal clínico contextual de 3 niveles preconfigurado con la pieza y cara seleccionadas.
+- **Modelado Anatómico Porcelánico 3D en PNG de Alta Fidelidad (`img/teeth/`)**:
+  - Cada una de las 32 piezas (FDI 18 a 48) cuenta con su imagen fotorealista de porcelana médica en 3D (`img/teeth/tooth_[FDI].png`) con fondo 100% transparente y canal alfa procesado con Pillow:
+    - **Molares Superiores (18..16, 26..28)**: 3 raíces anatómicas divergentes orientadas anatómicamente hacia arriba.
+    - **Molares Inferiores (48..46, 36..38)**: 2 raíces robustas (mesial y distal) orientadas anatómicamente hacia abajo.
+    - **Premolares, Caninos e Incisivos**: Morfología radicular y coronal completa con reflejos de esmalte y translucidez.
+  - **Layout Híbrido Clínico**:
+    - **Morfología Anatómica (Rectángulo Rojo)**: Se sitúa la imagen PNG de porcelana 3D directamente sobre el mapa clínico en la arcada superior, y bajo el mapa en la arcada inferior, garantizando un acabado visual idéntico al de software dental de alta gama.
+    - **Mapa de Zonas Clínicas (Rectángulo Azul)**: Se mantiene como el componente vectorial interactivo de 5 caras (`occlusal`, `mesial`, `distal`, `vestibular`, `lingual`) en `viewBox="0 0 100 100"` para el registro de patologías y restauraciones.
+- **Puente Circular Glassmorphic (Radial Floating HUD Dial - Recreación de Imagen 2)**:
+  - Al interactuar con cualquier pieza dental, emerge un HUD orbital concéntrico flotante con efecto `backdrop-filter: blur(18px)`, borde neón cyan y badge superior con el número de pieza (`.radial-top-badge`).
+  - **Núcleo Central con Pieza 3D**: Alberga la imagen de porcelana 3D vertical (`tooth_upright_[FDI].png`) con resplandor neón adaptativo (`.radial-finding-spot`) sobre la cara activa y doble clic para abrir el modal clínico.
+  - 5 botones radiales con iconos de diente para las caras: **Oclusal** (12h), **Mesial** (3h), **Vestibular** (5h), **Lingual** (7h) y **Distal** (9h).
 - **Catálogo Clínico SaaS Reestructurado en 3 Grupos**:
   - 🔴 **Grupo 1: Patología / Hallazgo**: Caries Activa, Caries Recurrente, Fractura, Diente Ausente, Extracción Indicada.
   - 🟠 **Grupo 2: Estado de Tratamiento / Restauración**: Amalgama (Adaptada / Desadaptada), Resina (Adaptada / Desadaptada), Corona (Buena / Desadaptada), Perno (Bueno / Malo), Sellante (Bueno / Desadaptado), Provisional, Endodoncia (Buena / Mala), Implante (Bueno / Malo), Póntico de Puente Fijo.
@@ -98,8 +102,9 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 ---
 
 ## 3. Arquitectura de Archivos y Persistencia
-- **CSS**: `css/odontograma_plus.css` (estilos vectoriales biomórficos, anchos proporcionales por familia dental, hover teal, persistencia de color, clases `.tooth-absent`, `.tooth-extraction-req`, `.tooth-endo-pending`, `.tooth-endo-done`, puente circular `#odonto-radial-menu`, `.radial-glass-disc`, `.radial-nucleus`, `.surface-defective`, modal glassmorphism y visor a pantalla completa).
-- **JavaScript**: `js/odontograma.js` (generador de 32 piezas de porcelana 3D por familias anatómicas con raíces, rutas `<path>` curvas independientes, controlador del Puente Circular orbital, estado reactivo `window.odontogramState`, hidratación con `window.loadOdontogramState()`, controles de zoom dinámico, modal contextual de 3 niveles, catálogo SaaS de 3 grupos y recálculo presupuestario).
+- **Activos de Porcelana 3D**: `img/teeth/tooth_[FDI].png` (32 piezas anatómicas con orientación maxilar/mandibular y fondo transparente) y `img/teeth/tooth_upright_[FDI].png` (32 piezas verticales para visor y núcleo del puente circular).
+- **CSS**: `css/odontograma_plus.css` (estilos vectoriales biomórficos, morfología `.tooth-porcelain-morphology`, `.tooth-porcelain-img`, puente circular `#odonto-radial-menu`, `.radial-top-badge`, `.radial-nucleus-porcelain-img`, `.radial-finding-spot`, `.surface-defective`, modal glassmorphism y visor a pantalla completa).
+- **JavaScript**: `js/odontograma.js` (generador de piezas con morfología PNG y mapa vectorial de 5 zonas, controlador del Puente Circular orbital, estado reactivo `window.odontogramState`, hidratación con `window.loadOdontogramState()`, controles de zoom dinámico, modal contextual de 3 niveles, catálogo SaaS de 3 grupos y recálculo presupuestario).
 - **Visor Standalone**: `views/render_visor_odontograma.pl` (aplicación médica completa a `100vw × 100vh` con selector de Alias, Protocolo 11.1 de rutas absolutas, leyenda sanitizada y modal estructurado en 3 grupos).
 - **Hub Ejecutivo**: `views/render_expediente_clinico.pl` (sección `#tab6` con DataTable maestro de 5 columnas, modal de hallazgos anatómicos de 6 columnas, modales de creación/renombrado y cálculo de KPIs).
 - **Backend API**: `api/odontograma_api.pl` (soporta acciones `list`, `get`, `save`, `rename`, `delete`, `clone`, `set_status`, `get_treatments` con persistencia JSON multi-odontograma en `dat/odontogramas/paciente_<id>.json`, `%PRECIOS_REF` ampliado a las 3 categorías SaaS, `flock` concurrente y sincronización en `.dat`).
@@ -119,7 +124,7 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 | **Fase 6** | Sanitización Visual, Prevención DataTables TN/4, Redirección #tab6 y Pipeline UTF-8 | Eliminación de botones redundantes en Nivel 1 y 3; supresión de `<table>` con `colspan` en 0 registros para erradicar alerta `tn/4` de DataTables; navegación persistente a `render_expediente_clinico.pl?id=[id]#tab6` en callbacks CRUD; pipeline atómico `:raw` con saneamiento automático de mojibake (`ÃƒÂ­` -> `í`). | ✅ COMPLETADA |
 | **Fase 7** | Integración en Wizard Clínico (Paso 3) y Consulta Detalles | Incorporación de `#tablaConsultaOdontogramas` (6 columnas) en `views/partials/consultas/step_exploracion.pl` con switch reactivo; soporte multi-estudio en APIs de cierre; despliegue de odontogramas y estudios de rayos X (PACS) en `views/consulta_detalles.pl` con enlace directo a visores clínicos. | ✅ COMPLETADA |
 | **Fase 8** | Evolución Dental ("Antes y Después"), Facturación en Caja y Sello | Clonación profunda (`clone`), extracción de presupuesto (`get_treatments`), inyección reactiva en Caja (Paso 6) y cambio atómico a estado `Finalizado` al cerrar la consulta en `api/cerrar_consulta_privado.pl`. | ✅ COMPLETADA |
-| **Fase 9** | Modelado Porcelana 3D, Puente Circular Glassmorphic y Catálogo SaaS 3 Grupos | 32 piezas de porcelana 3D con raíces anatómicas (3 superiores, 2 inferiores), HUD orbital concéntrico flotante con doble clic, catálogo en 3 grupos (Patología, Restauración, Normal), badges adaptada/desadaptada y leyenda sanitizada. | ✅ COMPLETADA |
+| **Fase 9** | Modelado Porcelana 3D en PNG Transparente, Puente Circular HUD y Catálogo SaaS 3 Grupos | 32 piezas de porcelana 3D en PNG transparente con raíces anatómicas (`img/teeth/`), HUD orbital concéntrico flotante con pieza 3D en núcleo, catálogo en 3 grupos (Patología, Restauración, Normal), badges adaptada/desadaptada y leyenda sanitizada. | ✅ COMPLETADA |
 
 
 

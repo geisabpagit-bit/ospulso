@@ -426,90 +426,53 @@ const ANATOMICAL_SURFACE_PATHS = {
 };
 
 /**
- * Genera el SVG vectorial de una pieza dental de porcelana anatómica 3D con raíces y sus 5 superficies independientes
+ * Genera el mapa clínico de 5 zonas vectoriales independientes (caja azul)
  */
 function generateToothSvg(toothId) {
-    const id = parseInt(toothId, 10);
-    const quad = Math.floor(id / 10);
-    const isUpper = (quad === 1 || quad === 2);
     const map = getSurfaceMapping(toothId);
     const family = getToothFamily(toothId);
-    const paths = ANATOMICAL_SURFACE_PATHS[family];
-    const rootPath = PORCELAIN_ROOT_PATHS[isUpper ? 'UPPER' : 'LOWER'][family];
-    
-    // Contorno anatómico de la base de porcelana de la corona según familia
-    const crownBases = {
-        MOLAR: "M 12,18 C 12,6 88,6 88,18 C 96,36 96,64 88,82 C 88,94 12,94 12,82 C 4,64 4,36 12,18 Z",
-        PREMOLAR: "M 16,20 C 16,8 84,8 84,20 C 92,36 92,64 84,80 C 84,92 16,92 16,80 C 8,64 8,36 16,20 Z",
-        CANINE: "M 20,24 C 20,8 80,8 80,24 C 88,40 88,62 80,80 C 80,92 20,92 20,80 C 12,62 12,40 20,24 Z",
-        INCISOR: "M 16,20 C 16,10 84,10 84,20 C 90,36 90,62 84,78 C 84,88 16,88 16,78 C 10,62 10,36 16,20 Z"
-    };
-    const crownBaseD = crownBases[family] || crownBases.MOLAR;
-    const crownTransform = isUpper ? 'translate(0, 56) scale(1, 0.85)' : 'translate(0, 4) scale(1, 0.85)';
+    const paths = ANATOMICAL_SURFACE_PATHS[family] || ANATOMICAL_SURFACE_PATHS.MOLAR;
 
     return `
-        <svg viewBox="0 0 100 144" class="tooth-svg-canvas family-${family.toLowerCase()}" data-tooth="${toothId}">
-            <defs>
-                <linearGradient id="porcelain-root-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#FFFFFF" />
-                    <stop offset="45%" stop-color="#E2E8F0" />
-                    <stop offset="85%" stop-color="#CBD5E1" />
-                    <stop offset="100%" stop-color="#94A3B8" />
-                </linearGradient>
-                <radialGradient id="porcelain-crown-grad" cx="45%" cy="38%" r="65%">
-                    <stop offset="0%" stop-color="#FFFFFF" />
-                    <stop offset="55%" stop-color="#F8FAFC" />
-                    <stop offset="85%" stop-color="#E2E8F0" />
-                    <stop offset="100%" stop-color="#CBD5E1" />
-                </radialGradient>
-            </defs>
+        <svg viewBox="0 0 100 100" class="tooth-svg-canvas family-${family.toLowerCase()}" data-tooth="${toothId}">
             <g class="tooth" data-tooth="${toothId}" data-family="${family}">
-                <!-- Raíz Anatómica de Porcelana -->
-                <path d="${rootPath}" class="tooth-root" data-tooth="${toothId}" title="Raíz Anatómica Pieza ${toothId}" />
+                <!-- Superficie Superior (${map.top}) -->
+                <path d="${paths.top}" 
+                      class="tooth-surface surface-top" 
+                      data-tooth="${toothId}" 
+                      data-surface="${map.top}"
+                      title="Diente ${toothId} - ${map.top.toUpperCase()}"></path>
+                
+                <!-- Superficie Inferior (${map.bottom}) -->
+                <path d="${paths.bottom}" 
+                      class="tooth-surface surface-bottom" 
+                      data-tooth="${toothId}" 
+                      data-surface="${map.bottom}"
+                      title="Diente ${toothId} - ${map.bottom.toUpperCase()}"></path>
+                
+                <!-- Superficie Izquierda (${map.left}) -->
+                <path d="${paths.left}" 
+                      class="tooth-surface surface-left" 
+                      data-tooth="${toothId}" 
+                      data-surface="${map.left}"
+                      title="Diente ${toothId} - ${map.left.toUpperCase()}"></path>
+                
+                <!-- Superficie Derecha (${map.right}) -->
+                <path d="${paths.right}" 
+                      class="tooth-surface surface-right" 
+                      data-tooth="${toothId}" 
+                      data-surface="${map.right}"
+                      title="Diente ${toothId} - ${map.right.toUpperCase()}"></path>
+                
+                <!-- Superficie Oclusal / Central (${map.center}) -->
+                <path d="${paths.center}" 
+                      class="tooth-surface surface-center" 
+                      data-tooth="${toothId}" 
+                      data-surface="${map.center}"
+                      title="Diente ${toothId} - ${map.center.toUpperCase()}"></path>
 
-                <!-- Corona de Porcelana y Caras Anatómicas -->
-                <g class="tooth-crown" transform="${crownTransform}">
-                    <!-- Base Volumétrica de Porcelana Esmaltada -->
-                    <path d="${crownBaseD}" class="tooth-crown-base" />
-
-                    <!-- Superficie Superior (${map.top}) -->
-                    <path d="${paths.top}" 
-                          class="tooth-surface surface-top" 
-                          data-tooth="${toothId}" 
-                          data-surface="${map.top}"
-                          title="Diente ${toothId} - ${map.top.toUpperCase()}"></path>
-                    
-                    <!-- Superficie Inferior (${map.bottom}) -->
-                    <path d="${paths.bottom}" 
-                          class="tooth-surface surface-bottom" 
-                          data-tooth="${toothId}" 
-                          data-surface="${map.bottom}"
-                          title="Diente ${toothId} - ${map.bottom.toUpperCase()}"></path>
-                    
-                    <!-- Superficie Izquierda (${map.left}) -->
-                    <path d="${paths.left}" 
-                          class="tooth-surface surface-left" 
-                          data-tooth="${toothId}" 
-                          data-surface="${map.left}"
-                          title="Diente ${toothId} - ${map.left.toUpperCase()}"></path>
-                    
-                    <!-- Superficie Derecha (${map.right}) -->
-                    <path d="${paths.right}" 
-                          class="tooth-surface surface-right" 
-                          data-tooth="${toothId}" 
-                          data-surface="${map.right}"
-                          title="Diente ${toothId} - ${map.right.toUpperCase()}"></path>
-                    
-                    <!-- Superficie Oclusal / Central (${map.center}) -->
-                    <path d="${paths.center}" 
-                          class="tooth-surface surface-center" 
-                          data-tooth="${toothId}" 
-                          data-surface="${map.center}"
-                          title="Diente ${toothId} - ${map.center.toUpperCase()}"></path>
-
-                    <!-- Fisuras Anatómicas Oclusales -->
-                    ${paths.fissures ? `<path d="${paths.fissures}" class="tooth-fissure-line" />` : ''}
-                </g>
+                <!-- Fisuras Anatómicas Oclusales -->
+                ${paths.fissures ? `<path d="${paths.fissures}" class="tooth-fissure-line" />` : ''}
             </g>
         </svg>
     `;
@@ -538,6 +501,9 @@ window.renderOdontogram = function(containerId, patientId) {
         html += `
             <div class="tooth-card upper-arch family-${fam}" data-tooth="${id}">
                 <span class="tooth-number">${id}</span>
+                <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
+                    <img src="img/teeth/tooth_${id}.png" alt="Pieza ${id}" class="tooth-porcelain-img" />
+                </div>
                 ${generateToothSvg(id)}
             </div>
         `;
@@ -558,6 +524,9 @@ window.renderOdontogram = function(containerId, patientId) {
         html += `
             <div class="tooth-card upper-arch family-${fam}" data-tooth="${id}">
                 <span class="tooth-number">${id}</span>
+                <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
+                    <img src="img/teeth/tooth_${id}.png" alt="Pieza ${id}" class="tooth-porcelain-img" />
+                </div>
                 ${generateToothSvg(id)}
             </div>
         `;
@@ -583,6 +552,9 @@ window.renderOdontogram = function(containerId, patientId) {
         html += `
             <div class="tooth-card lower-arch family-${fam}" data-tooth="${id}">
                 ${generateToothSvg(id)}
+                <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
+                    <img src="img/teeth/tooth_${id}.png" alt="Pieza ${id}" class="tooth-porcelain-img" />
+                </div>
                 <span class="tooth-number">${id}</span>
             </div>
         `;
@@ -603,6 +575,9 @@ window.renderOdontogram = function(containerId, patientId) {
         html += `
             <div class="tooth-card lower-arch family-${fam}" data-tooth="${id}">
                 ${generateToothSvg(id)}
+                <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
+                    <img src="img/teeth/tooth_${id}.png" alt="Pieza ${id}" class="tooth-porcelain-img" />
+                </div>
                 <span class="tooth-number">${id}</span>
             </div>
         `;
@@ -735,9 +710,11 @@ function initOdontoRadialMenu() {
         <div id="odonto-radial-menu">
             <div class="radial-glass-disc">
                 <div class="radial-outer-ring"></div>
+                <!-- Badge superior estilo Imagen 2 -->
+                <div class="radial-top-badge" id="radial-top-badge">16</div>
                 <button type="button" class="radial-close-btn" onclick="closeOdontoRadialMenu()" title="Cerrar">&times;</button>
                 
-                <!-- 5 Botones Radiales de Caras Anatómicas -->
+                <!-- 5 Botones Radiales de Caras Anatómicas con Iconos de Diente -->
                 <button type="button" class="radial-sector-btn" data-surface="occlusal" onclick="selectRadialSurface('occlusal')" title="Cara Oclusal">
                     <span class="sector-icon"><i class="bi bi-circle"></i></span>
                     <span class="sector-label">Oclusal</span>
@@ -759,13 +736,11 @@ function initOdontoRadialMenu() {
                     <span class="sector-label">Distal</span>
                 </button>
 
-                <!-- Núcleo Central: Preview + Doble Clic para Diagnosticar -->
+                <!-- Núcleo Central: Pieza de Porcelana 3D Realista (Estilo Imagen 2) + Doble Clic para Diagnosticar -->
                 <div class="radial-nucleus" id="odonto-radial-nucleus" ondblclick="triggerModalFromRadial()" onclick="handleNucleusSingleClick()" title="Doble clic para abrir opciones clínicas">
-                    <span class="nucleus-tooth-number" id="radial-nucleus-tooth">#16</span>
+                    <img src="img/teeth/tooth_upright_16.png" class="radial-nucleus-porcelain-img" id="radial-nucleus-porcelain" alt="Pieza Dental 3D" />
+                    <div class="radial-finding-spot" id="radial-finding-spot"></div>
                     <span class="nucleus-surface-name" id="radial-nucleus-surface">OCLUSAL</span>
-                    <div class="radial-nucleus-preview-svg d-flex align-items-center justify-content-center" id="radial-nucleus-preview">
-                        <i class="bi bi-circle-fill text-white fs-5" id="radial-nucleus-indicator"></i>
-                    </div>
                     <span class="nucleus-action-hint">2x Clic Abrir</span>
                 </div>
             </div>
@@ -778,7 +753,7 @@ function initOdontoRadialMenu() {
     document.addEventListener('click', function(e) {
         const menu = document.getElementById('odonto-radial-menu');
         if (!menu || !menu.classList.contains('active')) return;
-        if (!menu.contains(e.target) && !e.target.closest('.tooth-card') && !e.target.closest('.tooth-surface')) {
+        if (!menu.contains(e.target) && !e.target.closest('.tooth-card') && !e.target.closest('.tooth-surface') && !e.target.closest('.tooth-porcelain-morphology')) {
             closeOdontoRadialMenu();
         }
     });
@@ -825,12 +800,16 @@ window.openOdontoRadialMenu = function(toothId, initialSurface, event) {
  * Actualiza los elementos del menú radial (botón activo, textos del núcleo y preview)
  */
 function updateRadialMenuUI() {
-    const toothEl = document.getElementById('radial-nucleus-tooth');
+    const topBadge = document.getElementById('radial-top-badge');
     const surfEl = document.getElementById('radial-nucleus-surface');
-    const indicatorEl = document.getElementById('radial-nucleus-indicator');
+    const toothImg = document.getElementById('radial-nucleus-porcelain');
+    const spotEl = document.getElementById('radial-finding-spot');
 
-    if (toothEl) toothEl.textContent = `#${currentRadialTooth}`;
+    if (topBadge) topBadge.textContent = currentRadialTooth || '16';
     if (surfEl) surfEl.textContent = currentRadialSurface.toUpperCase();
+    if (toothImg && currentRadialTooth) {
+        toothImg.src = `img/teeth/tooth_upright_${currentRadialTooth}.png`;
+    }
 
     // Actualizar botones de cara activa
     document.querySelectorAll('.radial-sector-btn').forEach(btn => {
@@ -841,15 +820,33 @@ function updateRadialMenuUI() {
         }
     });
 
-    // Obtener estado actual de la superficie en memoria
-    if (indicatorEl && window.odontogramState?.teeth?.[currentRadialTooth]?.surfaces?.[currentRadialSurface]) {
-        const sData = window.odontogramState.teeth[currentRadialTooth].surfaces[currentRadialSurface];
-        const color = sData.colorHex || (sData.state === 'PENDING_TREATMENT' ? ODONTO_COLORS.PENDING : ODONTO_COLORS.COMPLETED);
-        indicatorEl.style.color = color;
-        indicatorEl.className = 'bi bi-record-circle-fill fs-5';
-    } else if (indicatorEl) {
-        indicatorEl.style.color = '#FFFFFF';
-        indicatorEl.className = 'bi bi-circle fs-5';
+    // Posición del resplandor del hallazgo en el núcleo según cara
+    if (spotEl) {
+        const spotPositions = {
+            occlusal: { top: '30%', left: '50%', transform: 'translate(-50%, -50%)' },
+            mesial: { top: '48%', left: '72%', transform: 'translate(-50%, -50%)' },
+            distal: { top: '48%', left: '28%', transform: 'translate(-50%, -50%)' },
+            vestibular: { top: '44%', left: '50%', transform: 'translate(-50%, -50%)' },
+            lingual: { top: '36%', left: '50%', transform: 'translate(-50%, -50%)' }
+        };
+        const pos = spotPositions[currentRadialSurface] || spotPositions.occlusal;
+        spotEl.style.top = pos.top;
+        spotEl.style.left = pos.left;
+        spotEl.style.transform = pos.transform;
+
+        // Comprobar si tiene condición en esa superficie
+        const sData = window.odontogramState?.teeth?.[currentRadialTooth]?.surfaces?.[currentRadialSurface];
+        if (sData) {
+            const color = sData.colorHex || (sData.state === 'PENDING_TREATMENT' ? '#FF3B30' : '#007AFF');
+            spotEl.style.background = `radial-gradient(circle, ${color} 20%, ${color}B3 60%, transparent 100%)`;
+            spotEl.style.boxShadow = `0 0 16px ${color}`;
+            spotEl.classList.add('active');
+        } else {
+            // Resplandor cian suave indicador de cara activa
+            spotEl.style.background = `radial-gradient(circle, #00E5FF 20%, rgba(0, 229, 255, 0.4) 60%, transparent 100%)`;
+            spotEl.style.boxShadow = `0 0 12px rgba(0, 229, 255, 0.8)`;
+            spotEl.classList.add('active');
+        }
     }
 }
 
