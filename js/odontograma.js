@@ -479,6 +479,16 @@ function generateToothSvg(toothId) {
 }
 
 /**
+ * Resuelve la ruta canónica de los activos de piezas dentales según la ubicación de la vista
+ */
+function getToothImgPath(filename) {
+    if (window.location.pathname.includes('/views/')) {
+        return `../img/teeth/${filename}`;
+    }
+    return `img/teeth/${filename}`;
+}
+
+/**
  * Renderiza el Odontograma Completo de 32 Piezas agrupado por cuadrantes
  */
 window.renderOdontogram = function(containerId, patientId) {
@@ -502,7 +512,7 @@ window.renderOdontogram = function(containerId, patientId) {
             <div class="tooth-card upper-arch family-${fam}" data-tooth="${id}">
                 <span class="tooth-number">${id}</span>
                 <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
-                    <img src="img/teeth/tooth_${id}.png" alt="Pieza ${id}" class="tooth-porcelain-img" />
+                    <img src="${getToothImgPath('tooth_' + id + '.png')}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${id}.png';}" />
                 </div>
                 ${generateToothSvg(id)}
             </div>
@@ -525,7 +535,7 @@ window.renderOdontogram = function(containerId, patientId) {
             <div class="tooth-card upper-arch family-${fam}" data-tooth="${id}">
                 <span class="tooth-number">${id}</span>
                 <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
-                    <img src="img/teeth/tooth_${id}.png" alt="Pieza ${id}" class="tooth-porcelain-img" />
+                    <img src="${getToothImgPath('tooth_' + id + '.png')}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${id}.png';}" />
                 </div>
                 ${generateToothSvg(id)}
             </div>
@@ -553,7 +563,7 @@ window.renderOdontogram = function(containerId, patientId) {
             <div class="tooth-card lower-arch family-${fam}" data-tooth="${id}">
                 ${generateToothSvg(id)}
                 <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
-                    <img src="img/teeth/tooth_${id}.png" alt="Pieza ${id}" class="tooth-porcelain-img" />
+                    <img src="${getToothImgPath('tooth_' + id + '.png')}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${id}.png';}" />
                 </div>
                 <span class="tooth-number">${id}</span>
             </div>
@@ -576,7 +586,7 @@ window.renderOdontogram = function(containerId, patientId) {
             <div class="tooth-card lower-arch family-${fam}" data-tooth="${id}">
                 ${generateToothSvg(id)}
                 <div class="tooth-porcelain-morphology" title="Morfología Anatómica 3D Pieza ${id}">
-                    <img src="img/teeth/tooth_${id}.png" alt="Pieza ${id}" class="tooth-porcelain-img" />
+                    <img src="${getToothImgPath('tooth_' + id + '.png')}" alt="Pieza ${id}" class="tooth-porcelain-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_${id}.png';}" />
                 </div>
                 <span class="tooth-number">${id}</span>
             </div>
@@ -738,7 +748,7 @@ function initOdontoRadialMenu() {
 
                 <!-- Núcleo Central: Pieza de Porcelana 3D Realista (Estilo Imagen 2) + Doble Clic para Diagnosticar -->
                 <div class="radial-nucleus" id="odonto-radial-nucleus" ondblclick="triggerModalFromRadial()" onclick="handleNucleusSingleClick()" title="Doble clic para abrir opciones clínicas">
-                    <img src="img/teeth/tooth_upright_16.png" class="radial-nucleus-porcelain-img" id="radial-nucleus-porcelain" alt="Pieza Dental 3D" />
+                    <img src="${getToothImgPath('tooth_upright_16.png')}" class="radial-nucleus-porcelain-img" id="radial-nucleus-porcelain" alt="Pieza Dental 3D" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_upright_16.png';}" />
                     <div class="radial-finding-spot" id="radial-finding-spot"></div>
                     <span class="nucleus-surface-name" id="radial-nucleus-surface">OCLUSAL</span>
                     <span class="nucleus-action-hint">2x Clic Abrir</span>
@@ -808,7 +818,13 @@ function updateRadialMenuUI() {
     if (topBadge) topBadge.textContent = currentRadialTooth || '16';
     if (surfEl) surfEl.textContent = currentRadialSurface.toUpperCase();
     if (toothImg && currentRadialTooth) {
-        toothImg.src = `img/teeth/tooth_upright_${currentRadialTooth}.png`;
+        toothImg.src = getToothImgPath(`tooth_upright_${currentRadialTooth}.png`);
+        toothImg.onerror = function() {
+            if (!this.dataset.fallback) {
+                this.dataset.fallback = '1';
+                this.src = `../img/teeth/tooth_upright_${currentRadialTooth}.png`;
+            }
+        };
     }
 
     // Actualizar botones de cara activa
