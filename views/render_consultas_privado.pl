@@ -521,7 +521,6 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script src="../js/consulta_flow_privado.js"></script>
 <script src="../js/autosave.js"></script>
-<script src="../js/odontograma_spa.js?v=$^T"></script>
 
 <!-- Variables de configuración para Javascript -->
 <div id="js-config" 
@@ -589,29 +588,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 3. Inicializar Autosave
     AutosaveService.init(idPaciente, idCita, idMedico);
-    
-    // 4. Lógica de Odontograma Dinámico
-    const especialidadSelect = document.querySelector('[name="especialidad"]');
-    const odontoSection = document.getElementById('odontograma-section');
-    
-    function toggleOdontograma() {
-        if (!odontoSection) return;
-        const val = especialidadSelect ? especialidadSelect.value : '';
-        const isOdonto = (val === 'Odontologia' || val === '100' || val.toLowerCase().includes('odontolog'));
-        if (isOdonto) {
-            odontoSection.style.display = 'block';
-            if (typeof initOdontograma === 'function') {
-                initOdontograma('odontograma-svg-container', idPaciente);
-            }
-        } else {
-            odontoSection.style.display = 'none';
-        }
-    }
-    
-    if (especialidadSelect && odontoSection) {
-        especialidadSelect.addEventListener('change', toggleOdontograma);
-        toggleOdontograma();
-    }
 });
 
 async function finalizarConsulta() {

@@ -85,16 +85,21 @@ sub render_step_exploracion {
             $header_extra = qq{
                 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                     <div>
-                        <h5 style="color: var(--md-teal-clinical); m-0">
+                        <h5 style="color: var(--md-teal-clinical); margin: 0; font-weight: 700;">
                             <i class="bi bi-journal-medical me-2"></i>Odontogramas Cl&iacute;nicos Disponibles (Planes y Detalle Anat&oacute;mico)
                         </h5>
                         <small class="text-muted">Asigne el odontograma para la consulta o cree una copia de evoluci&oacute;n para registrar el procedimiento del d&iacute;a.</small>
                     </div>
-                    <div class="form-check form-switch bg-light px-3 py-2 rounded-pill border">
-                        <input class="form-check-input ms-0 me-2" type="checkbox" name="odonto_finalizar_al_cerrar" id="odonto_finalizar_al_cerrar" value="1" checked>
-                        <label class="form-check-label small fw-bold text-navy" for="odonto_finalizar_al_cerrar">
-                            <i class="bi bi-check-circle-fill text-success me-1"></i>Finalizar odontograma al cerrar consulta
-                        </label>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <a href="render_visor_odontograma.pl?id=$id_paciente" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 shadow-xs fw-bold" title="Abrir Visor para crear o editar odontogramas">
+                            <i class="bi bi-plus-circle me-1"></i>Nuevo Odontograma
+                        </a>
+                        <div class="form-check form-switch bg-light px-3 py-1 rounded-pill border mb-0">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" name="odonto_finalizar_al_cerrar" id="odonto_finalizar_al_cerrar" value="1" checked>
+                            <label class="form-check-label small fw-bold text-navy" for="odonto_finalizar_al_cerrar">
+                                <i class="bi bi-check-circle-fill text-success me-1"></i>Finalizar odontograma al cerrar
+                            </label>
+                        </div>
                     </div>
                 </div>
             };
@@ -364,61 +369,32 @@ sub render_step_exploracion {
             </script>
         };
     } else {
-        $odonto_html .= qq{
-            <div class="col-12 mt-4">
-                <div class="alert alert-light border rounded-4 shadow-sm p-4 d-flex align-items-center gap-3">
-                    <i class="bi bi-info-circle-fill" style="font-size: 2rem; color: var(--md-teal-clinical, #19B7A5);"></i>
-                    <div>
-                        <h6 class="fw-bold mb-1" style="color: var(--md-blue-deep);">Sin odontogramas previos</h6>
-                        <p class="mb-0 small text-muted">No existen odontogramas registrados en el expediente clínico para este paciente.</p>
+        if ($is_odontologia) {
+            $odonto_html .= qq{
+                <div class="col-12 mt-4">
+                    <div class="alert alert-light border rounded-4 shadow-sm p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bi bi-journal-medical" style="font-size: 2.2rem; color: var(--md-teal-clinical, #19B7A5);"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1" style="color: var(--md-blue-deep);">Sin odontogramas previos</h6>
+                                <p class="mb-0 small text-muted">Este paciente a&uacute;n no tiene ning&uacute;n odontograma registrado en su expediente cl&iacute;nico.</p>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="render_visor_odontograma.pl?id=$id_paciente" target="_blank" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
+                                <i class="bi bi-plus-circle me-2"></i>Crear Odontograma Inicial
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        };
+            };
+        }
     }
 
     my $subformulario_html = '';
+    my $seccion_especialidad = '';
 
-    if ($is_odontologia) {
-        $subformulario_html = <<HTML;
-                <!-- Odontograma Interactivo (Se muestra si es Odontología) -->
-                <div class="col-12" id="odontograma-section">
-                    <div class="card-medentia-aura border-0 bg-white p-4 rounded shadow-sm">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 style="color: var(--md-teal-clinical); m-0"><i class="bi bi-tooth me-2"></i>Odontograma Interactivo</h5>
-                            <span class="badge bg-primary">Modo Odontología</span>
-                        </div>
-                        
-                        <!-- Toolbar -->
-                        <div class="d-flex flex-column gap-3 mb-4" id="odontograma-toolbar">
-                            <div class="odontograma-tools-grid">
-                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 active-tool" data-tool="caries"><i class="bi bi-circle-fill me-1"></i>Caries</button>
-                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-tool="corona"><i class="bi bi-square-fill me-1"></i>Corona</button>
-                                <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3" data-tool="extraccion"><i class="bi bi-x-lg me-1"></i>Extracci&oacute;n</button>
-                                <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3" data-tool="implante"><i class="bi bi-vinyl-fill me-1"></i>Implante</button>
-                                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-3" data-tool="protesis"><i class="bi bi-diagram-2-fill me-1"></i>Pr&oacute;tesis</button>
-                                <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3" data-tool="sano"><i class="bi bi-check-circle-fill me-1"></i>Sano</button>
-                            </div>
-                            <div class="d-flex justify-content-end">
-                                <button type="button" class="btn btn-medentia btn-sm rounded-pill px-4" onclick="saveOdontogramaToServer()"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Guardar Mapa Dental</button>
-                            </div>
-                        </div>
-                        
-                        <!-- Container SVG -->
-                        <div class="odontograma-container card-medentia-aura p-3 mb-3 overflow-auto border-0 bg-light rounded text-center" style="min-height: 300px;">
-                            <div id="odontograma-svg-container" class="text-center w-100">
-                                <div class="py-5 text-muted opacity-50"><div class="spinner-border text-primary mb-3"></div><br>Iniciando Mapa Dental...</div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-check mt-3">
-                            <input class="form-check-input wizard-input-check" type="checkbox" name="odontograma_evaluado" value="1" id="od_eval">
-                            <label class="form-check-label fw-bold" for="od_eval">Confirmo que he actualizado y guardado el odontograma en esta sesión.</label>
-                        </div>
-                    </div>
-                </div>
-HTML
-    } else {
+    if (!$is_odontologia) {
         $subformulario_html = <<HTML;
                 <!-- Subformulario Dinámico para Especialidades No Odontológicas -->
                 <div class="col-12" id="especialidad-subformulario-container">
@@ -436,6 +412,13 @@ HTML
                     </div>
                 </div>
 HTML
+
+        $seccion_especialidad = qq{
+            <div class="col-12">
+                <h5 style="color: var(--md-teal-clinical); border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-top: 20px;">Exploraci&oacute;n Dirigida por Especialidad</h5>
+            </div>
+            $subformulario_html
+        };
     }
 
     return qq{
@@ -473,11 +456,7 @@ HTML
                     <input type="number" name="talla" id="ef_talla" class="wizard-input" step="1">
                 </div>
                 
-                <div class="col-12">
-                    <h5 style="color: var(--md-teal-clinical); border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-top: 20px;">Exploraci&oacute;n Dirigida por Especialidad</h5>
-                </div>
-                
-                $subformulario_html
+                $seccion_especialidad
 
                 $odonto_html
 
