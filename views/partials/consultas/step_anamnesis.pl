@@ -115,12 +115,48 @@ sub render_step_anamnesis {
                     <h5 style="color: var(--md-teal-clinical); border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-top: 10px;">Antecedentes Personales y Notas R&aacute;pidas de Consulta</h5>
                 </div>
                 <div class="col-md-6">
-                    <label class="wizard-label">Patol&oacute;gicos (Notas de Consulta)</label>
-                    <textarea name="antecedentes_patologicos" class="wizard-input" rows="2" placeholder="Ej. Hipertensi&oacute;n, Diabetes...">$patologicos_val</textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                        <label class="wizard-label mb-0">Patol&oacute;gicos (Notas de Consulta)</label>
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2 py-1 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=antecedentes_patologicos]', this)" title="Dictar antecedentes patológicos">
+                                <i class="bi bi-mic-fill me-1"></i>
+                                <span class="btn-dictado-text fw-bold">Dictar</span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-1 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=antecedentes_patologicos]')" title="Limpiar patológicos">
+                                <i class="bi bi-eraser-fill me-1"></i>
+                                <span class="small fw-semibold">Limpiar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="position-relative">
+                        <textarea name="antecedentes_patologicos" class="wizard-input" rows="2" placeholder="Ej. Hipertensi&oacute;n, Diabetes...">$patologicos_val</textarea>
+                        <div class="dictado-live-badge text-danger fw-bold mt-2 d-none align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                            <span>Escuchando... Hable al micr&oacute;fono.</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-6">
-                    <label class="wizard-label">Alergias (Notas de Consulta)</label>
-                    <textarea name="alergias" class="wizard-input" rows="2" placeholder="Medicamentos, alimentos...">$alergias_val</textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                        <label class="wizard-label mb-0">Alergias (Notas de Consulta)</label>
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2 py-1 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=alergias]', this)" title="Dictar alergias">
+                                <i class="bi bi-mic-fill me-1"></i>
+                                <span class="btn-dictado-text fw-bold">Dictar</span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-1 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=alergias]')" title="Limpiar alergias">
+                                <i class="bi bi-eraser-fill me-1"></i>
+                                <span class="small fw-semibold">Limpiar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="position-relative">
+                        <textarea name="alergias" class="wizard-input" rows="2" placeholder="Medicamentos, alimentos...">$alergias_val</textarea>
+                        <div class="dictado-live-badge text-danger fw-bold mt-2 d-none align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                            <span>Escuchando... Hable al micr&oacute;fono.</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- MÓDULO COMPLETO DE ANTECEDENTES (PROVENIENTE DEL EXPEDIENTE DEL PACIENTE) -->

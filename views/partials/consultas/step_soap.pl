@@ -145,13 +145,49 @@ sub render_step_soap {
                 </div>
                 
                 <div class="col-12 mt-4">
-                    <label class="wizard-label">Impresi&oacute;n Cl&iacute;nica (Assessment) <span class="req-star">*</span></label>
-                    <textarea name="impresion_clinica" class="wizard-input" rows="4" placeholder="An&aacute;lisis m&eacute;dico, diagn&oacute;stico diferencial y razonamiento..." required></textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                        <label class="wizard-label mb-0">Impresi&oacute;n Cl&iacute;nica (Assessment) <span class="req-star">*</span></label>
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-3 py-1 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=impresion_clinica]', this)" title="Dictar impresión clínica por voz con micrófono">
+                                <i class="bi bi-mic-fill me-1"></i>
+                                <span class="btn-dictado-text fw-bold">Dictar</span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-1 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=impresion_clinica]')" title="Limpiar impresión clínica">
+                                <i class="bi bi-eraser-fill me-1"></i>
+                                <span class="small fw-semibold">Limpiar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="position-relative">
+                        <textarea name="impresion_clinica" class="wizard-input" rows="4" placeholder="An&aacute;lisis m&eacute;dico, diagn&oacute;stico diferencial y razonamiento o dicte usando el micr&oacute;fono..." required></textarea>
+                        <div class="dictado-live-badge text-danger fw-bold mt-2 d-none align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                            <span>Escuchando... Hable claramente al micr&oacute;fono de su dispositivo (haga clic en 'Detener Dictado' para pausar).</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="col-12 mt-4">
-                    <label class="wizard-label">Plan de Tratamiento y Abordaje Clínico (Plan) <span class="req-star">*</span></label>
-                    <textarea name="plan_tratamiento" class="wizard-input" rows="4" placeholder="Medidas generales, seguimiento, interconsultas..." required></textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                        <label class="wizard-label mb-0">Plan de Tratamiento y Abordaje Cl&iacute;nico (Plan) <span class="req-star">*</span></label>
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-3 py-1 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=plan_tratamiento]', this)" title="Dictar plan de tratamiento por voz con micrófono">
+                                <i class="bi bi-mic-fill me-1"></i>
+                                <span class="btn-dictado-text fw-bold">Dictar</span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-1 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=plan_tratamiento]')" title="Limpiar plan de tratamiento">
+                                <i class="bi bi-eraser-fill me-1"></i>
+                                <span class="small fw-semibold">Limpiar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="position-relative">
+                        <textarea name="plan_tratamiento" class="wizard-input" rows="4" placeholder="Medidas generales, seguimiento, interconsultas o dicte usando el micr&oacute;fono..." required></textarea>
+                        <div class="dictado-live-badge text-danger fw-bold mt-2 d-none align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                            <span>Escuchando... Hable claramente al micr&oacute;fono de su dispositivo (haga clic en 'Detener Dictado' para pausar).</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Módulo de Prescripción: Receta Médica Oficial (NOM-004-SSA3 / NOM-024-SSA3) -->

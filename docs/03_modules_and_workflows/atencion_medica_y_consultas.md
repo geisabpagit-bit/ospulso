@@ -79,15 +79,20 @@ graph LR
 - **Sello y Finalización Automática de Odontograma (`api/cerrar_consulta_privado.pl`)**: Al finalizar y cerrar la consulta, el backend evalúa el switch `odonto_finalizar_al_cerrar` o la especialidad odontológica, actualizando concurrentemente con `flock` el odontograma asignado a estado `Finalizado` con timestamp tanto en `dat/odontogramas/paciente_[id].json` como en `dat/odontogramas.dat`.
 
 ### 4.10 Módulo Universal de Dictado Clínico por Voz (Speech-to-Text) y Limpieza de Campos
-- **Cobertura en Wizard Clínico**: 
-  - **Paso 2 Anamnesis (`step_anamnesis.pl`)**: Toolbar con micrófono (`#btn-dictado-evolucion`) y botón de borrador/limpieza rápida en el campo obligatorio **"Evolución y Síntomas"**.
-  - **Paso 3 Exploración Física (`step_exploracion.pl`)**: Toolbar con micrófono (`#btn-dictado-hallazgos`) y botón de limpieza rápida en el campo obligatorio **"Hallazgos Clínicos"**.
+- **Despliegue Integral en el Pipeline Clínico SOAP**:
+  - **Paso 1 Ficha y Registro (`step_registro_privado.pl`)**: Toolbar en `textarea[name="motivo"]` (**Motivo Principal de Consulta**).
+  - **Paso 2 Anamnesis (`step_anamnesis.pl`)**: Toolbars en `textarea[name="evolucion"]` (**Evolución y Síntomas**), `textarea[name="antecedentes_patologicos"]` (**Patológicos**) y `textarea[name="alergias"]` (**Alergias**).
+  - **Paso 3 Exploración Física (`step_exploracion.pl`)**: Toolbar en `textarea[name="exploracion_hallazgos"]` (**Hallazgos Clínicos**).
+  - **Paso 4 Auxiliares y Estudios (`step_estudios.pl`)**: Toolbar en `textarea[name="resultados_estudios"]` (**Resultados e Interpretación de Estudios**).
+  - **Paso 5 Evaluación SOAP (`step_soap.pl`)**: Toolbars en `textarea[name="impresion_clinica"]` (**Impresión Clínica / Assessment**) y `textarea[name="plan_tratamiento"]` (**Plan de Tratamiento / Plan**).
+  - **Paso 6 Comunicación y Acuerdos (`step_comunicacion.pl`)**: Toolbar en `textarea[name="com_observaciones"]` (**Observaciones Adicionales de la Interacción**).
 - **Arquitectura Universal y Reutilizable para N Campos (`js/dictado_voz.js`)**: 
   - El motor `window.toggleDictadoVoz(targetSelector, btnElement)` está desacoplado para operar sobre cualquier selector CSS o elemento `textarea` / `input` presente o futuro del sistema.
-  - Resolución contextual de indicadores de feedback visual (`.dictado-live-badge`) sin requerir IDs rígidos.
+  - Resolución contextual de indicadores de feedback visual (`.dictado-live-badge`) por proximidad jerárquica en el DOM sin requerir identificadores unívocos rígidos.
   - Reconocimiento continuo nativo con Web Speech API en español (`es-MX`) y transcripción fluida en tiempo real (`interimResults`).
 - **Botón Universal de Limpieza Segura (`limpiarCampoTexto`)**:
   - Función global `window.limpiarCampoTexto(targetSelector)` que resetea el valor, enfoca el control y despacha automáticamente los eventos reactivos `input` y `change` para sincronización con `autosave.js` y validación de obligatoriedad.
   - Incorpora confirmación preventiva SweetAlert2 cuando el texto supera 25 caracteres para evitar borrados accidentales de notas clínicas extensas.
+
 
 

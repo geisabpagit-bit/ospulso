@@ -173,8 +173,26 @@ sub render_step_estudios {
                 $pacs_html
                 
                 <div class="col-12 mt-4">
-                    <label class="wizard-label">Resultados Previos / Observaciones</label>
-                    <textarea name="resultados_estudios" class="wizard-input" rows="4" placeholder="Interprete aqu&iacute; los resultados presentados por el paciente..."></textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                        <label class="wizard-label mb-0">Resultados Previos / Observaciones de Estudios</label>
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-3 py-1 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=resultados_estudios]', this)" title="Dictar interpretación de estudios por voz con micrófono">
+                                <i class="bi bi-mic-fill me-1"></i>
+                                <span class="btn-dictado-text fw-bold">Dictar</span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-1 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=resultados_estudios]')" title="Limpiar observaciones de estudios">
+                                <i class="bi bi-eraser-fill me-1"></i>
+                                <span class="small fw-semibold">Limpiar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="position-relative">
+                        <textarea name="resultados_estudios" class="wizard-input" rows="4" placeholder="Interprete aqu&iacute; los resultados presentados por el paciente o dicte usando el micr&oacute;fono..."></textarea>
+                        <div class="dictado-live-badge text-danger fw-bold mt-2 d-none align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                            <span>Escuchando... Hable claramente al micr&oacute;fono de su dispositivo (haga clic en 'Detener Dictado' para pausar).</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             
