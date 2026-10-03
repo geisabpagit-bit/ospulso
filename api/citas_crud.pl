@@ -170,8 +170,8 @@ sub auto_actualizar_citas_vencidas {
     foreach my $c (@$arr) {
         my $estado = $c->{estado} // '';
         $estado =~ s/^\s+|\s+$//g;
-        # Omitir citas atendidas, canceladas o ya marcadas como no realizadas
-        next if $estado =~ /^(Atendida|Cancelada|No realizada)$/i;
+        # Omitir citas atendidas, canceladas, no realizadas o activas en consulta
+        next if $estado =~ /^(Atendida|Cancelada|No realizada|En consulta|Consulta en proceso)$/i;
         
         my $cita_fec = $c->{fecha} // '';
         my $cita_hf  = $c->{hora_fin} // '';
@@ -555,7 +555,9 @@ sub enviar_eventos_oficial {
             title => $titulo,
             start => "$c->{fecha}T$c->{hora_ini}:00",
             end => "$c->{fecha}T$c->{hora_fin}:00",
-            color => ($c->{estado} eq 'No realizada') ? '#ef4444' : (($c->{consultorio} && $c->{consultorio} =~ /quir/i) ? '#dc3545' : ($c->{color} || '#3b82f6')),
+            color => ($c->{estado} eq 'No realizada') ? '#ef4444' : 
+                     ($c->{estado} =~ /^(En consulta|Consulta en proceso)$/i) ? '#059669' :
+                     (($c->{consultorio} && $c->{consultorio} =~ /quir/i) ? '#dc3545' : ($c->{color} || '#3b82f6')),
 
             extendedProps => {
                 id_paciente => $c->{id_paciente},

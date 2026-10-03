@@ -39,18 +39,25 @@ graph LR
 
 ## 4. Innovaciones Técnicas y Mecanismos de Control
 
-### 4.1 Restricción Estricta de Consulta Única Activa por Médico y Limpieza Integral de Campos
+### 4.1 Restricción Estricta de Consulta Única Activa por Médico, Citas Espontáneas y Estado "Consulta en proceso"
 - **Bloqueo Inviolable de Sesión Concurrente**: Un médico tratante tiene estrictamente prohibido mantener 2 o más consultas abiertas en paralelo.
-  - Al acceder a `render_consultas_privado.pl`, el sistema analiza `citas.dat`. Si el facultativo cuenta con una consulta en estado `En consulta`, la navegación se intercepta con una alerta modal SweetAlert2 que exige concluir y cerrar la consulta activa antes de iniciar otra.
-  - Si el médico accede de manera directa (por ejemplo, desde el expediente o directorio sin `id_cita`), el backend genera automáticamente la cita formal en estado `En consulta` en `citas.dat`, asegurando que el médico quede marcado como ocupado e impidiendo cualquier apertura concurrente.
+  - Al acceder a `render_consultas_privado.pl`, el sistema analiza `citas.dat`. Si el facultativo cuenta con una consulta en estado `Consulta en proceso` o `En consulta`, la navegación se intercepta con una alerta modal SweetAlert2 que exige concluir y cerrar la consulta activa antes de iniciar otra.
+  - **Detección y Sincronización de Citas Espontáneas (Walk-in / Sin Cita Previa)**:
+    - Si el médico accede de manera directa (por ejemplo, desde el expediente o directorio sin `id_cita`), el backend verifica primero si el paciente ya tenía una cita programada para hoy o si ya se encontraba en sesión activa con dicho paciente (evitando alertas duplicadas en recargas `F5`).
+    - Si no existe cita previa, el backend genera automáticamente un registro formal completo de 16 columnas en `citas.dat` con estado **`Consulta en proceso`**, color clínico `#059669`, hora de inicio actual y proyección a +30 minutos.
+    - Se actualiza la URL del cliente de forma transparente (`history.replaceState`) inyectando `id_cita`, lo que asegura trazabilidad total, persistencia de borradores y cuadre en la agenda.
+  - **Reflejo Inmediato en la Agenda (`agenda_main.pl` / `js/agenda_spa_new.js`)**:
+    - La cita se marca en el grid y timeline bajo el estado **`Consulta en proceso`** con badge verde clínico (`#059669` / `bg-teal text-white`).
+    - Se habilita el botón de acción directa **`Ir a Consulta en Proceso ▶`** para acceder o retomar la sesión.
+    - La cita queda protegida contra drag-and-drop, eliminación accidental y contra la regla de vencimiento (`auto_actualizar_citas_vencidas`), impidiendo que sea marcada erróneamente como `No realizada` si la atención excede el tiempo estimado.
 - **Aislamiento Estricto de Borradores (Anti-Herencia de Datos)**:
   - Los borradores en `dat/consulta_draft.dat` se indexan y filtran de manera estricta por `id_paciente` e `id_cita`. Nunca se cargan datos de consultas o citas pasadas.
   - Al iniciar una nueva consulta, el formulario se inicializa con `autocomplete="off"` y se ejecuta una purga preventiva en el DOM que limpia todos los campos de texto, signos vitales, textareas y vacía los carritos de medicamentos y caja en memoria.
-  - Al concluir la consulta en `api/cerrar_consulta_privado.pl`, la cita pasa inmutablemente a `Atendida`, se elimina cualquier borrador asociado y se resetea el estado del formulario.
+  - Al concluir la consulta en `api/cerrar_consulta_privado.pl`, la cita pasa inmutablemente a `Atendida`, se elimina cualquier borrador asociado y se resetea el estado del formulario liberando el cerrojo del médico.
 
-### 4.2 Trazabilidad de Consulta Activa en Expediente
-- En `render_expediente_clinico.pl`, cuando una cita está `En consulta`, el botón del timeline cambia a **`Continuar con la consulta ▶`** (`btn-info text-white`).
-- En el modal resumen del directorio de pacientes (`pacientes.pl`), se despliega el badge **`En Consulta`** con enlace directo a la sesión activa.
+### 4.2 Trazabilidad de Consulta en Proceso en Expediente y Directorio
+- En `render_expediente_clinico.pl`, cuando una cita está `Consulta en proceso` o `En consulta`, el botón del timeline y hub clínico cambia a **`Continuar con la consulta ▶`** (`btn-info text-white`).
+- En el modal resumen del directorio de pacientes (`pacientes.pl`), se despliega el badge **`Consulta en proceso`** con enlace directo a la sesión activa.
 
 ### 4.3 Grid Responsivo de 4 Columnas
 - En `step_registro_privado.pl`, los formularios se estructuran bajo `col-12 col-md-3` (4 columnas simétricas en escritorio/tablet y 1 columna en móvil).

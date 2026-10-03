@@ -152,9 +152,9 @@ function initPacientesSpa() {
 
                     var fechaReal = cita.fecha_real || '';
                     var fechaCita = new Date(fechaReal + 'T00:00:00');
-                    if (cita.estado === 'En consulta' || cita.estado === 'En Consulta') {
-                        badgeClass = 'bg-info text-white';
-                        labelEstado = 'En Consulta';
+                    if (cita.estado === 'En consulta' || cita.estado === 'En Consulta' || (cita.estado && cita.estado.toLowerCase().includes('proceso'))) {
+                        badgeClass = 'bg-teal text-white';
+                        labelEstado = 'Consulta en proceso';
                     } else if (cita.estado === 'Atendida' || cita.estado === 'atendida' || cita.estado === 'Atendido') {
                         badgeClass = 'bg-success';
                         labelEstado = 'Atendida';

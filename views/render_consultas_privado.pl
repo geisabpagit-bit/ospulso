@@ -74,6 +74,7 @@ my $regs_usr = leer_tabla($usr_file, '!');
 if ($regs_usr) {
     foreach my $r (@$regs_usr) {
         if ($r->[0] eq $id_medico || (lc($r->[2] // '') eq lc($usuario))) {
+            $id_medico         = $r->[0]; # Asegurar ID canónico del usuario/médico
             $id_espe_medico    = $r->[7] // '0';
             $id_subespe_medico = $r->[8] // '0';
             $paciente->{cedula_medico} = $r->[9] // '';
@@ -123,8 +124,16 @@ if (-e $citas_file && open my $fh_chk, '<:encoding(UTF-8)', $citas_file) {
         
         $c_id  =~ s/^\s+|\s+$//g;
         $c_med =~ s/^\s+|\s+$//g;
+        $c_pac =~ s/^\s+|\s+$//g;
+        $c_est =~ s/^\s+|\s+$//g;
         
-        if ($c_med eq $id_medico && $c_est eq 'En consulta') {
+        # Si el usuario entró sin id_cita pero este mismo médico ya tiene en consulta a ESTE MISMO paciente,
+        # asociarlo automáticamente para no bloquearlo indebidamente al recargar (F5)
+        if (!$id_cita && $id_paciente && $c_med eq $id_medico && ($c_est =~ /^(En consulta|Consulta en proceso)$/i) && $c_pac eq $id_paciente) {
+            $id_cita = $c_id;
+        }
+        
+        if ($c_med eq $id_medico && ($c_est =~ /^(En consulta|Consulta en proceso)$/i)) {
             if (!$id_cita || $c_id ne $id_cita) {
                 $cita_activa_medico = {
                     id_cita     => $c_id,
@@ -138,6 +147,27 @@ if (-e $citas_file && open my $fh_chk, '<:encoding(UTF-8)', $citas_file) {
         }
     }
     close $fh_chk;
+}
+
+# 1.1 Si no trae id_cita pero tiene paciente y no hay choque de consulta activa,
+# verificar si ya contaba con una cita programada para hoy y enlazarla automáticamente
+if (!$id_cita && $id_paciente && !$cita_activa_medico) {
+    if (-e $citas_file && open my $fh_prog, '<:encoding(UTF-8)', $citas_file) {
+        my $hdr = <$fh_prog>;
+        while (my $l = <$fh_prog>) {
+            chomp $l;
+            my @c = split /\|/, $l, -1;
+            my $cp = $c[2] // ''; $cp =~ s/^\s+|\s+$//g;
+            my $cf = $c[3] // ''; $cf =~ s/^\s+|\s+$//g;
+            my $ce = $c[8] // ''; $ce =~ s/^\s+|\s+$//g;
+            if ($cp eq $id_paciente && $cf eq $hoy_fecha && ($ce =~ /^(Programada|Confirmada|En Sala de Espera)$/i)) {
+                $id_cita = $c[0];
+                $id_cita =~ s/^\s+|\s+$//g;
+                last;
+            }
+        }
+        close $fh_prog;
+    }
 }
 
 if ($cita_activa_medico) {
@@ -227,7 +257,7 @@ if ($id_cita) {
                 $paciente->{motivo_precargado} = $c[6] // '';
                 
                 if (($c[8] // '') !~ /Atendida|Cancelada/i) {
-                    $c[8] = 'En consulta';
+                    $c[8] = 'Consulta en proceso';
                 }
                 $l = join('|', @c);
                 $modificado = 1;
@@ -239,13 +269,19 @@ if ($id_cita) {
         }
     }
 } elsif ($id_paciente) {
-    # Si entró sin id_cita pero con paciente, crear cita 'En consulta' para blindar bloqueo de consulta activa
+    # Si entró sin id_cita pero con paciente (Walk-in / Consulta espontánea),
+    # crear cita completa de 16 columnas 'Consulta en proceso' en la agenda para marcar ocupación real
     my ($h_cur, $m_cur) = split(/:/, $hoy_hora);
     my $m_tot_fin = ($h_cur * 60) + $m_cur + 30;
     my $nueva_hora_fin = sprintf("%02d:%02d", int($m_tot_fin / 60) % 24, $m_tot_fin % 60);
     $id_cita = "CITA-" . time() . "-" . int(rand(900) + 100);
 
-    my $cabecera = "ID_CITA|ID_MEDICO|ID_PACIENTE|FECHA|HORA_INICIO|HORA_FIN|TIPO_CONSULTA|NOTAS|ESTADO|EXTRA";
+    my $id_negocio_cita = $session_data->{id_empresa} // '0';
+    $id_negocio_cita = '0' if $id_negocio_cita eq '';
+    my $id_sucursal_cita = $session_data->{id_sucursal} || '';
+    my $elaborado_por = $usuario || 'Médico';
+
+    my $cabecera = "id_cita|id_medico|id_paciente|fecha|hora_ini|hora_fin|motivo|notas|estado|event_id|color|prioridad|sucursal|consultorio|id_negocio|elaborado_por";
     my @lineas_existentes;
     if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
         my $head = <$fh_in>;
@@ -257,7 +293,26 @@ if ($id_cita) {
         }
         close $fh_in;
     }
-    push @lineas_existentes, "$id_cita|$id_medico|$id_paciente|$hoy_fecha|$hoy_hora|$nueva_hora_fin|Consulta General||En consulta|";
+
+    my $nueva_cita_linea = join('|',
+        $id_cita,
+        $id_medico,
+        $id_paciente,
+        $hoy_fecha,
+        $hoy_hora,
+        $nueva_hora_fin,
+        'Consulta General',
+        'Consulta directa espontánea',
+        'Consulta en proceso',
+        '',
+        '#059669',
+        'Normal',
+        $id_sucursal_cita,
+        'Consultorio 1',
+        $id_negocio_cita,
+        $elaborado_por
+    );
+    push @lineas_existentes, $nueva_cita_linea;
     utils::db_manager::actualizar_archivo($citas_file, $cabecera, \@lineas_existentes);
 
     $paciente->{fecha_consulta} = $hoy_fecha;
@@ -338,6 +393,10 @@ utils::sub_sidebar::render_sidebar(
     id_medico     => $id_medico, 
     pagina_actual => 'consultas'
 );
+
+if ($id_paciente && $id_cita) {
+    print qq{<script>if (window.history && window.history.replaceState && !window.location.search.includes('id_cita=')) { window.history.replaceState(null, '', 'render_consultas_privado.pl?id=$id_paciente&id_cita=$id_cita'); }</script>\n};
+}
 
 print <<HTML;
 <link rel="stylesheet" href="../css/consulta_flow.css">

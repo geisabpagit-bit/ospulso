@@ -331,6 +331,7 @@ print <<HTML;
                                         <option value="Programada">Programada</option>
                                         <option value="Confirmada">Confirmada</option>
                                         <option value="En Sala de Espera">En Sala de Espera</option>
+                                        <option value="Consulta en proceso">Consulta en proceso</option>
                                         <option value="En consulta">En consulta</option>
                                         <option value="Atendida">Atendida</option>
                                         <option value="No realizada">No realizada</option>

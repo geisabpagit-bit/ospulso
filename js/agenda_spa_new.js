@@ -65,7 +65,15 @@ const ESTADOS_CITAS_CONFIG = {
         border: '#f59e0b'
     },
     'en consulta': {
-        clave: 'En consulta',
+        clave: 'Consulta en proceso',
+        color: '#059669',
+        bgCard: '#dcfce7',
+        textColor: '#166534',
+        badgeClass: 'bg-teal text-white',
+        border: '#86efac'
+    },
+    'consulta en proceso': {
+        clave: 'Consulta en proceso',
         color: '#059669',
         bgCard: '#dcfce7',
         textColor: '#166534',
@@ -106,6 +114,9 @@ function resolverEstadoCita(estadoRaw, fechaIso, horaFinStr) {
     if (low.includes('pagada') || low.includes('paciente')) low = 'confirmada';
     if (low.includes('espera')) low = 'en sala de espera';
     if (low.includes('asistió') || low.includes('asistio')) low = 'no realizada';
+    if (low.includes('proceso') || low.includes('en consulta') || low === 'en consulta' || low === 'consulta en proceso') low = 'en consulta';
+
+    const esActivaEnConsulta = (low === 'en consulta' || low === 'consulta en proceso' || low.includes('proceso'));
 
     // Regla de Oro SDM: Si la fecha es pasada o la hora fin de hoy ya expiró y no fue atendida ni cancelada, se setea como "No realizada"
     const todayIso = (typeof getISO === 'function') ? getISO(new Date()) : new Date().toISOString().split('T')[0];
@@ -114,7 +125,7 @@ function resolverEstadoCita(estadoRaw, fechaIso, horaFinStr) {
 
     if (!low.includes('atendida') && !low.includes('cancelada')) {
         const esFechaPasada = fechaIso && fechaIso < todayIso;
-        const esHoraPasadaHoy = (fechaIso === todayIso && horaFinStr && horaFinStr < nowHHMM && low !== 'en consulta');
+        const esHoraPasadaHoy = (fechaIso === todayIso && horaFinStr && horaFinStr < nowHHMM && !esActivaEnConsulta);
         if (esFechaPasada || esHoraPasadaHoy) {
             low = 'no realizada';
             raw = 'No realizada';
@@ -132,7 +143,7 @@ function resolverEstadoCita(estadoRaw, fechaIso, horaFinStr) {
         esNoRealizada: low === 'no realizada',
         esAtendida: low.includes('atendida'),
         esCancelada: low === 'cancelada',
-        esEnConsulta: low === 'en consulta'
+        esEnConsulta: esActivaEnConsulta
     };
 }
 
@@ -263,21 +274,21 @@ function renderSmartSlots(date) {
                     const stLow = st.toLowerCase();
                     const esAtendida = res.esAtendida || stLow.includes('atendida');
                     const esCancelada = res.esCancelada || stLow.includes('cancelada');
-                    const esEnConsulta = (stLow === 'en consulta');
-                    const esNoRealizada = res.esNoRealizada || stLow.includes('no realizada') || (isPastSlot && !esAtendida && !esCancelada);
+                    const esEnConsulta = res.esEnConsulta || (stLow === 'en consulta' || stLow === 'consulta en proceso' || stLow.includes('proceso'));
+                    const esNoRealizada = res.esNoRealizada || stLow.includes('no realizada') || (isPastSlot && !esAtendida && !esCancelada && !esEnConsulta);
 
                     if (esEnConsulta) {
                         slotClass = 'slot-busy slot-en-consulta';
-                        slotStyle += ' background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important;';
-                        slotTitle = `En Consulta - ${aptInSlot.title}`;
+                        slotStyle += ' background-color: #dcfce7 !important; border-color: #059669 !important; color: #166534 !important;';
+                        slotTitle = `Consulta en proceso - ${aptInSlot.title}`;
                         slotContent = `
                             <div class="d-flex align-items-center justify-content-between w-100">
                                 <span class="fw-bold">${hhmm}</span>
-                                <span class="badge bg-danger text-white" style="font-size:0.55rem;">EN CONSULTA</span>
+                                <span class="badge text-white" style="font-size:0.55rem; background-color:#059669 !important;">CONSULTA EN PROCESO</span>
                             </div>
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
-                                <button type="button" class="btn btn-sm btn-danger text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.location.href='render_consultas.pl?id=${aptInSlot.extendedProps.id_paciente}&id_cita=${aptInSlot.id}'" title="Ir a Consulta Activa"><i class="bi bi-play-fill"></i> Ir</button>
+                                <button type="button" class="btn btn-sm text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem; background-color:#059669 !important;" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${aptInSlot.extendedProps.id_paciente}&id_cita=${aptInSlot.id}'" title="Ir a Consulta en Proceso"><i class="bi bi-play-fill"></i> Ir</button>
                             </div>
                         `;
                     } else if (esAtendida) {
@@ -899,10 +910,10 @@ function renderTimeline() {
         }
 
         let actionButtons = '';
-        if (stLow === 'en consulta') {
+        if (stLow === 'en consulta' || stLow === 'consulta en proceso' || stLow.includes('proceso') || res.esEnConsulta) {
             actionButtons = `
                 <button class="btn-apt-action btn-apt-exp" onclick="event.stopPropagation(); window.open('render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}', '_blank')" title="Ver Expediente"><i class="bi bi-person-vcard"></i></button>
-                <button class="btn-apt-action btn-apt-run" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'" title="Ir a Consulta Activa"><i class="bi bi-play-fill"></i></button>
+                <button class="btn-apt-action btn-apt-run" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'" title="Ir a Consulta en Proceso"><i class="bi bi-play-fill"></i></button>
             `;
         } else if (stLow.includes('atendida')) {
             actionButtons = `
@@ -1065,7 +1076,7 @@ function renderTable(type) {
         const stLow = st.toLowerCase();
 
         if (!stLow.includes('atendida') && !stLow.includes('cancelada')) {
-            if (aptDate < todayIso || (aptDate === todayIso && aptEnd < nowHHMM && !stLow.includes('en consulta'))) {
+            if (aptDate < todayIso || (aptDate === todayIso && aptEnd < nowHHMM && !stLow.includes('en consulta') && !stLow.includes('proceso'))) {
                 st = 'No realizada';
             }
         }
@@ -1456,7 +1467,7 @@ function activateManualDrag(id) {
     const a = appointments.find(x => x.id == id);
     if (a) {
         const stLow = (a.extendedProps.estado || '').trim().toLowerCase();
-        if (stLow === 'en consulta' || stLow.includes('atendida')) {
+        if (stLow === 'en consulta' || stLow === 'consulta en proceso' || stLow.includes('proceso') || stLow.includes('atendida')) {
             if (typeof CrystalToast !== 'undefined') {
                 CrystalToast.fire({ icon: 'warning', title: 'Acción Bloqueada', text: 'Las citas en consulta o atendidas no se pueden mover.' });
             } else {
@@ -1509,7 +1520,7 @@ function dropManualDrag(iso, time) {
     }
 
     const stLow = (a.extendedProps.estado || '').trim().toLowerCase();
-    if (stLow === 'en consulta' || stLow.includes('atendida')) {
+    if (stLow === 'en consulta' || stLow === 'consulta en proceso' || stLow.includes('proceso') || stLow.includes('atendida')) {
         Swal.fire({ 
             icon: 'warning', 
             title: 'Acción Bloqueada', 
@@ -1864,13 +1875,11 @@ function abrirModalCita(id, isReadonly) {
     $("#f_fecha").val(a.start.split('T')[0]); 
     $("#f_hi").val(hi); 
     $("#f_hf").val(hf);
-    $("#f_motivo").val(a.extendedProps.motivo); 
-
-    // Restaurar lista completa canónica para edición
-    const opcionesEdicion = [
+      const opcionesEdicion = [
         { val: 'Programada', text: 'Programada' },
         { val: 'Confirmada', text: 'Confirmada' },
         { val: 'En Sala de Espera', text: 'En Sala de Espera' },
+        { val: 'Consulta en proceso', text: 'Consulta en proceso' },
         { val: 'En consulta', text: 'En consulta' },
         { val: 'Atendida', text: 'Atendida' },
         { val: 'No realizada', text: 'No realizada' },
@@ -1894,7 +1903,7 @@ function abrirModalCita(id, isReadonly) {
 
     const esAtendida = est.includes('atendida');
     const esCancelada = est.includes('cancelada');
-    const esEnConsulta = (est === 'en consulta');
+    const esEnConsulta = (est === 'en consulta' || est === 'consulta en proceso' || est.includes('proceso'));
     const esCerrada = (esAtendida || esCancelada);
 
     const tipoOrg = (document.getElementById('agenda_tipo_organizacion') ? document.getElementById('agenda_tipo_organizacion').value : '') || '';
@@ -1920,9 +1929,10 @@ function abrirModalCita(id, isReadonly) {
         $("#modalCita input, #modalCita select").prop('disabled', true);
         $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").hide();
         $("#btn-del-cita").addClass('d-none');
-        $("#btn-tomar-cita").removeClass('d-none').html('<i class="bi bi-play-circle me-1"></i> IR A CONSULTA ACTIVA');
+        $("#btn-tomar-cita").removeClass('d-none').html('<i class="bi bi-play-circle me-1"></i> IR A CONSULTA EN PROCESO');
+        $("#btn-tomar-cita").attr('onclick', `window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'`);
         $("#btn-cobrar-recepcion").addClass('d-none');
-        $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA EN CONSULTA (ACTIVA)');
+        $("#modalCitaTitle").text('GESTIÓN DE CITAS / CONSULTA EN PROCESO (ACTIVA)');
     } else if (isReadonly) {
         // Vista de solo lectura (ej. clic en el ojo de cita pasada o no atendida)
         $("#modalCita input, #modalCita select").prop('disabled', true);
@@ -2129,7 +2139,7 @@ function delCita(id) {
     const a = appointments.find(x => x.id == targetId);
     if (a) {
         const stLow = (a.extendedProps.estado || '').trim().toLowerCase();
-        if (stLow === 'en consulta' || stLow.includes('atendida')) {
+        if (stLow === 'en consulta' || stLow === 'consulta en proceso' || stLow.includes('proceso') || stLow.includes('atendida')) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Acción Bloqueada',
@@ -2232,13 +2242,16 @@ function renderTable(type) {
         const f = a.start.split('T')[0];
         const h = a.start.split('T')[1].substring(0, 5);
         const st = a.extendedProps.estado || 'Programada';
+        const esProc = st.toLowerCase().includes('consulta') || st.toLowerCase().includes('proceso');
+        const stBadgeCls = (st==='Atendida'||st==='atendida') ? 'bg-teal text-white' : (esProc ? 'bg-teal text-white' : (st==='En Sala de Espera' ? 'bg-warning text-dark' : 'bg-primary'));
+        const stBadgeStyle = (st==='Atendida'||st==='atendida') ? 'background-color: #19B7A5 !important;' : (esProc ? 'background-color: #059669 !important;' : '');
         $(tableId + ' tbody').append(`
             <tr>
                 <td class="fw-bold" data-label="Fecha">${f}</td>
                 <td data-label="Hora"><span class="badge bg-light text-navy border">${h}</span></td>
                 <td class="fw-black text-primary" data-label="Paciente">${a.title}</td>
                 <td class="small" data-label="Motivo">${a.extendedProps.motivo || ''}</td>
-                <td data-label="Status"><span class="badge ${st==='Atendida'||st==='atendida'?'bg-teal text-white':(st==='En Sala de Espera'?'bg-warning text-dark':'bg-primary')} rounded-pill" style="${st==='Atendida'||st==='atendida'?'background-color: #19B7A5 !important;':''}">${st.toUpperCase()}</span></td>
+                <td data-label="Status"><span class="badge ${stBadgeCls} rounded-pill" style="${stBadgeStyle}">${st.toUpperCase()}</span></td>
                 <td class="text-end" data-label="Acciones">
                     <button class="btn btn-sm btn-light rounded-3" onclick="abrirModalCita('${a.id}')"><i class="bi bi-pencil"></i></button>
                 </td>

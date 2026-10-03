@@ -1127,7 +1127,7 @@ JS
             <div class="timeline-diamond">
 HTML
     foreach my $c (@$citas_ref) {
-        my $is_en_consulta = ($c->{estado} =~ /En consulta/i);
+        my $is_en_consulta = ($c->{estado} =~ /En consulta|proceso/i);
         my $status_color = $is_en_consulta ? '#00C4C4' : ($c->{estado} =~ /Programada/i) ? '#10b981' : ($c->{estado} =~ /Cancelada/i) ? '#ef4444' : '#64748b';
         my $btn_tomar_cita = "";
         if ($c->{estado} !~ /Realizada|Atendida|Cancelada/i) {
@@ -1184,7 +1184,7 @@ HTML
     foreach my $c (@$citas_ref) {
         if ($c->{estado} !~ /Realizada|Atendida|Cancelada/i) {
             $hay_citas_pendientes = 1;
-            my $is_en_consulta = ($c->{estado} =~ /En consulta/i);
+            my $is_en_consulta = ($c->{estado} =~ /En consulta|proceso/i);
             my $badge_color = $is_en_consulta ? 'info' : ($c->{estado} =~ /Confirmada/i) ? 'success' : ($c->{estado} =~ /No Asistió|No Asistio/i) ? 'warning' : 'primary';
             my $btn_label = $is_en_consulta ? "Continuar con la consulta" : "Iniciar";
             my $btn_class = $is_en_consulta ? "btn btn-info text-white btn-sm d-flex align-items-center px-4 rounded-pill shadow-sm fw-bold" : "btn btn-medentia btn-sm d-flex align-items-center px-4 rounded-pill fw-bold";
