@@ -213,3 +213,33 @@
     color: #ef4444;
     margin-left: 3px;
 }
+
+/* Dictado por Voz (Speech-to-Text) */
+.btn-dictado-voz {
+    transition: all 0.25s ease-in-out;
+    border-color: rgba(25, 183, 165, 0.4);
+    color: var(--md-teal-clinical, #19B7A5);
+    background: transparent;
+    font-size: 0.8rem;
+}
+.btn-dictado-voz:hover {
+    background-color: var(--md-teal-clinical, #19B7A5);
+    border-color: var(--md-teal-clinical, #19B7A5);
+    color: #ffffff;
+}
+@keyframes pulseDictado {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { transform: scale(1.04); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+.pulsing-mic {
+    animation: pulseDictado 1.5s infinite;
+}
+.dictado-live-badge {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+}
+

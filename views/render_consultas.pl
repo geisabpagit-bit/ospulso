@@ -228,7 +228,7 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script src="../js/consulta_flow.js"></script>
 <script src="../js/autosave.js"></script>
-<script src="../js/odontograma_spa.js?v=$^T"></script>
+<script src="../js/dictado_voz.js?v=$^T"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {

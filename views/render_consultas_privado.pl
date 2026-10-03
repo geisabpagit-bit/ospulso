@@ -521,6 +521,7 @@ print <<HTML;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
 <script src="../js/consulta_flow_privado.js"></script>
 <script src="../js/autosave.js"></script>
+<script src="../js/dictado_voz.js?v=$^T"></script>
 
 <!-- Variables de configuración para Javascript -->
 <div id="js-config" 

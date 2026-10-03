@@ -89,8 +89,20 @@ sub render_step_anamnesis {
                     <input type="number" name="intensidad" class="wizard-input" min="1" max="10" value="1">
                 </div>
                 <div class="col-12">
-                    <label class="wizard-label">Evoluci&oacute;n y S&iacute;ntomas <span class="req-star">*</span></label>
-                    <textarea name="evolucion" class="wizard-input" rows="3" placeholder="Describa c&oacute;mo ha evolucionado el cuadro cl&iacute;nico..." required></textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                        <label class="wizard-label mb-0">Evoluci&oacute;n y S&iacute;ntomas <span class="req-star">*</span></label>
+                        <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-3 py-1 shadow-xs d-inline-flex align-items-center" id="btn-dictado-evolucion" data-feedback-id="dictado-feedback-evolucion" onclick="toggleDictadoVoz('textarea[name=evolucion]', this)" title="Activar/desactivar dictado por voz con micrófono">
+                            <i class="bi bi-mic-fill me-1"></i>
+                            <span class="btn-dictado-text fw-bold">Dictar</span>
+                        </button>
+                    </div>
+                    <div class="position-relative">
+                        <textarea name="evolucion" class="wizard-input" rows="3" placeholder="Describa c&oacute;mo ha evolucionado el cuadro cl&iacute;nico o dicte usando el micr&oacute;fono..." required></textarea>
+                        <div id="dictado-feedback-evolucion" class="dictado-live-badge text-danger fw-bold mt-2 d-none align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                            <span>Escuchando... Hable claramente al micr&oacute;fono de su dispositivo (haga clic en 'Detener Dictado' para pausar).</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="col-12">
