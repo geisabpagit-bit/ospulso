@@ -238,19 +238,47 @@ if ($id_cita) {
             utils::db_manager::actualizar_archivo($citas_file, $cabecera, \@nuevas_lineas);
         }
     }
+} elsif ($id_paciente) {
+    # Si entró sin id_cita pero con paciente, crear cita 'En consulta' para blindar bloqueo de consulta activa
+    my ($h_cur, $m_cur) = split(/:/, $hoy_hora);
+    my $m_tot_fin = ($h_cur * 60) + $m_cur + 30;
+    my $nueva_hora_fin = sprintf("%02d:%02d", int($m_tot_fin / 60) % 24, $m_tot_fin % 60);
+    $id_cita = "CITA-" . time() . "-" . int(rand(900) + 100);
+
+    my $cabecera = "ID_CITA|ID_MEDICO|ID_PACIENTE|FECHA|HORA_INICIO|HORA_FIN|TIPO_CONSULTA|NOTAS|ESTADO|EXTRA";
+    my @lineas_existentes;
+    if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
+        my $head = <$fh_in>;
+        $cabecera = $head if $head;
+        chomp $cabecera;
+        while (my $l = <$fh_in>) {
+            chomp $l;
+            push @lineas_existentes, $l if $l =~ /\S/;
+        }
+        close $fh_in;
+    }
+    push @lineas_existentes, "$id_cita|$id_medico|$id_paciente|$hoy_fecha|$hoy_hora|$nueva_hora_fin|Consulta General||En consulta|";
+    utils::db_manager::actualizar_archivo($citas_file, $cabecera, \@lineas_existentes);
+
+    $paciente->{fecha_consulta} = $hoy_fecha;
+    $paciente->{hora_consulta}  = $hoy_hora;
+    $paciente->{motivo_precargado} = '';
 }
 
-# Recuperación de Autosave (Draft)
+# Recuperación de Autosave (Draft) - Aislado estrictamente por Paciente y Cita Activa
 my $draft_json = '{}';
 my $draft_step = 0;
 my $draft_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consulta_draft.dat');
-if (-e $draft_file) {
+if (-e $draft_file && $id_cita) {
     if (open my $fh, '<:encoding(UTF-8)', $draft_file) {
         my $head = <$fh>;
         while (my $l = <$fh>) {
             chomp $l;
+            next if $l =~ /^\s*$/;
             my @c = split /\|/, $l, -1;
-            if ($c[0] eq "DRAFT-$id_paciente") {
+            # Estructura: id_draft|id_paciente|id_cita|id_medico|current_step|payload_json|timestamp
+            # Solo restaurar si pertenece estrictamente a este paciente y a ESTA cita activa en curso
+            if ($c[1] eq $id_paciente && $c[2] eq $id_cita) {
                 $draft_step = $c[4] || 0;
                 $draft_json = $c[5] || '{}';
                 $draft_json =~ s/\\\\n/\\n/g; # Restaurar saltos de línea
@@ -378,7 +406,7 @@ print <<HTML;
     </div>
 
     <!-- Contenedor Principal (Form) -->
-    <form id="wizard-form">
+    <form id="wizard-form" autocomplete="off">
         <!-- Campos ocultos necesarios -->
         <input type="hidden" name="id_cita" value="$id_cita">
         <input type="hidden" name="id_paciente" value="$id_paciente">
@@ -572,7 +600,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    if (Object.keys(draftData).length > 0) {
+    const formEl = document.getElementById('wizard-form');
+
+    if (draftData && Object.keys(draftData).length > 0) {
+        // Restaurar únicamente datos del borrador legítimo de esta cita activa
         for (const key in draftData) {
             if (key === 'fecha_consulta' || key === 'hora_consulta') continue; // Preservar fecha y hora actual de atencion
             const val = draftData[key];
@@ -584,6 +615,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     el.value = val;
                 }
             }
+        }
+    } else {
+        // Consulta Nueva: Limpieza preventiva total de campos residuales del navegador
+        if (formEl) {
+            formEl.querySelectorAll('textarea').forEach(ta => {
+                if (ta.name !== 'motivo') {
+                    ta.value = '';
+                }
+            });
+            formEl.querySelectorAll('input:not([type=hidden]):not([type=date])').forEach(inp => {
+                if (inp.type === 'checkbox' || inp.type === 'radio') {
+                    if (inp.name !== 'odonto_finalizar_al_cerrar') {
+                        inp.checked = false;
+                    }
+                } else if (inp.name !== 'fecha_consulta' && inp.name !== 'hora_consulta') {
+                    inp.value = '';
+                }
+            });
+        }
+        if (typeof carrito !== 'undefined') {
+            carrito = [];
+            if (typeof renderTablaMedicamentos === 'function') renderTablaMedicamentos();
+        }
+        if (typeof carritoConsulta !== 'undefined') {
+            carritoConsulta = [];
+            if (typeof renderTablaCaja === 'function') renderTablaCaja();
         }
     }
     
@@ -614,7 +671,13 @@ async function finalizarConsulta() {
         
         if (json.ok) {
             AutosaveService.stop();
-            if(typeof AutosaveService.clearDraft === 'function') AutosaveService.clearDraft();
+            if (typeof AutosaveService.clearDraft === 'function') {
+                AutosaveService.clearDraft();
+            }
+            if (formEl) formEl.reset();
+            if (typeof carrito !== 'undefined') carrito = [];
+            if (typeof carritoConsulta !== 'undefined') carritoConsulta = [];
+
             Swal.fire('Completado', 'La consulta y transacciones de caja se han guardado con exito.', 'success').then(() => {
                 const configEl = document.getElementById('js-config');
                 const idPaciente = configEl ? configEl.getAttribute('data-id-paciente') : '';

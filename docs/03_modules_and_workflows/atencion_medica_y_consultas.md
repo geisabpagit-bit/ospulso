@@ -39,9 +39,14 @@ graph LR
 
 ## 4. Innovaciones Técnicas y Mecanismos de Control
 
-### 4.1 Restricción Estricta de Consulta Única Activa por Médico
-- Un médico no puede mantener 2 consultas abiertas simultáneamente.
-- `render_consultas_privado.pl` analiza `citas.dat`. Si el facultativo posee una cita previa en estado `En consulta`, bloquea la navegación desplegando una alerta SweetAlert2 que exige finalizar la consulta previa.
+### 4.1 Restricción Estricta de Consulta Única Activa por Médico y Limpieza Integral de Campos
+- **Bloqueo Inviolable de Sesión Concurrente**: Un médico tratante tiene estrictamente prohibido mantener 2 o más consultas abiertas en paralelo.
+  - Al acceder a `render_consultas_privado.pl`, el sistema analiza `citas.dat`. Si el facultativo cuenta con una consulta en estado `En consulta`, la navegación se intercepta con una alerta modal SweetAlert2 que exige concluir y cerrar la consulta activa antes de iniciar otra.
+  - Si el médico accede de manera directa (por ejemplo, desde el expediente o directorio sin `id_cita`), el backend genera automáticamente la cita formal en estado `En consulta` en `citas.dat`, asegurando que el médico quede marcado como ocupado e impidiendo cualquier apertura concurrente.
+- **Aislamiento Estricto de Borradores (Anti-Herencia de Datos)**:
+  - Los borradores en `dat/consulta_draft.dat` se indexan y filtran de manera estricta por `id_paciente` e `id_cita`. Nunca se cargan datos de consultas o citas pasadas.
+  - Al iniciar una nueva consulta, el formulario se inicializa con `autocomplete="off"` y se ejecuta una purga preventiva en el DOM que limpia todos los campos de texto, signos vitales, textareas y vacía los carritos de medicamentos y caja en memoria.
+  - Al concluir la consulta en `api/cerrar_consulta_privado.pl`, la cita pasa inmutablemente a `Atendida`, se elimina cualquier borrador asociado y se resetea el estado del formulario.
 
 ### 4.2 Trazabilidad de Consulta Activa en Expediente
 - En `render_expediente_clinico.pl`, cuando una cita está `En consulta`, el botón del timeline cambia a **`Continuar con la consulta ▶`** (`btn-info text-white`).

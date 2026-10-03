@@ -547,7 +547,8 @@ if (-e $draft_file) {
         foreach my $l (@lineas) {
             chomp $l;
             my @c = split /\|/, $l, -1;
-            push @nuevas, $l unless $c[0] eq $id_draft;
+            my $match_draft = ($c[0] eq $id_draft || ($c[1] && $c[1] eq $id_paciente) || ($id_cita && $c[2] && $c[2] eq $id_cita)) ? 1 : 0;
+            push @nuevas, $l unless $match_draft;
         }
         utils::db_manager::actualizar_archivo($draft_file, $cab, \@nuevas);
     }
