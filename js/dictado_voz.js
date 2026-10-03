@@ -1,8 +1,9 @@
 /**
  * js/dictado_voz.js
- * Módulo de Dictado por Voz (Speech-to-Text) para Consultas Clínicas
+ * Módulo Universal de Dictado por Voz (Speech-to-Text) y Limpieza de Campos Clínicos
  * Utiliza Web Speech API nativa (SpeechRecognition / webkitSpeechRecognition)
- * Cumple estándares de accesibilidad y dictado médico continuo en español (es-MX).
+ * Cumple estándares de accesibilidad, dictado médico continuo en español (es-MX)
+ * y persistencia reactiva compatible con autosave.js.
  */
 
 (function(window) {
@@ -14,8 +15,8 @@
     let baseTextBeforeStart = '';
 
     /**
-     * Alterna (inicia o detiene) el dictado por voz sobre el textarea especificado
-     * @param {string|HTMLTextAreaElement} targetSelector Selector o elemento textarea
+     * Alterna (inicia o detiene) el dictado por voz sobre cualquier textarea o input
+     * @param {string|HTMLTextAreaElement|HTMLInputElement} targetSelector Selector CSS o elemento DOM
      * @param {HTMLElement} btnElement Botón que disparó la acción
      */
     window.toggleDictadoVoz = function(targetSelector, btnElement) {
@@ -64,8 +65,15 @@
             baseTextBeforeStart = textarea.value.trim();
             currentRecognition = recognition;
 
+            // Localizar feedback: por atributo data-feedback-id o por clase en el contenedor padre
             const feedbackId = btnElement.getAttribute('data-feedback-id');
-            const feedbackEl = feedbackId ? document.getElementById(feedbackId) : null;
+            let feedbackEl = feedbackId ? document.getElementById(feedbackId) : null;
+            if (!feedbackEl) {
+                const parentCol = btnElement.closest('.col-12, .col-md-6, .col-md-12, .mb-3');
+                if (parentCol) {
+                    feedbackEl = parentCol.querySelector('.dictado-live-badge');
+                }
+            }
 
             recognition.onstart = function() {
                 actualizarUiGrabando(true, feedbackEl);
@@ -87,7 +95,7 @@
                 if (finalTranscript) {
                     finalTranscript = finalTranscript.trim();
                     if (finalTranscript.length > 0) {
-                        // Capitalizar primera letra de cada fragmento finalizado
+                        // Capitalizar primera letra de cada fragmento consolidado
                         finalTranscript = finalTranscript.charAt(0).toUpperCase() + finalTranscript.slice(1);
                         
                         let sep = '';
@@ -103,7 +111,7 @@
                     textarea.value = baseTextBeforeStart + sep + interimTranscript.trim();
                 }
 
-                // Notificar a autosave y listeners de cambio
+                // Notificar a autosave y listeners reactivos de cambio
                 textarea.dispatchEvent(new Event('input', { bubbles: true }));
                 textarea.dispatchEvent(new Event('change', { bubbles: true }));
             };
@@ -150,6 +158,70 @@
         }
     };
 
+    /**
+     * Limpia de forma segura el contenido de un campo de texto o textarea
+     * Con confirmación amigable si el texto es extenso para prevenir pérdidas accidentales
+     * @param {string|HTMLTextAreaElement|HTMLInputElement} targetSelector Selector CSS o elemento DOM
+     */
+    window.limpiarCampoTexto = function(targetSelector) {
+        const textarea = typeof targetSelector === 'string' ? document.querySelector(targetSelector) : targetSelector;
+        if (!textarea) return;
+
+        const contenido = textarea.value.trim();
+        if (!contenido) {
+            textarea.focus();
+            return;
+        }
+
+        const ejecutarLimpieza = () => {
+            // Si el campo que se limpia estaba siendo dictado, detener el dictado
+            if (currentRecognition && activeTextarea === textarea) {
+                detenerDictado();
+            }
+
+            textarea.value = '';
+            baseTextBeforeStart = '';
+            
+            // Disparar eventos reactivos para sincronizar con autosave.js
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            textarea.dispatchEvent(new Event('change', { bubbles: true }));
+            textarea.focus();
+
+            // Si tiene SweetAlert2, mostrar feedback discreto
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Campo limpiado',
+                    showConfirmButton: false,
+                    timer: 1800
+                });
+            }
+        };
+
+        // Si el contenido es largo (> 25 caracteres), pedir confirmación de seguridad
+        if (contenido.length > 25 && typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: '¿Limpiar este campo?',
+                text: 'Se borrará el texto ingresado en este apartado.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-trash3-fill me-1"></i> Sí, limpiar',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'rounded-4 shadow-lg' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    ejecutarLimpieza();
+                }
+            });
+        } else {
+            ejecutarLimpieza();
+        }
+    };
+
     function detenerDictado() {
         if (currentRecognition) {
             try {
@@ -159,7 +231,13 @@
         }
         if (activeBtn) {
             const feedbackId = activeBtn.getAttribute('data-feedback-id');
-            const feedbackEl = feedbackId ? document.getElementById(feedbackId) : null;
+            let feedbackEl = feedbackId ? document.getElementById(feedbackId) : null;
+            if (!feedbackEl) {
+                const parentCol = activeBtn.closest('.col-12, .col-md-6, .col-md-12, .mb-3');
+                if (parentCol) {
+                    feedbackEl = parentCol.querySelector('.dictado-live-badge');
+                }
+            }
             actualizarUiGrabando(false, feedbackEl);
             activeBtn = null;
         }

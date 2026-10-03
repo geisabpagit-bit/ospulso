@@ -78,8 +78,16 @@ graph LR
 - **Inyección Automática a Conceptos a Cobrar (Paso 6 `step_caja_privado.pl`)**: Cuando la consulta corresponde a Odontología, se despliega el banner `#caja-odonto-banner` que detecta el odontograma asignado en el Paso 3. A través de `api/odontograma_api.pl?accion=get_treatments`, desglosa los tratamientos presupuestados y los inyecta en el carrito de cargos (`carritoConsulta` y `caja_items_json`), recalculando en tiempo real los totales, abonos y destino del tratamiento.
 - **Sello y Finalización Automática de Odontograma (`api/cerrar_consulta_privado.pl`)**: Al finalizar y cerrar la consulta, el backend evalúa el switch `odonto_finalizar_al_cerrar` o la especialidad odontológica, actualizando concurrentemente con `flock` el odontograma asignado a estado `Finalizado` con timestamp tanto en `dat/odontogramas/paciente_[id].json` como en `dat/odontogramas.dat`.
 
-### 4.10 Dictado Clínico por Voz Inteligente (Speech-to-Text)
-- **Paso 2 Anamnesis (`step_anamnesis.pl`)**: Incorpora el botón de acción rápida con micrófono (`#btn-dictado-evolucion`) en el campo obligatorio **"Evolución y Síntomas"**.
-- **Tecnología Web Speech API (`js/dictado_voz.js`)**: Integra reconocimiento continuo de voz en español (`es-MX`) con transcripción en tiempo real (`interimResults`), anexando frases sin sobreescribir texto previo y disparando los eventos reactivos `input` y `change` para sincronización inmediata con `autosave.js`.
-- **Feedback Visual y Control de Errores**: Despliega un badge con efecto de onda pulsante (`.pulsing-mic` y `.dictado-live-badge`) que notifica activamente al médico que el micrófono está abierto y gestiona excepciones de permisos denegados o falta de conectividad mediante diálogos informativos.
+### 4.10 Módulo Universal de Dictado Clínico por Voz (Speech-to-Text) y Limpieza de Campos
+- **Cobertura en Wizard Clínico**: 
+  - **Paso 2 Anamnesis (`step_anamnesis.pl`)**: Toolbar con micrófono (`#btn-dictado-evolucion`) y botón de borrador/limpieza rápida en el campo obligatorio **"Evolución y Síntomas"**.
+  - **Paso 3 Exploración Física (`step_exploracion.pl`)**: Toolbar con micrófono (`#btn-dictado-hallazgos`) y botón de limpieza rápida en el campo obligatorio **"Hallazgos Clínicos"**.
+- **Arquitectura Universal y Reutilizable para N Campos (`js/dictado_voz.js`)**: 
+  - El motor `window.toggleDictadoVoz(targetSelector, btnElement)` está desacoplado para operar sobre cualquier selector CSS o elemento `textarea` / `input` presente o futuro del sistema.
+  - Resolución contextual de indicadores de feedback visual (`.dictado-live-badge`) sin requerir IDs rígidos.
+  - Reconocimiento continuo nativo con Web Speech API en español (`es-MX`) y transcripción fluida en tiempo real (`interimResults`).
+- **Botón Universal de Limpieza Segura (`limpiarCampoTexto`)**:
+  - Función global `window.limpiarCampoTexto(targetSelector)` que resetea el valor, enfoca el control y despacha automáticamente los eventos reactivos `input` y `change` para sincronización con `autosave.js` y validación de obligatoriedad.
+  - Incorpora confirmación preventiva SweetAlert2 cuando el texto supera 25 caracteres para evitar borrados accidentales de notas clínicas extensas.
+
 

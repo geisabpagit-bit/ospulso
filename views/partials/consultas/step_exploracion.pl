@@ -461,8 +461,26 @@ HTML
                 $odonto_html
 
                 <div class="col-12">
-                    <label class="wizard-label">Hallazgos Cl&iacute;nicos <span class="req-star">*</span></label>
-                    <textarea name="exploracion_hallazgos" class="wizard-input" rows="5" placeholder="Describa los hallazgos de la exploraci&oacute;n f&iacute;sica..." required></textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                        <label class="wizard-label mb-0">Hallazgos Cl&iacute;nicos <span class="req-star">*</span></label>
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-3 py-1 shadow-xs d-inline-flex align-items-center" id="btn-dictado-hallazgos" data-feedback-id="dictado-feedback-hallazgos" onclick="toggleDictadoVoz('textarea[name=exploracion_hallazgos]', this)" title="Dictar hallazgos clínicos por voz con micrófono">
+                                <i class="bi bi-mic-fill me-1"></i>
+                                <span class="btn-dictado-text fw-bold">Dictar</span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-1 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=exploracion_hallazgos]')" title="Limpiar hallazgos clínicos">
+                                <i class="bi bi-eraser-fill me-1"></i>
+                                <span class="small fw-semibold">Limpiar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="position-relative">
+                        <textarea name="exploracion_hallazgos" class="wizard-input" rows="5" placeholder="Describa los hallazgos de la exploraci&oacute;n f&iacute;sica o dicte usando el micr&oacute;fono..." required></textarea>
+                        <div id="dictado-feedback-hallazgos" class="dictado-live-badge text-danger fw-bold mt-2 d-none align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                            <span>Escuchando... Hable claramente al micr&oacute;fono de su dispositivo (haga clic en 'Detener Dictado' para pausar).</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             
