@@ -172,11 +172,11 @@ sub render_sidebar {
 <div class="sdm-layout-wrapper animate__animated animate__fadeIn">
     <!-- Sidebar Left -->
     <nav class="diamond-sidebar" id="moduleSidebar">
-        <div class="sidebar-brand">
-            <div class="avatar-diamond">$iniciales</div>
+        <div class="sidebar-brand" id="sidebarBrandContainer">
+            <div class="avatar-diamond" id="sidebarAvatarBrand" title="$usuario" onclick="handleSidebarBrandClick()">$iniciales</div>
 
-            <button class="btn btn-light rounded-circle p-2 shadow-sm d-lg-none ms-auto" onclick="toggleSidebar()"><i class="bi bi-x-lg"></i></button>
-            <button class="btn-sidebar-toggle d-none d-lg-flex ms-auto" onclick="toggleDesktopSidebar()"><i class="bi bi-layout-sidebar text-muted"></i></button>
+            <button class="btn btn-light rounded-circle p-2 shadow-sm d-lg-none ms-auto" onclick="toggleSidebar()" aria-label="Cerrar menú"><i class="bi bi-x-lg"></i></button>
+            <button class="btn-sidebar-toggle d-none d-lg-flex ms-auto" id="btnToggleDesktopSidebar" onclick="toggleDesktopSidebar()" title="Colapsar menú lateral (Alt+M)" aria-label="Colapsar menú lateral" type="button"><i class="bi bi-layout-sidebar text-muted" id="iconToggleDesktopSidebar"></i></button>
         </div>
 
         <div class="sidebar-menu accordion accordion-flush flex-grow-1 mt-1 px-1" id="accordionSidebar">
@@ -662,6 +662,13 @@ HTML
     }
 
     print <<HTML;
+        </div>
+        <!-- Footer de control desktop para colapsar/expandir -->
+        <div class="sidebar-compact-toggle-footer d-none d-lg-flex border-top" onclick="toggleDesktopSidebar()" title="Colapsar / Expandir menú (Alt+M)">
+            <button class="btn btn-sm btn-sidebar-footer-action w-100 py-2 border-0 bg-transparent d-flex align-items-center justify-content-center text-muted" type="button" aria-label="Colapsar o expandir menú lateral">
+                <i class="bi bi-chevron-double-left text-teal" id="iconFooterToggle"></i>
+                <span class="sidebar-text ms-2 small fw-bold">Colapsar menú</span>
+            </button>
         </div>
     </nav>
 

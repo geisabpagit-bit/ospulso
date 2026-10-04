@@ -108,6 +108,21 @@ Las tablas del sistema incorporan controles de exportación estandarizados estil
 - **Borde Turquesa Corporativo en Contenedores de Perfil**:
   - Todos los contenedores de `views/perfil.pl` (`.card-medentia-aura`, `.wizard-panel`, alertas informativas y previews de firma) portan de forma mandatoria el borde turquesa clínico corporativo (`border: 1.5px solid var(--md-teal-clinical)`).
 
+### 4.8 Gobernanza del Menú Lateral Izquierdo (Expand / Collapse, Modo Compacto y Responsivo)
+- **Persistencia y Modos de Visualización (`utils/sub_sidebar.pl`, `css/sub_sidebar.css`, `js/sub_sidebar.js`)**:
+  - **Modo Expandido (280px)**: Ancho por defecto en pantallas grandes ($\ge 992\text{px}$). Muestra avatares, textos descriptivos, chevrons y agrupaciones de menú accordion.
+  - **Modo Compacto (80px)**: Activado mediante toggle de usuario. Persistido en `localStorage` con la clave `ospulso_sidebar_compact`.
+- **Mecanismos Bidireccionales para Expandir una vez Colapsado**:
+  1. **Botón en Navbar Superior Desktop (`#btnNavbarDesktopSidebarToggle`)**: Ubicado en el header superior junto al imagotipo principal (`.btn-sidebar-nav-trigger`). Permite colapsar o expandir el menú en cualquier momento sin importar el scroll del usuario.
+  2. **Píldora Luminosa en Cabecera del Sidebar (`#btnToggleDesktopSidebar`)**: Cuando el menú está colapsado (80px), el botón de la cabecera se transforma en una píldora prominente de color degradado turquesa-azul con ícono doble chevron derecho (`bi-chevron-double-right text-white`) y tooltip explícito *"Expandir menú lateral (Alt+M)"*.
+  3. **Avatar Interactivo (`#sidebarAvatarBrand`)**: Al hacer clic sobre el avatar en modo compacto, el menú se expande automáticamente.
+  4. **Barra Footer Inferior (`.sidebar-compact-toggle-footer`)**: Situada al pie del menú lateral con chevron doble (`bi-chevron-double-right text-teal`), permitiendo la apertura desde la zona baja de navegación.
+  5. **Atajo Universal de Teclado**: Presionar `Alt + M` alterna de forma inmediata entre el modo compacto y expandido (o despliega el drawer en móviles).
+- **Sincronización Visual Reactiva (`window.syncSidebarToggleVisuals`)**:
+  - Unifica el estado de los íconos (`bi-layout-sidebar` / `bi-chevron-double-left` en expandido vs `bi-chevron-double-right` en compacto) y actualiza dinámicamente los tooltips y etiquetas accesibles (`aria-label`).
+- **Gobernanza Responsiva Móvil y Tableta (< 992px)**:
+  - El modo `.compact` (80px) queda **estrictamente deshabilitado** en pantallas táctiles y tabletas. En resoluciones `< 992px`, el menú opera exclusivamente como un Drawer offcanvas flotante (295px) con touch-targets de al menos 44px, fondo backdrop y auto-cierre al seleccionar cualquier sub-enlace.
+
 ---
 
 ## 5. Tarjetas KPI Acrílicas Centradas (`.kpi-acrilico`)

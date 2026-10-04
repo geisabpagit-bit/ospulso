@@ -224,14 +224,14 @@ sub render_header {
     <link rel="stylesheet" href="../css/ospulso_master_v2.css">
     <link rel="stylesheet" href="../css/theme_acrilico.css">
     <link rel="stylesheet" href="../css/sdm_mobile_standards.css">
-    <link rel="stylesheet" href="../css/sub_sidebar.css">
+    <link rel="stylesheet" href="../css/sub_sidebar.css?v=$^T">
  
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- SweetAlert2 UI Alerts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
-    <script src="../js/sub_sidebar.js"></script>
+    <script src="../js/sub_sidebar.js?v=$^T"></script>
 
     <script>
     window.toggleSidebar = window.toggleSidebar || function() {
@@ -246,6 +246,9 @@ sub render_header {
             var isCompact = sidebar.classList.toggle("compact");
             if (window.innerWidth >= 992) {
                 try { localStorage.setItem("ospulso_sidebar_compact", isCompact ? "true" : "false"); } catch(e){}
+            }
+            if (typeof window.syncSidebarToggleVisuals === 'function') {
+                window.syncSidebarToggleVisuals(isCompact);
             }
         }
     };
@@ -452,7 +455,10 @@ HTML
     <nav class="navbar sdm-navbar glass-navbar p-1 p-md-2 sticky-top flex-column align-items-stretch">
         <!-- 1. CONTENEDOR DESKTOP (d-none d-md-flex) -->
         <div class="container-fluid px-lg-4 d-none d-md-flex align-items-start justify-content-between flex-nowrap w-100 gap-3">
-            <div class="d-flex align-items-center gap-4 me-auto">
+            <div class="d-flex align-items-center gap-3 me-auto">
+                <button class="btn btn-sm btn-sidebar-nav-trigger d-none d-lg-flex align-items-center justify-content-center shadow-sm" id="btnNavbarDesktopSidebarToggle" onclick="toggleDesktopSidebar()" title="Colapsar / Expandir menú lateral (Alt+M)" type="button">
+                    <i class="bi bi-layout-sidebar-inset text-teal fs-5" id="iconNavbarSidebarToggle"></i>
+                </button>
                 <a class="navbar-brand d-flex align-items-center justify-content-start m-0 text-decoration-none" href="inicial.pl" title="Inicio">
                     <svg width="125" height="38" viewBox="0 0 160 45" fill="none" xmlns="http://www.w3.org/2000/svg" class="sdm-brand-logo flex-shrink-0">
                         <text x="2" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="32" letter-spacing="-1">
