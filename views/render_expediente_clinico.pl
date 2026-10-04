@@ -103,10 +103,36 @@ render_header(
 );
 
 if ($paciente) {
+    my $id_negocio_activo = ($session_data->{id_sucursal} && $session_data->{id_sucursal} ne '0') ? $session_data->{id_sucursal} : ($session_data->{id_empresa} // '0');
+    my $tipo_organizacion = 'Consultorio Individual';
+    my $org_clues = '';
+    my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+    if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
+        <$fhn>;
+        while (my $line = <$fhn>) {
+            chomp $line;
+            next if $line =~ /^\s*$/;
+            my @f = split /\|/, $line, -1;
+            if ($f[0] eq $id_negocio_activo || ($id_negocio_activo eq '0' && ($f[0] eq '0' || $f[0] eq 'ORG-000'))) {
+                $tipo_organizacion = $f[17] // 'Consultorio Individual';
+                $org_clues = $f[18] // '';
+                last;
+            }
+        }
+        close $fhn;
+    }
+    if ($tipo_organizacion eq 'Clínica') {
+        if (!$org_clues || $org_clues eq '0') {
+            $tipo_organizacion = 'Consultorio Individual';
+        }
+    }
+    my $es_consultorio = ($tipo_organizacion =~ /Consultorio/i) ? 1 : 0;
+    my $recibo_script = $es_consultorio ? 'imprimir_recibo_caja_consultorio.pl' : 'imprimir_recibo_caja.pl';
+
     my @citas = cargar_citas_paciente($id_target);
     my @correos = cargar_historial_correos($id_target);
     my $consultas = cargar_historial_consultas($id_target);
-    render_expediente_completo($paciente, \@citas, \@correos, $consultas, $session_data->{id_medico});
+    render_expediente_completo($paciente, \@citas, \@correos, $consultas, $session_data->{id_medico}, $recibo_script);
 }
 
 print "</main>\n";
@@ -121,7 +147,8 @@ sub parseFloatVal {
 }
 
 sub render_expediente_completo {
-    my ($d, $citas_ref, $correos_ref, $consultas_ref, $id_medico_actual) = @_;
+    my ($d, $citas_ref, $correos_ref, $consultas_ref, $id_medico_actual, $recibo_script) = @_;
+    $recibo_script ||= 'imprimir_recibo_caja_consultorio.pl';
     my $count_c = scalar @$citas_ref;
     my $count_m = scalar @$correos_ref;
     my $count_consultas = scalar @$consultas_ref;
@@ -277,9 +304,6 @@ JS
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <a href="imprime_expediente_completo.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-sm text-white fw-bold rounded-pill px-3 py-1 shadow-sm d-inline-flex align-items-center gap-1" style="background: #082050; border: 1px solid rgba(255,255,255,0.2);">
                         <i class="bi bi-printer-fill text-white me-1"></i><span>Reporte</span>
-                    </a>
-                    <a href="pacientes.pl" class="btn btn-sm text-white fw-bold rounded-pill px-3 py-1 shadow-sm d-inline-flex align-items-center gap-1" style="background: #082050; border: 1px solid rgba(255,255,255,0.2);">
-                        <i class="bi bi-arrow-left text-white me-1"></i><span>Directorio de Pacientes</span>
                     </a>
                 </div>
             </div>
@@ -1255,7 +1279,7 @@ HTML
                                     <a href="consulta_detalles.pl?id_consulta=$cons->{id_consulta}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-eye-fill me-1"></i>Detalles</a>
                                     <a href="../api/imprimir_receta_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-capsule me-1"></i>Receta</a>
                                     <a href="../api/imprimir_consentimiento_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-file-earmark-text me-1"></i>Consentimiento</a>
-                                    <a href="../api/imprimir_recibo_caja.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-receipt me-1"></i>Recibo</a>
+                                    <a href="../api/$recibo_script?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-receipt me-1"></i>Recibo</a>
                                 </div>
                             </div>
                         </div>
@@ -2718,7 +2742,7 @@ sub cargar_datos_paciente {
 sub cargar_citas_paciente {
     my ($id) = @_; my @h; my $res = leer_tabla(File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat'), '\|');
     foreach my $c (@$res) { if ($c->[2] eq $id) { push @h, { id_cita=>$c->[0], id_medico=>$c->[1]||'N/A', fecha=>$c->[3], hora=>$c->[4], motivo=>$c->[6], estado=>$c->[8] }; } }
-    return sort { $b->{fecha} cmp $a->{fecha} } @h;
+    return sort { ($b->{fecha} cmp $a->{fecha}) || (($b->{hora} // '') cmp ($a->{hora} // '')) } @h;
 }
 
 sub cargar_historial_consultas {
@@ -2726,6 +2750,21 @@ sub cargar_historial_consultas {
     my $path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
     open(my $fh, "<:encoding(UTF-8)", $path) or return \@h;
     my $cabecera = <$fh>;
+
+    # Mapeo de citas para asociar fecha y hora exactas
+    my $citas_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
+    my %citas_map;
+    if (-e $citas_path && open(my $fhc, "<:encoding(UTF-8)", $citas_path)) {
+        <$fhc>;
+        while(my $lc = <$fhc>) {
+            chomp $lc;
+            next if $lc =~ /^\s*$/;
+            my @fc = split /\|/, $lc, -1;
+            $citas_map{$fc[0]} = { fecha => ($fc[3] // ''), hora => ($fc[4] // '') };
+        }
+        close $fhc;
+    }
+
     while(<$fh>){ 
         chomp; 
         my @c = split /\|/, $_, -1; 
@@ -2735,21 +2774,35 @@ sub cargar_historial_consultas {
             my $data = {};
             eval { $data = decode_json($json_str); };
             
-            my ($sec,$min,$hour,$mday,$mon,$year) = localtime($c[4]);
-            my $fecha_str = sprintf("%04d-%02d-%02d %02d:%02d", $year+1900, $mon+1, $mday, $hour, $min);
+            my ($f_orden, $h_orden);
+            if ($c[2] && exists $citas_map{$c[2]} && $citas_map{$c[2]}->{fecha}) {
+                $f_orden = $citas_map{$c[2]}->{fecha};
+                $h_orden = $citas_map{$c[2]}->{hora} || '00:00';
+            } else {
+                my ($sec,$min,$hour,$mday,$mon,$year) = localtime($c[4] || time());
+                $f_orden = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
+                $h_orden = sprintf("%02d:%02d", $hour, $min);
+            }
+            my $fecha_str = "$f_orden $h_orden";
             
             push @h, { 
                 id_consulta => $c[0], 
                 id_cita     => $c[2],
                 id_medico   => $c[3],
-                timestamp   => $c[4],
+                timestamp   => $c[4] || 0,
+                fecha_orden => $f_orden,
+                hora_orden  => $h_orden,
                 fecha       => $fecha_str,
                 data        => $data
             }; 
         } 
     }
     close $fh;
-    my @sorted = sort { $b->{timestamp} <=> $a->{timestamp} } @h;
+    my @sorted = sort { 
+        ($b->{fecha_orden} cmp $a->{fecha_orden}) || 
+        ($b->{hora_orden} cmp $a->{hora_orden}) || 
+        ($b->{timestamp} <=> $a->{timestamp}) 
+    } @h;
     return \@sorted;
 }
 

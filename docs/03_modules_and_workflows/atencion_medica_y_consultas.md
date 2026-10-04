@@ -158,6 +158,23 @@ graph LR
   - El backend resuelve el script adecuado y responde con `{ es_consultorio: 1, recibo_script: 'imprimir_recibo_caja_consultorio.pl' }`.
   - En el frontend, `finalizarConsulta()` discrimina el tipo de organización y abre de forma directa `api/imprimir_recibo_caja_consultorio.pl` en lugar de la plantilla institucional `api/imprimir_recibo_caja.pl`.
 
+### 4.15 Expediente Clínico Unificado: Hub de Consultas y Reporte Vertical Carta (`views/render_expediente_clinico.pl`, `views/imprime_expediente_completo.pl`)
+- **Sección Hero del Paciente**:
+  - Se eliminó el botón "Directorio de Pacientes" para evitar redundancias de navegación, manteniendo una barra superior limpia y enfocada.
+  - El botón **"Reporte"** canaliza a la vista de impresión [views/imprime_expediente_completo.pl](file:///c:/xampp/htdocs/ospulso/views/imprime_expediente_completo.pl).
+- **Reporte Clínico de Consultas Personalizado (Hoja Carta Vertical)**:
+  - Diseñado en formato estándar Carta Vertical (`@page { size: letter portrait; margin: 12mm 14mm; }`) con tipografías `Outfit` y `Plus Jakarta Sans`.
+  - Despliega membrete completo de la sucursal/organización emisora (`negocios.dat`: Nombre, Razón Social, RFC, Domicilio, Teléfono, Correo, Tipo de Organización y CLUES).
+  - Incluye metadatos del reporte (folio único `REP-CONS-...`, fecha y hora de emisión, usuario emisor) y ficha del paciente (CURP, edad, sexo, tipo sanguíneo, domicilio).
+  - Bloque de KPIs del expediente (consultas totales, primera atención, última consulta, diagnóstico activo reciente).
+  - Listado detallado de todas las atenciones médicas ordenadas de la más reciente a la más antigua, con motivo, signos vitales somatométricos, diagnóstico CIE-10, plan terapéutico y prescripciones de fármacos.
+  - Bloques de validación con firma y sello médico, firma de conformidad del paciente y pie normativo NOM-004-SSA3-2012.
+- **Hub de Consultas en el Expediente**:
+  - **Orden Cronológico Inverso**: Las atenciones se despliegan obligatoriamente de la cita más reciente a la más antigua, contrastando tanto fecha (`YYYY-MM-DD`) como horario (`HH:MM`).
+  - **Canalización Dinámica del Botón "Recibo"**: Evalúa el tipo de organización del tenant; si es `Consultorio Individual` o consultorio privado, dirige a [api/imprimir_recibo_caja_consultorio.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_caja_consultorio.pl), y si es clínica u hospital, a [api/imprimir_recibo_caja.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_caja.pl).
+  - **Retorno Ágil (`history.back` / `window.close`)**: Ambas pantallas de recibo y el reporte clínico incorporan la función unificada `cerrarORegresar()` / `volverPadre()` que prioriza cerrar la ventana si fue invocada como popup o retornar con `history.back()` si se navegó en la misma pestaña.
+
+
 
 
 

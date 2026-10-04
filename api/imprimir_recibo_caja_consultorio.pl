@@ -415,8 +415,8 @@ print <<HTML;
             <button class="btn-action btn-print" onclick="window.print()">
                 <i class="bi bi-printer-fill"></i> Imprimir Recibo
             </button>
-            <button class="btn-action btn-close" onclick="window.close()">
-                <i class="bi bi-x-circle-fill"></i> Cerrar
+            <button class="btn-action btn-close" onclick="cerrarORegresar()">
+                <i class="bi bi-arrow-left-circle-fill"></i> Regresar / Cerrar
             </button>
         </div>
 
@@ -496,6 +496,18 @@ print <<HTML;
             </div>
         </div>
     </div>
+    <script>
+        function cerrarORegresar() {
+            if (window.opener && !window.opener.closed) {
+                window.opener.focus();
+                window.close();
+            } else if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.close();
+            }
+        }
+    </script>
 </body>
 </html>
 HTML

@@ -839,6 +839,8 @@ print <<HTML;
             if (window.opener && !window.opener.closed) {
                 window.opener.focus();
                 window.close();
+            } else if (window.history.length > 1) {
+                window.history.back();
             } else {
                 window.location.href = '../views/generar_recibo.pl';
             }
