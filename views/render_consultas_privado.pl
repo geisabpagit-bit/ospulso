@@ -496,7 +496,8 @@ utils::sub_sidebar::render_sidebar(
     role          => $role, 
     usuario       => $usuario, 
     id_medico     => $id_medico, 
-    pagina_actual => 'consultas'
+    pagina_actual => 'consultas',
+    id_paciente   => $id_paciente
 );
 
 if ($id_paciente && $id_cita) {

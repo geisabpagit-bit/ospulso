@@ -236,7 +236,8 @@ HTML
         usuario => $session_data->{usuario},
         role => $session_data->{role},
         id_medico => $session_data->{id_medico},
-        pagina_actual => 'expediente'
+        pagina_actual => 'expediente',
+        id_paciente => $paciente->{id_paciente}
     );
 
     print <<'JS';
@@ -288,7 +289,7 @@ HTML
         const hash = window.location.hash;
         if (hash) {
             let tabId = hash.substring(1);
-            if (tabId === 'tab0') tabId = 'tab10';
+            if (tabId === 'tab0' || tabId === 'tab4') tabId = 'tab10';
             const targetBtn = document.querySelector('.sub-link[onclick*="' + tabId + '"]');
             if (targetBtn) {
                 swTab(tabId, targetBtn);
@@ -1852,48 +1853,6 @@ JS
                     </div>
                 };
             } ]}
-        </section>
-
-        <!-- 4: SOAP (EVOLUCIÓN CLÍNICA) -->
-        <section class="sdm-tab-sec d-none" id="tab4">
-            <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div>
-                        <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Evoluci&oacute;n Cl&iacute;nica</h3>
-                        <p class="text-muted small fw-bold mb-0">METODOLOG&Iacute;A S.O.A.P.</p>
-                    </div>
-                    <div class="vr d-none d-md-block"></div>
-                    <button class="btn btn-sm btn-outline-medentia rounded-pill px-3 shadow-sm d-none d-md-block" onclick="Swal.fire({title: 'Nueva Nota', input: 'textarea', confirmButtonText: 'Añadir Evolución'})">
-                        <i class="bi bi-plus-circle me-1" style="color: var(--md-teal-clinical);"></i>Nueva Nota
-                    </button>
-                </div>
-                <div class="d-flex gap-2 p-1 bg-transparent flex-wrap">
-                    <a href="imprime_expediente_completo.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-outline-medentia btn-sm d-flex align-items-center px-3"><i class="bi bi-printer me-1" style="color: var(--md-teal-clinical);"></i>Reporte</a>
-                    <button type="button" class="btn btn-medentia btn-sm d-flex align-items-center px-4" onclick="guardarFichaMaster()">
-                        <i class="bi bi-shield-check me-1" style="color: var(--md-cyan-ia);"></i>Guardar
-                    </button>
-                </div>
-            </div>
-
-            <div class="soap-history">
-                <div class="soap-entry card-medentia-aura p-4 mb-4 border-0 shadow-sm" style="border-radius: 20px;">
-                    <span class="soap-date d-block fw-black mb-3" style="color: var(--md-teal-clinical); font-size: 1.1rem;">Sesion de Hoy - @{[scalar localtime]}</span>
-                    <div class="row">
-                        <div class="col-md-6 border-md-end border-bottom border-md-bottom-0 pb-3 pb-md-0 mb-3 mb-md-0">
-                            <p class="small text-muted fw-bold mb-1 uppercase">Subjetivo / Objetivo</p>
-                            <p class="mb-0 fw-bold" style="color: var(--md-blue-deep);">Paciente refiere ligero dolor en pieza 14 al contacto con fr&iacute;o. Se observa caries grado II en cara oclusal.</p>
-                        </div>
-                        <div class="col-md-6 ps-md-4">
-                            <p class="small text-muted fw-bold mb-1 uppercase">An&aacute;lisis / Plan</p>
-                            <p class="mb-0 fw-bold" style="color: var(--md-blue-deep);">Se programa resina compuesta para la pr&oacute;xima sesi&oacute;n. Se receta analg&eacute;sico preventivo.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="soap-entry card-medentia-aura p-4 mb-4 border-0 opacity-75 grayscale shadow-sm" style="border-radius: 20px;">
-                    <span class="soap-date d-block fw-black mb-2" style="color: var(--md-teal-clinical); font-size: 1.1rem;">22/03/2026 - Consulta General</span>
-                    <p class="mb-0 fw-bold" style="color: var(--md-blue-deep);">Limpieza dental profunda realizada con &eacute;xito. Enc&iacute;as sanas, se recomienda seguimiento en 6 meses.</p>
-                </div>
-            </div>
         </section>
 
         <!-- 8: FHIR (INTEROPERABILIDAD) -->

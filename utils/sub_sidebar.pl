@@ -15,6 +15,15 @@ sub render_sidebar {
     my $role          = $args{role} || 'Visitante';
     my $id_medico     = $args{id_medico} || '';
     my $pagina_actual = $args{pagina_actual} || ''; # 'dashboard', 'pacientes', 'agenda', etc.
+    my $id_paciente   = $args{id_paciente} || '';
+
+    if (!$id_paciente) {
+        eval {
+            require CGI;
+            my $qc = CGI->new;
+            $id_paciente = $qc->param('id') || $qc->param('id_paciente') || '';
+        };
+    }
 
     my $iniciales = '';
     my @nombres = split(/\s+/, $usuario);
@@ -295,8 +304,32 @@ HTML
         print qq{<hr class="my-2 opacity-25 sidebar-separator">};
     }
 
-    # Menú del Expediente Clínico (Solo se muestra cuando pagina_actual es 'expediente')
-    if ($pagina_actual eq 'expediente') {
+    # Menú del Expediente Clínico (Se muestra en 'expediente' o cuando existe id_paciente activo en 'consultas')
+    my $mostrar_menu_paciente = ($pagina_actual eq 'expediente' || ($id_paciente && $pagina_actual eq 'consultas')) ? 1 : 0;
+    if ($mostrar_menu_paciente) {
+        my $is_in_expediente = ($pagina_actual eq 'expediente');
+
+        my $lnk = sub {
+            my ($tab_id, $icon, $label, $is_active) = @_;
+            my $act_cls = $is_active ? ' active' : '';
+            if ($is_in_expediente) {
+                return qq{<button class="sub-link$act_cls w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('$tab_id', this)"><i class="$icon text-muted me-2"></i><span class="sidebar-text">$label</span></button>};
+            } else {
+                my $href = "render_expediente_clinico.pl?id=$id_paciente#$tab_id";
+                return qq{<a href="$href" class="sub-link$act_cls w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center text-decoration-none"><i class="$icon text-muted me-2"></i><span class="sidebar-text">$label</span></a>};
+            }
+        };
+
+        my $link_resumen   = $lnk->('tab2',  'bi bi-grid-1x2',            'Resumen',                ($is_in_expediente ? 1 : 0));
+        my $link_ficha     = $lnk->('tab3',  'bi bi-person-gear',          'Ficha de Identificación', 0);
+        my $link_consultas = $lnk->('tab10', 'bi bi-activity',             'Consultas',              (!$is_in_expediente ? 1 : 0));
+        my $link_odonto    = $lnk->('tab6',  'bi bi-diagram-3-fill',       '2.1 Odonto',             0);
+        my $link_rayos_x   = $lnk->('tab7',  'bi bi-camera-video-fill',    '2.2 Rayos X',            0);
+        my $link_finanzas  = $lnk->('tab1',  'bi bi-wallet2',              '3.1 Finanzas',           0);
+        my $link_inbox     = $lnk->('tab5',  'bi bi-inbox',                '3.2 Inbox',              0);
+        my $link_fhir      = $lnk->('tab8',  'bi bi-braces',               '4.1 FHIR',               0);
+        my $link_hl7       = $lnk->('tab9',  'bi bi-pci-card',             '4.2 HL7',                0);
+
         print qq{
             <!-- 1. Expediente Clínico -->
             <div class="accordion-item bg-transparent border-0 mb-1">
@@ -307,10 +340,9 @@ HTML
                 </h2>
                 <div id="c-clinica" class="accordion-collapse collapse show" aria-labelledby="h-clinica" data-bs-parent="#accordionSidebar">
                     <div class="accordion-body pb-0 pt-1">
-                        <button class="sub-link active w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab2', this)"><i class="bi bi-grid-1x2 text-muted me-2"></i><span class="sidebar-text">Resumen</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab3', this)"><i class="bi bi-person-gear text-muted me-2"></i><span class="sidebar-text">Ficha de Identificación</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab10', this)"><i class="bi bi-activity text-muted me-2"></i><span class="sidebar-text">Consultas</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab4', this)"><i class="bi bi-journal-text text-muted me-2"></i><span class="sidebar-text">SOAP</span></button>
+                        $link_resumen
+                        $link_ficha
+                        $link_consultas
                     </div>
                 </div>
             </div>
@@ -324,8 +356,8 @@ HTML
                 </h2>
                 <div id="c-diag" class="accordion-collapse collapse" aria-labelledby="h-diag" data-bs-parent="#accordionSidebar">
                     <div class="accordion-body pb-0 pt-1">
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab6', this)"><i class="bi bi-diagram-3-fill text-muted me-2"></i><span class="sidebar-text">2.1 Odonto</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab7', this)"><i class="bi bi-camera-video-fill text-muted me-2"></i><span class="sidebar-text">2.2 Rayos X</span></button>
+                        $link_odonto
+                        $link_rayos_x
                     </div>
                 </div>
             </div>
@@ -339,8 +371,8 @@ HTML
                 </h2>
                 <div id="c-admin-exp" class="accordion-collapse collapse" aria-labelledby="h-admin-exp" data-bs-parent="#accordionSidebar">
                     <div class="accordion-body pb-0 pt-1">
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab1', this)"><i class="bi bi-wallet2 text-muted me-2"></i><span class="sidebar-text">3.1 Finanzas</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab5', this)"><i class="bi bi-inbox text-muted me-2"></i><span class="sidebar-text">3.2 Inbox</span></button>
+                        $link_finanzas
+                        $link_inbox
                     </div>
                 </div>
             </div>
@@ -354,8 +386,8 @@ HTML
                 </h2>
                 <div id="c-inter" class="accordion-collapse collapse" aria-labelledby="h-inter" data-bs-parent="#accordionSidebar">
                     <div class="accordion-body pb-0 pt-1">
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab8', this)"><i class="bi bi-braces text-muted me-2"></i><span class="sidebar-text">4.1 FHIR</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab9', this)"><i class="bi bi-pci-card text-muted me-2"></i><span class="sidebar-text">4.2 HL7</span></button>
+                        $link_fhir
+                        $link_hl7
                     </div>
                 </div>
             </div>

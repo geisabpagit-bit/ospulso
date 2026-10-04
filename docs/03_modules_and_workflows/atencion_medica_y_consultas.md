@@ -218,8 +218,17 @@ graph LR
   - Se retiró el botón `Citas` (`tab0`) del menú lateral secundario en `utils/sub_sidebar.pl`, eliminando la duplicidad con la pestaña `Consultas` (`tab10`).
   - En `views/render_expediente_clinico.pl`, se suprimió la sección legacy `<section id="tab0">`, y la función de ruteo `checkHashTab()` remapea automáticamente cualquier enlace histórico con `#tab0` directamente hacia `#tab10`.
 - **Hub de Consultas (`tab10`) como Punto Único de Gestión Clínica**:
-  - **Panel Superior (*Citas Programadas Listas para Atenderse*)**: Despliega las citas pendientes del paciente con sus badges de estado y botones de acción directa (*Iniciar Consulta* o *Continuar con la Consulta*).
-  - **Panel Inferior (*Historial de Consultas*)**: Despliega el récord clínico histórico de consultas realizadas con diagnóstico principal CIE-10, conteo de fármacos prescritos, botón directo a comprobante/recibo de caja y visor completo de la consulta.
-  - **Navegación Fluida hacia Agenda**: La cabecera del Hub incorpora el botón directo *"📅 Gestionar Agenda"* (`agenda_main.pl?id=[id_paciente]`) y *"⚡ Consulta Express (Sin Cita)"* para brindar cobertura operativa integral sin redundancias visuales.
+### 4.20 Erradicación del Ítem SOAP Legacy en Expediente y Preservación del Menú Lateral en Consultas Activas (`render_consultas_privado.pl`, `render_expediente_clinico.pl`, `sub_sidebar.pl`)
+- **Erradicación de la Pestaña Maqueta `SOAP` (`tab4`) en el Expediente**:
+  - **Fundamento Clínico y Legal (NOM-004-SSA3-2012)**: La metodología SOAP no es un bloc de notas aislado que pueda redactarse en el vacío; toda evolución clínica debe emanar de un acto médico formal con signos vitales, exploración física, médico tratante, cédula profesional y cierre formal.
+  - **Supresión de Código Muerto**: La sección `#tab4` en `render_expediente_clinico.pl` contenía datos fijos simulados (*"Sesión de Hoy - Paciente refiere ligero dolor..."*) y botones sin persistencia. Se removió por completo la sección `#tab4` y su botón en `utils/sub_sidebar.pl`.
+  - **Ruteo Resiliente**: La función `checkHashTab()` remapea automáticamente cualquier intento de acceso a `#tab4` directamente hacia `#tab10` (*Hub de Consultas*).
+  - **Trazabilidad Canónica**: Las notas SOAP históricas se consultan de forma fidedigna e integral en el *Hub de Consultas* (`tab10`) mediante el botón **"Detalles"** que abre el Bento Grid SOAP en `views/consulta_detalles.pl`.
+- **Preservación Integral del Menú Lateral Izquierdo en Consultas Activas (`id_paciente`)**:
+  - **Problema Previo**: Al iniciar una cita o consulta en `views/render_consultas_privado.pl`, el menú lateral izquierdo perdía todos los bloques del paciente (*Expediente Clínico, Diagnóstico, Administración, Interoperabilidad*) debido a que `pagina_actual` era `'consultas'` y `sub_sidebar.pl` solo los renderizaba cuando `pagina_actual eq 'expediente'`.
+  - **Solución y Continuidad de Contexto**:
+    1. Se parametrizó `id_paciente` en la invocación de `utils::sub_sidebar::render_sidebar` desde `render_consultas_privado.pl` y `render_expediente_clinico.pl`, con fallback automático vía CGI.
+    2. En `utils/sub_sidebar.pl`, la visibilidad del menú del paciente ahora se activa tanto en `'expediente'` como cuando existe un `id_paciente` activo en `'consultas'`.
+    3. Los elementos del menú operan de forma polimórfica: en `render_expediente_clinico.pl` conmutan pestañas al instante mediante `swTab('tabX', this)`, mientras que en `render_consultas_privado.pl` se renderizan como enlaces directos accesibles (`render_expediente_clinico.pl?id=$id_paciente#tabX`), permitiendo al médico consultar el Resumen, Ficha, Odontograma base, Rayos X, Finanzas o Historial sin perder su navegación ni truncar el menú.
 
 
