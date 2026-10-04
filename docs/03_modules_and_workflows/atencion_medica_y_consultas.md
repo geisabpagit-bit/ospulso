@@ -199,3 +199,14 @@ graph LR
 - **Sanitización Estricta "Solo el Nombre" (`limpiar_titulo_medico`)**:
   - Se eliminan prefijos y títulos redundantes (`Dr(a).`, `Dr.`, `Dra.`, `Doctor(a)`, `Lic.`, `Mtro.`, `MEDICO`) dado que la interfaz gráfica ya antepone la etiqueta `Médico:`. La vista renderiza limpiamente el nombre de pila y apellidos (ej. `Médico: Mario Gonzalez` o `Médico: Pamela Villegas`).
 
+### 4.18 Jerarquía Canónica de Procedencias para Concepto en Cabecera de Recibos y Desglose Clínico
+- **Gobernanza del Campo `NOTA / CONCEPTO` en `api/cerrar_consulta_privado.pl` e `imprimir_recibo_caja_consultorio.pl`**:
+  1. **Procedencia 1 (Cotización)**: Si la consulta tiene cotización asociada, el concepto de cabecera es el nombre de la cotización (`dat/cotizaciones.dat`), y sus procedimientos pasan como ítems a la tabla.
+  2. **Procedencia 2 (Odontograma)**: Si no tiene cotización pero se seleccionó un odontograma en el Paso 3 / Paso 6, el concepto de cabecera es el nombre/alias del odontograma en "Odontogramas Clínicos Disponibles", y sus tratamientos presupuestados pasan a la tabla de conceptos.
+  3. **Procedencia 3 (Carrito Directo)**: Si no tiene cotización ni odontograma y se agregaron servicios/productos del carrito, el concepto de cabecera es `"Consulta Odontológica"` (especialidad dental) o `"Consulta Médica"` (general/especialidades), y los ítems del carrito pasan a la tabla.
+  4. **Procedencia 4 (Tratamiento por Saldo Pendiente o Continuación)**: Si la consulta tiene saldo pendiente ($saldo > $0.00), se convierte automáticamente en un **Tratamiento Activo** en `dat/tratamientos.dat`. Si es una consulta de seguimiento pura abonando a una deuda previa (sin nuevos procedimientos con costo), el concepto es `"Abono a Cuenta de Tratamiento"` o `"Liquidación de Tratamiento"`.
+- **Regla Antimultiplicación de Ítems (Aritmética Coherente)**:
+  - Cuando una consulta ya cuenta con procedimientos clínicos propios con costo, la tabla de conceptos contiene **exclusivamente dichos procedimientos clínicos** (ej. Pieza #42 de $950 y Pieza #47 de $850).
+  - Está estrictamente prohibido inyectar una fila adicional de "Abono a Cuenta de Tratamiento" dentro de la tabla si ya hay cargos con costo en la sesión, evitando que la suma visual de la tabla duplique el importe cobrado.
+  - La fila de concepto de abono/liquidación se inserta en la tabla **únicamente** en consultas de seguimiento puro sin nuevos cargos clínicos ($0.00).
+

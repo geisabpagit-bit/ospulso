@@ -133,3 +133,20 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
    - En `api/imprimir_recibo_caja_consultorio.pl`, la búsqueda del comprobante se realiza exclusivamente por coincidencia exacta de folio consecutivo (`c_folio`), identificador de recibo (`c_id`) o identificador de consulta (`c_cons`), prohibiendo el uso de expresiones regulares con terminación de dígitos.
    - En `views/render_expediente_clinico.pl`, se erradica la indexación por fecha de paciente (`PAC_id_fecha`), garantizando que cada consulta del expediente enlace unívocamente a su propio folio consecutivo sin usurpar el primer recibo del día.
 
+---
+
+## 7. Jerarquía Canónica de Procedencias del Recibo y Regla Antimultiplicación
+
+Para garantizar la coherencia visual y contable entre la tabla de conceptos y el desglose de totales:
+
+1. **Jerarquía Canónica de Procedencias para `NOTA / CONCEPTO` (Cabecera)**:
+   - **Procedencia 1 (Cotización)**: Si la consulta tiene una cotización asignada, el concepto de cabecera es el **Nombre de la Cotización** (`dat/cotizaciones.dat`) y sus conceptos desglosados pasan a la tabla.
+   - **Procedencia 2 (Odontograma)**: Si no tiene cotización pero cuenta con un odontograma asignado en el Paso 3 / Paso 6, el concepto de cabecera es el **Nombre/Alias del Odontograma** registrado en "Odontogramas Clínicos Disponibles", y sus tratamientos presupuestados pasan a la tabla.
+   - **Procedencia 3 (Carrito Directo)**: Si no tiene cotización ni odontograma y se agregaron servicios/productos del carrito, el concepto de cabecera es `"Consulta Odontológica"` (especialidad dental) o `"Consulta Médica"` (otras especialidades), y los ítems del carrito pasan a la tabla.
+   - **Procedencia 4 (Tratamiento por Saldo Pendiente o Continuación)**: Si la consulta genera un saldo pendiente ($cargos > $abono), se convierte automáticamente en un **Tratamiento Activo** (`dat/tratamientos.dat`). En consultas de continuación pura (abono a deuda sin nuevos servicios con costo), el concepto de cabecera es `"Abono a Cuenta de Tratamiento"` o `"Liquidación de Tratamiento"`.
+
+2. **Regla Antimultiplicación de Ítems en la Tabla (Aritmética Coherente)**:
+   - En consultas que ya contienen procedimientos clínicos con costo propio, la tabla de conceptos **debe listar única y exclusivamente los procedimientos clínicos reales** (ej. Pieza #42 de $950.00 y Pieza #47 de $850.00 = $1,800.00).
+   - Está **estrictamente prohibido** inyectar una fila adicional de "Abono a Cuenta de Tratamiento" dentro de la tabla si ya existen cargos con costo en la sesión, ya que esto duplicaría artificialmente la suma de los renglones frente al importe cobrado.
+   - La fila de concepto `Abono a Cuenta de Tratamiento` o `Liquidación de Tratamiento` se inserta en la tabla **únicamente** en consultas de seguimiento puro donde no hubo nuevos procedimientos clínicos (tarifa de consulta a $0.00).
+

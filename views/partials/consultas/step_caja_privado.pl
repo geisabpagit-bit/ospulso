@@ -254,6 +254,7 @@ sub render_step_caja_privado {
     return qq{
         <div class="wizard-panel" id="step-panel-6">
             <input type="hidden" name="caja_items_json" id="f_caja_items_json" value="[]">
+            <input type="hidden" name="odonto_alias_seleccionado" id="f_odonto_alias_seleccionado" value="">
             
             <h3 class="mb-4" style="color: var(--md-blue-deep); font-weight: 800;">
                 <i class="bi bi-wallet2 me-2" style="color: var(--md-teal-clinical);"></i>Caja y Registro de Pago
@@ -907,6 +908,9 @@ sub render_step_caja_privado {
                 const importe = parseFloat(chk.getAttribute('data-importe') || '0');
                 const piezas = chk.getAttribute('data-piezas') || '0';
                 
+                const inputAlias = document.getElementById('f_odonto_alias_seleccionado');
+                if (inputAlias) inputAlias.value = alias;
+                
                 if (statusTxt) {
                     statusTxt.innerHTML = `Odontograma asignado: <b>\${alias}</b> (\${piezas} piezas) &bull; Presupuesto pendiente: <b class="text-danger">\\\$\${importe.toFixed(2)} MXN</b>.`;
                 }
@@ -929,6 +933,8 @@ sub render_step_caja_privado {
                     }
                 }
             } else {
+                const inputAlias = document.getElementById('f_odonto_alias_seleccionado');
+                if (inputAlias) inputAlias.value = '';
                 if (statusTxt) {
                     statusTxt.innerHTML = 'Sin odontograma asignado en el Paso 3. Puede registrar conceptos manuales o continuar.';
                 }
@@ -943,7 +949,11 @@ sub render_step_caja_privado {
                 return;
             }
             const idOdonto = chk.value;
+            const aliasOdonto = chk.getAttribute('data-alias') || '';
             const pacId = '$id_p';
+            
+            const inputAlias = document.getElementById('f_odonto_alias_seleccionado');
+            if (inputAlias && aliasOdonto) inputAlias.value = aliasOdonto;
 
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
@@ -979,6 +989,10 @@ sub render_step_caja_privado {
                         }
                     });
 
+                    if (inputAlias && (data.alias || aliasOdonto)) {
+                        inputAlias.value = data.alias || aliasOdonto;
+                    }
+
                     cargarCajaDesdeRegistro();
                     verificarOdontoParaCaja();
 
@@ -986,7 +1000,7 @@ sub render_step_caja_privado {
                         Swal.fire({
                             icon: 'success',
                             title: '¡Tratamientos Agregados a Caja!',
-                            text: `Se cargaron \${agregados} tratamientos del odontograma (\${data.alias}) a los conceptos a cobrar.`,
+                            text: `Se cargaron \${agregados} tratamientos del odontograma (\${data.alias || aliasOdonto}) a los conceptos a cobrar.`,
                             timer: 2200,
                             showConfirmButton: false
                         });

@@ -626,27 +626,103 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
             }
         }
 
-        # Si es consulta de continuación y hay abono a saldo/tratamiento:
-        if ($es_consulta_continuacion && $caja_monto_abono > 0) {
-            my $concepto_abono = ($saldo_global_paciente > 0 && $caja_monto_abono >= $saldo_global_paciente)
-                ? "Liquidación de Tratamiento (Saldo previo: \$$saldo_global_paciente)"
+        # --- RESOLVER PROCEDENCIA DEL CONCEPTO DE CABECERA Y TRATAMIENTO ---
+        my $odonto_sel_param = $q->param('odonto_estudios_seleccionados') || $payload{odonto_estudios_seleccionados} || '';
+        my $odonto_alias_param = $q->param('odonto_alias_seleccionado') || $payload{odonto_alias_seleccionado} || '';
+        
+        my $nombre_cotizacion = '';
+        if ($id_cotizacion && $id_cotizacion ne 'ninguna') {
+            if (-e $cot_file && open my $fhc, '<:encoding(UTF-8)', $cot_file) {
+                <$fhc>;
+                while (my $lc = <$fhc>) {
+                    chomp $lc;
+                    my @cc = split /\|/, $lc, -1;
+                    if ($cc[0] eq $id_cotizacion) {
+                        $nombre_cotizacion = $cc[2] || '';
+                        last;
+                    }
+                }
+                close $fhc;
+            }
+        }
+        
+        # Resolver alias de odontograma si no viene explícito
+        my $alias_odonto_resuelto = $odonto_alias_param;
+        my $tiene_items_odonto = (grep { ($_->{id} // '') =~ /^OD-T-/ } @$caja_items) ? 1 : 0;
+        
+        if (!$alias_odonto_resuelto && ($odonto_sel_param || $tiene_items_odonto)) {
+            my $target_od_id = (split /\s*,\s*/, $odonto_sel_param)[0] || '';
+            my $json_od_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'odontogramas', "paciente_${id_paciente}.json");
+            if (-e $json_od_file && open my $fhj, '<:encoding(UTF-8)', $json_od_file) {
+                local $/;
+                my $cnt = <$fhj>;
+                close $fhj;
+                my $perf = eval { decode_json(encode_utf8($cnt)); };
+                if ($perf && ref($perf->{odontogramas}) eq 'ARRAY') {
+                    foreach my $od (@{ $perf->{odontogramas} }) {
+                        if (!$target_od_id || $od->{id_odonto} eq $target_od_id) {
+                            $alias_odonto_resuelto = $od->{alias} || '';
+                            last;
+                        }
+                    }
+                }
+            }
+            $alias_odonto_resuelto ||= 'Odontograma Clínico' if $tiene_items_odonto;
+        }
+
+        # Detección de especialidad Odontología
+        my $espe_check_caja = $payload{especialidad} // $payload{espe_nombre_medico} // $session_data->{rol} // '';
+        my $es_odonto_caja = ($espe_check_caja =~ /odontolog/i || ($payload{id_espe_medico} && $payload{id_espe_medico} eq '100') || $tiene_items_odonto || $alias_odonto_resuelto) ? 1 : 0;
+
+        # Determinar si ya existen cargos con costo propios de la sesión
+        my $tiene_cargos_con_costo = 0;
+        foreach my $it (@items_recibo) {
+            if (($it->{subtotal} || 0) > 0 && $it->{concepto} !~ /Abono|Liquidaci[oó]n/i) {
+                $tiene_cargos_con_costo = 1;
+                last;
+            }
+        }
+
+        # DETERMINAR CONCEPTO GENERAL EN CABECERA (JERARQUÍA CANÓNICA DE PROCEDENCIAS):
+        my $concepto_recibo = '';
+        if ($id_cotizacion && $nombre_cotizacion) {
+            # 1. Procedencia 1: Consulta con Cotización
+            $concepto_recibo = $nombre_cotizacion;
+        } elsif ($alias_odonto_resuelto || $tiene_items_odonto) {
+            # 2. Procedencia 2: Consulta con Odontograma (sin cotización)
+            $concepto_recibo = $alias_odonto_resuelto || 'Odontograma Clínico';
+        } elsif ($es_consulta_continuacion && !$tiene_cargos_con_costo && $caja_monto_abono > 0) {
+            # 4. Procedencia 4: Consulta de continuación / abono a tratamiento previo
+            $concepto_recibo = ($saldo_global_paciente > 0 && $caja_monto_abono >= $saldo_global_paciente)
+                ? "Liquidación de Tratamiento"
+                : "Abono a Cuenta de Tratamiento";
+        } else {
+            # 3. Procedencia 3: Conceptos directos del Carrito (sin cotización ni odontograma)
+            $concepto_recibo = $es_odonto_caja ? 'Consulta Odontológica' : 'Consulta Médica';
+        }
+
+        # REGLA ANTIMULTIPLICACIÓN DE ÍTEMS EN LA TABLA:
+        # Solo inyectar la fila de Abono si la consulta NO tiene cargos clínicos con costo propios
+        if (!$tiene_cargos_con_costo && $caja_monto_abono > 0) {
+            # Descartar ítems informativos de $0.00 (como consulta de seguimiento a $0.00)
+            @items_recibo = grep { ($_->{subtotal} || 0) > 0 } @items_recibo;
+            
+            my $concepto_abono_item = ($saldo_global_paciente > 0 && $caja_monto_abono >= $saldo_global_paciente)
+                ? "Liquidación de Tratamiento" . ($saldo_global_paciente > 0 ? " (Saldo previo: \$$saldo_global_paciente)" : "")
                 : "Abono a Cuenta de Tratamiento" . ($saldo_global_paciente > 0 ? " (Saldo previo: \$$saldo_global_paciente)" : "");
             
-            my $has_abono = grep { $_->{concepto} =~ /Abono|Liquidaci[oó]n/i } @items_recibo;
-            if (!$has_abono) {
-                push @items_recibo, {
-                    concepto => $concepto_abono,
-                    cantidad => 1,
-                    precio   => sprintf('%.2f', $caja_monto_abono) + 0,
-                    subtotal => sprintf('%.2f', $caja_monto_abono) + 0
-                };
-            }
+            push @items_recibo, {
+                concepto => $concepto_abono_item,
+                cantidad => 1,
+                precio   => sprintf('%.2f', $caja_monto_abono) + 0,
+                subtotal => sprintf('%.2f', $caja_monto_abono) + 0
+            };
         }
 
         if (!@items_recibo) {
             my $monto_c = $total_cargos_directos > 0 ? $total_cargos_directos : ($caja_monto_abono > 0 ? $caja_monto_abono : 500);
             push @items_recibo, {
-                concepto => 'Consulta Médica General',
+                concepto => ($es_odonto_caja ? 'Consulta Odontológica' : 'Consulta Médica General'),
                 cantidad => 1,
                 precio   => sprintf('%.2f', $monto_c) + 0,
                 subtotal => sprintf('%.2f', $monto_c) + 0
@@ -654,7 +730,6 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         }
         
         my $items_json_str = encode_json(\@items_recibo);
-        my $concepto_recibo = @items_recibo ? $items_recibo[0]->{concepto} : 'Consulta Médica';
 
         # Base de cargos exigibles para el recibo:
         my $base_cargos_recibo = $total_cargos_directos;

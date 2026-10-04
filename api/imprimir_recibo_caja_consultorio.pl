@@ -336,11 +336,36 @@ my $total_abonos_val = $recibo->{total_abonos} + 0;
 my $saldo_remanente_val = $total_cargos_val - $total_abonos_val;
 $saldo_remanente_val = 0 if $saldo_remanente_val < 0.005;
 
+# Sanitización antimultiplicación: Si la lista de items contiene cargos clínicos y además un renglón artificial de abono:
+my $tot_servicios_clinicos = 0;
+my $tiene_abono_fantasma = 0;
+foreach my $it (@$items) {
+    if (($it->{concepto} // '') =~ /Abono a Cuenta|Liquidaci[oó]n de Tratamiento/i) {
+        $tiene_abono_fantasma = 1;
+    } else {
+        $tot_servicios_clinicos += ($it->{subtotal} // 0);
+    }
+}
+if ($tiene_abono_fantasma && $tot_servicios_clinicos > 0 && abs($tot_servicios_clinicos - $total_cargos_val) < 0.05) {
+    @$items = grep { ($_->{concepto} // '') !~ /Abono a Cuenta|Liquidaci[oó]n de Tratamiento/i } @$items;
+}
+
 my $total_cargos_fmt    = sprintf('%.2f', $total_cargos_val);
 my $total_abonos_fmt    = sprintf('%.2f', $total_abonos_val);
 my $saldo_remanente_fmt = sprintf('%.2f', $saldo_remanente_val);
 
 my $estatus_recibo = ($saldo_remanente_val <= 0.005) ? 'Liquidado' : ($recibo->{estatus} || 'Cobrado');
+
+# Concepto canónico para visualización en cabecera
+my $concepto_cabecera = $recibo->{concepto} || '';
+if (@$items > 1 && $items->[0]->{concepto} && $concepto_cabecera eq $items->[0]->{concepto}) {
+    my $son_piezas = (grep { ($_->{concepto} // '') =~ /Pieza\s*#\d+/i } @$items) == scalar(@$items);
+    if ($son_piezas) {
+        $concepto_cabecera = "Tratamiento Odontológico (" . scalar(@$items) . " procedimientos)";
+    } elsif ($medico_especialidad =~ /Odontolog/i) {
+        $concepto_cabecera = "Tratamiento Odontológico";
+    }
+}
 
 # Construir Filas de Ítems
 my $items_html = '';
@@ -571,10 +596,10 @@ print <<HTML;
                     <span class="info-label">Método de Pago:</span>
                     <span class="info-val" style="color: #0f766e;">$recibo->{metodo_pago}</span>
                 </div>
-                @{[$recibo->{concepto} ? qq{
+                @{[$concepto_cabecera ? qq{
                 <div class="info-row">
                     <span class="info-label">Nota / Concepto:</span>
-                    <span class="info-val">$recibo->{concepto}</span>
+                    <span class="info-val">$concepto_cabecera</span>
                 </div>
                 } : ""]}
             </div>
