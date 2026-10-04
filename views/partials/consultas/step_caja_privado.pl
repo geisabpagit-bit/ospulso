@@ -394,7 +394,7 @@ sub render_step_caja_privado {
         function fixUTF8(str) {
             if (!str || typeof str !== 'string') return '';
             try {
-                if (/[\u00C2-\u00C5][\u0080-\u00BF]/.test(str)) {
+                if (str.indexOf('Ã') !== -1 || str.indexOf('Â') !== -1) {
                     return decodeURIComponent(escape(str));
                 }
             } catch(e) {}
