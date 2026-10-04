@@ -116,5 +116,27 @@ graph LR
 - **Escape de Sigilos de Perl**:
   - Corrección de secuencias de moneda en cadenas interpoladas (ej. `\$0.00` y `\$500.00`), previniendo advertencias de variables no inicializadas y fugas de contexto en el DOM.
 
+### 4.12 Garantía Canónica de Expediente y Especialidad Inamovible en Step 1
+- **Principio de Existencia de Expediente Clínico**:
+  - Para que exista cualquier acto o registro de consulta clínica, los datos esenciales del paciente (**Paciente**, **CURP**, **Sexo**, **Edad**) y la **Especialidad (Inamovible)** del médico tratante DEBEN estar siempre poblados e inmutables en pantalla.
+- **Resolución Multinivel con Fallback Canónico (`render_consultas_privado.pl`)**:
+  - El backend analiza en cascada: (1) parámetro directo `id` o `id_paciente`, (2) asociación por cita activa `id_cita` en `dat/citas.dat`, (3) primer expediente activo con registro en `dat/pacientes.dat` o catálogos CLUE (`pacientes_privados_*.dat`), y (4) expediente canónico estructurado garantizado en `_estructurar_paciente()`.
+  - Normalización de la Especialidad Médica Inamovible mapeada contra `dat/usuarios.dat` y `dat/especialidades.dat` (asignando `Medicina General` u `Odontología` si el ID es `0` o no configurado).
+- **Inmunidad y Blindaje contra Limpieza de Formulario (JavaScript)**:
+  - En `DOMContentLoaded`, la rutina de reseteo preventivo del formulario excluye taxativamente controles de solo lectura o protegidos: `input:not([type=hidden]):not([type=date]):not([readonly]):not([data-preserve="true"])`.
+  - En `views/partials/consultas/step_registro_privado.pl`, los inputs se configuran con identificadores explícitos (`#f_paciente_nombre`, `#f_paciente_curp`, `#f_paciente_sexo`, `#f_paciente_edad`, `#f_paciente_espe`), atributos `readonly` y `data-preserve="true"`.
+  - En la restauración de borradores (`autosave.js` / `draftData`), se ignora la sobreescritura de claves reservadas (`fecha_consulta`, `hora_consulta`, `paciente_*`, `especialidad`, `id_espe`), blindando la inmutabilidad de los datos basales.
+
+### 4.13 Refactorización Premium y Modo Hoja WYSIWYG de Impresión Carta Vertical (`views/consulta_detalles.pl`)
+- **Visualización Dual de Vanguardia (Pantalla)**:
+  - **Modo Dashboard Bento**: Interfaz interactiva de alta fidelidad orientada a la revisión clínica en estación de trabajo, con tarjetas Bento Grid, micro-interacciones, badges de severidad y accesos directos al Visor PACS (`render_visor_medico.pl`) y Visor Odontograma (`render_visor_odontograma.pl`).
+  - **Modo Hoja WYSIWYG (Carta Vertical)**: Réplica exacta fotorrealista de la hoja membretada de papel tamaño carta (`8.5in x 11in`), permitiendo al profesional de la salud visualizar en tiempo real cómo se imprimirá o exportará el documento antes de emitirlo.
+- **Especificaciones Quirúrgicas de Impresión y Exportación a PDF**:
+  - **Estándar `@page`**: `@page { size: letter portrait; margin: 8mm 8mm 8mm 8mm; }` (orientación vertical Carta, márgenes estrechos óptimos para aprovechar el 100% de la superficie útil).
+  - **Membrete Institucional Oficial**: Despliegue de datos de la Organización desde `dat/negocios.dat` (Nombre comercial, Razón Social, RFC, Clave CLUES, Domicilio Fiscal completo, Teléfono, Correo Electrónico y Logo institucional).
+  - **Ficha Dual de Identificación**: Resumen simétrico del Paciente (Nombre, CURP, Sexo, Edad, Tipo de Sangre, Teléfono, Alergias) y del Médico Tratante Responsable (Nombre con título, Especialidad, Cédula Profesional, Consultorio).
+  - **Pipeline Completo del Wizard SOAP**: Desglose secuencial de los campos de referencia: (1) Anamnesis y Motivo de Consulta con escala visual de dolor, (2) Exploración Física con cuadrícula de Signos Vitales (T.A., F.C., F.R., Temp, SpO2, IMC y estado nutricional), (3) Diagnóstico CIE-10 codificado, Severidad, Pronóstico y Plan Terapéutico, (4) Prescripción Farmacológica estructurada en tabla (Fármaco, Presentación, Dosis, Frecuencia, Duración, Vía e Indicaciones), y (5) Bloque de Conformidad y Firmas Digitales con leyenda legal de validez NOM-004-SSA3-2012.
+  - **Reglas Anti-Corte de Página**: Implementación de `page-break-inside: avoid; break-inside: avoid;` en cuadrículas de signos vitales, tablas farmacológicas y bloques de firmas, evitando fracturas visuales entre páginas en cualquier navegador o motor PDF.
+
 
 

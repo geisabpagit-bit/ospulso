@@ -136,19 +136,19 @@ HTML
                 <!-- Fila 1: Datos Personales (4 columnas en md/lg, 1 en mobile) -->
                 <div class="col-12 col-md-3">
                     <label class="wizard-label">Paciente</label>
-                    <input type="text" class="wizard-input bg-light" value="$paciente->{nombre}" readonly>
+                    <input type="text" id="f_paciente_nombre" name="paciente_nombre_display" class="wizard-input bg-light fw-bold text-dark" value="$paciente->{nombre}" readonly data-preserve="true">
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="wizard-label">CURP</label>
-                    <input type="text" class="wizard-input bg-light" value="$paciente->{curp}" readonly>
+                    <input type="text" id="f_paciente_curp" name="paciente_curp_display" class="wizard-input bg-light fw-semibold" value="$paciente->{curp}" readonly data-preserve="true">
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="wizard-label">Sexo</label>
-                    <input type="text" class="wizard-input bg-light" value="$paciente->{sexo}" readonly>
+                    <input type="text" id="f_paciente_sexo" name="paciente_sexo_display" class="wizard-input bg-light fw-semibold" value="$paciente->{sexo}" readonly data-preserve="true">
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="wizard-label">Edad</label>
-                    <input type="text" class="wizard-input bg-light" value="$paciente->{edad}" readonly>
+                    <input type="text" id="f_paciente_edad" name="paciente_edad_display" class="wizard-input bg-light fw-semibold" value="$paciente->{edad}" readonly data-preserve="true">
                 </div>
 
                 <!-- Fila 2: Tiempos y Clasificación de Consulta (4 columnas en md/lg, 1 en mobile) -->
@@ -168,7 +168,7 @@ HTML
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="wizard-label">Especialidad (Inamovible)</label>
-                    <input type="text" class="wizard-input bg-light fw-bold text-primary" value="$paciente->{espe_nombre_medico}" readonly>
+                    <input type="text" id="f_paciente_espe" class="wizard-input bg-light fw-bold text-primary" value="$paciente->{espe_nombre_medico}" readonly data-preserve="true">
                     <input type="hidden" name="especialidad" value="$paciente->{espe_nombre_medico}">
                     <input type="hidden" name="id_espe" value="$paciente->{id_espe_medico}">
                 </div>
