@@ -90,7 +90,9 @@ $(document).ready(function() {
                         
                         let badge_cita = cons.id_cita ? "<span class='badge bg-info-subtle text-info border border-info-subtle mb-2'><i class='bi bi-link-45deg me-1'></i>Vinculado a Cita</span>" : "<span class='badge bg-secondary-subtle text-secondary border border-secondary-subtle mb-2'>Consulta Express</span>";
                         
-                        let receta_html = cons.meds_count > 0 ? `<div class='mt-3 pt-3 border-top'><span class='badge bg-light text-dark border'><i class='bi bi-capsule text-primary me-1'></i> ${cons.meds_count} Fármaco(s) recetado(s)</span></div>` : "";
+                        let tieneReceta = cons.meds_count > 0;
+                        let receta_html = tieneReceta ? `<div class='mt-3 pt-3 border-top'><span class='badge bg-light text-dark border'><i class='bi bi-capsule text-primary me-1'></i> ${cons.meds_count} Fármaco(s) recetado(s)</span></div>` : "";
+                        let btn_receta = tieneReceta ? `<a href="../api/imprimir_receta_api.pl?id_consulta=${cons.id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-capsule me-1"></i>Receta</a>` : "";
 
                         html += `
                             <div class="timeline-item">
@@ -107,7 +109,7 @@ $(document).ready(function() {
                                             <div class="small text-muted fw-bold">Médico: ${cons.nombre_medico}</div>
                                             <div class="d-flex gap-2 justify-content-end mt-2 flex-wrap">
                                                 <a href="consulta_detalles.pl?id_consulta=${cons.id_consulta}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-eye-fill me-1"></i>Detalles</a>
-                                                <a href="../api/imprimir_receta_api.pl?id_consulta=${cons.id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-capsule me-1"></i>Receta</a>
+                                                ${btn_receta}
                                                 <a href="../api/imprimir_consentimiento_api.pl?id_consulta=${cons.id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-file-earmark-text me-1"></i>Consentimiento</a>
                                                 <a href="../api/imprimir_recibo_caja.pl?id_consulta=${cons.id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-receipt me-1"></i>Recibo</a>
                                             </div>

@@ -793,6 +793,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
+        if (draftData.requiere_receta === '1' || draftData.requiere_receta === 1) {
+            const chk = document.getElementById('check_requiere_receta');
+            if (chk) {
+                chk.checked = true;
+                if (typeof toggleSeccionReceta === 'function') toggleSeccionReceta(true);
+            }
+            if (draftData.receta_json) {
+                try {
+                    const rItems = typeof draftData.receta_json === 'string' ? JSON.parse(draftData.receta_json) : draftData.receta_json;
+                    if (Array.isArray(rItems) && typeof recetaItems !== 'undefined') {
+                        recetaItems = rItems;
+                        if (typeof renderRecetaItems === 'function') renderRecetaItems();
+                    }
+                } catch(e) {}
+            }
+        } else {
+            const chk = document.getElementById('check_requiere_receta');
+            if (chk) chk.checked = false;
+            if (typeof toggleSeccionReceta === 'function') toggleSeccionReceta(false);
+            if (typeof recetaItems !== 'undefined') recetaItems = [];
+            const rInp = document.getElementById('receta_json_input');
+            if (rInp) rInp.value = '[]';
+            const fInp = document.getElementById('receta_folio_input');
+            if (fInp) fInp.value = '';
+            if (typeof renderRecetaItems === 'function') renderRecetaItems();
+        }
     } else {
         // Consulta Nueva: Limpieza preventiva total de campos residuales del navegador
         // IMPORTANTE: Preservar estrictamente los datos del paciente (Step 1) y especialidad inamovible
@@ -823,6 +849,16 @@ document.addEventListener('DOMContentLoaded', () => {
             carritoConsulta = [];
             if (typeof renderTablaCaja === 'function') renderTablaCaja();
         }
+        // Limpieza explícita de receta médica para consultas nuevas
+        const chkReceta = document.getElementById('check_requiere_receta');
+        if (chkReceta) chkReceta.checked = false;
+        if (typeof toggleSeccionReceta === 'function') toggleSeccionReceta(false);
+        if (typeof recetaItems !== 'undefined') recetaItems = [];
+        const rInp = document.getElementById('receta_json_input');
+        if (rInp) rInp.value = '[]';
+        const fInp = document.getElementById('receta_folio_input');
+        if (fInp) fInp.value = '';
+        if (typeof renderRecetaItems === 'function') renderRecetaItems();
     }
     
     // 3. Inicializar Autosave
@@ -835,6 +871,15 @@ async function finalizarConsulta() {
     // Serializar todo el formulario del wizard
     const formEl = document.getElementById('wizard-form');
     const data = new FormData(formEl);
+    
+    // Garantizar que si no se seleccionó receta, no viaje receta_json residual
+    const chkRec = document.getElementById('check_requiere_receta');
+    if (!chkRec || !chkRec.checked) {
+        data.set('requiere_receta', '0');
+        data.set('receta_json', '[]');
+        data.delete('receta_folio');
+        data.delete('receta_indicaciones_extra');
+    }
     
     Swal.fire({
         title: 'Finalizando Consulta...',
@@ -858,6 +903,7 @@ async function finalizarConsulta() {
             if (formEl) formEl.reset();
             if (typeof carrito !== 'undefined') carrito = [];
             if (typeof carritoConsulta !== 'undefined') carritoConsulta = [];
+            if (typeof recetaItems !== 'undefined') recetaItems = [];
 
             Swal.fire('Completado', 'La consulta y transacciones de caja se han guardado con exito.', 'success').then(() => {
                 const configEl = document.getElementById('js-config');

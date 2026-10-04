@@ -272,4 +272,28 @@ graph LR
   - Al cerrar la consulta privada vinculando una cotización del paciente, `api/cerrar_consulta_privado.pl` actualiza inmediatamente `dat/cotizaciones.dat` cambiando el estado de la cotización a `'Convertida'`.
   - En los endpoints de cálculo de balances (`api/pacientes_api.pl`, `api/estado_cuenta_api.pl`, `api/finanzas_api.pl` y `js/cotizaciones_spa.js`), se discriminan y excluyen las cotizaciones con estado `'Convertida'` o `'Cerrada'`, logrando que el balance presupuestal pendiente se liquide a `$0.00` y el KPI "Cotizaciones" en el modal de `views/pacientes.pl` se actualice fidedignamente en `$0`.
 
+### 4.24 Aislamiento Estricto de Receta Médica y Prevención de Fuga de Datos entre Consultas
+- **Diagnóstico y Origen de Falsos Positivos de Recetas**:
+  - En `views/partials/consultas/step_soap.pl`, el formulario inyectaba de forma predeterminada `<input type="hidden" name="receta_json" id="receta_json_input" value="[]">`.
+  - En `api/cerrar_consulta_privado.pl`, la condición previa evaluaba `if ($requiere_receta eq '1' || $receta_json)`. Dado que la cadena `"[]"` no está vacía, Perl la evaluaba como verdadera, provocando que **todas** las consultas (incluso sin marcar *"¿Expedir Receta Médica?"*) crearan un registro en `dat/recetas.dat`.
+  - Como agravante, en `api/imprimir_receta_api.pl`, si una consulta no tenía fármacos o registro en `recetas.dat`, el script recurría a un fallback con datos de demostración fijos (`Paracetamol 500mg`, `Tempra`, paciente ID `2`, médico `1088603479`), haciendo parecer que la consulta cargaba prescripciones de otros pacientes o consultas ajenas.
+- **Solución Arquitectónica Frontend (`views/render_consultas_privado.pl`, `step_soap.pl`)**:
+  1. **Inicialización y Desconexión Inmediata (`toggleSeccionReceta`)**:
+     - Al desmarcar el switch de receta (`checked = false`) o al iniciar una consulta nueva, se purga de forma inmediata el array en memoria (`recetaItems = []`), se sincroniza el input (`receta_json_input.value = "[]"`), se vacía el folio y se limpia la tabla del DOM.
+  2. **Sanitización Previa al Cierre (`finalizarConsulta`)**:
+     - Antes de enviar el `FormData` a `api/cerrar_consulta_privado.pl`, si `#check_requiere_receta` no está activo, se fuerzan explícitamente `data.set('requiere_receta', '0')`, `data.set('receta_json', '[]')`, y se eliminan los parámetros `receta_folio` y `receta_indicaciones_extra`.
+- **Solución Arquitectónica Backend (`api/cerrar_consulta_privado.pl`, `api/imprimir_receta_api.pl`)**:
+  1. **Validación Pre-Guardado en `consultas_clinicas.dat`**:
+     - La validación de receta médica se ejecuta **antes** de serializar el `payload_json` de la consulta clínica.
+     - Si `$requiere_receta ne '1'` o el array de medicamentos decodificado está vacío, se limpia `%payload` fijando `$payload{requiere_receta} = '0'`, `$payload{medicamentos} = []`, `$payload{receta_json} = '[]'`, y se eliminan llaves residuales (`medicamentos_json`, `receta_folio`, `receta_indicaciones_extra`).
+     - Se purga cualquier registro previo que pudiera existir en `dat/recetas.dat` para dicho `id_consulta`.
+  2. **Persistencia Condicional en `dat/recetas.dat`**:
+     - Únicamente se crea o actualiza fila en `dat/recetas.dat` si `$requiere_receta eq '1'` Y el array de fármacos decodificado contiene al menos un medicamento válido con nombre genérico o comercial.
+  3. **Erradicación de Fallbacks Falsos en `api/imprimir_receta_api.pl`**:
+     - Se eliminó completamente la inyección de fármacos ficticios (`Paracetamol/Tempra`) y los identificadores por defecto de paciente o médico.
+     - Si la consulta solicitada no cuenta con una receta registrada en `recetas.dat` (o en el payload de `consultas_clinicas.dat`), o si su lista de medicamentos está vacía, se despliega una vista limpia y formal con la leyenda *"Sin Receta Médica: Esta consulta médica no cuenta con una receta expedida o no se prescribieron medicamentos para la misma"*, finalizando la ejecución de forma segura.
+- **Gobernanza Visual en Líneas de Tiempo (`views/render_expediente_clinico.pl`, `views/mis_consultas.pl`, `views/consulta_detalles.pl`)**:
+  - En los listados cronológicos del Hub de Consultas y Mis Consultas, el botón de acción **"Receta"** e indicador de fármacos recetados se renderizan **exclusivamente** si la consulta cuenta con `$tiene_receta` activo y un conteo de medicamentos mayor a cero (`meds_count > 0`).
+  - En `views/consulta_detalles.pl`, se restringió el fallback para evitar que consultas solicitadas con un ID inexistente carguen arbitrariamente la consulta más reciente de otro paciente.
+
 

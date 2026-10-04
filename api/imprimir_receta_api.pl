@@ -43,16 +43,106 @@ if (-e $receta_file && open(my $fh, '<:encoding(UTF-8)', $receta_file)) {
     close($fh);
 }
 
-my $folio        = $receta_row ? ($receta_row->[5] // 'REC-001') : 'REC-OFFICIAL';
-my $fecha        = $receta_row ? ($receta_row->[4] // '2026-07-27') : '2026-07-27';
-my $diagnostico  = $receta_row ? ($receta_row->[6] // 'Evaluación Médica General') : 'Evaluación Médica General';
-my $id_paciente  = $receta_row ? $receta_row->[2] : ($q->param('id_paciente') || '2');
-my $id_medico    = $receta_row ? $receta_row->[3] : ($session_data->{id_medico} || '1088603479');
+# Fallback de búsqueda en consultas_clinicas.dat si no está en recetas.dat
+if (!$receta_row && $id_consulta) {
+    my $cons_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
+    if (-e $cons_file && open(my $fhc, '<:encoding(UTF-8)', $cons_file)) {
+        my $h = <$fhc>;
+        while (my $line = <$fhc>) {
+            chomp $line;
+            next if $line =~ /^\s*$/;
+            my @c = split /\|/, $line, -1;
+            if ($c[0] eq $id_consulta) {
+                my $ts = $c[4] || time();
+                my ($sec,$min,$hour,$mday,$mon,$year) = localtime($ts);
+                my $f_str = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
+                my $raw_j = $c[5] // '{}';
+                $raw_j =~ s/\\n/\n/g;
+                my $p = eval { decode_json($raw_j) };
+                if ($p && ($p->{requiere_receta} eq '1' || ($p->{medicamentos} && ref($p->{medicamentos}) eq 'ARRAY' && @{$p->{medicamentos}}))) {
+                    $receta_row = [
+                        'REC-' . $ts,
+                        $c[0],
+                        $c[1],
+                        $c[3],
+                        $f_str,
+                        $p->{receta_folio} || "REC-$f_str",
+                        $p->{diagnostico_principal} || 'Evaluación Médica General',
+                        encode_json($p->{medicamentos} || [])
+                    ];
+                }
+                last;
+            }
+        }
+        close($fhc);
+    }
+}
+
+# Parsear Medicamentos del Payload JSON
+my $items = [];
+if ($receta_row && $receta_row->[7]) {
+    eval {
+        my $json_raw = $receta_row->[7];
+        $json_raw =~ s/\\n/\n/g;
+        if ($json_raw =~ /^\s*\[/) {
+            $items = decode_json($json_raw);
+        } else {
+            my $payload = decode_json($json_raw);
+            if ($payload->{receta_json}) {
+                $items = decode_json($payload->{receta_json});
+            } elsif ($payload->{medicamentos}) {
+                $items = $payload->{medicamentos};
+            }
+        }
+    };
+    if (ref($items) eq 'ARRAY') {
+        @$items = grep { ($_->{generico} && $_->{generico} !~ /^\s*$/) || ($_->{comercial} && $_->{comercial} !~ /^\s*$/) } @$items;
+    } else {
+        $items = [];
+    }
+}
+
+# Si no existe receta expedida o no hay medicamentos, mostrar pantalla limpia sin datos inventados
+if (!$receta_row || !@$items) {
+    print <<'HTML';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sin Receta Médica | OsPulso</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .empty-card { max-width: 480px; width: 90%; background: #ffffff; border-radius: 1.25rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 2.5rem; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="empty-card">
+        <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
+            <i class="bi bi-capsule text-muted fs-1"></i>
+        </div>
+        <h4 class="fw-bold mb-2" style="color: #0A2A66;">Sin Receta Médica</h4>
+        <p class="text-muted small mb-4">Esta consulta médica no cuenta con una receta expedida o no se prescribieron medicamentos para la misma.</p>
+        <button onclick="window.close()" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">Cerrar Ventana</button>
+    </div>
+</body>
+</html>
+HTML
+    exit;
+}
+
+my $folio        = $receta_row->[5] // 'REC-001';
+my $fecha        = $receta_row->[4] // '2026-07-27';
+my $diagnostico  = $receta_row->[6] // 'Evaluación Médica General';
+my $id_paciente  = $receta_row->[2] || $q->param('id_paciente') || '';
+my $id_medico    = $receta_row->[3] || $session_data->{id_medico} || 'DOC-000';
 
 # Datos Paciente
 my $paciente_name = "Paciente Oficial";
-my $paciente_edad = "34 años";
-my $paciente_sexo = "Masculino";
+my $paciente_edad = "--";
+my $paciente_sexo = "No especificado";
 
 my $pac_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
 my $pacientes = leer_tabla($pac_file, '\|');
@@ -61,6 +151,12 @@ if ($pacientes) {
         if ($p->[0] eq $id_paciente) {
             $paciente_name = $p->[2] // $paciente_name;
             $paciente_sexo = $p->[7] // $paciente_sexo;
+            my $fnac = $p->[6] // '';
+            if ($fnac =~ /^(\d{4})/) {
+                my $an = $1;
+                my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
+                $paciente_edad = (($year + 1900) - $an) . " años";
+            }
             last;
         }
     }
@@ -101,50 +197,15 @@ my $neg_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
 my $negocios = leer_tabla($neg_file, '\|');
 if ($negocios) {
     foreach my $n (@$negocios) {
-        # Si es la organización principal
         if ($id_org && $n->[0] eq $id_org) {
             $org_name = $n->[1] // $org_name;
             $org_rfc = $n->[10] // $org_rfc;
         }
-        # Si es la sucursal
         if ($id_suc && $n->[0] eq $id_suc) {
             $sucursal_name = $n->[1] // $sucursal_name;
             $clues_str = $n->[18] // '';
         }
     }
-}
-
-my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
-my $current_time = sprintf("%02d:%02d:%02d", $hour, $min, $sec);
-$fecha .= " $current_time" unless $fecha =~ /:/;
-
-
-# Parsear Medicamentos del Payload JSON
-my $items = [];
-if ($receta_row && $receta_row->[7]) {
-    eval {
-        my $json_raw = $receta_row->[7];
-        $json_raw =~ s/\\n/\n/g;
-        if ($json_raw =~ /^\[/) {
-            $items = decode_json($json_raw);
-        } else {
-            my $payload = decode_json($json_raw);
-            if ($payload->{receta_json}) {
-                $items = decode_json($payload->{receta_json});
-            }
-        }
-    };
-}
-
-if (!ref($items) eq 'ARRAY' || !@$items) {
-    push @$items, {
-        generico => 'Paracetamol 500mg',
-        comercial => 'Tempra',
-        forma => 'Tableta',
-        concentracion => '500mg',
-        posologia => '1 tableta cada 8 horas por 5 días',
-        via => 'Oral'
-    };
 }
 
 print <<HTML;

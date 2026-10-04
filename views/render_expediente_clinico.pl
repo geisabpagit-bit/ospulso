@@ -1274,7 +1274,9 @@ HTML
             if ($cons->{data}->{medicamentos} && ref($cons->{data}->{medicamentos}) eq 'ARRAY') {
                 $meds_count = scalar @{$cons->{data}->{medicamentos}};
             }
-            my $receta_html = $meds_count > 0 ? "<div class='mt-3 pt-3 border-top'><span class='badge bg-light text-dark border'><i class='bi bi-capsule text-primary me-1'></i> $meds_count F&aacute;rmaco(s) recetado(s)</span></div>" : "";
+            my $tiene_receta = ($cons->{data}->{requiere_receta} && $cons->{data}->{requiere_receta} eq '1' && $meds_count > 0) ? 1 : 0;
+            my $receta_html = $tiene_receta ? "<div class='mt-3 pt-3 border-top'><span class='badge bg-light text-dark border'><i class='bi bi-capsule text-primary me-1'></i> $meds_count F&aacute;rmaco(s) recetado(s)</span></div>" : "";
+            my $btn_receta = $tiene_receta ? qq{<a href="../api/imprimir_receta_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-capsule me-1"></i>Receta</a>} : "";
 
             my $nombre_medico = obtener_nombre_medico($cons->{id_medico});
 
@@ -1295,7 +1297,7 @@ HTML
                                 <div class="small text-muted fw-bold">M&eacute;dico: $nombre_medico</div>
                                 <div class="d-flex gap-2 justify-content-end mt-2 flex-wrap">
                                     <a href="consulta_detalles.pl?id_consulta=$cons->{id_consulta}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-eye-fill me-1"></i>Detalles</a>
-                                    <a href="../api/imprimir_receta_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-capsule me-1"></i>Receta</a>
+                                    $btn_receta
                                     <a href="../api/imprimir_consentimiento_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-file-earmark-text me-1"></i>Consentimiento</a>
                                     <a href="../api/$recibo_script?$recibo_param_str" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-receipt me-1"></i>Recibo</a>
                                 </div>

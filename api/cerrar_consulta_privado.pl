@@ -106,6 +106,96 @@ foreach my $tipo ('paciente', 'medico') {
 }
 # --------------------------------------------------------------------------
 
+# --- 1.0 GESTIÓN Y AISLAMIENTO ESTRICTO DE RECETA MÉDICA ---
+my $requiere_receta = $q->param('requiere_receta') || $payload{requiere_receta} || '0';
+my $receta_json = $q->param('receta_json') || $payload{receta_json} || '';
+my @meds_list = ();
+
+if ($requiere_receta eq '1' && $receta_json && $receta_json ne '[]' && $receta_json ne '{}') {
+    eval {
+        my $decoded = decode_json(encode_utf8($receta_json));
+        if (ref($decoded) eq 'ARRAY') {
+            @meds_list = grep { 
+                ($_->{generico} && $_->{generico} !~ /^\s*$/) || 
+                ($_->{comercial} && $_->{comercial} !~ /^\s*$/) 
+            } @$decoded;
+        }
+    };
+}
+
+my $recetas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'recetas.dat');
+my $recetas_cabecera = "id_receta|id_consulta|id_paciente|id_medico|fecha|folio|diagnostico|payload_json";
+
+if ($requiere_receta eq '1' && @meds_list > 0) {
+    # Sí tiene receta válida y medicamentos expedidos en esta consulta
+    $payload{requiere_receta} = '1';
+    $payload{medicamentos} = \@meds_list;
+    my $clean_receta_json = encode_json(\@meds_list);
+    $payload{receta_json} = $clean_receta_json;
+
+    my $id_receta = 'REC-' . time() . '-' . int(rand(1000));
+    my $folio_receta = $q->param('receta_folio') || $payload{receta_folio} || "REC-$hoy_fecha-" . int(rand(9000)+1000);
+    my $diag_receta  = $payload{diagnostico_principal} || $payload{clave_diagnostico_cie10} || 'Sin diagnóstico';
+    my $r_json_clean = $clean_receta_json;
+    $r_json_clean =~ s/\r|\n/\\n/g;
+
+    my $linea_rec = join('|', $id_receta, $id_consulta, $id_paciente, $id_medico, $hoy_fecha, $folio_receta, $diag_receta, $r_json_clean);
+
+    my @recetas_lineas = ();
+    my $rec_encontrada = 0;
+    if (-e $recetas_file && open my $fhr, '<:encoding(UTF-8)', $recetas_file) {
+        my $h = <$fhr>;
+        $recetas_cabecera = $h ? $h : "$recetas_cabecera\n";
+        chomp $recetas_cabecera;
+        while (my $lr = <$fhr>) {
+            chomp $lr;
+            next if $lr =~ /^\s*$/;
+            my @cr = split /\|/, $lr, -1;
+            if ($cr[1] eq $id_consulta) {
+                $linea_rec = join('|', $cr[0], $id_consulta, $id_paciente, $id_medico, $hoy_fecha, $folio_receta, $diag_receta, $r_json_clean);
+                push @recetas_lineas, $linea_rec;
+                $rec_encontrada = 1;
+            } else {
+                push @recetas_lineas, $lr;
+            }
+        }
+        close $fhr;
+    }
+    push @recetas_lineas, $linea_rec unless $rec_encontrada;
+    utils::db_manager::actualizar_archivo($recetas_file, $recetas_cabecera, \@recetas_lineas);
+} else {
+    # NO requiere receta o no contiene fármacos: purga preventiva absoluta para evitar fugas de otras consultas
+    $payload{requiere_receta} = '0';
+    $payload{medicamentos} = [];
+    $payload{receta_json} = '[]';
+    delete $payload{medicamentos_json};
+    delete $payload{receta_folio};
+    delete $payload{receta_indicaciones_extra};
+
+    # Purgar cualquier receta residual asociada a este id_consulta en recetas.dat
+    if (-e $recetas_file && open my $fhr, '<:encoding(UTF-8)', $recetas_file) {
+        my @recetas_lineas = ();
+        my $h = <$fhr>;
+        $recetas_cabecera = $h ? $h : "$recetas_cabecera\n";
+        chomp $recetas_cabecera;
+        my $hubo_purga = 0;
+        while (my $lr = <$fhr>) {
+            chomp $lr;
+            next if $lr =~ /^\s*$/;
+            my @cr = split /\|/, $lr, -1;
+            if ($cr[1] eq $id_consulta) {
+                $hubo_purga = 1;
+                next;
+            }
+            push @recetas_lineas, $lr;
+        }
+        close $fhr;
+        if ($hubo_purga) {
+            utils::db_manager::actualizar_archivo($recetas_file, $recetas_cabecera, \@recetas_lineas);
+        }
+    }
+}
+
 # 1. Guardar la consulta
 unless (-e $consultas_file) {
     open my $fh_new, '>:encoding(UTF-8)', $consultas_file;
@@ -139,25 +229,6 @@ if (-e $consultas_file) {
         push @lines, $linea;
     }
     utils::db_manager::actualizar_archivo($consultas_file, $cabecera, \@lines);
-}
-
-# 1.1 Persistir Receta Médica si fue expedida
-my $requiere_receta = $q->param('requiere_receta') || $payload{requiere_receta} || '0';
-my $receta_json = $q->param('receta_json') || $payload{receta_json} || '';
-if ($requiere_receta eq '1' || $receta_json) {
-    my $recetas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'recetas.dat');
-    unless (-e $recetas_file) {
-        open my $fh_r, '>:encoding(UTF-8)', $recetas_file;
-        print $fh_r "id_receta|id_consulta|id_paciente|id_medico|fecha|folio|diagnostico|payload_json\n";
-        close $fh_r;
-    }
-    my $id_receta = 'REC-' . time() . '-' . int(rand(1000));
-    my $folio_receta = $q->param('receta_folio') || "REC-$hoy_fecha-" . int(rand(9000)+1000);
-    my $diag_receta  = $payload{diagnostico_principal} || $payload{clave_diagnostico_cie10} || 'Sin diagnóstico';
-    my $r_json_clean = $receta_json || encode_json(\%payload);
-    $r_json_clean =~ s/\r|\n/\\n/g;
-    my $linea_rec = join('|', $id_receta, $id_consulta, $id_paciente, $id_medico, $hoy_fecha, $folio_receta, $diag_receta, $r_json_clean);
-    utils::db_manager::guardar_registro($recetas_file, $linea_rec);
 }
 
 # 1.2 Persistir Consentimiento Informado si fue requerido

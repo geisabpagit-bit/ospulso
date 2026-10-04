@@ -354,10 +354,18 @@ sub render_step_soap {
                 if (sec) {
                     sec.style.display = checked ? 'block' : 'none';
                 }
-                if (checked && !document.getElementById('receta_folio_input').value) {
-                    const now = new Date();
-                    const folio = 'REC-' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + Math.floor(Math.random()*9000 + 1000);
-                    document.getElementById('receta_folio_input').value = folio;
+                if (checked) {
+                    if (!document.getElementById('receta_folio_input').value) {
+                        const now = new Date();
+                        const folio = 'REC-' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + Math.floor(Math.random()*9000 + 1000);
+                        document.getElementById('receta_folio_input').value = folio;
+                    }
+                } else {
+                    recetaItems = [];
+                    syncRecetaJSON();
+                    const folInp = document.getElementById('receta_folio_input');
+                    if (folInp) folInp.value = '';
+                    renderRecetaItems();
                 }
             }
 

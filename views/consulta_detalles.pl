@@ -62,8 +62,8 @@ foreach my $c (@$res_consultas) {
     }
 }
 
-# Fallback: si no se encontró por ID específico pero hay consultas en la base, tomar la más reciente
-if (!keys %$consulta && @$res_consultas > 1) {
+# Fallback: si NO se solicitó un ID específico y no hay consulta cargada, tomar la más reciente
+if (!keys %$consulta && !$id_consulta && !$id_cita && @$res_consultas > 1) {
     for (my $i = $#{$res_consultas}; $i >= 0; $i--) {
         my $c = $res_consultas->[$i];
         next if $c->[0] =~ /^id_consulta$/i;
