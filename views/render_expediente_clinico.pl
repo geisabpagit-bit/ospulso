@@ -287,7 +287,8 @@ HTML
     function checkHashTab() {
         const hash = window.location.hash;
         if (hash) {
-            const tabId = hash.substring(1);
+            let tabId = hash.substring(1);
+            if (tabId === 'tab0') tabId = 'tab10';
             const targetBtn = document.querySelector('.sub-link[onclick*="' + tabId + '"]');
             if (targetBtn) {
                 swTab(tabId, targetBtn);
@@ -1151,64 +1152,6 @@ HTML
 JS
 
     print <<HTML;
-        <!-- 0: CITAS (TIMELINE) -->
-        <section class="sdm-tab-sec d-none" id="tab0">
-            <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-                <div>
-                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Historial Cronol&oacute;gico</h3>
-                    <p class="text-muted small fw-bold">RÉCORD DE CITAS Y CONSULTAS</p>
-                </div>
-                <div class="d-flex gap-2 p-1 bg-transparent rounded-pill flex-wrap">
-                    <span class="badge rounded-pill px-3 py-2 align-self-center mx-1" style="background-color: var(--md-teal-clinical);">$count_c Registros</span>
-                    <div class="vr mx-1"></div>
-                    <a href="agenda_main.pl?id=$d->{id_paciente}" class="btn btn-outline-medentia d-flex align-items-center"><i class="bi bi-calendar-event me-2" style="color: var(--md-teal-clinical);"></i>Gestionar Agenda</a>
-                    <a href="render_consultas.pl?id=$d->{id_paciente}" class="btn btn-medentia d-flex align-items-center"><i class="bi bi-lightning-charge-fill me-2" style="color: var(--md-cyan-ia);"></i>Consulta Express</a>
-                </div>
-            </div>
-            
-            <div class="timeline-diamond">
-HTML
-    foreach my $c (@$citas_ref) {
-        my $is_en_consulta = ($c->{estado} =~ /En consulta|proceso/i);
-        my $status_color = $is_en_consulta ? '#00C4C4' : ($c->{estado} =~ /Programada/i) ? '#10b981' : ($c->{estado} =~ /Cancelada/i) ? '#ef4444' : '#64748b';
-        my $btn_tomar_cita = "";
-        if ($c->{estado} !~ /Realizada|Atendida|Cancelada/i) {
-            if ($is_en_consulta) {
-                $btn_tomar_cita = qq{<a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="btn btn-sm btn-info text-white px-3 fw-bold ms-2 shadow-sm rounded-pill">Continuar con la consulta <i class="bi bi-play-fill ms-1"></i></a>};
-            } else {
-                $btn_tomar_cita = qq{<a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="btn btn-sm btn-medentia px-3 fw-bold ms-2 rounded-pill">Iniciar <i class="bi bi-play-fill ms-1" style="color: var(--md-cyan-ia);"></i></a>};
-            }
-        }
-        my $medico_nombre_cita = obtener_nombre_medico($c->{id_medico});
-        print <<HTML;
-                <div class="timeline-item">
-                    <div class="timeline-dot" style="border-color: $status_color"></div>
-                    <div class="timeline-card">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <span class="badge mb-2" style="background: $status_color; color: white;">$c->{estado}</span>
-                                <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);">$c->{motivo}</h5>
-                            </div>
-                            <div class="text-end">
-                                <div class="fw-black" style="font-size: 1.1rem; color: var(--md-teal-clinical);">$c->{fecha}</div>
-                                <div class="small text-muted fw-bold">$c->{hora}</div>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2 mt-3 pt-3 border-top">
-                            <i class="bi bi-person-circle text-muted"></i>
-                            <span class="small fw-bold text-muted">M&eacute;dico: $medico_nombre_cita</span>
-                            <div class="ms-auto">
-                                $btn_tomar_cita
-                            </div>
-                        </div>
-                    </div>
-                </div>
-HTML
-    }
-    print <<HTML;
-            </div>
-        </section>
-
         <!-- 10: CONSULTAS (HUB CLÍNICO) -->
         <section class="sdm-tab-sec d-none" id="tab10">
             <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
@@ -1216,7 +1159,10 @@ HTML
                     <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Hub de Consultas</h3>
                     <p class="text-muted small fw-bold">ATENCI&Oacute;N CL&Iacute;NICA Y TRAZABILIDAD</p>
                 </div>
-                <a href="render_consultas.pl?id=$paciente->{id_paciente}" class="btn btn-medentia d-flex align-items-center"><i class="bi bi-lightning-charge-fill me-2" style="color: var(--md-cyan-ia);"></i>Consulta Express (Sin Cita)</a>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="agenda_main.pl?id=$paciente->{id_paciente}" class="btn btn-outline-medentia d-flex align-items-center"><i class="bi bi-calendar-event me-2" style="color: var(--md-teal-clinical);"></i>Gestionar Agenda</a>
+                    <a href="render_consultas.pl?id=$paciente->{id_paciente}" class="btn btn-medentia d-flex align-items-center"><i class="bi bi-lightning-charge-fill me-2" style="color: var(--md-cyan-ia);"></i>Consulta Express (Sin Cita)</a>
+                </div>
             </div>
 
             <!-- Panel Superior: Citas Pendientes de Atención -->

@@ -309,7 +309,6 @@ HTML
                     <div class="accordion-body pb-0 pt-1">
                         <button class="sub-link active w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab2', this)"><i class="bi bi-grid-1x2 text-muted me-2"></i><span class="sidebar-text">Resumen</span></button>
                         <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab3', this)"><i class="bi bi-person-gear text-muted me-2"></i><span class="sidebar-text">Ficha de Identificación</span></button>
-                        <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab0', this)"><i class="bi bi-calendar3 text-muted me-2"></i><span class="sidebar-text">Citas</span></button>
                         <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab10', this)"><i class="bi bi-activity text-muted me-2"></i><span class="sidebar-text">Consultas</span></button>
                         <button class="sub-link w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('tab4', this)"><i class="bi bi-journal-text text-muted me-2"></i><span class="sidebar-text">SOAP</span></button>
                     </div>

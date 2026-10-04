@@ -210,3 +210,16 @@ graph LR
   - Está estrictamente prohibido inyectar una fila adicional de "Abono a Cuenta de Tratamiento" dentro de la tabla si ya hay cargos con costo en la sesión, evitando que la suma visual de la tabla duplique el importe cobrado.
   - La fila de concepto de abono/liquidación se inserta en la tabla **únicamente** en consultas de seguimiento puro sin nuevos cargos clínicos ($0.00).
 
+### 4.19 Unificación de Citas y Consultas en el Expediente Clínico (`render_expediente_clinico.pl`, `sub_sidebar.pl`)
+- **Segregación Conceptual entre Cita y Consulta**:
+  - **La Cita**: Es el trámite administrativo/logístico de reservar un bloque de tiempo (fecha, hora, consultorio, médico asignado) cuya gestión reside de forma natural en el módulo **Agenda** (`agenda_main.pl`).
+  - **La Consulta**: Es el acto clínico integral entre médico y paciente (diagnóstico, signos vitales, exploración, notas SOAP, prescripciones, recibos de caja) documentado en el **Expediente Clínico**.
+- **Erradicación de la Pestaña Redundante `Citas` (`tab0`)**:
+  - Se retiró el botón `Citas` (`tab0`) del menú lateral secundario en `utils/sub_sidebar.pl`, eliminando la duplicidad con la pestaña `Consultas` (`tab10`).
+  - En `views/render_expediente_clinico.pl`, se suprimió la sección legacy `<section id="tab0">`, y la función de ruteo `checkHashTab()` remapea automáticamente cualquier enlace histórico con `#tab0` directamente hacia `#tab10`.
+- **Hub de Consultas (`tab10`) como Punto Único de Gestión Clínica**:
+  - **Panel Superior (*Citas Programadas Listas para Atenderse*)**: Despliega las citas pendientes del paciente con sus badges de estado y botones de acción directa (*Iniciar Consulta* o *Continuar con la Consulta*).
+  - **Panel Inferior (*Historial de Consultas*)**: Despliega el récord clínico histórico de consultas realizadas con diagnóstico principal CIE-10, conteo de fármacos prescritos, botón directo a comprobante/recibo de caja y visor completo de la consulta.
+  - **Navegación Fluida hacia Agenda**: La cabecera del Hub incorpora el botón directo *"📅 Gestionar Agenda"* (`agenda_main.pl?id=[id_paciente]`) y *"⚡ Consulta Express (Sin Cita)"* para brindar cobertura operativa integral sin redundancias visuales.
+
+
