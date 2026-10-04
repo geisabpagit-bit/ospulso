@@ -164,6 +164,7 @@ if ($action eq 'create') {
     push @config_lines, "$id_org|PACIENTES_ESTADO|$pacientes_estado";
     push @config_lines, "$id_org|PORTAL_PACIENTE|$portal_paciente";
     push @config_lines, "$id_org|MANEJA_HOSPITALIZACION|$maneja_hospitalizacion";
+    push @config_lines, "$id_org|ESPECIALIDAD_PRINCIPAL|$id_espe_admin";
     foreach my $inst (@instituciones) { push @config_lines, "$id_org|INSTITUCION|$inst"; }
     foreach my $cap (@capacidades) { push @config_lines, "$id_org|CAPACIDAD|$cap"; }
 
@@ -412,6 +413,7 @@ if ($action eq 'update') {
     push @nueva_config, "$id_org|PACIENTES_ESTADO|$pacientes_estado";
     push @nueva_config, "$id_org|PORTAL_PACIENTE|$portal_paciente";
     push @nueva_config, "$id_org|MANEJA_HOSPITALIZACION|$maneja_hospitalizacion";
+    push @nueva_config, "$id_org|ESPECIALIDAD_PRINCIPAL|$id_espe_admin";
     foreach my $inst (@instituciones) { push @nueva_config, "$id_org|INSTITUCION|$inst"; }
     foreach my $cap (@capacidades) { push @nueva_config, "$id_org|CAPACIDAD|$cap"; }
 

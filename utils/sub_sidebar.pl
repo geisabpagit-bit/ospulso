@@ -68,35 +68,65 @@ sub render_sidebar {
         close($rf);
     }
 
-    # --- CONTROL DINÁMICO DE CAPACIDADES SAAS POR ORGANIZACIÓN ---
+    # --- CONTROL DINÁMICO DE CAPACIDADES SAAS Y ESPECIALIDAD PRINCIPAL ---
     my $id_empresa = 0;
     eval {
         my $sd = main::check_session();
         $id_empresa = $sd->{id_empresa} || 0;
     };
 
+    my %capacidades = ();
     my $tipo_org = '';
-    if ($id_empresa && $role ne 'Administrador Global') {
-        my %capacidades = ();
-        my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
-        if (-e $config_file) {
-            if (open(my $cf, '<:utf8', $config_file)) {
-                while (my $line = <$cf>) {
-                    chomp($line);
-                    next if $line =~ /^#|^\s*$/;
-                    my ($biz_id, $key, $val) = split(/\|/, $line);
-                    if ($biz_id eq $id_empresa) {
-                        if ($key eq 'CAPACIDAD') {
-                            $capacidades{$val} = 1;
-                        } elsif ($key eq 'TIPO_ORGANIZACION') {
-                            $tipo_org = $val;
+    my $org_espe_principal = '';
+
+    my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
+    if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
+        while (my $line = <$cf>) {
+            chomp($line);
+            next if $line =~ /^#|^\s*$/;
+            my ($biz_id, $key, $val) = split(/\|/, $line);
+            if ($biz_id eq $id_empresa) {
+                if ($key eq 'CAPACIDAD') {
+                    $capacidades{$val} = 1;
+                } elsif ($key eq 'TIPO_ORGANIZACION') {
+                    $tipo_org = $val;
+                } elsif ($key eq 'ESPECIALIDAD_PRINCIPAL' || $key eq 'ESPECIALIDAD') {
+                    $org_espe_principal = $val;
+                }
+            }
+        }
+        close($cf);
+    }
+
+    # Si no se encontró en negocios_config.dat, consultar en usuarios.dat la especialidad de la organización
+    if (!$org_espe_principal) {
+        my $usr_file = File::Spec->catfile($dat_dir, 'usuarios.dat');
+        if (-e $usr_file && open(my $uf, '<:utf8', $usr_file)) {
+            while (my $line = <$uf>) {
+                chomp($line);
+                next if $line =~ /^#|^\s*$/;
+                my @f = split(/!/, $line);
+                next if @f < 8;
+                my ($u_org) = split(/:/, $f[6] // '');
+                if (defined $u_org && $u_org eq $id_empresa) {
+                    if ($f[5] =~ /Administrador Organizacion/i || $f[5] =~ /Medico/i) {
+                        if ($f[7] && $f[7] ne '' && $f[7] ne '0') {
+                            $org_espe_principal = $f[7];
+                            last;
                         }
                     }
                 }
-                close($cf);
             }
+            close($uf);
         }
+    }
 
+    my $org_es_odontologia = 0;
+    if ($org_espe_principal eq '100' || lc($org_espe_principal) =~ /odonto/i) {
+        $org_es_odontologia = 1;
+    }
+
+    if ($id_empresa && $role ne 'Administrador Global') {
         # Si tenemos capacidades configuradas, filtramos
         if (keys %capacidades) {
             my %modulo_capacidad = (
@@ -217,7 +247,7 @@ HTML
     # en el menú principal izquierdo no debe aparecer la opción "Tablero Quirófano"
     my $has_hospitalizacion = 0;
     my $found_hospitalizacion = 0;
-    my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
+    $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
     if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
         while (my $line = <$cf>) {
             chomp($line);
@@ -260,7 +290,7 @@ HTML
     # 1. Dashboard
     my $dash_active = ($pagina_actual eq 'dashboard') ? 'active' : '';
     print qq{
-            <a href="inicial.pl" class="sub-link $dash_active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+            <a href="inicial.pl" class="sub-link $dash_active w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Dashboard">
                 <i class="bi bi-grid-1x2-fill text-primary me-2" style="font-size:1.2rem;"></i> <span class="sidebar-text">Dashboard</span>
             </a>
     };
@@ -271,7 +301,7 @@ HTML
         my $style = $module_styles{pacientes};
         my $active_class = ($pagina_actual eq 'pacientes') ? 'active' : '';
         print qq{
-            <a href="../$m->{url}" class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+            <a href="../$m->{url}" class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="$m->{title}">
                 <span class="material-icons me-2" style="color: $style->{color}; font-size:1.2rem;">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
             </a>
         };
@@ -283,7 +313,7 @@ HTML
         my $style = $module_styles{agenda};
         my $active_class = ($pagina_actual eq 'agenda') ? 'active' : '';
         print qq{
-            <a href="../$m->{url}" class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+            <a href="../$m->{url}" class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="$m->{title}">
                 <span class="material-icons me-2" style="color: $style->{color}; font-size:1.2rem;">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
             </a>
         };
@@ -293,7 +323,7 @@ HTML
     if ($is_allowed{quirofano}) {
         my $active_quirofano = ($pagina_actual eq 'quirofano_kanban') ? 'active' : '';
         print qq{
-            <a href="../views/quirofano_kanban.pl" class="sub-link $active_quirofano w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+            <a href="../views/quirofano_kanban.pl" class="sub-link $active_quirofano w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Tablero Quirófano">
                 <i class="bi bi-heart-pulse-fill me-2 text-danger" style="font-size:1.2rem;"></i> <span class="sidebar-text">Tablero Quirófano</span>
             </a>
         };
@@ -313,28 +343,52 @@ HTML
             my ($tab_id, $icon, $label, $is_active) = @_;
             my $act_cls = $is_active ? ' active' : '';
             if ($is_in_expediente) {
-                return qq{<button class="sub-link$act_cls w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('$tab_id', this)"><i class="$icon text-muted me-2"></i><span class="sidebar-text">$label</span></button>};
+                return qq{<button class="sub-link$act_cls w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center" onclick="swTab('$tab_id', this)" data-sidebar-title="$label"><i class="$icon text-muted me-2"></i><span class="sidebar-text">$label</span></button>};
             } else {
                 my $href = "render_expediente_clinico.pl?id=$id_paciente#$tab_id";
-                return qq{<a href="$href" class="sub-link$act_cls w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center text-decoration-none"><i class="$icon text-muted me-2"></i><span class="sidebar-text">$label</span></a>};
+                return qq{<a href="$href" class="sub-link$act_cls w-100 text-start border-0 bg-transparent mb-1 d-flex align-items-center text-decoration-none" data-sidebar-title="$label"><i class="$icon text-muted me-2"></i><span class="sidebar-text">$label</span></a>};
             }
         };
+
+        my $es_medico = ($role eq 'Medico' || $role =~ /\bMedico\b/i) ? 1 : 0;
+        my $mostrar_odonto = ($es_medico && $org_es_odontologia) ? 1 : 0;
+        my $mostrar_imagenologia = ($capacidades{'Imagenología'} || $capacidades{'Imagenologia'}) ? 1 : 0;
 
         my $link_resumen   = $lnk->('tab2',  'bi bi-grid-1x2',            'Resumen',                ($is_in_expediente ? 1 : 0));
         my $link_ficha     = $lnk->('tab3',  'bi bi-person-gear',          'Ficha de Identificación', 0);
         my $link_consultas = $lnk->('tab10', 'bi bi-activity',             'Consultas',              (!$is_in_expediente ? 1 : 0));
-        my $link_odonto    = $lnk->('tab6',  'bi bi-diagram-3-fill',       '2.1 Odonto',             0);
-        my $link_rayos_x   = $lnk->('tab7',  'bi bi-camera-video-fill',    '2.2 Rayos X',            0);
+        my $link_odonto    = $mostrar_odonto ? $lnk->('tab6',  'bi bi-diagram-3-fill',       'Odontograma',            0) : '';
+        my $link_rayos_x   = $mostrar_imagenologia ? $lnk->('tab7',  'bi bi-camera-video-fill',    'Imagenología',           0) : '';
         my $link_finanzas  = $lnk->('tab1',  'bi bi-wallet2',              '3.1 Finanzas',           0);
         my $link_inbox     = $lnk->('tab5',  'bi bi-inbox',                '3.2 Inbox',              0);
         my $link_fhir      = $lnk->('tab8',  'bi bi-braces',               '4.1 FHIR',               0);
         my $link_hl7       = $lnk->('tab9',  'bi bi-pci-card',             '4.2 HL7',                0);
 
+        my $diag_body = "$link_odonto$link_rayos_x";
+        my $diag_html = '';
+        if ($diag_body ne '') {
+            $diag_html = qq{
+            <!-- 2. Diagnóstico -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-diag">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-diag" aria-expanded="false" aria-controls="c-diag" data-sidebar-title="Diagnóstico">
+                        <i class="bi bi-search text-primary" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Diagn&oacute;stico</span>
+                    </button>
+                </h2>
+                <div id="c-diag" class="accordion-collapse collapse" aria-labelledby="h-diag">
+                    <div class="accordion-body pb-0 pt-1">
+                        $diag_body
+                    </div>
+                </div>
+            </div>
+            };
+        }
+
         print qq{
             <!-- 1. Expediente Clínico -->
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-clinica">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#c-clinica" aria-expanded="true" aria-controls="c-clinica">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#c-clinica" aria-expanded="true" aria-controls="c-clinica" data-sidebar-title="Expediente Clínico">
                         <i class="bi bi-heart-pulse-fill text-danger" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Expediente Cl&iacute;nico</span>
                     </button>
                 </h2>
@@ -347,25 +401,12 @@ HTML
                 </div>
             </div>
 
-            <!-- 2. Diagnóstico -->
-            <div class="accordion-item bg-transparent border-0 mb-1">
-                <h2 class="accordion-header" id="h-diag">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-diag" aria-expanded="false" aria-controls="c-diag">
-                        <i class="bi bi-search text-primary" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Diagn&oacute;stico</span>
-                    </button>
-                </h2>
-                <div id="c-diag" class="accordion-collapse collapse" aria-labelledby="h-diag">
-                    <div class="accordion-body pb-0 pt-1">
-                        $link_odonto
-                        $link_rayos_x
-                    </div>
-                </div>
-            </div>
+            $diag_html
 
             <!-- 3. Administración (Expediente) -->
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-admin-exp">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-admin-exp" aria-expanded="false" aria-controls="c-admin-exp">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-admin-exp" aria-expanded="false" aria-controls="c-admin-exp" data-sidebar-title="Administración Expediente">
                         <i class="bi bi-briefcase-fill text-success" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Administraci&oacute;n</span>
                     </button>
                 </h2>
@@ -380,7 +421,7 @@ HTML
             <!-- 4. Interoperabilidad -->
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-inter">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-inter" aria-expanded="false" aria-controls="c-inter">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-inter" aria-expanded="false" aria-controls="c-inter" data-sidebar-title="Interoperabilidad">
                         <i class="bi bi-share-fill text-info" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Interoperabilidad</span>
                     </button>
                 </h2>
@@ -414,7 +455,7 @@ HTML
             <!-- Administración Accordion -->
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-administracion">
-                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-administracion" aria-expanded="$admin_aria" aria-controls="c-administracion">
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-administracion" aria-expanded="$admin_aria" aria-controls="c-administracion" data-sidebar-title="Administración">
                         <i class="bi bi-shield-lock-fill text-primary" style="font-size:1.2rem; color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Administraci&oacute;n</span>$admin_badge
                     </button>
                 </h2>
@@ -472,8 +513,8 @@ HTML
             $is_allowed{'reset_datos_org'} = 0;
         }
 
-        # Allow gestion_odontograma for Administrador Organizacion & Global
-        if ($role eq 'Administrador Organizacion' || $role eq 'Administrador Global') {
+        # Allow gestion_odontograma for Administrador Organizacion & Global ONLY if org is Odontología
+        if (($role eq 'Administrador Organizacion' || $role eq 'Administrador Global') && $org_es_odontologia) {
             $is_allowed{'gestion_odontograma'} = 1;
         } else {
             $is_allowed{'gestion_odontograma'} = 0;
@@ -493,7 +534,7 @@ HTML
                 my $cfg = $admin_mod_names{$k};
                 my $onclick_attr = $cfg->{onclick} ? "onclick=\"$cfg->{onclick}\"" : "";
                 print qq{
-                    <a href="../views/$cfg->{file}" $onclick_attr class="sub-link $active_sub w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                    <a href="../views/$cfg->{file}" $onclick_attr class="sub-link $active_sub w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="$cfg->{title}">
                         <i class="bi $cfg->{icon} me-2 text-muted" style="font-size:1.1rem;"></i> <span class="sidebar-text">$cfg->{title}</span>
                     </a>
                 };
@@ -536,36 +577,36 @@ HTML
 
         my $es_consultorio_privado = (($tipo_org eq 'Consultorio Individual' || $tipo_org eq 'Consultorio Compartido') && !$has_pacientes_estado) ? 1 : 0;
         my $link_caja_recibo_html = $es_consultorio_privado 
-            ? qq{<a href="../views/caja_consultorio.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-cart-check-fill text-success me-2"></i><span class="sidebar-text fw-bold">Caja</span></a>}
-            : qq{<a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>};
+            ? qq{<a href="../views/caja_consultorio.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Caja"><i class="bi bi-cart-check-fill text-success me-2"></i><span class="sidebar-text fw-bold">Caja</span></a>}
+            : qq{<a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Generar Recibo"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>};
 
         print qq{
             <!-- Finanzas Integradas -->
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-finanzas">
-                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="$fin_aria" aria-controls="c-finanzas">
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="$fin_aria" aria-controls="c-finanzas" data-sidebar-title="Finanzas">
                         <i class="bi bi-cash-stack text-success" style="color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Finanzas</span>$fin_badge
                     </button>
                 </h2>
                 <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas">
                     <div class="accordion-body pb-0 pt-1">
                         $link_caja_recibo_html
-                        <a href="../views/finanzas.pl?tab=corte_caja" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-safe text-primary me-2"></i><span class="sidebar-text fw-bold">Corte de Caja</span></a>
+                        <a href="../views/finanzas.pl?tab=corte_caja" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Corte de Caja"><i class="bi bi-safe text-primary me-2"></i><span class="sidebar-text fw-bold">Corte de Caja</span></a>
                         <hr class="my-2 opacity-25">
-                        <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
-                        <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Egresos</span></a>
+                        <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Ingresos"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
+                        <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Egresos"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Egresos</span></a>
                         <hr class="my-2 opacity-25">
-                        <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cxc Privadas</span></a>
+                        <a href="../views/finanzas.pl?tab=cxc" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Cxc Privadas"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span class="sidebar-text">Cxc Privadas</span></a>
         };
 
         if ($has_pacientes_estado) {
             print qq{
-                        <a href="../views/finanzas.pl?tab=cxc_estado" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-bank2 text-info me-2"></i><span class="sidebar-text">Cxc Estado</span></a>
+                        <a href="../views/finanzas.pl?tab=cxc_estado" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Cxc Estado"><i class="bi bi-bank2 text-info me-2"></i><span class="sidebar-text">Cxc Estado</span></a>
             };
         }
 
         print qq{
-                        <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
+                        <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Resumen General"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
                     </div>
                 </div>
             </div>
@@ -589,7 +630,7 @@ HTML
         if ($role eq 'Ejecutivo Ventas') {
             my $crm_active = ($pagina_actual eq 'crm_ventas') ? 'active' : '';
             $crm_html = qq{
-                <a href="../views/crm_ventas.pl" class="sub-link $crm_active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                <a href="../views/crm_ventas.pl" class="sub-link $crm_active w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="CRM Ventas">
                     <i class="bi bi-shop me-2 text-primary" style="font-size:1.1rem;"></i> <span class="sidebar-text">CRM Ventas</span>
                 </a>
             };
@@ -598,7 +639,7 @@ HTML
         if ($role eq 'Administrador Global') {
             my $ejec_active = ($pagina_actual eq 'admin_ejecutivos') ? 'active' : '';
             $ejec_html = qq{
-                <a href="../views/admin_ejecutivos.pl" class="sub-link $ejec_active w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+                <a href="../views/admin_ejecutivos.pl" class="sub-link $ejec_active w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Ejecutivos">
                     <i class="bi bi-people-fill me-2 text-primary" style="font-size:1.1rem;"></i> <span class="sidebar-text">Ejecutivos</span>
                 </a>
             };
@@ -607,7 +648,7 @@ HTML
         print qq{
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-ventas">
-                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-ventas" aria-expanded="$ventas_aria" aria-controls="c-ventas">
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-ventas" aria-expanded="$ventas_aria" aria-controls="c-ventas" data-sidebar-title="Ventas">
                         <i class="bi bi-briefcase-fill text-primary" style="font-size:1.2rem; color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Ventas</span>$ventas_badge
                     </button>
                 </h2>
@@ -655,7 +696,7 @@ HTML
         my $active_class = ($pagina_actual eq $mod_key) ? 'active' : '';
 
         print qq{
-            <a href="$href" $onclick class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1">
+            <a href="$href" $onclick class="sub-link $active_class w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="$m->{title}">
                 <span class="material-icons me-2" style="color: $style->{color}; font-size:1.2rem;">$style->{icon}</span> <span class="sidebar-text">$m->{title}</span>
             </a>
         };

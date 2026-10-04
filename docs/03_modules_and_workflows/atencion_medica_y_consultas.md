@@ -229,7 +229,7 @@ graph LR
   - **Solución y Continuidad de Contexto**:
     1. Se parametrizó `id_paciente` en la invocación de `utils::sub_sidebar::render_sidebar` desde `render_consultas_privado.pl` y `render_expediente_clinico.pl`, con fallback automático vía CGI.
     2. En `utils/sub_sidebar.pl`, la visibilidad del menú del paciente ahora se activa tanto en `'expediente'` como cuando existe un `id_paciente` activo en `'consultas'`.
-    3. Los elementos del menú operan de forma polimórfica: en `render_expediente_clinico.pl` conmutan pestañas al instante mediante `swTab('tabX', this)`, mientras que en `render_consultas_privado.pl` se renderizan como enlaces directos accesibles (`render_expediente_clinico.pl?id=$id_paciente#tabX`), permitiendo al médico consultar el Resumen, Ficha, Odontograma base, Rayos X, Finanzas o Historial sin perder su navegación ni truncar el menú.
+    3. Los elementos del menú operan de forma polimórfica: en `render_expediente_clinico.pl` conmutan pestañas al instante mediante `swTab('tabX', this)`, mientras que en `render_consultas_privado.pl` se renderizan como enlaces directos accesibles (`render_expediente_clinico.pl?id=$id_paciente#tabX`), permitiendo al médico consultar el Resumen, Ficha, Odontograma base, Imagenología, Finanzas o Historial sin perder su navegación ni truncar el menú.
 
 ### 4.21 Unificación de Viewport, Erradicación de Doble Scroll y Priorización de Signos Vitales en Expediente
 - **Diagnóstico y Eliminación de la Capa de Doble Scroll Vertical**:
@@ -317,5 +317,22 @@ graph LR
 - **Gobernanza de Botones de Acción en Expediente y Portal del Paciente (`render_expediente_clinico.pl`, `mis_consultas.pl`, `get_mis_consultas.pl`)**:
   - **Botón "Receta"**: Se muestra única y exclusivamente si la consulta cuenta con receta emitida verificada en `dat/recetas.dat` o en el payload con medicamentos prescritos (`$tiene_receta && $meds_count > 0`). Si no hay receta, el botón no se renderiza.
   - **Botón "Consentimiento"**: Se muestra única y exclusivamente si la consulta cuenta con consentimiento informado registrado y firmado (`$tiene_consentimiento == 1`). Si no requirió consentimiento, el botón desaparece de la interfaz tanto en el expediente clínico del médico (`render_expediente_clinico.pl`) como en la línea de tiempo del paciente (`mis_consultas.pl`).
+
+### 4.25 Renombrado de Ítems Diagnósticos, Gobernanza RBAC / SaaS y Tooltips Flotantes en Menú Lateral (`sub_sidebar.pl`, `sub_sidebar.css`, `sub_sidebar.js`)
+- **Renombrado de Ítems del Menú Diagnóstico**:
+  - *"2.1 Odonto"* se renombra a **"Odontograma"** (Pestaña `tab6`).
+  - *"2.2 Rayos X"* se renombra a **"Imagenología"** (Pestaña `tab7`).
+- **Gobernanza RBAC y Especialidad de Organización para "Odontograma"**:
+  - El ítem `Odontograma` se renderiza única y exclusivamente si se cumplen ambas condiciones:
+    1. **Rol RBAC Médico**: El usuario en sesión posee el rol de médico (`$role eq 'Medico'`).
+    2. **Especialidad Médica Principal Odontología**: La organización tiene configurada como especialidad médica principal *"Odontología"* (código `100`), verificado a nivel SaaS en `dat/negocios_config.dat` (`ID_ORG|ESPECIALIDAD_PRINCIPAL|100`) o en el perfil de usuario administrador/médico en `dat/usuarios.dat`.
+- **Gobernanza de Capacidades SaaS Requeridas para "Imagenología"**:
+  - El ítem `Imagenología` se renderiza única y exclusivamente si la organización tiene marcada la capacidad SaaS requerida *"Imagenología"* (`dat/negocios_config.dat` con `ID_ORG|CAPACIDAD|Imagenología`). Si la organización no contrata o no requiere dicha capacidad, la opción permanece oculta.
+  - El grupo colapsable *"2. Diagnóstico"* solo se despliega en el sidebar si al menos uno de los dos ítems (`Odontograma` o `Imagenología`) está habilitado, previniendo secciones colapsables vacías.
+- **Sistema de Tooltips Flotantes en Modo Compacto (Anti-Loop)**:
+  - En modo colapsado (`.diamond-sidebar.compact`), los botones y sub-enlaces despliegan tooltips flotantes (`.sidebar-floating-tooltip`) en el hover del mouse con fondo azul profundo (`#0A2A66`), borde sutil turquesa y tipografía clara.
+  - Para erradicar bucles infinitos de redibujado (flickering/loops a 60 FPS) provocados por cambios de posición en hover, los tooltips están desacoplados a nivel de `document.body` mediante `position: fixed; pointer-events: none;`.
+  - **Mecanismo Anti-Loop en Acordeones**: Al hacer clic en la cabecera de cualquier acordeón estando en modo colapsado, el menú se expande automáticamente a su ancho regular (280px) mediante `window.toggleDesktopSidebar()`, garantizando acceso instantáneo y visualmente estable a los submenús.
+
 
 

@@ -258,9 +258,14 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - **Touch Targets Estandarizados**: Botones de acordeón con `min-height: 48px;` y sub-enlaces con `min-height: 44px;` para navegación táctil sin fallos.
    - **Auto-cierre Táctil**: Al pulsar cualquier enlace o pestaña del menú en móvil/tableta, el drawer y su backdrop se cierran automáticamente para revelar el contenido sin requerir una pulsación manual en el botón de cierre o en el overlay.
    - **Desplazamiento Elástico**: Menú interno con `-webkit-overflow-scrolling: touch;` y `overscroll-behavior: contain;`.
-5. **Modo Compacto Desktop (`>= 992px`) y Menú Flotante (Flyout)**:
+5. **Modo Compacto Desktop (`>= 992px`), Tooltips Flotantes y Anti-Loop**:
    - **Persistencia `localStorage`**: Al colapsar la barra a 80px, la preferencia se almacena en `localStorage.getItem('ospulso_sidebar_compact')`, manteniéndose a lo largo de toda la navegación.
-   - **Flyout Popover en Hover**: Al posicionar el cursor sobre cualquier acordeón en modo compacto, se despliega a la derecha una tarjeta flotante (`left: 76px; width: 235px; z-index: 10000;`) con sombra y borde corporativo que lista todos sus sub-enlaces, garantizando que el usuario jamás quede incomunicado de los submódulos.
+   - **Tooltips Flotantes Dinámicos (`.sidebar-floating-tooltip`)**: En lugar de desplegar flyouts CSS invasivos que provoquen pérdidas de hover y bucles infinitos de redibujado (loops a 60 FPS), se utiliza un tooltip flotante desacoplado, ultraligero y anclado a `position: fixed` con `pointer-events: none`. Muestra instantáneamente el título (`data-sidebar-title`) de cualquier ítem o acordeón al pasar el mouse por encima.
+   - **Mecanismo Anti-Loop en Submenús**: Si el usuario hace clic sobre un botón de acordeón (ej. Expediente Clínico, Diagnóstico, Administración) mientras la barra se encuentra colapsada a 80px, el sistema ejecuta de inmediato `window.toggleDesktopSidebar()` para expandir limpiamente el menú a su ancho completo (280px), eliminando cualquier salto errático de submenús dentro de la columna compacta.
+   - **Gobernanza RBAC y Capacidades SaaS en Menú Secundario**:
+     - **Odontograma**: Reemplaza el ítem legacy *"2.1 Odonto"*. Solo es visible para usuarios con rol médico (`$role eq 'Medico'`) y cuya organización tenga como Especialidad Médica Principal *"Odontología"* (código `100`).
+     - **Imagenología**: Reemplaza el ítem legacy *"2.2 Rayos X"*. Solo es visible si la organización tiene activa la capacidad SaaS requerida *"Imagenología"* en sus credenciales/planes.
+
 
 
 

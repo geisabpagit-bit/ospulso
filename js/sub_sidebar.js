@@ -150,7 +150,101 @@ document.addEventListener("DOMContentLoaded", function() {
             window.syncSidebarToggleVisuals(isCompact);
         }
     });
+
+    // 5. Inicializar sistema de tooltips flotantes en modo compacto (Anti-Loop)
+    initSidebarTooltips();
 });
+
+// Sistema de Tooltips Flotantes para Menú Compacto (Anti-Loop, Ultraligero y Seguro)
+let floatingTooltip = null;
+
+function initSidebarTooltips() {
+    if (!floatingTooltip) {
+        floatingTooltip = document.createElement("div");
+        floatingTooltip.className = "sidebar-floating-tooltip";
+        document.body.appendChild(floatingTooltip);
+    }
+
+    const sidebar = document.getElementById("moduleSidebar");
+    if (!sidebar) return;
+
+    sidebar.addEventListener("mouseenter", function(e) {
+        handleTooltipShow(e);
+    }, true);
+
+    sidebar.addEventListener("mouseleave", function(e) {
+        handleTooltipHide();
+    }, true);
+
+    sidebar.addEventListener("mousemove", function(e) {
+        handleTooltipShow(e);
+    }, true);
+
+    window.addEventListener("scroll", handleTooltipHide, true);
+
+    // Prevención de loops: si se hace clic en un acordeón estando colapsado, expandir
+    sidebar.addEventListener("click", function(e) {
+        if (sidebar.classList.contains("compact")) {
+            const accordBtn = e.target.closest(".accordion-button");
+            if (accordBtn) {
+                // Expandir inmediatamente para mostrar las opciones completas sin bucles de hover
+                window.toggleDesktopSidebar();
+            }
+        }
+    });
+}
+
+function handleTooltipShow(e) {
+    const sidebar = document.getElementById("moduleSidebar");
+    if (!sidebar || !sidebar.classList.contains("compact") || window.innerWidth < 992) {
+        handleTooltipHide();
+        return;
+    }
+
+    const target = e.target.closest(".sub-link, .accordion-button, .avatar-diamond, #btnToggleDesktopSidebar, .sidebar-compact-toggle-footer");
+    if (!target || !sidebar.contains(target)) {
+        handleTooltipHide();
+        return;
+    }
+
+    let text = target.getAttribute("data-sidebar-title");
+    if (!text && target.title) {
+        text = target.title;
+        target.setAttribute("data-sidebar-title", text);
+        target.removeAttribute("title"); // Evitar colisión con tooltip nativo
+    }
+    if (!text) {
+        const textSpan = target.querySelector(".sidebar-text");
+        if (textSpan) text = textSpan.textContent.trim();
+    }
+    if (!text && target.id === "sidebarAvatarBrand") {
+        text = target.getAttribute("data-original-title") || "Menú Principal";
+    }
+
+    if (!text || text.length === 0) {
+        handleTooltipHide();
+        return;
+    }
+
+    if (!floatingTooltip) {
+        floatingTooltip = document.createElement("div");
+        floatingTooltip.className = "sidebar-floating-tooltip";
+        document.body.appendChild(floatingTooltip);
+    }
+
+    floatingTooltip.textContent = text;
+    const rect = target.getBoundingClientRect();
+    
+    floatingTooltip.style.top = (rect.top + (rect.height / 2) - 14) + "px";
+    floatingTooltip.style.left = (rect.right + 12) + "px";
+    floatingTooltip.classList.add("show");
+}
+
+function handleTooltipHide() {
+    if (floatingTooltip) {
+        floatingTooltip.classList.remove("show");
+    }
+}
 
 document.addEventListener("keydown", function(e) {
     if (e.key === "Escape") {
