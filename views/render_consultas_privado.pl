@@ -310,8 +310,9 @@ if ($cita_activa_medico) {
     });
     </script>
 </div>
+</body>
+</html>
 HTML
-    render_footer();
     exit;
 }
 
