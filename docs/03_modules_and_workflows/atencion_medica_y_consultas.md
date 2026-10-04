@@ -180,7 +180,9 @@ graph LR
   - **Caso Sin Saldo Pendiente (Al Corriente)**: La consulta actual se inicializa como `Consulta de Seguimiento / Continuación de Tratamiento` por `$0.00`. Si el médico no añade procedimientos o materiales adicionales, el paciente concluye con importe a cobrar de `$0.00` y el sistema emite el comprobante de caja en cero (`$0.00`) con su respectivo folio consecutivo.
 - **Indexación y Enlace Blindado de Recibos en el Expediente**:
   - En `views/render_expediente_clinico.pl`, la función `cargar_historial_consultas` mapea de forma bidireccional los folios emitidos en `dat/folios_recibos_privados.dat` (`id_consulta`, `id_cita`, `folio`, `id_recibo`).
+  - Se eliminó la indexación por fecha de paciente (`PAC_id_fecha`), garantizando que cada consulta del expediente enlace unívocamente a su propio folio consecutivo sin colisionar con consultas previas del mismo día (erradicación de falsos positivos hacia el Folio 1).
   - El botón "Recibo" del historial de consultas envía el folio real del recibo (`id_consulta=<folio>&folio=<folio>`) canalizando a `api/imprimir_recibo_caja_consultorio.pl` para tenants de consultorio individual/compartido.
+  - En `api/imprimir_recibo_caja_consultorio.pl`, el ticket desglosa obligatoriamente el `Total Servicios / Tratamiento`, el `IMPORTE COBRADO` y el **`Saldo Remanente`** ($0.00 en caso de liquidación total), además de aplicar búsqueda por coincidencia exacta de folio sin expresiones regulares numéricas permisivas.
   - Como capa de resiliencia, `api/imprimir_recibo_caja_consultorio.pl` inspecciona `consultas_clinicas.dat` si recibe identificadores tipo `CONS-...` para correlacionar la cita y recibo, y en caso de consultas sin registro flat-file de recibo, reconstruye la vista en memoria desde el `payload_json` de la consulta.
 
 ### 4.17 Normalización de Identidad Médica en Citas e Historial Clínico (`views/render_expediente_clinico.pl`)

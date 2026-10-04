@@ -112,3 +112,24 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
 4. **Autonomía de Categorías de Gastos**:
    - Las operaciones de edición y eliminación (`edit_categoria`, `delete_categoria`) en `api/finanzas_api.pl` validan la columna `id_negocio`, y los contadores en `dat/id_cat.counter`, `dat/id_subcat.counter` y `dat/id_subcat3.counter` se mantienen inicializados con valores superiores a los catálogos base para prevenir colisiones de ID entre organizaciones.
 
+---
+
+## 6. Arquitectura de Cobranza en Continuación de Tratamientos y Saldos Remanentes en Recibos
+
+1. **Ciclo de Vida: Cotización -> Tratamiento Activo -> Abonos -> Liquidación**:
+   - Una cotización seleccionada en una consulta se convierte en un registro en `dat/tratamientos.dat` (`ESTADO = Abierto`).
+   - El monto presupuestado inicial (ej. $3,400.00) genera los cargos en `dat/estado_cuenta.dat`.
+   - Si el paciente abona parcialmente (ej. $1,200.00), el recibo emitido (`Folio #1`) desglosa el `Total Servicios / Tratamiento ($3,400.00)`, el `IMPORTE COBRADO ($1,200.00)` y el **`Saldo Remanente ($2,200.00)`** con estatus `Cobrado` (En Proceso).
+
+2. **Gobernanza de Consultas Subsecuentes (Continuación de Tratamiento)**:
+   - Toda consulta de continuación vinculada a un tratamiento abierto o con saldo pendiente arrastrado tiene tarifa de **$0.00** por concepto de consulta de seguimiento.
+   - Está estrictamente prohibido generar cargos inventados de "Consulta Médica" por el monto del abono recibido.
+   - El importe entregado por el paciente (ej. $1,000.00 en la 2ª cita) se asienta como abono al tratamiento preexistente, amortizando la deuda de $2,200.00 a un nuevo saldo remanente de $1,200.00 en el recibo (`Folio #2`).
+
+3. **Liquidación Final y Cierre Automático**:
+   - Al cubrirse el saldo remanente (ej. $1,200.00 en la 3ª cita), el sistema asienta el abono, marca el `Saldo Remanente` en `$0.00 (Liquidado)`, actualiza el tratamiento en `dat/tratamientos.dat` a `ESTADO = Cerrado` con su `FECHA_FIN` y emite su comprobante consecutivo (`Folio #3`).
+
+4. **Integridad de Folios y Blindaje Anti-Falsos Positivos**:
+   - En `api/imprimir_recibo_caja_consultorio.pl`, la búsqueda del comprobante se realiza exclusivamente por coincidencia exacta de folio consecutivo (`c_folio`), identificador de recibo (`c_id`) o identificador de consulta (`c_cons`), prohibiendo el uso de expresiones regulares con terminación de dígitos.
+   - En `views/render_expediente_clinico.pl`, se erradica la indexación por fecha de paciente (`PAC_id_fecha`), garantizando que cada consulta del expediente enlace unívocamente a su propio folio consecutivo sin usurpar el primer recibo del día.
+

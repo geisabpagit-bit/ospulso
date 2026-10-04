@@ -59,16 +59,16 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
             next unless $match_org;
         }
 
-        # Coincidencia exacta o flexible de ID de recibo, Folio o Consulta
-        my $target_digits = $id_consulta;
-        $target_digits =~ s/\D+//g;
+        # Coincidencia exacta de Folio, ID de recibo o ID de Consulta
+        my $param_folio_raw = $q->param('folio') // '';
+        $param_folio_raw =~ s/^\s+|\s+$//g;
 
         my $match = 0;
-        if ($c_id eq $id_consulta || $c_folio eq $id_consulta || $c_cons eq $id_consulta) {
+        if ($c_folio eq $id_consulta || $c_id eq $id_consulta || $c_cons eq $id_consulta) {
             $match = 1;
-        } elsif ($c_folio =~ /(?:^|\/|-)\Q$id_consulta\E$/ || $c_cons =~ /(?:^|\/|-)\Q$id_consulta\E$/) {
+        } elsif ($param_folio_raw ne '' && ($c_folio eq $param_folio_raw || $c_id eq $param_folio_raw)) {
             $match = 1;
-        } elsif ($target_digits ne '' && ($c_folio =~ /\Q$target_digits\E$/ || $c_cons =~ /\Q$target_digits\E$/ || $c_id =~ /\Q$target_digits\E$/)) {
+        } elsif ($c_folio =~ /^\d+$/ && $id_consulta =~ /^\d+$/ && int($c_folio) == int($id_consulta)) {
             $match = 1;
         }
 
@@ -331,8 +331,16 @@ if (@$items == 0) {
     };
 }
 
-my $total_cargos_fmt = sprintf('%.2f', $recibo->{total_cargos});
-my $total_abonos_fmt = sprintf('%.2f', $recibo->{total_abonos});
+my $total_cargos_val = $recibo->{total_cargos} + 0;
+my $total_abonos_val = $recibo->{total_abonos} + 0;
+my $saldo_remanente_val = $total_cargos_val - $total_abonos_val;
+$saldo_remanente_val = 0 if $saldo_remanente_val < 0.005;
+
+my $total_cargos_fmt    = sprintf('%.2f', $total_cargos_val);
+my $total_abonos_fmt    = sprintf('%.2f', $total_abonos_val);
+my $saldo_remanente_fmt = sprintf('%.2f', $saldo_remanente_val);
+
+my $estatus_recibo = ($saldo_remanente_val <= 0.005) ? 'Liquidado' : ($recibo->{estatus} || 'Cobrado');
 
 # Construir Filas de Ítems
 my $items_html = '';
@@ -589,16 +597,20 @@ print <<HTML;
             <!-- Desglose de Totales -->
             <div class="totales-box">
                 <div class="total-row">
-                    <span style="color: #64748b; font-weight: 600;">Total Servicios:</span>
+                    <span style="color: #64748b; font-weight: 600;">Total Servicios / Tratamiento:</span>
                     <span style="font-weight: 700;">\$$total_cargos_fmt</span>
                 </div>
                 <div class="total-row total-principal">
                     <span>IMPORTE COBRADO:</span>
                     <span>\$$total_abonos_fmt</span>
                 </div>
+                <div class="total-row" style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1;">
+                    <span style="font-weight: 700; color: @{[$saldo_remanente_val > 0 ? '#b91c1c' : '#0f766e']};">Saldo Remanente:</span>
+                    <span style="font-weight: 800; font-size: 0.95rem; color: @{[$saldo_remanente_val > 0 ? '#b91c1c' : '#0f766e']};">\$$saldo_remanente_fmt @{[$saldo_remanente_val <= 0 ? '(Liquidado)' : '']}</span>
+                </div>
                 <div class="total-row" style="margin-top: 4px; font-size: 0.78rem;">
                     <span style="color: #0f766e; font-weight: 700;"><i class="bi bi-check-circle-fill me-1"></i>Estatus:</span>
-                    <span style="font-weight: 800; color: #0f766e;">$recibo->{estatus}</span>
+                    <span style="font-weight: 800; color: #0f766e;">$estatus_recibo</span>
                 </div>
             </div>
 

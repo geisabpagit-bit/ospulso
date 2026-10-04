@@ -2843,14 +2843,12 @@ sub cargar_historial_consultas {
             }
             my $fecha_str = "$f_orden $h_orden";
             
-            # Resolver folio de recibo directo
+            # Resolver folio de recibo directo con coincidencia estricta
             my $folio_recibo = '';
             if (exists $recibos_map{$c[0]}) {
                 $folio_recibo = $recibos_map{$c[0]}->{folio};
             } elsif ($c[2] && exists $recibos_map{$c[2]}) {
                 $folio_recibo = $recibos_map{$c[2]}->{folio};
-            } elsif (exists $recibos_map{"PAC_${id}_${f_orden}"}) {
-                $folio_recibo = $recibos_map{"PAC_${id}_${f_orden}"}->{folio};
             }
             
             push @h, { 

@@ -869,8 +869,11 @@ async function finalizarConsulta() {
                 const scriptRecibo = json.recibo_script || (isConsultorio ? 'imprimir_recibo_caja_consultorio.pl' : 'imprimir_recibo_caja.pl');
                 
                 // Abrir Recibo de Caja según el tipo de organización
-                if (json.id_consulta) {
-                    window.open('../api/' + scriptRecibo + '?id_consulta=' + encodeURIComponent(json.id_consulta), '_blank');
+                if (json.folio || json.id_consulta) {
+                    const paramFolio = json.folio 
+                        ? ('id_consulta=' + encodeURIComponent(json.folio) + '&folio=' + encodeURIComponent(json.folio))
+                        : ('id_consulta=' + encodeURIComponent(json.id_consulta));
+                    window.open('../api/' + scriptRecibo + '?' + paramFolio, '_blank');
                 }
                 window.location.href = 'render_expediente_clinico.pl?id=' + idPaciente;
             });

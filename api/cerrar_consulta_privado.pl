@@ -321,46 +321,96 @@ if ($es_cobro_recepcion) {
     $caja_monto_abono = 0; # El cobro se delega a recepción
 }
 
-# REGLA FINANCIERA: Si no hay cotización ni ítems directos explícitos enviados:
-if (!$id_cotizacion && !$tiene_cargos_directos) {
-    if ($caja_monto_abono > 0 || $es_cobro_recepcion) {
-        my $monto_cargo = $caja_monto_abono > 0 ? $caja_monto_abono : 500.00;
-        $caja_items = [ { nombre => 'Consulta Médica', precio => $monto_cargo, cantidad => 1 } ];
-        $tiene_cargos_directos = 1;
-    } else {
-        # Verificar si es consulta de seguimiento/continuación o primera vez
-        my $consultas_previas = 0;
-        if (-e $consultas_file && open my $fh_prev, '<:encoding(UTF-8)', $consultas_file) {
-            <$fh_prev>;
-            while (my $lp = <$fh_prev>) {
-                chomp $lp;
-                my @cp = split /\|/, $lp, -1;
-                if ($cp[1] eq $id_paciente && $cp[0] ne $id_consulta) {
-                    $consultas_previas++;
-                }
+# --- DETECCIÓN DE TRATAMIENTO ACTIVO Y ANTECEDENTES DE SALDO ---
+my $cot_file  = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones.dat');
+my $items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones_items.dat');
+my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
+my $fin_file  = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
+
+my $tiene_tratamiento_activo = 0;
+my $id_tratamiento_activo = '';
+my $total_tratamiento_activo = 0;
+if (-e $trat_file && open my $fh_tchk, '<:encoding(UTF-8)', $trat_file) {
+    my $hdr = <$fh_tchk>;
+    while (my $lt = <$fh_tchk>) {
+        chomp $lt;
+        next if $lt =~ /^\s*$/;
+        my @tc = split /\|/, $lt, -1;
+        if ($tc[1] eq $id_paciente && ($tc[3] // '') eq 'Abierto') {
+            $tiene_tratamiento_activo = 1;
+            $id_tratamiento_activo    = $tc[0];
+            $total_tratamiento_activo = $tc[7] || 0;
+            last;
+        }
+    }
+    close $fh_tchk;
+}
+
+# Calcular saldo pendiente del paciente en estado_cuenta.dat
+my $saldo_global_paciente = 0;
+if (-e $fin_file && open my $fh_fbal, '<:encoding(UTF-8)', $fin_file) {
+    <$fh_fbal>;
+    my ($tot_cargos_p, $tot_abonos_p) = (0, 0);
+    while (my $lf = <$fh_fbal>) {
+        chomp $lf;
+        next if $lf =~ /^\s*$/;
+        my @fc = split /\|/, $lf, -1;
+        if ($fc[2] eq $id_paciente) {
+            if ($fc[3] eq 'Cargo') {
+                $tot_cargos_p += ($fc[7] || 0);
+            } elsif ($fc[3] eq 'Abono') {
+                $tot_abonos_p += ($fc[7] || 0);
             }
-            close $fh_prev;
         }
-        if ($consultas_previas > 0) {
-            $caja_items = [ { nombre => 'Consulta de Seguimiento / Continuación de Tratamiento', precio => 0.00, cantidad => 1 } ];
-            $tiene_cargos_directos = 1;
+    }
+    close $fh_fbal;
+    $saldo_global_paciente = $tot_cargos_p - $tot_abonos_p;
+    $saldo_global_paciente = 0 if $saldo_global_paciente < 0.005;
+}
+
+# Detección de continuidad de atención
+my $motivo_in = $payload{motivo} || $q->param('motivo') || '';
+my $es_consulta_continuacion = ($tiene_tratamiento_activo || $saldo_global_paciente > 0 || $motivo_in =~ /continuaci[oó]n|seguimiento|control|revisi[oó]n|revaloraci[oó]n/i) ? 1 : 0;
+if (!$es_consulta_continuacion) {
+    if (-e $consultas_file && open my $fh_cp, '<:encoding(UTF-8)', $consultas_file) {
+        <$fh_cp>;
+        while (my $lp = <$fh_cp>) {
+            chomp $lp;
+            my @cp = split /\|/, $lp, -1;
+            if ($cp[1] eq $id_paciente && $cp[0] ne $id_consulta) {
+                $es_consulta_continuacion = 1;
+                last;
+            }
         }
+        close $fh_cp;
     }
 }
 
-if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) || $tiene_cargos_directos || $caja_monto_abono > 0) {
-    my $cot_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones.dat');
-    my $items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones_items.dat');
-    my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
-    my $fin_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
-    
+# REGLA FINANCIERA: Si no hay cotización ni ítems directos explícitos enviados:
+if (!$id_cotizacion && !$tiene_cargos_directos) {
+    if ($es_consulta_continuacion) {
+        # Es consulta de seguimiento/continuación: la consulta médica aplica tarifa $0.00
+        $caja_items = [ { nombre => 'Consulta de Seguimiento / Continuación de Tratamiento', precio => 0.00, cantidad => 1 } ];
+        $tiene_cargos_directos = 1;
+    } else {
+        # Primera vez sin cotización
+        my $monto_cargo = $caja_monto_abono > 0 ? $caja_monto_abono : 500.00;
+        $caja_items = [ { nombre => 'Consulta Médica', precio => $monto_cargo, cantidad => 1 } ];
+        $tiene_cargos_directos = 1;
+    }
+}
+
+my $total_cot = 0;
+my $folio_str = '';
+my $id_recibo = '';
+if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) || $tiene_cargos_directos || $caja_monto_abono > 0 || $tiene_tratamiento_activo) {
     my $fecha_fin = ($caja_estado_tratamiento eq 'Cerrado') ? $hoy_fecha : '';
     my $proxima_cita_id = $q->param('proxima_cita_id') // '';
     my $caja_metodo_pago = $q->param('caja_metodo_pago') // 'Efectivo';
     
-    my $id_tratamiento = $id_tratamiento_param;
+    my $id_tratamiento = $id_tratamiento_param || ($tiene_tratamiento_activo ? $id_tratamiento_activo : '');
     
-    # Calcular total de cargos directos
+    # Calcular total de cargos directos de esta consulta
     my $total_cargos_directos = 0;
     foreach my $it (@$caja_items) {
         $total_cargos_directos += ($it->{precio} || 0) * ($it->{cantidad} || 1);
@@ -368,6 +418,13 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
     
     if ($id_tratamiento) {
         # A. ACTUALIZAR TRATAMIENTO EXISTENTE
+        # Evaluar si el tratamiento queda liquidado con el abono
+        my $saldo_restante_trat = $saldo_global_paciente - $caja_monto_abono;
+        if ($saldo_restante_trat <= 0.005) {
+            $caja_estado_tratamiento = 'Cerrado';
+            $fecha_fin = $hoy_fecha;
+        }
+
         if (-e $trat_file && open my $fh_t, '<:encoding(UTF-8)', $trat_file) {
             my @lineas = <$fh_t>;
             close $fh_t;
@@ -383,7 +440,7 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
                     $c[3] = $caja_estado_tratamiento; # ESTADO
                     $c[5] = $fecha_fin;               # FECHA_FIN
                     $c[7] = ($c[7] || 0) + $total_cargos_directos; # TOTAL actualizado
-                    $c[8] = $proxima_cita_id;         # ID_CITA
+                    $c[8] = $proxima_cita_id if $proxima_cita_id;  # ID_CITA
                     $l = join('|', @c);
                 }
                 push @nuevas, $l;
@@ -394,7 +451,6 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         # B. CREAR TRATAMIENTO NUEVO Y REGISTRAR CARGOS
         $id_tratamiento = 'TX-' . time() . '-' . int(rand(1000));
         
-        my $total_cot = 0;
         if ($id_cotizacion) {
             # 1. Actualizar cotizaciones.dat para marcarla como 'Convertida'
             if (-e $cot_file && open my $fh_c, '<:encoding(UTF-8)', $cot_file) {
@@ -427,7 +483,6 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         }
         
         my $total_trat = $total_cot + $total_cargos_directos;
-        
         my $linea_trat = join('|', 
             $id_tratamiento, $id_paciente, $id_cotizacion, $caja_estado_tratamiento, 
             $hoy_fecha, $fecha_fin, $id_medico, $total_trat, $proxima_cita_id
@@ -524,8 +579,8 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
     if ($tiene_cargos_directos || $caja_monto_abono > 0) {
         my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_neg);
         my $next_folio = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 0, $id_neg, $id_suc);
-        my $folio_str = $next_folio;
-        my $id_recibo = "RC-" . time() . "-" . int(rand(1000));
+        $folio_str = $next_folio;
+        $id_recibo = "RC-" . time() . "-" . int(rand(1000));
         my $elaborado_por = $session_data->{usuario} || $id_medico;
         
         my $recibos_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
@@ -570,6 +625,24 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
                 close $fh_ci;
             }
         }
+
+        # Si es consulta de continuación y hay abono a saldo/tratamiento:
+        if ($es_consulta_continuacion && $caja_monto_abono > 0) {
+            my $concepto_abono = ($saldo_global_paciente > 0 && $caja_monto_abono >= $saldo_global_paciente)
+                ? "Liquidación de Tratamiento (Saldo previo: \$$saldo_global_paciente)"
+                : "Abono a Cuenta de Tratamiento" . ($saldo_global_paciente > 0 ? " (Saldo previo: \$$saldo_global_paciente)" : "");
+            
+            my $has_abono = grep { $_->{concepto} =~ /Abono|Liquidaci[oó]n/i } @items_recibo;
+            if (!$has_abono) {
+                push @items_recibo, {
+                    concepto => $concepto_abono,
+                    cantidad => 1,
+                    precio   => sprintf('%.2f', $caja_monto_abono) + 0,
+                    subtotal => sprintf('%.2f', $caja_monto_abono) + 0
+                };
+            }
+        }
+
         if (!@items_recibo) {
             my $monto_c = $total_cargos_directos > 0 ? $total_cargos_directos : ($caja_monto_abono > 0 ? $caja_monto_abono : 500);
             push @items_recibo, {
@@ -582,11 +655,24 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         
         my $items_json_str = encode_json(\@items_recibo);
         my $concepto_recibo = @items_recibo ? $items_recibo[0]->{concepto} : 'Consulta Médica';
+
+        # Base de cargos exigibles para el recibo:
+        my $base_cargos_recibo = $total_cargos_directos;
+        if ($total_cot > 0) {
+            $base_cargos_recibo += $total_cot;
+        } elsif ($es_consulta_continuacion && $saldo_global_paciente > 0) {
+            $base_cargos_recibo = $saldo_global_paciente;
+        } elsif ($base_cargos_recibo == 0 && $caja_monto_abono > 0) {
+            $base_cargos_recibo = $caja_monto_abono;
+        }
+
+        my $saldo_post_abono = $base_cargos_recibo - $caja_monto_abono;
+        my $estatus_recibo = ($saldo_post_abono <= 0.005) ? 'Liquidado' : 'Cobrado';
         
         my $linea_recibo = join('|',
             $id_recibo, $folio_str, $id_neg, $id_suc, $id_consulta, $id_paciente, $hoy_fecha, $hoy_hora,
-            $total_cargos_directos, $caja_monto_abono, $caja_metodo_pago, $elaborado_por,
-            $concepto_recibo, $items_json_str, 'Cobrado', $id_medico, ''
+            $base_cargos_recibo, $caja_monto_abono, $caja_metodo_pago, $elaborado_por,
+            $concepto_recibo, $items_json_str, $estatus_recibo, $id_medico, ''
         );
         utils::db_manager::guardar_registro($recibos_file, $linea_recibo);
     }
@@ -687,6 +773,8 @@ print encode_json({
     ok             => JSON::true,
     msg            => 'Consulta y transacciones de caja guardadas correctamente.',
     id_consulta    => $id_consulta,
+    folio          => $folio_str,
+    id_recibo      => $id_recibo,
     id_paciente    => $id_paciente,
     es_consultorio => $es_consultorio,
     recibo_script  => ($es_consultorio ? 'imprimir_recibo_caja_consultorio.pl' : 'imprimir_recibo_caja.pl')
