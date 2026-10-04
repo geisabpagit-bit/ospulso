@@ -262,24 +262,25 @@ print <<HTML;
     </div>
 </div>
 
-<!-- DOCK FINANCIERO (WebApp Experience) -->
-<div class="financial-dock">
-    <a href="pacientes.pl" class="dock-item" title="Volver">
+<!-- DOCK FINANCIERO ESTANDARIZADO (WebApp Experience) -->
+<link rel="stylesheet" href="../css/bottom_nav.css?v=1778173539">
+<nav class="sdm-main-bottom-nav d-md-none animate__animated animate__slideInUp">
+    <a href="pacientes.pl" class="main-tab-item" title="Volver">
         <i class="bi bi-arrow-left"></i>
     </a>
-    <button onclick="imprimirEstadoCuenta()" class="dock-item" title="Imprimir">
+    <button type="button" onclick="imprimirEstadoCuenta()" class="main-tab-item" title="Imprimir">
         <i class="bi bi-printer"></i>
     </button>
-    <button onclick="abrirModalCargo()" class="dock-item dock-fab" title="Nuevo Cargo">
+    <button type="button" onclick="abrirModalCargo()" class="main-tab-item dock-fab active" title="Nuevo Cargo">
         <i class="bi bi-plus-lg"></i>
     </button>
-    <button onclick="abrirModalAbono()" class="dock-item" title="Abonar">
+    <button type="button" onclick="abrirModalAbono()" class="main-tab-item" title="Abonar">
         <i class="bi bi-cash-coin"></i>
     </button>
-    <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="dock-item" title="KPIs">
+    <button type="button" onclick="window.scrollTo({top:0, behavior:'smooth'})" class="main-tab-item" title="KPIs">
         <i class="bi bi-graph-up-arrow"></i>
     </button>
-</div>
+</nav>
 <!-- MODALES (BOOTSTRAP 5) -->
 EOF
 require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'modal_carrito_universal.pl');

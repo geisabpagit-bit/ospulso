@@ -425,52 +425,73 @@
 }
 .btn-sdm-primary i { color: white !important; }
 
+/* Financial Dock and Bottom Nav Aliases - Estandarizado con bottom_nav.css */
 .financial-dock {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 2rem;
-    height: 70px;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    left: 16px;
+    right: 16px;
+    background: rgba(232, 243, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--md-teal-clinical, #19B7A5);
+    border-radius: 5px;
+    height: 58px;
+    max-width: 540px;
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-around;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    z-index: 1050;
+    box-shadow: 0 12px 32px rgba(10, 42, 102, 0.12);
+    z-index: 5500;
     padding: 0 10px;
 }
 .dock-item {
-    color: #64748b;
-    font-size: 1.4rem;
+    color: var(--md-blue-deep, #0A2A66);
+    font-size: 1.25rem;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: all 0.22s ease;
     background: none;
-    border: none;
-    padding: 10px;
+    border: 1px solid transparent;
+    padding: 0;
 }
-.dock-item:active { transform: scale(0.9); color: var(--md-blue-deep, #0A2A66); }
+.dock-item:hover, .dock-item.active { 
+    background: rgba(10, 42, 102, 0.08); 
+    color: var(--md-blue-deep, #0A2A66); 
+    border-color: var(--md-blue-deep, #0A2A66);
+    transform: translateY(-2px); 
+}
+.dock-item:active { transform: scale(0.92); }
 .dock-fab {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #0d1e3d 0%, #1e40af 100%);
+    width: 48px;
+    height: 48px;
+    background: var(--md-teal-bright, #00C4C4);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white !important;
-    font-size: 1.8rem;
-    margin-top: -40px;
-    box-shadow: 0 10px 20px rgba(13, 30, 61, 0.3);
-    border: 4px solid white;
+    font-size: 1.4rem;
+    transform: translateY(-8px);
+    box-shadow: 0 8px 22px rgba(0, 196, 196, 0.38);
+    border: none;
+    transition: all 0.25s ease;
 }
-.dock-fab:active { transform: scale(0.9) translateY(5px); }
+.dock-fab:hover { 
+    background: var(--md-blue-medical, #124A9E);
+    transform: translateY(-10px) scale(1.04); 
+}
+.dock-fab.active { 
+    border: 2.5px solid #ffffff; 
+    box-shadow: 0 8px 25px rgba(0, 196, 196, 0.6); 
+    transform: translateY(-8px) scale(1.06); 
+}
 .print-header { display: none; }
 
 @media print {

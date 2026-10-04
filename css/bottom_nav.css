@@ -1,61 +1,97 @@
-/* SDM Premium Bottom Nav - Dock Edition */
-.sdm-main-bottom-nav { 
+/* =========================================================================
+   SDM PREMIUM BOTTOM NAVIGATION (DOCK EDITION) - SINGLE SOURCE OF TRUTH
+   Estandarización visual y funcional unificada para todas las instancias
+   ========================================================================= */
+
+.sdm-main-bottom-nav,
+.financial-dock { 
     position: fixed !important; 
-    bottom: 20px !important;
-    left: 20px !important;
-    right: 20px !important;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 16px !important;
+    right: 16px !important;
     width: auto !important;
-    max-width: 600px !important;
+    max-width: 540px !important;
     height: 58px !important;
-    background: rgba(232, 243, 255, 0.96) !important; /* Mismo azul tenue que cabecera/footer */
-    backdrop-filter: blur(15px) !important;
-    -webkit-backdrop-filter: blur(15px) !important;
+    background: rgba(232, 243, 255, 0.96) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
     border: 1px solid var(--md-teal-clinical, #19B7A5) !important;
     border-radius: 5px !important;
     display: flex !important; 
     justify-content: space-around !important; 
     align-items: center !important; 
     z-index: 5500 !important;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 12px 32px rgba(10, 42, 102, 0.12) !important;
     padding: 0 10px !important;
     margin: 0 auto !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
 }
 
-.main-tab-item { 
+/* Elementos Regulares de la Barra (Iconos Circulares) */
+.main-tab-item,
+.financial-dock .dock-item { 
     display: flex !important; 
     align-items: center !important; 
     justify-content: center !important;
     width: 40px !important;
     height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
     border-radius: 50% !important;
     color: var(--md-blue-deep, #0A2A66) !important;
     background: transparent !important;
-    border: 1px solid transparent !important; /* Borde inicial transparente */
+    border: 1px solid transparent !important;
     font-size: 1.25rem !important;
-    transition: all 0.2s !important;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
     text-decoration: none !important;
-    position: relative;
+    position: relative !important;
     padding: 0 !important;
+    outline: none !important;
+    cursor: pointer !important;
 }
 
-.main-tab-item span {
-    display: none !important; /* Esconde los textos para mantener el estilo Dock limpio */
+/* Ocultar etiquetas textuales para preservar el Dock limpio y minimalista */
+.main-tab-item span,
+.financial-dock .dock-item span,
+.dock-fab span {
+    display: none !important;
 }
 
-.main-tab-item:hover, .main-tab-item:active, .main-tab-item.active {
-    background: rgba(10, 42, 102, 0.05) !important;
+/* Estados Hover y Click en Elementos Regulares */
+.main-tab-item:hover,
+.financial-dock .dock-item:hover {
+    background: rgba(10, 42, 102, 0.06) !important;
     color: var(--md-blue-deep, #0A2A66) !important;
-    border: 1.5px solid var(--md-blue-deep, #0A2A66) !important; /* Borde azul marino corporativo delgado */
-    transform: translateY(-3px) !important;
+    transform: translateY(-2px) !important;
 }
 
-.dock-fab {
+.main-tab-item:active,
+.financial-dock .dock-item:active {
+    transform: translateY(0) scale(0.92) !important;
+}
+
+/* Estado Activo en Elementos Regulares */
+.main-tab-item.active,
+.financial-dock .dock-item.active {
+    background: rgba(10, 42, 102, 0.08) !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    border: 1.5px solid var(--md-blue-deep, #0A2A66) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Botón Central Elevado (Floating Action Button - FAB) */
+.dock-fab,
+.main-tab-item.dock-fab,
+.financial-dock .dock-fab {
     background: var(--md-teal-bright, #00C4C4) !important;
-    color: white !important;
-    box-shadow: 0 8px 20px rgba(0, 196, 196, 0.3) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 22px rgba(0, 196, 196, 0.38) !important;
     width: 48px !important;
     height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
     font-size: 1.40rem !important;
     transform: translateY(-8px) !important;
     border-radius: 50% !important;
@@ -64,24 +100,52 @@
     justify-content: center !important;
     border: none !important;
     text-decoration: none !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-top: 0 !important;
+    cursor: pointer !important;
+    z-index: 5501 !important;
 }
 
-.dock-fab span {
-    display: none !important;
-}
-
-.dock-fab:hover, .dock-fab:active {
+.dock-fab:hover {
     background: var(--md-blue-medical, #124A9E) !important;
-    color: white !important;
-    transform: translateY(-10px) !important;
+    color: #ffffff !important;
+    transform: translateY(-10px) scale(1.04) !important;
+    box-shadow: 0 10px 25px rgba(18, 74, 158, 0.4) !important;
 }
 
-.main-tab-item i, .dock-fab i {
+.dock-fab:active {
+    transform: translateY(-5px) scale(0.95) !important;
+}
+
+/* Estado Activo del FAB (Resaltado Central Clínico) */
+.dock-fab.active,
+.main-tab-item.dock-fab.active,
+.financial-dock .dock-fab.active {
+    background: var(--md-teal-bright, #00C4C4) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 25px rgba(0, 196, 196, 0.6) !important;
+    border: 2.5px solid #ffffff !important;
+    transform: translateY(-8px) scale(1.06) !important;
+}
+
+.dock-fab.active i,
+.main-tab-item.dock-fab.active i,
+.financial-dock .dock-fab.active i {
+    color: #ffffff !important;
+}
+
+/* Normalización de Iconos dentro del Dock */
+.main-tab-item i,
+.financial-dock .dock-item i,
+.dock-fab i {
     display: block !important;
     margin: 0 !important;
+    line-height: 1 !important;
 }
 
-.main-tab-item img, .dock-fab img {
+.main-tab-item img,
+.financial-dock .dock-item img,
+.dock-fab img {
     display: block !important;
     margin: 0 auto !important;
     max-width: 26px !important;
@@ -89,7 +153,10 @@
     object-fit: contain !important;
 }
 
+/* Ocultar en resoluciones desktop y tabletas anchas */
 @media (min-width: 768px) {
-    .sdm-main-bottom-nav { display: none !important; }
+    .sdm-main-bottom-nav,
+    .financial-dock { 
+        display: none !important; 
+    }
 }
-

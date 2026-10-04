@@ -14,6 +14,7 @@ use File::Spec;
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
 
 my $q = CGI->new;
 my $sd = check_session();
@@ -502,4 +503,5 @@ print <<HTML;
 HTML
 
 utils::sub_sidebar::render_sidebar_footer();
+render_bottom_nav('pacientes');
 1;
