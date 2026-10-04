@@ -176,17 +176,66 @@ sub render_expediente_completo {
 
     # --- MÉTRICAS Y KPIS PARA DASHBOARD CLÍNICO 1.4 ---
     my $ultima_cons = (@$consultas_ref) ? $consultas_ref->[0] : undef;
-    my $ult_data = $ultima_cons ? ($ultima_cons->{data} || {}) : {};
     
-    my $ta_val = $ult_data->{ta} || '--';
-    my $fc_val = $ult_data->{fc} || '--';
-    my $fr_val = $ult_data->{fr} || '--';
-    my $temp_val = $ult_data->{temp} || '--';
-    my $spo2_val = $ult_data->{spo2} || '--';
-    my $peso_val = parseFloatVal($ult_data->{peso});
-    my $talla_val = parseFloatVal($ult_data->{talla});
-    my $diag_activo = $ult_data->{diagnostico_principal} || 'Sin diagnóstico registrado';
-    my $cie10_activo = $ult_data->{clave_diagnostico_cie10} || '';
+    # Buscar la consulta más reciente que contenga signos vitales registrados
+    my $cons_con_signos = undef;
+    foreach my $c (@$consultas_ref) {
+        my $cd = $c->{data} || {};
+        if (($cd->{ta} && $cd->{ta} ne '--') || 
+            ($cd->{fc} && $cd->{fc} ne '--') || 
+            ($cd->{fr} && $cd->{fr} ne '--') || 
+            ($cd->{temp} && $cd->{temp} ne '--') || 
+            ($cd->{peso} && $cd->{peso} ne '0') || 
+            ($cd->{talla} && $cd->{talla} ne '0') ||
+            ($cd->{spo2} && $cd->{spo2} ne '--') ||
+            ($cd->{soap} && $cd->{soap}->{objective})) {
+            $cons_con_signos = $c;
+            last;
+        }
+    }
+    my $cons_signos_ref = $cons_con_signos || $ultima_cons;
+    my $ult_data = $cons_signos_ref ? ($cons_signos_ref->{data} || {}) : {};
+    my $fecha_signos = $cons_signos_ref ? ($cons_signos_ref->{fecha} || $cons_signos_ref->{fecha_orden} || '') : '';
+    my $badge_fecha_signos = $fecha_signos 
+        ? qq{<span class="badge bg-teal-subtle text-teal border rounded-pill px-3 py-1 fw-bold"><i class="bi bi-clock-history me-1"></i>Última Consulta: $fecha_signos</span>} 
+        : qq{<span class="badge bg-secondary-subtle text-muted rounded-pill px-3 py-1">Sin consultas previas</span>};
+    
+    my $ta_val = $ult_data->{ta} || $ult_data->{TA} || $ult_data->{presion} 
+        || ($ult_data->{soap} && $ult_data->{soap}->{objective} && ($ult_data->{soap}->{objective}->{ta} || $ult_data->{soap}->{objective}->{TA})) 
+        || '--';
+
+    my $fc_val = $ult_data->{fc} || $ult_data->{FC} || $ult_data->{frecuencia_cardiaca} 
+        || ($ult_data->{soap} && $ult_data->{soap}->{objective} && ($ult_data->{soap}->{objective}->{fc} || $ult_data->{soap}->{objective}->{FC})) 
+        || '--';
+
+    my $fr_val = $ult_data->{fr} || $ult_data->{FR} || $ult_data->{frecuencia_respiratoria} 
+        || ($ult_data->{soap} && $ult_data->{soap}->{objective} && ($ult_data->{soap}->{objective}->{fr} || $ult_data->{soap}->{objective}->{FR})) 
+        || '--';
+
+    my $temp_val = $ult_data->{temp} || $ult_data->{TEMP} || $ult_data->{temperatura} 
+        || ($ult_data->{soap} && $ult_data->{soap}->{objective} && ($ult_data->{soap}->{objective}->{temp} || $ult_data->{soap}->{objective}->{TEMP})) 
+        || '--';
+
+    my $spo2_val = $ult_data->{spo2} || $ult_data->{SPO2} || $ult_data->{oximetria} || $ult_data->{saturacion} 
+        || ($ult_data->{soap} && $ult_data->{soap}->{objective} && ($ult_data->{soap}->{objective}->{spo2} || $ult_data->{soap}->{objective}->{SPO2})) 
+        || '--';
+
+    my $peso_raw = $ult_data->{peso} || $ult_data->{PESO} 
+        || ($ult_data->{soap} && $ult_data->{soap}->{objective} && ($ult_data->{soap}->{objective}->{peso} || $ult_data->{soap}->{objective}->{PESO})) 
+        || $d->{peso} || 0;
+
+    my $talla_raw = $ult_data->{talla} || $ult_data->{TALLA} || $ult_data->{estatura} 
+        || ($ult_data->{soap} && $ult_data->{soap}->{objective} && ($ult_data->{soap}->{objective}->{talla} || $ult_data->{soap}->{objective}->{TALLA})) 
+        || $d->{talla} || 0;
+
+    my $peso_val = parseFloatVal($peso_raw);
+    my $talla_val = parseFloatVal($talla_raw);
+    my $diag_activo = $ult_data->{diagnostico_principal} || $ult_data->{diagnostico} 
+        || ($ult_data->{soap} && $ult_data->{soap}->{assessment} && $ult_data->{soap}->{assessment}->{diagnostico_principal}) 
+        || 'Sin diagnóstico registrado';
+    my $cie10_activo = $ult_data->{clave_diagnostico_cie10} 
+        || ($ult_data->{soap} && $ult_data->{soap}->{assessment} && $ult_data->{soap}->{assessment}->{clave_diagnostico_cie10}) 
+        || '';
     
     # Cálculo de IMC y Clasificación Nutricional
     my $imc_val = '--';
@@ -282,6 +331,8 @@ HTML
 
         if(b && b.classList.contains('sub-link')){
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            const mainContent = document.querySelector('.sdm-main-content');
+            if (mainContent) mainContent.scrollTop = 0;
         }
     }
     
@@ -298,7 +349,12 @@ HTML
             }
         }
     }
-    document.addEventListener('DOMContentLoaded', checkHashTab);
+    document.addEventListener('DOMContentLoaded', function() {
+        window.scrollTo(0, 0);
+        const mainContent = document.querySelector('.sdm-main-content');
+        if (mainContent) mainContent.scrollTop = 0;
+        checkHashTab();
+    });
     window.addEventListener('hashchange', checkHashTab);
 </script>
 JS
@@ -320,11 +376,6 @@ JS
                             <span><i class="bi bi-gender-ambiguous me-1"></i>Sexo: $sexo</span>
                         </p>
                     </div>
-                </div>
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <a href="imprime_expediente_completo.pl?id=$d->{id_paciente}" target="_blank" class="btn btn-sm text-white fw-bold rounded-pill px-3 py-1 shadow-sm d-inline-flex align-items-center gap-1" style="background: #082050; border: 1px solid rgba(255,255,255,0.2);">
-                        <i class="bi bi-printer-fill text-white me-1"></i><span>Reporte</span>
-                    </a>
                 </div>
             </div>
         </header>
@@ -1530,7 +1581,97 @@ JS
 
         <!-- 2: DASHBOARD CLÍNICO (SUB-MÓDULO 1.4 REFACTORIZADO / RESUMEN) -->
         <section class="sdm-tab-sec" id="tab2">
-            <!-- NIVEL 1: ALERTAS CLÍNICAS & EVALUACIÓN IMC / NUTRICIONAL -->
+            <!-- NIVEL 1: SIGNOS VITALES DE ÚLTIMA CONSULTA (DIRECTO DEBAJO DEL HERO) -->
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h6 class="fw-black m-0 uppercase" style="color: var(--md-blue-deep); letter-spacing: 0.5px;"><i class="bi bi-activity me-1" style="color: var(--md-teal-clinical);"></i> Signos Vitales de &Uacute;ltima Consulta</h6>
+                <div>$badge_fecha_signos</div>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-heart-pulse text-danger me-1"></i> T.A.</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$ta_val</div>
+                        <span class="small text-muted">mmHg</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-activity text-primary me-1"></i> F.C.</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$fc_val</div>
+                        <span class="small text-muted">bpm</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-wind text-info me-1"></i> F.R.</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$fr_val</div>
+                        <span class="small text-muted">rpm</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-thermometer-half text-warning me-1"></i> Temp</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$temp_val</div>
+                        <span class="small text-muted">&deg;C</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-speedometer2 text-success me-1"></i> SpO2</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$spo2_val</div>
+                        <span class="small text-muted">%</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-droplet-fill text-danger me-1"></i> Sangre</span>
+                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$d->{tipo_sangre}</div>
+                        <span class="small text-muted">Grupo / Rh</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NIVEL 2: KPIS DE TRAZABILIDAD CLÍNICA & ADHERENCIA -->
+            <div class="row g-3 mb-4">
+                <!-- KPI: Consultas Atendidas -->
+                <div class="col-md-4">
+                    <div class="card-medentia-aura p-4 border-0 shadow-sm h-100" style="border-radius: 1.25rem; background: white;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="small fw-bold text-muted text-uppercase">Atenciones Cl&iacute;nicas</span>
+                            <div class="p-2 rounded-circle bg-primary-subtle text-primary"><i class="bi bi-journal-check fs-4"></i></div>
+                        </div>
+                        <div class="display-6 fw-black" style="color: var(--md-blue-deep);">$count_consultas</div>
+                        <p class="small text-muted fw-semibold mb-0 mt-1">Consultas m&eacute;dicas realizadas en expediente</p>
+                    </div>
+                </div>
+
+                <!-- KPI: Adherencia a Citas -->
+                <div class="col-md-4">
+                    <div class="card-medentia-aura p-4 border-0 shadow-sm h-100" style="border-radius: 1.25rem; background: white;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="small fw-bold text-muted text-uppercase">Adherencia a Citas</span>
+                            <div class="p-2 rounded-circle bg-success-subtle text-success"><i class="bi bi-calendar-check fs-4"></i></div>
+                        </div>
+                        <div class="display-6 fw-black text-success">${pct_asistencia}%</div>
+                        <p class="small text-muted fw-semibold mb-0 mt-1">$citas_atendidas atendidas de $count_c citas programadas</p>
+                    </div>
+                </div>
+
+                <!-- KPI: Ficha Social & Contacto -->
+                <div class="col-md-4">
+                    <div class="card-medentia-aura p-4 border-0 shadow-sm h-100" style="border-radius: 1.25rem; background: white;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="small fw-bold text-muted text-uppercase">Ficha Social y Contacto</span>
+                            <div class="p-2 rounded-circle bg-info-subtle text-info"><i class="bi bi-person-badge fs-4"></i></div>
+                        </div>
+                        <div class="small fw-bold mb-1" style="color: var(--md-blue-deep);">Ocupaci&oacute;n: <span class="fw-normal text-muted">$d->{ocupacion}</span></div>
+                        <div class="small fw-bold mb-1" style="color: var(--md-blue-deep);">Estado Civil: <span class="fw-normal text-muted">$d->{e_civil}</span></div>
+                        <div class="small fw-bold mb-0" style="color: var(--md-blue-deep);">Tel&eacute;fono: <span class="fw-normal text-muted">$d->{tel}</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NIVEL 3: ALERTAS CLÍNICAS & EVALUACIÓN IMC / NUTRICIONAL -->
             <div class="row g-3 mb-4">
                 <div class="col-lg-7">
                     <!-- Alertas Médicas & Alergias -->
@@ -1589,93 +1730,6 @@ JS
                                 <div class="progress-bar bg-info" role="progressbar" style="width: ${imc_perc}%; border-radius: 10px;"></div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- NIVEL 2: SIGNOS VITALES DE ÚLTIMA CONSULTA -->
-            <h6 class="fw-black mb-3 uppercase" style="color: var(--md-blue-deep); letter-spacing: 0.5px;"><i class="bi bi-activity me-1" style="color: var(--md-teal-clinical);"></i> Signos Vitales de &Uacute;ltima Consulta</h6>
-            <div class="row g-3 mb-4">
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-heart-pulse text-danger me-1"></i> T.A.</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$ta_val</div>
-                        <span class="small text-muted">mmHg</span>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-activity text-primary me-1"></i> F.C.</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$fc_val</div>
-                        <span class="small text-muted">bpm</span>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-wind text-info me-1"></i> F.R.</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$fr_val</div>
-                        <span class="small text-muted">rpm</span>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-thermometer-half text-warning me-1"></i> Temp</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$temp_val</div>
-                        <span class="small text-muted">&deg;C</span>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-speedometer2 text-success me-1"></i> SpO2</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$spo2_val</div>
-                        <span class="small text-muted">%</span>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-droplet-fill text-danger me-1"></i> Sangre</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$d->{tipo_sangre}</div>
-                        <span class="small text-muted">Grupo / Rh</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- NIVEL 3: KPIS DE TRAZABILIDAD CLÍNICA & ADHERENCIA -->
-            <div class="row g-3">
-                <!-- KPI: Consultas Atendidas -->
-                <div class="col-md-4">
-                    <div class="card-medentia-aura p-4 border-0 shadow-sm h-100" style="border-radius: 1.25rem; background: white;">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <span class="small fw-bold text-muted text-uppercase">Atenciones Cl&iacute;nicas</span>
-                            <div class="p-2 rounded-circle bg-primary-subtle text-primary"><i class="bi bi-journal-check fs-4"></i></div>
-                        </div>
-                        <div class="display-6 fw-black" style="color: var(--md-blue-deep);">$count_consultas</div>
-                        <p class="small text-muted fw-semibold mb-0 mt-1">Consultas m&eacute;dicas realizadas en expediente</p>
-                    </div>
-                </div>
-
-                <!-- KPI: Adherencia a Citas -->
-                <div class="col-md-4">
-                    <div class="card-medentia-aura p-4 border-0 shadow-sm h-100" style="border-radius: 1.25rem; background: white;">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <span class="small fw-bold text-muted text-uppercase">Adherencia a Citas</span>
-                            <div class="p-2 rounded-circle bg-success-subtle text-success"><i class="bi bi-calendar-check fs-4"></i></div>
-                        </div>
-                        <div class="display-6 fw-black text-success">${pct_asistencia}%</div>
-                        <p class="small text-muted fw-semibold mb-0 mt-1">$citas_atendidas atendidas de $count_c citas programadas</p>
-                    </div>
-                </div>
-
-                <!-- KPI: Ficha Social & Contacto -->
-                <div class="col-md-4">
-                    <div class="card-medentia-aura p-4 border-0 shadow-sm h-100" style="border-radius: 1.25rem; background: white;">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="small fw-bold text-muted text-uppercase">Ficha Social y Contacto</span>
-                            <div class="p-2 rounded-circle bg-info-subtle text-info"><i class="bi bi-person-badge fs-4"></i></div>
-                        </div>
-                        <div class="small fw-bold mb-1" style="color: var(--md-blue-deep);">Ocupaci&oacute;n: <span class="fw-normal text-muted">$d->{ocupacion}</span></div>
-                        <div class="small fw-bold mb-1" style="color: var(--md-blue-deep);">Estado Civil: <span class="fw-normal text-muted">$d->{e_civil}</span></div>
-                        <div class="small fw-bold mb-0" style="color: var(--md-blue-deep);">Tel&eacute;fono: <span class="fw-normal text-muted">$d->{tel}</span></div>
                     </div>
                 </div>
             </div>

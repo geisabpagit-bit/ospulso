@@ -231,4 +231,16 @@ graph LR
     2. En `utils/sub_sidebar.pl`, la visibilidad del menú del paciente ahora se activa tanto en `'expediente'` como cuando existe un `id_paciente` activo en `'consultas'`.
     3. Los elementos del menú operan de forma polimórfica: en `render_expediente_clinico.pl` conmutan pestañas al instante mediante `swTab('tabX', this)`, mientras que en `render_consultas_privado.pl` se renderizan como enlaces directos accesibles (`render_expediente_clinico.pl?id=$id_paciente#tabX`), permitiendo al médico consultar el Resumen, Ficha, Odontograma base, Rayos X, Finanzas o Historial sin perder su navegación ni truncar el menú.
 
+### 4.21 Unificación de Viewport, Erradicación de Doble Scroll y Priorización de Signos Vitales en Expediente
+- **Diagnóstico y Eliminación de la Capa de Doble Scroll Vertical**:
+  - **Origen del Conflicto**: La capa `.sdm-main-content` en `sub_sidebar.css` y `expediente_completo.css` forzaba `height: 100vh; overflow-y: auto;` dentro de un contenedor `<main>` y un elemento `<body>` que ya poseían su propio flujo de desplazamiento. Esta redundancia provocaba la aparición de dos barras de scroll simultáneas en el lateral derecho y bloqueaba el reseteo fluido con `window.scrollTo`.
+  - **Solución Arquitectónica**: En `css/expediente_completo.css`, se desacopló la altura fija forzando `.sdm-layout-wrapper` y `.sdm-main-content` a `overflow-y: visible !important; height: auto !important;`, unificando todo el desplazamiento vertical en un único scroll nativo y fluido del navegador.
+  - **Sidebar Flotante Sticky**: Para preservar la usabilidad del menú lateral del paciente sin depender del scroll interno duplicado, el contenedor `.diamond-sidebar` se fijó mediante `position: sticky; top: 85px; max-height: calc(100vh - 105px); align-self: flex-start;`, manteniéndose accesible permanentemente mientras se explora el expediente.
+- **Visibilidad Inmediata del Hero Azul y Supresión del Botón Reporte**:
+  - Al normalizar el scroll del layout y añadir el reseteo de posición (`window.scrollTo(0, 0)` y `.sdm-main-content.scrollTop = 0`) en `DOMContentLoaded` y `swTab()`, la sección azul del título (`#mainPatientHeader`) se muestra de forma inmediata al abrir el expediente sin requerir scroll manual descendente.
+  - Se eliminó el botón redundante *"Reporte"* de la cabecera corporativa del hero, concentrando dicha sección exclusivamente en los datos demográficos vitales del paciente (Nombre, CURP, Edad y Sexo).
+- **Poblamiento Fidedigno y Priorización de Signos Vitales y KPIs Debajo del Hero**:
+  - **Resolución Multi-Origen de Signos Vitales**: El backend inspecciona cronológicamente las consultas del paciente para ubicar la última toma real con datos válidos (`ta`, `fc`, `fr`, `temp`, `peso`, `talla`, `spo2`), con soporte transversal para llaves canónicas mayúsculas/minúsculas y la estructura SOAP (`soap.objective`), mostrando la insignia de auditoría con la fecha y hora de la última atención.
+  - **Reordenamiento Visual en Tab Resumen (`tab2`)**: Los Signos Vitales de Última Consulta se reubicaron en la parte superior (Nivel 1), inmediatamente debajo del Hero corporativo, seguidos por los KPIs de Trazabilidad y Adherencia (Nivel 2), y finalmente las Alertas Médicas y Evaluación Nutricional / IMC (Nivel 3).
+
 

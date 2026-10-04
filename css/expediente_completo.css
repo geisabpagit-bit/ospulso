@@ -21,15 +21,49 @@ body {
 }
 
 /* =========================================================================
-   DIAMOND SIDEBAR LAYOUT (Ultra-Premium v4.0.0)
+   DIAMOND SIDEBAR LAYOUT (Ultra-Premium v4.0.0 - Scroll Unificado)
    ========================================================================= */
 
-/* Layout Wrapper */
+/* Layout Wrapper & Main Content: Elimina el doble scroll vertical interno */
 .sdm-layout-wrapper {
     display: flex;
-    min-height: 100vh;
+    min-height: calc(100vh - 85px);
     background-color: #f1f5f9;
-    overflow: hidden;
+    overflow: visible !important;
+}
+
+.sdm-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: auto !important;
+    min-height: calc(100vh - 85px);
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+    background: transparent;
+}
+
+.sdm-content {
+    padding: 0.5rem 1rem 3rem 1rem !important;
+}
+
+/* Sidebar Flotante Adherido al Viewport */
+.diamond-sidebar {
+    position: sticky !important;
+    top: 85px !important;
+    max-height: calc(100vh - 105px) !important;
+    align-self: flex-start;
+}
+
+/* Normalización de contenedor principal */
+main.container-fluid {
+    padding-top: 0 !important;
+}
+
+#mainPatientHeader {
+    margin-top: 0.25rem !important;
+    scroll-margin-top: 90px;
 }
 
 
