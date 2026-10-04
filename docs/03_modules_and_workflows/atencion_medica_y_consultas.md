@@ -183,3 +183,17 @@ graph LR
   - El botón "Recibo" del historial de consultas envía el folio real del recibo (`id_consulta=<folio>&folio=<folio>`) canalizando a `api/imprimir_recibo_caja_consultorio.pl` para tenants de consultorio individual/compartido.
   - Como capa de resiliencia, `api/imprimir_recibo_caja_consultorio.pl` inspecciona `consultas_clinicas.dat` si recibe identificadores tipo `CONS-...` para correlacionar la cita y recibo, y en caso de consultas sin registro flat-file de recibo, reconstruye la vista en memoria desde el `payload_json` de la consulta.
 
+### 4.17 Normalización de Identidad Médica en Citas e Historial Clínico (`views/render_expediente_clinico.pl`)
+- **Resolución Canónica del Nombre del Profesional**:
+  - En el Tab 0 (*Historial Cronológico / Récord de Citas*) y Tab 10 (*Hub de Consultas / Citas Pendientes e Histórico*), las tarjetas de citas desplegaban el identificador crudo numérico (`$c->{id_medico}`, ej. `658290667`) en lugar del nombre legible del médico.
+  - Se refactorizó la visualización inyectando la resolución unificada mediante `obtener_nombre_medico($id)`.
+- **Estrategia de Búsqueda Multicapa y Fallbacks**:
+  1. **Caché en Memoria**: Evita relecturas redundantes de disco por cada tarjeta de la línea de tiempo.
+  2. **Detección de Texto Directo**: Si el parámetro recibido ya es un nombre completo, se sanea y devuelve directamente.
+  3. **Sesión Activa**: Si el identificador coincide con `id_medico` o `uid` de la sesión del facultativo autenticado, se asocia de forma inmediata a su nombre de usuario.
+  4. **Tabla Maestra `dat/usuarios.dat`**: Búsqueda por ID directo (`190726041`), código formateado (`DOC-001`) o alias de usuario.
+  5. **Catálogos Médicos CLUE**: Inspección en subdirectorios `dat/catalogos_CLUE/*/medicos_*.dat` para instituciones o clínicas con plantilla médica externa.
+  6. **Blindaje Anti-ID Crudo**: Si un registro numérico no posee coincidencia en catálogos, el sistema previene la exposición de números opacos al paciente mostrando `'Médico Tratante'`.
+- **Sanitización Estricta "Solo el Nombre" (`limpiar_titulo_medico`)**:
+  - Se eliminan prefijos y títulos redundantes (`Dr(a).`, `Dr.`, `Dra.`, `Doctor(a)`, `Lic.`, `Mtro.`, `MEDICO`) dado que la interfaz gráfica ya antepone la etiqueta `Médico:`. La vista renderiza limpiamente el nombre de pila y apellidos (ej. `Médico: Mario Gonzalez` o `Médico: Pamela Villegas`).
+

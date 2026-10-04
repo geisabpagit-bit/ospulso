@@ -1179,6 +1179,7 @@ HTML
                 $btn_tomar_cita = qq{<a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="btn btn-sm btn-medentia px-3 fw-bold ms-2 rounded-pill">Iniciar <i class="bi bi-play-fill ms-1" style="color: var(--md-cyan-ia);"></i></a>};
             }
         }
+        my $medico_nombre_cita = obtener_nombre_medico($c->{id_medico});
         print <<HTML;
                 <div class="timeline-item">
                     <div class="timeline-dot" style="border-color: $status_color"></div>
@@ -1195,7 +1196,7 @@ HTML
                         </div>
                         <div class="d-flex align-items-center gap-2 mt-3 pt-3 border-top">
                             <i class="bi bi-person-circle text-muted"></i>
-                            <span class="small fw-bold text-muted">M&eacute;dico: $c->{id_medico}</span>
+                            <span class="small fw-bold text-muted">M&eacute;dico: $medico_nombre_cita</span>
                             <div class="ms-auto">
                                 $btn_tomar_cita
                             </div>
@@ -1230,13 +1231,14 @@ HTML
             my $badge_color = $is_en_consulta ? 'info' : ($c->{estado} =~ /Confirmada/i) ? 'success' : ($c->{estado} =~ /No Asistió|No Asistio/i) ? 'warning' : 'primary';
             my $btn_label = $is_en_consulta ? "Continuar con la consulta" : "Iniciar";
             my $btn_class = $is_en_consulta ? "btn btn-info text-white btn-sm d-flex align-items-center px-4 rounded-pill shadow-sm fw-bold" : "btn btn-medentia btn-sm d-flex align-items-center px-4 rounded-pill fw-bold";
+            my $medico_nombre_pend = obtener_nombre_medico($c->{id_medico});
             print <<HTML;
                 <div class="col-lg-6">
                     <div class="card-medentia-aura p-4 d-flex justify-content-between align-items-center" style="border-left: 5px solid var(--bs-$badge_color) !important;">
                         <div>
                             <span class="badge bg-${badge_color} text-white mb-2">$c->{estado} - $c->{fecha} $c->{hora}</span>
                             <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);">$c->{motivo}</h5>
-                            <p class="small text-muted m-0">M&eacute;dico: $c->{id_medico}</p>
+                            <p class="small text-muted m-0">M&eacute;dico: $medico_nombre_pend</p>
                         </div>
                         <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="$btn_class">
                             $btn_label <i class="bi bi-arrow-right-short ms-1"></i>
@@ -2893,5 +2895,111 @@ sub cargar_historial_correos {
     }
     close $fh; return @h;
 }
-sub obtener_nombre_medico { my ($id) = @_; return 'Dr(a). Desconocido' unless $id; my $path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat'); my $res = leer_tabla($path, '!'); foreach my $row (@$res) { if ($row->[0] eq $id || "DOC-" . sprintf("%03d", $row->[0]) eq $id || $row->[0] eq $id) { return "Dr(a). " . $row->[1]; } } return $id; }
+my %cache_nombres_medicos;
+
+sub limpiar_titulo_medico {
+    my ($nombre) = @_;
+    return '' unless defined $nombre;
+    $nombre =~ s/^\s*(?:Dr\(a\)\.?|Dra?\.?|Doctor(?:a)?|Lic\.?|Licenciado(?:a)?|Mtro\.?|Mtra\.?|Ing\.?|MEDICO\.?)\s+//i;
+    $nombre =~ s/\s+/ /g;
+    $nombre =~ s/^\s+|\s+$//g;
+    return $nombre;
+}
+
+sub obtener_nombre_medico {
+    my ($id) = @_;
+    $id = '' unless defined $id;
+    $id =~ s/^\s+|\s+$//g;
+
+    return 'Médico Tratante' if ($id eq '' || $id eq 'N/A' || $id eq '0');
+
+    # Si ya se encuentra en caché, devolver inmediatamente
+    return $cache_nombres_medicos{$id} if exists $cache_nombres_medicos{$id};
+
+    # Si el valor ya contiene letras y no es un ID numérico ni un código DOC-xxx
+    if ($id !~ /^\d+$/ && $id !~ /^DOC-\d+$/i && $id =~ /[a-zA-ZáéíóúÁÉÍÓÚñÑ]{3,}/) {
+        my $limpio = limpiar_titulo_medico($id);
+        $cache_nombres_medicos{$id} = $limpio;
+        return $limpio;
+    }
+
+    # 1. Comparar con la sesión activa si coincide el id_medico o uid
+    if (defined $session_data && ref($session_data) eq 'HASH' && $session_data->{usuario}) {
+        if (($session_data->{id_medico} && $session_data->{id_medico} eq $id) ||
+            ($session_data->{uid} && $session_data->{uid} eq $id)) {
+            my $nom_ses = limpiar_titulo_medico($session_data->{usuario});
+            $cache_nombres_medicos{$id} = $nom_ses;
+            return $nom_ses;
+        }
+    }
+
+    # 2. Buscar en dat/usuarios.dat
+    my $usr_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+    if (-e $usr_path) {
+        my $res = leer_tabla($usr_path, '!');
+        if ($res && ref($res) eq 'ARRAY') {
+            foreach my $row (@$res) {
+                my $uid = $row->[0] // '';
+                $uid =~ s/^\s+|\s+$//g;
+                my $doc_formatted = "DOC-" . sprintf("%03d", ($uid =~ /^\d+$/ ? $uid : 0));
+                my $doc_direct    = "DOC-" . $uid;
+                if ($uid eq $id || $doc_formatted eq $id || $doc_direct eq $id) {
+                    my $nom = limpiar_titulo_medico($row->[1]);
+                    if ($nom ne '') {
+                        $cache_nombres_medicos{$id} = $nom;
+                        return $nom;
+                    }
+                }
+            }
+        }
+    }
+
+    # 3. Buscar en catálogos CLUE o medicos_*.dat
+    my $clues_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat', 'catalogos_CLUE');
+    if (-d $clues_dir && opendir(my $dh, $clues_dir)) {
+        my @subdirs = readdir($dh);
+        closedir($dh);
+        foreach my $sd (@subdirs) {
+            next if $sd =~ /^\./;
+            my $med_clue_file = File::Spec->catfile($clues_dir, $sd, "medicos_$sd.dat");
+            if (-e $med_clue_file && open(my $fh, "<:encoding(UTF-8)", $med_clue_file)) {
+                <$fh>; # cabecera
+                while (my $line = <$fh>) {
+                    chomp $line;
+                    my @parts = split /\|/, $line;
+                    my $mid = $parts[0] // '';
+                    $mid =~ s/^\s+|\s+$//g;
+                    if ($mid eq $id) {
+                        close $fh;
+                        my $nom = limpiar_titulo_medico($parts[2] // '');
+                        if ($nom ne '') {
+                            $cache_nombres_medicos{$id} = $nom;
+                            return $nom;
+                        }
+                    }
+                }
+                close $fh;
+            }
+        }
+    }
+
+    # 4. Fallback a sesión activa si el usuario logueado es médico
+    if (defined $session_data && ref($session_data) eq 'HASH' && $session_data->{role} && $session_data->{role} =~ /Medico/i && $session_data->{usuario}) {
+        my $nom_ses = limpiar_titulo_medico($session_data->{usuario});
+        $cache_nombres_medicos{$id} = $nom_ses;
+        return $nom_ses;
+    }
+
+    # 5. Si es solo número que no se pudo resolver, nunca exponer el ID crudo
+    if ($id =~ /^\d+$/) {
+        my $fallback = 'Médico Tratante';
+        $cache_nombres_medicos{$id} = $fallback;
+        return $fallback;
+    }
+
+    my $final = limpiar_titulo_medico($id);
+    $cache_nombres_medicos{$id} = $final;
+    return $final;
+}
 1;
+
