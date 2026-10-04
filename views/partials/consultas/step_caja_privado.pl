@@ -986,6 +986,9 @@ sub render_step_caja_privado {
             // Supuesto A: Si es prepago en recepción y sin items adicionales, continuar directo al cierre
             if (tienePrePagoRecepcion && (!carritoConsulta || carritoConsulta.length === 0)) {
                 WizardController.nextStep();
+                if (typeof verificarYProcederReciboPrevio === 'function') {
+                    verificarYProcederReciboPrevio();
+                }
                 return;
             }
             
@@ -1034,6 +1037,9 @@ sub render_step_caja_privado {
             }
             
             WizardController.nextStep();
+            if (typeof verificarYProcederReciboPrevio === 'function') {
+                verificarYProcederReciboPrevio();
+            }
         }
         </script>
     };

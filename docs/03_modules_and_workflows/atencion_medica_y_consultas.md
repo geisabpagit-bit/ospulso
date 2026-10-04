@@ -138,5 +138,26 @@ graph LR
   - **Pipeline Completo del Wizard SOAP**: Desglose secuencial de los campos de referencia: (1) Anamnesis y Motivo de Consulta con escala visual de dolor, (2) Exploración Física con cuadrícula de Signos Vitales (T.A., F.C., F.R., Temp, SpO2, IMC y estado nutricional), (3) Diagnóstico CIE-10 codificado, Severidad, Pronóstico y Plan Terapéutico, (4) Prescripción Farmacológica estructurada en tabla (Fármaco, Presentación, Dosis, Frecuencia, Duración, Vía e Indicaciones), y (5) Bloque de Conformidad y Firmas Digitales con leyenda legal de validez NOM-004-SSA3-2012.
   - **Reglas Anti-Corte de Página**: Implementación de `page-break-inside: avoid; break-inside: avoid;` en cuadrículas de signos vitales, tablas farmacológicas y bloques de firmas, evitando fracturas visuales entre páginas en cualquier navegador o motor PDF.
 
+### 4.14 Arquitectura de Emisión y Previsualización de Recibos según Tipo de Organización (Consultorio Individual vs Clínica Institucional)
+- **Influencia Determinante del Tipo de Organización**:
+  - El sistema segrega la experiencia de cobranza médica dependiendo del modelo operativo de la entidad (`Consultorio Individual`, `Consultorio Compartido`, `Clínica` u `Hospital`), determinado a partir de `dat/negocios_config.dat` (`TIPO_ORGANIZACION`), o por heurística en `dat/negocios.dat` ante ausencia de código `CLUES` institucional o presencia de nomenclatura de consultorio particular.
+- **Transición Automática con Recibo Previo Ad-Hoc en Step 6 → Step 7**:
+  - Al validar el pago y dar clic en **"Continuar a Cierre"** en `views/partials/consultas/step_caja_privado.pl`, el sistema ejecuta `verificarYProcederReciboPrevio()`.
+  - Si la organización es de tipo consultorio, se despliega automáticamente la ventana de **Recibo Previo** (Borrador), permitiendo al médico revisar los importes, cargos, abonos y conceptos antes de estampar la firma clínica definitiva. En Step 7 (`views/partials/consultas/step_cierre_privado.pl`), el botón manual *"Ver recibo previo"* permanece disponible para revisiones subsecuentes.
+- **Diseño Ad-Hoc del Recibo Previo (`verReciboPrevio()`)**:
+  - Replica pixel-perfect la estructura, tipografías (`Outfit`, `Plus Jakarta Sans`) y dimensiones compactas (440px) de `api/imprimir_recibo_caja_consultorio.pl`:
+    1. Membrete local con nombre comercial, domicilio completo, RFC y teléfono.
+    2. Identidad del médico tratante con su Especialidad y Cédula Profesional formal.
+    3. Badge de borrador con folio previo generado (`#PREV-...`).
+    4. Metadatos de la consulta: fecha, hora, nombre del paciente, CURP y método de pago.
+    5. Tabla de conceptos cobrados y servicios registrados en caja o derivados de cotizaciones.
+    6. Desglose financiero: total cargos, importe a cobrar/abonado y saldo pendiente.
+    7. Recuadro para firma de conformidad del paciente y aviso legal interno.
+- **Enrutamiento Inteligente del Recibo Final (`finalizarConsulta()`)**:
+  - `api/cerrar_consulta_privado.pl` registra canónicamente las **17 columnas** completas en `dat/folios_recibos_privados.dat` (incluyendo `CONCEPTO`, `ITEMS_JSON`, `ESTATUS = Cobrado` e `ID_MEDICO`).
+  - El backend resuelve el script adecuado y responde con `{ es_consultorio: 1, recibo_script: 'imprimir_recibo_caja_consultorio.pl' }`.
+  - En el frontend, `finalizarConsulta()` discrimina el tipo de organización y abre de forma directa `api/imprimir_recibo_caja_consultorio.pl` en lugar de la plantilla institucional `api/imprimir_recibo_caja.pl`.
+
+
 
 

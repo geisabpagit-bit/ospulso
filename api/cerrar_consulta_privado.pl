@@ -244,6 +244,71 @@ my $id_tratamiento_param = $q->param('id_tratamiento') || '';
 my $caja_items_json = $q->param('caja_items_json') || '[]';
 my $caja_monto_abono = $q->param('caja_monto_abono') // 0;
 
+my $id_neg = (defined $session_data->{id_empresa} && $session_data->{id_empresa} ne '') ? $session_data->{id_empresa} : '0';
+my $id_suc = (defined $session_data->{id_sucursal} && $session_data->{id_sucursal} ne '') ? $session_data->{id_sucursal} : '0';
+
+if (($id_neg eq '0' || $id_neg eq 'ORG-000') && defined $session_data->{usuario} && $session_data->{usuario} ne '') {
+    my $usr_f = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+    if (-e $usr_f && open my $fhu, '<:encoding(UTF-8)', $usr_f) {
+        my $hdr = <$fhu>;
+        while (my $l = <$fhu>) {
+            chomp $l;
+            my @f = split /!/, $l, -1;
+            if ($f[0] eq $id_medico || (lc($f[2] // '') eq lc($session_data->{usuario}))) {
+                my $raw_neg = $f[6] // '';
+                my ($neg_id, $suc_id) = split /:/, $raw_neg;
+                $id_neg = $neg_id if defined $neg_id && $neg_id ne '';
+                $id_suc = $suc_id if defined $suc_id && $suc_id ne '';
+                last;
+            }
+        }
+        close $fhu;
+    }
+}
+$id_neg ||= '0';
+$id_suc ||= '0';
+
+my $tipo_organizacion = 'Clínica';
+my $archivo_config = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+if (-e $archivo_config && open my $fh_cfg, '<:encoding(UTF-8)', $archivo_config) {
+    while (my $line = <$fh_cfg>) {
+        $line =~ s/\R//g;
+        next if $line =~ /^#|^\s*$/;
+        my @f = split(/\|/, $line);
+        if ($f[0] eq $id_neg && $f[1] eq 'TIPO_ORGANIZACION') {
+            $tipo_organizacion = $f[2] // 'Clínica';
+            last;
+        }
+    }
+    close $fh_cfg;
+}
+
+my $org_clues = '';
+my $org_nombre = '';
+my $neg_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+if (-e $neg_file && open my $fhn, '<:encoding(UTF-8)', $neg_file) {
+    my $hdr = <$fhn>;
+    while (my $ln = <$fhn>) {
+        chomp $ln;
+        next if $ln =~ /^\s*$/;
+        my @nr = split(/\|/, $ln, -1);
+        if ($nr[0] eq $id_neg || ($id_neg eq '0' && $nr[0] eq '0')) {
+            $org_nombre = $nr[1] // '';
+            $org_clues  = $nr[18] // '';
+            last;
+        }
+    }
+    close $fhn;
+}
+
+if ($tipo_organizacion eq 'Clínica') {
+    if (!$org_clues || $org_clues eq '0' || $org_nombre =~ /consultorio/i) {
+        $tipo_organizacion = 'Consultorio Individual';
+    }
+}
+
+my $es_consultorio = ($tipo_organizacion =~ /Consultorio/i) ? 1 : 0;
+
 my $caja_items = [];
 eval {
     $caja_items = decode_json(encode_utf8($caja_items_json)) if $caja_items_json;
@@ -439,9 +504,6 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
     
     # E. GENERAR RECIBO DE CAJA (FOLIOS CONSECUTIVOS POR SUCURSAL)
     if ($tiene_cargos_directos || $caja_monto_abono > 0) {
-        my $id_neg = $session_data->{id_empresa} || 'ORG-000';
-        my $id_suc = $session_data->{id_sucursal} || 'SUC-000';
-        
         my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_neg);
         my $next_folio = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, 0, $id_neg, $id_suc);
         my $folio_str = $next_folio;
@@ -451,13 +513,62 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         my $recibos_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
         unless (-e $recibos_file) {
             open my $fh_r, '>:encoding(UTF-8)', $recibos_file;
-            print $fh_r "ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR\n";
+            print $fh_r "ID_RECIBO|FOLIO|ID_NEGOCIO|ID_SUCURSAL|ID_CONSULTA|ID_PACIENTE|FECHA|HORA|TOTAL_CARGOS|TOTAL_ABONOS|METODO_PAGO|ELABORADO_POR|CONCEPTO|ITEMS_JSON|ESTATUS|ID_MEDICO|MOTIVO\n";
             close $fh_r;
         }
         
+        # Preparar ítems estructurados para el recibo (ad-hoc para impresión)
+        my @items_recibo;
+        if (ref($caja_items) eq 'ARRAY' && @$caja_items) {
+            foreach my $it (@$caja_items) {
+                my $nom = $it->{nombre} || $it->{concepto} || 'Consulta y Servicios Médicos';
+                my $cant = $it->{cantidad} || 1;
+                my $pu = $it->{precio} || 0;
+                my $sub = ($pu * $cant);
+                push @items_recibo, {
+                    concepto => $nom,
+                    cantidad => int($cant),
+                    precio   => sprintf('%.2f', $pu) + 0,
+                    subtotal => sprintf('%.2f', $sub) + 0
+                };
+            }
+        }
+        if (!@items_recibo && $id_cotizacion) {
+            my $items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones_items.dat');
+            if (-e $items_file && open my $fh_ci, '<:encoding(UTF-8)', $items_file) {
+                my $hdr = <$fh_ci>;
+                while (my $l = <$fh_ci>) {
+                    chomp $l;
+                    my @c = split /\|/, $l, -1;
+                    if ($c[0] eq $id_cotizacion) {
+                        push @items_recibo, {
+                            concepto => $c[1] || 'Servicio Médico',
+                            cantidad => int($c[2] || 1),
+                            precio   => sprintf('%.2f', $c[3] || 0) + 0,
+                            subtotal => sprintf('%.2f', $c[4] || 0) + 0
+                        };
+                    }
+                }
+                close $fh_ci;
+            }
+        }
+        if (!@items_recibo) {
+            my $monto_c = $total_cargos_directos > 0 ? $total_cargos_directos : ($caja_monto_abono > 0 ? $caja_monto_abono : 500);
+            push @items_recibo, {
+                concepto => 'Consulta Médica General',
+                cantidad => 1,
+                precio   => sprintf('%.2f', $monto_c) + 0,
+                subtotal => sprintf('%.2f', $monto_c) + 0
+            };
+        }
+        
+        my $items_json_str = encode_json(\@items_recibo);
+        my $concepto_recibo = @items_recibo ? $items_recibo[0]->{concepto} : 'Consulta Médica';
+        
         my $linea_recibo = join('|',
             $id_recibo, $folio_str, $id_neg, $id_suc, $id_consulta, $id_paciente, $hoy_fecha, $hoy_hora,
-            $total_cargos_directos, $caja_monto_abono, $caja_metodo_pago, $elaborado_por
+            $total_cargos_directos, $caja_monto_abono, $caja_metodo_pago, $elaborado_por,
+            $concepto_recibo, $items_json_str, 'Cobrado', $id_medico, ''
         );
         utils::db_manager::guardar_registro($recibos_file, $linea_recibo);
     }
@@ -555,9 +666,11 @@ if (-e $draft_file) {
 }
 
 print encode_json({
-    ok          => JSON::true,
-    msg         => 'Consulta y transacciones de caja guardadas correctamente.',
-    id_consulta => $id_consulta,
-    id_paciente => $id_paciente
+    ok             => JSON::true,
+    msg            => 'Consulta y transacciones de caja guardadas correctamente.',
+    id_consulta    => $id_consulta,
+    id_paciente    => $id_paciente,
+    es_consultorio => $es_consultorio,
+    recibo_script  => ($es_consultorio ? 'imprimir_recibo_caja_consultorio.pl' : 'imprimir_recibo_caja.pl')
 });
 exit;

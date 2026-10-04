@@ -49,12 +49,16 @@ Todo recibo incluye una barra superior de acciones visible únicamente en pantal
 - **Identidad Médica Profesional**: Membrete extraído de `negocios.dat` (nombre de consultorio, dirección, teléfono) y datos del médico titular (`usuarios.dat` y `especialidades.dat`: Nombre, Cédula Profesional y Especialidad).
 - **Aislamiento de Folios**: El correlativo es calculado exclusivamente dentro de la serie del negocio correspondiente en `catalogo_org_utils::obtener_siguiente_folio_blindado`.
 
-### 3.4 Enrutador Polimórfico de Visualización e Impresión (`api/ver_recibo.pl`)
-- **Punto Único de Entrada**: Permite invocar la visualización de un recibo mediante parámetros homogéneos (`tipo=privados|publicos&id_os=FOLIO`).
+### 3.4 Enrutador Polimórfico de Visualización e Impresión (`api/ver_recibo.pl` y Wizard de Consultas)
+- **Punto Único de Entrada en Módulo Financiero**: Permite invocar la visualización de un recibo mediante parámetros homogéneos (`tipo=privados|publicos&id_os=FOLIO`).
 - **Bifurcación Transparente**:
-  - Si el recibo es privado y la organización del tenant es `Consultorio Individual` o `Consultorio Compartido` (sin CLUES institucional configurado), redirige internamente a `api/imprimir_recibo_caja_consultorio.pl`.
-  - Si el tenant posee `CLUES` institucional o estructura hospitalaria/clínica, redirige a `api/imprimir_recibo_caja.pl`.
+  - Si el recibo es privado y la organización del tenant es `Consultorio Individual` o `Consultorio Compartido` (sin CLUES institucional configurado), canaliza internamente a `api/imprimir_recibo_caja_consultorio.pl`.
+  - Si el tenant posee `CLUES` institucional o estructura hospitalaria/clínica, canaliza a `api/imprimir_recibo_caja.pl`.
   - Para recibos públicos o de convenio, canaliza siempre a `api/imprimir_recibo_publico.pl`.
+- **Integración con Wizard de Consulta Privada (`views/render_consultas_privado.pl` y `api/cerrar_consulta_privado.pl`)**:
+  - Al avanzar de **Step 6 (Caja)** a **Step 7 (Cierre)**, se evalúa el tipo de organización (`Consultorio Individual` o consultorio privado sin CLUES). Si aplica, se dispara reactivamente la función `verificarYProcederReciboPrevio()`, abriendo un modal ad-hoc de recibo previo con formato ticket compacto (440px), membrete comercial, Cédula Profesional del médico tratante y desglose de cargos/abonos.
+  - Al ejecutar `finalizarConsulta()` en el Step 7, el backend (`api/cerrar_consulta_privado.pl`) persiste el recibo con sus **17 columnas canónicas** en `dat/folios_recibos_privados.dat` e indica `recibo_script = "imprimir_recibo_caja_consultorio.pl"`. El frontend abre directamente esta URL en lugar del formato institucional estándar.
+
 
 ---
 

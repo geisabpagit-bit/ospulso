@@ -85,12 +85,14 @@ my $id_subespe_medico    = '0';
 my $espe_nombre_medico   = 'Medicina General';
 my $subespe_nombre_medico = 'General / Ninguna';
 
+my $med_nombre = $session_data->{nombre} || $usuario || 'Médico Tratante';
 my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $regs_usr = leer_tabla($usr_file, '!');
 if ($regs_usr) {
     foreach my $r (@$regs_usr) {
         if ($r->[0] eq $id_medico || (defined($usuario) && $usuario ne '' && lc($r->[2] // '') eq lc($usuario))) {
             $id_medico         = $r->[0]; # Asegurar ID canónico del usuario/médico
+            $med_nombre        = $r->[1] if $r->[1];
             $id_espe_medico    = $r->[7] // '0';
             $id_subespe_medico = $r->[8] // '0';
             $paciente->{cedula_medico} = $r->[9] // '';
@@ -130,6 +132,85 @@ $paciente->{id_espe_medico}        = $id_espe_medico;
 $paciente->{id_subespe_medico}     = $id_subespe_medico;
 $paciente->{espe_nombre_medico}    = $espe_nombre_medico;
 $paciente->{subespe_nombre_medico} = $subespe_nombre_medico;
+
+# Cargar Organización y Tipo de Organización (Consultorio Individual / Compartido / Clínica)
+my $id_negocio = $session_data->{id_empresa} // $session_data->{ID_negocio} // '';
+if (!$id_negocio && defined $usuario && $usuario ne '') {
+    my $usr_f = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+    if (-e $usr_f && open my $fhu, '<:encoding(UTF-8)', $usr_f) {
+        my $hdr = <$fhu>;
+        while (my $l = <$fhu>) {
+            chomp $l;
+            my @f = split /!/, $l, -1;
+            if ($f[0] eq $id_medico || (lc($f[2] // '') eq lc($usuario))) {
+                my $raw_neg = $f[6] // '';
+                my ($neg_id) = split /:/, $raw_neg;
+                $id_negocio = $neg_id if defined $neg_id && $neg_id ne '';
+                last;
+            }
+        }
+        close $fhu;
+    }
+}
+$id_negocio ||= '0';
+
+my $tipo_organizacion = 'Clínica';
+my $archivo_config = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+if (-e $archivo_config && open my $fh_cfg, '<:encoding(UTF-8)', $archivo_config) {
+    while (my $line = <$fh_cfg>) {
+        $line =~ s/\R//g;
+        next if $line =~ /^#|^\s*$/;
+        my @f = split(/\|/, $line);
+        if ($f[0] eq $id_negocio && $f[1] eq 'TIPO_ORGANIZACION') {
+            $tipo_organizacion = $f[2] // 'Clínica';
+            last;
+        }
+    }
+    close $fh_cfg;
+}
+
+my $org_nombre    = 'Consultorio Médico';
+my $org_domicilio = '';
+my $org_telefono  = '';
+my $org_rfc       = '';
+my $org_clues     = '';
+my $org_logo      = '';
+
+my $neg_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+if (-e $neg_file && open my $fhn, '<:encoding(UTF-8)', $neg_file) {
+    my $hdr = <$fhn>;
+    while (my $ln = <$fhn>) {
+        chomp $ln;
+        next if $ln =~ /^\s*$/;
+        my @nr = split(/\|/, $ln, -1);
+        if ($nr[0] eq $id_negocio || ($id_negocio eq '0' && $nr[0] eq '0')) {
+            $org_nombre    = $nr[1] || 'Consultorio Médico';
+            my $calle      = $nr[6] // '';
+            my $colonia    = $nr[17] // '';
+            my $muni       = $nr[16] // '';
+            my $ent        = $nr[15] // '';
+            my $cp         = $nr[14] // '';
+            my @partes     = grep { $_ ne '' } ($calle, $colonia, $muni, $ent, ($cp ? "C.P. $cp" : ''));
+            $org_domicilio = join(', ', @partes);
+            $org_telefono  = $nr[7] // '';
+            $org_logo      = $nr[9] // '';
+            $org_rfc       = $nr[10] // '';
+            $org_clues     = $nr[18] // '';
+            last;
+        }
+    }
+    close $fhn;
+}
+
+# Heurística canónica: si no tiene CLUE institucional o el nombre indica consultorio:
+if ($tipo_organizacion eq 'Clínica') {
+    if (!$org_clues || $org_clues eq '0' || $org_nombre =~ /consultorio/i) {
+        $tipo_organizacion = 'Consultorio Individual';
+    }
+}
+
+my $es_consultorio_ind = ($tipo_organizacion eq 'Consultorio Individual') ? 1 : 0;
+my $es_consultorio     = ($tipo_organizacion =~ /Consultorio/i) ? 1 : 0;
 
 # 1. Bloqueo de Seguridad: Verificar si el médico ya tiene una consulta activa en curso
 my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
@@ -369,7 +450,7 @@ if (-e $draft_file && $id_cita) {
 }
 
 # Cargar Médicos y Sucursales para el modal de citas
-my $id_negocio = $session_data->{id_empresa} || '';
+$id_negocio = $session_data->{id_empresa} || $id_negocio || '';
 my $id_sucursal = $session_data->{id_sucursal} || '';
 my $id_negocio_activo = ($id_sucursal && $id_sucursal ne '0') ? $id_sucursal : $id_negocio;
 
@@ -641,7 +722,18 @@ print <<HTML;
     data-id-cita="$id_cita" 
     data-id-medico="$id_medico" 
     data-pac-nombre="$paciente->{nombre}" 
-    data-med-nombre="$usuario" 
+    data-pac-curp="$paciente->{curp}" 
+    data-med-nombre="$med_nombre" 
+    data-med-cedula="$paciente->{cedula_medico}" 
+    data-med-espe="$paciente->{espe_nombre_medico}" 
+    data-org-nombre="$org_nombre" 
+    data-org-domicilio="$org_domicilio" 
+    data-org-telefono="$org_telefono" 
+    data-org-rfc="$org_rfc" 
+    data-org-logo="$org_logo" 
+    data-tipo-organizacion="$tipo_organizacion" 
+    data-es-consultorio="$es_consultorio" 
+    data-es-consultorio-ind="$es_consultorio_ind" 
     data-hoy-fecha="$hoy_fecha" 
     data-hoy-hora="$hoy_hora" 
     style="display:none;"></div>
@@ -769,9 +861,16 @@ async function finalizarConsulta() {
                 const configEl = document.getElementById('js-config');
                 const idPaciente = configEl ? configEl.getAttribute('data-id-paciente') : '';
                 
-                // Abrir Recibo de Caja si existe la ruta (id_consulta)
+                // Determinar dinámicamente si es Consultorio o Clínica institucional
+                const isConsultorio = (json.es_consultorio !== undefined)
+                    ? (json.es_consultorio == 1 || json.es_consultorio === true)
+                    : (configEl && (configEl.getAttribute('data-es-consultorio') === '1' || (configEl.getAttribute('data-tipo-organizacion') || '').includes('Consultorio')));
+                
+                const scriptRecibo = json.recibo_script || (isConsultorio ? 'imprimir_recibo_caja_consultorio.pl' : 'imprimir_recibo_caja.pl');
+                
+                // Abrir Recibo de Caja según el tipo de organización
                 if (json.id_consulta) {
-                    window.open('../api/imprimir_recibo_caja.pl?id_consulta=' + encodeURIComponent(json.id_consulta), '_blank');
+                    window.open('../api/' + scriptRecibo + '?id_consulta=' + encodeURIComponent(json.id_consulta), '_blank');
                 }
                 window.location.href = 'render_expediente_clinico.pl?id=' + idPaciente;
             });
@@ -780,6 +879,20 @@ async function finalizarConsulta() {
         }
     } catch(e) {
         Swal.fire('Error', 'Fallo de conexion.', 'error');
+    }
+}
+
+function verificarYProcederReciboPrevio() {
+    const configEl = document.getElementById('js-config');
+    if (!configEl) return;
+    const tipoOrg = configEl.getAttribute('data-tipo-organizacion') || '';
+    const esConsultorio = configEl.getAttribute('data-es-consultorio') === '1' || tipoOrg.includes('Consultorio');
+    
+    // Si la organización es un consultorio individual (o consultorio), proceder automáticamente con el recibo previo adhoc
+    if (esConsultorio && typeof verReciboPrevio === 'function') {
+        setTimeout(() => {
+            verReciboPrevio();
+        }, 300);
     }
 }
 function verReciboPrevio() {
@@ -829,120 +942,315 @@ function verReciboPrevio() {
     if (saldo < 0) saldo = 0;
     
     const metodoEl = document.getElementById('f_caja_metodo_pago');
-    const metodo = metodoEl ? metodoEl.value : 'Efectivo';
+    const metodo = (metodoEl && metodoEl.value) ? metodoEl.value : 'Efectivo';
     
     const fmt = (num) => '$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     
     let itemsRows = '';
     items.forEach(it => {
         itemsRows += '            <tr>\n' +
-            '                <td style="text-align: left; padding: 6px 5px; border-bottom: 1px dashed rgba(204, 204, 204, 0.4);"><strong>' + it.concepto + '</strong></td>\n' +
-            '                <td style="text-align: right; padding: 6px 5px; border-bottom: 1px dashed rgba(204, 204, 204, 0.4);">' + fmt(it.precio) + '</td>\n' +
-            '                <td style="text-align: center; padding: 6px 5px; border-bottom: 1px dashed rgba(204, 204, 204, 0.4);">' + it.cantidad + '</td>\n' +
-            '                <td style="text-align: right; padding: 6px 5px; border-bottom: 1px dashed rgba(204, 204, 204, 0.4); color: #1a365d; font-weight: 600;">' + fmt(it.subtotal) + '</td>\n' +
+            '                <td style="text-align: center; padding: 6px 4px; border-bottom: 1px dashed #cbd5e1; font-size: 0.85rem;">' + it.cantidad + '</td>\n' +
+            '                <td style="padding: 6px 4px; border-bottom: 1px dashed #cbd5e1; font-size: 0.85rem; font-weight: 500;">' + it.concepto + '</td>\n' +
+            '                <td style="text-align: right; padding: 6px 4px; border-bottom: 1px dashed #cbd5e1; font-size: 0.85rem;">' + fmt(it.precio) + '</td>\n' +
+            '                <td style="text-align: right; padding: 6px 4px; border-bottom: 1px dashed #cbd5e1; font-size: 0.85rem; font-weight: 600;">' + fmt(it.subtotal) + '</td>\n' +
             '            </tr>\n';
     });
     
-    const win = window.open('', '_blank', 'width=750,height=900');
+    const win = window.open('', '_blank', 'width=520,height=820,scrollbars=yes,resizable=yes');
     if (!win) {
         Swal.fire('Atención', 'Por favor, permite ventanas emergentes para ver el recibo previo.', 'warning');
         return;
     }
     
     const configEl = document.getElementById('js-config');
-    const pacNombre = configEl ? configEl.getAttribute('data-pac-nombre') : '';
-    const medNombre = configEl ? configEl.getAttribute('data-med-nombre') : '';
-    const hoyFecha  = configEl ? configEl.getAttribute('data-hoy-fecha') : '';
-    const hoyHora   = configEl ? configEl.getAttribute('data-hoy-hora') : '';
+    const pacNombre   = configEl ? (configEl.getAttribute('data-pac-nombre') || 'Paciente') : 'Paciente';
+    const pacCurp     = configEl ? (configEl.getAttribute('data-pac-curp') || '') : '';
+    const medNombre   = configEl ? (configEl.getAttribute('data-med-nombre') || 'Médico Tratante') : 'Médico Tratante';
+    const medCedula   = configEl ? (configEl.getAttribute('data-med-cedula') || '') : '';
+    const medEspe     = configEl ? (configEl.getAttribute('data-med-espe') || 'Medicina General') : 'Medicina General';
+    const orgNombre   = configEl ? (configEl.getAttribute('data-org-nombre') || 'Consultorio Médico') : 'Consultorio Médico';
+    const orgDom      = configEl ? (configEl.getAttribute('data-org-domicilio') || '') : '';
+    const orgTel      = configEl ? (configEl.getAttribute('data-org-telefono') || '') : '';
+    const orgRfc      = configEl ? (configEl.getAttribute('data-org-rfc') || '') : '';
+    const tipoOrg     = configEl ? (configEl.getAttribute('data-tipo-organizacion') || 'Consultorio Individual') : 'Consultorio Individual';
+    const hoyFecha    = configEl ? (configEl.getAttribute('data-hoy-fecha') || '') : '';
+    const hoyHora     = configEl ? (configEl.getAttribute('data-hoy-hora') || '') : '';
+    
+    const folioPrevio = 'PREV-' + (hoyFecha ? hoyFecha.replace(/-/g, '') : '00') + '-' + Math.floor(100 + Math.random() * 900);
+    
+    const cedulaText = (medCedula && medCedula !== '0') ? (' | Céd. Prof. ' + medCedula) : '';
+    const telText    = orgTel ? ('<p class="medico-meta">Tel. ' + orgTel + '</p>') : '';
+    const rfcText    = orgRfc ? ('<p class="medico-meta">RFC: ' + orgRfc + '</p>') : '';
+    const domText    = orgDom ? ('<p class="medico-meta" style="margin-top: 4px;">' + orgDom + '</p>') : '';
+    const curpRow    = pacCurp ? ('<div class="info-row"><span class="info-label">CURP:</span><span class="info-val">' + pacCurp + '</span></div>') : '';
+    const saldoRow   = saldo > 0 ? ('<div class="total-row" style="color: #dc2626; font-size: 0.85rem; font-weight: 700; margin-top: 4px;"><span>Saldo Pendiente:</span><span>' + fmt(saldo) + '</span></div>') : '';
     
     let htmlContent = '<!DOCTYPE html>\n' +
         '<html lang="es">\n' +
         '<head>\n' +
         '    <meta charset="UTF-8">\n' +
-        '    <title>Recibo Previo (Borrador)</title>\n' +
-        '    <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">\n' +
-        '    <link rel="icon" type="image/png" sizes="16x16" href="../favicon/favicon-16x16.png">\n' +
-        '    <link rel="icon" type="image/png" sizes="32x32" href="../favicon/favicon-32x32.png">\n' +
-        '    <link rel="icon" type="image/png" sizes="64x64" href="../favicon/favicon-64x64.png">\n' +
-        '    <link rel="icon" type="image/png" sizes="128x128" href="../favicon/favicon-128x128.png">\n' +
-        '    <link rel="icon" type="image/x-icon" href="../favicon/favicon.ico">\n' +
-        '    <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png">\n' +
-        '    <link rel="manifest" href="../favicon/site.webmanifest">\n' +
-                        '    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">\n' +
-        '    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">\n' +
+        '    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+        '    <title>Recibo Previo - Folio ' + folioPrevio + '</title>\n' +
+        '    <link rel="preconnect" href="https://fonts.googleapis.com">\n' +
+        '    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+        '    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">\n' +
+        '    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">\n' +
         '    <style>\n' +
-        '        \@page { size: 5.5in 8.5in; margin: 0; }\n' +
-        '        body { font-family: "Plus Jakarta Sans", sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 0; font-size: 11px; }\n' +
-        '        .banner-previo { background: #fff3cd; color: #856404; text-align: center; padding: 8px; font-weight: bold; font-size: 12px; border-bottom: 1px solid #ffeeba; }\n' +
-        '        .recipe-card { max-width: 5.5in; margin: 20px auto; background: white; border-radius: 12px; border: 2px solid #19B7A5; box-shadow: 0 10px 25px rgba(0,0,0,0.08); padding: 0.25in; position: relative; }\n' +
-        '        .grid-receipt { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 11px; }\n' +
-        '        .grid-receipt td { border: 1px solid #0A2A66; padding: 8px; vertical-align: middle; }\n' +
-        '        .header-row td { text-align: center; border-bottom: 2px solid #0A2A66; }\n' +
-        '        .col-logo { width: 25%; }\n' +
-        '        .col-clinic { width: 50%; font-size: 14px; text-transform: uppercase; color: #0A2A66; font-weight: 900; }\n' +
-        '        .col-folio { width: 25%; font-size: 11px; color: #64748b; }\n' +
-        '        .info-label-cell { width: 25%; font-weight: bold; color: #0A2A66; }\n' +
-        '        .badge-folio { background: #0A2A66; color: white; border-radius: 20px; font-weight: 800; padding: 4px 10px; font-size: 0.85rem; display: inline-block; margin-top: 5px; }\n' +
-        '        .table-inner { width: 100%; border-collapse: collapse; }\n' +
-        '        .table-inner td { border: none; border-bottom: 1px dashed rgba(204, 204, 204, 0.4); padding: 6px; }\n' +
-        '        .signature-box { border-top: 1px solid #0A2A66; width: 60%; margin: 0 auto; padding-top: 5px; font-weight: bold; color: #0A2A66; }\n' +
+        '        * { box-sizing: border-box; }\n' +
+        '        body {\n' +
+        '            font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;\n' +
+        '            background-color: #f1f5f9;\n' +
+        '            color: #1e293b;\n' +
+        '            margin: 0;\n' +
+        '            padding: 16px;\n' +
+        '            display: flex;\n' +
+        '            justify-content: center;\n' +
+        '        }\n' +
+        '        .banner-borrador {\n' +
+        '            background: #fffbeb;\n' +
+        '            color: #b45309;\n' +
+        '            border: 1px dashed #fde68a;\n' +
+        '            border-radius: 10px;\n' +
+        '            padding: 8px 12px;\n' +
+        '            font-size: 0.82rem;\n' +
+        '            font-weight: 800;\n' +
+        '            text-align: center;\n' +
+        '            margin-bottom: 12px;\n' +
+        '            width: 100%;\n' +
+        '            max-width: 440px;\n' +
+        '        }\n' +
+        '        .ticket-wrapper {\n' +
+        '            width: 100%;\n' +
+        '            max-width: 440px;\n' +
+        '            background: #ffffff;\n' +
+        '            border-radius: 16px;\n' +
+        '            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);\n' +
+        '            padding: 24px;\n' +
+        '            border: 1px solid #e2e8f0;\n' +
+        '        }\n' +
+        '        .header-negocio {\n' +
+        '            text-align: center;\n' +
+        '            border-bottom: 2px solid #0A2A66;\n' +
+        '            padding-bottom: 14px;\n' +
+        '            margin-bottom: 14px;\n' +
+        '        }\n' +
+        '        .negocio-title {\n' +
+        '            font-family: "Outfit", sans-serif;\n' +
+        '            font-size: 1.25rem;\n' +
+        '            font-weight: 800;\n' +
+        '            color: #0A2A66;\n' +
+        '            margin: 0 0 4px 0;\n' +
+        '            line-height: 1.2;\n' +
+        '        }\n' +
+        '        .medico-subtitle {\n' +
+        '            font-size: 0.95rem;\n' +
+        '            font-weight: 700;\n' +
+        '            color: #0f766e;\n' +
+        '            margin: 0 0 2px 0;\n' +
+        '        }\n' +
+        '        .medico-meta {\n' +
+        '            font-size: 0.78rem;\n' +
+        '            color: #64748b;\n' +
+        '            margin: 0;\n' +
+        '            line-height: 1.3;\n' +
+        '        }\n' +
+        '        .badge-folio {\n' +
+        '            display: inline-block;\n' +
+        '            background: #f0fdfa;\n' +
+        '            color: #0f766e;\n' +
+        '            border: 1px solid #99f6e4;\n' +
+        '            padding: 4px 12px;\n' +
+        '            border-radius: 9999px;\n' +
+        '            font-weight: 800;\n' +
+        '            font-size: 0.85rem;\n' +
+        '            letter-spacing: 0.5px;\n' +
+        '            margin: 10px 0 4px 0;\n' +
+        '        }\n' +
+        '        .badge-folio-borrador {\n' +
+        '            background: #fffbeb;\n' +
+        '            color: #b45309;\n' +
+        '            border-color: #fde68a;\n' +
+        '        }\n' +
+        '        .info-grid {\n' +
+        '            display: grid;\n' +
+        '            grid-template-columns: 1fr;\n' +
+        '            gap: 4px;\n' +
+        '            font-size: 0.82rem;\n' +
+        '            background: #f8fafc;\n' +
+        '            padding: 10px 12px;\n' +
+        '            border-radius: 10px;\n' +
+        '            border: 1px solid #e2e8f0;\n' +
+        '            margin-bottom: 14px;\n' +
+        '        }\n' +
+        '        .info-row {\n' +
+        '            display: flex;\n' +
+        '            justify-content: space-between;\n' +
+        '        }\n' +
+        '        .info-label { color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.72rem; }\n' +
+        '        .info-val { font-weight: 700; color: #0A2A66; }\n' +
+        '        .table-items {\n' +
+        '            width: 100%;\n' +
+        '            border-collapse: collapse;\n' +
+        '            margin-bottom: 14px;\n' +
+        '        }\n' +
+        '        .table-items th {\n' +
+        '            font-size: 0.72rem;\n' +
+        '            text-transform: uppercase;\n' +
+        '            letter-spacing: 0.5px;\n' +
+        '            color: #475569;\n' +
+        '            background: #f1f5f9;\n' +
+        '            padding: 6px 4px;\n' +
+        '            border-top: 1px solid #cbd5e1;\n' +
+        '            border-bottom: 1px solid #cbd5e1;\n' +
+        '        }\n' +
+        '        .totales-box {\n' +
+        '            background: #f8fafc;\n' +
+        '            border: 1px solid #e2e8f0;\n' +
+        '            border-radius: 10px;\n' +
+        '            padding: 10px 14px;\n' +
+        '            margin-bottom: 14px;\n' +
+        '        }\n' +
+        '        .total-row {\n' +
+        '            display: flex;\n' +
+        '            justify-content: space-between;\n' +
+        '            align-items: center;\n' +
+        '            font-size: 0.88rem;\n' +
+        '            margin-bottom: 4px;\n' +
+        '        }\n' +
+        '        .total-principal {\n' +
+        '            font-family: "Outfit", sans-serif;\n' +
+        '            font-size: 1.25rem;\n' +
+        '            font-weight: 900;\n' +
+        '            color: #0A2A66;\n' +
+        '            padding-top: 6px;\n' +
+        '            border-top: 1px dashed #cbd5e1;\n' +
+        '            margin-top: 6px;\n' +
+        '        }\n' +
+        '        .footer-recibo {\n' +
+        '            text-align: center;\n' +
+        '            font-size: 0.72rem;\n' +
+        '            color: #94a3b8;\n' +
+        '            margin-top: 16px;\n' +
+        '            line-height: 1.4;\n' +
+        '        }\n' +
+        '        .action-bar {\n' +
+        '            display: flex;\n' +
+        '            gap: 10px;\n' +
+        '            margin-bottom: 14px;\n' +
+        '            width: 100%;\n' +
+        '            max-width: 440px;\n' +
+        '        }\n' +
+        '        .btn-action {\n' +
+        '            flex: 1;\n' +
+        '            padding: 10px;\n' +
+        '            border: none;\n' +
+        '            border-radius: 10px;\n' +
+        '            font-weight: 700;\n' +
+        '            font-size: 0.88rem;\n' +
+        '            cursor: pointer;\n' +
+        '            display: inline-flex;\n' +
+        '            align-items: center;\n' +
+        '            justify-content: center;\n' +
+        '            gap: 6px;\n' +
+        '            transition: all 0.2s;\n' +
+        '        }\n' +
+        '        .btn-print { background: #0A2A66; color: #ffffff; }\n' +
+        '        .btn-print:hover { background: #071c44; }\n' +
+        '        .btn-close { background: #e2e8f0; color: #334155; }\n' +
+        '        .btn-close:hover { background: #cbd5e1; }\n' +
+        '        @media print {\n' +
+        '            body { background: #ffffff; padding: 0; }\n' +
+        '            .action-bar, .banner-borrador { display: none !important; }\n' +
+        '            .ticket-wrapper {\n' +
+        '                box-shadow: none;\n' +
+        '                border: none;\n' +
+        '                padding: 0;\n' +
+        '                max-width: 100%;\n' +
+        '                width: 100%;\n' +
+        '            }\n' +
+        '        }\n' +
         '    </style>\n' +
-
-
-                        '</head>\n' +
+        '</head>\n' +
         '<body>\n' +
-        '    <div class="banner-previo">VISTA PREVIA DE RECIBO DE CAJA (PREVIO A FIRMA DEFINITIVA)</div>\n' +
-        '    <div class="recipe-card">\n' +
-        '        <table class="grid-receipt">\n' +
-        '            <tr class="header-row">\n' +
-        '                <td class="col-logo"><i class="bi bi-heart-pulse-fill" style="color: #19B7A5; font-size: 2rem;"></i></td>\n' +
-        '                <td class="col-clinic">Clínica Médica</td>\n' +
-        '                <td class="col-folio">\n' +
-        '                    <span class="fw-bold text-dark">' + hoyFecha + ' - ' + hoyHora + ' hrs.</span><br>\n' +
-        '                    <span class="badge-folio">BORRADOR</span><br>\n' +
-        '                    <span class="mt-1 d-inline-block">Visita : Recurrente</span>\n' +
-        '                </td>\n' +
-        '            </tr>\n' +
-        '            <tr>\n' +
-        '                <td class="info-label-cell"><i class="bi bi-person-fill me-1 text-teal" style="color: #19B7A5;"></i>Paciente :</td>\n' +
-        '                <td colspan="2" class="fw-bold text-uppercase">' + pacNombre + '</td>\n' +
-        '            </tr>\n' +
-        '            <tr>\n' +
-        '                <td class="info-label-cell"><i class="bi bi-clipboard-pulse me-1 text-teal" style="color: #19B7A5;"></i>Motivo:</td>\n' +
-        '                <td colspan="2" class="fw-bold">Consulta / Atención Médica</td>\n' +
-        '            </tr>\n' +
-        '            <tr>\n' +
-        '                <td class="info-label-cell" style="vertical-align: top;"><i class="bi bi-tags-fill me-1 text-teal" style="color: #19B7A5;"></i>Concepto :</td>\n' +
-        '                <td colspan="2" style="padding: 0;">\n' +
-        '                    <table class="table-inner">\n' +
+        '    <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">\n' +
+        '        <div class="banner-borrador">\n' +
+        '            <i class="bi bi-file-earmark-text-fill me-1"></i> BORRADOR PREVIO - RECIBO DE CONSULTORIO\n' +
+        '        </div>\n' +
+        '        <div class="action-bar">\n' +
+        '            <button class="btn-action btn-print" onclick="window.print()">\n' +
+        '                <i class="bi bi-printer-fill"></i> Imprimir Borrador\n' +
+        '            </button>\n' +
+        '            <button class="btn-action btn-close" onclick="window.close()">\n' +
+        '                <i class="bi bi-x-circle-fill"></i> Cerrar Vista\n' +
+        '            </button>\n' +
+        '        </div>\n' +
+        '        <div class="ticket-wrapper">\n' +
+        '            <div class="header-negocio">\n' +
+        '                <h1 class="negocio-title">' + orgNombre + '</h1>\n' +
+        '                <div class="medico-subtitle">' + medNombre + '</div>\n' +
+        '                <p class="medico-meta">' + medEspe + cedulaText + '</p>\n' +
+        domText + telText + rfcText +
+        '                <div class="badge-folio badge-folio-borrador"><i class="bi bi-tag-fill me-1"></i>FOLIO PREVIO: #' + folioPrevio + '</div>\n' +
+        '            </div>\n' +
+        '            <div class="info-grid">\n' +
+        '                <div class="info-row">\n' +
+        '                    <span class="info-label">Fecha y Hora:</span>\n' +
+        '                    <span class="info-val">' + hoyFecha + ' ' + hoyHora + ' hrs</span>\n' +
+        '                </div>\n' +
+        '                <div class="info-row">\n' +
+        '                    <span class="info-label">Paciente:</span>\n' +
+        '                    <span class="info-val" title="' + pacNombre + '">' + pacNombre + '</span>\n' +
+        '                </div>\n' +
+        curpRow +
+        '                <div class="info-row">\n' +
+        '                    <span class="info-label">Método de Pago:</span>\n' +
+        '                    <span class="info-val" style="color: #0f766e;">' + metodo + '</span>\n' +
+        '                </div>\n' +
+        '                <div class="info-row">\n' +
+        '                    <span class="info-label">Organización:</span>\n' +
+        '                    <span class="info-val" style="color: #0A2A66;">' + tipoOrg + '</span>\n' +
+        '                </div>\n' +
+        '            </div>\n' +
+        '            <table class="table-items">\n' +
+        '                <thead>\n' +
+        '                    <tr>\n' +
+        '                        <th style="width: 35px; text-align: center;">Cant.</th>\n' +
+        '                        <th>Concepto / Servicio</th>\n' +
+        '                        <th style="width: 75px; text-align: right;">Precio</th>\n' +
+        '                        <th style="width: 80px; text-align: right;">Total</th>\n' +
+        '                    </tr>\n' +
+        '                </thead>\n' +
+        '                <tbody>\n' +
         itemsRows +
-        '                    </table>\n' +
-        '                </td>\n' +
-        '            </tr>\n' +
-        '            <tr>\n' +
-        '                <td colspan="2" style="text-align: center; vertical-align: bottom; height: 110px; padding-bottom: 10px;">\n' +
-        '                    <div class="signature-box">\n' +
-        '                        Nombre y Firma del Paciente\n' +
-        '                    </div>\n' +
-        '                </td>\n' +
-        '                <td style="text-align: right; vertical-align: middle; padding: 15px;">\n' +
-        '                    <div class="fw-bold text-navy mb-1" style="color: #0A2A66; font-size: 14px;">Costo : ' + fmt(totalCargos) + '</div>\n' +
-        '                    <div class="fw-bold text-success mb-1" style="color: #059669; font-size: 13px;">Abono : ' + fmt(totalAbonado) + '</div>\n' +
-        '                    <div class="fw-bold text-danger mb-2" style="color: #dc2626; font-size: 13px;">Saldo : ' + fmt(saldo) + '</div>\n' +
-        '                    <span class="badge bg-light text-dark border mb-3">' + metodo + '</span><br>\n' +
-        '                    <span class="small text-muted">Elaboró :<br><strong>' + medNombre + '</strong></span>\n' +
-        '                </td>\n' +
-        '            </tr>\n' +
-        '            <tr>\n' +
-        '                <td colspan="3" style="text-align: center; color: #64748b; font-size: 9px; padding: 10px;">\n' +
-        '                    <strong>Aviso de Confidencialidad:</strong> Documento generado por OsPulso - El recibo es válido como comprobante de pago interno.\n' +
-        '                </td>\n' +
-        '            </tr>\n' +
-        '        </table>\n' +
+        '                </tbody>\n' +
+        '            </table>\n' +
+        '            <div class="totales-box">\n' +
+        '                <div class="total-row">\n' +
+        '                    <span style="color: #64748b; font-weight: 600;">Total Servicios:</span>\n' +
+        '                    <span style="font-weight: 700;">' + fmt(totalCargos) + '</span>\n' +
+        '                </div>\n' +
+        '                <div class="total-row total-principal">\n' +
+        '                    <span>IMPORTE A COBRAR:</span>\n' +
+        '                    <span>' + fmt(totalAbonado) + '</span>\n' +
+        '                </div>\n' +
+        saldoRow +
+        '                <div class="total-row" style="margin-top: 6px; font-size: 0.78rem;">\n' +
+        '                    <span style="color: #b45309; font-weight: 700;"><i class="bi bi-clock-history me-1"></i>Estatus:</span>\n' +
+        '                    <span style="font-weight: 800; color: #b45309;">Borrador Previo (Pendiente de Firma)</span>\n' +
+        '                </div>\n' +
+        '            </div>\n' +
+        '            <div style="margin-top: 20px; text-align: center;">\n' +
+        '                <div style="border-top: 1px dashed #94a3b8; width: 75%; margin: 30px auto 4px auto;"></div>\n' +
+        '                <span style="font-size: 0.72rem; color: #64748b; font-weight: 600;">Nombre y Firma de Conformidad del Paciente</span>\n' +
+        '            </div>\n' +
+        '            <div class="footer-recibo">\n' +
+        '                <p style="margin: 0 0 4px 0;">Comprobante emitido para control de cobro en consultorio privado.</p>\n' +
+        '                <p style="margin: 0; font-weight: 600;">Documento preliminar de vista previa sujeto a confirmación final.</p>\n' +
+        '            </div>\n' +
+        '        </div>\n' +
         '    </div>\n' +
         '</body>\n' +
         '</html>';
-
 
     win.document.write(htmlContent);
     win.document.close();

@@ -54,12 +54,25 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
         my $c_cons  = $c[4] // '';
 
         # Aislamiento por organización: Solo el Administrador Global puede ver otros tenants
-        if ($ses_role ne 'Administrador Global' && $ses_org ne '') {
-            next unless ($c_neg eq $ses_org);
+        if ($ses_role ne 'Administrador Global' && defined $ses_org && $ses_org ne '') {
+            my $match_org = ($c_neg eq $ses_org) || (($c_neg eq '0' || $c_neg eq '') && ($ses_org eq '0' || $ses_org eq ''));
+            next unless $match_org;
         }
 
-        # Coincidencia exacta de ID de recibo, Folio o Consulta
+        # Coincidencia exacta o flexible de ID de recibo, Folio o Consulta
+        my $target_digits = $id_consulta;
+        $target_digits =~ s/\D+//g;
+
+        my $match = 0;
         if ($c_id eq $id_consulta || $c_folio eq $id_consulta || $c_cons eq $id_consulta) {
+            $match = 1;
+        } elsif ($c_folio =~ /(?:^|\/|-)\Q$id_consulta\E$/ || $c_cons =~ /(?:^|\/|-)\Q$id_consulta\E$/) {
+            $match = 1;
+        } elsif ($target_digits ne '' && ($c_folio =~ /\Q$target_digits\E$/ || $c_cons =~ /\Q$target_digits\E$/ || $c_id =~ /\Q$target_digits\E$/)) {
+            $match = 1;
+        }
+
+        if ($match) {
             $recibo = {
                 id_recibo     => $c[0],
                 folio         => $c[1],
@@ -126,7 +139,8 @@ if (-e $usuarios_file && open(my $fhu, '<:encoding(UTF-8)', $usuarios_file)) {
         chomp $lu;
         next if $lu =~ /^\s*$/;
         my @u = split /!/, $lu, -1;
-        if ($u[0] eq $recibo->{id_medico} || $u[2] eq $recibo->{id_medico}) {
+        if (($recibo->{id_medico} && ($u[0] eq $recibo->{id_medico} || $u[2] eq $recibo->{id_medico})) ||
+            ($recibo->{elaborado_por} && ($u[0] eq $recibo->{elaborado_por} || lc($u[2] // '') eq lc($recibo->{elaborado_por})))) {
             $medico_nombre = $u[1] // $medico_nombre;
             $medico_esp_id = $u[7] // '';
             $medico_cedula = $u[9] // '';
