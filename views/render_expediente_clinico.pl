@@ -361,20 +361,18 @@ JS
 
     print <<HTML;
 
-        <!-- TOPBAR / HEADER CORPORATIVO (ESTÁNDAR IMAGEN 2) -->
-        <header id="mainPatientHeader" class="bg-medentia-gradient text-white p-4 shadow-sm mb-4" style="border-radius: 1.5rem;">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-white bg-opacity-10 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
-                        <i class="bi bi-person-vcard-fill fs-3 text-white"></i>
-                    </div>
-                    <div>
-                        <h2 class="fw-black mb-0 text-white" style="letter-spacing: -0.5px;">$d->{nombre}</h2>
-                        <p class="text-white-50 small mb-0 mt-1">
-                            <span class="me-3"><i class="bi bi-fingerprint me-1"></i>CURP: $curp</span>
-                            <span class="me-3"><i class="bi bi-calendar3 me-1"></i>Edad: $edad a&ntilde;os</span>
-                            <span><i class="bi bi-gender-ambiguous me-1"></i>Sexo: $sexo</span>
-                        </p>
+        <!-- TOPBAR / HEADER CORPORATIVO (EXPEDIENTE HERO PREMIUM ANTI-DISTORSIÓN) -->
+        <header id="mainPatientHeader" class="expediente-hero-header text-white mb-3 container-mobile-flush">
+            <div class="patient-hero-inner d-flex align-items-center gap-3">
+                <div class="patient-hero-avatar flex-shrink-0 d-flex align-items-center justify-content-center">
+                    <i class="bi bi-person-vcard-fill fs-3 text-white"></i>
+                </div>
+                <div class="patient-hero-content flex-grow-1">
+                    <h2 class="patient-hero-name mb-0 text-white">$d->{nombre}</h2>
+                    <div class="patient-hero-chips d-flex flex-wrap align-items-center gap-2 mt-2">
+                        <span class="patient-hero-chip"><i class="bi bi-fingerprint me-1"></i><strong class="patient-chip-lbl">CURP:</strong> $curp</span>
+                        <span class="patient-hero-chip"><i class="bi bi-calendar3 me-1"></i><strong class="patient-chip-lbl">Edad:</strong> $edad a&ntilde;os</span>
+                        <span class="patient-hero-chip"><i class="bi bi-gender-ambiguous me-1"></i><strong class="patient-chip-lbl">Sexo:</strong> $sexo</span>
                     </div>
                 </div>
             </div>
@@ -1586,47 +1584,47 @@ JS
                 <h6 class="fw-black m-0 uppercase" style="color: var(--md-blue-deep); letter-spacing: 0.5px;"><i class="bi bi-activity me-1" style="color: var(--md-teal-clinical);"></i> Signos Vitales de &Uacute;ltima Consulta</h6>
                 <div>$badge_fecha_signos</div>
             </div>
-            <div class="row g-3 mb-4">
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-heart-pulse text-danger me-1"></i> T.A.</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$ta_val</div>
-                        <span class="small text-muted">mmHg</span>
+            <div class="row g-2 g-md-3 mb-4">
+                <div class="col-4 col-md-2">
+                    <div class="card-medentia-aura p-2 p-md-3 text-center border-0 shadow-sm h-100 d-flex flex-column justify-content-center" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1" style="font-size: 0.7rem;"><i class="bi bi-heart-pulse text-danger me-1"></i> T.A.</span>
+                        <div class="fw-black fs-6 fs-md-5" style="color: var(--md-blue-deep);">$ta_val</div>
+                        <span class="small text-muted" style="font-size: 0.65rem;">mmHg</span>
                     </div>
                 </div>
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-activity text-primary me-1"></i> F.C.</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$fc_val</div>
-                        <span class="small text-muted">bpm</span>
+                <div class="col-4 col-md-2">
+                    <div class="card-medentia-aura p-2 p-md-3 text-center border-0 shadow-sm h-100 d-flex flex-column justify-content-center" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1" style="font-size: 0.7rem;"><i class="bi bi-activity text-primary me-1"></i> F.C.</span>
+                        <div class="fw-black fs-6 fs-md-5" style="color: var(--md-blue-deep);">$fc_val</div>
+                        <span class="small text-muted" style="font-size: 0.65rem;">bpm</span>
                     </div>
                 </div>
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-wind text-info me-1"></i> F.R.</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$fr_val</div>
-                        <span class="small text-muted">rpm</span>
+                <div class="col-4 col-md-2">
+                    <div class="card-medentia-aura p-2 p-md-3 text-center border-0 shadow-sm h-100 d-flex flex-column justify-content-center" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1" style="font-size: 0.7rem;"><i class="bi bi-wind text-info me-1"></i> F.R.</span>
+                        <div class="fw-black fs-6 fs-md-5" style="color: var(--md-blue-deep);">$fr_val</div>
+                        <span class="small text-muted" style="font-size: 0.65rem;">rpm</span>
                     </div>
                 </div>
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-thermometer-half text-warning me-1"></i> Temp</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$temp_val</div>
-                        <span class="small text-muted">&deg;C</span>
+                <div class="col-4 col-md-2">
+                    <div class="card-medentia-aura p-2 p-md-3 text-center border-0 shadow-sm h-100 d-flex flex-column justify-content-center" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1" style="font-size: 0.7rem;"><i class="bi bi-thermometer-half text-warning me-1"></i> Temp</span>
+                        <div class="fw-black fs-6 fs-md-5" style="color: var(--md-blue-deep);">$temp_val</div>
+                        <span class="small text-muted" style="font-size: 0.65rem;">&deg;C</span>
                     </div>
                 </div>
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-speedometer2 text-success me-1"></i> SpO2</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$spo2_val</div>
-                        <span class="small text-muted">%</span>
+                <div class="col-4 col-md-2">
+                    <div class="card-medentia-aura p-2 p-md-3 text-center border-0 shadow-sm h-100 d-flex flex-column justify-content-center" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1" style="font-size: 0.7rem;"><i class="bi bi-speedometer2 text-success me-1"></i> SpO2</span>
+                        <div class="fw-black fs-6 fs-md-5" style="color: var(--md-blue-deep);">$spo2_val</div>
+                        <span class="small text-muted" style="font-size: 0.65rem;">%</span>
                     </div>
                 </div>
-                <div class="col-6 col-sm-4 col-md-2">
-                    <div class="card-medentia-aura p-3 text-center border-0 shadow-sm" style="border-radius: 1rem; background: white;">
-                        <span class="d-block small fw-bold text-muted text-uppercase mb-1"><i class="bi bi-droplet-fill text-danger me-1"></i> Sangre</span>
-                        <div class="fw-black fs-5" style="color: var(--md-blue-deep);">$d->{tipo_sangre}</div>
-                        <span class="small text-muted">Grupo / Rh</span>
+                <div class="col-4 col-md-2">
+                    <div class="card-medentia-aura p-2 p-md-3 text-center border-0 shadow-sm h-100 d-flex flex-column justify-content-center" style="border-radius: 1rem; background: white;">
+                        <span class="d-block small fw-bold text-muted text-uppercase mb-1" style="font-size: 0.7rem;"><i class="bi bi-droplet-fill text-danger me-1"></i> Sangre</span>
+                        <div class="fw-black fs-6 fs-md-5" style="color: var(--md-blue-deep);">$d->{tipo_sangre}</div>
+                        <span class="small text-muted" style="font-size: 0.65rem;">Grupo / Rh</span>
                     </div>
                 </div>
             </div>

@@ -243,4 +243,21 @@ graph LR
   - **Resolución Multi-Origen de Signos Vitales**: El backend inspecciona cronológicamente las consultas del paciente para ubicar la última toma real con datos válidos (`ta`, `fc`, `fr`, `temp`, `peso`, `talla`, `spo2`), con soporte transversal para llaves canónicas mayúsculas/minúsculas y la estructura SOAP (`soap.objective`), mostrando la insignia de auditoría con la fecha y hora de la última atención.
   - **Reordenamiento Visual en Tab Resumen (`tab2`)**: Los Signos Vitales de Última Consulta se reubicaron en la parte superior (Nivel 1), inmediatamente debajo del Hero corporativo, seguidos por los KPIs de Trazabilidad y Adherencia (Nivel 2), y finalmente las Alertas Médicas y Evaluación Nutricional / IMC (Nivel 3).
 
+### 4.22 Refactorización Móvil Premium del Expediente Clínico y Menú Hamburguesa
+- **Erradicación de Distorsiones Heredadas de Clases de Bootstrap en el Hero (`#mainPatientHeader`)**:
+  - **Diagnóstico del Fallo**: El uso previo de la clase `.bg-medentia-gradient` en conjunción con `.rounded-circle` provocaba que las reglas agresivas para móviles (`header.bg-medentia-gradient .d-flex > div { width: 100% !important; }`) estiraran horizontalmente el contenedor circular del avatar a todo lo ancho de la pantalla, generando una elipse deforme oscura con el ícono flotando en el medio y ocultando (`display: none`) el párrafo con CURP, Edad y Sexo.
+  - **Solución Arquitectónica Premium**:
+    1. Se desacopló la cabecera corporativa asignando la clase `.expediente-hero-header` y estilos de máxima especificidad en `css/expediente_completo.css`.
+    2. El contenedor del avatar se fijó estrictamente a dimensiones rígidas controladas (`44px` en móvil, `54px` en desktop, `border-radius: 50% !important; flex-shrink: 0; min-width: 44px; max-width: 44px;`), eliminando cualquier estiramiento o distorsión.
+    3. Los metadatos demográficos (CURP, Edad y Sexo) se reformatearon en micro-chips satinados (`.patient-hero-chip`) con `display: inline-flex !important;`, bordes sutiles, fondo acrílico con `backdrop-filter` y legibilidad garantizada en cualquier resolución.
+- **Posicionamiento del Menú Hamburguesa como Drawer Full-Height (`top: 0`, `left: 0`)**:
+  - **Diagnóstico del Fallo**: En `css/sub_sidebar.css`, la regla móvil previa posicionaba `.diamond-sidebar` mediante `top: 86px !important; left: -320px !important; transform: translateX(330px) !important;` con esquinas redondeadas en todos sus vértices. Esto causaba que el menú flotara desfasado en `left: 10px` y cortara de forma antiestética la barra de búsqueda y fecha del navbar global.
+  - **Solución y Homologación Nativa**:
+    1. Se ancló la gaveta lateral al origen exacto del viewport: `top: 0 !important; left: 0 !important; bottom: 0 !important; height: 100vh !important; height: 100dvh !important;`.
+    2. En estado oculto se retrae limpiamente mediante `transform: translateX(-100%) !important;` y al abrirse conmuta suavemente a `transform: translateX(0) !important; left: 0 !important;`.
+    3. Posee un ancho ergonómico táctil de `295px` (`max-width: 86vw`), borde derecho redondeado (`border-radius: 0 1.5rem 1.5rem 0`), acrílico satinado con desenfoque de 25px, borde turquesa clínico y sombra profunda de elevación.
+    4. La cortina de oscurecimiento `.sidebar-overlay` se posiciona a pantalla completa con `z-index: 10490` y desenfoque, mientras el drawer se eleva con `z-index: 10500`, garantizando cierre automático táctil al pulsar el exterior o seleccionar cualquier sección del expediente.
+- **Optimización de Cuadrícula de Signos Vitales en Móvil**:
+  - En el Tab 2 (Resumen), los 6 indicadores de signos vitales se reorganizaron mediante `col-4 col-md-2` con espaciado `g-2 g-md-3`, estructurando una elegante cuadrícula de 3 columnas por 2 filas en pantallas móviles con tipografías compactas, asegurando que cifras compuestas (como la presión arterial `120/80`) no sufran saltos de línea ni desbordamientos horizontales.
+
 
