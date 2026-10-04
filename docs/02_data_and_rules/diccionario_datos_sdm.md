@@ -270,4 +270,46 @@ Registro transaccional de citas médicas agendadas. Delimitador: `|`.
 | 11 | `ID_NEGOCIO` | String (FK) | Tenant / Organización | `1` |
 | 12 | `ELABORADO_POR` | String (FK) | Usuario creador | `recepcionista1` |
 
+---
+
+## 8. Archivos Financieros de Consultorio y Tratamientos (`dat/`)
+
+### 8.1 `folios_recibos_privados.dat`
+Registro transaccional canónico de recibos emitidos en consultorio privado. Delimitador: `|`.
+
+| Campo | Nombre | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | `ID_RECIBO` | String (PK) | Identificador único del recibo | `RC-1791083469-421` |
+| 2 | `FOLIO` | String | Folio consecutivo por sucursal | `1` |
+| 3 | `ID_NEGOCIO` | String (FK) | Identificador de organización/tenant | `0` |
+| 4 | `ID_SUCURSAL` | String (FK) | Identificador de sucursal | `0` |
+| 5 | `ID_CONSULTA` | String (FK) | ID de consulta médica asociada | `CONS-1791083469-12` |
+| 6 | `ID_PACIENTE` | String (FK) | ID del paciente atendido | `PAC-99988` |
+| 7 | `FECHA` | Date (YYYY-MM-DD) | Fecha de emisión en caja | `2026-10-03` |
+| 8 | `HORA` | Time (HH:MM) | Hora de emisión en caja | `21:09` |
+| 9 | `TOTAL_CARGOS` | Decimal | Monto total exigible del tratamiento/servicio | `1800.00` |
+| 10 | `TOTAL_ABONOS` | Decimal | Monto efectivamente pagado en la sesión | `1800.00` |
+| 11 | `METODO_PAGO` | String | Efectivo, Tarjeta, Transferencia | `Efectivo` |
+| 12 | `ELABORADO_POR` | String (FK) | Usuario o médico que cobró | `DOC-001` |
+| 13 | `CONCEPTO` | String | Concepto según las 4 procedencias canónicas | `Odontograma Inicial` |
+| 14 | `ITEMS_JSON` | JSON String | Desglose de ítems estructurados de la tabla | `[{"concepto":"...","precio":950,...}]` |
+| 15 | `ESTATUS` | String | `Liquidado` (saldo $\le \$0.005$) o `Cobrado` (saldo pendiente) | `Liquidado` |
+| 16 | `ID_MEDICO` | String (FK) | ID del médico tratante en `usuarios.dat` | `DOC-001` |
+| 17 | `MOTIVO` | String | Observaciones adicionales o motivo clínico | `Tratamiento Odontológico` |
+
+### 8.2 `tratamientos.dat`
+Control de tratamientos abiertos, planes presupuestados y seguimiento de saldos. Delimitador: `|`.
+
+| Campo | Nombre | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | `ID_TRATAMIENTO` | String (PK) | Identificador del tratamiento | `TX-1791083469-87` |
+| 2 | `ID_PACIENTE` | String (FK) | ID del paciente en `pacientes.dat` | `PAC-99988` |
+| 3 | `ID_COT` | String (FK) | ID de cotización convertida (si aplica) | `COT-101` |
+| 4 | `ESTADO` | String | `Abierto` (en curso/con saldo) o `Cerrado` (liquidado/alta) | `Abierto` |
+| 5 | `FECHA_INICIO` | Date (YYYY-MM-DD) | Fecha de inicio del tratamiento | `2026-10-03` |
+| 6 | `FECHA_FIN` | Date (YYYY-MM-DD) | Fecha de cierre/liquidación total | `2026-10-25` |
+| 7 | `ID_MEDICO` | String (FK) | ID del médico tratante | `DOC-001` |
+| 8 | `TOTAL` | Decimal | Presupuesto total del tratamiento | `3400.00` |
+| 9 | `ID_CITA` | String (FK) | Próxima cita de seguimiento programada | `CITA_17911000` |
+
 

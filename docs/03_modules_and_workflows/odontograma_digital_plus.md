@@ -127,6 +127,7 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 | **Fase 11** | Vistas Oclusales 2D en Porcelana Pulida e Interacción Híbrida SVG | Representación fotorrealista de coronas vistas desde arriba (`img/teeth/crown_*.png`) para Molares, Premolares, Caninos e Incisivos en porcelana blanca pura glaseada; capa interactiva SVG de 5 caras con trazado translúcido y vitrificación clínica en hover/click. | ✅ COMPLETADA |
 | **Fase 12** | Catálogo Autónomo Multi-Tenant, Provisión Onboarding 100-Odontología, Refactor Molar y CRUD AJAX | Corona molar oclusal en porcelana blanca pura sin caries (`crown_molar.png`); depuración de barra superior en visor (ícono Guardar en Cápsula 1 junto a Imprimir, retiro de botones redundantes); eliminación de hardcode clínico con Catálogo Autónomo Multi-Tenant (`dat/catalogo_odontograma_<id>.dat`), API REST (`api/catalogo_odontograma_api.pl`), modal AJAX en visor, menú lateral en rol Administrador de Organización y provisión automática al seleccionar especialidad `100 - ODONTOLOGÍA`. | ✅ COMPLETADA |
 | **Fase 13** | Modal Anatómico 3D/2D, Vista Impresión Split 3/4 + 1/4, Limpieza Total y Dark Glassmorphism | Refactorización de `#modalOdontoClinico` con doble preview (3D Upright Sagital + 2D Corona Oclusal con selector de cara); Vista Previa de Impresión fiel con desglose 75% mapa dental y 25% offcanvas clínico/financiero y membrete institucional; erradicación de hardcode de colores en CSS (`--surf-color`); corrección de visibilidad del botón "20" en dentición temporal; supresión del control central de zoom (HUD) y rediseño completo del sidebar offcanvas a Dark Surgical Glassmorphism. | ✅ COMPLETADA |
+| **Fase 14** | Inyección a Caja, Alias de Odontograma y Procedencia Canónica de Recibo | Inyección reactiva de tratamientos a `step_caja_privado.pl`, transmisión del alias del odontograma seleccionado (`odonto_alias_seleccionado`), generación canónica de comprobante ticket en `api/imprimir_recibo_caja_consultorio.pl` bajo Procedencia 2 (Nombre de Odontograma en cabecera y desglose exclusivo de procedimientos clínicos sin filas fantasma de abono). | ✅ COMPLETADA |
 
 ---
 
@@ -186,6 +187,17 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
    - Transformación de la barra lateral con estética Dark Glassmorphism quirúrgico, campos oscuros con glow cian, tarjeta de presupuesto con degradado profundo y tabla de hallazgos contrastada.
 
    - Modal AJAX `#modalGestionCatalogoOdonto` embebido en el visor para edición en vivo e hidratación reactiva de `window.ODONTO_CATALOG`.
+
+---
+
+### 2.13 Facturación Dental en Caja, Inyección de Alias y Comprobantes Canónicos (Fase 14)
+1. **Extracción y Carga Reactiva en el Paso 6 de Caja**:
+   - Mediante la acción `get_treatments` de `api/odontograma_api.pl`, los hallazgos y patologías con costo presupuestado se desglosan en items individuales para el carrito (`OD-T-[pieza]-[cara]`).
+   - La función `cargarTratamientosOdontoACaja()` inyecta los conceptos en `carritoConsulta` y actualiza el campo oculto `odonto_alias_seleccionado` con el nombre del odontograma (ej. `Odontograma Inicial`).
+2. **Cierre de Consulta y Jerarquía de Procedencia en Recibo**:
+   - Al finalizar la consulta en `api/cerrar_consulta_privado.pl`, el backend detecta el odontograma y adopta la **Procedencia 2**: la cabecera `NOTA / CONCEPTO` del recibo se rotula con el **Alias del Odontograma**.
+   - Los ítems de la tabla corresponden estrictamente a los procedimientos clínicos (ej. Pieza #42 por $950.00 y Pieza #47 por $850.00).
+   - Se erradica la inyección de renglones artificiales de abono en la tabla de conceptos cuando ya existen cargos con costo, cuadrando al centavo la suma de los conceptos con el importe cobrado y el total del tratamiento.
 
 
 

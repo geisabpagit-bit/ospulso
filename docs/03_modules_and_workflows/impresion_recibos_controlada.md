@@ -59,6 +59,20 @@ Todo recibo incluye una barra superior de acciones visible únicamente en pantal
   - Al avanzar de **Step 6 (Caja)** a **Step 7 (Cierre)**, se evalúa el tipo de organización (`Consultorio Individual` o consultorio privado sin CLUES). Si aplica, se dispara reactivamente la función `verificarYProcederReciboPrevio()`, abriendo un modal ad-hoc de recibo previo con formato ticket compacto (440px), membrete comercial, Cédula Profesional del médico tratante y desglose de cargos/abonos.
   - Al ejecutar `finalizarConsulta()` en el Step 7, el backend (`api/cerrar_consulta_privado.pl`) persiste el recibo con sus **17 columnas canónicas** en `dat/folios_recibos_privados.dat` e indica `recibo_script = "imprimir_recibo_caja_consultorio.pl"`. El frontend abre directamente esta URL en lugar del formato institucional estándar.
 
+- **Especificaciones del Formato de Consultorio Privado (`api/imprimir_recibo_caja_consultorio.pl`)**:
+  1. **Búsqueda Exacta y Blindaje Anti-Falsos Positivos**: El script busca el comprobante mediante coincidencia exacta de folio (`c_folio eq $buscado`), ID de recibo (`c_id eq $buscado`) o ID de consulta (`c_cons eq $buscado`), erradicando expresiones regulares numéricas permisivas que provocaban colisiones hacia el folio 1.
+  2. **Desglose Financiero con Saldo Remanente**: El bloque de totales presenta con total transparencia:
+     - `Total Servicios / Tratamiento`: Valor total presupuestado o devengado.
+     - `IMPORTE COBRADO`: Monto efectivamente ingresado en caja en la sesión.
+     - `Saldo Remanente`: Deuda restante o `$0.00 (Liquidado)` cuando se cubre la totalidad.
+     - `Estatus`: `Liquidado` si saldo $\le \$0.005$ o `Cobrado` si permanece saldo pendiente.
+  3. **Jerarquía Canónica en `NOTA / CONCEPTO`**:
+     - *Procedencia 1*: Nombre de Cotización.
+     - *Procedencia 2*: Nombre/Alias de Odontograma Clínico.
+     - *Procedencia 3*: "Consulta Odontológica" o "Consulta Médica" (desde carrito).
+     - *Procedencia 4*: "Abono a Cuenta de Tratamiento" o "Liquidación de Tratamiento" (en continuaciones sin cargos clínicos nuevos).
+  4. **Sanitización Retroactiva Antimultiplicación**: Si un recibo histórico contiene ítems clínicos con costo y además una fila redundante de abono, el visualizador suprime la fila redundante para asegurar que la tabla sume exactamente `TOTAL_CARGOS`.
+
 
 ---
 

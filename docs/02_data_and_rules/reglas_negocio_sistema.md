@@ -72,3 +72,24 @@
 4. **Sincronización Dinámica de Menú Lateral**:
    - El componente `utils/sub_sidebar.pl` evalúa `tiene_permiso_modulo()` pasando el `$id_usuario_sesion` de la sesión activa, garantizando que si a un colaborador se le otorga o revoca un módulo mediante excepción individual, la opción se dibuje u oculte en tiempo real en la navegación.
 
+---
+
+## 9. Emisión de Recibos de Consultorio y Continuación de Tratamiento
+
+1. **Jerarquía Canónica de Procedencias para `NOTA / CONCEPTO`**:
+   - **Procedencia 1 (Cotización)**: Si la consulta tiene una cotización vinculada, la cabecera del recibo (`NOTA / CONCEPTO`) adopta obligatoriamente el **Nombre de la Cotización** (`dat/cotizaciones.dat`), y sus procedimientos pasan como ítems a la tabla.
+   - **Procedencia 2 (Odontograma)**: Si no hay cotización pero se seleccionó un odontograma en el Paso 3 / Paso 6, la cabecera adopta el **Nombre/Alias del Odontograma** registrado en "Odontogramas Clínicos Disponibles", y sus tratamientos presupuestados pasan como ítems a la tabla.
+   - **Procedencia 3 (Carrito Directo)**: Si no hay cotización ni odontograma y se agregaron servicios/conceptos directamente al carrito, la cabecera adopta `"Consulta Odontológica"` (para especialidad dental) o `"Consulta Médica"` (demás especialidades), y los ítems del carrito pasan como ítems a la tabla.
+   - **Procedencia 4 (Tratamiento por Saldo Pendiente o Continuación)**: Si la consulta genera un saldo pendiente ($cargos > $abono), se convierte automáticamente en un **Tratamiento Activo** (`dat/tratamientos.dat`). En consultas de continuación pura (abono a saldo sin nuevos servicios clínicos con costo), la cabecera adopta `"Abono a Cuenta de Tratamiento"` o `"Liquidación de Tratamiento"`.
+
+2. **Regla de Oro Antimultiplicación de Ítems (Aritmética Coherente)**:
+   - En consultas que ya cuentan con procedimientos clínicos presupuestados o cargados con costo propio, la tabla de conceptos **debe listar exclusivamente los procedimientos clínicos reales** (ej. Pieza #42 de $950.00 y Pieza #47 de $850.00 = $1,800.00).
+   - Está **estrictamente prohibido** inyectar una fila de "Abono a Cuenta de Tratamiento" dentro de la tabla si ya hay cargos con costo en la sesión, ya que esto duplicaría la suma visual frente al importe cobrado. El abono amortiza dichos procedimientos en el bloque inferior (`IMPORTE COBRADO`).
+   - La fila de concepto `Abono a Cuenta de Tratamiento` o `Liquidación de Tratamiento` se inserta en la tabla de ítems **únicamente** en consultas de seguimiento puro donde no hubo nuevos procedimientos clínicos (tarifa de consulta a $0.00).
+
+3. **Ciclo de Vida de Tratamientos a Abonos**:
+   - En consultas subsecuentes de un tratamiento abierto con saldo pendiente:
+     - La consulta médica aplica tarifa de **$0.00** (sin inventar cargos de consulta general por el monto del abono).
+     - El recibo (`api/imprimir_recibo_caja_consultorio.pl`) desglosa el `Total Servicios / Tratamiento`, el `IMPORTE COBRADO` y el **`Saldo Remanente`**.
+     - Al cubrirse el saldo, el remanente se refleja como `$0.00 (Liquidado)`, el estatus pasa a `Liquidado` y el tratamiento en `dat/tratamientos.dat` se sella a `ESTADO = Cerrado` con su fecha de conclusión.
+
