@@ -93,3 +93,43 @@
      - El recibo (`api/imprimir_recibo_caja_consultorio.pl`) desglosa el `Total Servicios / Tratamiento`, el `IMPORTE COBRADO` y el **`Saldo Remanente`**.
      - Al cubrirse el saldo, el remanente se refleja como `$0.00 (Liquidado)`, el estatus pasa a `Liquidado` y el tratamiento en `dat/tratamientos.dat` se sella a `ESTADO = Cerrado` con su fecha de conclusión.
 
+---
+
+## 10. Aislamiento Estricto de Receta Médica y Prevención de Fuga de Prescripciones
+
+1. **Persistencia Condicional en `dat/recetas.dat`**:
+   - Únicamente se crea o actualiza un registro en `dat/recetas.dat` si `$requiere_receta eq '1'` Y la lista de medicamentos contiene al menos un fármaco válido.
+   - En consultas sin prescripción de fármacos o con el switch desmarcado, se garantiza que `recetas.dat` no reciba ninguna fila y se purga cualquier registro previo asociado al `id_consulta`.
+2. **Sanitización Previa al Guardado**:
+   - En `views/partials/consultas/step_soap.pl`, al desmarcar el switch *"¿Expedir Receta Médica?"*, se purga de inmediato el array en memoria, se limpia el DOM y se resetea `receta_json_input.value = "[]"`.
+   - En `views/render_consultas_privado.pl`, la función `finalizarConsulta` sanitiza el `FormData` forzando `requiere_receta = '0'` y eliminando folios e indicaciones residuales.
+   - En `api/cerrar_consulta_privado.pl`, si `requiere_receta ne '1'`, se purga el `payload_json` de llaves residuales antes de persistir en `consultas_clinicas.dat`.
+3. **Erradicación de Fallbacks Ficticios**:
+   - En `api/imprimir_receta_api.pl`, queda estrictamente prohibida la inyección de medicamentos simulados (`Paracetamol/Tempra`) o identificadores falsos. Si una consulta no cuenta con receta emitida, despliega un aviso formal y concluye de forma segura.
+
+---
+
+## 11. Aislamiento Estricto de Consentimiento Informado y Gobernanza de Acciones Clínicas
+
+1. **Persistencia Condicional en `dat/consentimientos.dat`**:
+   - Únicamente se genera registro en `dat/consentimientos.dat` y se extraen físicamente archivos de firma `.png` si `$requiere_consentimiento eq '1'`.
+   - Si no se seleccionó consentimiento, se purgan de `%payload` las firmas y campos del procedimiento, y se elimina cualquier registro residual de `dat/consentimientos.dat`.
+2. **Limpieza Reactiva de Lienzos de Firma**:
+   - Al desmarcar el switch de consentimiento o abrir una nueva consulta, `toggleSeccionConsentimiento(false)` borra físicamente los lienzos de firma (`canvasPaciente.clear()`, `canvasMedico.clear()`), vacía los campos base64 ocultos y limpia los inputs de texto del procedimiento.
+3. **Visibilidad Condicional de Botones de Acción en Expediente y Portal**:
+   - En `views/render_expediente_clinico.pl`, `views/mis_consultas.pl` y `api/get_mis_consultas.pl`, los botones **"Receta"** y **"Consentimiento"** se renderizan de forma estrictamente condicional.
+   - Si la consulta no tiene medicamentos prescritos, el botón **"Receta"** se omite.
+   - Si la consulta no requirió consentimiento informado emitido, el botón **"Consentimiento"** no aparece en la interfaz.
+
+---
+
+## 12. Gobernanza del Expediente Clínico: Unificación y Erradicación de Redundancias
+
+1. **Unificación de Citas y Consultas**:
+   - La pestaña legacy `Citas` (`tab0`) queda suprimida del menú lateral de navegación. El **Hub de Consultas (`tab10`)** asume el control integral tanto de citas agendadas como del historial clínico de atenciones finalizadas.
+   - Cualquier redirección o enlace histórico hacia `#tab0` es interceptado por `checkHashTab()` y canalizado fluidamente hacia `#tab10`.
+2. **Supresión del Botón Redundante de Reporte**:
+   - Se retiró el botón superior de "Generar Reporte" del encabezado del expediente, ya que las acciones de exportación y consulta detallada residen en sus respectivos submódulos clínicos.
+3. **Resolución Canónica del Nombre Médico (`limpiar_titulo_medico`)**:
+   - Se garantiza la visualización del nombre de pila y apellidos reales del facultativo tratante (vía `usuarios.dat`, sesión activa o catálogos CLUE), eliminando identificadores opacos numéricos y prefijos redundantes (`Dr(a).`) ante la etiqueta de la interfaz.
+

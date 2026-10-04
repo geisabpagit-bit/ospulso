@@ -312,4 +312,36 @@ Control de tratamientos abiertos, planes presupuestados y seguimiento de saldos.
 | 8 | `TOTAL` | Decimal | Presupuesto total del tratamiento | `3400.00` |
 | 9 | `ID_CITA` | String (FK) | Próxima cita de seguimiento programada | `CITA_17911000` |
 
+---
+
+## 9. Archivos de Prescripciones y Documentos Legales Clínicos (`dat/`)
+
+### 9.1 `recetas.dat`
+Registro canónico de recetas médicas emitidas de forma efectiva. Solo persiste registros cuando la consulta médica requirió receta y prescribió fármacos. Delimitador: `|`.
+
+| Campo | Nombre | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | `ID_RECETA` | String (PK) | Identificador único de receta | `REC-1791083469-55` |
+| 2 | `ID_CONSULTA` | String (FK) | Identificador de consulta clínica vinculada | `CONS-1791083469-12` |
+| 3 | `ID_PACIENTE` | String (FK) | ID del paciente en `pacientes.dat` | `PAC-0941` |
+| 4 | `ID_MEDICO` | String (FK) | ID del médico prescriptor en `usuarios.dat` | `DOC-001` |
+| 5 | `FECHA` | Date (YYYY-MM-DD) | Fecha de prescripción y emisión | `2026-10-04` |
+| 6 | `FOLIO` | String | Folio consecutivo impreso de receta | `REC-0042` |
+| 7 | `DIAGNOSTICO` | String | Diagnóstico CIE-10 o motivo clínico | `Faringitis aguda` |
+| 8 | `PAYLOAD_JSON` | JSON String | Array de medicamentos prescritos (nombre, dosis, vía, frecuencia, duración) | `[{"medicamento":"Amoxicilina 500mg",...}]` |
+
+### 9.2 `consentimientos.dat`
+Control médico-legal de consentimientos informados emitidos y firmados digitalmente. Solo persiste cuando el médico solicitó consentimiento y se capturaron las firmas. Delimitador: `|`.
+
+| Campo | Nombre | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | `ID_CONSENTIMIENTO` | String (PK) | Identificador único del consentimiento | `CONS-INF-1791083469-89` |
+| 2 | `ID_CONSULTA` | String (FK) | Identificador de consulta clínica vinculada | `CONS-1791083469-12` |
+| 3 | `ID_PACIENTE` | String (FK) | ID del paciente otorgante en `pacientes.dat` | `PAC-0941` |
+| 4 | `ID_MEDICO` | String (FK) | ID del médico responsable en `usuarios.dat` | `DOC-001` |
+| 5 | `FECHA` | Date (YYYY-MM-DD) | Fecha de formalización y firma | `2026-10-04` |
+| 6 | `PROCEDIMIENTO` | String | Nombre del procedimiento médico/quirúrgico | `Extracción de tercer molar retenido` |
+| 7 | `PAYLOAD_JSON` | JSON String | Detalle normativo: objetivo, beneficios, riesgos, alternativas, firmas base64 y rutas `.png` | `{"procedimiento":"...","firma_paciente":"...","firma_medico":"..."}` |
+
+
 

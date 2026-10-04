@@ -205,4 +205,26 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - Padding interno de celdas optimizado a `6px 12px`, suprimiendo huecos vacíos innecesarios.
    - Borde lateral izquierdo turquesa de `3.5px` (`var(--medentia-success, #19b7a5)`) para rápida jerarquía visual.
 
+---
+
+## 8. Estándares UI Móviles y Responsividad en Expediente Clínico (`views/render_expediente_clinico.pl`, `css/expediente_mobile.css`)
+
+1. **Drawer de Navegación Lateral Móvil (Sidebar Drawer)**:
+   - En pantallas táctiles (`< 992px`), el menú lateral de navegación se transforma en un **Drawer Flotante** anclado estrictamente a `position: fixed; top: 0; left: 0; bottom: 0; width: 280px; z-index: 1060;`.
+   - Posee un backdrop/overlay semitransparente con desenfoque de cristal (`backdrop-filter: blur(4px); background: rgba(10, 42, 102, 0.45);`).
+   - Se oculta de forma fluida (`transform: translateX(-100%)`) y se activa con la clase `.open` (`transform: translateX(0)`).
+   - Se cierra automáticamente al pulsar fuera del panel, al interactuar con el botón de cierre (`<button class="btn-close">`) o al seleccionar cualquiera de las pestañas (`.sdm-tab-btn`).
+2. **Hero Header Anti-Distorsión del Paciente**:
+   - El contenedor azul superior (`.card-hero-paciente`) adapta su layout de horizontal a vertical en móviles (`flex-direction: column; align-items: center; text-align: center;`).
+   - **Avatar Proporcional**: Se fija con `flex-shrink: 0; width: 72px; height: 72px; min-width: 72px; border-radius: 50%; object-fit: cover;` evitando aplastamientos o deformaciones elípticas.
+   - **Tipografía Escalable**: El nombre del paciente escala a `1.25rem` con `word-break: break-word;` y las insignias (edad, sexo, tipo de sangre, estado) se ajustan con `flex-wrap: wrap; justify-content: center; gap: 4px;`.
+3. **Erradicación de Doble Scroll Vertical**:
+   - Se elimina la regla heredada de altura fija en `.sdm-main-content` y `#app-viewport`, fijando `height: auto !important; overflow-y: visible !important;` en móviles.
+   - El scroll vertical recae de forma unificada y natural en el `window` / `body`, eliminando barras de scroll anidadas y desbordamientos indeseados.
+4. **Priorización de Signos Vitales y KPIs Clínicos**:
+   - En el Tab 1 (*Resumen Clínico*), las tarjetas somatométricas (Presión Arterial, Frecuencia Cardíaca, Temperatura, IMC, Glucosa) se despliegan en una cuadrícula compacta de 2 columnas (`grid-template-columns: repeat(2, 1fr)`), permitiendo al médico escanear los signos vitales de un vistazo sin necesidad de scroll horizontal.
+5. **Gobernanza de Acciones Rápidas (Timeline)**:
+   - En las tarjetas del historial de atenciones (Tab 10), los botones de acción (`Detalles`, `Receta`, `Consentimiento`, `Recibo`) se agrupan con `.flex-wrap` y borde redondeado tipo píldora (`rounded-pill px-3 py-1`).
+   - El botón **Receta** se oculta si no hubo prescripción de fármacos y el botón **Consentimiento** se oculta si la atención no requirió dicho documento legal.
+
 
