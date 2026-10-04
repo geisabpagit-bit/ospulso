@@ -334,5 +334,21 @@ graph LR
   - Para erradicar bucles infinitos de redibujado (flickering/loops a 60 FPS) provocados por cambios de posición en hover, los tooltips están desacoplados a nivel de `document.body` mediante `position: fixed; pointer-events: none;`.
   - **Mecanismo Anti-Loop en Acordeones**: Al hacer clic en la cabecera de cualquier acordeón estando en modo colapsado, el menú se expande automáticamente a su ancho regular (280px) mediante `window.toggleDesktopSidebar()`, garantizando acceso instantáneo y visualmente estable a los submenús.
 
+### 4.26 Refactorización Mobile-First de Wizards (Hero Header Compacto), Dock de Navegación RBAC y Hub de Consultas
+- **Hero Header No Invasivo en Wizards Clínicos (`views/render_consultas_privado.pl`, `views/crud_paciente.pl`)**:
+  - **Renombrado Canónico**: El título de la consulta se normaliza a **"Consulta Médica"** (eliminando el sufijo redundante `(Privada)`).
+  - **Componente `.wizard-hero-header`**: Desacoplado de la clase global `.bg-medentia-gradient` para eliminar la distorsión horizontal (`width: 100%`) que deformaba el contenedor circular del avatar convirtiéndolo en una elipse gigante en celulares.
+  - **Diseño App-Bar Compacto (~55px de alto)**: En pantallas `< 768px`, el header adopta un layout horizontal compacto con un contenedor de ícono de 36x36px inamovible, título legible en `1.05rem` y metadatos en micro-píldoras satinadas, liberando más del 85% de la pantalla para el stepper y los formularios de atención.
+- **Dock Inferior Móvil: Gobernanza RBAC y Resaltado de Consulta en Expediente (`utils/sub_bottom_nav.pl`, `views/render_expediente_clinico.pl`)**:
+  - **Corrección de Ícono Activo / FAB**: Al ingresar al expediente del paciente (`render_expediente_clinico.pl`), el botón flotante central elevado (`.dock-fab`) resalta de forma destacada el ícono de consulta médica (`bi-heart-pulse-fill`), eliminando el erróneo "Nuevo Paciente" (`person-plus`).
+  - **Segregación Estricta RBAC (`$role eq 'Medico'`)**: La opción y botón destacado de consulta médica se renderizan de forma **exclusiva** para usuarios con rol de médico. Para roles administrativos o de recepción, la opción de consulta médica se omite por completo del dock.
+- **Refactorización Responsiva del Hub de Consultas (`tab10`)**:
+  - **Encabezado Adaptable**: Botones de *"Gestionar Agenda"* y *"Consulta Express (Sin Cita)"* estructurados en flexbox fluido con touch target ergonómico.
+  - **Tarjetas de Citas Programadas**: Se descompuso la insignia de estado y fecha/hora en dos píldoras independientes con ajuste automático de línea, erradicando recortes o desbordamientos horizontales de texto en dispositivos móviles.
+  - **Resiliencia Flat-File en `dat/citas.dat`**: Se corrigió el uso indebido de pipes (`|`) al concatenar notas de bitácora de trazabilidad (`[Atencion: ...]`), sustituyéndolo por guiones (` - `) e implementando lógica de auto-recuperación de columnas en `cargar_citas_paciente`.
+- **Estabilidad de Consola y Ocultamiento Total de Sidebar en Celular (`js/sub_sidebar.js`, `css/sub_sidebar.css`, `css/expediente_completo.css`)**:
+  - **Resolución de Error de Consola**: Se erradicó el error `Identifier 'floatingTooltip' has already been declared` asignando la referencia al objeto global `window.sidebarFloatingTooltip`.
+  - **Ocultamiento Limpio de Sidebar Móvil**: Se forzó `transform: translateX(-105%) !important; visibility: hidden !important; pointer-events: none !important; box-shadow: none !important;` en estado cerrado, eliminando cualquier asomo o filtración visual del borde y su sombra en el margen izquierdo del teléfono.
+
 
 

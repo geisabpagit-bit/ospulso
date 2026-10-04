@@ -273,6 +273,23 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
      - **Odontograma**: Reemplaza el ítem legacy *"2.1 Odonto"*. Solo es visible para usuarios con rol médico (`$role eq 'Medico'`) y cuya organización tenga como Especialidad Médica Principal *"Odontología"* (código `100`).
      - **Imagenología**: Reemplaza el ítem legacy *"2.2 Rayos X"*. Solo es visible si la organización tiene activa la capacidad SaaS requerida *"Imagenología"* en sus credenciales/planes.
 
+---
+
+## 10. Estándares UI Móviles para Wizards Clínicos y Dock Inferior (`consulta_flow.css`, `sub_bottom_nav.pl`, `render_consultas_privado.pl`, `crud_paciente.pl`)
+
+1. **Componente `.wizard-hero-header` (App-Bar Móvil No Invasiva)**:
+   - **Desacoplamiento Estricto**: Todo formulario wizard clínico y administrativo de alta densidad debe utilizar `.wizard-hero-header` en sustitución del genérico `header.bg-medentia-gradient`.
+   - **Erradicación de Elipses**: Los contenedores `.hero-icon-box` e íconos `.rounded-circle` mantienen forzado `flex-shrink: 0; width: 36px; height: 36px; max-width: fit-content !important;` en móvil, garantizando esferas perfectas sin estiramiento horizontal.
+   - **Altura Compacta (~55px)**: El encabezado opera como una barra de aplicación móvil que no excede los 60px de altura, estructurando el ícono, título y chips de metadatos en una sola fila compacta, reservando más del 85% del viewport útil para el stepper y los campos clínicos.
+2. **Dock Inferior Flotante con Gobernanza RBAC (`utils/sub_bottom_nav.pl`)**:
+   - **Resaltado de Consulta en Expediente**: Al abrir `render_expediente_clinico.pl`, el botón central flotante elevado (`.dock-fab`) adopta el rol destacado de **Consulta Médica** (`bi-heart-pulse-fill`), vinculando directamente al inicio de consulta del paciente (`render_consultas_privado.pl?id=$id_paciente`).
+   - **Segregación Estricta por Rol**: El botón/ítem de consulta en el dock móvil se despliega **exclusivamente** si el usuario autenticado posee rol médico (`$role =~ /Medico/i`). Para perfiles administrativos, de caja o recepción, la opción de consulta permanece oculta de la barra de navegación.
+3. **Hub de Consultas Responsivo**:
+   - Las citas programadas e historial clínico implementan tarjetas flexibles (`flex-column flex-sm-row`) con micro-píldoras de estado y fecha/hora que previenen recortes de texto.
+   - Touch target mínimo de 48px para los botones de acción en celulares y ancho expandible (`w-100 w-sm-auto`).
+4. **Ocultamiento Limpio de Sidebar Móvil**:
+   - En estado colapsado (`@media (max-width: 991px)`), `.diamond-sidebar` aplica `transform: translateX(-105%) !important; visibility: hidden !important; pointer-events: none !important; box-shadow: none !important;`, previniendo que bordes o sombras proyectadas asomen en el margen izquierdo del dispositivo.
+
 
 
 

@@ -87,22 +87,22 @@ print <<HTML;
 
 <div class="animate-fade-in p-1 p-md-3">
     <!-- ENCABEZADO CORPORATIVO MEDENTIA DIAMOND -->
-    <header class="bg-medentia-gradient text-white p-3 p-md-4 shadow-sm mb-4" style="border-radius: 1.5rem;">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="bg-white bg-opacity-10 p-2 p-md-3 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px;">
-                    <i class="bi bi-person-vcard-fill fs-3 text-white"></i>
+    <header class="wizard-hero-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 hero-content-row">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="hero-icon-box">
+                    <i class="bi bi-person-vcard-fill text-white fs-4"></i>
                 </div>
                 <div>
-                    <h3 id="page-hero-title" class="fw-black mb-0 text-white fs-4 fs-md-2" style="letter-spacing: -0.5px;">@{[ $id_target ne '' ? 'Editar Ficha de Paciente' : 'Inscripción de Paciente' ]}</h3>
-                    <p id="page-subtitle" class="text-white-50 small mb-0 mt-1">@{[ $id_target ne '' ? 'Modifica los datos del expediente clínico del paciente' : 'Completa los campos para generar la ficha clínica oficial' ]}</p>
+                    <h3 id="page-hero-title" class="hero-title">@{[ $id_target ne '' ? 'Editar Ficha de Paciente' : 'Inscripción de Paciente' ]}</h3>
+                    <p id="page-subtitle" class="hero-subtitle mb-0">@{[ $id_target ne '' ? 'Modifica los datos del expediente clínico del paciente' : 'Completa los campos para generar la ficha clínica oficial' ]}</p>
                 </div>
             </div>
-            <div class="d-flex gap-2">
-                <a href="$btn_cancel_url" class="btn text-white fw-bold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2 small transition-all" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);">
+            <div class="d-flex gap-2 w-100 w-sm-auto justify-content-end mt-1 mt-sm-0">
+                <a href="$btn_cancel_url" class="btn text-white fw-bold rounded-pill px-3 py-1 py-md-2 shadow-sm d-flex align-items-center gap-1 gap-md-2 small transition-all" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);">
                     <i class="bi bi-arrow-left text-white"></i><span>$btn_cancel_text</span>
                 </a>
-                <button type="button" id="btnGuardarPaciente" class="btn btn-medentia rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2">
+                <button type="button" id="btnGuardarPaciente" class="btn btn-medentia rounded-pill px-3 px-md-4 py-1 py-md-2 fw-bold shadow-sm d-flex align-items-center gap-2 small">
                     <i class="bi bi-cloud-check-fill me-1" style="color: var(--md-cyan-ia);"></i><span id="btn-text-guardar">@{[ $id_target ne '' ? 'Actualizar Ficha' : 'Guardar Expediente' ]}</span>
                 </button>
             </div>

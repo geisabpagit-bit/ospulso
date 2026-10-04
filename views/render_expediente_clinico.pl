@@ -154,7 +154,7 @@ if ($paciente) {
 }
 
 print "</main>\n";
-render_bottom_nav('pacientes');
+render_bottom_nav('expediente', id_paciente => $id_target);
 print "</body></html>\n";
 
 sub parseFloatVal {
@@ -1204,19 +1204,28 @@ JS
     print <<HTML;
         <!-- 10: CONSULTAS (HUB CLÍNICO) -->
         <section class="sdm-tab-sec d-none" id="tab10">
-            <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-                <div>
-                    <h3 class="fw-black m-0" style="color: var(--md-blue-deep);">Hub de Consultas</h3>
-                    <p class="text-muted small fw-bold">ATENCI&Oacute;N CL&Iacute;NICA Y TRAZABILIDAD</p>
+            <div class="d-flex justify-content-between align-items-start align-items-md-center mb-4 flex-column flex-md-row gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(25, 183, 165, 0.12); border: 1.5px solid rgba(25, 183, 165, 0.3);">
+                        <i class="bi bi-heart-pulse-fill fs-5" style="color: var(--md-teal-clinical);"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-black m-0" style="color: var(--md-blue-deep); letter-spacing: -0.5px;">Hub de Consultas</h3>
+                        <p class="text-muted small fw-bold m-0" style="letter-spacing: 0.5px;">ATENCI&Oacute;N CL&Iacute;NICA Y TRAZABILIDAD</p>
+                    </div>
                 </div>
-                <div class="d-flex gap-2 flex-wrap">
-                    <a href="agenda_main.pl?id=$paciente->{id_paciente}" class="btn btn-outline-medentia d-flex align-items-center"><i class="bi bi-calendar-event me-2" style="color: var(--md-teal-clinical);"></i>Gestionar Agenda</a>
-                    <a href="render_consultas.pl?id=$paciente->{id_paciente}" class="btn btn-medentia d-flex align-items-center"><i class="bi bi-lightning-charge-fill me-2" style="color: var(--md-cyan-ia);"></i>Consulta Express (Sin Cita)</a>
+                <div class="d-flex gap-2 flex-wrap w-100 w-md-auto">
+                    <a href="agenda_main.pl?id=$paciente->{id_paciente}" class="btn btn-outline-medentia flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center rounded-pill px-3 py-2 small fw-bold">
+                        <i class="bi bi-calendar-event me-2" style="color: var(--md-teal-clinical);"></i>Gestionar Agenda
+                    </a>
+                    <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}" class="btn btn-medentia flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center rounded-pill px-3 py-2 small fw-bold shadow-sm">
+                        <i class="bi bi-lightning-charge-fill me-2" style="color: var(--md-cyan-ia);"></i>Consulta Express (Sin Cita)
+                    </a>
                 </div>
             </div>
 
             <!-- Panel Superior: Citas Pendientes de Atención -->
-            <h5 class="fw-black mb-4" style="color: var(--md-blue-deep);"><i class="bi bi-calendar-check-fill me-2" style="color: var(--md-teal-clinical);"></i>Citas Programadas Listas para Atenderse</h5>
+            <h5 class="fw-black mb-3" style="color: var(--md-blue-deep);"><i class="bi bi-calendar-check-fill me-2" style="color: var(--md-teal-clinical);"></i>Citas Programadas Listas para Atenderse</h5>
             <div class="row g-3 mb-5">
 HTML
     my $hay_citas_pendientes = 0;
@@ -1229,16 +1238,21 @@ HTML
             my $btn_class = $is_en_consulta ? "btn btn-info text-white btn-sm d-flex align-items-center px-4 rounded-pill shadow-sm fw-bold" : "btn btn-medentia btn-sm d-flex align-items-center px-4 rounded-pill fw-bold";
             my $medico_nombre_pend = obtener_nombre_medico($c->{id_medico});
             print <<HTML;
-                <div class="col-lg-6">
-                    <div class="card-medentia-aura p-4 d-flex justify-content-between align-items-center" style="border-left: 5px solid var(--bs-$badge_color) !important;">
-                        <div>
-                            <span class="badge bg-${badge_color} text-white mb-2">$c->{estado} - $c->{fecha} $c->{hora}</span>
-                            <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);">$c->{motivo}</h5>
-                            <p class="small text-muted m-0">M&eacute;dico: $medico_nombre_pend</p>
+                <div class="col-12 col-xl-6">
+                    <div class="card-medentia-aura p-3 p-md-4 h-100 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 border-0 shadow-sm" style="border-left: 5px solid var(--bs-$badge_color) !important; border-radius: 1.25rem;">
+                        <div class="flex-grow-1 min-w-0 w-100">
+                            <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                                <span class="badge bg-${badge_color} text-white px-2 py-1 small rounded-pill fw-bold">$c->{estado}</span>
+                                <span class="badge bg-light text-secondary border px-2 py-1 small rounded-pill"><i class="bi bi-clock me-1"></i>$c->{fecha} &bull; $c->{hora}</span>
+                            </div>
+                            <h5 class="fw-bold m-0 text-truncate text-wrap" style="color: var(--md-blue-deep); font-size: 1.05rem;">$c->{motivo}</h5>
+                            <p class="small text-muted m-0 mt-1 d-flex align-items-center"><i class="bi bi-person-badge me-1 text-primary"></i><strong>M&eacute;dico:</strong>&nbsp;$medico_nombre_pend</p>
                         </div>
-                        <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="$btn_class">
-                            $btn_label <i class="bi bi-arrow-right-short ms-1"></i>
-                        </a>
+                        <div class="w-100 w-sm-auto flex-shrink-0 mt-2 mt-sm-0">
+                            <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="$btn_class w-100 w-sm-auto justify-content-center">
+                                $btn_label <i class="bi bi-arrow-right-short ms-1 fs-5"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
 HTML
@@ -1247,7 +1261,7 @@ HTML
     if (!$hay_citas_pendientes) {
         print <<HTML;
                 <div class="col-12">
-                    <div class="card-medentia-aura text-center p-5">
+                    <div class="card-medentia-aura text-center p-5 border-0 shadow-sm" style="border-radius: 1.25rem;">
                         <i class="bi bi-calendar-x display-6 d-block mb-3 opacity-25" style="color: var(--md-blue-deep);"></i>
                         <span class="fw-bold text-muted">No hay citas programadas pendientes de atenci&oacute;n para este paciente.</span>
                     </div>
@@ -1288,17 +1302,17 @@ HTML
             print <<HTML;
                 <div class="timeline-item">
                     <div class="timeline-dot" style="border-color: var(--md-teal-clinical)"></div>
-                    <div class="timeline-card card-medentia-aura">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="timeline-card card-medentia-aura p-3 p-md-4 border-0 shadow-sm" style="border-radius: 1.25rem;">
+                        <div class="d-flex justify-content-between align-items-start mb-2 flex-column flex-md-row gap-3">
                             <div>
                                 $badge_cita
                                 <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);">$motivo</h5>
                                 <p class="text-muted small mt-2 mb-0"><strong>Dx:</strong> $diag_trunc</p>
                             </div>
-                            <div class="text-end">
+                            <div class="text-start text-md-end w-100 w-md-auto">
                                 <div class="fw-black" style="font-size: 1.1rem; color: var(--md-teal-clinical);">$cons->{fecha}</div>
                                 <div class="small text-muted fw-bold">M&eacute;dico: $nombre_medico</div>
-                                <div class="d-flex gap-2 justify-content-end mt-2 flex-wrap">
+                                <div class="d-flex gap-2 justify-content-start justify-content-md-end mt-2 flex-wrap">
                                     <a href="consulta_detalles.pl?id_consulta=$cons->{id_consulta}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-eye-fill me-1"></i>Detalles</a>
                                     $btn_receta
                                     $btn_consentimiento
@@ -2725,7 +2739,18 @@ sub cargar_datos_paciente {
 
 sub cargar_citas_paciente {
     my ($id) = @_; my @h; my $res = leer_tabla(File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat'), '\|');
-    foreach my $c (@$res) { if ($c->[2] eq $id) { push @h, { id_cita=>$c->[0], id_medico=>$c->[1]||'N/A', fecha=>$c->[3], hora=>$c->[4], motivo=>$c->[6], estado=>$c->[8] }; } }
+    foreach my $c (@$res) {
+        if ($c->[2] eq $id) {
+            my $estado = $c->[8] // 'Programada';
+            my $notas  = $c->[7] // '';
+            # Si el estado comienza con [Atencion: y hay una columna posterior con el estado real
+            if ($estado =~ /^\[Atencion:/ && defined $c->[9] && $c->[9] ne '') {
+                $notas .= " - $estado";
+                $estado = $c->[9];
+            }
+            push @h, { id_cita=>$c->[0], id_medico=>$c->[1]||'N/A', fecha=>$c->[3], hora=>$c->[4], motivo=>$c->[6], notas=>$notas, estado=>$estado };
+        }
+    }
     return sort { ($b->{fecha} cmp $a->{fecha}) || (($b->{hora} // '') cmp ($a->{hora} // '')) } @h;
 }
 

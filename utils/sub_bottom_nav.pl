@@ -6,15 +6,16 @@ use lib '..';
 require 'auth/check_session.pl';
 
 sub render_bottom_nav {
-    my ($active) = @_;
+    my ($active, %opts) = @_;
     $active //= '';
 
     my $sd = check_session();
     my $role = $sd->{role} || 'Invitado';
+    my $id_paciente = $opts{id_paciente} || $opts{id} || '';
 
     print <<HTML;
     <!-- SDM Premium Bottom Navigation (Item 3.3 Style Guide) -->
-    <link rel="stylesheet" href="../css/bottom_nav.css?v=1778173537">
+    <link rel="stylesheet" href="../css/bottom_nav.css?v=1778173538">
     
     <nav class="sdm-main-bottom-nav d-md-none animate__animated animate__slideInUp">
         <a href="inicial.pl" class="main-tab-item @{[$active eq 'inicio' ? 'active' : '']}" title="Inicio">
@@ -50,7 +51,31 @@ HTML
 
         print <<HTML;
         @{[ 
-            $active eq 'agenda' ? qq(
+            ($active eq 'expediente' || $active eq 'consulta') ? (
+                $is_medico ? qq(
+                    <a href="agenda_main.pl" class="main-tab-item" title="Citas">
+                        <i class="bi bi-calendar3"></i>
+                        <span>Citas</span>
+                    </a>
+                    <a href="@{[$id_paciente ? "render_consultas_privado.pl?id=$id_paciente" : "render_consultas.pl"]}" class="main-tab-item dock-fab active" title="Consulta Médica">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                        <span>Consulta</span>
+                    </a>
+                    <a href="pacientes.pl" class="main-tab-item" title="Pacientes">
+                        <i class="bi bi-people"></i>
+                        <span>Pacientes</span>
+                    </a>
+                ) : qq(
+                    <a href="agenda_main.pl" class="main-tab-item" title="Citas">
+                        <i class="bi bi-calendar3"></i>
+                        <span>Citas</span>
+                    </a>
+                    <a href="pacientes.pl" class="main-tab-item active" title="Pacientes">
+                        <i class="bi bi-people"></i>
+                        <span>Pacientes</span>
+                    </a>
+                )
+            ) : $active eq 'agenda' ? qq(
                 <a href="pacientes.pl" class="main-tab-item" title="Pacientes">
                     <i class="bi bi-people"></i>
                     <span>Pacientes</span>

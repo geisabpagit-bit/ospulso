@@ -253,15 +253,20 @@
         background: rgba(255, 255, 255, 0.98) !important;
         backdrop-filter: blur(25px) saturate(180%) !important;
         -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
-        box-shadow: 15px 0 45px rgba(10, 42, 102, 0.28) !important;
+        box-shadow: none !important;
         z-index: 10500 !important;
-        transition: transform 0.35s cubic-bezier(0.19, 1, 0.22, 1) !important;
-        transform: translateX(-100%) !important;
+        transition: transform 0.35s cubic-bezier(0.19, 1, 0.22, 1), visibility 0.35s, box-shadow 0.35s !important;
+        transform: translateX(-105%) !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
     }
     .diamond-sidebar.show {
+        visibility: visible !important;
+        pointer-events: auto !important;
         transform: translateX(0) !important;
+        box-shadow: 15px 0 45px rgba(10, 42, 102, 0.28) !important;
         left: 0 !important;
     }
     /* El modo compacto se desactiva en móviles y tabletas para garantizar visibilidad íntegra */

@@ -149,13 +149,13 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // Sistema de Tooltips Flotantes para Menú Compacto (Anti-Loop, Ultraligero y Seguro)
-let floatingTooltip = null;
+window.sidebarFloatingTooltip = window.sidebarFloatingTooltip || null;
 
 function initSidebarTooltips() {
-    if (!floatingTooltip) {
-        floatingTooltip = document.createElement("div");
-        floatingTooltip.className = "sidebar-floating-tooltip";
-        document.body.appendChild(floatingTooltip);
+    if (!window.sidebarFloatingTooltip) {
+        window.sidebarFloatingTooltip = document.createElement("div");
+        window.sidebarFloatingTooltip.className = "sidebar-floating-tooltip";
+        document.body.appendChild(window.sidebarFloatingTooltip);
     }
 
     const sidebar = document.getElementById("moduleSidebar");
@@ -219,23 +219,23 @@ function handleTooltipShow(e) {
         return;
     }
 
-    if (!floatingTooltip) {
-        floatingTooltip = document.createElement("div");
-        floatingTooltip.className = "sidebar-floating-tooltip";
-        document.body.appendChild(floatingTooltip);
+    if (!window.sidebarFloatingTooltip) {
+        window.sidebarFloatingTooltip = document.createElement("div");
+        window.sidebarFloatingTooltip.className = "sidebar-floating-tooltip";
+        document.body.appendChild(window.sidebarFloatingTooltip);
     }
 
-    floatingTooltip.textContent = text;
+    window.sidebarFloatingTooltip.textContent = text;
     const rect = target.getBoundingClientRect();
     
-    floatingTooltip.style.top = (rect.top + (rect.height / 2) - 14) + "px";
-    floatingTooltip.style.left = (rect.right + 12) + "px";
-    floatingTooltip.classList.add("show");
+    window.sidebarFloatingTooltip.style.top = (rect.top + (rect.height / 2) - 14) + "px";
+    window.sidebarFloatingTooltip.style.left = (rect.right + 12) + "px";
+    window.sidebarFloatingTooltip.classList.add("show");
 }
 
 function handleTooltipHide() {
-    if (floatingTooltip) {
-        floatingTooltip.classList.remove("show");
+    if (window.sidebarFloatingTooltip) {
+        window.sidebarFloatingTooltip.classList.remove("show");
     }
 }
 

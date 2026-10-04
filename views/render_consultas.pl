@@ -105,7 +105,7 @@ if ($id_cita) {
                 if (($fecha_orig ne $hoy_fecha || $hora_orig ne $hoy_hora) && $fecha_orig ne '') {
                     my $bitacora = "[Atencion: $hoy_fecha $hoy_hora (Prog. original: $fecha_orig $hora_orig)]";
                     if (($c[7] // '') !~ /\Q$bitacora\E/) {
-                        $c[7] = ($c[7] && $c[7] !~ /^\s*$/) ? "$c[7] | $bitacora" : $bitacora;
+                        $c[7] = ($c[7] && $c[7] !~ /^\s*$/) ? "$c[7] - $bitacora" : $bitacora;
                     }
                 }
 

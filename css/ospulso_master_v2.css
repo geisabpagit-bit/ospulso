@@ -789,10 +789,19 @@
         width: 100% !important;
     }
 
-    header.bg-medentia-gradient .d-flex > div,
-    .diamond-header-compact > div {
+    header.bg-medentia-gradient .d-flex > div:not(.rounded-circle):not(.flex-shrink-0):not(.hero-icon-box),
+    .diamond-header-compact > div:not(.rounded-circle):not(.flex-shrink-0):not(.hero-icon-box) {
         text-align: center !important;
         width: 100% !important;
+    }
+
+    header.bg-medentia-gradient .rounded-circle,
+    header.bg-medentia-gradient .hero-icon-box,
+    .wizard-hero-header .rounded-circle,
+    .wizard-hero-header .hero-icon-box {
+        width: auto !important;
+        max-width: fit-content !important;
+        flex-shrink: 0 !important;
     }
 
     /* Títulos unificados en blanco puro de alta legibilidad */

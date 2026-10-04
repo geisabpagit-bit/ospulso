@@ -351,7 +351,7 @@ if ($id_cita) {
                 if (($fecha_orig ne $hoy_fecha || $hora_orig ne $hoy_hora) && $fecha_orig ne '') {
                     my $bitacora = "[Atencion: $hoy_fecha $hoy_hora (Prog. original: $fecha_orig $hora_orig)]";
                     if (($c[7] // '') !~ /\Q$bitacora\E/) {
-                        $c[7] = ($c[7] && $c[7] !~ /^\s*$/) ? "$c[7] | $bitacora" : $bitacora;
+                        $c[7] = ($c[7] && $c[7] !~ /^\s*$/) ? "$c[7] - $bitacora" : $bitacora;
                     }
                 }
 
@@ -489,7 +489,7 @@ print $q->header(-type => 'text/html', -charset => 'UTF-8');
 render_header(
     usuario     => $usuario, 
     role        => $role, 
-    titulo      => 'OsPulso -  Consulta Privada', 
+    titulo      => 'OsPulso - Consulta Médica', 
     skip_header => 1
 );
 
@@ -512,20 +512,20 @@ print <<HTML;
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
-<div class="wizard-container animate__animated animate__fadeIn p-2 p-md-4">
+<div class="wizard-container animate__animated animate__fadeIn p-1 p-md-3">
     <!-- ENCABEZADO CLÍNICO DE ALTO IMPACTO (ESTÁNDAR GLOBAL CORPORATIVO) -->
-    <header class="bg-medentia-gradient text-white p-3 p-md-4 shadow-sm mb-4" style="border-radius: 1.25rem;">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="bg-white bg-opacity-10 p-2 p-md-3 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
-                    <i class="bi bi-heart-pulse-fill fs-3 text-white"></i>
+    <header class="wizard-hero-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 hero-content-row">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="hero-icon-box">
+                    <i class="bi bi-heart-pulse-fill text-white fs-4"></i>
                 </div>
                 <div>
-                    <h3 class="fw-black mb-0 text-white fs-4 fs-md-2" style="letter-spacing: -0.5px;">Consulta M&eacute;dica (Privada)</h3>
-                    <p class="text-white-50 small mb-0 mt-1">
-                        <span class="me-3"><i class="bi bi-person-fill me-1"></i><strong>Paciente:</strong> $paciente->{nombre}</span>
-                        <span><i class="bi bi-hash me-1"></i><strong>Folio:</strong> $id_paciente</span>
-                    </p>
+                    <h3 class="hero-title">Consulta M&eacute;dica</h3>
+                    <div class="hero-meta">
+                        <span class="hero-meta-pill"><i class="bi bi-person-fill"></i><strong>Paciente:</strong> $paciente->{nombre}</span>
+                        <span class="hero-meta-pill"><i class="bi bi-hash"></i><strong>Folio:</strong> $id_paciente</span>
+                    </div>
                 </div>
             </div>
         </div>
