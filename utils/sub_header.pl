@@ -235,6 +235,11 @@ sub render_header {
 
     <script>
     window.toggleSidebar = window.toggleSidebar || function() {
+        if (window.innerWidth >= 992) {
+            var overlay = document.getElementById("sidebarOverlay");
+            if (overlay) overlay.classList.remove("show");
+            return;
+        }
         var sidebar = document.getElementById("moduleSidebar");
         var overlay = document.getElementById("sidebarOverlay");
         if (sidebar) sidebar.classList.toggle("show");

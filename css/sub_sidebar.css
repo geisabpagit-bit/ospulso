@@ -555,7 +555,7 @@
     transform: scale(1.08);
     box-shadow: 0 0 12px rgba(25, 183, 165, 0.7);
 }
-.diamond-sidebar.compact .sidebar-brand .btn-sidebar-nav-trigger {
+.diamond-sidebar.compact .sidebar-brand #btnToggleDesktopSidebar {
     margin: 0 auto !important;
     display: flex !important;
     align-items: center !important;
@@ -567,11 +567,29 @@
     border: 1px solid rgba(25, 183, 165, 0.25) !important;
     box-shadow: 0 2px 6px rgba(10, 42, 102, 0.08) !important;
 }
-.diamond-sidebar.compact .sidebar-brand .btn-sidebar-nav-trigger:hover {
+.diamond-sidebar.compact .sidebar-brand #btnToggleDesktopSidebar:hover {
     background: rgba(25, 183, 165, 0.15) !important;
     border-color: var(--md-teal-clinical) !important;
     transform: scale(1.08) !important;
     box-shadow: 0 4px 14px rgba(25, 183, 165, 0.25) !important;
+}
+
+/* En Desktop (>= 992px), la X de cierre y el overlay traslúcido quedan estrictamente anulados */
+@media (min-width: 992px) {
+    .btn-sidebar-close-mobile,
+    .sidebar-brand .btn-sidebar-close-mobile,
+    .diamond-sidebar .btn-sidebar-close-mobile {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+    .sidebar-overlay,
+    .sidebar-overlay.show {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
 }
 
 .diamond-sidebar.compact .user-details {
@@ -598,24 +616,26 @@
     overflow: hidden;
 }
 
-/* Sidebar Overlay para Móvil */
-.sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(10, 42, 102, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    z-index: 4999;
-    display: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-.sidebar-overlay.show {
-    display: block !important;
-    opacity: 1 !important;
+/* Sidebar Overlay Exclusivo para Móvil / Tableta (< 992px) */
+@media (max-width: 991px) {
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(10, 42, 102, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 4999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .sidebar-overlay.show {
+        display: block !important;
+        opacity: 1 !important;
+    }
 }
 
 /* Botón Hamburguesa Inline (Únicamente en Móvil <768px) */

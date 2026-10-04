@@ -60,6 +60,11 @@ window.handleSidebarBrandClick = function() {
 };
 
 window.toggleSidebar = function() {
+    if (window.innerWidth >= 992) {
+        const overlay = document.getElementById("sidebarOverlay");
+        if (overlay) overlay.classList.remove("show");
+        return;
+    }
     const sidebar = document.getElementById("moduleSidebar");
     const overlay = document.getElementById("sidebarOverlay");
     if (sidebar) sidebar.classList.toggle("show");
@@ -85,6 +90,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // 1. Restaurar preferencia de sidebar compacto exclusivamente en Desktop (>= 992px)
     if (window.innerWidth >= 992) {
+        const overlay = document.getElementById("sidebarOverlay");
+        if (overlay) overlay.classList.remove("show");
         const isCompact = localStorage.getItem("ospulso_sidebar_compact") === "true";
         const sidebar = document.getElementById("moduleSidebar");
         if (sidebar && isCompact) {
@@ -121,11 +128,14 @@ document.addEventListener("DOMContentLoaded", function() {
     // 4. Manejo reactivo de redimensionamiento de ventana (Desktop <-> Tablet/Móvil)
     window.addEventListener("resize", function() {
         const sidebar = document.getElementById("moduleSidebar");
+        const overlay = document.getElementById("sidebarOverlay");
         if (!sidebar) return;
         if (window.innerWidth <= 991) {
             sidebar.classList.remove("compact");
             window.syncSidebarToggleVisuals(false);
         } else {
+            if (overlay) overlay.classList.remove("show");
+            if (sidebar) sidebar.classList.remove("show");
             const isCompact = localStorage.getItem("ospulso_sidebar_compact") === "true";
             if (isCompact) {
                 sidebar.classList.add("compact");

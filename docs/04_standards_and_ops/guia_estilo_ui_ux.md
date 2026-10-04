@@ -122,6 +122,9 @@ Las tablas del sistema incorporan controles de exportación estandarizados estil
   3. **Erradicación del Footer Toggle Redundante**:
      - Se eliminó el botón duplicado al pie del menú lateral (`.sidebar-compact-toggle-footer`), concentrando toda la interacción en el control superior y despejando el espacio útil vertical.
   4. **Atajo Universal de Teclado**: Presionar `Alt + M` alterna de forma inmediata entre el modo compacto y expandido (o despliega el drawer en móviles).
+  5. **Aislamiento Estricto de la X de Cierre y Capa Traslúcida (Overlay)**:
+     - La "X" de cierre (`.btn-sidebar-close-mobile`) y la capa de fondo traslúcida con desenfoque (`.sidebar-overlay`) son **exclusivas del modo Drawer en móviles y tabletas (< 992px)**.
+     - En pantallas de escritorio ($\ge 992\text{px}$), tanto la "X" como el overlay están **estrictamente anulados** (`display: none !important; opacity: 0 !important; pointer-events: none !important;`). Se previene cualquier colisión en selectores CSS que pudiera forzar la visibilidad del botón de cierre en el modo colapsado o activar el oscurecimiento traslúcido de la pantalla.
 - **Sincronización Visual Reactiva (`window.syncSidebarToggleVisuals`)**:
   - Unifica el estado de los íconos (`bi-layout-sidebar-inset` en expandido vs `bi-chevron-double-right` en compacto) y actualiza dinámicamente los tooltips y atributos de accesibilidad (`aria-label`, `data-sidebar-title`).
 - **Gobernanza Responsiva Móvil y Tableta (< 992px)**:

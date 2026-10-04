@@ -205,7 +205,7 @@ sub render_sidebar {
         <div class="sidebar-brand" id="sidebarBrandContainer">
             <div class="avatar-diamond" id="sidebarAvatarBrand" title="$usuario" onclick="handleSidebarBrandClick()">$iniciales</div>
 
-            <button class="btn btn-sm btn-sidebar-nav-trigger d-lg-none ms-auto d-flex align-items-center justify-content-center shadow-sm" onclick="toggleSidebar()" aria-label="Cerrar menú" type="button">
+            <button class="btn btn-sm btn-sidebar-nav-trigger btn-sidebar-close-mobile d-lg-none ms-auto d-flex align-items-center justify-content-center shadow-sm" onclick="toggleSidebar()" aria-label="Cerrar menú" type="button">
                 <i class="bi bi-x-lg text-teal fs-5"></i>
             </button>
             <button class="btn btn-sm btn-sidebar-nav-trigger d-none d-lg-flex ms-auto align-items-center justify-content-center shadow-sm" id="btnToggleDesktopSidebar" onclick="toggleDesktopSidebar()" title="Colapsar menú lateral (Alt+M)" aria-label="Colapsar menú lateral" type="button" data-sidebar-title="Colapsar menú (Alt+M)">
