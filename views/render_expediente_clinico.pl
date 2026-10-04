@@ -105,7 +105,23 @@ render_header(
 if ($paciente) {
     my $id_negocio_activo = ($session_data->{id_sucursal} && $session_data->{id_sucursal} ne '0') ? $session_data->{id_sucursal} : ($session_data->{id_empresa} // '0');
     my $tipo_organizacion = 'Consultorio Individual';
-    my $org_clues = '';
+    my $org_nombre = '';
+    my $org_clues  = '';
+
+    my $config_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+    if (-e $config_file && open(my $fhc, '<:encoding(UTF-8)', $config_file)) {
+        while (my $line = <$fhc>) {
+            chomp $line;
+            next if $line =~ /^#|^\s*$/;
+            my @f = split /\|/, $line;
+            if ($f[0] eq $id_negocio_activo && $f[1] eq 'TIPO_ORGANIZACION') {
+                $tipo_organizacion = $f[2] // 'Consultorio Individual';
+                last;
+            }
+        }
+        close $fhc;
+    }
+
     my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
     if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
         <$fhn>;
@@ -114,15 +130,17 @@ if ($paciente) {
             next if $line =~ /^\s*$/;
             my @f = split /\|/, $line, -1;
             if ($f[0] eq $id_negocio_activo || ($id_negocio_activo eq '0' && ($f[0] eq '0' || $f[0] eq 'ORG-000'))) {
-                $tipo_organizacion = $f[17] // 'Consultorio Individual';
-                $org_clues = $f[18] // '';
+                $org_nombre = $f[1] // '';
+                $org_clues  = $f[18] // '';
                 last;
             }
         }
         close $fhn;
     }
+
+    # Heurística canónica: si no tiene CLUE institucional o el nombre indica consultorio:
     if ($tipo_organizacion eq 'Clínica') {
-        if (!$org_clues || $org_clues eq '0') {
+        if (!$org_clues || $org_clues eq '0' || $org_nombre =~ /consultorio|dental/i) {
             $tipo_organizacion = 'Consultorio Individual';
         }
     }
@@ -1262,6 +1280,8 @@ HTML
 
             my $nombre_medico = obtener_nombre_medico($cons->{id_medico});
 
+            my $recibo_param_str = $cons->{folio_recibo} ? "id_consulta=$cons->{folio_recibo}&folio=$cons->{folio_recibo}" : "id_consulta=$cons->{id_consulta}";
+
             print <<HTML;
                 <div class="timeline-item">
                     <div class="timeline-dot" style="border-color: var(--md-teal-clinical)"></div>
@@ -1279,7 +1299,7 @@ HTML
                                     <a href="consulta_detalles.pl?id_consulta=$cons->{id_consulta}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-eye-fill me-1"></i>Detalles</a>
                                     <a href="../api/imprimir_receta_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-capsule me-1"></i>Receta</a>
                                     <a href="../api/imprimir_consentimiento_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-file-earmark-text me-1"></i>Consentimiento</a>
-                                    <a href="../api/$recibo_script?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-receipt me-1"></i>Recibo</a>
+                                    <a href="../api/$recibo_script?$recibo_param_str" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-receipt me-1"></i>Recibo</a>
                                 </div>
                             </div>
                         </div>
@@ -2765,6 +2785,42 @@ sub cargar_historial_consultas {
         close $fhc;
     }
 
+    # Mapeo de recibos en folios_recibos_privados.dat para asociar folio directo de impresión
+    my $recibos_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'folios_recibos_privados.dat');
+    my %recibos_map;
+    if (-e $recibos_path && open(my $fhr, "<:encoding(UTF-8)", $recibos_path)) {
+        <$fhr>;
+        while(my $lr = <$fhr>) {
+            chomp $lr;
+            next if $lr =~ /^\s*$/;
+            my @fr = split /\|/, $lr, -1;
+            my $r_id    = $fr[0] // '';
+            my $r_folio = $fr[1] // '';
+            my $r_cons  = $fr[4] // '';
+            my $r_pac   = $fr[5] // '';
+            my $r_fec   = $fr[6] // '';
+            
+            my $r_info = {
+                id_recibo => $r_id,
+                folio     => $r_folio || $r_id,
+                total     => $fr[8] || 0
+            };
+            if ($r_cons ne '') {
+                $recibos_map{$r_cons} = $r_info;
+            }
+            if ($r_id ne '') {
+                $recibos_map{$r_id} //= $r_info;
+            }
+            if ($r_folio ne '') {
+                $recibos_map{$r_folio} //= $r_info;
+            }
+            if ($r_pac ne '' && $r_fec ne '') {
+                $recibos_map{"PAC_${r_pac}_${r_fec}"} //= $r_info;
+            }
+        }
+        close $fhr;
+    }
+
     while(<$fh>){ 
         chomp; 
         my @c = split /\|/, $_, -1; 
@@ -2785,15 +2841,26 @@ sub cargar_historial_consultas {
             }
             my $fecha_str = "$f_orden $h_orden";
             
+            # Resolver folio de recibo directo
+            my $folio_recibo = '';
+            if (exists $recibos_map{$c[0]}) {
+                $folio_recibo = $recibos_map{$c[0]}->{folio};
+            } elsif ($c[2] && exists $recibos_map{$c[2]}) {
+                $folio_recibo = $recibos_map{$c[2]}->{folio};
+            } elsif (exists $recibos_map{"PAC_${id}_${f_orden}"}) {
+                $folio_recibo = $recibos_map{"PAC_${id}_${f_orden}"}->{folio};
+            }
+            
             push @h, { 
-                id_consulta => $c[0], 
-                id_cita     => $c[2],
-                id_medico   => $c[3],
-                timestamp   => $c[4] || 0,
-                fecha_orden => $f_orden,
-                hora_orden  => $h_orden,
-                fecha       => $fecha_str,
-                data        => $data
+                id_consulta  => $c[0], 
+                id_cita      => $c[2],
+                id_medico    => $c[3],
+                timestamp    => $c[4] || 0,
+                fecha_orden  => $f_orden,
+                hora_orden   => $h_orden,
+                fecha        => $fecha_str,
+                folio_recibo => $folio_recibo,
+                data         => $data
             }; 
         } 
     }

@@ -925,13 +925,23 @@ function verReciboPrevio() {
     const montoAbono = parseFloat(montoAbonoEl ? montoAbonoEl.value : 0) || 0;
     
     if (items.length === 0) {
-        let precioDefault = montoAbono > 0 ? montoAbono : 500.00;
-        items.push({
-            concepto: 'Consulta Médica General',
-            precio: precioDefault,
-            cantidad: 1,
-            subtotal: precioDefault
-        });
+        const esCont = (typeof historialTratamiento !== 'undefined' && historialTratamiento && historialTratamiento.es_consulta_continuacion);
+        if (esCont) {
+            items.push({
+                concepto: 'Consulta de Seguimiento / Continuación de Tratamiento',
+                precio: 0.00,
+                cantidad: 1,
+                subtotal: 0.00
+            });
+        } else {
+            let precioDefault = montoAbono > 0 ? montoAbono : 500.00;
+            items.push({
+                concepto: 'Consulta Médica General',
+                precio: precioDefault,
+                cantidad: 1,
+                subtotal: precioDefault
+            });
+        }
     }
     
     let totalCargos = 0;

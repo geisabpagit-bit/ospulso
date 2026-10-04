@@ -315,17 +315,44 @@ eval {
 };
 my $tiene_cargos_directos = (ref($caja_items) eq 'ARRAY' && @$caja_items) ? 1 : 0;
 
+my $caja_estado_tratamiento = $q->param('caja_estado_tratamiento') // 'Abierto';
+my $es_cobro_recepcion = ($caja_estado_tratamiento =~ /Cobro/i) ? 1 : 0;
+if ($es_cobro_recepcion) {
+    $caja_monto_abono = 0; # El cobro se delega a recepción
+}
+
+# REGLA FINANCIERA: Si no hay cotización ni ítems directos explícitos enviados:
+if (!$id_cotizacion && !$tiene_cargos_directos) {
+    if ($caja_monto_abono > 0 || $es_cobro_recepcion) {
+        my $monto_cargo = $caja_monto_abono > 0 ? $caja_monto_abono : 500.00;
+        $caja_items = [ { nombre => 'Consulta Médica', precio => $monto_cargo, cantidad => 1 } ];
+        $tiene_cargos_directos = 1;
+    } else {
+        # Verificar si es consulta de seguimiento/continuación o primera vez
+        my $consultas_previas = 0;
+        if (-e $consultas_file && open my $fh_prev, '<:encoding(UTF-8)', $consultas_file) {
+            <$fh_prev>;
+            while (my $lp = <$fh_prev>) {
+                chomp $lp;
+                my @cp = split /\|/, $lp, -1;
+                if ($cp[1] eq $id_paciente && $cp[0] ne $id_consulta) {
+                    $consultas_previas++;
+                }
+            }
+            close $fh_prev;
+        }
+        if ($consultas_previas > 0) {
+            $caja_items = [ { nombre => 'Consulta de Seguimiento / Continuación de Tratamiento', precio => 0.00, cantidad => 1 } ];
+            $tiene_cargos_directos = 1;
+        }
+    }
+}
+
 if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) || $tiene_cargos_directos || $caja_monto_abono > 0) {
     my $cot_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones.dat');
     my $items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones_items.dat');
     my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
     my $fin_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
-    
-    my $caja_estado_tratamiento = $q->param('caja_estado_tratamiento') // 'Abierto';
-    my $es_cobro_recepcion = ($caja_estado_tratamiento =~ /Cobro/i) ? 1 : 0;
-    if ($es_cobro_recepcion) {
-        $caja_monto_abono = 0; # El cobro se delega a recepción
-    }
     
     my $fecha_fin = ($caja_estado_tratamiento eq 'Cerrado') ? $hoy_fecha : '';
     my $proxima_cita_id = $q->param('proxima_cita_id') // '';
@@ -337,15 +364,6 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
     my $total_cargos_directos = 0;
     foreach my $it (@$caja_items) {
         $total_cargos_directos += ($it->{precio} || 0) * ($it->{cantidad} || 1);
-    }
-    
-    # REGLA FINANCIERA: Si hay abono de caja o cobro delegado por recepción pero no hay cotización ni ítems directos explícitos,
-    # generamos automáticamente el cargo por "Consulta Médica" igual al monto abonado o tarifa base ($500.00).
-    if (($caja_monto_abono > 0 || $es_cobro_recepcion) && !$id_cotizacion && !$tiene_cargos_directos) {
-        my $monto_cargo = $caja_monto_abono > 0 ? $caja_monto_abono : 500.00;
-        $caja_items = [ { nombre => 'Consulta Médica', precio => $monto_cargo, cantidad => 1 } ];
-        $tiene_cargos_directos = 1;
-        $total_cargos_directos = $monto_cargo;
     }
     
     if ($id_tratamiento) {

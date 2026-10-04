@@ -171,10 +171,15 @@ graph LR
   - Bloques de validación con firma y sello médico, firma de conformidad del paciente y pie normativo NOM-004-SSA3-2012.
 - **Hub de Consultas en el Expediente**:
   - **Orden Cronológico Inverso**: Las atenciones se despliegan obligatoriamente de la cita más reciente a la más antigua, contrastando tanto fecha (`YYYY-MM-DD`) como horario (`HH:MM`).
-  - **Canalización Dinámica del Botón "Recibo"**: Evalúa el tipo de organización del tenant; si es `Consultorio Individual` o consultorio privado, dirige a [api/imprimir_recibo_caja_consultorio.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_caja_consultorio.pl), y si es clínica u hospital, a [api/imprimir_recibo_caja.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_caja.pl).
-  - **Retorno Ágil (`history.back` / `window.close`)**: Ambas pantallas de recibo y el reporte clínico incorporan la función unificada `cerrarORegresar()` / `volverPadre()` que prioriza cerrar la ventana si fue invocada como popup o retornar con `history.back()` si se navegó en la misma pestaña.
-
-
-
-
+### 4.16 Arquitectura de Caja y Cobranza para Consultas de Continuación / Seguimiento (`step_caja_privado.pl`, `cerrar_consulta_privado.pl`)
+- **Detección Automática de Antecedentes Clínicos**:
+  - El sistema inspecciona `dat/consultas_clinicas.dat`, `dat/citas.dat` y el motivo de atención precargado (`continuación de tratamiento`, `seguimiento`, `control`, `revisión` o `revaloración`) para discriminar consultas de primera vez frente a consultas subsecuentes.
+- **Tratamiento del Saldo Pendiente Anterior**:
+  - Calcula el balance histórico global del paciente desde `dat/estado_cuenta.dat` (`saldo_global_paciente = total_cargos - total_abonos`).
+  - **Caso Con Saldo Pendiente Anterior**: En la caja, se precarga el ítem `Saldo Pendiente (Consulta Previa)` por el saldo deudor anterior y la atención actual se conceptúa como `Consulta de Seguimiento / Continuación de Tratamiento` con importe `$0.00`. El total a liquidar refleja exactamente el adeudo arrastrado de la consulta previa sin duplicar la tarifa médica base.
+  - **Caso Sin Saldo Pendiente (Al Corriente)**: La consulta actual se inicializa como `Consulta de Seguimiento / Continuación de Tratamiento` por `$0.00`. Si el médico no añade procedimientos o materiales adicionales, el paciente concluye con importe a cobrar de `$0.00` y el sistema emite el comprobante de caja en cero (`$0.00`) con su respectivo folio consecutivo.
+- **Indexación y Enlace Blindado de Recibos en el Expediente**:
+  - En `views/render_expediente_clinico.pl`, la función `cargar_historial_consultas` mapea de forma bidireccional los folios emitidos en `dat/folios_recibos_privados.dat` (`id_consulta`, `id_cita`, `folio`, `id_recibo`).
+  - El botón "Recibo" del historial de consultas envía el folio real del recibo (`id_consulta=<folio>&folio=<folio>`) canalizando a `api/imprimir_recibo_caja_consultorio.pl` para tenants de consultorio individual/compartido.
+  - Como capa de resiliencia, `api/imprimir_recibo_caja_consultorio.pl` inspecciona `consultas_clinicas.dat` si recibe identificadores tipo `CONS-...` para correlacionar la cita y recibo, y en caso de consultas sin registro flat-file de recibo, reconstruye la vista en memoria desde el `payload_json` de la consulta.
 

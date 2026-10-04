@@ -92,6 +92,9 @@ sub render_step_caja_privado {
     my $total_cargos = 0;
     my $total_abonos = 0;
     
+    my $total_cargos_global = 0;
+    my $total_abonos_global = 0;
+    
     my %os_de_esta_cita = ();
     my $fin_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
     if (-e $fin_file && open(my $fh_f, '<:encoding(UTF-8)', $fin_file)) {
@@ -109,6 +112,14 @@ sub render_step_caja_privado {
             my $notas_row = $c[10] // '';
             
             if ($id_pac_row eq $id_p) {
+                my $tipo = $c[3] // '';
+                my $monto = $c[7] // 0;
+                if ($tipo eq 'Cargo') {
+                    $total_cargos_global += $monto;
+                } elsif ($tipo eq 'Abono') {
+                    $total_abonos_global += $monto;
+                }
+                
                 if ($id_cita ne '' && ($notas_row =~ /Cita #\s*\Q$id_cita\E\b/i || $line =~ /Cita #\s*\Q$id_cita\E\b/i)) {
                     $os_de_esta_cita{$id_os_row} = 1 if $id_os_row ne '';
                 }
@@ -154,15 +165,60 @@ sub render_step_caja_privado {
     }
     
     my $saldo_pendiente = $total_cargos - $total_abonos;
-    
+    my $saldo_global_paciente = $total_cargos_global - $total_abonos_global;
+    $saldo_global_paciente = 0 if $saldo_global_paciente < 0; # No mostrar saldos negativos como cobro
+
+    # Detección de Antecedentes de Consultas Previas y Citas Atendidas
+    my $consultas_previas_count = 0;
+    my $cons_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
+    if (-e $cons_file && open(my $fh_cp, '<:encoding(UTF-8)', $cons_file)) {
+        <$fh_cp>;
+        while (my $l = <$fh_cp>) {
+            chomp $l;
+            next if $l =~ /^\s*$/;
+            my @c = split /\|/, $l, -1;
+            if ($c[1] eq $id_p) {
+                $consultas_previas_count++;
+            }
+        }
+        close($fh_cp);
+    }
+
+    my $citas_previas_count = 0;
+    my $citas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'citas.dat');
+    if (-e $citas_file && open(my $fh_cit, '<:encoding(UTF-8)', $citas_file)) {
+        <$fh_cit>;
+        while (my $l = <$fh_cit>) {
+            chomp $l;
+            next if $l =~ /^\s*$/;
+            my @c = split /\|/, $l, -1;
+            my $cp = $c[2] // '';
+            my $ce = $c[8] // '';
+            my $cid = $c[0] // '';
+            if ($cp eq $id_p && ($cid ne $id_cita) && $ce =~ /Atendida|Realizada/i) {
+                $citas_previas_count++;
+            }
+        }
+        close($fh_cit);
+    }
+
+    my $motivo_actual = $paciente->{motivo_precargado} // '';
+    my $es_motivo_continuacion = ($motivo_actual =~ /continuaci[oó]n|seguimiento|control|revisi[oó]n|revaloraci[oó]n/i) ? 1 : 0;
+    my $es_consulta_continuacion = ($consultas_previas_count > 0 || $citas_previas_count > 0 || $es_motivo_continuacion || $tiene_tratamiento) ? 1 : 0;
+
     my $json_historial = JSON::PP->new->ascii(1)->encode({
-        tiene_tratamiento => $tiene_tratamiento,
-        id_tratamiento => $id_tratamiento_activo,
-        cargos => \@cargos,
-        abonos => \@abonos,
-        total_cargos => $total_cargos,
-        total_abonos => $total_abonos,
-        saldo_pendiente => $saldo_pendiente
+        tiene_tratamiento        => $tiene_tratamiento,
+        id_tratamiento           => $id_tratamiento_activo,
+        cargos                   => \@cargos,
+        abonos                   => \@abonos,
+        total_cargos             => $total_cargos,
+        total_abonos             => $total_abonos,
+        saldo_pendiente          => $saldo_pendiente,
+        saldo_global_paciente    => $saldo_global_paciente + 0,
+        consultas_previas_count  => $consultas_previas_count + 0,
+        citas_previas_count      => $citas_previas_count + 0,
+        es_consulta_continuacion => $es_consulta_continuacion ? 1 : 0,
+        motivo_actual            => $motivo_actual
     });
     
     my $banner_odonto_caja_html = '';
@@ -585,6 +641,25 @@ sub render_step_caja_privado {
                 alertPrePago.remove();
             }
 
+            // Banner de Consulta Subsecuente / Continuación de Tratamiento
+            const esContinuacion = historialTratamiento && historialTratamiento.es_consulta_continuacion;
+            const saldoPrevioVal = (historialTratamiento && historialTratamiento.saldo_global_paciente) ? parseFloat(historialTratamiento.saldo_global_paciente) : 0;
+            let alertContinuacion = document.getElementById('caja-continuacion-alert');
+            if (esContinuacion && !tienePrePagoRecepcion) {
+                if (!alertContinuacion) {
+                    alertContinuacion = document.createElement('div');
+                    alertContinuacion.id = 'caja-continuacion-alert';
+                    alertContinuacion.className = 'alert alert-info border-0 rounded-4 shadow-sm mb-4 p-3 d-flex align-items-center';
+                    const txtSaldo = saldoPrevioVal > 0 
+                        ? `Saldo pendiente de atención anterior: <strong class="text-danger">\\\$\${saldoPrevioVal.toFixed(2)}</strong>. La consulta de seguimiento aplica tarifa \\\$0.00.`
+                        : `Sin saldo pendiente de consultas previas. La consulta de seguimiento aplica tarifa \\\$0.00 (Recibo en \\\$0.00).`;
+                    alertContinuacion.innerHTML = `<i class="bi bi-clock-history fs-3 text-info me-3"></i><div><h6 class="fw-bold mb-0 text-navy"><i class="bi bi-person-check-fill me-1"></i>Consulta de Continuación / Seguimiento</h6><p class="small mb-0 text-muted">\${txtSaldo}</p></div>`;
+                    if (workflowCont) workflowCont.insertBefore(alertContinuacion, workflowCont.firstChild);
+                }
+            } else if (alertContinuacion) {
+                alertContinuacion.remove();
+            }
+
             // Si la cotización en Step Registro es ninguna/vacía, por default seleccionar 'Cerrado' (Alta médica)
             if (!cotSelect || !cotSelect.value || cotSelect.value === 'ninguna' || cotSelect.value === '') {
                 const estadoTratSelect = document.getElementById('f_caja_estado_tratamiento');
@@ -593,15 +668,33 @@ sub render_step_caja_privado {
                 }
             }
 
-            // Precargar concepto de Consulta Médica base (\$500.00) por regla financiera si está vacío (salvo si ya fue pagado en Recepción)
+            // Precargar concepto de Consulta Médica o Continuación según antecedente clínico
             if (tienePrePagoRecepcion) {
                 if (carritoConsulta && carritoConsulta.length > 0) {
-                    carritoConsulta = carritoConsulta.filter(c => c.id !== 'CONS-BASE');
+                    carritoConsulta = carritoConsulta.filter(c => c.id !== 'CONS-BASE' && c.id !== 'CONS-SEGUIMIENTO');
                 }
             } else if (!isTratamientoActivo && !isNuevaConversion && (!carritoConsulta || carritoConsulta.length === 0)) {
-                const espeInput = document.querySelector('[name="especialidad"]');
-                const espeNombre = (espeInput && espeInput.value) ? fixUTF8(espeInput.value) : 'General';
-                carritoConsulta = [{ id: 'CONS-BASE', nombre: 'Consulta Médica (' + espeNombre + ')', precio: 500.00, cantidad: 1 }];
+                if (esContinuacion) {
+                    carritoConsulta = [];
+                    if (saldoPrevioVal > 0) {
+                        carritoConsulta.push({
+                            id: 'SALDO-PREVIO',
+                            nombre: 'Saldo Pendiente (Consulta Previa)',
+                            precio: saldoPrevioVal,
+                            cantidad: 1
+                        });
+                    }
+                    carritoConsulta.push({
+                        id: 'CONS-SEGUIMIENTO',
+                        nombre: 'Consulta de Seguimiento / Continuación de Tratamiento',
+                        precio: 0.00,
+                        cantidad: 1
+                    });
+                } else {
+                    const espeInput = document.querySelector('[name="especialidad"]');
+                    const espeNombre = (espeInput && espeInput.value) ? fixUTF8(espeInput.value) : 'General';
+                    carritoConsulta = [{ id: 'CONS-BASE', nombre: 'Consulta Médica (' + espeNombre + ')', precio: 500.00, cantidad: 1 }];
+                }
             }
 
             const tieneCargosDirectos = carritoConsulta && carritoConsulta.length > 0;

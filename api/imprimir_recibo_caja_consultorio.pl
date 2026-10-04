@@ -97,6 +97,119 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
     close $fh;
 }
 
+# 1.1 Si no se encontró directo, intentar asociar por dat/consultas_clinicas.dat (ej. id_consulta tipo CONS-...)
+if (!keys %$recibo) {
+    my $cons_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
+    if (-e $cons_file && open(my $fhc, '<:encoding(UTF-8)', $cons_file)) {
+        my $hc = <$fhc>;
+        while (my $lc = <$fhc>) {
+            chomp $lc;
+            next if $lc =~ /^\s*$/;
+            my @c = split /\|/, $lc, -1;
+            if (@c >= 6 && ($c[0] eq $id_consulta || ($c[2] && $c[2] eq $id_consulta))) {
+                my $cid_cons = $c[0];
+                my $cid_pac  = $c[1];
+                my $cid_cita = $c[2];
+                my $cid_med  = $c[3];
+                my $cts      = $c[4] || time();
+                my ($c_sec,$c_min,$c_hour,$c_mday,$c_mon,$c_year) = localtime($cts);
+                my $c_fec = sprintf("%04d-%02d-%02d", $c_year+1900, $c_mon+1, $c_mday);
+                my $c_hor = sprintf("%02d:%02d", $c_hour, $c_min);
+                
+                # Intentar buscar en folios_recibos_privados.dat por id_cita
+                if ($cid_cita && -e $recibos_file && open(my $fhr2, '<:encoding(UTF-8)', $recibos_file)) {
+                    <$fhr2>;
+                    while (my $lr2 = <$fhr2>) {
+                        chomp $lr2;
+                        my @cr = split /\|/, $lr2, -1;
+                        if (($cr[4] && $cr[4] eq $cid_cita) || ($cr[1] && $cr[1] eq $cid_cita) || ($cr[0] && $cr[0] eq $cid_cita)) {
+                            $recibo = {
+                                id_recibo     => $cr[0],
+                                folio         => $cr[1],
+                                id_negocio    => $cr[2],
+                                id_sucursal   => $cr[3],
+                                id_consulta   => $cr[4],
+                                id_paciente   => $cr[5],
+                                fecha         => $cr[6],
+                                hora          => $cr[7],
+                                total_cargos  => $cr[8] || 0,
+                                total_abonos  => $cr[9] || 0,
+                                metodo_pago   => $cr[10] || 'Efectivo',
+                                elaborado_por => $cr[11] || '',
+                                concepto      => $cr[12] || '',
+                                items_json    => $cr[13] || '[]',
+                                estatus       => $cr[14] || 'Cobrado',
+                                id_medico     => $cr[15] || ''
+                            };
+                            last;
+                        }
+                    }
+                    close $fhr2;
+                }
+                
+                # Si aún no existe en folios_recibos_privados, reconstruir desde payload_json de la consulta
+                if (!keys %$recibo) {
+                    my $pdata = {};
+                    eval { $pdata = decode_json($c[5]); };
+                    my @cargos_items;
+                    my $raw_items = $pdata->{caja_items_json} || $pdata->{caja_items};
+                    if ($raw_items) {
+                        my $arr = ref($raw_items) eq 'ARRAY' ? $raw_items : eval { decode_json($raw_items) };
+                        if (ref($arr) eq 'ARRAY') {
+                            foreach my $it (@$arr) {
+                                my $nom = $it->{nombre} || $it->{concepto} || 'Consulta Médica';
+                                my $pu  = $it->{precio} // 0;
+                                my $cnt = $it->{cantidad} // 1;
+                                push @cargos_items, {
+                                    concepto => $nom,
+                                    precio   => $pu + 0,
+                                    cantidad => $cnt + 0,
+                                    subtotal => ($pu * $cnt) + 0
+                                };
+                            }
+                        }
+                    }
+                    if (!@cargos_items) {
+                        push @cargos_items, {
+                            concepto => 'Consulta Médica de Especialidad',
+                            precio   => 0,
+                            cantidad => 1,
+                            subtotal => 0
+                        };
+                    }
+                    
+                    my $tot_c = 0;
+                    foreach my $ci (@cargos_items) { $tot_c += $ci->{subtotal}; }
+                    my $abono_val = $pdata->{caja_monto_abono} // $tot_c;
+                    my $metodo_val = $pdata->{caja_metodo_pago} // 'Efectivo';
+                    use JSON qw(encode_json);
+                    
+                    $recibo = {
+                        id_recibo     => 'REC-' . ($cid_cita || 'CONS'),
+                        folio         => ($cid_cita || '1'),
+                        id_negocio    => $ses_org || '0',
+                        id_sucursal   => '0',
+                        id_consulta   => $cid_cons,
+                        id_paciente   => $cid_pac,
+                        fecha         => $c_fec,
+                        hora          => $c_hor,
+                        total_cargos  => $tot_c,
+                        total_abonos  => $abono_val,
+                        metodo_pago   => $metodo_val,
+                        elaborado_por => $cid_med,
+                        concepto      => $cargos_items[0]->{concepto},
+                        items_json    => encode_json(\@cargos_items),
+                        estatus       => 'Cobrado',
+                        id_medico     => $cid_med
+                    };
+                }
+                last;
+            }
+        }
+        close $fhc;
+    }
+}
+
 if (!keys %$recibo) {
     print "<html><head><title>Recibo No Encontrado</title></head><body style='font-family: sans-serif; padding: 3rem; text-align: center;'>";
     print "<div style='max-width: 500px; margin: auto; padding: 2rem; border-radius: 12px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1);'>";
