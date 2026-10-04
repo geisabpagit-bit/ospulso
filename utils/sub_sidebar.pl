@@ -338,7 +338,7 @@ HTML
                         <i class="bi bi-heart-pulse-fill text-danger" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Expediente Cl&iacute;nico</span>
                     </button>
                 </h2>
-                <div id="c-clinica" class="accordion-collapse collapse show" aria-labelledby="h-clinica" data-bs-parent="#accordionSidebar">
+                <div id="c-clinica" class="accordion-collapse collapse show" aria-labelledby="h-clinica">
                     <div class="accordion-body pb-0 pt-1">
                         $link_resumen
                         $link_ficha
@@ -354,7 +354,7 @@ HTML
                         <i class="bi bi-search text-primary" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Diagn&oacute;stico</span>
                     </button>
                 </h2>
-                <div id="c-diag" class="accordion-collapse collapse" aria-labelledby="h-diag" data-bs-parent="#accordionSidebar">
+                <div id="c-diag" class="accordion-collapse collapse" aria-labelledby="h-diag">
                     <div class="accordion-body pb-0 pt-1">
                         $link_odonto
                         $link_rayos_x
@@ -369,7 +369,7 @@ HTML
                         <i class="bi bi-briefcase-fill text-success" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Administraci&oacute;n</span>
                     </button>
                 </h2>
-                <div id="c-admin-exp" class="accordion-collapse collapse" aria-labelledby="h-admin-exp" data-bs-parent="#accordionSidebar">
+                <div id="c-admin-exp" class="accordion-collapse collapse" aria-labelledby="h-admin-exp">
                     <div class="accordion-body pb-0 pt-1">
                         $link_finanzas
                         $link_inbox
@@ -384,7 +384,7 @@ HTML
                         <i class="bi bi-share-fill text-info" style="font-size: 1.1rem;"></i><span class="sidebar-text ms-2">Interoperabilidad</span>
                     </button>
                 </h2>
-                <div id="c-inter" class="accordion-collapse collapse" aria-labelledby="h-inter" data-bs-parent="#accordionSidebar">
+                <div id="c-inter" class="accordion-collapse collapse" aria-labelledby="h-inter">
                     <div class="accordion-body pb-0 pt-1">
                         $link_fhir
                         $link_hl7
@@ -404,18 +404,21 @@ HTML
     }
 
     if ($show_admin) {
-        my $admin_active = ($pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos') ? 'show' : '';
+        my $admin_has_active = ($pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos' || $pagina_actual eq 'gestion_permisos' || $pagina_actual eq 'usuarios_online' || $pagina_actual eq 'gestion_odontograma' || $pagina_actual eq 'tecnico' || $pagina_actual eq 'gestion_catalogos' || $pagina_actual eq 'reset_datos_org') ? 1 : 0;
+        my $admin_active = $admin_has_active ? 'show' : '';
         my $collapsed_class = ($admin_active eq 'show') ? '' : 'collapsed';
+        my $admin_aria = ($admin_active eq 'show') ? 'true' : 'false';
+        my $admin_badge = $admin_has_active ? '<span class="active-dot ms-auto"></span>' : '';
         
         print qq{
             <!-- Administración Accordion -->
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-administracion">
-                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-administracion" aria-expanded="false" aria-controls="c-administracion">
-                        <i class="bi bi-shield-lock-fill text-primary" style="font-size:1.2rem; color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Administraci&oacute;n</span>
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-administracion" aria-expanded="$admin_aria" aria-controls="c-administracion">
+                        <i class="bi bi-shield-lock-fill text-primary" style="font-size:1.2rem; color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Administraci&oacute;n</span>$admin_badge
                     </button>
                 </h2>
-                <div id="c-administracion" class="accordion-collapse collapse $admin_active" aria-labelledby="h-administracion" data-bs-parent="#accordionSidebar">
+                <div id="c-administracion" class="accordion-collapse collapse $admin_active" aria-labelledby="h-administracion">
                     <div class="accordion-body pb-0 pt-1">
         };
         
@@ -506,9 +509,6 @@ HTML
 
     # 6. Finanzas Accordion (Justo al lado de Administración)
     if ($is_allowed{finanzas}) {
-        my $fin_active = ($pagina_actual eq 'finanzas' || $pagina_actual eq 'caja_rapida' || $pagina_actual eq 'caja_consultorio') ? 'show' : '';
-        my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
-        
         my $has_pacientes_estado = 0;
         my $id_empresa_fin = $args{id_empresa} || $id_empresa || '';
         my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
@@ -528,6 +528,12 @@ HTML
             close($cf);
         }
 
+        my $fin_has_active = ($pagina_actual eq 'finanzas' || $pagina_actual eq 'caja_rapida' || $pagina_actual eq 'caja_consultorio') ? 1 : 0;
+        my $fin_active = $fin_has_active ? 'show' : '';
+        my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
+        my $fin_aria = ($fin_active eq 'show') ? 'true' : 'false';
+        my $fin_badge = $fin_has_active ? '<span class="active-dot ms-auto"></span>' : '';
+
         my $es_consultorio_privado = (($tipo_org eq 'Consultorio Individual' || $tipo_org eq 'Consultorio Compartido') && !$has_pacientes_estado) ? 1 : 0;
         my $link_caja_recibo_html = $es_consultorio_privado 
             ? qq{<a href="../views/caja_consultorio.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-cart-check-fill text-success me-2"></i><span class="sidebar-text fw-bold">Caja</span></a>}
@@ -537,11 +543,11 @@ HTML
             <!-- Finanzas Integradas -->
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-finanzas">
-                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="false" aria-controls="c-finanzas">
-                        <i class="bi bi-cash-stack text-success" style="color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Finanzas</span>
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="$fin_aria" aria-controls="c-finanzas">
+                        <i class="bi bi-cash-stack text-success" style="color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Finanzas</span>$fin_badge
                     </button>
                 </h2>
-                <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas" data-bs-parent="#accordionSidebar">
+                <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas">
                     <div class="accordion-body pb-0 pt-1">
                         $link_caja_recibo_html
                         <a href="../views/finanzas.pl?tab=corte_caja" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1"><i class="bi bi-safe text-primary me-2"></i><span class="sidebar-text fw-bold">Corte de Caja</span></a>
@@ -573,8 +579,11 @@ HTML
 
     # 7. Ventas Accordion (Ejecutivo Ventas o Administrador Global)
     if ( ($is_allowed{crm_ventas} && $role eq 'Ejecutivo Ventas') || ($is_allowed{admin_global} && $role eq 'Administrador Global') ) {
-        my $ventas_active = ($pagina_actual eq 'crm_ventas' || $pagina_actual eq 'admin_ejecutivos') ? 'show' : '';
+        my $ventas_has_active = ($pagina_actual eq 'crm_ventas' || $pagina_actual eq 'admin_ejecutivos') ? 1 : 0;
+        my $ventas_active = $ventas_has_active ? 'show' : '';
         my $collapsed_class = ($ventas_active eq 'show') ? '' : 'collapsed';
+        my $ventas_aria = ($ventas_active eq 'show') ? 'true' : 'false';
+        my $ventas_badge = $ventas_has_active ? '<span class="active-dot ms-auto"></span>' : '';
         
         my $crm_html = '';
         if ($role eq 'Ejecutivo Ventas') {
@@ -598,11 +607,11 @@ HTML
         print qq{
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-ventas">
-                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-ventas" aria-expanded="false" aria-controls="c-ventas">
-                        <i class="bi bi-briefcase-fill text-primary" style="font-size:1.2rem; color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Ventas</span>
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-ventas" aria-expanded="$ventas_aria" aria-controls="c-ventas">
+                        <i class="bi bi-briefcase-fill text-primary" style="font-size:1.2rem; color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Ventas</span>$ventas_badge
                     </button>
                 </h2>
-                <div id="c-ventas" class="accordion-collapse collapse $ventas_active" aria-labelledby="h-ventas" data-bs-parent="#accordionSidebar">
+                <div id="c-ventas" class="accordion-collapse collapse $ventas_active" aria-labelledby="h-ventas">
                     <div class="accordion-body pb-0 pt-1">
                         $crm_html
                         $ejec_html

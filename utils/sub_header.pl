@@ -242,7 +242,12 @@ sub render_header {
     };
     window.toggleDesktopSidebar = window.toggleDesktopSidebar || function() {
         var sidebar = document.getElementById("moduleSidebar");
-        if (sidebar) sidebar.classList.toggle("compact");
+        if (sidebar) {
+            var isCompact = sidebar.classList.toggle("compact");
+            if (window.innerWidth >= 992) {
+                try { localStorage.setItem("ospulso_sidebar_compact", isCompact ? "true" : "false"); } catch(e){}
+            }
+        }
     };
 
     \$(document).ready(function() {

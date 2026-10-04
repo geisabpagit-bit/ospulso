@@ -227,4 +227,25 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - En las tarjetas del historial de atenciones (Tab 10), los botones de acción (`Detalles`, `Receta`, `Consentimiento`, `Recibo`) se agrupan con `.flex-wrap` y borde redondeado tipo píldora (`rounded-pill px-3 py-1`).
    - El botón **Receta** se oculta si no hubo prescripción de fármacos y el botón **Consentimiento** se oculta si la atención no requirió dicho documento legal.
 
+---
+
+## 9. Estándares de Interacción del Menú Lateral y Acordeones (`utils/sub_sidebar.pl`, `css/sub_sidebar.css`, `js/sub_sidebar.js`)
+
+1. **Rotación Coherente del Chevron en Acordeones**:
+   - Cerrado (`.accordion-button.collapsed::after`): rota `0deg` apuntando hacia abajo suavemente.
+   - Expandido (`.accordion-button:not(.collapsed)::after`): rota `180deg` hacia arriba mediante transición fluida `cubic-bezier(0.2, 0, 0, 1)`.
+2. **Apertura Múltiple Independiente**:
+   - Se retiró el atributo `data-bs-parent="#accordionSidebar"` de todos los grupos colapsables (*Expediente*, *Diagnóstico*, *Administración*, *Finanzas*, *Ventas*), permitiendo que el usuario mantenga abiertas múltiples secciones simultáneamente sin canibalización involuntaria de menús.
+3. **Indicador de Hijo Activo (`.active-dot`)**:
+   - Si una sección colapsable cerrada contiene la página en curso, se renderiza un micro-indicador luminoso turquesa (`.active-dot`) en la cabecera del acordeón, manteniendo la retroalimentación visual de la ubicación del usuario. Al desplegarse la sección, el punto se oculta automáticamente para dar protagonismo al `.sub-link.active`.
+4. **Comportamiento Responsivo en Móvil y Tableta (`< 992px`)**:
+   - **Drawer Completo**: La clase `.compact` queda estrictamente anulada en pantallas menores a 992px; el sidebar opera exclusivamente como un Drawer off-canvas completo de 295px con fondo translúcido y desenfoque (`backdrop-filter: blur(25px)`).
+   - **Touch Targets Estandarizados**: Botones de acordeón con `min-height: 48px;` y sub-enlaces con `min-height: 44px;` para navegación táctil sin fallos.
+   - **Auto-cierre Táctil**: Al pulsar cualquier enlace o pestaña del menú en móvil/tableta, el drawer y su backdrop se cierran automáticamente para revelar el contenido sin requerir una pulsación manual en el botón de cierre o en el overlay.
+   - **Desplazamiento Elástico**: Menú interno con `-webkit-overflow-scrolling: touch;` y `overscroll-behavior: contain;`.
+5. **Modo Compacto Desktop (`>= 992px`) y Menú Flotante (Flyout)**:
+   - **Persistencia `localStorage`**: Al colapsar la barra a 80px, la preferencia se almacena en `localStorage.getItem('ospulso_sidebar_compact')`, manteniéndose a lo largo de toda la navegación.
+   - **Flyout Popover en Hover**: Al posicionar el cursor sobre cualquier acordeón en modo compacto, se despliega a la derecha una tarjeta flotante (`left: 76px; width: 235px; z-index: 10000;`) con sombra y borde corporativo que lista todos sus sub-enlaces, garantizando que el usuario jamás quede incomunicado de los submódulos.
+
+
 
