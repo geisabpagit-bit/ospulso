@@ -1,69 +1,52 @@
 
-// Sincronización visual de todos los puntos de control del Sidebar (Navbar, Header de Sidebar, Footer de Sidebar)
+// Sincronización visual de puntos de control del Sidebar (Cabecera de Sidebar y Navbar Responsivo)
 window.syncSidebarToggleVisuals = function(isCompact) {
     const iconTop = document.getElementById("iconToggleDesktopSidebar");
     const btnTop = document.getElementById("btnToggleDesktopSidebar");
     const avatar = document.getElementById("sidebarAvatarBrand");
-    const iconFooter = document.getElementById("iconFooterToggle");
-    const textFooter = document.querySelector(".sidebar-compact-toggle-footer .sidebar-text");
-    const footerContainer = document.querySelector(".sidebar-compact-toggle-footer");
     const iconNavbar = document.getElementById("iconNavbarSidebarToggle");
     const btnNavbar = document.getElementById("btnNavbarDesktopSidebarToggle");
 
     if (isCompact) {
         if (iconTop) {
-            iconTop.className = "bi bi-chevron-double-right text-white";
+            iconTop.className = "bi bi-chevron-double-right text-teal fs-6";
         }
         if (btnTop) {
             btnTop.title = "Expandir menú lateral (Alt+M)";
             btnTop.setAttribute("aria-label", "Expandir menú lateral");
-            btnTop.classList.add("is-compact-state");
+            btnTop.setAttribute("data-sidebar-title", "Expandir menú (Alt+M)");
+            btnTop.classList.add("btn-active-compact");
         }
         if (avatar) {
             avatar.title = "Clic para expandir menú (Alt+M)";
-        }
-        if (iconFooter) {
-            iconFooter.className = "bi bi-chevron-double-right text-teal";
-        }
-        if (textFooter) {
-            textFooter.textContent = "Expandir menú";
-        }
-        if (footerContainer) {
-            footerContainer.title = "Expandir menú lateral (Alt+M)";
+            avatar.setAttribute("data-sidebar-title", "Expandir menú (Alt+M)");
         }
         if (iconNavbar) {
-            iconNavbar.className = "bi bi-layout-sidebar-inset text-teal";
+            iconNavbar.className = "bi bi-layout-sidebar-inset text-teal fs-5";
         }
         if (btnNavbar) {
-            btnNavbar.title = "Expandir menú lateral (Alt+M)";
+            btnNavbar.title = "Abrir menú lateral";
             btnNavbar.classList.add("btn-active-compact");
         }
     } else {
         if (iconTop) {
-            iconTop.className = "bi bi-layout-sidebar text-muted";
+            iconTop.className = "bi bi-layout-sidebar-inset text-teal fs-5";
         }
         if (btnTop) {
             btnTop.title = "Colapsar menú lateral (Alt+M)";
             btnTop.setAttribute("aria-label", "Colapsar menú lateral");
-            btnTop.classList.remove("is-compact-state");
+            btnTop.setAttribute("data-sidebar-title", "Colapsar menú (Alt+M)");
+            btnTop.classList.remove("btn-active-compact");
         }
         if (avatar) {
             avatar.title = avatar.getAttribute("data-original-title") || "Menú principal";
-        }
-        if (iconFooter) {
-            iconFooter.className = "bi bi-chevron-double-left text-teal";
-        }
-        if (textFooter) {
-            textFooter.textContent = "Colapsar menú";
-        }
-        if (footerContainer) {
-            footerContainer.title = "Colapsar menú lateral (Alt+M)";
+            avatar.removeAttribute("data-sidebar-title");
         }
         if (iconNavbar) {
-            iconNavbar.className = "bi bi-layout-sidebar-inset text-muted";
+            iconNavbar.className = "bi bi-layout-sidebar-inset text-teal fs-5";
         }
         if (btnNavbar) {
-            btnNavbar.title = "Colapsar menú lateral (Alt+M)";
+            btnNavbar.title = "Abrir menú lateral";
             btnNavbar.classList.remove("btn-active-compact");
         }
     }
@@ -201,7 +184,7 @@ function handleTooltipShow(e) {
         return;
     }
 
-    const target = e.target.closest(".sub-link, .accordion-button, .avatar-diamond, #btnToggleDesktopSidebar, .sidebar-compact-toggle-footer");
+    const target = e.target.closest(".sub-link, .accordion-button, .avatar-diamond, #btnToggleDesktopSidebar, .btn-sidebar-nav-trigger");
     if (!target || !sidebar.contains(target)) {
         handleTooltipHide();
         return;

@@ -456,7 +456,7 @@ HTML
         <!-- 1. CONTENEDOR DESKTOP (d-none d-md-flex) -->
         <div class="container-fluid px-lg-4 d-none d-md-flex align-items-start justify-content-between flex-nowrap w-100 gap-3">
             <div class="d-flex align-items-center gap-3 me-auto">
-                <button class="btn btn-sm btn-sidebar-nav-trigger d-none d-lg-flex align-items-center justify-content-center shadow-sm" id="btnNavbarDesktopSidebarToggle" onclick="toggleDesktopSidebar()" title="Colapsar / Expandir menú lateral (Alt+M)" type="button">
+                <button class="btn btn-sm btn-sidebar-nav-trigger d-flex d-lg-none align-items-center justify-content-center shadow-sm" id="btnNavbarDesktopSidebarToggle" onclick="toggleSidebar()" title="Abrir menú lateral" type="button">
                     <i class="bi bi-layout-sidebar-inset text-teal fs-5" id="iconNavbarSidebarToggle"></i>
                 </button>
                 <a class="navbar-brand d-flex align-items-center justify-content-start m-0 text-decoration-none" href="inicial.pl" title="Inicio">
@@ -493,8 +493,8 @@ $role_switcher_navbar
             <!-- Fila 1: Botón Hamburguesa + Logo Mini Izq | Role Switcher + Avatar Der -->
             <div class="d-flex align-items-center justify-content-between w-100">
                 <div class="d-flex align-items-center gap-1">
-                    <button class="btn btn-menu-toggle-mobile" onclick="toggleSidebar()" aria-label="Abrir menú" type="button">
-                        <i class="bi bi-list"></i>
+                    <button class="btn btn-sm btn-sidebar-nav-trigger d-flex align-items-center justify-content-center shadow-sm" onclick="toggleSidebar()" aria-label="Abrir menú lateral" type="button">
+                        <i class="bi bi-list text-teal fs-5"></i>
                     </button>
                     <a href="inicial.pl" class="text-decoration-none d-flex align-items-center ms-1" title="Inicio">
                         <span class="header-mobile-logo">Os<span class="text-teal">Pulso</span></span>
