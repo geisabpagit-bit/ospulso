@@ -35,14 +35,15 @@ foreach my $c (@$res_pacientes) {
             id_paciente => $c->[0],
             tenant      => $c->[1] // '',
             nombre      => $c->[2] // 'Paciente Sin Nombre',
+            rfc         => $c->[3] // '',
             curp        => $c->[4] // 'SIN CURP',
-            email       => $c->[5] // 'Sin correo',
+            email       => $c->[5] // 'Sin correo registrado',
             f_nac       => $c->[6] // '',
             sexo        => $c->[7] // 'N/A',
             ocupacion   => $c->[8] // 'No especificada',
             e_civil     => $c->[9] // 'No especificado',
             tipo_sangre => $c->[11] // 'Desconocido',
-            tel         => $c->[12] // 'Sin teléfono'
+            tel         => $c->[12] // 'Sin teléfono registrado'
         };
         last;
     }
@@ -88,34 +89,85 @@ if ($paciente->{f_nac} =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
     $edad_txt = "$edad años";
 }
 
-# Cargar Domicilio si existe en pacientes_antecedentes.dat
+# 1.1 Cargar Domicilio Habitual del Paciente (Prioridad: dat/pacientes_domicilio.dat -> JSON en antecedentes)
 my $domicilio_paciente = 'No registrado';
-my $ant_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes_antecedentes.dat');
-if (-e $ant_path && open(my $fhd, '<:encoding(UTF-8)', $ant_path)) {
-    <$fhd>;
-    while (my $ld = <$fhd>) {
-        chomp $ld;
-        next if $ld =~ /^\s*$/;
-        my @dv = split /\|/, $ld, -1;
+my $dom_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes_domicilio.dat');
+if (-e $dom_file && open(my $fhd, '<:encoding(UTF-8)', $dom_file)) {
+    while (my $dline = <$fhd>) {
+        chomp $dline;
+        next if $dline =~ /^\s*$/ || $dline =~ /^ID_PACIENTE/i;
+        my @dv = split /\|/, $dline, -1;
         if ($dv[0] eq $id_paciente) {
-            my @partes_dom;
-            push @partes_dom, "Calle " . $dv[5] if $dv[5];
-            push @partes_dom, "No. " . $dv[6] if $dv[6];
-            push @partes_dom, "Int. " . $dv[7] if $dv[7];
-            push @partes_dom, "Col. " . $dv[4] if $dv[4];
-            push @partes_dom, $dv[3] if $dv[3];
-            push @partes_dom, $dv[2] if $dv[2];
-            $domicilio_paciente = join(', ', @partes_dom) if @partes_dom;
+            my @partes;
+            push @partes, "Calle $dv[1]" if defined $dv[1] && $dv[1] ne '';
+            push @partes, "No. Ext. $dv[2]" if defined $dv[2] && $dv[2] ne '';
+            push @partes, "Int. $dv[3]" if defined $dv[3] && $dv[3] ne '';
+            push @partes, "Col. $dv[4]" if defined $dv[4] && $dv[4] ne '';
+            push @partes, $dv[5] if defined $dv[5] && $dv[5] ne '';
+            push @partes, $dv[6] if defined $dv[6] && $dv[6] ne '';
+            push @partes, "C.P. $dv[7]" if defined $dv[7] && $dv[7] ne '';
+            $domicilio_paciente = join(', ', @partes) if @partes;
             last;
         }
     }
     close $fhd;
 }
 
-# 2. Cargar Datos de la Sucursal / Organización (dat/negocios.dat)
+if ($domicilio_paciente eq 'No registrado') {
+    my $ant_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes_antecedentes.dat');
+    if (-e $ant_path && open(my $fha, '<:encoding(UTF-8)', $ant_path)) {
+        <$fha>;
+        while (my $la = <$fha>) {
+            chomp $la;
+            next if $la =~ /^\s*$/;
+            my @av = split /\|/, $la, -1;
+            if ($av[0] eq $id_paciente && $av[2]) {
+                my $ant_obj = {};
+                eval { $ant_obj = decode_json($av[2]); };
+                if (!%$ant_obj) {
+                    eval { $ant_obj = decode_json(encode_utf8($av[2])); };
+                }
+                
+                my $d_obj = ($ant_obj->{domicilio} && ref($ant_obj->{domicilio}) eq 'HASH') 
+                          ? $ant_obj->{domicilio} 
+                          : $ant_obj;
+                          
+                my @partes;
+                push @partes, "Calle " . $d_obj->{calle} if $d_obj->{calle};
+                push @partes, "No. " . $d_obj->{num_ext} if $d_obj->{num_ext};
+                push @partes, "Int. " . $d_obj->{num_int} if $d_obj->{num_int};
+                push @partes, "Col. " . $d_obj->{colonia} if $d_obj->{colonia};
+                push @partes, $d_obj->{municipio} if $d_obj->{municipio};
+                push @partes, $d_obj->{entidad} if $d_obj->{entidad};
+                push @partes, "C.P. " . $d_obj->{cp} if $d_obj->{cp};
+                
+                $domicilio_paciente = join(', ', @partes) if @partes;
+                last;
+            }
+        }
+        close $fha;
+    }
+}
+
+# 2. Cargar Datos de la Sucursal / Organización (dat/negocios.dat y dat/negocios_config.dat)
 my $id_negocio_activo = ($session_data->{id_sucursal} && $session_data->{id_sucursal} ne '0') 
                       ? $session_data->{id_sucursal} 
                       : ($session_data->{id_empresa} // '0');
+
+my $tipo_org_cfg = '';
+my $cfg_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+if (-e $cfg_file && open(my $fhc, '<:encoding(UTF-8)', $cfg_file)) {
+    while (my $lc = <$fhc>) {
+        chomp $lc;
+        next if $lc =~ /^\s*$/ || $lc =~ /^#/;
+        my @c = split /\|/, $lc, -1;
+        if ($c[0] eq $id_negocio_activo && $c[1] eq 'TIPO_ORGANIZACION') {
+            $tipo_org_cfg = $c[2] // '';
+            last;
+        }
+    }
+    close $fhc;
+}
 
 my $org = {
     nombre            => 'Consultorio Médico',
@@ -135,23 +187,33 @@ if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
         chomp $line;
         next if $line =~ /^\s*$/;
         my @f = split /\|/, $line, -1;
+        # 0:ID, 1:NOMBRE, 2:ID_MATRIZ, 3:Activo, 4:ini, 5:fin, 6:domicilio, 7:tel, 8:email, 9:logo, 10:rfc, 11:razon, 14:cp, 15:entidad, 16:municipio, 17:colonia, 18:clues
         if ($f[0] eq $id_negocio_activo || ($id_negocio_activo eq '0' && ($f[0] eq '0' || $f[0] eq 'ORG-000'))) {
-            $org->{nombre}            = $f[1] if $f[1];
-            $org->{rfc}               = $f[2] if $f[2];
-            $org->{domicilio}         = $f[3] if $f[3];
-            $org->{telefono}          = $f[4] if $f[4];
-            $org->{email}             = $f[5] if $f[5];
-            $org->{razon_social}      = $f[6] if $f[6];
-            $org->{tipo_organizacion} = $f[17] if $f[17];
-            $org->{clues}             = $f[18] if $f[18];
+            $org->{nombre}       = $f[1] if defined $f[1] && $f[1] ne '';
+            $org->{telefono}     = $f[7] if defined $f[7] && $f[7] ne '';
+            $org->{email}        = $f[8] if defined $f[8] && $f[8] ne '';
+            $org->{rfc}          = $f[10] if defined $f[10] && $f[10] ne '' && $f[10] ne '1';
+            $org->{razon_social} = $f[11] if defined $f[11] && $f[11] ne '';
+            $org->{clues}        = $f[18] if defined $f[18] && $f[18] ne '' && $f[18] ne '0';
+            
+            my @partes_dom;
+            push @partes_dom, $f[6] if defined $f[6] && $f[6] ne '';
+            push @partes_dom, "Col. $f[17]" if defined $f[17] && $f[17] ne '';
+            push @partes_dom, $f[16] if defined $f[16] && $f[16] ne '';
+            push @partes_dom, $f[15] if defined $f[15] && $f[15] ne '';
+            push @partes_dom, "C.P. $f[14]" if defined $f[14] && $f[14] ne '';
+            $org->{domicilio} = join(', ', @partes_dom) if @partes_dom;
             last;
         }
     }
     close $fhn;
 }
 
-if ($org->{tipo_organizacion} eq 'Clínica' && (!$org->{clues} || $org->{clues} eq '0' || $org->{nombre} =~ /consultorio/i)) {
-    $org->{tipo_organizacion} = 'Consultorio Individual';
+$org->{tipo_organizacion} = $tipo_org_cfg || ($org->{clues} ? 'Clínica Privada' : 'Consultorio Individual');
+if ($org->{nombre} =~ /dental/i) {
+    $org->{tipo_organizacion} = 'Consultorio Odontológico / Dental';
+} elsif ($org->{nombre} =~ /consultorio/i) {
+    $org->{tipo_organizacion} = 'Consultorio Médico Individual';
 }
 
 # 3. Cargar Catálogos de Usuarios (Médicos) y Especialidades
@@ -165,12 +227,11 @@ if (-e $usr_file && open(my $fhu, '<:encoding(UTF-8)', $usr_file)) {
         # u[0]=id, u[1]=nombre, u[5]=rol, u[7]=id_esp, u[9]=cedula
         $usuarios_map{$u[0]} = {
             id        => $u[0],
-            nombre    => $u[1] // 'Dr(a). No Asignado',
+            nombre    => $u[1] // 'Dr(a). Médico Tratante',
             rol       => $u[5] // 'Medico',
             id_esp    => $u[7] // '',
             cedula    => $u[9] // ''
         };
-        # También mapear formato DOC-00X
         $usuarios_map{"DOC-" . sprintf("%03d", $u[0])} = $usuarios_map{$u[0]};
         $usuarios_map{"DOC-" . $u[0]} = $usuarios_map{$u[0]};
     }
@@ -199,7 +260,6 @@ if (-e $citas_file && open(my $fhc, '<:encoding(UTF-8)', $citas_file)) {
         chomp $lc;
         next if $lc =~ /^\s*$/;
         my @c = split /\|/, $lc, -1;
-        # c[0]=ID_CITA, c[3]=FECHA, c[4]=HORA_INICIO, c[6]=MOTIVO
         $citas_map{$c[0]} = {
             id_cita => $c[0],
             fecha   => $c[3] // '',
@@ -234,7 +294,11 @@ if (-e $cons_file && open(my $fh_cons, '<:encoding(UTF-8)', $cons_file)) {
                 $f_orden = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
                 $h_orden = sprintf("%02d:%02d", $hour, $min);
             }
-            my $fecha_str = "$f_orden $h_orden";
+            
+            my $fecha_fmt = "$f_orden $h_orden";
+            if ($f_orden =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
+                $fecha_fmt = "$3/$2/$1 $h_orden hrs";
+            }
             
             # Resolver médico y especialidad
             my $id_med = $c[3] || ($data->{id_medico} // '');
@@ -256,7 +320,7 @@ if (-e $cons_file && open(my $fh_cons, '<:encoding(UTF-8)', $cons_file)) {
                 timestamp   => $c[4] || 0,
                 fecha_orden => $f_orden,
                 hora_orden  => $h_orden,
-                fecha_fmt   => $fecha_str,
+                fecha_fmt   => $fecha_fmt,
                 data        => $data
             };
         }
@@ -273,14 +337,34 @@ if (-e $cons_file && open(my $fh_cons, '<:encoding(UTF-8)', $cons_file)) {
 
 # Métricas del Historial
 my $total_consultas = scalar @consultas;
-my $primera_consulta = $total_consultas > 0 ? $consultas[-1]->{fecha_fmt} : 'Ninguna';
-my $ultima_consulta  = $total_consultas > 0 ? $consultas[0]->{fecha_fmt} : 'Ninguna';
-my $diag_reciente = 'Sin diagnóstico registrado';
+my $primera_consulta = 'Ninguna';
+my $ultima_consulta  = 'Ninguna';
 if ($total_consultas > 0) {
-    my $d_ult = $consultas[0]->{data};
-    $diag_reciente = $d_ult->{diagnostico_principal} || $d_ult->{diagnostico} || 'Sin diagnóstico registrado';
-    if ($d_ult->{clave_diagnostico_cie10}) {
-        $diag_reciente .= " (CIE-10: $d_ult->{clave_diagnostico_cie10})";
+    $primera_consulta = $consultas[-1]->{fecha_fmt};
+    $ultima_consulta  = $consultas[0]->{fecha_fmt};
+}
+
+# Diagnóstico reciente robusto
+my $diag_reciente = 'Valoración médica general / Sin patología activa';
+if ($total_consultas > 0) {
+    foreach my $chk_cons (@consultas) {
+        my $d_chk = $chk_cons->{data} || {};
+        my $cand_diag = $d_chk->{diagnostico_principal} 
+                     || $d_chk->{diagnostico}
+                     || ($d_chk->{soap} && ref($d_chk->{soap}) eq 'HASH' ? ($d_chk->{soap}->{assessment} || $d_chk->{soap}->{diagnostico_principal} || $d_chk->{soap}->{diagnostico}) : undef)
+                     || $d_chk->{soap_assessment}
+                     || $d_chk->{impresion_clinica};
+        if ($cand_diag && $cand_diag ne '' && $cand_diag !~ /^Sin diagn/i) {
+            $diag_reciente = $cand_diag;
+            my $cand_cie = $d_chk->{clave_diagnostico_cie10} 
+                        || ($d_chk->{soap} && ref($d_chk->{soap}) eq 'HASH' ? $d_chk->{soap}->{clave_diagnostico_cie10} : '');
+            if ($cand_cie) {
+                $diag_reciente .= " (CIE-10: $cand_cie)";
+            }
+            last;
+        } elsif ($d_chk->{motivo} && $diag_reciente =~ /^Valoración médica/i) {
+            $diag_reciente = $d_chk->{motivo};
+        }
     }
 }
 
@@ -386,12 +470,12 @@ print <<HTML;
             font-size: 0.82rem;
             font-weight: 700;
             color: #0f766e;
-            margin: 0 0 3px 0;
+            margin: 0 0 4px 0;
         }
         .org-details {
             font-size: 0.74rem;
             color: #475569;
-            margin: 0;
+            margin: 0 0 2px 0;
             line-height: 1.35;
         }
         .meta-box {
@@ -400,7 +484,7 @@ print <<HTML;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
             padding: 10px 14px;
-            min-width: 210px;
+            min-width: 220px;
         }
         .meta-folio {
             font-family: 'Outfit', sans-serif;
@@ -413,6 +497,7 @@ print <<HTML;
             font-size: 0.73rem;
             color: #64748b;
             font-weight: 600;
+            line-height: 1.35;
         }
 
         /* Título del Documento */
@@ -438,12 +523,20 @@ print <<HTML;
             padding: 12px 16px;
             margin-bottom: 14px;
         }
+        .patient-name-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 6px;
+        }
         .patient-name {
             font-family: 'Outfit', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 800;
             color: #0A2A66;
-            margin: 0 0 6px 0;
+            margin: 0;
+            line-height: 1.2;
         }
         .patient-grid {
             display: grid;
@@ -486,7 +579,7 @@ print <<HTML;
             margin-bottom: 2px;
         }
         .kpi-card-val {
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             font-weight: 800;
             color: #0A2A66;
             white-space: nowrap;
@@ -699,11 +792,11 @@ print <<HTML;
                 <h1 class="org-title">$org->{nombre}</h1>
                 <div class="org-subtitle">$org->{tipo_organizacion} @{[$org->{clues} ? "| CLUES: $org->{clues}" : ""]}</div>
                 <p class="org-details">
-                    @{[$org->{razon_social} ? "$org->{razon_social} &bull; " : ""]}
+                    @{[$org->{razon_social} && $org->{razon_social} ne $org->{nombre} ? "$org->{razon_social} &bull; " : ""]}
                     @{[$org->{rfc} ? "RFC: $org->{rfc} &bull; " : ""]}
                     $org->{domicilio}
                 </p>
-                @{[$org->{telefono} || $org->{email} ? qq{<p class="org-details">Tel. $org->{telefono} &bull; Correo: $org->{email}</p>} : ""]}
+                @{[$org->{telefono} || $org->{email} ? qq{<p class="org-details">@{[$org->{telefono} ? "Tel. $org->{telefono}" : ""]}@{[$org->{telefono} && $org->{email} ? " &bull; " : ""]}@{[$org->{email} ? "Correo: $org->{email}" : ""]}</p>} : ""]}
             </div>
             <div class="meta-box">
                 <div class="meta-folio">$folio_reporte</div>
@@ -719,8 +812,11 @@ print <<HTML;
 
         <!-- 3. Ficha Resumen del Paciente -->
         <section class="patient-card">
-            <div class="patient-name">
-                <i class="bi bi-person-circle me-1 text-teal"></i>$paciente->{nombre}
+            <div class="patient-name-container">
+                <span class="badge bg-primary bg-opacity-10 text-primary border me-2" style="font-size: 0.72rem; padding: 4px 8px; font-weight: 700;">
+                    <i class="bi bi-person-vcard-fill me-1"></i>PACIENTE
+                </span>
+                <span class="patient-name">$paciente->{nombre}</span>
                 <span style="font-size: 0.72rem; color: #64748b; font-weight: 600; margin-left: 8px;">(Expediente: EXP-$paciente->{id_paciente})</span>
             </div>
             <div class="patient-grid">
@@ -787,10 +883,21 @@ if (@consultas) {
         my $cd = $c->{data} || {};
         my $motivo = $cd->{motivo} || 'Consulta médica general / valoración';
         my $evolucion = $cd->{evolucion} || '';
-        my $diag_p = $cd->{diagnostico_principal} || $cd->{diagnostico} || 'Sin diagnóstico asentado';
-        my $cie10 = $cd->{clave_diagnostico_cie10} || '';
+        
+        my $diag_p = $cd->{diagnostico_principal} 
+                  || $cd->{diagnostico} 
+                  || ($cd->{soap} && ref($cd->{soap}) eq 'HASH' ? ($cd->{soap}->{assessment} || $cd->{soap}->{diagnostico_principal} || $cd->{soap}->{diagnostico}) : undef)
+                  || $cd->{soap_assessment}
+                  || $cd->{impresion_clinica}
+                  || $cd->{motivo}
+                  || 'Atención y valoración médica general';
+                  
+        my $cie10 = $cd->{clave_diagnostico_cie10} 
+                 || ($cd->{soap} && ref($cd->{soap}) eq 'HASH' ? $cd->{soap}->{clave_diagnostico_cie10} : '')
+                 || '';
+                 
         my $diag_sec = $cd->{diagnosticos_secundarios} || '';
-        my $plan = $cd->{plan_tratamiento} || $cd->{plan} || 'Continuar indicaciones médicas.';
+        my $plan = $cd->{plan_tratamiento} || $cd->{plan} || 'Continuar con las indicaciones médicas y medidas generales.';
 
         # Badges de Signos Vitales
         my @vitals_badges;
@@ -860,7 +967,7 @@ if (@consultas) {
             <div class="consulta-header">
                 <div class="consulta-date">
                     <i class="bi bi-calendar2-check-fill text-teal" style="color: #0f766e;"></i>
-                    $c->{fecha_fmt} hrs $folio_tag
+                    $c->{fecha_fmt} $folio_tag
                 </div>
                 <div class="consulta-doctor">
                     $c->{med_nombre} ($c->{med_esp}$cedula_tag)
