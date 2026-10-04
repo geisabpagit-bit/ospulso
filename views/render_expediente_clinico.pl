@@ -1270,13 +1270,16 @@ HTML
             
             my $badge_cita = $cons->{id_cita} ? "<span class='badge bg-info-subtle text-info border border-info-subtle mb-2'><i class='bi bi-link-45deg me-1'></i>Vinculado a Cita</span>" : "<span class='badge bg-secondary-subtle text-secondary border border-secondary-subtle mb-2'>Consulta Express</span>";
             
-            my $meds_count = 0;
-            if ($cons->{data}->{medicamentos} && ref($cons->{data}->{medicamentos}) eq 'ARRAY') {
+            my $meds_count = $cons->{meds_count} // 0;
+            if (!$meds_count && $cons->{data}->{medicamentos} && ref($cons->{data}->{medicamentos}) eq 'ARRAY') {
                 $meds_count = scalar @{$cons->{data}->{medicamentos}};
             }
-            my $tiene_receta = ($cons->{data}->{requiere_receta} && $cons->{data}->{requiere_receta} eq '1' && $meds_count > 0) ? 1 : 0;
+            my $tiene_receta = $cons->{tiene_receta} // (($cons->{data}->{requiere_receta} && $cons->{data}->{requiere_receta} eq '1' && $meds_count > 0) ? 1 : 0);
             my $receta_html = $tiene_receta ? "<div class='mt-3 pt-3 border-top'><span class='badge bg-light text-dark border'><i class='bi bi-capsule text-primary me-1'></i> $meds_count F&aacute;rmaco(s) recetado(s)</span></div>" : "";
             my $btn_receta = $tiene_receta ? qq{<a href="../api/imprimir_receta_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-capsule me-1"></i>Receta</a>} : "";
+
+            my $tiene_consentimiento = $cons->{tiene_consentimiento} // (($cons->{data}->{requiere_consentimiento} && $cons->{data}->{requiere_consentimiento} eq '1') ? 1 : 0);
+            my $btn_consentimiento = $tiene_consentimiento ? qq{<a href="../api/imprimir_consentimiento_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-file-earmark-text me-1"></i>Consentimiento</a>} : "";
 
             my $nombre_medico = obtener_nombre_medico($cons->{id_medico});
 
@@ -1298,7 +1301,7 @@ HTML
                                 <div class="d-flex gap-2 justify-content-end mt-2 flex-wrap">
                                     <a href="consulta_detalles.pl?id_consulta=$cons->{id_consulta}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-eye-fill me-1"></i>Detalles</a>
                                     $btn_receta
-                                    <a href="../api/imprimir_consentimiento_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-file-earmark-text me-1"></i>Consentimiento</a>
+                                    $btn_consentimiento
                                     <a href="../api/$recibo_script?$recibo_param_str" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-receipt me-1"></i>Recibo</a>
                                 </div>
                             </div>
@@ -2782,6 +2785,36 @@ sub cargar_historial_consultas {
         close $fhr;
     }
 
+    # Mapeo de recetas en recetas.dat
+    my $recetas_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'recetas.dat');
+    my %recetas_map;
+    if (-e $recetas_path && open(my $fhref, "<:encoding(UTF-8)", $recetas_path)) {
+        <$fhref>;
+        while(my $lr = <$fhref>) {
+            chomp $lr;
+            next if $lr =~ /^\s*$/;
+            my @fr = split /\|/, $lr, -1;
+            my $c_id = $fr[1] // '';
+            $recetas_map{$c_id} = 1 if $c_id ne '';
+        }
+        close $fhref;
+    }
+
+    # Mapeo de consentimientos en consentimientos.dat
+    my $consent_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consentimientos.dat');
+    my %consent_map;
+    if (-e $consent_path && open(my $fhcs, "<:encoding(UTF-8)", $consent_path)) {
+        <$fhcs>;
+        while(my $lc = <$fhcs>) {
+            chomp $lc;
+            next if $lc =~ /^\s*$/;
+            my @fc = split /\|/, $lc, -1;
+            my $c_id = $fc[1] // '';
+            $consent_map{$c_id} = 1 if $c_id ne '';
+        }
+        close $fhcs;
+    }
+
     while(<$fh>){ 
         chomp; 
         my @c = split /\|/, $_, -1; 
@@ -2809,17 +2842,28 @@ sub cargar_historial_consultas {
             } elsif ($c[2] && exists $recibos_map{$c[2]}) {
                 $folio_recibo = $recibos_map{$c[2]}->{folio};
             }
+
+            my $id_cons = $c[0];
+            my $meds_count = 0;
+            if ($data->{medicamentos} && ref($data->{medicamentos}) eq 'ARRAY') {
+                $meds_count = scalar @{$data->{medicamentos}};
+            }
+            my $tiene_receta = (exists $recetas_map{$id_cons} || ($data->{requiere_receta} && $data->{requiere_receta} eq '1' && $meds_count > 0)) ? 1 : 0;
+            my $tiene_consentimiento = (exists $consent_map{$id_cons} || ($data->{requiere_consentimiento} && $data->{requiere_consentimiento} eq '1')) ? 1 : 0;
             
             push @h, { 
-                id_consulta  => $c[0], 
-                id_cita      => $c[2],
-                id_medico    => $c[3],
-                timestamp    => $c[4] || 0,
-                fecha_orden  => $f_orden,
-                hora_orden   => $h_orden,
-                fecha        => $fecha_str,
-                folio_recibo => $folio_recibo,
-                data         => $data
+                id_consulta          => $c[0], 
+                id_cita              => $c[2],
+                id_medico            => $c[3],
+                timestamp            => $c[4] || 0,
+                fecha_orden          => $f_orden,
+                hora_orden           => $h_orden,
+                fecha                => $fecha_str,
+                folio_recibo         => $folio_recibo,
+                tiene_receta         => $tiene_receta,
+                tiene_consentimiento => $tiene_consentimiento,
+                meds_count           => $meds_count,
+                data                 => $data
             }; 
         } 
     }

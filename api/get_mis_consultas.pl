@@ -57,7 +57,34 @@ sub obtener_nombre_medico {
     return $id; 
 }
 
-# 2. Leer consultas_clinicas.dat y filtrar las que correspondan a mis_ids
+# 2. Mapear recetas y consentimientos existentes
+my $recetas_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'recetas.dat');
+my %recetas_map = ();
+if (-e $recetas_path && open(my $fhref, "<:encoding(UTF-8)", $recetas_path)) {
+    <$fhref>;
+    while(my $lr = <$fhref>) {
+        chomp $lr;
+        next if $lr =~ /^\s*$/;
+        my @fr = split /\|/, $lr, -1;
+        $recetas_map{$fr[1]} = 1 if defined $fr[1] && $fr[1] ne '';
+    }
+    close $fhref;
+}
+
+my $consent_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consentimientos.dat');
+my %consent_map = ();
+if (-e $consent_path && open(my $fhcs, "<:encoding(UTF-8)", $consent_path)) {
+    <$fhcs>;
+    while(my $lc = <$fhcs>) {
+        chomp $lc;
+        next if $lc =~ /^\s*$/;
+        my @fc = split /\|/, $lc, -1;
+        $consent_map{$fc[1]} = 1 if defined $fc[1] && $fc[1] ne '';
+    }
+    close $fhcs;
+}
+
+# 3. Leer consultas_clinicas.dat y filtrar las que correspondan a mis_ids
 my $path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
 my @consultas = ();
 if (open(my $fh, "<:encoding(UTF-8)", $path)) {
@@ -79,16 +106,22 @@ if (open(my $fh, "<:encoding(UTF-8)", $path)) {
                 $meds_count = scalar @{$data->{medicamentos}};
             }
 
+            my $id_cons = $c[0];
+            my $tiene_receta = (exists $recetas_map{$id_cons} || ($data->{requiere_receta} && $data->{requiere_receta} eq '1' && $meds_count > 0)) ? 1 : 0;
+            my $tiene_consentimiento = (exists $consent_map{$id_cons} || ($data->{requiere_consentimiento} && $data->{requiere_consentimiento} eq '1')) ? 1 : 0;
+
             push @consultas, { 
-                id_consulta => $c[0], 
-                id_cita     => $c[2],
-                id_medico   => $c[3],
-                nombre_medico => obtener_nombre_medico($c[3]),
-                timestamp   => $c[4],
-                fecha       => $fecha_str,
-                diagnostico => $data->{diagnostico_principal} || $data->{diagnostico} || 'Sin diagnóstico registrado',
-                motivo      => $data->{motivo} || 'Consulta general',
-                meds_count  => $meds_count
+                id_consulta          => $c[0], 
+                id_cita              => $c[2],
+                id_medico            => $c[3],
+                nombre_medico        => obtener_nombre_medico($c[3]),
+                timestamp            => $c[4],
+                fecha                => $fecha_str,
+                diagnostico          => $data->{diagnostico_principal} || $data->{diagnostico} || 'Sin diagnóstico registrado',
+                motivo               => $data->{motivo} || 'Consulta general',
+                meds_count           => $meds_count,
+                tiene_receta         => $tiene_receta,
+                tiene_consentimiento => $tiene_consentimiento
             }; 
         } 
     }

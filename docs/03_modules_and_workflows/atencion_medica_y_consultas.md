@@ -296,4 +296,26 @@ graph LR
   - En los listados cronológicos del Hub de Consultas y Mis Consultas, el botón de acción **"Receta"** e indicador de fármacos recetados se renderizan **exclusivamente** si la consulta cuenta con `$tiene_receta` activo y un conteo de medicamentos mayor a cero (`meds_count > 0`).
   - En `views/consulta_detalles.pl`, se restringió el fallback para evitar que consultas solicitadas con un ID inexistente carguen arbitrariamente la consulta más reciente de otro paciente.
 
+### 4.25 Aislamiento Estricto de Consentimiento Informado y Gobernanza de Botones en Expediente Clínico
+- **Diagnóstico y Origen de Falsos Positivos de Consentimiento Informado**:
+  - En `views/partials/consultas/step_comunicacion.pl`, el bloque de consentimiento mantenía campos ocultos (`#firma_paciente_data`, `#firma_medico_data`, `#consentimiento_json_input`) que podían conservar firmas previas o plantillas de texto si el usuario alternaba el switch o reutilizaba el formulario.
+  - En `api/cerrar_consulta_privado.pl`, existía una bifurcación no estricta `if ($requiere_consentimiento eq '1' || $q->param('consentimiento_json'))` que provocaba la persistencia de filas no deseadas en `dat/consentimientos.dat` y la extracción física de firmas base64 en `/firmas_consentimientos/` aun cuando el facultativo no solicitó consentimiento para la consulta en curso.
+  - En `api/imprimir_consentimiento_api.pl`, si una consulta no tenía consentimiento emitido, recurría a fallbacks con identificadores fijos (paciente 2, médico 1088603479, fecha de hoy), haciendo creer al usuario que la consulta heredó un consentimiento ajeno.
+  - En `views/render_expediente_clinico.pl` y `views/mis_consultas.pl`, el botón "Consentimiento" se desplegaba de manera incondicional para todas las consultas médicas, sin verificar si la consulta efectivamente había requerido y firmado un documento médico-legal.
+- **Solución Frontend (`views/render_consultas_privado.pl`, `step_comunicacion.pl`)**:
+  1. **Limpieza y Reinicio Inmediato (`toggleSeccionConsentimiento`)**:
+     - Al desmarcar el switch de consentimiento (`checked = false`) o al abrir una consulta nueva, se limpian físicamente los lienzos de firma (`canvasPaciente.clear()`, `canvasMedico.clear()`), se vacían los inputs ocultos de firma (`#firma_paciente_data = ''`, `#firma_medico_data = ''`), se resetea `#consentimiento_json_input.value = "{}"`, y se purgan todos los inputs de procedimiento, beneficios, riesgos y alternativas.
+  2. **Sanitización Previa al Cierre (`finalizarConsulta`)**:
+     - En `finalizarConsulta`, si `#check_requiere_consentimiento` no está marcado, se fuerza `data.set('requiere_consentimiento', '0')`, `data.set('consentimiento_json', '{}')`, y se eliminan del `FormData` los parámetros de firmas y datos del procedimiento antes del envío al backend.
+- **Solución Backend (`api/cerrar_consulta_privado.pl`, `api/imprimir_consentimiento_api.pl`)**:
+  1. **Validación Pre-Guardado y Purga de Datos Residuales**:
+     - La validación del consentimiento se efectúa **antes** de guardar en `dat/consultas_clinicas.dat`.
+     - Si `$requiere_consentimiento ne '1'`, se purgan de `%payload` los campos de consentimiento y firmas, se omiten las extracciones físicas de archivos `.png` en disco, y se purga cualquier registro previo en `dat/consentimientos.dat` para dicho `$id_consulta`.
+     - Solo se crea registro en `dat/consentimientos.dat` y se extraen firmas si `$requiere_consentimiento eq '1'`.
+  2. **Erradicación de Fallbacks Falsos en `api/imprimir_consentimiento_api.pl`**:
+     - Se eliminaron los datos por defecto ficticios. Si la consulta no tiene registro en `dat/consentimientos.dat`, se despliega un mensaje formal y limpio: *"Sin Consentimiento Informado: Esta consulta médica no requirió ni cuenta con un consentimiento informado emitido"*, finalizando la ejecución de forma segura.
+- **Gobernanza de Botones de Acción en Expediente y Portal del Paciente (`render_expediente_clinico.pl`, `mis_consultas.pl`, `get_mis_consultas.pl`)**:
+  - **Botón "Receta"**: Se muestra única y exclusivamente si la consulta cuenta con receta emitida verificada en `dat/recetas.dat` o en el payload con medicamentos prescritos (`$tiene_receta && $meds_count > 0`). Si no hay receta, el botón no se renderiza.
+  - **Botón "Consentimiento"**: Se muestra única y exclusivamente si la consulta cuenta con consentimiento informado registrado y firmado (`$tiene_consentimiento == 1`). Si no requirió consentimiento, el botón desaparece de la interfaz tanto en el expediente clínico del médico (`render_expediente_clinico.pl`) como en la línea de tiempo del paciente (`mis_consultas.pl`).
+
 

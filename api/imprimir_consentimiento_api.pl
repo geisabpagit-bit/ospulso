@@ -43,10 +43,74 @@ if (-e $cons_file && open(my $fh, '<:encoding(UTF-8)', $cons_file)) {
     close($fh);
 }
 
-my $fecha         = $cons_row ? ($cons_row->[4] // '2026-07-27') : '2026-07-27';
-my $procedimiento = $cons_row ? ($cons_row->[5] // 'Procedimiento Médico Quirúrgico / Evaluativo') : 'Procedimiento Médico General';
-my $id_paciente   = $cons_row ? $cons_row->[2] : ($q->param('id_paciente') || '2');
-my $id_medico     = $cons_row ? $cons_row->[3] : ($session_data->{id_medico} || '1088603479');
+# Fallback de búsqueda en consultas_clinicas.dat si no está en consentimientos.dat
+if (!$cons_row && $id_consulta) {
+    my $consultas_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consultas_clinicas.dat');
+    if (-e $consultas_file && open(my $fhc, '<:encoding(UTF-8)', $consultas_file)) {
+        my $h = <$fhc>;
+        while (my $line = <$fhc>) {
+            chomp $line;
+            next if $line =~ /^\s*$/;
+            my @c = split /\|/, $line, -1;
+            if ($c[0] eq $id_consulta) {
+                my $ts = $c[4] || time();
+                my ($sec,$min,$hour,$mday,$mon,$year) = localtime($ts);
+                my $f_str = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
+                my $raw_j = $c[5] // '{}';
+                $raw_j =~ s/\\n/\n/g;
+                my $p = eval { decode_json($raw_j) };
+                if ($p && ($p->{requiere_consentimiento} eq '1')) {
+                    $cons_row = [
+                        'CNS-' . $ts,
+                        $c[0],
+                        $c[1],
+                        $c[3],
+                        $f_str,
+                        $p->{procedimiento_descripcion} || 'Procedimiento Médico',
+                        $raw_j
+                    ];
+                }
+                last;
+            }
+        }
+        close($fhc);
+    }
+}
+
+if (!$cons_row) {
+    print <<'HTML';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sin Consentimiento Informado | OsPulso</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .empty-card { max-width: 480px; width: 90%; background: #ffffff; border-radius: 1.25rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 2.5rem; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="empty-card">
+        <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
+            <i class="bi bi-file-earmark-medical text-muted fs-1"></i>
+        </div>
+        <h4 class="fw-bold mb-2" style="color: #0A2A66;">Sin Consentimiento Informado</h4>
+        <p class="text-muted small mb-4">Esta consulta médica no requirió ni cuenta con un consentimiento informado emitido.</p>
+        <button onclick="window.close()" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">Cerrar Ventana</button>
+    </div>
+</body>
+</html>
+HTML
+    exit;
+}
+
+my $fecha         = $cons_row->[4] // '2026-07-27';
+my $procedimiento = $cons_row->[5] // 'Procedimiento Médico General';
+my $id_paciente   = $cons_row->[2] || $q->param('id_paciente') || '';
+my $id_medico     = $cons_row->[3] || $session_data->{id_medico} || 'DOC-000';
 
 # Datos Paciente
 my $paciente_name = "Paciente Oficial";

@@ -819,6 +819,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (fInp) fInp.value = '';
             if (typeof renderRecetaItems === 'function') renderRecetaItems();
         }
+        if (draftData.requiere_consentimiento === '1' || draftData.requiere_consentimiento === 1) {
+            const chkC = document.getElementById('check_requiere_consentimiento');
+            if (chkC) {
+                chkC.checked = true;
+                if (typeof toggleSeccionConsentimiento === 'function') toggleSeccionConsentimiento(true);
+            }
+        } else {
+            const chkC = document.getElementById('check_requiere_consentimiento');
+            if (chkC) chkC.checked = false;
+            if (typeof toggleSeccionConsentimiento === 'function') toggleSeccionConsentimiento(false);
+        }
     } else {
         // Consulta Nueva: Limpieza preventiva total de campos residuales del navegador
         // IMPORTANTE: Preservar estrictamente los datos del paciente (Step 1) y especialidad inamovible
@@ -859,6 +870,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const fInp = document.getElementById('receta_folio_input');
         if (fInp) fInp.value = '';
         if (typeof renderRecetaItems === 'function') renderRecetaItems();
+
+        // Limpieza explícita de consentimiento informado para consultas nuevas
+        const chkConsent = document.getElementById('check_requiere_consentimiento');
+        if (chkConsent) chkConsent.checked = false;
+        if (typeof toggleSeccionConsentimiento === 'function') toggleSeccionConsentimiento(false);
     }
     
     // 3. Inicializar Autosave
@@ -879,6 +895,20 @@ async function finalizarConsulta() {
         data.set('receta_json', '[]');
         data.delete('receta_folio');
         data.delete('receta_indicaciones_extra');
+    }
+
+    // Garantizar que si no se seleccionó consentimiento, no viajen datos residuales
+    const chkCons = document.getElementById('check_requiere_consentimiento');
+    if (!chkCons || !chkCons.checked) {
+        data.set('requiere_consentimiento', '0');
+        data.set('consentimiento_json', '{}');
+        data.delete('firma_paciente_data');
+        data.delete('firma_medico_data');
+        data.delete('procedimiento_descripcion');
+        data.delete('procedimiento_objetivo');
+        data.delete('procedimiento_beneficios');
+        data.delete('procedimiento_riesgos');
+        data.delete('procedimiento_alternativas');
     }
     
     Swal.fire({

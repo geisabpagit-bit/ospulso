@@ -146,6 +146,19 @@ sub render_step_comunicacion {
                     sec.style.display = checked ? 'block' : 'none';
                     if (checked) {
                         setTimeout(initCanvasFirmas, 200);
+                    } else {
+                        limpiarCanvasFirma('paciente');
+                        limpiarCanvasFirma('medico');
+                        ['proc_desc', 'proc_obj', 'proc_ben', 'proc_ries', 'proc_alt'].forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.value = '';
+                        });
+                        const cInp = document.getElementById('consentimiento_json_input');
+                        if (cInp) cInp.value = '{}';
+                        const fpInp = document.getElementById('firma_paciente_data');
+                        if (fpInp) fpInp.value = '';
+                        const fmInp = document.getElementById('firma_medico_data');
+                        if (fmInp) fmInp.value = '';
                     }
                 }
             }
