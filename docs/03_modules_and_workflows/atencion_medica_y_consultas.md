@@ -106,5 +106,15 @@ graph LR
   - Función global `window.limpiarCampoTexto(targetSelector)` que resetea el valor, enfoca el control y despacha automáticamente los eventos reactivos `input` y `change` para sincronización con `autosave.js` y validación de obligatoriedad.
   - Incorpora confirmación preventiva SweetAlert2 cuando el texto supera 25 caracteres para evitar borrados accidentales de notas clínicas extensas.
 
+### 4.11 Saneamiento Integral y Codificación Canónica UTF-8 en el Step de Caja
+- **Protección contra Doble Codificación (Mojibake)**:
+  - En `views/partials/consultas/step_caja_privado.pl`, las estructuras de cotizaciones (`$json_cots`) y balance clínico-financiero (`$json_historial`) se serializan mediante `JSON::PP->new->ascii(1)->encode(...)`, garantizando que todos los caracteres diacríticos (acentos, eñes, diéresis) se escapen limpiamente como secuencias `\uXXXX` inmunes a desajustes de capas de entrada/salida de Perl o servidores web.
+  - Implementación de la función JavaScript reactiva `fixUTF8(str)` para reparar al vuelo cualquier residuo de doble codificación UTF-8 (`decodeURIComponent(escape(str))`) al cargar ítems del catálogo (`#tablaCatalogoConsultas`), conceptos del carrito (`#listaCarritoConsultas`), cargos del tratamiento activo, cotizaciones y tratamientos odontológicos.
+- **Blindaje en Endpoints Financieros (`api/estado_cuenta_api.pl`)**:
+  - Inclusión de `binmode STDOUT, ':raw'` y cabecera canónica `Content-Type: application/json; charset=UTF-8` en todas las respuestas (incluyendo rechazos de autenticación 401 y `get_catalogo`).
+  - Saneamiento estructural en `dat/negocios.dat` y eliminación de firmas BOM para una resolución transparente de la organización raíz y su catálogo universal asociado.
+- **Escape de Sigilos de Perl**:
+  - Corrección de secuencias de moneda en cadenas interpoladas (ej. `\$0.00` y `\$500.00`), previniendo advertencias de variables no inicializadas y fugas de contexto en el DOM.
+
 
 

@@ -16,7 +16,8 @@ require "$FindBin::Bin/../auth/check_session.pl";
 require "$FindBin::Bin/../utils/catalogo_org_utils.pl";
 my $session_data = check_session($q);
 unless ($session_data->{session_ok}) {
-    print $q->header(-type => 'application/json', -status => '401 Unauthorized');
+    binmode STDOUT, ':raw';
+    print $q->header(-type => 'application/json', -charset => 'UTF-8', -status => '401 Unauthorized');
     print JSON::PP->new->utf8(1)->encode({ error => "Sesión inválida o expirada" });
     exit;
 }
@@ -29,6 +30,7 @@ my $json_engine = JSON::PP->new->utf8(1);
 
 sub responder {
     my ($data) = @_;
+    binmode STDOUT, ':raw';
     print $q->header(-type => 'application/json', -charset => 'UTF-8');
     print $json_engine->encode($data);
     exit;

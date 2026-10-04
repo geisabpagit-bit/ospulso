@@ -145,6 +145,7 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 1. **Tratamiento de Porcelana Oclusal Molar (`crown_molar.png`)**:
    - Erradicación del sombreado central que simulaba caries.
    - Nueva renderización en zirconio blanco perlado de alta translucidez, con cúspides naturales y fisuras claras sin manchas.
+   - **Fondo Transparente RGBA Puro (Alpha = 0)**: Eliminación total del recuadro o halo oscuro de recorte mediante segmentación de alta precisión y descontaminación de color en el contorno del esmalte (`defringe`), permitiendo una integración diáfana sobre fondos oscuros, claros o vitrificaciones diagnósticas.
    - Replicado espejo en todas las piezas molares permanentes (Q1-Q4) y temporales (Q5-Q8) en `img/teeth/` y `views/img/teeth/`.
 2. **Reingeniería del Menú Superior en el Visor**:
    - Supresión de botones de texto redundantes `Imprimir` y `Guardar` en el extremo derecho (conservando únicamente el badge financiero `PRESUPUESTO PENDIENTE`).

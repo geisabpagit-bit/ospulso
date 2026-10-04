@@ -61,7 +61,7 @@ sub render_step_caja_privado {
     }
     
     use JSON::PP;
-    my $json_cots = JSON::PP->new->encode(\%cot_data);
+    my $json_cots = JSON::PP->new->ascii(1)->encode(\%cot_data);
     
     # 3. Buscar si tiene tratamiento abierto
     my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
@@ -155,7 +155,7 @@ sub render_step_caja_privado {
     
     my $saldo_pendiente = $total_cargos - $total_abonos;
     
-    my $json_historial = JSON::PP->new->encode({
+    my $json_historial = JSON::PP->new->ascii(1)->encode({
         tiene_tratamiento => $tiene_tratamiento,
         id_tratamiento => $id_tratamiento_activo,
         cargos => \@cargos,
@@ -389,6 +389,17 @@ sub render_step_caja_privado {
         <script>
         const cotizacionesData = $json_cots;
         const historialTratamiento = $json_historial;
+
+        // Función de saneamiento y normalización estricta UTF-8
+        function fixUTF8(str) {
+            if (!str || typeof str !== 'string') return '';
+            try {
+                if (/[\u00C2-\u00C5][\u0080-\u00BF]/.test(str)) {
+                    return decodeURIComponent(escape(str));
+                }
+            } catch(e) {}
+            return str;
+        }
         
         // Carrito de conceptos directos de la consulta activa
         var carritoConsulta = carritoConsulta || [];
@@ -423,13 +434,18 @@ sub render_step_caja_privado {
                         (data.catalogo.items || []).forEach(function(c) {
                             var pObj = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (c.precios || [])[0];
                             var precio = pObj ? parseFloat(pObj.precio_publico || 0) : 0;
-                            catalogoMasterConsultas.push({ id: c.id_item, nombre: c.concepto || c.nombre, precio: precio });
+                            catalogoMasterConsultas.push({ id: c.id_item, nombre: fixUTF8(c.concepto || c.nombre), precio: precio });
                         });
                         (data.catalogo.productos || []).forEach(function(p) {
-                            catalogoMasterConsultas.push({ id: p.id_prod, nombre: p.nombre, precio: parseFloat(p.precio) || 0 });
+                            catalogoMasterConsultas.push({ id: p.id_prod, nombre: fixUTF8(p.nombre), precio: parseFloat(p.precio) || 0 });
                         });
                     } else {
-                        catalogoMasterConsultas = [...(data.servicios||[]), ...(data.productos||[])];
+                        (data.servicios || []).forEach(function(s) {
+                            catalogoMasterConsultas.push({ id: s.id, nombre: fixUTF8(s.nombre), precio: parseFloat(s.precio) || 0 });
+                        });
+                        (data.productos || []).forEach(function(p) {
+                            catalogoMasterConsultas.push({ id: p.id, nombre: fixUTF8(p.nombre), precio: parseFloat(p.precio) || 0 });
+                        });
                     }
                 } catch(e) {
                     console.error("Fallo al cargar catálogo:", e);
@@ -444,9 +460,10 @@ sub render_step_caja_privado {
             const filtered = catalogoMasterConsultas.filter(i => (i.nombre||'').toLowerCase().includes(f.toLowerCase()));
             
             filtered.forEach(it => {
+                const nombreSano = fixUTF8(it.nombre);
                 tbody.innerHTML += `
                     <tr style="cursor:pointer;" onclick="agregarAlCarritoConsultas('\${it.id}')">
-                        <td class="fw-bold text-dark small text-truncate" style="max-width:250px;">\${it.nombre}</td>
+                        <td class="fw-bold text-dark small text-truncate" style="max-width:250px;">\${nombreSano}</td>
                         <td class="text-primary fw-bold text-end small">\$\${it.precio.toFixed(2)}</td>
                         <td class="text-center" style="width: 40px;">
                             <div class="btn btn-sm btn-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width:24px; height:24px; padding:0; border:none;"><i class="bi bi-plus" style="font-size:1rem;"></i></div>
@@ -488,10 +505,11 @@ sub render_step_caja_privado {
             let total = 0;
             carritoLocalConsultas.forEach((c, i) => {
                 const st = c.precio * c.cantidad; total += st;
+                const nombreSano = fixUTF8(c.nombre);
                 uli.innerHTML += `
                     <div class="bg-light p-2 rounded-3 border mb-2 d-flex justify-content-between align-items-center">
                         <div class="lh-sm" style="max-width:60%;">
-                            <span class="fw-bold text-dark text-truncate d-block small">\${c.nombre}</span>
+                            <span class="fw-bold text-dark text-truncate d-block small">\${nombreSano}</span>
                             <small class="text-muted">\$\${c.precio.toFixed(2)} c/u</small>
                         </div>
                         <div class="d-flex align-items-center gap-2">
@@ -560,7 +578,7 @@ sub render_step_caja_privado {
                     alertPrePago = document.createElement('div');
                     alertPrePago.id = 'caja-prepago-alert';
                     alertPrePago.className = 'alert alert-success border-0 rounded-4 shadow-sm mb-4 p-3 d-flex align-items-center';
-                    alertPrePago.innerHTML = `<i class="bi bi-check-circle-fill fs-3 text-success me-3"></i><div><h6 class="fw-bold mb-0" style="color: #065f46;"><i class="bi bi-shield-check me-1"></i>Consulta Pagada en Recepción</h6><p class="small mb-0 text-success-emphasis">El pago por concepto de consulta ya fue cobrado e ingresado en Recepción. Saldo pendiente $0.00.</p></div>`;
+                    alertPrePago.innerHTML = `<i class="bi bi-check-circle-fill fs-3 text-success me-3"></i><div><h6 class="fw-bold mb-0" style="color: #065f46;"><i class="bi bi-shield-check me-1"></i>Consulta Pagada en Recepción</h6><p class="small mb-0 text-success-emphasis">El pago por concepto de consulta ya fue cobrado e ingresado en Recepción. Saldo pendiente \\\$0.00.</p></div>`;
                     if (workflowCont) workflowCont.insertBefore(alertPrePago, workflowCont.firstChild);
                 }
             } else if (alertPrePago) {
@@ -575,14 +593,14 @@ sub render_step_caja_privado {
                 }
             }
 
-            // Precargar concepto de Consulta Médica base ($500.00) por regla financiera si está vacío (salvo si ya fue pagado en Recepción)
+            // Precargar concepto de Consulta Médica base (\$500.00) por regla financiera si está vacío (salvo si ya fue pagado en Recepción)
             if (tienePrePagoRecepcion) {
                 if (carritoConsulta && carritoConsulta.length > 0) {
                     carritoConsulta = carritoConsulta.filter(c => c.id !== 'CONS-BASE');
                 }
             } else if (!isTratamientoActivo && !isNuevaConversion && (!carritoConsulta || carritoConsulta.length === 0)) {
                 const espeInput = document.querySelector('[name="especialidad"]');
-                const espeNombre = (espeInput && espeInput.value) ? espeInput.value : 'General';
+                const espeNombre = (espeInput && espeInput.value) ? fixUTF8(espeInput.value) : 'General';
                 carritoConsulta = [{ id: 'CONS-BASE', nombre: 'Consulta Médica (' + espeNombre + ')', precio: 500.00, cantidad: 1 }];
             }
 
@@ -602,9 +620,10 @@ sub render_step_caja_privado {
                 if (isTratamientoActivo || tieneHistorialCaja) {
                     historialTratamiento.cargos.forEach(it => {
                         totalCargosGenerales += it.total;
+                        const conceptoSano = fixUTF8(it.concepto);
                         tbody.innerHTML += `
                             <tr>
-                                <td><span class="fw-bold text-dark text-uppercase small" style="letter-spacing:0.3px;">\${it.concepto}</span></td>
+                                <td><span class="fw-bold text-dark text-uppercase small" style="letter-spacing:0.3px;">\${conceptoSano}</span></td>
                                 <td class="text-end fw-semibold">\$\${it.total.toFixed(2)}</td>
                                 <td class="text-center fw-bold text-muted">1</td>
                                 <td class="text-end fw-black text-navy">\$\${it.total.toFixed(2)}</td>
@@ -620,9 +639,10 @@ sub render_step_caja_privado {
                     if (cot) {
                         cot.items.forEach(it => {
                             totalCargosGenerales += it.subtotal;
+                            const conceptoSano = fixUTF8(it.concepto);
                             tbody.innerHTML += `
                                 <tr>
-                                    <td><span class="fw-bold text-dark text-uppercase small" style="letter-spacing:0.3px;">\${it.concepto}</span></td>
+                                    <td><span class="fw-bold text-dark text-uppercase small" style="letter-spacing:0.3px;">\${conceptoSano}</span></td>
                                     <td class="text-end fw-semibold">\$\${it.precio.toFixed(2)}</td>
                                     <td class="text-center fw-bold text-muted">\${it.cantidad}</td>
                                     <td class="text-end fw-black text-navy">\$\${it.subtotal.toFixed(2)}</td>
@@ -643,10 +663,11 @@ sub render_step_caja_privado {
                     carritoConsulta.forEach((c, idx) => {
                         const itemSub = c.precio * c.cantidad;
                         totalCargosGenerales += itemSub;
+                        const nombreSano = fixUTF8(c.nombre);
                         tbody.innerHTML += `
                             <tr>
                                 <td>
-                                    <span class="fw-bold text-dark text-uppercase small" style="letter-spacing:0.3px;">\${c.nombre}</span>
+                                    <span class="fw-bold text-dark text-uppercase small" style="letter-spacing:0.3px;">\${nombreSano}</span>
                                     <button type="button" class="btn btn-link text-danger p-0 ms-2" onclick="removerCargoDirecto(\${idx})" title="Eliminar cargo"><i class="bi bi-trash small"></i></button>
                                 </td>
                                 <td class="text-end fw-semibold">\$\${c.precio.toFixed(2)}</td>
@@ -668,9 +689,10 @@ sub render_step_caja_privado {
                     
                     if (historialTratamiento.abonos.length > 0) {
                         historialTratamiento.abonos.forEach(ab => {
+                            const abonoSano = fixUTF8(ab.concepto);
                             tbody.innerHTML += `
                                 <tr class="text-success small">
-                                    <td><i class="bi bi-arrow-return-right me-2"></i>\${ab.concepto} (Fecha: \${ab.fecha})</td>
+                                    <td><i class="bi bi-arrow-return-right me-2"></i>\${abonoSano} (Fecha: \${ab.fecha})</td>
                                     <td colspan="2"></td>
                                     <td class="text-end fw-bold text-success">-\$\${ab.total.toFixed(2)}</td>
                                 </tr>
@@ -856,7 +878,7 @@ sub render_step_caja_privado {
                         if (!existe) {
                             carritoConsulta.push({
                                 id: it.id,
-                                nombre: it.nombre,
+                                nombre: fixUTF8(it.nombre),
                                 precio: parseFloat(it.precio),
                                 cantidad: parseInt(it.cantidad) || 1
                             });
