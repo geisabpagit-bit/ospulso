@@ -171,9 +171,12 @@ if ($accion eq 'get_perfil') {
             <$fhc>; # saltar cabecera
             while (my $cline = <$fhc>) {
                 chomp $cline;
+                next if $cline =~ /^\s*$/;
                 my @cv = split /\|/, $cline, -1;
-                # ID_COT|ID_PACIENTE|NOMBRE|TOTAL|FECHA|ID_MEDICO
+                # ID_COT|ID_PACIENTE|NOMBRE|TOTAL|FECHA|ID_MEDICO|ESTADO
                 next unless @cv >= 4;
+                my $estado_cot = $cv[6] // 'Pendiente';
+                next if $estado_cot =~ /Convertida|Cerrada/i;
                 if ($cv[1] eq $id_paciente) {
                     $cotizaciones_sum += ($cv[3] + 0);
                 }

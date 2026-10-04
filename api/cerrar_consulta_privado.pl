@@ -370,21 +370,8 @@ if (-e $fin_file && open my $fh_fbal, '<:encoding(UTF-8)', $fin_file) {
 
 # Detección de continuidad de atención
 my $motivo_in = $payload{motivo} || $q->param('motivo') || '';
-my $es_consulta_continuacion = ($tiene_tratamiento_activo || $saldo_global_paciente > 0 || $motivo_in =~ /continuaci[oó]n|seguimiento|control|revisi[oó]n|revaloraci[oó]n/i) ? 1 : 0;
-if (!$es_consulta_continuacion) {
-    if (-e $consultas_file && open my $fh_cp, '<:encoding(UTF-8)', $consultas_file) {
-        <$fh_cp>;
-        while (my $lp = <$fh_cp>) {
-            chomp $lp;
-            my @cp = split /\|/, $lp, -1;
-            if ($cp[1] eq $id_paciente && $cp[0] ne $id_consulta) {
-                $es_consulta_continuacion = 1;
-                last;
-            }
-        }
-        close $fh_cp;
-    }
-}
+my $es_motivo_continuacion = ($motivo_in =~ /continuaci[oó]n|seguimiento|control|revisi[oó]n|revaloraci[oó]n/i) ? 1 : 0;
+my $es_consulta_continuacion = ($es_motivo_continuacion || ($tiene_tratamiento_activo && $saldo_global_paciente > 0)) ? 1 : 0;
 
 # REGLA FINANCIERA: Si no hay cotización ni ítems directos explícitos enviados:
 if (!$id_cotizacion && !$tiene_cargos_directos) {
@@ -403,6 +390,32 @@ if (!$id_cotizacion && !$tiene_cargos_directos) {
 my $total_cot = 0;
 my $folio_str = '';
 my $id_recibo = '';
+
+# Si la consulta vinculó una cotización, marcarla inmediatamente como 'Convertida' para saldar el KPI
+if ($id_cotizacion && $id_cotizacion ne 'ninguna') {
+    if (-e $cot_file && open my $fh_c, '<:encoding(UTF-8)', $cot_file) {
+        my @lineas = <$fh_c>;
+        close $fh_c;
+        
+        my $cabecera = shift @lineas;
+        chomp $cabecera if defined $cabecera;
+        
+        my @nuevas;
+        foreach my $l (@lineas) {
+            chomp $l;
+            next if $l =~ /^\s*$/;
+            my @c = split /\|/, $l, -1;
+            if ($c[0] eq $id_cotizacion) {
+                $total_cot = $c[3] // 0;
+                $c[6] = 'Convertida';
+                $l = join('|', @c);
+            }
+            push @nuevas, $l;
+        }
+        utils::db_manager::actualizar_archivo($cot_file, $cabecera, \@nuevas);
+    }
+}
+
 if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param)) || $tiene_cargos_directos || $caja_monto_abono > 0 || $tiene_tratamiento_activo) {
     my $fecha_fin = ($caja_estado_tratamiento eq 'Cerrado') ? $hoy_fecha : '';
     my $proxima_cita_id = $q->param('proxima_cita_id') // '';
@@ -450,30 +463,6 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
     } else {
         # B. CREAR TRATAMIENTO NUEVO Y REGISTRAR CARGOS
         $id_tratamiento = 'TX-' . time() . '-' . int(rand(1000));
-        
-        if ($id_cotizacion) {
-            # 1. Actualizar cotizaciones.dat para marcarla como 'Convertida'
-            if (-e $cot_file && open my $fh_c, '<:encoding(UTF-8)', $cot_file) {
-                my @lineas = <$fh_c>;
-                close $fh_c;
-                
-                my $cabecera = shift @lineas;
-                chomp $cabecera if defined $cabecera;
-                
-                my @nuevas;
-                foreach my $l (@lineas) {
-                    chomp $l;
-                    my @c = split /\|/, $l, -1;
-                    if ($c[0] eq $id_cotizacion) {
-                        $total_cot = $c[3] // 0;
-                        $c[6] = 'Convertida';
-                        $l = join('|', @c);
-                    }
-                    push @nuevas, $l;
-                }
-                utils::db_manager::actualizar_archivo($cot_file, $cabecera, \@nuevas);
-            }
-        }
         
         # 2. Escribir fila en tratamientos.dat
         unless (-e $trat_file) {
@@ -616,8 +605,8 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
                     if ($c[0] eq $id_cotizacion) {
                         push @items_recibo, {
                             concepto => $c[1] || 'Servicio Médico',
-                            cantidad => int($c[2] || 1),
-                            precio   => sprintf('%.2f', $c[3] || 0) + 0,
+                            cantidad => int($c[3] || 1),
+                            precio   => sprintf('%.2f', $c[2] || 0) + 0,
                             subtotal => sprintf('%.2f', $c[4] || 0) + 0
                         };
                     }

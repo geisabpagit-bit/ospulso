@@ -543,6 +543,7 @@ function _notificarKpisCotizaciones() {
             .then(function(r) { return r.json(); })
             .then(function(res) {
                 var total = (res.cotizaciones || []).reduce(function(acc, c) {
+                    if (c.estado === 'Convertida' || c.estado === 'Cerrada') return acc;
                     return acc + (parseFloat(c.total) || 0);
                 }, 0);
 

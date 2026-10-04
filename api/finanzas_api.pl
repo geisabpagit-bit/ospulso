@@ -709,6 +709,8 @@ elsif ($action eq 'get_dashboard') {
             my $c_id_pac = $cv[1] || '';
             my $c_monto  = $cv[3] + 0;
             my $c_fecha  = $cv[4] || '';
+            my $c_estado = $cv[6] // 'Pendiente';
+            next if $c_estado =~ /Convertida|Cerrada/i;
 
             # Filtro multi-tenant
             next unless $es_admin_global || $pacientes_org{$c_id_pac} || $c_id_pac =~ /^PRIV-|^EMP-/;

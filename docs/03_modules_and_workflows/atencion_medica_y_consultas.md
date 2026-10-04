@@ -260,4 +260,16 @@ graph LR
 - **Optimización de Cuadrícula de Signos Vitales en Móvil**:
   - En el Tab 2 (Resumen), los 6 indicadores de signos vitales se reorganizaron mediante `col-4 col-md-2` con espaciado `g-2 g-md-3`, estructurando una elegante cuadrícula de 3 columnas por 2 filas en pantallas móviles con tipografías compactas, asegurando que cifras compuestas (como la presión arterial `120/80`) no sufran saltos de línea ni desbordamientos horizontales.
 
+### 4.23 Perfeccionamiento de Alertas en Step Caja, Cabeceras Canónicas de Recibo y Seteo a $0 de KPI Cotizaciones
+- **Control Estricto de Banners y Alertas en Step 6 Caja (`views/partials/consultas/step_caja_privado.pl`)**:
+  - **Banner de Odontograma (`#caja-odonto-banner`)**: Inicializado con `display: none`. Se renderiza únicamente si en el Paso 3 se seleccionó explícitamente un odontograma (`.odonto-chk:checked`). Si no se escogió odontograma, el banner permanece totalmente invisible evitando mensajes contradictorios ("Sin odontograma asignado en el Paso 3").
+  - **Alerta de Continuación / Seguimiento (`#caja-continuacion-alert`)**: Se suprime automáticamente cuando la consulta vincula una cotización (`tieneCotizacion` / `isNuevaConversion`) o cuando se trata de una atención con procedimientos o consulta inicial ordinaria. Solo se despliega ante motivos explícitos de seguimiento de tratamientos activos arrastrando saldos previos.
+- **Normalización de Cabeceras y Mapeo en Comprobantes de Recibo**:
+  - **Cabeceras Canónicas Unificadas**: En todos los comprobantes emitidos (`api/imprimir_recibo_caja_consultorio.pl` y borrador previo en `views/render_consultas_privado.pl`), los encabezados de la tabla de desglose son estrictamente:
+    `"Cant."`, `"Concepto"`, `"Precio"`, `"Importe"`.
+  - **Corrección de Mapeo de Columnas (`api/cerrar_consulta_privado.pl`)**: En `cotizaciones_items.dat`, las columnas siguen el formato `ID_COT|CONCEPTO|PRECIO|CANTIDAD|SUBTOTAL`. Se corrigió la inversión de índices donde `$c[2]` (Precio) y `$c[3]` (Cantidad) estaban intercambiados al serializar `items_recibo`, garantizando que la cantidad refleje `1` y el precio `$800.00` (o el precio unitario correspondiente).
+- **Seteo a $0 del KPI "Cotizaciones" al Cerrar la Consulta (`views/pacientes.pl`, `api/pacientes_api.pl`)**:
+  - Al cerrar la consulta privada vinculando una cotización del paciente, `api/cerrar_consulta_privado.pl` actualiza inmediatamente `dat/cotizaciones.dat` cambiando el estado de la cotización a `'Convertida'`.
+  - En los endpoints de cálculo de balances (`api/pacientes_api.pl`, `api/estado_cuenta_api.pl`, `api/finanzas_api.pl` y `js/cotizaciones_spa.js`), se discriminan y excluyen las cotizaciones con estado `'Convertida'` o `'Cerrada'`, logrando que el balance presupuestal pendiente se liquide a `$0.00` y el KPI "Cotizaciones" en el modal de `views/pacientes.pl` se actualice fidedignamente en `$0`.
+
 

@@ -1229,9 +1229,9 @@ function verReciboPrevio() {
         '                <thead>\n' +
         '                    <tr>\n' +
         '                        <th style="width: 35px; text-align: center;">Cant.</th>\n' +
-        '                        <th>Concepto / Servicio</th>\n' +
+        '                        <th>Concepto</th>\n' +
         '                        <th style="width: 75px; text-align: right;">Precio</th>\n' +
-        '                        <th style="width: 80px; text-align: right;">Total</th>\n' +
+        '                        <th style="width: 80px; text-align: right;">Importe</th>\n' +
         '                    </tr>\n' +
         '                </thead>\n' +
         '                <tbody>\n' +

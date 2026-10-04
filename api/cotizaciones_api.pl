@@ -63,7 +63,8 @@ if ($accion eq 'get_lista') {
                 nombre  => $c[2],
                 total   => $c[3] + 0,
                 fecha   => $c[4],
-                id_med  => $c[5]
+                id_med  => $c[5],
+                estado  => $c[6] // 'Pendiente'
             };
         }
     }

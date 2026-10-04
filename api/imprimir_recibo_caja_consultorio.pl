@@ -609,9 +609,9 @@ print <<HTML;
                 <thead>
                     <tr>
                         <th style="width: 35px; text-align: center;">Cant.</th>
-                        <th>Concepto / Servicio</th>
+                        <th>Concepto</th>
                         <th style="width: 75px; text-align: right;">Precio</th>
-                        <th style="width: 80px; text-align: right;">Total</th>
+                        <th style="width: 80px; text-align: right;">Importe</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -204,7 +204,7 @@ sub render_step_caja_privado {
 
     my $motivo_actual = $paciente->{motivo_precargado} // '';
     my $es_motivo_continuacion = ($motivo_actual =~ /continuaci[oó]n|seguimiento|control|revisi[oó]n|revaloraci[oó]n/i) ? 1 : 0;
-    my $es_consulta_continuacion = ($consultas_previas_count > 0 || $citas_previas_count > 0 || $es_motivo_continuacion || $tiene_tratamiento) ? 1 : 0;
+    my $es_consulta_continuacion = ($es_motivo_continuacion || ($tiene_tratamiento && $saldo_pendiente > 0)) ? 1 : 0;
 
     my $json_historial = JSON::PP->new->ascii(1)->encode({
         tiene_tratamiento        => $tiene_tratamiento,
@@ -225,7 +225,7 @@ sub render_step_caja_privado {
     if ($is_odontologia) {
         $banner_odonto_caja_html = qq{
             <!-- Banner Módulo Dental: Odontograma y Procedimientos Presupuestados -->
-            <div id="caja-odonto-banner" class="card border-0 rounded-4 p-3 mb-4 shadow-sm" style="background: linear-gradient(135deg, rgba(25, 183, 165, 0.08), rgba(10, 42, 102, 0.03)); border: 1px solid rgba(25, 183, 165, 0.3) !important;">
+            <div id="caja-odonto-banner" class="card border-0 rounded-4 p-3 mb-4 shadow-sm" style="display: none; background: linear-gradient(135deg, rgba(25, 183, 165, 0.08), rgba(10, 42, 102, 0.03)); border: 1px solid rgba(25, 183, 165, 0.3) !important;">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-3">
                         <div class="p-3 rounded-circle bg-white shadow-xs d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; color: var(--md-teal-clinical, #19B7A5); flex-shrink: 0;">
@@ -622,7 +622,8 @@ sub render_step_caja_privado {
             const workflowCont = document.getElementById('caja-workflow-container');
             
             const isTratamientoActivo = historialTratamiento && historialTratamiento.tiene_tratamiento;
-            const isNuevaConversion = cotSelect && cotSelect.value && convertirCheck && convertirCheck.checked;
+            const tieneCotizacion = cotSelect && cotSelect.value && cotSelect.value !== 'ninguna' && cotSelect.value !== '';
+            const isNuevaConversion = tieneCotizacion && (!convertirCheck || convertirCheck.checked);
             
             // Banner de Detección de Cobro Anticipado en Recepción
             const tienePrePagoRecepcion = (historialTratamiento && (
@@ -646,7 +647,7 @@ sub render_step_caja_privado {
             const esContinuacion = historialTratamiento && historialTratamiento.es_consulta_continuacion;
             const saldoPrevioVal = (historialTratamiento && historialTratamiento.saldo_global_paciente) ? parseFloat(historialTratamiento.saldo_global_paciente) : 0;
             let alertContinuacion = document.getElementById('caja-continuacion-alert');
-            if (esContinuacion && !tienePrePagoRecepcion) {
+            if (esContinuacion && !tienePrePagoRecepcion && !tieneCotizacion && !isNuevaConversion) {
                 if (!alertContinuacion) {
                     alertContinuacion = document.createElement('div');
                     alertContinuacion.id = 'caja-continuacion-alert';
@@ -904,6 +905,7 @@ sub render_step_caja_privado {
             
             const chk = document.querySelector('.odonto-chk:checked');
             if (chk) {
+                banner.style.display = 'block';
                 const alias = chk.getAttribute('data-alias') || 'Odontograma';
                 const importe = parseFloat(chk.getAttribute('data-importe') || '0');
                 const piezas = chk.getAttribute('data-piezas') || '0';
@@ -933,10 +935,11 @@ sub render_step_caja_privado {
                     }
                 }
             } else {
+                banner.style.display = 'none';
                 const inputAlias = document.getElementById('f_odonto_alias_seleccionado');
                 if (inputAlias) inputAlias.value = '';
                 if (statusTxt) {
-                    statusTxt.innerHTML = 'Sin odontograma asignado en el Paso 3. Puede registrar conceptos manuales o continuar.';
+                    statusTxt.innerHTML = '';
                 }
                 if (btnCargar) btnCargar.style.display = 'none';
             }
