@@ -9,35 +9,72 @@
     margin: 0 auto;
 }
 
-/* Header Compacto y Elegante */
+/* Header Institucional de Alto Contraste (Azul Marino y Blanco Institucional) */
 .comunicacion-hero {
-    background: linear-gradient(135deg, #0A2A66 0%, #124A9E 60%, #19B7A5 100%);
-    border-radius: 1rem;
-    padding: 1.25rem 1.5rem;
-    color: #ffffff;
-    box-shadow: 0 8px 24px rgba(10, 42, 102, 0.12);
-    margin-bottom: 1.5rem;
+    background: #0A2A66 !important;
+    background: linear-gradient(135deg, #0A2A66 0%, #0E367A 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-left: 5px solid #19B7A5 !important;
+    border-radius: 1rem !important;
+    padding: 1.25rem 1.5rem !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 8px 24px rgba(10, 42, 102, 0.16) !important;
+    margin-bottom: 1.5rem !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+}
+
+.comunicacion-hero-icon-box {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
+    justify-content: center;
+    color: #18D1E6 !important;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .comunicacion-hero-title {
-    font-size: 1.35rem;
-    font-weight: 700;
-    margin: 0;
-    font-family: 'Outfit', sans-serif;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
+    font-size: 1.35rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    font-family: 'Outfit', sans-serif !important;
+    color: #FFFFFF !important;
+    letter-spacing: -0.3px !important;
+    line-height: 1.2 !important;
 }
 
 .comunicacion-hero-subtitle {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.85);
-    margin: 0.25rem 0 0 0;
+    font-size: 0.88rem !important;
+    color: #E2E8F0 !important;
+    margin: 0.35rem 0 0 0 !important;
+    font-weight: 400 !important;
+}
+
+.comunicacion-role-badge {
+    background: #FFFFFF !important;
+    color: #0A2A66 !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 50rem !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+    border: 1px solid #CBD5E1 !important;
+}
+
+.comunicacion-role-badge i {
+    color: #124A9E !important;
 }
 
 /* Pestañas de Navegación */

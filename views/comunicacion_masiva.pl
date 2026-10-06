@@ -68,19 +68,24 @@ print <<"PAGE_HTML";
          data-id-medico="$id_medico" 
          style="display:none;"></div>
 
-    <!-- Hero Header Compacto -->
+    <!-- Hero Header Institucional Alto Contraste -->
     <div class="comunicacion-hero">
-        <div>
-            <h1 class="comunicacion-hero-title">
-                <i class="fa-solid fa-paper-plane text-cyan"></i> Centro de Comunicaciones y Difusión
-            </h1>
-            <p class="comunicacion-hero-subtitle">
-                Emisión de comunicados, campañas y recordatorios por correo masivo segmentado
-            </p>
+        <div class="d-flex align-items-center gap-3">
+            <div class="comunicacion-hero-icon-box">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+            <div>
+                <h1 class="comunicacion-hero-title">
+                    Centro de Comunicaciones y Difusión
+                </h1>
+                <p class="comunicacion-hero-subtitle">
+                    Emisión de comunicados, campañas y recordatorios por correo masivo segmentado
+                </p>
+            </div>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-white text-dark py-2 px-3 rounded-pill fw-bold shadow-sm">
-                <i class="fa-solid fa-shield-halved text-primary me-1"></i> Rol: $role
+            <span class="comunicacion-role-badge">
+                <i class="fa-solid fa-shield-halved me-1"></i> Rol: $role
             </span>
         </div>
     </div>
@@ -495,48 +500,28 @@ document.addEventListener('DOMContentLoaded', function () {
         prevBrandName.innerText = 'Consultorio Médico & Dental';
     }
 
-    // 3. Simulación Reactiva de Conteo de Destinatarios según Audiencia
+    // 3. Conteo Dinámico en Vivo de Destinatarios consultando la API Backend
     function actualizarConteoAudiencia() {
         const val = selAudiencia ? selAudiencia.value : '';
-        let conteo = 0;
-
-        switch (val) {
-            case 'todos_admin_org':
-                conteo = 4;
-                break;
-            case 'ejecutivos_ventas':
-                conteo = 2;
-                break;
-            case 'broadcast_plataforma':
-                conteo = 18;
-                break;
-            case 'todos_pacientes_global':
-            case 'todos_pacientes_clinica':
-                conteo = 35;
-                break;
-            case 'personal_clinica':
-                conteo = 8;
-                break;
-            case 'solo_medicos':
-                conteo = 3;
-                break;
-            case 'solo_recepcion':
-                conteo = 5;
-                break;
-            case 'mis_pacientes':
-                conteo = 14;
-                break;
-            case 'mis_cuentas_org':
-                conteo = 4;
-                break;
-            default:
-                conteo = 12;
-                break;
-        }
+        if (!val) return;
 
         if (txtTotalDestinatarios) {
-            txtTotalDestinatarios.innerText = conteo;
+            txtTotalDestinatarios.innerText = '...';
         }
+
+        fetch('../api/comunicacion_audiencia_api.pl?segmento=' + encodeURIComponent(val))
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok && txtTotalDestinatarios) {
+                    txtTotalDestinatarios.innerText = data.total_destinatarios;
+                } else if (txtTotalDestinatarios) {
+                    txtTotalDestinatarios.innerText = '0';
+                }
+            })
+            .catch(err => {
+                console.error('[Comunicación] Error al consultar audiencia:', err);
+                if (txtTotalDestinatarios) txtTotalDestinatarios.innerText = '0';
+            });
     }
 
     if (selAudiencia) {
@@ -554,10 +539,10 @@ document.addEventListener('DOMContentLoaded', function () {
             cuerpo = 'Estimado(a) Juan Pérez,\n\nEscribe en el panel izquierdo para ver la simulación en tiempo real de tu correo...';
         } else {
             // Sustituir variables de ejemplo en la vista previa
-            cuerpo = cuerpo.replace(/{{nombre}}/g, 'Juan Pérez')
-                           .replace(/{{clinica}}/g, prevBrandName.innerText)
-                           .replace(/{{medico}}/g, 'Dr. ' + nombreUsuario)
-                           .replace(/{{fecha}}/g, new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }));
+            cuerpo = cuerpo.replace(/\{\{nombre\}\}/g, 'Juan Pérez')
+                           .replace(/\{\{clinica\}\}/g, prevBrandName.innerText)
+                           .replace(/\{\{medico\}\}/g, 'Dr. ' + nombreUsuario)
+                           .replace(/\{\{fecha\}\}/g, new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }));
         }
         prevCuerpoTexto.innerText = cuerpo;
     }
@@ -598,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 7. Simulación Interactiva del Despacho por Lotes (Modal con Barra de Progreso)
+    // 7. Despacho Real Progresivo por Lotes (API Encolar + API Despachar)
     const btnLanzar = document.getElementById('btnLanzarCampana');
     const modalEl = document.getElementById('modalDespacho');
     const progressBar = document.getElementById('modalProgressBar');
@@ -611,6 +596,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btnLanzar.addEventListener('click', function () {
             const asunto = iptAsunto.value.trim();
             const cuerpo = txtCuerpo.value.trim();
+            const segmento = selAudiencia ? selAudiencia.value : '';
 
             if (!asunto) {
                 alert('Por favor introduce un asunto para la campaña.');
@@ -623,42 +609,86 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const total = parseInt(txtTotalDestinatarios.innerText, 10) || 10;
             const bsModal = new bootstrap.Modal(modalEl);
             bsModal.show();
 
             // Reset de Modal
             progressBar.style.width = '0%';
-            progresoTexto.innerText = 'Iniciando despacho...';
-            progresoConteo.innerText = '0 / ' + total;
-            logEnvio.innerHTML = '<div class="text-muted"><i class="fa-solid fa-spinner fa-spin text-primary me-1"></i> Conectando al servidor SMTP y preparando cola...</div>';
+            progresoTexto.innerText = 'Encolando campaña...';
+            progresoConteo.innerText = '0 / --';
+            logEnvio.innerHTML = '<div class="text-muted"><i class="fa-solid fa-spinner fa-spin text-primary me-1"></i> Registrando campaña y resolviendo lista de destinatarios...</div>';
             footerFinalizado.classList.add('d-none');
 
-            // Simulación de Lotes Progresivos
-            let enviados = 0;
-            const paso = Math.max(1, Math.ceil(total / 4));
+            // 1. Encolar Campaña en Backend
+            const formData = new URLSearchParams();
+            formData.append('asunto', asunto);
+            formData.append('cuerpo', cuerpo);
+            formData.append('segmento', segmento);
 
-            const timer = setInterval(function () {
-                enviados += paso;
-                if (enviados > total) enviados = total;
-
-                const porcentaje = Math.round((enviados / total) * 100);
-                progressBar.style.width = porcentaje + '%';
-                progresoTexto.innerText = 'Enviando por lotes: ' + porcentaje + '%';
-                progresoConteo.innerText = enviados + ' / ' + total;
-
-                const logItem = document.createElement('div');
-                logItem.className = 'text-success mt-1';
-                logItem.innerHTML = '<i class="fa-solid fa-check text-success me-1"></i> Lote despachado exitosamente (' + enviados + ' de ' + total + ' entregados)';
-                logEnvio.appendChild(logItem);
-                logEnvio.scrollTop = logEnvio.scrollHeight;
-
-                if (enviados >= total) {
-                    clearInterval(timer);
-                    progresoTexto.innerText = '¡Envío completado al 100%!';
+            fetch('../api/crear_campana_correo_api.pl', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.ok) {
+                    logEnvio.innerHTML += '<div class="text-danger mt-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> ' + (data.msg || 'Error al encolar') + '</div>';
+                    progresoTexto.innerText = 'Error en encolado';
                     footerFinalizado.classList.remove('d-none');
+                    return;
                 }
-            }, 800);
+
+                const idCampana = data.id_campana;
+                const totalDest = data.total;
+                progresoConteo.innerText = '0 / ' + totalDest;
+                logEnvio.innerHTML += '<div class="text-success mt-1"><i class="fa-solid fa-check text-success me-1"></i> ' + data.msg + '</div>';
+
+                // 2. Función Recursiva de Despacho por Lotes
+                function procesarSiguienteLote() {
+                    fetch('../api/despachar_lote_correos_api.pl?id_campana=' + encodeURIComponent(idCampana) + '&lote_size=5')
+                        .then(r => r.json())
+                        .then(batchRes => {
+                            if (!batchRes.ok) {
+                                logEnvio.innerHTML += '<div class="text-danger mt-1">Error en lote: ' + (batchRes.msg || 'Desconocido') + '</div>';
+                                footerFinalizado.classList.remove('d-none');
+                                return;
+                            }
+
+                            const procesados = totalDest - batchRes.pendientes_restantes;
+                            const pct = batchRes.porcentaje;
+                            progressBar.style.width = pct + '%';
+                            progresoTexto.innerText = 'Despachando lotes: ' + pct + '%';
+                            progresoConteo.innerText = procesados + ' / ' + totalDest;
+
+                            const itemLog = document.createElement('div');
+                            itemLog.className = 'text-success mt-1';
+                            itemLog.innerHTML = '<i class="fa-solid fa-paper-plane text-primary me-1"></i> Lote despachado (' + procesados + ' de ' + totalDest + ' entregados)';
+                            logEnvio.appendChild(itemLog);
+                            logEnvio.scrollTop = logEnvio.scrollHeight;
+
+                            if (!batchRes.completado) {
+                                // Pausa de 600ms para no saturar
+                                setTimeout(procesarSiguienteLote, 600);
+                            } else {
+                                progressBar.style.width = '100%';
+                                progresoTexto.innerText = '¡Campaña finalizada al 100%!';
+                                footerFinalizado.classList.remove('d-none');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('[Comunicación] Error de red en lote:', err);
+                            logEnvio.innerHTML += '<div class="text-danger mt-1">Error de conexión al despachar lote.</div>';
+                            footerFinalizado.classList.remove('d-none');
+                        });
+                }
+
+                procesarSiguienteLote();
+            })
+            .catch(err => {
+                console.error('[Comunicación] Error al crear campaña:', err);
+                logEnvio.innerHTML += '<div class="text-danger mt-1">Error de conexión con el servidor.</div>';
+                footerFinalizado.classList.remove('d-none');
+            });
         });
     }
 });
