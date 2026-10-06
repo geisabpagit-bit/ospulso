@@ -666,10 +666,10 @@ document.addEventListener('DOMContentLoaded', function () {
 JS
 
 # Renderizado del Menú Inferior Móvil Estándar
-utils::sub_bottom_nav::render_bottom_nav(
-    usuario   => $usuario,
-    role      => $role,
-    id_medico => $id_medico
+render_bottom_nav(
+    role          => $role,
+    pagina_actual => 'comunicacion_masiva',
+    id_medico     => $id_medico
 );
 
 print "</body>\n</html>";

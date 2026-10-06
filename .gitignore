@@ -9,5 +9,6 @@ dat/backups/
 .DS_Store
 Thumbs.db
 desktop.ini
-*.swp
-*~
+# Archivos de sesión temporales
+auth/sessions/
+cgi-bin/sessions/

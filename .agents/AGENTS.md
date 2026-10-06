@@ -37,4 +37,4 @@
      - `docs/04_standards_and_ops/`: Guías de UI/UX responsivo, estándares de código y protocolos de error.
   2. **Actualización Sincronizada con el Código**: Toda creación o modificación de endpoints (`api/`), vistas (`views/`), hojas de estilo (`css/`) o estructuras flat-file (`dat/`) exige la actualización inmediata del archivo `.md` correspondiente en `docs/`. Nunca se debe dar por terminada una tarea técnica sin refrescar la documentación representativa.
 
-
+- **PROHIBICIÓN ESTRICTA DE SUB_FOOTER EN NUEVOS SCRIPTS (.PL)**: De ahora en adelante, está estrictamente PROHIBIDO incluir o invocar `utils/sub_footer.pl` (`require '.../sub_footer.pl'` o `render_footer(...)`) en cualquier nuevo script `.pl` (vistas o endpoints), a menos que el usuario lo solicite de forma explícita. La navegación móvil y cierre de página se gestionan exclusivamente con `utils/sub_bottom_nav.pl` (`render_bottom_nav(...)`) y el cierre de etiquetas HTML estándar `</body></html>`.

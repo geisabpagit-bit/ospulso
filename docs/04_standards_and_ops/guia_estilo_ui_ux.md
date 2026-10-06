@@ -295,6 +295,16 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
 4. **Ocultamiento Limpio de Sidebar Móvil**:
    - En estado colapsado (`@media (max-width: 991px)`), `.diamond-sidebar` aplica `transform: translateX(-105%) !important; visibility: hidden !important; pointer-events: none !important; box-shadow: none !important;`, previniendo que bordes o sombras proyectadas asomen en el margen izquierdo del dispositivo.
 
+---
+
+## 11. Regla de Desuso y Prohibición Estricta de `utils/sub_footer.pl`
+
+1. **Deprecación Estricta**: Queda terminantemente PROHIBIDO incluir o invocar el componente legacy `utils/sub_footer.pl` (`require '.../sub_footer.pl'` o `render_footer(...)`) en cualquier nuevo script `.pl` (vistas o endpoints), a menos que el usuario lo solicite de forma explícita.
+2. **Sustitución Canónica**:
+   - La navegación móvil contextualmente adaptada se delega de forma exclusiva a `utils/sub_bottom_nav.pl` invocando la subrutina `render_bottom_nav(...)`.
+   - El cierre del documento HTML en las vistas debe realizarse de forma directa y limpia con `print "</body>\n</html>";` sin inyectar pies de página estáticos que colisionen o empujen innecesariamente la barra de navegación flotante.
+
+
 
 
 
