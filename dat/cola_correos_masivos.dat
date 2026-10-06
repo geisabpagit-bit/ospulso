@@ -1,1 +1,3 @@
 ID_COLA|ID_CAMPANA|EMAIL_DESTINATARIO|NOMBRE_DESTINATARIO|TIPO_DESTINATARIO|ASUNTO|CUERPO_HTML|ESTADO|INTENTOS|FECHA_ENVIO|ERROR_MSG
+CMP_20261005235242_591_1|CMP_20261005235242_591|geisabpa@gmail.com|Israel Garay de la Cruz|paciente|Comunicado Oficial de la ClÃ­nica|Pruebas {{fecha}}<br>MÃ©dico: {{medico}}<br>{{nombre}}<br>Esta es una prueba|ENVIADO|1|2026-10-05 23:52:43|
+CMP_20261005235242_591_2|CMP_20261005235242_591|benito@gmail.com|benito castro|paciente|Comunicado Oficial de la ClÃ­nica|Pruebas {{fecha}}<br>MÃ©dico: {{medico}}<br>{{nombre}}<br>Esta es una prueba|ENVIADO|1|2026-10-05 23:52:43|

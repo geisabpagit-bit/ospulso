@@ -60,6 +60,9 @@ El redactor soporta las siguientes etiquetas que se sustituyen en el cuerpo del 
 * **Estilos Dedicados:** `css/comunicacion_masiva.css` (Diseño de alto contraste institucional: fondo azul marino profundo `#0A2A66` y tipografía blanca nítida `#FFFFFF` con acento turquesa `#19B7A5`).
 * **Simulador de Inbox:** Componente reactivo a la derecha que refleja de forma instantánea el asunto, remitente y sustitución de variables en tiempo real.
 * **Modal de Progreso:** Animación visual de avance (0% a 100%) que informa los lotes enviados y confirma el éxito de la campaña sin recargar la página.
+* **Biblioteca de Plantillas Clínicas:** Catálogo modular con 4 plantillas precargadas (Prevención y Chequeo Anual, Días Festivos, Cuidados Post-Tratamiento y Bienvenida al Portal Digital) con inyección directa de 1-clic al redactor.
+* **Termómetro de Salud Anti-SPAM (Spam Score Meter):** Analizador reactivo en tiempo real que evalúa longitud de asunto, mayúsculas, palabras detonantes y presencia de variables para predecir la entregabilidad a bandeja principal (Inbox).
+* **Modal de Auditoría Granular:** Visor en tiempo real que desglosa cada destinatario de una campaña, fecha exacta de entrega, reintentos y estados (`ENVIADO`, `PENDIENTE`, `FALLIDO`).
 
 ---
 
@@ -69,10 +72,13 @@ El redactor soporta las siguientes etiquetas que se sustituyen en el cuerpo del 
 * **`api/comunicacion_audiencia_api.pl`**: Calcula de forma dinámica la audiencia según el rol de la sesión activa y deduplica destinatarios válidos omitiendo correos sintácticamente incorrectos.
 * **`api/crear_campana_correo_api.pl`**: Registra la campaña en `campanas_comunicacion.dat` y desglosa los registros de los destinatarios en la cola `cola_correos_masivos.dat` en menos de 1 segundo.
 * **`api/despachar_lote_correos_api.pl`**: Ejecuta el despacho secuencial por lotes configurables (5 a 10 correos), sustituye dinámicamente las variables de personalización, actualiza los contadores de entrega y registra la auditoría en `historial_correos.dat`.
+* **`api/listar_campanas_comunicacion_api.pl`**: Recupera el histórico de campañas filtrado con estricto RBAC (Global vs Tenant vs Médico tratante) en orden cronológico inverso.
+* **`api/detalle_campana_comunicacion_api.pl`**: Retorna los metadatos y la lista individualizada de destinatarios en cola de una campaña específica para auditoría forense de entrega.
 
 ### 6.2 Estructura Flat-File (`dat/`)
 * **`dat/campanas_comunicacion.dat`**:
   `ID_CAMPANA|FECHA|HORA|ID_REMITENTE|USUARIO_REMITENTE|ROL_REMITENTE|ID_NEGOCIO|SEGMENTO|ASUNTO|TOTAL_DESTINATARIOS|ENVIADOS_OK|FALLIDOS|ESTADO`
 * **`dat/cola_correos_masivos.dat`**:
   `ID_COLA|ID_CAMPANA|EMAIL_DESTINATARIO|NOMBRE_DESTINATARIO|TIPO_DESTINATARIO|ASUNTO|CUERPO_HTML|ESTADO|INTENTOS|FECHA_ENVIO|ERROR_MSG`
+
 
