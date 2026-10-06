@@ -220,7 +220,12 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
             $medico = $map_medicos{$id_medico_saved} || '';
         }
 
-        $medico ||= $map_medicos{$elaborado_por} || "Médico Tratante";
+        if ($medico =~ /selecciona\s*m[eé]dico/i) {
+            $medico = '';
+        }
+        if (!$medico) {
+            $medico = ($concepto_recibo =~ /servicio/i) ? '-' : ($map_medicos{$elaborado_por} || "Médico Tratante");
+        }
         my $detalle = "Caja";
         
         my $folio_mostrar = $folio_absoluto;

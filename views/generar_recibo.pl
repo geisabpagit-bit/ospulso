@@ -1565,13 +1565,22 @@ print <<'JS';
         }
         const metodo = $('#selMetodoPago').val();
         
+        let medTexto = '';
+        if (requiereMedico && $('#selMedico').val()) {
+            let rawMed = $('#selMedico option:selected').text() || '';
+            if (!rawMed.includes('-- Selecciona')) {
+                medTexto = rawMed;
+            }
+        }
+        let medHtml = medTexto ? `<br><strong>Médico:</strong> ${escapeHtml(medTexto)}` : '';
+
         const fechaHtml = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'short', day:'numeric' });
         let draftHtml = `
         <!DOCTYPE html><html><head><style>body { font-family: 'Inter', sans-serif; padding: 20px; color: #333; } .banner { background: #f59e0b; color: white; text-align: center; padding: 5px; font-weight: bold; font-size: 12px; margin-bottom: 20px; border-radius: 4px; }</style></head><body>
             <div class="banner">VISTA PREVIA DE RECIBO (BORRADOR)</div>
             <h2 style="margin:0 0 5px 0;">Recibo de Caja</h2>
             <p style="margin:0; color:#666;">Fecha: ${fechaHtml} | Método: ${metodo}</p>
-            <p style="margin:15px 0; font-size:14px;"><strong>Paciente:</strong> ${name_paciente}<br><strong>Médico:</strong> ${$('#selMedico option:selected').text()}</p>
+            <p style="margin:15px 0; font-size:14px;"><strong>Paciente:</strong> ${escapeHtml(name_paciente)}${medHtml}</p>
             <table style="width:100%; border-collapse:collapse; margin-top:20px; font-size:13px;">
                 <tr style="background:#f1f5f9;"><th style="padding:8px;text-align:left;">Concepto</th><th style="padding:8px;text-align:center;">Cant.</th><th style="padding:8px;text-align:right;">Subtotal</th></tr>
         `;
@@ -1611,10 +1620,10 @@ print <<'JS';
             name_paciente = $('#selPaciente option:selected').text();
         }
         
-        const id_medico = $('#selMedico').val();
-        const metodo = $('#selMetodoPago').val();
         const conceptoVal = $('#selConceptoRecibo').val() || '';
         const requiereMedico = (String(conceptoVal) === '1');
+        const id_medico = requiereMedico ? ($('#selMedico').val() || '') : '';
+        const metodo = $('#selMetodoPago').val();
 
         if (requiereMedico && !id_medico) {
             return Swal.fire('Atención', 'Debes seleccionar la Especialidad y el Médico responsable.', 'warning');
@@ -1678,7 +1687,7 @@ print <<'JS';
             form.append('id_medico', id_medico);
 
             let medNombreExacto = '';
-            if ($('#selMedico option:selected').length && $('#selMedico').val()) {
+            if (requiereMedico && $('#selMedico option:selected').length && $('#selMedico').val()) {
                 medNombreExacto = $('#selMedico option:selected').text();
                 if (medNombreExacto.includes(' - ')) {
                     medNombreExacto = medNombreExacto.split(' - ')[1].trim();

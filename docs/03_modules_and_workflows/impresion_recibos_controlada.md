@@ -81,8 +81,8 @@ Para garantizar la exactitud entre lo seleccionado en la vista previa ([views/ge
 1. **Preservación Directa del Payload (`items_json` / `@cargos`)**: Prioridad absoluta. Se extrae `medico`, `nombre_medico` y `especialidad` directamente de los objetos guardados en `items_json`. Esto asegura que el médico y especialidad seleccionados en la UI viajen intactos sin distorsiones ni búsquedas heurísticas.
 2. **Match por Ítem de Catálogo (`catalogo_items_${clues}.dat`)**: Si no viene explícito en el JSON pero `$id_medico` coincide con un `ID_ITEM` del catálogo de caja rápida (ej. `CONSULTA PEDIATRIA - DRA ROSA MARIA GONZALEZ`), se extrae la especialidad (`PEDIATRIA`) y el médico (`DRA ROSA MARIA GONZALEZ`) de la descripción del catálogo.
 3. **Plantilla de Médicos (`medicos_${clues}.dat`)**: Aplica para citas agendadas directamente en la Agenda Médica donde `$id_medico` es la clave del médico de la sucursal.
-4. **Fallback General**: Consulta en `usuarios.dat` o asignación de `"NO ESPECIFICADO"`.
 5. **Formateo Estándar de la Tabla**: El renglón de la tabla imprime `"Consulta - <ESPECIALIDAD>"` y omite repetir el nombre del médico en la descripción del concepto, presentándolo limpiamente únicamente en la fila `"Médico:"` del encabezado.
+6. **Recibos de Paso / Servicios Ambulatorios (Sin Médico)**: Cuando el recibo corresponde a departamentos o conceptos que no requieren facultativo médico (ej. *Servicios*, *Procedimientos de Enfermería*, *Inyecciones*, *Materiales*), el sistema suprime estrictamente el renglón de `"Médico:"` tanto en la vista previa del borrador (`views/generar_recibo.pl`), como en los formatos de impresión física (`api/imprimir_recibo_caja.pl`, `api/imprimir_recibo_publico.pl`, `api/imprimir_recibo_caja_consultorio.pl`) y en DataTables (`api/get_recibos_caja_api.pl`), impidiendo que asomen leyendas erróneas como `"-- Selecciona Médico --"` o médicos por defecto.
 
 ---
 

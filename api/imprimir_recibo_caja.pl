@@ -381,14 +381,16 @@ if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~
 }
 
 my $medico_row_html = '';
-if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /^\d+$/) {
-    my $display_med = $medico_nombre;
-    $medico_row_html = qq{
+if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /^\d+$/ && $medico_nombre !~ /selecciona\s*m[eé]dico/i) {
+    if (!$recibo->{concepto} || $recibo->{concepto} !~ /servicio/i || ($recibo->{id_medico} && $recibo->{id_medico} ne 'N/D')) {
+        my $display_med = $medico_nombre;
+        $medico_row_html = qq{
             <tr>
                 <td class="info-label-cell">Médico :</td>
                 <td colspan="2" style="font-size: 10px; text-transform: uppercase;">$display_med</td>
             </tr>
-    };
+        };
+    }
 }
 
 my $logo_html = '';

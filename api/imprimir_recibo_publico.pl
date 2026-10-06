@@ -557,6 +557,18 @@ sub formato_moneda {
 my $saldo = $recibo->{total_cargos} - $recibo->{total_abonos};
 $saldo = 0 if $saldo < 0;
 
+my $medico_row_html = '';
+if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /^\d+$/ && $medico_nombre !~ /selecciona\s*m[eé]dico/i) {
+    if (!$recibo->{concepto} || $recibo->{concepto} !~ /servicio/i || ($id_medico && $id_medico ne 'N/D')) {
+        $medico_row_html = qq{
+            <tr>
+                <td class="info-label-cell">Médico:</td>
+                <td colspan="2" style="font-size: 10px; text-transform: uppercase;">$medico_nombre</td>
+            </tr>
+        };
+    }
+}
+
 
 
 my $abono_saldo_html = "";
@@ -754,12 +766,7 @@ print <<HTML;
                 <td class="info-label-cell">Paciente :</td>
                 <td colspan="2" style="text-transform: uppercase;">$paciente_nombre</td>
             </tr>
-            <tr>
-                <td class="info-label-cell">Médico:</td>
-                <td colspan="2" style="font-size: 10px; text-transform: uppercase;">
-                    $medico_nombre
-                </td>
-            </tr>
+            $medico_row_html
             <tr>
                 <td class="info-label-cell" style="vertical-align: top;">Concepto :</td>
                 <td colspan="2" style="padding: 0;">

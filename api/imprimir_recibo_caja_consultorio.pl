@@ -240,27 +240,35 @@ if ($recibo->{id_paciente} && $recibo->{id_paciente} ne 'PAC-GENERICO') {
 }
 
 # 3. Obtener Datos del Médico Tratante (Cédula y Especialidad)
-my $medico_nombre = 'Médico Tratante';
+my $es_servicio_paso = ($recibo->{concepto} && $recibo->{concepto} =~ /servicio/i && (!$recibo->{id_medico} || $recibo->{id_medico} eq 'N/D'));
+my $medico_nombre = '';
 my $medico_cedula = '';
 my $medico_esp_id = '';
-my $medico_especialidad = 'Medicina General';
+my $medico_especialidad = '';
 
-my $usuarios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
-if (-e $usuarios_file && open(my $fhu, '<:encoding(UTF-8)', $usuarios_file)) {
-    <$fhu>;
-    while (my $lu = <$fhu>) {
-        chomp $lu;
-        next if $lu =~ /^\s*$/;
-        my @u = split /!/, $lu, -1;
-        if (($recibo->{id_medico} && ($u[0] eq $recibo->{id_medico} || $u[2] eq $recibo->{id_medico})) ||
-            ($recibo->{elaborado_por} && ($u[0] eq $recibo->{elaborado_por} || lc($u[2] // '') eq lc($recibo->{elaborado_por})))) {
-            $medico_nombre = $u[1] // $medico_nombre;
-            $medico_esp_id = $u[7] // '';
-            $medico_cedula = $u[9] // '';
-            last;
+if (!$es_servicio_paso) {
+    my $usuarios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+    if (-e $usuarios_file && open(my $fhu, '<:encoding(UTF-8)', $usuarios_file)) {
+        <$fhu>;
+        while (my $lu = <$fhu>) {
+            chomp $lu;
+            next if $lu =~ /^\s*$/;
+            my @u = split /!/, $lu, -1;
+            if ($recibo->{id_medico} && ($u[0] eq $recibo->{id_medico} || $u[2] eq $recibo->{id_medico})) {
+                $medico_nombre = $u[1] // '';
+                $medico_esp_id = $u[7] // '';
+                $medico_cedula = $u[9] // '';
+                last;
+            } elsif (!$recibo->{id_medico} && $recibo->{elaborado_por} && ($u[0] eq $recibo->{elaborado_por} || lc($u[2] // '') eq lc($recibo->{elaborado_por})) && $u[4] && $u[4] =~ /Medico/i) {
+                # Solo usar elaborado_por si el usuario realmente tiene rol de Medico
+                $medico_nombre = $u[1] // '';
+                $medico_esp_id = $u[7] // '';
+                $medico_cedula = $u[9] // '';
+                last;
+            }
         }
+        close $fhu;
     }
-    close $fhu;
 }
 
 # Resolver nombre de Especialidad si existe
@@ -571,11 +579,13 @@ print <<HTML;
             <!-- Header Negocio / Médico -->
             <div class="header-negocio">
                 <h1 class="negocio-title">$negocio_nombre</h1>
-                <div class="medico-subtitle">$medico_nombre</div>
-                <p class="medico-meta">
-                    $medico_especialidad
-                    @{[$medico_cedula ? " | Céd. Prof. $medico_cedula" : ""]}
-                </p>
+                @{[$medico_nombre ? qq{
+                    <div class="medico-subtitle">$medico_nombre</div>
+                    <p class="medico-meta">
+                        $medico_especialidad
+                        @{[ $medico_cedula ? " | Céd. Prof. $medico_cedula" : "" ]}
+                    </p>
+                } : ""]}
                 <p class="medico-meta" style="margin-top: 4px;">$negocio_dir</p>
                 @{[$negocio_tel ? qq{<p class="medico-meta">Tel. $negocio_tel</p>} : ""]}
                 
