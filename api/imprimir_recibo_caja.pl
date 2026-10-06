@@ -574,38 +574,43 @@ print <<HTML;
     <link rel="manifest" href="../favicon/site.webmanifest">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght\@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* CSS Específico para Impresión en Carta, sin zoom */
+        /* CSS Específico para Impresión en Hoja Carta Vertical con Márgenes Estándar */
         \@page {
             size: letter portrait;
-            margin: 0;
+            margin: 15mm;
+        }
+        * {
+            box-sizing: border-box;
         }
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Plus Jakarta Sans', Arial, sans-serif;
             margin: 0;
             padding: 0;
-            color: #1e293b;
+            color: #0f172a;
             font-size: 11px;
             background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         .receipt-container {
-            width: 8.5in;
+            width: 100%;
+            max-width: 100%;
             box-sizing: border-box;
-            padding: 0.5in;
             margin: 0 auto;
         }
         .grid-receipt {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
+            border-spacing: 0;
+            margin-bottom: 8px;
             font-size: 11px;
-            text-transform: capitalize;
             color: #000;
             font-family: Arial, sans-serif;
             font-weight: normal;
         }
         .grid-receipt td {
-            border: 1px solid #ccc;
-            padding: 8px;
+            border: 1px solid #94a3b8;
+            padding: 7px 10px;
             vertical-align: middle;
             font-weight: normal;
         }
@@ -613,45 +618,72 @@ print <<HTML;
             text-align: center;
         }
         .col-logo { width: 25%; }
-        .col-clinic { width: 45%; font-size: 14px; text-transform: uppercase; color: #000; text-align: center; }
+        .col-clinic { width: 45%; font-size: 13px; font-weight: bold; text-transform: uppercase; color: #000; text-align: center; }
         .col-folio { width: 30%; font-size: 11px; color: #000; text-align: center; }
         .info-label-cell {
             width: 25%;
+            font-weight: bold;
             color: #000;
         }
         .table-inner {
             width: 100%;
             border-collapse: collapse;
-            text-transform: capitalize;
+            border-spacing: 0;
         }
         .table-inner td {
-            border: none;
-            border-bottom: 1px dashed #ccc;
-            padding: 6px;
+            border: none !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            padding: 6px 8px;
             color: #000;
         }
+        .table-inner tr:last-child td {
+            border-bottom: none !important;
+        }
         .signature-box {
-            border-top: 1px solid #ccc;
+            border-top: 1px solid #94a3b8;
             width: 80%;
             margin: 0 auto;
             padding-top: 5px;
             color: #000;
-            text-transform: capitalize;
+            text-align: center;
+            font-size: 10px;
         }
         .badge-folio {
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: bold;
             display: inline-block;
-            margin-top: 5px;
+            margin-top: 4px;
             color: #000;
         }
-        \@media print {
-            .no-print { display: none !important; }
-        }
         \@media screen {
-            body { background: #e0e0e0; padding: 20px; }
+            body { 
+                background: #e2e8f0; 
+                padding: 24px; 
+            }
             .receipt-container {
+                max-width: 7.5in;
                 background: white;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                padding: 0.4in;
+                border-radius: 6px;
+            }
+        }
+        \@media print {
+            body { 
+                background: #fff; 
+                padding: 0; 
+                margin: 0; 
+            }
+            .no-print { 
+                display: none !important; 
+            }
+            .receipt-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
             }
         }
     </style>
@@ -813,20 +845,14 @@ print <<HTML;
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="padding: 0; border: none;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                        <tr>
-                            <td style="width: 100%; text-align: right; vertical-align: middle; padding: 12px; border: 1px solid #ccc; border-top: none;">
-                                <div style="font-size: 11px; margin-bottom: 8px; font-weight: normal;">Total : @{[ formato_moneda($recibo->{total_cargos}) ]}</div>
-                                $abono_saldo_html
-                                $indicaciones_html
-                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px;">
-                                    <span style="border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 11px; display: inline-block;">$recibo->{metodo_pago}</span>
-                                    <span style="font-size: 10px; font-weight: normal; color: #334155; white-space: nowrap;">Elaboró : $elaborado_por</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                <td colspan="3" style="text-align: right; vertical-align: middle; padding: 10px 14px;">
+                    <div style="font-size: 12px; margin-bottom: 6px; font-weight: bold; color: #000;">Total : @{[ formato_moneda($recibo->{total_cargos}) ]}</div>
+                    $abono_saldo_html
+                    $indicaciones_html
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px;">
+                        <span style="border: 1px solid #94a3b8; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 600; display: inline-block;">$recibo->{metodo_pago}</span>
+                        <span style="font-size: 10px; font-weight: normal; color: #334155; white-space: nowrap;">Elaboró : $elaborado_por</span>
+                    </div>
                 </td>
             </tr>
             <tr>

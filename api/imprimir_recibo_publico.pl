@@ -639,38 +639,43 @@ print <<HTML;
     <link rel="manifest" href="../favicon/site.webmanifest">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght\@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* CSS Específico para Impresión en Carta, sin zoom */
+        /* CSS Específico para Impresión en Hoja Carta Vertical con Márgenes Estándar */
         \@page {
             size: letter portrait;
-            margin: 0;
+            margin: 15mm;
+        }
+        * {
+            box-sizing: border-box;
         }
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Plus Jakarta Sans', Arial, sans-serif;
             margin: 0;
             padding: 0;
-            color: #1e293b;
+            color: #0f172a;
             font-size: 11px;
             background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         .receipt-container {
-            width: 8.5in;
+            width: 100%;
+            max-width: 100%;
             box-sizing: border-box;
-            padding: 0.5in;
             margin: 0 auto;
         }
         .grid-receipt {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
+            border-spacing: 0;
+            margin-bottom: 8px;
             font-size: 11px;
-            text-transform: capitalize;
             color: #000;
             font-family: Arial, sans-serif;
             font-weight: normal;
         }
         .grid-receipt td {
-            border: 1px solid #ccc;
-            padding: 8px;
+            border: 1px solid #94a3b8;
+            padding: 7px 10px;
             vertical-align: middle;
             font-weight: normal;
         }
@@ -678,45 +683,72 @@ print <<HTML;
             text-align: center;
         }
         .col-logo { width: 25%; }
-        .col-clinic { width: 45%; font-size: 14px; text-transform: uppercase; color: #000; text-align: center; }
+        .col-clinic { width: 45%; font-size: 13px; font-weight: bold; text-transform: uppercase; color: #000; text-align: center; }
         .col-folio { width: 30%; font-size: 11px; color: #000; text-align: center; }
         .info-label-cell {
             width: 25%;
+            font-weight: bold;
             color: #000;
         }
         .table-inner {
             width: 100%;
             border-collapse: collapse;
-            text-transform: capitalize;
+            border-spacing: 0;
         }
         .table-inner td {
-            border: none;
-            border-bottom: 1px dashed #ccc;
-            padding: 6px;
+            border: none !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            padding: 6px 8px;
             color: #000;
         }
+        .table-inner tr:last-child td {
+            border-bottom: none !important;
+        }
         .signature-box {
-            border-top: 1px solid #ccc;
+            border-top: 1px solid #94a3b8;
             width: 80%;
             margin: 0 auto;
             padding-top: 5px;
             color: #000;
-            text-transform: capitalize;
+            text-align: center;
+            font-size: 10px;
         }
         .badge-folio {
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: bold;
             display: inline-block;
-            margin-top: 5px;
+            margin-top: 4px;
             color: #000;
         }
-        \@media print {
-            .no-print { display: none !important; }
-        }
         \@media screen {
-            body { background: #e0e0e0; padding: 20px; }
+            body { 
+                background: #e2e8f0; 
+                padding: 24px; 
+            }
             .receipt-container {
+                max-width: 7.5in;
                 background: white;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                padding: 0.4in;
+                border-radius: 6px;
+            }
+        }
+        \@media print {
+            body { 
+                background: #fff; 
+                padding: 0; 
+                margin: 0; 
+            }
+            .no-print { 
+                display: none !important; 
+            }
+            .receipt-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
             }
         }
     </style>
@@ -890,43 +922,39 @@ if (@indicaciones_lista) {
     };
 }
 
-print <<HTML;
-                    </table>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="3" style="padding: 0; border: none;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                        <tr>
-                            <td style="width: 50%; text-align: left; vertical-align: top; padding: 10px 12px; border: 1px solid #ccc; border-top: none;">
-                                $indicaciones_col_html
-                                <div class="signature-box" style="margin-top: 15px; text-align: center;">
-                                    Nombre y Firma del Paciente
-                                </div>
-                            </td>
-                            <td style="width: 50%; text-align: left; vertical-align: middle; padding: 12px; border: 1px solid #ccc; border-top: none; border-left: none;">
-HTML
-
+my $pago_ventanilla_html = '';
 if ($recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
-    print qq{
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; font-weight: bold; color: #059669;">
-                                    <span>Pago en Ventanilla</span>
-                                    <span>@{[ formato_moneda($recibo->{total_abonos}) ]}</span>
-                                </div>
+    $pago_ventanilla_html = qq{
+        <div style="margin-bottom: 6px; font-size: 12px; font-weight: bold; color: #059669;">
+            <span>Pago en Ventanilla : @{[ formato_moneda($recibo->{total_abonos}) ]}</span>
+        </div>
     };
 }
 
 print <<HTML;
-                                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 10px;">
-                                    <span style="font-size: 10px; text-align: right; white-space: nowrap; font-weight: normal; color: #64748b;">Elaboró : $elaborado_por</span>
-                                </div>
-                            </td>
-                        </tr>
                     </table>
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align: center; font-size: 8px; font-weight: normal; padding: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">
+                <td colspan="3" style="padding: 12px 14px; vertical-align: middle;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 20px;">
+                        <div style="flex: 1; text-align: left;">
+                            $indicaciones_col_html
+                            <div class="signature-box" style="margin-top: 25px; text-align: center;">
+                                Nombre y Firma del Paciente
+                            </div>
+                        </div>
+                        <div style="flex: 1; text-align: right;">
+                            $pago_ventanilla_html
+                            <div style="font-size: 10px; color: #64748b; margin-top: 8px;">
+                                Elaboró : $elaborado_por
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="text-align: center; font-size: 8.5px; font-weight: normal; padding: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     $texto_pie_recibo
                 </td>
             </tr>

@@ -83,6 +83,10 @@ Para garantizar la exactitud entre lo seleccionado en la vista previa ([views/ge
 3. **Plantilla de Médicos (`medicos_${clues}.dat`)**: Aplica para citas agendadas directamente en la Agenda Médica donde `$id_medico` es la clave del médico de la sucursal.
 5. **Formateo Estándar de la Tabla**: El renglón de la tabla imprime `"Consulta - <ESPECIALIDAD>"` y omite repetir el nombre del médico en la descripción del concepto, presentándolo limpiamente únicamente en la fila `"Médico:"` del encabezado.
 6. **Recibos de Paso / Servicios Ambulatorios (Sin Médico)**: Cuando el recibo corresponde a departamentos o conceptos que no requieren facultativo médico (ej. *Servicios*, *Procedimientos de Enfermería*, *Inyecciones*, *Materiales*), el sistema suprime estrictamente el renglón de `"Médico:"` tanto en la vista previa del borrador (`views/generar_recibo.pl`), como en los formatos de impresión física (`api/imprimir_recibo_caja.pl`, `api/imprimir_recibo_publico.pl`, `api/imprimir_recibo_caja_consultorio.pl`) y en DataTables (`api/get_recibos_caja_api.pl`), impidiendo que asomen leyendas erróneas como `"-- Selecciona Médico --"` o médicos por defecto.
+7. **Estándares de Maquetación e Impresión Física (Carta Vertical / Sin Bordes Dobles ni Punteados)**:
+   - **Formato de Hoja y Márgenes**: Configurado estrictamente vía `@page { size: letter portrait; margin: 15mm; }` con `-webkit-print-color-adjust: exact;`.
+   - **Eliminación de Bordes Punteados / Dobles**: Se erradicaron las líneas `dashed` o `dotted`. Los conceptos internos usan divisores sólidos limpios (`1px solid #e2e8f0`) con `tr:last-child td { border-bottom: none !important; }` para evitar colisión con el borde de la celda padre.
+   - **Unificación de Celda de Totales**: Se eliminaron tablas anidadas en el pie de totales, utilizando celdas nativas `td colspan="3"` con flexbox interno, garantizando alineación geométrica milimétrica de 1px (`#94a3b8`) sin encimados ni desajustes.
 
 ---
 
