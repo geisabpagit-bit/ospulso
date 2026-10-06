@@ -19,3 +19,15 @@
    - `refactor:` Mejoras internas de código.
 2. **Sincronización Git Automática**: Al completar modificaciones, ejecutar automáticamente `git add .`, `git commit` y `git push`.
 3. **Verificación Previa**: Correr `perl -c <script.pl>` antes de cualquier commit.
+
+---
+
+## 3. Sincronización y Respaldo de Datos Vivos (`dat/`)
+
+Para descargar datos reales de pacientes, citas y finanzas generados en producción hacia el entorno local sin riesgo de pérdida de información:
+1. **Script de Sincronización FTP (`sincronizar_dat_ftp.ps1`)**:
+   - Conecta a `ftp.ospulso.com:21` bajo protocolo seguro TLS/FTPS.
+   - Solicita la credencial de forma encriptada en memoria (`Read-Host -AsSecureString`).
+   - Crea un respaldo preventivo fechado (`dat_backup_YYYYMMDD_HHMMSS`) en la raíz del proyecto antes de sobreescribir.
+   - Descarga de forma recursiva todos los catálogos y archivos planos desde `/home/ospulso/public_html/dat/` hacia `c:\xampp\htdocs\ospulso\dat\`.
+
