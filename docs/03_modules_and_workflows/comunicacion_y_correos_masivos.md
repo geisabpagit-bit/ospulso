@@ -85,10 +85,19 @@ El redactor soporta las siguientes etiquetas que se sustituyen en el cuerpo del 
 
 ## 7. Protocolo de Gobernanza Z-Index y Ciclo de Vida de Modales
 
-Para garantizar accesibilidad total, ergonomía visual y prevenir bloqueos de pantalla por backdrops huérfanos:
-1. **Jerarquía Z-Index Universal**: La capa de modales (`.modal`, `.dispatch-progress-modal`) se sitúa canónicamente en `z-index: 105000 !important;` y su respectivo telón (`.modal-backdrop`, `.modal-backdrop.show`) en `z-index: 104900 !important;`, manteniéndose por encima de barras de navegación pegajosas (`.sticky-top`), docks flotantes y sidebars.
-2. **Espaciado Superior Anti-Solapamiento**: Todo modal en comunicación masiva aplica un margen superior controlado (`margin: 4.5rem auto 2rem auto`) en su `.modal-dialog`, impidiendo que la cabecera del modal quede escondida bajo el navbar.
-3. **Cierre Multi-Vía y Limpieza de Backdrop**: El modal de despacho integra botón de cierre en cabecera (`#btnCerrarModalX`), botón de éxito en pie (`#btnCerrarModalExito`) y un interceptor de desmonte (`hidden.bs.modal`) que purga cualquier clase residual en `document.body` y elimina backdrops huérfanos en el DOM.
-4. **Encoding Puro UTF-8**: Los controladores JSON emiten cabeceras UTF-8 con flujo `binmode STDOUT, ":raw"` para evitar doble serialización o mojibake de caracteres especiales.
+Para garantizar accesibilidad total, ergonomía visual y prevenir bloqueos de pantalla por backdrops huérfanos o colisiones con encabezados (`sub_header.pl`):
+1. **Jerarquía Z-Index Universal (Anti-Colisión Navbar/Modales/Backdrop)**:
+   * **Barras de Navegación y Cabeceras** (`.sdm-navbar`, `.glass-navbar`, `nav.navbar.sticky-top`): `z-index: 1020 !important;`.
+   * **Docks Flotantes Inferiores** (`.bottom-bar-dock`, `.nav-dock`): `z-index: 1030 !important;`.
+   * **Overlays de Sidebar Lateral** (`.sidebar-overlay`): `z-index: 10400 !important;`.
+   * **Telones de Modales** (`.modal-backdrop`, `.modal-backdrop.show`, `.modal-backdrop.fade.show`): `z-index: 105000 !important;`.
+   * **Modales Activos y Diálogos** (`.modal`, `.modal.show`, `.dispatch-progress-modal`): `z-index: 105100 !important;`.
+2. **Aislamiento de Stacking Context en el DOM**:
+   * Los modales (`#modalDespacho`, `#modalAuditoriaCampana`) se ubican estrictamente **después** del cierre de la estructura del layout principal mediante `utils::sub_sidebar::render_sidebar_footer();`. Esto evita que queden atrapados dentro del árbol subordinado del sidebar o del contenedor de la página.
+3. **Cierre Multi-Vía y Limpieza de Backdrop**:
+   * El modal de despacho integra botón de cierre en cabecera (`#btnCerrarModalX`), botón de éxito en pie (`#btnCerrarModalExito`) y un interceptor de desmonte (`hidden.bs.modal`) que purga cualquier clase residual en `document.body` y elimina backdrops huérfanos en el DOM.
+4. **Encoding Puro UTF-8**:
+   * Los controladores JSON emiten cabeceras UTF-8 con directiva `use open qw(:utf8);` y flujo `binmode STDOUT, ":raw"` para evitar doble serialización o mojibake de caracteres especiales.
+
 
 

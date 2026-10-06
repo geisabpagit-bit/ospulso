@@ -859,22 +859,38 @@
         white-space: nowrap !important;
         box-sizing: border-box !important;
     }
-    }
 }
 
 /* ==========================================================================
    💎 ESTILOS CENTRALIZADOS DE MÓDULOS (PREVENCIÓN DE INLINE <STYLE>)
    ========================================================================== */
 
-/* 1. Modal y Backdrop - Jerarquía Z-Index Canónica Universal */
-.modal { 
-    z-index: 105000 !important; 
+/* 1. Jerarquía Z-Index Canónica Universal (Anti-Colisión Navbar/Modales/Backdrop) */
+.sdm-navbar,
+.glass-navbar,
+nav.navbar.sticky-top {
+    z-index: 1020 !important;
 }
-.modal-backdrop { 
-    z-index: 104900 !important; 
+
+.bottom-bar-dock,
+.nav-dock {
+    z-index: 1030 !important;
 }
-.modal-backdrop.show { 
-    z-index: 104900 !important; 
+
+.sidebar-overlay {
+    z-index: 10400 !important;
+}
+
+.modal-backdrop,
+.modal-backdrop.show,
+.modal-backdrop.fade.show {
+    z-index: 105000 !important;
+}
+
+.modal,
+.modal.show,
+.dispatch-progress-modal {
+    z-index: 105100 !important;
 }
 
 /* 2. Odontograma Toolbar & Impresión (de render_expediente_clinico.pl) */

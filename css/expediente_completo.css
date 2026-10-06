@@ -305,8 +305,9 @@ main.container-fluid {
 .btn-menu-toggle-inline:active { transform: scale(0.9); }
 
 /* Modales y Utilidades */
-.modal { z-index: 105000 !important; }
-.modal-backdrop { z-index: 104900 !important; }
+.modal { z-index: 105100 !important; }
+.modal-backdrop { z-index: 105000 !important; }
+.modal-backdrop.show { z-index: 105000 !important; }
 .preview-container { min-height: 350px; border-radius: 1.2rem; }
 
 /* Typography Overrides for Mobile */

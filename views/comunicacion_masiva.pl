@@ -520,11 +520,14 @@ El Equipo Médico
                 </div>
             </div>
         </div>
-
     </div>
-
 </div>
+PAGE_HTML
 
+# Cierre del contenedor principal del Sidebar
+utils::sub_sidebar::render_sidebar_footer();
+
+print <<'PAGE_MODALS';
 <!-- Modal de Despacho Progresivo en Lotes -->
 <div class="modal fade dispatch-progress-modal" id="modalDespacho" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -617,7 +620,7 @@ El Equipo Médico
         </div>
     </div>
 </div>
-PAGE_HTML
+PAGE_MODALS
 
 # Aislamiento Estricto de Javascript (Sin colisión de sigilos con Perl)
 print <<'JS';

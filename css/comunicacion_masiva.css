@@ -295,20 +295,17 @@
 
 /* Modal de Progreso de Envío y Blindaje Z-Index */
 .modal {
-    z-index: 105000 !important;
+    z-index: 105100 !important;
 }
 .modal-backdrop {
-    z-index: 104900 !important;
+    z-index: 105000 !important;
 }
 .modal-backdrop.show {
-    z-index: 104900 !important;
+    z-index: 105000 !important;
 }
 
 .dispatch-progress-modal {
-    z-index: 105000 !important;
-}
-.dispatch-progress-modal .modal-dialog {
-    margin: 4.5rem auto 2rem auto;
+    z-index: 105100 !important;
 }
 .dispatch-progress-modal .modal-content {
     border-radius: 1rem;

@@ -308,17 +308,19 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
 
 ## 12. Jerarquía Canónica Universal de Z-Index y Ciclo de Vida de Modales
 
-1. **Jerarquía Z-Index del Sistema (`css/ospulso_master_v2.css`)**:
-   - Para prevenir solapamientos con cabeceras fijas (`.sticky-top`), menús laterales (`.diamond-sidebar`), tooltips flotantes o docks inferiores (`.nav-dock`), la escala de superposición se unifica de forma canónica:
-     * **Modales (`.modal`)**: `z-index: 105000 !important;`
-     * **Telones de fondo (`.modal-backdrop`, `.modal-backdrop.show`)**: `z-index: 104900 !important;`
-     * **Tooltips flotantes**: `z-index: 106000 !important;`
-     * **Dock inferior y navegación flotante**: `z-index: 103000`
-2. **Espaciado y Prevención de Solapamiento**:
-   - Todo diálogo modal dentro de vistas con barra superior debe incorporar margen superior de al menos `4rem` en `.modal-dialog` para impedir que el título o controles de cierre queden ocultos tras el navbar.
+1. **Jerarquía Z-Index Universal del Sistema (`css/ospulso_master_v2.css`)**:
+   - Para erradicar solapamientos y trampas de apilamiento entre barras superiores fijas (`.sdm-navbar`, `sticky-top`), overlays laterales (`.sidebar-overlay`), modales y telones (`.modal-backdrop`), la escala oficial se define canónicamente:
+     * **Modales y Diálogos Activos (`.modal`, `.modal.show`, `.dispatch-progress-modal`)**: `z-index: 105100 !important;`
+     * **Telones de fondo (`.modal-backdrop`, `.modal-backdrop.show`, `.modal-backdrop.fade.show`)**: `z-index: 105000 !important;`
+     * **Overlays de Menú Lateral Móvil (`.sidebar-overlay`)**: `z-index: 10400 !important;`
+     * **Docks Inferiores y Navegación Flotante (`.bottom-bar-dock`, `.nav-dock`)**: `z-index: 1030 !important;`
+     * **Cabeceras y Barras Superiores Fijas (`.sdm-navbar`, `.glass-navbar`, `nav.navbar.sticky-top`)**: `z-index: 1020 !important;`
+2. **Regla de Aislamiento de Stacking Context en el DOM**:
+   - Todo diálogo modal (`.modal`) en vistas que implementen menús laterales o dashboards DEBE ubicarse **fuera** del contenedor principal del layout (renderizado con posterioridad a `utils::sub_sidebar::render_sidebar_footer()`). Esto previene que el navegador subordine el modal al contexto de apilamiento del cuerpo principal de la página.
 3. **Mecanismo Seguro de Cierre y Limpieza de Telón (Backdrop)**:
-   - Todo modal dinámico que ejecute procesos asíncronos o por lotes debe proveer cierre visual visible (botón X en cabecera y botón de acción en pie).
+   - Todo modal dinámico que ejecute procesos asíncronos o por lotes debe proveer cierre multi-vía visible (botón X en cabecera y botón de acción en pie).
    - El desmonte debe limpiar exhaustivamente los telones huérfanos (`.modal-backdrop`) y remover las clases residuales `modal-open` del `<body>`, asegurando que el scroll de la interfaz nunca quede bloqueado tras la finalización de un proceso.
+
 
 
 
