@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use utf8;
-use open qw(:std :utf8);
+use open qw(:utf8);
 use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use JSON::PP;
@@ -16,6 +16,7 @@ my $q = CGI->new;
 my $sd = check_session();
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
+binmode STDOUT, ":raw";
 
 unless ($sd->{session_ok}) {
     print encode_json({ ok => 0, msg => "Sesión inválida o expirada" });

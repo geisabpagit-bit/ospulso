@@ -293,13 +293,30 @@
     line-height: 1.5;
 }
 
-/* Modal de Progreso de Envío */
+/* Modal de Progreso de Envío y Blindaje Z-Index */
+.modal {
+    z-index: 105000 !important;
+}
+.modal-backdrop {
+    z-index: 104900 !important;
+}
+.modal-backdrop.show {
+    z-index: 104900 !important;
+}
+
+.dispatch-progress-modal {
+    z-index: 105000 !important;
+}
+.dispatch-progress-modal .modal-dialog {
+    margin: 4.5rem auto 2rem auto;
+}
 .dispatch-progress-modal .modal-content {
     border-radius: 1rem;
     border: none;
-    box-shadow: 0 20px 40px rgba(10, 42, 102, 0.2);
+    box-shadow: 0 25px 50px rgba(10, 42, 102, 0.35);
     overflow: hidden;
 }
+
 
 .dispatch-progress-header {
     background: linear-gradient(135deg, #0A2A66, #124A9E);

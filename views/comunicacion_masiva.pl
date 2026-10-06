@@ -529,13 +529,16 @@ El Equipo Médico
 <div class="modal fade dispatch-progress-modal" id="modalDespacho" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="dispatch-progress-header">
-                <h5 class="modal-title fw-bold mb-1">
-                    <i class="fa-solid fa-paper-plane me-2"></i> Despachando Campaña en Segundo Plano
-                </h5>
-                <p class="small text-white-50 mb-0" id="modalProgresoSubtitulo">
-                    Enviando lotes controlados para proteger la reputación del servidor...
-                </p>
+            <div class="dispatch-progress-header d-flex justify-content-between align-items-start">
+                <div>
+                    <h5 class="modal-title fw-bold mb-1">
+                        <i class="fa-solid fa-paper-plane me-2"></i> Despachando Campaña en Segundo Plano
+                    </h5>
+                    <p class="small text-white-50 mb-0" id="modalProgresoSubtitulo">
+                        Enviando lotes controlados para proteger la reputación del servidor...
+                    </p>
+                </div>
+                <button type="button" class="btn-close btn-close-white d-none" id="btnCerrarModalX" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body p-4">
                 
@@ -740,6 +743,34 @@ document.addEventListener('DOMContentLoaded', function () {
     const progresoConteo = document.getElementById('modalProgresoConteo');
     const logEnvio = document.getElementById('modalLogEnvio');
     const footerFinalizado = document.getElementById('modalFooterFinalizado');
+    const btnCerrarModalX = document.getElementById('btnCerrarModalX');
+    const btnCerrarModalExito = document.getElementById('btnCerrarModalExito');
+
+    function cerrarModalDespachoSeguro() {
+        if (!modalEl) return;
+        const inst = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+        if (inst) inst.hide();
+        setTimeout(function () {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, 200);
+    }
+
+    if (btnCerrarModalExito) btnCerrarModalExito.addEventListener('click', cerrarModalDespachoSeguro);
+    if (btnCerrarModalX) btnCerrarModalX.addEventListener('click', cerrarModalDespachoSeguro);
+
+    if (modalEl) {
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            setTimeout(function () {
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+            }, 100);
+        });
+    }
 
     if (btnLanzar && modalEl) {
         btnLanzar.addEventListener('click', function () {
@@ -758,7 +789,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const bsModal = new bootstrap.Modal(modalEl);
+            const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
             bsModal.show();
 
             // Reset de Modal
@@ -767,6 +798,7 @@ document.addEventListener('DOMContentLoaded', function () {
             progresoConteo.innerText = '0 / --';
             logEnvio.innerHTML = '<div class="text-muted"><i class="fa-solid fa-spinner fa-spin text-primary me-1"></i> Registrando campaña y resolviendo lista de destinatarios...</div>';
             footerFinalizado.classList.add('d-none');
+            if (btnCerrarModalX) btnCerrarModalX.classList.add('d-none');
 
             // 1. Encolar Campaña en Backend
             const formData = new URLSearchParams();
@@ -784,6 +816,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     logEnvio.innerHTML += '<div class="text-danger mt-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> ' + (data.msg || 'Error al encolar') + '</div>';
                     progresoTexto.innerText = 'Error en encolado';
                     footerFinalizado.classList.remove('d-none');
+                    if (btnCerrarModalX) btnCerrarModalX.classList.remove('d-none');
                     return;
                 }
 
@@ -800,6 +833,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (!batchRes.ok) {
                                 logEnvio.innerHTML += '<div class="text-danger mt-1">Error en lote: ' + (batchRes.msg || 'Desconocido') + '</div>';
                                 footerFinalizado.classList.remove('d-none');
+                                if (btnCerrarModalX) btnCerrarModalX.classList.remove('d-none');
                                 return;
                             }
 
@@ -822,6 +856,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 progressBar.style.width = '100%';
                                 progresoTexto.innerText = '¡Campaña finalizada al 100%!';
                                 footerFinalizado.classList.remove('d-none');
+                                if (btnCerrarModalX) btnCerrarModalX.classList.remove('d-none');
                                 cargarHistorialCampanas(); // Refrescar automáticamente historial
                             }
                         })
@@ -829,6 +864,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             console.error('[Comunicación] Error de red en lote:', err);
                             logEnvio.innerHTML += '<div class="text-danger mt-1">Error de conexión al despachar lote.</div>';
                             footerFinalizado.classList.remove('d-none');
+                            if (btnCerrarModalX) btnCerrarModalX.classList.remove('d-none');
                         });
                 }
 
@@ -838,9 +874,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('[Comunicación] Error al crear campaña:', err);
                 logEnvio.innerHTML += '<div class="text-danger mt-1">Error de conexión con el servidor.</div>';
                 footerFinalizado.classList.remove('d-none');
+                if (btnCerrarModalX) btnCerrarModalX.classList.remove('d-none');
             });
         });
     }
+
 
     // 8. Calculadora Reactiva de Salud y Entregabilidad (Spam Score)
     const spamScoreBadge = document.getElementById('spamScoreBadge');

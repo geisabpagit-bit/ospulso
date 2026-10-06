@@ -304,6 +304,22 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - La navegación móvil contextualmente adaptada se delega de forma exclusiva a `utils/sub_bottom_nav.pl` invocando la subrutina `render_bottom_nav(...)`.
    - El cierre del documento HTML en las vistas debe realizarse de forma directa y limpia con `print "</body>\n</html>";` sin inyectar pies de página estáticos que colisionen o empujen innecesariamente la barra de navegación flotante.
 
+---
+
+## 12. Jerarquía Canónica Universal de Z-Index y Ciclo de Vida de Modales
+
+1. **Jerarquía Z-Index del Sistema (`css/ospulso_master_v2.css`)**:
+   - Para prevenir solapamientos con cabeceras fijas (`.sticky-top`), menús laterales (`.diamond-sidebar`), tooltips flotantes o docks inferiores (`.nav-dock`), la escala de superposición se unifica de forma canónica:
+     * **Modales (`.modal`)**: `z-index: 105000 !important;`
+     * **Telones de fondo (`.modal-backdrop`, `.modal-backdrop.show`)**: `z-index: 104900 !important;`
+     * **Tooltips flotantes**: `z-index: 106000 !important;`
+     * **Dock inferior y navegación flotante**: `z-index: 103000`
+2. **Espaciado y Prevención de Solapamiento**:
+   - Todo diálogo modal dentro de vistas con barra superior debe incorporar margen superior de al menos `4rem` en `.modal-dialog` para impedir que el título o controles de cierre queden ocultos tras el navbar.
+3. **Mecanismo Seguro de Cierre y Limpieza de Telón (Backdrop)**:
+   - Todo modal dinámico que ejecute procesos asíncronos o por lotes debe proveer cierre visual visible (botón X en cabecera y botón de acción en pie).
+   - El desmonte debe limpiar exhaustivamente los telones huérfanos (`.modal-backdrop`) y remover las clases residuales `modal-open` del `<body>`, asegurando que el scroll de la interfaz nunca quede bloqueado tras la finalización de un proceso.
+
 
 
 

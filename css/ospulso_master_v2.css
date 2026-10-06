@@ -866,7 +866,13 @@
    💎 ESTILOS CENTRALIZADOS DE MÓDULOS (PREVENCIÓN DE INLINE <STYLE>)
    ========================================================================== */
 
-/* 1. Modal Backdrop - Corrección de Z-Index (de pacientes.pl) */
+/* 1. Modal y Backdrop - Jerarquía Z-Index Canónica Universal */
+.modal { 
+    z-index: 105000 !important; 
+}
+.modal-backdrop { 
+    z-index: 104900 !important; 
+}
 .modal-backdrop.show { 
     z-index: 104900 !important; 
 }

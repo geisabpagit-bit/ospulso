@@ -81,4 +81,14 @@ El redactor soporta las siguientes etiquetas que se sustituyen en el cuerpo del 
 * **`dat/cola_correos_masivos.dat`**:
   `ID_COLA|ID_CAMPANA|EMAIL_DESTINATARIO|NOMBRE_DESTINATARIO|TIPO_DESTINATARIO|ASUNTO|CUERPO_HTML|ESTADO|INTENTOS|FECHA_ENVIO|ERROR_MSG`
 
+---
+
+## 7. Protocolo de Gobernanza Z-Index y Ciclo de Vida de Modales
+
+Para garantizar accesibilidad total, ergonomía visual y prevenir bloqueos de pantalla por backdrops huérfanos:
+1. **Jerarquía Z-Index Universal**: La capa de modales (`.modal`, `.dispatch-progress-modal`) se sitúa canónicamente en `z-index: 105000 !important;` y su respectivo telón (`.modal-backdrop`, `.modal-backdrop.show`) en `z-index: 104900 !important;`, manteniéndose por encima de barras de navegación pegajosas (`.sticky-top`), docks flotantes y sidebars.
+2. **Espaciado Superior Anti-Solapamiento**: Todo modal en comunicación masiva aplica un margen superior controlado (`margin: 4.5rem auto 2rem auto`) en su `.modal-dialog`, impidiendo que la cabecera del modal quede escondida bajo el navbar.
+3. **Cierre Multi-Vía y Limpieza de Backdrop**: El modal de despacho integra botón de cierre en cabecera (`#btnCerrarModalX`), botón de éxito en pie (`#btnCerrarModalExito`) y un interceptor de desmonte (`hidden.bs.modal`) que purga cualquier clase residual en `document.body` y elimina backdrops huérfanos en el DOM.
+4. **Encoding Puro UTF-8**: Los controladores JSON emiten cabeceras UTF-8 con flujo `binmode STDOUT, ":raw"` para evitar doble serialización o mojibake de caracteres especiales.
+
 
