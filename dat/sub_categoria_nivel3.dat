@@ -5,3 +5,15 @@ id|id_subcat|nombre|id_negocio
 4|2|Instrumental|0
 5|5|Energía Eléctrica|0
 6|5|Internet/Telefonía|0
+4|8|Salario Fijo|1044365
+5|8|Bonos y Comisiones|1044365
+6|9|Desechables|1044365
+7|9|Instrumental|1044365
+8|12|Energía Eléctrica|1044365
+9|12|Internet/Telefonía|1044365
+10|14|Salario Fijo|723800
+11|14|Bonos y Comisiones|723800
+12|15|Desechables|723800
+13|15|Instrumental|723800
+14|18|Energía Eléctrica|723800
+15|18|Internet/Telefonía|723800

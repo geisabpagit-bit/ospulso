@@ -1,3 +1,7 @@
-ID_CITA|ID_MEDICO|ID_PACIENTE|FECHA|HORA_INICIO|HORA_FIN|MOTIVO|NOTAS|ESTADO|EXTRA
-101|1020747209|1|2026-10-03|18:17|18:47|Consulta General de Valoración|Evaluación clínica inicial - [Atencion: 2026-10-03 18:17 (Prog. original: 2026-10-03 09:00)]|Consulta en proceso|
-102|1088603479|2|2026-10-03|10:00|10:30|Consulta Médica Preventiva|Revisión de rutina|Programada|
+id_cita|id_medico|id_paciente|fecha|hora_ini|hora_fin|motivo|notas|estado|event_id|color|prioridad|sucursal|consultorio|id_negocio|elaborado_por
+CITA-1791108875-462|658290667|2|2026-10-04|04:14|04:44|Consulta General|Consulta directa espontánea|Atendida||#059669|Normal||Consultorio 1|1044365|Mario Gonzalez
+CITA-1791146719-936|658290667|2|2026-10-04|14:46|15:16|Consulta General|Consulta directa espontánea|Atendida|Consulta en proceso||#059669|Normal||Consultorio 1|1044365
+CITA-1791176604-652|658290667|2|2026-10-05|12:03|12:33|Consulta General|Consulta directa espontánea - [Atencion: 2026-10-05 11:57 (Prog. original: 2026-10-04 23:03)] - [Atencion: 2026-10-05 12:03 (Prog. original: 2026-10-05 11:57)]|Atendida||#059669|Normal||Consultorio 1|1044365|Mario Gonzalez
+CITA-1791223036-802|1034019189|3|2026-10-05|11:57|12:27|Consulta General|Consulta directa espontánea|Consulta en proceso||#059669|Normal||Consultorio 1|909784|GERSON RAMSES
+1791223845|658290667|2|2026-10-05|12:16|12:46|continuacion|[Atencion: 2026-10-05 12:16 (Prog. original: 2026-10-06 13:00)]|Atendida|||Normal|1044365|Consultorio 1|1044365|geisabpa@gmail.com
+1791224328|658290667|2|2026-10-05|12:22|12:52|termino de tratamiento|[Atencion: 2026-10-05 12:22 (Prog. original: 2026-10-07 13:00)]|Atendida|||Normal|1044365|Consultorio 1|1044365|geisabpa@gmail.com

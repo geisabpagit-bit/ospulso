@@ -1,2 +1,5 @@
 ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud
-0|Clínica Médica Pulso|0|1|2026-01-01|2030-12-31|Av. Siempre Viva 123|555-1234|contacto@clinica.com||RFC12345|Clínica Pulso SA de CV|||01000|CDMX|Cuauhtémoc|Centro|QTSMP000116|0|19.4326|-99.1332
+723800|CLINICA MEDICA DE ESPECIALIDADES JUAN PABLO II|0|1|2026-08-27|2027-08-27|HIDALGO, No. 78|4422259229|karen@gmail.com||GMJ091123RSA|GRUPO MEDICO JUAN PABLO II, S.A. DE C.V.||201099951|76900|QUERÉTARO|CORREGIDORA|El Pueblito Centro|QTSMP000116|0|20.5433616|-100.4398792
+965257|unica|723800|1|2026-08-27|2099-12-31|Av Hidalgo No. 78|2259229, 2259213|No aplica|No aplica|No aplica|No aplica|No aplica|No aplica|76900|QUERÉTARO|CORREGIDORA|El Pueblito Centro||||
+1044365|Dental Guadalupe Comercial|0|1|2026-09-23|2027-09-23|volcan popocatepetl 12|5531422575|geisabpa@gmail.com||abc12345678|Dental Guadalupe||201099951|07500|CIUDAD DE MÉXICO|GUSTAVO A. MADERO|La Pradera||||
+909784|DENTAL PATITOS|0|1|2026-10-05|2027-10-05|SIERRA MADRE ORIENTAL NUM 163|5565439115|gerson@gmail.com||PATITOS12345|PATITO S. A. de C.V.||201099951|07500|CIUDAD DE MÉXICO|GUSTAVO A. MADERO|La Pradera||0||

@@ -3,3 +3,11 @@ ID_ORIGEN|NOMBRE|DESC|ID_NEGOCIO
 2|Caja General|Efectivo principal|0
 3|Transferencia Bancaria|Pago electrónico|0
 4|Tarjeta de Crédito / Débito|Terminal bancaria|0
+5|Efectivo / Caja Chica|Efectivo físico en sucursal|1044365
+6|Caja General|Efectivo principal|1044365
+7|Transferencia Bancaria|Pago electrónico|1044365
+8|Tarjeta de Crédito / Débito|Terminal bancaria|1044365
+9|Efectivo / Caja Chica|Efectivo físico en sucursal|723800
+10|Caja General|Efectivo principal|723800
+11|Transferencia Bancaria|Pago electrónico|723800
+12|Tarjeta de Crédito / Débito|Terminal bancaria|723800

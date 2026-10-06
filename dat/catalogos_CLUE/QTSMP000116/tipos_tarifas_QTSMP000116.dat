@@ -11,3 +11,6 @@ ID_TARIFA|CLAVE|NOMBRE_TARIFA|DESCRIPCION|ACTIVO
 10|SABADO_TARDE_DOMINGO_FESTIVO|SÁBADO TARDE / DOMINGO / FESTIVO|Guardia Fin de Semana y Festivo|1
 11|PAQUETE_TODO_INCLUIDO|PAQUETE TODO INCLUIDO|Paquete Integral Quirúrgico / Procedimiento|1
 12|PAQUETE_SOLO_CLINICA|PAQUETE SOLO CLÍNICA|Paquete Quirúrgico sin Honorarios Médicos|1
+13|CT_CONS_GRAL_LV|Consulta Gral Lunes a Viernes||1
+14|CT_CONS_GRAL_SAB_MAT|Consulta Gral Sabados Matutina||1
+15|CT_CONS_GRAL_SAB_VESP|Consulta Gral Sabado Vespertina||1

@@ -3,3 +3,12 @@ id|nombre|desc|id_negocio
 2|Marketing|Publicidad y ventas|0
 3|Inmobiliario|Renta y mantenimiento|0
 4|Financieros|Comisiones e impuestos|0
+8|Operativos|Gastos del día a día|1044365
+9|Marketing|Publicidad y ventas|1044365
+10|Inmobiliario|Renta y mantenimiento|1044365
+11|Financieros|Comisiones e impuestos|1044365
+12|Operativos clue|Gastos del día a día|723800
+14|Inmobiliario clue|Renta y mantenimiento|723800
+16|INSUMOS DE COCINA Y ALIMENTACION||723800
+17|INSUMOS MEDICOS Y FARMACEUTICOS||723800
+18|INSUMOS DE PAPELERIA Y OFICINA||723800

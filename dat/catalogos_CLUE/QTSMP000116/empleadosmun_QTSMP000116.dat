@@ -219,6 +219,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 931!Garcia Olvera Martha Elena!Beneficiario!1!16!4424344798!!Activo!19/11/2025!10!!!!!
 941!Anaya Mandujano Martin Juvencio!Empleado!1!3!4426164083!!Activo!15/11/2025!12!!!!!
 941!Herrera Hernandez Juana!Beneficiario!1!3!4426164083!!Activo!15/11/2025!12!!!!!
+947!Flores Alvarez Emiliano!Empleado!1!16!4426333485!!Activo!31/08/2026!17!!!!!
 970!Barcenas Perez Javier!Empleado!1!7!4424965899!!Activo!28/09/2025!12!!!!!
 970!Cervantes Ramirez Ma Martina!Beneficiario!1!7!4421230427!!Activo!28/09/2025!12!!!!!
 975!J CARLOS MENDOZA HERNANDEZ!Empleado!1!2!4427744263!!Activo!28/10/2025!12!8!18/12/2025!!!
@@ -399,6 +400,8 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 1661!Contreras Martinez Maria Jose!Beneficiario!1!13!4427520143!!Activo!29/09/2025!6!!!!!
 1690!Guerrero Alva Santiago!Empleado!1!2!4423603993!!Activo!08/10/2025!6!!!!!
 1690!Mendoza Diaz Monica!Beneficiario!1!2!4423603993!!Activo!08/10/2025!6!!!!!
+1697!Rivera Campos Juan Carlos!Empleado!1!2!0000000000!!Activo!19/09/2026!17!!!!!
+1697!Rivera Trejo Manuel!Beneficiario!1!2!0000000000!!Activo!19/09/2026!17!!!!!
 1708!Rodriguez Lugo Jose Hector!Empleado!!2!4426010901!!Activo!02/05/2026!14!!!!!
 1708!Villalobos Flores Gabriela!Beneficiario!!2!4426010901!!Activo!02/05/2026!14!!!!!
 1713!Rico Garcia Jose Francisco!Empleado!1!2!4428110960!!Activo!29/09/2025!12!!!!!
@@ -446,6 +449,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 1963!Hernandez Juarez J Lino!Empleado!1!6!4427088903!!Activo!09/10/2025!12!!!!!
 1963!Sanchez Gudino Sara!Beneficiario!1!6!4427088903!!Activo!09/10/2025!12!!!!!
 2001!Soler Garcia Beatriz!Empleado!1!17!0000000000!!Activo!!Activo!8!14/03/2026!!!
+2012!Arias Rivera Jose Antonio!Empleado!!5!4424733459!!Activo!29/09/2026!15!!!!!
 2013!Guerrero Jimenez Jesus Guadalupe!Empleado!1!2!0000000000!!Activo!31/01/2026!12!!!!!
 2013!Garcia Garcia Ana Mayra!Beneficiario!1!2!0000000000!!Activo!31/01/2026!12!!!!!
 2015!Talavera Lira Adriana Karen!Empleado!1!16!4428756527!!Activo!02/10/2025!12!!!!!
@@ -460,6 +464,8 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 2021!Ramon Talavera Victor Mateo!Beneficiario!1!41!4426110429!!Activo!21/01/2026!12!!!!!
 2026!Vega Rangel Susana!Empleado!1!13!4462972673!!Activo!04/02/2026!6!!!!!
 2034!Sanchez Ramirez Norma Angelica!Empleado!1!15!4421213308!!Activo!16/10/2025!12!!!!!
+2034!Martinez Sanchez Angelica!Beneficiario!!15!4421213308!!Activo!21/09/2026!15!!!!!
+2034!Coral Sanchez Isaac Emiliano!Beneficiario!1!15!0000000000!!Activo!22/09/2026!17!!!!!
 2098!Anaya Romero Emilio!Empleado!1!16!4422228217!!Activo!29/09/2025!6!!!!!
 2098!Anaya Alvarez Victor Yael!Beneficiario!!16!4422228617!!Activo!29/09/2025!6!!!!!
 2100!Del Angel Del Angel Santiago!Empleado!1!16!4421545328!!Activo!29/10/2025!!!!!!
@@ -551,6 +557,8 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 2700!Mendoza Garcia Lorena!Beneficiario!1!27!4423319160!!Activo!18/07/2026!17!!!!!
 2758!Aguilar Chavez Edgar!Empleado!1!2!4428494901!!Activo!16/03/2026!12!!!!!
 2763!Olvera Camacho Juan!Empleado!1!2!4428971387!!Activo!21/11/2025!12!!!!!
+2838!Sanchez Martinez Ruben!Empleado!1!2!4461126766!!Activo!16/09/2026!10!!!!!
+2838!Garcia Paredes Lilia!Beneficiario!1!2!4461126766!!Activo!16/09/2026!10!!!!!
 2884!Rivera Moya Jose Luis!Empleado!1!2!4411396682!!Activo!07/11/2025!12!!!!!
 2884!Rivera Silva Jose Vicente!Beneficiario!1!2!4411396682!!Activo!07/11/2025!12!!!!!
 2884!Silva Arreola Elvira!Beneficiario!1!2!4422000000!!Activo!15/11/2025!6!!!!!
@@ -576,6 +584,8 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 3028!Prado Guillen Mailen!Beneficiario!1!38!4423700616!!Activo!26/03/2026!10!!!!!
 3030!Olvera Sanchez Juan Antonio!Empleado!1!2!4428644052!!Activo!18/10/2025!6!!!!!
 3030!Olvera Corona Giovenni Antonio!Beneficiario!!2!4428644052!!Activo!27/05/2026!14!!!!!
+3030!Corona Sanchez Martha!Beneficiario!1!2!0000000000!!Activo!16/09/2026!17!!!!!
+3030!Olvera Corona Jennifer!Beneficiario!1!2!0000000000!!Activo!16/09/2026!17!!!!!
 3060!Arellano Luna Benigno!Empleado!1!2!4427783393!!Activo!14/02/2026!12!!!!!
 3060!Garita Romero Ma Yrene!Beneficiario!1!2!4427783393!!Activo!14/02/2026!12!!!!!
 3079!Arteaga Aguilar Jose Fernando!Empleado!1!16!4423631554!!Activo!23/11/2025!10!!!!!
@@ -604,6 +614,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 3154!Herrera Silva Humberto!Empleado!1!2!4422376072!!Activo!19/11/2025!6!!!!!
 3154!Herrera Sanchez Nayeli!Beneficiario!1!2!4422376072!!Activo!19/11/2025!6!!!!!
 3154!Herrera Sanchez Mariana!Beneficiario!1!2!4428012176!!Activo!30/11/2025!12!!!!!
+3154!Sanchez Olvera Ana!Beneficiario!!2!4428012176!!Activo!30/09/2026!8!!!!!
 3155!Herrera Silva Joaquin!Empleado!1!2!4427430130!!Activo!06/10/2025!6!!!!!
 3155!Herrera Hernandez Samuel!Beneficiario!1!2!4427430130!!Activo!06/10/2025!6!!!!!
 3155!Herrera Hernandez Jimena!Beneficiario!1!2!4427430130!!Activo!08/10/2025!12!!!!!
@@ -659,6 +670,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 3318!Moya Morales Joel!Empleado!1!16!4428635911!!Activo!16/02/2026!10!!!!!
 3318!Moya Moya Maria Fernanda!Beneficiario!1!16!0000000000!!Activo!16/02/2026!10!!!!!
 3382!Silva Estrada Jose Mario!Empleado!1!2!0000000000!!Activo!23/08/2026!10!!!!!
+3386!De Jesus Sanchez Erendira!Empleado!1!14!4428510911!!Activo!27/09/2026!10!!!!!
 3393!Moya Morales Cesar Mario!Empleado!1!7!4426060025!!Activo!27/09/2025!8!!!!!
 3393!Maya Maya Ana Sofia!Beneficiario!1!7!4426060025!!Activo!27/09/2025!8!!!!!
 3393!Maya Maya Renata!Beneficiario!1!7!4426060025!!Activo!27/09/2025!8!!!!!
@@ -676,6 +688,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 3485!Morales Gonzalez Jesus Omar!Empleado!1!9!4461380885!!Activo!29/09/2025!6!!!!!
 3485!Morales Jimenez Genesis Miranda!Beneficiario!1!9!4461380885!!Activo!29/09/2025!6!!!!!
 3490!Tenorio Pineda Elizabeth!Empleado!1!17!!!!!Activo!14/03/2026!12!!!!!
+3493!Lira Olvera Luz Maria!Empleado!!2!4422044877!!Activo!27/09/2026!15!!!!!
 3505!Guerrero Herrera Jonathan Alfonso!Empleado!1!2!4426797503!!Activo!12/07/2026!10!!!!!
 3505!Guerrero Arriola Erick Alexander!Beneficiario!1!2!4426797503!!Activo!12/07/2026!10!!!!!
 3509!Hernandez Arteaga Jose Antonio!Empleado!1!41!4423186527!!Activo!07/06/2026!10!!!!!
@@ -833,6 +846,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 4045!Arreola Olvera Leslie!Beneficiario!1!17!!!!!Activo!14/03/2026!12!!!!!
 4054!Hernandez Rivera Angel Gerardo!Empleado!1!2!4421397057!!Activo!09/10/2025!12!!!!!
 4054!Gonzalez Ochoa Rosa Isela!Beneficiario!1!2!4427389678!!Activo!03/11/2025!6!!!!!
+4058!Alvarez Aguillon Pedro!Empleado!1!27!0000000000!!Activo!03/09/2026!17!!!!!
 4061!Arellano Rocha Claudia!Empleado!1!26!4423421107!!Activo!08/10/2025!12!!!!!
 4071!Garcia Diaz Jose Luis!Empleado!1!16!4424351707!!Activo!08/10/2025!6!!!!!
 4071!Macias Ortega Yesica Berenice!Beneficiario!1!16!4424351707!!Activo!08/10/2025!6!!!!!
@@ -941,6 +955,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 4459!Alvarez Paredes Clemencia!Empleado!1!2!4426767975!!Activo!08/10/2025!12!!!!!
 4461!Casas Martinez Ma Del Carmen!Empleado!1!7!4421781253!!Activo!16/10/2025!6!!!!!
 4465!Lomeli Rojas Fabiola!Empleado!1!31!4421383003!!Activo!26/10/2025!10!!!!!
+4465!Martinez Gaitan Jose Antonio!Beneficiario!1!31!0000000000!!Activo!30/08/2026!10!!!!!
 4477!Rivera Delgado Sandra!Empleado!1!31!4422068912!!Activo!11/10/2025!8!!!!!
 4477!Corona Rivera Sebastian!Beneficiario!1!31!4422068912!!Activo!11/10/2025!8!!!!!
 4487!Fernandez De Cevallos Cristina!Empleado!1!9!4423465868!!Activo!29/11/2025!6!!!!!
@@ -964,6 +979,8 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 4541!Lugo Olvera Ma Dolores!Beneficiario!1!17!0000000000!!Activo!!!8!15/01/2026!!!
 4541!Delgado Lugo Miguel Ángel!Beneficiario!1!17!0000000000!!Activo!!!8!15/01/2026!!!
 4543!Ardon Martinez Dulce Maria!Empleado!1!11!0000000000!!Activo!25/02/2026!12!!!!!
+4548!Avendano Ordaz Fabiola Julia!Empleado!1!7!4422794987!!Activo!04/10/2026!8!!!!!
+4548!Mendoza Hernandez J Reyes!Beneficiario!1!7!0000000000!!Activo!04/10/2026!8!!!!!
 4556!Avila Gonzalez Edgar Guadalupe!Empleado!1!34!4421062912!!Activo!05/02/2026!10!!!!!
 4569!Alegria Garcia Diana Arlette!Empleado!1!16!0000000000!!Activo!05/02/2026!12!!!!!
 4569!Alegria Garcia Cristopher Alejandro!Beneficiario!1!16!0000000000!!Activo!05/02/2026!12!!!!!
@@ -1073,9 +1090,11 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 4918!Garcia Rodriguez Marisela!Empleado!1!39!4421919114!!Activo!02/06/2026!16!!!!!
 4947!Castillo De Jesus Oscar!Empleado!1!2!4421232280!!Activo!02/11/2025!10!!!!!
 4947!Castillo Cabrera Oscar Emiliano!Beneficiario!1!2!4421232280!!Activo!20/11/2025!10!!!!!
-4949!Avila Hernandez Juan Ramon!Empleado!!17!4426169713!!Activo!14/08/2026!15!!!!!
+4949!Avila Hernandez Juan Ramon!Empleado!1!41!4426169713!!Activo!14/08/2026!15!8!09/09/2026!!!
 4950!Bautista Badillo Jose Alejandro!Empleado!1!2!4427736178!!Activo!26/09/2025!12!!!!!
 4950!Bautista Luna Andrea Guadalupe!Beneficiario!1!2!4427736178!!Activo!26/09/2025!12!!!!!
+4952!Hernandez Pena Rene!Empleado!1!2!4422586822!!Activo!03/10/2026!10!!!!!
+4952!Hernandez Arreola Nicole!Beneficiario!1!2!4422586822!!Activo!03/10/2026!10!!!!!
 4956!Cruz Cruz Rogelio!Empleado!1!13!4421275256!!Activo!07/11/2025!6!!!!!
 4972!Tabares Alvarez Juan Carlos!Empleado!1!15!4421300956!!Activo!12/04/2026!8!!!!!
 4974!Martinez Ledesma Martha Yolanda!Empleado!1!10!4425695896!!Activo!04/11/2025!12!!!!!
@@ -1372,6 +1391,9 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 5866!Jimenez Linares Javier!Empleado!1!17!4425856583!!Activo!23/06/2026!17!!!!!
 5885!Ruiz Caballero Elvira!Empleado!1!4!4428250821!!Activo!01/11/2025!8!!!!!
 5885!Luna Ponce Juan Daniel!Beneficiario!1!4!4428250821!!Activo!01/11/2025!8!!!!!
+5888!Tamayo Herrera Daniel!Empleado!!7!4425838024!!Activo!25/09/2026!15!!!!!
+5888!Tamayo Silva Alexis!Beneficiario!!7!4425838024!!Activo!25/09/2026!15!!!!!
+5888!Tamayo Silva Paulina!Beneficiario!!7!4425838024!!Activo!25/09/2026!15!!!!!
 5899!De Albino Roque Santos!Empleado!1!31!4461449189!!Activo!12/01/2026!12!!!!!
 5899!Tirado Bocanegra Elisa!Beneficiario!1!37!4461449189!!Activo!12/01/2026!12!!!!!
 5908!Dominguez Albarran Jesus Ignacio!Empleado!1!32!4423236851!!Activo!14/12/2025!10!!!!!
@@ -1591,10 +1613,11 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 6372!Soto Hernandez Roberto Carlos!Empleado!1!2!4427116153!!Activo!02/11/2025!12!!!!!
 6372!Soto Rodriguez Cristobal Rodrigo!Beneficiario!1!2!4427116153!!Activo!02/11/2025!12!!!!!
 6372!Soto Rodriguez Alisson Daniela!Beneficiario!1!2!4427116153!!Activo!22/11/2025!12!!!!!
+6372!Soto Rodriguez Diego Alexander!Beneficiario!!5!0000000000!!Activo!16/09/2026!10!!!!!
 6373!Rodriguez Rosas Monserrat!Empleado!1!2!4423771180!!Activo!03/10/2025!12!!!!!
 6373!Ramirez Rodriguez Renata!Beneficiario!1!2!4423771180!!Activo!03/10/2025!12!!!!!
 6374!Salinas Resendiz Jose Fernando!Empleado!1!11!4424232955!!Activo!27/11/2025!12!!!!!
-6374!Ramirez Garcia Griselda Monserrat!Beneficiario!1!11!4424232955!!Activo!27/11/2025!12!!!!!
+6374!Ramirez Garcia Grisel Monsserrat!Beneficiario!1!11!4424232955!!Activo!27/11/2025!12!8!29/09/2026!!!
 6374!Salinas Ramierez Maria Fernanda!Beneficiario!!11!4424232955!!Activo!20/07/2026!17!!!!!
 6379!Ramirez De Jesus Christian Geovanni!Empleado!1!2!4427871539!!Activo!09/12/2025!6!!!!!
 6379!Hernandez Ramirez Monica Jazmin!Beneficiario!1!2!4427871539!!Activo!09/12/2025!6!!!!!
@@ -1727,6 +1750,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 6605!Gutierrez Cruz Juan Jose!Empleado!1!2!4427095083!!Activo!15/10/2025!12!!!!!
 6605!Gutierrez Balderas Aixa Aitana!Beneficiario!1!2!4427095083!!Activo!15/10/2025!12!!!!!
 6605!Balderas Palacios Mariana!Beneficiario!1!2!4421864110!!Activo!22/10/2025!10!!!!!
+6605!Alvarez Mata Diana Maria!Beneficiario!1!2!4427095083!!Activo!04/10/2026!10!!!!!
 6606!Martinez Mendoza Edgar Manuel!Empleado!1!2!4423362628!!Activo!12/01/2026!10!!!!!
 6607!Pedroza De Mateo Leonardo!Empleado!1!2!4426806218!!Activo!02/10/2025!6!!!!!
 6607!Pedroza Morales Matthias Donatelo!Beneficiario!1!2!4426806218!!Activo!02/10/2025!6!!!!!
@@ -1740,6 +1764,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 6610!Herrera Silva Alma Leticia!Beneficiario!1!2!4423516746!!Activo!24/01/2026!6!!!!!
 6613!Lopez Ruiz Guillermo!Empleado!1!15!4421286799!!Activo!19/01/2026!12!!!!!
 6613!Lopez Puga Guillermo!Beneficiario!1!15!4421286799!!Activo!19/01/2026!12!!!!!
+6613!Puga Olvera Marisol!Beneficiario!1!33!0000000000!!Activo!30/09/2026!17!!!!!
 6614!Chavez Rubio Crishtian!Empleado!1!6!4428684792!!Activo!14/10/2025!6!!!!!
 6615!Lugo Alegria Martin!Empleado!1!2!4425269606!!Activo!04/10/2025!10!!!!!
 6622!Arreola Arreola Maria Fernanda!Empleado!1!9!4421525475!!Activo!28/11/2025!6!!!!!
@@ -1747,6 +1772,8 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 6630!Mandujano Hernandez Fernando!Empleado!1!2!4423472407!!Activo!29/09/2025!12!!!!!
 6630!Cruz Campos Rita Maria!Beneficiario!1!2!4423472407!!Activo!29/09/2025!12!!!!!
 6630!HAZAEL MANDUJANO CRUZ!Beneficiario!1!2!4461251639!!Activo!19/10/2025!10!8!05/03/2026!!!
+6630!Mandujano Ruiz Kendra Sofia!Beneficiario!!2!4461251639!!Activo!14/09/2026!15!!!!!
+6630!Mandujano Cruz Kendra Sofia!Beneficiario!!2!4461251639!!Activo!14/09/2026!15!!!!!
 6636!Rubio Felix Santiago!Empleado!1!3!4425496029!!Activo!22/10/2025!12!!!!!
 6636!Gonzalez Luna Minerva!Beneficiario!1!3!4425496029!!Activo!22/10/2025!12!!!!!
 6636!Rubio Gonzalez Cristian Santiago!Beneficiario!1!3!4425496029!!Activo!01/06/2026!16!!!!!
@@ -1875,6 +1902,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 6921!Rodriguez Rivera Osman Jesus!Empleado!1!2!4423628842!!Activo!10/12/2025!10!!!!!
 6922!Lopez Rangel David!Empleado!1!2!4421714717!!Activo!06/12/2025!6!!!!!
 6922!Lozano Mandujano Maria Monserrath!Beneficiario!!36!4421808282!!Activo!11/05/2026!14!!!!!
+6922!Rangel Lozano Karla Elizabeth!Beneficiario!1!2!4421808282!!Activo!07/09/2026!17!!!!!
 6931!Villanueva Estefania Jose Miguel!Empleado!1!2!4425831811!!Activo!09/10/2025!12!!!!!
 6935!Garcia Garcia Eduardo!Empleado!1!2!0000000000!!Activo!26/08/2026!10!!!!!
 6937!Arredondo Cortes Martha Valeria!Empleado!1!25!4421197981!!Activo!16/03/2026!12!!!!!
@@ -1915,12 +1943,15 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 7046!Valdez Cernuda Alma Rocio!Empleado!1!7!4425793536!!Activo!17/10/2025!6!!!!!
 7046!Marmolejo Miranda Fernando!Beneficiario!1!7!4425793536!!Activo!03/01/2026!10!!!!!
 7049!Gonzalez Antuna Natalia!Empleado!1!13!4481519340!!Activo!09/10/2025!12!!!!!
+7052!Mendoza Ruiz Fernando!Empleado!1!26!0000000000!!Activo!22/09/2026!17!!!!!
 7073!Olvera Leon Virginia!Empleado!1!17!4427880383!!Activo!30/10/2025!12!8!24/02/2026!!!
 7079!Carbajal Botello Martin!Empleado!1!17!4272789201!!Activo!13/10/2025!12!!!!!
 7079!Padilla Martinez Ma Fernanda!Beneficiario!1!17!4272789201!!Activo!25/04/2026!12!!!!!
 7083!Rivera Lopez Cesar Daniel!Empleado!1!10!4421465236!!Activo!15/11/2025!12!!!!!
 7083!De Los Rios Vela Daniela!Beneficiario!1!10!4421465236!!Activo!22/11/2025!8!!!!!
 7083!Rivera De Los Rios Cesar Emilio!Beneficiario!1!10!4421465236!!Activo!29/12/2025!12!!!!!
+7087!Mora Cardone Sofia Patricia!Empleado!1!31!0000000000!!Activo!30/09/2026!17!!!!!
+7087!Ducoing Resendiz Juan German!Beneficiario!1!31!0000000000!!Activo!30/09/2026!17!!!!!
 7089!Jimenez Sanchez Claudia!Empleado!1!2!4425822276!!Activo!18/05/2026!10!!!!!
 7093!Mendoza Ruiz Cesar Ricardo!Empleado!1!11!4427421758!!Activo!04/10/2025!6!!!!!
 7093!Mendoza Figueroa Emily Montserrat!Beneficiario!!!4427421758!!Activo!04/10/2025!6!!!!!
@@ -1956,6 +1987,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 7122!Vazquez Olalde Valeria Viridiana!Empleado!1!9!5659690424!!Activo!26/09/2025!6!!!!!
 7122!Pacheco Vazquez Mateo!Beneficiario!1!9!5659690424!!Activo!26/09/2025!6!!!!!
 7122!Pacheco Vazquez Adan Alejandro!Beneficiario!1!28!5659690424!!Activo!25/12/2025!10!!!!!
+7125!Espinosa Rodriguez Giovanna Paola!Empleado!!17!4423658846!PAOESP@HOTMAIL.COM!Activo!10/09/2026!15!!!!!
 7127!Rojas Teniente Ma Reyna!Empleado!1!17!4427069625!!Activo!03/11/2025!12!!!!!
 7128!Soto Cruz Hector David!Empleado!1!2!4423448688!!Activo!22/01/2026!6!!!!!
 7128!Espinoza Olvera Esmeralda!Beneficiario!1!2!4428767354!!Activo!22/01/2026!6!!!!!
@@ -2002,6 +2034,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 7282!Guevara Luna Teresita De Jesus!Empleado!1!7!4422679237!!Activo!03/12/2025!6!!!!!
 7287!Zavala Arteaga Cinthia Yarely!Empleado!1!17!0000000000!!Activo!14/03/2025!12!!!!!
 7288!Nieves Hernandez Ma Guadalupe!Empleado!1!17!4423176734!!Activo!06/02/2026!6!!!!!
+7288!Luna Nieves Melisa Yatzi!Beneficiario!1!17!4423176734!!Activo!10/09/2026!17!!!!!
 7291!Fonseca Gomez Stephanie!Empleado!1!4!4428798838!!Activo!17/12/2025!10!!!!!
 7292!Martinez Hernandez Paulina!Empleado!1!24!4423333608!!Activo!20/01/2026!6!!!!!
 7301!Figueroa Gutierrez Emmanuel!Empleado!!6!4423721609!!Activo!21/06/2026!10!!!!!
@@ -2013,6 +2046,7 @@ $c_clinumempleado!$c_nombreCompleto!$c_clirelacion!$c_climunicipio!$c_cliiddepen
 7321!Garcia Alvarez Petra!Empleado!1!47!0000000000!!Activo!06/06/2026!10!!!!!
 7322!Lopez Santos Vianey Mireya!Empleado!!4!4422646317!!Activo!24/07/2026!15!!!!!
 7327!Gonzalez Jimenez Maria Fernanda!Empleado!!6!4427193179!!Activo!09/12/2025!12!!!!!
+7328!Chaires Martinez Jonathan Daniel!Empleado!1!6!4461540014!!Activo!09/09/2026!17!!!!!
 7329!Fonseca Perez Paola Azucena!Empleado!1!4!4425416077!!Activo!31/05/2026!8!!!!!
 7335!Arteaga Gonzalez Mara Gabriela!Empleado!1!12!4422875082!!Activo!09/10/2025!6!!!!!
 7335!Olvera Arteaga Frida Maria!Beneficiario!1!12!4422875082!!Activo!09/10/2025!6!!!!!

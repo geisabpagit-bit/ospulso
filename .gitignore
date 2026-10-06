@@ -1,0 +1,13 @@
+# Respaldos y copias de seguridad de sincronizacion
+dat_backup_*/
+dat/backups/
+*.bak
+*.tmp
+*.log
+
+# Archivos de sistema operativo y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~

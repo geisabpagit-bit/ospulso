@@ -5,3 +5,15 @@ id|id_cat|nombre|desc|id_negocio
 4|3|Renta Local|Pago de alquiler|0
 5|3|Servicios Públicos|Agua, luz, internet|0
 6|4|Comisiones|Terminales bancarias|0
+8|8|Nómina|Pago a empleados|1044365
+9|8|Material Clínico|Insumos dentales|1044365
+10|9|Redes Sociales|Pauta digital|1044365
+11|10|Renta Local|Pago de alquiler|1044365
+12|10|Servicios Públicos|Agua, luz, internet|1044365
+13|11|Comisiones|Terminales bancarias|1044365
+14|12|Nómina|Pago a empleados|723800
+15|12|Material Clínico|Insumos dentales|723800
+16|13|Redes Sociales|Pauta digital|723800
+17|14|Renta Local|Pago de alquiler|723800
+18|14|Servicios Públicos|Agua, luz, internet|723800
+19|15|Comisiones|Terminales bancarias|723800

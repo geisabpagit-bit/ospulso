@@ -1,0 +1,18 @@
+{
+   "estado" : "creado",
+   "observaciones" : [],
+   "id_paciente" : "2",
+   "id_estudio" : "1",
+   "metadatos" : {
+      "equipo" : "Generico"
+   },
+   "imagenes" : [
+      {
+         "size" : "433 KB",
+         "nombre_archivo" : "panoramica_ugc_49_years_1790721200.jpg",
+         "ruta" : "dat/estudiosRX/2/1/panoramica_ugc_49_years_1790721200.jpg",
+         "id_imagen" : "img_1790721200",
+         "fecha_subida" : "2026-09-29T22:33:20Z"
+      }
+   ]
+}
