@@ -22,6 +22,7 @@ our @EXPORT_OK = qw(
 
 use FindBin;
 use File::Spec;
+use File::Basename qw(basename);
 
 # Rutas Absolutas Basadas en FindBin (Protocolo 11.1)
 my $USUARIOS_FILE = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
@@ -68,12 +69,30 @@ sub guardar_registro {
 }
 
 sub actualizar_archivo {
-    my ($archivo, $cabecera, $registros_str_array) = @_;
+    my ($archivo, $cabecera, $registros_str_array, $forzar_vaciado) = @_;
+    
+    # Blindaje de integridad estructural: Prevenir vaciado accidental de tablas críticas
+    my $nombre_base = File::Basename::basename($archivo);
+    my %tablas_protegidas = (
+        'usuarios.dat'        => 1,
+        'negocios.dat'        => 1,
+        'negocios_config.dat' => 1,
+        'perfiles.dat'        => 1,
+    );
+    
+    if ($tablas_protegidas{$nombre_base} && (!$registros_str_array || scalar(@$registros_str_array) == 0) && !$forzar_vaciado) {
+        if (-e $archivo && -s $archivo > 120) {
+            die "BLOQUEO DE SEGURIDAD DB_MANAGER: Intento de vaciar tabla crítica '$nombre_base' con 0 registros abortado.\n";
+        }
+    }
+
     open my $fh, '>:encoding(UTF-8)', $archivo or die "No se pudo abrir $archivo para reescribir: $!";
     flock($fh, LOCK_EX) or die "No se pudo bloquear el archivo $archivo: $!";
     print $fh "$cabecera\n" if defined $cabecera && $cabecera ne '';
-    foreach my $linea (@$registros_str_array) {
-        print $fh "$linea\n";
+    if ($registros_str_array) {
+        foreach my $linea (@$registros_str_array) {
+            print $fh "$linea\n";
+        }
     }
     close $fh;
     return 1;

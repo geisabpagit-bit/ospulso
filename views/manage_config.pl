@@ -371,19 +371,24 @@ elsif ($action eq 'do_delete_record' && $full_path && -e $full_path) {
 
 # 5. Vaciar Tabla (Truncar)
 elsif ($action eq 'do_truncate' && $full_path && -e $full_path) {
-    open(my $fh, '<', $full_path);
-    binmode($fh, ":utf8");
-    my $header = <$fh>;
-    close($fh);
-    
-    if ($header) {
-        open(my $fh_out, '>', $full_path) or $error = "No se pudo truncar la tabla: $!";
-        if (!$error) {
-            flock($fh_out, 2);
-            binmode($fh_out, ":utf8");
-            print $fh_out "$header";
-            close($fh_out);
-            $message = "Tabla vaciada exitosamente (cabecera preservada).";
+    my $base = basename($full_path);
+    if ($base =~ /^(usuarios|negocios|negocios_config|perfiles|pacientes|citas|estado_cuenta|roles|permisos_roles.*)\.dat$/i) {
+        $error = "Seguridad del Sistema: La tabla '$base' es una tabla maestra crítica y está estrictamente protegida contra vaciado.";
+    } else {
+        open(my $fh, '<', $full_path);
+        binmode($fh, ":utf8");
+        my $header = <$fh>;
+        close($fh);
+        
+        if ($header) {
+            open(my $fh_out, '>', $full_path) or $error = "No se pudo truncar la tabla: $!";
+            if (!$error) {
+                flock($fh_out, 2);
+                binmode($fh_out, ":utf8");
+                print $fh_out "$header";
+                close($fh_out);
+                $message = "Tabla vaciada exitosamente (cabecera preservada).";
+            }
         }
     }
     $action = 'view';
@@ -1073,10 +1078,14 @@ HTML
                     <div class="d-flex gap-2">
 HTML
     if ($group eq 'global') {
-        print <<HTML;
+        if ($target_file !~ /^(usuarios|negocios|negocios_config|perfiles|pacientes|citas|estado_cuenta|roles|permisos_roles.*)\.dat$/i) {
+            print <<HTML;
                         <button class="btn btn-outline-danger btn-sm" onclick="confirmTruncate();">
                             <i class="bi bi-trash-fill me-1"></i> Vaciar Tabla
                         </button>
+HTML
+        }
+        print <<HTML;
                         <button class="btn btn-medentia btn-sm" onclick="showAddRecordModal()">
                             <i class="bi bi-plus-lg me-1"></i> Nuevo Registro
                         </button>

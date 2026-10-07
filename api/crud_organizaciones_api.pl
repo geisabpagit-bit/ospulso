@@ -463,7 +463,7 @@ if ($action eq 'remove') {
 
     eval {
         actualizar_archivo($archivo_negocios, "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud", \@nuevos_negocios);
-        actualizar_archivo($archivo_usuarios, "id!nombre!correo!clave!activo!rol!ID_negocio", \@nuevos_usuarios);
+        actualizar_archivo($archivo_usuarios, "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL", \@nuevos_usuarios);
     };
     if ($@) { print encode_json({status=>'error', message=>'Error: '.$@}); exit; }
 
@@ -501,7 +501,7 @@ if ($action eq 'reactivate') {
 
     eval {
         actualizar_archivo($archivo_negocios, "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud", \@nuevos_negocios);
-        actualizar_archivo($archivo_usuarios, "id!nombre!correo!clave!activo!rol!ID_negocio", \@nuevos_usuarios);
+        actualizar_archivo($archivo_usuarios, "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL", \@nuevos_usuarios);
     };
     if ($@) { print encode_json({status=>'error', message=>'Error: '.$@}); exit; }
 
@@ -539,7 +539,7 @@ if ($action eq 'delete_permanent') {
 
     eval {
         actualizar_archivo($archivo_negocios, "ID|NOMBRE_NEGOCIO|ID_MATRIZ|Activo|inicio_suscripcion|fin_suscripcion|domicilio|telefono|contacto_email|logo_url|rfc|razon_social|id_tienda|id_vendedor|codigo_postal|entidad|municipio|colonia|clues|extension|latitud|longitud", \@nuevos_negocios);
-        actualizar_archivo($archivo_usuarios, "id!nombre!correo!clave!activo!rol!ID_negocio", \@nuevos_usuarios);
+        actualizar_archivo($archivo_usuarios, "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL", \@nuevos_usuarios);
     };
     if ($@) { print encode_json({status=>'error', message=>'Error: '.$@}); exit; }
 

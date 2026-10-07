@@ -1,0 +1,2 @@
+# Blindaje de seguridad: Bloquear acceso web directo a librerias y utilidades de backend
+Require all denied

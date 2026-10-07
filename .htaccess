@@ -15,8 +15,8 @@ AddDefaultCharset UTF-8
     Require all denied
 </FilesMatch>
 
-# 5. Bloquear acceso web a scripts de mantenimiento o pruebas potencialmente destructivos
-<FilesMatch "^(scratch_reset\.pl|reset_tablas\.pl|ejecutar_hard_reset\.pl)$">
+# 5. Bloquear acceso web a scripts de mantenimiento, pruebas o temporales
+<FilesMatch "^(scratch_.*|test.*|prueba.*|mock.*|hard_reset.*|fix_.*)\.(pl|py|sh|ps1)$">
     Require all denied
 </FilesMatch>
 

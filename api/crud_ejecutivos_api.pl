@@ -106,7 +106,7 @@ elsif ($action eq 'edit') {
     }
     
     eval {
-        my $header = "id!nombre!correo!clave!activo!rol!ID_negocio";
+        my $header = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL";
         actualizar_archivo($archivo_usuarios, $header, \@nuevas_lineas);
     };
     
@@ -143,7 +143,7 @@ elsif ($action eq 'remove') {
     }
     
     eval {
-        my $header = "id!nombre!correo!clave!activo!rol!ID_negocio";
+        my $header = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL";
         actualizar_archivo($archivo_usuarios, $header, \@nuevas_lineas);
     };
     
@@ -180,7 +180,7 @@ elsif ($action eq 'reactivate') {
     }
     
     eval {
-        my $header = "id!nombre!correo!clave!activo!rol!ID_negocio";
+        my $header = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL";
         actualizar_archivo($archivo_usuarios, $header, \@nuevas_lineas);
     };
     
@@ -218,7 +218,7 @@ elsif ($action eq 'delete_permanent') {
     }
     
     eval {
-        my $header = "id!nombre!correo!clave!activo!rol!ID_negocio";
+        my $header = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL";
         actualizar_archivo($archivo_usuarios, $header, \@nuevas_lineas);
     };
     

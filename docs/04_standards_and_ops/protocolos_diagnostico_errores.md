@@ -40,11 +40,20 @@
 - **Scripts de Reseteo No Autenticados**: Scripts como `scratch_reset.pl`, `utils/reset_tablas.pl` y `scratch/test_flujo_completo.pl` eran accesibles vía web pública (`.pl` con CGI habilitado) o invocables por tareas Cron.
 - **Inyección de Datos Dummy**: La ejecución accidental de `test_flujo_completo.pl` borraba `usuarios.dat` e insertaba usuarios de prueba ficticios (`PAC-TEST-...`, `Juan Pérez Test`).
 
-### 4.2 Medidas Defensivas Obligatorias
-1. **Neutralización de Código**: Todo script de prueba o reseteo en `scratch/` y `utils/` cuenta con un bloqueo `die "ACCESO DENEGADO"` incondicional al inicio del archivo.
-2. **Aislamiento en `.htaccess`**:
-   - `scratch/.htaccess` y `dat/.htaccess` deniegan todo acceso web (`Require all denied`).
-   - El `.htaccess` de la raíz bloquea explícitamente `scratch_reset.pl`, `reset_tablas.pl` y cualquier archivo `.dat`, `.counter` o `.log`.
-3. **Auditoría de Cron Jobs**: En cPanel, se debe auditar la lista de tareas programadas para asegurar que no existan llamadas a scripts obsoletos de prueba.
+### 4.2 Medidas Defensivas Obligatorias y Auditoría Forense
+1. **Eliminación Física Definitiva de Scripts Radioactivos**:
+   - Se eliminaron permanentemente del repositorio (`git rm -f`): `scratch_reset.pl`, `utils/prueba_inicial.pl`, `utils/reset_tablas.pl`, `scratch/test_flujo_completo.pl` y `scratch/ejecutar_hard_reset.pl`.
+2. **Blindaje Estructural en el Kernel (`utils/db_manager.pm`)**:
+   - `actualizar_archivo()` cuenta con una guardia inquebrantable: si la tabla destino es crítica (`usuarios.dat`, `negocios.dat`, `negocios_config.dat`, `perfiles.dat`) y la lista de registros a escribir está vacía (`0 registros`), la operación aborta con `die` impidiendo que cualquier bug o filtro vacío trunque el archivo en disco.
+3. **Bloqueo de Truncado en Consola (`views/manage_config.pl`)**:
+   - La acción `do_truncate` bloquea cualquier intento de vaciar tablas maestras y el botón visual "Vaciar Tabla" permanece oculto para archivos protegidos.
+4. **Vaciado de Endpoints Radioactivos (`api/hard_reset_db_api.pl`)**:
+   - Se despojó de todo código de reseteo y retorna inmediatamente `403 Forbidden`.
+5. **Aislamiento Perimetral en `.htaccess`**:
+   - `utils/.htaccess`, `scratch/.htaccess` y `dat/.htaccess` bloquean todo acceso web directo (`Require all denied`).
+   - El `.htaccess` de la raíz bloquea mediante regex cualquier script que coincida con `^(scratch_.*|test.*|prueba.*|mock.*|hard_reset.*|fix_.*)\.(pl|py|sh|ps1)$`.
+6. **Consistencia de Cabeceras Canónicas**:
+   - Se normalizaron todos los endpoints de organizaciones y ejecutivos (`crud_organizaciones_api.pl`, `crud_ejecutivos_api.pl`) para exigir y escribir siempre la cabecera canónica de 12 columnas en `usuarios.dat`.
+
 
 
