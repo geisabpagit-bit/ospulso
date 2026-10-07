@@ -609,8 +609,8 @@ PAGE_HTML
             <div id="tab_gastos" class="sdm-tab-pane d-none">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <div>
-                        <h4 class="fw-bold plus-jakarta m-0 text-dark"><i class="bi bi-cash-stack me-2 text-danger"></i>Control de Egresos y Gastos Operativos</h4>
-                        <p class="text-muted m-0 small">Registro, comprobación y clasificación de egresos de la organización.</p>
+                        <h4 class="fw-bold plus-jakarta m-0" style="color: var(--md-blue-deep, #0A2A66);"><i class="bi bi-cash-stack me-2 text-danger"></i>Control de Egresos y Gastos Operativos</h4>
+                        <p class="text-muted m-0 small" style="font-size: 0.82rem;">Registro, comprobación y clasificación de egresos de la organización.</p>
                     </div>
                     <div class="d-flex gap-2 flex-wrap align-items-center">
                         <div class="d-flex align-items-center gap-1">
@@ -621,12 +621,26 @@ PAGE_HTML
                             <span class="small text-muted fw-bold">Hasta:</span>
                             <input type="date" id="gastos_f_fin" class="form-control form-control-sm" title="Fecha Fin">
                         </div>
-                        <button class="btn btn-aura-save btn-mobile-standard btn-sm px-3 fw-bold" onclick="renderGastos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
-                        <button class="btn btn-primary btn-mobile-standard btn-sm px-3 fw-bold rounded-pill text-white shadow-sm" style="background: var(--md-blue-medical);" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar Gasto</button>
+                        <button class="btn btn-sm px-3 fw-bold shadow-sm btn-mobile-standard" style="background: var(--md-blue-deep, #0A2A66); color: #FFFFFF; border-radius: 50rem;" onclick="renderGastos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                        <button class="btn btn-sm px-3 fw-bold text-white shadow-sm btn-mobile-standard rounded-pill" style="background: var(--md-teal-clinical, #19B7A5);" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar Gasto</button>
                     </div>
                 </div>
 
-                <div class="card card-medentia-aura border-0 shadow-sm p-3 p-md-4 rounded-4 mb-4">
+                <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4 mb-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05);">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom border-light">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(239, 68, 68, 0.1);">
+                                <i class="bi bi-cash-stack text-danger fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold m-0 plus-jakarta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.15rem;">Egresos y Gastos Operativos</h5>
+                                <p class="text-muted small m-0" style="font-size: 0.82rem;">Detalle de compras, comprobantes fiscales y egresos clasificados en el periodo seleccionado.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 fw-semibold small">Egresos / Salidas</span>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-hover table-sm align-middle w-100" id="tablaGastos" style="font-size: 10px !important;">
                             <thead class="table-light text-muted" style="font-size: 10.5px !important;">
@@ -756,9 +770,11 @@ PAGE_HTML
 <div class="modal fade modal-diamond" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header">
-                <h5 class="modal-title d-flex align-items-center m-0">
-                    <i class="bi bi-cash-stack me-2" style="color: #00C4C4 !important;"></i>
+            <div class="modal-header border-bottom border-light">
+                <h5 class="modal-title d-flex align-items-center m-0 fw-bold plus-jakarta" style="color: var(--md-blue-deep, #0A2A66);">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 34px; height: 34px; background: rgba(25, 183, 165, 0.1);">
+                        <i class="bi bi-cash-stack" style="color: var(--md-teal-clinical, #19B7A5) !important;"></i>
+                    </div>
                     <span>Registrar Gasto</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -778,7 +794,7 @@ PAGE_HTML
                                 <label for="origen_gasto" class="form-label d-flex justify-content-between">
                                     <span>Origen del Dinero</span>
                                     <a href="javascript:void(0)" onclick="abrirModalOrigenesDinero()" class="text-muted"><i class="bi bi-gear-fill"></i></a>
-                                </label>
+                                								</label>
                                 <select class="form-select" id="origen_gasto" required>
                                     <option value="">Cargando...</option>
                                 </select>
@@ -842,7 +858,7 @@ PAGE_HTML
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn w-100 rounded-pill fw-bold text-white shadow-sm mt-2" style="background: var(--md-blue-medical);">Guardar Gasto</button>
+                    <button type="submit" class="btn w-100 rounded-pill fw-bold text-white shadow-sm mt-3 py-2 btn-mobile-standard" style="background: var(--md-blue-deep, #0A2A66);">Guardar Gasto</button>
                 </form>
             </div>
         </div>

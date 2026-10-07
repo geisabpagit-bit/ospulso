@@ -193,3 +193,12 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
      - Títulos en `1.15rem` con tipografía `Plus Jakarta Sans`, peso 700 y color Azul Marino Profundo (`var(--md-blue-deep, #0A2A66)`), acompañados de subtítulos legibles en `0.82rem` (`#64748B`).
      - Badges de identificación de origen a la derecha (`Efectivo / Ventanilla` y `Convenio Institucional`).
      - Barra superior de filtrado de fecha con botón de acción estilizado en Azul Marino sólido y redondeado estándar (`50rem`).
+
+5. **Homogeneización Visual en Egresos y Gastos Operativos (`views/finanzas.pl`, `tab=gastos`)**:
+   - En la pestaña de Control de Gastos (`#tab_gastos`), la tarjeta de `#tablaGastos` carecía de cabecera interna institucional y utilizaba clases de contenedor obsoletas.
+   - Se estandarizó bajo la misma jerarquía en capas:
+     - Tarjeta en blanco clínico con borde teal perimetral (`1.5px solid var(--md-teal-clinical, #19B7A5)`), sombra suave institucional y padding simétrico (`p-3 p-md-4`).
+     - Cabecera de tarjeta integrada: cápsula circular de 38px en rojo translúcido (`rgba(239, 68, 68, 0.1)`) con `<i class="bi bi-cash-stack text-danger fs-5">`, título en `1.15rem` en Azul Marino (`#0A2A66`), subtítulo explicativo en `0.82rem` y badge temático `<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 fw-semibold small">Egresos / Salidas</span>`.
+     - Barra superior de filtros con botón "Filtrar" unificado en Azul Marino sólido (`50rem`) y botón de acción "Registrar Gasto" en Teal clínico rounded-pill.
+     - Modal `#modalGasto` armonizado con cabecera en Azul Marino/Teal y botón de guardado institucional.
+
