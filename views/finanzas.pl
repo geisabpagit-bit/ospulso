@@ -673,30 +673,42 @@ PAGE_HTML
 
             <!-- TAB: CUENTAS POR COBRAR -->
             <div id="tab_cxc" class="sdm-tab-pane d-none">
-                <div class="bento-card">
-                    <h4 class="fw-bold plus-jakarta mb-4 text-dark">Cuentas por Cobrar (CxC)</h4>
-                    <p class="text-muted">Pacientes con saldos pendientes. Calculado en tiempo real.</p>
-                    <div class="table-responsive mt-3">
-                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond" id="tablaCxC">
-                            <thead class="text-muted small">
+                <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4 mb-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05);">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom border-light">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(245, 158, 11, 0.1);">
+                                <i class="bi bi-person-exclamation text-warning fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold m-0 plus-jakarta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.15rem;">Cuentas por Cobrar (Saldos Privados)</h5>
+                                <p class="text-muted small m-0" style="font-size: 0.82rem;">Pacientes con saldos pendientes por servicios clínicos privados (calculado en tiempo real).</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fw-semibold small">Saldos Privados</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm align-middle w-100" id="tablaCxC" style="font-size: 10px !important;">
+                            <thead class="table-light text-muted" style="font-size: 10.5px !important;">
                                 <tr>
-                                    <th>Paciente</th>
-                                    <th>Ult. Movimiento</th>
-                                    <th>Cargos Acum.</th>
-                                    <th>Abonos Acum.</th>
-                                    <th>Saldo Pendiente</th>
-                                    <th>Acción</th>
+                                    <th style="width: 25%;">Paciente</th>
+                                    <th style="width: 15%;">Últ. Movimiento</th>
+                                    <th style="width: 15%;" class="text-end">Cargos Acum.</th>
+                                    <th style="width: 15%;" class="text-end">Abonos Acum.</th>
+                                    <th style="width: 15%;" class="text-end">Saldo Pendiente</th>
+                                    <th style="width: 15%;" class="text-center">Acción</th>
                                 </tr>
                             </thead>
-                            <tbody id="tbodyCxC">
-                                <tr><td colspan="6" class="text-center text-muted">Cargando...</td></tr>
+                            <tbody id="tbodyCxC" style="font-size: 10px !important;">
+                                <tr><td colspan="6" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
                             </tbody>
-                            <tfoot class="bg-light fw-bold">
+                            <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                 <tr>
                                     <td colspan="2" class="text-end">Totales:</td>
-                                    <td id="tfootCxCCargos"></td>
-                                    <td id="tfootCxCAbonos"></td>
-                                    <td id="tfootCxCSaldo"></td>
+                                    <td id="tfootCxCCargos" class="text-end"></td>
+                                    <td id="tfootCxCAbonos" class="text-end"></td>
+                                    <td id="tfootCxCSaldo" class="text-end text-danger"></td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -711,31 +723,43 @@ PAGE_HTML
         print <<'PAGE_HTML';
             <!-- TAB: CUENTAS POR COBRAR ESTADO -->
             <div id="tab_cxc_estado" class="sdm-tab-pane d-none">
-                <div class="bento-card">
-                    <h4 class="fw-bold plus-jakarta mb-4 text-dark">Movimientos de Recibos de Municipio</h4>
-                    <p class="text-muted">Ingresos generados por pacientes del Estado.</p>
-                    <div class="table-responsive mt-3">
-                        <table class="table table-sm table-striped table-hover table-bordered align-middle table-diamond w-100" id="dtPublicosCxC">
-                            <thead class="table-light text-secondary small">
+                <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4 mb-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05);">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom border-light">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(13, 202, 240, 0.1);">
+                                <i class="bi bi-building text-info fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold m-0 plus-jakarta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.15rem;">Movimientos y Recibos Municipio (CxC Estado)</h5>
+                                <p class="text-muted small m-0" style="font-size: 0.82rem;">Órdenes y servicios generados por derechohabientes del Municipio con subsidio institucional.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 fw-semibold small">Convenio Institucional</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm align-middle w-100" id="dtPublicosCxC" style="font-size: 10px !important;">
+                            <thead class="table-light text-muted" style="font-size: 10.5px !important;">
                                 <tr>
-                                    <th>Folio</th>
-                                    <th>Fecha</th>
-                                    <th>Paciente</th>
-                                    <th>Concepto</th>
-                                    <th>Medico</th>
-                                    <th>Detalle</th>
-                                    <th>Total</th>
-                                    <th>Estatus</th>
-                                    <th>Opciones</th>
+                                    <th style="width: 8%;">Folio</th>
+                                    <th style="width: 10%;">Fecha</th>
+                                    <th style="width: 22%;">Paciente</th>
+                                    <th style="width: 14%;">Concepto</th>
+                                    <th style="width: 14%;">Médico</th>
+                                    <th style="width: 10%;">Detalle</th>
+                                    <th style="width: 8%;" class="text-end">Total</th>
+                                    <th style="width: 7%;" class="text-center">Estatus</th>
+                                    <th style="width: 7%;" class="text-center">Opciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr><td colspan="9" class="text-center text-muted">Cargando...</td></tr>
+                            <tbody style="font-size: 10px !important;">
+                                <tr><td colspan="9" class="text-center text-muted"><div class="spinner-border text-info spinner-border-sm me-2"></div>Cargando...</td></tr>
                             </tbody>
-                            <tfoot class="bg-light fw-bold">
+                            <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
                                 <tr>
-                                    <th colspan="6" style="text-align:right; font-weight:bold;">Total:</th>
-                                    <th style="font-weight:bold;"></th>
+                                    <th colspan="6" class="text-end">Total:</th>
+                                    <th class="text-end text-info"></th>
                                     <th colspan="2"></th>
                                 </tr>
                             </tfoot>

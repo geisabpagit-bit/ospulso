@@ -202,3 +202,12 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
      - Barra superior de filtros con botón "Filtrar" unificado en Azul Marino sólido (`50rem`) y botón de acción "Registrar Gasto" en Teal clínico rounded-pill.
      - Modal `#modalGasto` armonizado con cabecera en Azul Marino/Teal y botón de guardado institucional.
 
+6. **Homogeneización Visual en Cuentas por Cobrar (`views/finanzas.pl`, `tab=cxc` y `tab=cxc_estado`)**:
+   - En las pestañas de **Cuentas por Cobrar Privadas** (`#tab_cxc`, `#tablaCxC`) y **Movimientos de Recibos de Municipio / CxC Estado** (`#tab_cxc_estado`, `#dtPublicosCxC`), se erradicó el contenedor arcaico `.bento-card` y las clases toscas `table-bordered table-diamond`.
+   - Se estandarizaron ambas vistas con el patrón clínico de 3 capas:
+     - Tarjetas en blanco clínico puro (`#FFFFFF`) con bordes en Teal clínico (`1.5px solid var(--md-teal-clinical, #19B7A5)`), sombra limpia (`box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05)`) y padding simétrico (`p-3 p-md-4`).
+     - Cabecera en `tab_cxc`: cápsula circular de 38px en ámbar translúcido (`rgba(245, 158, 11, 0.1)`) con `<i class="bi bi-person-exclamation text-warning fs-5">`, título de 1.15rem en Azul Marino (`#0A2A66`), subtítulo `0.82rem` y badge temático `<span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fw-semibold small">Saldos Privados</span>`.
+     - Cabecera en `tab_cxc_estado`: cápsula circular de 38px en cyan translúcido (`rgba(13, 202, 240, 0.1)`) con `<i class="bi bi-building text-info fs-5">`, título de 1.15rem en Azul Marino (`#0A2A66`), subtítulo `0.82rem` y badge temático `<span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 fw-semibold small">Convenio Institucional</span>`.
+     - Preservación íntegra de la estructura de DataTables: Todas las columnas, thead, tbody, footers y callbacks de totales para ambas tablas se conservan al 100% compatibles con `js/estado_cuenta_spa.js` y las APIs de backend.
+
+
