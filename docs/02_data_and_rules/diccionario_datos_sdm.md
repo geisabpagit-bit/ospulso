@@ -342,6 +342,19 @@ Control médico-legal de consentimientos informados emitidos y firmados digitalm
 | 5 | `FECHA` | Date (YYYY-MM-DD) | Fecha de formalización y firma | `2026-10-04` |
 | 6 | `PROCEDIMIENTO` | String | Nombre del procedimiento médico/quirúrgico | `Extracción de tercer molar retenido` |
 | 7 | `PAYLOAD_JSON` | JSON String | Detalle normativo: objetivo, beneficios, riesgos, alternativas, firmas base64 y rutas `.png` | `{"procedimiento":"...","firma_paciente":"...","firma_medico":"..."}` |
+---
 
+## 10. Partición Multi-Tenant de Catálogos e Integridad Referencial
 
+### 10.1 Nomenclatura de Catálogos Particionados por Negocio
+Para clínicas y consultorios independientes, ciertos catálogos se particionan a nivel físico mediante el identificador de la organización (`ID_NEGOCIO` de `negocios.dat`):
+- `productos_{ID_NEGOCIO}.dat`: Inventario y medicamentos específicos del tenant.
+- `servicios_{ID_NEGOCIO}.dat`: Catálogo de servicios y procedimientos tarifados por tenant.
+- `catalogo_odontograma_{ID_NEGOCIO}.dat`: Catálogo personalizado de afecciones y procedimientos dentales.
+- `contadores_recibos_privados_{ID_NEGOCIO}.dat`: Secuencia de folios fiscales/recibos privados de la clínica.
 
+### 10.2 Reglas de Integridad Referencial y Sanitización Forense
+1. **Existencia en `negocios.dat`**: Todo archivo particionado `{catalogo}_{ID_NEGOCIO}.dat` debe corresponder de manera estricta a un registro activo y vigente en `negocios.dat`. Cualquier archivo particionado con un ID inexistente es clasificado como **huérfano** y es depurado.
+2. **Configuraciones en `negocios_config.dat`**: Las claves y banderas de configuración (`CAPACIDAD`, `TIPO_ORGANIZACION`, etc.) deben apuntar a un negocio registrado.
+3. **Pureza en `estado_cuenta.dat`**: El archivo de movimientos clínicos y abonos debe contener exclusivamente transacciones serializadas con formato pipe (`id_tx|id_mov|...`). Las referencias de memoria u outputs residuales de depuración son estrictamente purgados.
+4. **Gobernanza de Documentación**: La carpeta `dat/` almacena exclusivamente archivos de datos (`.dat`, `.counter`). No se permite la persistencia de archivos Markdown (`.md`) dentro de `dat/`; toda especificación técnica reside en las 4 capas de `docs/`.

@@ -12,3 +12,7 @@ desktop.ini
 # Archivos de sesión temporales
 auth/sessions/
 cgi-bin/sessions/
+
+# Scripts de trabajo auxiliar y pruebas locales
+scratch/
+
