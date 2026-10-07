@@ -185,6 +185,11 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
    - Se erradican las discrepancias de tamaño (`14px` vs `h5`), padding (`p-3` vs `p-4`) y estilos dispersos entre los contenedores de `#dtIngresosPrivados` e `#dtIngresosMunicipio` en `views/render_dashboard_principal.pl`.
    - Ambos contenedores adoptan el patrón unificado: tarjeta blanca sólida (`#FFFFFF`), bordes perimetrales en Teal clínico (`var(--md-teal-clinical, #19B7A5)`), cabeceras con cápsulas circulares de icono (38px), títulos estandarizados en `1.15rem` con tipografía Plus Jakarta Sans en Azul Marino (`#0A2A66`), subtítulos uniformes en `0.82rem` y badges temáticos discretos (*Efectivo / Ventanilla* vs *Convenio Institucional*).
 
-
-
-
+4. **Homogeneización Visual en DataTables del Módulo Finanzas (`views/finanzas.pl`, `tab=ingresos`)**:
+   - En la pestaña de Historial de Ingresos (`#tab_ingresos`), los contenedores de las tablas `#dtIngresosPrivados` y `#dtIngresosMunicipio` presentaban la misma disparidad visual heredada (`font-size: 14px` y `p-3` en Municipio vs `h5` y `p-4` con `card-medentia-aura` en Privados).
+   - Se homologaron ambos contenedores aplicando idéntica estructura y jerarquía visual:
+     - Contenedores de tarjeta en blanco clínico puro (`#FFFFFF`) con borde teal perimetral (`1.5px solid var(--md-teal-clinical, #19B7A5)`), padding responsive unificado (`p-3 p-md-4`) y sombra limpia (`box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05)`).
+     - Cabeceras estandarizadas con cápsula de icono circular de 38px (verde para Privados/Ventanilla y cyan para Municipio/Institucional).
+     - Títulos en `1.15rem` con tipografía `Plus Jakarta Sans`, peso 700 y color Azul Marino Profundo (`var(--md-blue-deep, #0A2A66)`), acompañados de subtítulos legibles en `0.82rem` (`#64748B`).
+     - Badges de identificación de origen a la derecha (`Efectivo / Ventanilla` y `Convenio Institucional`).
+     - Barra superior de filtrado de fecha con botón de acción estilizado en Azul Marino sólido y redondeado estándar (`50rem`).

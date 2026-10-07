@@ -1,0 +1,12 @@
+ID|NOMBRE|PRECIO|DESCRIPCION
+1|Consulta General de Valoración|500.00|Revisión clínica integral y diagnóstico inicial.
+2|Limpieza Dental con Ultrasonido (Profilaxis)|800.00|Remoción de placa bacteriana, sarro y pulido dental.
+3|Resina Estética Simple (1 Cara)|900.00|Restauración fotocurable del color del diente.
+4|Resina Estética Compleja (2+ Caras)|1200.00|Restauración profunda en molares o dientes fracturados.
+5|Extracción Simple|1500.00|Exodoncia de diente sin complicaciones quirúrgicas.
+6|Extracción de Tercer Molar (Muela del Juicio)|3500.00|Exodoncia quirúrgica retenida o impactada.
+7|Blanqueamiento Dental (Sesión Láser)|2800.00|Aclaramiento de 2 a 3 tonos en consultorio.
+8|Tratamiento de Conducto (Endodoncia Unirradicular)|3000.00|Tratamiento en dientes frontales o premolares de un nervio.
+9|Corona de Porcelana/Zirconia|5500.00|Funda estética de alta resistencia libre de metal.
+10|Ortodoncia - Pago Inicial (Brackets Metálicos)|6000.00|Colocación superior e inferior de aparatología.
+11|Mensualidad de Ortodoncia|800.00|Ajuste mensual de arcos y ligas.

@@ -491,8 +491,8 @@ PAGE_HTML
             <div id="tab_ingresos" class="sdm-tab-pane d-none">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <div>
-                        <h4 class="fw-bold plus-jakarta m-0 text-dark"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Historial de Ingresos</h4>
-                        <p class="text-muted m-0 small">Filtro y registro de ingresos por rango de fecha.</p>
+                        <h4 class="fw-bold plus-jakarta m-0" style="color: var(--md-blue-deep, #0A2A66);"><i class="bi bi-graph-up-arrow me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Historial de Ingresos</h4>
+                        <p class="text-muted m-0 small" style="font-size: 0.82rem;">Filtro y registro de ingresos por rango de fecha.</p>
                     </div>
                     <div class="d-flex gap-2 flex-wrap align-items-center">
                         <div class="d-flex align-items-center gap-1">
@@ -503,18 +503,26 @@ PAGE_HTML
                             <span class="small text-muted fw-bold">Hasta:</span>
                             <input type="date" id="ing_fecha_fin" class="form-control form-control-sm" title="Fecha Fin">
                         </div>
-                        <button class="btn btn-aura-save btn-mobile-standard btn-sm px-3 fw-bold" onclick="cargarIngresos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                        <button class="btn btn-sm px-3 fw-bold shadow-sm btn-mobile-standard" style="background: var(--md-blue-deep, #0A2A66); color: #FFFFFF; border-radius: 50rem;" onclick="cargarIngresos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
                     </div>
                 </div>
 
                 <div class="row g-4">
                     <!-- Tabla 1: Ingresos Privados / Efectivo -->
                     <div class="col-12">
-                        <div class="card card-medentia-aura border-0 shadow-sm p-4 rounded-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div>
-                                    <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);"><i class="bi bi-wallet2 me-2 text-primary"></i>Ingresos (Efectivo / Privados)</h5>
-                                    <p class="text-muted small m-0">Detalle de ingresos recibidos por servicios privados en el periodo seleccionado.</p>
+                        <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05);">
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom border-light">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(16, 185, 129, 0.1);">
+                                        <i class="bi bi-wallet2 text-success fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 plus-jakarta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.15rem;">Ingresos (Efectivo / Privados)</h5>
+                                        <p class="text-muted small m-0" style="font-size: 0.82rem;">Detalle de ingresos recibidos por servicios privados en el periodo seleccionado.</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fw-semibold small">Efectivo / Ventanilla</span>
                                 </div>
                             </div>
                             <div class="table-responsive">
@@ -550,11 +558,19 @@ PAGE_HTML
         print <<'PAGE_HTML';
                     <!-- Tabla 2: Ingresos Municipio -->
                     <div class="col-12">
-                        <div class="card card-medentia-aura border-0 shadow-sm p-3 rounded-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div>
-                                    <h5 class="fw-bold m-0" style="color: var(--md-blue-deep); font-size: 14px;"><i class="bi bi-building me-2 text-info"></i>Ingresos Municipio</h5>
-                                    <p class="text-muted small m-0" style="font-size: 11px;">Detalle de ingresos generados por derechohabientes del Municipio en el periodo seleccionado.</p>
+                        <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05);">
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom border-light">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(13, 202, 240, 0.1);">
+                                        <i class="bi bi-building text-info fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 plus-jakarta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.15rem;">Ingresos Municipio</h5>
+                                        <p class="text-muted small m-0" style="font-size: 0.82rem;">Detalle de ingresos generados por derechohabientes del Municipio en el periodo seleccionado.</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 fw-semibold small">Convenio Institucional</span>
                                 </div>
                             </div>
                             <div class="table-responsive">
