@@ -202,12 +202,15 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
      - Barra superior de filtros con botón "Filtrar" unificado en Azul Marino sólido (`50rem`) y botón de acción "Registrar Gasto" en Teal clínico rounded-pill.
      - Modal `#modalGasto` armonizado con cabecera en Azul Marino/Teal y botón de guardado institucional.
 
-6. **Homogeneización Visual en Cuentas por Cobrar (`views/finanzas.pl`, `tab=cxc` y `tab=cxc_estado`)**:
-   - En las pestañas de **Cuentas por Cobrar Privadas** (`#tab_cxc`, `#tablaCxC`) y **Movimientos de Recibos de Municipio / CxC Estado** (`#tab_cxc_estado`, `#dtPublicosCxC`), se erradicó el contenedor arcaico `.bento-card` y las clases toscas `table-bordered table-diamond`.
-   - Se estandarizaron ambas vistas con el patrón clínico de 3 capas:
-     - Tarjetas en blanco clínico puro (`#FFFFFF`) con bordes en Teal clínico (`1.5px solid var(--md-teal-clinical, #19B7A5)`), sombra limpia (`box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05)`) y padding simétrico (`p-3 p-md-4`).
-     - Cabecera en `tab_cxc`: cápsula circular de 38px en ámbar translúcido (`rgba(245, 158, 11, 0.1)`) con `<i class="bi bi-person-exclamation text-warning fs-5">`, título de 1.15rem en Azul Marino (`#0A2A66`), subtítulo `0.82rem` y badge temático `<span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fw-semibold small">Saldos Privados</span>`.
-     - Cabecera en `tab_cxc_estado`: cápsula circular de 38px en cyan translúcido (`rgba(13, 202, 240, 0.1)`) con `<i class="bi bi-building text-info fs-5">`, título de 1.15rem en Azul Marino (`#0A2A66`), subtítulo `0.82rem` y badge temático `<span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 fw-semibold small">Convenio Institucional</span>`.
-     - Preservación íntegra de la estructura de DataTables: Todas las columnas, thead, tbody, footers y callbacks de totales para ambas tablas se conservan al 100% compatibles con `js/estado_cuenta_spa.js` y las APIs de backend.
+6. **Eliminación y Depuración de Pestañas Redundantes de CxC (`views/finanzas.pl`, `tab=cxc` y `tab=cxc_estado`)**:
+   - Se erradicaron por completo los contenedores y pestañas secundarias `#tab_cxc` y `#tab_cxc_estado` tanto de `views/finanzas.pl` como del acordeón de navegación de [utils/sub_sidebar.pl](file:///c:/xampp/htdocs/ospulso/utils/sub_sidebar.pl).
+   - **Justificación de Arquitectura y UX**:
+     * La cobranza privada se ejecuta en el punto de atención clínico: en el **Expediente del Paciente** (`views/pacientes.pl`), en el **Cierre de Consulta SOAP** (Paso 6) o en **Caja Rápida / Mostrador**, haciendo estéril una tabla plana de saldos globales en Finanzas.
+     * Los recibos del Municipio (`CxC Estado`) ya cuentan con visualización filtrable en **Historial de Ingresos** (`#dtIngresosMunicipio`), en **Corte de Caja Diario** (`#dtCorteCxC`) y en el módulo dedicado de **Recibos Públicos** (`views/recibos_publicos.pl`), por lo que mantener una tercera tabla representaba redundancia innecesaria.
+   - **Preservación Ejecutiva en Resumen General**:
+     * Los indicadores macro `#kpiCuentasCobrar` y `#kpiCxcEstado` se conservan en la Capa 2 del Resumen General de Finanzas como tarjetas ejecutivas de lectura patrimonial pura (sin saltos a pestañas inexistentes), enlazando la gestión de saldos privados directamente al Padrón de Pacientes (`views/pacientes.pl`).
+   - **Optimización de Rendimiento**:
+     * Se eliminó la inicialización en el DOM de 2 instancias complejas de DataTables y sus llamadas AJAX asociadas (`renderCxC` y `renderCxcEstado`), aligerando la carga de la vista y la interacción en dispositivos móviles.
+
 
 

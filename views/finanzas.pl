@@ -150,8 +150,6 @@ print <<'PAGE_HTML';
             window.toggleSidebar();
         }
         
-        if(tabId === 'tab_cxc' && typeof window.renderCxC === 'function') window.renderCxC();
-        if(tabId === 'tab_cxc_estado' && typeof window.renderCxcEstado === 'function') window.renderCxcEstado();
         if(tabId === 'tab_gastos' && typeof window.renderGastos === 'function') window.renderGastos();
         if(tabId === 'tab_ingresos' && typeof window.renderIngresos === 'function') window.renderIngresos();
         if(tabId === 'tab_reportes' && typeof window.renderReportes === 'function') window.renderReportes();
@@ -345,7 +343,7 @@ print <<'PAGE_HTML';
                 <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
                     <!-- 4. Cuentas por Cobrar Privadas -->
                     <div class="col">
-                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_cxc')" title="Clic para ver detalle en CxC Privadas" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="small fw-bold text-muted text-truncate">CxC Privadas</span>
                                 <i class="bi bi-wallet text-warning fs-5"></i>
@@ -353,7 +351,7 @@ print <<'PAGE_HTML';
                             <h4 class="fw-bold m-0 text-warning plus-jakarta" id="kpiCuentasCobrar">$0.00</h4>
                             <div class="small text-muted mt-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
                                 <span>Saldos Pacientes</span>
-                                <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                                <a href="../views/pacientes.pl" class="text-decoration-none text-muted" title="Ir a Padrón de Pacientes"><i class="bi bi-people-fill text-primary" style="font-size:0.85rem;"></i></a>
                             </div>
                         </div>
                     </div>
@@ -363,7 +361,7 @@ PAGE_HTML
         print <<'PAGE_HTML';
                     <!-- 5. CxC Estado (Convenios Públicos) -->
                     <div class="col">
-                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_cxc_estado')" title="Clic para ver detalle en CxC Estado" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="small fw-bold text-muted text-truncate">CxC Estado</span>
                                 <i class="bi bi-bank2 text-info fs-5"></i>
@@ -371,7 +369,7 @@ PAGE_HTML
                             <h4 class="fw-bold m-0 text-info plus-jakarta" id="kpiCxcEstado">$0.00</h4>
                             <div class="small text-muted mt-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
                                 <span>Convenios Públicos</span>
-                                <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                                <i class="bi bi-building text-info" style="font-size:0.85rem;"></i>
                             </div>
                         </div>
                     </div>
@@ -671,106 +669,7 @@ PAGE_HTML
 
 
 
-            <!-- TAB: CUENTAS POR COBRAR -->
-            <div id="tab_cxc" class="sdm-tab-pane d-none">
-                <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4 mb-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05);">
-                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom border-light">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(245, 158, 11, 0.1);">
-                                <i class="bi bi-person-exclamation text-warning fs-5"></i>
-                            </div>
-                            <div>
-                                <h5 class="fw-bold m-0 plus-jakarta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.15rem;">Cuentas por Cobrar (Saldos Privados)</h5>
-                                <p class="text-muted small m-0" style="font-size: 0.82rem;">Pacientes con saldos pendientes por servicios clínicos privados (calculado en tiempo real).</p>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fw-semibold small">Saldos Privados</span>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm align-middle w-100" id="tablaCxC" style="font-size: 10px !important;">
-                            <thead class="table-light text-muted" style="font-size: 10.5px !important;">
-                                <tr>
-                                    <th style="width: 25%;">Paciente</th>
-                                    <th style="width: 15%;">Últ. Movimiento</th>
-                                    <th style="width: 15%;" class="text-end">Cargos Acum.</th>
-                                    <th style="width: 15%;" class="text-end">Abonos Acum.</th>
-                                    <th style="width: 15%;" class="text-end">Saldo Pendiente</th>
-                                    <th style="width: 15%;" class="text-center">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyCxC" style="font-size: 10px !important;">
-                                <tr><td colspan="6" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>
-                            </tbody>
-                            <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
-                                <tr>
-                                    <td colspan="2" class="text-end">Totales:</td>
-                                    <td id="tfootCxCCargos" class="text-end"></td>
-                                    <td id="tfootCxCAbonos" class="text-end"></td>
-                                    <td id="tfootCxCSaldo" class="text-end text-danger"></td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
 
-PAGE_HTML
-
-    if ($has_pacientes_estado) {
-        print <<'PAGE_HTML';
-            <!-- TAB: CUENTAS POR COBRAR ESTADO -->
-            <div id="tab_cxc_estado" class="sdm-tab-pane d-none">
-                <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4 mb-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05);">
-                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom border-light">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(13, 202, 240, 0.1);">
-                                <i class="bi bi-building text-info fs-5"></i>
-                            </div>
-                            <div>
-                                <h5 class="fw-bold m-0 plus-jakarta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.15rem;">Movimientos y Recibos Municipio (CxC Estado)</h5>
-                                <p class="text-muted small m-0" style="font-size: 0.82rem;">Órdenes y servicios generados por derechohabientes del Municipio con subsidio institucional.</p>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 fw-semibold small">Convenio Institucional</span>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm align-middle w-100" id="dtPublicosCxC" style="font-size: 10px !important;">
-                            <thead class="table-light text-muted" style="font-size: 10.5px !important;">
-                                <tr>
-                                    <th style="width: 8%;">Folio</th>
-                                    <th style="width: 10%;">Fecha</th>
-                                    <th style="width: 22%;">Paciente</th>
-                                    <th style="width: 14%;">Concepto</th>
-                                    <th style="width: 14%;">Médico</th>
-                                    <th style="width: 10%;">Detalle</th>
-                                    <th style="width: 8%;" class="text-end">Total</th>
-                                    <th style="width: 7%;" class="text-center">Estatus</th>
-                                    <th style="width: 7%;" class="text-center">Opciones</th>
-                                </tr>
-                            </thead>
-                            <tbody style="font-size: 10px !important;">
-                                <tr><td colspan="9" class="text-center text-muted"><div class="spinner-border text-info spinner-border-sm me-2"></div>Cargando...</td></tr>
-                            </tbody>
-                            <tfoot class="bg-light fw-bold" style="font-size: 11px !important;">
-                                <tr>
-                                    <th colspan="6" class="text-end">Total:</th>
-                                    <th class="text-end text-info"></th>
-                                    <th colspan="2"></th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
-PAGE_HTML
-    }
-
-    print <<'PAGE_HTML';
 
             <!-- TAB: FACTURACION -->
             <div id="tab_facturacion" class="sdm-tab-pane d-none">
