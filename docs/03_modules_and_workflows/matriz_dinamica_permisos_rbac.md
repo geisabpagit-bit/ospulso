@@ -176,5 +176,28 @@ Para salvaguardar la confidencialidad de la información contable, cortes de caj
 - **Menú Lateral (`utils/sub_sidebar.pl`)**: Se eliminó cualquier bypass artificial que forzara `finanzas` en consultorios individuales. En "Modo Médico", la opción **Finanzas** no es visible en el menú principal izquierdo.
 - **Protección de Endpoint (`views/finanzas.pl`)**: Si un usuario con rol activo `Medico` intenta acceder directamente por URL a `views/finanzas.pl`, el sistema evalúa RBAC (`tiene_permiso_modulo`). Si no cuenta con una excepción explícita, se bloquea la vista y se renderiza `render_acceso_denegado` informando que el módulo está reservado para el perfil de administración y orientando al usuario a utilizar el conmutador de roles en el encabezado.
 
+---
+
+## 9. Restablecimiento Seguro de Contraseñas por Administrador
+
+### 9.1 Propósito y Alcance
+Permite al **Administrador de Organización** enviar enlaces de configuración/restablecimiento de contraseña directamente a los colaboradores desde la consola de gestión de usuarios (`views/administracion_usuarios.pl`), sin requerir intervención manual sobre las claves en `dat/usuarios.dat`.
+
+### 9.2 Endpoint Transaccional (`api/enviar_reset_admin_api.pl`)
+- **Seguridad RBAC**: Solo accesible por usuarios autenticados con rol `Administrador Organizacion` o `Administrador Global`. Valida que el colaborador pertenezca a la misma organización tenant (`id_org_matriz`).
+- **Tokenización Canónica**: Genera un hash MD5 unívoco y con caducidad de 1 hora (3600 segundos), persistido en `dat/tokens.dat` bajo el formato:
+  ```
+  TOKEN!CORREO!EXPIRACION
+  ```
+- **Dominio Definitivo y Remitente Oficial**:
+  - Dominio: `ospulso.com` (detección automática de host local vs producción).
+  - Remitente institucional: `administracion@ospulso.com`.
+  - Nombre comercial: Resuelto desde `dat/negocios.dat` con fallback a `Ospulso.com`.
+- **Motor de Envío con Tolerancia a Fallos**:
+  1. Intento primario mediante `MIME::Lite` (cargado de forma segura con `eval`).
+  2. Fallback secundario a pipe Unix `/usr/sbin/sendmail` si el módulo no está en `@INC`.
+  3. Modo de simulación transparente en entornos locales (XAMPP/Windows) con registro en `logs/debug_email.log`, garantizando respuestas JSON válidas (`HTTP 200 { status: 'success' }`) sin provocar errores 500 en la consola del navegador.
+
+
 
 

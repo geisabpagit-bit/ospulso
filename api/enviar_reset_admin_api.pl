@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-use cPanelUserConfig;
+BEGIN { eval "use cPanelUserConfig;"; }
 use strict;
 use warnings;
 use utf8;
@@ -8,7 +8,6 @@ use JSON;
 use FindBin;
 use File::Spec;
 use File::Basename;
-use MIME::Lite;
 use Digest::MD5;
 use Encode qw(encode_utf8 decode_utf8);
 
@@ -16,17 +15,19 @@ use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 use utils::db_manager qw(leer_tabla);
 
+my $has_mime_lite = eval "use MIME::Lite; 1;";
+
 my $sd = check_session();
 my $q  = $sd->{q};
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
-if (!$sd->{session_ok} || $sd->{role} ne 'Administrador Organizacion') {
+if (!$sd->{session_ok} || ($sd->{role} ne 'Administrador Organizacion' && $sd->{role} ne 'Administrador Global')) {
     print encode_json({ status => 'error', message => 'Acceso denegado.' });
     exit;
 }
 
-my $id_org_matriz = $sd->{id_empresa};
+my $id_org_matriz = $sd->{id_empresa} // '';
 my $correo = lc(decode_utf8($q->param('correo') // ''));
 $correo =~ s/^\s+|\s+$//g;
 
@@ -54,8 +55,8 @@ if ($regs_usuarios) {
         $org_id //= '';
 
         if ($cor_exist eq $correo) {
-            # Verificar que sea de la organización
-            if ($org_id eq $id_org_matriz) {
+            # Verificar que sea de la organización o sea Administrador Global
+            if ($sd->{role} eq 'Administrador Global' || ($id_org_matriz && $org_id eq $id_org_matriz)) {
                 $usuario_encontrado = 1;
                 $user_alias = $r->[1] // 'Usuario';
             } else {
@@ -72,7 +73,7 @@ if (!$usuario_encontrado) {
     exit;
 }
 
-# --- ENVÍO DE CORREO (Adaptado de recuperar_clave.pl) ---
+# --- GENERACIÓN DE TOKEN ---
 my $timestamp = time();
 my $token_raw = "$correo|$timestamp";
 my $token = Digest::MD5->new->add($token_raw)->hexdigest;
@@ -90,18 +91,20 @@ if ($@) {
     exit;
 }
 
-my $host = $ENV{'HTTP_HOST'} || 'ospulso.pdigitalesm.com';
-my $url_recuperacion = "https://$host/auth/cambiar_clave.pl?token=$token";
+my $host = $ENV{'HTTP_HOST'} || 'ospulso.com';
+my $proto = ($host =~ /localhost|127\.0\.0\.1/) ? 'http' : 'https';
+my $base_path = ($ENV{'REQUEST_URI'} && $ENV{'REQUEST_URI'} =~ m{^(/[^/]+)?/api/}) ? ($1 // '') : '';
+my $url_recuperacion = "$proto://$host$base_path/auth/cambiar_clave.pl?token=$token";
 
 # Obtener el nombre de la organización
-my $nombre_comercial = 'Software Dental Mexicano';
+my $nombre_comercial = 'Ospulso.com';
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
 if (open(my $fhn, '<:encoding(UTF-8)', $archivo_negocios)) {
     my $header = <$fhn>;
     while (my $line = <$fhn>) {
         chomp $line;
         my @c = split /\|/, $line, -1;
-        if ($c[0] && $c[0] eq $id_org_matriz && $c[1]) {
+        if ($c[0] && $id_org_matriz && $c[0] eq $id_org_matriz && $c[1]) {
             $nombre_comercial = $c[1];
             last;
         }
@@ -109,7 +112,7 @@ if (open(my $fhn, '<:encoding(UTF-8)', $archivo_negocios)) {
     close($fhn);
 }
 
-my $from = 'administracion@ospulso.pdigitalesm.com';
+my $from = 'administracion@ospulso.com';
 my $to = $correo;
 my $subject = encode_utf8("Restablecer Contraseña - $nombre_comercial"); 
 
@@ -160,21 +163,57 @@ my $cuerpo_html = encode_utf8(qq{
 });
 
 my $success = 0; 
-eval {
-    my $msg = MIME::Lite->new(
-        From    => $from,
-        To      => $to,
-        Subject => $subject,
-        Type    => 'multipart/alternative',
-    );
-    $msg->attach(Type => 'text/plain', Data => $body_text, Charset => 'utf-8');
-    $msg->attach(Type => 'text/html', Data => $cuerpo_html, Charset => 'utf-8');
-    $msg->send; 
-    $success = 1; 
-};
+my $error_envio = "";
 
-if ($@ || !$success) {
-    print encode_json({ status => 'error', message => 'El correo no pudo ser enviado por un error del servidor.' });
+# Intento 1: MIME::Lite si el módulo está disponible
+if ($has_mime_lite) {
+    eval {
+        my $msg = MIME::Lite->new(
+            From    => $from,
+            To      => $to,
+            Subject => $subject,
+            Type    => 'multipart/alternative',
+        );
+        $msg->attach(Type => 'text/plain', Data => $body_text, Charset => 'utf-8');
+        $msg->attach(Type => 'text/html', Data => $cuerpo_html, Charset => 'utf-8');
+        $msg->send; 
+        $success = 1; 
+    };
+    if ($@) {
+        $error_envio = "MIME::Lite: $@";
+    }
+}
+
+# Intento 2: sendmail nativo si MIME::Lite no está instalado o falló
+if (!$success && -x '/usr/sbin/sendmail') {
+    eval {
+        open(my $sm, '|-:encoding(UTF-8)', '/usr/sbin/sendmail', '-t', '-oi') or die "No se pudo abrir sendmail: $!";
+        print $sm "To: $to\n";
+        print $sm "From: $from\n";
+        print $sm "Subject: $subject\n";
+        print $sm "MIME-Version: 1.0\n";
+        print $sm "Content-Type: text/html; charset=UTF-8\n\n";
+        print $sm decode_utf8($cuerpo_html);
+        close($sm);
+        $success = 1;
+    };
+    if ($@) {
+        $error_envio .= " | Sendmail: $@";
+    }
+}
+
+# Intento 3: Simulación en entorno local si no hay sendmail ni MIME::Lite
+if (!$success && ($ENV{'HTTP_HOST'} // '') =~ /localhost|127\.0\.0\.1/i) {
+    my $log_file = File::Spec->catfile($FindBin::Bin, '..', 'logs', 'debug_email.log');
+    if (open(my $log_fh, '>>:encoding(UTF-8)', $log_file)) {
+        print $log_fh "[SIMULADO LOCAL " . localtime() . "] Reset enviado a $to | URL: $url_recuperacion\n";
+        close($log_fh);
+    }
+    $success = 1;
+}
+
+if (!$success) {
+    print encode_json({ status => 'error', message => "El correo no pudo ser enviado por un error del servidor. $error_envio" });
     exit;
 }
 

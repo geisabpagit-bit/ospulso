@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-use cPanelUserConfig;
+BEGIN { eval "use cPanelUserConfig;"; }
 use strict;
 use warnings;
 use utf8;
@@ -9,9 +9,10 @@ use JSON::PP;
 use File::Basename;
 use File::Spec;
 use lib dirname(__FILE__) . '/..';
-use Encode qw(encode_utf8);
-use MIME::Lite; 
+use Encode qw(encode_utf8 decode_utf8);
 use Digest::MD5;
+
+my $has_mime_lite = eval "use MIME::Lite; 1;";
 
 # --- CONFIGURACIÓN DE RESPUESTA JSON ---
 my $q = CGI->new;
@@ -71,7 +72,7 @@ sub get_user_alias {
 # -------------------------------------------------------------------
 sub get_business_name {
     my ($id_negocio) = @_;
-    my $nombre_comercial = 'Software Dental Mexicano';
+    my $nombre_comercial = 'Ospulso.com';
     return $nombre_comercial unless $id_negocio;
     my $archivo_negocios = File::Spec->rel2abs("$dirname/../dat/negocios.dat");
     if (open(my $fh, '<:encoding(UTF-8)', $archivo_negocios)) {
@@ -117,10 +118,12 @@ sub enviar_correo_recuperacion {
     }
     
     # 3. Construir URL y Contenido del Email
-    my $host = $ENV{'HTTP_HOST'} || 'ospulso.pdigitalesm.com';
-    my $url_recuperacion = "https://$host/auth/cambiar_clave.pl?token=$token";
+    my $host = $ENV{'HTTP_HOST'} || 'ospulso.com';
+    my $proto = ($host =~ /localhost|127\.0\.0\.1/) ? 'http' : 'https';
+    my $base_path = ($ENV{'REQUEST_URI'} && $ENV{'REQUEST_URI'} =~ m{^(/[^/]+)?/auth/}) ? ($1 // '') : '';
+    my $url_recuperacion = "$proto://$host$base_path/auth/cambiar_clave.pl?token=$token";
     
-    my $from = 'administracion@ospulso.pdigitalesm.com';
+    my $from = 'administracion@ospulso.com';
     my $to = $correo;
     my $subject = encode_utf8("Recuperación de Contraseña - $nombre_comercial"); 
     
@@ -175,33 +178,55 @@ sub enviar_correo_recuperacion {
         </html>
     });
 
-    # 4. Envío del Email usando MIME::Lite con sendmail
+    # 4. Envío del Email
     my $success = 0; 
 
-    eval {
-        my $msg = MIME::Lite->new(
-            From    => $from,
-            To      => $to,
-            Subject => $subject,
-            Type    => 'multipart/alternative',
-        );
-        
-        $msg->attach(Type => 'text/plain', Data => $body_text, Charset => 'utf-8');
-        $msg->attach(Type => 'text/html', Data => $cuerpo_html, Charset => 'utf-8');
-        
-        $msg->send; 
-        
-        $success = 1; 
-    };
-
-    if ($@) {
-        ${$error_ref} = "Fallo Crítico (sendmail die): $@";
-        warn "Error fatal en MIME::Lite/sendmail: $@";
-        return 0;
+    if ($has_mime_lite) {
+        eval {
+            my $msg = MIME::Lite->new(
+                From    => $from,
+                To      => $to,
+                Subject => $subject,
+                Type    => 'multipart/alternative',
+            );
+            $msg->attach(Type => 'text/plain', Data => $body_text, Charset => 'utf-8');
+            $msg->attach(Type => 'text/html', Data => $cuerpo_html, Charset => 'utf-8');
+            $msg->send; 
+            $success = 1; 
+        };
+        if ($@) {
+            warn "MIME::Lite envio fallo: $@";
+        }
     }
-    
+
+    if (!$success && -x '/usr/sbin/sendmail') {
+        eval {
+            open(my $sm, '|-:encoding(UTF-8)', '/usr/sbin/sendmail', '-t', '-oi') or die "No se pudo abrir sendmail: $!";
+            print $sm "To: $to\n";
+            print $sm "From: $from\n";
+            print $sm "Subject: $subject\n";
+            print $sm "MIME-Version: 1.0\n";
+            print $sm "Content-Type: text/html; charset=UTF-8\n\n";
+            print $sm decode_utf8($cuerpo_html);
+            close($sm);
+            $success = 1;
+        };
+        if ($@) {
+            warn "Sendmail envio fallo: $@";
+        }
+    }
+
+    if (!$success && ($ENV{'HTTP_HOST'} // '') =~ /localhost|127\.0\.0\.1/i) {
+        my $log_file = File::Spec->rel2abs("$dirname/../logs/debug_email.log");
+        if (open(my $log_fh, '>>:encoding(UTF-8)', $log_file)) {
+            print $log_fh "[SIMULADO LOCAL " . localtime() . "] Recuperación enviada a $to | URL: $url_recuperacion\n";
+            close($log_fh);
+        }
+        $success = 1;
+    }
+
     if (!$success) {
-        ${$error_ref} = "Fallo en el envio local. El servidor SMTP/sendmail rechazó la solicitud.";
+        ${$error_ref} = "Fallo en el envío. El servidor de correo no está disponible.";
         return 0;
     }
 

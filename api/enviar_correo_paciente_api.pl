@@ -71,7 +71,7 @@ unless ($has_mime_lite) {
 }
 
 my $msg = MIME::Lite->new(
-    From    => 'administracion@ospulso.pdigitalesm.com',
+    From    => 'administracion@ospulso.com',
     To      => $para,
     Subject => $asunto,
     Type    => 'multipart/mixed'

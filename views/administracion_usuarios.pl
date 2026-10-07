@@ -1089,7 +1089,14 @@ print <<'JS';
                     credentials: 'same-origin',
                     body: fd
                 })
-                .then(res => res.json())
+                .then(async res => {
+                    const text = await res.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch(e) {
+                        throw new Error(`Error en el servidor (${res.status}): ${text.replace(/<[^>]+>/g, ' ').substring(0, 100).trim()}`);
+                    }
+                })
                 .then(data => {
                     if (data.status === 'success') {
                         Swal.fire('¡Enviado!', data.message, 'success');
@@ -1099,7 +1106,7 @@ print <<'JS';
                 })
                 .catch(err => {
                     console.error(err);
-                    Swal.fire('Error', 'Falla de conexión.', 'error');
+                    Swal.fire('Error', err.message || 'Falla de conexión.', 'error');
                 });
             }
         });

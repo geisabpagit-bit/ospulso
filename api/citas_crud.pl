@@ -283,7 +283,7 @@ sub crear_cita {
         </div>
         
         <div style="text-align: center; margin: 35px 0;">
-            <a href="https://ospulso.pdigitalesm.com/" style="background-color: #19B7A5; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;">Acceder a mi Portal Médico</a>
+            <a href="https://ospulso.com/" style="background-color: #19B7A5; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;">Acceder a mi Portal Médico</a>
         </div>
         
         <p style="font-size: 14px; color: #334155;"><strong>Indicaciones Previas:</strong> Recuerde presentarse 10 minutos antes de su cita.</p>
@@ -305,7 +305,7 @@ sub crear_cita {
             };
             eval {
                 my $msg = MIME::Lite->new(
-                    From    => 'administracion@ospulso.pdigitalesm.com',
+                    From    => 'administracion@ospulso.com',
                     To      => $correo_paciente,
                     Subject => 'Confirmación de Cita - OSPulso',
                     Type    => 'text/html; charset=UTF-8',

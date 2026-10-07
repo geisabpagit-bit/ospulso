@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-use cPanelUserConfig;
+BEGIN { eval "use cPanelUserConfig;"; }
 use strict;
 use warnings;
 use utf8;
@@ -12,8 +12,9 @@ use lib dirname(__FILE__) . '/..';
 use Digest::SHA qw(sha256_hex);
 use Digest::MD5 qw(md5_hex);
 use Encode qw(decode_utf8);
-use MIME::Lite;
 use utils::db_manager qw(leer_tabla actualizar_archivo obtener_nuevo_id crear_nuevo_negocio);
+
+my $has_mime_lite = eval "use MIME::Lite; 1;";
 
 # --- PROTOCOLO 11.2: Forzar UTF-8 ---
 binmode(STDOUT, ":utf8");
@@ -80,7 +81,7 @@ enviar_correo_activacion($nombre, $correo, $registro_id);
 # 7. Redirección Inteligente
 if ($consent) {
     my $client_id    = "771205596556-64bfspdvs27aqogeot9mdelgvmqm4n7u.apps.googleusercontent.com";
-    my $host         = $ENV{'HTTP_HOST'} || 'ospulso.pdigitalesm.com';
+    my $host         = $ENV{'HTTP_HOST'} || 'ospulso.com';
     my $redirect_uri = "https://$host/auth/oauth_callback.pl";
     my $scope        = "https://www.googleapis.com/auth/calendar";
     my $auth_url     = "https://accounts.google.com/o/oauth2/v2/auth?client_id=$client_id&redirect_uri=$redirect_uri&response_type=code&scope=$scope&access_type=offline&prompt=consent&state=$registro_id";
@@ -96,7 +97,7 @@ exit;
 sub enviar_correo_activacion {
     my ($nom, $eml, $id) = @_;
     my $token = md5_hex($id . $eml);
-    my $host  = $ENV{'HTTP_HOST'} || 'ospulso.pdigitalesm.com';
+    my $host  = $ENV{'HTTP_HOST'} || 'ospulso.com';
     my $link  = "https://$host/auth/correo_verificado_reg.pl?id=$id&token=$token";
 
     my $html = qq{
@@ -136,20 +137,33 @@ sub enviar_correo_activacion {
         </html>
     };
 
-    eval {
-        # PROTOCOLO 13: SIEMPRE escapar el @ como \@
-        my $msg = MIME::Lite->new(
-            From    => "administracion\@ospulso.pdigitalesm.com",
-            To      => $eml,
-            Subject => 'Activa tu cuenta de OsPulso',
-            Type    => 'text/html',
-            Data    => $html
-        );
-        $msg->attr('content-type.charset' => 'UTF-8');
-        $msg->send;
-    };
-    if ($@) {
-        warn "Error enviando correo: $@";
+    my $enviado = 0;
+    if ($has_mime_lite) {
+        eval {
+            my $msg = MIME::Lite->new(
+                From    => "administracion\@ospulso.com",
+                To      => $eml,
+                Subject => 'Activa tu cuenta de OsPulso',
+                Type    => 'text/html',
+                Data    => $html
+            );
+            $msg->attr('content-type.charset' => 'UTF-8');
+            $msg->send;
+            $enviado = 1;
+        };
+    }
+    if (!$enviado && -x '/usr/sbin/sendmail') {
+        eval {
+            open(my $sm, '|-:encoding(UTF-8)', '/usr/sbin/sendmail', '-t', '-oi') or die $!;
+            print $sm "To: $eml\n";
+            print $sm "From: administracion\@ospulso.com\n";
+            print $sm "Subject: Activa tu cuenta de OsPulso\n";
+            print $sm "MIME-Version: 1.0\n";
+            print $sm "Content-Type: text/html; charset=UTF-8\n\n";
+            print $sm $html;
+            close($sm);
+            $enviado = 1;
+        };
     }
 }
 
