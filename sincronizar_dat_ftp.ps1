@@ -10,7 +10,8 @@ param(
     [string]$FtpUser = "ospulso",
     [string]$RemoteDir = "public_html/dat",
     [string]$LocalDir = "$PSScriptRoot\dat",
-    [switch]$SkipBackup
+    [switch]$SkipBackup,
+    [switch]$ForceOverwrite
 )
 
 $ErrorActionPreference = "Stop"
@@ -128,13 +129,29 @@ function Sync-FtpFolder($remoteRelPath, $localSubPath) {
 
                 $fileResp = $fileReq.GetResponse()
                 $inStream = $fileResp.GetResponseStream()
-                $outStream = [System.IO.File]::Create($subLocal)
-                $inStream.CopyTo($outStream)
-                $outStream.Close()
+
+                $memStream = New-Object System.IO.MemoryStream
+                $inStream.CopyTo($memStream)
                 $inStream.Close()
                 $fileResp.Close()
 
-                Write-Host "OK" -ForegroundColor Green
+                $downloadBytes = $memStream.ToArray()
+                $memStream.Close()
+
+                # Blindaje anti-vaciado: Proteger tablas maestras operativas si el remoto está vacío/truncado
+                $criticalFiles = @('negocios.dat', 'negocios_config.dat', 'perfiles.dat', 'usuarios.dat', 'estado_cuenta.dat', 'pacientes.dat', 'citas.dat')
+                if ((Test-Path $subLocal) -and (-not $ForceOverwrite)) {
+                    $localSize = (Get-Item $subLocal).Length
+                    $remoteSize = $downloadBytes.Length
+                    
+                    if ($criticalFiles -contains $itemName -and $remoteSize -lt $localSize -and $remoteSize -le 250) {
+                        Write-Host "SALTADO (PROTEGIDO: Remoto vacío [$remoteSize B] vs Local [$localSize B])" -ForegroundColor Yellow
+                        continue
+                    }
+                }
+
+                [System.IO.File]::WriteAllBytes($subLocal, $downloadBytes)
+                Write-Host "OK ($($downloadBytes.Length) bytes)" -ForegroundColor Green
                 $global:totalDescargados++
             } catch {
                 Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red

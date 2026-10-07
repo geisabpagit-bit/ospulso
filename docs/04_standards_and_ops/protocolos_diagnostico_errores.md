@@ -17,3 +17,18 @@
    - Evitar comillas simples escapadas `\'` dentro de strings de JS delimitadas por comillas simples inyectadas desde HEREDOCs de Perl. Utilizar comillas dobles internamente o backticks de ES6.
 3. **Fuga de Etiquetas HEREDOC**:
    - Verificar que la etiqueta de cierre del HEREDOC coincida idénticamente con la etiqueta de apertura (ej. `PAGE_HTML` con `PAGE_HTML`).
+
+---
+
+## 3. Protocolo de Sincronización y Blindaje de Datos Flat-File (.dat)
+
+### 3.1 Causa Raíz de Inaccesibilidad por Sincronización
+- **Vaciado Inadvertido por FTP**: Si se ejecuta una sincronización desde un servidor remoto/staging cuya base flat-file contiene archivos vírgenes o solo encabezados (ej. `negocios.dat`, `negocios_config.dat`, `perfiles.dat`), la sobreescritura local destruye los tenants registrados.
+- **Efecto Cascada en Autenticación**: Al quedar `negocios.dat` sin los registros de organizaciones (ej. ID `723800`), la subrutina `verificar_estado_negocio` en `auth/acceso.pl` reporta cuenta inactiva o suscripción vencida, bloqueando a todo el personal ("Acceso Denegado").
+
+### 3.2 Blindaje Preventivo Mandatorio (`sincronizar_dat_ftp.ps1`)
+1. **Respaldo Automático con Timestamp**: Todo proceso de sincronización debe generar obligatoriamente una copia íntegra en `dat_backup_YYYYMMDD_HHMMSS/` antes de procesar cualquier archivo.
+2. **Protección Anti-Vaciado (Guardia de Tamaño)**:
+   - Las tablas críticas del sistema (`negocios.dat`, `negocios_config.dat`, `perfiles.dat`, `usuarios.dat`, `estado_cuenta.dat`, `pacientes.dat`, `citas.dat`) no se deben sobreescribir si el archivo remoto tiene un tamaño $\le 250$ bytes (solo encabezado) mientras el archivo local cuenta con registros activos.
+   - Para forzar la sobreescritura intencional se requiere el parámetro explícito `-ForceOverwrite`.
+
