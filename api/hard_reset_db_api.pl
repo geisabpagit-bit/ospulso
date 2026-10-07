@@ -16,11 +16,9 @@ my $q  = $sd->{q};
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
-# Seguridad estricta: Solo Administrador Global
-if (!$sd->{session_ok} || $sd->{role} ne 'Administrador Global') {
-    print encode_json({ status => 'error', message => 'Acceso denegado.' });
-    exit;
-}
+# BLOQUEO PERMANENTE DE SEGURIDAD
+print encode_json({ status => 'error', message => 'Acción deshabilitada permanentemente en producción para salvaguardar los registros clínicos.' });
+exit;
 
 my $dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
 

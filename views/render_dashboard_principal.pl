@@ -42,9 +42,28 @@ sub render_dashboard_principal {
             pagina_actual => 'dashboard'
         );
         print <<HTML;
-        <!-- Dashboard Content para Administrador Global (Vacío) -->
-        <div class="container-fluid px-4 pb-5">
-            <!-- Pantalla sin contenido para Administrador Global -->
+        <!-- Dashboard Content para Administrador Global -->
+        <div class="container-fluid px-4 pb-5 mt-4 animate__animated animate__fadeIn">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white text-center" style="border: 1.5px solid rgba(25, 183, 165, 0.3) !important;">
+                <div class="mx-auto mb-3 rounded-circle d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary" style="width: 70px; height: 70px;">
+                    <i class="bi bi-shield-lock-fill fs-2"></i>
+                </div>
+                <h3 class="fw-bold text-dark plus-jakarta">Panel Maestro - Administrador Global (SaaS)</h3>
+                <p class="text-muted col-md-8 mx-auto small mb-4">
+                    Has iniciado sesión con el rol de administración de plataforma. Desde aquí puedes supervisar organizaciones, sucursales, usuarios globales y respaldos del sistema.
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="manage_clinicas.pl" class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-building me-2"></i>Organizaciones y Clínicas
+                    </a>
+                    <a href="administracion_usuarios.pl" class="btn btn-outline-secondary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-people-fill me-2"></i>Usuarios Globales
+                    </a>
+                    <a href="admin_backups.pl" class="btn btn-outline-success rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-hdd-network-fill me-2"></i>Copias de Seguridad
+                    </a>
+                </div>
+            </div>
         </div>
 HTML
         utils::sub_sidebar::render_sidebar_footer();

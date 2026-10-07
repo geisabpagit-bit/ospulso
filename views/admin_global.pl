@@ -79,10 +79,10 @@ print <<HTML;
                 </div>
                 <hr>
                 <div class="mt-3 d-flex align-items-center flex-wrap gap-3">
-                    <button class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="hardResetDB()">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Hard Reset DB
-                    </button>
-                    <span class="text-muted small"><strong>Advertencia:</strong> Esta acción eliminará toda la información transaccional y re-inicializará el sistema operativo.</span>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2 fw-semibold">
+                        <i class="bi bi-shield-check me-2"></i>Base de Datos Protegida (Modo Producción Activo)
+                    </span>
+                    <span class="text-muted small">Los reseteos destructivos se encuentran deshabilitados permanentemente para salvaguardar la operación clínica.</span>
                 </div>
                 </div>
             </div>
@@ -98,43 +98,7 @@ print <<'JS';
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     window.hardResetDB = function() {
-        Swal.fire({
-            title: '¡Peligro Inminente!',
-            text: 'Estás a punto de borrar TODA la base de datos operativa y resetear el sistema. Esto no se puede deshacer. ¿Proceder?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, PURGAR TODO',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Purgando Base de Datos...',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
-                fetch('../api/hard_reset_db_api.pl')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        Swal.fire(
-                            '¡Base de Datos Purgada!',
-                            'El sistema está en blanco. El Administrador Global ha sido reinstaurado.',
-                            'success'
-                        ).then(() => {
-                            window.location.href = '../index.html'; // Obliga a reingresar
-                        });
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                    }
-                })
-                .catch(err => {
-                    Swal.fire('Error', 'Fallo de red al intentar resetear.', 'error');
-                });
-            }
-        });
+        Swal.fire('Función Deshabilitada', 'El Hard Reset se encuentra bloqueado permanentemente en producción.', 'info');
     };
 
     // Funciones de backup migradas a admin_backups.pl
