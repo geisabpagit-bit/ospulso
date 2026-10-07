@@ -475,10 +475,10 @@ JS
             <div class="row row-cols-2 row-cols-sm-3 $grid_cols_md g-2 g-lg-3 mb-3 mb-lg-4 animate__animated animate__fadeIn card-mobile-flush">
                 <!-- 1. Citas Hoy -->
                 <div class="col">
-                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono text-primary mb-1"><i class="bi bi-calendar-check"></i></div>
-                        <div class="kpi-titulo text-truncate">Citas Hoy</div>
-                        <h2 class="kpi-valor counter-up m-0 text-primary" data-value="$citas_hoy_count">$citas_hoy_count</h2>
+                    <div class="h-100 text-center p-3 rounded-4 shadow-sm" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                        <div class="kpi-icono text-primary mb-1"><i class="bi bi-calendar-check fs-4"></i></div>
+                        <div class="kpi-titulo text-truncate small fw-bold text-muted text-uppercase tracking-wider">Citas Hoy</div>
+                        <h2 class="kpi-valor counter-up m-0 text-primary fw-bold plus-jakarta" data-value="$citas_hoy_count">$citas_hoy_count</h2>
                     </div>
                 </div>
 HTML
@@ -488,10 +488,10 @@ HTML
         print <<HTML;
                 <!-- 2. Citas Futuras -->
                 <div class="col">
-                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono mb-1" style="color: var(--md-teal-clinical);"><i class="bi bi-calendar-range"></i></div>
-                        <div class="kpi-titulo text-truncate">Citas Futuras</div>
-                        <h2 class="kpi-valor counter-up m-0" data-value="$citas_futuras">$citas_futuras</h2>
+                    <div class="h-100 text-center p-3 rounded-4 shadow-sm" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                        <div class="kpi-icono mb-1" style="color: var(--md-teal-clinical);"><i class="bi bi-calendar-range fs-4"></i></div>
+                        <div class="kpi-titulo text-truncate small fw-bold text-muted text-uppercase tracking-wider">Citas Futuras</div>
+                        <h2 class="kpi-valor counter-up m-0 fw-bold plus-jakarta" style="color: var(--md-blue-deep);" data-value="$citas_futuras">$citas_futuras</h2>
                     </div>
                 </div>
 HTML
@@ -499,10 +499,10 @@ HTML
         print <<HTML;
                 <!-- 2. Pacientes -->
                 <div class="col">
-                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono mb-1" style="color: var(--md-teal-clinical);"><i class="bi bi-people-fill"></i></div>
-                        <div class="kpi-titulo text-truncate">Pacientes</div>
-                        <h2 class="kpi-valor counter-up m-0" style="color: var(--md-blue-deep);" data-value="$t_pac">$t_pac</h2>
+                    <div class="h-100 text-center p-3 rounded-4 shadow-sm" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                        <div class="kpi-icono mb-1" style="color: var(--md-teal-clinical);"><i class="bi bi-people-fill fs-4"></i></div>
+                        <div class="kpi-titulo text-truncate small fw-bold text-muted text-uppercase tracking-wider">Pacientes</div>
+                        <h2 class="kpi-valor counter-up m-0 fw-bold plus-jakarta" style="color: var(--md-blue-deep);" data-value="$t_pac">$t_pac</h2>
                     </div>
                 </div>
 HTML
@@ -511,19 +511,19 @@ HTML
     print <<HTML;
                 <!-- 3. Ingresos -->
                 <div class="col">
-                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono text-success mb-1"><i class="bi bi-arrow-down-circle"></i></div>
-                        <div class="kpi-titulo text-truncate">Ingresos</div>
-                        <h2 id="kpiValorIngresos" class="kpi-valor counter-up m-0 text-success" data-value="$val_cargos_f" data-is-currency="true">$str_ingresos</h2>
+                    <div class="h-100 text-center p-3 rounded-4 shadow-sm" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                        <div class="kpi-icono text-success mb-1"><i class="bi bi-arrow-down-circle fs-4"></i></div>
+                        <div class="kpi-titulo text-truncate small fw-bold text-muted text-uppercase tracking-wider">Ingresos</div>
+                        <h2 id="kpiValorIngresos" class="kpi-valor counter-up m-0 text-success fw-bold plus-jakarta" data-value="$val_cargos_f" data-is-currency="true">$str_ingresos</h2>
                     </div>
                 </div>
 
                 <!-- 4. Egresos -->
                 <div class="col">
-                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono text-danger mb-1"><i class="bi bi-arrow-up-circle"></i></div>
-                        <div class="kpi-titulo text-truncate text-danger">Egresos</div>
-                        <h2 id="kpiValorEgresos" class="kpi-valor counter-up m-0 text-danger" data-value="$val_egresos_f" data-is-currency="true">$str_egresos</h2>
+                    <div class="h-100 text-center p-3 rounded-4 shadow-sm" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                        <div class="kpi-icono text-danger mb-1"><i class="bi bi-arrow-up-circle fs-4"></i></div>
+                        <div class="kpi-titulo text-truncate small fw-bold text-danger text-uppercase tracking-wider">Egresos</div>
+                        <h2 id="kpiValorEgresos" class="kpi-valor counter-up m-0 text-danger fw-bold plus-jakarta" data-value="$val_egresos_f" data-is-currency="true">$str_egresos</h2>
                     </div>
                 </div>
 HTML
@@ -532,10 +532,10 @@ HTML
         print <<HTML;
                 <!-- 5. CxC Estado (Visible si la organización tiene CLUE y el rol no es Recepcionista ni Paciente) -->
                 <div class="col">
-                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono text-info mb-1"><i class="bi bi-building"></i></div>
-                        <div class="kpi-titulo text-truncate">CxC Estado</div>
-                        <h2 id="kpiValorCxcEstado" class="kpi-valor counter-up m-0 text-info" data-value="$val_cxc_estado_f" data-is-currency="true">$str_cxc_estado</h2>
+                    <div class="h-100 text-center p-3 rounded-4 shadow-sm" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                        <div class="kpi-icono text-info mb-1"><i class="bi bi-building fs-4"></i></div>
+                        <div class="kpi-titulo text-truncate small fw-bold text-info text-uppercase tracking-wider">CxC Estado</div>
+                        <h2 id="kpiValorCxcEstado" class="kpi-valor counter-up m-0 text-info fw-bold plus-jakarta" data-value="$val_cxc_estado_f" data-is-currency="true">$str_cxc_estado</h2>
                     </div>
                 </div>
 HTML
@@ -545,10 +545,10 @@ HTML
         print <<HTML;
                 <!-- 5. Saldo Pendiente -->
                 <div class="col">
-                    <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
-                        <div class="kpi-icono text-danger mb-1"><i class="bi bi-bank"></i></div>
-                        <div class="kpi-titulo text-truncate text-danger">Saldo Pendiente</div>
-                        <h2 class="kpi-valor counter-up m-0 text-danger" data-value="$val_saldo_f" data-is-currency="true">$str_saldo</h2>
+                    <div class="h-100 text-center p-3 rounded-4 shadow-sm" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                        <div class="kpi-icono text-danger mb-1"><i class="bi bi-bank fs-4"></i></div>
+                        <div class="kpi-titulo text-truncate small fw-bold text-danger text-uppercase tracking-wider">Saldo Pendiente</div>
+                        <h2 class="kpi-valor counter-up m-0 text-danger fw-bold plus-jakarta" data-value="$val_saldo_f" data-is-currency="true">$str_saldo</h2>
                     </div>
                 </div>
 HTML
@@ -564,11 +564,19 @@ HTML
         print <<HTML;
             <div class="row g-4 mt-2 mb-4">
                 <div class="col-12">
-                    <div class="card card-medentia-aura border-0 shadow-sm p-4 rounded-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);"><i class="bi bi-wallet2 me-2 text-primary"></i>Ingresos (Efectivo / Privados)</h5>
-                                <p class="text-muted small m-0">Detalle de ingresos recibidos por servicios privados (Últimas 24 Hrs).</p>
+                    <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05);">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom border-light">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(16, 185, 129, 0.1);">
+                                    <i class="bi bi-wallet2 text-success fs-5"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold m-0 plus-jakarta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.15rem;">Ingresos (Efectivo / Privados)</h5>
+                                    <p class="text-muted small m-0" style="font-size: 0.82rem;">Detalle de ingresos recibidos por servicios privados (Últimas 24 Hrs).</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fw-semibold small">Efectivo / Ventanilla</span>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -601,13 +609,21 @@ HTML
 
         if ($has_pacientes_estado) {
             print <<'HTML';
-            <div class="row g-4 mt-4 mb-5">
+            <div class="row g-4 mt-2 mb-5">
                 <div class="col-12">
-                    <div class="card card-medentia-aura border-0 shadow-sm p-3 rounded-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h5 class="fw-bold m-0" style="color: var(--md-blue-deep); font-size: 14px;"><i class="bi bi-building me-2 text-info"></i>Ingresos Municipio</h5>
-                                <p class="text-muted small m-0" style="font-size: 11px;">Detalle de ingresos generados por derechohabientes del Municipio (Últimas 24 Hrs).</p>
+                    <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important; box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05);">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom border-light">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(13, 202, 240, 0.1);">
+                                    <i class="bi bi-building text-info fs-5"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold m-0 plus-jakarta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.15rem;">Ingresos Municipio</h5>
+                                    <p class="text-muted small m-0" style="font-size: 0.82rem;">Detalle de ingresos generados por derechohabientes del Municipio (Últimas 24 Hrs).</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 fw-semibold small">Convenio Institucional</span>
                             </div>
                         </div>
                         <div class="table-responsive">

@@ -181,5 +181,10 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
    - **Capa 2 (Operación y Cobranza)**: Fila simétrica de 4 columnas que agrupa Cuentas por Cobrar Privadas (`#kpiCuentasCobrar`), CxC Estado (`#kpiCxcEstado` según capacidades SaaS), Recibos Emitidos (`#kpiTotalRecibos`) y Eficiencia de Cobro (`#kpiEficiencia`).
    - **Capa 3 (Analítica Visual Limpia)**: Gráfica de evolución semestral y dona de balance del periodo en tarjetas blancas con bordes teal sutiles, sustituyendo las esferas con degradados 3D por leyendas de indicadores planos y tipografía institucional legible.
 
+3. **Homogeneización Visual en DataTables de Recepción (Dashboard Principal)**:
+   - Se erradican las discrepancias de tamaño (`14px` vs `h5`), padding (`p-3` vs `p-4`) y estilos dispersos entre los contenedores de `#dtIngresosPrivados` e `#dtIngresosMunicipio` en `views/render_dashboard_principal.pl`.
+   - Ambos contenedores adoptan el patrón unificado: tarjeta blanca sólida (`#FFFFFF`), bordes perimetrales en Teal clínico (`var(--md-teal-clinical, #19B7A5)`), cabeceras con cápsulas circulares de icono (38px), títulos estandarizados en `1.15rem` con tipografía Plus Jakarta Sans en Azul Marino (`#0A2A66`), subtítulos uniformes en `0.82rem` y badges temáticos discretos (*Efectivo / Ventanilla* vs *Convenio Institucional*).
+
+
 
 
