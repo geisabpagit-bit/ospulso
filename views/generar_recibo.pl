@@ -866,6 +866,17 @@ print <<'JS';
         _actualizarTarifasSegunPaciente();
     }
 
+    function normalizarNombrePaciente(rawName) {
+        if (!rawName) return '';
+        let clean = String(rawName).replace(/.*Paciente:\s*/i, '');
+        // Eliminar números, signos de puntuación y símbolos especiales (conservar letras del español y espacios)
+        clean = clean.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+        // Colapsar espacios múltiples y aplicar trim
+        clean = clean.replace(/\s+/g, ' ').trim();
+        // Forzar Mayúsculas Institucionales Canónicas (Opción A)
+        return clean.toUpperCase();
+    }
+
     function initSelect2Paciente() {
         if ($('#selPaciente').hasClass('select2-hidden-accessible')) {
             $('#selPaciente').select2('destroy');
@@ -876,7 +887,7 @@ print <<'JS';
         
         $('#selPaciente').select2({
             theme: 'bootstrap-5',
-            placeholder: '🔍 Escribe el nombre del paciente (Privado)...',
+            placeholder: '🔍 Escribe el nombre del paciente (MAYÚSCULAS)...',
             minimumInputLength: 2,
             tags: !HAS_PORTAL_PACIENTE, // Permitir agregar nuevos nombres si no hay portal
             ajax: {
@@ -887,10 +898,11 @@ print <<'JS';
                 processResults: function (data) {
                     return {
                         results: $.map(data, function (item) {
+                            let labelNorm = normalizarNombrePaciente(item.label || '');
                             return {
                                 id: item.id,
-                                text: item.label,
-                                nombre: item.label
+                                text: labelNorm,
+                                nombre: labelNorm
                             }
                         })
                     };
@@ -899,19 +911,36 @@ print <<'JS';
             },
             createTag: function(params) {
                 if(HAS_PORTAL_PACIENTE) return null; // No permitir crear si el portal global manda
-                var term = $.trim(params.term);
-                if (term === '') return null;
+                var term = normalizarNombrePaciente(params.term);
+                if (!term || term.length < 3) return null; // Mínimo 3 letras válidas sin números ni símbolos
                 return { id: term, text: term, newTag: true };
             },
             language: {
-                inputTooShort: function() { return "Por favor ingresa 2 o más caracteres"; },
-                noResults: function() { return HAS_PORTAL_PACIENTE ? "No se encontraron resultados" : "Presiona enter para agregar como nuevo paciente"; },
-                searching: function() { return "Buscando..."; }
+                inputTooShort: function() { return "Ingresa al menos 2 letras..."; },
+                noResults: function() { return HAS_PORTAL_PACIENTE ? "No se encontraron resultados" : "Presiona Enter para agregar paciente (solo letras en MAYÚSCULAS)"; },
+                searching: function() { return "Buscando paciente..."; }
             }
         });
 
         $('#selPaciente').on('select2:select', function (e) {
             seleccionarPacientePrivado();
+        });
+
+        // Interceptor en vivo para forzar MAYÚSCULAS y filtrar caracteres no alfabéticos al teclear
+        $('#selPaciente').on('select2:open', function() {
+            setTimeout(function() {
+                var searchField = document.querySelector('.select2-container--open .select2-search__field');
+                if (searchField) {
+                    searchField.setAttribute('placeholder', 'Escribe solo letras en MAYÚSCULAS...');
+                    searchField.addEventListener('input', function() {
+                        var raw = this.value;
+                        var clean = raw.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '').toUpperCase();
+                        if (raw !== clean) {
+                            this.value = clean;
+                        }
+                    });
+                }
+            }, 60);
         });
     }
 
@@ -1520,10 +1549,20 @@ print <<'JS';
         
         if (tipo === 'estado') {
             id_paciente = pacienteEstadoSeleccionado.id ? "EMP-" + pacienteEstadoSeleccionado.id : '';
-            name_paciente = pacienteEstadoSeleccionado.nombre;
+            name_paciente = normalizarNombrePaciente(pacienteEstadoSeleccionado.nombre);
         } else {
-            id_paciente = $('#selPaciente').val();
-            name_paciente = $('#selPaciente option:selected').text();
+            id_paciente = $('#selPaciente').val() || '';
+            let rawNombre = $('#selPaciente option:selected').text() || id_paciente;
+            name_paciente = normalizarNombrePaciente(rawNombre);
+            
+            if (!id_paciente || name_paciente.length < 3) {
+                return Swal.fire('Nombre de Paciente Inválido', 'El nombre del paciente debe contener únicamente letras y un mínimo de 3 caracteres (sin números ni símbolos especiales).', 'warning');
+            }
+
+            // Si es un tag nuevo (sin prefijo PAC- o PRIV-)
+            if (id_paciente === rawNombre || (!id_paciente.startsWith('PAC-') && !id_paciente.startsWith('PRIV-') && !id_paciente.startsWith('EMP-'))) {
+                id_paciente = name_paciente;
+            }
         }
         
         const id_medico = $('#selMedico').val();
@@ -1614,10 +1653,20 @@ print <<'JS';
         
         if (tipo === 'estado') {
             id_paciente = pacienteEstadoSeleccionado.id ? "EMP-" + pacienteEstadoSeleccionado.id : '';
-            name_paciente = pacienteEstadoSeleccionado.nombre;
+            name_paciente = normalizarNombrePaciente(pacienteEstadoSeleccionado.nombre);
         } else {
-            id_paciente = $('#selPaciente').val();
-            name_paciente = $('#selPaciente option:selected').text();
+            id_paciente = $('#selPaciente').val() || '';
+            let rawNombre = $('#selPaciente option:selected').text() || id_paciente;
+            name_paciente = normalizarNombrePaciente(rawNombre);
+            
+            if (!id_paciente || name_paciente.length < 3) {
+                return Swal.fire('Nombre de Paciente Inválido', 'El nombre del paciente debe contener únicamente letras y un mínimo de 3 caracteres (sin números ni símbolos especiales).', 'warning');
+            }
+
+            // Si es un tag nuevo (sin prefijo PAC- o PRIV-)
+            if (id_paciente === rawNombre || (!id_paciente.startsWith('PAC-') && !id_paciente.startsWith('PRIV-') && !id_paciente.startsWith('EMP-'))) {
+                id_paciente = name_paciente;
+            }
         }
         
         const conceptoVal = $('#selConceptoRecibo').val() || '';

@@ -91,3 +91,25 @@ Para evitar discrepancias entre lo seleccionado por el cajero y lo reportado en 
 2. **Propagación a DataTables (`views/finanzas.pl`)**: Las llamadas AJAX de DataTables (`api/get_recibos_caja_api.pl` y `api/generar_corte_caja.pl`) leen con **Prioridad 1** el payload `ITEMS_JSON`, garantizando que la columna **Médico** muestre exactamente al facultativo que atendió la consulta y el total recaudado refleje el costo personalizado al centavo.
 3. **Paridad de Impresión**: Las plantillas [api/imprimir_recibo_caja.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_caja.pl) y [api/imprimir_recibo_publico.pl](file:///c:/xampp/htdocs/ospulso/api/imprimir_recibo_publico.pl) leen la misma fuente de verdad, presentando el nombre limpio del médico en el encabezado, el concepto formateado `Consulta - <ESPECIALIDAD>` en el cuerpo y el subtotal exacto de la tarifa elegida (sea estándar, preferencial o personalizada al vuelo).
 4. **Respaldo en Estado de Cuenta**: En [api/guardar_recibo_rapido.pl](file:///c:/xampp/htdocs/ospulso/api/guardar_recibo_rapido.pl), el movimiento de Cargo y el de Abono en `dat/estado_cuenta.dat` se insertan con el subtotal calculado a partir de `it->{precio}`, asegurando que el saldo de la cuenta del paciente cuadre perfectamente con el recibo emitido.
+
+---
+
+## 6. Estandarización Canónica y Validación de Nombres de Pacientes (Opción A - MAYÚSCULAS)
+
+Para garantizar consistencia absoluta en reportes, tablas DataTables de Finanzas, autocompletado y recibos impresos oficiales, la captura de **Paciente Privado** se rige por las siguientes reglas institucionales:
+
+1. **Formato Canónico Obligatorio (MAYÚSCULAS)**:
+   * Todo nombre de paciente privado capturado de mostrador (walk-in o sin portal) se almacena y presenta estrictamente en **MAYÚSCULAS INSTITUCIONALES** (ej: `JUAN CARLOS PÉREZ LÓPEZ`).
+2. **Restricción de Caracteres y Anti-Basura**:
+   * Se permiten únicamente caracteres alfabéticos válidos del español (`A-Z`, acentos `ÁÉÍÓÚ`, diéresis `Ü`, eñes `Ñ`) y espacios.
+   * Queda estrictamente prohibida la inserción de números (`0-9`), signos de puntuación o caracteres especiales (`@, #, $, %, -, _, /`, etc.).
+   * Se colapsan espacios dobles o múltiples a un solo espacio y se eliminan espacios iniciales/finales (*trim*).
+   * Longitud mínima: **3 caracteres alfabéticos**.
+3. **Validación Dual (Frontend y Backend)**:
+   * **Frontend ([views/generar_recibo.pl](file:///c:/xampp/htdocs/ospulso/views/generar_recibo.pl))**:
+     - El componente Select2 intercepta la entrada en tiempo real en su buscador y en `createTag`, transformando automáticamente a mayúsculas y descartando caracteres inválidos.
+     - Tanto en `mostrarReciboPrevio()` como en `emitirReciboFinal()`, se valida con SweetAlert2 que el nombre cuente con al menos 3 letras antes de abrir la vista previa o generar el cobro.
+   * **Backend ([api/guardar_recibo_rapido.pl](file:///c:/xampp/htdocs/ospulso/api/guardar_recibo_rapido.pl))**:
+     - Sanitización obligatoria en Perl con la propiedad Unicode `\p{L}\s`, colapso de espacios y función `uc()`, rechazando cualquier intento de inyección con error descriptivo JSON.
+     - Persistencia limpia y uniforme en `dat/catalogos_CLUE/<CLUES>/pacientes_privados_<CLUES>.dat`, `dat/folios_recibos_privados.dat` y `dat/estado_cuenta.dat`.
+

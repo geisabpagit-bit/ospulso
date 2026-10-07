@@ -39,8 +39,20 @@ $id_paciente =~ s/^\s+|\s+$//g;
 $id_medico =~ s/^\s+|\s+$//g;
 $nombre_medico_in =~ s/^\s+|\s+$//g;
 
+# Sanitización y normalización canónica a MAYÚSCULAS del nombre del paciente (Opción A)
+$nombre_empleado = Encode::decode_utf8($nombre_empleado) unless Encode::is_utf8($nombre_empleado);
+$nombre_empleado =~ s/[^\p{L}\s]//g; # Erradicar números, signos y símbolos
+$nombre_empleado =~ s/\s+/ /g;
+$nombre_empleado =~ s/^\s+|\s+$//g;
+$nombre_empleado = uc($nombre_empleado);
+
 if (!$id_paciente) {
     print encode_json({ ok => JSON::false, msg => 'Falta seleccionar el paciente.' });
+    exit;
+}
+
+if ($id_paciente !~ /^EMP-/ && length($nombre_empleado) < 3) {
+    print encode_json({ ok => JSON::false, msg => 'El nombre del paciente debe contener únicamente letras y un mínimo de 3 caracteres.' });
     exit;
 }
 
@@ -93,12 +105,12 @@ if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
     close($cf);
 }
 
-if (!$has_portal_paciente && $id_paciente eq $nombre_empleado && $id_paciente !~ /^EMP-|^PRIV-/) {
+if (!$has_portal_paciente && ($id_paciente eq $nombre_empleado || $id_paciente !~ /^EMP-|^PRIV-/)) {
     # Es un nombre nuevo (tag free-text)
     my $new_id = 'PRIV-' . time() . int(rand(1000));
     my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $org_clues, "pacientes_privados_${org_clues}.dat");
     my $header_exists = (-e $priv_file) ? 1 : 0;
-    if (open(my $fhp, '>>:utf8', $priv_file)) {
+    if (open(my $fhp, '>>:encoding(UTF-8)', $priv_file)) {
         flock($fhp, 2);
         if (!$header_exists) {
             print $fhp "ID_PACIENTE|NOMBRE_COMPLETO|FECHA_REGISTRO\n";
