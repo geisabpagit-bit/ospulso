@@ -327,4 +327,33 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - Su cota de apilamiento se fija en `z-index: 105100 !important;`, garantizando su elevación sobre el telón general de 105000.
    - Al interactuar con el sub-modal `#modalCotizaciones` (`z-index: 107000`), las alertas de SweetAlert2 (`Swal.fire` para "¿Eliminar cotización?") operan en `z-index: 110000 !important;`, manteniéndose siempre visibles en primer plano.
 
+---
+
+## 13. Estándar Universal de Jerarquía Visual en Capas para DataTables y Paneles Financieros
+
+Para garantizar una experiencia de usuario corporativa, limpia y de alto valor estético en paneles analíticos y tablas DataTables:
+
+1. **Patrón Cromático Mandante (Azul Marino + Blanco Clínico + Bordes Teal)**:
+   - **Superficie de Tarjeta**: Fondo blanco clínico puro (`background: #FFFFFF`), sin gradientes 3D ni auras difusas residuales (`card-medentia-aura` o `.bento-card` quedan totalmente proscritas).
+   - **Borde Perimetral Estándar**: Trazo sólido y sutil en Teal clínico institucional: `border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;`.
+   - **Sombra Multicapa**: Elevación suave no invasiva: `box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05);`.
+   - **Espaciado y Esquinas**: Bordes redondeados consistentes (`rounded-4`) con padding responsive simétrico (`p-3 p-md-4`).
+
+2. **Anatomía Canónica de Cabecera de Tabla**:
+   - Todo contenedor de tabla DataTables (`#dtIngresosPrivados`, `#dtIngresosMunicipio`, `#tablaGastos`) debe incorporar una cabecera flex homogénea estructurada en dos bloques:
+     * **Bloque Izquierdo (Identidad y Contexto)**:
+       - *Cápsula Circular de Ícono (38x38 px)*: Círculo con fondo translúcido al 10% del color temático (Verde para ingresos privados, Cyan para convenios institucionales, Rojo para egresos/gastos).
+       - *Título Jerárquico*: `font-size: 1.15rem`, `font-weight: 700`, tipografía `Plus Jakarta Sans`, color Azul Marino Profundo (`var(--md-blue-deep, #0A2A66)`).
+       - *Subtítulo Descriptivo*: `font-size: 0.82rem`, color `#64748B`, explicando el alcance de los registros en el periodo.
+     * **Bloque Derecho (Badge Temático Píldora)**:
+       - Badge discreto en cápsula (`rounded-pill px-3 py-1 fw-semibold small`) que identifica la naturaleza del flujo contable (*Efectivo / Ventanilla*, *Convenio Institucional*, *Egresos / Salidas*).
+
+3. **Botonería de Control y Filtrado**:
+   - Botones de acción secundaria o filtros (ej. "Filtrar") utilizan Azul Marino institucional sólido (`background: var(--md-blue-deep, #0A2A66); color: #FFFFFF; border-radius: 50rem;`) erradicando la clase heredada `btn-aura-save`.
+   - Botones de acción primaria (ej. "Registrar Gasto") utilizan Teal clínico (`background: var(--md-teal-clinical, #19B7A5); color: #FFFFFF; border-radius: 50rem;`).
+
+4. **Principio de No Redundancia y Descarte de Vistas Huérfanas**:
+   - Las vistas de datos no deben duplicar listados que se operan con mayor eficiencia en otros módulos.
+   - La cobranza y saldos de pacientes pertenecen al punto de atención clínico (**Expediente del Paciente** en `views/pacientes.pl`); los paneles de finanzas muestran indicadores macro ejecutivos sin necesidad de arrastrar tablas secundarias desconectadas del flujo de trabajo diario.
+
 
