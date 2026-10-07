@@ -4,6 +4,7 @@ dat/backups/
 *.bak
 *.tmp
 *.log
+*.zip
 
 # Archivos de sistema operativo y editores
 .DS_Store

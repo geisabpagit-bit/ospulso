@@ -1,5 +1,21 @@
 // js/pacientes_spa.js
 
+window.cerrarModalExpediente = function() {
+    var m = document.getElementById('expedienteModal');
+    if (m) {
+        var b = bootstrap.Modal.getInstance(m);
+        if (b) {
+            try { b.hide(); } catch(e) {}
+        }
+    }
+    setTimeout(function() {
+        document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }, 150);
+};
+
 function initPacientesSpa() {
     if (!document.getElementById('tablaPacientes')) return;
 
@@ -12,7 +28,17 @@ function initPacientesSpa() {
         
         // [SDM FIX] Mover el modal físicamente a la raíz del <body> 
         document.body.appendChild(modalEl);
-        bModal = new bootstrap.Modal(modalEl);
+        bModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+
+        if (!modalEl._sdmCleanAttached) {
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            });
+            modalEl._sdmCleanAttached = true;
+        }
     }
     var contenido = document.getElementById('expedienteContenido');
 
@@ -278,23 +304,23 @@ function initPacientesSpa() {
                         '<!-- Fila 1: COTIZACIÓN | CITA | CONSULTA | EXPEDIENTE -->' +
                         '<div class="row g-2 mb-2">' +
                           '<div class="col-3">' +
-                            '<button type="button" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 border-0" onclick="abrirModalCotizaciones(\'' + perfilId + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\')"><i class="bi bi-file-earmark-text fs-4 mb-1" style="color:#f59e0b;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">COTIZACIÓN</span></button>' +
+                            '<button type="button" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 border-0" onclick="if(window.cerrarModalExpediente) window.cerrarModalExpediente(); abrirModalCotizaciones(\'' + perfilId + '\', \'' + perfilNombre.replace(/'/g, "\\'") + '\')"><i class="bi bi-file-earmark-text fs-4 mb-1" style="color:#f59e0b;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">COTIZACIÓN</span></button>' +
                           '</div>' +
                           '<div class="col-3">' +
-                            '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CITA</span></a>' +
+                            '<a href="agenda_main.pl?new_cita_id=' + perfilId + '&new_cita_nombre=' + nombreCoded + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="if(window.cerrarModalExpediente) window.cerrarModalExpediente();"><i class="bi bi-calendar-plus fs-4 mb-1" style="color: #8b5cf6;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CITA</span></a>' +
                           '</div>' +
                           ((window.USER_ROLE && window.USER_ROLE.toLowerCase() === 'recepcionista') ? '' : 
                           '<div class="col-3">' +
-                            '<a href="render_consultas.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-heart-pulse fs-4 mb-1 text-danger"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CONSULTA</span></a>' +
+                            '<a href="render_consultas.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="if(window.cerrarModalExpediente) window.cerrarModalExpediente();"><i class="bi bi-heart-pulse fs-4 mb-1 text-danger"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">CONSULTA</span></a>' +
                           '</div>') +
                           '<div class="' + ((window.USER_ROLE && window.USER_ROLE.toLowerCase() === 'recepcionista') ? 'col-6' : 'col-3') + '">' +
-                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">EXPEDIENTE</span></a>' +
+                            '<a href="render_expediente_clinico.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="if(window.cerrarModalExpediente) window.cerrarModalExpediente();"><i class="bi bi-folder2-open fs-4 mb-1 text-primary"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">EXPEDIENTE</span></a>' +
                           '</div>' +
                         '</div>' +
                         '<!-- Fila 2: FINANZAS | WHATSAPP | CORREO | IMPRIMIR -->' +
                         '<div class="row g-2 mb-2">' +
                           '<div class="col-3">' +
-                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="var m = document.getElementById(\'expedienteModal\'); if(m) { var b = bootstrap.Modal.getInstance(m); if(b) b.hide(); }"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">FINANZAS</span></a>' +
+                            '<a href="estado_cuenta.pl?id=' + perfilId + '" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none" onclick="if(window.cerrarModalExpediente) window.cerrarModalExpediente();"><i class="bi bi-cash-stack fs-4 mb-1 text-success"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">FINANZAS</span></a>' +
                           '</div>' +
                           '<div class="col-3">' +
                             '<a href="https://wa.me/' + perfilTelefono + '" target="_blank" class="kpi-acrilico kpi-btn-hover p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center m-0 text-decoration-none"><i class="bi bi-whatsapp fs-4 mb-1" style="color: #25D366;"></i> <span style="font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; color: #0A2A66;">WHATSAPP</span></a>' +

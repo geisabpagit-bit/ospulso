@@ -320,9 +320,9 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
 3. **Mecanismo Seguro de Cierre y Limpieza de Telón (Backdrop)**:
    - Todo modal dinámico que ejecute procesos asíncronos o por lotes debe proveer cierre multi-vía visible (botón X en cabecera y botón de acción en pie).
    - El desmonte debe limpiar exhaustivamente los telones huérfanos (`.modal-backdrop`) y remover las clases residuales `modal-open` del `<body>`, asegurando que el scroll de la interfaz nunca quede bloqueado tras la finalización de un proceso.
-
-
-
-
+4. **Caso Canónico: Blindaje del Modal de Expediente (`views/pacientes.pl`)**:
+   - El diálogo `#expedienteModal` se renderiza de forma estricta con posterioridad al cierre de layout mediante `utils::sub_sidebar::render_sidebar_footer()`, erradicando subordinaciones al stacking context del panel lateral o del grid de datos.
+   - Su cota de apilamiento se fija en `z-index: 105100 !important;`, garantizando su elevación sobre el telón general de 105000.
+   - Los disparadores de navegación y sub-modales (como Cotizaciones y Correo CRM) invocan `window.cerrarModalExpediente()`, garantizando la remoción inmediata de telones residuales y desbloqueo del scroll del body.
 
 

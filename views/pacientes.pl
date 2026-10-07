@@ -14,7 +14,6 @@ use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
-require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
 
 use utils::audit_manager qw(log_audit);
@@ -190,8 +189,11 @@ print <<'HTML';
         </div>
     </div>
 </div>
+HTML
 
+utils::sub_sidebar::render_sidebar_footer();
 
+print <<'HTML';
 <!-- Scripts y Librerías de Exportación (Regla 4.3) -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
@@ -208,19 +210,24 @@ print <<'HTML';
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
-<!-- Modal de Resumen Blindado -->
-<div class="modal fade modal-diamond" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 105000 !important;">
+<!-- Modal de Resumen Blindado (Aislado de Stacking Context y con z-index 105100 superior a backdrop) -->
+<div class="modal fade modal-diamond" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 105100 !important;">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-content border-0 shadow-lg">
       <div class="modal-header">
         <h5 class="modal-title d-flex align-items-center" id="expedienteModalLabel">
             <i class="bi bi-person-lines-fill me-2" style="color: #00C4C4 !important;"></i> 
             <span id="modalHeaderTitle">Resumen de Expediente</span>
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="if(window.cerrarModalExpediente) window.cerrarModalExpediente();"></button>
       </div>
       <div class="modal-body" id="expedienteContenido">
          <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
+      </div>
+      <div class="modal-footer bg-light py-2 border-0">
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal" onclick="if(window.cerrarModalExpediente) window.cerrarModalExpediente();">
+            <i class="bi bi-x-lg me-1"></i> Cerrar
+        </button>
       </div>
     </div>
   </div>
@@ -429,7 +436,6 @@ print <<'HTML';
 </script>
 HTML
 
-print "</main>\n";
 render_bottom_nav('pacientes');
 
 print "</body></html>\n";
