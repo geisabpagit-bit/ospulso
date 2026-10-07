@@ -1,8 +1,10 @@
 #!/usr/bin/perl
-#!/usr/bin/perl
 use strict;
 use warnings;
 use utf8;
+
+# BLOQUEO DE SEGURIDAD ESTRICTO: Prevenir vaciado de base de datos
+die "ACCESO DENEGADO: reset_tablas.pl está desactivado permanentemente por seguridad para proteger la integridad operativa.\n";
 
 binmode STDOUT, ":utf8";
 

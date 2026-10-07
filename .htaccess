@@ -10,12 +10,22 @@ AddDefaultCharset UTF-8
     Require all denied
 </FilesMatch>
 
-# 4. Excepción para deploy.php si es necesario
+# 4. Bloquear acceso web directo a bases de datos planas (.dat), contadores (.counter) y logs
+<FilesMatch "\.(dat|counter|log|lock|bak)$">
+    Require all denied
+</FilesMatch>
+
+# 5. Bloquear acceso web a scripts de mantenimiento o pruebas potencialmente destructivos
+<FilesMatch "^(scratch_reset\.pl|reset_tablas\.pl|ejecutar_hard_reset\.pl)$">
+    Require all denied
+</FilesMatch>
+
+# 6. Excepción para deploy.php si es necesario
 <Files "deploy.php">
     Require all granted
 </Files>
 
-# 5. Silenciar 404 del favicon si no existe
+# 7. Silenciar 404 del favicon si no existe
 <Files "favicon.ico">
     ErrorDocument 404 " "
 </Files>

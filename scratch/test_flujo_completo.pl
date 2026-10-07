@@ -2,6 +2,10 @@
 use strict;
 use warnings;
 use utf8;
+
+# BLOQUEO DE SEGURIDAD ESTRICTO: Prevenir mutación de datos de producción
+die "ACCESO DENEGADO: test_flujo_completo.pl está desactivado por seguridad para proteger los datos operativos.\n";
+
 use FindBin;
 use File::Spec;
 use lib "$FindBin::Bin/..";

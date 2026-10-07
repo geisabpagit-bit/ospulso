@@ -2,6 +2,10 @@
 use strict;
 use warnings;
 use utf8;
+
+# BLOQUEO DE SEGURIDAD ESTRICTO: Prevenir vaciado de base de datos
+die "ACCESO DENEGADO: scratch_reset.pl está desactivado permanentemente por seguridad para proteger la integridad operativa.\n";
+
 binmode STDOUT, ':utf8';
 
 my $dat_dir = "dat";

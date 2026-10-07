@@ -32,3 +32,19 @@
    - Las tablas críticas del sistema (`negocios.dat`, `negocios_config.dat`, `perfiles.dat`, `usuarios.dat`, `estado_cuenta.dat`, `pacientes.dat`, `citas.dat`) no se deben sobreescribir si el archivo remoto tiene un tamaño $\le 250$ bytes (solo encabezado) mientras el archivo local cuenta con registros activos.
    - Para forzar la sobreescritura intencional se requiere el parámetro explícito `-ForceOverwrite`.
 
+---
+
+## 4. Blindaje contra Scripts de Mantenimiento y Pruebas en Producción
+
+### 4.1 Causa Raíz: Invocación de Scripts Huérfanos o de Prueba
+- **Scripts de Reseteo No Autenticados**: Scripts como `scratch_reset.pl`, `utils/reset_tablas.pl` y `scratch/test_flujo_completo.pl` eran accesibles vía web pública (`.pl` con CGI habilitado) o invocables por tareas Cron.
+- **Inyección de Datos Dummy**: La ejecución accidental de `test_flujo_completo.pl` borraba `usuarios.dat` e insertaba usuarios de prueba ficticios (`PAC-TEST-...`, `Juan Pérez Test`).
+
+### 4.2 Medidas Defensivas Obligatorias
+1. **Neutralización de Código**: Todo script de prueba o reseteo en `scratch/` y `utils/` cuenta con un bloqueo `die "ACCESO DENEGADO"` incondicional al inicio del archivo.
+2. **Aislamiento en `.htaccess`**:
+   - `scratch/.htaccess` y `dat/.htaccess` deniegan todo acceso web (`Require all denied`).
+   - El `.htaccess` de la raíz bloquea explícitamente `scratch_reset.pl`, `reset_tablas.pl` y cualquier archivo `.dat`, `.counter` o `.log`.
+3. **Auditoría de Cron Jobs**: En cPanel, se debe auditar la lista de tareas programadas para asegurar que no existan llamadas a scripts obsoletos de prueba.
+
+

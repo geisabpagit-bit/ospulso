@@ -1,0 +1,2 @@
+# Blindaje de seguridad: Bloquear acceso web directo a bases de datos planas
+Require all denied

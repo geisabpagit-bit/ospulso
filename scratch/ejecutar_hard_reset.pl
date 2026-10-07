@@ -2,6 +2,10 @@
 use strict;
 use warnings;
 use utf8;
+
+# BLOQUEO DE SEGURIDAD ESTRICTO: Prevenir ejecución accidental de hard reset
+die "ACCESO DENEGADO: ejecutar_hard_reset.pl desactivado permanentemente.\n";
+
 use FindBin;
 use File::Spec;
 use lib "$FindBin::Bin/..";
