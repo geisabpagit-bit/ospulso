@@ -150,3 +150,21 @@ Para garantizar la coherencia visual y contable entre la tabla de conceptos y el
    - Está **estrictamente prohibido** inyectar una fila adicional de "Abono a Cuenta de Tratamiento" dentro de la tabla si ya existen cargos con costo en la sesión, ya que esto duplicaría artificialmente la suma de los renglones frente al importe cobrado.
    - La fila de concepto `Abono a Cuenta de Tratamiento` o `Liquidación de Tratamiento` se inserta en la tabla **únicamente** en consultas de seguimiento puro donde no hubo nuevos procedimientos clínicos (tarifa de consulta a $0.00).
 
+---
+
+## 8. Gobernanza de KPIs del Dashboard Principal y Sincronización Multi-Rol (Día Actual 00:00 - 24:00 hrs)
+
+Para garantizar la máxima integridad contable y apego al control de acceso basado en roles (RBAC):
+
+1. **Ventana Temporal Canónica (Día Actual)**:
+   - Los indicadores de desempeño financiero en el Tablero Principal (`views/render_dashboard_principal.pl`) calculan exclusivamente los movimientos comprendidos de **00:00 a 24:00 hrs del día en curso** (`$hoy_str = YYYY-MM-DD`). Queda prohibido sumar acumulados históricos sin filtro de fecha en la vista principal.
+
+2. **Matriz RBAC de Visibilidad por Rol**:
+   - **Administrador Organización / Soporte**: Dispone del consolidated view; computa el acumulado de todos los usuarios pertenecientes a su clínica (`id_empresa`).
+   - **Recepcionista**: Computa **única y exclusivamente los recibos generados personalmente** durante su turno del día (`elaborado_por == $usuario`). Además, **el KPI `CxC Estado` se oculta por completo**, ajustando el tablero a 4 tarjetas (`row-cols-md-4`), ya que la recepción administra caja física y no cuentas por cobrar de convenios gubernamentales.
+   - **Médico**: Computa exclusivamente los recibos correspondientes a sus propias consultas o atenciones registradas en el día (`id_medico == $id_medico` o `elaborado_por == $usuario`).
+
+3. **Sincronización Bidireccional Datatables - KPIs**:
+   - Los totales exhibidos en las tarjetas KPI (`#kpiValorIngresos` y `#kpiValorCxcEstado`) corresponden exactamente a la suma calculada por `api/generar_corte_caja.pl` para el rango del día actual y se sincronizan reactivamente en los pies de tabla (`#tfootTotalPrivados` y `#tfootTotalMunicipio`), garantizando que no existan discrepancias entre las tarjetas superiores y las tablas detalladas.
+
+

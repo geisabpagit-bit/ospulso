@@ -59,8 +59,9 @@ HTML
     my $menu_file  = File::Spec->catfile($dat_dir, 'menu_cards.dat');
     my $roles_file = File::Spec->catfile($dat_dir, 'roles.dat');
 
-    # Definir si es vista global
-    my $is_admin = ($role =~ /Administrador|Soporte|Recepcionista/i) ? 1 : 0;
+    # Definir si es vista global consolidada (Solo Admin Organización, Admin Global y Soporte)
+    # Recepcionista y Médico ven estrictamente lo generado por ellos mismos.
+    my $is_admin = ($role =~ /Administrador|Soporte/i && $role ne 'Recepcionista') ? 1 : 0;
 
     # --- CARGA DE DATOS ---
     my %pacientes_map = ();
@@ -185,12 +186,39 @@ HTML
     $usuarios_empresa{$usuario} = 1 if $usuario;
     my $mi_nombre = $medicos{$usuario} || $usuario;
 
-    my $total_cargos = 0;
-    my $total_abonos = 0;
+    # --- CÁLCULO DE FECHA HOY (00:00 A 24:00 HRS) Y RANGO 7 DÍAS ---
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
+    my $hoy_str = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
+    my $time_today = timelocal(0,0,0,$mday,$mon,$year);
+    my $time_limit = $time_today + (7 * 24 * 60 * 60); # + 7 días
+
+    my $total_cargos  = 0;
+    my $total_abonos  = 0;
+    my $total_egresos = 0;
+    my $cxc_estado_total = 0;
     my %saldos_estado = ();
 
-    if ($role eq 'Recepcionista') {
-        # Para Recepcionista, leer folios_recibos_privados (flujo de efectivo)
+    # 1. INGRESOS PRIVADOS / EFECTIVO (Día Actual: 00:00 a 24:00 hrs)
+    if ($role eq 'Paciente') {
+        # Para Pacientes: consultar su propio estado de cuenta personal
+        if (-e $fin_file && open(my $fh, '<:utf8', $fin_file)) {
+            while(my $line = <$fh>) {
+                chomp($line);
+                next if $line =~ /^ID_OS/;
+                my @f = split(/\|/, $line);
+                my $id_paciente = $f[2] // '';
+                my $monto = $f[7] || 0;
+                if ($mis_pacientes_id{$id_paciente}) {
+                    if ($f[3] =~ /Cargo/i) { $total_cargos += $monto; }
+                    elsif ($f[3] =~ /Abono/i) { $total_abonos += $monto; }
+                }
+            }
+            close($fh);
+        }
+        $total_egresos = $total_abonos; # Pagos realizados por el paciente
+    } else {
+        # Para Roles Operativos (Admin Organización, Recepcionista, Médico):
+        # Fuente canónica e inviolable de ingresos en caja del día de hoy: folios_recibos_privados.dat
         my $priv_file = File::Spec->catfile($dat_dir, 'folios_recibos_privados.dat');
         if (-e $priv_file && open(my $fh, '<:utf8', $priv_file)) {
             my $header = <$fh>;
@@ -199,148 +227,123 @@ HTML
                 next if $line =~ /^\s*$/;
                 my @r = split(/\|/, $line, -1);
                 next if ($r[14] // '') =~ /Cancelado/i;
+
+                # Filtro estricto de fecha: día actual
+                my $r_fecha = $r[6] // '';
+                next unless $r_fecha eq $hoy_str;
+
                 my $id_negocio = $r[2] // '';
                 $id_negocio =~ s/^\s+|\s+$//g;
                 if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
                     next if ($id_negocio ne $id_empresa);
                 }
-                my $elaborado = $r[11] // '';
-                if ($is_admin || $elaborado eq $usuario || $elaborado eq $mi_nombre) {
-                    $total_cargos += ($r[8] || 0);
-                    $total_abonos += ($r[9] || 0);
-                }
-            }
-            close($fh);
-        }
-    } else {
-        if (-e $fin_file) {
-            open(my $fh, '<:utf8', $fin_file) or die $!;
-            while(my $line = <$fh>) {
-                chomp($line);
-                next if $line =~ /^ID_OS/;
-                my @f = split(/\|/, $line);
-                # v3.5.5: F3: TIPO, F7: TOTAL, F9: ID_MEDICO, F2: ID_PACIENTE
-                my $m_id = $f[9] // ''; $m_id =~ s/^\s+|\s+$//g;
-                my $id_paciente = $f[2] // '';
-                my $monto = $f[7] || 0;
-    
-                # Blindaje multi-tenant: el movimiento debe pertenecer a la empresa
-                my $pertenece_empresa = 0;
-                if (!defined $id_empresa || $id_empresa eq '' || $role eq 'Administrador Global') {
-                    $pertenece_empresa = 1;
-                } elsif ($mis_pacientes_id{$id_paciente} || ($m_id && $medicos_empresa{$m_id})) {
-                    $pertenece_empresa = 1;
-                }
-                next unless $pertenece_empresa;
 
-                if ($is_admin || $m_id eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$id_paciente})) {
-                    if ($f[3] =~ /Cargo/i) { $total_cargos += $monto; }
-                    elsif ($f[3] =~ /Abono/i) { $total_abonos += $monto; }
-                }
-    
-                # Acumular para CxC Estado si aplica
-                if ($id_paciente =~ /^EMP-/) {
-                    if ($f[3] =~ /Cargo/i && ($f[10] // '') !~ /Presupuesto|Cotizacion/i) {
-                        $saldos_estado{$f[0]}{cargos} += $monto;
-                    } elsif ($f[3] =~ /Abono/i) {
-                        $saldos_estado{$f[0]}{abonos} += $monto;
+                my $abono = $r[9] || 0;
+                $abono =~ s/[^\d\.]//g;
+                my $elaborado = $r[11] // '';
+                my $m_id = $r[15] // '';
+
+                if ($is_admin) {
+                    # Administrador Organización ve el acumulado de todos los usuarios de su clínica
+                    $total_cargos += $abono;
+                } elsif ($role eq 'Recepcionista') {
+                    # Recepcionista ve ÚNICAMENTE los recibos que ella misma generó hoy
+                    if ($elaborado eq $usuario || $elaborado eq $mi_nombre || ($uid && $elaborado eq $uid)) {
+                        $total_cargos += $abono;
+                    }
+                } elsif ($role eq 'Medico') {
+                    # Médico ve ÚNICAMENTE sus recibos atendidos o generados hoy
+                    if (($id_medico && $m_id eq $id_medico) || $elaborado eq $usuario) {
+                        $total_cargos += $abono;
                     }
                 }
             }
             close($fh);
         }
-        # Si total_cargos sigue en 0 para Admin/Medico, revisar también folios_recibos_privados.dat
-        if ($total_cargos == 0) {
-            my $priv_file = File::Spec->catfile($dat_dir, 'folios_recibos_privados.dat');
-            if (-e $priv_file && open(my $fh, '<:utf8', $priv_file)) {
-                my $header = <$fh>;
-                while(my $line = <$fh>) {
+
+        # 2. EGRESOS / GASTOS (Día Actual: 00:00 a 24:00 hrs desde gastos.dat)
+        my $gastos_file = File::Spec->catfile($dat_dir, 'gastos.dat');
+        if (-e $gastos_file && open(my $fge, '<:utf8', $gastos_file)) {
+            my $h = <$fge>;
+            while(my $line = <$fge>) {
+                chomp($line);
+                next if $line =~ /^\s*$/;
+                my @g = split(/\|/, $line, -1);
+
+                # Filtro estricto de fecha: día actual
+                my $g_fecha = $g[1] // '';
+                next unless $g_fecha eq $hoy_str;
+
+                my $g_negocio = $g[11] // '0';
+                $g_negocio =~ s/^\s+|\s+$//g;
+                if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
+                    next if ($g_negocio ne $id_empresa);
+                }
+
+                my $monto = $g[6] || 0;
+                $monto =~ s/[^\d\.]//g;
+                my $creador = $g[10] || '';
+
+                if ($is_admin) {
+                    # Administrador Organización ve todos los gastos de la empresa de hoy
+                    $total_egresos += $monto;
+                } elsif ($role eq 'Recepcionista') {
+                    # Recepcionista ve solo los gastos registrados por ella hoy
+                    if ($creador eq $usuario || $creador eq $mi_nombre || ($uid && $creador eq $uid)) {
+                        $total_egresos += $monto;
+                    }
+                } elsif ($role eq 'Medico') {
+                    # Médico ve solo los gastos registrados por él hoy
+                    if ($creador eq $usuario || $creador eq $mi_nombre || ($id_medico && $creador eq $id_medico)) {
+                        $total_egresos += $monto;
+                    }
+                }
+            }
+            close($fge);
+        }
+
+        # 3. CUENTAS POR COBRAR (CxC ESTADO / MUNICIPIO) DEL DÍA ACTUAL
+        # REGLA: Recepcionista NO opera cartera institucional; este KPI queda oculto y en 0 para Recepción
+        if ($role ne 'Recepcionista' && $has_pacientes_estado && $has_clue) {
+            my $recibos_pub_file = File::Spec->catfile($dat_dir, 'folios_recibos_publicos.dat');
+            if (-e $recibos_pub_file && open(my $fpub, '<:utf8', $recibos_pub_file)) {
+                my $h = <$fpub>;
+                while (my $line = <$fpub>) {
                     chomp($line);
                     next if $line =~ /^\s*$/;
                     my @r = split(/\|/, $line, -1);
                     next if ($r[14] // '') =~ /Cancelado/i;
+
+                    my $r_fecha = $r[6] // '';
+                    next unless $r_fecha eq $hoy_str;
+
                     my $id_negocio = $r[2] // '';
                     $id_negocio =~ s/^\s+|\s+$//g;
                     if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
-                        next if ($id_negocio ne $id_empresa);
+                        next if $id_negocio ne $id_empresa;
                     }
+
+                    my $cargo = $r[8] || 0; $cargo =~ s/[^\d\.]//g;
+                    my $abono = $r[9] || 0; $abono =~ s/[^\d\.]//g;
+                    my $monto_cxc = ($cargo > 0) ? $cargo : ($abono || 0);
                     my $m_id = $r[15] // '';
-                    if ($is_admin || $m_id eq $id_medico) {
-                        $total_cargos += ($r[8] || 0);
+
+                    if ($is_admin) {
+                        $cxc_estado_total += $monto_cxc;
+                    } elsif ($role eq 'Medico') {
+                        if ($id_medico && $m_id eq $id_medico) {
+                            $cxc_estado_total += $monto_cxc;
+                        }
                     }
                 }
-                close($fh);
+                close($fpub);
             }
         }
     }
 
-    # Egresos calculados desde gastos.dat
-    my $total_egresos = 0;
-    my $gastos_file = File::Spec->catfile($dat_dir, 'gastos.dat');
-    if (-e $gastos_file && open(my $fge, '<:utf8', $gastos_file)) {
-        my $h = <$fge>;
-        while(my $line = <$fge>) {
-            chomp($line);
-            next if $line =~ /^\s*$/;
-            my @g = split(/\|/, $line, -1);
-            my $monto = $g[6] || 0;
-            $monto =~ s/[^\d\.]//g;
-            my $g_negocio = $g[11] // '0';
-            $g_negocio =~ s/^\s+|\s+$//g;
-            my $creador = $g[10] || '';
-            if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
-                next if ($g_negocio ne $id_empresa);
-            }
-            if ($is_admin || $creador eq $usuario || $creador eq $mi_nombre || !$creador) {
-                $total_egresos += $monto;
-            }
-        }
-        close($fge);
-    }
-    # Respaldo si no hay gastos registrados pero existe abonos de pacientes
-    if ($total_egresos == 0 && $role eq 'Paciente') {
-        $total_egresos = $total_abonos;
-    }
+    my $total_saldo = $total_cargos - $total_egresos;
 
-    my $total_saldo = $total_cargos - ($total_egresos > 0 ? $total_egresos : $total_abonos);
-    
-    # CxC Estado
-    my $cxc_estado_total = 0;
-    foreach my $id_os (keys %saldos_estado) {
-        my $ab = $saldos_estado{$id_os}{abonos} || 0;
-        my $cg = $saldos_estado{$id_os}{cargos} || 0;
-        $cxc_estado_total += ($ab > 0 ? $ab : $cg);
-    }
-    # Sumar folios_recibos_publicos.dat si aplica
-    my $recibos_pub_file = File::Spec->catfile($dat_dir, 'folios_recibos_publicos.dat');
-    if (-e $recibos_pub_file && open(my $fpub, '<:utf8', $recibos_pub_file)) {
-        my $h = <$fpub>;
-        while (my $line = <$fpub>) {
-            chomp($line);
-            next if $line =~ /^\s*$/;
-            my @r = split(/\|/, $line, -1);
-            next if ($r[14] // '') =~ /Cancelado/i;
-            my $id_negocio = $r[2] // '';
-            $id_negocio =~ s/^\s+|\s+$//g;
-            if (defined $id_empresa && $id_empresa ne '' && $role ne 'Administrador Global') {
-                next if $id_negocio ne $id_empresa;
-            }
-            my $m_id = $r[15] // '';
-            my $elab = $r[11] // '';
-            if ($is_admin || $m_id eq $id_medico || $elab eq $usuario || $elab eq $mi_nombre) {
-                $cxc_estado_total += ($r[8] || $r[9] || 0) if !exists $saldos_estado{$r[0]};
-            }
-        }
-        close($fpub);
-    }
-
-    # --- CÁLCULO DE RANGO DE 7 DÍAS ---
-    my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
-    my $time_today = timelocal(0,0,0,$mday,$mon,$year);
-    my $time_limit = $time_today + (7 * 24 * 60 * 60); # + 7 días
-    
-    my $hoy_str = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
-    
+    # --- CÁLCULO DE CITAS (HOY Y PRÓXIMAS) ---
     my $citas_hoy_count = 0;
     my @proximas_citas = ();
     if (-e $citas_file) {
@@ -349,8 +352,6 @@ HTML
             chomp($line);
             next if $line =~ /^id_cita/;
             my @f = split(/\|/, $line);
-            # F1: ID_MEDICO, F2: ID_PACIENTE, F3: FECHA, F4: HORA_INI
-            # Filtrar citas multi-tenant
             my $cita_pertenece = 0;
             if (!defined $id_empresa || $id_empresa eq '' || $role eq 'Administrador Global') {
                 $cita_pertenece = 1;
@@ -359,8 +360,7 @@ HTML
             }
             next unless $cita_pertenece;
 
-            if ($is_admin || $f[1] eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$f[2]})) {
-                # Comparación de fecha
+            if ($is_admin || $role eq 'Recepcionista' || $f[1] eq $id_medico || ($role eq 'Paciente' && $mis_pacientes_id{$f[2]})) {
                 my ($cy, $cm, $cd) = split(/-/, $f[3]);
                 if ($cy && $cm && $cd) {
                     my $time_cita = timelocal(0,0,0,$cd,$cm-1,$cy-1900);
@@ -382,7 +382,6 @@ HTML
         }
         close($fh);
     }
-    # Ordenar citas por fecha y hora
     @proximas_citas = sort { $a->{fecha} cmp $b->{fecha} || $a->{hora} cmp $b->{hora} } @proximas_citas;
 
     my $str_ingresos   = format_currency($total_cargos);
@@ -394,8 +393,10 @@ HTML
     my $val_saldo_f    = $total_saldo;
     my $val_cxc_estado_f = $cxc_estado_total;
 
+    # Regla de Presentación: Recepcionista NUNCA visualiza el KPI CxC Estado
+    my $mostrar_cxc_estado = ($role ne 'Recepcionista' && $role ne 'Paciente' && $has_pacientes_estado && $has_clue) ? 1 : 0;
     my $total_kpi_cards = 4;
-    if ($role eq 'Paciente' || ($has_pacientes_estado && $has_clue && ($role eq 'Recepcionista' || $role eq 'Medico' || $role =~ /Administrador/i))) {
+    if ($role eq 'Paciente' || $mostrar_cxc_estado) {
         $total_kpi_cards = 5;
     }
     my $grid_cols_md = ($total_kpi_cards == 5) ? 'row-cols-md-5' : 'row-cols-md-4';
@@ -513,7 +514,7 @@ HTML
                     <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
                         <div class="kpi-icono text-success mb-1"><i class="bi bi-arrow-down-circle"></i></div>
                         <div class="kpi-titulo text-truncate">Ingresos</div>
-                        <h2 class="kpi-valor counter-up m-0 text-success" data-value="$val_cargos_f" data-is-currency="true">$str_ingresos</h2>
+                        <h2 id="kpiValorIngresos" class="kpi-valor counter-up m-0 text-success" data-value="$val_cargos_f" data-is-currency="true">$str_ingresos</h2>
                     </div>
                 </div>
 
@@ -522,19 +523,19 @@ HTML
                     <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
                         <div class="kpi-icono text-danger mb-1"><i class="bi bi-arrow-up-circle"></i></div>
                         <div class="kpi-titulo text-truncate text-danger">Egresos</div>
-                        <h2 class="kpi-valor counter-up m-0 text-danger" data-value="$val_egresos_f" data-is-currency="true">$str_egresos</h2>
+                        <h2 id="kpiValorEgresos" class="kpi-valor counter-up m-0 text-danger" data-value="$val_egresos_f" data-is-currency="true">$str_egresos</h2>
                     </div>
                 </div>
 HTML
 
-    if ($has_pacientes_estado && $has_clue && ($role eq 'Recepcionista' || $role eq 'Medico' || $role =~ /Administrador/i)) {
+    if ($mostrar_cxc_estado) {
         print <<HTML;
-                <!-- 5. CxC Estado (Visible si la organización tiene CLUE) -->
+                <!-- 5. CxC Estado (Visible si la organización tiene CLUE y el rol no es Recepcionista ni Paciente) -->
                 <div class="col">
                     <div class="kpi-acrilico h-100 text-center p-2 p-md-3">
                         <div class="kpi-icono text-info mb-1"><i class="bi bi-building"></i></div>
                         <div class="kpi-titulo text-truncate">CxC Estado</div>
-                        <h2 class="kpi-valor counter-up m-0 text-info" data-value="$val_cxc_estado_f" data-is-currency="true">$str_cxc_estado</h2>
+                        <h2 id="kpiValorCxcEstado" class="kpi-valor counter-up m-0 text-info" data-value="$val_cxc_estado_f" data-is-currency="true">$str_cxc_estado</h2>
                     </div>
                 </div>
 HTML
@@ -885,6 +886,18 @@ HTML
                             let elTotMuni = document.getElementById('tfootTotalMunicipio');
                             if (elTotPriv) elTotPriv.textContent = '$' + totPriv.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                             if (elTotMuni) elTotMuni.textContent = '$' + totMuni.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                            // Sincronización bidireccional con las tarjetas KPI superiores (Día Actual)
+                            let elKpiIng = document.getElementById('kpiValorIngresos');
+                            let elKpiCxc = document.getElementById('kpiValorCxcEstado');
+                            if (elKpiIng) {
+                                elKpiIng.setAttribute('data-value', totPriv);
+                                elKpiIng.textContent = '$' + totPriv.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            }
+                            if (elKpiCxc) {
+                                elKpiCxc.setAttribute('data-value', totMuni);
+                                elKpiCxc.textContent = '$' + totMuni.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            }
                         },
                         error: function() {
                             if (typeof Swal !== 'undefined') Swal.fire('Error', 'Fallo al comunicarse con la API', 'error');

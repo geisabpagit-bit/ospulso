@@ -320,13 +320,18 @@ if (-e $archivo_ingresos) {
             next if $id_negocio ne $id_empresa;
         }
 
-        # Filtro RBAC Recepcionista
+        # Filtro RBAC Recepcionista / Medico
         my $elaborado_por = $f->[11] || '';
         if ($session_data->{role} eq 'Recepcionista') {
             my $mi_user = $session_data->{usuario};
             my $mi_uid = $session_data->{uid};
             my $mi_nombre = $session_data->{nombre_completo} || $medicos{$mi_user} || $mi_user;
             next unless ($elaborado_por eq $mi_user || $elaborado_por eq $mi_nombre || $elaborado_por eq $mi_uid);
+        } elsif ($session_data->{role} eq 'Medico') {
+            my $mi_med = $session_data->{id_medico};
+            my $mi_user = $session_data->{usuario};
+            my $id_med = $f->[15] || '';
+            next unless (($mi_med && $id_med eq $mi_med) || ($mi_user && $elaborado_por eq $mi_user));
         }
 
         my $fecha = $f->[6] || '';
@@ -463,13 +468,18 @@ if (-e $archivo_publicos) {
             next if $id_negocio ne $id_empresa;
         }
 
-        # Filtro RBAC Recepcionista
+        # Filtro RBAC Recepcionista / Medico
         my $elaborado_por = $f->[11] || '';
         if ($session_data->{role} eq 'Recepcionista') {
             my $mi_user = $session_data->{usuario};
             my $mi_uid = $session_data->{uid};
             my $mi_nombre = $session_data->{nombre_completo} || $medicos{$mi_user} || $mi_user;
             next unless ($elaborado_por eq $mi_user || $elaborado_por eq $mi_nombre || $elaborado_por eq $mi_uid);
+        } elsif ($session_data->{role} eq 'Medico') {
+            my $mi_med = $session_data->{id_medico};
+            my $mi_user = $session_data->{usuario};
+            my $id_med = $f->[15] || '';
+            next unless (($mi_med && $id_med eq $mi_med) || ($mi_user && $elaborado_por eq $mi_user));
         }
 
         my $fecha = $f->[6] || '';
