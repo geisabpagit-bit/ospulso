@@ -588,7 +588,7 @@ HTML
             <!-- Finanzas Integradas -->
             <div class="accordion-item bg-transparent border-0 mb-1">
                 <h2 class="accordion-header" id="h-finanzas">
-                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="$fin_aria" aria-controls="c-finanzas" data-sidebar-title="Finanzas">
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="$fin_aria" aria-controls="c-finanzas" data-sidebar-title="Finanzas" onclick="window.handleNavFinanzas(event)">
                         <i class="bi bi-cash-stack text-success" style="color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Finanzas</span>$fin_badge
                     </button>
                 </h2>
@@ -610,7 +610,6 @@ HTML
         }
 
         print qq{
-                        <a href="../views/finanzas.pl?tab=resumen" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Resumen General"><i class="bi bi-pie-chart-fill text-muted me-2"></i><span class="sidebar-text">Resumen General</span></a>
                     </div>
                 </div>
             </div>

@@ -167,4 +167,19 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
 3. **Sincronización Bidireccional Datatables - KPIs**:
    - Los totales exhibidos en las tarjetas KPI (`#kpiValorIngresos` y `#kpiValorCxcEstado`) corresponden exactamente a la suma calculada por `api/generar_corte_caja.pl` para el rango del día actual y se sincronizan reactivamente en los pies de tabla (`#tfootTotalPrivados` y `#tfootTotalMunicipio`), garantizando que no existan discrepancias entre las tarjetas superiores y las tablas detalladas.
 
+---
+
+## 9. Gobernanza UI/UX del Resumen Financiero y Navegación Dual en Sidebar
+
+1. **Navegación Dual al Módulo Financiero (Sidebar UX)**:
+   - Al pulsar el encabezado de "Finanzas" en el menú lateral principal (`utils/sub_sidebar.pl`), el sistema navega directamente a `views/finanzas.pl`, abriendo de inmediato el Resumen General y desplegando automáticamente el menú con todos sus sub-módulos operativos.
+   - Si el usuario ya se encuentra dentro de `views/finanzas.pl` en otra pestaña (ej. Egresos o Corte de Caja), hacer clic en "Finanzas" conmuta de inmediato a la pestaña `#tab_resumen` sin recargar la página.
+   - Se erradica por completo el sub-ítem redundante "Resumen General" del interior del acordeón.
+
+2. **Jerarquía Visual en 3 Capas (Azul Marino + Blanco + Bordes Teal)**:
+   - **Capa 1 (Hero KPIs - Flujo de Efectivo)**: Tarjetas destacadas en 3 columnas: Ingresos Reales Cobrados (`#kpiIngresosTotales`), Total Gastos (`#kpiTotalEgresos`) y Utilidad Neta & Margen (`#kpiUtilidadNeta`), con bordes teal clínicos (`var(--md-teal-clinical, #19B7A5)`), tipografía en Azul Marino (`#0A2A66`) y fondo blanco puro.
+   - **Capa 2 (Operación y Cobranza)**: Fila simétrica de 4 columnas que agrupa Cuentas por Cobrar Privadas (`#kpiCuentasCobrar`), CxC Estado (`#kpiCxcEstado` según capacidades SaaS), Recibos Emitidos (`#kpiTotalRecibos`) y Eficiencia de Cobro (`#kpiEficiencia`).
+   - **Capa 3 (Analítica Visual Limpia)**: Gráfica de evolución semestral y dona de balance del periodo en tarjetas blancas con bordes teal sutiles, sustituyendo las esferas con degradados 3D por leyendas de indicadores planos y tipografía institucional legible.
+
+
 

@@ -266,3 +266,31 @@ function iniciarVinculacionGoogle(idMedico) {
     window.open(authUrl, "GoogleAuth", "width=600,height=700");
 }
 
+window.handleNavFinanzas = function(e) {
+    const isFinanzasPage = window.location.pathname.endsWith('finanzas.pl') || window.location.pathname.includes('/views/finanzas.pl');
+    if (!isFinanzasPage) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        window.location.href = '../views/finanzas.pl';
+        return;
+    }
+    // Si ya nos encontramos dentro de finanzas.pl, conmuta a la pestaña Resumen General
+    if (typeof window.swTab === 'function') {
+        window.swTab('tab_resumen');
+    }
+    const cFin = document.getElementById('c-finanzas');
+    if (cFin && !cFin.classList.contains('show')) {
+        try {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+                bootstrap.Collapse.getOrCreateInstance(cFin, { toggle: false }).show();
+            } else {
+                cFin.classList.add('show');
+            }
+        } catch(err) {
+            cFin.classList.add('show');
+        }
+    }
+};
+

@@ -252,12 +252,12 @@ print <<'PAGE_HTML';
             <div id="tab_resumen" class="sdm-tab-pane">
 
                 <!-- Barra de Control Temporal y Filtros Dinámicos (Executive Toolbar) -->
-                <div class="card card-mobile-flush border-0 shadow-sm mb-4" style="border-radius: 16px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.8);">
+                <div class="card card-mobile-flush border-0 shadow-sm mb-4" style="border-radius: 14px; background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
                     <div class="card-body p-3 p-md-4">
                         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
                             <div>
-                                <h5 class="fw-bold plus-jakarta text-dark mb-1 d-flex align-items-center gap-2">
-                                    <i class="bi bi-speedometer2 text-primary"></i>
+                                <h5 class="fw-bold plus-jakarta mb-1 d-flex align-items-center gap-2" style="color: var(--md-blue-deep, #0A2A66);">
+                                    <i class="bi bi-speedometer2" style="color: var(--md-teal-clinical, #19B7A5);"></i>
                                     Tablero Financiero Ejecutivo
                                 </h5>
                                 <p class="text-muted small mb-0">Métricas consolidadas, rentabilidad y flujo operativo de la organización</p>
@@ -268,17 +268,17 @@ print <<'PAGE_HTML';
                                 <div class="btn-group btn-group-sm p-1 bg-light rounded-pill border" role="group" id="filterPillsGroup">
                                     <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('hoy', this)">Hoy</button>
                                     <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('semana', this)">Semana</button>
-                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill active btn-primary" onclick="seleccionarPeriodoDashboard('mes', this)">Este Mes</button>
+                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill active" style="background-color: var(--md-blue-deep, #0A2A66); color: #fff; border-color: var(--md-blue-deep, #0A2A66);" onclick="seleccionarPeriodoDashboard('mes', this)">Este Mes</button>
                                     <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('ano', this)">Año</button>
                                     <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('todo', this)">Todo</button>
                                 </div>
 
                                 <!-- Rango Personalizado -->
-                                <div class="d-flex align-items-center gap-1 bg-white p-1 rounded-pill border shadow-xs">
+                                <div class="d-flex align-items-center gap-1 bg-white p-1 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important;">
                                     <input type="date" id="dashFechaInicio" class="form-control form-control-sm border-0 bg-transparent px-2" style="font-size:0.8rem; width:130px;" title="Fecha Desde">
                                     <span class="text-muted small px-1"><i class="bi bi-arrow-right"></i></span>
                                     <input type="date" id="dashFechaFin" class="form-control form-control-sm border-0 bg-transparent px-2" style="font-size:0.8rem; width:130px;" title="Fecha Hasta">
-                                    <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="aplicarRangoManualDashboard()" title="Actualizar Totales">
+                                    <button class="btn btn-sm rounded-pill px-3 text-white" style="background: var(--md-blue-deep, #0A2A66);" onclick="aplicarRangoManualDashboard()" title="Actualizar Totales">
                                         <i class="bi bi-arrow-repeat" id="dashRefreshIcon"></i>
                                     </button>
                                 </div>
@@ -287,109 +287,155 @@ print <<'PAGE_HTML';
                     </div>
                 </div>
 
-                <!-- KPI Cards Acrílicos con Drilldown a DataTables -->
-                <div class="kpi-grid mb-4">
-                    <!-- 1. Ingresos Reales -> Ligar a tab_ingresos -->
-                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_ingresos')" title="Clic para ver detalle en Ingresos" style="cursor: pointer;">
-                        <div class="kpi-icono" style="color: #10b981;"><i class="bi bi-cash-stack"></i></div>
-                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
-                            Ingresos Reales <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
-                        </div>
-                        <div class="kpi-valor text-success" id="kpiIngresosTotales">$0.00</div>
-                        <div class="kpi-subtexto text-success fw-bold">(Cobrado en Caja)</div>
-                    </div>
-
-                    <!-- 2. Total Gastos -> Ligar a tab_gastos -->
-                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_gastos')" title="Clic para ver detalle en Egresos" style="cursor: pointer;">
-                        <div class="kpi-icono" style="color: #ef4444;"><i class="bi bi-graph-down-arrow"></i></div>
-                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
-                            Total Gastos <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
-                        </div>
-                        <div class="kpi-valor text-danger" id="kpiTotalEgresos">$0.00</div>
-                        <div class="kpi-subtexto text-danger fw-bold">(Pagado / Egresos)</div>
-                    </div>
-
-                    <!-- 3. Utilidad Neta / Flujo Neto (Sugerencia Premium) -->
-                    <div class="kpi-acrilico">
-                        <div class="kpi-icono" style="color: #06b6d4;"><i class="bi bi-piggy-bank"></i></div>
-                        <div class="kpi-titulo">Utilidad Neta</div>
-                        <div class="kpi-valor" id="kpiUtilidadNeta">$0.00</div>
-                        <div class="kpi-subtexto text-muted" id="kpiMargenSubtexto">Margen: <span class="fw-bold">0%</span></div>
-                    </div>
-
-                    <!-- 4. Recibos Emitidos -> Ligar a tab_corte_caja (Requerimiento 3.1) -->
-                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_corte_caja')" title="Clic para ver detalle en Recibos y Arqueo" style="cursor: pointer;">
-                        <div class="kpi-icono" style="color: #6366f1;"><i class="bi bi-receipt-cutoff"></i></div>
-                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
-                            Recibos Emitidos <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
-                        </div>
-                        <div class="kpi-valor text-dark" id="kpiTotalRecibos">0</div>
-                        <div class="kpi-subtexto d-flex align-items-center justify-content-center gap-2 mt-1">
-                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1" id="kpiRecibosHoyBadge">Hoy: 0</span>
-                            <span class="text-muted small" id="kpiTicketPromedio">(Prom: $0.00)</span>
+                <!-- Capa 1: Flujo de Caja y Rentabilidad Real (Hero KPIs) -->
+                <div class="row row-cols-1 row-cols-md-3 g-3 mb-3">
+                    <!-- 1. Ingresos Reales -->
+                    <div class="col">
+                        <div class="card h-100 p-3 p-md-4 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_ingresos')" title="Clic para ver detalle en Ingresos" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-muted text-uppercase tracking-wider">Ingresos Reales</span>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(16, 185, 129, 0.1);">
+                                    <i class="bi bi-cash-stack text-success fs-5"></i>
+                                </div>
+                            </div>
+                            <h2 class="fw-bold m-0 text-success plus-jakarta" id="kpiIngresosTotales" style="font-size: 1.9rem;">$0.00</h2>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-light">
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small fw-semibold">Cobrado en Caja</span>
+                                <span class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">Ver Detalle <i class="bi bi-arrow-right"></i></span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 5. Cuentas por Cobrar -> Ligar a tab_cxc -->
-                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_cxc')" title="Clic para ver detalle en Cuentas por Cobrar" style="cursor: pointer;">
-                        <div class="kpi-icono" style="color: #eab308;"><i class="bi bi-wallet2"></i></div>
-                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
-                            Cuentas por Cobrar <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                    <!-- 2. Total Gastos -->
+                    <div class="col">
+                        <div class="card h-100 p-3 p-md-4 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_gastos')" title="Clic para ver detalle en Egresos" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-muted text-uppercase tracking-wider">Total Gastos</span>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(239, 68, 68, 0.1);">
+                                    <i class="bi bi-graph-down-arrow text-danger fs-5"></i>
+                                </div>
+                            </div>
+                            <h2 class="fw-bold m-0 text-danger plus-jakarta" id="kpiTotalEgresos" style="font-size: 1.9rem;">$0.00</h2>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-light">
+                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 small fw-semibold">Pagado / Egresos</span>
+                                <span class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">Ver Detalle <i class="bi bi-arrow-right"></i></span>
+                            </div>
                         </div>
-                        <div class="kpi-valor text-warning" id="kpiCuentasCobrar">$0.00</div>
-                        <div class="kpi-subtexto text-warning fw-bold">(Saldos Privados)</div>
+                    </div>
+
+                    <!-- 3. Utilidad Neta & Margen -->
+                    <div class="col">
+                        <div class="card h-100 p-3 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 2px solid var(--md-teal-clinical, #19B7A5) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-uppercase tracking-wider" style="color: var(--md-blue-deep, #0A2A66);">Utilidad Neta</span>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(10, 42, 102, 0.08);">
+                                    <i class="bi bi-wallet2 fs-5" style="color: var(--md-blue-deep, #0A2A66);"></i>
+                                </div>
+                            </div>
+                            <h2 class="fw-bold m-0 plus-jakarta" id="kpiUtilidadNeta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.9rem;">$0.00</h2>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-light">
+                                <span class="small text-muted" id="kpiMargenSubtexto">Margen: <span class="fw-bold">0%</span></span>
+                                <span class="badge rounded-pill px-2 py-1 small fw-semibold" style="background: rgba(10, 42, 102, 0.08); color: var(--md-blue-deep, #0A2A66);">Flujo Operativo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Capa 2: Cobranza, Recibos y Eficiencia Operativa -->
+                <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+                    <!-- 4. Cuentas por Cobrar Privadas -->
+                    <div class="col">
+                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_cxc')" title="Clic para ver detalle en CxC Privadas" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-muted text-truncate">CxC Privadas</span>
+                                <i class="bi bi-wallet text-warning fs-5"></i>
+                            </div>
+                            <h4 class="fw-bold m-0 text-warning plus-jakarta" id="kpiCuentasCobrar">$0.00</h4>
+                            <div class="small text-muted mt-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
+                                <span>Saldos Pacientes</span>
+                                <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                            </div>
+                        </div>
                     </div>
 PAGE_HTML
 
     if ($has_pacientes_estado) {
         print <<'PAGE_HTML';
-                    <!-- 6. CxC Estado (Públicas) -> Ligar a tab_cxc_estado -->
-                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_cxc_estado')" title="Clic para ver detalle en CxC Estado" style="cursor: pointer;">
-                        <div class="kpi-icono" style="color: #0ea5e9;"><i class="bi bi-bank"></i></div>
-                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
-                            CxC (Estado) <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                    <!-- 5. CxC Estado (Convenios Públicos) -->
+                    <div class="col">
+                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_cxc_estado')" title="Clic para ver detalle en CxC Estado" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-muted text-truncate">CxC Estado</span>
+                                <i class="bi bi-bank2 text-info fs-5"></i>
+                            </div>
+                            <h4 class="fw-bold m-0 text-info plus-jakarta" id="kpiCxcEstado">$0.00</h4>
+                            <div class="small text-muted mt-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
+                                <span>Convenios Públicos</span>
+                                <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                            </div>
                         </div>
-                        <div class="kpi-valor text-info" id="kpiCxcEstado">$0.00</div>
-                        <div class="kpi-subtexto text-info fw-bold">(Convenios Públicos)</div>
                     </div>
+                    <span id="kpiPresupuestosActivos" class="d-none">$0.00</span>
+                    <span id="kpiFacturacion" class="d-none">$0.00</span>
+PAGE_HTML
+    } else {
+        print <<'PAGE_HTML';
+                    <!-- 5. Presupuestos / Cotizado -->
+                    <div class="col">
+                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-muted text-truncate">Cotizaciones</span>
+                                <i class="bi bi-file-earmark-text text-secondary fs-5"></i>
+                            </div>
+                            <h4 class="fw-bold m-0 text-dark plus-jakarta" id="kpiPresupuestosActivos">$0.00</h4>
+                            <div class="small text-muted mt-2 pt-1 border-top border-light">
+                                <span>Presupuestos</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span id="kpiCxcEstado" class="d-none">$0.00</span>
+                    <span id="kpiFacturacion" class="d-none">$0.00</span>
 PAGE_HTML
     }
 
     print <<'PAGE_HTML';
-                    <!-- 7. Cotizaciones Activas -->
-                    <div class="kpi-acrilico">
-                        <div class="kpi-icono" style="color: #f59e0b;"><i class="bi bi-file-earmark-text"></i></div>
-                        <div class="kpi-titulo">Cotizado</div>
-                        <div class="kpi-valor text-muted" id="kpiPresupuestosActivos">$0.00</div>
-                        <div class="kpi-subtexto text-secondary fw-bold">(Presupuestos)</div>
-                    </div>
-
-                    <!-- 8. Facturación del Mes -> Ligar a tab_facturacion -->
-                    <div class="kpi-acrilico" role="button" onclick="swTab('tab_facturacion')" title="Clic para ver detalle en Facturación" style="cursor: pointer;">
-                        <div class="kpi-icono" style="color: #3b82f6;"><i class="bi bi-file-earmark-spreadsheet"></i></div>
-                        <div class="kpi-titulo d-flex align-items-center justify-content-center gap-1">
-                            Facturación <i class="bi bi-arrow-up-right-square opacity-50" style="font-size:0.75rem;"></i>
+                    <!-- 6. Recibos Emitidos -->
+                    <div class="col">
+                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_corte_caja')" title="Clic para ver detalle en Corte de Caja" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-muted text-truncate">Recibos Emitidos</span>
+                                <i class="bi bi-receipt-cutoff fs-5" style="color: var(--md-blue-deep, #0A2A66);"></i>
+                            </div>
+                            <h4 class="fw-bold m-0 text-dark plus-jakarta" id="kpiTotalRecibos">0</h4>
+                            <div class="small text-muted mt-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
+                                <span class="badge rounded-pill px-2 py-0" style="background: rgba(10, 42, 102, 0.08); color: var(--md-blue-deep, #0A2A66);" id="kpiRecibosHoyBadge">Hoy: 0</span>
+                                <span class="text-muted" style="font-size:0.75rem;" id="kpiTicketPromedio">(Prom: $0.00)</span>
+                            </div>
                         </div>
-                        <div class="kpi-valor text-primary" id="kpiFacturacion">$0.00</div>
-                        <div class="kpi-subtexto text-primary fw-bold">(Comprobantes CFDI)</div>
                     </div>
 
-                    <!-- 9. Eficiencia de Cobro -->
-                    <div class="kpi-acrilico">
-                        <div class="kpi-icono" style="color: #059669;"><i class="bi bi-percent"></i></div>
-                        <div class="kpi-titulo">Eficiencia de Cobro</div>
-                        <div class="kpi-valor text-success" id="kpiEficiencia">0%</div>
-                        <div class="kpi-subtexto text-success fw-bold">(Tasa de Recuperación)</div>
+                    <!-- 7. Eficiencia de Cobro -->
+                    <div class="col">
+                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-muted text-truncate">Eficiencia Cobro</span>
+                                <i class="bi bi-percent text-success fs-5"></i>
+                            </div>
+                            <h4 class="fw-bold m-0 text-success plus-jakarta" id="kpiEficiencia">0%</h4>
+                            <div class="small text-muted mt-2 pt-1 border-top border-light">
+                                <span>Recuperación</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Analítica Visual Avanzada: Evolución & Distribución -->
+                <!-- Capa 3: Analítica Visual Avanzada: Evolución & Distribución -->
                 <div class="row g-4 mb-4">
                     <div class="col-lg-7">
-                        <div class="card-acrilico h-100">
+                        <div class="card h-100 p-3 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
-                                    <h6 class="fw-bold plus-jakarta mb-1 text-dark">Evolución Financiera Semestral</h6>
+                                    <h6 class="fw-bold plus-jakarta mb-1" style="color: var(--md-blue-deep, #0A2A66);">Evolución Financiera Semestral</h6>
                                     <p class="text-muted small mb-0">Comparativa mensual de ingresos cobrados vs egresos operativos</p>
                                 </div>
                             </div>
@@ -400,10 +446,10 @@ PAGE_HTML
                     </div>
                     
                     <div class="col-lg-5">
-                        <div class="card-acrilico h-100 d-flex flex-column justify-content-center">
+                        <div class="card h-100 p-3 p-md-4 border-0 shadow-sm rounded-4 d-flex flex-column justify-content-center" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
-                                    <h6 class="fw-bold plus-jakarta mb-1 text-dark">Balance del Periodo</h6>
+                                    <h6 class="fw-bold plus-jakarta mb-1" style="color: var(--md-blue-deep, #0A2A66);">Balance del Periodo</h6>
                                     <p class="text-muted small mb-0">Distribución porcentual de flujo de efectivo</p>
                                 </div>
                             </div>
@@ -412,26 +458,26 @@ PAGE_HTML
                                 <div class="position-relative mb-4" style="height: 180px; width: 100%;">
                                     <canvas id="pieResumenFinanzas"></canvas>
                                     <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
-                                        <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValFinanzas" style="font-size: 1.1rem;">$0</h5>
-                                        <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Total Flujo</span>
+                                        <h5 class="fw-bold m-0 plus-jakarta" id="pieCenterValFinanzas" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.15rem;">$0</h5>
+                                        <span class="text-muted fw-semibold" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Total Flujo</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-center gap-4 w-100">
                                     <!-- Ingresos -->
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(to bottom, #00FF7F, #007A3D, #003D1F); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 8px; flex-shrink: 0;"></div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #10b981; display: inline-block;"></span>
                                         <div class="d-flex align-items-baseline gap-1">
-                                            <span class="text-muted" style="font-size: 0.7rem;">Ingresos</span>
-                                            <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legIngresosFinanzas">$0.00</span>
+                                            <span class="text-muted small">Ingresos:</span>
+                                            <span class="fw-bold plus-jakarta" style="font-size: 0.95rem; color: var(--md-blue-deep, #0A2A66);" id="legIngresosFinanzas">$0.00</span>
                                         </div>
                                     </div>
                                     
                                     <!-- Egresos -->
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(to bottom, #FF4D4D, #A63A3A, #5C0000); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 8px; flex-shrink: 0;"></div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; display: inline-block;"></span>
                                         <div class="d-flex align-items-baseline gap-1">
-                                            <span class="text-muted" style="font-size: 0.7rem;">Egresos</span>
-                                            <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legEgresosFinanzas">$0.00</span>
+                                            <span class="text-muted small">Egresos:</span>
+                                            <span class="fw-bold plus-jakarta" style="font-size: 0.95rem; color: var(--md-blue-deep, #0A2A66);" id="legEgresosFinanzas">$0.00</span>
                                         </div>
                                     </div>
                                 </div>
