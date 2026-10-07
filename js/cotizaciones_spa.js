@@ -19,6 +19,15 @@ window.abrirModalCotizaciones = function(idPaciente, nombrePaciente) {
     cotPacienteId     = idPaciente;
     cotPacienteNombre = nombrePaciente;
 
+    // Asegurar desmonte de expedienteModal si estaba activo
+    var mExp = document.getElementById('expedienteModal');
+    if (mExp) {
+        var bsExp = bootstrap.Modal.getInstance(mExp);
+        if (bsExp) {
+            try { bsExp.hide(); } catch(e) {}
+        }
+    }
+
     // Inyectar modal si no existe
     if (!document.getElementById('modalCotizaciones')) {
         _inyectarModalCotizaciones();
@@ -414,7 +423,8 @@ function _inyectarModalCotizaciones() {
         s.id = 'cotStyles';
         s.innerHTML =
             '#cotTabla { width: 100% !important; }' +
-            '.cot-carrito-item:hover { background: #f0f7ff !important; }';
+            '.cot-carrito-item:hover { background: #f0f7ff !important; }' +
+            '.swal2-container { z-index: 110000 !important; }';
         document.head.appendChild(s);
     }
 

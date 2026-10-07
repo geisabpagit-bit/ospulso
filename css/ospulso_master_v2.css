@@ -317,7 +317,7 @@
 
 /* --- Fix Z-Index SweetAlert2 y Offcanvas --- */
 .swal2-container { 
-    z-index: 106000 !important; 
+    z-index: 110000 !important; 
 }
 .offcanvas {
     z-index: 105500 !important;

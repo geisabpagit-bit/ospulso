@@ -309,8 +309,10 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
 ## 12. Jerarquía Canónica Universal de Z-Index y Ciclo de Vida de Modales
 
 1. **Jerarquía Z-Index Universal del Sistema (`css/ospulso_master_v2.css`)**:
-   - Para erradicar solapamientos y trampas de apilamiento entre barras superiores fijas (`.sdm-navbar`, `sticky-top`), overlays laterales (`.sidebar-overlay`), modales y telones (`.modal-backdrop`), la escala oficial se define canónicamente:
-     * **Modales y Diálogos Activos (`.modal`, `.modal.show`, `.dispatch-progress-modal`)**: `z-index: 105100 !important;`
+   - Para erradicar solapamientos y trampas de apilamiento entre barras superiores fijas (`.sdm-navbar`, `sticky-top`), overlays laterales (`.sidebar-overlay`), modales, telones (`.modal-backdrop`) y alertas de confirmación, la escala oficial se define canónicamente:
+     * **Alertas y Diálogos de Confirmación (`.swal2-container`, `Swal.fire`)**: `z-index: 110000 !important;` (Cota máxima del sistema para garantizar visibilidad sobre cualquier nivel de modales anidados)
+     * **Modales Anidados de Sub-procesos (`#modalNuevaCot`, `#modalCotizaciones`)**: `z-index: 107000 - 108000 !important;`
+     * **Modales y Diálogos Activos (`.modal`, `.modal.show`, `#expedienteModal`, `.dispatch-progress-modal`)**: `z-index: 105100 !important;`
      * **Telones de fondo (`.modal-backdrop`, `.modal-backdrop.show`, `.modal-backdrop.fade.show`)**: `z-index: 105000 !important;`
      * **Overlays de Menú Lateral Móvil (`.sidebar-overlay`)**: `z-index: 10400 !important;`
      * **Docks Inferiores y Navegación Flotante (`.bottom-bar-dock`, `.nav-dock`)**: `z-index: 1030 !important;`
@@ -320,9 +322,9 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
 3. **Mecanismo Seguro de Cierre y Limpieza de Telón (Backdrop)**:
    - Todo modal dinámico que ejecute procesos asíncronos o por lotes debe proveer cierre multi-vía visible (botón X en cabecera y botón de acción en pie).
    - El desmonte debe limpiar exhaustivamente los telones huérfanos (`.modal-backdrop`) y remover las clases residuales `modal-open` del `<body>`, asegurando que el scroll de la interfaz nunca quede bloqueado tras la finalización de un proceso.
-4. **Caso Canónico: Blindaje del Modal de Expediente (`views/pacientes.pl`)**:
+4. **Caso Canónico: Blindaje del Modal de Expediente y Cotizaciones (`views/pacientes.pl`)**:
    - El diálogo `#expedienteModal` se renderiza de forma estricta con posterioridad al cierre de layout mediante `utils::sub_sidebar::render_sidebar_footer()`, erradicando subordinaciones al stacking context del panel lateral o del grid de datos.
    - Su cota de apilamiento se fija en `z-index: 105100 !important;`, garantizando su elevación sobre el telón general de 105000.
-   - Los disparadores de navegación y sub-modales (como Cotizaciones y Correo CRM) invocan `window.cerrarModalExpediente()`, garantizando la remoción inmediata de telones residuales y desbloqueo del scroll del body.
+   - Al interactuar con el sub-modal `#modalCotizaciones` (`z-index: 107000`), las alertas de SweetAlert2 (`Swal.fire` para "¿Eliminar cotización?") operan en `z-index: 110000 !important;`, manteniéndose siempre visibles en primer plano.
 
 
