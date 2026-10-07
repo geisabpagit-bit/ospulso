@@ -138,14 +138,21 @@ function Sync-FtpFolder($remoteRelPath, $localSubPath) {
                 $downloadBytes = $memStream.ToArray()
                 $memStream.Close()
 
-                # Blindaje anti-vaciado: Proteger tablas maestras operativas si el remoto está vacío/truncado
-                $criticalFiles = @('negocios.dat', 'negocios_config.dat', 'perfiles.dat', 'usuarios.dat', 'estado_cuenta.dat', 'pacientes.dat', 'citas.dat')
+                # Blindaje anti-vaciado: Proteger universalmente archivos .dat si el remoto está vacío o truncado
+                $criticalFiles = @('negocios.dat', 'negocios_config.dat', 'perfiles.dat', 'usuarios.dat', 'estado_cuenta.dat', 'pacientes.dat', 'citas.dat', 'cotizaciones.dat', 'cotizaciones_items.dat', 'gastos.dat', 'historial_correos.dat', 'folios_recibos_privados.dat', 'folios_recibos_publicos.dat')
                 if ((Test-Path $subLocal) -and (-not $ForceOverwrite)) {
                     $localSize = (Get-Item $subLocal).Length
                     $remoteSize = $downloadBytes.Length
                     
-                    if ($criticalFiles -contains $itemName -and $remoteSize -lt $localSize -and $remoteSize -le 250) {
-                        Write-Host "SALTADO (PROTEGIDO: Remoto vacío [$remoteSize B] vs Local [$localSize B])" -ForegroundColor Yellow
+                    # 1. Regla universal: Archivo remoto vacío o solo con cabecera (<= 250 bytes) vs local con datos operativos
+                    if ($itemName.EndsWith(".dat") -and $remoteSize -lt $localSize -and $remoteSize -le 250 -and $localSize -gt 250) {
+                        Write-Host "SALTADO (PROTEGIDO: Remoto vacío/solo encabezado [$remoteSize B] vs Local con datos [$localSize B])" -ForegroundColor Yellow
+                        continue
+                    }
+                    
+                    # 2. Regla para tablas críticas: Pérdida masiva de más del 50% de volumen
+                    if ($criticalFiles -contains $itemName -and $remoteSize -lt ($localSize * 0.5) -and $localSize -gt 300) {
+                        Write-Host "SALTADO (PROTEGIDO: Alerta de reducción de tamaño crítica en $itemName: Remoto [$remoteSize B] vs Local [$localSize B])" -ForegroundColor Yellow
                         continue
                     }
                 }
