@@ -152,7 +152,7 @@ function Sync-FtpFolder($remoteRelPath, $localSubPath) {
                     
                     # 2. Regla para tablas críticas: Pérdida masiva de más del 50% de volumen
                     if ($criticalFiles -contains $itemName -and $remoteSize -lt ($localSize * 0.5) -and $localSize -gt 300) {
-                        Write-Host "SALTADO (PROTEGIDO: Alerta de reducción de tamaño crítica en $itemName: Remoto [$remoteSize B] vs Local [$localSize B])" -ForegroundColor Yellow
+                        Write-Host "SALTADO (PROTEGIDO: Alerta de reduccion de tamano critica en ${itemName} - Remoto [$remoteSize B] vs Local [$localSize B])" -ForegroundColor Yellow
                         continue
                     }
                 }
