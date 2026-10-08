@@ -890,7 +890,11 @@ nav.navbar.sticky-top {
 .modal,
 .modal.show,
 .dispatch-progress-modal {
-    z-index: 105100 !important;
+    z-index: 105150 !important;
+}
+
+.modal-dialog {
+    z-index: 105160 !important;
 }
 
 /* 2. Odontograma Toolbar & Impresión (de render_expediente_clinico.pl) */

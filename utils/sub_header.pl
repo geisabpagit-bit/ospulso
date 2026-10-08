@@ -390,6 +390,40 @@ sub render_header {
             }
         });
     };
+
+    // ==============================================================================
+    // 💎 BLINDAJE UNIVERSAL DE MODALES (ANTI-STACKING CONTEXT / ANTI-TRAP HEADER)
+    // ==============================================================================
+    (function() {
+        function hoistModalToBody(modalEl) {
+            if (!modalEl || !modalEl.classList || !modalEl.classList.contains("modal")) return;
+            // 1. Extraer el modal de cualquier contenedor animado o layout y moverlo a la raíz del body
+            if (modalEl.parentNode !== document.body) {
+                document.body.appendChild(modalEl);
+            }
+            // 2. Garantizar que el z-index del modal supere al backdrop (105000) y al header (1020)
+            modalEl.style.zIndex = "105150";
+            var dialog = modalEl.querySelector(".modal-dialog");
+            if (dialog) {
+                dialog.style.zIndex = "105160";
+            }
+        }
+
+        // Escuchar el evento nativo de Bootstrap 5 en fase de captura antes de mostrar CUALQUIER modal
+        document.addEventListener("show.bs.modal", function(e) {
+            hoistModalToBody(e.target);
+        }, true);
+
+        // Barrido preventivo al cargar el DOM completo
+        document.addEventListener("DOMContentLoaded", function() {
+            var allModals = document.querySelectorAll(".modal");
+            for (var i = 0; i < allModals.length; i++) {
+                if (allModals[i].parentNode !== document.body) {
+                    document.body.appendChild(allModals[i]);
+                }
+            }
+        });
+    })();
     </script>
 </head>
 <body>

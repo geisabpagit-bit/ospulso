@@ -257,7 +257,7 @@ print <<HTML;
     </div>
 
     <!-- MODAL CITAS (Aura Premium & Z-Index Guard) -->
-    <div class="modal fade modal-diamond" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
+    <div class="modal fade modal-diamond" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 
@@ -391,7 +391,7 @@ print <<HTML;
     </div>
 
     <!-- MODAL AJUSTES -->
-    <div class="modal fade modal-diamond" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
+    <div class="modal fade modal-diamond" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header fw-bold">

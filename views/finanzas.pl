@@ -690,7 +690,7 @@ PAGE_HTML
         </div> <!-- content-wrapper -->
     
 <!-- Modal Nuevo Gasto (Floating Armor) - Movido fuera del contexto de apilamiento para evitar solapamiento con navbar -->
-<div class="modal fade modal-diamond" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105000 !important;">
+<div class="modal fade modal-diamond" id="modalGasto" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header border-bottom border-light">

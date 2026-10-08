@@ -2485,7 +2485,7 @@ print <<HTML;
 </div>
 
 <!-- MODAL 1: DETALLE CLÍNICO ANATÓMICO (ACTIVADO POR EL OJO 👁️) -->
-<div class="modal fade" id="modalDetalleOdonto" tabindex="-1" aria-labelledby="modalDetalleOdontoLabel" aria-hidden="true" style="z-index: 7500 !important;">
+<div class="modal fade" id="modalDetalleOdonto" tabindex="-1" aria-labelledby="modalDetalleOdontoLabel" aria-hidden="true" style="z-index: 105150 !important;">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg" style="background: rgba(255,255,255,0.98); backdrop-filter: blur(15px);">
             <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
@@ -2560,7 +2560,7 @@ print <<HTML;
 </div>
 
 <!-- MODAL 2: CREAR NUEVO ODONTOGRAMA -->
-<div class="modal fade" id="modalNuevoOdonto" tabindex="-1" aria-labelledby="modalNuevoOdontoLabel" aria-hidden="true" style="z-index: 7500 !important;">
+<div class="modal fade" id="modalNuevoOdonto" tabindex="-1" aria-labelledby="modalNuevoOdontoLabel" aria-hidden="true" style="z-index: 105150 !important;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header border-0 pb-0 pt-4 px-4">
@@ -2603,7 +2603,7 @@ print <<HTML;
 </div>
 
 <!-- MODAL 3: RENOMBRAR / EDITAR METADATOS -->
-<div class="modal fade" id="modalRenombrarOdonto" tabindex="-1" aria-labelledby="modalRenombrarOdontoLabel" aria-hidden="true" style="z-index: 7500 !important;">
+<div class="modal fade" id="modalRenombrarOdonto" tabindex="-1" aria-labelledby="modalRenombrarOdontoLabel" aria-hidden="true" style="z-index: 105150 !important;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header border-0 pb-0 pt-4 px-4">

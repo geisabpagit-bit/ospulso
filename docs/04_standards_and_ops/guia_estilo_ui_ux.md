@@ -312,13 +312,15 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - Para erradicar solapamientos y trampas de apilamiento entre barras superiores fijas (`.sdm-navbar`, `sticky-top`), overlays laterales (`.sidebar-overlay`), modales, telones (`.modal-backdrop`) y alertas de confirmación, la escala oficial se define canónicamente:
      * **Alertas y Diálogos de Confirmación (`.swal2-container`, `Swal.fire`)**: `z-index: 110000 !important;` (Cota máxima del sistema para garantizar visibilidad sobre cualquier nivel de modales anidados)
      * **Modales Anidados de Sub-procesos (`#modalNuevaCot`, `#modalCotizaciones`)**: `z-index: 107000 - 108000 !important;`
-     * **Modales y Diálogos Activos (`.modal`, `.modal.show`, `#expedienteModal`, `.dispatch-progress-modal`)**: `z-index: 105100 !important;`
+     * **Modales y Diálogos Activos (`.modal`, `.modal.show`, `#expedienteModal`, `.dispatch-progress-modal`)**: `z-index: 105150 !important;` (Diálogos: `105160 !important;`)
      * **Telones de fondo (`.modal-backdrop`, `.modal-backdrop.show`, `.modal-backdrop.fade.show`)**: `z-index: 105000 !important;`
      * **Overlays de Menú Lateral Móvil (`.sidebar-overlay`)**: `z-index: 10400 !important;`
      * **Docks Inferiores y Navegación Flotante (`.bottom-bar-dock`, `.nav-dock`)**: `z-index: 1030 !important;`
      * **Cabeceras y Barras Superiores Fijas (`.sdm-navbar`, `.glass-navbar`, `nav.navbar.sticky-top`)**: `z-index: 1020 !important;`
-2. **Regla de Aislamiento de Stacking Context en el DOM**:
-   - Todo diálogo modal (`.modal`) en vistas que implementen menús laterales o dashboards DEBE ubicarse **fuera** del contenedor principal del layout (renderizado con posterioridad a `utils::sub_sidebar::render_sidebar_footer()`). Esto previene que el navegador subordine el modal al contexto de apilamiento del cuerpo principal de la página.
+2. **Motor Universal de Auto-Hoisting en el DOM (`utils/sub_header.pl`)**:
+   - Todo diálogo modal (`.modal`) en cualquier vista del sistema queda blindado contra trampas de apilamiento (*CSS Stacking Context Traps* causadas por contenedores padres con `transform`, `filter`, `opacity`, `overflow` o clases de animación como `animate__animated animate__fadeIn`).
+   - El script canónico en `utils/sub_header.pl` intercepta de manera reactiva en fase de captura (`document.addEventListener('show.bs.modal', ..., true)`) cualquier apertura de modal y lo reubica (*hoisting*) inmediatamente como hijo directo de `document.body` si aún no lo está, forzando `z-index: 105150 !important` al contenedor y `105160 !important` a `.modal-dialog`. Adicionalmente, realiza un barrido inicial en `DOMContentLoaded` para modales pre-renderizados.
+   - Esta solución omnipotente garantiza que NINGÚN modal quede atrapado detrás del `sub_header.pl` (`z-index: 1020`) ni detrás del backdrop (`z-index: 105000`).
 3. **Mecanismo Seguro de Cierre y Limpieza de Telón (Backdrop)**:
    - Todo modal dinámico que ejecute procesos asíncronos o por lotes debe proveer cierre multi-vía visible (botón X en cabecera y botón de acción en pie).
    - El desmonte debe limpiar exhaustivamente los telones huérfanos (`.modal-backdrop`) y remover las clases residuales `modal-open` del `<body>`, asegurando que el scroll de la interfaz nunca quede bloqueado tras la finalización de un proceso.
