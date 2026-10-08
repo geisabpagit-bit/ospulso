@@ -26,8 +26,10 @@
 
 Para descargar datos reales de pacientes, citas y finanzas generados en producción hacia el entorno local sin riesgo de pérdida de información:
 1. **Script de Sincronización FTP (`sincronizar_dat_ftp.ps1`)**:
-   - Conecta a `ftp.ospulso.com:21` bajo protocolo seguro TLS/FTPS.
+   - Conecta a `ftp.ospulso.com:21` bajo protocolo seguro TLS/FTPS (con fallback a texto plano si el servidor lo requiere).
+   - Permite selección interactiva o por parámetro del usuario (cuenta maestra `ospulso` o cuenta de cPanel `usuario@ospulso.com`).
    - Solicita la credencial de forma encriptada en memoria (`Read-Host -AsSecureString`).
-   - Crea un respaldo preventivo fechado (`dat_backup_YYYYMMDD_HHMMSS`) en la raíz del proyecto antes de sobreescribir.
-   - Descarga de forma recursiva todos los catálogos y archivos planos desde `/home/ospulso/public_html/dat/` hacia `c:\xampp\htdocs\ospulso\dat\`.
+   - Auto-detecta la ruta remota de la carpeta clínica (`public_html/dat`, `dat` o `/`).
+   - Incluye blindaje anti-vaciado y crea un respaldo preventivo fechado (`dat_backup_YYYYMMDD_HHMMSS`) en la raíz del proyecto antes de sobreescribir.
+   - Descarga de forma recursiva todos los catálogos y archivos planos hacia `c:\xampp\htdocs\ospulso\dat\`.
 
