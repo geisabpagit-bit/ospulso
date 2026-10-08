@@ -192,10 +192,14 @@ print <<HTML;
         </div>
     </div>
 </div>
+HTML
 
-<!-- Modal Cron -->
-<div class="modal fade" id="modalCron" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+utils::sub_sidebar::render_sidebar_footer();
+
+print <<HTML;
+<!-- Modal Cron ubicado en la raíz del DOM para evitar colisión de stacking context con sub_header -->
+<div class="modal fade" id="modalCron" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered" style="z-index: 1065;">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-primary text-white border-0" style="border-radius: 1rem 1rem 0 0;">
                 <h5 class="modal-title fw-bold"><i class="bi bi-clock-history me-2"></i>Programar Respaldos Automáticos</h5>
@@ -235,8 +239,6 @@ print <<HTML;
     </div>
 </div>
 HTML
-
-utils::sub_sidebar::render_sidebar_footer();
 
 print <<'JS';
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -17,7 +17,7 @@ my $q  = $sd->{q};
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
-if (!$sd->{session_ok} || $sd->{role} ne 'Administrador Global') {
+if (!$sd->{session_ok} || $sd->{role} !~ /Administrador Global/i) {
     print to_json({ status => 'error', message => 'No autorizado' });
     exit;
 }
