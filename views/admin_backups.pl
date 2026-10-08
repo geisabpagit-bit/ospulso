@@ -13,8 +13,9 @@ use open qw(:std :utf8);
 use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
-require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_acceso_denegado.pl');
 
 my $sd = check_session();
 my $q  = $sd->{q};
@@ -27,11 +28,12 @@ unless ($sd->{session_ok}) {
 my $usuario   = $sd->{usuario};
 my $role      = $sd->{role};
 
-# Seguridad Estricta: Sólo Administrador Global
-if ($role ne 'Administrador Global') {
+# Seguridad Estricta RBAC: Exclusivo Administrador Global
+if ($role !~ /Administrador Global/i) {
+    print $q->header(-type => 'text/html', -charset => 'UTF-8');
     render_acceso_denegado(
         q => $q, usuario => $usuario, role => $role,
-        mensaje => 'Esta sección es exclusiva para el Administrador Global.',
+        mensaje => 'Esta sección es de acceso exclusivo para el Administrador Global de la plataforma.',
         rol_requerido => 'Administrador Global'
     );
     exit;
@@ -43,45 +45,51 @@ print $q->header(
     -cache_control => 'no-store, no-cache, must-revalidate, max-age=0',
     -pragma => 'no-cache'
 );
+
 render_header(
     usuario     => $usuario, 
     role        => $role, 
-    titulo      => "Backup & Restore",
+    titulo      => "Backup & Restore | OSPulso",
     ruta_logout => '../auth/cerrar_sesion.pl',
     skip_header => 1
 );
+
+utils::sub_sidebar::render_sidebar(role => $role, usuario => $usuario, pagina_actual => 'cat_backups');
 
 my $backups_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat', 'backups');
 my @backups = ();
 if (-d $backups_dir) {
     my $now = time;
-    opendir(my $dh, $backups_dir);
-    my @all_files = readdir($dh);
-    closedir($dh);
+    if (opendir(my $dh, $backups_dir)) {
+        my @all_files = readdir($dh);
+        closedir($dh);
 
-    foreach my $f (@all_files) {
-        next unless $f =~ /\.zip$/;
-        # Purga de respaldos automáticos con permanencia mayor a 3 días (3 * 86400 = 259,200 segundos)
-        if ($f =~ /^auto_backup_ospulso_/) {
-            my $fp = File::Spec->catfile($backups_dir, $f);
-            my $mtime = (stat($fp))[9] || 0;
-            if ($mtime > 0 && ($now - $mtime) > (3 * 86400)) {
-                unlink($fp);
-                next;
+        foreach my $f (@all_files) {
+            next unless $f =~ /\.zip$/;
+            # Purga de respaldos automáticos con permanencia mayor a 3 días (3 * 86400 = 259,200 segundos)
+            if ($f =~ /^auto_backup_ospulso_/) {
+                my $fp = File::Spec->catfile($backups_dir, $f);
+                my $mtime = (stat($fp))[9] || 0;
+                if ($mtime > 0 && ($now - $mtime) > (3 * 86400)) {
+                    unlink($fp);
+                    next;
+                }
             }
+            push @backups, $f;
         }
-        push @backups, $f;
     }
 }
-sub get_backup_timestamp {
+
+my $get_backup_timestamp = sub {
     my ($file) = @_;
     if ($file =~ /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})\.zip$/) {
         return "$1$2$3$4$5$6";
     }
     my $path = File::Spec->catfile($backups_dir, $file);
     return (stat($path))[9] || 0;
-}
-@backups = sort { get_backup_timestamp($b) cmp get_backup_timestamp($a) } @backups;
+};
+
+@backups = sort { $get_backup_timestamp->($b) cmp $get_backup_timestamp->($a) } @backups;
 
 my $filas_backups = "";
 my $latest_fecha = "";
@@ -139,20 +147,24 @@ my $debug_info_json = encode_json({
     hora_ultimo          => $latest_hora || 'N/A'
 });
 
+# Escapar comillas dobles para inyección segura como atributo data-*
+my $debug_attr = $debug_info_json;
+$debug_attr =~ s/"/&quot;/g;
+
 print <<HTML;
-<div class="container mt-4 mb-5 pb-5 animate__animated animate__fadeIn">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="container-fluid px-4 py-4 animate__animated animate__fadeIn" id="backupConfigContainer" data-debug="$debug_attr">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div class="d-flex align-items-center">
             <a href="administracion_catalogo.pl" class="btn btn-outline-secondary rounded-circle me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
                 <i class="bi bi-arrow-left"></i>
             </a>
             <div>
-                <h3 class="fw-bold m-0"><i class="bi bi-hdd-network-fill text-primary me-2"></i>Backup & Restore</h3>
-                <p class="text-muted small mb-0">Gestión de respaldos del sistema.</p>
+                <h3 class="fw-bold m-0 text-navy"><i class="bi bi-hdd-network-fill text-primary me-2"></i>Backup & Restore</h3>
+                <p class="text-muted small mb-0">Gestión de respaldos integrales y programación automática del sistema.</p>
             </div>
         </div>
-        <div>
-            <button type="button" class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm me-2" onclick="openCronModal()">
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm" onclick="openCronModal()">
                 <i class="bi bi-clock-history me-2"></i>Programar
             </button>
             <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="createBackup()">
@@ -161,9 +173,9 @@ print <<HTML;
         </div>
     </div>
     
-    <div class="card card-medentia-aura border-0 shadow-sm rounded-4 p-4 mt-4">
+    <div class="card card-medentia-aura border-0 shadow-sm rounded-4 p-4">
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
+            <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th>Nombre del Respaldo</th>
@@ -224,17 +236,26 @@ print <<HTML;
 </div>
 HTML
 
-print <<"JS";
+utils::sub_sidebar::render_sidebar_footer();
+
+print <<'JS';
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const DEBUG_BACKUP_STATE = $debug_info_json;
-    
     document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('backupConfigContainer');
+        let debugState = {};
+        if (container && container.dataset && container.dataset.debug) {
+            try {
+                debugState = JSON.parse(container.dataset.debug);
+            } catch(e) {
+                console.warn("[DEBUG OSPulso Backup] No se pudo parsear dataset.debug", e);
+            }
+        }
         console.log("[DEBUG OSPulso Backup] Acceso a la vista admin_backups.pl");
         console.log("[DEBUG OSPulso Backup] auto_backup_en_carga: 0");
-        console.log("[DEBUG OSPulso Backup] Último respaldo registrado:", DEBUG_BACKUP_STATE.ultimo_respaldo);
-        console.log("[DEBUG OSPulso Backup] Fecha de creación:", DEBUG_BACKUP_STATE.fecha_ultimo + " " + DEBUG_BACKUP_STATE.hora_ultimo);
-        console.log("[DEBUG OSPulso Backup] Estado general:", DEBUG_BACKUP_STATE);
+        console.log("[DEBUG OSPulso Backup] Último respaldo registrado:", debugState.ultimo_respaldo);
+        console.log("[DEBUG OSPulso Backup] Fecha de creación:", (debugState.fecha_ultimo || "") + " " + (debugState.hora_ultimo || ""));
+        console.log("[DEBUG OSPulso Backup] Estado general:", debugState);
 
         const cronEl = document.getElementById('cronEnabled');
         if (cronEl) {
@@ -409,6 +430,11 @@ print <<"JS";
 </script>
 JS
 
-render_footer();
 render_bottom_nav('ajustes');
+
+print <<'HTML';
+</body>
+</html>
+HTML
+
 1;

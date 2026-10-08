@@ -74,7 +74,15 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   3. Formas de pago: Efectivo, Tarjeta y Transferencia; modalidad de Liquidación completa o Abono parcial.
   4. Persistencia e integridad: emite folios privados consecutivos e inscribe cargos y abonos en `dat/folios_recibos_privados.dat` y `dat/estado_cuenta.dat` a través de `api/guardar_recibo_rapido.pl`, con enlace para impresión inmediata mediante `api/imprimir_recibo_caja_consultorio.pl`.
 
-### 2.6 Mapa de Módulos del Sistema
+### 2.6 Respaldo y Recuperación Integral (`views/admin_backups.pl`, `api/backup_db_api.pl`, `api/restore_db_api.pl`)
+- Módulo administrativo exclusivo para **Administrador Global** encargado del ciclo de vida y seguridad de datos de la plataforma SaaS.
+- **Funcionalidades Clave**:
+  1. **Generación Manual Inmediata**: Creación de empaquetados `.zip` atómicos de toda la base de datos plana (`dat/`) y archivos adjuntos (`uploads/`), excluyendo subdirectorios de backups anteriores y migraciones para evitar duplicidad de tamaño.
+  2. **Programación Automática (Cron)**: Configuración configurable de días y horarios de ejecución automática con retención y purga rotativa de 3 días (`api/save_cron_backup_config_api.pl` y `api/get_cron_backup_config_api.pl`).
+  3. **Restauración y Eliminación Controlada**: Despliegue de confirmaciones destructivas SweetAlert2 antes de aplicar restauraciones o purgas manuales de respaldos históricos en `dat/backups/`.
+  4. **Gobernanza RBAC y UI Estándar**: Integración con el layout unificado de OSPulso (`utils/sub_sidebar.pl`, `utils/sub_bottom_nav.pl`) y protección estricta con fallback amigable mediante `utils/sub_acceso_denegado.pl`.
+
+### 2.7 Mapa de Módulos del Sistema
 - **Dashboard / Inicial**: `views/inicial.pl`, `views/render_dashboard_principal.pl`.
 - **Caja Rápida (Pública/Hospitalaria)**: `views/generar_recibo.pl`.
 - **Caja Consultorio (Privada/Punto de Venta)**: `views/caja_consultorio.pl`.
@@ -83,4 +91,5 @@ Este documento agrupa la especificación de los módulos complementarios y espec
 - **Visor Médico / PACS**: `views/render_visor_medico.pl`.
 - **Finanzas**: `views/finanzas.pl`, `views/estado_cuenta.pl`.
 - **Reset Operativo**: `views/admin_organizacion_reset.pl`.
+- **Backup & Restore**: `views/admin_backups.pl`.
 
