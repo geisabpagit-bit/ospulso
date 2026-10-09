@@ -54,7 +54,7 @@ if (-e $archivo_config && open my $fh_c, '<:encoding(UTF-8)', $archivo_config) {
 }
 my $es_consultorio_ind = ($tipo_organizacion eq 'Consultorio Individual') ? 1 : 0;
 my $es_consultorio = ($tipo_organizacion eq 'Consultorio Individual' || $tipo_organizacion eq 'Consultorio Compartido') ? 1 : 0;
-my $btn_cobrar_recepcion_html = $es_consultorio ? '' : qq{<button type="button" id="btn-cobrar-recepcion" onclick="cobrarRecepcionModal()" class="btn btn-warning text-dark fw-bold d-none px-4 order-2 order-md-3 rounded-pill" style="background: linear-gradient(135deg, #f59e0b, #d97706); border:none;"><i class="bi bi-cash-coin me-1"></i> COBRAR EN RECEPCI\xD3N</button>};
+my $btn_cobrar_recepcion_html = $es_consultorio ? '' : qq{<button type="button" id="btn-cobrar-recepcion" onclick="cobrarRecepcionModal()" class="btn btn-amber btn-compact d-none"><i class="bi bi-cash-coin me-1"></i> Cobrar en Recepción</button>};
 
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
@@ -116,7 +116,7 @@ print <<HTML;
     <!-- DataTables CSS Core (Carga Paralela) -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
-    <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.3.0">
+    <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.3.1">
 HTML
 
 utils::sub_sidebar::render_sidebar(
@@ -259,21 +259,25 @@ print <<HTML;
         </main>
     </div>
 
-    <!-- MODAL CITAS (Aura Premium & Z-Index Guard) -->
+    <!-- MODAL CITAS (Diseño Clínico Minimalista Teal - Zero Scroll & Ajuste Perfecto) -->
     <div class="modal fade modal-diamond" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 1040px;">
             <div class="modal-content">
                 
-                <!-- Cabecera manual -->
-                <div class="modal-header">
-                    <h5 class="modal-title d-flex align-items-center">
-                        <i class="bi bi-calendar-check me-2" style="color: #00C4C4 !important;"></i> 
-                        <span id="modalCitaTitle">GESTIÓN DE CITA</span>
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <!-- Cabecera Minimalista -->
+                <div class="modal-header d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(25, 183, 165, 0.1); color: var(--md-teal-clinical, #19B7A5);">
+                            <i class="bi bi-calendar2-check" style="font-size: 1rem;"></i>
+                        </div>
+                        <h5 class="modal-title m-0" style="font-size: 0.95rem; font-weight: 600; color: #0f172a; letter-spacing: -0.2px;">
+                            <span id="modalCitaTitle">GESTIÓN DE CITA</span>
+                        </h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.75rem;"></button>
                 </div>
                 
-                <div class="modal-body p-3 p-md-4">
+                <div class="modal-body">
                     <form id="formCita">
                         <input type="hidden" name="id_cita" id="f_id_cita">
                         <input type="hidden" name="id_paciente" id="f_id_paciente">
@@ -281,110 +285,126 @@ print <<HTML;
                         <input type="hidden" name="hora_ini" id="f_hi">
                         <input type="hidden" name="hora_fin" id="f_hf">
 
-                        <div class="row g-3">
-                            <!-- Primera Fila -->
-                            <div class="col-md-3">
-                                <div class="form-floating floating-label-premium position-relative">
-                                    <input type="text" id="f_paciente" class="form-control pe-4" placeholder="Buscar paciente..." required>
-                                    <label for="f_paciente">PACIENTE <span class="fw-normal text-lowercase">(auto)</span></label>
-                                    <i class="bi bi-search position-absolute end-0 translate-middle-y me-3 text-muted" style="top: 50%;"></i>
+                        <div class="row g-3 align-items-stretch">
+                            <!-- PANEL IZQUIERDO: FORMULARIO PRINCIPAL (7 COLS) -->
+                            <div class="col-lg-7 d-flex flex-column justify-content-between">
+                                <div class="row g-2">
+                                    <!-- Fila 1: Paciente y Fecha -->
+                                    <div class="col-md-6">
+                                        <label class="form-label-compact" for="f_paciente">Paciente <span class="text-muted fw-normal">(búsqueda automática)</span></label>
+                                        <div class="position-relative">
+                                            <input type="text" id="f_paciente" class="form-control form-control-compact pe-4" placeholder="Nombre del paciente..." required>
+                                            <i class="bi bi-search position-absolute end-0 top-50 translate-middle-y me-2.5 text-muted" style="font-size: 0.8rem;"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-compact" for="f_fecha">Fecha de la Cita</label>
+                                        <input type="date" name="fecha" id="f_fecha" class="form-control form-control-compact" onchange="renderSlots(this.value)">
+                                    </div>
+
+                                    <!-- Fila 2: Motivo y Profesional -->
+                                    <div class="col-md-6">
+                                        <label class="form-label-compact" for="f_motivo">Motivo / Observaciones <span class="text-danger">*</span></label>
+                                        <input type="text" name="motivo" id="f_motivo" class="form-control form-control-compact" placeholder="Detalles de la cita..." required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-compact" for="f_medico_select">Profesional Asignado</label>
+                                        <select name="id_medico" id="f_medico_select" class="form-select form-control-compact" onchange="actualizarAgendaDestino()">
+                                            $html_medicos
+                                        </select>
+                                    </div>
+
+                                    <!-- Fila 3: Sucursal y Lugar/Consultorio -->
+                                    <div class="col-md-6">
+                                        <label class="form-label-compact" for="f_sucursal">Sucursal</label>
+                                        <select name="sucursal" id="f_sucursal" class="form-select form-control-compact">
+                                            $html_sucursal
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-compact" for="f_consultorio">Lugar / Consultorio</label>
+                                        <select name="consultorio" id="f_consultorio" class="form-select form-control-compact">
+                                            <option value="Virtual">Cargando...</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Fila 4: Estado y Prioridad -->
+                                    <div class="col-md-6">
+                                        <label class="form-label-compact" for="f_estado">Estado</label>
+                                        <select name="estado" id="f_estado" class="form-select form-control-compact">
+                                            <option value="Programada">Programada</option>
+                                            <option value="Confirmada">Confirmada</option>
+                                            <option value="En Sala de Espera">En Sala de Espera</option>
+                                            <option value="Consulta en proceso">Consulta en proceso</option>
+                                            <option value="En consulta">En consulta</option>
+                                            <option value="Atendida">Atendida</option>
+                                            <option value="No realizada">No realizada</option>
+                                            <option value="Cancelada">Cancelada</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-compact" for="f_prioridad">Prioridad</label>
+                                        <select name="prioridad" id="f_prioridad" class="form-select form-control-compact">
+                                            <option value="Baja">Baja</option>
+                                            <option value="Normal" selected>Normal</option>
+                                            <option value="Alta">Alta</option>
+                                            <option value="Urgente">Urgente</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-floating floating-label-premium">
-                                    <input type="date" name="fecha" id="f_fecha" class="form-control" placeholder="Fecha" onchange="renderSlots(this.value)">
-                                    <label for="f_fecha">FECHA DE LA CITA</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-floating floating-label-premium">
-                                    <input type="text" name="motivo" id="f_motivo" class="form-control" placeholder="Detalles de la cita..." required>
-                                    <label for="f_motivo">MOTIVO / OBSERVACIONES <span class="text-danger">*</span></label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-floating floating-label-premium">
-                                    <select name="id_medico" id="f_medico_select" class="form-select fw-bold" onchange="actualizarAgendaDestino()">
-                                        $html_medicos
-                                    </select>
-                                    <label for="f_medico_select">PROFESIONAL</label>
+
+                                <!-- Leyenda de Cita Pagada en Recepción si aplica -->
+                                <div id="leyenda-cita-pagada" class="badge text-success px-3 py-2 rounded-2 d-none mt-2 text-start" style="font-size: 0.8rem; font-weight: 500; background-color: #f0fdf4; border: 1px solid #bbf7d0;">
+                                    <i class="bi bi-check-circle-fill me-1 text-success"></i> Consulta Pagada en Recepción
                                 </div>
                             </div>
 
-                            <!-- Segunda Fila -->
-                            <div class="col-md-3">
-                                <div class="form-floating floating-label-premium">
-                                    <select name="sucursal" id="f_sucursal" class="form-select fw-bold">
-                                        $html_sucursal
-                                    </select>
-                                    <label for="f_sucursal">SUCURSAL</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-floating floating-label-premium">
-                                    <select name="consultorio" id="f_consultorio" class="form-select fw-bold">
-                                        <option value="Virtual">Cargando...</option>
-                                    </select>
-                                    <label for="f_consultorio">LUGAR</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-floating floating-label-premium">
-                                    <select name="estado" id="f_estado" class="form-select fw-bold">
-                                        <option value="Programada">Programada</option>
-                                        <option value="Confirmada">Confirmada</option>
-                                        <option value="En Sala de Espera">En Sala de Espera</option>
-                                        <option value="Consulta en proceso">Consulta en proceso</option>
-                                        <option value="En consulta">En consulta</option>
-                                        <option value="Atendida">Atendida</option>
-                                        <option value="No realizada">No realizada</option>
-                                        <option value="Cancelada">Cancelada</option>
-                                    </select>
-                                    <label for="f_estado">ESTADO</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-floating floating-label-premium">
-                                    <select name="prioridad" id="f_prioridad" class="form-select fw-bold">
-                                        <option value="Baja">Baja</option>
-                                        <option value="Normal" selected>Normal</option>
-                                        <option value="Alta">Alta</option>
-                                        <option value="Urgente">Urgente</option>
-                                    </select>
-                                    <label for="f_prioridad">PRIORIDAD</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row g-4 mt-1">
-                            <div class="col-md-12 p-3" style="background-color: var(--md-white-clinical); border-radius: 1rem; border: 1px solid var(--md-gray-soft);">
-                                <div class="row">
-                                    <div class="col-md-3 border-bottom border-md-0 pb-3 pb-md-0 mb-3 mb-md-0 pe-md-3 border-md-end-soft">
-                                        <label class="small fw-bold text-muted mb-3 d-block text-uppercase" style="letter-spacing: 1px;">Duración</label>
-                                        <div class="d-flex flex-row flex-md-column flex-wrap gap-2 dur-bar-premium" id="btn-group-duracion">
+                            <!-- PANEL DERECHO: DURACIÓN Y SLOTS DE HORARIOS (5 COLS) -->
+                            <div class="col-lg-5">
+                                <div class="h-100 d-flex flex-column p-2.5 rounded-3" style="background-color: #f8fafc; border: 1px solid rgba(25, 183, 165, 0.28);">
+                                    <!-- Selector de Duración -->
+                                    <div class="mb-2">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label class="form-label-compact m-0">Duración Estimada</label>
+                                            <span class="text-muted" style="font-size: 0.68rem;">Tiempo de atención</span>
+                                        </div>
+                                        <div class="d-flex gap-1.5 dur-bar-premium w-100" id="btn-group-duracion">
                                             <!-- Generado dinámicamente por JS -->
                                         </div>
                                     </div>
-                                    <div class="col-md-9 d-flex flex-column ps-md-3">
-                                        <label class="small fw-bold text-muted mb-3 d-block text-uppercase" style="letter-spacing: 1px;">Horarios Disponibles</label>
-                                        <div id="slots-container" class="slot-grid-compact w-100 flex-grow-1" style="min-height: 200px; max-height: 250px; overflow-y: auto;"></div>
+
+                                    <!-- Horarios Disponibles -->
+                                    <div class="d-flex flex-column flex-grow-1">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label class="form-label-compact m-0">Horarios Disponibles</label>
+                                            <span class="text-muted" style="font-size: 0.68rem;"><i class="bi bi-clock me-1"></i>Bloque asignado</span>
+                                        </div>
+                                        <div id="slots-container" class="slot-grid-compact flex-grow-1" style="height: 185px; max-height: 195px; overflow-y: auto;">
+                                            <!-- Generado dinámicamente por JS -->
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <hr class="opacity-10 my-4" style="border-color: rgba(59, 130, 246, 0.2);">
-
-                        <!-- Acciones Principales -->
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 mt-4">
-                            <div id="leyenda-cita-pagada" class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2.5 rounded-pill fw-bold d-none my-1" style="font-size: 0.85rem; background-color: #dcfce7 !important; color: #15803d !important; border-color: #86efac !important;">
-                                <i class="bi bi-check-circle-fill me-1 text-success"></i> Consulta Pagada en Recepción
+                        <!-- ACCIONES / FOOTER -->
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 pt-2.5 mt-2.5" style="border-top: 1px solid rgba(25, 183, 165, 0.2);">
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger btn-compact d-none">
+                                    <i class="bi bi-trash3 me-1"></i>Eliminar Cita
+                                </button>
                             </div>
-                            <div class="d-flex flex-column flex-md-row justify-content-end gap-2 ms-auto w-100 w-md-auto">
-                                <button type="button" id="btn-del-cita" onclick="delCita()" class="btn btn-outline-danger fw-bold d-none px-4 order-3 order-md-1 rounded-pill">ELIMINAR CITA</button>
-                                <button type="button" onclick="saveCita()" class="btn btn-premium-primary fw-bold px-4 order-1 order-md-2"><i class="bi bi-save me-1"></i> GUARDAR CITA</button>
+                            <div class="d-flex align-items-center gap-2 ms-auto">
+                                <button type="button" class="btn btn-light btn-compact border" data-bs-dismiss="modal">
+                                    Cancelar
+                                </button>
                                 $btn_cobrar_recepcion_html
-                                <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-success fw-bold d-none px-4 order-2 order-md-4 rounded-pill" style="background: linear-gradient(135deg, #10b981, #059669); border:none;"><i class="bi bi-person-check me-1"></i> TOMAR CITA</button>
+                                <button type="button" id="btn-tomar-cita" onclick="tomarCitaModal()" class="btn btn-emerald btn-compact d-none">
+                                    <i class="bi bi-person-check me-1"></i>Tomar Cita
+                                </button>
+                                <button type="button" onclick="saveCita()" class="btn btn-teal-primary btn-compact">
+                                    <i class="bi bi-check2-circle me-1"></i>Guardar Cita
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -512,7 +532,7 @@ print <<HTML;
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/agenda_spa_new.js?v=20261008_1840"></script>
+    <script src="../js/agenda_spa_new.js?v=20261008_1955"></script>
 HTML
 
 print <<'JS';

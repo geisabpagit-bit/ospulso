@@ -1064,90 +1064,199 @@ nav.navbar.sticky-top {
     box-shadow: 0 10px 20px rgba(10, 42, 102, 0.2) !important;
 }
 
-/* 7. Estilos de Modal de Cita Migrados (de render_consultas_privado.pl) */
+/* 7. Estilos de Modal de Cita (Diseño Minimalista Clínico Teal - Sin Gradientes ni Negritas) */
 .ui-autocomplete { 
     z-index: 106000 !important; 
 }
-.floating-label-premium label { 
-    font-size: 0.65rem !important; 
-    text-transform: uppercase; 
-    color: #64748b; 
-    font-weight: 700; 
-    padding: 1rem 0.75rem; 
+
+/* Modal Cita Card & Layout */
+#modalCita .modal-content {
+    border: 1px solid rgba(25, 183, 165, 0.35) !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+    box-shadow: 0 15px 35px rgba(10, 42, 102, 0.08) !important;
+    overflow: hidden;
 }
-.floating-label-premium .form-control, 
-.floating-label-premium .form-select { 
-    border-radius: 1rem; 
-    background-color: #f8fafc; 
-    border: 1px solid transparent; 
-    transition: all 0.2s; 
-    box-shadow: none; 
+
+#modalCita .modal-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid rgba(25, 183, 165, 0.2) !important;
+    padding: 0.75rem 1.25rem !important;
 }
-.floating-label-premium .form-control:focus, 
-.floating-label-premium .form-select:focus { 
-    background-color: #ffffff; 
-    border-color: rgba(59, 130, 246, 0.4); 
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); 
+
+#modalCita .modal-body {
+    background: #ffffff !important;
+    padding: 0.95rem 1.25rem !important;
 }
+
+/* Etiquetas y Controles Compactos (Zero Scroll) */
+.form-label-compact {
+    font-size: 0.68rem !important;
+    font-weight: 500 !important;
+    color: #475569 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4px !important;
+    margin-bottom: 0.22rem !important;
+    display: block !important;
+}
+
+.form-control-compact {
+    height: 36px !important;
+    font-size: 0.82rem !important;
+    font-weight: 400 !important;
+    border-radius: 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    padding: 0.3rem 0.65rem !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.form-control-compact:focus {
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+    box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.12) !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+}
+
+/* Botones Compactos y Planos */
+.btn-compact {
+    font-size: 0.80rem !important;
+    font-weight: 500 !important;
+    padding: 0.4rem 0.95rem !important;
+    border-radius: 8px !important;
+    transition: all 0.15s ease !important;
+    text-decoration: none !important;
+}
+
+.btn-teal-primary {
+    background-color: var(--md-teal-clinical, #19B7A5) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--md-teal-clinical, #19B7A5) !important;
+}
+.btn-teal-primary:hover {
+    background-color: #149c8c !important;
+    border-color: #149c8c !important;
+    color: #ffffff !important;
+}
+
+.btn-amber {
+    background-color: #f59e0b !important;
+    color: #1e293b !important;
+    border: 1px solid #d97706 !important;
+}
+.btn-amber:hover {
+    background-color: #d97706 !important;
+    color: #ffffff !important;
+}
+
+.btn-emerald {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+    border: 1px solid #10b981 !important;
+}
+.btn-emerald:hover {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+    color: #ffffff !important;
+}
+
+/* Barra de Duración Plana */
 .dur-bar-premium .btn { 
-    border-radius: 12px !important; 
+    flex: 1;
+    border-radius: 8px !important; 
     margin: 0; 
-    border: 1px solid rgba(59, 130, 246, 0.2) !important; 
-    background-color: #ffffff; 
-    color: #64748b; 
-    font-weight: 600; 
-    font-size: 0.85rem; 
-    padding: 10px 0; 
-    transition: all 0.2s; 
+    border: 1px solid rgba(25, 183, 165, 0.25) !important; 
+    background-color: #ffffff !important; 
+    color: #475569 !important; 
+    font-weight: 500 !important; 
+    font-size: 0.78rem !important; 
+    padding: 6px 0 !important; 
+    transition: all 0.15s ease !important; 
 }
 .dur-bar-premium .btn.active { 
-    background-color: var(--md-blue-medical) !important; 
+    background-color: var(--md-teal-clinical, #19B7A5) !important; 
     color: #ffffff !important; 
-    border-color: var(--md-blue-medical) !important; 
-    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); 
-    transform: scale(1.05); 
-    z-index: 2; 
+    border-color: var(--md-teal-clinical, #19B7A5) !important; 
+    box-shadow: none !important; 
+    transform: none !important; 
 }
 .dur-bar-premium .btn:hover:not(.active) { 
-    background-color: #f0f7ff; 
-    color: #1e293b; 
+    background-color: #f0fdfa !important; 
+    color: #0f766e !important; 
 }
+
+/* Grilla Compacta de Horarios */
 #modalCita .slot-grid-compact { 
     display: grid !important; 
-    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; 
-    gap: 10px !important; 
-    padding: 12px !important; 
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)) !important; 
+    gap: 6px !important; 
+    padding: 4px !important; 
 }
 #modalCita .btn-slot { 
-    font-size: 0.70rem !important; 
-    padding: 6px 0 !important; 
-    border-radius: 8px !important; 
-    background-color: #dcfce7 !important; 
-    color: #166534 !important; 
-    border: 1px solid #bbf7d0 !important; 
-    font-weight: 700; 
+    font-size: 0.72rem !important; 
+    padding: 5px 0 !important; 
+    border-radius: 6px !important; 
+    background-color: #f0fdfa !important; 
+    color: #0f766e !important; 
+    border: 1px solid rgba(25, 183, 165, 0.28) !important; 
+    font-weight: 500 !important; 
+    transition: all 0.15s ease !important;
 }
 #modalCita .btn-slot:hover:not(:disabled) { 
-    background-color: #bbf7d0 !important; 
-    border-color: #86efac !important; 
-    transform: translateY(-2px); 
-    box-shadow: 0 4px 8px rgba(22, 101, 52, 0.15); 
+    background-color: #ccfbf1 !important; 
+    border-color: var(--md-teal-clinical, #19B7A5) !important; 
+    transform: none !important; 
+    box-shadow: none !important; 
 }
 #modalCita .btn-slot.active { 
-    background-color: #16a34a !important; 
+    background-color: var(--md-teal-clinical, #19B7A5) !important; 
     color: #ffffff !important; 
-    border-color: #15803d !important; 
-    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); 
+    border-color: var(--md-teal-clinical, #19B7A5) !important; 
+    box-shadow: none !important; 
 }
 #modalCita .slot-lunch { 
-    background-color: #fee2e2 !important; 
+    background-color: #fef2f2 !important; 
     color: #991b1b !important; 
     border-color: #fecaca !important; 
 }
 #modalCita .slot-busy { 
-    background-color: #fef9c3 !important; 
+    background-color: #fefce8 !important; 
     color: #854d0e !important; 
-    border-color: #fde047 !important; 
+    border-color: #fef08a !important; 
+}
+
+/* Scrollbar Sutil de Horarios */
+#slots-container::-webkit-scrollbar {
+    width: 4px;
+}
+#slots-container::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 4px;
+}
+#slots-container::-webkit-scrollbar-thumb {
+    background: rgba(25, 183, 165, 0.35);
+    border-radius: 4px;
+}
+#slots-container::-webkit-scrollbar-thumb:hover {
+    background: var(--md-teal-clinical, #19B7A5);
+}
+
+/* Compatibilidad Retroactiva */
+.floating-label-premium label { 
+    font-size: 0.65rem !important; 
+    text-transform: uppercase; 
+    color: #64748b; 
+    font-weight: 600; 
+    padding: 1rem 0.75rem; 
+}
+.floating-label-premium .form-control, 
+.floating-label-premium .form-select { 
+    border-radius: 0.75rem; 
+    background-color: #f8fafc; 
+    border: 1px solid #e2e8f0; 
+    transition: all 0.2s; 
+    box-shadow: none; 
 }
 @media (min-width: 768px) {
     .border-md-end-soft { 
