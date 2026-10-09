@@ -116,7 +116,7 @@ print <<HTML;
     <!-- DataTables CSS Core (Carga Paralela) -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
-    <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.3.1">
+    <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.3.2">
 HTML
 
 utils::sub_sidebar::render_sidebar(
@@ -264,17 +264,17 @@ print <<HTML;
         <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 1040px;">
             <div class="modal-content">
                 
-                <!-- Cabecera Minimalista -->
-                <div class="modal-header d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(25, 183, 165, 0.1); color: var(--md-teal-clinical, #19B7A5);">
-                            <i class="bi bi-calendar2-check" style="font-size: 1rem;"></i>
+                <!-- Cabecera Corporativa Azul Marino -->
+                <div class="modal-header d-flex align-items-center justify-content-between" style="background-color: var(--md-blue-deep, #0A2A66) !important; border-bottom: 2px solid var(--md-teal-clinical, #19B7A5) !important; padding: 0.75rem 1.25rem !important;">
+                    <div class="d-flex align-items-center gap-2.5">
+                        <div class="modal-header-icon rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff;">
+                            <i class="bi bi-calendar2-check text-white" style="font-size: 1rem;"></i>
                         </div>
-                        <h5 class="modal-title m-0" style="font-size: 0.95rem; font-weight: 600; color: #0f172a; letter-spacing: -0.2px;">
-                            <span id="modalCitaTitle">GESTIÓN DE CITA</span>
+                        <h5 class="modal-title m-0 text-white" style="font-size: 0.95rem; font-weight: 500; letter-spacing: 0.3px;">
+                            <span id="modalCitaTitle" class="text-white">GESTIÓN DE CITA</span>
                         </h5>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.75rem;"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.75rem; opacity: 0.9;"></button>
                 </div>
                 
                 <div class="modal-body">

@@ -1079,9 +1079,32 @@ nav.navbar.sticky-top {
 }
 
 #modalCita .modal-header {
-    background: #ffffff !important;
-    border-bottom: 1px solid rgba(25, 183, 165, 0.2) !important;
+    background-color: var(--md-blue-deep, #0A2A66) !important;
+    border-bottom: 2px solid var(--md-teal-clinical, #19B7A5) !important;
     padding: 0.75rem 1.25rem !important;
+    color: #ffffff !important;
+}
+
+#modalCita .modal-header .modal-title,
+#modalCita .modal-header #modalCitaTitle {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+
+#modalCita .modal-header .modal-header-icon {
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+}
+
+#modalCita .modal-header .modal-header-icon i,
+#modalCita .modal-header i {
+    color: #ffffff !important;
+}
+
+#modalCita .modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%) !important;
+    opacity: 0.85 !important;
 }
 
 #modalCita .modal-body {
@@ -1089,7 +1112,8 @@ nav.navbar.sticky-top {
     padding: 0.95rem 1.25rem !important;
 }
 
-/* Etiquetas y Controles Compactos (Zero Scroll) */
+/* Etiquetas y Controles Sin Corte Visual (Zero Clipping & Zero Scroll) */
+#modalCita .form-label-compact,
 .form-label-compact {
     font-size: 0.68rem !important;
     font-weight: 500 !important;
@@ -1100,21 +1124,39 @@ nav.navbar.sticky-top {
     display: block !important;
 }
 
+#modalCita .form-control,
+#modalCita .form-select,
+#modalCita .form-control-compact,
 .form-control-compact {
-    height: 36px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
     font-size: 0.82rem !important;
     font-weight: 400 !important;
+    line-height: 1.4 !important;
     border-radius: 8px !important;
     border: 1px solid #cbd5e1 !important;
     background-color: #ffffff !important;
     color: #0f172a !important;
-    padding: 0.3rem 0.65rem !important;
+    padding: 6px 10px !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
     transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
+#modalCita .form-select,
+.form-select.form-control-compact {
+    padding-right: 32px !important;
+    background-position: right 0.75rem center !important;
+    background-size: 14px 10px !important;
+}
+
+#modalCita .form-control:focus,
+#modalCita .form-select:focus,
+#modalCita .form-control-compact:focus,
 .form-control-compact:focus {
     border-color: var(--md-teal-clinical, #19B7A5) !important;
-    box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.12) !important;
+    box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.14) !important;
     background-color: #ffffff !important;
     outline: none !important;
 }

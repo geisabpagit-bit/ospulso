@@ -221,7 +221,7 @@ sub render_header {
     
     <!-- OSPulso Design System -->
     <link rel="stylesheet" href="../css/ospulso_master.css">
-    <link rel="stylesheet" href="../css/ospulso_master_v2.css">
+    <link rel="stylesheet" href="../css/ospulso_master_v2.css?v=$^T">
     <link rel="stylesheet" href="../css/theme_acrilico.css">
     <link rel="stylesheet" href="../css/sdm_mobile_standards.css">
     <link rel="stylesheet" href="../css/sub_sidebar.css?v=$^T">
