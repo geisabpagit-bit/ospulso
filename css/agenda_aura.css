@@ -183,7 +183,7 @@ body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
 
 /* Fix jQuery UI Autocomplete z-index for Bootstrap Modals */
 .ui-autocomplete {
-    z-index: 9999 !important; /* Bootstrap modals are 1050/1055 */
+    z-index: 106000 !important; /* Elevado sobre modal (105150) y dialog (105160) */
     max-height: 250px;
     overflow-y: auto;
     overflow-x: hidden;

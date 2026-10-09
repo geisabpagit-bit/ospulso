@@ -897,6 +897,10 @@ nav.navbar.sticky-top {
     z-index: 105160 !important;
 }
 
+.ui-autocomplete {
+    z-index: 106000 !important;
+}
+
 /* 2. Odontograma Toolbar & Impresión (de render_expediente_clinico.pl) */
 #odontograma-toolbar .btn {
     border-radius: 24px;
@@ -1062,7 +1066,7 @@ nav.navbar.sticky-top {
 
 /* 7. Estilos de Modal de Cita Migrados (de render_consultas_privado.pl) */
 .ui-autocomplete { 
-    z-index: 105001 !important; 
+    z-index: 106000 !important; 
 }
 .floating-label-premium label { 
     font-size: 0.65rem !important; 

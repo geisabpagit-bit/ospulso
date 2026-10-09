@@ -312,6 +312,7 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - Para erradicar solapamientos y trampas de apilamiento entre barras superiores fijas (`.sdm-navbar`, `sticky-top`), overlays laterales (`.sidebar-overlay`), modales, telones (`.modal-backdrop`) y alertas de confirmación, la escala oficial se define canónicamente:
      * **Alertas y Diálogos de Confirmación (`.swal2-container`, `Swal.fire`)**: `z-index: 110000 !important;` (Cota máxima del sistema para garantizar visibilidad sobre cualquier nivel de modales anidados)
      * **Modales Anidados de Sub-procesos (`#modalNuevaCot`, `#modalCotizaciones`)**: `z-index: 107000 - 108000 !important;`
+     * **Desplegables / Autocomplete sobre Modales (`.ui-autocomplete`)**: `z-index: 106000 !important;` (Garantiza visibilidad sobre modales activos `105150` y diálogos `105160`)
      * **Modales y Diálogos Activos (`.modal`, `.modal.show`, `#expedienteModal`, `.dispatch-progress-modal`)**: `z-index: 105150 !important;` (Diálogos: `105160 !important;`)
      * **Telones de fondo (`.modal-backdrop`, `.modal-backdrop.show`, `.modal-backdrop.fade.show`)**: `z-index: 105000 !important;`
      * **Overlays de Menú Lateral Móvil (`.sidebar-overlay`)**: `z-index: 10400 !important;`

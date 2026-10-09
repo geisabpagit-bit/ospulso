@@ -113,7 +113,7 @@ print <<HTML;
         window.nombrePacientePre = "$nombre_paciente_pre";
     </script>
 
-    <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.2.2">
+    <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.2.3">
 HTML
 
 utils::sub_sidebar::render_sidebar(
@@ -509,7 +509,7 @@ print <<HTML;
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/agenda_spa_new.js?v=20260928_1410"></script>
+    <script src="../js/agenda_spa_new.js?v=20261008_1840"></script>
 HTML
 
 print <<'JS';

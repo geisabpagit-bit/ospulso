@@ -499,6 +499,7 @@ $(document).ready(function() {
 function setupAutocomplete() {
     if ($.fn.autocomplete) {
         $("#f_paciente").autocomplete({
+            appendTo: "#modalCita",
             source: function(request, response) {
                 const idMed = $("#f_medico").val();
                 console.info("Autocomplete -> Buscando:", request.term, "Médico:", idMed);
@@ -523,6 +524,16 @@ function setupAutocomplete() {
                 });
             },
             minLength: 2,
+            open: function(event, ui) {
+                $(this).autocomplete('widget').css({
+                    'z-index': '106000',
+                    'max-height': '260px',
+                    'overflow-y': 'auto',
+                    'background': '#ffffff',
+                    'border-radius': '12px',
+                    'box-shadow': '0 12px 30px rgba(0,0,0,0.18)'
+                });
+            },
             select: function(event, ui) {
                 console.info("Autocomplete -> Seleccionado:", ui.item.value, "ID:", ui.item.id);
                 $("#f_id_paciente").val(ui.item.id);

@@ -477,7 +477,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .ui-autocomplete {
-    z-index: 10500 !important;
+    z-index: 106000 !important;
     border-radius: var(--radius-md) !important;
     box-shadow: var(--shadow-lg) !important;
     border: 1px solid rgba(10, 42, 102, 0.08) !important;
