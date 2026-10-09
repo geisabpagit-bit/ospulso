@@ -1,10 +1,10 @@
 /* 
-   --- SDM DIAMOND AGENDA STYLES (Diamond Excellence v4.2.0) ---
-   Archivo consolidado: Aura Legacy + CSS JS Injected + Diamond Standards
+   --- SDM DIAMOND AGENDA STYLES (Diamond Excellence v4.3.0) ---
+   Especializada de Agenda SPA - Sincronizada con ospulso_master_v2.css
 */
 
 :root {
-    --sdm-blue: #103070;
+    --sdm-blue: var(--md-blue-deep, #0A2A66);
     --sdm-accent: #3b82f6;
     --sdm-bg: #f8fafc;
     --healthcare-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
@@ -12,12 +12,6 @@
     --surface-soft: #f8fafc;
     --md-teal-clinical: #19B7A5;
 }
-
-body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
-
-/* DATA TABLES CORE CSS */
-@import url('https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css');
-@import url('https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css');
 
 .agenda-header { 
     background: rgba(255, 255, 255, 0.9); 
@@ -751,9 +745,7 @@ body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
     background: var(--sdm-blue, #0A2A66) !important; 
 }
 
-/* --- MODAL CITAS (Extraído de agenda_main.pl para CERO tags style) --- */
-.modal-backdrop.show { z-index: 105000 !important; }
-.ui-autocomplete { z-index: 106000 !important; }
+/* --- BOTONES DE ACCIÓN RÁPIDA (BENTO GRID) --- */
 .bento-action-btn { 
     background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); 
     border: 1px solid rgba(59, 130, 246, 0.3) !important; 
@@ -770,74 +762,6 @@ body { background: var(--sdm-bg); font-family: 'Inter', sans-serif; }
     background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%); 
     color: #0A2A66; 
 }
-.floating-label-premium label { 
-    font-size: 0.65rem !important; 
-    text-transform: uppercase; 
-    color: #64748b; 
-    font-weight: 700; 
-    padding: 1rem 0.75rem; 
-}
-.floating-label-premium .form-control, .floating-label-premium .form-select { 
-    border-radius: 1rem; 
-    background-color: #f8fafc; 
-    border: 1px solid transparent; 
-    transition: all 0.2s; 
-    box-shadow: none; 
-}
-.floating-label-premium .form-control:focus, .floating-label-premium .form-select:focus { 
-    background-color: #ffffff; 
-    border-color: rgba(59, 130, 246, 0.4); 
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); 
-}
-.dur-bar-premium .btn { 
-    border-radius: 12px !important; 
-    margin: 0; 
-    border: 1px solid rgba(59, 130, 246, 0.2) !important; 
-    background-color: #ffffff; 
-    color: #64748b; 
-    font-weight: 600; 
-    font-size: 0.85rem; 
-    padding: 10px 0; 
-    transition: all 0.2s; 
-}
-.dur-bar-premium .btn.active { 
-    background-color: var(--md-blue-medical, #124A9E) !important; 
-    color: #ffffff !important; 
-    border-color: var(--md-blue-medical, #124A9E) !important; 
-    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); 
-    transform: scale(1.05); 
-    z-index: 2; 
-}
-.dur-bar-premium .btn:hover:not(.active) { background-color: #f0f7ff; color: #1e293b; }
-#modalCita .slot-grid-compact { 
-    display: grid !important; 
-    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; 
-    gap: 10px !important; 
-    padding: 12px !important; 
-}
-#modalCita .btn-slot { 
-    font-size: 0.70rem !important; 
-    padding: 6px 0 !important; 
-    border-radius: 8px !important; 
-    background-color: #dcfce7 !important; 
-    color: #166534 !important; 
-    border: 1px solid #bbf7d0 !important; 
-    font-weight: 700; 
-}
-#modalCita .btn-slot:hover:not(:disabled) { 
-    background-color: #bbf7d0 !important; 
-    border-color: #86efac !important; 
-    transform: translateY(-2px); 
-    box-shadow: 0 4px 8px rgba(22, 101, 52, 0.15); 
-}
-#modalCita .btn-slot.active { 
-    background-color: #16a34a !important; 
-    color: #ffffff !important; 
-    border-color: #15803d !important; 
-    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3); 
-}
-#modalCita .slot-lunch { background-color: #fee2e2 !important; color: #991b1b !important; border-color: #fecaca !important; }
-#modalCita .slot-busy { background-color: #fef9c3 !important; color: #854d0e !important; border-color: #fde047 !important; }
 
 @media (min-width: 768px) {
     .border-md-end-soft { border-right: 1px solid var(--md-gray-soft, #D9E2EC) !important; }

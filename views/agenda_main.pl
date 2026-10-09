@@ -113,7 +113,10 @@ print <<HTML;
         window.nombrePacientePre = "$nombre_paciente_pre";
     </script>
 
-    <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.2.3">
+    <!-- DataTables CSS Core (Carga Paralela) -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.3.0">
 HTML
 
 utils::sub_sidebar::render_sidebar(

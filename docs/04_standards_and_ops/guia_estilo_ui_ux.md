@@ -156,6 +156,10 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
 
 ## 6. Estándares Visuales de la Agenda Diamond (`views/agenda_main.pl`, `css/agenda_diamond.css`)
 
+> **Arquitectura Unificada de 2 Hojas de Estilo**:
+> - **Hoja Mandante Global (`css/ospulso_master_v2.css`)**: Centraliza tokens corporativos globales, jerarquía z-index y componentes universales compartidos como `#modalCita` (formulario, `.floating-label-premium`, `.dur-bar-premium`, slots horarios y `.ui-autocomplete`), utilizables tanto en Agenda como en Consultas Privadas.
+> - **Hoja Especializada de Agenda (`css/agenda_diamond.css v4.3.0`)**: Centraliza exclusivamente el layout SPA, cabecera sticky, timeline diaria, carrusel semanal smart, vista mensual grid, mini-calendario lateral y reportes ejecutivos DataTables sin duplicidades ni @import bloqueantes.
+
 1. **Borde Teal Distintivo en Contenedores (`.agenda-side-card`)**:
    - Tarjetas laterales, mini calendario y paneles modales aplican `border: 1px solid rgba(25, 183, 165, 0.4)` con acabado glassmorphism `backdrop-filter: blur(12px)`.
 2. **Mini Calendario Lateral Dinámico**:
