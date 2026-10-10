@@ -134,7 +134,8 @@ if ($regs) {
 
 print <<HTML;
 <link rel="stylesheet" href="../css/ospulso_master_v2.css">
-<link rel="stylesheet" href="../css/tabla_pacientes.css">
+<link rel="stylesheet" href="../css/tabla_pacientes.css?v=$^T">
+<link rel="stylesheet" href="../css/sdm_mobile_standards.css?v=1.1">
 HTML
 
 utils::sub_sidebar::render_sidebar(
@@ -210,8 +211,8 @@ print <<'HTML';
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
-<!-- Modal de Resumen Blindado (Aislado de Stacking Context y con z-index 105100 superior a backdrop) -->
-<div class="modal fade modal-diamond" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 105100 !important;">
+<!-- Modal de Resumen Blindado (Aislado de Stacking Context y con z-index 105150 superior a backdrop) -->
+<div class="modal fade modal-diamond" id="expedienteModal" tabindex="-1" aria-labelledby="expedienteModalLabel" aria-hidden="true" style="z-index: 105150 !important;">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
       <div class="modal-header">
@@ -222,12 +223,7 @@ print <<'HTML';
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="if(window.cerrarModalExpediente) window.cerrarModalExpediente();"></button>
       </div>
       <div class="modal-body" id="expedienteContenido">
-         <div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
-      </div>
-      <div class="modal-footer bg-light py-2 border-0">
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal" onclick="if(window.cerrarModalExpediente) window.cerrarModalExpediente();">
-            <i class="bi bi-x-lg me-1"></i> Cerrar
-        </button>
+         <div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Cargando expediente...</div>
       </div>
     </div>
   </div>

@@ -544,12 +544,247 @@
         border-color: #e2e8f0 !important;
     }
 
-    /* 4. Despeje inferior generoso para que el boton flotante '+' del menu inferior no solape */
+    /* 4. Despeje inferior adaptado a la barra inferior anclada */
     #tablaPacientes_wrapper {
-        padding-bottom: 110px !important;
+        padding-bottom: 75px !important;
     }
     .card-mobile-flush,
     .container-mobile-flush {
-        margin-bottom: 120px !important;
+        margin-bottom: 20px !important;
+    }
+}
+
+/* ==========================================================================
+   SDM EXPEDIENTE RESUMEN MODAL (COMPACT ZERO-SCROLL BENTO EDITION)
+   ========================================================================== */
+#expedienteModal .modal-dialog {
+    max-width: 860px !important;
+    margin: 1.25rem auto !important;
+}
+
+#expedienteModal .modal-content {
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: 0 16px 40px rgba(10, 42, 102, 0.22) !important;
+    border: 1px solid rgba(25, 183, 165, 0.3) !important;
+}
+
+#expedienteModal .modal-header {
+    background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66), var(--md-blue-medical, #124A9E)) !important;
+    color: #ffffff !important;
+    border-bottom: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    padding: 10px 18px !important;
+    min-height: 48px !important;
+}
+
+#expedienteModal .modal-title {
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#expedienteModal .modal-body {
+    padding: 12px 16px !important;
+    background: #f8fbff !important;
+    overflow: hidden !important;
+}
+
+#expedienteModal .modal-footer {
+    display: none !important;
+}
+
+/* Patient info card */
+.paciente-info-bento {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%) !important;
+    border: 1px solid rgba(25, 183, 165, 0.35) !important;
+    border-radius: 12px !important;
+    padding: 6px 10px !important;
+    min-height: 44px !important;
+    box-shadow: 0 2px 8px rgba(10, 42, 102, 0.04) !important;
+}
+
+/* KPI Acrílico en Modal */
+#expedienteModal .kpi-acrilico-compact {
+    background: #ffffff !important;
+    border: 1px solid rgba(25, 183, 165, 0.25) !important;
+    border-radius: 10px !important;
+    padding: 5px 8px !important;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.04) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    min-height: 46px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+#expedienteModal .kpi-acrilico-compact:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.08) !important;
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+}
+
+/* Bento Action Buttons */
+.bento-action-btn-compact {
+    background: #ffffff !important;
+    border: 1px solid rgba(25, 183, 165, 0.28) !important;
+    border-radius: 10px !important;
+    padding: 5px 3px !important;
+    min-height: 46px !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.04) !important;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.bento-action-btn-compact:hover {
+    background: rgba(232, 243, 255, 0.95) !important;
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(25, 183, 165, 0.15) !important;
+}
+
+.bento-action-btn-compact i {
+    font-size: 1.15rem !important;
+    margin-bottom: 2px !important;
+    line-height: 1 !important;
+}
+
+.bento-action-btn-compact span {
+    font-size: 0.52rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px !important;
+    line-height: 1.1 !important;
+    text-transform: uppercase !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+}
+
+/* Consultas compact horizontal strip */
+.historial-consultas-compact {
+    display: flex !important;
+    overflow-x: auto !important;
+    gap: 8px !important;
+    padding-bottom: 2px !important;
+    scrollbar-width: thin !important;
+}
+
+.historial-consultas-compact::-webkit-scrollbar {
+    height: 3px !important;
+}
+
+.historial-consultas-compact::-webkit-scrollbar-thumb {
+    background: var(--md-teal-clinical, #19B7A5) !important;
+    border-radius: 3px !important;
+}
+
+.historial-consultas-compact .card-consulta {
+    min-width: 155px !important;
+    max-width: 190px !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(25, 183, 165, 0.35) !important;
+    border-radius: 8px !important;
+    padding: 5px 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.04) !important;
+}
+
+.historial-consultas-compact .card-consulta h6 {
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    margin-bottom: 2px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.historial-consultas-compact .card-consulta small {
+    font-size: 0.68rem !important;
+    color: #64748b !important;
+}
+
+/* Empty state compacto */
+.empty-consultas-compact {
+    background: #ffffff !important;
+    border: 1px dashed rgba(25, 183, 165, 0.4) !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-height: 36px !important;
+}
+
+/* Overrides Móviles Específicos (< 768px) */
+@media (max-width: 767.98px) {
+    #expedienteModal .modal-dialog {
+        margin: 6px !important;
+        width: calc(100% - 12px) !important;
+        max-width: 100% !important;
+    }
+    
+    #expedienteModal .modal-content {
+        border-radius: 14px !important;
+    }
+    
+    #expedienteModal .modal-header {
+        padding: 8px 12px !important;
+        min-height: 42px !important;
+    }
+    
+    #expedienteModal .modal-title {
+        font-size: 0.90rem !important;
+    }
+    
+    #expedienteModal .modal-body {
+        padding: 8px 8px !important;
+        overflow: hidden !important;
+    }
+    
+    #expedienteModal .kpi-acrilico-compact {
+        padding: 3px 2px !important;
+        min-height: 38px !important;
+        text-align: center !important;
+    }
+    
+    #expedienteModal .kpi-acrilico-compact span {
+        font-size: 0.52rem !important;
+        text-align: center !important;
+        margin-bottom: 1px !important;
+    }
+    
+    #expedienteModal .kpi-acrilico-compact h4,
+    #expedienteModal .kpi-acrilico-compact h3 {
+        font-size: 0.82rem !important;
+        text-align: center !important;
+        margin: 0 !important;
+    }
+    
+    .bento-action-btn-compact {
+        min-height: 42px !important;
+        padding: 4px 1px !important;
+        border-radius: 8px !important;
+    }
+    
+    .bento-action-btn-compact i {
+        font-size: 1.05rem !important;
+        margin-bottom: 1px !important;
+    }
+    
+    .bento-action-btn-compact span {
+        font-size: 0.46rem !important;
+        letter-spacing: 0.1px !important;
     }
 }

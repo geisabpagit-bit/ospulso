@@ -368,4 +368,17 @@ Para garantizar una experiencia de usuario corporativa, limpia y de alto valor e
    - Las vistas de datos no deben duplicar listados que se operan con mayor eficiencia en otros módulos.
    - La cobranza y saldos de pacientes pertenecen al punto de atención clínico (**Expediente del Paciente** en `views/pacientes.pl`); los paneles de finanzas muestran indicadores macro ejecutivos sin necesidad de arrastrar tablas secundarias desconectadas del flujo de trabajo diario.
 
+---
 
+## 14. Estándar Bento Grid de Cero Scroll para Modales Ejecutivos (`expedienteModal`, `tabla_pacientes.css`, `pacientes_spa.js`)
+
+1. **Arquitectura Cero-Scroll Vertical**:
+   - Todo modal de consulta rápida o resumen clínico (ej. `#expedienteModal` en `views/pacientes.pl`) debe estructurarse para desplegar su contenido completo dentro de una altura máxima de 320px en móvil y 460px en escritorio, erradicando por completo el scroll vertical del viewport.
+   - Se elimina el `.modal-footer` redundante cuando la cabecera ya integra botón de cierre accesible (`.btn-close`), ahorrando entre 45px y 55px de espacio vertical crítico.
+2. **Distribución Adaptable de KPIs Financieros**:
+   - **En Escritorio (`>= 992px`)**: Grid simétrico 2x2 (`col-6`) en la columna izquierda, con tarjetas acrílicas de 46px de altura, etiquetas en `0.58rem` y cifras en `1.05rem`.
+   - **En Móvil (`< 768px`)**: Los 4 indicadores (Cargos, Abonos, Saldo, Cotizaciones) se transforman automáticamente a 1 sola fila horizontal de 4 columnas (`col-3 col-lg-6`) de 38px de altura, ahorrando más de 90px de scroll vertical.
+3. **Botonera Bento Grid Compacta**:
+   - 8 accesos directos estructurados en matriz 4x2 (`.bento-action-btn-compact`), con altura máxima de 46px en desktop y 42px en móvil, iconografía vectorial de 1.15rem y etiquetas condensadas en `0.52rem` / `0.46rem`.
+4. **Historial de Consultas y Empty State Lineal**:
+   - El estado vacío de citas se compacta a un cintillo horizontal de 1 sola fila (`.empty-consultas-compact`, 36px) con icono alineado (`bi-clipboard2-x`), reemplazando tarjetas sobredimensionadas con paddings heredados de `p-5`.
