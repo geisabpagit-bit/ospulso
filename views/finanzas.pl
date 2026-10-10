@@ -91,6 +91,7 @@ render_header(usuario => $session_data->{usuario}, titulo => "Finanzas - SDM", r
 
 print <<'PAGE_HTML';
 <link rel="stylesheet" href="../css/expediente_completo.css?v=3">
+<link rel="stylesheet" href="../css/sdm_mobile_standards.css?v=1.1">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
@@ -236,47 +237,49 @@ print <<'PAGE_HTML';
 </script>
         <!-- Header Compacto -->
         <div class="diamond-header-compact d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2 gap-sm-3">
                 <div class="profile-hero text-start">
-                    <h4 id="mainPageTitle" class="text-truncate m-0 text-white fw-bold" style="max-width: 60vw; letter-spacing: -0.5px;">Módulo Financiero</h4>
+                    <h4 id="mainPageTitle" class="text-truncate m-0 text-white fw-bold" style="max-width: 80vw; letter-spacing: -0.5px;">Módulo Financiero</h4>
                     <p id="mainPageSubtitle" class="text-white-50 small m-0 d-none" style="font-size: 0.8rem;"></p>
                 </div>
             </div>
         </div>
 
-        <div class="content-wrapper p-3 p-md-4">
+        <div class="content-wrapper container-mobile-flush p-1 p-md-4">
             
             <!-- TAB: RESUMEN (Actual Dashboard) -->
             <div id="tab_resumen" class="sdm-tab-pane">
 
                 <!-- Barra de Control Temporal y Filtros Dinámicos (Executive Toolbar) -->
-                <div class="card card-mobile-flush border-0 shadow-sm mb-4" style="border-radius: 14px; background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
-                    <div class="card-body p-3 p-md-4">
-                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                <div class="card card-mobile-flush border-0 shadow-sm mb-3" style="border-radius: 14px; background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
+                    <div class="card-body p-2.5 p-md-4">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 gap-lg-3">
                             <div>
-                                <h5 class="fw-bold plus-jakarta mb-1 d-flex align-items-center gap-2" style="color: var(--md-blue-deep, #0A2A66);">
+                                <h5 class="fw-bold plus-jakarta mb-1 d-flex align-items-center gap-2" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.05rem;">
                                     <i class="bi bi-speedometer2" style="color: var(--md-teal-clinical, #19B7A5);"></i>
                                     Tablero Financiero Ejecutivo
                                 </h5>
-                                <p class="text-muted small mb-0">Métricas consolidadas, rentabilidad y flujo operativo de la organización</p>
+                                <p class="text-muted small mb-0" style="font-size: 0.72rem; line-height: 1.25;">Métricas consolidadas, rentabilidad y flujo operativo de la organización</p>
                             </div>
                             
-                            <div class="d-flex flex-wrap align-items-center gap-2">
+                            <div class="financial-toolbar-controls d-flex flex-column flex-sm-row align-items-stretch align-items-lg-center gap-2">
                                 <!-- Botones Rápidos de Periodo -->
                                 <div class="btn-group btn-group-sm p-1 bg-light rounded-pill border" role="group" id="filterPillsGroup">
-                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('hoy', this)">Hoy</button>
-                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('semana', this)">Semana</button>
-                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill active" style="background-color: var(--md-blue-deep, #0A2A66); color: #fff; border-color: var(--md-blue-deep, #0A2A66);" onclick="seleccionarPeriodoDashboard('mes', this)">Este Mes</button>
-                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('ano', this)">Año</button>
-                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('todo', this)">Todo</button>
+                                    <button type="button" class="btn btn-sm rounded-pill fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('hoy', this)">Hoy</button>
+                                    <button type="button" class="btn btn-sm rounded-pill fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('semana', this)">Semana</button>
+                                    <button type="button" class="btn btn-sm rounded-pill fw-semibold btn-filter-pill active" onclick="seleccionarPeriodoDashboard('mes', this)">Este Mes</button>
+                                    <button type="button" class="btn btn-sm rounded-pill fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('ano', this)">Año</button>
+                                    <button type="button" class="btn btn-sm rounded-pill fw-semibold btn-filter-pill btn-light text-secondary" onclick="seleccionarPeriodoDashboard('todo', this)">Todo</button>
                                 </div>
 
                                 <!-- Rango Personalizado -->
-                                <div class="d-flex align-items-center gap-1 bg-white p-1 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important;">
-                                    <input type="date" id="dashFechaInicio" class="form-control form-control-sm border-0 bg-transparent px-2" style="font-size:0.8rem; width:130px;" title="Fecha Desde">
-                                    <span class="text-muted small px-1"><i class="bi bi-arrow-right"></i></span>
-                                    <input type="date" id="dashFechaFin" class="form-control form-control-sm border-0 bg-transparent px-2" style="font-size:0.8rem; width:130px;" title="Fecha Hasta">
-                                    <button class="btn btn-sm rounded-pill px-3 text-white" style="background: var(--md-blue-deep, #0A2A66);" onclick="aplicarRangoManualDashboard()" title="Actualizar Totales">
+                                <div class="financial-date-range-bar d-flex align-items-center justify-content-between bg-white p-1 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important;">
+                                    <div class="d-flex align-items-center flex-grow-1 min-w-0">
+                                        <input type="date" id="dashFechaInicio" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:100%;" title="Fecha Desde">
+                                        <span class="text-muted small px-1 flex-shrink-0"><i class="bi bi-arrow-right"></i></span>
+                                        <input type="date" id="dashFechaFin" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:100%;" title="Fecha Hasta">
+                                    </div>
+                                    <button class="btn btn-sm rounded-pill px-2.5 px-sm-3 text-white flex-shrink-0 d-inline-flex align-items-center justify-content-center" style="background: var(--md-blue-deep, #0A2A66); min-height: 32px;" onclick="aplicarRangoManualDashboard()" title="Actualizar Totales">
                                         <i class="bi bi-arrow-repeat" id="dashRefreshIcon"></i>
                                     </button>
                                 </div>
@@ -286,71 +289,71 @@ print <<'PAGE_HTML';
                 </div>
 
                 <!-- Capa 1: Flujo de Caja y Rentabilidad Real (Hero KPIs) -->
-                <div class="row row-cols-1 row-cols-md-3 g-3 mb-3">
+                <div class="row row-cols-1 row-cols-md-3 g-2 g-md-3 mb-2 mb-md-3">
                     <!-- 1. Ingresos Reales -->
                     <div class="col">
-                        <div class="card h-100 p-3 p-md-4 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_ingresos')" title="Clic para ver detalle en Ingresos" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small fw-bold text-muted text-uppercase tracking-wider">Ingresos Reales</span>
-                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(16, 185, 129, 0.1);">
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_ingresos')" title="Clic para ver detalle en Ingresos" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                                <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Ingresos Reales</span>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(16, 185, 129, 0.1);">
                                     <i class="bi bi-cash-stack text-success fs-5"></i>
                                 </div>
                             </div>
-                            <h2 class="fw-bold m-0 text-success plus-jakarta" id="kpiIngresosTotales" style="font-size: 1.9rem;">$0.00</h2>
-                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-light">
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small fw-semibold">Cobrado en Caja</span>
-                                <span class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">Ver Detalle <i class="bi bi-arrow-right"></i></span>
+                            <h2 class="fw-bold m-0 text-success plus-jakarta" id="kpiIngresosTotales" style="font-size: 1.65rem;">$0.00</h2>
+                            <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Cobrado en Caja</span>
+                                <span class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.72rem;">Ver Detalle <i class="bi bi-arrow-right"></i></span>
                             </div>
                         </div>
                     </div>
 
                     <!-- 2. Total Gastos -->
                     <div class="col">
-                        <div class="card h-100 p-3 p-md-4 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_gastos')" title="Clic para ver detalle en Egresos" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small fw-bold text-muted text-uppercase tracking-wider">Total Gastos</span>
-                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(239, 68, 68, 0.1);">
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_gastos')" title="Clic para ver detalle en Egresos" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                                <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Total Gastos</span>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(239, 68, 68, 0.1);">
                                     <i class="bi bi-graph-down-arrow text-danger fs-5"></i>
                                 </div>
                             </div>
-                            <h2 class="fw-bold m-0 text-danger plus-jakarta" id="kpiTotalEgresos" style="font-size: 1.9rem;">$0.00</h2>
-                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-light">
-                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 small fw-semibold">Pagado / Egresos</span>
-                                <span class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">Ver Detalle <i class="bi bi-arrow-right"></i></span>
+                            <h2 class="fw-bold m-0 text-danger plus-jakarta" id="kpiTotalEgresos" style="font-size: 1.65rem;">$0.00</h2>
+                            <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
+                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Pagado / Egresos</span>
+                                <span class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.72rem;">Ver Detalle <i class="bi bi-arrow-right"></i></span>
                             </div>
                         </div>
                     </div>
 
                     <!-- 3. Utilidad Neta & Margen -->
                     <div class="col">
-                        <div class="card h-100 p-3 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 2px solid var(--md-teal-clinical, #19B7A5) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small fw-bold text-uppercase tracking-wider" style="color: var(--md-blue-deep, #0A2A66);">Utilidad Neta</span>
-                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(10, 42, 102, 0.08);">
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 2px solid var(--md-teal-clinical, #19B7A5) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                                <span class="small fw-bold text-uppercase tracking-wider" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.72rem;">Utilidad Neta</span>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(10, 42, 102, 0.08);">
                                     <i class="bi bi-wallet2 fs-5" style="color: var(--md-blue-deep, #0A2A66);"></i>
                                 </div>
                             </div>
-                            <h2 class="fw-bold m-0 plus-jakarta" id="kpiUtilidadNeta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.9rem;">$0.00</h2>
-                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-light">
-                                <span class="small text-muted" id="kpiMargenSubtexto">Margen: <span class="fw-bold">0%</span></span>
-                                <span class="badge rounded-pill px-2 py-1 small fw-semibold" style="background: rgba(10, 42, 102, 0.08); color: var(--md-blue-deep, #0A2A66);">Flujo Operativo</span>
+                            <h2 class="fw-bold m-0 plus-jakarta" id="kpiUtilidadNeta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.65rem;">$0.00</h2>
+                            <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
+                                <span class="small text-muted" id="kpiMargenSubtexto" style="font-size: 0.72rem;">Margen: <span class="fw-bold">0%</span></span>
+                                <span class="badge rounded-pill px-2 py-1 small fw-semibold" style="background: rgba(10, 42, 102, 0.08); color: var(--md-blue-deep, #0A2A66); font-size: 0.65rem;">Flujo Operativo</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Capa 2: Cobranza, Recibos y Eficiencia Operativa -->
-                <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+                <div class="row row-cols-2 row-cols-md-4 g-2 g-md-3 mb-3 mb-md-4">
                     <!-- 4. Cuentas por Cobrar Privadas -->
                     <div class="col">
-                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small fw-bold text-muted text-truncate">CxC Privadas</span>
+                        <div class="card card-mobile-flush h-100 p-2 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                                <span class="small fw-bold text-muted text-truncate" style="font-size: 0.72rem;">CxC Privadas</span>
                                 <i class="bi bi-wallet text-warning fs-5"></i>
                             </div>
-                            <h4 class="fw-bold m-0 text-warning plus-jakarta" id="kpiCuentasCobrar">$0.00</h4>
-                            <div class="small text-muted mt-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
-                                <span>Saldos Pacientes</span>
+                            <h4 class="fw-bold m-0 text-warning plus-jakarta" id="kpiCuentasCobrar" style="font-size: 1.25rem;">$0.00</h4>
+                            <div class="small text-muted mt-1 mt-md-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
+                                <span style="font-size: 0.68rem;">Saldos</span>
                                 <a href="../views/pacientes.pl" class="text-decoration-none text-muted" title="Ir a Padrón de Pacientes"><i class="bi bi-people-fill text-primary" style="font-size:0.85rem;"></i></a>
                             </div>
                         </div>
@@ -361,14 +364,14 @@ PAGE_HTML
         print <<'PAGE_HTML';
                     <!-- 5. CxC Estado (Convenios Públicos) -->
                     <div class="col">
-                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small fw-bold text-muted text-truncate">CxC Estado</span>
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                                <span class="small fw-bold text-muted text-truncate" style="font-size: 0.72rem;">CxC Estado</span>
                                 <i class="bi bi-bank2 text-info fs-5"></i>
                             </div>
-                            <h4 class="fw-bold m-0 text-info plus-jakarta" id="kpiCxcEstado">$0.00</h4>
-                            <div class="small text-muted mt-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
-                                <span>Convenios Públicos</span>
+                            <h4 class="fw-bold m-0 text-info plus-jakarta" id="kpiCxcEstado" style="font-size: 1.25rem;">$0.00</h4>
+                            <div class="small text-muted mt-1 mt-md-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
+                                <span style="font-size: 0.68rem;">Convenios</span>
                                 <i class="bi bi-building text-info" style="font-size:0.85rem;"></i>
                             </div>
                         </div>
@@ -380,14 +383,14 @@ PAGE_HTML
         print <<'PAGE_HTML';
                     <!-- 5. Presupuestos / Cotizado -->
                     <div class="col">
-                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small fw-bold text-muted text-truncate">Cotizaciones</span>
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                                <span class="small fw-bold text-muted text-truncate" style="font-size: 0.72rem;">Cotizaciones</span>
                                 <i class="bi bi-file-earmark-text text-secondary fs-5"></i>
                             </div>
-                            <h4 class="fw-bold m-0 text-dark plus-jakarta" id="kpiPresupuestosActivos">$0.00</h4>
-                            <div class="small text-muted mt-2 pt-1 border-top border-light">
-                                <span>Presupuestos</span>
+                            <h4 class="fw-bold m-0 text-dark plus-jakarta" id="kpiPresupuestosActivos" style="font-size: 1.25rem;">$0.00</h4>
+                            <div class="small text-muted mt-1 mt-md-2 pt-1 border-top border-light">
+                                <span style="font-size: 0.68rem;">Presupuestos</span>
                             </div>
                         </div>
                     </div>
@@ -399,42 +402,42 @@ PAGE_HTML
     print <<'PAGE_HTML';
                     <!-- 6. Recibos Emitidos -->
                     <div class="col">
-                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_corte_caja')" title="Clic para ver detalle en Corte de Caja" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small fw-bold text-muted text-truncate">Recibos Emitidos</span>
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_corte_caja')" title="Clic para ver detalle en Corte de Caja" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                                <span class="small fw-bold text-muted text-truncate" style="font-size: 0.72rem;">Recibos Emitidos</span>
                                 <i class="bi bi-receipt-cutoff fs-5" style="color: var(--md-blue-deep, #0A2A66);"></i>
                             </div>
-                            <h4 class="fw-bold m-0 text-dark plus-jakarta" id="kpiTotalRecibos">0</h4>
-                            <div class="small text-muted mt-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
-                                <span class="badge rounded-pill px-2 py-0" style="background: rgba(10, 42, 102, 0.08); color: var(--md-blue-deep, #0A2A66);" id="kpiRecibosHoyBadge">Hoy: 0</span>
-                                <span class="text-muted" style="font-size:0.75rem;" id="kpiTicketPromedio">(Prom: $0.00)</span>
+                            <h4 class="fw-bold m-0 text-dark plus-jakarta" id="kpiTotalRecibos" style="font-size: 1.25rem;">0</h4>
+                            <div class="small text-muted mt-1 mt-md-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
+                                <span class="badge rounded-pill px-2 py-0" style="background: rgba(10, 42, 102, 0.08); color: var(--md-blue-deep, #0A2A66); font-size: 0.65rem;" id="kpiRecibosHoyBadge">Hoy: 0</span>
+                                <span class="text-muted" style="font-size:0.7rem;" id="kpiTicketPromedio">(Prom: $0.00)</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- 7. Eficiencia de Cobro -->
                     <div class="col">
-                        <div class="card h-100 p-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small fw-bold text-muted text-truncate">Eficiencia Cobro</span>
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                                <span class="small fw-bold text-muted text-truncate" style="font-size: 0.72rem;">Eficiencia Cobro</span>
                                 <i class="bi bi-percent text-success fs-5"></i>
                             </div>
-                            <h4 class="fw-bold m-0 text-success plus-jakarta" id="kpiEficiencia">0%</h4>
-                            <div class="small text-muted mt-2 pt-1 border-top border-light">
-                                <span>Recuperación</span>
+                            <h4 class="fw-bold m-0 text-success plus-jakarta" id="kpiEficiencia" style="font-size: 1.25rem;">0%</h4>
+                            <div class="small text-muted mt-1 mt-md-2 pt-1 border-top border-light">
+                                <span style="font-size: 0.68rem;">Recuperación</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Capa 3: Analítica Visual Avanzada: Evolución & Distribución -->
-                <div class="row g-4 mb-4">
+                <div class="row g-2 g-md-4 mb-3 mb-md-4">
                     <div class="col-lg-7">
-                        <div class="card h-100 p-3 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 mb-md-3">
                                 <div>
-                                    <h6 class="fw-bold plus-jakarta mb-1" style="color: var(--md-blue-deep, #0A2A66);">Evolución Financiera Semestral</h6>
-                                    <p class="text-muted small mb-0">Comparativa mensual de ingresos cobrados vs egresos operativos</p>
+                                    <h6 class="fw-bold plus-jakarta mb-1" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.95rem;">Evolución Financiera Semestral</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 0.72rem;">Comparativa mensual de ingresos cobrados vs egresos operativos</p>
                                 </div>
                             </div>
                             <div style="height: 250px; width: 100%;">
@@ -444,11 +447,11 @@ PAGE_HTML
                     </div>
                     
                     <div class="col-lg-5">
-                        <div class="card h-100 p-3 p-md-4 border-0 shadow-sm rounded-4 d-flex flex-column justify-content-center" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4 d-flex flex-column justify-content-center" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 mb-md-3">
                                 <div>
-                                    <h6 class="fw-bold plus-jakarta mb-1" style="color: var(--md-blue-deep, #0A2A66);">Balance del Periodo</h6>
-                                    <p class="text-muted small mb-0">Distribución porcentual de flujo de efectivo</p>
+                                    <h6 class="fw-bold plus-jakarta mb-1" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.95rem;">Balance del Periodo</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 0.72rem;">Distribución porcentual de flujo de efectivo</p>
                                 </div>
                             </div>
                             

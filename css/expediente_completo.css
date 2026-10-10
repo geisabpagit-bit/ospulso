@@ -44,8 +44,15 @@ body {
     background: transparent;
 }
 
-.sdm-content {
-    padding: 0.5rem 1rem 3rem 1rem !important;
+@media (min-width: 769px) {
+    .sdm-content {
+        padding: 0.5rem 1rem 3rem 1rem !important;
+    }
+}
+@media (max-width: 768px) {
+    .sdm-content {
+        padding: 4px 4px 60px 4px !important;
+    }
 }
 
 /* =========================================================================

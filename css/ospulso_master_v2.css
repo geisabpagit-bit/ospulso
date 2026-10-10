@@ -2186,3 +2186,32 @@ nav.navbar.sticky-top {
     background-color: var(--md-teal-clinical, #19B7A5) !important;
     color: #ffffff !important;
 }
+
+/* --- BARRA EJECUTIVA FINANCIERA (TABLERO EJECUTIVO) --- */
+#filterPillsGroup {
+    background: #f1f5f9;
+    border-radius: 50rem;
+    border: 1px solid #e2e8f0;
+}
+#filterPillsGroup .btn-filter-pill {
+    transition: all 0.2s ease;
+    border-radius: 50rem;
+    white-space: nowrap;
+}
+#filterPillsGroup .btn-filter-pill.active {
+    background-color: var(--md-blue-deep, #0A2A66) !important;
+    color: #ffffff !important;
+    border-color: var(--md-blue-deep, #0A2A66) !important;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.25);
+}
+.financial-date-range-bar {
+    background: #ffffff;
+    border-radius: 50rem;
+    border: 1.5px solid rgba(25, 183, 165, 0.4);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.financial-date-input {
+    border: none;
+    background: transparent;
+    color: #334155;
+}

@@ -2124,9 +2124,12 @@ window.seleccionarPeriodoDashboard = function(tipo, btnEl) {
         document.querySelectorAll('#filterPillsGroup .btn-filter-pill').forEach(b => {
             b.classList.remove('active', 'btn-primary');
             b.classList.add('btn-light', 'text-secondary');
+            b.style.removeProperty('background-color');
+            b.style.removeProperty('color');
+            b.style.removeProperty('border-color');
         });
         btnEl.classList.remove('btn-light', 'text-secondary');
-        btnEl.classList.add('active', 'btn-primary');
+        btnEl.classList.add('active');
     }
 
     const now = new Date();
@@ -2178,6 +2181,9 @@ window.aplicarRangoManualDashboard = function() {
     document.querySelectorAll('#filterPillsGroup .btn-filter-pill').forEach(b => {
         b.classList.remove('active', 'btn-primary');
         b.classList.add('btn-light', 'text-secondary');
+        b.style.removeProperty('background-color');
+        b.style.removeProperty('color');
+        b.style.removeProperty('border-color');
     });
 
     window.cargarDashboardKPIs(fInicio, fFin);

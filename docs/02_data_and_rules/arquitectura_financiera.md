@@ -214,3 +214,14 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
 
 
 
+
+7. **Optimización UI/UX Móvil del Tablero Financiero Ejecutivo (Márgenes Cero y Padding Flush)**:
+   - **Compresión de Márgenes y Padding Perimetral**:
+     * Se eliminaron los paddings redundantes anidados (`.sdm-content` a 4px laterales en móviles, `.container-mobile-flush` con márgenes laterales en cero y `.card-mobile-flush` con bordes de 12px y padding compacto de 0.75rem/0.5rem), erradicando la pérdida de ~48px por lateral en resoluciones menores a 768px.
+     * El encabezado `.diamond-header-compact` adopta padding compacto de 8px 12px y bordes integrados.
+   - **Control Segmentado de Períodos (`#filterPillsGroup`)**:
+     * Reemplazo de botones anchos fijos por un segmented control elástico (`flex: 1 1 0`) con `white-space: nowrap` y tipografía responsiva (0.72rem en móvil), eliminando el salto de línea de "Este Mes" que distorsionaba el botón en una esfera azul vertical fuera de proporción.
+   - **Barra de Rango de Fechas Fluida (`.financial-date-range-bar`)**:
+     * Reemplazo de inputs con ancho estático de 130px por inputs fluidos (`.financial-date-input` con `flex: 1`), evitando el desbordamiento horizontal fuera del borde perimetral de la tarjeta.
+   - **Jerarquía Responsiva de KPIs (Capas 1, 2 y 3)**:
+     * Aplicación de `.card-mobile-flush` en las tarjetas KPI y de analítica con espaciado uniforme `g-2 g-md-3`, tipografía optimizada para lectura rápida en pantallas pequeñas y preservación de contrastes de alta gama en Azul Marino (`#0A2A66`) y Teal Clínico (`#19B7A5`).
