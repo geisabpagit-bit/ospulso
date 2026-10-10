@@ -461,7 +461,17 @@ sub detectar_colisiones {
         next if $c->{fecha} ne $fec;
         next if $c->{estado} eq 'Cancelada';
         next if $c->{estado} eq 'No realizada';
-        next if $c->{estado} =~ /Atendida/i; # Excluir citas Atendidas del chequeo de colisión
+        
+        # Regla Canónica: Cita de Día Completo no puede registrarse si existe cualquier cita en la fecha
+        if ($hi le $CONF{laborStart} && $hf ge $CONF{laborEnd}) {
+            if ($c->{id_medico} eq $id_m) {
+                my $pac_nom = obtener_nombre_paciente($c->{id_paciente});
+                return (0, "No se puede guardar una cita de Día Completo porque ya existe la cita de $pac_nom ($c->{hora_ini} - $c->{hora_fin}). Debe reprogramarla o eliminarla.");
+            }
+            elsif ($sucursal && $consultorio && $consultorio ne 'Virtual' && $c->{sucursal} eq $sucursal && $c->{consultorio} eq $consultorio) {
+                return (0, "No se puede guardar una cita de Día Completo porque el consultorio ($consultorio) está ocupado por otra consulta ($c->{hora_ini} - $c->{hora_fin}).");
+            }
+        }
         
         my ($chi_h, $chi_m) = split(/:/, $c->{hora_ini});
         my $chi_min = ($chi_h // 0) * 60 + ($chi_m // 0);

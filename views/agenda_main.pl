@@ -160,8 +160,57 @@ print <<HTML;
                         <button onclick="moveDate(1)" class="btn btn-link text-navy p-2"><i class="bi bi-chevron-right"></i></button>
                     </div>
 
-                    <div class="d-none d-md-flex align-items-center gap-2">
-                        <button onclick="abrirModalAjustes()" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white" style="height:42px; width:42px; padding:0;"><i class="bi bi-gear-fill"></i></button>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Leyenda de Estados y Colores -->
+                        <div class="dropdown">
+                            <button class="btn btn-light fw-medium rounded-3 shadow-sm border bg-white px-2.5 d-flex align-items-center gap-1.5" type="button" id="dropdownLeyendaColores" data-bs-toggle="dropdown" aria-expanded="false" style="height:42px;" title="Significado de Colores de la Agenda">
+                                <i class="bi bi-palette" style="font-size:1.05rem; color: var(--md-teal-clinical, #19B7A5) !important;"></i>
+                                <span class="small d-none d-xl-inline text-secondary">Estados</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end shadow-lg p-3 border-0 rounded-4" style="min-width: 270px; z-index: 105200;" aria-labelledby="dropdownLeyendaColores">
+                                <h6 class="fw-semibold text-navy small mb-2.5 d-flex align-items-center gap-1.5">
+                                    <i class="bi bi-info-circle" style="color: var(--md-teal-clinical, #19B7A5);"></i> Significado de Estados
+                                </h6>
+                                <div class="d-flex flex-column gap-2 small">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #0A2A66;"></span>
+                                        <span class="fw-medium text-dark">Programada</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Agendada</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #10b981;"></span>
+                                        <span class="fw-medium text-dark">Confirmada</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Confirmada</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #f59e0b;"></span>
+                                        <span class="fw-medium text-dark">En Sala de Espera</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">En recepción</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #059669;"></span>
+                                        <span class="fw-medium text-dark">Consulta en Proceso</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Atención activa</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #19B7A5;"></span>
+                                        <span class="fw-medium text-dark">Atendida</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Finalizada</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #ef4444;"></span>
+                                        <span class="fw-medium text-dark">No realizada</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">No asistió</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #dc2626;"></span>
+                                        <span class="fw-medium text-dark">Cancelada</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Anulada</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="abrirModalAjustes()" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white" style="height:42px; width:42px; padding:0;" title="Ajustes de Jornada"><i class="bi bi-gear-fill"></i></button>
                     </div>
 
                 </div>
@@ -532,7 +581,7 @@ print <<HTML;
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/agenda_spa_new.js?v=20261008_1955"></script>
+    <script src="../js/agenda_spa_new.js?v=$^T"></script>
 HTML
 
 print <<'JS';

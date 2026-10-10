@@ -477,6 +477,10 @@ $(document).ready(function() {
         const val = $(this).attr('data-v');
         duracionCita = isNaN(val) ? val : parseInt(val);
         
+        // Limpieza estricta de horas para evitar arrastrar slots de otras duraciones
+        $("#f_hi").val('');
+        $("#f_hf").val('');
+        
         console.info("Duración Seleccionada:", duracionCita);
         renderSlots($("#f_fecha").val());
     });
@@ -1380,12 +1384,39 @@ function saveCita() {
         return;
     }
 
+    const curId = $("#f_id_cita").val() || "";
+    const medId = String($("#f_medico").val() || "");
+    const curSucursal = String($("#f_sucursal").val() || "");
+    const curConsultorio = String($("#f_consultorio").val() || "");
+
+    const dayApps = appointments.filter(a => {
+        const sameDay = a.start.startsWith(fecha);
+        const differentId = String(a.id) !== curId;
+        const isSameMed = String(a.extendedProps.id_medico || "") === medId;
+        const isSameResource = (curSucursal && curConsultorio && curConsultorio !== 'Virtual') && 
+                               (String(a.extendedProps.sucursal || "") === curSucursal) && 
+                               (String(a.extendedProps.consultorio || "") === curConsultorio);
+        return sameDay && differentId && (isSameMed || isSameResource);
+    });
+
+    // REGLA MANDATORIA: Cita de Día Completo no puede guardarse si existen citas en esa fecha
+    if (duracionCita === 'all' && dayApps.length > 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Día Completo No Disponible',
+            html: `No se puede guardar una cita de día completo porque ya existen <strong>${dayApps.length}</strong> cita(s) agendada(s) en esta fecha.<br><br>Para liberar el día completo, las citas existentes deben ser <strong>reprogramadas</strong> o <strong>eliminadas</strong>.`,
+            confirmButtonText: 'Entendido',
+            customClass: { popup: 'rounded-4' }
+        });
+        return;
+    }
+
     // REGLA DE NEGOCIO: No permitir citas en el pasado
     if (fecha === getISO(new Date()) && duracionCita === 'all') {
         const now = new Date();
         const curH = now.getHours().toString().padStart(2, '0');
         const curM = now.getMinutes().toString().padStart(2, '0');
-        $("#f_hi").val(`${curH}:${curM}`); // Opción 3: Ajuste automático de Todo el Día a la hora actual
+        $("#f_hi").val(`${curH}:${curM}`);
     } else if (!isFuture(fecha, hi)) {
         Swal.fire({ 
             icon: 'warning', 
@@ -1396,28 +1427,42 @@ function saveCita() {
         return;
     }
 
-    // REGLA DE NEGOCIO: Detección estricta de colisiones (Regla 4)
+    // REGLA DE NEGOCIO: Detección estricta de colisiones con diagnóstico descriptivo
     const hf = $("#f_hf").val();
-    const curId = $("#f_id_cita").val() || "";
-    const medId = String($("#f_medico").val() || "");
-    const dayApps = appointments.filter(a => {
-        return a.start.startsWith(fecha) && String(a.extendedProps.id_medico || "") === medId && String(a.id) !== curId;
-    });
-    
+    let collisionApt = null;
     const hasCollision = dayApps.some(a => {
         const aT = a.start.split('T')[1] || '';
         const aHi = aT.substring(0,5).padStart(5, '0');
         const aHf = (a.end.split('T')[1] || '').substring(0,5).padStart(5, '0');
-        return (hi < aHf && hf > aHi);
+        if (hi < aHf && hf > aHi) {
+            collisionApt = a;
+            return true;
+        }
+        return false;
     });
 
-    if (hasCollision) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Colisión de Cita',
-            text: 'Ya existe una cita programada en ese horario. Por favor selecciona un horario libre.',
-            customClass: { popup: 'rounded-4' }
-        });
+    if (hasCollision && collisionApt) {
+        const aT = collisionApt.start.split('T')[1] || '';
+        const aHi = aT.substring(0,5).padStart(5, '0');
+        const aHf = (collisionApt.end.split('T')[1] || '').substring(0,5).padStart(5, '0');
+        const pacNombre = collisionApt.title || 'Cita agendada';
+
+        if (duracionCita === 'rest') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Empalme en Resto del Día',
+                html: `No es posible agendar por el <strong>Resto del Día</strong> a partir de las <strong>${hi}</strong> debido a que existe una cita posterior agendada de <strong>${aHi} a ${aHf}</strong> (${pacNombre}).<br><br>Para agendar por el resto del día, la cita debe ser reprogramada o eliminada.`,
+                confirmButtonText: 'Entendido',
+                customClass: { popup: 'rounded-4' }
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Colisión de Cita',
+                text: `Ya existe una cita programada en ese horario (${aHi} - ${aHf} con ${pacNombre}). Por favor selecciona un horario libre.`,
+                customClass: { popup: 'rounded-4' }
+            });
+        }
         return;
     }
 
@@ -1668,11 +1713,11 @@ function renderSlots(date) {
     
     // Blindaje de Jornada y Días Laborables
     if (!isWorkDay(date)) {
-        cont.append('<div class="text-center p-3 text-danger fw-bold border rounded-4 animate__animated animate__shakeX">DÍA NO LABORABLE</div>');
+        cont.append('<div class="slot-alert-banner slot-alert-banner-danger animate__animated animate__shakeX"><strong>DÍA NO LABORABLE</strong><div class="small mt-1 text-muted">Este día no forma parte de la jornada laboral asignada.</div></div>');
         return;
     }
     if (isHoliday(date)) {
-        cont.append('<div class="text-center p-3 text-danger fw-bold border rounded-4 animate__animated animate__shakeX">DÍA FESTIVO / ASUETO</div>');
+        cont.append('<div class="slot-alert-banner slot-alert-banner-danger animate__animated animate__shakeX"><strong>DÍA FESTIVO / ASUETO</strong><div class="small mt-1 text-muted">La clínica no labora en esta fecha festiva.</div></div>');
         return;
     }
 
@@ -1689,7 +1734,7 @@ function renderSlots(date) {
         const differentId = String(a.id) !== String(curId);
         
         const isSameMed = String(a.extendedProps.id_medico || "") === medId;
-        const isSameResource = (curSucursal && curConsultorio) && 
+        const isSameResource = (curSucursal && curConsultorio && curConsultorio !== 'Virtual') && 
                                (String(a.extendedProps.sucursal || "") === curSucursal) && 
                                (String(a.extendedProps.consultorio || "") === curConsultorio);
 
@@ -1699,20 +1744,16 @@ function renderSlots(date) {
     const laborStartMin = s * 60;
     const laborEndMin = e * 60;
 
-    // Si es "Todo el día", verificamos colisión global
+    // Si es "Todo el día", verificamos colisión global estricta
     if (duracionCita === 'all') {
         const hhmmS = agendaConfig.laborStart || '09:00';
         const hhmmE = agendaConfig.laborEnd || '20:00';
         
-        const isB = dayApps.some(a => {
-            const aT = a.start.split('T')[1] || '';
-            const aHi = aT.substring(0,5).padStart(5, '0');
-            const aHf = (a.end.split('T')[1] || '').substring(0,5).padStart(5, '0');
-            return (hhmmS < aHf && hhmmE > aHi);
-        });
+        // Bloqueo total si existe CUALQUIER cita en el día para este médico o recurso
+        const isB = dayApps.length > 0;
 
         if (!isB) {
-            const btn = $(`<button type="button" class="btn btn-slot w-100 py-3 mb-2 fw-bold animate__animated animate__fadeIn">TODO EL DÍA (${hhmmS} - ${hhmmE})</button>`);
+            const btn = $(`<button type="button" class="btn btn-slot btn-slot-full w-100 py-3 mb-2 fw-medium animate__animated animate__fadeIn">TODO EL DÍA (${hhmmS} - ${hhmmE})</button>`);
             btn.click(function() {
                 $(".btn-slot").removeClass("active");
                 $(this).addClass("active");
@@ -1722,9 +1763,19 @@ function renderSlots(date) {
             });
             cont.append(btn);
         } else {
+            $("#f_hi").val('');
+            $("#f_hf").val('');
             cont.append(`
-                <div class="text-center p-3 opacity-90 small fw-bold text-danger border rounded-4 animate__animated animate__shakeX" style="background: #fee2e2;">
-                    ⚠️ ACCIÓN NO DISPONIBLE:<br><br>El día seleccionado ya cuenta con citas agendadas y no está completamente libre.<br><br>Por favor, selecciona la opción 'RESTO' o un bloque específico para aprovechar los intervalos disponibles.
+                <div class="slot-alert-banner slot-alert-banner-danger animate__animated animate__fadeIn">
+                    <div class="d-flex align-items-center justify-content-center gap-1.5 fw-semibold mb-1" style="font-size: 0.82rem; color: #b91c1c;">
+                        <i class="bi bi-exclamation-triangle-fill text-danger"></i> DÍA NO DISPONIBLE
+                    </div>
+                    <div style="font-size: 0.76rem; line-height: 1.45; color: #7f1d1d;">
+                        El día seleccionado ya cuenta con <strong>${dayApps.length}</strong> cita(s) agendada(s) y no se encuentra completamente libre.
+                    </div>
+                    <div class="mt-2 pt-2 border-top" style="border-color: #fee2e2 !important; font-size: 0.72rem; color: #991b1b;">
+                        Para asignar el <strong>Día Completo</strong>, las citas que lo impiden deben ser reprogramadas o eliminadas. También puede optar por la opción <strong>RESTO</strong> o un bloque específico de 30m / 1h.
+                    </div>
                 </div>
             `);
         }
@@ -1734,6 +1785,8 @@ function renderSlots(date) {
     const interval = isNaN(duracionCita) ? 30 : duracionCita;
     const lStart = agendaConfig.laborStart || '09:00';
     const lEnd = agendaConfig.laborEnd || '20:00';
+
+    let viableRestSlots = 0;
 
     for (let h = s; h < e; h++) {
         for (let m = 0; m < 60; m += interval) {
@@ -1755,31 +1808,87 @@ function renderSlots(date) {
             const isP = !isFuture(date, hhmm);
             let isL = (hhmm < le && hhmmE > ls);
             
-            // Detección de Colisión Reforzada
-            let isB = dayApps.some(a => {
+            // Detección de Colisión Reforzada y captura de la cita en conflicto
+            let isB = false;
+            let conflictApt = null;
+            for (const a of dayApps) {
                 const aT = a.start.split('T')[1] || '';
                 const aHi = aT.substring(0,5).padStart(5, '0');
                 const aHf = (a.end.split('T')[1] || '').substring(0,5).padStart(5, '0');
-                return (hhmm < aHf && hhmmE > aHi);
-            });
+                if (hhmm < aHf && hhmmE > aHi) {
+                    isB = true;
+                    conflictApt = a;
+                    break;
+                }
+            }
+
+            const canBypassLunch = (duracionCita === 'rest');
+            const isBlocked = isP || (isL && !canBypassLunch) || isB;
+            if (!isBlocked && duracionCita === 'rest') {
+                viableRestSlots++;
+            }
 
             const btnText = duracionCita === 'rest' ? `${hhmm} ➔ FIN` : hhmm;
-            const canBypassLunch = (duracionCita === 'rest');
-            const btn = $(`<button type="button" class="btn btn-slot" ${isP || (isL && !canBypassLunch) || isB ? 'disabled' : ''}>${btnText}</button>`);
-            
-            if (isP) btn.addClass('bg-light text-muted opacity-50').attr('title', 'Pasado');
-            if (isL) btn.addClass('slot-lunch').attr('title', 'Comida');
-            if (isB) btn.addClass('slot-busy').attr('title', 'Ocupado');
-            
-            btn.click(function() { 
-                $(".btn-slot").removeClass("active"); 
-                $(this).addClass("active"); 
-                $("#f_hi").val(hhmm); 
-                $("#f_hf").val(hhmmE); 
-                $("#modalCitaTitle").text(`CITA: ${hhmm} - ${hhmmE}`);
-            });
+            let btn;
+
+            if (duracionCita === 'rest' && isB && conflictApt) {
+                // Para Resto del Día: botón clicable con alerta informativa de la cita que impide el resto del día
+                const cT = conflictApt.start.split('T')[1] || '';
+                const cHi = cT.substring(0,5).padStart(5, '0');
+                const cHf = (conflictApt.end.split('T')[1] || '').substring(0,5).padStart(5, '0');
+                const cPac = conflictApt.title || 'Paciente agendado';
+                const cMotivo = conflictApt.extendedProps.motivo || 'Consulta médica';
+
+                btn = $(`<button type="button" class="btn btn-slot slot-busy btn-slot-conflict" title="No disponible: Cita a las ${cHi}">${btnText}</button>`);
+                btn.click(function() {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Resto del Día No Disponible',
+                        html: `No es posible atender por el <strong>Resto del Día</strong> a partir de las <strong>${hhmm}</strong> debido a que existe una cita agendada:<br><br>
+                               <div class="p-2.5 rounded-3 bg-light border text-start small">
+                                   <div><strong>Horario:</strong> ${cHi} - ${cHf}</div>
+                                   <div><strong>Paciente:</strong> ${cPac}</div>
+                                   <div><strong>Motivo:</strong> ${cMotivo}</div>
+                               </div><br>
+                               Para disponer de este horario continuo hasta el cierre (<strong>${lEnd}</strong>), la cita que genera el empalme debe ser <strong>reprogramada</strong> o <strong>eliminada</strong>.`,
+                        confirmButtonText: 'Entendido',
+                        customClass: { popup: 'rounded-4' }
+                    });
+                });
+            } else {
+                btn = $(`<button type="button" class="btn btn-slot" ${isBlocked ? 'disabled' : ''}>${btnText}</button>`);
+                if (isP) btn.addClass('bg-light text-muted opacity-50').attr('title', 'Pasado');
+                if (isL) btn.addClass('slot-lunch').attr('title', 'Comida');
+                if (isB) btn.addClass('slot-busy').attr('title', 'Ocupado');
+                
+                btn.click(function() { 
+                    $(".btn-slot").removeClass("active"); 
+                    $(this).addClass("active"); 
+                    $("#f_hi").val(hhmm); 
+                    $("#f_hf").val(hhmmE); 
+                    $("#modalCitaTitle").text(`CITA: ${hhmm} - ${hhmmE}`);
+                });
+            }
+
             cont.append(btn);
         }
+    }
+
+    // Si en 'rest' no hubo ningún slot viable en todo el día, anteponer banner explicativo
+    if (duracionCita === 'rest' && viableRestSlots === 0) {
+        cont.prepend(`
+            <div class="slot-alert-banner slot-alert-banner-warning mb-2 animate__animated animate__fadeIn">
+                <div class="d-flex align-items-center justify-content-center gap-1.5 fw-semibold mb-1" style="font-size: 0.82rem; color: #b45309;">
+                    <i class="bi bi-clock-history text-warning"></i> RESTO DEL DÍA NO DISPONIBLE
+                </div>
+                <div style="font-size: 0.76rem; line-height: 1.45; color: #78350f;">
+                    Existen citas agendadas durante la jornada que impiden atender de forma continua hasta el cierre (${lEnd}).
+                </div>
+                <div class="mt-1" style="font-size: 0.72rem; color: #92400e;">
+                    Haga clic en cualquiera de los bloques ocupados para conocer la cita en conflicto, o seleccione duraciones de 30m / 1h.
+                </div>
+            </div>
+        `);
     }
 }
 
