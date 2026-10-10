@@ -297,7 +297,8 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - **Resaltado Activo Homogéneo**: Los ítems regulares activos (`.main-tab-item.active`) proyectan un borde azul marino sutil (`1.5px solid #0A2A66`) con elevación de `-2px`, mientras el FAB activo (`.dock-fab.active`) resalta con borde blanco de `2.5px`, resplandor turquesa, escala `1.06` y elevación `-12px`.
 3. **Hub de Consultas Responsivo**:
    - Las citas programadas e historial clínico implementan tarjetas flexibles (`flex-column flex-sm-row`) con micro-píldoras de estado y fecha/hora que previenen recortes de texto.
-   - Touch target mínimo de 48px para los botones de acción en celulares y ancho expandible (`w-100 w-sm-auto`).
+   - Touch target mínimo de 48px para los botones de acción en celulares y ancho adaptativo (`w-100 w-sm-auto`) respaldado por la utilidad `.w-sm-auto` (`width: auto !important;` en `>=576px`) en `css/sdm_mobile_standards.css` y `css/ospulso_master_v2.css`, erradicando desbordes del botón de acción fuera de la tarjeta.
+   - **Gobernanza de Etiquetas en Modal de Gestión de Citas (`#modalCita`)**: Uso de etiquetas superiores canónicas `.form-label-compact` y controles compactos `.form-control-compact` / `.form-select` (38px de altura), erradicando colisiones y recortes de texto horizontal causados por `form-floating` en grids densos.
 4. **Menú Lateral Móvil Compacto y Ergonómico (`css/sub_sidebar.css`, `utils/sub_sidebar.pl`)**:
    - **Anchura Ergonómica**: Limitado a `268px` (`max-width: 80vw`), reservando un 20% visible de backdrop para cierre ágil con un solo toque.
    - **Densidad Táctil Compacta**: Cabecera reducida a 56px de alto (`padding: 0.65rem 1rem`), avatar de 38px, ítems principales a 40px de altura (`padding: 8px 10px`) y sub-enlaces a 34px (`padding: 6px 10px`). Esto optimiza en un 40% el espacio vertical visible, reduciendo drásticamente la necesidad de scroll.

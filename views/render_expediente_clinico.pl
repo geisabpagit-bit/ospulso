@@ -1239,8 +1239,8 @@ HTML
             my $medico_nombre_pend = obtener_nombre_medico($c->{id_medico});
             print <<HTML;
                 <div class="col-12 col-xl-6">
-                    <div class="card-medentia-aura p-3 p-md-4 h-100 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 border-0 shadow-sm" style="border-left: 5px solid var(--bs-$badge_color) !important; border-radius: 1.25rem;">
-                        <div class="flex-grow-1 min-w-0 w-100">
+                    <div class="card-medentia-aura p-3 p-md-4 h-100 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 border-0 shadow-sm overflow-hidden" style="border-left: 5px solid var(--bs-$badge_color) !important; border-radius: 1.25rem;">
+                        <div class="flex-grow-1 min-w-0">
                             <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
                                 <span class="badge bg-${badge_color} text-white px-2 py-1 small rounded-pill fw-bold">$c->{estado}</span>
                                 <span class="badge bg-light text-secondary border px-2 py-1 small rounded-pill"><i class="bi bi-clock me-1"></i>$c->{fecha} &bull; $c->{hora}</span>
@@ -1248,8 +1248,8 @@ HTML
                             <h5 class="fw-bold m-0 text-truncate text-wrap" style="color: var(--md-blue-deep); font-size: 1.05rem;">$c->{motivo}</h5>
                             <p class="small text-muted m-0 mt-1 d-flex align-items-center"><i class="bi bi-person-badge me-1 text-primary"></i><strong>M&eacute;dico:</strong>&nbsp;$medico_nombre_pend</p>
                         </div>
-                        <div class="w-100 w-sm-auto flex-shrink-0 mt-2 mt-sm-0">
-                            <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="$btn_class w-100 w-sm-auto justify-content-center">
+                        <div class="w-100 w-sm-auto flex-shrink-0 mt-2 mt-sm-0 text-sm-end">
+                            <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="$btn_class w-100 w-sm-auto justify-content-center text-nowrap">
                                 $btn_label <i class="bi bi-arrow-right-short ms-1 fs-5"></i>
                             </a>
                         </div>

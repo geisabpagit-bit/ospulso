@@ -1324,13 +1324,14 @@ nav.navbar.sticky-top {
     background: var(--md-teal-clinical, #19B7A5);
 }
 
-/* Compatibilidad Retroactiva */
+/* Compatibilidad Retroactiva y Utilidades Responsivas */
 .floating-label-premium label { 
     font-size: 0.65rem !important; 
     text-transform: uppercase; 
     color: #64748b; 
     font-weight: 600; 
-    padding: 1rem 0.75rem; 
+    padding: 0.4rem 0.75rem !important; 
+    height: auto !important;
 }
 .floating-label-premium .form-control, 
 .floating-label-premium .form-select { 
@@ -1340,7 +1341,15 @@ nav.navbar.sticky-top {
     transition: all 0.2s; 
     box-shadow: none; 
 }
+@media (min-width: 576px) {
+    .w-sm-auto {
+        width: auto !important;
+    }
+}
 @media (min-width: 768px) {
+    .w-md-auto {
+        width: auto !important;
+    }
     .border-md-end-soft { 
         border-right: 1px solid var(--md-gray-soft) !important; 
     }

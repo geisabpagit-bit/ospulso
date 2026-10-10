@@ -609,74 +609,60 @@ print <<HTML;
                     <input type="hidden" name="hora_ini" id="f_hi">
                     <input type="hidden" name="hora_fin" id="f_hf">
 
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <div class="form-floating floating-label-premium position-relative">
-                                <input type="text" id="f_paciente" class="form-control pe-4" placeholder="Buscar paciente..." readonly required value="$paciente->{nombre}">
-                                <label for="f_paciente">PACIENTE</label>
+                    <div class="row g-2 g-md-3">
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label class="form-label-compact" for="f_paciente">PACIENTE</label>
+                            <div class="position-relative">
+                                <input type="text" id="f_paciente" class="form-control form-control-compact pe-4" placeholder="Buscar paciente..." readonly required value="$paciente->{nombre}">
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-floating floating-label-premium">
-                                <input type="date" name="fecha" id="f_fecha" class="form-control" placeholder="Fecha" onchange="renderSlots(this.value)">
-                                <label for="f_fecha">FECHA DE LA CITA</label>
-                            </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label class="form-label-compact" for="f_fecha">FECHA DE LA CITA</label>
+                            <input type="date" name="fecha" id="f_fecha" class="form-control form-control-compact" onchange="renderSlots(this.value)">
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-floating floating-label-premium">
-                                <input type="text" name="motivo" id="f_motivo" class="form-control" placeholder="Detalles de la cita...">
-                                <label for="f_motivo">MOTIVO / OBSERVACIONES</label>
-                            </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label class="form-label-compact" for="f_motivo">MOTIVO / OBSERVACIONES</label>
+                            <input type="text" name="motivo" id="f_motivo" class="form-control form-control-compact" placeholder="Detalles de la cita...">
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-floating floating-label-premium">
-                                <select name="id_medico" id="f_medico_select" class="form-select fw-bold" onchange="actualizarAgendaDestino()">
-                                    $html_medicos
-                                </select>
-                                <label for="f_medico_select">PROFESIONAL</label>
-                            </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label class="form-label-compact" for="f_medico_select">PROFESIONAL</label>
+                            <select name="id_medico" id="f_medico_select" class="form-select form-control-compact fw-bold" onchange="actualizarAgendaDestino()">
+                                $html_medicos
+                            </select>
                         </div>
 
-                        <div class="col-md-3">
-                            <div class="form-floating floating-label-premium">
-                                <select name="sucursal" id="f_sucursal" class="form-select fw-bold">
-                                    $html_sucursal
-                                </select>
-                                <label for="f_sucursal">SUCURSAL</label>
-                            </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label class="form-label-compact" for="f_sucursal">SUCURSAL</label>
+                            <select name="sucursal" id="f_sucursal" class="form-select form-control-compact fw-bold">
+                                $html_sucursal
+                            </select>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-floating floating-label-premium">
-                                <select name="consultorio" id="f_consultorio" class="form-select fw-bold">
-                                    <option value="Consultorio 1">Cons. 1</option>
-                                    <option value="Consultorio 2">Cons. 2</option>
-                                    <option value="Consultorio 3">Cons. 3</option>
-                                    <option value="Consultorio 4">Cons. 4</option>
-                                    <option value="Virtual">Virtual</option>
-                                </select>
-                                <label for="f_consultorio">LUGAR</label>
-                            </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label class="form-label-compact" for="f_consultorio">LUGAR</label>
+                            <select name="consultorio" id="f_consultorio" class="form-select form-control-compact fw-bold">
+                                <option value="Consultorio 1">Cons. 1</option>
+                                <option value="Consultorio 2">Cons. 2</option>
+                                <option value="Consultorio 3">Cons. 3</option>
+                                <option value="Consultorio 4">Cons. 4</option>
+                                <option value="Virtual">Virtual</option>
+                            </select>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-floating floating-label-premium">
-                                <select name="estado" id="f_estado" class="form-select fw-bold">
-                                    <option value="Programada">Programada</option>
-                                    <option value="Confirmada">Confirmada</option>
-                                    <option value="Atendida">Atendida</option>
-                                </select>
-                                <label for="f_estado">ESTADO</label>
-                            </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label class="form-label-compact" for="f_estado">ESTADO</label>
+                            <select name="estado" id="f_estado" class="form-select form-control-compact fw-bold">
+                                <option value="Programada">Programada</option>
+                                <option value="Confirmada">Confirmada</option>
+                                <option value="Atendida">Atendida</option>
+                            </select>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-floating floating-label-premium">
-                                <select name="prioridad" id="f_prioridad" class="form-select fw-bold">
-                                    <option value="Baja">Baja</option>
-                                    <option value="Normal" selected>Normal</option>
-                                    <option value="Alta">Alta</option>
-                                    <option value="Urgente">Urgente</option>
-                                </select>
-                                <label for="f_prioridad">PRIORIDAD</label>
-                            </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label class="form-label-compact" for="f_prioridad">PRIORIDAD</label>
+                            <select name="prioridad" id="f_prioridad" class="form-select form-control-compact fw-bold">
+                                <option value="Baja">Baja</option>
+                                <option value="Normal" selected>Normal</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Urgente">Urgente</option>
+                            </select>
                         </div>
                     </div>
 
