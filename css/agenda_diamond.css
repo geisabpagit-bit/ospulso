@@ -918,3 +918,43 @@
     background-color: var(--sdm-blue, #0A2A66) !important;
     color: #ffffff !important;
 }
+
+/* --- COMPONENTES SMART VIEW: CITAS DE JORNADA COMPLETA Y CONTINUACIÓN --- */
+.all-day-hero-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.all-day-hero-card:hover {
+    box-shadow: 0 10px 25px -5px rgba(25, 183, 165, 0.15), 0 8px 10px -6px rgba(10, 42, 102, 0.1) !important;
+}
+.all-day-pill {
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(10, 42, 102, 0.2);
+}
+.all-day-avatar {
+    flex-shrink: 0;
+    user-select: none;
+}
+.smart-shift-covered {
+    transition: all 0.2s ease;
+}
+.smart-shift-covered:hover {
+    background: rgba(241, 245, 249, 1) !important;
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+}
+.slot-continuation {
+    opacity: 0.88;
+    transition: all 0.2s ease;
+}
+.slot-continuation:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+.btn-outline-teal {
+    color: var(--md-teal-clinical, #19B7A5) !important;
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+    background: transparent;
+}
+.btn-outline-teal:hover {
+    background-color: var(--md-teal-clinical, #19B7A5) !important;
+    color: #ffffff !important;
+}

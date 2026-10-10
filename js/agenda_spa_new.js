@@ -216,19 +216,127 @@ function renderSmartSlots(date) {
 
     const s = parseInt(agendaConfig.laborStart?.split(':')[0] || 9);
     const e = parseInt(agendaConfig.laborEnd?.split(':')[0] || 18);
+    const lStart = agendaConfig.laborStart || '08:00';
+    const lEnd = agendaConfig.laborEnd || '18:00';
+    const [lsH, lsM] = lStart.split(':').map(Number);
+    const [leH, leM] = lEnd.split(':').map(Number);
+    const laborTotalMin = (leH * 60 + (leM || 0)) - (lsH * 60 + (lsM || 0));
+
     const interval = parseInt(agendaConfig.intervalo_minutos) || 30;
-    const dayApts = appointments.filter(a => a.start.startsWith(date));
+    const dayApts = appointments.filter(a => a.start && a.start.startsWith(date));
 
     const now = new Date();
     const todayISO = getISO(now);
     const currentHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
+    const matchedAptIds = new Set();
+
+    // 1. Detección Inteligente de Citas de Día Completo / Jornada Completa
+    const allDayApts = dayApts.filter(a => {
+        const aHi = a.start.split('T')[1].substring(0, 5);
+        const aHf = a.end.split('T')[1].substring(0, 5);
+        const [aH1, aM1] = aHi.split(':').map(Number);
+        const [aH2, aM2] = aHf.split(':').map(Number);
+        const durMin = (aH2 * 60 + (aM2 || 0)) - (aH1 * 60 + (aM1 || 0));
+        
+        // Abarca toda la jornada laboral o duración >= total jornada - 30m o >= 6 horas o motivo explícito
+        const cubreJornada = (aHi <= lStart && aHf >= lEnd);
+        const esCasiJornada = (durMin >= (laborTotalMin - 30));
+        const esJornadaLarga = (durMin >= 360 && aHi <= '09:00' && aHf >= '17:00');
+        const motivoTodoDia = (a.extendedProps && a.extendedProps.motivo && /todo el d|jornada completa|dia completo|día completo/i.test(a.extendedProps.motivo));
+        
+        return cubreJornada || esCasiJornada || esJornadaLarga || motivoTodoDia;
+    });
+
+    // Renderizar Hero Card para Citas de Día Completo al inicio
+    if (allDayApts.length > 0) {
+        allDayApts.forEach(apt => {
+            matchedAptIds.add(apt.id);
+            const aHi = apt.start.split('T')[1].substring(0, 5);
+            const aHf = apt.end.split('T')[1].substring(0, 5);
+            const [aH1, aM1] = aHi.split(':').map(Number);
+            const [aH2, aM2] = aHf.split(':').map(Number);
+            const durMin = (aH2 * 60 + (aM2 || 0)) - (aH1 * 60 + (aM1 || 0));
+            const durHoras = (durMin / 60).toFixed(1).replace('.0', '');
+
+            const res = resolverEstadoCita(apt.extendedProps?.estado, date, aHf);
+            const esAtendida = res.esAtendida || res.clave.toLowerCase().includes('atendida');
+            const esCancelada = res.esCancelada || res.clave.toLowerCase().includes('cancelada');
+            const esEnConsulta = res.esEnConsulta || res.clave.toLowerCase().includes('proceso');
+            const esTomable = (!esAtendida && !esCancelada && !esEnConsulta);
+
+            const initials = apt.title.split(' ').filter(Boolean).map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'P';
+            const motivoTxt = apt.extendedProps?.motivo ? apt.extendedProps.motivo.trim() : '';
+            const idPac = apt.extendedProps?.id_paciente || '';
+
+            const heroCard = $(`
+                <div class="col-12 mb-3">
+                    <div class="card p-3 p-md-4 shadow-sm rounded-4 border-0 all-day-hero-card" 
+                         style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-2.5 border-bottom border-light-subtle">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge text-white px-2.5 py-1.5 rounded-pill fw-bold d-inline-flex align-items-center all-day-pill" style="background-color: var(--md-navy, #0A2A66); font-size: 0.72rem;">
+                                    <i class="bi bi-sun-fill me-1 text-warning"></i> JORNADA COMPLETA
+                                </span>
+                                <span class="badge ${res.badgeClass} px-2.5 py-1.5 rounded-pill fw-bold" style="font-size: 0.72rem;">
+                                    ${res.clave.toUpperCase()}
+                                </span>
+                                <span class="badge bg-light text-secondary border px-2.5 py-1.5 rounded-pill fw-medium" style="font-size: 0.72rem;">
+                                    <i class="bi bi-clock me-1" style="color: var(--md-teal-clinical, #19B7A5);"></i> ${aHi} - ${aHf} (${durHoras} hrs)
+                                </span>
+                                ${apt.extendedProps?.consultorio ? `<span class="badge bg-light text-muted border px-2.5 py-1.5 rounded-pill small"><i class="bi bi-geo-alt me-0.5"></i> ${apt.extendedProps.consultorio}</span>` : ''}
+                            </div>
+                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                ${esEnConsulta ? `
+                                    <button type="button" class="btn btn-sm text-white rounded-pill px-3 py-1.5 fw-bold shadow-xs" style="font-size:0.75rem; background-color:#059669 !important;" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${idPac}&id_cita=${apt.id}'" title="Ir a Consulta en Proceso">
+                                        <i class="bi bi-play-fill me-1"></i> Ir a Consulta
+                                    </button>
+                                ` : (esTomable ? `
+                                    <button type="button" class="btn btn-sm btn-success text-white rounded-pill px-3 py-1.5 fw-bold shadow-xs" style="font-size:0.75rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${apt.id}', '${idPac}')" title="Tomar Cita Ahora">
+                                        <i class="bi bi-play-fill me-1"></i> Tomar Cita
+                                    </button>
+                                ` : '')}
+                                ${idPac ? `
+                                    <a href="render_expediente.pl?id=${idPac}" class="btn btn-sm btn-outline-teal rounded-pill px-2.5 py-1.5 fw-medium" style="font-size:0.75rem;" title="Abrir Expediente Clínico">
+                                        <i class="bi bi-folder2-open me-1"></i> Expediente
+                                    </a>
+                                ` : ''}
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1.5 fw-medium" style="font-size:0.75rem;" onclick="event.stopPropagation(); abrirModalCita('${apt.id}')" title="Re-agendar o Modificar">
+                                    <i class="bi bi-pencil-square me-1"></i> Re-agendar
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1.5" style="font-size:0.75rem;" onclick="event.stopPropagation(); abrirModalCita('${apt.id}', true)" title="Ver Detalle Completo">
+                                    <i class="bi bi-eye me-1"></i> Ver Detalle
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 pt-3">
+                            <div class="all-day-avatar d-flex align-items-center justify-content-center text-white fw-bold rounded-circle shadow-xs flex-shrink-0" style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--md-teal-clinical, #19B7A5), var(--md-navy, #0A2A66)); font-size: 1rem;">
+                                ${initials}
+                            </div>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="mb-0 fw-bold text-navy text-truncate" style="font-size: 1.05rem;">${apt.title}</h5>
+                                    ${idPac ? `<span class="badge bg-light text-secondary border small">EXP: #${idPac}</span>` : ''}
+                                    ${apt.extendedProps?.prioridad && apt.extendedProps.prioridad !== 'Normal' ? `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning small">${apt.extendedProps.prioridad}</span>` : ''}
+                                </div>
+                                ${motivoTxt ? `
+                                    <p class="mb-0 mt-1 small text-muted text-truncate" title="${motivoTxt}">
+                                        <i class="bi bi-chat-left-text me-1 text-teal"></i> <span class="fw-semibold text-dark">Motivo:</span> ${motivoTxt}
+                                    </p>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            cont.append(heroCard);
+        });
+    }
+
     const sections = [
         { label: 'MAÑANA', start: s, end: 13, icon: 'bi-brightness-high-fill' },
         { label: 'TARDE', start: 13, end: e, icon: 'bi-moon-stars-fill' }
     ];
-
-    const matchedAptIds = new Set();
 
     sections.forEach(sec => {
         const col = $(`
@@ -244,6 +352,37 @@ function renderSmartSlots(date) {
         `);
         cont.append(col);
         const inner = col.find(`#smart-slots-${sec.label}`);
+
+        // Si hay una cita de todo el día que cubre este turno completo, renderizamos un banner elegante de turno cubierto
+        const secAllDayCover = allDayApts.find(a => {
+            const aHi = a.start.split('T')[1].substring(0, 5);
+            const aHf = a.end.split('T')[1].substring(0, 5);
+            const secHi = `${sec.start.toString().padStart(2, '0')}:00`;
+            const secHf = `${sec.end.toString().padStart(2, '0')}:00`;
+            return (aHi <= secHi && aHf >= secHf);
+        });
+
+        if (secAllDayCover) {
+            inner.append(`
+                <div class="col-12">
+                    <div class="smart-shift-covered p-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-2" style="background: rgba(248, 250, 252, 0.85); border: 1.5px dashed #cbd5e1;">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-white shadow-xs" style="width:34px; height:34px; color: var(--md-navy, #0A2A66);">
+                                <i class="bi bi-shield-lock-fill"></i>
+                            </div>
+                            <div>
+                                <span class="d-block fw-bold text-navy small">Turno Cubierto por Jornada Completa</span>
+                                <span class="d-block text-muted" style="font-size:0.75rem;">Asignado a: <strong>${secAllDayCover.title}</strong> (${sec.start.toString().padStart(2, '0')}:00 - ${sec.end.toString().padStart(2, '0')}:00)</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-teal rounded-pill px-3 py-1" style="font-size:0.72rem;" onclick="abrirModalCita('${secAllDayCover.id}')">
+                            <i class="bi bi-eye me-1"></i> Ver Ficha
+                        </button>
+                    </div>
+                </div>
+            `);
+            return;
+        }
 
         let delay = 0;
         for (let h = sec.start; h < sec.end; h++) {
@@ -268,8 +407,11 @@ function renderSmartSlots(date) {
                 let isSlotInteractive = true;
 
                 if (isOcc) {
-                    const aptEndH = aptInSlot.end.split('T')[1].substring(0, 5);
-                    const res = resolverEstadoCita(aptInSlot.extendedProps.estado, date, aptEndH);
+                    const aHi = aptInSlot.start.split('T')[1].substring(0, 5);
+                    const aHf = aptInSlot.end.split('T')[1].substring(0, 5);
+                    const isAptStart = (hhmm === aHi) || (hhmm <= aHi && hhmmF > aHi);
+
+                    const res = resolverEstadoCita(aptInSlot.extendedProps?.estado, date, aHf);
                     const st = res.clave;
                     const stLow = st.toLowerCase();
                     const esAtendida = res.esAtendida || stLow.includes('atendida');
@@ -277,18 +419,30 @@ function renderSmartSlots(date) {
                     const esEnConsulta = res.esEnConsulta || (stLow === 'en consulta' || stLow === 'consulta en proceso' || stLow.includes('proceso'));
                     const esNoRealizada = res.esNoRealizada || stLow.includes('no realizada') || (isPastSlot && !esAtendida && !esCancelada && !esEnConsulta);
 
-                    if (esEnConsulta) {
+                    // Si no es el slot inicial de una cita que cubre múltiples slots, mostramos indicador de continuación limpio
+                    if (!isAptStart) {
+                        slotClass = 'slot-busy slot-continuation';
+                        slotStyle += ` background-color: ${res.bgCard || '#f8fafc'} !important; border: 1px dashed ${res.border || '#cbd5e1'} !important; color: ${res.textColor || '#64748b'} !important;`;
+                        slotTitle = `Continuación de cita: ${aptInSlot.title} (${aHi} - ${aHf})`;
+                        slotContent = `
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <span class="fw-bold opacity-75">${hhmm}</span>
+                                <span class="badge bg-white text-secondary border" style="font-size:0.52rem;"><i class="bi bi-arrow-return-right"></i> Continúa</span>
+                            </div>
+                            <span class="d-block text-truncate mt-1 text-secondary opacity-75" style="font-size:0.65rem;">↳ ${aptInSlot.title}</span>
+                        `;
+                    } else if (esEnConsulta) {
                         slotClass = 'slot-busy slot-en-consulta';
                         slotStyle += ' background-color: #dcfce7 !important; border-color: #059669 !important; color: #166534 !important;';
                         slotTitle = `Consulta en proceso - ${aptInSlot.title}`;
                         slotContent = `
                             <div class="d-flex align-items-center justify-content-between w-100">
-                                <span class="fw-bold">${hhmm}</span>
-                                <span class="badge text-white" style="font-size:0.55rem; background-color:#059669 !important;">CONSULTA EN PROCESO</span>
+                                <span class="fw-bold">${aHi !== hhmmF ? `${aHi}-${aHf}` : hhmm}</span>
+                                <span class="badge text-white" style="font-size:0.55rem; background-color:#059669 !important;">EN PROCESO</span>
                             </div>
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
-                                <button type="button" class="btn btn-sm text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem; background-color:#059669 !important;" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${aptInSlot.extendedProps.id_paciente}&id_cita=${aptInSlot.id}'" title="Ir a Consulta en Proceso"><i class="bi bi-play-fill"></i> Ir</button>
+                                <button type="button" class="btn btn-sm text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem; background-color:#059669 !important;" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${aptInSlot.extendedProps?.id_paciente}&id_cita=${aptInSlot.id}'" title="Ir a Consulta en Proceso"><i class="bi bi-play-fill"></i> Ir</button>
                             </div>
                         `;
                     } else if (esAtendida) {
@@ -297,7 +451,7 @@ function renderSmartSlots(date) {
                         slotTitle = `Cita Atendida: ${aptInSlot.title}`;
                         slotContent = `
                             <div class="d-flex align-items-center justify-content-between w-100">
-                                <span class="fw-bold">${hhmm}</span>
+                                <span class="fw-bold">${aHi !== hhmmF ? `${aHi}-${aHf}` : hhmm}</span>
                                 <span class="badge bg-teal text-white" style="font-size:0.55rem;">ATENDIDA</span>
                             </div>
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
@@ -320,15 +474,15 @@ function renderSmartSlots(date) {
                         // Cita en el pasado no realizada: habilitar Tomar Cita y Re-agendar
                         slotClass = 'slot-busy slot-no-realizada';
                         slotStyle += ' background-color: #fff5f5 !important; border: 1.5px solid #ef4444 !important; color: #991b1b !important;';
-                        slotTitle = `Cita No Realizada (Pasada): ${aptInSlot.title}`;
+                        slotTitle = `Cita No Realizada: ${aptInSlot.title}`;
                         slotContent = `
                             <div class="d-flex align-items-center justify-content-between w-100">
-                                <span class="fw-bold text-danger">${hhmm}</span>
+                                <span class="fw-bold text-danger">${aHi !== hhmmF ? `${aHi}-${aHf}` : hhmm}</span>
                                 <span class="badge bg-danger text-white" style="font-size:0.55rem;">NO REALIZADA</span>
                             </div>
                             <span class="d-block text-truncate fw-bold mt-1 text-dark" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
-                                <button type="button" class="btn btn-sm btn-success text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${aptInSlot.id}', '${aptInSlot.extendedProps.id_paciente}')" title="Tomar Cita Ahora"><i class="bi bi-play-fill"></i> Tomar</button>
+                                <button type="button" class="btn btn-sm btn-success text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${aptInSlot.id}', '${aptInSlot.extendedProps?.id_paciente}')" title="Tomar Cita Ahora"><i class="bi bi-play-fill"></i> Tomar</button>
                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}')" title="Re-agendar"><i class="bi bi-pencil-square"></i></button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}', true)" title="Ver Detalle"><i class="bi bi-eye"></i></button>
                             </div>
@@ -343,12 +497,12 @@ function renderSmartSlots(date) {
                         slotTitle = `${st}: ${aptInSlot.title}`;
                         slotContent = `
                             <div class="d-flex align-items-center justify-content-between w-100">
-                                <span class="fw-bold">${hhmm}</span>
+                                <span class="fw-bold">${aHi !== hhmmF ? `${aHi}-${aHf}` : hhmm}</span>
                                 <span class="badge bg-primary text-white" style="font-size:0.55rem;">${st.toUpperCase()}</span>
                             </div>
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
-                                <button type="button" class="btn btn-sm btn-success text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${aptInSlot.id}', '${aptInSlot.extendedProps.id_paciente}')" title="Tomar Cita"><i class="bi bi-play-fill"></i> Tomar</button>
+                                <button type="button" class="btn btn-sm btn-success text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${aptInSlot.id}', '${aptInSlot.extendedProps?.id_paciente}')" title="Tomar Cita"><i class="bi bi-play-fill"></i> Tomar</button>
                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}')" title="Editar / Re-agendar"><i class="bi bi-pencil-square"></i></button>
                             </div>
                         `;
