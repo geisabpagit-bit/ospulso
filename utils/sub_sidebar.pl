@@ -199,7 +199,7 @@ sub render_sidebar {
 <script src="../js/spa_router.js?v=$^T" defer></script>
 <script src="../js/sub_sidebar.js?v=$^T" defer></script>
 
-<div class="sdm-layout-wrapper animate__animated animate__fadeIn">
+<div class="sdm-layout-wrapper">
     <!-- Sidebar Left -->
     <nav class="diamond-sidebar" id="moduleSidebar">
         <div class="sidebar-brand" id="sidebarBrandContainer">

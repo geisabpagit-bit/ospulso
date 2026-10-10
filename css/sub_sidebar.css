@@ -244,9 +244,9 @@
         height: 100vh !important;
         height: 100dvh !important;
         max-height: 100vh !important;
-        width: 295px !important;
-        max-width: 86vw !important;
-        border-radius: 0 1.5rem 1.5rem 0 !important;
+        width: 268px !important;
+        max-width: 80vw !important;
+        border-radius: 0 16px 16px 0 !important;
         margin: 0 !important;
         border: none !important;
         border-right: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
@@ -271,8 +271,8 @@
     }
     /* El modo compacto se desactiva en móviles y tabletas para garantizar visibilidad íntegra */
     .diamond-sidebar.compact {
-        width: 295px !important;
-        max-width: 86vw !important;
+        width: 268px !important;
+        max-width: 80vw !important;
     }
     .diamond-sidebar.compact .sidebar-brand-text,
     .diamond-sidebar.compact .sidebar-text {
@@ -290,37 +290,69 @@
     }
     .diamond-sidebar.compact .sub-link {
         justify-content: flex-start !important;
-        padding: 10px 14px !important;
+        padding: 6px 10px !important;
     }
     .diamond-sidebar.compact .sub-link i,
     .diamond-sidebar.compact .sub-link .material-icons {
         margin-right: 0.5rem !important;
     }
 
-    /* Estándares táctiles móviles y tabletas (Touch Targets 48px / 44px) */
+    /* Estándares táctiles móviles compactos (Densidad Ergonómica y Eliminación de Espacio Muerto) */
+    .diamond-sidebar .accordion-item {
+        margin-bottom: 2px !important;
+    }
     .diamond-sidebar .accordion-button {
-        min-height: 48px !important;
-        padding: 12px 14px !important;
-        font-size: 0.88rem !important;
+        min-height: 40px !important;
+        padding: 8px 10px !important;
+        font-size: 0.82rem !important;
+        gap: 10px !important;
+        border-radius: 10px !important;
+    }
+    .diamond-sidebar .accordion-button i {
+        font-size: 1.15rem !important;
+        min-width: 20px !important;
     }
     .diamond-sidebar .sub-link {
-        min-height: 44px !important;
-        padding: 10px 14px !important;
-        font-size: 0.83rem !important;
+        min-height: 34px !important;
+        padding: 6px 10px !important;
+        font-size: 0.78rem !important;
+        margin-bottom: 2px !important;
+        border-radius: 8px !important;
+    }
+    .diamond-sidebar .sub-link i,
+    .diamond-sidebar .sub-link .material-icons {
+        font-size: 1.05rem !important;
+        margin-right: 6px !important;
+    }
+    .diamond-sidebar .accordion-body {
+        padding: 2px 0 2px 8px !important;
     }
     .diamond-sidebar .sidebar-menu {
-        padding: 0.75rem 0.65rem 2.5rem 0.65rem !important;
+        padding: 0.4rem 0.5rem 5rem 0.5rem !important;
         -webkit-overflow-scrolling: touch !important;
         overscroll-behavior: contain !important;
     }
     
     .diamond-sidebar .sidebar-brand {
-        padding: 1rem 1.25rem !important;
-        border-bottom: 1px solid #eef2f6 !important;
+        padding: 0.65rem 1rem !important;
+        min-height: 56px !important;
+        height: 56px !important;
+        border-bottom: 1px solid rgba(25, 183, 165, 0.15) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
         background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%) !important;
+    }
+    .diamond-sidebar .sidebar-brand .avatar-diamond {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 1rem !important;
+        border-radius: 10px !important;
+    }
+    .diamond-sidebar .sidebar-brand .btn-sidebar-close-mobile {
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 8px !important;
     }
     
     .sidebar-overlay {

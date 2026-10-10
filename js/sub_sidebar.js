@@ -63,12 +63,15 @@ window.toggleSidebar = function() {
     if (window.innerWidth >= 992) {
         const overlay = document.getElementById("sidebarOverlay");
         if (overlay) overlay.classList.remove("show");
+        document.body.classList.remove("sidebar-open");
         return;
     }
     const sidebar = document.getElementById("moduleSidebar");
     const overlay = document.getElementById("sidebarOverlay");
-    if (sidebar) sidebar.classList.toggle("show");
-    if (overlay) overlay.classList.toggle("show");
+    if (!sidebar) return;
+    const isShowing = sidebar.classList.toggle("show");
+    if (overlay) overlay.classList.toggle("show", isShowing);
+    document.body.classList.toggle("sidebar-open", isShowing);
 };
 
 window.toggleDesktopSidebar = function() {
@@ -112,6 +115,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     if (sidebar && sidebar.classList.contains("show")) {
                         sidebar.classList.remove("show");
                         if (overlay) overlay.classList.remove("show");
+                        document.body.classList.remove("sidebar-open");
                     }
                 }
             }
@@ -136,6 +140,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             if (overlay) overlay.classList.remove("show");
             if (sidebar) sidebar.classList.remove("show");
+            document.body.classList.remove("sidebar-open");
             const isCompact = localStorage.getItem("ospulso_sidebar_compact") === "true";
             if (isCompact) {
                 sidebar.classList.add("compact");

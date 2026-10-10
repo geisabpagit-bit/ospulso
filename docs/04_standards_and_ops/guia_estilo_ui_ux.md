@@ -285,19 +285,24 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - **Desacoplamiento Estricto**: Todo formulario wizard clínico y administrativo de alta densidad debe utilizar `.wizard-hero-header` en sustitución del genérico `header.bg-medentia-gradient`.
    - **Erradicación de Elipses**: Los contenedores `.hero-icon-box` e íconos `.rounded-circle` mantienen forzado `flex-shrink: 0; width: 36px; height: 36px; max-width: fit-content !important;` en móvil, garantizando esferas perfectas sin estiramiento horizontal.
    - **Altura Compacta (~55px)**: El encabezado opera como una barra de aplicación móvil que no excede los 60px de altura, estructurando el ícono, título y chips de metadatos en una sola fila compacta, reservando más del 85% del viewport útil para el stepper y los campos clínicos.
-2. **Dock Inferior Flotante con Gobernanza RBAC y Simetría Canónica (`bottom_nav.css`, `utils/sub_bottom_nav.pl`)**:
-   - **Single Source of Truth (`css/bottom_nav.css`)**: Centralización absoluta de las propiedades del dock (`height: 58px`, `border-radius: 5px`, `background: rgba(232, 243, 255, 0.96)`, `backdrop-filter: blur(16px)`, `border: 1px solid var(--md-teal-clinical, #19B7A5)`). Se homologaron e integraron todas las clases heredadas (`.financial-dock`, `.dock-item`) bajo el mismo estándar visual.
-   - **Arquitectura Simétrica de 5 Slots**: En todas las vistas e instancias del sistema, el dock presenta una estructura balanceada de 5 posiciones con el botón central de acción contextualmente elevado (`.dock-fab` de 48px, fondo turquesa `#00C4C4`, elevación `-8px`, esquinas redondeadas circulares).
+2. **Dock Inferior Anclado al Fondo con Gobernanza RBAC y Simetría Canónica (`bottom_nav.css`, `utils/sub_bottom_nav.pl`)**:
+   - **Single Source of Truth (`css/bottom_nav.css`)**: Centralización absoluta de las propiedades de la barra inferior anclada (`bottom: 0`, `left: 0`, `right: 0`, `width: 100%`, `height: calc(56px + env(safe-area-inset-bottom, 0px))`, `border-radius: 16px 16px 0 0`, `border-top: 1.5px solid var(--md-teal-clinical, #19B7A5)`, `background: rgba(232, 243, 255, 0.96)`, `backdrop-filter: blur(16px)`).
+   - **Soporte Ergonómico Notch y Safe Area**: Soporte integrado para `env(safe-area-inset-bottom)` previniendo colisiones con el indicador gestual de inicio en iOS y Android.
+   - **Arquitectura Simétrica de 5 Slots con FAB Elevado**: En todas las vistas e instancias del sistema, la barra presenta una estructura balanceada de 5 posiciones con el botón central de acción contextualmente elevado (`.dock-fab` de 48px, fondo turquesa `#00C4C4`, elevación `-12px`, esquinas redondeadas circulares).
+   - **Coordinación Anti-Solapamiento con Menú Lateral**: Cuando el menú lateral izquierdo se abre en móvil (`body.sidebar-open`), la barra inferior desciende reactivamente (`transform: translateY(115%)`) para no obstruir los submenús del drawer.
    - **Segregación Estricta por Rol (RBAC)**:
      - **Rol Médico**: Acceso al FAB central y opciones de Consulta Médica (`bi-heart-pulse-fill`) en Expediente, Consulta, Agenda, Pacientes y Dashboard.
      - **Roles Administrativos / Recepción**: La opción de consulta médica se omite íntegramente por seguridad funcional; el FAB central se reconfigura hacia *Nueva Cita* (`bi-calendar-plus`), *Nuevo Paciente* (`bi-person-plus-fill`) o *Finanzas* (`bi-wallet2`).
      - **Rol Paciente**: Barra simétrica con *Inicio*, *Inbox*, FAB central *Agendar Cita* (`agendar_cita_paciente.pl`), *Mis Citas* e *Historial Clínico*.
-   - **Resaltado Activo Homogéneo**: Los ítems regulares activos (`.main-tab-item.active`) proyectan un borde azul marino sutil (`1.5px solid #0A2A66`) con elevación de `-2px`, mientras el FAB activo (`.dock-fab.active`) resalta con borde blanco de `2.5px`, resplandor turquesa y escala `1.06`.
+   - **Resaltado Activo Homogéneo**: Los ítems regulares activos (`.main-tab-item.active`) proyectan un borde azul marino sutil (`1.5px solid #0A2A66`) con elevación de `-2px`, mientras el FAB activo (`.dock-fab.active`) resalta con borde blanco de `2.5px`, resplandor turquesa, escala `1.06` y elevación `-12px`.
 3. **Hub de Consultas Responsivo**:
    - Las citas programadas e historial clínico implementan tarjetas flexibles (`flex-column flex-sm-row`) con micro-píldoras de estado y fecha/hora que previenen recortes de texto.
    - Touch target mínimo de 48px para los botones de acción en celulares y ancho expandible (`w-100 w-sm-auto`).
-4. **Ocultamiento Limpio de Sidebar Móvil**:
-   - En estado colapsado (`@media (max-width: 991px)`), `.diamond-sidebar` aplica `transform: translateX(-105%) !important; visibility: hidden !important; pointer-events: none !important; box-shadow: none !important;`, previniendo que bordes o sombras proyectadas asomen en el margen izquierdo del dispositivo.
+4. **Menú Lateral Móvil Compacto y Ergonómico (`css/sub_sidebar.css`, `utils/sub_sidebar.pl`)**:
+   - **Anchura Ergonómica**: Limitado a `268px` (`max-width: 80vw`), reservando un 20% visible de backdrop para cierre ágil con un solo toque.
+   - **Densidad Táctil Compacta**: Cabecera reducida a 56px de alto (`padding: 0.65rem 1rem`), avatar de 38px, ítems principales a 40px de altura (`padding: 8px 10px`) y sub-enlaces a 34px (`padding: 6px 10px`). Esto optimiza en un 40% el espacio vertical visible, reduciendo drásticamente la necesidad de scroll.
+   - **Desacoplamiento de Stacking Context**: Eliminación de trampas de apilamiento en `.sdm-layout-wrapper` asegurando que el sidebar (`z-index: 10500`) y su overlay (`z-index: 10490`) siempre prevalezcan sobre la barra inferior.
+   - **Ocultamiento Limpio**: En estado colapsado (`@media (max-width: 991px)`), `.diamond-sidebar` aplica `transform: translateX(-105%) !important; visibility: hidden !important; pointer-events: none !important; box-shadow: none !important;`, previniendo que bordes o sombras proyectadas asomen en el margen izquierdo del dispositivo.
 
 ---
 
