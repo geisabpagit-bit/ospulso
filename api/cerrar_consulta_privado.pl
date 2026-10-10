@@ -540,6 +540,7 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
     my $caja_metodo_pago = $q->param('caja_metodo_pago') // 'Efectivo';
     
     my $id_tratamiento = $id_tratamiento_param || ($tiene_tratamiento_activo ? $id_tratamiento_activo : '');
+    my $es_tratamiento_existente = ($id_tratamiento && $tiene_tratamiento_activo) ? 1 : 0;
     
     # Calcular total de cargos directos de esta consulta
     my $total_cargos_directos = 0;
@@ -713,7 +714,7 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
                 };
             }
         }
-        if (!@items_recibo && $id_cotizacion) {
+        if (!@items_recibo && $id_cotizacion && !$es_tratamiento_existente) {
             my $items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones_items.dat');
             if (-e $items_file && open my $fh_ci, '<:encoding(UTF-8)', $items_file) {
                 my $hdr = <$fh_ci>;
@@ -840,16 +841,17 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
 
         # Base de cargos exigibles para el recibo:
         my $base_cargos_recibo = $total_cargos_directos;
-        if ($total_cot > 0) {
+        if ($total_cot > 0 && !$es_tratamiento_existente) {
             $base_cargos_recibo += $total_cot;
-        } elsif ($es_consulta_continuacion && $saldo_global_paciente > 0) {
-            $base_cargos_recibo = $saldo_global_paciente;
+        } elsif (($es_tratamiento_existente || $es_consulta_continuacion) && $saldo_global_paciente > 0) {
+            $base_cargos_recibo += $saldo_global_paciente;
         } elsif ($base_cargos_recibo == 0 && $caja_monto_abono > 0) {
             $base_cargos_recibo = $caja_monto_abono;
         }
 
         my $saldo_post_abono = $base_cargos_recibo - $caja_monto_abono;
-        my $estatus_recibo = ($saldo_post_abono <= 0.005) ? 'Liquidado' : 'Cobrado';
+        $saldo_post_abono = 0 if $saldo_post_abono < 0.005;
+        my $estatus_recibo = ($saldo_post_abono <= 0.005 || $caja_estado_tratamiento eq 'Cerrado') ? 'Liquidado' : 'Cobrado';
         
         my $linea_recibo = join('|',
             $id_recibo, $folio_str, $id_neg, $id_suc, $id_consulta, $id_paciente, $hoy_fecha, $hoy_hora,

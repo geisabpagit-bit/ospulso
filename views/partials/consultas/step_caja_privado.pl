@@ -623,7 +623,7 @@ sub render_step_caja_privado {
             
             const isTratamientoActivo = historialTratamiento && historialTratamiento.tiene_tratamiento;
             const tieneCotizacion = cotSelect && cotSelect.value && cotSelect.value !== 'ninguna' && cotSelect.value !== '';
-            const isNuevaConversion = tieneCotizacion && (!convertirCheck || convertirCheck.checked);
+            const isNuevaConversion = !isTratamientoActivo && tieneCotizacion && (!convertirCheck || convertirCheck.checked);
             
             // Banner de Detección de Cobro Anticipado en Recepción
             const tienePrePagoRecepcion = (historialTratamiento && (

@@ -342,6 +342,62 @@ if (@$items == 0) {
 my $total_cargos_val = $recibo->{total_cargos} + 0;
 my $total_abonos_val = $recibo->{total_abonos} + 0;
 my $saldo_remanente_val = $total_cargos_val - $total_abonos_val;
+
+# Detección y amortización dinámica de tratamiento vinculado
+my $es_recibo_tratamiento = 0;
+my $id_tratamiento_recibo = '';
+my $trat_total_cargos = 0;
+my $abonos_anteriores_trat = 0;
+my $abonos_acumulados_trat = 0;
+
+my $edc_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
+if (-e $edc_path && $recibo->{id_consulta}) {
+    if (open(my $fhedc, '<:encoding(UTF-8)', $edc_path)) {
+        <$fhedc>; # header
+        my @movs_edc;
+        while (my $l = <$fhedc>) {
+            chomp $l;
+            next if $l =~ /^\s*$/;
+            my @c = split /\|/, $l, -1;
+            push @movs_edc, {
+                id_os    => $c[0] // '',
+                id_mov   => $c[1] // '',
+                tipo     => $c[3] // '',
+                total    => ($c[7] || 0) + 0,
+                raw_line => $l
+            };
+            if ($c[0] =~ /^TX-/ && ($l =~ /Consulta #\s*\Q$recibo->{id_consulta}\E\b/i || ($recibo->{id_consulta} =~ /^CONS-/ && $l =~ /\Q$recibo->{id_consulta}\E/))) {
+                $id_tratamiento_recibo = $c[0];
+            }
+        }
+        close $fhedc;
+
+        if ($id_tratamiento_recibo) {
+            $es_recibo_tratamiento = 1;
+            foreach my $m (@movs_edc) {
+                if ($m->{id_os} eq $id_tratamiento_recibo && $m->{tipo} eq 'Cargo') {
+                    $trat_total_cargos += $m->{total};
+                }
+            }
+            foreach my $m (@movs_edc) {
+                next unless ($m->{id_os} eq $id_tratamiento_recibo && $m->{tipo} eq 'Abono');
+                my $match_este = ($m->{raw_line} =~ /Consulta #\s*\Q$recibo->{id_consulta}\E\b/i || ($recibo->{id_consulta} =~ /^CONS-/ && $m->{raw_line} =~ /\Q$recibo->{id_consulta}\E/));
+                if ($match_este) {
+                    $abonos_acumulados_trat += $m->{total};
+                    last;
+                } else {
+                    $abonos_anteriores_trat += $m->{total};
+                    $abonos_acumulados_trat += $m->{total};
+                }
+            }
+            if ($trat_total_cargos > 0) {
+                $total_cargos_val = $trat_total_cargos;
+                $saldo_remanente_val = $trat_total_cargos - $abonos_acumulados_trat;
+            }
+        }
+    }
+}
+
 $saldo_remanente_val = 0 if $saldo_remanente_val < 0.005;
 
 # Sanitización antimultiplicación: Si la lista de items contiene cargos clínicos y además un renglón artificial de abono:
@@ -358,9 +414,22 @@ if ($tiene_abono_fantasma && $tot_servicios_clinicos > 0 && abs($tot_servicios_c
     @$items = grep { ($_->{concepto} // '') !~ /Abono a Cuenta|Liquidaci[oó]n de Tratamiento/i } @$items;
 }
 
-my $total_cargos_fmt    = sprintf('%.2f', $total_cargos_val);
-my $total_abonos_fmt    = sprintf('%.2f', $total_abonos_val);
-my $saldo_remanente_fmt = sprintf('%.2f', $saldo_remanente_val);
+# Formatear el concepto en la tabla cuando se trata de abonos/liquidaciones subsecuentes a un tratamiento
+if ($es_recibo_tratamiento && $abonos_anteriores_trat > 0) {
+    if (@$items == 1 && abs(($items->[0]{subtotal} // 0) - $trat_total_cargos) < 0.05) {
+        my $orig_c = $items->[0]{concepto} // 'Tratamiento';
+        my $prefijo = ($saldo_remanente_val <= 0.005) ? "Liquidación de Tratamiento: " : "Abono a Tratamiento: ";
+        $items->[0]{concepto} = $prefijo . $orig_c;
+        $items->[0]{precio}   = $total_abonos_val;
+        $items->[0]{subtotal} = $total_abonos_val;
+    }
+}
+
+my $total_cargos_fmt      = sprintf('%.2f', $total_cargos_val);
+my $total_abonos_fmt      = sprintf('%.2f', $total_abonos_val);
+my $saldo_remanente_fmt   = sprintf('%.2f', $saldo_remanente_val);
+my $abonos_anteriores_fmt = sprintf('%.2f', $abonos_anteriores_trat);
+my $abonos_acumulados_fmt = sprintf('%.2f', $abonos_acumulados_trat);
 
 my $estatus_recibo = ($saldo_remanente_val <= 0.005) ? 'Liquidado' : ($recibo->{estatus} || 'Cobrado');
 
@@ -635,10 +704,22 @@ print <<HTML;
                     <span style="color: #64748b; font-weight: 600;">Total Servicios / Tratamiento:</span>
                     <span style="font-weight: 700;">\$$total_cargos_fmt</span>
                 </div>
+                @{[$es_recibo_tratamiento && $abonos_anteriores_trat > 0 ? qq{
+                <div class="total-row" style="font-size: 0.82rem; color: #64748b;">
+                    <span>Abonos Anteriores:</span>
+                    <span>-\$$abonos_anteriores_fmt</span>
+                </div>
+                } : '']}
                 <div class="total-row total-principal">
                     <span>IMPORTE COBRADO:</span>
                     <span>\$$total_abonos_fmt</span>
                 </div>
+                @{[$es_recibo_tratamiento && $abonos_anteriores_trat > 0 ? qq{
+                <div class="total-row" style="font-size: 0.82rem; color: #0f766e; font-weight: 700;">
+                    <span>Total Pagado Acumulado:</span>
+                    <span>\$$abonos_acumulados_fmt</span>
+                </div>
+                } : '']}
                 <div class="total-row" style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1;">
                     <span style="font-weight: 700; color: @{[$saldo_remanente_val > 0 ? '#b91c1c' : '#0f766e']};">Saldo Remanente:</span>
                     <span style="font-weight: 800; font-size: 0.95rem; color: @{[$saldo_remanente_val > 0 ? '#b91c1c' : '#0f766e']};">\$$saldo_remanente_fmt @{[$saldo_remanente_val <= 0 ? '(Liquidado)' : '']}</span>
