@@ -1,10 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // =================================================================
-    // 1. LOGICA DEL LOGIN PRINCIPAL (Manejado por indexLogic.js)
-
-    // =================================================================
-    // 2. LOGICA DEL MODAL DE RECUPERACION DE CONTRASENA
+    // LOGICA DEL MODAL DE RECUPERACION DE CONTRASENA
     // =================================================================
 
     const recoverEmailInput = document.getElementById('recoverEmail');
@@ -14,140 +11,225 @@ document.addEventListener('DOMContentLoaded', function() {
     const messageDiv = document.getElementById('recoverMessage');
     
     // Referencia al Modal para poder cerrarlo programáticamente
-    const forgotPasswordModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('forgotPasswordModal'));
-
+    const forgotModalEl = document.getElementById('forgotPasswordModal');
+    let forgotPasswordModal = null;
+    if (forgotModalEl && typeof bootstrap !== 'undefined') {
+        forgotPasswordModal = bootstrap.Modal.getOrCreateInstance(forgotModalEl);
+    }
 
     // --- Funciones de Utilidad ---
-    function isValidEmailFormat() {
-        // Usa la validacion nativa del navegador para el formato
-        return recoverEmailInput.checkValidity(); 
+    function isValidEmailFormat(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    // --- Validacion de Existencia Asíncrona ---
+    async function validarExistenciaCorreo() {
+        if (!recoverEmailInput) return false;
+        const email = recoverEmailInput.value.trim().toLowerCase();
+
+        if (!email) {
+            if (emailFeedbackDiv) {
+                emailFeedbackDiv.className = 'form-text mt-1 text-muted';
+                emailFeedbackDiv.textContent = 'Ingresa tu correo para verificar la cuenta.';
+            }
+            if (sendBtn) sendBtn.disabled = true;
+            return false;
+        }
+
+        if (!isValidEmailFormat(email)) {
+            if (emailFeedbackDiv) {
+                emailFeedbackDiv.className = 'form-text text-danger mt-1';
+                emailFeedbackDiv.textContent = 'Formato de correo no válido.';
+            }
+            if (sendBtn) sendBtn.disabled = true;
+            return false;
+        }
+
+        if (emailFeedbackDiv) {
+            emailFeedbackDiv.className = 'form-text text-info mt-1';
+            emailFeedbackDiv.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verificando cuenta...';
+        }
+
+        try {
+            const response = await fetch(`auth/check_email.pl?correo=${encodeURIComponent(email)}`);
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            const data = await response.json();
+
+            if (data.exists === 1) {
+                recoverEmailInput.dataset.exists = '1';
+                if (emailFeedbackDiv) {
+                    emailFeedbackDiv.className = 'form-text text-success mt-1 fw-semibold';
+                    emailFeedbackDiv.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Correo encontrado. Puedes enviar el enlace.';
+                }
+                if (sendBtn) sendBtn.disabled = false;
+                return true;
+            } else {
+                recoverEmailInput.dataset.exists = '0';
+                if (emailFeedbackDiv) {
+                    emailFeedbackDiv.className = 'form-text text-danger mt-1 fw-semibold';
+                    emailFeedbackDiv.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i> Este correo no está registrado en el sistema.';
+                }
+                if (sendBtn) sendBtn.disabled = true;
+                return false;
+            }
+        } catch (error) {
+            console.error('Error en check_email.pl:', error);
+            recoverEmailInput.dataset.exists = '0';
+            if (emailFeedbackDiv) {
+                emailFeedbackDiv.className = 'form-text text-danger mt-1';
+                emailFeedbackDiv.textContent = 'Error de conexión al verificar el correo. Intenta de nuevo.';
+            }
+            if (sendBtn) sendBtn.disabled = true;
+            return false;
+        }
     }
 
     // --- Control del Estado del Boton y Feedback (on input) ---
     if (recoverEmailInput) {
         recoverEmailInput.addEventListener('input', function() {
-            sendBtn.disabled = true;
-            recoverEmailInput.dataset.exists = '0'; // Resetear estado de existencia
-            messageDiv.classList.add('d-none'); // Ocultar mensaje de exito/error anterior
-            emailFeedbackDiv.className = 'form-text mt-1';
-            emailFeedbackDiv.textContent = 'Ingresa tu correo para verificar la cuenta.';
+            if (sendBtn) sendBtn.disabled = true;
+            recoverEmailInput.dataset.exists = '0';
+            if (messageDiv) {
+                messageDiv.classList.add('d-none');
+                messageDiv.innerHTML = '';
+            }
+            if (emailFeedbackDiv) {
+                emailFeedbackDiv.className = 'form-text mt-1 text-muted';
+                emailFeedbackDiv.textContent = 'Ingresa tu correo para verificar la cuenta.';
+            }
         });
 
-        // --- Validacion de Existencia (on blur) ---
-        recoverEmailInput.addEventListener('blur', function() {
-            const email = recoverEmailInput.value.trim();
+        recoverEmailInput.addEventListener('blur', validarExistenciaCorreo);
 
-            if (!email) {
-                emailFeedbackDiv.className = 'form-text mt-1';
-                emailFeedbackDiv.textContent = 'Ingresa tu correo para verificar la cuenta.';
-                sendBtn.disabled = true;
-                return;
-            }
-
-            if (!isValidEmailFormat()) {
-                emailFeedbackDiv.className = 'form-text text-danger mt-1';
-                emailFeedbackDiv.textContent = 'Formato de correo invalido.';
-                sendBtn.disabled = true;
-                return;
-            }
-
-            // Muestra indicador de verificacion
-            emailFeedbackDiv.className = 'form-text text-info mt-1';
-            emailFeedbackDiv.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verificando existencia...';
-
-            // 🚩 Linea de FETCH con template literal revisada
-            fetch(`auth/check_email.pl?correo=${encodeURIComponent(email)}`)
-            .then(response => {
-                if (!response.ok) {
-                    // Esto atrapa errores de HTTP (404, 500, etc.)
-                    throw new Error('Error de red o servidor no disponible: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.exists === 1) {
-                    // Exito: Correo existe
-                    recoverEmailInput.dataset.exists = '1';
-                    emailFeedbackDiv.className = 'form-text text-success mt-1';
-                    emailFeedbackDiv.textContent = 'Correo encontrado. Puedes enviar el enlace.';
-                    sendBtn.disabled = false; // Habilitar boton
+        recoverEmailInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (sendBtn && !sendBtn.disabled) {
+                    enviarEnlaceRecuperacion();
                 } else {
-                    // Fallo: Correo no existe
-                    recoverEmailInput.dataset.exists = '0';
-                    emailFeedbackDiv.className = 'form-text text-danger mt-1';
-                    emailFeedbackDiv.textContent = 'Este correo no esta registrado en el sistema.';
-                    sendBtn.disabled = true; // Mantener deshabilitado
+                    validarExistenciaCorreo();
                 }
-            })
-            .catch(error => {
-                console.error('Error en check_mail.pl:', error);
-                recoverEmailInput.dataset.exists = '0';
-                emailFeedbackDiv.className = 'form-text text-danger mt-1';
-                emailFeedbackDiv.textContent = 'Error de conexión al verificar el correo. Intenta de nuevo.';
-                sendBtn.disabled = true;
-            });
+            }
         });
     }
 
+    // --- Envio del Enlace ---
+    async function enviarEnlaceRecuperacion(e) {
+        if (e) e.preventDefault();
 
-    // --- Envio del Formulario (Submit) ---
-    if (recoverForm) {
-        recoverForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+        if (!recoverEmailInput) return;
 
-            // Verificacion final del estado
-            if (sendBtn.disabled || recoverEmailInput.dataset.exists !== '1') {
-                alert("Por favor, verifica el correo electronico y espera la confirmacion de existencia antes de continuar.");
-                return;
+        const email = recoverEmailInput.value.trim().toLowerCase();
+        if (!email || !isValidEmailFormat(email)) {
+            if (emailFeedbackDiv) {
+                emailFeedbackDiv.className = 'form-text text-danger mt-1';
+                emailFeedbackDiv.textContent = 'Ingresa un correo electrónico válido.';
             }
-            
-            const urlSendLink = recoverForm.action;
-            const email = recoverEmailInput.value.trim();
-            
+            return;
+        }
+
+        // Si todavía no se verificó existencia, verificar primero
+        if (recoverEmailInput.dataset.exists !== '1') {
+            const existe = await validarExistenciaCorreo();
+            if (!existe) return;
+        }
+
+        const urlSendLink = (recoverForm && recoverForm.action) ? recoverForm.action : 'auth/recuperar_clave.pl';
+
+        if (sendBtn) {
             sendBtn.disabled = true;
-            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando enlace...';
+            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Enviando enlace...';
+        }
 
-            // Llama a recuperar_clave.pl
-            const formData = new FormData();
-            formData.append('h_correo_recuperacion', email); 
+        const bodyParams = new URLSearchParams();
+        bodyParams.append('h_correo_recuperacion', email);
 
-            fetch(urlSendLink, {
+        try {
+            const response = await fetch(urlSendLink, {
                 method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                messageDiv.textContent = data.message;
-                
-                // Usamos siempre alert-success por el mensaje de seguridad
-                messageDiv.classList.remove('alert-danger');
-                messageDiv.classList.add('alert-success'); 
-                messageDiv.classList.remove('d-none');
-                
-                // Limpiamos el campo y volvemos a deshabilitar el boton
-                recoverEmailInput.value = '';
-                recoverEmailInput.dataset.exists = '0';
-                emailValidationFeedback.textContent = 'Ingresa tu correo para verificar la cuenta.';
-                emailValidationFeedback.className = 'form-text mt-1';
-                
-                sendBtn.disabled = true;
-                sendBtn.innerHTML = '<i class="bi bi-envelope-fill me-1"></i> Enviar enlace';
-                
-                // 🚀 NUEVA LÓGICA: Esperar 5 segundos y cerrar el modal
-                setTimeout(() => {
-                    forgotPasswordModal.hide();
-                }, 5000); // 5000 milisegundos = 5 segundos
-
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-                messageDiv.textContent = 'Error de comunicacion con el servidor de recuperacion. Intenta mas tarde.';
-                messageDiv.classList.remove('alert-success');
-                messageDiv.classList.add('alert-danger');
-                messageDiv.classList.remove('d-none');
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = '<i class="bi bi-envelope-fill me-1"></i> Enviar enlace';
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: bodyParams.toString()
             });
+            const data = await response.json();
+
+            if (messageDiv) {
+                messageDiv.className = 'alert alert-success d-flex align-items-center mb-0 mt-3 py-2 px-3 small';
+                messageDiv.innerHTML = `<i class="bi bi-check-circle-fill me-2 fs-5 text-success"></i><span>${data.message || 'Enlace de recuperación enviado con éxito.'}</span>`;
+                messageDiv.classList.remove('d-none');
+            }
+
+            recoverEmailInput.value = '';
+            recoverEmailInput.dataset.exists = '0';
+            if (emailFeedbackDiv) {
+                emailFeedbackDiv.textContent = 'Ingresa tu correo para verificar la cuenta.';
+                emailFeedbackDiv.className = 'form-text mt-1 text-muted';
+            }
+
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="bi bi-send-check me-1"></i> Enlace Enviado';
+            }
+
+            // Cerrar modal automáticamente después de 4.5 segundos
+            setTimeout(() => {
+                if (forgotPasswordModal) forgotPasswordModal.hide();
+                if (messageDiv) {
+                    messageDiv.classList.add('d-none');
+                    messageDiv.innerHTML = '';
+                }
+                if (sendBtn) {
+                    sendBtn.innerHTML = 'Enviar enlace';
+                    sendBtn.disabled = true;
+                }
+            }, 4500);
+
+        } catch (error) {
+            console.error('Fetch error:', error);
+            if (messageDiv) {
+                messageDiv.className = 'alert alert-danger d-flex align-items-center mb-0 mt-3 py-2 px-3 small';
+                messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2 fs-5 text-danger"></i><span>Error de comunicación con el servidor. Intenta de nuevo.</span>';
+                messageDiv.classList.remove('d-none');
+            }
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = 'Enviar enlace';
+            }
+        }
+    }
+
+    if (recoverForm) {
+        recoverForm.addEventListener('submit', enviarEnlaceRecuperacion);
+    }
+
+    if (sendBtn) {
+        sendBtn.addEventListener('click', function(e) {
+            if (!sendBtn.disabled) {
+                enviarEnlaceRecuperacion(e);
+            }
+        });
+    }
+
+    // Resetear formulario al cerrar el modal
+    if (forgotModalEl) {
+        forgotModalEl.addEventListener('hidden.bs.modal', function () {
+            if (recoverForm) recoverForm.reset();
+            if (recoverEmailInput) recoverEmailInput.dataset.exists = '0';
+            if (messageDiv) {
+                messageDiv.classList.add('d-none');
+                messageDiv.innerHTML = '';
+            }
+            if (emailFeedbackDiv) {
+                emailFeedbackDiv.className = 'form-text mt-1 text-muted';
+                emailFeedbackDiv.textContent = 'Ingresa tu correo para verificar la cuenta.';
+            }
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = 'Enviar enlace';
+            }
         });
     }
 

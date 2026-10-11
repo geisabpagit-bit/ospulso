@@ -1462,7 +1462,7 @@
                         Ingresa el correo electrónico asociado a tu cuenta. Te enviaremos un enlace para restablecer tu
                         contraseña.
                     </p>
-                    <form id="recoverForm">
+                    <form id="recoverForm" action="auth/recuperar_clave.pl" method="POST">
                         <div class="form-floating mb-3">
                             <input type="email" class="form-control" id="recoverEmail" name="h_correo_recuperacion"
                                 placeholder="name@example.com" autocomplete="email" required
