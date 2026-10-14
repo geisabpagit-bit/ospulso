@@ -1855,3 +1855,44 @@ footer {
 .badge-premium { display: inline-block; padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--md-teal-clinical); background: rgba(0, 196, 196, 0.05); border: 1px solid rgba(0, 196, 196, 0.4); border-radius: 50rem; box-shadow: 0 4px 10px rgba(0, 196, 196, 0.1); margin-bottom: 1rem; }
 .parallax-section .badge-premium, .demo-gradient-bg .badge-premium, .bg-navy .badge-premium { color: #fff; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1); }
 
+/* Holo Acrylic Button & Glassmorphism Modal */
+.btn-holo-acrylic {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.2)) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    box-shadow: 0 8px 32px 0 rgba(10, 42, 102, 0.07), inset 0 0 10px rgba(255, 255, 255, 0.5) !important;
+    border-radius: 1.25rem !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-holo-acrylic::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: rotate(30deg) translateY(-50%);
+    transition: all 0.5s ease;
+    opacity: 0;
+}
+
+.btn-holo-acrylic:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px 0 rgba(10, 42, 102, 0.12), inset 0 0 15px rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(24, 209, 230, 0.5) !important;
+}
+
+.btn-holo-acrylic:hover::before {
+    opacity: 1;
+    transform: rotate(30deg) translateY(50%);
+}
+
+#demoPatientModal .modal-body {
+    background: radial-gradient(circle at top right, #e0f2f1 0%, #f8fafc 60%) !important;
+}
+
