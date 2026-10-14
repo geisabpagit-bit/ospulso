@@ -17,3 +17,6 @@ cgi-bin/sessions/
 # Scripts de trabajo auxiliar y pruebas locales
 scratch/
 
+# Archivos subidos dinámicamente
+uploads/
+

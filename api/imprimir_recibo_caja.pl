@@ -7,6 +7,7 @@ use CGI qw(-utf8);
 use File::Spec;
 use FindBin;
 use JSON qw(decode_json);
+use MIME::Base64 qw(encode_base64);
 use lib "$FindBin::Bin/..";
 
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
@@ -247,120 +248,129 @@ my $especialidad_nombre = '';
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 my $rutas = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
 
-# 1. Extraer directamente de items_json si el ítem contiene el médico y especialidad (garantiza coincidencia con el concepto cobrado)
-if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $recibo->{items_json}) {
-    eval {
-        require JSON;
-        my $items_arr = JSON::decode_json($recibo->{items_json});
-        if (ref($items_arr) eq 'ARRAY') {
-            foreach my $it (@$items_arr) {
-                if ($it->{medico} || $it->{nombre_medico}) {
-                    $medico_nombre = uc($it->{medico} || $it->{nombre_medico});
-                    $especialidad_nombre = uc($it->{especialidad}) if ($it->{especialidad} && !$especialidad_nombre);
-                    last;
-                }
-                my $conc = $it->{concepto} || $it->{nombre} || $it->{descripcion} || '';
-                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
-                    my $esp_tmp = $1;
-                    my $med_tmp = $2;
-                    $esp_tmp =~ s/^\s+|\s+$//g;
-                    $med_tmp =~ s/\s*\(.*?\)//g;
-                    $med_tmp =~ s/^\s+|\s+$//g;
-                    $especialidad_nombre = uc($esp_tmp) unless $especialidad_nombre;
-                    $medico_nombre = uc($med_tmp);
-                    last;
-                } elsif ($conc =~ /-\s*(DRA?\.?\s+[^-\(\)]+)/i) {
-                    my $cand = $1;
-                    $cand =~ s/\s*\(.*?\)//g;
-                    $cand =~ s/^\s+|\s+$//g;
-                    $medico_nombre = uc($cand);
-                    last;
-                }
-            }
-        }
-    };
-}
+my $concepto_recibo_actual = $recibo->{concepto} // '';
+my $es_departamento_sin_medico = ($concepto_recibo_actual =~ /^(?:SERVICIOS?|IMAGENOLOG[IÍ]A|LABORATORIO)$/i) ? 1 : 0;
 
-# 2. Si no viene en el carrito, verificar si $id_medico es un ID_ITEM de catalogo_items_${clues}.dat (Caja Rápida)
-if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $id_medico && $id_medico ne 'N/D') {
-    my $it_file = $rutas->{items};
-    if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
-        while (my $li = <$fi>) {
-            chomp $li;
-            my @f = split /\|/, $li, -1;
-            if ($f[0] eq $id_medico) {
-                my $conc = $f[3] // '';
-                if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
-                    my $esp_tmp = $1;
-                    my $med_tmp = $2;
-                    $esp_tmp =~ s/^\s+|\s+$//g;
-                    $med_tmp =~ s/\s*\(.*?\)//g;
-                    $med_tmp =~ s/^\s+|\s+$//g;
-                    $especialidad_nombre = uc($esp_tmp) unless $especialidad_nombre;
-                    $medico_nombre = uc($med_tmp);
+if ($es_departamento_sin_medico) {
+    # Departamentos de gabinete, procedimientos y enfermería NO llevan médico asignado
+    $medico_nombre = "NO ESPECIFICADO";
+    $id_medico = '';
+} else {
+    # 1. Extraer directamente de items_json si el ítem contiene el médico y especialidad (garantiza coincidencia con el concepto cobrado)
+    if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $recibo->{items_json}) {
+        eval {
+            require JSON;
+            my $items_arr = JSON::decode_json($recibo->{items_json});
+            if (ref($items_arr) eq 'ARRAY') {
+                foreach my $it (@$items_arr) {
+                    if ($it->{medico} || $it->{nombre_medico}) {
+                        $medico_nombre = uc($it->{medico} || $it->{nombre_medico});
+                        $especialidad_nombre = uc($it->{especialidad}) if ($it->{especialidad} && !$especialidad_nombre);
+                        last;
+                    }
+                    my $conc = $it->{concepto} || $it->{nombre} || $it->{descripcion} || '';
+                    if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                        my $esp_tmp = $1;
+                        my $med_tmp = $2;
+                        $esp_tmp =~ s/^\s+|\s+$//g;
+                        $med_tmp =~ s/\s*\(.*?\)//g;
+                        $med_tmp =~ s/^\s+|\s+$//g;
+                        $especialidad_nombre = uc($esp_tmp) unless $especialidad_nombre;
+                        $medico_nombre = uc($med_tmp);
+                        last;
+                    } elsif ($conc =~ /-\s*(DRA?\.?\s+[^-\(\)]+)/i) {
+                        my $cand = $1;
+                        $cand =~ s/\s*\(.*?\)//g;
+                        $cand =~ s/^\s+|\s+$//g;
+                        $medico_nombre = uc($cand);
+                        last;
+                    }
                 }
-                last;
             }
-        }
-        close $fi;
+        };
     }
-}
 
-# 3. Si no es un ítem de catálogo con médico parseable, buscar en medicos_${clues}.dat (Citas directas de Agenda)
-if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $id_medico && $id_medico ne 'N/D') {
-    my $med_file = $rutas->{medicos};
-    my $id_especialidad = '';
-    
-    if (-e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
-        while (my $lm = <$fm>) {
-            chomp $lm;
-            my @m = split /\|/, $lm, -1;
-            if ($m[0] eq $id_medico) {
-                my $idx = (@m >= 3) ? 2 : 1;
-                $medico_nombre = uc($m[$idx] // '');
-                $id_especialidad = $m[1] // '' if @m >= 3;
-                last;
-            }
-        }
-        close $fm;
-    }
-    
-    if ($id_especialidad) {
-        my $esp_file = $rutas->{especialidades};
-        if (-e $esp_file && open(my $fe, '<:encoding(UTF-8)', $esp_file)) {
-            while (my $le = <$fe>) {
-                chomp $le;
-                my @e = split /\|/, $le, -1;
-                if ($e[0] eq $id_especialidad) {
-                    $especialidad_nombre = uc($e[1] // '');
+    # 2. Si no viene en el carrito, verificar si $id_medico es un ID_ITEM de catalogo_items_${clues}.dat (Caja Rápida)
+    if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $id_medico && $id_medico ne 'N/D') {
+        my $it_file = $rutas->{items};
+        if (-e $it_file && open(my $fi, '<:encoding(UTF-8)', $it_file)) {
+            while (my $li = <$fi>) {
+                chomp $li;
+                my @f = split /\|/, $li, -1;
+                if ($f[0] eq $id_medico) {
+                    my $conc = $f[3] // '';
+                    if ($conc =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                        my $esp_tmp = $1;
+                        my $med_tmp = $2;
+                        $esp_tmp =~ s/^\s+|\s+$//g;
+                        $med_tmp =~ s/\s*\(.*?\)//g;
+                        $med_tmp =~ s/^\s+|\s+$//g;
+                        $especialidad_nombre = uc($esp_tmp) unless $especialidad_nombre;
+                        $medico_nombre = uc($med_tmp);
+                    }
                     last;
                 }
             }
-            close $fe;
+            close $fi;
         }
     }
-}
 
-# 4. Fallback a usuarios.dat
-if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $id_medico && $id_medico ne 'N/D') {
-    my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
-    if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
-        my $hu = <$fu>;
-        while (my $lu = <$fu>) {
-            chomp $lu;
-            my @u = split /!/, $lu, -1;
-            if ($u[0] eq $id_medico) {
-                $medico_nombre = uc($u[1] // '');
-                last;
+    # 3. Si no es un ítem de catálogo con médico parseable, buscar en medicos_${clues}.dat (Citas directas de Agenda)
+    if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $id_medico && $id_medico ne 'N/D') {
+        my $med_file = $rutas->{medicos};
+        my $id_especialidad = '';
+        
+        if (-e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
+            while (my $lm = <$fm>) {
+                chomp $lm;
+                my @m = split /\|/, $lm, -1;
+                if ($m[0] eq $id_medico) {
+                    my $idx = (@m >= 3) ? 2 : 1;
+                    $medico_nombre = uc($m[$idx] // '');
+                    $id_especialidad = $m[1] // '' if @m >= 3;
+                    last;
+                }
+            }
+            close $fm;
+        }
+        
+        if ($id_especialidad) {
+            my $esp_file = $rutas->{especialidades};
+            if (-e $esp_file && open(my $fe, '<:encoding(UTF-8)', $esp_file)) {
+                while (my $le = <$fe>) {
+                    chomp $le;
+                    my @e = split /\|/, $le, -1;
+                    if ($e[0] eq $id_especialidad) {
+                        $especialidad_nombre = uc($e[1] // '');
+                        last;
+                    }
+                }
+                close $fe;
             }
         }
-        close $fu;
+    }
+
+    # 4. Fallback a usuarios.dat
+    if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO") && $id_medico && $id_medico ne 'N/D') {
+        my $usr_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+        if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
+            my $hu = <$fu>;
+            while (my $lu = <$fu>) {
+                chomp $lu;
+                my @u = split /!/, $lu, -1;
+                if ($u[0] eq $id_medico) {
+                    $medico_nombre = uc($u[1] // '');
+                    last;
+                }
+            }
+            close $fu;
+        }
     }
 }
 
 $medico_nombre ||= "NO ESPECIFICADO";
 
-if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && ($recibo->{concepto} && $recibo->{concepto} =~ /CONSULTA/i)) {
+if (!$es_departamento_sin_medico && (!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) && ($recibo->{concepto} && $recibo->{concepto} =~ /CONSULTA/i)) {
     eval {
         require JSON;
         my $items_arr = JSON::decode_json($recibo->{items_json});
@@ -381,8 +391,9 @@ if ((!$medico_nombre || $medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~
 }
 
 my $medico_row_html = '';
-if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /^\d+$/ && $medico_nombre !~ /selecciona\s*m[eé]dico/i) {
-    if (!$recibo->{concepto} || $recibo->{concepto} !~ /servicio/i || ($recibo->{id_medico} && $recibo->{id_medico} ne 'N/D')) {
+# Regla de oro: En SERVICIOS, IMAGENOLOGÍA y LABORATORIO NUNCA se imprime la fila de médico
+if (!$es_departamento_sin_medico && $medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /^\d+$/ && $medico_nombre !~ /selecciona\s*m[eé]dico/i) {
+    if (!$recibo->{concepto} || $recibo->{concepto} =~ /CONSULTA/i || ($id_medico && $id_medico ne 'N/D')) {
         my $display_med = $medico_nombre;
         $medico_row_html = qq{
             <tr>
@@ -394,8 +405,26 @@ if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /
 }
 
 my $logo_html = '';
+my $logo_path = '';
+
 if ($negocio->{clues} eq 'QTSMP000116') {
-    $logo_html = qq{<img src="../dat/logos/logo_QTSMP000116.jpg" alt="Logo" style="max-height: 80px; max-width: 200px;">};
+    my $p_img = File::Spec->catfile($FindBin::Bin, '..', 'img', 'logos', 'logo_QTSMP000116.jpg');
+    my $p_dat = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'logos', 'logo_QTSMP000116.jpg');
+    $logo_path = -e $p_img ? $p_img : (-e $p_dat ? $p_dat : '');
+} elsif ($negocio->{logo_url}) {
+    my $p_url = File::Spec->catfile($FindBin::Bin, '..', $negocio->{logo_url});
+    $logo_path = -e $p_url ? $p_url : '';
+}
+
+# Incrustar en Base64 Data URI para evitar bloqueos por .htaccess y asegurar impresión
+if ($logo_path && -e $logo_path && open(my $lfh, '<:raw', $logo_path)) {
+    my $raw_img = do { local $/; <$lfh> };
+    close $lfh;
+    my $b64_img = encode_base64($raw_img, '');
+    my $mime_type = ($logo_path =~ /\.png$/i) ? 'image/png' : 'image/jpeg';
+    $logo_html = qq{<img src="data:$mime_type;base64,$b64_img" alt="Logo" style="max-height: 80px; max-width: 200px;">};
+} elsif ($negocio->{clues} eq 'QTSMP000116') {
+    $logo_html = qq{<img src="../img/logos/logo_QTSMP000116.jpg" alt="Logo" style="max-height: 80px; max-width: 200px;">};
 } elsif ($negocio->{logo_url}) {
     $logo_html = qq{<img src="../$negocio->{logo_url}" alt="Logo" style="max-height: 80px; max-width: 200px;">};
 } else {
@@ -472,7 +501,7 @@ if (!@cargos) {
         while (my $le = <$fhe>) {
             chomp $le;
             my @e = split /\|/, $le, -1;
-            if ($e[3] eq 'Cargo' && (($e[10] && $e[10] =~ /Consulta #$id_consulta/) || ($recibo->{id_paciente} && $e[2] eq $recibo->{id_paciente} && $e[8] eq $recibo->{fecha}))) {
+            if ($e[3] eq 'Cargo' && ($e[10] && $e[10] =~ /Consulta #$id_consulta/)) {
                 my $monto = $e[7] || 0;
                 push @cargos, {
                     concepto => $e[4],

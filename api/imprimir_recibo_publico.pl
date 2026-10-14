@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use utf8;
 use CGI qw(-utf8);
+use MIME::Base64 qw(encode_base64);
 use File::Spec;
 use FindBin;
 use lib "$FindBin::Bin/..";
@@ -137,7 +138,8 @@ if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
         # Ignorar movimientos de cancelación que alteran los datos contables
         next if ($e[3] && $e[3] =~ /Cancelac/i) || ($e[4] && $e[4] =~ /Cancelac/i) || ($e[10] && $e[10] =~ /Cancelac/i);
         
-        if ($e[3] eq 'Cargo' && ($e[0] eq $id_consulta || ($e[10] && $e[10] =~ /Consulta #$id_consulta/) || ($recibo->{id_paciente} && $e[2] eq $recibo->{id_paciente} && $e[8] eq $recibo->{fecha}))) {
+        # Búsqueda estricta por folio/id de consulta (eliminar fuga por paciente+fecha que contaminaba recibos subsecuentes)
+        if ($e[3] eq 'Cargo' && ($e[0] eq $id_consulta || ($recibo->{folio} && $e[0] eq $recibo->{folio}) || ($e[10] && $e[10] =~ /Consulta #\Q$id_consulta\E\b/))) {
             if (!@cargos) {
                 my $monto = $e[7] || 0;
                 push @cargos, {
@@ -335,8 +337,26 @@ if ($paciente_nombre eq 'Paciente Desconocido' || $paciente_nombre eq $recibo->{
 }
 
 my $logo_html = '';
+my $logo_path = '';
+
 if ($negocio->{clues} eq 'QTSMP000116') {
-    $logo_html = qq{<img src="../dat/logos/logo_QTSMP000116.jpg" alt="Logo" style="max-height: 80px; max-width: 150px;">};
+    my $p_img = File::Spec->catfile($FindBin::Bin, '..', 'img', 'logos', 'logo_QTSMP000116.jpg');
+    my $p_dat = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'logos', 'logo_QTSMP000116.jpg');
+    $logo_path = -e $p_img ? $p_img : (-e $p_dat ? $p_dat : '');
+} elsif ($negocio->{logo_url}) {
+    my $p_url = File::Spec->catfile($FindBin::Bin, '..', $negocio->{logo_url});
+    $logo_path = -e $p_url ? $p_url : '';
+}
+
+# Incrustar en Base64 Data URI para evitar bloqueos por .htaccess y asegurar impresión
+if ($logo_path && -e $logo_path && open(my $lfh, '<:raw', $logo_path)) {
+    my $raw_img = do { local $/; <$lfh> };
+    close $lfh;
+    my $b64_img = encode_base64($raw_img, '');
+    my $mime_type = ($logo_path =~ /\.png$/i) ? 'image/png' : 'image/jpeg';
+    $logo_html = qq{<img src="data:$mime_type;base64,$b64_img" alt="Logo" style="max-height: 80px; max-width: 150px;">};
+} elsif ($negocio->{clues} eq 'QTSMP000116') {
+    $logo_html = qq{<img src="../img/logos/logo_QTSMP000116.jpg" alt="Logo" style="max-height: 80px; max-width: 150px;">};
 } elsif ($negocio->{logo_url}) {
     $logo_html = qq{<img src="../$negocio->{logo_url}" alt="Logo" style="max-height: 80px; max-width: 150px;">};
 } else {
@@ -395,8 +415,14 @@ my $medico_nombre = "NO ESPECIFICADO";
 my $especialidad_nombre = '';
 my $rutas = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues});
 
-# 1. Extraer del carrito / cargos si la transacción ya contiene el médico y especialidad seleccionados
-if ($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) {
+my $concepto_recibo_actual = $recibo->{concepto} // '';
+my $es_departamento_sin_medico = ($concepto_recibo_actual =~ /^(?:SERVICIOS?|IMAGENOLOG[IÍ]A|LABORATORIO)$/i) ? 1 : 0;
+
+if ($es_departamento_sin_medico) {
+    # Departamentos de gabinete, procedimientos y enfermería NO llevan médico asignado
+    $medico_nombre = "NO ESPECIFICADO";
+    $id_medico = '';
+} elsif ($medico_nombre eq "NO ESPECIFICADO" || $medico_nombre =~ /^\d+$/) {
     foreach my $c (@cargos) {
         my $conc = $c->{concepto} || $c->{nombre} || $c->{descripcion} || '';
         if ($c->{medico} || $c->{nombre_medico}) {
@@ -558,8 +584,9 @@ my $saldo = $recibo->{total_cargos} - $recibo->{total_abonos};
 $saldo = 0 if $saldo < 0;
 
 my $medico_row_html = '';
-if ($medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /^\d+$/ && $medico_nombre !~ /selecciona\s*m[eé]dico/i) {
-    if (!$recibo->{concepto} || $recibo->{concepto} !~ /servicio/i || ($id_medico && $id_medico ne 'N/D')) {
+# Regla de oro: En SERVICIOS, IMAGENOLOGÍA y LABORATORIO NUNCA se imprime la fila de médico
+if (!$es_departamento_sin_medico && $medico_nombre && $medico_nombre ne 'NO ESPECIFICADO' && $medico_nombre !~ /^\d+$/ && $medico_nombre !~ /selecciona\s*m[eé]dico/i) {
+    if ($concepto_recibo_actual =~ /CONSULTA/i || ($id_medico && $id_medico ne 'N/D')) {
         $medico_row_html = qq{
             <tr>
                 <td class="info-label-cell">Médico:</td>
