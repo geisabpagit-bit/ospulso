@@ -1,25 +1,115 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-MX">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-    <!-- SEO Meta Tags -->
-    <title>OSPulso - El Sistema Operativo para Clínicas Modernas</title>
+    <!-- =========================================================================
+         CAPA 1: SEO TÉCNICO E INDEXACIÓN CANÓNICA
+         - Informa a los motores de búsqueda primarios (Googlebot, Bingbot).
+         - Define el título SERP, snippet meta y directivas de rastreo de imágenes.
+         - Se utiliza un canonical estático absoluto conforme a las directrices de 
+           Google Webmaster: previene canibalización por parámetros UTM, tracking o
+           espejos de dominio sin introducir latencia de renderizado client-side.
+         ========================================================================= -->
+    <title>OSPulso - Software Médico y Sistema Operativo para Clínicas en México</title>
     <meta name="description"
-        content="Software médico y sistema operativo para clínicas modernas. Agenda médica, expediente clínico electrónico (NOM), y control financiero.">
+        content="Plataforma SaaS y software médico para la gestión integral de clínicas y consultorios en México. Expediente clínico electrónico NOM-004-SSA3-2012, agenda médica digital, telemedicina y control financiero en tiempo real.">
     <meta name="keywords"
-        content="software médico, expediente clínico electrónico, agenda clínica, administración de clínicas, software dental, OSPulso">
+        content="software médico México, expediente clínico electrónico NOM-004, agenda médica SaaS, administración de clínicas, software consultorios médicos, OSPulso">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://ospulso.com/" />
 
-    <!-- OpenGraph (Social Media) -->
-    <meta property="og:title" content="OSPulso - El Sistema Operativo para Clínicas Modernas">
+    <!-- =========================================================================
+         CAPA 2: GEO-TARGETING (SEO LOCAL PARA MÉXICO)
+         - Etiquetas de geolocalización consumidas por motores regionales y Bing Local.
+         - Coexisten sin conflicto con las meta etiquetas estándar, aportando señal
+           de proximidad territorial y relevancia local en búsquedas en México (CDMX).
+         ========================================================================= -->
+    <meta name="geo.region" content="MX" />
+    <meta name="geo.placename" content="Ciudad de México" />
+    <meta name="geo.position" content="19.432608;-99.133208" />
+    <meta name="ICBM" content="19.432608, -99.133208" />
+
+    <!-- =========================================================================
+         CAPA 3: REDES SOCIALES (OPEN GRAPH Y TWITTER CARDS)
+         - Rastreable por bots sociales (Facebook, WhatsApp, LinkedIn, X/Twitter, Slack).
+         - Estas etiquetas no sustituyen a las meta de SEO tradicional; operan en
+           su propio espacio de nombres (og: y twitter:) para generar 'Rich Unfurls'.
+         ========================================================================= -->
+    <meta property="og:locale" content="es_MX" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OSPulso" />
+    <meta property="og:title" content="OSPulso - Software Médico y Sistema Operativo para Clínicas en México" />
     <meta property="og:description"
-        content="Software médico y sistema operativo para clínicas modernas. Agenda médica, expediente clínico electrónico (NOM), y control financiero.">
-    <meta property="og:image" content="https://ospulso.com/img/solucion_bg.png">
-    <meta property="og:url" content="https://ospulso.com/">
-    <meta property="og:type" content="website">
+        content="Plataforma SaaS y software médico para la gestión integral de clínicas y consultorios en México. Expediente clínico NOM-004, agenda inteligente y control financiero." />
+    <meta property="og:url" content="https://ospulso.com/" />
+    <meta property="og:image" content="https://ospulso.com/img/solucion_bg.png" />
+    <meta property="og:image:secure_url" content="https://ospulso.com/img/solucion_bg.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="OSPulso - Plataforma SaaS de Gestión Médica y Expediente Clínico" />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OSPulso - Software Médico y Sistema Operativo para Clínicas en México" />
+    <meta name="twitter:description"
+        content="Plataforma SaaS para consultorios y clínicas en México: expediente clínico electrónico NOM-004, agenda inteligente y finanzas en tiempo real." />
+    <meta name="twitter:image" content="https://ospulso.com/img/solucion_bg.png" />
+
+    <!-- =========================================================================
+         CAPA 4: DATOS ESTRUCTURADOS (JSON-LD SCHEMA.ORG)
+         - Interpretado por Google Knowledge Graph y algoritmos semánticos.
+         - Convive armónicamente con SEO On-Page y Geo: transforma el contenido
+           visual en entidades con atributos de software, precios en MXN y editor local.
+         ========================================================================= -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://ospulso.com/#software",
+          "name": "OSPulso",
+          "operatingSystem": "Web, All modern browsers, Windows, macOS, Linux, iOS, Android",
+          "applicationCategory": "HealthApplication",
+          "description": "Sistema operativo y software SaaS médico para consultorios y clínicas modernas en México. Expediente clínico electrónico NOM-004-SSA3-2012, agenda médica y control de cobranza.",
+          "url": "https://ospulso.com/",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "MXN",
+            "priceValidUntil": "2027-12-31",
+            "availability": "https://schema.org/OnlineOnly",
+            "description": "Registro inicial y periodo de prueba gratuita para profesionales de la salud en México."
+          },
+          "publisher": {
+            "@id": "https://ospulso.com/#organization"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://ospulso.com/#organization",
+          "name": "OSPulso",
+          "url": "https://ospulso.com/",
+          "logo": "https://ospulso.com/favicon/favicon.svg",
+          "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "MX",
+            "addressRegion": "CDMX",
+            "addressLocality": "Ciudad de México"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "availableLanguage": ["es"]
+          }
+        }
+      ]
+    }
+    </script>
 
     <!-- OSPulso Brand Identity (Favicons) -->
     <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
