@@ -1,0 +1,43 @@
+# ==============================================================================
+# OSPulso Robots.txt
+# Permite la indexación completa de recursos públicos, landing y assets sociales.
+# Asegura acceso sin restricciones a imágenes (Open Graph), favicons y estilos.
+# Protege directorios internos de datos (.dat), APIs privadas y utilerías.
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /img/
+Allow: /favicon/
+Allow: /css/
+Allow: /js/
+Allow: /video/
+
+# Protección de directorios de almacenamiento y configuración interna
+Disallow: /dat/
+Disallow: /api/
+Disallow: /utils/
+
+# Bots específicos de Redes Sociales (Open Graph & Twitter Cards)
+User-agent: facebookexternalhit
+Allow: /img/
+Allow: /
+
+User-agent: Twitterbot
+Allow: /img/
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /img/
+Allow: /
+
+User-agent: WhatsApp
+Allow: /img/
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /img/
+Allow: /favicon/
+
+Sitemap: https://ospulso.com/sitemap.xml

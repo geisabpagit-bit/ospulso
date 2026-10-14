@@ -2,7 +2,7 @@
   "name": "OSPulso - Inteligencia Clínica Operativa",
   "short_name": "OSPulso",
   "description": "Software Médico y Sistema Operativo para Clínicas en México",
-  "start_url": "https://ospulso.com",
+  "start_url": "https://ospulso.com/?utm_source=pwa&utm_medium=homescreen&utm_campaign=app_shortcut",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0d6efd",
