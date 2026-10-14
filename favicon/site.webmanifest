@@ -1,13 +1,35 @@
 {
-    "name": "OsPulso",
-    "short_name": "OsPulso",
-    "icons": [
-        { "src": "/favicon-128x128.png", "sizes": "128x128", "type": "image/png" },
-        { "src": "/favicon-64x64.png", "sizes": "64x64", "type": "image/png" },
-        { "src": "/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },
-        { "src": "/favicon-16x16.png", "sizes": "16x16", "type": "image/png" }
-    ],
-    "theme_color": "#132A53",
-    "background_color": "#ffffff",
-    "display": "standalone"
+  "name": "OSPulso - Inteligencia Clínica Operativa",
+  "short_name": "OSPulso",
+  "description": "Software Médico y Sistema Operativo para Clínicas en México",
+  "start_url": "https://ospulso.com",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "orientation": "portrait-primary",
+  "categories": ["medical", "health", "business"],
+  "icons": [
+    {
+      "src": "https://ospulso.com/favicon/favicon-64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "https://ospulso.com/favicon/favicon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "https://ospulso.com/favicon/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://ospulso.com/favicon/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
 }
