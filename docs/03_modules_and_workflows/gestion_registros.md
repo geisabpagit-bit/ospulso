@@ -8,6 +8,7 @@ El módulo de **Gestión de Registros** (`views/manage_registros.pl`) constituye
 ## 2. Gobernanza de Acceso (RBAC)
 - **Rol Mandante**: Exclusivo para `Administrador Global`.
 - **Capa de Frontend**: El elemento de navegación en [utils/sub_sidebar.pl](file:///c:/xampp/htdocs/ospulso/utils/sub_sidebar.pl) (`#c-administracion`) solo se renderiza si `$role eq 'Administrador Global'`. En `views/manage_registros.pl`, cualquier intento de acceso por otro rol desencadena la rutina `render_acceso_denegado(...)`.
+- **Layout Shell Mandante**: Renderizado canónico mediante `utils::sub_sidebar::render_sidebar(...)` y cierre estructural con `utils::sub_sidebar::render_sidebar_footer()` para garantizar el nesting correcto del DOM y aislamiento de modales Bootstrap.
 - **Capa de Backend**: El endpoint [api/admin_registros_api.pl](file:///c:/xampp/htdocs/ospulso/api/admin_registros_api.pl) valida la sesión de usuario y retorna HTTP 403 Forbidden ante cualquier rol no autorizado.
 
 ---

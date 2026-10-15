@@ -53,7 +53,7 @@ render_header(
     skip_header => 1
 );
 
-render_sidebar(
+utils::sub_sidebar::render_sidebar(
     pagina_actual => 'registros',
     usuario       => $usuario,
     role          => $role,
@@ -187,6 +187,11 @@ print <<'PAGE_HTML';
         </div>
     </div>
 </main>
+PAGE_HTML
+
+utils::sub_sidebar::render_sidebar_footer();
+
+print <<'PAGE_HTML';
 
 <!-- Modal: Extender Periodo Demo -->
 <div class="modal fade" id="modalExtenderDemo" tabindex="-1" aria-labelledby="modalExtenderDemoLabel" aria-hidden="true">
