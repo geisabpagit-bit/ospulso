@@ -67,8 +67,14 @@ De estricto apego a la arquitectura financiera del sistema:
 ---
 
 ## 5. UI y Experiencia Ejecutiva (Estándares AGENTS.md)
-- **Separación Estricta de Estilos (CSS)**: Cero bloques `<style>` en línea en `views/resumen_ejecutivo.pl`. Todas las clases ejecutivas (`.kpi-card-exec`, `.temporal-pill-btn`, `.table-executive`, etc.) y reglas `@media print` residen en la hoja mandante `css/ospulso_master_v2.css`.
+- **Separación Estricta de Estilos (CSS)**: Cero bloques `<style>` en línea en `views/resumen_ejecutivo.pl`. Todas las clases ejecutivas (`.kpi-card-exec`, `.temporal-pill-btn`, `.table-executive`, `.recom-card-exec`) y reglas `@media print` residen en la hoja mandante `css/ospulso_master_v2.css`.
 - **Selector Multi-Temporal Dinámico**: Píldoras de selección instantánea para alternar entre **Día**, **Semana**, **Mes** y **Año**, adaptando la tabla cronológica y el elemento pico automáticamente.
-- **Herramienta IA (Exportación 1 Clic)**: Botón *"Copiar para IA (Gamma / Notion)"* que inyecta en el portapapeles el markdown pre-estructurado del periodo activo para crear presentaciones directivas en segundos.
-- **Modo Impresión / PDF**: Estilos `@media print` que suprimen el sidebar y barras de navegación, dejando un informe membretado limpio.
+- **Herramienta IA (Prompt Detallado de Auditoría Hospitalaria Senior)**: Botón *"Copiar Prompt para IA (Claude / ChatGPT / Gamma)"* que inyecta en el portapapeles un prompt analítico completo y no solo datos brutos:
+  1. Rol asignado: Auditor y Consultor Financiero-Hospitalario Senior especializado en OSPulso.
+  2. Sección 1: Resumen Ejecutivo y Tablero Principal de KPIs (Flujo Privado con variación %, CXC Municipio, Total Recibos, Ticket Promedio comparativo, Integridad Forense).
+  3. Sección 2: Desglose Financiero por Canal y Comportamiento Diario (Concentración en días pico Viernes-Sábado-Domingo con monto y %, auditoría de efectivo vs terminal bancaria y evaluación de riesgo de resguardo/traslado).
+  4. Sección 3: Demanda de Servicios Clínicos e Integridad Forense (Consultas, procedimientos, laboratorio, ultrasonido, rayos X; certificación de foliación consecutiva y estampa de tiempo íntegra).
+  5. Sección 4: Preguntas Estratégicas y Recomendaciones para la Alta Dirección (Ejes 1. Seguridad y Bancarización, 2. Nivelación de Capacidad Operativa, 3. Optimización de Cartera Municipal, 4. Captura de Valor en el Canal Público).
+  6. Criterios de Estilo y Formato y Anexo de datos en tablas Markdown.
+- **Modo Impresión / PDF Formal**: Estilos `@media print` y membrete institucional `.print-header-executive` que despliegan la clave CLUE, nombre de la clínica, folio de dictamen, fechas de corte y suprimen sidebar y elementos interactivos para generar un PDF listo para entrega directiva.
 

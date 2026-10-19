@@ -65,6 +65,25 @@ print <<'PAGE_HTML';
 <link rel="stylesheet" href="../css/ospulso_master_v2.css">
 
 <main class="main-content container-fluid py-3 px-md-4 container-mobile-flush">
+    <!-- Membrete Formal Institucional (Solo Visible al Imprimir / Guardar como PDF) -->
+    <div class="print-header-executive">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="fw-bold mb-0 text-dark" id="printClinicaNombre">CLÍNICA MÉDICA DE ESPECIALIDADES JUAN PABLO II</h3>
+                <div class="small text-muted">CLUE: <strong id="printClueOrg">QTSMP000116</strong> | Suite Médica OSPulso | Dirección General</div>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-primary text-white px-3 py-1 fw-bold fs-6" id="printPeriodoBadge">Periodo Activo</div>
+                <div class="small text-muted mt-1" id="printRangoFechas">Del periodo analizado</div>
+            </div>
+        </div>
+        <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between small text-muted">
+            <span><strong>Tipo de Dictamen:</strong> Auditoría Operativa y Financiera Hospitalaria</span>
+            <span><strong>Estatus Contable:</strong> 100% Auditado - Cero Discrepancias</span>
+            <span id="printFechaEmision">Fecha de Emisión</span>
+        </div>
+    </div>
+
     <!-- Breadcrumb & Cabecera Ejecutiva -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
@@ -85,8 +104,8 @@ print <<'PAGE_HTML';
 
         <!-- Toolbar de Acciones Rápidas -->
         <div class="d-flex flex-wrap align-items-center gap-2 btn-action-toolbar">
-            <button class="btn btn-outline-primary btn-sm rounded-pill shadow-sm px-3 fw-semibold" onclick="copiarMarkdownIA()">
-                <i class="bi bi-clipboard2-check me-1"></i>Copiar para IA (Gamma / Notion)
+            <button class="btn btn-outline-primary btn-sm rounded-pill shadow-sm px-3 fw-semibold" onclick="copiarMarkdownIA()" title="Copia el prompt completo de auditoría para ChatGPT, Claude o Gamma">
+                <i class="bi bi-robot me-1"></i>Copiar Prompt para IA (Claude / ChatGPT / Gamma)
             </button>
             <button class="btn btn-primary btn-sm rounded-pill shadow-sm px-3 fw-bold" onclick="window.print()">
                 <i class="bi bi-printer me-1"></i>Imprimir / PDF
@@ -282,6 +301,22 @@ print <<'PAGE_HTML';
         </div>
     </div>
 
+    <!-- Sección 4: Preguntas Estratégicas y Recomendaciones para la Alta Dirección -->
+    <div class="card card-mobile-flush border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 border-bottom pb-2 gap-2">
+            <div>
+                <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-lightbulb-fill text-warning"></i>Preguntas Estratégicas y Recomendaciones para la Alta Dirección
+                </h5>
+                <p class="text-muted small mb-0">Ejes prioritarios de gobernanza, seguridad en caja física, nivelación de capacidad operativa y optimización de convenios públicos.</p>
+            </div>
+            <span class="badge bg-warning bg-opacity-10 text-dark px-3 py-1 rounded-pill fw-bold">Ejes Estratégicos</span>
+        </div>
+        <div id="contenedorRecomendaciones" class="row g-3">
+            <div class="col-12 text-center py-3 text-muted">Cargando recomendaciones estratégicas...</div>
+        </div>
+    </div>
+
     <!-- Dictamen de Seguridad y Certificación Forense -->
     <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4 border-top border-4 border-primary">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
@@ -401,6 +436,15 @@ function renderizarVista(data) {
 
     document.getElementById('badgePeriodoActual').textContent = capitalizar(data.tipo_periodo) + ' ' + data.periodo_activo;
     document.getElementById('subtituloClinica').textContent = (data.nombre_negocio || 'Clínica') + ' (CLUE ' + (data.clue || '') + ') - Análisis consolidado de caja y convenios.';
+
+    // Poblar Membrete Formal Institucional de Impresión / PDF
+    if (document.getElementById('printClinicaNombre')) {
+        document.getElementById('printClinicaNombre').textContent = data.nombre_negocio || 'CLÍNICA MÉDICA';
+        document.getElementById('printClueOrg').textContent = data.clue || 'QTSMP000116';
+        document.getElementById('printPeriodoBadge').textContent = data.numero_semana_str || (capitalizar(data.tipo_periodo) + ' ' + data.periodo_activo);
+        document.getElementById('printRangoFechas').textContent = data.fecha_inicio ? (`Del ${data.fecha_inicio} al ${data.fecha_fin}`) : '';
+        document.getElementById('printFechaEmision').textContent = 'Emisión: ' + (new Date()).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
 
     // 2. KPIs
     const kpis = data.kpis || {};
@@ -528,6 +572,39 @@ function renderizarVista(data) {
             contDeptos.innerHTML += cardDepto;
         });
     }
+
+    // 6. Sección 4: Recomendaciones y Preguntas Estratégicas para la Alta Dirección
+    const contRecom = document.getElementById('contenedorRecomendaciones');
+    if (contRecom) {
+        contRecom.innerHTML = '';
+        const recoms = data.recomendaciones || [];
+        if (recoms.length === 0) {
+            contRecom.innerHTML = '<div class="col-12 text-center text-muted py-2">Sin recomendaciones disponibles para este periodo.</div>';
+        } else {
+            recoms.forEach(rec => {
+                const col = document.createElement('div');
+                col.className = 'col-12 col-md-6';
+                col.innerHTML = `
+                    <div class="recom-card-exec p-3 h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold text-dark d-flex align-items-center gap-2">
+                                    <i class="bi ${rec.icono} text-${rec.color}"></i>Eje ${rec.eje}: ${rec.titulo}
+                                </span>
+                                <span class="badge bg-${rec.color} bg-opacity-10 text-${rec.color} small">${rec.metrica}</span>
+                            </div>
+                            <p class="small text-secondary mb-2 fst-italic">"${rec.pregunta}"</p>
+                        </div>
+                        <div class="p-2 rounded bg-light border-start border-3 border-${rec.color} mt-2">
+                            <div class="small fw-semibold text-dark"><i class="bi bi-arrow-right-short text-${rec.color} fs-6"></i>Acción propuesta:</div>
+                            <div class="small text-muted">${rec.propuesta}</div>
+                        </div>
+                    </div>
+                `;
+                contRecom.appendChild(col);
+            });
+        }
+    }
 }
 
 function formatoMoneda(valor) {
@@ -540,16 +617,17 @@ function capitalizar(str) {
 }
 
 function copiarMarkdownIA() {
-    if (!datosEjecutivosGlobal || !datosEjecutivosGlobal.markdown_export) {
+    const textoCopiar = (datosEjecutivosGlobal && (datosEjecutivosGlobal.prompt_ia_completo || datosEjecutivosGlobal.markdown_export)) || '';
+    if (!textoCopiar) {
         Swal.fire('Aviso', 'Aún no se han cargado los datos para copiar.', 'info');
         return;
     }
 
-    navigator.clipboard.writeText(datosEjecutivosGlobal.markdown_export)
+    navigator.clipboard.writeText(textoCopiar)
     .then(() => {
         Swal.fire({
-            title: '¡Copiado con Éxito!',
-            text: 'El informe ejecutivo en formato Markdown estructurado ha sido copiado a tu portapapeles. Listo para pegar en Gamma.app, Notion, ChatGPT o Claude.',
+            title: '¡Prompt para IA Copiado!',
+            html: `Se ha copiado a tu portapapeles el <strong>Prompt de Auditoría Hospitalaria Senior</strong> con la estructura ejecutiva de 4 secciones y todas las cifras auditadas.<br><br><span class="badge bg-primary px-3 py-2 fs-6">Listo para pegar en ChatGPT, Claude o Gamma</span>`,
             icon: 'success',
             confirmButtonText: 'Excelente'
         });

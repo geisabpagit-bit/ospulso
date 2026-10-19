@@ -2296,3 +2296,88 @@ nav.navbar.sticky-top {
     font-weight: 700 !important;
 }
 
+/* Tarjetas Ejecutivas de Recomendaciones y Gobernanza */
+.recom-card-exec {
+    border-radius: 1rem !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    transition: all 0.25s ease !important;
+}
+.recom-card-exec:hover {
+    box-shadow: 0 6px 18px rgba(10, 42, 102, 0.08) !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* Membrete y Estilos de Impresión Ejecutiva / Exportación a PDF */
+.print-header-executive {
+    display: none;
+}
+
+@media print {
+    body {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 11pt !important;
+    }
+
+    /* Ocultar elementos de navegación y herramientas */
+    .sdm-sidebar,
+    .sub-sidebar,
+    .sidebar,
+    .bottom-nav,
+    .sdm-bottom-nav,
+    .breadcrumb,
+    .btn-action-toolbar,
+    .temporal-pills-nav,
+    #selectorPeriodoContainer,
+    .nav-tabs,
+    .navbar {
+        display: none !important;
+    }
+
+    /* Desplegar membrete formal superior */
+    .print-header-executive {
+        display: block !important;
+        border-bottom: 2px solid #0A2A66;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+    }
+
+    .main-content,
+    .sdm-main-content,
+    .container-fluid {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Control de saltos de página y conservación visual */
+    .card,
+    .kpi-card-exec,
+    .recom-card-exec,
+    table,
+    tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    .kpi-card-exec {
+        margin-bottom: 12px !important;
+    }
+
+    .table-executive th {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .progress,
+    .badge {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
