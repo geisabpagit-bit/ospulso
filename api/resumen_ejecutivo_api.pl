@@ -18,12 +18,14 @@ require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 my $sd = check_session();
 my $q  = $sd->{q};
 
+binmode(STDOUT, ':raw');
 print $q->header(
     -type          => 'application/json',
     -charset       => 'UTF-8',
     -cache_control => 'no-store, no-cache, must-revalidate, max-age=0',
     -pragma        => 'no-cache'
 );
+
 
 # RBAC: Administrador Organizacion y Administrador Global
 if (!$sd->{session_ok} || (($sd->{role} // '') !~ /Administrador/i)) {

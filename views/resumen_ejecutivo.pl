@@ -39,6 +39,7 @@ if ($role !~ /Administrador/i) {
     exit;
 }
 
+binmode(STDOUT, ':utf8');
 print $q->header(
     -type          => 'text/html',
     -charset       => 'UTF-8',
@@ -65,7 +66,7 @@ print <<'PAGE_HTML';
 <link rel="stylesheet" href="../css/ospulso_master_v2.css">
 
 <main class="main-content container-fluid py-3 px-md-4 container-mobile-flush">
-    <!-- Membrete Formal Institucional (Solo Visible al Imprimir / Guardar como PDF) -->
+    <!-- Membrete Formal Institucional (Visible al Imprimir / Guardar como PDF) -->
     <div class="print-header-executive">
         <div class="d-flex justify-content-between align-items-center">
             <div>
@@ -84,153 +85,177 @@ print <<'PAGE_HTML';
         </div>
     </div>
 
-    <!-- Breadcrumb & Cabecera Ejecutiva -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="dashboard.pl" class="text-decoration-none">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="finanzas.pl" class="text-decoration-none">Finanzas</a></li>
-                    <li class="breadcrumb-item active text-primary fw-semibold" aria-current="page">Tablero Ejecutivo</li>
-                </ol>
-            </nav>
-            <h2 class="h4 fw-bold text-dark mb-0 d-flex align-items-center gap-2 flex-wrap">
-                <i class="bi bi-bar-chart-line-fill text-primary"></i>
-                <span>Tablero Ejecutivo de Recaudación y Operación</span>
-                <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-1 rounded-pill" id="badgePeriodoActual">Cargando...</span>
-            </h2>
-            <p class="text-muted small mb-0" id="subtituloClinica">Análisis consolidado multi-temporal de caja física, convenios públicos y calidad contable.</p>
-        </div>
-
-        <!-- Toolbar de Acciones Rápidas -->
-        <div class="d-flex flex-wrap align-items-center gap-2 btn-action-toolbar">
-            <button class="btn btn-outline-primary btn-sm rounded-pill shadow-sm px-3 fw-semibold" onclick="copiarMarkdownIA()" title="Copia el prompt completo de auditoría para ChatGPT, Claude o Gamma">
-                <i class="bi bi-robot me-1"></i>Copiar Prompt para IA (Claude / ChatGPT / Gamma)
-            </button>
-            <button class="btn btn-primary btn-sm rounded-pill shadow-sm px-3 fw-bold" onclick="window.print()">
-                <i class="bi bi-printer me-1"></i>Imprimir / PDF
-            </button>
-        </div>
-    </div>
-
-    <!-- Barra de Control Multi-Temporal (Día, Semana, Mes, Año) -->
-    <div class="card card-mobile-flush border-0 shadow-sm rounded-4 bg-white p-3 mb-4 temporal-pills-nav">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <!-- Píldoras de Temporalidad -->
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-muted small fw-bold text-uppercase me-1"><i class="bi bi-filter-left me-1"></i>Vista:</span>
-                <div class="btn-group p-1 bg-light rounded-pill border" role="group" id="grupoTemporalidad">
-                    <button type="button" class="temporal-pill-btn" onclick="cambiarTipoPeriodo('dia', this)">Día</button>
-                    <button type="button" class="temporal-pill-btn active" onclick="cambiarTipoPeriodo('semana', this)">Semana</button>
-                    <button type="button" class="temporal-pill-btn" onclick="cambiarTipoPeriodo('mes', this)">Mes</button>
-                    <button type="button" class="temporal-pill-btn" onclick="cambiarTipoPeriodo('ano', this)">Año</button>
+    <!-- Barra de Control Temporal y Filtros Dinámicos (Estilo Dashboard Finanzas con Borde Teal) -->
+    <div class="card card-mobile-flush border-0 shadow-sm mb-3" style="border-radius: 14px; background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
+        <div class="card-body p-2.5 p-md-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 gap-lg-3">
+                <!-- Título e Identidad -->
+                <div>
+                    <h5 class="fw-bold plus-jakarta mb-1 d-flex align-items-center gap-2 flex-wrap" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.05rem;">
+                        <i class="bi bi-speedometer2" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                        <span>Tablero Financiero Ejecutivo</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-1 rounded-pill" id="badgePeriodoActual">Cargando...</span>
+                    </h5>
+                    <p class="text-muted small mb-0" style="font-size: 0.72rem; line-height: 1.25;" id="subtituloClinica">Métricas consolidadas, rentabilidad y flujo operativo de la organización</p>
                 </div>
-            </div>
 
-            <!-- Selector Dinámico del Periodo Activo -->
-            <div id="selectorPeriodoContainer" class="d-flex align-items-center gap-2 bg-light px-3 py-1 rounded-pill border">
-                <i class="bi bi-calendar3 text-muted"></i>
-                <label for="selectPeriodo" class="small text-muted fw-semibold mb-0" id="labelPeriodo">Periodo:</label>
-                <select id="selectPeriodo" class="form-select form-select-sm border-0 bg-transparent fw-bold text-dark" style="cursor: pointer; min-width: 170px;" onchange="seleccionarPeriodoEspecifico()">
-                    <option value="">Cargando periodos...</option>
-                </select>
+                <!-- Controles: Píldoras de Periodo + Selector Dinámico + Acciones -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between justify-content-lg-end gap-2">
+                    <!-- Píldoras Rápidas de Periodo -->
+                    <div class="btn-group btn-group-sm p-1 bg-light rounded-pill border" role="group" id="filterPillsGroup">
+                        <button type="button" class="btn btn-sm rounded-pill fw-semibold btn-filter-pill btn-light text-secondary" onclick="cambiarTipoPeriodo('dia', this)">Hoy</button>
+                        <button type="button" class="btn btn-sm rounded-pill fw-semibold btn-filter-pill active" onclick="cambiarTipoPeriodo('semana', this)">Semana</button>
+                        <button type="button" class="btn btn-sm rounded-pill fw-semibold btn-filter-pill btn-light text-secondary" onclick="cambiarTipoPeriodo('mes', this)">Este Mes</button>
+                        <button type="button" class="btn btn-sm rounded-pill fw-semibold btn-filter-pill btn-light text-secondary" onclick="cambiarTipoPeriodo('ano', this)">Año</button>
+                    </div>
+
+                    <!-- Selector Dinámico con Borde Teal -->
+                    <div class="financial-date-range-bar d-flex align-items-center p-1 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important;">
+                        <i class="bi bi-calendar3 text-muted ms-2 me-1"></i>
+                        <select id="selectPeriodo" class="form-select form-select-sm border-0 bg-transparent fw-bold text-dark py-0" style="cursor: pointer; min-width: 160px; font-size: 0.8rem;" onchange="seleccionarPeriodoEspecifico()">
+                            <option value="">Cargando periodos...</option>
+                        </select>
+                        <button class="btn btn-sm rounded-pill px-2.5 text-white flex-shrink-0 d-inline-flex align-items-center justify-content-center" style="background: var(--md-blue-deep, #0A2A66); min-height: 28px;" onclick="seleccionarPeriodoEspecifico()" title="Actualizar Periodo">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                    </div>
+
+                    <!-- Botones de Acción Rápida -->
+                    <div class="d-flex align-items-center gap-1.5 btn-action-toolbar">
+                        <button class="btn btn-outline-primary btn-sm rounded-pill shadow-sm px-3 fw-semibold" onclick="copiarMarkdownIA()" title="Copia el prompt completo de auditoría para ChatGPT, Claude o Gamma">
+                            <i class="bi bi-robot me-1"></i>Copiar Prompt para IA
+                        </button>
+                        <button class="btn btn-primary btn-sm rounded-pill shadow-sm px-3 fw-bold" onclick="window.print()">
+                            <i class="bi bi-printer me-1"></i>Imprimir / PDF
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Tablero de 5 KPIs Principales -->
-    <div class="row g-3 mb-4">
-        <!-- 1. Flujo Real Caja Privada -->
-        <div class="col-12 col-sm-6 col-xl">
-            <div class="card kpi-card-exec p-3 h-100 border-start border-4 border-success">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <span class="text-muted small fw-bold text-uppercase">Caja Real (Privados)</span>
-                        <h3 class="fw-bold text-dark mt-1 mb-1" id="kpi-flujo-privado">$0.00</h3>
-                        <div id="badge-crec-ingresos" class="badge rounded-pill small py-1 px-2">0% vs periodo anterior</div>
-                    </div>
-                    <div class="p-2 bg-success bg-opacity-10 rounded-circle text-success">
-                        <i class="bi bi-cash-stack fs-4"></i>
+    <!-- CAPA 1: Flujo de Caja y Rentabilidad Real (Hero KPIs - Borde Teal Clínico) -->
+    <div class="row row-cols-1 row-cols-md-3 g-2 g-md-3 mb-2 mb-md-3">
+        <!-- 1. Ingresos Reales (Canal Privado) -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">INGRESOS REALES (CAJA PRIVADA)</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(16, 185, 129, 0.1);">
+                        <i class="bi bi-cash-stack text-success fs-5"></i>
                     </div>
                 </div>
-                <div class="small text-muted mt-2">100% cobrado en ventanilla</div>
+                <h2 class="fw-bold m-0 text-success plus-jakarta" id="kpi-flujo-privado" style="font-size: 1.65rem;">$0.00</h2>
+                <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 small fw-semibold" style="font-size: 0.65rem;">Cobrado en Caja</span>
+                    <span class="small text-muted d-flex align-items-center gap-1" id="badge-crec-ingresos" style="font-size: 0.72rem;">+0% vs periodo anterior</span>
+                </div>
             </div>
         </div>
 
-        <!-- 2. CXC Convenio Municipio -->
-        <div class="col-12 col-sm-6 col-xl">
-            <div class="card kpi-card-exec p-3 h-100 border-start border-4 border-info">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <span class="text-muted small fw-bold text-uppercase">CXC Municipio (100% Subsidio)</span>
-                        <h3 class="fw-bold text-info mt-1 mb-1" id="kpi-cargos-publicos">$0.00</h3>
-                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill py-1 px-2">Cartera Gobierno</span>
-                    </div>
-                    <div class="p-2 bg-info bg-opacity-10 rounded-circle text-info">
-                        <i class="bi bi-building-check fs-4"></i>
+        <!-- 2. Cartera Convenio Municipio (Cuentas por Cobrar) -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">CXC ESTADO / MUNICIPIO</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(13, 202, 240, 0.1);">
+                        <i class="bi bi-building-check text-info fs-5"></i>
                     </div>
                 </div>
-                <div class="small text-muted mt-2">Facturación consolidada</div>
+                <h2 class="fw-bold m-0 text-info plus-jakarta" id="kpi-cargos-publicos" style="font-size: 1.65rem;">$0.00</h2>
+                <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
+                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2.5 py-1 small fw-semibold" style="font-size: 0.65rem;">Subsidio 100%</span>
+                    <span class="small text-muted d-flex align-items-center gap-1" id="kpi-recibos-publicos-sub" style="font-size: 0.72rem;">Cartera Gobierno</span>
+                </div>
             </div>
         </div>
 
-        <!-- 3. Volumen Total Recibos -->
-        <div class="col-12 col-sm-6 col-xl">
-            <div class="card kpi-card-exec p-3 h-100 border-start border-4 border-primary">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <span class="text-muted small fw-bold text-uppercase">Recibos Emitidos</span>
-                        <h3 class="fw-bold text-primary mt-1 mb-1" id="kpi-total-recibos">0</h3>
-                        <div id="badge-crec-recibos" class="badge rounded-pill small py-1 px-2">0% transacciones</div>
-                    </div>
-                    <div class="p-2 bg-primary bg-opacity-10 rounded-circle text-primary">
-                        <i class="bi bi-receipt-cutoff fs-4"></i>
+        <!-- 3. Valor Bruto Generado (Tarjeta Resaltada con Borde Teal 2px) -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 2px solid var(--md-teal-clinical, #19B7A5) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-uppercase tracking-wider" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.72rem;">VALOR BRUTO GENERADO</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(10, 42, 102, 0.08);">
+                        <i class="bi bi-wallet2 fs-5" style="color: var(--md-blue-deep, #0A2A66);"></i>
                     </div>
                 </div>
-                <div class="small text-muted mt-2" id="kpi-recibos-desglose">0 Privados / 0 Públicos</div>
-            </div>
-        </div>
-
-        <!-- 4. Ticket Promedio -->
-        <div class="col-12 col-sm-6 col-xl">
-            <div class="card kpi-card-exec p-3 h-100 border-start border-4 border-warning">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <span class="text-muted small fw-bold text-uppercase">Ticket Prom. Privado</span>
-                        <h3 class="fw-bold text-dark mt-1 mb-1" id="kpi-ticket-privado">$0.00</h3>
-                        <span class="badge bg-warning bg-opacity-10 text-dark rounded-pill py-1 px-2" id="kpi-ticket-publico">Púb: $0.00</span>
-                    </div>
-                    <div class="p-2 bg-warning bg-opacity-10 rounded-circle text-warning">
-                        <i class="bi bi-pie-chart-fill fs-4"></i>
-                    </div>
+                <h2 class="fw-bold m-0 plus-jakarta" id="kpi-valor-bruto" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.65rem;">$0.00</h2>
+                <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
+                    <span class="small text-muted" id="kpiMargenSubtexto" style="font-size: 0.72rem;">Impacto Asistencial: <span class="fw-bold text-success">100%</span></span>
+                    <span class="badge rounded-pill px-2.5 py-1 small fw-semibold" style="background: rgba(25, 183, 165, 0.12); color: var(--md-teal-clinical, #19B7A5); font-size: 0.65rem;">Flujo Operativo</span>
                 </div>
-                <div class="small text-muted mt-2">Promedio por paciente</div>
-            </div>
-        </div>
-
-        <!-- 5. Calidad y Consistencia Forense -->
-        <div class="col-12 col-sm-6 col-xl">
-            <div class="card kpi-card-exec p-3 h-100 border-start border-4" style="border-left-color: var(--md-teal-clinical, #19B7A5) !important;">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <span class="text-muted small fw-bold text-uppercase">Integridad Contable</span>
-                        <h3 class="fw-bold text-success mt-1 mb-1" id="kpi-calidad">100%</h3>
-                        <span class="badge badge-teal-clinical rounded-pill py-1 px-2">Cuadre al Centavo</span>
-                    </div>
-                    <div class="p-2 bg-opacity-10 rounded-circle" style="background-color: rgba(25, 183, 165, 0.1); color: var(--md-teal-clinical, #19B7A5);">
-                        <i class="bi bi-shield-check fs-4"></i>
-                    </div>
-                </div>
-                <div class="small text-muted mt-2">Cero folios saltados</div>
             </div>
         </div>
     </div>
 
-    <!-- Comportamiento Cronológico del Periodo Seleccionado -->
-    <div class="card card-mobile-flush border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+    <!-- CAPA 2: Cobranza, Recibos y Eficiencia Operativa (4 Tarjetas con Borde Teal Suave) -->
+    <div class="row row-cols-2 row-cols-md-4 g-2 g-md-3 mb-3 mb-md-4">
+        <!-- 4. Recibos Emitidos -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Recibos Emitidos</span>
+                    <i class="bi bi-receipt-cutoff text-primary fs-5"></i>
+                </div>
+                <h3 class="fw-bold m-0 text-dark plus-jakarta" id="kpi-total-recibos" style="font-size: 1.35rem;">0</h3>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top border-light">
+                    <span class="small text-muted" id="kpi-recibos-desglose" style="font-size: 0.72rem;">0 Priv / 0 Púb</span>
+                    <span class="badge rounded-pill small py-1 px-2" id="badge-crec-recibos" style="font-size: 0.65rem;">0% trans.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Ticket Promedio Privado -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Ticket Prom. Privado</span>
+                    <i class="bi bi-pie-chart-fill text-warning fs-5"></i>
+                </div>
+                <h3 class="fw-bold m-0 text-dark plus-jakarta" id="kpi-ticket-privado" style="font-size: 1.35rem;">$0.00</h3>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top border-light">
+                    <span class="small text-muted" style="font-size: 0.72rem;">Por Paciente</span>
+                    <span class="badge bg-warning bg-opacity-10 text-dark rounded-pill py-1 px-2" id="kpi-ticket-publico" style="font-size: 0.65rem;">Púb: $0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Efectivo en Ventanilla -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Efectivo en Ventanilla</span>
+                    <i class="bi bi-cash-coin text-success fs-5"></i>
+                </div>
+                <h3 class="fw-bold m-0 text-success plus-jakarta" id="kpi-efectivo-monto" style="font-size: 1.35rem;">$0.00</h3>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top border-light">
+                    <span class="small text-muted" style="font-size: 0.72rem;">Caja Física</span>
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill" id="kpi-efectivo-pct" style="font-size: 0.65rem;">0% de caja</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. Integridad Contable Forense -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Integridad Contable</span>
+                    <i class="bi bi-shield-check fs-5" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                </div>
+                <h3 class="fw-bold m-0 text-success plus-jakarta" id="kpi-calidad" style="font-size: 1.35rem;">100%</h3>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top border-light">
+                    <span class="small text-muted" style="font-size: 0.72rem;">Cero Inconsistencias</span>
+                    <span class="badge badge-teal-clinical rounded-pill py-1 px-2" style="font-size: 0.65rem;">Cuadre Exacto</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comportamiento Cronológico del Periodo Seleccionado (Borde Teal) -->
+    <div class="card card-mobile-flush border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4" style="border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
         <div class="card-header bg-white border-bottom border-light py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-calendar2-week text-primary fs-5"></i>
+                <i class="bi bi-calendar2-week fs-5" style="color: var(--md-teal-clinical, #19B7A5);"></i>
                 <h5 class="card-title fw-bold text-dark mb-0" id="tituloTablaDesglose">Comportamiento y Desglose Cronológico</h5>
             </div>
             <div id="alertaElementoPico" class="badge bg-warning bg-opacity-10 text-dark px-3 py-2 rounded-pill fw-bold">
@@ -266,11 +291,11 @@ print <<'PAGE_HTML';
         </div>
     </div>
 
-    <!-- Dos Columnas: Medios de Pago & Demanda Clínica -->
+    <!-- Dos Columnas: Medios de Pago & Demanda Clínica (Borde Teal) -->
     <div class="row g-4 mb-4">
         <!-- Columna Izquierda: Control de Medios de Pago -->
         <div class="col-12 col-lg-6">
-            <div class="card card-mobile-flush border-0 shadow-sm rounded-4 bg-white h-100 p-4">
+            <div class="card card-mobile-flush border-0 shadow-sm rounded-4 bg-white h-100 p-4" style="border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
                 <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
                     <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                         <i class="bi bi-credit-card-2-front-fill text-success"></i>Control de Medios de Pago (Arqueo de Caja)
@@ -286,7 +311,7 @@ print <<'PAGE_HTML';
 
         <!-- Columna Derecha: Demanda por Departamentos Clínicos -->
         <div class="col-12 col-lg-6">
-            <div class="card card-mobile-flush border-0 shadow-sm rounded-4 bg-white h-100 p-4">
+            <div class="card card-mobile-flush border-0 shadow-sm rounded-4 bg-white h-100 p-4" style="border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
                 <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
                     <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                         <i class="bi bi-hospital-fill text-primary"></i>Demanda por Departamento Clínico
@@ -301,8 +326,8 @@ print <<'PAGE_HTML';
         </div>
     </div>
 
-    <!-- Sección 4: Preguntas Estratégicas y Recomendaciones para la Alta Dirección -->
-    <div class="card card-mobile-flush border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+    <!-- Sección 4: Preguntas Estratégicas y Recomendaciones para la Alta Dirección (Borde Teal) -->
+    <div class="card card-mobile-flush border-0 shadow-sm rounded-4 bg-white p-4 mb-4" style="border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
         <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 border-bottom pb-2 gap-2">
             <div>
                 <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
@@ -317,16 +342,16 @@ print <<'PAGE_HTML';
         </div>
     </div>
 
-    <!-- Dictamen de Seguridad y Certificación Forense -->
-    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4 border-top border-4 border-primary">
+    <!-- Dictamen de Seguridad y Certificación Forense (Borde Teal) -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4" style="border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-3">
-                <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle">
+                <div class="p-3 bg-opacity-10 rounded-circle" style="background-color: rgba(25, 183, 165, 0.12); color: var(--md-teal-clinical, #19B7A5);">
                     <i class="bi bi-patch-check-fill fs-3"></i>
                 </div>
                 <div>
                     <h6 class="fw-bold text-dark mb-1">Certificación Contable y Forense del Periodo</h6>
-                    <p class="text-muted small mb-0">La base de datos de producción cumple estrictamente con el principio de integridad contable: cero folios saltados, cuadre matemático de items JSON y firmas digitales de usuario certificadas.</p>
+                    <p class="text-muted small mb-0">La base de datos de producción cumple estrictamente con el principio de integridad contable: cero folios saltados, cuadre matemático de ítems JSON y firmas digitales de usuario certificadas.</p>
                 </div>
             </div>
             <div class="text-end">
@@ -357,10 +382,14 @@ function cambiarTipoPeriodo(tipo, btnElem) {
     periodoValActual  = '';
 
     // Actualizar botones de píldora
-    const botones = document.querySelectorAll('#grupoTemporalidad .temporal-pill-btn');
-    botones.forEach(b => b.classList.remove('active'));
+    const botones = document.querySelectorAll('#filterPillsGroup .btn-filter-pill');
+    botones.forEach(b => {
+        b.classList.remove('active');
+        b.classList.add('btn-light', 'text-secondary');
+    });
     if (btnElem) {
         btnElem.classList.add('active');
+        btnElem.classList.remove('btn-light', 'text-secondary');
     }
 
     cargarResumenEjecutivo(tipoPeriodoActual, '');
@@ -405,22 +434,18 @@ function renderizarVista(data) {
     if (data.tipo_periodo === 'dia') {
         listaPeriodos = data.dias_disponibles || [];
         prefijoEtiqueta = 'Día: ';
-        document.getElementById('labelPeriodo').textContent = 'Día:';
         document.getElementById('tituloTablaDesglose').textContent = 'Comportamiento y Desglose por Turno / Horario (' + data.periodo_activo + ')';
     } else if (data.tipo_periodo === 'semana') {
         listaPeriodos = data.semanas_disponibles || [];
         prefijoEtiqueta = 'Semana: ';
-        document.getElementById('labelPeriodo').textContent = 'Semana:';
         document.getElementById('tituloTablaDesglose').textContent = 'Comportamiento y Desglose Diario (Lunes a Domingo)';
     } else if (data.tipo_periodo === 'mes') {
         listaPeriodos = data.meses_disponibles || [];
         prefijoEtiqueta = 'Mes: ';
-        document.getElementById('labelPeriodo').textContent = 'Mes:';
         document.getElementById('tituloTablaDesglose').textContent = 'Comportamiento Diario del Mes (' + data.periodo_activo + ')';
     } else if (data.tipo_periodo === 'ano') {
         listaPeriodos = data.anos_disponibles || [];
         prefijoEtiqueta = 'Año: ';
-        document.getElementById('labelPeriodo').textContent = 'Año:';
         document.getElementById('tituloTablaDesglose').textContent = 'Comportamiento Mensual del Año (' + data.periodo_activo + ')';
     }
 
@@ -446,26 +471,35 @@ function renderizarVista(data) {
         document.getElementById('printFechaEmision').textContent = 'Emisión: ' + (new Date()).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
-    // 2. KPIs
+    // 2. Hero KPIs y Métricas
     const kpis = data.kpis || {};
     document.getElementById('kpi-flujo-privado').textContent = formatoMoneda(kpis.flujo_privado || 0);
     document.getElementById('kpi-cargos-publicos').textContent = formatoMoneda(kpis.cargos_publicos || 0);
-    document.getElementById('kpi-total-recibos').textContent = (kpis.total_recibos || 0) + ' recibos';
-    document.getElementById('kpi-recibos-desglose').textContent = (kpis.recibos_privados || 0) + ' Privados / ' + (kpis.recibos_publicos || 0) + ' Públicos';
+    document.getElementById('kpi-valor-bruto').textContent = formatoMoneda(kpis.valor_bruto_total || ((kpis.flujo_privado || 0) + (kpis.cargos_publicos || 0)));
+    document.getElementById('kpi-total-recibos').textContent = (kpis.total_recibos || 0);
+    document.getElementById('kpi-recibos-desglose').textContent = (kpis.recibos_privados || 0) + ' Priv / ' + (kpis.recibos_publicos || 0) + ' Púb';
+    document.getElementById('kpi-recibos-publicos-sub').textContent = (kpis.recibos_publicos || 0) + ' órdenes públicas';
     document.getElementById('kpi-ticket-privado').textContent = formatoMoneda(kpis.ticket_prom_privado || 0);
     document.getElementById('kpi-ticket-publico').textContent = 'Púb: ' + formatoMoneda(kpis.ticket_prom_publico || 0);
     document.getElementById('kpi-calidad').textContent = (kpis.calidad_datos_pct || 100) + '%';
+
+    // Medios de pago / Efectivo
+    const efec = data.efectivo || {};
+    if (document.getElementById('kpi-efectivo-monto')) {
+        document.getElementById('kpi-efectivo-monto').textContent = formatoMoneda(efec.monto || 0);
+        document.getElementById('kpi-efectivo-pct').textContent = (efec.porcentaje || '0') + '% de caja';
+    }
 
     // Tendencia de ingresos
     const crecIng = parseFloat(kpis.crec_ingresos_pct || 0);
     const bCrecIng = document.getElementById('badge-crec-ingresos');
     bCrecIng.textContent = (crecIng >= 0 ? '+' : '') + crecIng + '% vs periodo anterior';
-    bCrecIng.className = 'badge rounded-pill small py-1 px-2 ' + (crecIng >= 0 ? 'badge-trend-up' : 'badge-trend-down');
+    bCrecIng.className = 'small fw-semibold d-flex align-items-center gap-1 ' + (crecIng >= 0 ? 'text-success' : 'text-danger');
 
     // Tendencia de transacciones
     const crecRec = parseFloat(kpis.crec_recibos_pct || 0);
     const bCrecRec = document.getElementById('badge-crec-recibos');
-    bCrecRec.textContent = (crecRec >= 0 ? '+' : '') + crecRec + '% transacciones';
+    bCrecRec.textContent = (crecRec >= 0 ? '+' : '') + crecRec + '%';
     bCrecRec.className = 'badge rounded-pill small py-1 px-2 ' + (crecRec >= 0 ? 'badge-trend-up' : 'badge-trend-down');
 
     // 3. Desglose Cronológico
@@ -585,7 +619,7 @@ function renderizarVista(data) {
                 const col = document.createElement('div');
                 col.className = 'col-12 col-md-6';
                 col.innerHTML = `
-                    <div class="recom-card-exec p-3 h-100 d-flex flex-column justify-content-between">
+                    <div class="recom-card-exec p-3 h-100 d-flex flex-column justify-content-between" style="border: 1.5px solid rgba(25, 183, 165, 0.25) !important;">
                         <div>
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="fw-bold text-dark d-flex align-items-center gap-2">
