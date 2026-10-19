@@ -598,7 +598,7 @@ HTML
             $link_resumen_html = qq{
                 <a href="../views/resumen_ejecutivo.pl" class="sub-link $resumen_active w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Resumen Ejecutivo">
                     <i class="bi bi-bar-chart-line-fill text-info me-2"></i><span class="sidebar-text fw-bold">Resumen Ejecutivo</span>
-                    <span class="badge bg-primary bg-opacity-10 text-primary ms-auto" style="font-size:0.65rem;">Semanal</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary ms-auto sidebar-text" style="font-size:0.65rem;">Semanal</span>
                 </a>
             };
         }

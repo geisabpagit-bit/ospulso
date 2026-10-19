@@ -34,10 +34,12 @@
 .sidebar-brand-text { transition: opacity 0.2s; }
 @media (min-width: 992px) {
     .diamond-sidebar.compact:not(:hover) .sidebar-brand-text, 
-    .diamond-sidebar.compact:not(.flyout-active) .sidebar-text {
-        opacity: 0;
-        pointer-events: none;
-        display: none;
+    .diamond-sidebar.compact:not(.flyout-active) .sidebar-text,
+    .diamond-sidebar.compact:not(.flyout-active) .badge,
+    .diamond-sidebar.compact:not(.flyout-active) .sub-link .badge {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        display: none !important;
     }
     .diamond-sidebar.compact .accordion-button::after {
         opacity: 0;
@@ -45,6 +47,7 @@
         display: none;
     }
 }
+
 
 
 /* Sidebar Accordion Menu (Premium Glassmorphism & Animations) */
@@ -629,13 +632,17 @@
     }
 }
 
-.diamond-sidebar.compact .user-details {
+.diamond-sidebar.compact .user-details,
+.diamond-sidebar.compact .sidebar-text,
+.diamond-sidebar.compact .badge,
+.diamond-sidebar.compact .sub-link .badge {
     display: none !important;
 }
 .diamond-sidebar.compact .sub-link {
     justify-content: center !important;
     padding: 0.75rem !important;
     margin-left: 0 !important;
+    overflow: hidden !important;
 }
 .diamond-sidebar.compact .sub-link i,
 .diamond-sidebar.compact .sub-link .material-icons {
