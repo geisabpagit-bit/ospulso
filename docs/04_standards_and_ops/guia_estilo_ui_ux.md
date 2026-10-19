@@ -257,25 +257,29 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
 
 ## 9. Estándares de Interacción del Menú Lateral y Acordeones (`utils/sub_sidebar.pl`, `css/sub_sidebar.css`, `js/sub_sidebar.js`)
 
-1. **Rotación Coherente del Chevron en Acordeones**:
+1. **Alineación Total a la Izquierda y Cero Desfase (Erradicación de Cápsulas Flotantes)**:
+   - En Desktop y Móvil, `.diamond-sidebar` se ancla estrictamente al margen izquierdo absoluto (`left: 0; top: 0; margin: 0 !important; border-radius: 0 !important; height: 100vh; position: sticky;`). Queda prohibido el uso de márgenes exteriores (`margin: 1rem`) o bordes redondeados en los 4 vértices que despeguen la barra de la pantalla o simulen islas flotantes que generen espacio muerto.
+   - En modo expandido: ancho constante de `260px` con borde derecho sutil `1.5px solid rgba(25, 183, 165, 0.25)`.
+   - En modo compacto (`.compact`): ancho constante de `68px` alineado al extremo izquierdo.
+2. **Consistencia Visual y Erradicación de Desbordes en Modo Compacto (Desktop >= 992px)**:
+   - **Cuadrícula Unificada de 42x42px**: Todos los elementos interactivos del menú colapsado (tanto botones de acordeón `.accordion-button` como enlaces directos y sub-enlaces `.sub-link`) comparten dimensiones idénticas: `width: 42px !important; height: 42px !important; margin: 3px auto !important; border-radius: 10px !important;`.
+   - **Armonía Cromática en Estados Activos**: Se erradicó el bloque azul marino oscuro opaco `#0A2A66` que rompía la simetría. Los ítems activos se presentan bajo el estándar institucional: `background: rgba(25, 183, 165, 0.16); border: 1.5px solid var(--md-teal-clinical, #19B7A5); color: var(--md-blue-deep, #0A2A66);` con ícono teal `#19B7A5`.
+   - **Simetría en Acordeones Desplegados**: Al abrirse un acordeón en modo compacto, el botón padre se mantiene como un recuadro de `42x42px` con fondo y borde teal suave (`border-left` grueso de 3px queda anulado), preservando la verticalidad pura de la columna.
+   - **Cabecera Proporcional y Ergonómica**: `.sidebar-brand` aplica `padding: 12px 4px 8px 4px`, avatar `.avatar-diamond` de `38x38px` centrado y botón toggle de `34x34px`, garantizando que las iniciales no rocen ni se solapen con la barra superior.
+   - **Contenedor Scrolleable con Flexbox**: `.diamond-sidebar` opera con `display: flex; flex-direction: column; overflow: hidden;` y el `.sidebar-menu` aplica `flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 40px !important;`, previniendo que los últimos ítems (ej. ingresos, egresos) queden truncados por el marco de la pantalla.
+3. **Rotación Coherente del Chevron en Acordeones**:
    - Cerrado (`.accordion-button.collapsed::after`): rota `0deg` apuntando hacia abajo suavemente.
    - Expandido (`.accordion-button:not(.collapsed)::after`): rota `180deg` hacia arriba mediante transición fluida `cubic-bezier(0.2, 0, 0, 1)`.
-2. **Apertura Múltiple Independiente**:
+4. **Apertura Múltiple Independiente**:
    - Se retiró el atributo `data-bs-parent="#accordionSidebar"` de todos los grupos colapsables (*Expediente*, *Diagnóstico*, *Administración*, *Finanzas*, *Ventas*), permitiendo que el usuario mantenga abiertas múltiples secciones simultáneamente sin canibalización involuntaria de menús.
-3. **Indicador de Hijo Activo (`.active-dot`)**:
+5. **Indicador de Hijo Activo (`.active-dot`)**:
    - Si una sección colapsable cerrada contiene la página en curso, se renderiza un micro-indicador luminoso turquesa (`.active-dot`) en la cabecera del acordeón, manteniendo la retroalimentación visual de la ubicación del usuario. Al desplegarse la sección, el punto se oculta automáticamente para dar protagonismo al `.sub-link.active`.
-4. **Comportamiento Responsivo en Móvil y Tableta (`< 992px`)**:
-   - **Drawer Completo**: La clase `.compact` queda estrictamente anulada en pantallas menores a 992px; el sidebar opera exclusivamente como un Drawer off-canvas completo de 295px con fondo translúcido y desenfoque (`backdrop-filter: blur(25px)`).
-   - **Touch Targets Estandarizados**: Botones de acordeón con `min-height: 48px;` y sub-enlaces con `min-height: 44px;` para navegación táctil sin fallos.
+6. **Comportamiento Responsivo en Móvil y Tableta (`< 992px`)**:
+   - **Drawer Completo**: La clase `.compact` queda estrictamente anulada en pantallas menores a 992px; el sidebar opera exclusivamente como un Drawer off-canvas completo de 260px con fondo blanco y borde derecho teal (`border-radius: 0 16px 16px 0 !important; z-index: 10500 !important;`).
+   - **Touch Targets Estandarizados**: Botones de acordeón con `min-height: 44px;` y sub-enlaces con `min-height: 38px;` para navegación táctil sin fallos.
    - **Auto-cierre Táctil**: Al pulsar cualquier enlace o pestaña del menú en móvil/tableta, el drawer y su backdrop se cierran automáticamente para revelar el contenido sin requerir una pulsación manual en el botón de cierre o en el overlay.
-   - **Desplazamiento Elástico**: Menú interno con `-webkit-overflow-scrolling: touch;` y `overscroll-behavior: contain;`.
-5. **Modo Compacto Desktop (`>= 992px`), Tooltips Flotantes y Anti-Loop**:
-   - **Persistencia `localStorage`**: Al colapsar la barra a 80px, la preferencia se almacena en `localStorage.getItem('ospulso_sidebar_compact')`, manteniéndose a lo largo de toda la navegación.
-   - **Tooltips Flotantes Dinámicos (`.sidebar-floating-tooltip`)**: En lugar de desplegar flyouts CSS invasivos que provoquen pérdidas de hover y bucles infinitos de redibujado (loops a 60 FPS), se utiliza un tooltip flotante desacoplado, ultraligero y anclado a `position: fixed` con `pointer-events: none`. Muestra instantáneamente el título (`data-sidebar-title`) de cualquier ítem o acordeón al pasar el mouse por encima.
-   - **Mecanismo Anti-Loop en Submenús**: Si el usuario hace clic sobre un botón de acordeón (ej. Expediente Clínico, Diagnóstico, Administración) mientras la barra se encuentra colapsada a 80px, el sistema ejecuta de inmediato `window.toggleDesktopSidebar()` para expandir limpiamente el menú a su ancho completo (280px), eliminando cualquier salto errático de submenús dentro de la columna compacta.
-   - **Gobernanza RBAC y Capacidades SaaS en Menú Secundario**:
-     - **Odontograma**: Reemplaza el ítem legacy *"2.1 Odonto"*. Solo es visible para usuarios con rol médico (`$role eq 'Medico'`) y cuya organización tenga como Especialidad Médica Principal *"Odontología"* (código `100`).
-     - **Imagenología**: Reemplaza el ítem legacy *"2.2 Rayos X"*. Solo es visible si la organización tiene activa la capacidad SaaS requerida *"Imagenología"* en sus credenciales/planes.
+7. **Tooltips Flotantes Dinámicos (`.sidebar-floating-tooltip`)**:
+   - En lugar de flyouts invasivos, el sistema despliega un tooltip flotante anclado a `position: fixed` con fondo azul marino institucional translúcido (`rgba(10, 42, 102, 0.95)`), borde teal suave y sombra de elevación. Lee el atributo `data-sidebar-title` de avatares, toggles, botones de acordeón y sub-enlaces con posicionamiento vertical centrado a la derecha del ítem.
 
 ---
 

@@ -203,7 +203,7 @@ sub render_sidebar {
     <!-- Sidebar Left -->
     <nav class="diamond-sidebar" id="moduleSidebar">
         <div class="sidebar-brand" id="sidebarBrandContainer">
-            <div class="avatar-diamond" id="sidebarAvatarBrand" title="$usuario" onclick="handleSidebarBrandClick()">$iniciales</div>
+            <div class="avatar-diamond" id="sidebarAvatarBrand" title="$usuario" data-sidebar-title="Perfil: $usuario" onclick="handleSidebarBrandClick()">$iniciales</div>
 
             <button class="btn btn-sm btn-sidebar-nav-trigger btn-sidebar-close-mobile d-lg-none ms-auto d-flex align-items-center justify-content-center shadow-sm" onclick="toggleSidebar()" aria-label="Cerrar menú" type="button">
                 <i class="bi bi-x-lg text-teal fs-5"></i>
