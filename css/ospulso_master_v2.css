@@ -2310,189 +2310,316 @@ nav.navbar.sticky-top {
     display: none;
 }
 
+/* ==========================================================================
+   SISTEMA DE VISTA PREVIA Y REPORTE EJECUTIVO DE 2 PÁGINAS (TAMAÑO CARTA)
+   ========================================================================== */
+
+/* Escenario de Vista Previa en Pantalla (Modal de Previsualización) */
+.preview-paper-stage {
+    background-color: #525659;
+    padding: 24px 12px;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    overflow-y: auto;
+}
+
+.report-sheet {
+    width: 816px; /* 8.5in a 96dpi */
+    min-height: 1056px; /* 11in a 96dpi */
+    max-width: 100%;
+    background: #ffffff;
+    border-radius: 3px;
+    padding: 32px 38px 24px 38px;
+    color: #0f172a;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid #cbd5e1;
+}
+
+.report-sheet-header {
+    border-bottom: 2px solid var(--md-blue-deep, #0A2A66);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.report-sheet-footer {
+    border-top: 1.5px solid #cbd5e1;
+    padding-top: 8px;
+    margin-top: auto;
+    font-size: 7.5pt;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Mini KPIs del Reporte Impreso */
+.report-kpi-box {
+    background: #ffffff;
+    border: 1.5px solid rgba(25, 183, 165, 0.35);
+    border-radius: 8px;
+    padding: 10px 14px;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.report-kpi-box.highlight {
+    border-color: var(--md-teal-clinical, #19B7A5);
+    border-width: 2px;
+    background: rgba(25, 183, 165, 0.02);
+}
+
+.report-kpi-box .kpi-label {
+    font-size: 7pt;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.report-kpi-box .kpi-value {
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin: 2px 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.5px;
+}
+
+.report-kpi-box .kpi-sub {
+    font-size: 7pt;
+    color: #64748b;
+}
+
+/* Tabla Ejecutiva Formal de Impresión */
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+}
+
+.report-table th {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+    font-size: 7.5pt !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 5px 6px !important;
+    border-top: 1px solid #cbd5e1 !important;
+    border-bottom: 1.5px solid var(--md-blue-deep, #0A2A66) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+.report-table td {
+    font-size: 7.5pt !important;
+    padding: 4px 6px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+.report-table tfoot td {
+    background: #f8fafc !important;
+    font-weight: 800 !important;
+    border-top: 1.5px solid #0A2A66 !important;
+    border-bottom: 1.5px solid #0A2A66 !important;
+}
+
+/* Cajas de Ejes Estratégicos (Hoja 2) */
+.report-axis-card {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #ffffff;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.report-axis-card .axis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+}
+
+.report-axis-card .axis-title {
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.report-axis-card .axis-badge {
+    font-size: 7pt;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 12px;
+}
+
+.report-axis-card .axis-question {
+    font-size: 7.5pt;
+    color: #475569;
+    font-style: italic;
+    line-height: 1.35;
+    margin-bottom: 6px;
+}
+
+.report-axis-card .axis-action {
+    background: #f8fafc;
+    border-left: 3px solid var(--md-teal-clinical, #19B7A5);
+    padding: 5px 8px;
+    border-radius: 0 4px 4px 0;
+    font-size: 7.5pt;
+    color: #1e293b;
+    line-height: 1.3;
+}
+
+/* Certificación y Firmas (Hoja 2) */
+.report-cert-box {
+    background: #f8fafc;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5);
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin: 10px 0;
+}
+
+.report-signatures {
+    margin-top: 14px;
+    padding-top: 8px;
+}
+
+.report-sign-line {
+    border-top: 1.5px solid #0f172a;
+    padding-top: 4px;
+    text-align: center;
+}
+
+.report-sign-title {
+    font-size: 8pt;
+    font-weight: 700;
+    color: #0f172a;
+    display: block;
+}
+
+.report-sign-sub {
+    font-size: 7pt;
+    color: #64748b;
+    display: block;
+}
+
+/* ==========================================================================
+   REGLAS ESTRICTAS DE IMPRESIÓN Y EXPORTACIÓN A PDF (@media print)
+   ========================================================================== */
+
 @page {
     size: letter portrait;
-    margin: 12mm 15mm 15mm 15mm;
+    margin: 10mm 12mm 12mm 12mm;
 }
 
 @media print {
+    /* 1. Resetear el lienzo del navegador */
     html, body {
-        background-color: #ffffff !important;
         background: #ffffff !important;
+        background-color: #ffffff !important;
         color: #0f172a !important;
-        font-size: 9.5pt !important;
+        font-size: 8.5pt !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
         height: auto !important;
         overflow: visible !important;
-        visibility: visible !important;
-        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
+    /* 2. Ocultar absolutamente todos los elementos del cuerpo */
     body * {
+        visibility: hidden !important;
+    }
+
+    /* 3. Aislar y hacer visible únicamente el contenedor oficial del reporte */
+    #reporteImpresionOficial,
+    #reporteImpresionOficial * {
         visibility: visible !important;
     }
 
-    /* Ocultar elementos de navegación, modales y herramientas interactivas */
+    #reporteImpresionOficial {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        background: transparent !important;
+        z-index: 99999 !important;
+    }
+
+    /* Ocultar elementos de UI incluso si están dentro de contenedores */
+    .modal-header,
+    .modal-backdrop,
+    .btn,
     .diamond-sidebar,
     .sdm-sidebar,
     .sub-sidebar,
     .sidebar,
+    .sdm-main-bottom-nav,
     .bottom-nav,
     .sdm-bottom-nav,
     .bottom-nav-container,
-    .breadcrumb,
-    .btn-action-toolbar,
-    .temporal-pills-nav,
-    #filterPillsGroup,
-    .financial-date-range-bar,
-    #selectorPeriodoContainer,
-    #cardControlesPantalla,
     .no-print,
-    .nav-tabs,
-    .navbar,
-    .btn,
-    .sidebar-floating-tooltip,
-    .sidebar-overlay,
-    .swal2-container {
+    .sidebar-floating-tooltip {
         display: none !important;
         visibility: hidden !important;
     }
 
-    .sdm-layout-wrapper {
-        display: block !important;
-        overflow: visible !important;
-        height: auto !important;
-        min-height: unset !important;
-        background: #ffffff !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Desplegar membrete formal superior */
-    .print-header-executive {
-        display: block !important;
-        visibility: visible !important;
-        border-bottom: 2px solid #0A2A66 !important;
-        padding-bottom: 10px !important;
-        margin-bottom: 16px !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-    }
-
-    .main-content,
-    .sdm-main-content,
-    .container-fluid {
-        margin: 0 !important;
-        padding: 0 !important;
+    /* 4. Maquetación exacta de hojas físicas */
+    .report-sheet {
         width: 100% !important;
         max-width: 100% !important;
-        display: block !important;
-        overflow: visible !important;
-    }
-
-    /* Preservar grillas horizontales de Bootstrap en papel (Evitar colapso vertical en Chrome) */
-    .row {
+        min-height: calc(100vh - 20mm) !important;
+        height: auto !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #ffffff !important;
         display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-        margin-left: -6px !important;
-        margin-right: -6px !important;
-    }
-    .row > [class*="col"] {
-        padding-left: 6px !important;
-        padding-right: 6px !important;
-    }
-
-    .row-cols-md-2 > .col,
-    .row-cols-md-2 > [class*="col-"] {
-        flex: 0 0 50% !important;
-        width: 50% !important;
-        max-width: 50% !important;
-    }
-
-    .row-cols-md-3 > .col,
-    .row-cols-md-3 > [class*="col-"] {
-        flex: 0 0 33.333333% !important;
-        width: 33.333333% !important;
-        max-width: 33.333333% !important;
-    }
-
-    .row-cols-md-4 > .col,
-    .row-cols-md-4 > [class*="col-"] {
-        flex: 0 0 25% !important;
-        width: 25% !important;
-        max-width: 25% !important;
-    }
-
-    .col-12.col-lg-6 {
-        flex: 0 0 50% !important;
-        width: 50% !important;
-        max-width: 50% !important;
-    }
-
-    .col-12.col-md-6 {
-        flex: 0 0 50% !important;
-        width: 50% !important;
-        max-width: 50% !important;
-    }
-
-    /* Control de saltos de página y conservación visual */
-    .card,
-    .kpi-card-exec,
-    .recom-card-exec,
-    table,
-    tr,
-    .print-footer-executive {
+        flex-direction: column !important;
+        justify-content: space-between !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
-        box-shadow: none !important;
-        border: 1px solid #cbd5e1 !important;
-        background: #ffffff !important;
     }
 
-    .card {
-        margin-bottom: 12px !important;
-        border-radius: 8px !important;
+    /* Salto de página estricto al finalizar la Hoja 1 */
+    .report-page-1 {
+        page-break-after: always !important;
+        break-after: page !important;
     }
 
-    .kpi-card-exec {
-        margin-bottom: 8px !important;
+    /* La Hoja 2 es la última, nunca debe romper a una 3ra página */
+    .report-page-2 {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
     }
 
-    /* Tablas ejecutivas en impresión */
-    .table-executive {
-        width: 100% !important;
-        border-collapse: collapse !important;
-    }
-    .table-executive th {
-        background-color: #f1f5f9 !important;
-        color: #0f172a !important;
-        font-size: 8.5pt !important;
-        padding: 5px 6px !important;
-        border-bottom: 1.5px solid #0A2A66 !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-    .table-executive td {
-        font-size: 8.5pt !important;
-        padding: 4px 6px !important;
-        border-bottom: 1px solid #e2e8f0 !important;
-    }
-
+    /* Forzar visibilidad y color en barras de progreso y badges */
     .progress,
+    .progress-bar,
     .badge {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
-
-    /* Pie de firmas y certificación formal */
-    .print-footer-executive {
-        display: block !important;
-        visibility: visible !important;
-        margin-top: 24px !important;
-        padding-top: 14px !important;
-        border-top: 1.5px solid #0A2A66 !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-    }
 }
+
 

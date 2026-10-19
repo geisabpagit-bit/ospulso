@@ -81,9 +81,13 @@ De estricto apego a la arquitectura financiera del sistema:
     - Si es Organización Única privada: Suprime las columnas de órdenes públicas y redundancias, mostrando 6 columnas claras y relevantes: `Periodo / Fecha | Detalle | Recibos Cobrados | Total Cobrado en Caja | Ticket Promedio | % Aporte`.
   - **Demanda por Departamentos**: Si no hay órdenes públicas, se suprimen los badges de órdenes públicas y se muestra una métrica consolidada de servicios privados sin ruido visual.
 - **Herramienta IA (Prompt Detallado de Auditoría Hospitalaria Senior)**: Botón *"Copiar Prompt para IA (Claude / ChatGPT / Gamma)"* que inyecta en el portapapeles un prompt analítico completo y no solo datos brutos, contextualizado al régimen de la organización.
-- **Modo Impresión / PDF Formal (Estándar Editorial de Alta Dirección)**:
-  - **Ocultamiento de Controles**: La barra interactiva `#cardControlesPantalla` (`.no-print`) desaparece automáticamente en papel o PDF.
-  - **Membrete Formal Institucional**: `.print-header-executive` imprime la cabecera OSPulso con nombre de la institución, CLUE u Organización ID, régimen operativo, periodo de dictamen y fecha de emisión.
-  - **Preservación de Rejillas Horizontales**: Reglas flexbox forzadas en `@media print` (`.row-cols-md-2`, `.row-cols-md-3`, `.row-cols-md-4`, `.col-lg-6`) para impedir que Chrome colapse verticalmente las tarjetas de KPIs en hojas infinitas.
-  - **Pie de Certificación y Firmas**: `.print-footer-executive` añade al calce del informe las tres firmas institucionales: *Responsable de Caja / Finanzas*, *Dirección Médica / Titular* y *Auditoría Suite OSPulso*, con control estricto de no fragmentación (`page-break-inside: avoid;`).
+- **Sistema de Vista Previa y Reporte Oficial de 2 Páginas Carta Exactas (`@media print`)**:
+  - **Experiencia de Impresión sin Sorpresas**: El botón en pantalla *"Vista Previa / Imprimir"* ya no envía directamente el navegador a imprimir; abre un **Modal de Vista Previa Ejecutiva** (`#modalVistaPreviaReporte`) con fondo de visor gris pizarra (`.preview-paper-stage`) mostrando las hojas físicas tamaño Carta (`.report-sheet`) con sus sombras de papel, tipografía nítida y proporciones reales antes de imprimir.
+  - **Aislamiento Total del DOM (`@media print`)**:
+    - Se erradica de raíz cualquier polución visual web: el dock móvil (`.sdm-main-bottom-nav`), la barra lateral `.diamond-sidebar`, breadcrumbs, botones y modales se ocultan con `visibility: hidden !important; display: none !important;`.
+    - Únicamente se renderiza el contenedor `#reporteImpresionOficial`, garantizando una impresión limpia y libre de artefactos.
+  - **Estructura Rígida en 2 Páginas Carta (Sin Elementos Huérfanos ni Tercera Página)**:
+    - **Hoja 1 (`.report-page-1`)**: Membrete formal hospitalario, estatus del dictamen, KPIs heroicos (con o sin convenio público), minicards operativas, tabla de comportamiento cronológico, control de medios de pago (arqueo) y demanda por departamentos clínicos. Cuenta con salto de página estricto forzado (`page-break-after: always !important; break-after: page !important;`) y pie de página *"Página 1 de 2"*.
+    - **Hoja 2 (`.report-page-2`)**: Sub-encabezado de continuidad institucional, matriz 2x2 de los 4 Ejes Estratégicos de Decisión, recuadro de Certificación Contable e Integridad Forense, bloque de 3 firmas oficiales (*Responsable de Caja / Finanzas*, *Dirección General / Médico Titular*, *Auditoría Suite OSPulso*) y pie de página *"Página 2 de 2"*, con prohibición de desborde (`page-break-after: avoid !important; break-after: avoid !important;`).
+
 
