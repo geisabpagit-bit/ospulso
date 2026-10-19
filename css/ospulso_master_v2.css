@@ -2224,3 +2224,75 @@ nav.navbar.sticky-top {
     background: transparent;
     color: #334155;
 }
+
+/* --- MÓDULO RESUMEN EJECUTIVO MULTI-TEMPORAL (PREMIUM) --- */
+@media print {
+    .sdm-sidebar, .sidebar-overlay, .btn-action-toolbar, .breadcrumb, #selectorPeriodoContainer, .bottom-nav-container, .temporal-pills-nav {
+        display: none !important;
+    }
+    .main-content, .sdm-main-content, .sdm-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+    .card {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+}
+.kpi-card-exec {
+    border: none;
+    border-radius: 1.25rem !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: #ffffff;
+    box-shadow: 0 4px 18px rgba(10, 42, 102, 0.05) !important;
+}
+.kpi-card-exec:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(10, 42, 102, 0.1) !important;
+}
+.badge-trend-up {
+    background-color: rgba(16, 185, 129, 0.12) !important;
+    color: #059669 !important;
+    font-weight: 700 !important;
+}
+.badge-trend-down {
+    background-color: rgba(239, 68, 68, 0.12) !important;
+    color: #dc2626 !important;
+    font-weight: 700 !important;
+}
+.table-executive th {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    font-size: 0.8rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+}
+.temporal-pill-btn {
+    border-radius: 50rem !important;
+    padding: 6px 18px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    border: 1px solid transparent !important;
+    color: #64748b !important;
+    background: transparent !important;
+}
+.temporal-pill-btn.active {
+    background: var(--md-blue-deep, #0A2A66) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(10, 42, 102, 0.25) !important;
+}
+.temporal-pill-btn:hover:not(.active) {
+    background: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+.badge-teal-clinical {
+    background-color: rgba(25, 183, 165, 0.12) !important;
+    color: var(--md-teal-clinical, #19B7A5) !important;
+    font-weight: 700 !important;
+}
+

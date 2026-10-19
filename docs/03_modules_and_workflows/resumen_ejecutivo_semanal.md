@@ -25,7 +25,8 @@ De estricto apego a la arquitectura financiera del sistema:
 
 | Parámetro | Tipo | Descripción |
 |---|:---:|---|
-| `semana` | `GET` | *(Opcional)* Semana ISO en formato `YYYY-Www` (ej. `2026-W42`). Si se omite, calcula la semana más reciente con actividad. |
+| `tipo_periodo` | `GET` | *(Opcional)* Tipo de granularidad: `dia`, `semana` (default), `mes`, `ano`. |
+| `periodo_val` | `GET` | *(Opcional)* Valor del periodo (ej. `2026-10-18` para día, `2026-W42` para semana, `2026-10` para mes, `2026` para año). Si se omite, calcula el periodo más reciente con actividad. |
 | `id_empresa` | `GET` | *(Opcional)* ID del negocio a auditar (solo Administrador Global; para Administrador de Organización se fuerza el ID de su sesión). |
 
 ### Estructura de Respuesta JSON:
@@ -35,8 +36,13 @@ De estricto apego a la arquitectura financiera del sistema:
   "id_empresa": "723800",
   "nombre_negocio": "CLINICA MEDICA DE ESPECIALIDADES JUAN PABLO II",
   "clue": "QTSMP000116",
-  "semana_activa": "2026-W42",
+  "tipo_periodo": "semana",
+  "periodo_activo": "2026-W42",
+  "periodo_previo": "2026-W41",
+  "dias_disponibles": ["2026-10-19", "2026-10-18", ...],
   "semanas_disponibles": ["2026-W43", "2026-W42", "2026-W41"],
+  "meses_disponibles": ["2026-10", "2026-09", ...],
+  "anos_disponibles": ["2026"],
   "kpis": {
     "flujo_privado": 311420.57,
     "cargos_publicos": 41057.00,
@@ -49,8 +55,8 @@ De estricto apego a la arquitectura financiera del sistema:
     "crec_recibos_pct": "33.2",
     "calidad_datos_pct": 100
   },
-  "desglose_diario": [...],
-  "dia_pico": { "fecha": "2026-10-18", "dia_nombre": "Domingo", "total_monto": 67665.00 },
+  "desglose_cronologico": [...],
+  "elemento_pico": { "clave": "2026-10-18", "etiqueta": "2026-10-18", "subetiqueta": "Domingo", "total_monto": 67665.00 },
   "medios_pago": [...],
   "deptos_priv": { ... },
   "deptos_pub": { ... },
@@ -60,8 +66,9 @@ De estricto apego a la arquitectura financiera del sistema:
 
 ---
 
-## 5. UI y Experiencia Ejecutiva
-- **Selector Dinámico**: Dropdown en tiempo real para saltar entre cualquier semana histórica o activa sin recargar.
-- **Micro-Animaciones y Badges**: Semáforos de tendencia respecto a la semana inmediata anterior.
-- **Herramienta IA (Exportación 1 Clic)**: Botón *"Copiar para IA (Gamma / Notion)"* que inyecta en el portapapeles el markdown pre-estructurado para crear presentaciones directivas en segundos.
+## 5. UI y Experiencia Ejecutiva (Estándares AGENTS.md)
+- **Separación Estricta de Estilos (CSS)**: Cero bloques `<style>` en línea en `views/resumen_ejecutivo.pl`. Todas las clases ejecutivas (`.kpi-card-exec`, `.temporal-pill-btn`, `.table-executive`, etc.) y reglas `@media print` residen en la hoja mandante `css/ospulso_master_v2.css`.
+- **Selector Multi-Temporal Dinámico**: Píldoras de selección instantánea para alternar entre **Día**, **Semana**, **Mes** y **Año**, adaptando la tabla cronológica y el elemento pico automáticamente.
+- **Herramienta IA (Exportación 1 Clic)**: Botón *"Copiar para IA (Gamma / Notion)"* que inyecta en el portapapeles el markdown pre-estructurado del periodo activo para crear presentaciones directivas en segundos.
 - **Modo Impresión / PDF**: Estilos `@media print` que suprimen el sidebar y barras de navegación, dejando un informe membretado limpio.
+

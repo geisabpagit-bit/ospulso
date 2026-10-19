@@ -27,13 +27,13 @@ my $usuario    = $sd->{usuario} // 'Usuario';
 my $role       = $sd->{role} // '';
 my $id_empresa = $sd->{id_empresa} // 0;
 
-# RBAC: Administrador Organizacion y Administrador Global
+# RBAC: Exclusivo para Administrador Organizacion y Administrador Global
 if ($role !~ /Administrador/i) {
     render_acceso_denegado(
         q             => $q,
         usuario       => $usuario,
         role          => $role,
-        mensaje       => 'El Resumen Ejecutivo Semanal es exclusivo para la Dirección y Administración de la Organización.',
+        mensaje       => 'El Tablero Ejecutivo es exclusivo para la Dirección y Administración de la Organización.',
         rol_requerido => 'Administrador Organización'
     );
     exit;
@@ -49,7 +49,7 @@ print $q->header(
 render_header(
     usuario     => $usuario,
     role        => $role,
-    titulo      => "Resumen Ejecutivo Semanal | OSPulso",
+    titulo      => "Tablero Ejecutivo de Recaudación | OSPulso",
     skip_header => 1
 );
 
@@ -63,88 +63,59 @@ utils::sub_sidebar::render_sidebar(
 print <<'PAGE_HTML';
 <link rel="stylesheet" href="../css/sdm_mobile_standards.css">
 <link rel="stylesheet" href="../css/ospulso_master_v2.css">
-<style>
-@media print {
-    .sdm-sidebar, .sidebar-overlay, .btn-action-toolbar, .breadcrumb, #selectorSemanaContainer, .bottom-nav-container {
-        display: none !important;
-    }
-    .main-content, .sdm-main-content, .sdm-content {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-    }
-    .card {
-        border: 1px solid #cbd5e1 !important;
-        box-shadow: none !important;
-        break-inside: avoid;
-    }
-}
-.kpi-card-exec {
-    border: none;
-    border-radius: 1.2rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    background: #ffffff;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.04);
-}
-.kpi-card-exec:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-}
-.badge-trend-up {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #059669;
-    font-weight: 700;
-}
-.badge-trend-down {
-    background-color: rgba(239, 68, 68, 0.12);
-    color: #dc2626;
-    font-weight: 700;
-}
-.table-executive th {
-    background-color: #f8fafc;
-    color: #475569;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 700;
-    border-bottom: 2px solid #e2e8f0;
-}
-</style>
 
 <main class="main-content container-fluid py-3 px-md-4 container-mobile-flush">
-    <!-- Header & Controles Ejecutivos -->
+    <!-- Breadcrumb & Cabecera Ejecutiva -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
                     <li class="breadcrumb-item"><a href="dashboard.pl" class="text-decoration-none">Inicio</a></li>
                     <li class="breadcrumb-item"><a href="finanzas.pl" class="text-decoration-none">Finanzas</a></li>
-                    <li class="breadcrumb-item active text-primary fw-semibold" aria-current="page">Resumen Ejecutivo Semanal</li>
+                    <li class="breadcrumb-item active text-primary fw-semibold" aria-current="page">Tablero Ejecutivo</li>
                 </ol>
             </nav>
-            <h2 class="h4 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <h2 class="h4 fw-bold text-dark mb-0 d-flex align-items-center gap-2 flex-wrap">
                 <i class="bi bi-bar-chart-line-fill text-primary"></i>
                 <span>Tablero Ejecutivo de Recaudación y Operación</span>
-                <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-1 rounded-pill" id="badgeSemanaActual">Cargando...</span>
+                <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-1 rounded-pill" id="badgePeriodoActual">Cargando...</span>
             </h2>
-            <p class="text-muted small mb-0" id="subtituloClinica">Análisis semanal consolidado de caja física, convenios públicos y calidad contable.</p>
+            <p class="text-muted small mb-0" id="subtituloClinica">Análisis consolidado multi-temporal de caja física, convenios públicos y calidad contable.</p>
         </div>
 
         <!-- Toolbar de Acciones Rápidas -->
         <div class="d-flex flex-wrap align-items-center gap-2 btn-action-toolbar">
-            <div id="selectorSemanaContainer" class="d-flex align-items-center gap-2 bg-white px-3 py-1 rounded-pill shadow-sm border">
-                <i class="bi bi-calendar3 text-muted"></i>
-                <label for="selectSemana" class="small text-muted fw-semibold mb-0">Semana:</label>
-                <select id="selectSemana" class="form-select form-select-sm border-0 bg-transparent fw-bold text-dark" style="cursor: pointer;" onchange="cambiarSemana()">
-                    <option value="">Cargando semanas...</option>
-                </select>
-            </div>
             <button class="btn btn-outline-primary btn-sm rounded-pill shadow-sm px-3 fw-semibold" onclick="copiarMarkdownIA()">
                 <i class="bi bi-clipboard2-check me-1"></i>Copiar para IA (Gamma / Notion)
             </button>
             <button class="btn btn-primary btn-sm rounded-pill shadow-sm px-3 fw-bold" onclick="window.print()">
                 <i class="bi bi-printer me-1"></i>Imprimir / PDF
             </button>
+        </div>
+    </div>
+
+    <!-- Barra de Control Multi-Temporal (Día, Semana, Mes, Año) -->
+    <div class="card card-mobile-flush border-0 shadow-sm rounded-4 bg-white p-3 mb-4 temporal-pills-nav">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <!-- Píldoras de Temporalidad -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small fw-bold text-uppercase me-1"><i class="bi bi-filter-left me-1"></i>Vista:</span>
+                <div class="btn-group p-1 bg-light rounded-pill border" role="group" id="grupoTemporalidad">
+                    <button type="button" class="temporal-pill-btn" onclick="cambiarTipoPeriodo('dia', this)">Día</button>
+                    <button type="button" class="temporal-pill-btn active" onclick="cambiarTipoPeriodo('semana', this)">Semana</button>
+                    <button type="button" class="temporal-pill-btn" onclick="cambiarTipoPeriodo('mes', this)">Mes</button>
+                    <button type="button" class="temporal-pill-btn" onclick="cambiarTipoPeriodo('ano', this)">Año</button>
+                </div>
+            </div>
+
+            <!-- Selector Dinámico del Periodo Activo -->
+            <div id="selectorPeriodoContainer" class="d-flex align-items-center gap-2 bg-light px-3 py-1 rounded-pill border">
+                <i class="bi bi-calendar3 text-muted"></i>
+                <label for="selectPeriodo" class="small text-muted fw-semibold mb-0" id="labelPeriodo">Periodo:</label>
+                <select id="selectPeriodo" class="form-select form-select-sm border-0 bg-transparent fw-bold text-dark" style="cursor: pointer; min-width: 170px;" onchange="seleccionarPeriodoEspecifico()">
+                    <option value="">Cargando periodos...</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -157,7 +128,7 @@ print <<'PAGE_HTML';
                     <div>
                         <span class="text-muted small fw-bold text-uppercase">Caja Real (Privados)</span>
                         <h3 class="fw-bold text-dark mt-1 mb-1" id="kpi-flujo-privado">$0.00</h3>
-                        <div id="badge-crec-ingresos" class="badge rounded-pill small py-1 px-2">0% vs sem anterior</div>
+                        <div id="badge-crec-ingresos" class="badge rounded-pill small py-1 px-2">0% vs periodo anterior</div>
                     </div>
                     <div class="p-2 bg-success bg-opacity-10 rounded-circle text-success">
                         <i class="bi bi-cash-stack fs-4"></i>
@@ -220,14 +191,14 @@ print <<'PAGE_HTML';
 
         <!-- 5. Calidad y Consistencia Forense -->
         <div class="col-12 col-sm-6 col-xl">
-            <div class="card kpi-card-exec p-3 h-100 border-start border-4 border-teal" style="border-left-color: var(--md-teal-clinical, #0d9488) !important;">
+            <div class="card kpi-card-exec p-3 h-100 border-start border-4" style="border-left-color: var(--md-teal-clinical, #19B7A5) !important;">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <span class="text-muted small fw-bold text-uppercase">Integridad Contable</span>
                         <h3 class="fw-bold text-success mt-1 mb-1" id="kpi-calidad">100%</h3>
-                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill py-1 px-2">Cuadre al Centavo</span>
+                        <span class="badge badge-teal-clinical rounded-pill py-1 px-2">Cuadre al Centavo</span>
                     </div>
-                    <div class="p-2 bg-opacity-10 rounded-circle" style="background-color: rgba(13, 148, 136, 0.1); color: #0d9488;">
+                    <div class="p-2 bg-opacity-10 rounded-circle" style="background-color: rgba(25, 183, 165, 0.1); color: var(--md-teal-clinical, #19B7A5);">
                         <i class="bi bi-shield-check fs-4"></i>
                     </div>
                 </div>
@@ -236,24 +207,24 @@ print <<'PAGE_HTML';
         </div>
     </div>
 
-    <!-- Comportamiento Diario de Recaudación -->
+    <!-- Comportamiento Cronológico del Periodo Seleccionado -->
     <div class="card card-mobile-flush border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
         <div class="card-header bg-white border-bottom border-light py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-calendar2-week text-primary fs-5"></i>
-                <h5 class="card-title fw-bold text-dark mb-0">Comportamiento y Distribución Diaria de Recaudación</h5>
+                <h5 class="card-title fw-bold text-dark mb-0" id="tituloTablaDesglose">Comportamiento y Desglose Cronológico</h5>
             </div>
-            <div id="alertaDiaPico" class="badge bg-warning bg-opacity-10 text-dark px-3 py-2 rounded-pill fw-bold">
-                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Analizando día pico...
+            <div id="alertaElementoPico" class="badge bg-warning bg-opacity-10 text-dark px-3 py-2 rounded-pill fw-bold">
+                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Analizando pico de recaudación...
             </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 table-executive">
                     <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Día</th>
+                        <tr id="trHeaderDesglose">
+                            <th>Periodo / Fecha</th>
+                            <th>Detalle</th>
                             <th class="text-center">Rec. Privados</th>
                             <th class="text-end">Caja Privada</th>
                             <th class="text-center">Rec. Públicos</th>
@@ -263,14 +234,14 @@ print <<'PAGE_HTML';
                             <th style="width: 140px;">% Aporte</th>
                         </tr>
                     </thead>
-                    <tbody id="tbodyDesgloseDiario">
+                    <tbody id="tbodyDesgloseCronologico">
                         <tr>
                             <td colspan="9" class="text-center py-4 text-muted">
-                                <div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando desglose diario...
+                                <div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando datos ejecutivos...
                             </td>
                         </tr>
                     </tbody>
-                    <tfoot id="tfootDesgloseDiario" class="table-light fw-bold"></tfoot>
+                    <tfoot id="tfootDesgloseCronologico" class="table-light fw-bold"></tfoot>
                 </table>
             </div>
         </div>
@@ -287,7 +258,7 @@ print <<'PAGE_HTML';
                     </h5>
                     <span class="badge bg-light text-muted">Canal Privado</span>
                 </div>
-                <p class="text-muted small mb-3">Distribución de ingresos físicos para conciliación y prevención de fuga de efectivo.</p>
+                <p class="text-muted small mb-3">Distribución de ingresos físicos en mostrador para conciliación bancaria y prevención de fuga.</p>
                 <div id="contenedorMediosPago" class="d-flex flex-column gap-3">
                     <div class="text-center py-3 text-muted">Cargando medios de pago...</div>
                 </div>
@@ -303,7 +274,7 @@ print <<'PAGE_HTML';
                     </h5>
                     <span class="badge bg-light text-muted">Servicios y Estudios</span>
                 </div>
-                <p class="text-muted small mb-3">Concentración de demanda entre atenciones privadas y órdenes municipales.</p>
+                <p class="text-muted small mb-3">Concentración de volumen entre atenciones privadas de caja y órdenes municipales de convenio.</p>
                 <div id="contenedorDepartamentos" class="d-flex flex-column gap-2">
                     <div class="text-center py-3 text-muted">Cargando departamentos...</div>
                 </div>
@@ -320,7 +291,7 @@ print <<'PAGE_HTML';
                 </div>
                 <div>
                     <h6 class="fw-bold text-dark mb-1">Certificación Contable y Forense del Periodo</h6>
-                    <p class="text-muted small mb-0">La base de datos de producción cumple con la regla de oro: cero folios duplicados, cuadre matemático estricto y trazabilidad de cajeros.</p>
+                    <p class="text-muted small mb-0">La base de datos de producción cumple estrictamente con el principio de integridad contable: cero folios saltados, cuadre matemático de items JSON y firmas digitales de usuario certificadas.</p>
                 </div>
             </div>
             <div class="text-end">
@@ -338,16 +309,38 @@ render_bottom_nav(pagina_actual => 'finanzas', role => $role);
 print <<'JS';
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+let tipoPeriodoActual = 'semana';
+let periodoValActual  = '';
 let datosEjecutivosGlobal = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    cargarResumenEjecutivo('');
+    cargarResumenEjecutivo('semana', '');
 });
 
-function cargarResumenEjecutivo(semana) {
-    let url = '../api/resumen_ejecutivo_api.pl';
-    if (semana) {
-        url += '?semana=' + encodeURIComponent(semana);
+function cambiarTipoPeriodo(tipo, btnElem) {
+    tipoPeriodoActual = tipo;
+    periodoValActual  = '';
+
+    // Actualizar botones de píldora
+    const botones = document.querySelectorAll('#grupoTemporalidad .temporal-pill-btn');
+    botones.forEach(b => b.classList.remove('active'));
+    if (btnElem) {
+        btnElem.classList.add('active');
+    }
+
+    cargarResumenEjecutivo(tipoPeriodoActual, '');
+}
+
+function seleccionarPeriodoEspecifico() {
+    const sel = document.getElementById('selectPeriodo');
+    periodoValActual = sel.value;
+    cargarResumenEjecutivo(tipoPeriodoActual, periodoValActual);
+}
+
+function cargarResumenEjecutivo(tipo, val) {
+    let url = `../api/resumen_ejecutivo_api.pl?tipo_periodo=${encodeURIComponent(tipo)}`;
+    if (val) {
+        url += `&periodo_val=${encodeURIComponent(val)}`;
     }
 
     fetch(url, { headers: { 'Cache-Control': 'no-cache' } })
@@ -366,27 +359,47 @@ function cargarResumenEjecutivo(semana) {
     });
 }
 
-function cambiarSemana() {
-    const sel = document.getElementById('selectSemana');
-    const semanaElegida = sel.value;
-    cargarResumenEjecutivo(semanaElegida);
-}
-
 function renderizarVista(data) {
-    // 1. Selector de semanas
-    const sel = document.getElementById('selectSemana');
+    // 1. Configurar selector dinámico según la temporalidad
+    const sel = document.getElementById('selectPeriodo');
     sel.innerHTML = '';
-    (data.semanas_disponibles || []).forEach(w => {
+
+    let listaPeriodos = [];
+    let prefijoEtiqueta = '';
+
+    if (data.tipo_periodo === 'dia') {
+        listaPeriodos = data.dias_disponibles || [];
+        prefijoEtiqueta = 'Día: ';
+        document.getElementById('labelPeriodo').textContent = 'Día:';
+        document.getElementById('tituloTablaDesglose').textContent = 'Comportamiento y Desglose por Turno / Horario (' + data.periodo_activo + ')';
+    } else if (data.tipo_periodo === 'semana') {
+        listaPeriodos = data.semanas_disponibles || [];
+        prefijoEtiqueta = 'Semana: ';
+        document.getElementById('labelPeriodo').textContent = 'Semana:';
+        document.getElementById('tituloTablaDesglose').textContent = 'Comportamiento y Desglose Diario (Lunes a Domingo)';
+    } else if (data.tipo_periodo === 'mes') {
+        listaPeriodos = data.meses_disponibles || [];
+        prefijoEtiqueta = 'Mes: ';
+        document.getElementById('labelPeriodo').textContent = 'Mes:';
+        document.getElementById('tituloTablaDesglose').textContent = 'Comportamiento Diario del Mes (' + data.periodo_activo + ')';
+    } else if (data.tipo_periodo === 'ano') {
+        listaPeriodos = data.anos_disponibles || [];
+        prefijoEtiqueta = 'Año: ';
+        document.getElementById('labelPeriodo').textContent = 'Año:';
+        document.getElementById('tituloTablaDesglose').textContent = 'Comportamiento Mensual del Año (' + data.periodo_activo + ')';
+    }
+
+    listaPeriodos.forEach(p => {
         const opt = document.createElement('option');
-        opt.value = w;
-        opt.textContent = 'Semana ' + w + (w === data.semanas_disponibles[0] ? ' (Más Reciente)' : '');
-        if (w === data.semana_activa) {
+        opt.value = p;
+        opt.textContent = prefijoEtiqueta + p + (p === listaPeriodos[0] ? ' (Más Reciente)' : '');
+        if (p === data.periodo_activo) {
             opt.selected = true;
         }
         sel.appendChild(opt);
     });
 
-    document.getElementById('badgeSemanaActual').textContent = 'Semana ' + data.semana_activa;
+    document.getElementById('badgePeriodoActual').textContent = capitalizar(data.tipo_periodo) + ' ' + data.periodo_activo;
     document.getElementById('subtituloClinica').textContent = (data.nombre_negocio || 'Clínica') + ' (CLUE ' + (data.clue || '') + ') - Análisis consolidado de caja y convenios.';
 
     // 2. KPIs
@@ -402,7 +415,7 @@ function renderizarVista(data) {
     // Tendencia de ingresos
     const crecIng = parseFloat(kpis.crec_ingresos_pct || 0);
     const bCrecIng = document.getElementById('badge-crec-ingresos');
-    bCrecIng.textContent = (crecIng >= 0 ? '+' : '') + crecIng + '% vs sem anterior';
+    bCrecIng.textContent = (crecIng >= 0 ? '+' : '') + crecIng + '% vs periodo anterior';
     bCrecIng.className = 'badge rounded-pill small py-1 px-2 ' + (crecIng >= 0 ? 'badge-trend-up' : 'badge-trend-down');
 
     // Tendencia de transacciones
@@ -411,34 +424,34 @@ function renderizarVista(data) {
     bCrecRec.textContent = (crecRec >= 0 ? '+' : '') + crecRec + '% transacciones';
     bCrecRec.className = 'badge rounded-pill small py-1 px-2 ' + (crecRec >= 0 ? 'badge-trend-up' : 'badge-trend-down');
 
-    // 3. Desglose Diario
-    const tbody = document.getElementById('tbodyDesgloseDiario');
+    // 3. Desglose Cronológico
+    const tbody = document.getElementById('tbodyDesgloseCronologico');
     tbody.innerHTML = '';
-    const diario = data.desglose_diario || [];
+    const desglose = data.desglose_cronologico || [];
     let totGralMonto = 0;
-    diario.forEach(d => { totGralMonto += (d.total_monto || 0); });
+    desglose.forEach(b => { totGralMonto += (b.total_monto || 0); });
 
-    if (diario.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No hay movimientos registrados en esta semana.</td></tr>';
+    if (desglose.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No hay movimientos registrados en este periodo.</td></tr>';
     } else {
-        diario.forEach(d => {
-            const esPico = data.dia_pico && data.dia_pico.fecha === d.fecha;
-            const pctAporte = totGralMonto > 0 ? ((d.total_monto / totGralMonto) * 100).toFixed(1) : 0;
+        desglose.forEach(b => {
+            const esPico = data.elemento_pico && data.elemento_pico.clave === b.clave;
+            const pctAporte = totGralMonto > 0 ? ((b.total_monto / totGralMonto) * 100).toFixed(1) : 0;
             const tr = document.createElement('tr');
             if (esPico) tr.className = 'table-warning bg-opacity-25';
 
             tr.innerHTML = `
-                <td class="fw-bold">${d.fecha}</td>
+                <td class="fw-bold">${b.etiqueta}</td>
                 <td>
-                    <span class="fw-semibold">${d.dia_nombre || ''}</span>
-                    ${esPico ? '<span class="badge bg-warning text-dark ms-1 small fw-bold">Día Pico</span>' : ''}
+                    <span class="fw-semibold">${b.subetiqueta || ''}</span>
+                    ${esPico ? '<span class="badge bg-warning text-dark ms-1 small fw-bold">Pico</span>' : ''}
                 </td>
-                <td class="text-center">${d.priv_cnt}</td>
-                <td class="text-end fw-semibold text-success">${formatoMoneda(d.priv_monto)}</td>
-                <td class="text-center">${d.pub_cnt}</td>
-                <td class="text-end fw-semibold text-info">${formatoMoneda(d.pub_monto)}</td>
-                <td class="text-center fw-bold">${d.total_cnt}</td>
-                <td class="text-end fw-bold text-dark">${formatoMoneda(d.total_monto)}</td>
+                <td class="text-center">${b.priv_cnt}</td>
+                <td class="text-end fw-semibold text-success">${formatoMoneda(b.priv_monto)}</td>
+                <td class="text-center">${b.pub_cnt}</td>
+                <td class="text-end fw-semibold text-info">${formatoMoneda(b.pub_monto)}</td>
+                <td class="text-center fw-bold">${b.total_cnt}</td>
+                <td class="text-end fw-bold text-dark">${formatoMoneda(b.total_monto)}</td>
                 <td>
                     <div class="d-flex align-items-center gap-2">
                         <div class="progress flex-grow-1" style="height: 6px;">
@@ -451,10 +464,11 @@ function renderizarVista(data) {
             tbody.appendChild(tr);
         });
 
-        // Alerta Día Pico
-        if (data.dia_pico) {
-            document.getElementById('alertaDiaPico').innerHTML = `
-                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Día Pico: <strong>${data.dia_pico.dia_nombre} ${data.dia_pico.fecha}</strong> (${formatoMoneda(data.dia_pico.total_monto)})
+        // Alerta Elemento Pico
+        if (data.elemento_pico) {
+            const nomPico = data.elemento_pico.subetiqueta ? `${data.elemento_pico.subetiqueta} (${data.elemento_pico.etiqueta})` : data.elemento_pico.etiqueta;
+            document.getElementById('alertaElementoPico').innerHTML = `
+                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Pico del Periodo: <strong>${nomPico}</strong> (${formatoMoneda(data.elemento_pico.total_monto)})
             `;
         }
     }
@@ -464,7 +478,7 @@ function renderizarVista(data) {
     contPago.innerHTML = '';
     const medios = data.medios_pago || [];
     if (medios.length === 0) {
-        contPago.innerHTML = '<div class="text-center py-3 text-muted">Sin datos de pago.</div>';
+        contPago.innerHTML = '<div class="text-center py-3 text-muted">Sin movimientos de pago registrados en este periodo.</div>';
     } else {
         medios.forEach(mp => {
             const iconClass = mp.metodo.toLowerCase().includes('efectivo') ? 'bi-cash-coin text-success' : (mp.metodo.toLowerCase().includes('tarjeta') ? 'bi-credit-card text-primary' : 'bi-bank text-info');
@@ -486,7 +500,7 @@ function renderizarVista(data) {
         });
     }
 
-    // 5. Departamentos
+    // 5. Departamentos Clínicos
     const contDeptos = document.getElementById('contenedorDepartamentos');
     contDeptos.innerHTML = '';
     const dpPriv = data.deptos_priv || {};
@@ -494,7 +508,7 @@ function renderizarVista(data) {
     const todosDeptos = Array.from(new Set([...Object.keys(dpPriv), ...Object.keys(dpPub)]));
 
     if (todosDeptos.length === 0) {
-        contDeptos.innerHTML = '<div class="text-center py-3 text-muted">Sin datos de departamentos.</div>';
+        contDeptos.innerHTML = '<div class="text-center py-3 text-muted">Sin registros de departamentos.</div>';
     } else {
         todosDeptos.sort((a, b) => ((dpPriv[b] || 0) + (dpPub[b] || 0)) - ((dpPriv[a] || 0) + (dpPub[a] || 0)));
         todosDeptos.forEach(dep => {
@@ -520,6 +534,11 @@ function formatoMoneda(valor) {
     return '$' + parseFloat(valor || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function capitalizar(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function copiarMarkdownIA() {
     if (!datosEjecutivosGlobal || !datosEjecutivosGlobal.markdown_export) {
         Swal.fire('Aviso', 'Aún no se han cargado los datos para copiar.', 'info');
@@ -530,7 +549,7 @@ function copiarMarkdownIA() {
     .then(() => {
         Swal.fire({
             title: '¡Copiado con Éxito!',
-            text: 'El resumen ejecutivo ha sido copiado a tu portapapeles en formato Markdown impecable. Puedes pegarlo directamente en Gamma.app, Notion, ChatGPT o enviarlo por correo.',
+            text: 'El informe ejecutivo en formato Markdown estructurado ha sido copiado a tu portapapeles. Listo para pegar en Gamma.app, Notion, ChatGPT o Claude.',
             icon: 'success',
             confirmButtonText: 'Excelente'
         });
