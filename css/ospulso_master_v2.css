@@ -2306,22 +2306,32 @@ nav.navbar.sticky-top {
 .print-header-executive {
     display: none;
 }
+.print-footer-executive {
+    display: none;
+}
+
+@page {
+    size: letter portrait;
+    margin: 12mm 15mm 15mm 15mm;
+}
 
 @media print {
     html, body {
         background-color: #ffffff !important;
+        background: #ffffff !important;
         color: #0f172a !important;
-        font-size: 10pt !important;
+        font-size: 9.5pt !important;
         height: auto !important;
         overflow: visible !important;
         visibility: visible !important;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
     }
 
     body * {
         visibility: visible !important;
     }
 
-    /* Ocultar elementos de navegación y herramientas interactivas */
+    /* Ocultar elementos de navegación, modales y herramientas interactivas */
     .diamond-sidebar,
     .sdm-sidebar,
     .sub-sidebar,
@@ -2335,11 +2345,14 @@ nav.navbar.sticky-top {
     #filterPillsGroup,
     .financial-date-range-bar,
     #selectorPeriodoContainer,
+    #cardControlesPantalla,
+    .no-print,
     .nav-tabs,
     .navbar,
     .btn,
     .sidebar-floating-tooltip,
-    .sidebar-overlay {
+    .sidebar-overlay,
+    .swal2-container {
         display: none !important;
         visibility: hidden !important;
     }
@@ -2350,6 +2363,8 @@ nav.navbar.sticky-top {
         height: auto !important;
         min-height: unset !important;
         background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
     /* Desplegar membrete formal superior */
@@ -2357,8 +2372,10 @@ nav.navbar.sticky-top {
         display: block !important;
         visibility: visible !important;
         border-bottom: 2px solid #0A2A66 !important;
-        padding-bottom: 12px !important;
-        margin-bottom: 20px !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 16px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
 
     .main-content,
@@ -2372,33 +2389,110 @@ nav.navbar.sticky-top {
         overflow: visible !important;
     }
 
+    /* Preservar grillas horizontales de Bootstrap en papel (Evitar colapso vertical en Chrome) */
+    .row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        margin-left: -6px !important;
+        margin-right: -6px !important;
+    }
+    .row > [class*="col"] {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+
+    .row-cols-md-2 > .col,
+    .row-cols-md-2 > [class*="col-"] {
+        flex: 0 0 50% !important;
+        width: 50% !important;
+        max-width: 50% !important;
+    }
+
+    .row-cols-md-3 > .col,
+    .row-cols-md-3 > [class*="col-"] {
+        flex: 0 0 33.333333% !important;
+        width: 33.333333% !important;
+        max-width: 33.333333% !important;
+    }
+
+    .row-cols-md-4 > .col,
+    .row-cols-md-4 > [class*="col-"] {
+        flex: 0 0 25% !important;
+        width: 25% !important;
+        max-width: 25% !important;
+    }
+
+    .col-12.col-lg-6 {
+        flex: 0 0 50% !important;
+        width: 50% !important;
+        max-width: 50% !important;
+    }
+
+    .col-12.col-md-6 {
+        flex: 0 0 50% !important;
+        width: 50% !important;
+        max-width: 50% !important;
+    }
+
     /* Control de saltos de página y conservación visual */
     .card,
     .kpi-card-exec,
     .recom-card-exec,
     table,
-    tr {
+    tr,
+    .print-footer-executive {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         box-shadow: none !important;
         border: 1px solid #cbd5e1 !important;
+        background: #ffffff !important;
+    }
+
+    .card {
+        margin-bottom: 12px !important;
+        border-radius: 8px !important;
     }
 
     .kpi-card-exec {
-        margin-bottom: 12px !important;
+        margin-bottom: 8px !important;
     }
 
+    /* Tablas ejecutivas en impresión */
+    .table-executive {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
     .table-executive th {
         background-color: #f1f5f9 !important;
         color: #0f172a !important;
+        font-size: 8.5pt !important;
+        padding: 5px 6px !important;
+        border-bottom: 1.5px solid #0A2A66 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+    }
+    .table-executive td {
+        font-size: 8.5pt !important;
+        padding: 4px 6px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
     }
 
     .progress,
     .badge {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+    }
+
+    /* Pie de firmas y certificación formal */
+    .print-footer-executive {
+        display: block !important;
+        visibility: visible !important;
+        margin-top: 24px !important;
+        padding-top: 14px !important;
+        border-top: 1.5px solid #0A2A66 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
 }
 

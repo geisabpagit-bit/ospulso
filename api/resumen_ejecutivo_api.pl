@@ -700,11 +700,16 @@ PROMPT_IA
 my $tipo_titulo = ucfirst($tipo_periodo);
 my $markdown_export = $prompt_ia_completo;
 
+my $tiene_convenio_publico = ($tot_pub_cargos > 0 || scalar(@pub_activa) > 0) ? 1 : 0;
+my $es_organizacion_unica  = (!$clue_org && !$tiene_convenio_publico) ? 1 : 0;
+
 print encode_json({
     status               => 'ok',
     id_empresa           => $id_target,
     nombre_negocio       => $nombre_negocio,
     clue                 => $clue_org,
+    tiene_convenio_publico => $tiene_convenio_publico,
+    es_organizacion_unica  => $es_organizacion_unica,
     tipo_periodo         => $tipo_periodo,
     periodo_activo       => $periodo_activo,
     periodo_previo       => $periodo_previo,

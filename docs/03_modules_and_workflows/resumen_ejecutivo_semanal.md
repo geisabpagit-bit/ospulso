@@ -73,9 +73,17 @@ De estricto apego a la arquitectura financiera del sistema:
 
 ## 5. UI y Experiencia Ejecutiva (Estándares AGENTS.md)
 - **Separación Estricta de Estilos (CSS)**: Cero bloques `<style>` en línea en `views/resumen_ejecutivo.pl`. Todas las clases ejecutivas (`.kpi-card-exec`, `.temporal-pill-btn`, `.table-executive`, `.recom-card-exec`) y reglas `@media print` residen en la hoja mandante `css/ospulso_master_v2.css`.
-- **Selector Multi-Temporal Dinámico**: Píldoras de selección instantánea para alternar entre **Día**, **Semana**, **Mes** y **Año**, adaptando la tabla cronológica y el elemento pico automáticamente.
-- **Herramienta IA (Prompt Detallado de Auditoría Hospitalaria Senior)**: Botón *"Copiar Prompt para IA (Claude / ChatGPT / Gamma)"* que inyecta en el portapapeles un prompt analítico completo y no solo datos brutos, contextualizado a la estructura de ingresos de la organización.
-- **Modo Impresión / PDF Formal (Solución de Página en Blanco)**:
-  - Se corrigió la regla colisionante `@media print { body * { visibility: hidden; } }` que existía en la hoja maestra para diagnósticos clínicos antiguos.
-  - Se estableció un bloque `@media print` dedicado en `css/ospulso_master_v2.css` que garantiza `visibility: visible !important;` para el contenedor `.main-content`, oculta sidebars, botones y filtros no imprimibles, activa el membrete institucional `.print-header-executive` (con nombre de la clínica, CLUE u Organización ID, fecha de emisión y dictamen) y optimiza las tarjetas y tablas con fondos blancos y bordes nítidos para exportación limpia a PDF o impresora.
+- **Diferenciación Visual Estricta (Régimen Mixto vs Organización Única / Privada)**:
+  - **Insignias de Régimen**: Despliegue de distintivo dinámico en cabecera: `Régimen Mixto (Privado + Convenio Público)` en cian/azul para entidades con CLUE/órdenes públicas, versus `Régimen 100% Privado (Caja Directa)` en verde esmeralda para consultorios/clínicas sin convenio público.
+  - **Hero KPIs Adaptativos**: En organizaciones únicas o sin subsidio público, la tarjeta `CXC ESTADO / MUNICIPIO` se oculta por completo (`display: none`), reconfigurando la grilla a 2 columnas equilibradas (`INGRESOS REALES` y `TOTAL INGRESOS GENERADOS` con origen 100% pacientes privados).
+  - **Tabla de Comportamiento Cronológico Inteligente**:
+    - Si tiene convenio público: Renderiza las 9 columnas clásicas (`Periodo | Detalle | Rec. Priv | Caja Priv | Rec. Púb | Fact. Mun | Total Rec | Total Recaudado | % Aporte`).
+    - Si es Organización Única privada: Suprime las columnas de órdenes públicas y redundancias, mostrando 6 columnas claras y relevantes: `Periodo / Fecha | Detalle | Recibos Cobrados | Total Cobrado en Caja | Ticket Promedio | % Aporte`.
+  - **Demanda por Departamentos**: Si no hay órdenes públicas, se suprimen los badges de órdenes públicas y se muestra una métrica consolidada de servicios privados sin ruido visual.
+- **Herramienta IA (Prompt Detallado de Auditoría Hospitalaria Senior)**: Botón *"Copiar Prompt para IA (Claude / ChatGPT / Gamma)"* que inyecta en el portapapeles un prompt analítico completo y no solo datos brutos, contextualizado al régimen de la organización.
+- **Modo Impresión / PDF Formal (Estándar Editorial de Alta Dirección)**:
+  - **Ocultamiento de Controles**: La barra interactiva `#cardControlesPantalla` (`.no-print`) desaparece automáticamente en papel o PDF.
+  - **Membrete Formal Institucional**: `.print-header-executive` imprime la cabecera OSPulso con nombre de la institución, CLUE u Organización ID, régimen operativo, periodo de dictamen y fecha de emisión.
+  - **Preservación de Rejillas Horizontales**: Reglas flexbox forzadas en `@media print` (`.row-cols-md-2`, `.row-cols-md-3`, `.row-cols-md-4`, `.col-lg-6`) para impedir que Chrome colapse verticalmente las tarjetas de KPIs en hojas infinitas.
+  - **Pie de Certificación y Firmas**: `.print-footer-executive` añade al calce del informe las tres firmas institucionales: *Responsable de Caja / Finanzas*, *Dirección Médica / Titular* y *Auditoría Suite OSPulso*, con control estricto de no fragmentación (`page-break-inside: avoid;`).
 

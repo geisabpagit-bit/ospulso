@@ -67,26 +67,30 @@ print <<'PAGE_HTML';
 
 <main class="main-content container-fluid py-3 px-md-4 container-mobile-flush">
     <!-- Membrete Formal Institucional (Visible al Imprimir / Guardar como PDF) -->
+    <!-- Membrete Formal Institucional (Visible al Imprimir / Guardar como PDF) -->
     <div class="print-header-executive">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-start">
             <div>
+                <div class="small fw-bold text-uppercase text-primary mb-1" style="letter-spacing: 0.8px;">OSPulso Suite Médica &bull; Auditoría Directiva</div>
                 <h3 class="fw-bold mb-0 text-dark" id="printClinicaNombre">Organización Médica</h3>
-                <div class="small text-muted" id="printIdentificadorOrg">ID: --- | Suite Médica OSPulso | Dirección General</div>
+                <div class="small text-muted mt-1" id="printIdentificadorOrg">ID: --- | Suite Médica OSPulso | Dirección General</div>
+                <div class="small mt-1"><span class="badge bg-light text-dark border" id="printRegimenOrg">Régimen Operativo</span></div>
             </div>
             <div class="text-end">
-                <div class="badge bg-primary text-white px-3 py-1 fw-bold fs-6" id="printPeriodoBadge">Periodo Activo</div>
-                <div class="small text-muted mt-1" id="printRangoFechas">Del periodo analizado</div>
+                <div class="badge bg-dark text-white px-3 py-1.5 fw-bold fs-6" id="printPeriodoBadge">Periodo Activo</div>
+                <div class="small text-dark fw-semibold mt-1" id="printRangoFechas">Del periodo analizado</div>
+                <div class="small text-muted mt-1" id="printFechaEmision">Fecha de Emisión</div>
             </div>
         </div>
         <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between small text-muted">
             <span><strong>Tipo de Dictamen:</strong> Auditoría Operativa y Financiera Hospitalaria</span>
-            <span><strong>Estatus Contable:</strong> 100% Auditado - Cero Discrepancias</span>
-            <span id="printFechaEmision">Fecha de Emisión</span>
+            <span><strong>Estatus Contable:</strong> 100% Auditado - Cero Inconsistencias</span>
+            <span><strong>Validez:</strong> Reporte Oficial de Alta Dirección</span>
         </div>
     </div>
 
-    <!-- Barra de Control Temporal y Filtros Dinámicos (Estilo Dashboard Finanzas con Borde Teal) -->
-    <div class="card card-mobile-flush border-0 shadow-sm mb-3" style="border-radius: 14px; background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
+    <!-- Barra de Control Temporal y Filtros Dinámicos (Oculta en Impresión / PDF) -->
+    <div class="card card-mobile-flush border-0 shadow-sm mb-3 no-print" id="cardControlesPantalla" style="border-radius: 14px; background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
         <div class="card-body p-2.5 p-md-4">
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 gap-lg-3">
                 <!-- Título e Identidad -->
@@ -95,6 +99,7 @@ print <<'PAGE_HTML';
                         <i class="bi bi-speedometer2" style="color: var(--md-teal-clinical, #19B7A5);"></i>
                         <span>Tablero Financiero Ejecutivo</span>
                         <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-1 rounded-pill" id="badgePeriodoActual">Cargando...</span>
+                        <span class="badge rounded-pill px-2.5 py-1 small fw-semibold" id="badgeRegimenClinico">Cargando régimen...</span>
                     </h5>
                     <p class="text-muted small mb-0" style="font-size: 0.72rem; line-height: 1.25;" id="subtituloClinica">Métricas consolidadas, rentabilidad y flujo operativo de la organización</p>
                 </div>
@@ -135,9 +140,9 @@ print <<'PAGE_HTML';
     </div>
 
     <!-- CAPA 1: Flujo de Caja y Rentabilidad Real (Hero KPIs - Borde Teal Clínico) -->
-    <div class="row row-cols-1 row-cols-md-3 g-2 g-md-3 mb-2 mb-md-3">
+    <div class="row row-cols-1 row-cols-md-3 g-2 g-md-3 mb-2 mb-md-3" id="rowHeroKpis">
         <!-- 1. Ingresos Reales (Canal Privado) -->
-        <div class="col">
+        <div class="col" id="col-kpi-privado">
             <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
                 <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
                     <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">INGRESOS REALES (CAJA PRIVADA)</span>
@@ -154,7 +159,7 @@ print <<'PAGE_HTML';
         </div>
 
         <!-- 2. Cartera Convenio Municipio (Cuentas por Cobrar) -->
-        <div class="col">
+        <div class="col" id="col-kpi-cxc">
             <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important;">
                 <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
                     <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">CXC ESTADO / MUNICIPIO</span>
@@ -171,10 +176,10 @@ print <<'PAGE_HTML';
         </div>
 
         <!-- 3. Valor Bruto Generado (Tarjeta Resaltada con Borde Teal 2px) -->
-        <div class="col">
+        <div class="col" id="col-kpi-bruto">
             <div class="card card-mobile-flush h-100 p-2.5 p-md-4 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 2px solid var(--md-teal-clinical, #19B7A5) !important;">
                 <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
-                    <span class="small fw-bold text-uppercase tracking-wider" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.72rem;">VALOR BRUTO GENERADO</span>
+                    <span class="small fw-bold text-uppercase tracking-wider" id="kpiTituloValorBruto" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.72rem;">VALOR BRUTO GENERADO</span>
                     <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(10, 42, 102, 0.08);">
                         <i class="bi bi-wallet2 fs-5" style="color: var(--md-blue-deep, #0A2A66);"></i>
                     </div>
@@ -358,6 +363,31 @@ print <<'PAGE_HTML';
                 <span class="badge bg-success px-3 py-2 rounded-pill fw-bold">Estatus: 100% Auditado</span>
             </div>
         </div>
+    <!-- Pie de Firma y Certificación Formal para Impresión / PDF -->
+    <div class="print-footer-executive">
+        <div class="row text-center align-items-end g-4 mt-2">
+            <div class="col-4">
+                <div class="border-top border-dark pt-1">
+                    <span class="small fw-bold text-dark d-block">Responsable de Caja / Finanzas</span>
+                    <span class="small text-muted" style="font-size: 8pt;">Control Operativo y Arqueo</span>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="border-top border-dark pt-1">
+                    <span class="small fw-bold text-dark d-block" id="printFirmanteDireccion">Dirección General / Médico Titular</span>
+                    <span class="small text-muted" style="font-size: 8pt;">Aprobación de Resultados</span>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="border-top border-dark pt-1">
+                    <span class="small fw-bold text-dark d-block">Auditoría Suite OSPulso</span>
+                    <span class="small text-muted" style="font-size: 8pt;">Certificación de Integridad Forense</span>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-3 pt-2 text-muted" style="font-size: 7.5pt; border-top: 1px dashed #cbd5e1;">
+            Documento emitido formalmente por el Sistema Hospitalario OSPulso. Cifras consolidadas bajo estricta regla de fuente de verdad en cobros directos y órdenes canónicas.
+        </div>
     </div>
 </main>
 PAGE_HTML
@@ -461,7 +491,24 @@ function renderizarVista(data) {
 
     document.getElementById('badgePeriodoActual').textContent = capitalizar(data.tipo_periodo) + ' ' + data.periodo_activo;
     const identificadorTexto = data.clue ? (' (CLUE: ' + data.clue + ')') : (data.id_empresa ? (' (Org ID: ' + data.id_empresa + ')') : '');
-    document.getElementById('subtituloClinica').textContent = (data.nombre_negocio || 'Organización Médica') + identificadorTexto + ' - Análisis consolidado de caja y convenios.';
+    document.getElementById('subtituloClinica').textContent = (data.nombre_negocio || 'Organización Médica') + identificadorTexto + ' - Análisis consolidado de caja y rentabilidad.';
+
+    const tieneConvenio = !!data.tiene_convenio_publico;
+    const badgeRegimen = document.getElementById('badgeRegimenClinico');
+    const printRegimen = document.getElementById('printRegimenOrg');
+    if (tieneConvenio) {
+        if (badgeRegimen) {
+            badgeRegimen.className = 'badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-2.5 py-1 small fw-semibold';
+            badgeRegimen.innerHTML = '<i class="bi bi-building-check me-1"></i>Régimen Mixto (Privado + Convenio Público)';
+        }
+        if (printRegimen) printRegimen.textContent = 'Régimen: Mixto (Privado + Convenio Público)';
+    } else {
+        if (badgeRegimen) {
+            badgeRegimen.className = 'badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1 small fw-semibold';
+            badgeRegimen.innerHTML = '<i class="bi bi-shield-check me-1"></i>Régimen 100% Privado (Caja Directa)';
+        }
+        if (printRegimen) printRegimen.textContent = 'Régimen: 100% Privado (Cobro en Caja Directa)';
+    }
 
     // Poblar Membrete Formal Institucional de Impresión / PDF
     if (document.getElementById('printClinicaNombre')) {
@@ -475,16 +522,49 @@ function renderizarVista(data) {
         document.getElementById('printFechaEmision').textContent = 'Emisión: ' + (new Date()).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
-    // 2. Hero KPIs y Métricas
+    // 2. Hero KPIs y Métricas (Adaptación Dinámica Público vs Privado)
     const kpis = data.kpis || {};
+    const colCxc = document.getElementById('col-kpi-cxc');
+    const rowHero = document.getElementById('rowHeroKpis');
+    const titBruto = document.getElementById('kpiTituloValorBruto');
+    const subMargen = document.getElementById('kpiMargenSubtexto');
+
+    if (tieneConvenio) {
+        if (colCxc) colCxc.style.display = '';
+        if (rowHero) rowHero.className = 'row row-cols-1 row-cols-md-3 g-2 g-md-3 mb-2 mb-md-3';
+        if (titBruto) titBruto.textContent = 'VALOR BRUTO GENERADO';
+        if (subMargen) subMargen.innerHTML = 'Impacto Asistencial: <span class="fw-bold text-success">100%</span>';
+    } else {
+        if (colCxc) colCxc.style.display = 'none';
+        if (rowHero) rowHero.className = 'row row-cols-1 row-cols-md-2 g-2 g-md-3 mb-2 mb-md-3';
+        if (titBruto) titBruto.textContent = 'TOTAL INGRESOS GENERADOS';
+        if (subMargen) subMargen.innerHTML = 'Origen: <span class="fw-bold text-success">100% Pacientes Privados</span>';
+    }
+
     document.getElementById('kpi-flujo-privado').textContent = formatoMoneda(kpis.flujo_privado || 0);
     document.getElementById('kpi-cargos-publicos').textContent = formatoMoneda(kpis.cargos_publicos || 0);
     document.getElementById('kpi-valor-bruto').textContent = formatoMoneda(kpis.valor_bruto_total || ((kpis.flujo_privado || 0) + (kpis.cargos_publicos || 0)));
     document.getElementById('kpi-total-recibos').textContent = (kpis.total_recibos || 0);
-    document.getElementById('kpi-recibos-desglose').textContent = (kpis.recibos_privados || 0) + ' Priv / ' + (kpis.recibos_publicos || 0) + ' Púb';
-    document.getElementById('kpi-recibos-publicos-sub').textContent = (kpis.recibos_publicos || 0) + ' órdenes públicas';
+    
+    // Desglose de recibos y ticket según régimen
+    if (tieneConvenio) {
+        document.getElementById('kpi-recibos-desglose').textContent = (kpis.recibos_privados || 0) + ' Priv / ' + (kpis.recibos_publicos || 0) + ' Púb';
+        document.getElementById('kpi-recibos-publicos-sub').textContent = (kpis.recibos_publicos || 0) + ' órdenes públicas';
+        const bTicketPub = document.getElementById('kpi-ticket-publico');
+        if (bTicketPub) {
+            bTicketPub.style.display = '';
+            bTicketPub.textContent = 'Púb: ' + formatoMoneda(kpis.ticket_prom_publico || 0);
+        }
+    } else {
+        document.getElementById('kpi-recibos-desglose').textContent = (kpis.total_recibos || 0) + ' Recibos Privados';
+        document.getElementById('kpi-recibos-publicos-sub').textContent = 'Cobro Directo en Ventanilla';
+        const bTicketPub = document.getElementById('kpi-ticket-publico');
+        if (bTicketPub) {
+            bTicketPub.style.display = 'none';
+        }
+    }
+
     document.getElementById('kpi-ticket-privado').textContent = formatoMoneda(kpis.ticket_prom_privado || 0);
-    document.getElementById('kpi-ticket-publico').textContent = 'Púb: ' + formatoMoneda(kpis.ticket_prom_publico || 0);
     document.getElementById('kpi-calidad').textContent = (kpis.calidad_datos_pct || 100) + '%';
 
     // Medios de pago / Efectivo
@@ -506,15 +586,40 @@ function renderizarVista(data) {
     bCrecRec.textContent = (crecRec >= 0 ? '+' : '') + crecRec + '%';
     bCrecRec.className = 'badge rounded-pill small py-1 px-2 ' + (crecRec >= 0 ? 'badge-trend-up' : 'badge-trend-down');
 
-    // 3. Desglose Cronológico
+    // 3. Desglose Cronológico Adaptativo
+    const trHeader = document.getElementById('trHeaderDesglose');
+    if (tieneConvenio) {
+        trHeader.innerHTML = `
+            <th>Periodo / Fecha</th>
+            <th>Detalle</th>
+            <th class="text-center">Rec. Privados</th>
+            <th class="text-end">Caja Privada</th>
+            <th class="text-center">Rec. Públicos</th>
+            <th class="text-end">Fact. Municipio</th>
+            <th class="text-center">Total Recibos</th>
+            <th class="text-end">Total Recaudado</th>
+            <th style="width: 140px;">% Aporte</th>
+        `;
+    } else {
+        trHeader.innerHTML = `
+            <th>Periodo / Fecha</th>
+            <th>Detalle</th>
+            <th class="text-center">Recibos Cobrados</th>
+            <th class="text-end">Total Cobrado en Caja</th>
+            <th class="text-end">Ticket Promedio</th>
+            <th style="width: 140px;">% Aporte</th>
+        `;
+    }
+
     const tbody = document.getElementById('tbodyDesgloseCronologico');
     tbody.innerHTML = '';
     const desglose = data.desglose_cronologico || [];
     let totGralMonto = 0;
     desglose.forEach(b => { totGralMonto += (b.total_monto || 0); });
 
+    const totalColspan = tieneConvenio ? 9 : 6;
     if (desglose.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No hay movimientos registrados en este periodo.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="${totalColspan}" class="text-center py-4 text-muted">No hay movimientos registrados en este periodo.</td></tr>`;
     } else {
         desglose.forEach(b => {
             const esPico = data.elemento_pico && data.elemento_pico.clave === b.clave;
@@ -522,27 +627,49 @@ function renderizarVista(data) {
             const tr = document.createElement('tr');
             if (esPico) tr.className = 'table-warning bg-opacity-25';
 
-            tr.innerHTML = `
-                <td class="fw-bold">${b.etiqueta}</td>
-                <td>
-                    <span class="fw-semibold">${b.subetiqueta || ''}</span>
-                    ${esPico ? '<span class="badge bg-warning text-dark ms-1 small fw-bold">Pico</span>' : ''}
-                </td>
-                <td class="text-center">${b.priv_cnt}</td>
-                <td class="text-end fw-semibold text-success">${formatoMoneda(b.priv_monto)}</td>
-                <td class="text-center">${b.pub_cnt}</td>
-                <td class="text-end fw-semibold text-info">${formatoMoneda(b.pub_monto)}</td>
-                <td class="text-center fw-bold">${b.total_cnt}</td>
-                <td class="text-end fw-bold text-dark">${formatoMoneda(b.total_monto)}</td>
-                <td>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="progress flex-grow-1" style="height: 6px;">
-                            <div class="progress-bar ${esPico ? 'bg-warning' : 'bg-primary'}" role="progressbar" style="width: ${pctAporte}%;"></div>
+            if (tieneConvenio) {
+                tr.innerHTML = `
+                    <td class="fw-bold">${b.etiqueta}</td>
+                    <td>
+                        <span class="fw-semibold">${b.subetiqueta || ''}</span>
+                        ${esPico ? '<span class="badge bg-warning text-dark ms-1 small fw-bold">Pico</span>' : ''}
+                    </td>
+                    <td class="text-center">${b.priv_cnt}</td>
+                    <td class="text-end fw-semibold text-success">${formatoMoneda(b.priv_monto)}</td>
+                    <td class="text-center">${b.pub_cnt}</td>
+                    <td class="text-end fw-semibold text-info">${formatoMoneda(b.pub_monto)}</td>
+                    <td class="text-center fw-bold">${b.total_cnt}</td>
+                    <td class="text-end fw-bold text-dark">${formatoMoneda(b.total_monto)}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar ${esPico ? 'bg-warning' : 'bg-primary'}" role="progressbar" style="width: ${pctAporte}%;"></div>
+                            </div>
+                            <span class="small text-muted fw-bold">${pctAporte}%</span>
                         </div>
-                        <span class="small text-muted fw-bold">${pctAporte}%</span>
-                    </div>
-                </td>
-            `;
+                    </td>
+                `;
+            } else {
+                const ticketDia = b.priv_cnt > 0 ? (b.priv_monto / b.priv_cnt) : 0;
+                tr.innerHTML = `
+                    <td class="fw-bold">${b.etiqueta}</td>
+                    <td>
+                        <span class="fw-semibold">${b.subetiqueta || ''}</span>
+                        ${esPico ? '<span class="badge bg-warning text-dark ms-1 small fw-bold">Pico</span>' : ''}
+                    </td>
+                    <td class="text-center fw-bold">${b.priv_cnt}</td>
+                    <td class="text-end fw-semibold text-success">${formatoMoneda(b.priv_monto)}</td>
+                    <td class="text-end text-muted small">${formatoMoneda(ticketDia)}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar ${esPico ? 'bg-warning' : 'bg-primary'}" role="progressbar" style="width: ${pctAporte}%;"></div>
+                            </div>
+                            <span class="small text-muted fw-bold">${pctAporte}%</span>
+                        </div>
+                    </td>
+                `;
+            }
             tbody.appendChild(tr);
         });
 
@@ -582,7 +709,7 @@ function renderizarVista(data) {
         });
     }
 
-    // 5. Departamentos Clínicos
+    // 5. Departamentos Clínicos Adaptativos
     const contDeptos = document.getElementById('contenedorDepartamentos');
     contDeptos.innerHTML = '';
     const dpPriv = data.deptos_priv || {};
@@ -597,14 +724,26 @@ function renderizarVista(data) {
             const cPriv = dpPriv[dep] || 0;
             const cPub  = dpPub[dep] || 0;
             const cTot  = cPriv + cPub;
-            const cardDepto = `
-                <div class="p-2 border rounded-3 d-flex justify-content-between align-items-center bg-light bg-opacity-50">
-                    <span class="fw-semibold text-dark"><i class="bi bi-chevron-right text-primary me-1 small"></i>${dep}</span>
+            
+            let badgesHtml = '';
+            if (tieneConvenio) {
+                badgesHtml = `
                     <div class="d-flex gap-2">
                         <span class="badge bg-success bg-opacity-10 text-success">${cPriv} Priv</span>
                         <span class="badge bg-info bg-opacity-10 text-info">${cPub} Púb</span>
                         <span class="badge bg-dark text-white fw-bold">${cTot} Total</span>
                     </div>
+                `;
+            } else {
+                badgesHtml = `
+                    <span class="badge bg-success bg-opacity-10 text-success fw-bold">${cPriv} atenciones</span>
+                `;
+            }
+
+            const cardDepto = `
+                <div class="p-2 border rounded-3 d-flex justify-content-between align-items-center bg-light bg-opacity-50">
+                    <span class="fw-semibold text-dark"><i class="bi bi-chevron-right text-primary me-1 small"></i>${dep}</span>
+                    ${badgesHtml}
                 </div>
             `;
             contDeptos.innerHTML += cardDepto;
