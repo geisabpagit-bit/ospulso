@@ -39,42 +39,71 @@ if (!$sd->{session_ok} || (($sd->{role} // '') !~ /Administrador/i)) {
 my $id_empresa_sesion = $sd->{id_empresa} // '0';
 my $role_sesion       = $sd->{role} // '';
 
+my $dat_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
+my $priv_file     = File::Spec->catfile($dat_dir, 'folios_recibos_privados.dat');
+my $pub_file      = File::Spec->catfile($dat_dir, 'folios_recibos_publicos.dat');
+
+# Obtener catálogo de organizaciones disponibles y determinar negocio objetivo
+my @todos_negocios = ();
+if (-e $negocios_file && open(my $nf, '<:encoding(UTF-8)', $negocios_file)) {
+    my $h = <$nf>;
+    while (my $line = <$nf>) {
+        chomp $line;
+        next if $line =~ /^#|^\s*$/;
+        my @f = split(/\|/, $line, -1);
+        push @todos_negocios, \@f;
+    }
+    close $nf;
+}
+
 # Si es Administrador Global puede recibir id_empresa por parámetro
 my $id_target = decode_utf8($q->param('id_empresa') // '');
 if ($role_sesion ne 'Administrador Global' || !$id_target) {
-    $id_target = ($id_empresa_sesion ne '' && $id_empresa_sesion ne '0') ? $id_empresa_sesion : '723800';
+    $id_target = ($id_empresa_sesion ne '' && $id_empresa_sesion ne '0') ? $id_empresa_sesion : '';
+}
+if (!$id_target && @todos_negocios) {
+    # Tomar la primera organización matriz activa disponible
+    for my $n (@todos_negocios) {
+        if (($n->[2] // '0') eq '0') {
+            $id_target = $n->[0];
+            last;
+        }
+    }
+    $id_target //= $todos_negocios[0]->[0];
 }
 
 # Parámetros de temporalidad: dia, semana, mes, ano
 my $tipo_periodo = lc(decode_utf8($q->param('tipo_periodo') // 'semana'));
 $tipo_periodo = 'semana' unless ($tipo_periodo =~ /^(dia|semana|mes|ano)$/);
-
 my $periodo_val = decode_utf8($q->param('periodo_val') // $q->param('semana') // '');
 
-my $dat_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
-my $priv_file = File::Spec->catfile($dat_dir, 'folios_recibos_privados.dat');
-my $pub_file  = File::Spec->catfile($dat_dir, 'folios_recibos_publicos.dat');
+# Obtener atributos de la organización objetivo y mapear sus sucursales
+my $nombre_negocio = "Organización Médica";
+my $clue_org       = "";
+my $rfc_org        = "";
+my %sucursales_ids = ($id_target => 1);
 
-# Obtener nombre de negocio y CLUE
-my $nombre_negocio = "Clínica Médica";
-my $clue_org = "QTSMP000116";
-my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
-if (-e $negocios_file && open(my $nf, '<:encoding(UTF-8)', $negocios_file)) {
-    <$nf>;
-    while (my $line = <$nf>) {
-        chomp $line;
-        my @f = split(/\|/, $line, -1);
-        if ($f[0] eq $id_target) {
-            $nombre_negocio = $f[1] // $nombre_negocio;
-            $clue_org = $f[18] if ($f[18] && $f[18] ne '');
-            last;
+for my $n (@todos_negocios) {
+    my $bid     = $n->[0];
+    my $bmatriz = $n->[2] // '';
+    if ($bid eq $id_target) {
+        $nombre_negocio = $n->[1] // $nombre_negocio;
+        $rfc_org        = $n->[10] // '';
+        my $raw_clue    = $n->[18] // '';
+        $raw_clue =~ s/^\s+|\s+$//g;
+        if ($raw_clue && $raw_clue !~ /^(no aplica|-|0)$/i) {
+            $clue_org = $raw_clue;
         }
     }
-    close $nf;
+    # Incluir sucursales pertenecientes a la matriz
+    if ($bmatriz ne '' && $bmatriz eq $id_target) {
+        $sucursales_ids{$bid} = 1;
+    }
 }
 
 sub leer_recibos_archivo {
-    my ($file, $id_neg) = @_;
+    my ($file, $suc_map) = @_;
     my @rows = ();
     return @rows unless (-e $file);
     
@@ -90,8 +119,10 @@ sub leer_recibos_archivo {
             for my $i (0 .. $#header) {
                 $row{$header[$i]} = $p[$i] // '';
             }
-            # Filtrar por negocio o sucursal perteneciente
-            if ($row{ID_NEGOCIO} eq $id_neg || ($id_neg eq '723800' && ($row{ID_NEGOCIO} eq '723800' || $row{ID_SUCURSAL} eq '965257'))) {
+            # Filtrar dinámicamente si el ID_NEGOCIO o ID_SUCURSAL pertenece a la organización
+            my $neg_id = $row{ID_NEGOCIO} // '';
+            my $suc_id = $row{ID_SUCURSAL} // '';
+            if (exists $suc_map->{$neg_id} || ($suc_id ne '' && exists $suc_map->{$suc_id})) {
                 push @rows, \%row;
             }
         }
@@ -100,8 +131,9 @@ sub leer_recibos_archivo {
     return @rows;
 }
 
-my @recibos_priv = leer_recibos_archivo($priv_file, $id_target);
-my @recibos_pub  = leer_recibos_archivo($pub_file, $id_target);
+my @recibos_priv = leer_recibos_archivo($priv_file, \%sucursales_ids);
+my @recibos_pub  = leer_recibos_archivo($pub_file, \%sucursales_ids);
+
 
 # Indexar atributos temporales en todos los recibos
 my %dias_map    = ();
@@ -518,18 +550,39 @@ for my $d (@todos_deptos) {
     $md_servicios_lineas .= sprintf("- **%s:** %d atenciones (%d privadas, %d órdenes municipales)\n", $d, $ct, $cp, $cu);
 }
 
-# Estructurar Recomendaciones para la Alta Dirección (4 Ejes)
+my $identificador_org_str = $clue_org ? "CLUE: `$clue_org`" : "ID Organización: `$id_target`";
+
+# Estructurar Recomendaciones para la Alta Dirección (4 Ejes Adaptados)
 my $eje1_preg = sprintf("¿Qué protocolos de recolección de valores o convenios de terminales bancarias deben implementarse para reducir el resguardo de efectivo en caja (\$%.2f MXN / %.1f%%) durante viernes a domingo?", $monto_efectivo, $pct_efectivo);
 my $eje1_prop = "Establecer retiro de valores diario a las 15:00 hrs y dotar de terminales de cobro bancario inalámbricas en recepción para incentivar pagos electrónicos.";
 
 my $eje2_preg = sprintf("¿Cómo redistribuir turnos o personal clínico/administrativo para atender de forma óptima los picos de afluencia de fin de semana (%.1f%% de la recaudación) sin saturar la atención?", $pct_fin_semana);
 my $eje2_prop = "Reforzar con guardia mixta médico-enfermería y cajero volante de viernes 14:00 hrs a domingo 21:00 hrs para reducir tiempos de espera en consulta y procedimientos.";
 
-my $eje3_preg = sprintf("¿Cuál es el ciclo de cobro y conciliación con el Municipio para asegurar que las Cuentas por Cobrar (\$%.2f MXN) no comprometan el capital de trabajo de la clínica?", $tot_pub_cargos);
-my $eje3_prop = "Cerrar y enviar la remesa de folios públicos cada lunes a las 09:00 hrs con corte automatizado OSPulso para cobro quincenal estricto.";
+my ($eje3_titulo, $eje3_preg, $eje3_prop, $eje3_metrica);
+my ($eje4_titulo, $eje4_preg, $eje4_prop, $eje4_metrica);
 
-my $eje4_preg = sprintf("Dado el ticket promedio municipal de \$%.2f MXN frente al privado de \$%.2f MXN, ¿qué cartera de servicios de mayor complejidad o estudios auxiliares puede integrarse al convenio para elevar la captación por paciente?", $ticket_publico, $ticket_privado);
-my $eje4_prop = "Proponer al Municipio la inclusión de paquetes de ultrasonido diagnóstico y perfil bioquímico preventivo subsidiados para elevar el ticket promedio social a > \$800.00 MXN.";
+if ($tot_pub_cargos > 0 || scalar(@pub_activa) > 0) {
+    $eje3_titulo  = 'Optimización de Cartera Municipal';
+    $eje3_preg    = sprintf("¿Cuál es el ciclo de cobro y conciliación con el Municipio para asegurar que las Cuentas por Cobrar (\$%.2f MXN) no comprometan el capital de trabajo de la clínica?", $tot_pub_cargos);
+    $eje3_prop    = "Cerrar y enviar la remesa de folios públicos cada lunes a las 09:00 hrs con corte automatizado OSPulso para cobro quincenal estricto.";
+    $eje3_metrica = sprintf("\$%.2f MXN en Cuentas por Cobrar (%d órdenes)", $tot_pub_cargos, scalar(@pub_activa));
+
+    $eje4_titulo  = 'Captura de Valor en el Canal Público';
+    $eje4_preg    = sprintf("Dado el ticket promedio municipal de \$%.2f MXN frente al privado de \$%.2f MXN, ¿qué cartera de servicios de mayor complejidad o estudios auxiliares puede integrarse al convenio para elevar la captación por paciente?", $ticket_publico, $ticket_privado);
+    $eje4_prop    = "Proponer al Municipio la inclusión de paquetes de ultrasonido diagnóstico y perfil bioquímico preventivo subsidiados para elevar el ticket promedio social a > \$800.00 MXN.";
+    $eje4_metrica = sprintf("Ticket: \$%.2f Púb vs \$%.2f Priv", $ticket_publico, $ticket_privado);
+} else {
+    $eje3_titulo  = 'Gestión de Cartera y Cobranza Privada';
+    $eje3_preg    = "¿Qué convenios empresariales directos o coberturas con aseguradoras pueden estructurarse para crear un canal institucional recurrente?";
+    $eje3_prop    = "Formalizar convenios de atención preferencial con empresas locales e integrar facturación con aseguradoras para diversificar el flujo.";
+    $eje3_metrica = "100% Canal Privado Directo";
+
+    $eje4_titulo  = 'Captura de Valor y Servicios de Alto Margen';
+    $eje4_preg    = sprintf("Con un ticket promedio por paciente privado de \$%.2f MXN, ¿qué cartera de procedimientos preventivos o paquetes integrales de especialidad pueden impulsarse para elevar el valor por consulta?", $ticket_privado);
+    $eje4_prop    = "Diseñar planes de chequeo médico integral y estudios complementarios en paquete que incrementen la densidad de servicios por visita.";
+    $eje4_metrica = sprintf("Ticket Promedio: \$%.2f MXN", $ticket_privado);
+}
 
 my @recomendaciones_alta_direccion = (
     {
@@ -552,21 +605,21 @@ my @recomendaciones_alta_direccion = (
     },
     {
         eje         => 3,
-        titulo      => 'Optimización de Cartera Municipal',
+        titulo      => $eje3_titulo,
         icono       => 'bi-building-fill-check',
         color       => 'info',
         pregunta    => $eje3_preg,
         propuesta   => $eje3_prop,
-        metrica     => sprintf("\$%.2f MXN en Cuentas por Cobrar (%d órdenes)", $tot_pub_cargos, scalar(@pub_activa))
+        metrica     => $eje3_metrica
     },
     {
         eje         => 4,
-        titulo      => 'Captura de Valor en el Canal Público',
+        titulo      => $eje4_titulo,
         icono       => 'bi-graph-up-arrow',
         color       => 'success',
         pregunta    => $eje4_preg,
         propuesta   => $eje4_prop,
-        metrica     => sprintf("Ticket: \$%.2f Púb vs \$%.2f Priv", $ticket_publico, $ticket_privado)
+        metrica     => $eje4_metrica
     }
 );
 
@@ -581,7 +634,8 @@ my $var_rec_str  = ($crec_recibos_pct >= 0 ? sprintf("+%.1f%%", $crec_recibos_pc
 
 # CONSTRUCCIÓN DEL PROMPT DETALLADO COMPLETO PARA IA
 my $prompt_ia_completo = <<"PROMPT_IA";
-Actúa como un Auditor y Consultor Financiero-Hospitalario Senior especializado en la plataforma OSPulso. Tu objetivo es redactar un **Informe Ejecutivo Financiero y Operativo Semanal** en formato de reporte estructurado para la Alta Dirección de la **$nombre_negocio** (CLUE: `$clue_org`). Aplica la siguiente estructura y utiliza los datos operativos correspondientes a la **$numero_semana_str** (del $fecha_inicio al $fecha_fin):
+Actúa como un Auditor y Consultor Financiero-Hospitalario Senior especializado en la plataforma OSPulso. Tu objetivo es redactar un **Informe Ejecutivo Financiero y Operativo Semanal** en formato de reporte estructurado para la Alta Dirección de la **$nombre_negocio** ($identificador_org_str). Aplica la siguiente estructura y utiliza los datos operativos correspondientes a la **$numero_semana_str** (del $fecha_inicio al $fecha_fin):
+
 
 ---
 

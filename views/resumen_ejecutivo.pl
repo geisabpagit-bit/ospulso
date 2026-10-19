@@ -70,8 +70,8 @@ print <<'PAGE_HTML';
     <div class="print-header-executive">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h3 class="fw-bold mb-0 text-dark" id="printClinicaNombre">CLÍNICA MÉDICA DE ESPECIALIDADES JUAN PABLO II</h3>
-                <div class="small text-muted">CLUE: <strong id="printClueOrg">QTSMP000116</strong> | Suite Médica OSPulso | Dirección General</div>
+                <h3 class="fw-bold mb-0 text-dark" id="printClinicaNombre">Organización Médica</h3>
+                <div class="small text-muted" id="printIdentificadorOrg">ID: --- | Suite Médica OSPulso | Dirección General</div>
             </div>
             <div class="text-end">
                 <div class="badge bg-primary text-white px-3 py-1 fw-bold fs-6" id="printPeriodoBadge">Periodo Activo</div>
@@ -460,12 +460,16 @@ function renderizarVista(data) {
     });
 
     document.getElementById('badgePeriodoActual').textContent = capitalizar(data.tipo_periodo) + ' ' + data.periodo_activo;
-    document.getElementById('subtituloClinica').textContent = (data.nombre_negocio || 'Clínica') + ' (CLUE ' + (data.clue || '') + ') - Análisis consolidado de caja y convenios.';
+    const identificadorTexto = data.clue ? (' (CLUE: ' + data.clue + ')') : (data.id_empresa ? (' (Org ID: ' + data.id_empresa + ')') : '');
+    document.getElementById('subtituloClinica').textContent = (data.nombre_negocio || 'Organización Médica') + identificadorTexto + ' - Análisis consolidado de caja y convenios.';
 
     // Poblar Membrete Formal Institucional de Impresión / PDF
     if (document.getElementById('printClinicaNombre')) {
-        document.getElementById('printClinicaNombre').textContent = data.nombre_negocio || 'CLÍNICA MÉDICA';
-        document.getElementById('printClueOrg').textContent = data.clue || 'QTSMP000116';
+        document.getElementById('printClinicaNombre').textContent = data.nombre_negocio || 'ORGANIZACIÓN / CLÍNICA MÉDICA';
+        if (document.getElementById('printIdentificadorOrg')) {
+            const orgLabel = data.clue ? ('CLUE: ' + data.clue) : ('ID Organización: ' + (data.id_empresa || '---'));
+            document.getElementById('printIdentificadorOrg').textContent = orgLabel + ' | Suite Médica OSPulso | Dirección General';
+        }
         document.getElementById('printPeriodoBadge').textContent = data.numero_semana_str || (capitalizar(data.tipo_periodo) + ' ' + data.periodo_activo);
         document.getElementById('printRangoFechas').textContent = data.fecha_inicio ? (`Del ${data.fecha_inicio} al ${data.fecha_fin}`) : '';
         document.getElementById('printFechaEmision').textContent = 'Emisión: ' + (new Date()).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });

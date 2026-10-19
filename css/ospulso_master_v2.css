@@ -934,23 +934,17 @@ nav.navbar.sticky-top {
 #odontograma-toolbar .btn-outline-success:hover, 
 #odontograma-toolbar .btn-success { background-color: #10b981; border-color: #10b981; color: #fff; }
 
+/* Impresión acotada para módulos de diagnóstico (sin afectar visibilidad global de body) */
 @media print {
-    body * { 
-        visibility: hidden; 
+    .seccion-diagnostico-print-active body * {
+        visibility: hidden;
     }
-    #seccion-diagnostico-print, 
-    #seccion-diagnostico-print * { 
-        visibility: visible; 
-    }
-    #seccion-diagnostico-print { 
-        position: absolute; 
-        left: 0; 
-        top: 0; 
-        width: 100%; 
-        border: none !important; 
-        box-shadow: none !important; 
+    .seccion-diagnostico-print-active #seccion-diagnostico-print,
+    .seccion-diagnostico-print-active #seccion-diagnostico-print * {
+        visibility: visible;
     }
 }
+
 
 /* 3. Estructura Bento Grid (de render_expediente_clinico.pl) */
 .bento-grid { 
@@ -2314,33 +2308,57 @@ nav.navbar.sticky-top {
 }
 
 @media print {
-    body {
+    html, body {
         background-color: #ffffff !important;
         color: #0f172a !important;
-        font-size: 11pt !important;
+        font-size: 10pt !important;
+        height: auto !important;
+        overflow: visible !important;
+        visibility: visible !important;
     }
 
-    /* Ocultar elementos de navegación y herramientas */
+    body * {
+        visibility: visible !important;
+    }
+
+    /* Ocultar elementos de navegación y herramientas interactivas */
+    .diamond-sidebar,
     .sdm-sidebar,
     .sub-sidebar,
     .sidebar,
     .bottom-nav,
     .sdm-bottom-nav,
+    .bottom-nav-container,
     .breadcrumb,
     .btn-action-toolbar,
     .temporal-pills-nav,
+    #filterPillsGroup,
+    .financial-date-range-bar,
     #selectorPeriodoContainer,
     .nav-tabs,
-    .navbar {
+    .navbar,
+    .btn,
+    .sidebar-floating-tooltip,
+    .sidebar-overlay {
         display: none !important;
+        visibility: hidden !important;
+    }
+
+    .sdm-layout-wrapper {
+        display: block !important;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: unset !important;
+        background: #ffffff !important;
     }
 
     /* Desplegar membrete formal superior */
     .print-header-executive {
         display: block !important;
-        border-bottom: 2px solid #0A2A66;
-        padding-bottom: 12px;
-        margin-bottom: 20px;
+        visibility: visible !important;
+        border-bottom: 2px solid #0A2A66 !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 20px !important;
     }
 
     .main-content,
@@ -2350,6 +2368,8 @@ nav.navbar.sticky-top {
         padding: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
+        display: block !important;
+        overflow: visible !important;
     }
 
     /* Control de saltos de página y conservación visual */
@@ -2381,3 +2401,4 @@ nav.navbar.sticky-top {
         print-color-adjust: exact !important;
     }
 }
+

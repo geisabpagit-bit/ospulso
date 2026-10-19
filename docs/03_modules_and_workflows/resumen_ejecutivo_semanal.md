@@ -12,12 +12,17 @@ El módulo de **Resumen Ejecutivo Semanal** (`views/resumen_ejecutivo.pl` y su b
 
 ---
 
-## 3. Fuentes de Datos Canónicas
+## 3. Fuentes de Datos Canónicas y Manejo de CLUE vs Organización Privada
 De estricto apego a la arquitectura financiera del sistema:
 - `dat/folios_recibos_privados.dat`: Fuente canónica de ingresos en ventanilla cobrados efectivamente.
 - `dat/folios_recibos_publicos.dat`: Registro de órdenes de convenio público con subsidio municipal al 100% (Cuentas por Cobrar CXC Estado).
-- `dat/catalogos_CLUE/QTSMP000116/contadores_*.dat`: Validación de contadores y secuencia de folios.
-- `dat/negocios.dat`: Identificación de la clínica, razón social y clave CLUE.
+- `dat/catalogos_CLUE/[CLUE]/contadores_*.dat` (o por ID de organización si no tiene CLUE): Validación de contadores y secuencia de folios.
+- `dat/negocios.dat`: Identificación de la organización matriz, sucursales dependientes, razón social y columna 18 (`clues`).
+
+### 3.1. Diferenciación Arquitectónica: CLUE Oficial vs Organización Única / Privada
+1. **Organización con CLUE (SSA)**: Entidades registradas ante la Secretaría de Salud de México cuentan con clave alfanumérica oficial (ej. `QTSMP000116`). En este escenario, el reporte acredita la clave CLUE oficial en membretes, valida contadores bajo la ruta de catálogos CLUE y evalúa convenios gubernamentales/municipales.
+2. **Organización Única o Privada sin CLUE**: Consultorios, policlínicas, consultorios dentales o centros de especialidades privadas no siempre poseen o requieren CLUE. El backend detecta si la columna 18 de `negocios.dat` está vacía o contiene marcas de no aplicación (`-`, `0`, `No aplica`), identificando a la entidad formalmente por su `id_empresa` ("ID Organización: XXXXXX").
+3. **Adaptación Dinámica del Prompt y Recomendaciones**: Cuando una organización no presenta órdenes de subsidio público (CXC Municipio = $0), el motor analítico ajusta los ejes estratégicos hacia convenios empresariales privados, paquetes de salud preventivos y fidelización de pacientes particulares, evitando cuestionamientos descontextualizados sobre convenios municipales.
 
 ---
 
@@ -69,12 +74,8 @@ De estricto apego a la arquitectura financiera del sistema:
 ## 5. UI y Experiencia Ejecutiva (Estándares AGENTS.md)
 - **Separación Estricta de Estilos (CSS)**: Cero bloques `<style>` en línea en `views/resumen_ejecutivo.pl`. Todas las clases ejecutivas (`.kpi-card-exec`, `.temporal-pill-btn`, `.table-executive`, `.recom-card-exec`) y reglas `@media print` residen en la hoja mandante `css/ospulso_master_v2.css`.
 - **Selector Multi-Temporal Dinámico**: Píldoras de selección instantánea para alternar entre **Día**, **Semana**, **Mes** y **Año**, adaptando la tabla cronológica y el elemento pico automáticamente.
-- **Herramienta IA (Prompt Detallado de Auditoría Hospitalaria Senior)**: Botón *"Copiar Prompt para IA (Claude / ChatGPT / Gamma)"* que inyecta en el portapapeles un prompt analítico completo y no solo datos brutos:
-  1. Rol asignado: Auditor y Consultor Financiero-Hospitalario Senior especializado en OSPulso.
-  2. Sección 1: Resumen Ejecutivo y Tablero Principal de KPIs (Flujo Privado con variación %, CXC Municipio, Total Recibos, Ticket Promedio comparativo, Integridad Forense).
-  3. Sección 2: Desglose Financiero por Canal y Comportamiento Diario (Concentración en días pico Viernes-Sábado-Domingo con monto y %, auditoría de efectivo vs terminal bancaria y evaluación de riesgo de resguardo/traslado).
-  4. Sección 3: Demanda de Servicios Clínicos e Integridad Forense (Consultas, procedimientos, laboratorio, ultrasonido, rayos X; certificación de foliación consecutiva y estampa de tiempo íntegra).
-  5. Sección 4: Preguntas Estratégicas y Recomendaciones para la Alta Dirección (Ejes 1. Seguridad y Bancarización, 2. Nivelación de Capacidad Operativa, 3. Optimización de Cartera Municipal, 4. Captura de Valor en el Canal Público).
-  6. Criterios de Estilo y Formato y Anexo de datos en tablas Markdown.
-- **Modo Impresión / PDF Formal**: Estilos `@media print` y membrete institucional `.print-header-executive` que despliegan la clave CLUE, nombre de la clínica, folio de dictamen, fechas de corte y suprimen sidebar y elementos interactivos para generar un PDF listo para entrega directiva.
+- **Herramienta IA (Prompt Detallado de Auditoría Hospitalaria Senior)**: Botón *"Copiar Prompt para IA (Claude / ChatGPT / Gamma)"* que inyecta en el portapapeles un prompt analítico completo y no solo datos brutos, contextualizado a la estructura de ingresos de la organización.
+- **Modo Impresión / PDF Formal (Solución de Página en Blanco)**:
+  - Se corrigió la regla colisionante `@media print { body * { visibility: hidden; } }` que existía en la hoja maestra para diagnósticos clínicos antiguos.
+  - Se estableció un bloque `@media print` dedicado en `css/ospulso_master_v2.css` que garantiza `visibility: visible !important;` para el contenedor `.main-content`, oculta sidebars, botones y filtros no imprimibles, activa el membrete institucional `.print-header-executive` (con nombre de la clínica, CLUE u Organización ID, fecha de emisión y dictamen) y optimiza las tarjetas y tablas con fondos blancos y bordes nítidos para exportación limpia a PDF o impresora.
 
