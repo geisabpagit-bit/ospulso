@@ -2,8 +2,8 @@
 
 Bienvenido a la Documentación Oficial de **OSPulso / SDM 2.0**. Este repositorio documental está estructurado bajo la **Metodología de 4 Capas Temáticas** para ofrecer una fuente de verdad única, libre de duplicidades y de fácil navegación.
 
-> **Versión Actual Estable**: `v3.2.0` (Fecha de Corte: 2026-10-04)  
-> **Punto de Restauración**: Tag `v3.2.0-estable-20261004` | Rama de Respaldo: `backup-historial-completo-20261004`
+> **Versión Actual Estable**: `v3.3.0` (Fecha de Corte: 2026-10-19)  
+> **Punto de Restauración**: Tag `v3.3.0-estable-20261019-resumen-ejecutivo` | Rama de Respaldo: `main`
 
 ---
 
@@ -31,6 +31,7 @@ graph TD
 - **[arquitectura_financiera.md](file:///c:/xampp/htdocs/ospulso/docs/02_data_and_rules/arquitectura_financiera.md)**: Fuente Canónica de Verdad para ingresos, segregación de Efectivo Real en Caja vs Cuentas por Cobrar (CXC Estado) e integridad contable al centavo.
 
 ### ⚙️ Capa 3: Guías Operativas de Módulos (`docs/03_modules_and_workflows/`)
+- **[resumen_ejecutivo_semanal.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/resumen_ejecutivo_semanal.md)**: Tablero Ejecutivo Multi-temporal (Día, Semana, Mes, Año), diferenciación CLUE vs Organización Única, Arqueo de Caja, Integridad Forense, Generador de Prompt para IA y Visor de Vista Previa Modal con Reporte Oficial en 2 Páginas Carta Exactas sin polución de UI.
 - **[matriz_dinamica_permisos_rbac.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/matriz_dinamica_permisos_rbac.md)**: Arquitectura Híbrida de Permisos RBAC y User Overrides, blindaje de APIs (`C`, `R`, `U`, `D`), resolución de 5 parámetros, matriz de diagnóstico de bugs y sincronización del menú lateral.
 - **[caja_rapida_y_multitarifa.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/caja_rapida_y_multitarifa.md)**: Proceso operativo de Caja Rápida, arquitectura Multi-Tarifa dinámica en conceptos, soporte para tarifas personalizadas al vuelo ("Otra") y estándares UI/UX del carrito.
 - **[gestion_catalogos_serverside.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/gestion_catalogos_serverside.md)**: Arquitectura del Catálogo Universal 3NF, DataTables Server-Side AJAX (`deferRender: true`), paginación por defecto (10 registros) y normalización por CLUE.
@@ -40,7 +41,7 @@ graph TD
 - **[modulos_complementarios.md](file:///c:/xampp/htdocs/ospulso/docs/03_modules_and_workflows/modulos_complementarios.md)**: Especificación de Agenda y Citas, Quirófano Kanban y Odontograma SPA.
 
 ### 🛠️ Capa 4: Estándares UI/UX, Diagnóstico y Operación (`docs/04_standards_and_ops/`)
-- **[guia_estilo_ui_ux.md](file:///c:/xampp/htdocs/ospulso/docs/04_standards_and_ops/guia_estilo_ui_ux.md)**: Tokens de diseño CSS, paleta HSL, botones táctiles 48px, Drawer móvil en Expediente Clínico, Hero anti-distorsión, supresión de doble scroll y barras de exportación DataTables.
+- **[guia_estilo_ui_ux.md](file:///c:/xampp/htdocs/ospulso/docs/04_standards_and_ops/guia_estilo_ui_ux.md)**: Tokens de diseño CSS, paleta HSL, botones táctiles 48px, Drawer móvil en Expediente Clínico, Hero anti-distorsión, supresión de doble scroll, alineación total del menú lateral izquierdo a 42x42px y Estándar Editorial de Impresión en 2 Páginas Carta con Visor Modal.
 - **[protocolos_diagnostico_errores.md](file:///c:/xampp/htdocs/ospulso/docs/04_standards_and_ops/protocolos_diagnostico_errores.md)**: Diagnóstico de errores HTTP 500 Apache CGI, prevención de crashes de renderizado y sigilos.
 - **[cumplimiento_y_contribucion.md](file:///c:/xampp/htdocs/ospulso/docs/04_standards_and_ops/cumplimiento_y_contribucion.md)**: Cumplimiento NOM-004 / NOM-024 y normas de contribución de código (PR).
 

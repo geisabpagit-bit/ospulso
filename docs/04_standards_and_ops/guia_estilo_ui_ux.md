@@ -387,3 +387,39 @@ Para garantizar una experiencia de usuario corporativa, limpia y de alto valor e
    - 8 accesos directos estructurados en matriz 4x2 (`.bento-action-btn-compact`), con altura máxima de 46px en desktop y 42px en móvil, iconografía vectorial de 1.15rem y etiquetas condensadas en `0.52rem` / `0.46rem`.
 4. **Historial de Consultas y Empty State Lineal**:
    - El estado vacío de citas se compacta a un cintillo horizontal de 1 sola fila (`.empty-consultas-compact`, 36px) con icono alineado (`bi-clipboard2-x`), reemplazando tarjetas sobredimensionadas con paddings heredados de `p-5`.
+
+---
+
+## 15. Estándar Editorial de Impresión Hospitalaria y Visor de Vista Previa Modal (2 Páginas Carta)
+
+Para erradicar la degradación visual provocada por imprimir directamente la interfaz gráfica del navegador (`window.print()` ciego sobre pantallas web):
+
+1. **Visor de Previsualización Interactivo (`.preview-paper-stage`)**:
+   - Todo módulo con capacidad de emitir informes o actas ejecutivas (ej. `views/resumen_ejecutivo.pl`) debe anteponer un modal de previsualización antes de disparar la impresora.
+   - El modal despliega un fondo gris pizarra oscuro (`background-color: #525659; min-height: 80vh;`) sobre el cual se montan las hojas físicas de papel (`.report-sheet`) con fondo blanco, sombra de elevación (`box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4)`), borde sutil y dimensiones estándar Carta (8.5in x 11in, `816px` de ancho en pantalla).
+   - Permite al directivo auditar cifras, firmas y saltos de página con total fidelidad previa.
+
+2. **Aislamiento Inmune Total en `@media print`**:
+   - Queda estrictamente PROHIBIDO imprimir elementos de interfaz gráfica (barras de navegación, docks inferiores fijos, menús laterales, toolbars, breadcrumbs, botones o telones de modales).
+   - Se aplica la técnica de aislamiento por visibilidad:
+     ```css
+     @media print {
+         body * { visibility: hidden !important; }
+         #reporteImpresionOficial, #reporteImpresionOficial * { visibility: visible !important; }
+         #reporteImpresionOficial {
+             position: absolute !important;
+             left: 0 !important; top: 0 !important;
+             width: 100% !important; margin: 0 !important; padding: 0 !important;
+         }
+         .diamond-sidebar, .sdm-main-bottom-nav, .bottom-nav, .btn, .no-print {
+             display: none !important;
+         }
+     }
+     ```
+   - Esto erradica de raíz que componentes con `position: fixed` (como el dock móvil `.sdm-main-bottom-nav`) se repitan flotando como cabeceras indeseadas en cada página impresa.
+
+3. **Arquitectura Rígida de 2 Páginas Carta (Anti-Desbordes)**:
+   - **Hoja 1 (`.report-page-1`)**: Alberga el membrete formal, dictamen de validez, KPIs macro, desglose cronológico de recaudación, control de medios de pago (arqueo de caja) y distribución departamental. Aplica `page-break-after: always !important; break-after: page !important;` y pie con foliado *"Página 1 de 2"*.
+   - **Hoja 2 (`.report-page-2`)**: Alberga el sub-membrete de continuidad, la matriz 2x2 de los 4 Ejes Estratégicos con sus acciones de decisión, la leyenda de certificación forense de integridad contable y el bloque formal de 3 firmas (*Caja/Finanzas*, *Dirección General / Médico Titular*, *Auditoría Suite OSPulso*). Aplica `page-break-after: avoid !important; break-after: avoid !important;` y pie con foliado *"Página 2 de 2"*, impidiendo la generación de hojas huérfanas en blanco.
+   - **Preservación Cromática Obligatoria**: Integración de `-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;` en badges, tablas y barras de progreso.
+
