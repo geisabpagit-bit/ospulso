@@ -581,7 +581,7 @@ HTML
             close($cf);
         }
 
-        my $fin_has_active = ($pagina_actual eq 'finanzas' || $pagina_actual eq 'caja_rapida' || $pagina_actual eq 'caja_consultorio') ? 1 : 0;
+        my $fin_has_active = ($pagina_actual eq 'finanzas' || $pagina_actual eq 'caja_rapida' || $pagina_actual eq 'caja_consultorio' || $pagina_actual eq 'resumen_ejecutivo') ? 1 : 0;
         my $fin_active = $fin_has_active ? 'show' : '';
         my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
         my $fin_aria = ($fin_active eq 'show') ? 'true' : 'false';
@@ -591,6 +591,17 @@ HTML
         my $link_caja_recibo_html = $es_consultorio_privado 
             ? qq{<a href="../views/caja_consultorio.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Caja"><i class="bi bi-cart-check-fill text-success me-2"></i><span class="sidebar-text fw-bold">Caja</span></a>}
             : qq{<a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Generar Recibo"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>};
+
+        my $resumen_active = ($pagina_actual eq 'resumen_ejecutivo') ? 'active' : '';
+        my $link_resumen_html = '';
+        if ($role eq 'Administrador Organizacion' || $role eq 'Administrador Global') {
+            $link_resumen_html = qq{
+                <a href="../views/resumen_ejecutivo.pl" class="sub-link $resumen_active w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Resumen Ejecutivo">
+                    <i class="bi bi-bar-chart-line-fill text-info me-2"></i><span class="sidebar-text fw-bold">Resumen Ejecutivo</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary ms-auto" style="font-size:0.65rem;">Semanal</span>
+                </a>
+            };
+        }
 
         print qq{
             <!-- Finanzas Integradas -->
@@ -604,6 +615,7 @@ HTML
                     <div class="accordion-body pb-0 pt-1">
                         $link_caja_recibo_html
                         <a href="../views/finanzas.pl?tab=corte_caja" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Corte de Caja"><i class="bi bi-safe text-primary me-2"></i><span class="sidebar-text fw-bold">Corte de Caja</span></a>
+                        $link_resumen_html
                         <hr class="my-2 opacity-25">
                         <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Ingresos"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
                         <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Egresos"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Egresos</span></a>
