@@ -282,8 +282,75 @@
                 </div>
                 
                 <div class="showcase-wrapper scroll-reveal">
-                    <div class="showcase-frame">
-                        <img src="img/platform-showcase.png" alt="OSPulso - Tablero Financiero Ejecutivo y Control Clínico en Tiempo Real" class="showcase-img-display" loading="lazy">
+                    <div id="platformShowcaseCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
+                        <!-- Indicadores Pills Superiores -->
+                        <div class="carousel-indicators showcase-indicators">
+                            <button type="button" data-bs-target="#platformShowcaseCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="1a. Tablero Financiero">
+                                <span>1a. Tablero Financiero</span>
+                            </button>
+                            <button type="button" data-bs-target="#platformShowcaseCarousel" data-bs-slide-to="1" aria-label="2a. Odontograma">
+                                <span>2a. Odontograma</span>
+                            </button>
+                            <button type="button" data-bs-target="#platformShowcaseCarousel" data-bs-slide-to="2" aria-label="3a. Vista detalle">
+                                <span>3a. Vista detalle</span>
+                            </button>
+                        </div>
+
+                        <!-- Slides -->
+                        <div class="carousel-inner">
+                            <!-- 1a. Tablero Financiero -->
+                            <div class="carousel-item active">
+                                <div class="showcase-frame">
+                                    <img src="img/showcase-tablero-financiero.png" alt="1a. Tablero Financiero Ejecutivo - OSPulso" class="showcase-img-display" loading="lazy">
+                                </div>
+                                <div class="showcase-caption-card">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill fw-bold">1a. Módulo de Finanzas</span>
+                                        <span class="small text-secondary-clinical fw-medium"><i class="bi bi-clock-history me-1 text-teal-clinical"></i>Tiempo Real</span>
+                                    </div>
+                                    <h4 class="fw-bold text-navy mb-1">Tablero Financiero</h4>
+                                    <p class="text-secondary-clinical mb-0">Control consolidado de ingresos cobrados en caja, balance del periodo, cuentas por cobrar y flujo operativo con drilldown de auditoría transparente.</p>
+                                </div>
+                            </div>
+
+                            <!-- 2a. Odontograma -->
+                            <div class="carousel-item">
+                                <div class="showcase-frame">
+                                    <img src="img/showcase-odontograma.png" alt="2a. Odontograma Digital 3D Interactivo - OSPulso" class="showcase-img-display" loading="lazy">
+                                </div>
+                                <div class="showcase-caption-card">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                        <span class="badge bg-info-subtle text-teal-clinical border border-info-subtle px-3 py-1 rounded-pill fw-bold">2a. Módulo Especializado</span>
+                                        <span class="small text-secondary-clinical fw-medium"><i class="bi bi-badge-3d me-1 text-primary"></i>Render Sagital 3D</span>
+                                    </div>
+                                    <h4 class="fw-bold text-navy mb-1">Odontograma</h4>
+                                    <p class="text-secondary-clinical mb-0">Mapeo anatómico digital interactivo con selector radial por superficies (distal, oclusal, mesial, vestibular) y estandarización visual de patologías.</p>
+                                </div>
+                            </div>
+
+                            <!-- 3a. Vista detalle -->
+                            <div class="carousel-item">
+                                <div class="showcase-frame">
+                                    <img src="img/showcase-vista-detalle.png" alt="3a. Vista Detalle de Diagnóstico y Presupuesto - OSPulso" class="showcase-img-display" loading="lazy">
+                                </div>
+                                <div class="showcase-caption-card">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill fw-bold">3a. Diagnóstico Específico</span>
+                                        <span class="small text-secondary-clinical fw-medium"><i class="bi bi-shield-check me-1 text-success"></i>NOM-004 Compatible</span>
+                                    </div>
+                                    <h4 class="fw-bold text-navy mb-1">Vista detalle</h4>
+                                    <p class="text-secondary-clinical mb-0">Exploración sagital de piezas en porcelana HD, categorización clínica de patologías, tarifas sugeridas en tiempo real y aplicación inmediata al presupuesto del paciente.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Controles Anterior / Siguiente -->
+                        <button class="carousel-control-prev showcase-ctrl-btn" type="button" data-bs-target="#platformShowcaseCarousel" data-bs-slide="prev" aria-label="Diapositiva Anterior">
+                            <span class="showcase-ctrl-icon"><i class="bi bi-chevron-left"></i></span>
+                        </button>
+                        <button class="carousel-control-next showcase-ctrl-btn" type="button" data-bs-target="#platformShowcaseCarousel" data-bs-slide="next" aria-label="Diapositiva Siguiente">
+                            <span class="showcase-ctrl-icon"><i class="bi bi-chevron-right"></i></span>
+                        </button>
                     </div>
                 </div>
             </div>

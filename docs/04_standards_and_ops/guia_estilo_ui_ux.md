@@ -444,8 +444,12 @@ Para garantizar accesibilidad universal (WCAG 2.1 AA/AAA) y consistencia editori
 3. **Reutilización de Componentes Mandantes**:
    - Sustitución de contenedores ad-hoc por `.icon-container-acrylic` del sistema Diamond.
    - Eliminación total de estilos en línea (`style="..."`), sustituidos por utilidades semánticas (`.brand-tagline`, `.footer-brand-title`, `.footer-brand-sub`, `.footer-info-block`, `.footer-nav-link`, `.footer-copyright`, `.card-notice-note`, `.modal-footer-nav`).
-4. **Showcase Visual de Plataforma**:
-   - Integración del mockup de alta resolución `img/platform-showcase.png` (Tablero Financiero Ejecutivo en Tiempo Real) encapsulado en `.showcase-frame` con micro-animación de elevación hover.
+4. **Showcase Visual de Plataforma (Carrusel Interactivo de 3 Vistas)**:
+   - Implementación del carrusel interactivo `.showcase-wrapper` con navegación por pills superiores (`.showcase-indicators`), controles flotantes ergonómicos y tarjetas de pie descriptivas (`.showcase-caption-card`):
+     - **1a. Tablero Financiero** (`img/showcase-tablero-financiero.png`): Control de ingresos en caja, métricas de recuperación y flujo operativo en tiempo real.
+     - **2a. Odontograma** (`img/showcase-odontograma.png`): Mapeo anatómico 3D con selector radial clínico interactivo y asignación por superficies.
+     - **3a. Vista detalle** (`img/showcase-vista-detalle.png`): Exploración sagital en porcelana HD, categorización de patologías y presupuesto instantáneo integrado a caja.
+
 
 
 

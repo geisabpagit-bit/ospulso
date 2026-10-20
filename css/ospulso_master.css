@@ -2034,6 +2034,92 @@ footer {
     border-radius: 14px;
 }
 
+/* Showcase Carousel Indicators (Pills Interactivos) */
+.showcase-indicators {
+    position: static !important;
+    margin: 0 auto 1.5rem auto !important;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    z-index: 5;
+}
+.showcase-indicators button {
+    width: auto !important;
+    height: auto !important;
+    text-indent: 0 !important;
+    background: #ffffff !important;
+    color: var(--md-blue-deep) !important;
+    border: 1.5px solid rgba(10, 42, 102, 0.12) !important;
+    border-radius: 50rem !important;
+    padding: 0.5rem 1.25rem !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    opacity: 0.8 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.05) !important;
+}
+.showcase-indicators button.active,
+.showcase-indicators button:hover {
+    background: linear-gradient(135deg, var(--md-blue-deep), var(--md-blue-medical)) !important;
+    color: #ffffff !important;
+    border-color: var(--md-blue-deep) !important;
+    opacity: 1 !important;
+    box-shadow: 0 4px 14px rgba(10, 42, 102, 0.25) !important;
+    transform: translateY(-2px);
+}
+
+/* Showcase Caption Card */
+.showcase-caption-card {
+    background: #ffffff;
+    border: 1px solid rgba(10, 42, 102, 0.08);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.25rem;
+    box-shadow: 0 6px 18px rgba(10, 42, 102, 0.05);
+    text-align: left;
+}
+
+/* Showcase Controls Flotantes */
+.showcase-ctrl-btn {
+    width: 48px !important;
+    height: 48px !important;
+    top: 42% !important;
+    opacity: 0.9 !important;
+    transition: all 0.3s ease !important;
+    z-index: 10;
+}
+.carousel-control-prev.showcase-ctrl-btn {
+    left: -20px !important;
+}
+.carousel-control-next.showcase-ctrl-btn {
+    right: -20px !important;
+}
+@media (max-width: 768px) {
+    .carousel-control-prev.showcase-ctrl-btn { left: 2px !important; }
+    .carousel-control-next.showcase-ctrl-btn { right: 2px !important; }
+}
+.showcase-ctrl-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    color: var(--md-blue-deep);
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(10, 42, 102, 0.15);
+    border: 1.5px solid var(--md-teal-clinical);
+    font-size: 1.25rem;
+    transition: all 0.25s ease;
+}
+.showcase-ctrl-btn:hover .showcase-ctrl-icon {
+    background: var(--md-blue-deep);
+    color: #ffffff;
+    transform: scale(1.08);
+}
+
+
 
 /* Scroll Reveal Utility */
 .scroll-reveal {
