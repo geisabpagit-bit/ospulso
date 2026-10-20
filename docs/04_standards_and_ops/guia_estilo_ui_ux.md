@@ -451,6 +451,12 @@ Para garantizar accesibilidad universal (WCAG 2.1 AA/AAA) y consistencia editori
      - **3a. Odontograma** (`img/showcase-odontograma.png`): Refactorizado en tonos clínicos claros (#F8FBFF, azul marino y teal), con mapeo anatómico 3D, selector radial y estandarización visual.
      - **4a. Vista detalle** (`img/showcase-vista-detalle.png`): Refactorizado en tema claro clínico, con exploración sagital en porcelana HD, categorización de patologías y presupuesto instantáneo.
      - **5a. Visor DICOM** (`img/showcase-visor-dicom.png`): Visualizador radiológico avanzado integrado al expediente clínico con reconstrucción tridimensional craneofacial, ajuste de calibradores milimétricos, paleta clara clínica (#F8FBFF y teal) y anonimización rigurosa de datos del paciente conforme a NOM-004 e HIPAA.
+5. **Iconografía Holográfica 3D de Módulos Core (`img/holo/`)**:
+   - Refactorización de las ilustraciones de los 3 módulos principales del Ecosistema para garantizar máxima legibilidad en tarjetas compactas (altura 120px, `.holo-module-img`):
+     - **Agenda Inteligente** (`img/holo/agenda.png`): Bloque cúbico de cristal translúcido biselado con calendario digital 3D, cuadrícula de citas, reloj clínico e iluminación perimetral en neón cyan/teal.
+     - **Expediente Clínico 5.0** (`img/holo/expediente.png`): Bloque de cristal biselado con carpeta médica / portapapeles 3D, cruz clínica, monitor de pulso ECG y rótulo de alta legibilidad *"EXPEDIENTE CLÍNICO"*.
+     - **Caja Inteligente** (`img/holo/caja.png`): Bloque de cristal biselado con terminal de cobro digital inteligente / caja registradora POS 3D, ranura de tarjeta, teclado numérico, símbolo monetario y rótulo *"CAJA Y FINANZAS"*.
+   - **Homologación**: Mismo tamaño (1024x1024), misma perspectiva frontal/isométrica suave, idéntico acabado en cristal acrílico con reflejos de estudio y supresión de elementos satelitales diminutos que degradaban la comprensión visual a pequeña escala.
 
 
 
