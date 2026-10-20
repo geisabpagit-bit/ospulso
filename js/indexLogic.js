@@ -182,12 +182,85 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Elegir frase aleatoria
             const randomQuote = dentalQuotes[Math.floor(Math.random() * dentalQuotes.length)];
-            loadingText.textContent = randomQuote;
+            if (loadingText) loadingText.textContent = randomQuote;
 
-            overlay.classList.add('show');
-            loginCard.classList.add('animate-exit');
+            if (overlay) overlay.classList.add('show');
+            if (loginCard) loginCard.classList.add('animate-exit');
             
             // El navegador procederá a ejecutar el submit nativo síncronamente.
         });
     }, 0);
+
+    // --- LÓGICA DE INTERFAZ 5S (SIDEBAR MÓVIL, CALCULADORA Y SCROLL REVEAL) ---
+    // 1. Sidebar Móvil
+    const openBtn = document.getElementById('openMobileMenu');
+    const closeBtn = document.getElementById('closeMobileMenu');
+    const sidebar = document.getElementById('mobileSidebar');
+    const navOverlay = document.getElementById('sidebarOverlay');
+
+    function toggleSidebar() {
+        if (!sidebar || !navOverlay) return;
+        sidebar.classList.toggle('open');
+        navOverlay.classList.toggle('show');
+        document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+    }
+
+    if (openBtn) openBtn.addEventListener('click', toggleSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', toggleSidebar);
+    if (navOverlay) navOverlay.addEventListener('click', toggleSidebar);
+
+    document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+        link.addEventListener('click', toggleSidebar);
+    });
+
+    // 2. Calculadora de Eficiencia Clínica (Gamificada)
+    const citasSlider = document.getElementById('citasSlider');
+    const citasValue = document.getElementById('citasValue');
+    const savedHoursVal = document.getElementById('savedHoursVal');
+    const recoveredMoneyVal = document.getElementById('recoveredMoneyVal');
+
+    function updateEfficiencyCalc() {
+        if (!citasSlider) return;
+        const citas = parseInt(citasSlider.value, 10);
+        if (citasValue) citasValue.textContent = citas;
+        
+        // Métricas en positivo:
+        const recoveredAppointments = Math.round(citas * 0.24);
+        const recoveredMoney = recoveredAppointments * 1200; 
+        const savedHours = Math.round(citas * 0.3); // 30% del volumen = horas ahorradas en admin
+
+        if (savedHoursVal) {
+            savedHoursVal.textContent = savedHours + " hrs";
+            savedHoursVal.classList.remove('animate__animated', 'animate__headShake');
+            void savedHoursVal.offsetWidth;
+            savedHoursVal.classList.add('animate__animated', 'animate__headShake');
+        }
+
+        if (recoveredMoneyVal) {
+            recoveredMoneyVal.textContent = `$${recoveredMoney.toLocaleString('es-MX')} MXN`;
+            recoveredMoneyVal.classList.remove('animate__animated', 'animate__headShake');
+            void recoveredMoneyVal.offsetWidth;
+            recoveredMoneyVal.classList.add('animate__animated', 'animate__headShake');
+        }
+    }
+
+    if (citasSlider) {
+        citasSlider.addEventListener('input', updateEfficiencyCalc);
+        updateEfficiencyCalc();
+    }
+
+    // 3. Scroll Reveal Observer
+    const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.scroll-reveal').forEach(el => {
+        revealObserver.observe(el);
+    });
 });

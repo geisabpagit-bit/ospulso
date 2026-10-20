@@ -423,3 +423,15 @@ Para erradicar la degradación visual provocada por imprimir directamente la int
    - **Hoja 2 (`.report-page-2`)**: Alberga el sub-membrete de continuidad, la matriz 2x2 de los 4 Ejes Estratégicos con sus acciones de decisión, la leyenda de certificación forense de integridad contable y el bloque formal de 3 firmas (*Caja/Finanzas*, *Dirección General / Médico Titular*, *Auditoría Suite OSPulso*). Aplica `page-break-after: avoid !important; break-after: avoid !important;` y pie con foliado *"Página 2 de 2"*, impidiendo la generación de hojas huérfanas en blanco.
    - **Preservación Cromática Obligatoria**: Integración de `-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;` en badges, tablas y barras de progreso.
 
+---
+
+## 8. Landing Page y Suite Metodológica 5S (`index.html`)
+
+### 8.1. Principio de Separación Estricta (CSS y JavaScript)
+Conforme a las directrices de `AGENTS.md`, la página principal `index.html` opera bajo desacoplamiento absoluto de presentación y comportamiento:
+1. **Cero bloques `<style>` en HTML**: Todas las clases (`.icon-5s`, `.card-5s`, `.trust-banner`, `.step-circle`, `.showcase-wrapper`, `.scroll-reveal`, `.footer-glass`) residen centralizadas en `css/ospulso_master.css`.
+2. **Cero scripts embebidos**: La lógica de interacción (menú drawer responsivo, calculadora gamificada de retorno de inversión y `IntersectionObserver` de scroll reveal) reside en `js/indexLogic.js`.
+3. **Respaldo de Versión Canónica**: Antes de cualquier refactorización profunda, se preserva el snapshot histórico (ej. `index_old_oct2026.html`).
+4. **Cumplimiento Móvil Nativo**: Se incluye `css/sdm_mobile_standards.css` para unificar el viewport táctil y los touch targets en dispositivos móviles.
+
+

@@ -1896,3 +1896,144 @@ footer {
     background: radial-gradient(circle at top right, #e0f2f1 0%, #f8fafc 60%) !important;
 }
 
+/* =========================================================================
+   OSPULSO 5S HOMEPAGE SUITE & REFACTOR STYLES
+   ========================================================================= */
+.body-layout { padding-bottom: 70px; }
+.logo-svg-main { height: 55px; width: auto; overflow: visible; margin-bottom: -10px; }
+
+.bg-clinical-white { background-color: var(--md-white-clinical); }
+.border-bottom-subtle { border-bottom: 1px solid rgba(0,0,0,0.05); }
+.border-top-subtle { border-top: 1px solid rgba(0,0,0,0.05); }
+.border-holo { border: 1px solid rgba(0, 196, 196, 0.3) !important; }
+.border-teal-clinical { border: 2px solid var(--md-teal-clinical) !important; }
+.border-top-teal { border-top: 4px solid var(--md-teal-clinical) !important; }
+.border-green-medical { border: 1px solid var(--md-green-medical) !important; }
+
+.bg-radial-glow { background: radial-gradient(circle, rgba(24,209,230,0.05) 0%, rgba(255,255,255,0) 70%); }
+.bg-ospulso-gradient { background: var(--bg-ospulso-gradient); }
+.bg-glass-dark { background: rgba(10, 42, 102, 0.4) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.bg-glass-light { background: rgba(255, 255, 255, 0.05) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.bg-glass-white { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }
+
+.min-vh-50 { min-height: 50vh; }
+.max-w-600 { max-width: 600px; }
+.max-w-800 { max-width: 800px; }
+.max-w-900 { max-width: 900px; }
+.max-w-1000 { max-width: 1000px; }
+.max-w-1100 { max-width: 1100px; }
+.max-w-1200 { max-width: 1200px; }
+
+.footer-glass {
+    background: rgba(232, 243, 255, 0.96) !important; 
+    backdrop-filter: blur(15px) !important; 
+    -webkit-backdrop-filter: blur(15px) !important; 
+    color: var(--md-blue-deep) !important; 
+    padding: 4rem 0 2rem !important; 
+    margin-top: auto; 
+    border-top: 1px solid rgba(10, 42, 102, 0.08) !important;
+}
+
+/* 5S Methodology Custom Styles */
+.icon-5s {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, rgba(24,209,230,0.1), rgba(0,196,196,0.2));
+    color: var(--md-teal-clinical);
+    border: 1px solid rgba(0,196,196,0.3);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+.card-5s:hover .icon-5s {
+    transform: translateY(-5px);
+    background: var(--md-teal-clinical);
+    color: white;
+}
+
+/* Trust Banner & Migration Roadmap Styles */
+.trust-banner {
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    background-color: #f8fafc;
+}
+.trust-logo {
+    height: 40px;
+    opacity: 0.5;
+    filter: grayscale(100%);
+    transition: all 0.3s ease;
+}
+.trust-logo:hover {
+    opacity: 1;
+    filter: grayscale(0%);
+}
+
+.step-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--md-teal-clinical);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 auto 15px;
+    box-shadow: 0 5px 15px rgba(0,196,196,0.3);
+}
+
+/* Product Showcase Styles */
+.showcase-wrapper {
+    position: relative;
+    padding: 2rem;
+    background: linear-gradient(145deg, #ffffff, #f0f7f7);
+    border-radius: 20px;
+    border: 1px solid rgba(0,196,196,0.2);
+    box-shadow: 0 20px 40px rgba(10,42,102,0.08);
+    margin-top: 3rem;
+}
+.showcase-image-placeholder {
+    width: 100%;
+    height: 400px;
+    background-color: #e2e8f0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-weight: 500;
+    border: 2px dashed #cbd5e1;
+}
+
+/* Scroll Reveal Utility */
+.scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 5S Component Clean Utilities */
+.holo-module-img { height: 120px; width: auto; object-fit: contain; }
+.roadmap-connector-line { height: 2px; background: var(--md-teal-clinical); z-index: 1; }
+.accent-teal-clinical { accent-color: var(--md-teal-clinical); }
+.border-info-glow { border-color: rgba(24, 209, 230, 0.3) !important; }
+.card-featured-glow { box-shadow: 0 10px 30px rgba(0, 196, 196, 0.15) !important; }
+.min-w-250 { min-width: 250px; }
+.text-xs { font-size: 0.70rem; }
+.text-sm-custom { font-size: 0.85rem; }
+.text-brand-blue { color: var(--md-blue-deep) !important; }
+.btn-password-toggle-eye { border-radius: 50%; width: 2.5rem; height: 2.5rem; z-index: 10; }
+.input-pass-padded { padding-right: 3.5rem; }
+
+
+
