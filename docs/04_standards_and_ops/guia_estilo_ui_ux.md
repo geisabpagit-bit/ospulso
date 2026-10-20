@@ -444,6 +444,9 @@ Para garantizar accesibilidad universal (WCAG 2.1 AA/AAA) y consistencia editori
 3. **Reutilización de Componentes Mandantes**:
    - Sustitución de contenedores ad-hoc por `.icon-container-acrylic` del sistema Diamond.
    - Eliminación total de estilos en línea (`style="..."`), sustituidos por utilidades semánticas (`.brand-tagline`, `.footer-brand-title`, `.footer-brand-sub`, `.footer-info-block`, `.footer-nav-link`, `.footer-copyright`, `.card-notice-note`, `.modal-footer-nav`).
+4. **Showcase Visual de Plataforma**:
+   - Integración del mockup de alta resolución `img/platform-showcase.png` (Tablero Financiero Ejecutivo en Tiempo Real) encapsulado en `.showcase-frame` con micro-animación de elevación hover.
+
 
 
 
