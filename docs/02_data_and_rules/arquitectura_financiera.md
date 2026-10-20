@@ -228,3 +228,23 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
      * Reemplazo de inputs con ancho estático de 130px por inputs fluidos (`.financial-date-input` con `flex: 1`), evitando el desbordamiento horizontal fuera del borde perimetral de la tarjeta.
    - **Jerarquía Responsiva de KPIs (Capas 1, 2 y 3)**:
      * Aplicación de `.card-mobile-flush` en las tarjetas KPI y de analítica con espaciado uniforme `g-2 g-md-3`, tipografía optimizada para lectura rápida en pantallas pequeñas y preservación de contrastes de alta gama en Azul Marino (`#0A2A66`) y Teal Clínico (`#19B7A5`).
+
+---
+
+## 10. Segregación RBAC en Tablero Financiero (Recepcionista vs Administrador Organización)
+
+1. **Principio de Segregación de Datos Personales vs Globales**:
+   - Los datos consolidados, la cartera global de cuentas por cobrar privadas, las cotizaciones y los convenios públicos (`CxC Estado`) son de consulta **exclusiva del Administrador Organización**.
+   - El usuario con rol **Recepcionista** visualiza única y exclusivamente los datos que ha capturado personalmente durante sus turnos de caja:
+     * **Ingresos Reales**: Suma estricta de sus propios recibos emitidos en [dat/folios_recibos_privados.dat](file:///c:/xampp/htdocs/ospulso/dat/folios_recibos_privados.dat) (`ELABORADO_POR == $session_data->{usuario} || $session_data->{uid} || $session_data->{correo_login}`).
+     * **Prohibición de Fallback a `estado_cuenta.dat`**: Queda estrictamente prohibido aplicar fallbacks a abonos de `estado_cuenta.dat` para el rol Recepcionista. Si la recepcionista no ha emitido recibos en el periodo seleccionado, su monto de ingresos reales es estrictamente **$0.00**.
+     * **Total Gastos**: Registros de [dat/gastos.dat](file:///c:/xampp/htdocs/ospulso/dat/gastos.dat) creados por su usuario (`ID_CREADOR == $session_data->{usuario}`).
+     * **Cuentas por Cobrar y Cotizaciones**: Puestas en $0.00 y omitidas en la Capa 2 para recepcionistas, ya que no administra créditos clínicos ni carteras institucionales.
+
+2. **Adaptación de la Interfaz según Rol (`views/finanzas.pl`)**:
+   - **Para Recepcionista**:
+     * Encabezado: *"Mi Tablero de Caja / Turno"* con subtítulo *"Métricas personales de cobranza, recibos y turno activo"*.
+     * Badges: *"Cobrado Personal"*, *"Egresos Personales"*, *"Flujo de Turno"*.
+     * Capa 2: Grilla compacta de 2 columnas enfocada en *Recibos Emitidos (Personales)* y *Eficiencia Cobro Turno* (ocultando CxC Privadas y CxC Estado).
+   - **Para Administrador Organización**:
+     * Mantiene el consolidado macro de 3 capas con visión global de la clínica.

@@ -86,6 +86,13 @@ if (!$found_pacientes_estado && ($id_empresa eq '0' || $id_empresa eq '')) {
     }
 }
 
+my $es_recepcionista = ($session_data->{role} eq 'Recepcionista') ? 1 : 0;
+my $titulo_tablero = $es_recepcionista ? 'Mi Tablero de Caja / Turno' : 'Tablero Financiero Ejecutivo';
+my $subtitulo_tablero = $es_recepcionista ? 'Métricas personales de cobranza, recibos y turno activo' : 'Métricas consolidadas, rentabilidad y flujo operativo de la organización';
+my $badge_ingresos = $es_recepcionista ? 'Cobrado Personal' : 'Cobrado en Caja';
+my $badge_egresos = $es_recepcionista ? 'Egresos Personales' : 'Pagado / Egresos';
+my $badge_utilidad = $es_recepcionista ? 'Flujo de Turno' : 'Flujo Operativo';
+
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 render_header(usuario => $session_data->{usuario}, titulo => "Finanzas - SDM", role => $session_data->{role}, id_medico => $session_data->{id_medico}, skip_header => 1);
 
@@ -257,9 +264,13 @@ print <<'PAGE_HTML';
                             <div>
                                 <h5 class="fw-bold plus-jakarta mb-1 d-flex align-items-center gap-2" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.05rem;">
                                     <i class="bi bi-speedometer2" style="color: var(--md-teal-clinical, #19B7A5);"></i>
-                                    Tablero Financiero Ejecutivo
+PAGE_HTML
+    print "                                    $titulo_tablero\n";
+    print <<'PAGE_HTML';
                                 </h5>
-                                <p class="text-muted small mb-0" style="font-size: 0.72rem; line-height: 1.25;">Métricas consolidadas, rentabilidad y flujo operativo de la organización</p>
+PAGE_HTML
+    print "                                <p class=\"text-muted small mb-0\" style=\"font-size: 0.72rem; line-height: 1.25;\">$subtitulo_tablero</p>\n";
+    print <<'PAGE_HTML';
                             </div>
                             
                             <div class="financial-toolbar-controls d-flex flex-column flex-sm-row align-items-stretch align-items-lg-center gap-2">
@@ -301,7 +312,9 @@ print <<'PAGE_HTML';
                             </div>
                             <h2 class="fw-bold m-0 text-success plus-jakarta" id="kpiIngresosTotales" style="font-size: 1.65rem;">$0.00</h2>
                             <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Cobrado en Caja</span>
+PAGE_HTML
+    print "                                <span class=\"badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small fw-semibold\" style=\"font-size: 0.65rem;\">$badge_ingresos</span>\n";
+    print <<'PAGE_HTML';
                                 <span class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.72rem;">Ver Detalle <i class="bi bi-arrow-right"></i></span>
                             </div>
                         </div>
@@ -318,7 +331,9 @@ print <<'PAGE_HTML';
                             </div>
                             <h2 class="fw-bold m-0 text-danger plus-jakarta" id="kpiTotalEgresos" style="font-size: 1.65rem;">$0.00</h2>
                             <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
-                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Pagado / Egresos</span>
+PAGE_HTML
+    print "                                <span class=\"badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 small fw-semibold\" style=\"font-size: 0.65rem;\">$badge_egresos</span>\n";
+    print <<'PAGE_HTML';
                                 <span class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.72rem;">Ver Detalle <i class="bi bi-arrow-right"></i></span>
                             </div>
                         </div>
@@ -336,13 +351,56 @@ print <<'PAGE_HTML';
                             <h2 class="fw-bold m-0 plus-jakarta" id="kpiUtilidadNeta" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.65rem;">$0.00</h2>
                             <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
                                 <span class="small text-muted" id="kpiMargenSubtexto" style="font-size: 0.72rem;">Margen: <span class="fw-bold">0%</span></span>
-                                <span class="badge rounded-pill px-2 py-1 small fw-semibold" style="background: rgba(10, 42, 102, 0.08); color: var(--md-blue-deep, #0A2A66); font-size: 0.65rem;">Flujo Operativo</span>
+PAGE_HTML
+    print "                                <span class=\"badge rounded-pill px-2 py-1 small fw-semibold\" style=\"background: rgba(10, 42, 102, 0.08); color: var(--md-blue-deep, #0A2A66); font-size: 0.65rem;\">$badge_utilidad</span>\n";
+    print <<'PAGE_HTML';
                             </div>
                         </div>
                     </div>
                 </div>
+PAGE_HTML
 
-                <!-- Capa 2: Cobranza, Recibos y Eficiencia Operativa -->
+    if ($es_recepcionista) {
+        print <<'PAGE_HTML';
+                <!-- Capa 2: Cobranza y Recibos Personales (Recepcionista) -->
+                <div class="row row-cols-1 row-cols-sm-2 g-2 g-md-3 mb-3 mb-md-4">
+                    <!-- 1. Recibos Emitidos Personales -->
+                    <div class="col">
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_corte_caja')" title="Clic para ver detalle en Corte de Caja" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                                <span class="small fw-bold text-muted text-truncate" style="font-size: 0.72rem;">Recibos Emitidos (Personales)</span>
+                                <i class="bi bi-receipt-cutoff fs-5" style="color: var(--md-blue-deep, #0A2A66);"></i>
+                            </div>
+                            <h4 class="fw-bold m-0 text-dark plus-jakarta" id="kpiTotalRecibos" style="font-size: 1.25rem;">0</h4>
+                            <div class="small text-muted mt-1 mt-md-2 pt-1 border-top border-light d-flex justify-content-between align-items-center">
+                                <span class="badge rounded-pill px-2 py-0" style="background: rgba(10, 42, 102, 0.08); color: var(--md-blue-deep, #0A2A66); font-size: 0.65rem;" id="kpiRecibosHoyBadge">Hoy: 0</span>
+                                <span class="text-muted" style="font-size:0.7rem;" id="kpiTicketPromedio">(Prom: $0.00)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Eficiencia de Cobro -->
+                    <div class="col">
+                        <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                                <span class="small fw-bold text-muted text-truncate" style="font-size: 0.72rem;">Eficiencia Cobro Turno</span>
+                                <i class="bi bi-percent text-success fs-5"></i>
+                            </div>
+                            <h4 class="fw-bold m-0 text-success plus-jakarta" id="kpiEficiencia" style="font-size: 1.25rem;">100%</h4>
+                            <div class="small text-muted mt-1 mt-md-2 pt-1 border-top border-light">
+                                <span style="font-size: 0.68rem;">Efectividad en Ventanilla</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <span id="kpiCuentasCobrar" class="d-none">$0.00</span>
+                <span id="kpiCxcEstado" class="d-none">$0.00</span>
+                <span id="kpiPresupuestosActivos" class="d-none">$0.00</span>
+                <span id="kpiFacturacion" class="d-none">$0.00</span>
+PAGE_HTML
+    } else {
+        print <<'PAGE_HTML';
+                <!-- Capa 2: Cobranza, Recibos y Eficiencia Operativa (Administrador Organización) -->
                 <div class="row row-cols-2 row-cols-md-4 g-2 g-md-3 mb-3 mb-md-4">
                     <!-- 4. Cuentas por Cobrar Privadas -->
                     <div class="col">
@@ -360,8 +418,8 @@ print <<'PAGE_HTML';
                     </div>
 PAGE_HTML
 
-    if ($has_pacientes_estado) {
-        print <<'PAGE_HTML';
+        if ($has_pacientes_estado) {
+            print <<'PAGE_HTML';
                     <!-- 5. CxC Estado (Convenios Públicos) -->
                     <div class="col">
                         <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
@@ -379,8 +437,8 @@ PAGE_HTML
                     <span id="kpiPresupuestosActivos" class="d-none">$0.00</span>
                     <span id="kpiFacturacion" class="d-none">$0.00</span>
 PAGE_HTML
-    } else {
-        print <<'PAGE_HTML';
+        } else {
+            print <<'PAGE_HTML';
                     <!-- 5. Presupuestos / Cotizado -->
                     <div class="col">
                         <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
@@ -397,9 +455,9 @@ PAGE_HTML
                     <span id="kpiCxcEstado" class="d-none">$0.00</span>
                     <span id="kpiFacturacion" class="d-none">$0.00</span>
 PAGE_HTML
-    }
+        }
 
-    print <<'PAGE_HTML';
+        print <<'PAGE_HTML';
                     <!-- 6. Recibos Emitidos -->
                     <div class="col">
                         <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" role="button" onclick="swTab('tab_corte_caja')" title="Clic para ver detalle en Corte de Caja" style="cursor: pointer; background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
@@ -429,7 +487,10 @@ PAGE_HTML
                         </div>
                     </div>
                 </div>
+PAGE_HTML
+    }
 
+    print <<'PAGE_HTML';
                 <!-- Capa 3: Analítica Visual Avanzada: Evolución & Distribución -->
                 <div class="row g-2 g-md-4 mb-3 mb-md-4">
                     <div class="col-lg-7">
