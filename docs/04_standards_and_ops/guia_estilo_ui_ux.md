@@ -464,6 +464,15 @@ Para garantizar accesibilidad universal (WCAG 2.1 AA/AAA) y consistencia editori
      - **Alertas WhatsApp** (`img/holo/whatsapp.png`): Bloque de cristal con isotipo de globo conversacional WhatsApp, campana médica de notificación en neón esmeralda y rótulo *"ALERTAS WHATSAPP"*.
    - **Técnica de Difuminado Radial al Blanco (Seamless Card Blending)**: Las 9 imágenes aplican un algoritmo de fundido radial (`smoothstep` entre radio 370px y 485px, más margen perimetral) que degrada matemáticamente cualquier tinte de fondo hacia blanco puro (`#FFFFFF`) en los bordes, eliminando bordes duros y fusionando cada imagen de forma invisible con el fondo de las tarjetas `.holo-card`.
    - **Homologación**: Mismo tamaño (1024x1024), misma perspectiva frontal/isométrica suave, idéntico acabado en cristal acrílico con reflejos de estudio y supresión de elementos satelitales diminutos.
+6. **Arquitectura del Menú Principal y Botones de Cabecera (`index.html`, `css/ospulso_master.css`)**:
+   - **Distribución Horizontal Unificada (Single Row Navigation)**: El encabezado opera con `.container-fluid.max-w-1400`, garantizando que en resoluciones de escritorio (1280px, 1440px y superiores) los 5 enlaces (`Filosofía 5S`, `Interfaz`, `Ecosistema`, `Migración`, `Planes`) y los botones de acción convivan en una sola fila sin forzar quiebres de línea.
+   - **Supresión de Quiebres de Texto (`white-space: nowrap`)**: Se aplica `white-space: nowrap !important;` tanto a los enlaces (`.navbar .menu a`) como a los botones de sesión y acceso, erradicando que términos compuestos como *"Filosofía 5S"* o *"Iniciar Sesión"* se partan en dos renglones.
+   - **Dimensionamiento Ergonómico y Compacto de Botones**:
+     - `.btn-nav-login`: Botón translúcido suave con borde tenue, tipografía `0.825rem`, padding `0.35rem 0.95rem` y esquinas redondeadas completas (`rounded-pill`).
+     - `.btn-nav-cta`: Botón degradado en teal médico (#19B7A5 a #0d9488), tipografía `0.825rem`, padding `0.35rem 1.05rem` y sombra sutil sin sobrecargar visualmente el cuadrante superior derecho.
+   - **Gobernanza Tipográfica Antidistorsión**:
+     - Carga canónica de Google Fonts (`Outfit` para titulares/menú y `Plus Jakarta Sans` para lectura/subtítulos) mediante `<link rel="preconnect">` y `@import` unificado.
+     - Integración de `-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;` para un renderizado ultra-nítido, eliminando aberraciones, engrosamientos artificiales o deformaciones de fuentes del sistema.
 
 
 
