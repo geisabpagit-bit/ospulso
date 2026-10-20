@@ -55,6 +55,8 @@ if (-e $archivo_config && open my $fh_c, '<:encoding(UTF-8)', $archivo_config) {
 my $es_consultorio_ind = ($tipo_organizacion eq 'Consultorio Individual') ? 1 : 0;
 my $es_consultorio = ($tipo_organizacion eq 'Consultorio Individual' || $tipo_organizacion eq 'Consultorio Compartido') ? 1 : 0;
 my $btn_cobrar_recepcion_html = $es_consultorio ? '' : qq{<button type="button" id="btn-cobrar-recepcion" onclick="cobrarRecepcionModal()" class="btn btn-amber btn-compact d-none"><i class="bi bi-cash-coin me-1"></i> Cobrar en Recepción</button>};
+my $class_col_motivo = $es_consultorio_ind ? 'col-12' : 'col-md-6';
+my $class_col_medico = $es_consultorio_ind ? 'col-md-6 d-none' : 'col-md-6';
 
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
@@ -352,11 +354,11 @@ print <<HTML;
                                     </div>
 
                                     <!-- Fila 2: Motivo y Profesional -->
-                                    <div class="col-md-6">
+                                    <div class="$class_col_motivo" id="col_motivo">
                                         <label class="form-label-compact" for="f_motivo">Motivo / Observaciones <span class="text-danger">*</span></label>
                                         <input type="text" name="motivo" id="f_motivo" class="form-control form-control-compact" placeholder="Detalles de la cita..." required>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="$class_col_medico" id="col_medico_select">
                                         <label class="form-label-compact" for="f_medico_select">Profesional Asignado</label>
                                         <select name="id_medico" id="f_medico_select" class="form-select form-control-compact" onchange="actualizarAgendaDestino()">
                                             $html_medicos
@@ -473,6 +475,14 @@ print <<HTML;
                 <div class="modal-body p-4 bg-light">
                     <form id="formAjustes">
                         <div class="row g-3">
+                            <div class="col-12 $class_col_medico" id="adj_medico_wrapper">
+                                <div class="form-floating mb-1">
+                                    <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_medico_select" onchange="cargarAjustesMedico(this.value)">
+                                        $html_medicos
+                                    </select>
+                                    <label class="text-muted fw-bold small text-uppercase">Médico a Configurar</label>
+                                </div>
+                            </div>
                             <div class="col-6">
                                 <div class="form-floating mb-2">
                                     <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_h_ini" name="h_ini" required>
@@ -519,7 +529,7 @@ print <<HTML;
                                         <input class="form-check-input adj-dia" type="checkbox" value="6" id="d6"> <label class="form-check-label small fw-bold" for="d6">Sáb</label>
                                     </div>
                                     <div class="form-check form-check-inline m-0 me-2">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="0" id="d0"> <label class="form-check-label small fw-bold" for="d0">Dom</label>
+                                        <input class="form-check-input adj-dia" type="checkbox" value="7" id="d7"> <label class="form-check-label small fw-bold" for="d7">Dom</label>
                                     </div>
                                 </div>
                             </div>

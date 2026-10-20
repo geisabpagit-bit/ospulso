@@ -760,14 +760,17 @@ function loadFormMetadata() {
 }
 
 function actualizarAgendaDestino() {
-    // Si la recepcionista cambia de médico al agendar, recargamos sus citas para colisiones
+    // Si la recepcionista cambia de médico al agendar, recargamos sus citas y su configuración de jornada real
     const destId = $("#f_medico_select").val();
     if (!destId) return;
     $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: destId }, function(res) {
         if (res.ok) {
             appointments = res.data;
-            // No sobreescribimos agendaConfig si queremos mantener las horas del médico original,
-            // pero si la jornada del otro es distinta, convendría sobreescribir. Por ahora actualizamos colisiones.
+            if (res.config) {
+                agendaConfig = res.config;
+                duracionCita = parseInt(agendaConfig.intervalo_minutos) || 30;
+                renderDuracionButtons();
+            }
             renderSlots($("#f_fecha").val());
         }
     });
@@ -2480,7 +2483,7 @@ function isWorkDay(iso) {
     let day = d.getDay(); // 0=Dom, 1=Lun
     // Convertir a formato 1=Lun...7=Dom
     let isoWDay = (day === 0) ? 7 : day;
-    return agendaConfig.workDays.map(Number).includes(isoWDay);
+    return agendaConfig.workDays.map(Number).some(w => w === isoWDay || (isoWDay === 7 && w === 0));
 }
 
 function renderTable(type) {
@@ -2667,6 +2670,32 @@ function renderTable(type) {
 /**
  * Ajustes de Agenda (Per-User Configuration)
  */
+function cargarAjustesMedico(idMed) {
+    if (!idMed) return;
+    $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: idMed }, function(res) {
+        if (res.ok && res.config) {
+            const cfg = res.config;
+            $("#adj_h_ini").val(cfg.laborStart || '08:00');
+            $("#adj_h_fin").val(cfg.laborEnd || '18:00');
+            $("#adj_c_ini").val(cfg.lunchStart || '14:00');
+            $("#adj_c_fin").val(cfg.lunchEnd || '16:00');
+            $("#adj_int").val(cfg.intervalo_minutos || '30');
+            $("#adj_cancel_hours").val(cfg.cancel_hours || '24');
+            $("#adj_fest").val(cfg.festivos_medico || '');
+            
+            $(".adj-dia").prop('checked', false);
+            if (cfg.workDays && Array.isArray(cfg.workDays)) {
+                cfg.workDays.forEach(d => {
+                    $(`#d${d}`).prop('checked', true);
+                    if (d == 7 || d == 0) {
+                        $("#d7, #d0").prop('checked', true);
+                    }
+                });
+            }
+        }
+    });
+}
+
 function abrirModalAjustes() {
     const el = document.getElementById('modalAjustes');
     if (!el) {
@@ -2681,28 +2710,39 @@ function abrirModalAjustes() {
 
     const m = new bootstrap.Modal(el);
     
-    // Poblar con valores actuales
-    $("#adj_h_ini").val(agendaConfig.laborStart || '08:00');
-    $("#adj_h_fin").val(agendaConfig.laborEnd || '18:00');
-    $("#adj_c_ini").val(agendaConfig.lunchStart || '14:00');
-    $("#adj_c_fin").val(agendaConfig.lunchEnd || '16:00');
-    $("#adj_int").val(agendaConfig.intervalo_minutos || '30');
-    $("#adj_cancel_hours").val(agendaConfig.cancel_hours || '24');
-    $("#adj_fest").val(agendaConfig.festivos_medico || '');
-    
-    // Checkboxes días
-    $(".adj-dia").prop('checked', false);
-    if (agendaConfig.workDays && Array.isArray(agendaConfig.workDays)) {
-        agendaConfig.workDays.forEach(d => {
-            $(`#d${d}`).prop('checked', true);
-        });
+    // Si la vista dispone de selector de médico a configurar, inicializarlo
+    const medSel = $("#adj_medico_select");
+    const currentMed = $("#f_medico_select").val() || $("#f_medico").val() || '';
+    if (medSel.length && currentMed) {
+        medSel.val(currentMed);
+        cargarAjustesMedico(currentMed);
+    } else {
+        // Poblar con valores actuales
+        $("#adj_h_ini").val(agendaConfig.laborStart || '08:00');
+        $("#adj_h_fin").val(agendaConfig.laborEnd || '18:00');
+        $("#adj_c_ini").val(agendaConfig.lunchStart || '14:00');
+        $("#adj_c_fin").val(agendaConfig.lunchEnd || '16:00');
+        $("#adj_int").val(agendaConfig.intervalo_minutos || '30');
+        $("#adj_cancel_hours").val(agendaConfig.cancel_hours || '24');
+        $("#adj_fest").val(agendaConfig.festivos_medico || '');
+        
+        // Checkboxes días
+        $(".adj-dia").prop('checked', false);
+        if (agendaConfig.workDays && Array.isArray(agendaConfig.workDays)) {
+            agendaConfig.workDays.forEach(d => {
+                $(`#d${d}`).prop('checked', true);
+                if (d == 7 || d == 0) {
+                    $("#d7, #d0").prop('checked', true);
+                }
+            });
+        }
     }
     
     m.show();
 }
 
 function guardarAjustes() {
-    const idMed = $("#f_medico").val() || '2';
+    const idMed = ($("#adj_medico_select").length && $("#adj_medico_select").val()) ? $("#adj_medico_select").val() : ($("#f_medico").val() || '2');
     const dias = [];
     $(".adj-dia:checked").each(function() { dias.push($(this).val()); });
     
@@ -2724,7 +2764,7 @@ function guardarAjustes() {
             let swalConfig = {
                 icon: 'success',
                 title: 'Ajustes Guardados',
-                text: 'Las preferencias de tu agenda han sido actualizadas.',
+                text: 'Las preferencias de la agenda han sido actualizadas.',
                 confirmButtonColor: '#103070'
             };
             if (res.warning) {
@@ -2734,7 +2774,7 @@ function guardarAjustes() {
             }
             Swal.fire(swalConfig).then(() => {
                 const bootstrapModal = bootstrap.Modal.getInstance(document.getElementById('modalAjustes'));
-                bootstrapModal.hide();
+                if (bootstrapModal) bootstrapModal.hide();
                 loadContext(); // Recargar para aplicar cambios visualmente
             });
         } else {

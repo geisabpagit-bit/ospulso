@@ -171,16 +171,18 @@ print <<"HTML";
 
 <main class="container-fluid container-mobile-flush pt-3 px-4 pb-5 animate__animated animate__fadeIn">
     
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
             <h4 class="fw-bold mb-1 text-primary"><i class="bi bi-heart-pulse-fill me-2"></i>Tablero de Quirófano</h4>
-            <p class="text-muted small mb-0">Gestión de flujo de pacientes quirúrgicos (Kanban)</p>
+            <p class="text-muted small mb-0">Monitor de ejecución y flujo de pacientes quirúrgicos en tiempo real</p>
         </div>
-        <div class="d-flex gap-2">
-            <input type="date" id="filtroFecha" class="form-control form-control-sm" style="width: 150px;">
-            <button class="btn btn-sm btn-primary btn-mobile-standard btn-mobile-action shadow-sm" onclick="\$('#modalNuevaCirugia').modal('show')">
-                <i class="bi bi-plus-circle me-1"></i> Agendar Cirugía
-            </button>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-white text-navy border py-2 px-3 shadow-sm rounded-3 fw-bold d-flex align-items-center">
+                <i class="bi bi-clock-history text-primary me-2"></i>Monitoreo en Vivo: <span id="lblFechaHoy" class="ms-1.5 fw-bold text-primary"></span>
+            </span>
+            <a href="agenda_main.pl" class="btn btn-sm btn-outline-primary btn-mobile-standard shadow-sm d-flex align-items-center" title="Programar en la Agenda Central">
+                <i class="bi bi-calendar3 me-1.5"></i> Agenda Central
+            </a>
         </div>
     </div>
     
@@ -234,117 +236,30 @@ print <<"HTML";
     </div>
 
 </main>
-
-<!-- Modal Nueva Cirugía -->
-<div class="modal fade" id="modalNuevaCirugia" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content card-mobile-flush border-0 shadow">
-      <div class="modal-header bg-primary text-white border-0">
-        <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus me-2"></i>Agendar Procedimiento Quirúrgico</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body bg-light">
-        <form id="frmNuevaCirugia" onsubmit="return false;">
-            
-            <div class="row g-3 mb-3">
-                <div class="col-md-12">
-                    <label class="form-label fw-bold small text-muted">Paciente <span class="text-danger">*</span></label>
-                    <select id="selPaciente" name="id_paciente" class="form-select" style="width:100%;"></select>
-                </div>
-            </div>
-            
-            <div class="row g-3 mb-3">
-                <div class="col-md-12">
-                    <label class="form-label fw-bold small text-muted">Procedimiento / Cirugía <span class="text-danger">*</span></label>
-                    <input type="text" id="iptProcedimiento" name="procedimiento" class="form-control" placeholder="Ej. Apendicectomía Laparoscópica" required>
-                </div>
-            </div>
-            
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold small text-muted">Cirujano Responsable <span class="text-danger">*</span></label>
-                    <select id="selMedico" name="id_medico" class="form-select" required>
-                        $medicos_options
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold small text-muted">Anestesiólogo (Opcional)</label>
-                    <select id="selAnestesio" name="id_anestesiologo" class="form-select">
-                        $medicos_options
-                    </select>
-                </div>
-            </div>
-            
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold small text-muted">Fecha Programada <span class="text-danger">*</span></label>
-                    <input type="date" id="iptFecha" name="fecha_programada" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold small text-muted">Hora Programada <span class="text-danger">*</span></label>
-                    <input type="time" id="iptHora" name="hora_programada" class="form-control" required>
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label fw-bold small text-muted">Notas Adicionales</label>
-                <textarea id="iptNotas" name="notas" class="form-control" rows="2" placeholder="Requerimientos de sangre, alergias específicas para quirófano, etc."></textarea>
-            </div>
-            
-        </form>
-      </div>
-      <div class="modal-footer border-0">
-        <button type="button" class="btn btn-light btn-mobile-standard btn-mobile-outline" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary btn-mobile-standard btn-mobile-action shadow-sm" onclick="guardarCirugia()">Guardar en Agenda</button>
-      </div>
-    </div>
-  </div>
-</div>
 HTML
 
 print <<'JS';
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Init Filtro de Fecha a HOY
         const tzoffset = (new Date()).getTimezoneOffset() * 60000;
         const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 10);
-        $('#filtroFecha').val(localISOTime);
-        $('#iptFecha').val(localISOTime);
-        
-        $('#filtroFecha').on('change', function() { cargarTablero(); });
-        
-        // Init Select2 para Pacientes
-        $('#selPaciente').select2({
-            theme: 'bootstrap-5',
-            dropdownParent: $('#modalNuevaCirugia'),
-            placeholder: '🔍 Escribe nombre del paciente...',
-            minimumInputLength: 2,
-            ajax: {
-                url: '../api/pacientes_buscar.pl',
-                dataType: 'json',
-                delay: 350,
-                data: function (params) { return { q: params.term }; },
-                processResults: function (data) {
-                    return { results: data.map(function(item) { return { id: item.id, text: item.text }; }) };
-                }
-            }
-        });
+        const hoyTexto = new Date().toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+        $('#lblFechaHoy').text(hoyTexto.toUpperCase());
         
         initSortable();
-        cargarTablero();
+        cargarTablero(localISOTime);
     });
     
     function initSortable() {
         const lists = document.querySelectorAll('.sortable-list');
         lists.forEach(list => {
             new Sortable(list, {
-                group: 'kanban', // set both lists to same group
+                group: 'kanban',
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 onEnd: function (evt) {
-                    const itemEl = evt.item;  // dragged HTMLElement
-                    const toList = evt.to;    // target list
+                    const itemEl = evt.item;
+                    const toList = evt.to;
                     const idCirugia = itemEl.getAttribute('data-id');
                     const nuevoEstado = toList.getAttribute('data-estado');
                     
@@ -357,35 +272,36 @@ print <<'JS';
         });
     }
     
-    async function cargarTablero() {
-        const fecha = \$('#filtroFecha').val();
+    async function cargarTablero(fechaFiltro) {
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        const fecha = fechaFiltro || (new Date(Date.now() - tzoffset)).toISOString().slice(0, 10);
         
-        \$('#list-Programada').empty();
-        \$('#list-Pre-Operatorio').empty();
-        \$('#list-En\\ Quirófano').empty();
-        \$('#list-Recuperación').empty();
-        \$('#list-Alta').empty();
+        $('#list-Programada').empty();
+        $('#list-Pre-Operatorio').empty();
+        $('#list-En\\ Quirófano').empty();
+        $('#list-Recuperación').empty();
+        $('#list-Alta').empty();
         
         try {
             const req = await fetch('../api/quirofano_crud.pl?action=read&fecha=' + fecha);
             const data = await req.json();
             
             data.forEach(c => {
-                const anestesiaHtml = c.nombre_anestesio ? `<div class="small mt-1"><i class="bi bi-lungs text-info"></i> Anest: \${c.nombre_anestesio}</div>` : '';
-                const salaHtml = c.sala ? `<span class="badge bg-light text-dark border">\${c.sala}</span>` : '';
+                const anestesiaHtml = c.nombre_anestesio ? `<div class="small mt-1"><i class="bi bi-lungs text-info"></i> Anest: ${c.nombre_anestesio}</div>` : '';
+                const salaHtml = c.sala ? `<span class="badge bg-light text-dark border">${c.sala}</span>` : '';
                 
                 const card = `
-                    <div class="kanban-card" data-id="\${c.id_cirugia}">
+                    <div class="kanban-card" data-id="${c.id_cirugia}">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="badge bg-primary rounded-pill"><i class="bi bi-clock me-1"></i> \${c.hora}</span>
-                            \${salaHtml}
+                            <span class="badge bg-primary rounded-pill"><i class="bi bi-clock me-1"></i> ${c.hora}</span>
+                            ${salaHtml}
                         </div>
-                        <h6 class="fw-bold mb-1 text-dark">\${c.nombre_paciente}</h6>
-                        <div class="text-primary small fw-bold mb-2">\${c.procedimiento}</div>
+                        <h6 class="fw-bold mb-1 text-dark">${c.nombre_paciente}</h6>
+                        <div class="text-primary small fw-bold mb-2">${c.procedimiento}</div>
                         
                         <div class="small text-muted">
-                            <div><i class="bi bi-person-badge"></i> Cx: \${c.nombre_medico}</div>
-                            \${anestesiaHtml}
+                            <div><i class="bi bi-person-badge"></i> Cx: ${c.nombre_medico}</div>
+                            ${anestesiaHtml}
                         </div>
                     </div>
                 `;
@@ -410,8 +326,10 @@ print <<'JS';
     function actualizarContadores() {
         const columns = ['Programada', 'Pre-Operatorio', 'En Quirófano', 'Recuperación', 'Alta'];
         columns.forEach(col => {
-            const cnt = document.getElementById('list-' + col).children.length;
-            document.getElementById('cnt-' + col).innerText = cnt;
+            const el = document.getElementById('list-' + col);
+            const cnt = el ? el.children.length : 0;
+            const badge = document.getElementById('cnt-' + col);
+            if (badge) badge.innerText = cnt;
         });
     }
     
@@ -427,43 +345,13 @@ print <<'JS';
             
             if(!res.ok) {
                 CrystalToast.fire({icon: 'error', title: res.msg});
-                cargarTablero(); // revert visual change
+                cargarTablero();
             } else {
                 CrystalToast.fire({icon: 'success', title: 'Estado Actualizado'});
             }
         } catch(e) {
             CrystalToast.fire({icon: 'error', title: 'Falla de red al actualizar estado'});
-            cargarTablero(); // revert visual change
-        }
-    }
-    
-    async function guardarCirugia() {
-        const frm = document.getElementById('frmNuevaCirugia');
-        if (!frm.checkValidity()) {
-            frm.reportValidity();
-            return;
-        }
-        
-        const formData = new URLSearchParams(new FormData(frm));
-        formData.append('action', 'create');
-        
-        try {
-            const req = await fetch('../api/quirofano_crud.pl', { method: 'POST', body: formData });
-            const res = await req.json();
-            
-            if (res.ok) {
-                Swal.fire('Agendado', 'Cirugía guardada correctamente', 'success');
-                \$('#modalNuevaCirugia').modal('hide');
-                frm.reset();
-                \$('#selPaciente').val(null).trigger('change');
-                \$('#iptFecha').val(\$('#filtroFecha').val()); // reset to selected filter
-                
-                cargarTablero();
-            } else {
-                Swal.fire('Error', res.msg, 'error');
-            }
-        } catch (e) {
-            Swal.fire('Error', 'Falla de red', 'error');
+            cargarTablero();
         }
     }
 </script>

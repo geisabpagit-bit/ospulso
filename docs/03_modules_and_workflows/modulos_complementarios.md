@@ -10,10 +10,19 @@ Este documento agrupa la especificación de los módulos complementarios y espec
 ### 2.1 Agenda y Citas Médicas (`views/agenda_main.pl`, `api/citas_crud.pl`, `js/agenda_spa_new.js`)
 - Administración de calendario por médico tratante, especialidad y consultorio.
 - Vistas disponibles: Principal (`agenda_main.pl`), Lista (`agenda_vista_lista.pl`), Semanal (`agenda_vista_semanal.pl`) y Mensual (`agenda_vista_mensual.pl`).
-- **Aislamiento Multi-Tenant y Reglas para Consultorio Individual**:
+- **Aislamiento Multi-Tenant y Reglas para Consultorio Individual vs Clínica Multi-Rol**:
   1. **Sucursales y Sedes**: El endpoint `api/citas_crud.pl?accion=get_form_metadata` filtra estrictamente por el `id_empresa` del usuario autenticado. Para un **"Consultorio Individual"**, devuelve únicamente su sede propia sin permitir sucursales foráneas ni matrices ajenas.
   2. **Recursos Físicos (`get_recursos`)**: Si la organización es un **"Consultorio Individual"**, el sistema fuerza de forma inviolable la disponibilidad de **1 solo consultorio físico** ("Consultorio 1" y opción "Virtual") y **0 quirófanos**. En clínicas con hospitalización o múltiples sedes, consulta dinámicamente los recursos configurados en `dat/negocios_config.dat`.
   3. **Eventos y Filtro de Médicos**: La consulta de eventos (`get_events`) y el catálogo de profesionales en el modal de citas aíslan rigurosamente a los médicos pertenecientes al `id_empresa` de la sesión, impidiendo fugas entre organizaciones.
+  4. **Vertiente Organizacional en Modal de Citas (`#modalCita`)**:
+     - **Branch A (Consultorio Individual / Monousuario)**: El director es simultáneamente Administrador y único Médico. En `#modalCita`, el selector *"PROFESIONAL ASIGNADO"* se oculta permanentemente (`d-none`), asignando al médico titular por defecto y expandiendo el campo *"Motivo de la Cita"* a ancho completo (`col-12`) para optimizar la captura clínica.
+     - **Branch B (Clínica / Hospital con CLUE y Multi-Rol)**: El selector *"PROFESIONAL ASIGNADO"* es obligatorio, alimentado exclusivamente por la plantilla de médicos activos dados de alta en `views/administracion_usuarios.pl`.
+- **Disponibilidad Horaria Dinámica por Médico vs Organización 24/365**:
+  1. **Organización Institucional vs Jornada Médica**: Aunque una organización con CLUE (ej. QTSMP000116) opere 24/365 de manera ininterrumpida, los médicos cuentan con jornadas y descansos independientes. Al agendar citas desde roles administrativos o de recepción (`Recepcionista` o `Administrador Organización`), el cambio en el selector de médico (`#f_medico_select`) recarga reactivamente en tiempo de ejecución tanto los eventos como la configuración del profesional (`res.config`), recalculando los bloques de tiempo (`duracionCita`, `laborStart`, `laborEnd`, días hábiles y recesos de comida) según la disponibilidad real del médico seleccionado.
+  2. **Configuración Multi-Médico en Ajustes de Agenda (`#modalAjustes`)**: En organizaciones con múltiples médicos, el modal de ajustes incluye el selector dinámico `#adj_medico_select`, permitiendo a administradores y recepcionistas consultar y modificar los horarios, días laborales e intervalos de cualquier profesional de la plantilla.
+  3. **Normalización ISO de Días Hábiles (Domingo = 7)**:
+     - El checkbox de domingo en `#modalAjustes` utiliza el estándar canónico ISO `value="7"` (compatible con `Time::Piece->_wday` y el frontend `isWorkDay`).
+     - `api/citas_crud.pl` y `js/agenda_spa_new.js` implementan tolerancia bidireccional continua (soporte de `0` y `7`), normalizando de manera transparente a `7` al persistir en `dat/agenda_config_medico_*.dat`. Esto erradica el falso positivo de día *"NO LABORABLE"* en domingos cuando el profesional o la clínica los tiene marcados como hábiles.
 - **Catálogo Canónico de Estados de Citas (`dat/catalogo_estados_citas.dat`)**:
   El sistema implementa 7 estados canónicos de citas médicas totalmente sincronizados entre backend (`api/citas_crud.pl`), vistas modales (`views/agenda_main.pl`) y motor visual SPA (`js/agenda_spa_new.js`):
   1. `Programada` (#0A2A66 / badge azul marino)
@@ -55,8 +64,12 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   1. Presenta botones de navegación de mes (`<` Mes Año `>`), píldoras interactivas con indicador de día actual (`is-today`), días con citas (`has-apts`), grid CSS de 7 columnas indestructible (`.side-cal-grid`) y borde mandante teal `rgba(25, 183, 165, 0.4)`.
 
 ### 2.2 Quirófano Kanban (`views/quirofano_kanban.pl`)
-- Tablero visual de flujo de cirugías en tiempo real.
-- Estados: *Programada*, *En Preparación*, *En Quirófano*, *Recuperación* y *Alta Quirúrgica*.
+- **Monitor de Piso en Tiempo Real (Floor Execution Only)**: Tablero visual de ejecución de procedimientos quirúrgicos para el día en curso.
+- **Centralización Única en Agenda Central**:
+  1. **Cancelación de Agendamiento Paralelo**: Queda prohibido programar citas o cirugías directamente desde `quirofano_kanban.pl`. Toda reserva quirúrgica (asignación de cirujano, anestesiólogo, quirófano y horario) se realiza exclusivamente desde la Agenda Central (`views/agenda_main.pl`), seleccionando el recurso "Quirófano".
+  2. **Sincronización Transversal**: La Agenda Central detecta automáticamente si el médico asignado tiene consulta o cirugía programada en ese horario, evitando colisiones tanto de espacio (quirófano ocupado) como de agenda profesional (médico en consulta externa simultánea).
+  3. **Monitor del Día**: `quirofano_kanban.pl` se enfoca estrictamente en la operación del día hoy (`#lblFechaHoy`) y cuenta con acceso directo a la Agenda Central mediante el botón *"Programar en Agenda Central"*.
+- Estados del Tablero: *Programada*, *Pre-Operatorio*, *En Quirófano*, *Recuperación* y *Alta*.
 - **Gobernanza de Capacidades SaaS (`MANEJA_HOSPITALIZACION`) & RBAC**:
   1. **Capacidad SaaS de Organización**: Para que el ítem *"Tablero Quirófano"* sea visible en el menú lateral (`utils/sub_sidebar.pl`) y accesible en `views/quirofano_kanban.pl`, la organización debe contar con la casilla de verificación **"Hospitalización"** activa en sus capacidades SaaS (`dat/negocios_config.dat` con `ID_ORG|MANEJA_HOSPITALIZACION|1`). Si no está activa (`0` o ausente para organizaciones privadas), la opción se oculta automáticamente del menú lateral y el acceso directo a la vista es bloqueado mediante `render_acceso_denegado`.
   2. **Control RBAC y Excepciones Activas**: Adicionalmente a la capacidad activa de la organización, el usuario debe poseer permiso de lectura (`R`) evaluado dinámicamente por la función `utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, 'quirofano', 'R', $id_usuario_sesion)` (matriz `permisos_roles_*.dat` o excepciones `permisos_usuarios_*.dat`).

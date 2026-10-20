@@ -89,7 +89,10 @@ sub _parse_config_file {
             elsif ($key eq 'horario_fin') { $ref->{laborEnd} = $val; }
             elsif ($key eq 'horario_comida_inicio') { $ref->{lunchStart} = $val; }
             elsif ($key eq 'horario_comida_fin') { $ref->{lunchEnd} = $val; }
-            elsif ($key eq 'dias_habiles') { $ref->{workDays} = [ split(/,/, $val) ]; }
+            elsif ($key eq 'dias_habiles') { 
+                my @ds = map { $_ eq '0' ? '7' : $_ } split(/,/, $val);
+                $ref->{workDays} = \@ds; 
+            }
             elsif ($key eq 'intervalo_minutos') { $ref->{intervalo_minutos} = $val; }
             elsif ($key eq 'cancel_hours') { $ref->{cancel_hours} = $val; }
             elsif ($key eq 'festivos') { $ref->{festivos} = $val; }
@@ -416,8 +419,8 @@ sub validar_horario {
     if ($hi lt $CONF{laborStart} || $hf gt $CONF{laborEnd}) {
         return (0, "Fuera de jornada laboral ($CONF{laborStart} - $CONF{laborEnd}).");
     }
-    # Omitir validación de comida si es "Todo el día" o "Resto del día" (termina al final de la jornada)
-    if ($hf ne $CONF{laborEnd}) {
+    # Omitir validación de comida si es "Todo el día", "Resto del día", o si comida no está definida/es igual
+    if ($hf ne $CONF{laborEnd} && $CONF{lunchStart} && $CONF{lunchEnd} && $CONF{lunchStart} ne $CONF{lunchEnd}) {
         if ($hi lt $CONF{lunchEnd} && $hf gt $CONF{lunchStart}) {
             return (0, "Traslape con horario de comida ($CONF{lunchStart} - $CONF{lunchEnd}).");
         }
@@ -430,7 +433,10 @@ sub validar_horario {
     my $iso_wday = ($wday == 1) ? 7 : $wday - 1; 
 
     my $found_day = 0;
-    foreach my $d (@{$CONF{workDays}}) { if ($d == $iso_wday) { $found_day = 1; last; } }
+    foreach my $d (@{$CONF{workDays}}) { 
+        my $norm_d = ($d eq '0') ? 7 : $d;
+        if ($norm_d == $iso_wday) { $found_day = 1; last; } 
+    }
     unless ($found_day) { return (0, "El día seleccionado no es laborable."); }
 
     # Blindaje de Días Festivos (Personalizados + Globales)
@@ -647,6 +653,8 @@ sub guardar_config_medico {
     my $c_ini = $q->param('c_ini') // '14:00';
     my $c_fin = $q->param('c_fin') // '16:00';
     my $d_hab = $q->param('dias')  // '1,2,3,4,5';
+    my @norm_days = map { $_ eq '0' ? '7' : $_ } split(/,/, $d_hab);
+    $d_hab = join(',', @norm_days);
     my $int   = $q->param('int')   // '30';
 
     my $file = "$dirname/../dat/agenda_config_medico_$id_m.dat";
