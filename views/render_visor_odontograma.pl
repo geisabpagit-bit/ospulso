@@ -388,27 +388,65 @@ print <<HTML;
                     </div>
                 </div>
 
-                <!-- LEYENDA CLÍNICA AL PIE (SANITIZADA CLÍNICA CLARA - IMAGEN 1) -->
-                <div class="odonto-legend mt-4">
-                    <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #FF3B30;"></span>
-                        <span class="small fw-bold">Caries / Patología</span>
+                <!-- LEYENDA CLÍNICA INTERACTIVA AL PIE (BARRA DINÁMICA CON MODO 1-CLIC Y PINCELES) -->
+                <div class="odonto-legend mt-4" id="odonto-interactive-legend">
+                    <!-- Selector de Modo de Trabajo -->
+                    <div class="odonto-mode-switch-group d-flex align-items-center me-1">
+                        <span class="text-muted small fw-bold me-2 d-none d-md-inline" style="font-size: 0.73rem;">
+                            <i class="bi bi-sliders2 me-1" style="color: #0d9488;"></i>Modo:
+                        </span>
+                        <div class="btn-group btn-group-sm p-0.5 bg-light rounded-pill border" role="group" style="padding: 2px;">
+                            <button type="button" class="btn btn-sm rounded-pill px-2 py-0.5 fw-bold active odonto-mode-btn" id="btn-mode-quick" onclick="setOdontoWorkMode('QUICK')" title="Modo 1-Clic: Aplica la condición directamente a la pieza">
+                                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>1-Clic
+                            </button>
+                            <button type="button" class="btn btn-sm rounded-pill px-2 py-0.5 fw-bold text-secondary odonto-mode-btn" id="btn-mode-detailed" onclick="setOdontoWorkMode('DETAILED')" title="Modo Ficha: Abre el modal clínico con la condición preseleccionada">
+                                <i class="bi bi-card-checklist text-primary me-1"></i>Ficha
+                            </button>
+                        </div>
                     </div>
-                    <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #00A896;"></span>
-                        <span class="small fw-bold">Restauración Adaptada</span>
+
+                    <div class="vr mx-2 text-muted opacity-25 d-none d-md-block" style="height: 24px;"></div>
+
+                    <!-- Pinceles de Estampado / Diagnóstico -->
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <button type="button" class="odonto-legend-item odonto-stamp-btn" data-stamp="CARIES" onclick="toggleLegendStamp('CARIES')" onmouseenter="spotlightOdontoCondition('CARIES')" onmouseleave="clearSpotlightOdontoCondition()" title="Pincel de Caries / Patología activa (Clic para activar/desactivar)">
+                            <span class="odonto-legend-color" style="background: #FF3B30;"></span>
+                            <span class="legend-text">Caries</span>
+                            <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-1.5 py-0.5 ms-1 stamp-counter" id="counter-legend-caries">0</span>
+                        </button>
+
+                        <button type="button" class="odonto-legend-item odonto-stamp-btn" data-stamp="REST_OK" onclick="toggleLegendStamp('REST_OK')" onmouseenter="spotlightOdontoCondition('REST_OK')" onmouseleave="clearSpotlightOdontoCondition()" title="Pincel de Restauración Adaptada (Clic para activar/desactivar)">
+                            <span class="odonto-legend-color" style="background: #00A896;"></span>
+                            <span class="legend-text">Restauración OK</span>
+                            <span class="badge rounded-pill stamp-counter px-1.5 py-0.5 ms-1" id="counter-legend-rest-ok" style="background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4;">0</span>
+                        </button>
+
+                        <button type="button" class="odonto-legend-item odonto-stamp-btn" data-stamp="REST_DEF" onclick="toggleLegendStamp('REST_DEF')" onmouseenter="spotlightOdontoCondition('REST_DEF')" onmouseleave="clearSpotlightOdontoCondition()" title="Pincel de Restauración Desadaptada / Filtrada (Clic para activar/desactivar)">
+                            <span class="odonto-legend-color" style="background: #FF9500;"></span>
+                            <span class="legend-text">Desadaptada</span>
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle px-1.5 py-0.5 ms-1 stamp-counter" id="counter-legend-rest-def">0</span>
+                        </button>
+
+                        <button type="button" class="odonto-legend-item odonto-stamp-btn" data-stamp="ABSENT" onclick="toggleLegendStamp('ABSENT')" onmouseenter="spotlightOdontoCondition('ABSENT')" onmouseleave="clearSpotlightOdontoCondition()" title="Pincel de Diente Ausente (Clic para marcar/desmarcar con 1-clic)">
+                            <span class="badge bg-light text-secondary rounded-pill px-1.5 py-0 border fw-black">✕</span>
+                            <span class="legend-text">Ausente</span>
+                            <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-1.5 py-0.5 ms-1 stamp-counter" id="counter-legend-absent">0</span>
+                        </button>
+
+                        <button type="button" class="odonto-legend-item odonto-stamp-btn" data-stamp="HEALTHY" onclick="toggleLegendStamp('HEALTHY')" onmouseenter="spotlightOdontoCondition('HEALTHY')" onmouseleave="clearSpotlightOdontoCondition()" title="Pincel Limpiador: Restaura pieza o superficie a Sano">
+                            <span class="odonto-legend-color" style="background: #FFFFFF; border: 1.5px solid #cbd5e1;"></span>
+                            <span class="legend-text">Sano</span>
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-1.5 py-0.5 ms-1 stamp-counter" id="counter-legend-healthy">32</span>
+                        </button>
                     </div>
-                    <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #FF9500;"></span>
-                        <span class="small fw-bold">Restauración Desadaptada</span>
-                    </div>
-                    <div class="odonto-legend-item">
-                        <span class="badge bg-light text-secondary rounded-pill px-2 py-0 border">✕</span>
-                        <span class="small fw-bold">Diente Ausente</span>
-                    </div>
-                    <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #FFFFFF; border: 1.5px solid #cbd5e1;"></span>
-                        <span class="small fw-bold">Sin alteraciones / Sano</span>
+
+                    <!-- Indicador Flotante de Pincel Activo -->
+                    <div id="odonto-stamp-active-indicator" class="d-none align-items-center ms-2 ps-2 border-start">
+                        <span class="badge rounded-pill px-2.5 py-1 d-flex align-items-center gap-1.5 shadow-sm" style="background: #0f766e; color: #ffffff; font-size: 0.72rem;">
+                            <span class="spinner-grow spinner-grow-sm text-light" style="width: 7px; height: 7px;" role="status"></span>
+                            <span id="odonto-stamp-active-label">Pincel Activo</span>
+                            <button type="button" class="btn-close btn-close-white p-0 ms-1" style="font-size: 0.55rem;" onclick="clearLegendStamp()" aria-label="Desactivar pincel"></button>
+                        </span>
                     </div>
                 </div>
 

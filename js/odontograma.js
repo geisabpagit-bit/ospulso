@@ -999,6 +999,313 @@ window.triggerModalFromRadial = function() {
     window.openOdontoClinicalModal(tooth, surface);
 };
 
+// ==========================================================================
+// CONTROLADOR DE BARRA DINÁMICA DE DIAGNÓSTICO (MODO 1-CLIC, PINCELES, SPOTLIGHT)
+// ==========================================================================
+window.odontoWorkMode = window.odontoWorkMode || 'QUICK'; // 'QUICK' | 'DETAILED'
+window.activeLegendStamp = null; // null | 'CARIES' | 'REST_OK' | 'REST_DEF' | 'ABSENT' | 'HEALTHY'
+
+/**
+ * Cambia el modo de trabajo entre 1-Clic Rápido y Ficha Detallada
+ */
+window.setOdontoWorkMode = function(mode) {
+    window.odontoWorkMode = mode;
+    const btnQuick = document.getElementById('btn-mode-quick');
+    const btnDetailed = document.getElementById('btn-mode-detailed');
+    if (btnQuick && btnDetailed) {
+        if (mode === 'QUICK') {
+            btnQuick.classList.add('active');
+            btnQuick.classList.remove('text-secondary');
+            btnDetailed.classList.remove('active');
+            btnDetailed.classList.add('text-secondary');
+        } else {
+            btnDetailed.classList.add('active');
+            btnDetailed.classList.remove('text-secondary');
+            btnQuick.classList.remove('active');
+            btnQuick.classList.add('text-secondary');
+        }
+    }
+    updateStampIndicatorText();
+};
+
+/**
+ * Activa o desactiva un pincel clínico desde la leyenda inferior
+ */
+window.toggleLegendStamp = function(stampType) {
+    if (window.activeLegendStamp === stampType) {
+        clearLegendStamp();
+        return;
+    }
+
+    window.activeLegendStamp = stampType;
+
+    // Actualizar estados visuales de los botones de la leyenda
+    document.querySelectorAll('.odonto-stamp-btn').forEach(btn => {
+        if (btn.getAttribute('data-stamp') === stampType) {
+            btn.classList.add('active-stamp');
+        } else {
+            btn.classList.remove('active-stamp');
+        }
+    });
+
+    // Activar modo cursor especial sobre el contenedor del odontograma
+    const container = document.getElementById('odontograma-svg-container');
+    if (container) {
+        container.classList.add('stamp-mode-active');
+    }
+
+    // Actualizar indicador flotante
+    updateStampIndicatorText();
+};
+
+/**
+ * Limpia el pincel activo y restaura el cursor y los botones
+ */
+window.clearLegendStamp = function() {
+    window.activeLegendStamp = null;
+
+    document.querySelectorAll('.odonto-stamp-btn').forEach(btn => {
+        btn.classList.remove('active-stamp');
+    });
+
+    const container = document.getElementById('odontograma-svg-container');
+    if (container) {
+        container.classList.remove('stamp-mode-active');
+    }
+
+    const indicator = document.getElementById('odonto-stamp-active-indicator');
+    if (indicator) {
+        indicator.classList.remove('d-flex');
+        indicator.classList.add('d-none');
+    }
+};
+
+/**
+ * Actualiza el texto del badge indicador del pincel activo
+ */
+function updateStampIndicatorText() {
+    const indicator = document.getElementById('odonto-stamp-active-indicator');
+    const label = document.getElementById('odonto-stamp-active-label');
+    if (!indicator || !label) return;
+
+    if (!window.activeLegendStamp) {
+        indicator.classList.remove('d-flex');
+        indicator.classList.add('d-none');
+        return;
+    }
+
+    const names = {
+        CARIES: '🔴 Caries',
+        REST_OK: '🟢 Rest. OK',
+        REST_DEF: '🟠 Desadaptada',
+        ABSENT: '✕ Ausente',
+        HEALTHY: '⚪ Sano'
+    };
+
+    const modeName = (window.odontoWorkMode === 'QUICK') ? '1-Clic' : 'Ficha';
+    label.textContent = `${names[window.activeLegendStamp] || 'Pincel'} (${modeName})`;
+    indicator.classList.remove('d-none');
+    indicator.classList.add('d-flex');
+}
+
+/**
+ * Efecto Spotlight: Enfoque radiográfico de piezas que coinciden con el tipo de condición
+ */
+window.spotlightOdontoCondition = function(conditionType) {
+    const container = document.getElementById('odontograma-svg-container');
+    if (!container) return;
+
+    container.classList.add('spotlight-active');
+
+    const teethCards = container.querySelectorAll('.tooth-card');
+    teethCards.forEach(card => {
+        const tooth = card.getAttribute('data-tooth');
+        const tData = window.odontogramState.teeth[tooth];
+        let matches = false;
+
+        if (conditionType === 'ABSENT') {
+            matches = (tData?.status === 'ABSENT' || tData?.absent || card.classList.contains('tooth-absent'));
+        } else if (conditionType === 'HEALTHY') {
+            const hasSurfaces = tData?.surfaces && Object.keys(tData.surfaces).length > 0;
+            const isAbsent = (tData?.status === 'ABSENT' || tData?.absent || card.classList.contains('tooth-absent'));
+            matches = (!hasSurfaces && !isAbsent);
+        } else if (conditionType === 'CARIES') {
+            if (tData?.surfaces) {
+                matches = Object.values(tData.surfaces).some(s => 
+                    s.code === 'CARIES' || s.code === 'CARIES_RECURRENT' || s.code === 'FRACTURE' || s.colorHex === '#FF3B30'
+                );
+            }
+        } else if (conditionType === 'REST_OK') {
+            if (tData?.surfaces) {
+                matches = Object.values(tData.surfaces).some(s => 
+                    (s.state === 'EXISTING_CONDITION' && s.colorHex !== '#FF9500' && s.colorHex !== '#FF3B30') || 
+                    s.colorHex === '#00A896' || s.colorHex === '#007AFF'
+                );
+            }
+        } else if (conditionType === 'REST_DEF') {
+            if (tData?.surfaces) {
+                matches = Object.values(tData.surfaces).some(s => 
+                    s.colorHex === '#FF9500' || s.code?.includes('DEFECTIVE')
+                );
+            }
+        }
+
+        if (matches) {
+            card.classList.add('spotlight-highlight');
+            card.classList.remove('spotlight-dimmed');
+        } else {
+            card.classList.add('spotlight-dimmed');
+            card.classList.remove('spotlight-highlight');
+        }
+    });
+};
+
+/**
+ * Remueve el efecto spotlight del canvas
+ */
+window.clearSpotlightOdontoCondition = function() {
+    const container = document.getElementById('odontograma-svg-container');
+    if (!container) return;
+
+    container.classList.remove('spotlight-active');
+    container.querySelectorAll('.tooth-card').forEach(card => {
+        card.classList.remove('spotlight-highlight', 'spotlight-dimmed');
+    });
+};
+
+/**
+ * Actualiza los contadores epidemiológicos en la leyenda inferior en tiempo real
+ */
+window.updateLegendCounters = function() {
+    let cariesCount = 0;
+    let restOkCount = 0;
+    let restDefCount = 0;
+    let absentCount = 0;
+
+    const cards = document.querySelectorAll('.tooth-card');
+    const totalTeeth = cards.length || 32;
+    let teethWithFindings = new Set();
+
+    Object.entries(window.odontogramState.teeth).forEach(([tooth, tData]) => {
+        let toothHasFinding = false;
+
+        if (tData.status === 'ABSENT' || tData.absent) {
+            absentCount++;
+            toothHasFinding = true;
+        }
+
+        if (tData.surfaces) {
+            Object.values(tData.surfaces).forEach(s => {
+                toothHasFinding = true;
+                if (s.code === 'CARIES' || s.code === 'CARIES_RECURRENT' || s.code === 'FRACTURE' || s.colorHex === '#FF3B30') {
+                    cariesCount++;
+                } else if (s.colorHex === '#FF9500' || s.code?.includes('DEFECTIVE')) {
+                    restDefCount++;
+                } else if (s.colorHex === '#00A896' || s.colorHex === '#007AFF' || s.state === 'EXISTING_CONDITION') {
+                    restOkCount++;
+                }
+            });
+        }
+
+        if (toothHasFinding) {
+            teethWithFindings.add(tooth);
+        }
+    });
+
+    const healthyCount = Math.max(0, totalTeeth - teethWithFindings.size);
+
+    const cCaries = document.getElementById('counter-legend-caries');
+    const cRestOk = document.getElementById('counter-legend-rest-ok');
+    const cRestDef = document.getElementById('counter-legend-rest-def');
+    const cAbsent = document.getElementById('counter-legend-absent');
+    const cHealthy = document.getElementById('counter-legend-healthy');
+
+    if (cCaries) cCaries.textContent = cariesCount;
+    if (cRestOk) cRestOk.textContent = restOkCount;
+    if (cRestDef) cRestDef.textContent = restDefCount;
+    if (cAbsent) cAbsent.textContent = absentCount;
+    if (cHealthy) cHealthy.textContent = healthyCount;
+};
+
+/**
+ * Aplica el pincel activo a un diente o superficie según el modo seleccionado (1-Clic o Ficha)
+ */
+function applyLegendStampToTooth(tooth, surface, e) {
+    tooth = String(tooth);
+    surface = String(surface || 'occlusal').toLowerCase();
+    const stamp = window.activeLegendStamp;
+    if (!stamp) return;
+
+    // Modo Ficha: Abrir modal con diagnóstico preseleccionado
+    if (window.odontoWorkMode === 'DETAILED') {
+        const modalCodeMap = {
+            CARIES: 'CARIES',
+            REST_OK: 'COMPOSITE',
+            REST_DEF: 'COMPOSITE_DEFECTIVE',
+            ABSENT: 'ABSENT',
+            HEALTHY: 'HEALTHY'
+        };
+        window.odontoModalContext.selectedCondition = modalCodeMap[stamp] || 'CARIES';
+        const surf = (surface === 'all') ? 'occlusal' : surface;
+        window.openOdontoClinicalModal(tooth, surf);
+        return;
+    }
+
+    // Modo 1-Clic: Aplicar directamente con feedback visual inmediato
+    const card = document.querySelector(`.tooth-card[data-tooth="${tooth}"]`);
+    if (card) {
+        card.classList.remove('stamp-flash');
+        void card.offsetWidth; // Force reflow
+        card.classList.add('stamp-flash');
+    }
+
+    if (stamp === 'ABSENT') {
+        if (!window.odontogramState.teeth[tooth]) {
+            window.odontogramState.teeth[tooth] = { status: 'PRESENT', surfaces: {} };
+        }
+        const isAlreadyAbsent = (window.odontogramState.teeth[tooth].status === 'ABSENT' || window.odontogramState.teeth[tooth].absent);
+        if (isAlreadyAbsent) {
+            window.odontogramState.teeth[tooth].status = 'PRESENT';
+            delete window.odontogramState.teeth[tooth].absent;
+            if (card) card.classList.remove('tooth-absent');
+        } else {
+            window.odontogramState.teeth[tooth].status = 'ABSENT';
+            if (card) {
+                card.classList.remove('tooth-extraction-req', 'tooth-endo-pending', 'tooth-endo-done');
+                card.classList.add('tooth-absent');
+            }
+        }
+        recalculateFinancialTotal();
+        updateLiveJsonViewer();
+    } else if (stamp === 'HEALTHY') {
+        if (surface && surface !== 'all') {
+            removeSurfaceCondition(tooth, surface);
+        } else {
+            ['occlusal', 'vestibular', 'lingual', 'mesial', 'distal'].forEach(s => removeSurfaceCondition(tooth, s));
+            if (window.odontogramState.teeth[tooth]) {
+                window.odontogramState.teeth[tooth].status = 'PRESENT';
+                delete window.odontogramState.teeth[tooth].absent;
+            }
+            if (card) card.classList.remove('tooth-absent', 'tooth-extraction-req', 'tooth-endo-pending', 'tooth-endo-done');
+        }
+        recalculateFinancialTotal();
+        updateLiveJsonViewer();
+    } else if (stamp === 'CARIES') {
+        const targetSurf = (surface === 'all') ? 'occlusal' : surface;
+        const cat = window.ODONTO_CATALOG ? window.ODONTO_CATALOG['CARIES'] : null;
+        const price = cat ? cat.price : 850.00;
+        window.applySurfaceCondition(tooth, targetSurf, 'CARIES', 'PENDING_TREATMENT', '#FF3B30', price);
+    } else if (stamp === 'REST_OK') {
+        const targetSurf = (surface === 'all') ? 'occlusal' : surface;
+        window.applySurfaceCondition(tooth, targetSurf, 'COMPOSITE', 'EXISTING_CONDITION', '#00A896', 0.00);
+    } else if (stamp === 'REST_DEF') {
+        const targetSurf = (surface === 'all') ? 'occlusal' : surface;
+        const cat = window.ODONTO_CATALOG ? window.ODONTO_CATALOG['COMPOSITE_DEFECTIVE'] : null;
+        const price = cat ? cat.price : 950.00;
+        window.applySurfaceCondition(tooth, targetSurf, 'COMPOSITE_DEFECTIVE', 'PENDING_TREATMENT', '#FF9500', price);
+    }
+}
+
 /**
  * Asigna los manejadores de eventos sobre cada cara vectorial y diente
  */
@@ -1006,18 +1313,22 @@ function attachSurfaceClickEvents(container) {
     // Inicializar el Puente Circular si aún no existe en el DOM
     initOdontoRadialMenu();
 
-    // Clic en superficie anatómica -> Abre el Puente Circular posicionado en la pieza
+    // Clic en superficie anatómica
     const surfaces = container.querySelectorAll('.tooth-surface');
     surfaces.forEach(surfaceEl => {
         surfaceEl.addEventListener('click', function(e) {
             e.stopPropagation();
             const tooth = this.getAttribute('data-tooth');
             const surface = this.getAttribute('data-surface');
+            if (window.activeLegendStamp) {
+                applyLegendStampToTooth(tooth, surface, e);
+                return;
+            }
             openOdontoRadialMenu(tooth, surface, e);
         });
     });
 
-    // Clic en número o tarjeta dental -> Abre el Puente Circular en la pieza (oclusal por defecto)
+    // Clic en número o tarjeta dental
     const cards = container.querySelectorAll('.tooth-card');
     cards.forEach(cardEl => {
         const numEl = cardEl.querySelector('.tooth-number');
@@ -1025,13 +1336,23 @@ function attachSurfaceClickEvents(container) {
             numEl.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const tooth = cardEl.getAttribute('data-tooth');
+                if (window.activeLegendStamp) {
+                    const surf = (window.activeLegendStamp === 'HEALTHY' || window.activeLegendStamp === 'ABSENT') ? 'all' : 'occlusal';
+                    applyLegendStampToTooth(tooth, surf, e);
+                    return;
+                }
                 openOdontoRadialMenu(tooth, 'occlusal', e);
             });
         }
         cardEl.addEventListener('click', function(e) {
-            // Si el clic fue directamente a la tarjeta o raíz y no en una cara
+            // Si el clic fue directamente a una superficie, dejar que su handler actúe
             if (e.target.classList.contains('tooth-surface')) return;
             const tooth = cardEl.getAttribute('data-tooth');
+            if (window.activeLegendStamp) {
+                const surf = (window.activeLegendStamp === 'HEALTHY' || window.activeLegendStamp === 'ABSENT') ? 'all' : 'occlusal';
+                applyLegendStampToTooth(tooth, surf, e);
+                return;
+            }
             openOdontoRadialMenu(tooth, 'occlusal', e);
         });
     });
@@ -1522,6 +1843,10 @@ window.recalculateFinancialTotal = function() {
 
     if (typeof window.refreshSidebarFindings === 'function') {
         window.refreshSidebarFindings();
+    }
+
+    if (typeof window.updateLegendCounters === 'function') {
+        window.updateLegendCounters();
     }
 };
 function recalculateFinancialTotal() {

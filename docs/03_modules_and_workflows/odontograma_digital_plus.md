@@ -221,14 +221,21 @@ En cumplimiento con los estándares de diseño clínico moderno y contraste visu
    - Refactorización de estilos a tema claro clínico mandante con tipografía compacta (`0.75rem` – `0.80rem`) y alto contraste óptico.
    - Eliminación de texto blanco en celdas de la tabla, empleando slate `#0f172a` para nombres de procedimientos, pastillas de código FDI en teal `#0d9488`, aranceles en teal `#0f766e` y pastillas pastel para grupos y categorías.
 
+---
 
-
-
-
-
-
-
-
-
-
-
+### 2.15 Barra Dinámica de Diagnóstico, Modo 1-Clic, Contadores Epidemiológicos en Vivo y Spotlight (Fase 15)
+En la versión 1.3 del motor de Odontograma Digital Plus se transformó la leyenda estática inferior en una **Barra Dinámica de Diagnóstico Clínico** interactiva (`.odonto-legend` / `#odonto-interactive-legend`):
+1. **Conmutador de Modo de Trabajo (Switch Rápido)**:
+   - **Modo 1-Clic (`[⚡ 1-Clic]`)**: Permite al odontólogo estampar condiciones patológicas o restauraciones directamente sobre cualquier cara o pieza del odontograma con un solo clic, sin interrupciones de modales, actualizando en tiempo real el presupuesto, la tabla de hallazgos y los contadores.
+   - **Modo Ficha (`[📋 Ficha]`)**: Al hacer clic en un diente teniendo un pincel activo, se abre automáticamente el `#modalOdontoClinico` contextual con la condición preseleccionada en el grupo correspondiente (Caries, Resina, Restauración desadaptada o Ausente) para confirmación o refinamiento de caras.
+2. **Pinceles de Diagnóstico Rápido**:
+   - `🔴 Caries`: Aplica patología activa con arancel sugerido y color `#FF3B30`.
+   - `🟢 Restauración OK`: Aplica resina/amalgama adaptada con arancel $0.00 y color teal `#00A896` / `#007AFF`.
+   - `🟠 Desadaptada`: Aplica restauración filtrada con arancel de recambio y color `#FF9500`.
+   - `✕ Ausente`: Conmuta el estado de la pieza dental completa a ausente (`status = 'ABSENT'`) con trama diagnóstica diagonal.
+   - `⚪ Sano`: Pincel limpiador que revierte la superficie o pieza al estado fisiológico normal.
+   - **Indicador Flotante Reactivo**: Badge pill `#odonto-stamp-active-indicator` con animación pulsante indicando el pincel y modo activo (ej. `🔴 Caries (1-Clic)`) y botón `✕` para desactivación inmediata.
+3. **Contadores Epidemiológicos en Tiempo Real**:
+   - Cada botón de la leyenda cuenta con un micro-badge numérico (`#counter-legend-*`) que calcula dinámicamente el número exacto de superficies afectadas por Caries, Restauraciones Adaptadas, Desadaptadas, Dientes Ausentes y Piezas Sanas, manteniéndose 100% sincronizado con `window.odontogramState.teeth` en cada llamada a `recalculateFinancialTotal()`.
+4. **Efecto Spotlight (Enfoque Radiográfico en Hover)**:
+   - Al posicionar el cursor sobre cualquier botón de la leyenda, el lienzo activa la clase `.spotlight-active`. Las piezas que presentan la condición hovered reciben un resplandor destacado (`.spotlight-highlight`) con elevación tridimensional, mientras que las piezas no coincidentes se atenúan con filtro desaturado (`.spotlight-dimmed`), facilitando una auditoría visual inmediata del estado bucal del paciente.
