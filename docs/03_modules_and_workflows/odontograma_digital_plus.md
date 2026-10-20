@@ -199,6 +199,26 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
    - Los ítems de la tabla corresponden estrictamente a los procedimientos clínicos (ej. Pieza #42 por $950.00 y Pieza #47 por $850.00).
    - Se erradica la inyección de renglones artificiales de abono en la tabla de conceptos cuando ya existen cargos con costo, cuadrando al centavo la suma de los conceptos con el importe cobrado y el total del tratamiento.
 
+---
+
+### 2.14 Homologación Cromática a Tema Claro Clínico (Healthcare Light Blueprint)
+En cumplimiento con los estándares de diseño clínico moderno y contraste visual:
+1. **Lienzo y Retícula Blueprint**:
+   - Escenario principal con fondo claro `#f4fbfb` y cuadrícula geométrica de 28px en tono cian sutil (`rgba(0, 168, 150, 0.08)`), eliminando el lienzo oscuro legacy.
+2. **Barra Superior de Herramientas y KPIs**:
+   - Cápsulas de navegación en blanco puro `#ffffff` con borde menta suave (`#ccfbf1`), sombra difuminada y botones activos con relleno menta (`#99f6e4`) y acento teal (`#0d9488`).
+   - KPI de presupuesto pendiente flotante en la esquina superior derecha (`#083344` con monto destacado).
+3. **Menú Radial Interactivo (Glassmorphism Claro)**:
+   - Disco circular en glassmorphism translúcido (`rgba(255, 255, 255, 0.94)`) con anillo perimetral punteado en teal (`#00A896`), indicador numérico superior con badge menta (`#ccfbf1`) y núcleo central en blanco puro con previsualización dental anatómica y flechas de orientación direccional.
+4. **Modal Clínico de Diagnóstico y Presupuesto (`#modalOdontoClinico`)**:
+   - Estructura modal en blanco clínico con esquinas redondeadas (`24px`), cabecera con badge turquesa de la pieza e indicador de zona activa.
+   - Panel izquierdo con vitrina sagital 3D de la pieza ("Porcelana HD") y selector de corona oclusal 2D interactiva.
+   - Panel derecho con selectores en cápsula para Alcance (`Superficie`, `Toda la Corona`, `Pieza Completa`) y Categoría (`Patología / Hallazgo`, `Tratamiento / Restauración`, `Estado Normal`).
+   - Tarjetas de condición clínica en blanco con badges de precio predefinidos, selección activa con borde coral/menta y tarjeta inferior de resumen de selección con importe sugerido y botón primario `.btn-apply-odonto` en teal `#00A896`.
+5. **Sidebar Ficha Clínica y Leyenda**:
+   - Barra lateral con fondo blanco/menta ultra claro, tarjetas de estado clínico y presupuesto en degradado suave (`#fff1f2` a `#ffe4e6` para presupuesto pendiente) y tabla de hallazgos contrastada. Leyenda flotante inferior tipo cápsula blanca con pastillas de diagnóstico internacional.
+
+
 
 
 

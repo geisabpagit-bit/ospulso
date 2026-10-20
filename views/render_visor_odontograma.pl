@@ -174,170 +174,26 @@ print <<HTML;
     <link rel="stylesheet" href="../css/odontograma_plus.css?v=$^T">
 
     <style>
-        :root {
-            --odonto-header-h: 68px;
-            --odonto-sidebar-w: 360px;
-            --odonto-canvas-bg: #071326;
-        }
-        body.odonto-viewer-mode {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            background-color: var(--odonto-canvas-bg);
-            font-family: 'Inter', sans-serif;
-            color: #1e293b;
-        }
-        .odonto-viewer-layout {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            width: 100vw;
-        }
-        .odonto-viewer-header {
-            height: var(--odonto-header-h);
-            background: linear-gradient(135deg, #061938 0%, #030d1e 100%);
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.25rem;
-            z-index: 30;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            border-bottom: 1.5px solid rgba(0, 229, 255, 0.25);
-        }
-        .odonto-rayos-x-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .odonto-tool-capsule {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 4px 6px;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-        }
-        .odonto-tool-btn {
-            background: transparent;
-            border: none;
-            color: rgba(255, 255, 255, 0.8);
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .odonto-tool-btn:hover {
-            background: rgba(0, 229, 255, 0.25);
-            color: #00e5ff;
-            transform: translateY(-1px);
-        }
-        .odonto-tool-btn.active {
-            background: rgba(0, 229, 255, 0.35);
-            color: #ffffff;
-            box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
-        }
-        .odonto-viewer-body {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - var(--odonto-header-h));
-            overflow: hidden;
-            position: relative;
-        }
-        .odonto-sidebar-left {
-            width: var(--odonto-sidebar-w);
-            min-width: var(--odonto-sidebar-w);
-            background: rgba(8, 20, 44, 0.96);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(0, 229, 255, 0.22);
-            color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            z-index: 20;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 6px 0 25px rgba(0, 0, 0, 0.4);
-            overflow-y: auto;
-        }
-        .odonto-sidebar-left.collapsed {
-            margin-left: calc(-1 * var(--odonto-sidebar-w));
-        }
-        .odonto-stage-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: auto;
-            position: relative;
-            background: radial-gradient(circle at 50% 30%, #0d2348 0%, #081730 60%, #030b17 100%);
-            padding: 1.5rem;
-            align-items: center;
-            justify-content: flex-start;
-        }
-        .odonto-stage-main::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image: 
-                linear-gradient(rgba(0, 229, 255, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 229, 255, 0.035) 1px, transparent 1px);
-            background-size: 32px 32px;
-            pointer-events: none;
-        }
-        .btn-dentition-toggle {
-            transition: all 0.2s ease;
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        .btn-dentition-toggle.active {
-            background: rgba(0, 229, 255, 0.3) !important;
-            color: #ffffff !important;
-            box-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
-            border: 1px solid rgba(0, 229, 255, 0.5);
-        }
-        .odonto-findings-table th {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: rgba(255, 255, 255, 0.6);
-            background: rgba(15, 35, 75, 0.8) !important;
-            border-color: rgba(255, 255, 255, 0.1) !important;
-        }
-        .odonto-findings-table td {
-            font-size: 0.8rem;
-            color: #f8fafc;
-            border-color: rgba(255, 255, 255, 0.08) !important;
-            background: transparent !important;
-        }
+        /* Los estilos residen canónicamente en ../css/odontograma_plus.css */
     </style>
 </head>
 <body class="odonto-viewer-mode">
 
     <div class="odonto-viewer-layout">
-        <!-- HEADER / NAVBAR CORPORATIVO MEDENTIA -->
+        <!-- HEADER / NAVBAR CORPORATIVO ODONTOGRAMA CLÍNICO -->
         <header class="odonto-viewer-header">
             <!-- Botón Volver y Toggle Sidebar (Izquierda) -->
             <div class="d-flex align-items-center gap-2">
-                <a href="render_expediente_clinico.pl?id=$paciente->{id_paciente}#tab6" class="btn btn-outline-light btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-2" title="Volver al Expediente Clínico">
+                <a href="render_expediente_clinico.pl?id=$paciente->{id_paciente}#tab6" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-2" style="border-color: #cbd5e1; color: var(--odonto-navy);" title="Volver al Expediente Clínico">
                     <i class="bi bi-arrow-left"></i>
                     <span class="d-none d-lg-inline">Expediente</span>
                 </a>
-                <button class="btn btn-sm btn-outline-light rounded-circle p-2 d-flex align-items-center justify-content-center" onclick="toggleOdontoSidebar()" title="Mostrar/Ocultar Panel de Información">
+                <button class="btn btn-sm btn-outline-secondary rounded-circle p-2 d-flex align-items-center justify-content-center" style="border-color: #cbd5e1; color: var(--odonto-navy);" onclick="toggleOdontoSidebar()" title="Mostrar/Ocultar Panel de Información">
                     <i class="bi bi-layout-sidebar-inset fs-6"></i>
                 </button>
             </div>
 
-            <!-- BARRA DE HERRAMIENTAS Y OPCIONES ESTILO RAYOS X (Centro - Imagen 4) -->
+            <!-- BARRA DE HERRAMIENTAS Y OPCIONES ESTILO RAYOS X (Centro - Imagen 1) -->
             <div class="odonto-rayos-x-toolbar d-none d-md-flex">
                 <!-- Cápsula 1: Archivo y Acciones -->
                 <div class="odonto-tool-capsule" title="Herramientas de Estudio">
@@ -353,7 +209,7 @@ print <<HTML;
                     <button type="button" class="odonto-tool-btn text-success" onclick="saveOdontogramaToServer()" title="Guardar Odontograma en Servidor">
                         <i class="bi bi-cloud-arrow-up-fill"></i>
                     </button>
-                    <button type="button" class="odonto-tool-btn text-info" onclick="abrirModalGestionCatalogoOdonto()" title="Gestión de Catálogo (Patologías y Tratamientos)">
+                    <button type="button" class="odonto-tool-btn" onclick="abrirModalGestionCatalogoOdonto()" title="Gestión de Catálogo (Patologías y Tratamientos)">
                         <i class="bi bi-sliders2"></i>
                     </button>
                 </div>
@@ -396,10 +252,10 @@ print <<HTML;
                 <!-- Cápsula 4: Vistas y Dentición -->
                 <div class="odonto-tool-capsule" title="Vistas Anatómicas">
                     <button type="button" class="odonto-tool-btn active" id="btn-hdr-perm" onclick="setDentitionType('PERMANENT')" title="Dentición Permanente (32)">
-                        <span class="fw-bold odonto-badge-dentition" style="font-size: 0.75rem;">32</span>
+                        <span class="odonto-badge-dentition" style="font-size: 0.8rem;">32</span>
                     </button>
                     <button type="button" class="odonto-tool-btn" id="btn-hdr-temp" onclick="setDentitionType('TEMPORARY')" title="Dentición Temporal / Infantil (20)">
-                        <span class="fw-bold odonto-badge-dentition" style="font-size: 0.75rem;">20</span>
+                        <span class="odonto-badge-dentition" style="font-size: 0.8rem;">20</span>
                     </button>
                     <button type="button" class="odonto-tool-btn" onclick="focusOdontoArch('upper')" title="Vista Maxilar Superior">
                         <i class="bi bi-chevron-bar-up"></i>
@@ -413,11 +269,11 @@ print <<HTML;
                 </div>
             </div>
 
-            <!-- Acciones Principales (Derecha) -->
+            <!-- Acciones Principales (Derecha - Presupuesto Pendiente Imagen 1) -->
             <div class="d-flex align-items-center gap-2">
                 <div class="text-end me-2">
-                    <span class="small text-white-50 fw-bold d-block lh-1" style="font-size: 0.7rem;">PRESUPUESTO PENDIENTE</span>
-                    <span class="h5 fw-black text-warning m-0 lh-1" id="odonto-total-pending">\$0.00</span>
+                    <span class="odonto-header-kpi-title">PRESUPUESTO PENDIENTE</span>
+                    <span class="odonto-header-kpi-amount" id="odonto-total-pending">\$0.00</span>
                 </div>
             </div>
         </header>
@@ -425,26 +281,25 @@ print <<HTML;
         <!-- CUERPO PRINCIPAL DEL VISOR -->
         <div class="odonto-viewer-body">
             
-            <!-- PANEL LATERAL IZQUIERDO (HALLAZGOS Y PRESUPUESTO) -->
-            <!-- PANEL LATERAL IZQUIERDO (HALLAZGOS Y PRESUPUESTO - DARK GLASSMORPHISM) -->
+            <!-- PANEL LATERAL IZQUIERDO (HALLAZGOS Y PRESUPUESTO - TEMA CLÍNICO CLARO) -->
             <aside class="odonto-sidebar-left" id="odontoSidebar">
                 <!-- Info Paciente y Alias Rápido -->
-                <div class="p-3 border-bottom" style="border-color: rgba(255,255,255,0.08) !important; background: rgba(12, 28, 62, 0.7);">
+                <div class="odonto-sidebar-header-box">
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle p-1 d-flex align-items-center justify-content-center" style="background: rgba(0, 229, 255, 0.15); border: 1px solid rgba(0, 229, 255, 0.3);">
-                                <i class="bi bi-person-vcard fs-6 text-info"></i>
+                            <div class="rounded-circle p-1 d-flex align-items-center justify-content-center" style="background: var(--odonto-teal-light); border: 1px solid var(--odonto-teal);">
+                                <i class="bi bi-person-vcard fs-6" style="color: var(--odonto-teal-dark);"></i>
                             </div>
-                            <span class="fw-black text-white small">$paciente->{nombre}</span>
+                            <span class="fw-black text-dark small">$paciente->{nombre}</span>
                         </div>
-                        <span class="badge rounded-pill" style="background: rgba(0, 229, 255, 0.15); color: #00E5FF; border: 1px solid rgba(0, 229, 255, 0.3); font-size: 0.65rem;">$id_odonto_activo</span>
+                        <span class="badge rounded-pill odonto-patient-badge">$id_odonto_activo</span>
                     </div>
-                    <div class="small mb-3" style="color: rgba(255, 255, 255, 0.6); font-size: 0.75rem;">
-                        <span><strong class="text-white-50">CORREO:</strong> $paciente->{correo}</span> &bull; <span>Edad: $edad a&ntilde;os ($paciente->{sexo})</span>
+                    <div class="small mb-3 text-secondary" style="font-size: 0.75rem;">
+                        <span><strong>CORREO:</strong> $paciente->{correo}</span> &bull; <span>Edad: $edad a&ntilde;os ($paciente->{sexo})</span>
                     </div>
 
                     <!-- Selector de Dentición (Permanente vs Temporal) -->
-                    <div class="mb-3 p-1 rounded-pill d-flex" style="background: rgba(4, 15, 36, 0.85); border: 1px solid rgba(0, 229, 255, 0.25);">
+                    <div class="mb-3 odonto-dentition-toggle-wrap">
                         <button type="button" class="btn btn-xs rounded-pill flex-fill fw-bold py-1 btn-dentition-toggle active" id="btn-dentition-perm" onclick="setDentitionType('PERMANENT')">
                             <i class="bi bi-grid-3x3-gap-fill me-1"></i>Permanente (32)
                         </button>
@@ -455,16 +310,16 @@ print <<HTML;
 
                     <!-- Input de Alias en Sidebar -->
                     <div class="mb-2">
-                        <label for="odonto-alias-sidebar" class="small fw-black text-white-50 text-uppercase d-block mb-1" style="font-size: 0.72rem;">
+                        <label for="odonto-alias-sidebar" class="small fw-black text-secondary text-uppercase d-block mb-1" style="font-size: 0.72rem;">
                             <i class="bi bi-bookmark-star-fill text-warning me-1"></i>Nombre / Alias del Estudio:
                         </label>
-                        <input type="text" id="odonto-alias-sidebar" class="form-control form-control-sm rounded-3 fw-bold text-white shadow-xs" style="background: rgba(15, 35, 75, 0.8); border: 1px solid rgba(0, 229, 255, 0.3);" value="$odonto_alias" placeholder="Ej: Diagnóstico Inicial, Plan 2026">
+                        <input type="text" id="odonto-alias-sidebar" class="form-control form-control-sm rounded-3 fw-bold odonto-sidebar-input" value="$odonto_alias" placeholder="Ej: Diagnóstico Inicial, Plan 2026">
                     </div>
 
                     <!-- Estado del Odontograma -->
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="small fw-bold text-white-50" style="font-size: 0.75rem;">Estado Clínico:</span>
-                        <select id="odonto-estado-sidebar" class="form-select form-select-sm rounded-pill fw-bold text-white" style="width: 140px; font-size: 0.75rem; background-color: rgba(15, 35, 75, 0.85); border: 1px solid rgba(0, 229, 255, 0.3);">
+                        <span class="small fw-bold text-secondary" style="font-size: 0.75rem;">Estado Clínico:</span>
+                        <select id="odonto-estado-sidebar" class="form-select form-select-sm rounded-pill fw-bold odonto-sidebar-input" style="width: 140px; font-size: 0.75rem;">
                             <option value="En Proceso">En Proceso</option>
                             <option value="Presupuestado">Presupuestado</option>
                             <option value="Completado">Completado</option>
@@ -474,22 +329,22 @@ print <<HTML;
                 </div>
 
                 <!-- Resumen Presupuestario -->
-                <div class="p-3 border-bottom" style="border-color: rgba(255,255,255,0.08) !important;">
+                <div class="p-3 border-bottom" style="border-color: #e2e8f0 !important;">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small fw-black text-white-50 text-uppercase">Plan de Tratamiento</span>
+                        <span class="small fw-black text-secondary text-uppercase">Plan de Tratamiento</span>
                         <span class="badge bg-danger text-white rounded-pill fw-bold" id="badge-total-pending">0 Pendientes</span>
                     </div>
-                    <div class="p-3 rounded-4 mb-2 text-center" style="background: linear-gradient(135deg, rgba(15, 35, 75, 0.9), rgba(6, 25, 60, 0.95)); border: 1px solid rgba(255, 59, 48, 0.35); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);">
-                        <span class="small text-white-50 fw-bold d-block">Importe Total Estimado</span>
-                        <h3 class="fw-black text-danger m-0" id="odonto-sidebar-price" style="text-shadow: 0 0 12px rgba(255, 59, 48, 0.5); font-family: monospace;">\$0.00</h3>
-                        <span class="badge rounded-pill mt-2" id="odonto-sidebar-count" style="background: rgba(0, 229, 255, 0.15); color: #00E5FF; border: 1px solid rgba(0, 229, 255, 0.3);">0 Procedimientos</span>
+                    <div class="odonto-budget-card-light mb-2">
+                        <span class="small text-danger-emphasis fw-bold d-block">Importe Total Estimado</span>
+                        <h3 class="m-0" id="odonto-sidebar-price">\$0.00</h3>
+                        <span class="badge rounded-pill mt-2" id="odonto-sidebar-count" style="background: var(--odonto-teal-light); color: var(--odonto-teal-dark); border: 1px solid var(--odonto-teal);">0 Procedimientos</span>
                     </div>
                 </div>
 
                 <!-- Lista de Hallazgos en Tiempo Real -->
-                <div class="p-3 flex-grow-1 overflow-auto border-bottom" style="border-color: rgba(255,255,255,0.08) !important;">
+                <div class="p-3 flex-grow-1 overflow-auto border-bottom" style="border-color: #e2e8f0 !important;">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small fw-black text-white-50 text-uppercase"><i class="bi bi-list-check me-1 text-info"></i>Hallazgos Registrados</span>
+                        <span class="small fw-black text-secondary text-uppercase"><i class="bi bi-list-check me-1" style="color: var(--odonto-teal);"></i>Hallazgos Registrados</span>
                         <button type="button" class="btn btn-xs btn-link text-danger text-decoration-none p-0 fw-bold" onclick="clearOdontogram()" title="Limpiar todas las marcas"><i class="bi bi-trash3 me-1"></i>Limpiar</button>
                     </div>
                     <div class="table-responsive">
@@ -504,7 +359,7 @@ print <<HTML;
                             </thead>
                             <tbody id="tbody-sidebar-findings">
                                 <tr>
-                                    <td colspan="4" class="text-center text-white-50 py-4 small">Sin hallazgos clínicos registrados. Haz click en una pieza dental.</td>
+                                    <td colspan="4" class="text-center text-muted py-4 small">Sin hallazgos clínicos registrados. Haz click en una pieza dental.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -513,10 +368,10 @@ print <<HTML;
 
                 <!-- Notas Clínicas Odontológicas -->
                 <div class="p-3">
-                    <label for="odontograma-notas" class="small fw-black text-white-50 text-uppercase mb-2 d-block">
-                        <i class="bi bi-pencil-square me-1 text-info"></i>Notas Clínicas del Odontograma
+                    <label for="odontograma-notas" class="small fw-black text-secondary text-uppercase mb-2 d-block">
+                        <i class="bi bi-pencil-square me-1" style="color: var(--odonto-teal);"></i>Notas Clínicas del Odontograma
                     </label>
-                    <textarea class="form-control form-control-sm rounded-3 shadow-xs text-white" id="odontograma-notas" rows="3" style="background: rgba(15, 35, 75, 0.8); border: 1px solid rgba(0, 229, 255, 0.3);" placeholder="Observaciones de oclusión, periodonto, encías...">$notas_guardadas</textarea>
+                    <textarea class="form-control form-control-sm rounded-3 odonto-sidebar-input" id="odontograma-notas" rows="3" placeholder="Observaciones de oclusión, periodonto, encías...">$notas_guardadas</textarea>
                 </div>
             </aside>
 
@@ -533,26 +388,26 @@ print <<HTML;
                     </div>
                 </div>
 
-                <!-- LEYENDA CLÍNICA AL PIE (SANITIZADA) -->
+                <!-- LEYENDA CLÍNICA AL PIE (SANITIZADA CLÍNICA CLARA - IMAGEN 1) -->
                 <div class="odonto-legend mt-4">
                     <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #FF3B30; box-shadow: 0 0 8px rgba(255, 59, 48, 0.7);"></span>
+                        <span class="odonto-legend-color" style="background: #FF3B30;"></span>
                         <span class="small fw-bold">Caries / Patología</span>
                     </div>
                     <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #007AFF; box-shadow: 0 0 8px rgba(0, 122, 255, 0.7);"></span>
+                        <span class="odonto-legend-color" style="background: #00A896;"></span>
                         <span class="small fw-bold">Restauración Adaptada</span>
                     </div>
                     <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #FF9500; box-shadow: 0 0 8px rgba(255, 149, 0, 0.7);"></span>
+                        <span class="odonto-legend-color" style="background: #FF9500;"></span>
                         <span class="small fw-bold">Restauración Desadaptada</span>
                     </div>
                     <div class="odonto-legend-item">
-                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0 border">✕</span>
+                        <span class="badge bg-light text-secondary rounded-pill px-2 py-0 border">✕</span>
                         <span class="small fw-bold">Diente Ausente</span>
                     </div>
                     <div class="odonto-legend-item">
-                        <span class="odonto-legend-color" style="background: #FFFFFF; border: 1px solid #94a3b8;"></span>
+                        <span class="odonto-legend-color" style="background: #FFFFFF; border: 1.5px solid #cbd5e1;"></span>
                         <span class="small fw-bold">Sin alteraciones / Sano</span>
                     </div>
                 </div>
@@ -561,19 +416,19 @@ print <<HTML;
         </div>
     </div>
 
-    <!-- MODAL CLÍNICO CONTEXTUAL GLASSMORPHISM (PREVIEW 3D/2D + CATEGORÍAS SAAS) -->
+    <!-- MODAL CLÍNICO CONTEXTUAL CLARO (PREVIEW 3D/2D + CATEGORÍAS SAAS - IMAGEN 2) -->
     <div class="modal fade" id="modalOdontoClinico" tabindex="-1" aria-labelledby="modalOdontoClinicoLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-            <div class="modal-content border-0 shadow-2xl rounded-4" style="background: rgba(10, 25, 55, 0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0, 229, 255, 0.3) !important; color: #f8fafc;">
-                <div class="modal-header border-bottom py-3 px-4 d-flex justify-content-between align-items-center" style="border-color: rgba(255,255,255,0.1) !important;">
+            <div class="modal-content border-0 shadow-2xl rounded-4 odonto-modal-light">
+                <div class="modal-header border-bottom py-3 px-4 d-flex justify-content-between align-items-center" style="border-color: #e2e8f0 !important;">
                     <div class="d-flex align-items-center gap-3">
-                        <span class="badge rounded-pill px-3 py-2 fw-black fs-6" id="odonto-modal-tooth-badge" style="background: linear-gradient(135deg, #007AFF, #00E5FF); color: #ffffff; box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);">#16</span>
+                        <span class="badge rounded-pill px-3 py-2 fw-black fs-6 odonto-modal-badge" id="odonto-modal-tooth-badge">#16</span>
                         <div>
-                            <h5 class="fw-black mb-0 text-white" id="odonto-modal-tooth-title">Primer Molar Superior Derecho</h5>
-                            <span class="small fw-bold" id="odonto-modal-surface-label" style="color: rgba(255, 255, 255, 0.7);"><i class="bi bi-geo-alt-fill text-info me-1"></i>Zona activa: Superficie <strong class="text-uppercase text-white">MESIAL</strong></span>
+                            <h5 class="fw-black mb-0 text-dark" id="odonto-modal-tooth-title">Primer Molar Superior Derecho</h5>
+                            <span class="small fw-bold" id="odonto-modal-surface-label" style="color: #0d9488;"><i class="bi bi-geo-alt-fill me-1"></i>Zona activa: Superficie <strong class="text-uppercase text-dark">MESIAL</strong></span>
                         </div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="row g-4">
@@ -583,10 +438,10 @@ print <<HTML;
                                 <!-- Pieza Dental 3D Vertical -->
                                 <div class="mb-3">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span class="small fw-black text-uppercase text-white-50" style="font-size: 0.72rem;">
-                                            <i class="bi bi-badge-3d text-info me-1"></i>Vista Sagital / 3D
+                                        <span class="small fw-black text-uppercase" style="font-size: 0.72rem; color: #0d9488;">
+                                            <i class="bi bi-badge-3d me-1"></i>Vista Sagital / 3D
                                         </span>
-                                        <span class="badge rounded-pill" style="background: rgba(0, 229, 255, 0.15); color: #00E5FF; font-size: 0.65rem;">Porcelana HD</span>
+                                        <span class="badge rounded-pill" style="background: #ccfbf1; color: #0f766e; font-size: 0.65rem; border: 1px solid #14b8a6;">Porcelana HD</span>
                                     </div>
                                     <div class="odonto-modal-upright-wrap">
                                         <img id="odonto-modal-tooth-img" src="../img/teeth/tooth_upright_16.png" class="odonto-modal-upright-img" alt="Pieza Dental 3D" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_upright_16.png';}">
@@ -596,47 +451,47 @@ print <<HTML;
                                 <!-- Vista Oclusal / Corona 2D y Superficie Activa -->
                                 <div>
                                     <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span class="small fw-black text-uppercase text-white-50" style="font-size: 0.72rem;">
-                                            <i class="bi bi-circle-square text-info me-1"></i>Corona Oclusal 2D
+                                        <span class="small fw-black text-uppercase" style="font-size: 0.72rem; color: #0d9488;">
+                                            <i class="bi bi-circle-square me-1"></i>Corona Oclusal 2D
                                         </span>
-                                        <span class="badge rounded-pill" style="background: rgba(0, 229, 255, 0.15); color: #00E5FF; font-size: 0.65rem;">Cara Activa</span>
+                                        <span class="badge rounded-pill" style="background: #ccfbf1; color: #0f766e; font-size: 0.65rem; border: 1px solid #14b8a6;">Cara Activa</span>
                                     </div>
                                     <div class="odonto-modal-crown-wrap w-100">
                                         <img id="odonto-modal-crown-img" src="../img/teeth/crown_16.png" class="odonto-modal-crown-img mb-2" alt="Corona Oclusal 2D" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/crown_molar.png';}">
                                         <span class="odonto-surface-indicator-badge">
-                                            <i class="bi bi-bullseye me-1"></i>Superficie: <strong id="odonto-modal-surface-name" class="text-white text-uppercase">OCLUSAL</strong>
+                                            <i class="bi bi-bullseye me-1"></i>Superficie: <strong id="odonto-modal-surface-name" class="text-dark text-uppercase">OCLUSAL</strong>
                                         </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- COLUMNA DERECHA: SELECCIÓN CLÍNICA Y PROCEDIMIENTO -->
+                        <!-- COLUMNA DERECHA: SELECCIÓN CLÍNICA Y PROCEDIMIENTO (IMAGEN 2) -->
                         <div class="col-lg-8">
                             <!-- Nivel 1: Alcance -->
                             <div class="mb-4">
-                                <label class="small text-white-50 fw-bold text-uppercase mb-2 d-block">1. Alcance del Diagnóstico</label>
-                                <div class="btn-group w-100 p-1 rounded-pill" role="group" id="odonto-scope-group" style="background: rgba(15, 35, 75, 0.7); border: 1px solid rgba(0, 229, 255, 0.25);">
+                                <label class="small text-dark fw-bold text-uppercase mb-2 d-block">1. Alcance del Diagnóstico</label>
+                                <div class="btn-group w-100 odonto-scope-btn-group" role="group" id="odonto-scope-group">
                                     <input type="radio" class="btn-check" name="odonto-scope" id="scope-surface" value="SURFACE" checked onchange="handleScopeChange('SURFACE')">
-                                    <label class="btn btn-sm rounded-pill fw-bold text-white" for="scope-surface" id="label-scope-surface"><i class="bi bi-bounding-box me-1"></i>Superficie Seleccionada</label>
+                                    <label class="btn btn-sm rounded-pill fw-bold" for="scope-surface" id="label-scope-surface"><i class="bi bi-bounding-box me-1"></i>Superficie Seleccionada</label>
 
                                     <input type="radio" class="btn-check" name="odonto-scope" id="scope-crown" value="CROWN" onchange="handleScopeChange('CROWN')">
-                                    <label class="btn btn-sm rounded-pill fw-bold text-white" for="scope-crown"><i class="bi bi-circle-square me-1"></i>Toda la Corona (5 caras)</label>
+                                    <label class="btn btn-sm rounded-pill fw-bold" for="scope-crown"><i class="bi bi-circle-square me-1"></i>Toda la Corona (5 caras)</label>
 
                                     <input type="radio" class="btn-check" name="odonto-scope" id="scope-tooth" value="TOOTH" onchange="handleScopeChange('TOOTH')">
-                                    <label class="btn btn-sm rounded-pill fw-bold text-white" for="scope-tooth"><i class="bi bi-x-circle me-1"></i>Pieza Completa (Ausente)</label>
+                                    <label class="btn btn-sm rounded-pill fw-bold" for="scope-tooth"><i class="bi bi-x-circle me-1"></i>Pieza Completa (Ausente)</label>
                                 </div>
                             </div>
 
                             <!-- Nivel 2: Selector en Cascada por Categorías (3 Grupos SaaS) -->
                             <div class="mb-4">
-                                <label class="small text-white-50 fw-bold text-uppercase mb-2 d-block">2. Categoría y Condición Clínica</label>
+                                <label class="small text-dark fw-bold text-uppercase mb-2 d-block">2. Categoría y Condición Clínica</label>
                                 <ul class="nav nav-pills nav-fill mb-3 odonto-category-pills" id="pills-odonto-cat" role="tablist">
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link active fw-bold text-danger" id="pills-pending-tab" data-bs-toggle="pill" data-bs-target="#pills-pending" type="button" role="tab"><i class="bi bi-exclamation-octagon-fill me-1"></i>🔴 Patología / Hallazgo</button>
                                     </li>
                                     <li class="nav-item" role="presentation">
-                                        <button class="nav-link fw-bold text-primary" id="pills-existing-tab" data-bs-toggle="pill" data-bs-target="#pills-existing" type="button" role="tab"><i class="bi bi-shield-shaded me-1"></i>🟠 Tratamiento / Restauración</button>
+                                        <button class="nav-link fw-bold text-primary" id="pills-existing-tab" data-bs-toggle="pill" data-bs-target="#pills-existing" type="button" role="tab"><i class="bi bi-shield-shaded me-1"></i>🔵 Tratamiento / Restauración</button>
                                     </li>
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link fw-bold text-success" id="pills-healthy-tab" data-bs-toggle="pill" data-bs-target="#pills-healthy" type="button" role="tab"><i class="bi bi-check-circle-fill me-1"></i>🟢 Estado Normal</button>
@@ -663,11 +518,11 @@ print <<HTML;
                                         <div class="row g-2 mb-3" id="grid-conditions-healthy">
                                             <!-- Inyectado dinámicamente por JS -->
                                         </div>
-                                        <div class="p-3 rounded-4 text-center border" style="background: rgba(15, 35, 75, 0.7); border-color: rgba(0, 229, 255, 0.25) !important;">
+                                        <div class="p-3 rounded-4 text-center border bg-light" style="border-color: var(--odonto-card-border) !important;">
                                             <i class="bi bi-shield-check text-success display-6 d-block mb-1"></i>
-                                            <h6 class="fw-black text-white mb-1">Restaurar a Estado Sano</h6>
-                                            <p class="small text-white-50 mb-2">Se removerán las marcas patológicas o restauraciones de la zona o diente seleccionado.</p>
-                                            <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-4 fw-bold" onclick="selectOdontoCondition('HEALTHY')">
+                                            <h6 class="fw-black text-dark mb-1">Restaurar a Estado Sano</h6>
+                                            <p class="small text-muted mb-2">Se removerán las marcas patológicas o restauraciones de la zona o diente seleccionado.</p>
+                                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-4 fw-bold" onclick="selectOdontoCondition('HEALTHY')">
                                                 <i class="bi bi-check-lg me-1"></i>Marcar Sano / Sin Hallazgo
                                             </button>
                                         </div>
@@ -675,24 +530,24 @@ print <<HTML;
                                 </div>
                             </div>
 
-                            <!-- Nivel 3: Resumen y Precio -->
-                            <div class="p-3 rounded-4 border d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(135deg, rgba(15, 35, 75, 0.9), rgba(6, 25, 60, 0.95)); border-color: rgba(0, 229, 255, 0.3) !important;">
+                            <!-- Nivel 3: Resumen y Precio (Imagen 2) -->
+                            <div class="p-3 rounded-4 border d-flex justify-content-between align-items-center flex-wrap gap-2 odonto-modal-summary-box">
                                 <div>
-                                    <span class="small text-white-50 fw-bold d-block">Resumen de Selección:</span>
-                                    <span class="fw-bold text-white" id="odonto-summary-condition">Caries Dental (Activa)</span>
-                                    <span class="badge bg-danger text-white ms-2 rounded-pill px-2 py-1" id="odonto-summary-scope">Superficie Mesial</span>
+                                    <span class="small text-muted fw-bold d-block">Resumen de Selección:</span>
+                                    <span class="fw-bold text-dark fs-6" id="odonto-summary-condition">Caries Dental (Activa)</span>
+                                    <span class="badge rounded-pill px-2 py-1 ms-2" id="odonto-summary-scope" style="background: #ccfbf1; color: #0f766e; border: 1px solid #14b8a6;">Superficie Mesial</span>
                                 </div>
                                 <div class="text-end">
-                                    <span class="small text-white-50 fw-bold d-block">Importe Sugerido</span>
-                                    <span class="h4 fw-black text-info m-0 font-monospace" id="odonto-summary-price">\$850.00 MXN</span>
+                                    <span class="small text-muted fw-bold d-block">Importe Sugerido</span>
+                                    <span class="h4 fw-black text-dark m-0 font-monospace" id="odonto-summary-price">\$850.00 MXN</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top py-3 px-4 d-flex justify-content-between" style="border-color: rgba(255,255,255,0.1) !important;">
-                    <button type="button" class="btn btn-outline-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold" onclick="confirmApplyClinicalCondition()" style="background: linear-gradient(135deg, #007AFF, #00E5FF); border: 0; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.4);">
+                <div class="modal-footer border-top py-3 px-4 d-flex justify-content-between" style="border-color: #e2e8f0 !important;">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-apply-odonto" onclick="confirmApplyClinicalCondition()">
                         <i class="bi bi-check2-circle me-1"></i>Aplicar al Odontograma
                     </button>
                 </div>
@@ -853,59 +708,59 @@ print <<HTML;
         </div>
     </div>
 
-    <!-- MODAL GESTIÓN DE CATÁLOGO ODONTOGRAMA (CRUD AJAX) -->
+    <!-- MODAL GESTIÓN DE CATÁLOGO ODONTOGRAMA (CRUD AJAX - TEMA CLARO) -->
     <div class="modal fade" id="modalGestionCatalogoOdonto" tabindex="-1" aria-labelledby="modalGestionCatalogoOdontoLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-            <div class="modal-content border-0 shadow-2xl rounded-4" style="background: rgba(10, 25, 55, 0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0, 229, 255, 0.25) !important; color: #f8fafc;">
-                <div class="modal-header border-bottom py-3 px-4" style="border-color: rgba(255,255,255,0.1) !important;">
+            <div class="modal-content border-0 shadow-2xl rounded-4 odonto-modal-light">
+                <div class="modal-header border-bottom py-3 px-4" style="border-color: #e2e8f0 !important;">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle p-2 d-flex align-items-center justify-content-center" style="background: rgba(0, 229, 255, 0.15); border: 1px solid rgba(0, 229, 255, 0.3);">
-                            <i class="bi bi-sliders2 text-info fs-5"></i>
+                        <div class="rounded-circle p-2 d-flex align-items-center justify-content-center" style="background: var(--odonto-teal-light); border: 1.5px solid var(--odonto-teal);">
+                            <i class="bi bi-sliders2 fs-5" style="color: var(--odonto-teal-dark);"></i>
                         </div>
                         <div>
-                            <h5 class="fw-black mb-0 text-white" id="modalGestionCatalogoOdontoLabel">Gestión de Catálogo Clínico Odontológico</h5>
-                            <span class="small text-white-50">Configuración personalizada de patologías, tratamientos, aranceles base y códigos FDI</span>
+                            <h5 class="fw-black mb-0 text-dark" id="modalGestionCatalogoOdontoLabel">Gestión de Catálogo Clínico Odontológico</h5>
+                            <span class="small text-secondary">Configuración personalizada de patologías, tratamientos, aranceles base y códigos FDI</span>
                         </div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <!-- Formulario de Edición / Alta (Colapsable) -->
-                    <div id="wrapperFormConceptoModal" class="d-none mb-4 p-3 rounded-4" style="background: rgba(15, 35, 75, 0.85); border: 1px solid rgba(0, 229, 255, 0.3);">
-                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: rgba(255,255,255,0.1) !important;">
-                            <h6 class="fw-bold text-info mb-0" id="tituloFormConceptoModal"><i class="bi bi-pencil-square me-2"></i>Editar Concepto</h6>
-                            <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="cancelarFormularioConceptoModal()">Cancelar</button>
+                    <div id="wrapperFormConceptoModal" class="d-none mb-4 p-3 rounded-4" style="background: #f8fafc; border: 1.5px solid var(--odonto-card-border);">
+                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: #e2e8f0 !important;">
+                            <h6 class="fw-bold mb-0 text-dark" id="tituloFormConceptoModal"><i class="bi bi-pencil-square me-2" style="color: var(--odonto-teal);"></i>Editar Concepto</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="cancelarFormularioConceptoModal()">Cancelar</button>
                         </div>
                         <form id="formConceptoModalOdonto" onsubmit="guardarConceptoModal(event)">
                             <input type="hidden" id="modal_form_id" name="id" value="">
                             <div class="row g-2">
                                 <div class="col-md-3">
-                                    <label class="form-label small text-white-50 fw-bold mb-1">Código FDI/ISO</label>
-                                    <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary text-uppercase fw-bold" id="modal_form_code" name="code" required placeholder="EJ: RESINA_3D">
+                                    <label class="form-label small text-secondary fw-bold mb-1">Código FDI/ISO</label>
+                                    <input type="text" class="form-control form-control-sm bg-white text-dark border-secondary-subtle text-uppercase fw-bold" id="modal_form_code" name="code" required placeholder="EJ: RESINA_3D">
                                 </div>
                                 <div class="col-md-5">
-                                    <label class="form-label small text-white-50 fw-bold mb-1">Nombre Clínico / Procedimiento</label>
-                                    <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" id="modal_form_nombre" name="nombre" required placeholder="Ej: Resina Fotocurable">
+                                    <label class="form-label small text-secondary fw-bold mb-1">Nombre Clínico / Procedimiento</label>
+                                    <input type="text" class="form-control form-control-sm bg-white text-dark border-secondary-subtle" id="modal_form_nombre" name="nombre" required placeholder="Ej: Resina Fotocurable">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small text-white-50 fw-bold mb-1">Grupo SaaS</label>
-                                    <select class="form-select form-select-sm bg-dark text-white border-secondary" id="modal_form_grupo" name="grupo" required onchange="ajustarGrupoModal(this.value)">
+                                    <label class="form-label small text-secondary fw-bold mb-1">Grupo SaaS</label>
+                                    <select class="form-select form-select-sm bg-white text-dark border-secondary-subtle" id="modal_form_grupo" name="grupo" required onchange="ajustarGrupoModal(this.value)">
                                         <option value="PATHOLOGY">Patología / Hallazgo</option>
                                         <option value="RESTORATION">Tratamiento / Restauración</option>
                                         <option value="NORMAL">Estado Normal</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-white-50 fw-bold mb-1">Categoría</label>
-                                    <select class="form-select form-select-sm bg-dark text-white border-secondary" id="modal_form_categoria" name="categoria" required>
+                                    <label class="form-label small text-secondary fw-bold mb-1">Categoría</label>
+                                    <select class="form-select form-select-sm bg-white text-dark border-secondary-subtle" id="modal_form_categoria" name="categoria" required>
                                         <option value="PENDING">Pendiente (Rojo / Presupuesto)</option>
                                         <option value="EXISTING">Existente (Azul / Realizado)</option>
                                         <option value="HEALTHY">Sano (Blanco / Neutro)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-white-50 fw-bold mb-1">Subestado Técnico</label>
-                                    <select class="form-select form-select-sm bg-dark text-white border-secondary" id="modal_form_substatus" name="substatus">
+                                    <label class="form-label small text-secondary fw-bold mb-1">Subestado Técnico</label>
+                                    <select class="form-select form-select-sm bg-white text-dark border-secondary-subtle" id="modal_form_substatus" name="substatus">
                                         <option value="ACTIVE">Activa / Presente</option>
                                         <option value="ADAPTED">Adaptada / Buena</option>
                                         <option value="DEFECTIVE">Desadaptada / Defectuosa</option>
@@ -916,25 +771,25 @@ print <<HTML;
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-white-50 fw-bold mb-1">Precio Ref. (MXN)</label>
+                                    <label class="form-label small text-secondary fw-bold mb-1">Precio Ref. (MXN)</label>
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-secondary border-secondary text-white">\$</span>
-                                        <input type="number" step="0.01" min="0" class="form-control form-control-sm bg-dark text-white border-secondary fw-bold" id="modal_form_precio" name="precio" value="0.00" required>
+                                        <span class="input-group-text bg-light border-secondary-subtle text-dark">\$</span>
+                                        <input type="number" step="0.01" min="0" class="form-control form-control-sm bg-white text-dark border-secondary-subtle fw-bold" id="modal_form_precio" name="precio" value="0.00" required>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-white-50 fw-bold mb-1">Color Odontograma</label>
+                                    <label class="form-label small text-secondary fw-bold mb-1">Color Odontograma</label>
                                     <div class="d-flex align-items-center gap-2">
                                         <input type="color" class="form-control form-control-color p-0 bg-transparent border-0" id="modal_form_color" name="color_hex" value="#FF3B30">
-                                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary text-uppercase" id="modal_form_color_text" value="#FF3B30" onchange="document.getElementById('modal_form_color').value = this.value">
+                                        <input type="text" class="form-control form-control-sm bg-white text-dark border-secondary-subtle text-uppercase" id="modal_form_color_text" value="#FF3B30" onchange="document.getElementById('modal_form_color').value = this.value">
                                     </div>
                                 </div>
                                 <div class="col-md-9">
-                                    <label class="form-label small text-white-50 fw-bold mb-1">Ícono Bootstrap</label>
-                                    <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" id="modal_form_icono" name="icono" value="bi-circle-fill text-danger">
+                                    <label class="form-label small text-secondary fw-bold mb-1">Ícono Bootstrap</label>
+                                    <input type="text" class="form-control form-control-sm bg-white text-dark border-secondary-subtle" id="modal_form_icono" name="icono" value="bi-circle-fill text-danger">
                                 </div>
                                 <div class="col-md-3 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-sm btn-info w-100 rounded-pill fw-bold shadow-sm">
+                                    <button type="submit" class="btn btn-sm btn-apply-odonto w-100 rounded-pill fw-bold shadow-sm">
                                         <i class="bi bi-save me-1"></i> Guardar Concepto
                                     </button>
                                 </div>
@@ -944,24 +799,24 @@ print <<HTML;
 
                     <!-- Barra de Filtros y Búsqueda -->
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-                        <div class="btn-group btn-group-sm p-1 rounded-pill border" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15) !important;" role="group">
-                            <button type="button" class="btn btn-sm text-white rounded-pill px-3 active fw-bold btn-modal-filter" data-filter="ALL" onclick="filtrarCatalogoModal('ALL', this)">Todos</button>
-                            <button type="button" class="btn btn-sm text-white rounded-pill px-3 fw-bold btn-modal-filter" data-filter="PATHOLOGY" onclick="filtrarCatalogoModal('PATHOLOGY', this)">Patologías</button>
-                            <button type="button" class="btn btn-sm text-white rounded-pill px-3 fw-bold btn-modal-filter" data-filter="RESTORATION" onclick="filtrarCatalogoModal('RESTORATION', this)">Restauraciones</button>
-                            <button type="button" class="btn btn-sm text-white rounded-pill px-3 fw-bold btn-modal-filter" data-filter="NORMAL" onclick="filtrarCatalogoModal('NORMAL', this)">Normales</button>
+                        <div class="btn-group btn-group-sm p-1 rounded-pill border bg-light" role="group">
+                            <button type="button" class="btn btn-sm rounded-pill px-3 active fw-bold btn-modal-filter" data-filter="ALL" onclick="filtrarCatalogoModal('ALL', this)">Todos</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-filter" data-filter="PATHOLOGY" onclick="filtrarCatalogoModal('PATHOLOGY', this)">Patologías</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-filter" data-filter="RESTORATION" onclick="filtrarCatalogoModal('RESTORATION', this)">Restauraciones</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-filter" data-filter="NORMAL" onclick="filtrarCatalogoModal('NORMAL', this)">Normales</button>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <input type="text" class="form-control form-control-sm rounded-pill bg-dark text-white border-secondary px-3" id="inputBuscarModalCatalogo" placeholder="Buscar concepto..." oninput="buscarConceptoModal(this.value)">
-                            <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-bold text-nowrap" onclick="mostrarFormularioNuevoModal()">
+                            <input type="text" class="form-control form-control-sm rounded-pill bg-white text-dark border-secondary-subtle px-3" id="inputBuscarModalCatalogo" placeholder="Buscar concepto..." oninput="buscarConceptoModal(this.value)">
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold text-nowrap" style="color: var(--odonto-teal-dark); border-color: var(--odonto-teal);" onclick="mostrarFormularioNuevoModal()">
                                 <i class="bi bi-plus-circle me-1"></i> + Nuevo Concepto
                             </button>
                         </div>
                     </div>
 
                     <!-- Lista / Tabla de Conceptos -->
-                    <div class="table-responsive rounded-3" style="max-height: 480px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
-                        <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
-                            <thead class="text-uppercase small text-white-50" style="background: rgba(0,0,0,0.4); position: sticky; top: 0; z-index: 2;">
+                    <div class="table-responsive rounded-3 border" style="max-height: 480px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="text-uppercase small table-light" style="position: sticky; top: 0; z-index: 2;">
                                 <tr>
                                     <th style="width: 50px;">ID</th>
                                     <th>Código</th>
@@ -974,14 +829,14 @@ print <<HTML;
                                 </tr>
                             </thead>
                             <tbody id="tbodyModalCatalogoOdonto">
-                                <tr><td colspan="8" class="text-center py-4 text-white-50"><div class="spinner-border spinner-border-sm text-info me-2"></div>Cargando catálogo...</td></tr>
+                                <tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Cargando catálogo...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer border-top py-2 px-4 d-flex justify-content-between" style="border-color: rgba(255,255,255,0.1) !important;">
-                    <span class="small text-white-50" id="infoTotalModalCatalogo"><i class="bi bi-info-circle me-1"></i>Los cambios se sincronizan en vivo con el visor clínico.</span>
-                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
+                <div class="modal-footer border-top py-2 px-4 d-flex justify-content-between" style="border-color: #e2e8f0 !important;">
+                    <span class="small text-muted" id="infoTotalModalCatalogo"><i class="bi bi-info-circle me-1"></i>Los cambios se sincronizan en vivo con el visor clínico.</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -1054,10 +909,10 @@ print <<'JS';
                 if (tData.absent || tData.status === 'ABSENT') {
                     rowsHtml += `
                         <tr>
-                            <td><span class="badge rounded-pill fw-bold" style="background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4);">#${toothId}</span></td>
-                            <td><span class="text-white-50 small">Pieza</span></td>
-                            <td><span class="badge bg-secondary text-white border">Ausente ✕</span></td>
-                            <td class="text-end text-white-50">-</td>
+                            <td><span class="badge rounded-pill fw-bold" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">#${toothId}</span></td>
+                            <td><span class="text-muted small">Pieza</span></td>
+                            <td><span class="badge bg-secondary-subtle text-secondary border">Ausente ✕</span></td>
+                            <td class="text-end text-muted">-</td>
                         </tr>
                     `;
                 }
@@ -1066,7 +921,7 @@ print <<'JS';
                     Object.keys(tData.surfaces).forEach(surf => {
                         const sData = tData.surfaces[surf];
                         const isPending = sData.state === 'PENDING_TREATMENT';
-                        const badgeClass = isPending ? 'bg-danger text-white border-danger' : 'bg-primary text-white border-primary';
+                        const badgeClass = isPending ? 'bg-danger text-white' : 'bg-primary text-white';
                         const price = parseFloat(sData.price) || 0;
                         if (isPending) {
                             total += price;
@@ -1075,10 +930,10 @@ print <<'JS';
 
                         rowsHtml += `
                             <tr>
-                                <td><span class="badge rounded-pill fw-bold" style="background: rgba(0, 229, 255, 0.2); color: #00E5FF; border: 1px solid rgba(0, 229, 255, 0.4);">#${toothId}</span></td>
-                                <td><span class="small fw-semibold text-uppercase text-white-50">${surf}</span></td>
+                                <td><span class="badge rounded-pill fw-bold" style="background: #ccfbf1; color: #0f766e; border: 1px solid #14b8a6;">#${toothId}</span></td>
+                                <td><span class="small fw-semibold text-uppercase text-secondary">${surf}</span></td>
                                 <td><span class="badge ${badgeClass}">${sData.code || 'Condición'}</span></td>
-                                <td class="text-end fw-bold font-monospace ${isPending ? 'text-danger' : 'text-info'}">$${price.toFixed(2)}</td>
+                                <td class="text-end fw-bold font-monospace ${isPending ? 'text-danger' : 'text-primary'}">$${price.toFixed(2)}</td>
                             </tr>
                         `;
                     });
@@ -1086,7 +941,7 @@ print <<'JS';
             });
 
             if (!rowsHtml) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-white-50 py-4 small">Sin hallazgos clínicos registrados. Haz click en una pieza dental.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Sin hallazgos clínicos registrados. Haz click en una pieza dental.</td></tr>`;
             } else {
                 tbody.innerHTML = rowsHtml;
             }

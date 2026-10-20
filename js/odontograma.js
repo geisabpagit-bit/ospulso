@@ -1133,19 +1133,19 @@ function renderModalConditionGrids() {
     const gridExisting = document.getElementById('grid-conditions-existing');
     const gridHealthy = document.getElementById('grid-conditions-healthy');
 
-    // GRUPO 1: PATOLOGÍA / HALLAZGO (Rojo Neón)
+    // GRUPO 1: PATOLOGÍA / HALLAZGO (Rojo Neón / Coral)
     if (gridPending) {
         let htmlP = '';
         Object.values(ODONTO_CATALOG).filter(c => c.group === 'PATHOLOGY').forEach(item => {
             htmlP += `
                 <div class="col-md-6">
-                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')" style="background: rgba(15, 35, 75, 0.7); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 12px; padding: 10px; cursor: pointer; transition: all 0.2s ease;">
-                        <div class="d-flex align-items-center justify-content-between">
+                    <div class="odonto-condition-card condition-pathology" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
+                        <div class="d-flex align-items-center justify-content-between w-100">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="odonto-condition-badge" style="display:inline-block; width:14px; height:14px; border-radius:50%; background: ${item.colorHex}; box-shadow: 0 0 8px ${item.colorHex};"></span>
-                                <span class="small fw-bold text-white">${item.name}</span>
+                                <span class="odonto-condition-badge" style="background: ${item.colorHex}; box-shadow: 0 0 8px ${item.colorHex};"></span>
+                                <span class="small fw-bold text-dark">${item.name}</span>
                             </div>
-                            ${item.price > 0 ? `<span class="badge bg-danger text-white rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">$${item.price.toFixed(2)}</span>` : `<span class="badge bg-secondary text-white rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Ausente</span>`}
+                            ${item.price > 0 ? `<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">$${item.price.toFixed(2)} MXN</span>` : `<span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Ausente</span>`}
                         </div>
                     </div>
                 </div>
@@ -1160,22 +1160,22 @@ function renderModalConditionGrids() {
         Object.values(ODONTO_CATALOG).filter(c => c.group === 'RESTORATION').forEach(item => {
             let badgeHtml = '';
             if (item.substatus === 'DEFECTIVE') {
-                badgeHtml = `<span class="badge bg-warning text-dark rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Desadaptada ($${item.price.toFixed(2)})</span>`;
+                badgeHtml = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Desadaptada ($${item.price.toFixed(2)})</span>`;
             } else if (item.substatus === 'TEMPORARY') {
-                badgeHtml = `<span class="badge bg-warning text-dark rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Provisional ($${item.price.toFixed(2)})</span>`;
+                badgeHtml = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Provisional ($${item.price.toFixed(2)})</span>`;
             } else if (item.substatus === 'PONTIC') {
-                badgeHtml = `<span class="badge bg-info text-dark rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Póntico ($${item.price.toFixed(2)})</span>`;
+                badgeHtml = `<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Póntico ($${item.price.toFixed(2)})</span>`;
             } else {
-                badgeHtml = `<span class="badge bg-primary text-white rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Adaptada</span>`;
+                badgeHtml = `<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Adaptada</span>`;
             }
 
             htmlE += `
                 <div class="col-md-6">
-                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')" style="background: rgba(15, 35, 75, 0.7); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 12px; padding: 10px; cursor: pointer; transition: all 0.2s ease;">
-                        <div class="d-flex align-items-center justify-content-between">
+                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
+                        <div class="d-flex align-items-center justify-content-between w-100">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="odonto-condition-badge" style="display:inline-block; width:14px; height:14px; border-radius:50%; background: ${item.colorHex}; box-shadow: 0 0 8px ${item.colorHex};"></span>
-                                <span class="small fw-bold text-white">${item.name}</span>
+                                <span class="odonto-condition-badge" style="background: ${item.colorHex}; box-shadow: 0 0 8px ${item.colorHex};"></span>
+                                <span class="small fw-bold text-dark">${item.name}</span>
                             </div>
                             ${badgeHtml}
                         </div>
@@ -1192,13 +1192,13 @@ function renderModalConditionGrids() {
         Object.values(ODONTO_CATALOG).filter(c => c.group === 'NORMAL').forEach(item => {
             htmlH += `
                 <div class="col-md-6">
-                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')" style="background: rgba(15, 35, 75, 0.7); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 12px; padding: 10px; cursor: pointer; transition: all 0.2s ease;">
-                        <div class="d-flex align-items-center justify-content-between">
+                    <div class="odonto-condition-card" data-code="${item.code}" onclick="selectOdontoCondition('${item.code}')">
+                        <div class="d-flex align-items-center justify-content-between w-100">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="odonto-condition-badge" style="display:inline-block; width:14px; height:14px; border-radius:50%; background: ${item.colorHex}; border: 1px solid #cbd5e1;"></span>
-                                <span class="small fw-bold text-white">${item.name}</span>
+                                <span class="odonto-condition-badge" style="background: ${item.colorHex}; border: 1px solid #cbd5e1;"></span>
+                                <span class="small fw-bold text-dark">${item.name}</span>
                             </div>
-                            <span class="badge bg-success text-white rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Normal</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem;">Normal</span>
                         </div>
                     </div>
                 </div>
