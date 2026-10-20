@@ -217,6 +217,9 @@ En cumplimiento con los estándares de diseño clínico moderno y contraste visu
    - Tarjetas de condición clínica en blanco con badges de precio predefinidos, selección activa con borde coral/menta y tarjeta inferior de resumen de selección con importe sugerido y botón primario `.btn-apply-odonto` en teal `#00A896`.
 5. **Sidebar Ficha Clínica y Leyenda**:
    - Barra lateral con fondo blanco/menta ultra claro, tarjetas de estado clínico y presupuesto en degradado suave (`#fff1f2` a `#ffe4e6` para presupuesto pendiente) y tabla de hallazgos contrastada. Leyenda flotante inferior tipo cápsula blanca con pastillas de diagnóstico internacional.
+6. **Gestión de Catálogo Clínico Odontológico (`#modalGestionCatalogoOdonto`)**:
+   - Refactorización de estilos a tema claro clínico mandante con tipografía compacta (`0.75rem` – `0.80rem`) y alto contraste óptico.
+   - Eliminación de texto blanco en celdas de la tabla, empleando slate `#0f172a` para nombres de procedimientos, pastillas de código FDI en teal `#0d9488`, aranceles en teal `#0f766e` y pastillas pastel para grupos y categorías.
 
 
 

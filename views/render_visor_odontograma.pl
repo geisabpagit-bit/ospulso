@@ -709,58 +709,59 @@ print <<HTML;
     </div>
 
     <!-- MODAL GESTIÓN DE CATÁLOGO ODONTOGRAMA (CRUD AJAX - TEMA CLARO) -->
+    <!-- MODAL GESTIÓN DE CATÁLOGO ODONTOGRAMA (CRUD AJAX - TEMA CLARO CLÍNICO) -->
     <div class="modal fade" id="modalGestionCatalogoOdonto" tabindex="-1" aria-labelledby="modalGestionCatalogoOdontoLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-            <div class="modal-content border-0 shadow-2xl rounded-4 odonto-modal-light">
-                <div class="modal-header border-bottom py-3 px-4" style="border-color: #e2e8f0 !important;">
+            <div class="modal-content border-0 shadow-2xl rounded-4 odonto-modal-light" style="background: #ffffff;">
+                <div class="modal-header border-bottom py-3 px-4" style="border-color: #e2e8f0 !important; background: #ffffff;">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle p-2 d-flex align-items-center justify-content-center" style="background: var(--odonto-teal-light); border: 1.5px solid var(--odonto-teal);">
+                        <div class="rounded-circle p-2 d-flex align-items-center justify-content-center" style="background: var(--odonto-teal-light); border: 1.5px solid var(--odonto-teal); width: 40px; height: 40px;">
                             <i class="bi bi-sliders2 fs-5" style="color: var(--odonto-teal-dark);"></i>
                         </div>
                         <div>
-                            <h5 class="fw-black mb-0 text-dark" id="modalGestionCatalogoOdontoLabel">Gestión de Catálogo Clínico Odontológico</h5>
-                            <span class="small text-secondary">Configuración personalizada de patologías, tratamientos, aranceles base y códigos FDI</span>
+                            <h5 class="fw-black mb-0" style="color: #083344; font-size: 1.05rem;" id="modalGestionCatalogoOdontoLabel">Gestión de Catálogo Clínico Odontológico</h5>
+                            <span class="text-secondary" style="font-size: 0.75rem;">Configuración personalizada de patologías, tratamientos, aranceles base y códigos FDI</span>
                         </div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4" style="background: #ffffff;">
                     <!-- Formulario de Edición / Alta (Colapsable) -->
-                    <div id="wrapperFormConceptoModal" class="d-none mb-4 p-3 rounded-4" style="background: #f8fafc; border: 1.5px solid var(--odonto-card-border);">
+                    <div id="wrapperFormConceptoModal" class="d-none mb-3 p-3 rounded-4" style="background: #f8fafc; border: 1.5px solid #e2e8f0;">
                         <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: #e2e8f0 !important;">
-                            <h6 class="fw-bold mb-0 text-dark" id="tituloFormConceptoModal"><i class="bi bi-pencil-square me-2" style="color: var(--odonto-teal);"></i>Editar Concepto</h6>
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="cancelarFormularioConceptoModal()">Cancelar</button>
+                            <h6 class="fw-bold mb-0" style="color: #083344; font-size: 0.85rem;" id="tituloFormConceptoModal"><i class="bi bi-pencil-square me-2" style="color: var(--odonto-teal);"></i>Editar Concepto</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" style="font-size: 0.75rem;" onclick="cancelarFormularioConceptoModal()">Cancelar</button>
                         </div>
                         <form id="formConceptoModalOdonto" onsubmit="guardarConceptoModal(event)">
                             <input type="hidden" id="modal_form_id" name="id" value="">
                             <div class="row g-2">
                                 <div class="col-md-3">
-                                    <label class="form-label small text-secondary fw-bold mb-1">Código FDI/ISO</label>
-                                    <input type="text" class="form-control form-control-sm bg-white text-dark border-secondary-subtle text-uppercase fw-bold" id="modal_form_code" name="code" required placeholder="EJ: RESINA_3D">
+                                    <label class="form-label fw-bold mb-1" style="font-size: 0.72rem; color: #475569;">Código FDI/ISO</label>
+                                    <input type="text" class="form-control form-control-sm bg-white border-secondary-subtle text-uppercase fw-bold" style="font-size: 0.78rem; color: #0f172a;" id="modal_form_code" name="code" required placeholder="EJ: RESINA_3D">
                                 </div>
                                 <div class="col-md-5">
-                                    <label class="form-label small text-secondary fw-bold mb-1">Nombre Clínico / Procedimiento</label>
-                                    <input type="text" class="form-control form-control-sm bg-white text-dark border-secondary-subtle" id="modal_form_nombre" name="nombre" required placeholder="Ej: Resina Fotocurable">
+                                    <label class="form-label fw-bold mb-1" style="font-size: 0.72rem; color: #475569;">Nombre Clínico / Procedimiento</label>
+                                    <input type="text" class="form-control form-control-sm bg-white border-secondary-subtle" style="font-size: 0.78rem; color: #0f172a;" id="modal_form_nombre" name="nombre" required placeholder="Ej: Resina Fotocurable">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small text-secondary fw-bold mb-1">Grupo SaaS</label>
-                                    <select class="form-select form-select-sm bg-white text-dark border-secondary-subtle" id="modal_form_grupo" name="grupo" required onchange="ajustarGrupoModal(this.value)">
+                                    <label class="form-label fw-bold mb-1" style="font-size: 0.72rem; color: #475569;">Grupo SaaS</label>
+                                    <select class="form-select form-select-sm bg-white border-secondary-subtle" style="font-size: 0.78rem; color: #0f172a;" id="modal_form_grupo" name="grupo" required onchange="ajustarGrupoModal(this.value)">
                                         <option value="PATHOLOGY">Patología / Hallazgo</option>
                                         <option value="RESTORATION">Tratamiento / Restauración</option>
                                         <option value="NORMAL">Estado Normal</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-secondary fw-bold mb-1">Categoría</label>
-                                    <select class="form-select form-select-sm bg-white text-dark border-secondary-subtle" id="modal_form_categoria" name="categoria" required>
-                                        <option value="PENDING">Pendiente (Rojo / Presupuesto)</option>
-                                        <option value="EXISTING">Existente (Azul / Realizado)</option>
-                                        <option value="HEALTHY">Sano (Blanco / Neutro)</option>
+                                    <label class="form-label fw-bold mb-1" style="font-size: 0.72rem; color: #475569;">Categoría</label>
+                                    <select class="form-select form-select-sm bg-white border-secondary-subtle" style="font-size: 0.78rem; color: #0f172a;" id="modal_form_categoria" name="categoria" required>
+                                        <option value="PENDING">Pendiente (Presupuesto)</option>
+                                        <option value="EXISTING">Existente (Realizado)</option>
+                                        <option value="HEALTHY">Sano (Neutro)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-secondary fw-bold mb-1">Subestado Técnico</label>
-                                    <select class="form-select form-select-sm bg-white text-dark border-secondary-subtle" id="modal_form_substatus" name="substatus">
+                                    <label class="form-label fw-bold mb-1" style="font-size: 0.72rem; color: #475569;">Subestado Técnico</label>
+                                    <select class="form-select form-select-sm bg-white border-secondary-subtle" style="font-size: 0.78rem; color: #0f172a;" id="modal_form_substatus" name="substatus">
                                         <option value="ACTIVE">Activa / Presente</option>
                                         <option value="ADAPTED">Adaptada / Buena</option>
                                         <option value="DEFECTIVE">Desadaptada / Defectuosa</option>
@@ -771,25 +772,25 @@ print <<HTML;
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-secondary fw-bold mb-1">Precio Ref. (MXN)</label>
+                                    <label class="form-label fw-bold mb-1" style="font-size: 0.72rem; color: #475569;">Precio Ref. (MXN)</label>
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-light border-secondary-subtle text-dark">\$</span>
-                                        <input type="number" step="0.01" min="0" class="form-control form-control-sm bg-white text-dark border-secondary-subtle fw-bold" id="modal_form_precio" name="precio" value="0.00" required>
+                                        <span class="input-group-text bg-light border-secondary-subtle" style="font-size: 0.78rem; color: #475569;">\$</span>
+                                        <input type="number" step="0.01" min="0" class="form-control form-control-sm bg-white border-secondary-subtle fw-bold" style="font-size: 0.78rem; color: #0f172a;" id="modal_form_precio" name="precio" value="0.00" required>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-secondary fw-bold mb-1">Color Odontograma</label>
+                                    <label class="form-label fw-bold mb-1" style="font-size: 0.72rem; color: #475569;">Color Odontograma</label>
                                     <div class="d-flex align-items-center gap-2">
                                         <input type="color" class="form-control form-control-color p-0 bg-transparent border-0" id="modal_form_color" name="color_hex" value="#FF3B30">
-                                        <input type="text" class="form-control form-control-sm bg-white text-dark border-secondary-subtle text-uppercase" id="modal_form_color_text" value="#FF3B30" onchange="document.getElementById('modal_form_color').value = this.value">
+                                        <input type="text" class="form-control form-control-sm bg-white border-secondary-subtle text-uppercase font-monospace" style="font-size: 0.78rem; color: #0f172a;" id="modal_form_color_text" value="#FF3B30" onchange="document.getElementById('modal_form_color').value = this.value">
                                     </div>
                                 </div>
                                 <div class="col-md-9">
-                                    <label class="form-label small text-secondary fw-bold mb-1">Ícono Bootstrap</label>
-                                    <input type="text" class="form-control form-control-sm bg-white text-dark border-secondary-subtle" id="modal_form_icono" name="icono" value="bi-circle-fill text-danger">
+                                    <label class="form-label fw-bold mb-1" style="font-size: 0.72rem; color: #475569;">Ícono Bootstrap</label>
+                                    <input type="text" class="form-control form-control-sm bg-white border-secondary-subtle" style="font-size: 0.78rem; color: #0f172a;" id="modal_form_icono" name="icono" value="bi-circle-fill text-danger">
                                 </div>
                                 <div class="col-md-3 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-sm btn-apply-odonto w-100 rounded-pill fw-bold shadow-sm">
+                                    <button type="submit" class="btn btn-sm btn-apply-odonto w-100 rounded-pill fw-bold shadow-sm" style="font-size: 0.78rem;">
                                         <i class="bi bi-save me-1"></i> Guardar Concepto
                                     </button>
                                 </div>
@@ -799,44 +800,47 @@ print <<HTML;
 
                     <!-- Barra de Filtros y Búsqueda -->
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-                        <div class="btn-group btn-group-sm p-1 rounded-pill border bg-light" role="group">
-                            <button type="button" class="btn btn-sm rounded-pill px-3 active fw-bold btn-modal-filter" data-filter="ALL" onclick="filtrarCatalogoModal('ALL', this)">Todos</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-filter" data-filter="PATHOLOGY" onclick="filtrarCatalogoModal('PATHOLOGY', this)">Patologías</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-filter" data-filter="RESTORATION" onclick="filtrarCatalogoModal('RESTORATION', this)">Restauraciones</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-filter" data-filter="NORMAL" onclick="filtrarCatalogoModal('NORMAL', this)">Normales</button>
+                        <div class="btn-group btn-group-sm p-1 rounded-pill border" style="background: #f8fafc; border-color: #e2e8f0 !important;" role="group">
+                            <button type="button" class="btn btn-sm rounded-pill px-3 active fw-bold btn-modal-filter" style="background: var(--odonto-teal); color: #ffffff; font-size: 0.75rem;" data-filter="ALL" onclick="filtrarCatalogoModal('ALL', this)">Todos</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-filter" style="background: transparent; color: #475569; font-size: 0.75rem;" data-filter="PATHOLOGY" onclick="filtrarCatalogoModal('PATHOLOGY', this)">Patologías</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-filter" style="background: transparent; color: #475569; font-size: 0.75rem;" data-filter="RESTORATION" onclick="filtrarCatalogoModal('RESTORATION', this)">Restauraciones</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-filter" style="background: transparent; color: #475569; font-size: 0.75rem;" data-filter="NORMAL" onclick="filtrarCatalogoModal('NORMAL', this)">Normales</button>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <input type="text" class="form-control form-control-sm rounded-pill bg-white text-dark border-secondary-subtle px-3" id="inputBuscarModalCatalogo" placeholder="Buscar concepto..." oninput="buscarConceptoModal(this.value)">
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold text-nowrap" style="color: var(--odonto-teal-dark); border-color: var(--odonto-teal);" onclick="mostrarFormularioNuevoModal()">
-                                <i class="bi bi-plus-circle me-1"></i> + Nuevo Concepto
+                            <div class="position-relative">
+                                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary" style="font-size: 0.75rem;"></i>
+                                <input type="text" class="form-control form-control-sm rounded-pill bg-white border-secondary-subtle ps-4 pe-3" style="color: #0f172a; font-size: 0.78rem; width: 220px;" id="inputBuscarModalCatalogo" placeholder="Buscar concepto..." oninput="buscarConceptoModal(this.value)">
+                            </div>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold text-nowrap" style="background: #f0fdfa; color: var(--odonto-teal-dark); border: 1.5px solid var(--odonto-teal); font-size: 0.78rem;" onclick="mostrarFormularioNuevoModal()">
+                                <i class="bi bi-plus-circle-fill me-1" style="color: var(--odonto-teal);"></i>+ Nuevo Concepto
                             </button>
                         </div>
                     </div>
 
                     <!-- Lista / Tabla de Conceptos -->
-                    <div class="table-responsive rounded-3 border" style="max-height: 480px; overflow-y: auto;">
+                    <div class="table-responsive rounded-3 border" style="max-height: 480px; overflow-y: auto; border-color: #e2e8f0 !important;">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="text-uppercase small table-light" style="position: sticky; top: 0; z-index: 2;">
-                                <tr>
-                                    <th style="width: 50px;">ID</th>
-                                    <th>Código</th>
-                                    <th>Concepto Clínico</th>
-                                    <th>Grupo</th>
-                                    <th>Categoría</th>
-                                    <th>Color</th>
-                                    <th>Precio Ref.</th>
-                                    <th style="width: 90px;" class="text-end">Acción</th>
+                            <thead style="position: sticky; top: 0; z-index: 2; background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                <tr style="font-size: 0.70rem; font-weight: 800; color: #475569; letter-spacing: 0.5px;">
+                                    <th style="width: 55px; background: #f8fafc;" class="py-2.5 px-3">ID</th>
+                                    <th style="background: #f8fafc;" class="py-2.5 px-3">CÓDIGO</th>
+                                    <th style="background: #f8fafc;" class="py-2.5 px-3">CONCEPTO CLÍNICO</th>
+                                    <th style="background: #f8fafc;" class="py-2.5 px-3">GRUPO</th>
+                                    <th style="background: #f8fafc;" class="py-2.5 px-3">CATEGORÍA</th>
+                                    <th style="background: #f8fafc;" class="py-2.5 px-3">COLOR</th>
+                                    <th style="background: #f8fafc;" class="py-2.5 px-3">PRECIO REF.</th>
+                                    <th style="width: 85px; background: #f8fafc;" class="py-2.5 px-3 text-end">ACCIÓN</th>
                                 </tr>
                             </thead>
                             <tbody id="tbodyModalCatalogoOdonto">
-                                <tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Cargando catálogo...</td></tr>
+                                <tr><td colspan="8" class="text-center py-4 text-secondary small"><div class="spinner-border spinner-border-sm text-teal me-2"></div>Cargando catálogo...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer border-top py-2 px-4 d-flex justify-content-between" style="border-color: #e2e8f0 !important;">
-                    <span class="small text-muted" id="infoTotalModalCatalogo"><i class="bi bi-info-circle me-1"></i>Los cambios se sincronizan en vivo con el visor clínico.</span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
+                <div class="modal-footer border-top py-2 px-4 d-flex justify-content-between" style="border-color: #e2e8f0 !important; background: #f8fafc;">
+                    <span class="text-secondary" style="font-size: 0.75rem;" id="infoTotalModalCatalogo"><i class="bi bi-info-circle me-1"></i>Los cambios se sincronizan en vivo con el visor clínico.</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-4 fw-bold" style="font-size: 0.78rem;" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -1071,7 +1075,7 @@ print <<'JS';
         window.cargarTablaModalCatalogo = async function() {
             const tbody = document.getElementById('tbodyModalCatalogoOdonto');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-white-50"><div class="spinner-border spinner-border-sm text-info me-2"></div>Cargando conceptos...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-secondary small"><div class="spinner-border spinner-border-sm text-teal me-2"></div>Cargando conceptos clínicos...</td></tr>';
             }
             try {
                 const resp = await fetch('../api/catalogo_odontograma_api.pl?action=list');
@@ -1083,23 +1087,25 @@ print <<'JS';
                     }
                     renderTablaModalCatalogo();
                 } else {
-                    if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">${data.message || 'Error al cargar catálogo'}</td></tr>`;
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger small">${data.message || 'Error al cargar catálogo'}</td></tr>`;
                 }
             } catch (e) {
                 console.error('Error cargando catalogo modal:', e);
-                if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Fallo de comunicación con el servidor</td></tr>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger small">Fallo de comunicación con el servidor</td></tr>';
             }
         };
 
         window.filtrarCatalogoModal = function(grupo, btn) {
             window.odontoModalCurrentFilter = grupo;
             document.querySelectorAll('.btn-modal-filter').forEach(b => {
-                b.classList.remove('active', 'btn-info');
-                b.classList.add('text-white');
+                b.classList.remove('active');
+                b.style.background = 'transparent';
+                b.style.color = '#475569';
             });
             if (btn) {
-                btn.classList.add('active', 'btn-info');
-                btn.classList.remove('text-white');
+                btn.classList.add('active');
+                btn.style.background = 'var(--odonto-teal)';
+                btn.style.color = '#ffffff';
             }
             renderTablaModalCatalogo();
         };
@@ -1125,52 +1131,63 @@ print <<'JS';
                 return true;
             });
 
+            const totalEl = document.getElementById('infoTotalModalCatalogo');
+            if (totalEl) {
+                totalEl.innerHTML = `<i class="bi bi-info-circle me-1"></i>Mostrando ${items.length} conceptos clínicos. Sincronización en vivo con el visor.`;
+            }
+
             if (items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-white-50">No se encontraron conceptos clínicos.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-secondary" style="font-size:0.78rem;">No se encontraron conceptos clínicos con el filtro seleccionado.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = '';
             items.forEach(item => {
                 const tr = document.createElement('tr');
+                tr.style.fontSize = '0.78rem';
+                tr.style.borderColor = '#f1f5f9';
                 
-                let badgeGrupo = '<span class="badge bg-secondary-subtle text-secondary rounded-pill border">Normal</span>';
+                let badgeGrupo = '<span class="badge rounded-pill" style="background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; font-size:0.70rem; font-weight:700;">Normal</span>';
                 if (item.grupo === 'PATHOLOGY') {
-                    badgeGrupo = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Patología</span>';
+                    badgeGrupo = '<span class="badge rounded-pill" style="background:#fef2f2; color:#991b1b; border:1px solid #fecdd3; font-size:0.70rem; font-weight:700;">Patología</span>';
                 } else if (item.grupo === 'RESTORATION') {
-                    badgeGrupo = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Restauración</span>';
+                    badgeGrupo = '<span class="badge rounded-pill" style="background:#f0fdfa; color:#0f766e; border:1px solid #ccfbf1; font-size:0.70rem; font-weight:700;">Restauración</span>';
                 }
 
-                let badgeCat = '<span class="badge bg-dark text-white-50 border border-secondary">Normal</span>';
+                let badgeCat = '<span class="badge rounded-pill" style="background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; font-size:0.70rem; font-weight:700;">Normal</span>';
                 if (item.categoria === 'PENDING') {
-                    badgeCat = '<span class="badge bg-danger text-white">Pendiente</span>';
+                    badgeCat = '<span class="badge rounded-pill" style="background:#ffe4e6; color:#be123c; border:1px solid #fecdd3; font-size:0.70rem; font-weight:700;">Pendiente</span>';
                 } else if (item.categoria === 'EXISTING') {
-                    badgeCat = '<span class="badge bg-primary text-white">Existente</span>';
+                    badgeCat = '<span class="badge rounded-pill" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.70rem; font-weight:700;">Existente</span>';
+                } else if (item.categoria === 'HEALTHY') {
+                    badgeCat = '<span class="badge rounded-pill" style="background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; font-size:0.70rem; font-weight:700;">Sano</span>';
                 }
 
                 tr.innerHTML = `
-                    <td class="text-white-50 small">${item.id}</td>
-                    <td><code class="text-info fw-bold">${item.code}</code></td>
-                    <td>
+                    <td class="text-secondary fw-semibold py-2 px-3" style="font-size:0.72rem;">#${item.id}</td>
+                    <td class="py-2 px-3"><code class="px-2 py-0.5 rounded fw-bold" style="font-size:0.72rem; background:#f1f5f9; color:#0d9488; border:1px solid #cbd5e1;">${item.code}</code></td>
+                    <td class="py-2 px-3">
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi ${item.icono} fs-6"></i>
-                            <span class="text-white fw-semibold">${item.nombre}</span>
+                            <span class="fw-bold" style="color:#0f172a; font-size:0.80rem;">${item.nombre}</span>
                         </div>
                     </td>
-                    <td>${badgeGrupo}</td>
-                    <td>${badgeCat}</td>
-                    <td>
+                    <td class="py-2 px-3">${badgeGrupo}</td>
+                    <td class="py-2 px-3">${badgeCat}</td>
+                    <td class="py-2 px-3">
                         <div class="d-flex align-items-center gap-2">
-                            <span style="display:inline-block; width:18px; height:18px; border-radius:4px; background:${item.color_hex}; border:1px solid rgba(255,255,255,0.3);"></span>
-                            <small class="text-white-50 font-monospace">${item.color_hex}</small>
+                            <span style="display:inline-block; width:16px; height:16px; border-radius:4px; background:${item.color_hex}; border:1px solid #cbd5e1; box-shadow:0 1px 2px rgba(0,0,0,0.08);"></span>
+                            <span class="font-monospace text-secondary" style="font-size:0.72rem;">${item.color_hex}</span>
                         </div>
                     </td>
-                    <td class="text-warning fw-bold">$${parseFloat(item.precio).toFixed(2)}</td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-outline-info rounded-circle p-1 me-1" onclick="editarConceptoModal(${item.id})" title="Editar Concepto">
+                    <td class="py-2 px-3">
+                        <span class="fw-black" style="color:#0f766e; font-size:0.82rem;">\$${parseFloat(item.precio).toFixed(2)}</span>
+                    </td>
+                    <td class="py-2 px-3 text-end">
+                        <button type="button" class="btn btn-sm rounded-circle p-1 me-1 border-0" style="background:#f0fdfa; color:#0d9488; width:28px; height:28px;" onclick="editarConceptoModal(${item.id})" title="Editar Concepto">
                             <i class="bi bi-pencil-fill" style="font-size:0.75rem;"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle p-1" onclick="eliminarConceptoModal(${item.id}, '${item.nombre}')" title="Desactivar">
+                        <button type="button" class="btn btn-sm rounded-circle p-1 border-0" style="background:#fef2f2; color:#dc2626; width:28px; height:28px;" onclick="eliminarConceptoModal(${item.id}, '${item.nombre}')" title="Desactivar">
                             <i class="bi bi-trash-fill" style="font-size:0.75rem;"></i>
                         </button>
                     </td>
