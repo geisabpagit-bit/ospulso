@@ -451,12 +451,19 @@ Para garantizar accesibilidad universal (WCAG 2.1 AA/AAA) y consistencia editori
      - **3a. Odontograma** (`img/showcase-odontograma.png`): Refactorizado en tonos clínicos claros (#F8FBFF, azul marino y teal), con mapeo anatómico 3D, selector radial y estandarización visual.
      - **4a. Vista detalle** (`img/showcase-vista-detalle.png`): Refactorizado en tema claro clínico, con exploración sagital en porcelana HD, categorización de patologías y presupuesto instantáneo.
      - **5a. Visor DICOM** (`img/showcase-visor-dicom.png`): Visualizador radiológico avanzado integrado al expediente clínico con reconstrucción tridimensional craneofacial, ajuste de calibradores milimétricos, paleta clara clínica (#F8FBFF y teal) y anonimización rigurosa de datos del paciente conforme a NOM-004 e HIPAA.
-5. **Iconografía Holográfica 3D de Módulos Core (`img/holo/`)**:
-   - Refactorización de las ilustraciones de los 3 módulos principales del Ecosistema para garantizar máxima legibilidad en tarjetas compactas (altura 120px, `.holo-module-img`):
-     - **Agenda Inteligente** (`img/holo/agenda.png`): Bloque cúbico de cristal translúcido biselado con calendario digital 3D, cuadrícula de citas, reloj clínico e iluminación perimetral en neón cyan/teal.
+5. **Iconografía Holográfica 3D de Módulos del Ecosistema (`img/holo/`)**:
+   - Refactorización de las ilustraciones de los 9 módulos de la plataforma para garantizar máxima legibilidad, identidad cohesiva y fusión perfecta con el fondo de las tarjetas (altura 120px, `.holo-module-img`):
+     - **Agenda Inteligente** (`img/holo/agenda.png`): Bloque de cristal translúcido biselado con calendario digital 3D, cuadrícula de citas, reloj clínico e iluminación perimetral en neón cyan/teal.
      - **Expediente Clínico 5.0** (`img/holo/expediente.png`): Bloque de cristal biselado con carpeta médica / portapapeles 3D, cruz clínica, monitor de pulso ECG y rótulo de alta legibilidad *"EXPEDIENTE CLÍNICO"*.
      - **Caja Inteligente** (`img/holo/caja.png`): Bloque de cristal biselado con terminal de cobro digital inteligente / caja registradora POS 3D, ranura de tarjeta, teclado numérico, símbolo monetario y rótulo *"CAJA Y FINANZAS"*.
-   - **Homologación**: Mismo tamaño (1024x1024), misma perspectiva frontal/isométrica suave, idéntico acabado en cristal acrílico con reflejos de estudio y supresión de elementos satelitales diminutos que degradaban la comprensión visual a pequeña escala.
+     - **Catálogos Maestros** (`img/holo/catalogos.png`): Bloque de cristal con servidores de base de datos cilíndricos, engranes clínicos, árbol de catálogos CIE-10/servicios y rótulo *"CATÁLOGOS"*.
+     - **Visor Radiológico** (`img/holo/visor_radiologico.png`): Bloque de cristal con radiografía ósea digital en neón cyan, calibradores y retículas milimétricas DICOM, y rótulo *"VISOR DICOM"*.
+     - **Auditoría y Trazabilidad** (`img/holo/auditoria.png`): Bloque de cristal con escáner biométrico de huella digital, escudo de candado criptográfico, cronología de accesos y rótulo *"AUDITORÍA Y TRAZABILIDAD"*.
+     - **Portal del Paciente** (`img/holo/portal_paciente.png`): Bloque de cristal con credencial médica digital, escudo clínico verificado, lista de servicios (citas, laboratorio, recetas) y rótulo *"PORTAL DEL PACIENTE"*.
+     - **Mensajería Integrada** (`img/holo/mensajeria.png`): Bloque de cristal con sobre de correo clínico flotante, pulso ECG interno, checkmark de entrega garantizada y rótulo *"MENSAJERÍA INTEGRADA"*.
+     - **Alertas WhatsApp** (`img/holo/whatsapp.png`): Bloque de cristal con isotipo de globo conversacional WhatsApp, campana médica de notificación en neón esmeralda y rótulo *"ALERTAS WHATSAPP"*.
+   - **Técnica de Difuminado Radial al Blanco (Seamless Card Blending)**: Las 9 imágenes aplican un algoritmo de fundido radial (`smoothstep` entre radio 370px y 485px, más margen perimetral) que degrada matemáticamente cualquier tinte de fondo hacia blanco puro (`#FFFFFF`) en los bordes, eliminando bordes duros y fusionando cada imagen de forma invisible con el fondo de las tarjetas `.holo-card`.
+   - **Homologación**: Mismo tamaño (1024x1024), misma perspectiva frontal/isométrica suave, idéntico acabado en cristal acrílico con reflejos de estudio y supresión de elementos satelitales diminutos.
 
 
 
