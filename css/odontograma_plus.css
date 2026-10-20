@@ -609,24 +609,9 @@ body.odonto-viewer-mode {
     to { transform: rotate(360deg); }
 }
 
-/* Badge superior con número de pieza */
+/* Badge superior removido para evitar cortes a las 12hrs */
 .radial-top-badge {
-    position: absolute;
-    top: 6px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(204, 251, 241, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1.5px solid var(--odonto-teal);
-    border-radius: 50px;
-    padding: 2px 14px;
-    font-size: 0.9rem;
-    font-weight: 900;
-    color: var(--odonto-teal-dark);
-    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.20);
-    z-index: 12;
-    letter-spacing: -0.5px;
+    display: none !important;
 }
 
 /* Núcleo Central con Pieza 3D (Glassmorphism de alta transparencia) */
@@ -659,8 +644,8 @@ body.odonto-viewer-mode {
 }
 
 .radial-nucleus-porcelain-img {
-    width: 66px;
-    height: 66px;
+    width: 54px;
+    height: 54px;
     object-fit: contain;
     filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.2));
     transition: transform 0.2s ease;
@@ -685,108 +670,135 @@ body.odonto-viewer-mode {
 }
 
 .radial-nucleus .nucleus-surface-name {
-    font-size: 0.68rem;
-    font-weight: 900;
+    font-size: 0.62rem;
+    font-weight: 800;
     text-transform: uppercase;
     color: var(--odonto-teal);
-    letter-spacing: 0.6px;
+    letter-spacing: 0.5px;
     margin-top: 1px;
     text-align: center;
     white-space: nowrap;
     text-shadow: none;
+    line-height: 1.1;
 }
 
-.radial-nucleus .nucleus-action-hint {
-    font-size: 0.52rem;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    font-weight: 700;
+.radial-nucleus .nucleus-tooth-badge {
+    font-size: 0.88rem;
+    font-weight: 900;
+    color: var(--odonto-teal-dark);
+    background: var(--odonto-teal-mint);
+    border: 1.5px solid var(--odonto-teal);
+    border-radius: 12px;
+    padding: 0px 9px;
+    line-height: 1.35;
+    letter-spacing: -0.3px;
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.22);
+    margin-top: 2px;
     margin-bottom: 2px;
+    display: inline-block;
 }
 
-/* Sectores Radiales de Caras (5 botones) */
+/* Botones Radiales de Caras (O, M, V, L, D) con Tooltips limpios sin cortes */
 .radial-sector-btn {
     position: absolute;
-    width: 64px;
-    height: 48px;
+    width: 38px;
+    height: 38px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: transparent;
-    border: none;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(20, 184, 166, 0.45);
+    border-radius: 50%;
     cursor: pointer;
-    color: var(--odonto-navy);
-    text-shadow: 0 1px 3px rgba(255, 255, 255, 1), 0 0 8px rgba(255, 255, 255, 0.9);
-    transition: all 0.18s ease;
+    color: var(--odonto-teal-dark);
+    box-shadow: 0 3px 8px rgba(13, 148, 136, 0.15);
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 5;
-    padding: 3px;
-    border-radius: 10px;
+    padding: 0;
 }
 
 .radial-sector-btn:hover {
-    color: var(--odonto-teal-dark);
-    transform: scale(1.12);
-    background: rgba(20, 184, 166, 0.12);
+    color: #083344;
+    transform: scale(1.18);
+    background: #ccfbf1;
+    border-color: var(--odonto-teal);
+    box-shadow: 0 4px 14px rgba(20, 184, 166, 0.35);
 }
 
 .radial-sector-btn.active {
-    color: var(--odonto-teal-dark) !important;
-    background: var(--odonto-teal-mint) !important;
-    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
-    font-weight: 800;
+    color: #ffffff !important;
+    background: var(--odonto-teal) !important;
+    border-color: #083344 !important;
+    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.45) !important;
 }
 
-.radial-sector-btn .sector-icon {
-    font-size: 1.1rem;
+.radial-sector-btn .sector-letter {
+    font-size: 1.05rem;
+    font-weight: 900;
     line-height: 1;
-    margin-bottom: 2px;
+    letter-spacing: -0.5px;
+    user-select: none;
 }
 
-.radial-sector-btn .sector-label {
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.3px;
-    text-transform: capitalize;
-}
-
-/* Posiciones trigonométricas */
+/* Posiciones trigonométricas circulares equilibradas sin corte */
 .radial-sector-btn[data-surface="occlusal"] {
-    top: 12px;
+    top: 14px;
     left: 50%;
     transform: translateX(-50%);
 }
 .radial-sector-btn[data-surface="occlusal"]:hover {
+    transform: translateX(-50%) scale(1.18);
+}
+.radial-sector-btn[data-surface="occlusal"].active {
     transform: translateX(-50%) scale(1.12);
 }
 
 .radial-sector-btn[data-surface="mesial"] {
     top: 50%;
-    right: 8px;
+    right: 14px;
     transform: translateY(-50%);
 }
 .radial-sector-btn[data-surface="mesial"]:hover {
+    transform: translateY(-50%) scale(1.18);
+}
+.radial-sector-btn[data-surface="mesial"].active {
     transform: translateY(-50%) scale(1.12);
-}
-
-.radial-sector-btn[data-surface="vestibular"] {
-    bottom: 20px;
-    right: 32px;
-}
-
-.radial-sector-btn[data-surface="lingual"] {
-    bottom: 20px;
-    left: 32px;
 }
 
 .radial-sector-btn[data-surface="distal"] {
     top: 50%;
-    left: 8px;
+    left: 14px;
     transform: translateY(-50%);
 }
 .radial-sector-btn[data-surface="distal"]:hover {
+    transform: translateY(-50%) scale(1.18);
+}
+.radial-sector-btn[data-surface="distal"].active {
     transform: translateY(-50%) scale(1.12);
+}
+
+.radial-sector-btn[data-surface="lingual"] {
+    bottom: 22px;
+    left: 56px;
+}
+.radial-sector-btn[data-surface="lingual"]:hover {
+    transform: scale(1.18);
+}
+.radial-sector-btn[data-surface="lingual"].active {
+    transform: scale(1.12);
+}
+
+.radial-sector-btn[data-surface="vestibular"] {
+    bottom: 22px;
+    right: 56px;
+}
+.radial-sector-btn[data-surface="vestibular"]:hover {
+    transform: scale(1.18);
+}
+.radial-sector-btn[data-surface="vestibular"].active {
+    transform: scale(1.12);
 }
 
 .radial-close-btn {

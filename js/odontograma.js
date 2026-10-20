@@ -818,38 +818,31 @@ function initOdontoRadialMenu() {
         <div id="odonto-radial-menu">
             <div class="radial-glass-disc">
                 <div class="radial-outer-ring"></div>
-                <!-- Badge superior estilo Imagen 2 -->
-                <div class="radial-top-badge" id="radial-top-badge">16</div>
                 <button type="button" class="radial-close-btn" onclick="closeOdontoRadialMenu()" title="Cerrar">&times;</button>
                 
-                <!-- 5 Botones Radiales de Caras Anatómicas con Iconos de Diente -->
-                <button type="button" class="radial-sector-btn" data-surface="occlusal" onclick="selectRadialSurface('occlusal')" title="Cara Oclusal">
-                    <span class="sector-icon"><i class="bi bi-circle"></i></span>
-                    <span class="sector-label">Oclusal</span>
+                <!-- 5 Botones Radiales de Caras Anatómicas (O, M, V, L, D) con Tooltips limpios sin cortes -->
+                <button type="button" class="radial-sector-btn" data-surface="occlusal" onclick="selectRadialSurface('occlusal')" title="Oclusal">
+                    <span class="sector-letter">O</span>
                 </button>
-                <button type="button" class="radial-sector-btn" data-surface="mesial" onclick="selectRadialSurface('mesial')" title="Cara Mesial">
-                    <span class="sector-icon"><i class="bi bi-arrow-right-short"></i></span>
-                    <span class="sector-label">Mesial</span>
+                <button type="button" class="radial-sector-btn" data-surface="mesial" onclick="selectRadialSurface('mesial')" title="Mesial">
+                    <span class="sector-letter">M</span>
                 </button>
-                <button type="button" class="radial-sector-btn" data-surface="vestibular" onclick="selectRadialSurface('vestibular')" title="Cara Vestibular">
-                    <span class="sector-icon"><i class="bi bi-arrow-down-right"></i></span>
-                    <span class="sector-label">Vestibular</span>
+                <button type="button" class="radial-sector-btn" data-surface="vestibular" onclick="selectRadialSurface('vestibular')" title="Vestibular">
+                    <span class="sector-letter">V</span>
                 </button>
-                <button type="button" class="radial-sector-btn" data-surface="lingual" onclick="selectRadialSurface('lingual')" title="Cara Lingual / Palatina">
-                    <span class="sector-icon"><i class="bi bi-arrow-down-left"></i></span>
-                    <span class="sector-label">Lingual</span>
+                <button type="button" class="radial-sector-btn" data-surface="lingual" onclick="selectRadialSurface('lingual')" title="Lingual">
+                    <span class="sector-letter">L</span>
                 </button>
-                <button type="button" class="radial-sector-btn" data-surface="distal" onclick="selectRadialSurface('distal')" title="Cara Distal">
-                    <span class="sector-icon"><i class="bi bi-arrow-left-short"></i></span>
-                    <span class="sector-label">Distal</span>
+                <button type="button" class="radial-sector-btn" data-surface="distal" onclick="selectRadialSurface('distal')" title="Distal">
+                    <span class="sector-letter">D</span>
                 </button>
 
-                <!-- Núcleo Central: Pieza de Porcelana 3D Realista (Estilo Imagen 2) + Doble Clic para Diagnosticar -->
-                <div class="radial-nucleus" id="odonto-radial-nucleus" ondblclick="triggerModalFromRadial()" onclick="handleNucleusSingleClick()" title="Doble clic para abrir opciones clínicas">
+                <!-- Núcleo Central: Pieza de Porcelana 3D + Número de Pieza Reubicado -->
+                <div class="radial-nucleus" id="odonto-radial-nucleus" ondblclick="triggerModalFromRadial()" onclick="handleNucleusSingleClick()" title="Clic o doble clic para abrir opciones clínicas">
                     <img src="${getToothImgPath('tooth_upright_16.png')}" class="radial-nucleus-porcelain-img" id="radial-nucleus-porcelain" alt="Pieza Dental 3D" onerror="if(!this.dataset.fallback){this.dataset.fallback=1; this.src='../img/teeth/tooth_upright_16.png';}" />
                     <div class="radial-finding-spot" id="radial-finding-spot"></div>
                     <span class="nucleus-surface-name" id="radial-nucleus-surface">OCLUSAL</span>
-                    <span class="nucleus-action-hint">2x Clic Abrir</span>
+                    <span class="nucleus-tooth-badge" id="radial-nucleus-tooth-num">16</span>
                 </div>
             </div>
         </div>
@@ -908,12 +901,12 @@ window.openOdontoRadialMenu = function(toothId, initialSurface, event) {
  * Actualiza los elementos del menú radial (botón activo, textos del núcleo y preview)
  */
 function updateRadialMenuUI() {
-    const topBadge = document.getElementById('radial-top-badge');
+    const toothNumEl = document.getElementById('radial-nucleus-tooth-num');
     const surfEl = document.getElementById('radial-nucleus-surface');
     const toothImg = document.getElementById('radial-nucleus-porcelain');
     const spotEl = document.getElementById('radial-finding-spot');
 
-    if (topBadge) topBadge.textContent = currentRadialTooth || '16';
+    if (toothNumEl) toothNumEl.textContent = currentRadialTooth || '16';
     if (surfEl) surfEl.textContent = currentRadialSurface.toUpperCase();
     if (toothImg && currentRadialTooth) {
         const archId = getDeciduousArchetype(currentRadialTooth);
