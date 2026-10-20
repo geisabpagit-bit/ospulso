@@ -159,7 +159,7 @@ Cada corona dental se compone de 5 áreas vectoriales independientes:
 4. **Provisión Automática en CRM Onboarding**:
    - Cuando se da de alta un `Consultorio Individual` con especialidad médica `100 - ODONTOLOGÍA` en `api/crud_organizaciones_api.pl`, se instancia automáticamente su catálogo dental personalizado.
 5. **Gobernanza RBAC y Menú Lateral**:
-   - Enlace `Gesti&oacute;n Odontograma` visible para `Administrador Organizacion` y `Administrador Global` en `utils/sub_sidebar.pl`.
+   - Enlace `Gesti&oacute;n Odontograma` visible exclusivamente para `Administrador Global` en `utils/sub_sidebar.pl` (omitido para `Administrador Organizacion`).
    - Vista administrativa de gestión `views/manage_catalogo_odontograma.pl` con KPIs, DataTables y modal CRUD.
 
 ---

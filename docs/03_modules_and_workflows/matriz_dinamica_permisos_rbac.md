@@ -36,6 +36,10 @@ En código backend (`utils/permisos_utils.pl` y `api/gestion_permisos_roles_api.
 ### 3.2 Renderizado Dinámico del Menú Lateral (`utils/sub_sidebar.pl`)
 - El menú lateral izquierdo invoca `tiene_permiso_modulo($id_empresa, $role, $mod, 'R')` para cada sección.
 - Si el usuario posee facultad de lectura (`R`), la opción se renderiza en pantalla; si no, permanece oculta.
+- **Reglas de Oclusión Específica para `Administrador Organizacion`**: Para preservar la ergonomía y evitar redundancia técnica, se omiten explícitamente de su vista los siguientes ítems de administración:
+  1. *Catálogos y Mantenimiento* (`tecnico` -> `administracion_catalogo.pl`), reservado a Administrador Global.
+  2. *Gestión Odontograma* (`gestion_odontograma` -> `manage_catalogo_odontograma.pl`), reservado a Administrador Global.
+  3. *Gestión de Catálogos* (`gestion_catalogos` -> `gestion_catalogos.pl`), reservado a Administrador Global.
 
 ### 3.3 Consola de Administración UI (`views/gestion_permisos_roles.pl`)
 - Interfaz interactiva de **alta densidad (Compact Premium UI)** exclusiva para Administradores de Organización.

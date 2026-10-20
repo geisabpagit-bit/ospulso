@@ -511,8 +511,8 @@ HTML
             $is_allowed{'registros'} = 0;
         }
 
-        # Only allow gestion_catalogos for Administrador Organizacion with CLUE
-        if ($role eq 'Administrador Organizacion' && $org_clues ne '') {
+        # Only allow gestion_catalogos for Administrador Global with CLUE (omitido para Administrador Organizacion)
+        if ($role eq 'Administrador Global' && $org_clues ne '') {
             $is_allowed{'gestion_catalogos'} = 1;
         } else {
             $is_allowed{'gestion_catalogos'} = 0;
@@ -525,11 +525,19 @@ HTML
             $is_allowed{'reset_datos_org'} = 0;
         }
 
-        # Allow gestion_odontograma for Administrador Organizacion & Global ONLY if org is Odontología
-        if (($role eq 'Administrador Organizacion' || $role eq 'Administrador Global') && $org_es_odontologia) {
+        # Allow gestion_odontograma ONLY for Administrador Global if org is Odontología (omitido para Administrador Organizacion)
+        if ($role eq 'Administrador Global' && $org_es_odontologia) {
             $is_allowed{'gestion_odontograma'} = 1;
         } else {
             $is_allowed{'gestion_odontograma'} = 0;
+        }
+
+        # Omitir expresamente en la vista para el rol Administrador Organizacion:
+        # "Catálogos y Mantenimiento" (tecnico), "Gestión Odontograma" (gestion_odontograma) y "Gestión de Catálogos" (gestion_catalogos)
+        if ($role eq 'Administrador Organizacion') {
+            $is_allowed{'tecnico'} = 0;
+            $is_allowed{'gestion_odontograma'} = 0;
+            $is_allowed{'gestion_catalogos'} = 0;
         }
 
         # Allow usuarios_online for all admins
