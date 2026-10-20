@@ -444,12 +444,13 @@ Para garantizar accesibilidad universal (WCAG 2.1 AA/AAA) y consistencia editori
 3. **Reutilización de Componentes Mandantes**:
    - Sustitución de contenedores ad-hoc por `.icon-container-acrylic` del sistema Diamond.
    - Eliminación total de estilos en línea (`style="..."`), sustituidos por utilidades semánticas (`.brand-tagline`, `.footer-brand-title`, `.footer-brand-sub`, `.footer-info-block`, `.footer-nav-link`, `.footer-copyright`, `.card-notice-note`, `.modal-footer-nav`).
-4. **Showcase Visual de Plataforma (Carrusel Interactivo de 4 Vistas Homologadas)**:
+4. **Showcase Visual de Plataforma (Carrusel Interactivo de 5 Vistas Homologadas)**:
    - Implementación del carrusel interactivo `.showcase-wrapper` con navegación por pills superiores (`.showcase-indicators`), controles flotantes ergonómicos y tarjetas de pie descriptivas (`.showcase-caption-card`). Todas las diapositivas comparten la misma paleta de color clínico claro (*Light Mode / Clinical Serenity*):
      - **1a. Tablero Financiero** (`img/showcase-tablero-financiero.png`): Control de ingresos en caja, métricas de recuperación y flujo operativo en tiempo real.
-     - **2a. Odontograma** (`img/showcase-odontograma.png`): Refactorizado en tonos clínicos claros (#F8FBFF, azul marino y teal), con mapeo anatómico 3D, selector radial y estandarización visual.
-     - **3a. Vista detalle** (`img/showcase-vista-detalle.png`): Refactorizado en tema claro clínico, con exploración sagital en porcelana HD, categorización de patologías y presupuesto instantáneo.
-     - **4a. Visor DICOM** (`img/showcase-visor-dicom.png`): Visualizador radiológico avanzado integrado al expediente clínico con reconstrucción tridimensional craneofacial, ajuste de calibradores milimétricos, paleta clara clínica (#F8FBFF y teal) y anonimización rigurosa de datos del paciente conforme a NOM-004 e HIPAA.
+     - **2a. Agenda Semanal** (`img/showcase-agenda-semanal.png`): Reporte interactivo con búsqueda predictiva instantánea por paciente, ordenamiento dinámico multidireccional por columnas, trazabilidad de estados de atención, acciones de edición rápida y exportación ejecutiva directa a Excel, PDF, portapapeles o impresión; respetando el principio de anonimización NOM-004 e HIPAA.
+     - **3a. Odontograma** (`img/showcase-odontograma.png`): Refactorizado en tonos clínicos claros (#F8FBFF, azul marino y teal), con mapeo anatómico 3D, selector radial y estandarización visual.
+     - **4a. Vista detalle** (`img/showcase-vista-detalle.png`): Refactorizado en tema claro clínico, con exploración sagital en porcelana HD, categorización de patologías y presupuesto instantáneo.
+     - **5a. Visor DICOM** (`img/showcase-visor-dicom.png`): Visualizador radiológico avanzado integrado al expediente clínico con reconstrucción tridimensional craneofacial, ajuste de calibradores milimétricos, paleta clara clínica (#F8FBFF y teal) y anonimización rigurosa de datos del paciente conforme a NOM-004 e HIPAA.
 
 
 
