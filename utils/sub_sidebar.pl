@@ -441,8 +441,73 @@ HTML
         };
     }
 
-    # --- ADMINISTRACIÓN Y FINANZAS ---
-    # 5. Administración Accordion
+    # --- FINANZAS Y ADMINISTRACIÓN ---
+    # 5. Finanzas Accordion (Ubicado antes de Administración)
+    if ($is_allowed{finanzas}) {
+        my $has_pacientes_estado = 0;
+        my $id_empresa_fin = $args{id_empresa} || $id_empresa || '';
+        my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
+        if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
+            while (my $line = <$cf>) {
+                chomp($line);
+                next if $line =~ /^#|^\s*$/;
+                my ($biz_id, $key, $val) = split(/\|/, $line);
+                if ($biz_id eq $id_empresa_fin) {
+                    if ($key eq 'PACIENTES_ESTADO') {
+                        $has_pacientes_estado = ($val eq '1') ? 1 : 0;
+                    } elsif ($key eq 'TIPO_ORGANIZACION' && !$tipo_org) {
+                        $tipo_org = $val;
+                    }
+                }
+            }
+            close($cf);
+        }
+
+        my $fin_has_active = ($pagina_actual eq 'finanzas' || $pagina_actual eq 'caja_rapida' || $pagina_actual eq 'caja_consultorio' || $pagina_actual eq 'resumen_ejecutivo') ? 1 : 0;
+        my $fin_active = $fin_has_active ? 'show' : '';
+        my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
+        my $fin_aria = ($fin_active eq 'show') ? 'true' : 'false';
+        my $fin_badge = $fin_has_active ? '<span class="active-dot ms-auto"></span>' : '';
+
+        my $es_consultorio_privado = (($tipo_org eq 'Consultorio Individual' || $tipo_org eq 'Consultorio Compartido') && !$has_pacientes_estado) ? 1 : 0;
+        my $link_caja_recibo_html = $es_consultorio_privado 
+            ? qq{<a href="../views/caja_consultorio.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Caja"><i class="bi bi-cart-check-fill text-success me-2"></i><span class="sidebar-text fw-bold">Caja</span></a>}
+            : qq{<a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Generar Recibo"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>};
+
+        my $resumen_active = ($pagina_actual eq 'resumen_ejecutivo') ? 'active' : '';
+        my $link_resumen_html = '';
+        if ($role eq 'Administrador Organizacion' || $role eq 'Administrador Global') {
+            $link_resumen_html = qq{
+                <a href="../views/resumen_ejecutivo.pl" class="sub-link $resumen_active w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Resumen Ejecutivo">
+                    <i class="bi bi-bar-chart-line-fill text-info me-2"></i><span class="sidebar-text fw-bold">Resumen Ejecutivo</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary ms-auto sidebar-text" style="font-size:0.65rem;">Semanal</span>
+                </a>
+            };
+        }
+
+        print qq{
+            <!-- Finanzas Integradas -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-finanzas">
+                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="$fin_aria" aria-controls="c-finanzas" data-sidebar-title="Finanzas" onclick="window.handleNavFinanzas(event)">
+                        <i class="bi bi-cash-stack text-success" style="color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Finanzas</span>$fin_badge
+                    </button>
+                </h2>
+                <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas">
+                    <div class="accordion-body pb-0 pt-1">
+                        $link_caja_recibo_html
+                        <a href="../views/finanzas.pl?tab=corte_caja" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Corte de Caja"><i class="bi bi-safe text-primary me-2"></i><span class="sidebar-text fw-bold">Corte de Caja</span></a>
+                        $link_resumen_html
+                        <hr class="my-2 opacity-25">
+                        <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Ingresos"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
+                        <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Egresos"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Egresos</span></a>
+                    </div>
+                </div>
+            </div>
+        };
+    }
+
+    # 6. Administración Accordion
     my $show_admin = 0;
     if ($is_allowed{registros} || $is_allowed{clinicas} || $is_allowed{usuarios} || $is_allowed{servicios} || $is_allowed{productos} || $is_allowed{tecnico} || $is_allowed{sync_google} || $role eq 'Administrador Global') {
         $show_admin = 1;
@@ -568,73 +633,8 @@ HTML
         };
     }
 
-    # 6. Finanzas Accordion (Justo al lado de Administración)
-    if ($is_allowed{finanzas}) {
-        my $has_pacientes_estado = 0;
-        my $id_empresa_fin = $args{id_empresa} || $id_empresa || '';
-        my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
-        if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
-            while (my $line = <$cf>) {
-                chomp($line);
-                next if $line =~ /^#|^\s*$/;
-                my ($biz_id, $key, $val) = split(/\|/, $line);
-                if ($biz_id eq $id_empresa_fin) {
-                    if ($key eq 'PACIENTES_ESTADO') {
-                        $has_pacientes_estado = ($val eq '1') ? 1 : 0;
-                    } elsif ($key eq 'TIPO_ORGANIZACION' && !$tipo_org) {
-                        $tipo_org = $val;
-                    }
-                }
-            }
-            close($cf);
-        }
-
-        my $fin_has_active = ($pagina_actual eq 'finanzas' || $pagina_actual eq 'caja_rapida' || $pagina_actual eq 'caja_consultorio' || $pagina_actual eq 'resumen_ejecutivo') ? 1 : 0;
-        my $fin_active = $fin_has_active ? 'show' : '';
-        my $collapsed_class = ($fin_active eq 'show') ? '' : 'collapsed';
-        my $fin_aria = ($fin_active eq 'show') ? 'true' : 'false';
-        my $fin_badge = $fin_has_active ? '<span class="active-dot ms-auto"></span>' : '';
-
-        my $es_consultorio_privado = (($tipo_org eq 'Consultorio Individual' || $tipo_org eq 'Consultorio Compartido') && !$has_pacientes_estado) ? 1 : 0;
-        my $link_caja_recibo_html = $es_consultorio_privado 
-            ? qq{<a href="../views/caja_consultorio.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Caja"><i class="bi bi-cart-check-fill text-success me-2"></i><span class="sidebar-text fw-bold">Caja</span></a>}
-            : qq{<a href="../views/generar_recibo.pl" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Generar Recibo"><i class="bi bi-receipt-cutoff text-success me-2"></i><span class="sidebar-text fw-bold">Generar Recibo</span></a>};
-
-        my $resumen_active = ($pagina_actual eq 'resumen_ejecutivo') ? 'active' : '';
-        my $link_resumen_html = '';
-        if ($role eq 'Administrador Organizacion' || $role eq 'Administrador Global') {
-            $link_resumen_html = qq{
-                <a href="../views/resumen_ejecutivo.pl" class="sub-link $resumen_active w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Resumen Ejecutivo">
-                    <i class="bi bi-bar-chart-line-fill text-info me-2"></i><span class="sidebar-text fw-bold">Resumen Ejecutivo</span>
-                    <span class="badge bg-primary bg-opacity-10 text-primary ms-auto sidebar-text" style="font-size:0.65rem;">Semanal</span>
-                </a>
-            };
-        }
-
-        print qq{
-            <!-- Finanzas Integradas -->
-            <div class="accordion-item bg-transparent border-0 mb-1">
-                <h2 class="accordion-header" id="h-finanzas">
-                    <button class="accordion-button $collapsed_class" type="button" data-bs-toggle="collapse" data-bs-target="#c-finanzas" aria-expanded="$fin_aria" aria-controls="c-finanzas" data-sidebar-title="Finanzas" onclick="window.handleNavFinanzas(event)">
-                        <i class="bi bi-cash-stack text-success" style="color: var(--md-teal-clinical) !important;"></i> <span class="sidebar-text ms-2">Finanzas</span>$fin_badge
-                    </button>
-                </h2>
-                <div id="c-finanzas" class="accordion-collapse collapse $fin_active" aria-labelledby="h-finanzas">
-                    <div class="accordion-body pb-0 pt-1">
-                        $link_caja_recibo_html
-                        <a href="../views/finanzas.pl?tab=corte_caja" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Corte de Caja"><i class="bi bi-safe text-primary me-2"></i><span class="sidebar-text fw-bold">Corte de Caja</span></a>
-                        $link_resumen_html
-                        <hr class="my-2 opacity-25">
-                        <a href="../views/finanzas.pl?tab=ingresos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Ingresos"><i class="bi bi-arrow-down-circle-fill text-success me-2"></i><span class="sidebar-text">Ingresos</span></a>
-                        <a href="../views/finanzas.pl?tab=gastos" class="sub-link w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Egresos"><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i><span class="sidebar-text">Egresos</span></a>
-                    </div>
-                </div>
-            </div>
-        };
-    }
-
-    # Separador después de Administración y Finanzas
-    if ($show_admin || $is_allowed{finanzas}) {
+    # Separador después de Finanzas y Administración
+    if ($is_allowed{finanzas} || $show_admin) {
         print qq{<hr class="my-2 opacity-25 sidebar-separator">};
     }
 

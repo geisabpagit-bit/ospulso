@@ -270,8 +270,9 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
 3. **Rotación Coherente del Chevron en Acordeones**:
    - Cerrado (`.accordion-button.collapsed::after`): rota `0deg` apuntando hacia abajo suavemente.
    - Expandido (`.accordion-button:not(.collapsed)::after`): rota `180deg` hacia arriba mediante transición fluida `cubic-bezier(0.2, 0, 0, 1)`.
-4. **Apertura Múltiple Independiente**:
-   - Se retiró el atributo `data-bs-parent="#accordionSidebar"` de todos los grupos colapsables (*Expediente*, *Diagnóstico*, *Administración*, *Finanzas*, *Ventas*), permitiendo que el usuario mantenga abiertas múltiples secciones simultáneamente sin canibalización involuntaria de menús.
+4. **Apertura Múltiple Independiente y Jerarquía Ergonómica**:
+   - Se retiró el atributo `data-bs-parent="#accordionSidebar"` de todos los grupos colapsables (*Expediente*, *Diagnóstico*, *Finanzas*, *Administración*, *Ventas*), permitiendo que el usuario mantenga abiertas múltiples secciones simultáneamente sin canibalización involuntaria de menús.
+   - **Precedencia Operativa de Finanzas**: Debido a su alta frecuencia de interacción en el día a día clínico (Caja, Corte de Caja, Recibos), la sección de **Finanzas** precede jerárquicamente a **Administración** en la estructura vertical del menú.
 5. **Indicador de Hijo Activo (`.active-dot`)**:
    - Si una sección colapsable cerrada contiene la página en curso, se renderiza un micro-indicador luminoso turquesa (`.active-dot`) en la cabecera del acordeón, manteniendo la retroalimentación visual de la ubicación del usuario. Al desplegarse la sección, el punto se oculta automáticamente para dar protagonismo al `.sub-link.active`.
 6. **Comportamiento Responsivo en Móvil y Tableta (`< 992px`)**:
