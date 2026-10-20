@@ -1934,58 +1934,73 @@ footer {
     border-top: 1px solid rgba(10, 42, 102, 0.08) !important;
 }
 
-/* 5S Methodology Custom Styles */
+/* 5S Methodology Custom Styles - Alto Contraste */
 .icon-5s {
     width: 60px;
     height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 15px;
+    border-radius: 16px;
     font-size: 1.8rem;
-    font-weight: bold;
-    background: linear-gradient(135deg, rgba(24,209,230,0.1), rgba(0,196,196,0.2));
-    color: var(--md-teal-clinical);
-    border: 1px solid rgba(0,196,196,0.3);
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
+    font-weight: 800;
+    background: #ffffff;
+    color: var(--md-blue-deep);
+    border: 2px solid var(--md-teal-clinical);
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.08);
+    margin-bottom: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .card-5s:hover .icon-5s {
-    transform: translateY(-5px);
-    background: var(--md-teal-clinical);
-    color: white;
+    transform: translateY(-4px) scale(1.05);
+    background: linear-gradient(135deg, var(--md-blue-deep), var(--md-blue-medical));
+    color: #ffffff;
+    border-color: var(--md-blue-deep);
+    box-shadow: 0 8px 20px rgba(10, 42, 102, 0.2);
 }
 
-/* Trust Banner & Migration Roadmap Styles */
+/* Trust Banner & Migration Roadmap Styles - Alto Contraste */
 .trust-banner {
-    border-top: 1px solid rgba(0,0,0,0.05);
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-top: 1px solid rgba(10, 42, 102, 0.08);
+    border-bottom: 1px solid rgba(10, 42, 102, 0.08);
     background-color: #f8fafc;
 }
 .trust-logo {
-    height: 40px;
-    opacity: 0.5;
-    filter: grayscale(100%);
+    height: 42px;
+    color: var(--md-blue-deep);
+    opacity: 0.9;
     transition: all 0.3s ease;
+}
+.trust-logo span {
+    color: #1e293b !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem;
+}
+.trust-logo i {
+    color: #0d9488 !important; /* Teal accesible WCAG */
 }
 .trust-logo:hover {
     opacity: 1;
-    filter: grayscale(0%);
+    transform: translateY(-2px);
+}
+.trust-logo:hover span {
+    color: var(--md-blue-deep) !important;
 }
 
 .step-circle {
-    width: 50px;
-    height: 50px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    background: var(--md-teal-clinical);
-    color: white;
+    background: linear-gradient(135deg, var(--md-blue-deep), var(--md-blue-medical));
+    color: #ffffff;
+    border: 2px solid var(--md-teal-clinical);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: 1.4rem;
+    font-weight: 800;
     margin: 0 auto 15px;
-    box-shadow: 0 5px 15px rgba(0,196,196,0.3);
+    box-shadow: 0 6px 18px rgba(10, 42, 102, 0.2);
 }
 
 /* Product Showcase Styles */
@@ -2001,14 +2016,14 @@ footer {
 .showcase-image-placeholder {
     width: 100%;
     height: 400px;
-    background-color: #e2e8f0;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
-    font-weight: 500;
-    border: 2px dashed #cbd5e1;
+    color: var(--md-blue-deep);
+    font-weight: 600;
+    border: 2px dashed rgba(10, 42, 102, 0.2);
 }
 
 /* Scroll Reveal Utility */
@@ -2022,18 +2037,103 @@ footer {
     transform: translateY(0);
 }
 
-/* 5S Component Clean Utilities */
+/* Clases Utilitarias Mandantes de Alto Contraste */
+.text-secondary-clinical {
+    color: #334e68 !important;
+    font-weight: 450;
+    line-height: 1.6;
+}
+.text-secondary-emphasis-clinical {
+    color: #1e293b !important;
+    font-weight: 600;
+}
+.text-teal-clinical {
+    color: #0f766e !important; /* Teal accesible WCAG ratio > 4.5:1 */
+}
+.text-cyan-accessible {
+    color: #0284c7 !important; /* Cyan médico legible */
+}
+
+/* Iconos de Módulos (Acrílico Mandante) */
+.icon-container-acrylic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(10, 42, 102, 0.05);
+    color: var(--md-blue-deep, #0A2A66);
+    border: 1px solid rgba(10, 42, 102, 0.08);
+    transition: all 0.3s ease;
+    font-size: 1.35rem;
+}
+.holo-card:hover .icon-container-acrylic {
+    background: var(--md-blue-deep, #0A2A66);
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.2);
+}
+.holo-card:hover .icon-container-acrylic i {
+    color: #ffffff !important;
+}
+
+/* Elementos Estructurales sin Estilos Inline */
+.brand-tagline {
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    color: #334e68;
+    font-weight: 500;
+}
+.footer-brand-title {
+    font-size: 1.15rem;
+    color: var(--md-blue-deep);
+    font-weight: 700;
+}
+.footer-brand-sub {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #486581;
+}
+.footer-info-block {
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+.footer-info-block p {
+    color: #334e68;
+}
+.footer-nav-link {
+    color: var(--md-blue-deep);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.footer-nav-link:hover {
+    color: var(--md-teal-clinical);
+}
+.footer-copyright {
+    font-size: 0.85rem;
+    color: #486581;
+}
+.card-notice-note {
+    font-size: 0.8rem;
+    color: #486581;
+    line-height: 1.4;
+}
+.modal-footer-nav {
+    font-size: 0.85rem;
+}
 .holo-module-img { height: 120px; width: auto; object-fit: contain; }
 .roadmap-connector-line { height: 2px; background: var(--md-teal-clinical); z-index: 1; }
 .accent-teal-clinical { accent-color: var(--md-teal-clinical); }
 .border-info-glow { border-color: rgba(24, 209, 230, 0.3) !important; }
 .card-featured-glow { box-shadow: 0 10px 30px rgba(0, 196, 196, 0.15) !important; }
 .min-w-250 { min-width: 250px; }
-.text-xs { font-size: 0.70rem; }
+.text-xs { font-size: 0.75rem; }
 .text-sm-custom { font-size: 0.85rem; }
 .text-brand-blue { color: var(--md-blue-deep) !important; }
-.btn-password-toggle-eye { border-radius: 50%; width: 2.5rem; height: 2.5rem; z-index: 10; }
+.btn-password-toggle-eye { border-radius: 50%; width: 2.5rem; height: 2.5rem; z-index: 10; color: var(--md-blue-deep); }
 .input-pass-padded { padding-right: 3.5rem; }
+
 
 
 

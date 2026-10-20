@@ -434,4 +434,16 @@ Conforme a las directrices de `AGENTS.md`, la página principal `index.html` ope
 3. **Respaldo de Versión Canónica**: Antes de cualquier refactorización profunda, se preserva el snapshot histórico (ej. `index_old_oct2026.html`).
 4. **Cumplimiento Móvil Nativo**: Se incluye `css/sdm_mobile_standards.css` para unificar el viewport táctil y los touch targets en dispositivos móviles.
 
+### 8.2. Gobernanza de Contraste Visual y Clases Mandantes
+Para garantizar accesibilidad universal (WCAG 2.1 AA/AAA) y consistencia editorial:
+1. **Contraste de Tipografía Secundaria**: Sustitución de `.text-muted` o `.text-secondary` genéricos por `.text-secondary-clinical` (`#334e68`), elevando el contraste de 3.2:1 a 7.4:1 sobre fondos claros.
+2. **Iconografía de Alto Contraste**: 
+   - En componentes numéricos (`.icon-5s`), texto azul profundo (`#0A2A66`) sobre fondo blanco con borde teal (`#19B7A5`) para contraste > 12:1.
+   - En listas de verificación, reemplazo de `.text-info` cyan por `.text-teal-clinical` (`#0f766e`) y `.text-success` médico.
+   - En el Trust Banner (`.trust-logo`), opacidad de 0.9 y texto `#1e293b` con íconos teal accesibles.
+3. **Reutilización de Componentes Mandantes**:
+   - Sustitución de contenedores ad-hoc por `.icon-container-acrylic` del sistema Diamond.
+   - Eliminación total de estilos en línea (`style="..."`), sustituidos por utilidades semánticas (`.brand-tagline`, `.footer-brand-title`, `.footer-brand-sub`, `.footer-info-block`, `.footer-nav-link`, `.footer-copyright`, `.card-notice-note`, `.modal-footer-nav`).
+
+
 
