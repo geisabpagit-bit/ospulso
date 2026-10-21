@@ -72,7 +72,25 @@ if ($usuarios) {
         }
     }
 }
+my $es_solo_admin_o_recep = ($role =~ /^(Administrador|Recepcion|Asistente)/i && $role !~ /Medico/i);
+my $id_medico_activo = $es_solo_admin_o_recep ? 'all' : ($id_medico || 'all');
+
 my $html_medicos = '';
+my $html_filtro_medicos_toolbar = '';
+if ($es_solo_admin_o_recep && scalar(@medicos) > 0) {
+    my $options_m = qq(<option value="all" selected>👥 Todos los Médicos</option>\n);
+    foreach my $m (@medicos) {
+        $options_m .= qq(<option value="$m->{id}">👨‍⚕️ $m->{nombre}</option>\n);
+    }
+    $html_filtro_medicos_toolbar = qq{
+        <div class="d-none d-lg-block ms-1">
+            <select id="filtro_medico_toolbar" class="form-select form-select-sm shadow-sm border bg-white rounded-3 fw-bold text-navy" style="height:42px; font-size:0.78rem; min-width: 190px; max-width: 250px;" onchange="filtrarAgendaPorMedico(this.value)">
+                $options_m
+            </select>
+        </div>
+    };
+}
+
 foreach my $m (@medicos) {
     my $sel = ($m->{id} eq $id_medico) ? 'selected' : '';
     $html_medicos .= qq(<option value="$m->{id}" $sel>$m->{nombre}</option>\n);
@@ -106,7 +124,7 @@ render_header(
 
 print <<HTML;
     <!-- Datos de Sesión para JS -->
-    <input type="hidden" id="f_medico" value="$id_medico">
+    <input type="hidden" id="f_medico" value="$id_medico_activo">
     <input type="hidden" id="agenda_es_individual" value="$es_consultorio_ind">
     <input type="hidden" id="agenda_es_consultorio" value="$es_consultorio">
     <input type="hidden" id="agenda_tipo_organizacion" value="$tipo_organizacion">
@@ -151,6 +169,8 @@ print <<HTML;
                             <button onclick="switchView('semana')" class="btn-report-toggle" id="btn-r-semana" title="Reporte Semanal"><i class="bi bi-file-earmark-text"></i></button>
                             <button onclick="switchView('mes')" class="btn-report-toggle" id="btn-r-mes" title="Reporte Mensual"><i class="bi bi-file-earmark-bar-graph"></i></button>
                         </div>
+                        
+                        $html_filtro_medicos_toolbar
                     </div>
 
                     <!-- CENTRO (Solo Desktop): NAVEGACIÓN DE FECHA -->

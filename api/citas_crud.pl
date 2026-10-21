@@ -37,7 +37,7 @@ sub cargar_agenda_config {
     my %c = (
         laborStart => '08:00', laborEnd => '18:00', 
         lunchStart => '14:00', lunchEnd => '16:00',
-        workDays => [1,2,3,4,5], intervalo_minutos => 30,
+        workDays => [1,2,3,4,5,6,7], intervalo_minutos => 30,
         festivos => '',        # Unión de ambos (para lógica de bloqueos)
         festivos_global => '', # Solo los del sistema
         festivos_medico => ''  # Solo los del médico
@@ -554,7 +554,12 @@ sub enviar_eventos_oficial {
         }
         
         if ($filtro_medico && $filtro_medico ne 'all' && $filtro_medico ne '0') {
-            next unless $c->{id_medico} eq $filtro_medico;
+            my $es_solo_admin_sesion = ($session_data->{role} =~ /^(Administrador|Recepcion|Asistente)/i && $session_data->{role} !~ /Medico/i);
+            if ($es_solo_admin_sesion && $filtro_medico eq ($session_data->{id_medico} // '')) {
+                # ID de sesión administrativo que no es médico clínico: no filtrar para ver toda la organización
+            } else {
+                next unless $c->{id_medico} eq $filtro_medico;
+            }
         }
 
         my $titulo = obtener_nombre_paciente($c->{id_paciente}, $c->{id_negocio});

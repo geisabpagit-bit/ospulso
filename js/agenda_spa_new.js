@@ -759,13 +759,32 @@ function loadFormMetadata() {
     });
 }
 
+function filtrarAgendaPorMedico(idMed) {
+    $("#f_medico").val(idMed);
+    cargarEventosYConfig(idMed);
+}
+
+function cargarEventosYConfig(idMed) {
+    const dest = idMed || $("#f_medico").val() || 'all';
+    $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: dest }, function(res) {
+        if (res.ok) {
+            appointments = res.data;
+            if (res.config) {
+                agendaConfig = res.config;
+                duracionCita = parseInt(agendaConfig.intervalo_minutos) || 30;
+                renderDuracionButtons();
+            }
+            syncUI();
+        }
+    });
+}
+
 function actualizarAgendaDestino() {
-    // Si la recepcionista cambia de médico al agendar, recargamos sus citas y su configuración de jornada real
+    // Si la recepcionista cambia de médico al agendar, recargamos la configuración de jornada real para slots
     const destId = $("#f_medico_select").val();
     if (!destId) return;
     $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: destId }, function(res) {
         if (res.ok) {
-            appointments = res.data;
             if (res.config) {
                 agendaConfig = res.config;
                 duracionCita = parseInt(agendaConfig.intervalo_minutos) || 30;
@@ -777,16 +796,8 @@ function actualizarAgendaDestino() {
 }
 
 function loadContext() {
-    const idMed = $("#f_medico").val() || '2';
-    $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: idMed }, function(res) {
-        if (res.ok) {
-            appointments = res.data;
-            agendaConfig = res.config;
-            duracionCita = parseInt(agendaConfig.intervalo_minutos) || 30;
-            renderDuracionButtons();
-            syncUI();
-        }
-    });
+    const idMed = $("#f_medico").val() || 'all';
+    cargarEventosYConfig(idMed);
 }
 
 function renderDuracionButtons() {

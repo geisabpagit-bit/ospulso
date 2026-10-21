@@ -23,6 +23,9 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   3. **Normalización ISO de Días Hábiles (Domingo = 7)**:
      - El checkbox de domingo en `#modalAjustes` utiliza el estándar canónico ISO `value="7"` (compatible con `Time::Piece->_wday` y el frontend `isWorkDay`).
      - `api/citas_crud.pl` y `js/agenda_spa_new.js` implementan tolerancia bidireccional continua (soporte de `0` y `7`), normalizando de manera transparente a `7` al persistir en `dat/agenda_config_medico_*.dat`. Esto erradica el falso positivo de día *"NO LABORABLE"* en domingos cuando el profesional o la clínica los tiene marcados como hábiles.
+  4. **Filtro Inteligente de Visualización y Visibilidad Global para Administración/Recepción**:
+     - Para roles administrativos (`Administrador Organizacion`, `Recepcionista`, `Asistente`), la agenda carga de manera predeterminada todas las visitas activas de la institución (`id_medico=all`). Esto impide que el ID de sesión del administrador (que no es un médico con citas propias) bloquee u oculte las visitas de la clínica.
+     - En organizaciones multi-rol o multi-médico, la barra superior de herramientas integra el selector dinámico `#filtro_medico_toolbar`, permitiendo al personal de recepción o dirección alternar instantáneamente entre *"Todos los Médicos"* o un profesional específico, recargando reactivamente sus citas y su configuración horaria individual.
 - **Catálogo Canónico de Estados de Citas (`dat/catalogo_estados_citas.dat`)**:
   El sistema implementa 7 estados canónicos de citas médicas totalmente sincronizados entre backend (`api/citas_crud.pl`), vistas modales (`views/agenda_main.pl`) y motor visual SPA (`js/agenda_spa_new.js`):
   1. `Programada` (#0A2A66 / badge azul marino)
