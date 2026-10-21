@@ -221,7 +221,7 @@ sub crear_cita {
     my ($ok_c, $msg_c) = detectar_colisiones($arr, $fec, $hi, $hf, $id_m, $sucursal, $consultorio, undef, $pac_id);
     unless ($ok_c) { responder_json(0, $msg_c); return; }
 
-    my $pac_nom = obtener_nombre_paciente($pac_id);
+    my $pac_nom = obtener_nombre_paciente($pac_id, $session_data->{id_empresa});
     
     # Sincronización protegida con eval para evitar muerte del script
     my $gid = eval { google_sync_event(undef, $id_m, $pac_nom, $fec, $hi, $hf, $motivo) };
@@ -557,7 +557,7 @@ sub enviar_eventos_oficial {
             next unless $c->{id_medico} eq $filtro_medico;
         }
 
-        my $titulo = obtener_nombre_paciente($c->{id_paciente});
+        my $titulo = obtener_nombre_paciente($c->{id_paciente}, $c->{id_negocio});
         my $motivo = $c->{motivo};
         
         # Ocultar información si quien solicita es paciente (a menos que sea su propia cita, pero en la Smart View no mostramos eso)
@@ -760,17 +760,31 @@ sub obtener_access_token {
 }
 
 sub obtener_nombre_paciente {
-    my ($id) = @_; 
+    my ($id, $id_negocio) = @_; 
     my $pac_file = "$dirname/../dat/pacientes.dat";
     my $r = leer_tabla($pac_file, '\|');
-    foreach my $f (@$r) { return $f->[2] if $f->[0] eq $id; } return "Paciente $id";
+    if ($id_negocio) {
+        foreach my $f (@$r) {
+            my ($org) = split(/:/, $f->[13] // '');
+            return $f->[2] if $f->[0] eq $id && $org eq $id_negocio;
+        }
+    }
+    foreach my $f (@$r) { return $f->[2] if $f->[0] eq $id; }
+    return "Paciente $id";
 }
 
 sub obtener_correo_paciente {
-    my ($id) = @_; 
+    my ($id, $id_negocio) = @_; 
     my $pac_file = "$dirname/../dat/pacientes.dat";
     my $r = leer_tabla($pac_file, '\|');
-    foreach my $f (@$r) { return $f->[5] if $f->[0] eq $id; } return "";
+    if ($id_negocio) {
+        foreach my $f (@$r) {
+            my ($org) = split(/:/, $f->[13] // '');
+            return $f->[5] if $f->[0] eq $id && $org eq $id_negocio;
+        }
+    }
+    foreach my $f (@$r) { return $f->[5] if $f->[0] eq $id; }
+    return "";
 }
 
 sub responder_json {

@@ -53,7 +53,7 @@ if ($regs) {
         } elsif ($role =~ /Administrador Organizacion|Soporte/i) {
             if ($org_pac && $org_pac eq $mi_org) {
                 $acceso_permitido = 1;
-            } elsif (!$org_pac) {
+            } elsif ($mi_org eq '0' && (!$org_pac || $org_pac eq '0')) {
                 $acceso_permitido = 1;
             }
         } elsif ($role =~ /Medico|Asistente|Recepcion/i) {
@@ -61,7 +61,7 @@ if ($regs) {
                 if ($suc_pac eq $mi_sucursal || !$suc_pac || !$mi_sucursal) {
                     $acceso_permitido = 1;
                 }
-            } elsif (!$org_pac) {
+            } elsif ($mi_org eq '0' && (!$org_pac || $org_pac eq '0')) {
                 $acceso_permitido = 1;
             }
         }

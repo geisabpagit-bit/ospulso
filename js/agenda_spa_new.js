@@ -825,6 +825,7 @@ function switchView(v) {
     $(".agenda-view-container").addClass('d-none');
     $(`#view-${v.replace('_','-')}`).removeClass('d-none');
 
+    renderHeaders();
     renderView();
 }
 
@@ -1337,7 +1338,7 @@ function renderGrid() {
             <div class="p-2 calendar-cell" ondragover="event.preventDefault()" ondrop="dropS(event, '${iso}')" onclick="handleSlotClick(event, '${iso}', '')" style="background:${bgColor}; min-height:115px; ${borderColor}">
                 <div class="d-flex justify-content-between align-items-start fw-bold small mb-1">
                     <span class="${iso===getISO(new Date()) ? 'badge bg-primary rounded-pill px-2 text-white' : 'text-navy'}">${d}</span>
-                    ${holiday ? '<small class="text-danger fw-bold" style="font-size:0.55rem">FESTIVO</small>' : (!isWork ? '<small class="text-muted" style="font-size:0.55rem">NO LABORABLE</small>' : '')}
+                    ${holiday ? '<small class="text-danger fw-bold" style="font-size:0.55rem">FESTIVO</small>' : ''}
                 </div>
                 ${dayApts.slice(0,3).map(a => {
                     const aHi = a.start.split('T')[1].substring(0, 5);

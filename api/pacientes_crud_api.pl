@@ -79,8 +79,23 @@ if ($input->{accion} eq 'crear') {
         }
     }
 
-    # Creación e Inyección
+    # Creación e Inyección con garantía de unicidad global contra colisiones
+    my $max_id = 0;
+    my $registros_exist = leer_tabla('../dat/pacientes.dat', '\|');
+    if ($registros_exist) {
+        foreach my $r (@$registros_exist) {
+            next if $r->[0] =~ /ID_PACIENTE/i;
+            $max_id = $r->[0] if ($r->[0] =~ /^\d+$/ && $r->[0] > $max_id);
+        }
+    }
     my $id_paciente = obtener_nuevo_id('../dat/contador_pacientes.dat');
+    if ($id_paciente <= $max_id) {
+        $id_paciente = $max_id + 1;
+        if (open my $fh_cnt, '>:encoding(UTF-8)', '../dat/contador_pacientes.dat') {
+            print $fh_cnt "$id_paciente\n";
+            close $fh_cnt;
+        }
+    }
 
     my $extra_tenant = ($session_data->{id_empresa} // '0') . ":" . ($session_data->{id_sucursal} // '0');
 
