@@ -44,6 +44,7 @@ graph TD
 - **[guia_estilo_ui_ux.md](file:///c:/xampp/htdocs/ospulso/docs/04_standards_and_ops/guia_estilo_ui_ux.md)**: Tokens de diseño CSS, paleta HSL, botones táctiles 48px, Drawer móvil en Expediente Clínico, Hero anti-distorsión, supresión de doble scroll, alineación total del menú lateral izquierdo a 42x42px y Estándar Editorial de Impresión en 2 Páginas Carta con Visor Modal.
 - **[protocolos_diagnostico_errores.md](file:///c:/xampp/htdocs/ospulso/docs/04_standards_and_ops/protocolos_diagnostico_errores.md)**: Diagnóstico de errores HTTP 500 Apache CGI, prevención de crashes de renderizado y sigilos.
 - **[cumplimiento_y_contribucion.md](file:///c:/xampp/htdocs/ospulso/docs/04_standards_and_ops/cumplimiento_y_contribucion.md)**: Cumplimiento NOM-004 / NOM-024 y normas de contribución de código (PR).
+- **[guion_pruebas_agenda_quirofano.md](file:///c:/xampp/htdocs/ospulso/docs/04_standards_and_ops/guion_pruebas_agenda_quirofano.md)**: Guion maestro de pruebas funcionales para Agenda Central, Inscripción de Pacientes y Tablero Quirófano Kanban (Casos 1 al 7).
 
 ---
 

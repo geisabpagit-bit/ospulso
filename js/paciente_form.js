@@ -163,6 +163,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (document.getElementById("correo")) document.getElementById("correo").value = data.perfil.correo !== 'No registrado' ? data.perfil.correo : '';
                     if (document.getElementById("nacionalidad")) document.getElementById("nacionalidad").value = data.perfil.nacionalidad || '';
                     if (document.getElementById("ocupacion")) document.getElementById("ocupacion").value = data.perfil.ocupacion || '';
+                    if (document.getElementById("idMedicoAsignado") && data.perfil.id_medico !== undefined) {
+                        document.getElementById("idMedicoAsignado").value = data.perfil.id_medico;
+                    }
 
                     if (data.perfil.tutor && document.getElementById("responsableTutor")) {
                         document.getElementById("responsableTutor").value = data.perfil.tutor;

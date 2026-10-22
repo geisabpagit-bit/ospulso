@@ -55,8 +55,8 @@ if ($action eq 'read') {
         my $hdr = <$fhu>;
         while (my $line = <$fhu>) {
             chomp $line;
-            my @u = split /\|/, $line, -1;
-            $medicos{$u[1]} = $u[2] || 'Sin Médico';
+            my @u = split /!/, $line, -1;
+            $medicos{$u[0]} = $u[1] || 'Sin Médico';
         }
         close $fhu;
     }
@@ -71,9 +71,8 @@ if ($action eq 'read') {
             # Filtro por Organización
             next if ($c[1] ne $id_org && $id_org ne 'ORG-000');
             
-            # Filtro por Fecha (opcional, por defecto traemos todo activo o de hoy)
-            if ($fecha_filtro && $c[4] ne $fecha_filtro && $c[6] ne 'Programada' && $c[6] ne 'Pre-Operatorio' && $c[6] ne 'En Quirófano' && $c[6] ne 'Recuperación') {
-                # Si filtran por fecha, solo mostramos las de ese día, SALVO que estén activas
+            # Filtro por Fecha (si se especifica fecha, filtrar exactamente por esa fecha; si es 'todas', no filtrar)
+            if ($fecha_filtro && $fecha_filtro ne 'todas') {
                 next if ($c[4] ne $fecha_filtro);
             }
             

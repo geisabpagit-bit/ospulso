@@ -55,11 +55,13 @@ utils::sub_sidebar::render_sidebar(
 my $select_medico_html = '';
 if ($sd->{role} =~ /Recepcion/i || $sd->{role} =~ /Administrador/i) {
     my $usuarios = utils::db_manager::leer_tabla(File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat'), '!');
-    my $options_medicos = '';
+    my $mi_org = $sd->{id_empresa} // '0';
+    my $options_medicos = qq{<option value="0" selected>Abierto</option>\n};
     foreach my $u (@$usuarios) {
-        if (defined $u->[5] && $u->[5] =~ /Medico/i) {
-            my $selected = ($u->[0] eq $sd->{id_medico}) ? 'selected' : '';
-            $options_medicos .= qq{<option value="$u->[0]" $selected>$u->[1]</option>\n};
+        next unless defined $u->[5] && $u->[5] =~ /Medico/i;
+        my ($u_org) = split(/:/, $u->[6] // '');
+        if ($u_org eq $mi_org || ($mi_org eq '0' && ($u_org eq '0' || $u_org eq ''))) {
+            $options_medicos .= qq{<option value="$u->[0]">$u->[1]</option>\n};
         }
     }
     $select_medico_html = qq{
