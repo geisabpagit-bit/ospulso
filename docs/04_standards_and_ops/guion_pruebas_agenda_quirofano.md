@@ -1,7 +1,7 @@
 # 📋 Guion Maestro de Pruebas: Agenda Central y Quirófano Kanban
 
 > **Ubicación Canónica**: `docs/04_standards_and_ops/guion_pruebas_agenda_quirofano.md`  
-> **Versión**: `1.4.0` (Actualizado: 2026-10-21)  
+> **Versión**: `1.5.0` (Actualizado: 2026-10-21)  
 > **Estado**: Activo / Reutilizable  
 > **Área**: Agenda Médica, Quirófano, Expedientes y Multitenancy  
 
@@ -25,6 +25,8 @@
    - [Caso 10: Configuración de Quirófanos de la Organización y Visibilidad en Menú Lateral](#caso-10-configuración-de-quirófanos-de-la-organización-y-visibilidad-en-menú-lateral)
    - [Caso 11: Experiencia UI/UX Premium del Tablero Kanban, Cero Scroll Horizontal y Ficha Rápida](#caso-11-experiencia-uiux-premium-del-tablero-kanban-cero-scroll-horizontal-y-ficha-rápida)
    - [Caso 12: Gobernanza de Consentimiento NOM-004, Semáforos de Ámbito (Consulta vs Quirófano) y Repositorio Atómico](#caso-12-gobernanza-de-consentimiento-nom-004-semáforos-de-ámbito-consulta-vs-quirófano-y-repositorio-atómico)
+   - [Caso 13: Checklist Preoperatorio OMS, Conteo de Seguridad y Nota Quirúrgica NOM-004 con Criterios Aldrete](#caso-13-checklist-preoperatorio-oms-conteo-de-seguridad-y-nota-quirúrgica-nom-004-con-criterios-aldrete)
+   - [Caso 14: Pre-Liquidación Quirúrgica Automatizada e Inyección de Cargo a Estado de Cuenta para Cobro en Caja](#caso-14-pre-liquidación-quirúrgica-automatizada-e-inyección-de-cargo-a-estado-de-cuenta-para-cobro-en-caja)
 5. [Protocolo de Actualización Obligatoria](#5-protocolo-de-actualización-obligatoria)
 6. [Criterios de Aceptación (Definición de Terminado)](#6-criterios-de-aceptación-definición-de-terminado)
 
@@ -398,11 +400,87 @@ graph TD
 
 ---
 
+### Caso 13: Checklist Preoperatorio OMS, Conteo de Seguridad y Nota Quirúrgica NOM-004 con Criterios Aldrete
+
+* **Objetivo**: Validar el flujo clínico transoperatorio completo en el Modal Quirúrgico (`#modalDetalleCirugia`): (1) Verificación preoperatoria de 8 puntos según la OMS (Safe Surgery), (2) Registro cronológico de tiempos quirúrgicos e integridad del conteo de seguridad (gasas, compresas e instrumental al 100%), (3) Hoja de Técnica Quirúrgica obligatoria según la NOM-004-SSA3-2012, y (4) Evaluación reactiva de los Criterios de Recuperación UCPA (Escala de Aldrete de 0 a 10 puntos) con dictamen automático de alta.
+* **Componentes Involucrados**:
+  - [views/quirofano_kanban.pl](file:///c:/xampp/htdocs/ospulso/views/quirofano_kanban.pl)
+  - [api/quirofano_crud.pl](file:///c:/xampp/htdocs/ospulso/api/quirofano_crud.pl)
+  - `dat/quirofano/cirugia_<id>.json`
+* **Pasos de Ejecución**:
+  1. **Apertura de la Ficha Quirúrgica**:
+     - En `views/quirofano_kanban.pl`, hacer clic sobre cualquier tarjeta de cirugía para abrir el modal `#modalDetalleCirugia`.
+  2. **Checklist OMS Pre-Op (Pestaña 2)**:
+     - Cambiar a la pestaña **2. Checklist OMS Pre-Op**.
+     - Activar los switches interactivos:
+       - Identidad confirmada con 2 identificadores.
+       - Consentimiento Qx y anestésico verificado.
+       - Sitio quirúrgico marcado por cirujano.
+       - Alergias a fármacos verificadas.
+       - Ayuno confirmado (especificando horas, ej: 8 hrs).
+       - Laboratorios validados (TP/TTP/Hb/Rh).
+       - Vía venosa periférica permeable.
+       - Profilaxis antibiótica (<60 min).
+     - Añadir observaciones de enfermería y presionar *"Guardar Checklist Pre-Op"*.
+     - Constatar la respuesta exitosa y persistencia en `cirugia_<id>.json`.
+  3. **Tiempos Quirúrgicos y Conteo de Seguridad (Pestaña 3)**:
+     - Cambiar a la pestaña **3. Nota Quirúrgica & UCPA**.
+     - Registrar los tiempos: Ingreso Sala, Inicio Anestesia, Incisión Qx, Cierre de Piel y Salida a UCPA.
+     - Activar los switches de seguridad: *Conteo de Gasas Verificado (100%)*, *Conteo de Compresas Verificado (100%)* y *Conteo de Instrumental Completo*.
+  4. **Nota Quirúrgica NOM-004**:
+     - Capturar Diagnóstico Pre y Postoperatorio, Operación Realizada, Descripción detallada de la Técnica Quirúrgica, Hallazgos, Sangrado aproximado (ml) y Piezas enviadas a Patología.
+  5. **Evaluación de Aldrete UCPA y Badge Reactivo**:
+     - Ajustar los 5 selectores de la Escala de Aldrete (Actividad, Respiración, Circulación/PA, Conciencia y Saturación de $O_2$).
+     - Comprobar que si la suma es $\ge 9$, el badge se torna verde: `🟢 X / 10 Pts (Apto para Alta)`.
+     - Si la suma cae por debajo de 9, el badge cambia reactivamente a amarillo/naranja: `🟡 X / 10 Pts (En Recuperación)`.
+     - Presionar *"Guardar Nota Quirúrgica y Aldrete"*.
+     - Confirmar que al recargar el modal los datos permanecen fidedignos e hidratados.
+* **Resultado Esperado**:
+  - Blindaje médico-legal total conforme a la NOM-004-SSA3-2012 y protocolos OMS.
+  - Almacenamiento desacoplado en el dossier atómico sin alterar el rendimiento del tablero general.
+
+---
+
+### Caso 14: Pre-Liquidación Quirúrgica Automatizada e Inyección de Cargo a Estado de Cuenta para Cobro en Caja
+
+* **Objetivo**: Asegurar la rentabilidad clínica y el cierre financiero del paciente vinculando el quirófano con el módulo financiero: (1) Computar tiempo en sala quirófano por tarifa horaria, (2) Honorarios de cirujano y anestesiólogo, (3) Tabla dinámica de insumos y materiales utilizados, y (4) Transmitir un cargo formal no duplicable hacia `dat/estado_cuenta.dat` para su cobro inmediato en Caja.
+* **Componentes Involucrados**:
+  - [views/quirofano_kanban.pl](file:///c:/xampp/htdocs/ospulso/views/quirofano_kanban.pl)
+  - [api/quirofano_crud.pl](file:///c:/xampp/htdocs/ospulso/api/quirofano_crud.pl)
+  - [dat/estado_cuenta.dat](file:///c:/xampp/htdocs/ospulso/dat/estado_cuenta.dat)
+  - [views/finanzas.pl](file:///c:/xampp/htdocs/ospulso/views/finanzas.pl)
+* **Pasos de Ejecución**:
+  1. **Acceso a la Pestaña Financiera**:
+     - En el modal de la cirugía, ingresar a la pestaña **4. Pre-Liquidación & Caja**.
+  2. **Configuración de Tiempos y Honorarios**:
+     - Modificar las horas de sala (ej. 2.0 hrs) y el costo horario (ej. $1,500.00).
+     - Ingresar honorarios de Cirujano (ej. $5,000.00) y Anestesiólogo (ej. $2,500.00).
+  3. **Tabla Dinámica de Insumos**:
+     - Hacer clic en `+ Agregar Insumo`.
+     - Agregar renglones personalizados (ej. "Sutura Vicryl 2-0", "Solución Fisiológica 1000ml", "Kit Laparoscopía").
+     - Modificar cantidades y precios unitarios.
+     - Constatar que el total de liquidación (`#lbl_total_liquidacion`) se recalcula en tiempo real al cambiar cualquier celda.
+     - Probar el botón de eliminar fila (`🗑️`) y comprobar la deducción inmediata del total.
+  4. **Guardar Borrador**:
+     - Presionar *"Guardar Borrador"*. Constatar que el dossier se actualiza sin generar cargos en Caja aún.
+  5. **Inyección Canónica a Caja**:
+     - Hacer clic en el botón *"Enviar a Caja"*.
+     - Confirmar el diálogo de SweetAlert2.
+     - Verificar la respuesta exitosa: el badge cambia a `🟢 Inyectado a Caja (MOV-...)` y el botón se desactiva con la leyenda *"Ya en Caja"*.
+     - Comprobar que en `dat/estado_cuenta.dat` se inserta la línea `Cargo` con el desglose del procedimiento, identificador de cirugía y monto total exacto al centavo.
+  6. **Recepción en Módulo de Caja**:
+     - Abrir `views/finanzas.pl` y verificar que en el estado de cuenta del paciente aparece el nuevo cargo quirúrgico listo para emitir el recibo de cobro.
+* **Resultado Esperado**:
+  - Cero fuga de ingresos por insumos de quirófano.
+  - Integridad contable bidireccional entre la sala de operaciones y la ventanilla de cobranza sin duplicar movimientos ni requerir recapturas manuales.
+
+---
+
 ## 5. Protocolo de Actualización Obligatoria
 
 Cada vez que un desarrollador o agente realice una modificación a la Agenda, Expedientes o Quirófano:
 1. **Identificar el Alcance**: ¿Afecta datos (`dat/`), backend (`api/`), vistas (`views/`) o scripts de cliente (`js/`)?
-2. **Revisar Casos Afectados**: Consultar los Casos 1 al 11 y verificar si la nueva funcionalidad requiere modificar los pasos o añadir un Caso 12+.
+2. **Revisar Casos Afectados**: Consultar los Casos 1 al 14 y verificar si la nueva funcionalidad requiere modificar los pasos o añadir un Caso 15+.
 3. **Actualizar el Documento**: Registrar los cambios directamente en este archivo respetando la estructura jerárquica y el índice de contenidos.
 4. **Verificación de Sintaxis y Ejecución**: Ejecutar validaciones automáticas (`perl -cw`, pruebas de API).
 5. **Sincronización Git**: Confirmar los cambios junto con el código (`git add .`, `git commit`, `git push origin main`).
@@ -422,5 +500,9 @@ Cada vez que un desarrollador o agente realice una modificación a la Agenda, Ex
 - [x] Cero scroll horizontal en Tablero Quirófano Kanban en pantallas de escritorio ($\ge 1100\text{px}$) y modal de inspección rápida.
 - [x] Opción "¿Requiere Consentimientos & doc legales para esta consulta?" en Paso 0 Registro con inhabilitación reactiva en Paso 5 Acuerdos.
 - [x] Repositorio atómico de consentimientos legales `dat/consentimientos/paciente_<id>.json` e integración en Pestaña 11 del Expediente Clínico (`views/render_expediente_clinico.pl`).
-- [x] Ausencia de llamados a `utils/sub_footer.pl` en los archivos refactorizados.
-- [x] Documentación registrada en la Capa 4 (`docs/04_standards_and_ops/`) y enlazada en `docs/README.md`.
+- [x] Checklist Preoperatorio OMS de 8 puntos integrado en el Modal del Tablero Kanban (`views/quirofano_kanban.pl`).
+- [x] Registro Transoperatorio y Nota Quirúrgica NOM-004-SSA3-2012 con Criterios Aldrete UCPA y cálculo reactivo de aptitud de alta.
+- [x] Pre-liquidación quirúrgica dinámica conectada al estado de cuenta del paciente (`dat/estado_cuenta.dat`) para cobro en Caja.
+- [x] Ausencia de llamados a `utils/sub_footer.pl` en los archivos creados o refactorizados.
+- [x] Documentación registrada en la Capa 1 y 4 (`docs/01_architecture/` y `docs/04_standards_and_ops/`) y enlazada canónicamente.
+

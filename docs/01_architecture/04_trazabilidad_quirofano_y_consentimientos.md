@@ -149,5 +149,22 @@ sequenceDiagram
 ## 5. Hoja de Ruta de Implementación
 1. **Fase I**: Kanban Quirúrgico responsivo 100% fluido en CSS Grid (0 scroll horizontal), modal de inspección rápida y sincronización bidireccional con Agenda Central. (✅ Completada)
 2. **Fase II**: Repositorio Atómico `dat/consentimientos/paciente_<id>.json`, controlador `api/consentimientos_api.pl`, pestaña `tab11` en Expediente Clínico e interruptor reactivo en Step 0 Registro para inhabilitar documentación prescindible. (✅ Completada)
-3. **Fase III**: Checklist Preoperatorio OMS y Nota Quirúrgica integrada en el modal de detalle del Kanban.
-4. **Fase IV**: Pre-liquidación automática de insumos quirúrgicos en el módulo financiero.
+3. **Fase III**: Checklist Preoperatorio OMS (Safe Surgery 8-point check), Tiempos Quirúrgicos, Conteo de Seguridad y Nota Quirúrgica NOM-004-SSA3-2012 con Criterios de Recuperación UCPA (Escala de Aldrete de 0 a 10) integrados en el modal ejecutivo del Kanban. (✅ Completada)
+4. **Fase IV**: Pre-liquidación quirúrgica automatizada (Horas de sala $\times$ tarifa, honorarios de cirujano y anestesiólogo, desglose dinámico de insumos de sala) con inyección automática de movimiento `Cargo` en `dat/estado_cuenta.dat` para cobro formal en Caja. (✅ Completada)
+
+---
+
+## 6. Contratos de Datos y Persistencia Atómica de Quirófano
+
+### 6.1 Dossier Quirúrgico Atómico (`dat/quirofano/cirugia_<id_cirugia>.json`)
+Para evitar la saturación del archivo plano `dat/quirofano.dat` y garantizar la no concurrencia destructiva, cada intervención genera un dossier atómico que almacena:
+- `checklist_preop`: Identidad confirmada, consentimiento verificado, ayuno y horas, laboratorios validados, sitio marcado, vía permeable, profilaxis antibiótica y alergias.
+- `transoperatorio`: Tiempos quirúrgicos (ingreso sala, anestesia, incisión, cierre piel, salida UCPA), conteo al 100% de gasas, compresas e instrumental, y reporte de incidentes.
+- `nota_quirurgica`: Diagnóstico pre y postoperatorio NOM-004, cirujano, anestesiólogo, ayudantes, descripción de la técnica quirúrgica, hallazgos, sangrado aprox (ml) y muestras a patología.
+- `recuperacion_ucpa`: Parámetros de la Escala de Aldrete (actividad motora, respiración, circulación/PA, conciencia, saturación de $O_2$), puntaje global de 0 a 10 y dictamen automático de apto para el alta ($\ge 9$ puntos).
+- `liquidacion_insumos`: Desglose económico de horas de sala, honorarios y materiales utilizados, vinculados al ID de movimiento de caja.
+
+### 6.2 Inyección Directa a Estado de Cuenta (`dat/estado_cuenta.dat`)
+Al accionar *"Enviar a Caja"*, el backend valida que la cirugía no haya sido transferida con anterioridad para evitar doble facturación y escribe un registro canónico con formato:
+`ID_TRANSACCION|ID_MOVIMIENTO|ID_PACIENTE|Cargo|Servicios Quirúrgicos: <procedimiento>|<monto_total>|0|<monto_total>|<fecha>|<id_medico>|Cirugía #<id_cirugia> | Sala: <sala> | Insumos y Sala Qx|<nombre_paciente>`
+Este movimiento queda disponible de inmediato en `views/finanzas.pl` y el Módulo de Caja para su emisión de recibo o factura con folio formal.

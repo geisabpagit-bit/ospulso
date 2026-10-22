@@ -465,7 +465,7 @@ print <<"HTML";
 
 <!-- Modal Premium: Ficha Rápida e Inspección Quirúrgica -->
 <div class="modal fade" id="modalDetalleCirugia" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-navy text-white px-4 py-3">
                 <div class="d-flex align-items-center gap-2">
@@ -479,67 +479,406 @@ print <<"HTML";
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4 bg-light">
-                <div class="row g-3">
-                    <!-- Resumen General -->
-                    <div class="col-12 col-md-7">
-                        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
-                            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
-                                <i class="bi bi-file-earmark-medical me-1"></i> Información del Procedimiento
-                            </h6>
-                            <div class="mb-2">
-                                <span class="text-muted small d-block">Procedimiento Programado:</span>
-                                <span class="fw-bold text-dark fs-6" id="mdl_procedimiento"></span>
-                            </div>
-                            <div class="row g-2 mb-2">
-                                <div class="col-6">
-                                    <span class="text-muted small d-block">Sala / Quirófano:</span>
-                                    <span class="badge bg-light text-dark border px-2 py-1 fw-bold" id="mdl_sala"></span>
-                                </div>
-                                <div class="col-6">
-                                    <span class="text-muted small d-block">Horario Programado:</span>
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-bold" id="mdl_horario"></span>
-                                </div>
-                            </div>
-                            <!-- Semáforo Consentimiento Quirúrgico (NOM-004) -->
-                            <div class="mb-2 p-2.5 rounded-3 border" id="mdl_box_consentimiento" style="background: #f8fafc;">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <span class="text-muted small d-block fw-bold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;">Consentimiento Quirúrgico (NOM-004)</span>
-                                        <div id="mdl_semaforo_cons" class="mt-1 d-flex align-items-center gap-1.5 flex-wrap">
-                                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-0.5"><i class="bi bi-hourglass-split me-1"></i> Consultando...</span>
+            <div class="modal-body p-3 p-md-4 bg-light">
+                <!-- Pestañas de Navegación Quirúrgica -->
+                <ul class="nav nav-pills nav-fill mb-3 bg-white p-1.5 rounded-3 shadow-xs border" id="pills-modal-qx" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold py-1.5" id="pills-ficha-tab" data-bs-toggle="pill" data-bs-target="#pills-ficha" type="button" role="tab">
+                            <i class="bi bi-card-checklist me-1"></i> 1. Ficha y Sala
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold py-1.5" id="pills-preop-tab" data-bs-toggle="pill" data-bs-target="#pills-preop" type="button" role="tab">
+                            <i class="bi bi-shield-check me-1"></i> 2. Checklist OMS Pre-Op
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold py-1.5" id="pills-nota-tab" data-bs-toggle="pill" data-bs-target="#pills-nota" type="button" role="tab">
+                            <i class="bi bi-journal-medical me-1"></i> 3. Nota Quirúrgica & UCPA
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold py-1.5" id="pills-caja-tab" data-bs-toggle="pill" data-bs-target="#pills-caja" type="button" role="tab">
+                            <i class="bi bi-cash-coin me-1"></i> 4. Pre-Liquidación & Caja
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="pills-modal-qxContent">
+                    <!-- TAB 1: FICHA Y SALA -->
+                    <div class="tab-pane fade show active" id="pills-ficha" role="tabpanel">
+                        <div class="row g-3">
+                            <!-- Resumen General -->
+                            <div class="col-12 col-md-7">
+                                <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
+                                        <i class="bi bi-file-earmark-medical me-1"></i> Información del Procedimiento
+                                    </h6>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">Procedimiento Programado:</span>
+                                        <span class="fw-bold text-dark fs-6" id="mdl_procedimiento"></span>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <span class="text-muted small d-block">Sala / Quirófano:</span>
+                                            <span class="badge bg-light text-dark border px-2 py-1 fw-bold" id="mdl_sala"></span>
+                                        </div>
+                                        <div class="col-6">
+                                            <span class="text-muted small d-block">Horario Programado:</span>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-bold" id="mdl_horario"></span>
                                         </div>
                                     </div>
-                                    <div id="mdl_cons_acciones"></div>
+                                    <!-- Semáforo Consentimiento Quirúrgico (NOM-004) -->
+                                    <div class="mb-2 p-2.5 rounded-3 border" id="mdl_box_consentimiento" style="background: #f8fafc;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="text-muted small d-block fw-bold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;">Consentimiento Quirúrgico (NOM-004)</span>
+                                                <div id="mdl_semaforo_cons" class="mt-1 d-flex align-items-center gap-1.5 flex-wrap">
+                                                    <span class="badge bg-secondary-subtle text-secondary border px-2 py-0.5"><i class="bi bi-hourglass-split me-1"></i> Consultando...</span>
+                                                </div>
+                                            </div>
+                                            <div id="mdl_cons_acciones"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">Notas Clínicas / Indicaciones:</span>
+                                        <p class="small text-muted bg-light p-2 rounded border mb-0" id="mdl_notas">Sin notas registradas</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mb-2">
-                                <span class="text-muted small d-block">Notas Clínicas / Indicaciones:</span>
-                                <p class="small text-muted bg-light p-2 rounded border mb-0" id="mdl_notas">Sin notas registradas</p>
+                            <!-- Equipo y Transiciones Rápidas -->
+                            <div class="col-12 col-md-5">
+                                <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
+                                        <i class="bi bi-people me-1"></i> Equipo Quirúrgico
+                                    </h6>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">Cirujano Titular:</span>
+                                        <span class="fw-semibold text-dark small" id="mdl_cirujano"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <span class="text-muted small d-block">Anestesiólogo:</span>
+                                        <span class="fw-semibold text-dark small" id="mdl_anestesio"></span>
+                                    </div>
+                                    <h6 class="fw-bold text-muted small mb-2 border-top pt-2">
+                                        <i class="bi bi-arrow-left-right me-1"></i> Transición Rápida de Estado
+                                    </h6>
+                                    <div class="d-grid gap-1.5" id="mdl_botones_transicion">
+                                        <!-- Se inyectan dinámicamente -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Equipo y Transiciones Rápidas -->
-                    <div class="col-12 col-md-5">
-                        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
-                            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
-                                <i class="bi bi-people me-1"></i> Equipo Quirúrgico
-                            </h6>
-                            <div class="mb-2">
-                                <span class="text-muted small d-block">Cirujano Titular:</span>
-                                <span class="fw-semibold text-dark small" id="mdl_cirujano"></span>
+
+                    <!-- TAB 2: CHECKLIST OMS PRE-OP -->
+                    <div class="tab-pane fade" id="pills-preop" role="tabpanel">
+                        <form id="formChecklistPreop" onsubmit="guardarChecklistPreop(event)">
+                            <input type="hidden" id="chk_id_cirugia" name="id_cirugia">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="card p-3 border-0 shadow-xs rounded-3 bg-white h-100">
+                                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                                            <i class="bi bi-person-check me-1"></i> Verificación y Seguridad del Paciente
+                                        </h6>
+                                        <div class="form-check form-switch mb-2.5">
+                                            <input class="form-check-input" type="checkbox" id="chk_identidad" name="identidad_verificada" value="1">
+                                            <label class="form-check-label small fw-semibold" for="chk_identidad">Identidad confirmada con 2 identificadores</label>
+                                        </div>
+                                        <div class="form-check form-switch mb-2.5">
+                                            <input class="form-check-input" type="checkbox" id="chk_consentimiento" name="consentimiento_firmado" value="1">
+                                            <label class="form-check-label small fw-semibold" for="chk_consentimiento">Consentimiento Qx y Anestésico verificado</label>
+                                        </div>
+                                        <div class="form-check form-switch mb-2.5">
+                                            <input class="form-check-input" type="checkbox" id="chk_sitio_marcado" name="sitio_marcado" value="1">
+                                            <label class="form-check-label small fw-semibold" for="chk_sitio_marcado">Sitio quirúrgico marcado por cirujano</label>
+                                        </div>
+                                        <div class="form-check form-switch mb-2.5">
+                                            <input class="form-check-input" type="checkbox" id="chk_alergias" name="alergias_verificadas" value="1">
+                                            <label class="form-check-label small fw-semibold" for="chk_alergias">Alergias a fármacos verificadas</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="card p-3 border-0 shadow-xs rounded-3 bg-white h-100">
+                                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                                            <i class="bi bi-capsule me-1"></i> Preparación Clínica y Vía
+                                        </h6>
+                                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" id="chk_ayuno" name="ayuno_confirmado" value="1">
+                                                <label class="form-check-label small fw-semibold" for="chk_ayuno">Ayuno confirmado</label>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <input type="number" id="chk_horas_ayuno" name="horas_ayuno" class="form-control form-control-sm text-center" style="width: 65px;" min="0" max="48" value="8">
+                                                <span class="small text-muted">hrs</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-check form-switch mb-2.5">
+                                            <input class="form-check-input" type="checkbox" id="chk_labs" name="labs_validados" value="1">
+                                            <label class="form-check-label small fw-semibold" for="chk_labs">Laboratorios validados (TP/TTP/Hb/Rh)</label>
+                                        </div>
+                                        <div class="form-check form-switch mb-2.5">
+                                            <input class="form-check-input" type="checkbox" id="chk_via" name="via_permeable" value="1">
+                                            <label class="form-check-label small fw-semibold" for="chk_via">Vía venosa periférica permeable</label>
+                                        </div>
+                                        <div class="form-check form-switch mb-2.5">
+                                            <input class="form-check-input" type="checkbox" id="chk_profilaxis" name="profilaxis_antibiotica" value="1">
+                                            <label class="form-check-label small fw-semibold" for="chk_profilaxis">Profilaxis antibiótica (&lt;60 min)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="card p-3 border-0 shadow-xs rounded-3 bg-white">
+                                        <label class="form-label small fw-bold text-dark mb-1">Observaciones / Notas de Enfermería Pre-Op</label>
+                                        <textarea id="chk_observaciones" name="observaciones_enfermeria" class="form-control form-control-sm" rows="2" placeholder="Notas sobre el estado general del paciente, catéteres o indicaciones previas a sala..."></textarea>
+                                        <div class="d-flex justify-content-end mt-2">
+                                            <button type="submit" class="btn btn-sm btn-primary fw-bold rounded-pill px-4">
+                                                <i class="bi bi-check2-circle me-1"></i> Guardar Checklist Pre-Op
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <span class="text-muted small d-block">Anestesiólogo:</span>
-                                <span class="fw-semibold text-dark small" id="mdl_anestesio"></span>
+                        </form>
+                    </div>
+
+                    <!-- TAB 3: NOTA QUIRURGICA & UCPA -->
+                    <div class="tab-pane fade" id="pills-nota" role="tabpanel">
+                        <form id="formNotaQuirurgica" onsubmit="guardarNotaQuirurgica(event)">
+                            <input type="hidden" id="nt_id_cirugia" name="id_cirugia">
+                            <div class="row g-3">
+                                <!-- Tiempos y Conteo de Seguridad -->
+                                <div class="col-12 col-md-5">
+                                    <div class="card p-3 border-0 shadow-xs rounded-3 bg-white mb-3">
+                                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-2">
+                                            <i class="bi bi-clock-history me-1"></i> Tiempos Quirúrgicos
+                                        </h6>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block">Ingreso Sala:</label>
+                                                <input type="time" id="nt_t_ingreso" name="hora_ingreso_sala" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block">Inicio Anestesia:</label>
+                                                <input type="time" id="nt_t_anestesia" name="hora_inicio_anestesia" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block">Incisión Qx:</label>
+                                                <input type="time" id="nt_t_incision" name="hora_incision" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block">Cierre de Piel:</label>
+                                                <input type="time" id="nt_t_cierre" name="hora_cierre" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="small text-muted d-block">Salida a UCPA:</label>
+                                                <input type="time" id="nt_t_salida" name="hora_salida_sala" class="form-control form-control-sm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card p-3 border-0 shadow-xs rounded-3 bg-white">
+                                        <h6 class="fw-bold text-success border-bottom pb-2 mb-2">
+                                            <i class="bi bi-shield-lock me-1"></i> Seguridad Transoperatoria
+                                        </h6>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="nt_conteo_gasas" name="conteo_gasas_completo" value="1">
+                                            <label class="form-check-label small fw-semibold" for="nt_conteo_gasas">Conteo de Gasas Verificado (100%)</label>
+                                        </div>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="nt_conteo_compresas" name="conteo_compresas_completo" value="1">
+                                            <label class="form-check-label small fw-semibold" for="nt_conteo_compresas">Conteo de Compresas Verificado (100%)</label>
+                                        </div>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="nt_conteo_instrumental" name="conteo_instrumental_completo" value="1">
+                                            <label class="form-check-label small fw-semibold" for="nt_conteo_instrumental">Conteo de Instrumental Completo</label>
+                                        </div>
+                                        <div>
+                                            <label class="small text-muted d-block mb-1">Incidentes o Accidentes:</label>
+                                            <input type="text" id="nt_incidentes" name="incidentes_accidentes" class="form-control form-control-sm" placeholder="Sin incidentes">
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Nota Quirúrgica NOM-004 y Aldrete -->
+                                <div class="col-12 col-md-7">
+                                    <div class="card p-3 border-0 shadow-xs rounded-3 bg-white">
+                                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-2">
+                                            <i class="bi bi-file-earmark-medical me-1"></i> Nota Quirúrgica (NOM-004-SSA3-2012)
+                                        </h6>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block">Dx Preoperatorio:</label>
+                                                <input type="text" id="nt_dx_preop" name="diagnostico_preop" class="form-control form-control-sm" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block">Dx Postoperatorio:</label>
+                                                <input type="text" id="nt_dx_postop" name="diagnostico_postop" class="form-control form-control-sm" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block">Operación Planeada:</label>
+                                                <input type="text" id="nt_op_planeada" name="operacion_planeada" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block">Operación Realizada:</label>
+                                                <input type="text" id="nt_op_realizada" name="operacion_realizada" class="form-control form-control-sm" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="small text-muted d-block">Descripción de la Técnica Quirúrgica:</label>
+                                                <textarea id="nt_tecnica" name="descripcion_tecnica" class="form-control form-control-sm" rows="3" placeholder="Vía de abordaje, disección, hallazgos, hemostasia y síntesis..."></textarea>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="small text-muted d-block">Hallazgos Quirúrgicos Relevantes:</label>
+                                                <textarea id="nt_hallazgos" name="hallazgos" class="form-control form-control-sm" rows="2" placeholder="Detalles de la anatomía, lesiones o hallazgos visuales..."></textarea>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block">Sangrado Aprox (ml):</label>
+                                                <input type="text" id="nt_sangrado" name="sangrado_aprox_ml" class="form-control form-control-sm" placeholder="Ej: 50 ml">
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block">Muestras a Patología:</label>
+                                                <input type="text" id="nt_patologia" name="piezas_patologia" class="form-control form-control-sm" placeholder="Ej: Apéndice cecal">
+                                            </div>
+                                        </div>
+
+                                        <!-- Criterios Aldrete UCPA -->
+                                        <h6 class="fw-bold text-dark border-top pt-2 pb-1 mb-2 d-flex justify-content-between align-items-center">
+                                            <span><i class="bi bi-heart-pulse text-danger me-1"></i> Recuperación UCPA (Escala Aldrete)</span>
+                                            <span id="badge_aldrete_total" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 fw-bold">10 / 10 Pts (Apto Alta)</span>
+                                        </h6>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-4">
+                                                <label class="small text-muted d-block" style="font-size:0.7rem;">Actividad Motora:</label>
+                                                <select id="nt_ald_act" name="aldrete_actividad" class="form-select form-select-sm" onchange="calcularAldrete()">
+                                                    <option value="2">2 - Mueve 4 miembros</option>
+                                                    <option value="1">1 - Mueve 2 miembros</option>
+                                                    <option value="0">0 - No mueve</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="small text-muted d-block" style="font-size:0.7rem;">Respiración:</label>
+                                                <select id="nt_ald_res" name="aldrete_respiracion" class="form-select form-select-sm" onchange="calcularAldrete()">
+                                                    <option value="2">2 - Tose y respira</option>
+                                                    <option value="1">1 - Disnea leve</option>
+                                                    <option value="0">0 - Apnea</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="small text-muted d-block" style="font-size:0.7rem;">Circulación (PA):</label>
+                                                <select id="nt_ald_cir" name="aldrete_circulacion" class="form-select form-select-sm" onchange="calcularAldrete()">
+                                                    <option value="2">2 - PA ±20% basal</option>
+                                                    <option value="1">1 - PA ±20-49%</option>
+                                                    <option value="0">0 - PA ±50%</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block" style="font-size:0.7rem;">Conciencia:</label>
+                                                <select id="nt_ald_con" name="aldrete_conciencia" class="form-select form-select-sm" onchange="calcularAldrete()">
+                                                    <option value="2">2 - Completamente despierto</option>
+                                                    <option value="1">1 - Despierta al llamado</option>
+                                                    <option value="0">0 - No responde</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="small text-muted d-block" style="font-size:0.7rem;">Saturación O2:</label>
+                                                <select id="nt_ald_sat" name="aldrete_saturacion" class="form-select form-select-sm" onchange="calcularAldrete()">
+                                                    <option value="2">2 - &gt;92% con aire ambiente</option>
+                                                    <option value="1">1 - Necesita O2 suplementario</option>
+                                                    <option value="0">0 - &lt;90% aun con O2</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-end mt-2">
+                                            <button type="submit" class="btn btn-sm btn-primary fw-bold rounded-pill px-4">
+                                                <i class="bi bi-save me-1"></i> Guardar Nota Quirúrgica y Aldrete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <h6 class="fw-bold text-muted small mb-2 border-top pt-2">
-                                <i class="bi bi-arrow-left-right me-1"></i> Transición Rápida de Estado
-                            </h6>
-                            <div class="d-grid gap-1.5" id="mdl_botones_transicion">
-                                <!-- Se inyectan dinámicamente -->
+                        </form>
+                    </div>
+
+                    <!-- TAB 4: PRE-LIQUIDACION & CAJA -->
+                    <div class="tab-pane fade" id="pills-caja" role="tabpanel">
+                        <form id="formLiquidacionCaja" onsubmit="guardarLiquidacionCaja(event)">
+                            <input type="hidden" id="liq_id_cirugia" name="id_cirugia">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-5">
+                                    <div class="card p-3 border-0 shadow-xs rounded-3 bg-white h-100">
+                                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                                            <i class="bi bi-stopwatch me-1"></i> Tiempos y Honorarios de Quirófano
+                                        </h6>
+                                        <div class="mb-2">
+                                            <label class="small text-muted d-block">Horas en Sala Quirúrgica:</label>
+                                            <input type="number" step="0.25" id="liq_horas_sala" name="horas_sala" class="form-control form-control-sm" value="1.0" oninput="calcularTotalLiquidacion()">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="small text-muted d-block">Tarifa por Hora de Sala ($):</label>
+                                            <input type="number" step="0.01" id="liq_costo_hora" name="costo_hora_sala" class="form-control form-control-sm" value="1500.00" oninput="calcularTotalLiquidacion()">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="small text-muted d-block">Honorarios Cirujano ($):</label>
+                                            <input type="number" step="0.01" id="liq_hon_cir" name="honorarios_cirujano" class="form-control form-control-sm" value="0.00" oninput="calcularTotalLiquidacion()">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="small text-muted d-block">Honorarios Anestesiólogo ($):</label>
+                                            <input type="number" step="0.01" id="liq_hon_ane" name="honorarios_anestesio" class="form-control form-control-sm" value="0.00" oninput="calcularTotalLiquidacion()">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-7">
+                                    <div class="card p-3 border-0 shadow-xs rounded-3 bg-white h-100 d-flex flex-column justify-content-between">
+                                        <div>
+                                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                                <h6 class="fw-bold text-primary mb-0">
+                                                    <i class="bi bi-box-seam text-success me-1"></i> Insumos y Materiales de Sala
+                                                </h6>
+                                                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5 fw-bold" onclick="agregarFilaInsumo()">
+                                                    <i class="bi bi-plus-circle me-1"></i> + Agregar Insumo
+                                                </button>
+                                            </div>
+                                            <div class="table-responsive" style="max-height: 180px; overflow-y: auto;">
+                                                <table class="table table-sm table-borderless align-middle mb-0" id="tablaInsumosQx">
+                                                    <thead class="table-light small text-muted">
+                                                        <tr>
+                                                            <th>Concepto / Material</th>
+                                                            <th style="width: 70px;">Cant.</th>
+                                                            <th style="width: 100px;">Precio U.</th>
+                                                            <th style="width: 35px;"></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tbodyInsumosQx">
+                                                        <!-- Filas dinámicas -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Total y Acción Caja -->
+                                        <div class="border-top pt-3 mt-2">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <span class="fs-6 fw-bold text-dark">Total Pre-Liquidación Qx:</span>
+                                                <span class="fs-5 fw-bold text-success font-monospace" id="lbl_total_liquidacion">$0.00</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                                <div id="box_estado_caja">
+                                                    <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">No enviado a Caja</span>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3">
+                                                        <i class="bi bi-save me-1"></i> Guardar Borrador
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-success fw-bold rounded-pill px-4 shadow-sm" id="btn_enviar_caja" onclick="inyectarCirugiaACaja()">
+                                                        <i class="bi bi-cash-stack me-1"></i> Enviar a Caja
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -921,9 +1260,297 @@ print <<'JS';
         });
         $('#mdl_botones_transicion').html(btnsHtml);
 
+        // Resetear a pestaña 1 y cargar dossier quirúrgico completo (Fases III y IV)
+        const tabTrigger = document.querySelector('#pills-ficha-tab');
+        if (tabTrigger) {
+            const tabInstance = bootstrap.Tab.getOrCreateInstance(tabTrigger);
+            tabInstance.show();
+        }
+        cargarDossierModal(c.id_cirugia);
+
         const modalEl = document.getElementById('modalDetalleCirugia');
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
+    }
+
+    let dossierActual = null;
+
+    async function cargarDossierModal(idCirugia) {
+        try {
+            $('#chk_id_cirugia').val(idCirugia);
+            $('#nt_id_cirugia').val(idCirugia);
+            $('#liq_id_cirugia').val(idCirugia);
+
+            const res = await fetch(`../api/quirofano_crud.pl?action=get_surgical_record&id_cirugia=${encodeURIComponent(idCirugia)}`);
+            const d = await res.json();
+            if (!d.ok || !d.dossier) return;
+            dossierActual = d.dossier;
+
+            // 1. Hidratar Tab Pre-Op
+            const pre = dossierActual.checklist_preop || {};
+            $('#chk_identidad').prop('checked', !!pre.identidad_verificada);
+            $('#chk_consentimiento').prop('checked', !!pre.consentimiento_firmado);
+            $('#chk_sitio_marcado').prop('checked', !!pre.sitio_marcado);
+            $('#chk_alergias').prop('checked', !!pre.alergias_verificadas);
+            $('#chk_ayuno').prop('checked', !!pre.ayuno_confirmado);
+            $('#chk_horas_ayuno').val(pre.horas_ayuno || 8);
+            $('#chk_labs').prop('checked', !!pre.labs_validados);
+            $('#chk_via').prop('checked', !!pre.via_permeable);
+            $('#chk_profilaxis').prop('checked', !!pre.profilaxis_antibiotica);
+            $('#chk_observaciones').val(pre.observaciones_enfermeria || '');
+
+            // 2. Hidratar Tab Nota Quirúrgica & UCPA
+            const tr = dossierActual.transoperatorio || {};
+            $('#nt_t_ingreso').val(tr.hora_ingreso_sala || '');
+            $('#nt_t_anestesia').val(tr.hora_inicio_anestesia || '');
+            $('#nt_t_incision').val(tr.hora_incision || '');
+            $('#nt_t_cierre').val(tr.hora_cierre || '');
+            $('#nt_t_salida').val(tr.hora_salida_sala || '');
+            $('#nt_conteo_gasas').prop('checked', !!tr.conteo_gasas_completo);
+            $('#nt_conteo_compresas').prop('checked', !!tr.conteo_compresas_completo);
+            $('#nt_conteo_instrumental').prop('checked', !!tr.conteo_instrumental_completo);
+            $('#nt_incidentes').val(tr.incidentes_accidentes || '');
+
+            const nq = dossierActual.nota_quirurgica || {};
+            $('#nt_dx_preop').val(nq.diagnostico_preop || dossierActual.procedimiento || '');
+            $('#nt_dx_postop').val(nq.diagnostico_postop || nq.diagnostico_preop || dossierActual.procedimiento || '');
+            $('#nt_op_planeada').val(nq.operacion_planeada || dossierActual.procedimiento || '');
+            $('#nt_op_realizada').val(nq.operacion_realizada || dossierActual.procedimiento || '');
+            $('#nt_tecnica').val(nq.descripcion_tecnica || '');
+            $('#nt_hallazgos').val(nq.hallazgos || '');
+            $('#nt_sangrado').val(nq.sangrado_aprox_ml || '0');
+            $('#nt_patologia').val(nq.piezas_patologia || '');
+
+            const ald = dossierActual.recuperacion_ucpa || {};
+            $('#nt_ald_act').val(ald.aldrete_actividad !== undefined ? ald.aldrete_actividad : 2);
+            $('#nt_ald_res').val(ald.aldrete_respiracion !== undefined ? ald.aldrete_respiracion : 2);
+            $('#nt_ald_cir').val(ald.aldrete_circulacion !== undefined ? ald.aldrete_circulacion : 2);
+            $('#nt_ald_con').val(ald.aldrete_conciencia !== undefined ? ald.aldrete_conciencia : 2);
+            $('#nt_ald_sat').val(ald.aldrete_saturacion !== undefined ? ald.aldrete_saturacion : 2);
+            calcularAldrete();
+
+            // 3. Hidratar Tab Pre-Liquidación & Caja
+            const liq = dossierActual.liquidacion_insumos || {};
+            $('#liq_horas_sala').val(liq.horas_sala || 1);
+            $('#liq_costo_hora').val(liq.costo_hora_sala || 1500);
+            $('#liq_hon_cir').val(liq.honorarios_cirujano || 0);
+            $('#liq_hon_ane').val(liq.honorarios_anestesio || 0);
+
+            $('#tbodyInsumosQx').empty();
+            const itemsInsumos = Array.isArray(liq.insumos) ? liq.insumos : [];
+            if (itemsInsumos.length > 0) {
+                itemsInsumos.forEach(item => {
+                    agregarFilaInsumo(item.concepto || item.item || '', item.cantidad || item.cant || 1, item.precio || 0);
+                });
+            } else {
+                agregarFilaInsumo('Kit Básico Quirúrgico Desechable', 1, 450);
+            }
+            calcularTotalLiquidacion();
+
+            if (liq.registrado_en_caja) {
+                $('#box_estado_caja').html(`<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Inyectado a Caja (${liq.id_movimiento_caja || 'Registrado'})</span>`);
+                $('#btn_enviar_caja').prop('disabled', true).addClass('opacity-50').html('<i class="bi bi-check2-all me-1"></i> Ya en Caja');
+            } else {
+                $('#box_estado_caja').html('<span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1"><i class="bi bi-clock me-1"></i> Pendiente de enviar a Caja</span>');
+                $('#btn_enviar_caja').prop('disabled', false).removeClass('opacity-50').html('<i class="bi bi-cash-stack me-1"></i> Enviar a Caja');
+            }
+
+        } catch(e) {
+            console.error('Error al cargar dossier quirúrgico', e);
+        }
+    }
+
+    function calcularAldrete() {
+        const act = parseInt($('#nt_ald_act').val()) || 0;
+        const res = parseInt($('#nt_ald_res').val()) || 0;
+        const cir = parseInt($('#nt_ald_cir').val()) || 0;
+        const con = parseInt($('#nt_ald_con').val()) || 0;
+        const sat = parseInt($('#nt_ald_sat').val()) || 0;
+        const total = act + res + cir + con + sat;
+
+        const badge = $('#badge_aldrete_total');
+        if (total >= 9) {
+            badge.removeClass('bg-warning-subtle text-dark border-warning-subtle bg-danger-subtle text-danger border-danger-subtle')
+                 .addClass('bg-success-subtle text-success border-success-subtle')
+                 .html(`<i class="bi bi-check-circle me-1"></i> ${total} / 10 Pts (Apto para Alta)`);
+        } else {
+            badge.removeClass('bg-success-subtle text-success border-success-subtle')
+                 .addClass('bg-warning-subtle text-dark border-warning-subtle')
+                 .html(`<i class="bi bi-hourglass-split me-1"></i> ${total} / 10 Pts (En Recuperación)`);
+        }
+    }
+
+    function agregarFilaInsumo(concepto = '', cantidad = 1, precio = 0) {
+        const tr = `
+            <tr>
+                <td><input type="text" class="form-control form-control-sm in-insumo-concepto" value="${concepto}" placeholder="Ej: Sutura, Gasas, Fármaco" oninput="calcularTotalLiquidacion()"></td>
+                <td><input type="number" min="1" step="1" class="form-control form-control-sm text-center in-insumo-cant" value="${cantidad}" oninput="calcularTotalLiquidacion()"></td>
+                <td><input type="number" min="0" step="0.5" class="form-control form-control-sm in-insumo-precio" value="${precio}" oninput="calcularTotalLiquidacion()"></td>
+                <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger border-0" onclick="eliminarFilaInsumo(this)"><i class="bi bi-trash"></i></button></td>
+            </tr>
+        `;
+        $('#tbodyInsumosQx').append(tr);
+        calcularTotalLiquidacion();
+    }
+
+    function eliminarFilaInsumo(btn) {
+        $(btn).closest('tr').remove();
+        calcularTotalLiquidacion();
+    }
+
+    function recolectarInsumos() {
+        const insumos = [];
+        $('#tbodyInsumosQx tr').each(function() {
+            const concepto = $(this).find('.in-insumo-concepto').val();
+            const cant = parseFloat($(this).find('.in-insumo-cant').val()) || 0;
+            const precio = parseFloat($(this).find('.in-insumo-precio').val()) || 0;
+            if (concepto && concepto.trim().length > 0) {
+                insumos.push({ concepto: concepto.trim(), cantidad: cant, precio: precio });
+            }
+        });
+        return insumos;
+    }
+
+    function calcularTotalLiquidacion() {
+        const horas = parseFloat($('#liq_horas_sala').val()) || 0;
+        const costoHora = parseFloat($('#liq_costo_hora').val()) || 0;
+        const honCir = parseFloat($('#liq_hon_cir').val()) || 0;
+        const honAne = parseFloat($('#liq_hon_ane').val()) || 0;
+
+        let totalInsumos = 0;
+        $('#tbodyInsumosQx tr').each(function() {
+            const cant = parseFloat($(this).find('.in-insumo-cant').val()) || 0;
+            const precio = parseFloat($(this).find('.in-insumo-precio').val()) || 0;
+            totalInsumos += (cant * precio);
+        });
+
+        const total = (horas * costoHora) + honCir + honAne + totalInsumos;
+        $('#lbl_total_liquidacion').text('$' + total.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        return total;
+    }
+
+    async function guardarChecklistPreop(e) {
+        e.preventDefault();
+        try {
+            const f = new FormData(document.getElementById('formChecklistPreop'));
+            f.append('action', 'save_preop_checklist');
+            const searchParams = new URLSearchParams(f);
+
+            const req = await fetch('../api/quirofano_crud.pl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: searchParams
+            });
+            const res = await req.json();
+            if (res.ok) {
+                CrystalToast.fire({ icon: 'success', title: 'Checklist Pre-Op OMS Guardado' });
+            } else {
+                CrystalToast.fire({ icon: 'error', title: res.msg || 'Error al guardar' });
+            }
+        } catch(err) {
+            CrystalToast.fire({ icon: 'error', title: 'Falla de red' });
+        }
+    }
+
+    async function guardarNotaQuirurgica(e) {
+        e.preventDefault();
+        try {
+            const f = new FormData(document.getElementById('formNotaQuirurgica'));
+            f.append('action', 'save_surgical_note');
+            const searchParams = new URLSearchParams(f);
+
+            const req = await fetch('../api/quirofano_crud.pl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: searchParams
+            });
+            const res = await req.json();
+            if (res.ok) {
+                CrystalToast.fire({ icon: 'success', title: 'Nota Quirúrgica y Aldrete Guardados' });
+            } else {
+                CrystalToast.fire({ icon: 'error', title: res.msg || 'Error al guardar' });
+            }
+        } catch(err) {
+            CrystalToast.fire({ icon: 'error', title: 'Falla de red' });
+        }
+    }
+
+    async function guardarLiquidacionCaja(e) {
+        if (e) e.preventDefault();
+        try {
+            const insumos = recolectarInsumos();
+            const total = calcularTotalLiquidacion();
+
+            const f = new FormData(document.getElementById('formLiquidacionCaja'));
+            f.append('action', 'save_financial_closure');
+            f.append('insumos_json', JSON.stringify(insumos));
+            f.append('total_calculado', total);
+            f.append('enviar_a_caja', '0');
+            const searchParams = new URLSearchParams(f);
+
+            const req = await fetch('../api/quirofano_crud.pl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: searchParams
+            });
+            const res = await req.json();
+            if (res.ok) {
+                CrystalToast.fire({ icon: 'success', title: 'Borrador de Liquidación Guardado' });
+            } else {
+                CrystalToast.fire({ icon: 'error', title: res.msg || 'Error al guardar' });
+            }
+        } catch(err) {
+            CrystalToast.fire({ icon: 'error', title: 'Falla de red' });
+        }
+    }
+
+    async function inyectarCirugiaACaja() {
+        const idCir = $('#liq_id_cirugia').val();
+        if (!idCir) return;
+
+        const total = calcularTotalLiquidacion();
+        const confirmacion = await Swal.fire({
+            title: '¿Enviar Liquidación a Caja?',
+            html: `Se generará un cargo oficial en el Estado de Cuenta del paciente por <strong class="text-success">$${total.toFixed(2)}</strong> para ser cobrado en ventanilla de caja.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, Inyectar a Caja',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#198754'
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
+        try {
+            const insumos = recolectarInsumos();
+            const f = new FormData(document.getElementById('formLiquidacionCaja'));
+            f.append('action', 'save_financial_closure');
+            f.append('insumos_json', JSON.stringify(insumos));
+            f.append('total_calculado', total);
+            f.append('enviar_a_caja', '1');
+            const searchParams = new URLSearchParams(f);
+
+            const req = await fetch('../api/quirofano_crud.pl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: searchParams
+            });
+            const res = await req.json();
+            if (res.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Cargo Inyectado a Caja!',
+                    text: `Registrado en Estado de Cuenta con Folio #${res.id_movimiento_caja}. El personal de caja ya puede procesar el cobro.`,
+                    timer: 3000
+                });
+                $('#box_estado_caja').html(`<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Inyectado a Caja (${res.id_movimiento_caja})</span>`);
+                $('#btn_enviar_caja').prop('disabled', true).addClass('opacity-50').html('<i class="bi bi-check2-all me-1"></i> Ya en Caja');
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: res.msg || 'No se pudo inyectar a caja' });
+            }
+        } catch(err) {
+            Swal.fire({ icon: 'error', title: 'Error de red', text: 'No se pudo comunicar con el servidor' });
+        }
     }
 
     async function verConsentimientoQuirurgico(idPaciente, idConsentimiento) {
