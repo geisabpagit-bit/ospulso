@@ -247,10 +247,26 @@ HTML
     }
 
     # --- GOBERNANZA SAAS: CAPACIDAD HOSPITALIZACIÓN ---
-    # Si en las capacidades del SaaS "Hospitalización" de la organización no está activa,
-    # en el menú principal izquierdo no debe aparecer la opción "Tablero Quirófano"
+    # REGLA: Si en las capacidades del SaaS "Hospitalización" no está activa
+    # o si la organización carece de quirófanos (quirofanos == 0), no debe mostrarse en el menú
     my $has_hospitalizacion = 0;
     my $found_hospitalizacion = 0;
+    my $total_quirofanos_org = 0;
+
+    # Identificar sucursales de esta organización
+    my %org_ids_map = ($id_empresa => 1);
+    my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
+    if (-e $negocios_file && open(my $fn_map, '<:utf8', $negocios_file)) {
+        while (my $ln = <$fn_map>) {
+            chomp($ln);
+            my @f = split(/\|/, $ln, -1);
+            if (scalar(@f) >= 3 && ($f[2] eq $id_empresa || $f[0] eq $id_empresa)) {
+                $org_ids_map{$f[0]} = 1;
+            }
+        }
+        close($fn_map);
+    }
+
     $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
     if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
         while (my $line = <$cf>) {
@@ -260,14 +276,17 @@ HTML
             if ($biz_id eq $id_empresa && $key eq 'MANEJA_HOSPITALIZACION') {
                 $has_hospitalizacion = ($val eq '1') ? 1 : 0;
                 $found_hospitalizacion = 1;
-                last;
+            }
+            if ($org_ids_map{$biz_id} && $key eq 'QUIROFANOS') {
+                my $q_num = int($val // 0);
+                $total_quirofanos_org += $q_num if $q_num > 0;
             }
         }
         close($cf);
     }
+
     # Fallback para organización matriz (0 o vacía) sin configuración explícita previa pero con CLUE
     if (!$found_hospitalizacion && ($id_empresa eq '0' || $id_empresa eq '')) {
-        my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
         if (-e $negocios_file && open(my $fn, '<:raw', $negocios_file)) {
             while(my $ln = <$fn>) {
                 chomp($ln);
@@ -280,6 +299,7 @@ HTML
                 $c_val =~ s/^\s+|\s+$//g;
                 if ($row_id eq '0' && length($c_val)) {
                     $has_hospitalizacion = 1;
+                    $total_quirofanos_org = 1 if $total_quirofanos_org <= 0;
                     last;
                 }
             }
@@ -287,7 +307,8 @@ HTML
         }
     }
 
-    if (!$has_hospitalizacion) {
+    # Si la organización carece de quirófanos o no maneja hospitalización, no mostrar en el menú
+    if (!$has_hospitalizacion || $total_quirofanos_org <= 0) {
         $is_allowed{quirofano} = 0;
     }
 

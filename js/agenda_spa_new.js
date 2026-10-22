@@ -2183,8 +2183,21 @@ function abrirModalCita(id, isReadonly) {
     if(a.color) $("#f_color").val(a.color); else $("#f_color").val('#3b82f6');
     if(a.extendedProps.prioridad) $("#f_prioridad").val(a.extendedProps.prioridad); else $("#f_prioridad").val('Normal');
     if(a.extendedProps.id_medico) $("#f_medico_select").val(a.extendedProps.id_medico);
+
+    // Recuperar Motivo de la Cita
+    const motivoCita = a.extendedProps.motivo || '';
+    $("#f_motivo").val(motivoCita);
+
+    // Recuperar Sucursal y Lugar / Consultorio
+    const sucursalCita = a.extendedProps.sucursal || $("#f_sucursal").val() || '';
+    const consultorioCita = a.extendedProps.consultorio || '';
     if(a.extendedProps.sucursal) $("#f_sucursal").val(a.extendedProps.sucursal);
-    if(a.extendedProps.consultorio) $("#f_consultorio").val(a.extendedProps.consultorio);
+
+    if (typeof window.cargarRecursos === 'function') {
+        window.cargarRecursos(sucursalCita, consultorioCita);
+    } else {
+        if(consultorioCita) $("#f_consultorio").val(consultorioCita);
+    }
     
     // Bloqueo de Paciente en modo Edición
     $("#f_paciente").val(a.title).prop('readonly', true).addClass('bg-light');

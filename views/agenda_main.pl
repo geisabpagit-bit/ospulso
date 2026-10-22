@@ -622,45 +622,51 @@ print <<'JS';
             var fConsultorio = document.getElementById('f_consultorio');
             var esIndividual = document.getElementById('agenda_es_individual') && document.getElementById('agenda_es_individual').value === '1';
             
-            window.cargarRecursos = function(idSucursal) {
+            window.cargarRecursos = function(idSucursal, consultorioSeleccionado) {
                 if (!fConsultorio) return;
 
                 if (esIndividual) {
-                    fConsultorio.innerHTML = '<optgroup label="Consultorio"><option value="Consultorio 1" selected>Consultorio 1</option></optgroup><optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
+                    fConsultorio.innerHTML = '<optgroup label="Consultorio"><option value="Consultorio 1">Consultorio 1</option></optgroup><optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
+                    if (consultorioSeleccionado) fConsultorio.value = consultorioSeleccionado;
                     return;
                 }
 
-                fConsultorio.innerHTML = '<option value="">Cargando...</option>';
+                fConsultorio.innerHTML = '<option value="">Cargando recursos...</option>';
                 
                 fetch('../api/citas_crud.pl?accion=get_recursos&id_sucursal=' + (idSucursal || ''))
                     .then(r => r.json())
                     .then(data => {
                         if (data.ok) {
                             if (data.tipo_org === 'Consultorio Individual' || (data.consultorios === 1 && (!data.quirofanos || data.quirofanos === 0))) {
-                                fConsultorio.innerHTML = '<optgroup label="Consultorio"><option value="Consultorio 1" selected>Consultorio 1</option></optgroup><optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
-                                return;
-                            }
-                            let html = '<optgroup label="Consultorios">';
-                            for (let i = 1; i <= data.consultorios; i++) {
-                                html += `<option value="Consultorio ${i}">Consultorio ${i}</option>`;
-                            }
-                            html += '</optgroup>';
-                            
-                            if (data.quirofanos > 0) {
-                                html += '<optgroup label="Quirófanos">';
-                                for (let i = 1; i <= data.quirofanos; i++) {
-                                    html += `<option value="Quirófano ${i}">Quirófano ${i}</option>`;
+                                fConsultorio.innerHTML = '<optgroup label="Consultorio"><option value="Consultorio 1">Consultorio 1</option></optgroup><optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
+                            } else {
+                                let html = '<optgroup label="Consultorios">';
+                                for (let i = 1; i <= data.consultorios; i++) {
+                                    html += `<option value="Consultorio ${i}">Consultorio ${i}</option>`;
                                 }
                                 html += '</optgroup>';
+                                
+                                if (data.quirofanos > 0) {
+                                    html += '<optgroup label="Quirófanos">';
+                                    for (let i = 1; i <= data.quirofanos; i++) {
+                                        html += `<option value="Quirófano ${i}">Quirófano ${i}</option>`;
+                                    }
+                                    html += '</optgroup>';
+                                }
+                                
+                                html += '<optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
+                                fConsultorio.innerHTML = html;
                             }
-                            
-                            html += '<optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
-                            fConsultorio.innerHTML = html;
+
+                            if (consultorioSeleccionado) {
+                                fConsultorio.value = consultorioSeleccionado;
+                            }
                         }
                     })
                     .catch(e => {
                         console.error("Error cargando recursos", e);
                         fConsultorio.innerHTML = '<option value="Consultorio 1">Consultorio 1</option><option value="Virtual">Virtual</option>';
+                        if (consultorioSeleccionado) fConsultorio.value = consultorioSeleccionado;
                     });
             };
 
@@ -681,18 +687,21 @@ print <<'JS';
                 });
             }
             
-            // Cargar inicial cuando el modal se abre para asegurar que toma el ID correcto
+            // Cargar inicial solo si es creación nueva de cita
             let modalEl = document.getElementById('modalCita');
             if (modalEl) {
                 modalEl.addEventListener('show.bs.modal', function () {
-                    if (esIndividual) {
-                        window.cargarRecursos('');
-                    } else {
-                        setTimeout(() => {
-                            if (fSucursal && fSucursal.value) {
-                                window.cargarRecursos(fSucursal.value);
-                            }
-                        }, 200);
+                    const accionActual = document.getElementById('f_accion') ? document.getElementById('f_accion').value : 'create';
+                    if (accionActual === 'create') {
+                        if (esIndividual) {
+                            window.cargarRecursos('');
+                        } else {
+                            setTimeout(() => {
+                                if (fSucursal && fSucursal.value) {
+                                    window.cargarRecursos(fSucursal.value);
+                                }
+                            }, 150);
+                        }
                     }
                 });
             }

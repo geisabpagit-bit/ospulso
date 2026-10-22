@@ -98,7 +98,7 @@ if ($action eq 'create') {
         open(my $fh_cfg, '>>:utf8', $archivo_config) or die "config: $!";
         flock($fh_cfg, 2);
         print $fh_cfg "$id_sucursal|CONSULTORIOS|$consultorios\n";
-        print $fh_cfg "$id_sucursal|QUIROFANOS|$quirofanos\n" if $quirofanos && $quirofanos ne '0';
+        print $fh_cfg "$id_sucursal|QUIROFANOS|$quirofanos\n";
         close($fh_cfg);
     };
 
@@ -180,7 +180,7 @@ elsif ($action eq 'update') {
             }
         }
         push @nuevos_config, "$id_sucursal|CONSULTORIOS|$consultorios";
-        push @nuevos_config, "$id_sucursal|QUIROFANOS|$quirofanos" if $quirofanos && $quirofanos ne '0';
+        push @nuevos_config, "$id_sucursal|QUIROFANOS|$quirofanos";
         
         actualizar_archivo($archivo_config, "ID_NEGOCIO|KEY|VALUE", \@nuevos_config);
     };

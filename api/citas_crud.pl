@@ -246,6 +246,7 @@ sub crear_cita {
     };
     
     guardar_citas($arr);
+    sincronizar_cita_con_quirofano($arr->[-1], 0);
 
     # Enviar correo de confirmación de cita al paciente
     my $correo_paciente = obtener_correo_paciente($pac_id);
@@ -381,11 +382,15 @@ sub actualizar_cita {
             $c->{sucursal} = $query->param('sucursal') // $c->{sucursal};
             $c->{consultorio} = $query->param('consultorio') // $c->{consultorio};
             $c->{event_id} = $gid if $gid;
-            $found = 1; last;
+            $found = $c; last;
         }
     }
     
-    if ($found) { guardar_citas($arr); responder_json(1, "Cita actualizada."); }
+    if ($found) {
+        guardar_citas($arr);
+        sincronizar_cita_con_quirofano($found, 0);
+        responder_json(1, "Cita actualizada.");
+    }
     else { responder_json(0, "No se encontró el registro."); }
 }
 
@@ -408,6 +413,7 @@ sub eliminar_cita {
     if ($eliminado) {
         if ($eliminado->{event_id}) { google_delete_event($eliminado->{id_medico}, $eliminado->{event_id}); }
         guardar_citas(\@filtrados);
+        sincronizar_cita_con_quirofano($eliminado, 1);
         responder_json(1, "Registro eliminado correctamente.");
     } else { responder_json(0, "Error: Cita no localizada."); }
 }
@@ -962,7 +968,7 @@ sub obtener_recursos_sucursal {
             next if $cnt == 1 || $line =~ /^\s*$/;
             my @f = split(/\|/, $line);
             next unless scalar(@f) >= 3;
-            if ($f[0] eq $id_sucursal) {
+            if ($f[0] eq $id_sucursal || ($id_sucursal eq '' && $f[0] eq $my_org)) {
                 if ($f[1] eq 'CONSULTORIOS') { $consultorios = $f[2] + 0; }
                 if ($f[1] eq 'QUIROFANOS') { $quirofanos = $f[2] + 0; }
             }
@@ -970,11 +976,114 @@ sub obtener_recursos_sucursal {
         close $fh;
     }
     
+    # Fallback: si la sucursal o matriz reporta 0 quirófanos, verificar si alguna sucursal o la matriz tiene quirófanos
+    if ($quirofanos <= 0) {
+        my %org_ids_check = ($my_org => 1);
+        my $file_neg = "$dirname/../dat/negocios.dat";
+        if (-e $file_neg && open my $fhn, '<:encoding(UTF-8)', $file_neg) {
+            while (my $nl = <$fhn>) {
+                $nl =~ s/\R//g;
+                my @nf = split(/\|/, $nl);
+                if (scalar(@nf) >= 3 && ($nf[2] eq $my_org || $nf[0] eq $my_org)) {
+                    $org_ids_check{$nf[0]} = 1;
+                }
+            }
+            close $fhn;
+        }
+        if (-e $file_cfg && open my $fhc2, '<:encoding(UTF-8)', $file_cfg) {
+            while (my $line = <$fhc2>) {
+                $line =~ s/\R//g;
+                my @f = split(/\|/, $line);
+                if (scalar(@f) >= 3 && $org_ids_check{$f[0]} && $f[1] eq 'QUIROFANOS') {
+                    my $qn = $f[2] + 0;
+                    $quirofanos = $qn if $qn > $quirofanos;
+                }
+            }
+            close $fhc2;
+        }
+    }
+
     $consultorios = 1 if $consultorios < 1;
     $quirofanos   = 0 if $quirofanos < 0;
 
     print $q->header(-type => 'application/json', -charset => 'utf-8');
     print encode_json({ ok => 1, consultorios => $consultorios, quirofanos => $quirofanos, tipo_org => $tipo_org });
+}
+
+sub sincronizar_cita_con_quirofano {
+    my ($cita, $es_eliminar) = @_;
+    return unless $cita;
+    
+    my $file_qx = "$dirname/../dat/quirofano.dat";
+    my $header_qx = "ID_CIRUGIA|ID_ORG|ID_PACIENTE|ID_MEDICO|FECHA_PROGRAMADA|HORA_PROGRAMADA|ESTADO|SALA_QUIROFANO|PROCEDIMIENTO|ID_ANESTESIOLOGO|NOTAS";
+    
+    my @lineas_qx;
+    if (-e $file_qx && open(my $fh_r, '<:encoding(UTF-8)', $file_qx)) {
+        while (my $line = <$fh_r>) {
+            chomp $line; $line =~ s/\r//g;
+            next if $line =~ /^\s*$/;
+            push @lineas_qx, $line;
+        }
+        close $fh_r;
+    }
+    
+    my $id_c = $cita->{id_cita};
+    my $consultorio = $cita->{consultorio} // '';
+    my $es_quirofano = ($consultorio =~ /Quir[oó]fano/i) ? 1 : 0;
+    
+    my @nuevas_lineas;
+    my $header_presente = 0;
+    foreach my $l (@lineas_qx) {
+        if ($l =~ /^ID_CIRUGIA\|/) {
+            push @nuevas_lineas, $header_qx;
+            $header_presente = 1;
+            next;
+        }
+        my @f = split(/\|/, $l, -1);
+        # Si coincide con el ID de la cita, omitir para actualizar o eliminar
+        if ($f[0] eq $id_c) {
+            next;
+        }
+        push @nuevas_lineas, $l;
+    }
+    unshift @nuevas_lineas, $header_qx unless $header_presente;
+    
+    # Si es quirófano y no es eliminación ni cancelación
+    my $estado_cita = $cita->{estado} // 'Programada';
+    if ($es_quirofano && !$es_eliminar && $estado_cita !~ /^(Cancelada|No realizada)$/i) {
+        my $estado_qx = 'Programada';
+        if ($estado_cita =~ /^(En consulta|Consulta en proceso)$/i) {
+            $estado_qx = 'En Quirófano';
+        } elsif ($estado_cita =~ /^Atendida$/i) {
+            $estado_qx = 'Alta';
+        } elsif ($estado_cita =~ /^En Sala de Espera$/i) {
+            $estado_qx = 'Pre-Operatorio';
+        }
+        
+        my $id_org = $cita->{id_negocio} || $session_data->{id_empresa} || '0';
+        my $nueva_linea = join('|',
+            $id_c,
+            $id_org,
+            $cita->{id_paciente} // '',
+            $cita->{id_medico} // '',
+            $cita->{fecha} // '',
+            $cita->{hora_ini} // '',
+            $estado_qx,
+            $consultorio,
+            $cita->{motivo} // '',
+            '', # id_anestesiologo
+            "Agendada desde Agenda Central (" . ($cita->{prioridad} // 'Normal') . ")"
+        );
+        push @nuevas_lineas, $nueva_linea;
+    }
+    
+    if (open(my $fh_w, '>:encoding(UTF-8)', $file_qx)) {
+        flock($fh_w, LOCK_EX);
+        foreach my $nl (@nuevas_lineas) {
+            print $fh_w "$nl\n";
+        }
+        close $fh_w;
+    }
 }
 
 sub cobrar_recepcion {

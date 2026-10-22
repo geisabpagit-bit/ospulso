@@ -170,8 +170,20 @@ HTML
 if ($maneja_hospitalizacion eq '1') {
     print <<HTML;
                             <div class="col-12 col-md-6">
-                                <label class="form-label small fw-bold text-muted">Quirófanos <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control form-control-sm shadow-sm" id="form_quirofanos" name="quirofanos" required min="1" max="10" value="1" placeholder="Ej: 2">
+                                <label class="form-label small fw-bold text-muted"><i class="bi bi-heart-pulse-fill text-danger me-1"></i>Cantidad de Quirófanos <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-sm shadow-sm fw-bold" id="form_quirofanos" name="quirofanos" required>
+                                    <option value="0">0 Quirófanos (Sin quirófano)</option>
+                                    <option value="1">1 Quirófano</option>
+                                    <option value="2">2 Quirófanos</option>
+                                    <option value="3">3 Quirófanos</option>
+                                    <option value="4">4 Quirófanos</option>
+                                    <option value="5">5 Quirófanos</option>
+                                    <option value="6">6 Quirófanos</option>
+                                    <option value="7">7 Quirófanos</option>
+                                    <option value="8">8 Quirófanos</option>
+                                    <option value="9">9 Quirófanos</option>
+                                    <option value="10">10 Quirófanos</option>
+                                </select>
                             </div>
 HTML
 }
@@ -355,7 +367,7 @@ print <<HTML;
     // BUSCADOR SEPOMEX POR CP
     window.buscarDomicilioPorCP = function(cp) {
         if (!cp) return;
-        const cpClean = cp.replace(/\D/g, '');
+        const cpClean = cp.replace(/[^0-9]/g, '');
         const statusEl = document.getElementById('cpStatus');
         const selectColonia = document.getElementById('form_colonia');
         const inputEntidad = document.getElementById('form_entidad');

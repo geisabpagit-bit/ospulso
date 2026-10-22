@@ -1,7 +1,7 @@
 # 📋 Guion Maestro de Pruebas: Agenda Central y Quirófano Kanban
 
 > **Ubicación Canónica**: `docs/04_standards_and_ops/guion_pruebas_agenda_quirofano.md`  
-> **Versión**: `1.0.0` (Actualizado: 2026-10-21)  
+> **Versión**: `1.1.0` (Actualizado: 2026-10-21)  
 > **Estado**: Activo / Reutilizable  
 > **Área**: Agenda Médica, Quirófano, Expedientes y Multitenancy  
 
@@ -20,6 +20,9 @@
    - [Caso 5: Convivencia de Roles Duales (Médico Clínico vs Cirujano)](#caso-5-convivencia-de-roles-duales-médico-clínico-vs-cirujano)
    - [Caso 6: Renderizado y Persistencia de Visitas Existentes en Agenda Central](#caso-6-renderizado-y-persistencia-de-visitas-existentes-en-agenda-central)
    - [Caso 7: Navegación por Fechas y Filtros en Tablero Quirófano Kanban](#caso-7-navegación-por-fechas-y-filtros-en-tablero-quirófano-kanban)
+   - [Caso 8: Edición de Citas y Recuperación de Motivo y Lugar / Consultorio](#caso-8-edición-de-citas-y-recuperación-de-motivo-y-lugar--consultorio)
+   - [Caso 9: Sincronización Automática de Citas en Quirófano con el Tablero Kanban](#caso-9-sincronización-automática-de-citas-en-quirófano-con-el-tablero-kanban)
+   - [Caso 10: Configuración de Quirófanos de la Organización y Visibilidad en Menú Lateral](#caso-10-configuración-de-quirófanos-de-la-organización-y-visibilidad-en-menú-lateral)
 5. [Protocolo de Actualización Obligatoria](#5-protocolo-de-actualización-obligatoria)
 6. [Criterios de Aceptación (Definición de Terminado)](#6-criterios-de-aceptación-definición-de-terminado)
 
@@ -210,6 +213,9 @@ graph TD
   6. **Estado Vacío Amigable**:
      - Navegar a una fecha en la que no existan cirugías programadas.
      - Verificar que las columnas vacías muestran el indicador sutil `Sin cirugías` sin desbordar ni colapsar el diseño.
+  6. **Estado Vacío Amigable**:
+     - Navegar a una fecha en la que no existan cirugías programadas.
+     - Verificar que las columnas vacías muestran el indicador sutil `Sin cirugías` sin desbordar ni colapsar el diseño.
   7. **Arrastrar y Soltar (Drag & Drop)**:
      - Mover una tarjeta entre columnas (ej. de `Programada` a `Pre-Operatorio` o `En Quirófano`).
      - Verificar que el estado se actualiza en el backend y el contador numérico de ambas columnas se refresca.
@@ -219,11 +225,80 @@ graph TD
 
 ---
 
+### Caso 8: Edición de Citas y Recuperación de Motivo y Lugar / Consultorio
+
+* **Objetivo**: Asegurar que al abrir el modal para editar una cita existente en la Agenda Central, los campos **Motivo / Observaciones** (`#f_motivo`) y **Lugar / Consultorio** (`#f_consultorio`) se recuperen e hidraten fielmente sin perderse por llamadas asíncronas secundarias.
+* **Componentes Involucrados**:
+  - [views/agenda_main.pl](file:///c:/xampp/htdocs/ospulso/views/agenda_main.pl)
+  - [js/agenda_spa_new.js](file:///c:/xampp/htdocs/ospulso/js/agenda_spa_new.js)
+  - [api/citas_crud.pl](file:///c:/xampp/htdocs/ospulso/api/citas_crud.pl)
+* **Pasos de Ejecución**:
+  1. Ingresar a `views/agenda_main.pl` con la cuenta de la organización.
+  2. Localizar una cita existente en la vista diaria, semanal o mensual y hacer clic para editarla.
+  3. Comprobar que el modal se abre en modo edición (`f_accion = update`).
+  4. Revisar el valor mostrado en el input `#f_motivo`.
+  5. Revisar el valor preseleccionado en el desplegable `#f_consultorio` (ej. `Consultorio 1`, `Quirófano 1`, `Virtual`).
+  6. Cambiar el motivo o lugar y hacer clic en **Guardar Cita**.
+  7. Volver a abrir la misma cita para verificar persistencia.
+* **Resultado Esperado**:
+  - El motivo original de la cita aparece intacto en el campo de texto.
+  - El lugar/consultorio original se mantiene seleccionado automáticamente una vez cargados los recursos de la sucursal, sin resetearse al primer valor.
+
+---
+
+### Caso 9: Sincronización Automática de Citas en Quirófano con el Tablero Kanban
+
+* **Objetivo**: Verificar que al agendar o actualizar una cita en la Agenda Central asignándole un recurso quirúrgico (`Quirófano 1`, `Quirófano 2`), el registro se sincronice automáticamente en `dat/quirofano.dat` y se renderice en el Tablero Kanban de Quirófano.
+* **Componentes Involucrados**:
+  - [views/agenda_main.pl](file:///c:/xampp/htdocs/ospulso/views/agenda_main.pl)
+  - [api/citas_crud.pl](file:///c:/xampp/htdocs/ospulso/api/citas_crud.pl)
+  - [views/quirofano_kanban.pl](file:///c:/xampp/htdocs/ospulso/views/quirofano_kanban.pl)
+  - [dat/quirofano.dat](file:///c:/xampp/htdocs/ospulso/dat/quirofano.dat)
+* **Pasos de Ejecución**:
+  1. En `views/agenda_main.pl`, abrir el modal para agendar una nueva cita para hoy a las 11:00.
+  2. Seleccionar un paciente, médico cirujano, motivo (ej. `Hernioplastia umbilical`) y en **Lugar / Consultorio** elegir `Quirófano 1`.
+  3. Guardar la cita.
+  4. Abrir en otra pestaña `views/quirofano_kanban.pl` para el día de hoy.
+  5. Verificar la presencia de la tarjeta quirúrgica en la columna **Programada**.
+  6. En la Agenda Central, cambiar el horario o motivo de la cita y verificar que el Kanban refleja la modificación.
+  7. Cancelar o eliminar la cita en la Agenda y verificar que desaparece de `quirofano_kanban.pl`.
+* **Resultado Esperado**:
+  - Toda cita con recurso "Quirófano" alimenta directamente `dat/quirofano.dat` sin intervención manual ni duplicidad de agendamiento.
+  - El Tablero Kanban renderiza la tarjeta con el paciente, médico, procedimiento, hora y sala correctos.
+
+---
+
+### Caso 10: Configuración de Quirófanos de la Organización y Visibilidad en Menú Lateral
+
+* **Objetivo**: Validar que la cantidad de quirófanos de la organización se configure mediante un selector formal en Gestión de Sucursales (`views/manage_clinicas.pl`) y que, como regla mandatoria, si una organización carece de quirófanos (0 quirófanos), la opción "Tablero Quirófano" se oculte automáticamente del menú lateral izquierdo.
+* **Componentes Involucrados**:
+  - [views/manage_clinicas.pl](file:///c:/xampp/htdocs/ospulso/views/manage_clinicas.pl)
+  - [api/crud_sucursales_api.pl](file:///c:/xampp/htdocs/ospulso/api/crud_sucursales_api.pl)
+  - [utils/sub_sidebar.pl](file:///c:/xampp/htdocs/ospulso/utils/sub_sidebar.pl)
+  - [dat/negocios_config.dat](file:///c:/xampp/htdocs/ospulso/dat/negocios_config.dat)
+* **Pasos de Ejecución**:
+  1. Iniciar sesión como Administrador de Organización y navegar a `views/manage_clinicas.pl`.
+  2. Abrir el formulario para registrar o editar una sucursal.
+  3. Comprobar que el campo de quirófanos es un selector desplegable con opciones de `0` a `10` quirófanos.
+  4. **Prueba de Ocultamiento (0 Quirófanos)**:
+     - Configurar la sucursal en `0 Quirófanos (Sin quirófano)` y guardar.
+     - Recargar la página e inspeccionar el menú lateral izquierdo (`utils/sub_sidebar.pl`).
+     - Confirmar que el enlace **Tablero Quirófano** **NO** aparece en el menú lateral.
+  5. **Prueba de Habilitación (1+ Quirófanos)**:
+     - Modificar la sucursal asignándole `2 Quirófanos` y guardar.
+     - Recargar la página e inspeccionar el menú lateral.
+     - Confirmar que el enlace **Tablero Quirófano** aparece activo y accesible.
+* **Resultado Esperado**:
+  - El selector permite definir con exactitud la capacidad quirúrgica de la clínica.
+  - La regla de negocio del menú lateral respeta estrictamente la existencia de quirófanos (`QUIROFANOS > 0`).
+
+---
+
 ## 5. Protocolo de Actualización Obligatoria
 
 Cada vez que un desarrollador o agente realice una modificación a la Agenda, Expedientes o Quirófano:
 1. **Identificar el Alcance**: ¿Afecta datos (`dat/`), backend (`api/`), vistas (`views/`) o scripts de cliente (`js/`)?
-2. **Revisar Casos Afectados**: Consultar los Casos 1 al 7 y verificar si la nueva funcionalidad requiere modificar los pasos o añadir un Caso 8+.
+2. **Revisar Casos Afectados**: Consultar los Casos 1 al 10 y verificar si la nueva funcionalidad requiere modificar los pasos o añadir un Caso 11+.
 3. **Actualizar el Documento**: Registrar los cambios directamente en este archivo respetando la estructura jerárquica y el índice de contenidos.
 4. **Verificación de Sintaxis y Ejecución**: Ejecutar validaciones automáticas (`perl -cw`, pruebas de API).
 5. **Sincronización Git**: Confirmar los cambios junto con el código (`git add .`, `git commit`, `git push origin main`).
@@ -236,5 +311,9 @@ Cada vez que un desarrollador o agente realice una modificación a la Agenda, Ex
 - [x] Selectores de médicos estrictamente aislados por organización (`id_empresa`).
 - [x] Opción "Abierto" (`value="0"`) funcional y seleccionada por defecto en inscripción.
 - [x] Barra de navegación y filtros en Quirófano Kanban completamente operativa con soporte móvil y escritorio.
+- [x] Recuperación fidedigna de Motivo y Lugar / Consultorio al editar citas en Agenda Central.
+- [x] Sincronización automática de citas con opción Quirófano hacia `dat/quirofano.dat` para renderizado en Kanban.
+- [x] Selector de cantidad de quirófanos (0 a 10) en Gestión de Sucursales (`manage_clinicas.pl`).
+- [x] Regla de menú lateral: si la organización carece de quirófanos (0), no se muestra "Tablero Quirófano" en `sub_sidebar.pl`.
 - [x] Ausencia de llamados a `utils/sub_footer.pl` en los archivos refactorizados.
 - [x] Documentación registrada en la Capa 4 (`docs/04_standards_and_ops/`) y enlazada en `docs/README.md`.
