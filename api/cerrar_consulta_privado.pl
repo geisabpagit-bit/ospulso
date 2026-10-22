@@ -205,6 +205,7 @@ if ($requiere_consentimiento eq '1') {
 
     my @cons_lineas = ();
     my $cons_encontrado = 0;
+    my $id_cons_final = $id_consentimiento_ref;
     if (-e $cons_file && open my $fhc, '<:encoding(UTF-8)', $cons_file) {
         my $h = <$fhc>;
         $cons_cabecera = $h ? $h : "$cons_cabecera\n";
@@ -214,6 +215,7 @@ if ($requiere_consentimiento eq '1') {
             next if $lc =~ /^\s*$/;
             my @cr = split /\|/, $lc, -1;
             if ($cr[1] eq $id_consulta) {
+                $id_cons_final = $cr[0];
                 $linea_cons = join('|', $cr[0], $id_consulta, $id_paciente, $id_medico, $hoy_fecha, $proc_consentimiento, $consentimiento_json);
                 push @cons_lineas, $linea_cons;
                 $cons_encontrado = 1;
@@ -225,6 +227,47 @@ if ($requiere_consentimiento eq '1') {
     }
     push @cons_lineas, $linea_cons unless $cons_encontrado;
     utils::db_manager::actualizar_archivo($cons_file, $cons_cabecera, \@cons_lineas);
+
+    # Sincronización en Repositorio Atómico dat/consentimientos/paciente_<id>.json
+    my $dir_cons_atom = File::Spec->catdir($FindBin::Bin, '..', 'dat', 'consentimientos');
+    mkdir $dir_cons_atom unless -d $dir_cons_atom;
+    my $file_cons_atom = File::Spec->catfile($dir_cons_atom, "paciente_${id_paciente}.json");
+
+    my @items_cons_atom = ();
+    if (-e $file_cons_atom && open(my $fh_ja, '<:encoding(UTF-8)', $file_cons_atom)) {
+        local $/;
+        my $c_raw = <$fh_ja>;
+        close($fh_ja);
+        my $d_parsed = eval { decode_json($c_raw) };
+        if ($d_parsed && ref($d_parsed->{consentimientos}) eq 'ARRAY') {
+            @items_cons_atom = grep { $_->{id_consulta} ne $id_consulta } @{ $d_parsed->{consentimientos} };
+        }
+    }
+    unshift @items_cons_atom, {
+        id_consentimiento => $id_cons_final,
+        id_consulta       => $id_consulta,
+        id_paciente       => $id_paciente,
+        id_medico         => $id_medico,
+        tipo              => 'CONSULTA_PROCEDIMIENTO',
+        fecha             => $hoy_fecha,
+        hora              => sprintf("%02d:%02d", $hour, $min),
+        procedimiento     => $proc_consentimiento,
+        objetivo          => $payload{procedimiento_objetivo} || '',
+        beneficios        => $payload{procedimiento_beneficios} || '',
+        riesgos           => $payload{procedimiento_riesgos} || '',
+        alternativas      => $payload{procedimiento_alternativas} || '',
+        firmas            => {
+            paciente => $payload{firma_paciente_data} || '',
+            medico   => $payload{firma_medico_data} || ''
+        },
+        estado            => 'Firmado'
+    };
+    if (open(my $fh_ja_w, '>:encoding(UTF-8)', $file_cons_atom)) {
+        flock($fh_ja_w, LOCK_EX);
+        print $fh_ja_w encode_json({ id_paciente => $id_paciente, actualizado => time(), consentimientos => \@items_cons_atom });
+        flock($fh_ja_w, LOCK_UN);
+        close($fh_ja_w);
+    }
 } else {
     # NO requiere consentimiento: purga preventiva absoluta para evitar fugas de otras consultas
     $payload{requiere_consentimiento} = '0';
@@ -259,6 +302,26 @@ if ($requiere_consentimiento eq '1') {
         close $fhc;
         if ($hubo_purga_cons) {
             utils::db_manager::actualizar_archivo($cons_file, $cons_cabecera, \@cons_lineas);
+        }
+    }
+
+    # Purgar también en repositorio atómico JSON si existía
+    my $file_cons_atom = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consentimientos', "paciente_${id_paciente}.json");
+    if (-e $file_cons_atom && open(my $fh_ja, '<:encoding(UTF-8)', $file_cons_atom)) {
+        local $/;
+        my $c_raw = <$fh_ja>;
+        close($fh_ja);
+        my $d_parsed = eval { decode_json($c_raw) };
+        if ($d_parsed && ref($d_parsed->{consentimientos}) eq 'ARRAY') {
+            my @items_filtrados = grep { $_->{id_consulta} ne $id_consulta } @{ $d_parsed->{consentimientos} };
+            if (scalar(@items_filtrados) != scalar(@{ $d_parsed->{consentimientos} })) {
+                if (open(my $fh_ja_w, '>:encoding(UTF-8)', $file_cons_atom)) {
+                    flock($fh_ja_w, LOCK_EX);
+                    print $fh_ja_w encode_json({ id_paciente => $id_paciente, actualizado => time(), consentimientos => \@items_filtrados });
+                    flock($fh_ja_w, LOCK_UN);
+                    close($fh_ja_w);
+                }
+            }
         }
     }
 }

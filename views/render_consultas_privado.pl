@@ -805,15 +805,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (fInp) fInp.value = '';
             if (typeof renderRecetaItems === 'function') renderRecetaItems();
         }
-        if (draftData.requiere_consentimiento === '1' || draftData.requiere_consentimiento === 1) {
+        if (draftData.requiere_consentimiento === '1' || draftData.requiere_consentimiento === 1 || draftData.requiere_consentimiento_registro === '1') {
             const chkC = document.getElementById('check_requiere_consentimiento');
-            if (chkC) {
-                chkC.checked = true;
-                if (typeof toggleSeccionConsentimiento === 'function') toggleSeccionConsentimiento(true);
-            }
+            const chkR = document.getElementById('check_requiere_consentimiento_registro');
+            if (chkC) chkC.checked = true;
+            if (chkR) chkR.checked = true;
+            if (typeof toggleSeccionConsentimiento === 'function') toggleSeccionConsentimiento(true);
         } else {
             const chkC = document.getElementById('check_requiere_consentimiento');
+            const chkR = document.getElementById('check_requiere_consentimiento_registro');
             if (chkC) chkC.checked = false;
+            if (chkR) chkR.checked = false;
             if (typeof toggleSeccionConsentimiento === 'function') toggleSeccionConsentimiento(false);
         }
     } else {
@@ -859,7 +861,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Limpieza explícita de consentimiento informado para consultas nuevas
         const chkConsent = document.getElementById('check_requiere_consentimiento');
+        const chkConsentReg = document.getElementById('check_requiere_consentimiento_registro');
         if (chkConsent) chkConsent.checked = false;
+        if (chkConsentReg) chkConsentReg.checked = false;
         if (typeof toggleSeccionConsentimiento === 'function') toggleSeccionConsentimiento(false);
     }
     

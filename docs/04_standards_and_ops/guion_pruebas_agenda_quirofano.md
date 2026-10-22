@@ -1,7 +1,7 @@
 # 📋 Guion Maestro de Pruebas: Agenda Central y Quirófano Kanban
 
 > **Ubicación Canónica**: `docs/04_standards_and_ops/guion_pruebas_agenda_quirofano.md`  
-> **Versión**: `1.2.0` (Actualizado: 2026-10-21)  
+> **Versión**: `1.3.0` (Actualizado: 2026-10-21)  
 > **Estado**: Activo / Reutilizable  
 > **Área**: Agenda Médica, Quirófano, Expedientes y Multitenancy  
 
@@ -24,6 +24,7 @@
    - [Caso 9: Sincronización Automática de Citas en Quirófano con el Tablero Kanban](#caso-9-sincronización-automática-de-citas-en-quirófano-con-el-tablero-kanban)
    - [Caso 10: Configuración de Quirófanos de la Organización y Visibilidad en Menú Lateral](#caso-10-configuración-de-quirófanos-de-la-organización-y-visibilidad-en-menú-lateral)
    - [Caso 11: Experiencia UI/UX Premium del Tablero Kanban, Cero Scroll Horizontal y Ficha Rápida](#caso-11-experiencia-uiux-premium-del-tablero-kanban-cero-scroll-horizontal-y-ficha-rápida)
+   - [Caso 12: Gobernanza de Consentimiento en Paso 0 Registro, Inhabilitación Reactiva y Repositorio Atómico en Expediente Clínico](#caso-12-gobernanza-de-consentimiento-en-paso-0-registro-inhabilitación-reactiva-y-repositorio-atómico-en-expediente-clínico)
 5. [Protocolo de Actualización Obligatoria](#5-protocolo-de-actualización-obligatoria)
 6. [Criterios de Aceptación (Definición de Terminado)](#6-criterios-de-aceptación-definición-de-terminado)
 
@@ -335,11 +336,57 @@ graph TD
 
 ---
 
+### Caso 12: Gobernanza de Consentimiento en Paso 0 Registro, Inhabilitación Reactiva y Repositorio Atómico en Expediente Clínico
+
+* **Objetivo**: Validar que la decisión clínica sobre requerir o prescindir de consentimientos informados en el Paso 0 (Registro) desactive de forma reactiva y no intrusiva el bloque de documentación legal del Paso 5 (Acuerdos), previniendo fricción innecesaria en consultas de rutina; y comprobar que al guardarse un consentimiento informado, este se almacene en el repositorio atómico `dat/consentimientos/paciente_<id>.json` y sea accesible de manera inmediata en el expediente clínico (Pestaña 11: Consentimientos Legales) con capacidad de firma digital independiente.
+* **Componentes Involucrados**:
+  - [views/partials/consultas/step_registro_privado.pl](file:///c:/xampp/htdocs/ospulso/views/partials/consultas/step_registro_privado.pl)
+  - [views/partials/consultas/step_comunicacion.pl](file:///c:/xampp/htdocs/ospulso/views/partials/consultas/step_comunicacion.pl)
+  - [views/render_consultas_privado.pl](file:///c:/xampp/htdocs/ospulso/views/render_consultas_privado.pl)
+  - [api/consentimientos_api.pl](file:///c:/xampp/htdocs/ospulso/api/consentimientos_api.pl)
+  - [api/cerrar_consulta_privado.pl](file:///c:/xampp/htdocs/ospulso/api/cerrar_consulta_privado.pl)
+  - [views/render_expediente_clinico.pl](file:///c:/xampp/htdocs/ospulso/views/render_expediente_clinico.pl)
+  - [utils/sub_sidebar.pl](file:///c:/xampp/htdocs/ospulso/utils/sub_sidebar.pl)
+* **Pasos de Ejecución**:
+  1. **Inicio de Consulta en Wizard Clínico**:
+     - Abrir el Wizard de Consulta Privada (`views/render_consultas_privado.pl`).
+     - En el **Paso 0 (Registro de Consulta)**, localizar la tarjeta de documentación legal: *"¿Requiere Consentimientos & doc legales para esta consulta?"* (`#check_requiere_consentimiento_registro`).
+  2. **Verificación de Inhabilitación Reactiva (Flujo de Consulta de Rutina)**:
+     - Desactivar el interruptor (estado `OFF` / Desmarcado).
+     - Avanzar al **Paso 5 (Acuerdos / Comunicación)**.
+     - Constatar que la sección de firma y consentimiento informado se contrae automáticamente y despliega el aviso informativo: *"Documentación Legal Inhabilitada para esta Consulta - Has indicado en el Paso 0 que esta consulta prescinde de consentimientos legales..."*.
+     - Confirmar que el botón *"Habilitar Documentación Legal para esta Consulta"* permite reactivar el bloque si el médico cambia de opinión en pleno proceso clínico.
+  3. **Verificación de Activación y Sincronización Bidireccional**:
+     - Activar el interruptor (estado `ON`).
+     - Constatar que el contenedor `#seccion-consentimiento-container` se despliega de inmediato, mostrando el selector de tipo de consentimiento, campos de diagnóstico/procedimiento y el canvas interactivo de firma digital.
+     - Cambiar de pestaña (Paso 0 a Paso 5 y viceversa) y constatar que el estado del switch se mantiene sincronizado sin recargas de página.
+  4. **Cierre de Consulta y Persistencia Atómica**:
+     - Con el switch en `ON`, ingresar un consentimiento (ej. *"Consentimiento para Procedimiento Quirúrgico Menor"*), dibujar una firma en el canvas y presionar Guardar/Cerrar Consulta.
+     - Verificar que en el servidor se generó o actualizó el archivo atómico `dat/consentimientos/paciente_<id_paciente>.json` con la estructura canónica (`id_consentimiento`, `id_paciente`, `tipo_consentimiento`, `firma_digital`, `timestamp`).
+  5. **Inspección en Pestaña 11 del Expediente Clínico**:
+     - Abrir el Expediente Clínico del paciente (`views/render_expediente_clinico.pl?id_paciente=<id>`).
+     - En el menú lateral o barra de pestañas, hacer clic en **Pestaña 11: Consentimientos Legales** (icono `bi-file-earmark-check`).
+     - Confirmar que se despliegan:
+       - Los 4 KPIs superiores: Total Documentos, Quirúrgicos, Procedimientos y Revocados.
+       - La tabla interactiva DataTables `#tablaConsentimientosHub` listando los documentos del paciente con badges de tipo, médico responsable y botones de inspección.
+  6. **Emisión de Consentimiento Independiente desde el Expediente**:
+     - En la Pestaña 11, hacer clic en el botón *"Nuevo Consentimiento"*.
+     - Constatar que se abre el modal `#modalNuevoConsentimientoExp`.
+     - Seleccionar el tipo de consentimiento, redactar detalles, dibujar firma táctil y presionar *"Guardar Consentimiento"*.
+     - Verificar que el modal se cierra, la tabla se recarga vía AJAX (`api/consentimientos_api.pl?action=list`) y el nuevo documento aparece registrado sin necesidad de abrir una consulta SOAP.
+* **Resultado Esperado**:
+  - Cero fricción en consultas de rutina cuando no se requiere documentación legal.
+  - Sincronización reactiva e inmediata entre Paso 0 y Paso 5.
+  - Almacenamiento seguro, auditable y desacoplado en repositorio atómico JSON.
+  - Trazabilidad y gobernanza legal 100% visible desde el expediente clínico y el Hub de Consultas.
+
+---
+
 ## 5. Protocolo de Actualización Obligatoria
 
 Cada vez que un desarrollador o agente realice una modificación a la Agenda, Expedientes o Quirófano:
 1. **Identificar el Alcance**: ¿Afecta datos (`dat/`), backend (`api/`), vistas (`views/`) o scripts de cliente (`js/`)?
-2. **Revisar Casos Afectados**: Consultar los Casos 1 al 10 y verificar si la nueva funcionalidad requiere modificar los pasos o añadir un Caso 11+.
+2. **Revisar Casos Afectados**: Consultar los Casos 1 al 11 y verificar si la nueva funcionalidad requiere modificar los pasos o añadir un Caso 12+.
 3. **Actualizar el Documento**: Registrar los cambios directamente en este archivo respetando la estructura jerárquica y el índice de contenidos.
 4. **Verificación de Sintaxis y Ejecución**: Ejecutar validaciones automáticas (`perl -cw`, pruebas de API).
 5. **Sincronización Git**: Confirmar los cambios junto con el código (`git add .`, `git commit`, `git push origin main`).
@@ -356,5 +403,8 @@ Cada vez que un desarrollador o agente realice una modificación a la Agenda, Ex
 - [x] Sincronización automática de citas con opción Quirófano hacia `dat/quirofano.dat` para renderizado en Kanban.
 - [x] Selector de cantidad de quirófanos (0 a 10) en Gestión de Sucursales (`manage_clinicas.pl`).
 - [x] Regla de menú lateral: si la organización carece de quirófanos (0), no se muestra "Tablero Quirófano" en `sub_sidebar.pl`.
+- [x] Cero scroll horizontal en Tablero Quirófano Kanban en pantallas de escritorio ($\ge 1100\text{px}$) y modal de inspección rápida.
+- [x] Opción "¿Requiere Consentimientos & doc legales para esta consulta?" en Paso 0 Registro con inhabilitación reactiva en Paso 5 Acuerdos.
+- [x] Repositorio atómico de consentimientos legales `dat/consentimientos/paciente_<id>.json` e integración en Pestaña 11 del Expediente Clínico (`views/render_expediente_clinico.pl`).
 - [x] Ausencia de llamados a `utils/sub_footer.pl` en los archivos refactorizados.
 - [x] Documentación registrada en la Capa 4 (`docs/04_standards_and_ops/`) y enlazada en `docs/README.md`.

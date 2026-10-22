@@ -61,13 +61,22 @@ sub render_step_comunicacion {
                 <!-- Módulo de Consentimiento Informado Oficial NOM-004-SSA3 -->
                 <div class="col-12 mt-4">
                     <div class="card-medentia-aura border-0 bg-white p-4 rounded-4 shadow-sm">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                             <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);">
                                 <i class="bi bi-file-earmark-medical me-2 text-primary"></i>Consentimiento Informado Oficial
                             </h5>
                             <div class="form-check form-switch fs-5">
                                 <input class="form-check-input" type="checkbox" role="switch" id="check_requiere_consentimiento" name="requiere_consentimiento" value="1" onchange="toggleSeccionConsentimiento(this.checked)">
                                 <label class="form-check-label fs-6 fw-bold text-muted" for="check_requiere_consentimiento">¿Requiere Consentimiento Informado?</label>
+                            </div>
+                        </div>
+
+                        <!-- Estado Inhabilitado / Prescindible -->
+                        <div id="aviso-consentimiento-inhabilitado" class="alert alert-light border d-flex align-items-center gap-2 p-3 rounded-3 text-muted mb-0">
+                            <i class="bi bi-shield-slash fs-4 text-secondary"></i>
+                            <div>
+                                <span class="fw-bold d-block text-dark small">Documentación Legal Inhabilitada</span>
+                                <span class="small">Esta consulta fue configurada como rutinaria y prescinde de consentimiento legal. Si el plan de tratamiento amerita firma digital de consentimiento o procedimientos, active el interruptor superior o en el paso <strong>Registro</strong>.</span>
                             </div>
                         </div>
 
@@ -140,10 +149,27 @@ sub render_step_comunicacion {
             let canvasPac, ctxPac, canvasMed, ctxMed;
             let isDrawingPac = false, isDrawingMed = false;
 
+            function sincronizarConsentimientoDesdeRegistro(checked) {
+                const chk = document.getElementById('check_requiere_consentimiento');
+                if (chk) {
+                    chk.checked = checked;
+                    toggleSeccionConsentimiento(checked);
+                }
+            }
+
             function toggleSeccionConsentimiento(checked) {
                 const sec = document.getElementById('seccion-consentimiento-informado');
+                const aviso = document.getElementById('aviso-consentimiento-inhabilitado');
+                const chkReg = document.getElementById('check_requiere_consentimiento_registro');
+
+                if (chkReg && chkReg.checked !== checked) {
+                    chkReg.checked = checked;
+                }
+
                 if (sec) {
                     sec.style.display = checked ? 'block' : 'none';
+                    if (aviso) aviso.style.display = checked ? 'none' : 'flex';
+
                     if (checked) {
                         setTimeout(initCanvasFirmas, 200);
                     } else {

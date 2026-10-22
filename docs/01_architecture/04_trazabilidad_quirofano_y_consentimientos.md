@@ -72,6 +72,19 @@ Siguiendo el exitoso patrón implementado en Odontología (`dat/odontogramas/pac
 }
 ```
 
+### 3.4 Gobernanza en Wizard SOAP: Interruptor en Paso 0 Registro
+- **Regla de Oportunidad y Agilidad**: Para evitar fricción en consultas rutinarias de revisión o recetas médicas, en el Step 0 ("Registro", `step_registro_privado.pl`) se incorpora el interruptor:
+  *¿Requiere Consentimientos & Docs Legales para esta consulta?* (`#check_requiere_consentimiento_registro`).
+- **Comportamiento Reactivo**:
+  - Si el profesional selecciona **NO** (o permanece apagado por defecto):
+    - En el Step 5 ("Acuerdos", `step_comunicacion.pl`), el módulo legal se **inhabilita visualmente** y colapsa, mostrando un aviso informativo y permitiendo transitar fluidamente hacia Caja y Cierre sin capturar firmas ni validar campos obligatorios legales.
+    - Al sellar la consulta, no se generan archivos residuales ni registros vacíos.
+  - Si el profesional selecciona **SÍ**:
+    - Se habilita el formulario completo en Step 5 para capturar el procedimiento, objetivos, beneficios, riesgos y firmas digitales de paciente y facultativo.
+    - Se archiva atómicamente en `dat/consentimientos/paciente_<id>.json` e indexa en `dat/consentimientos.dat`.
+- **Repositorio en Expediente Clínico**:
+  - En `render_expediente_clinico.pl`, la pestaña `tab11` (**Consentimientos Legales**) expone el historial completo de documentos firmados del paciente, con KPIs de documentos y opción de emisión directa fuera de consulta SOAP.
+
 ---
 
 ## 4. Pipeline Quirúrgico End-to-End (4 Fases Clínicas)
@@ -134,7 +147,7 @@ sequenceDiagram
 ---
 
 ## 5. Hoja de Ruta de Implementación
-1. **Fase I (Actual)**: Kanban Quirúrgico responsivo 100% fluido en CSS Grid (0 scroll horizontal), modal de inspección rápida y sincronización bidireccional con Agenda Central.
-2. **Fase II (Siguiente)**: Repositorio Atómico `dat/consentimientos/paciente_<id>.json` y módulo de firma digital independiente de consultas SOAP.
+1. **Fase I**: Kanban Quirúrgico responsivo 100% fluido en CSS Grid (0 scroll horizontal), modal de inspección rápida y sincronización bidireccional con Agenda Central. (✅ Completada)
+2. **Fase II**: Repositorio Atómico `dat/consentimientos/paciente_<id>.json`, controlador `api/consentimientos_api.pl`, pestaña `tab11` en Expediente Clínico e interruptor reactivo en Step 0 Registro para inhabilitar documentación prescindible. (✅ Completada)
 3. **Fase III**: Checklist Preoperatorio OMS y Nota Quirúrgica integrada en el modal de detalle del Kanban.
 4. **Fase IV**: Pre-liquidación automática de insumos quirúrgicos en el módulo financiero.

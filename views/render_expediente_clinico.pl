@@ -329,6 +329,14 @@ HTML
             }, 60);
         }
 
+        if (id === 'tab11') {
+            setTimeout(() => {
+                if (typeof cargarConsentimientosHub === 'function') {
+                    cargarConsentimientosHub();
+                }
+            }, 60);
+        }
+
         if(b && b.classList.contains('sub-link')){
             window.scrollTo({ top: 0, behavior: 'smooth' });
             const mainContent = document.querySelector('.sdm-main-content');
@@ -1335,6 +1343,76 @@ HTML
 HTML
     }
     print <<HTML;
+            </div>
+        </section>
+
+        <!-- 11: REPOSITORIO DE CONSENTIMIENTOS INFORMADOS Y DOCS LEGALES (NOM-004-SSA3) -->
+        <section class="sdm-tab-sec d-none" id="tab11">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h3 class="fw-black m-0 text-navy d-flex align-items-center gap-2">
+                        <i class="bi bi-file-earmark-check-fill text-primary"></i>
+                        Expediente Legal & Consentimientos
+                    </h3>
+                    <p class="text-muted small fw-bold mb-0">REPOSITORIO DE DOCUMENTOS NOM-004-SSA3 / NOM-006-SSA3 Y FIRMAS DIGITALES</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-xs d-flex align-items-center" onclick="cargarConsentimientosHub()">
+                        <i class="bi bi-arrow-clockwise me-1.5"></i> Actualizar
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center" onclick="abrirModalNuevoConsentimientoExp()">
+                        <i class="bi bi-plus-circle-fill me-1.5"></i> Emitir Consentimiento
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPIs de Documentación Legal -->
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-sm-4">
+                    <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100" style="border-left: 4px solid #0A2A66 !important;">
+                        <span class="text-muted small fw-bold d-block mb-1">Total de Documentos</span>
+                        <h4 class="fw-bold mb-0 text-dark" id="kpi-cons-total">0</h4>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-4">
+                    <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100" style="border-left: 4px solid #10b981 !important;">
+                        <span class="text-muted small fw-bold d-block mb-1">Firmados por Paciente</span>
+                        <h4 class="fw-bold mb-0 text-success" id="kpi-cons-firmados">0</h4>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-4">
+                    <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100" style="border-left: 4px solid #3b82f6 !important;">
+                        <span class="text-muted small fw-bold d-block mb-1">Procedimientos Médicos</span>
+                        <h4 class="fw-bold mb-0 text-primary" id="kpi-cons-procedimientos">0</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Consentimientos -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 p-md-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle w-100" id="tablaConsentimientosHub">
+                        <thead class="table-light">
+                            <tr class="text-secondary small fw-bold">
+                                <th>FOLIO</th>
+                                <th>FECHA / HORA</th>
+                                <th>TIPO DOCUMENTO</th>
+                                <th>PROCEDIMIENTO</th>
+                                <th>MÉDICO RESPONSABLE</th>
+                                <th>ESTADO</th>
+                                <th class="text-end">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyConsentimientosHub">
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                    Cargando repositorio de consentimientos...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -2645,8 +2723,319 @@ print <<HTML;
         </div>
     </div>
 </div>
+<!-- MODAL: EMITIR NUEVO CONSENTIMIENTO INFORMADO (HUB EXPEDIENTE) -->
+<div class="modal fade" id="modalNuevoConsentimientoExp" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-navy text-white px-4 py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="p-2 bg-white bg-opacity-10 rounded-3">
+                        <i class="bi bi-file-earmark-medical text-warning fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">Emitir Consentimiento Informado</h5>
+                        <small class="text-white-50">Documento Oficial NOM-004-SSA3 / NOM-006-SSA3</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <form id="formNuevoConsentimientoExp" onsubmit="guardarNuevoConsentimientoExp(event)">
+                    <input type="hidden" name="id_paciente" value="$d->{id_paciente}">
+                    <input type="hidden" name="id_medico" value="$id_medico_actual">
+                    <input type="hidden" id="modal_exp_firma_paciente" name="firma_paciente_data" value="">
+                    <input type="hidden" id="modal_exp_firma_medico" name="firma_medico_data" value="">
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold text-muted">Tipo de Consentimiento <span class="text-danger">*</span></label>
+                            <select class="form-select" name="tipo_consentimiento" id="modal_exp_tipo" required>
+                                <option value="CONSULTA_PROCEDIMIENTO">Procedimiento Menor / Consultorio</option>
+                                <option value="CIRUGIA_MAYOR">Cirugía Mayor / Quirófano</option>
+                                <option value="ANESTESIA">Procedimiento Anestésico / Sedación</option>
+                                <option value="HEMODERIVADOS">Transfusión de Hemoderivados</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold text-muted">Procedimiento / Tratamiento <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="procedimiento_descripcion" id="modal_exp_proc" placeholder="Ej: Apendicectomía Laparoscópica / Biopsia" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold text-muted">Objetivo del Procedimiento</label>
+                            <input type="text" class="form-control" name="procedimiento_objetivo" id="modal_exp_obj" placeholder="Ej: Extirpación de lesión y diagnóstico">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold text-muted">Beneficios Esperados</label>
+                            <input type="text" class="form-control" name="procedimiento_beneficios" id="modal_exp_ben" placeholder="Ej: Resolución de sintomatología y curación">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold text-muted">Riesgos y Complicaciones</label>
+                            <textarea class="form-control" name="procedimiento_riesgos" id="modal_exp_ries" rows="2" placeholder="Ej: Sangrado leve, infección de herida, dolor"></textarea>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold text-muted">Alternativas de Manejo</label>
+                            <textarea class="form-control" name="procedimiento_alternativas" id="modal_exp_alt" rows="2" placeholder="Ej: Tratamiento farmacológico conservador"></textarea>
+                        </div>
+
+                        <!-- Pads de Firma Digital -->
+                        <div class="col-12 col-md-6 text-center mt-3">
+                            <label class="form-label small fw-bold text-muted d-block mb-1">Firma Digital del Paciente</label>
+                            <div class="border rounded-3 p-2 bg-white shadow-xs">
+                                <canvas id="canvas-modal-paciente" width="280" height="120" style="border:1px dashed #cbd5e1; background:#ffffff; cursor:crosshair; touch-action:none;"></canvas>
+                                <div class="mt-1.5">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2" onclick="limpiarCanvasModal('paciente')">Limpiar Firma</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6 text-center mt-3">
+                            <label class="form-label small fw-bold text-muted d-block mb-1">Firma Digital del Médico</label>
+                            <div class="border rounded-3 p-2 bg-white shadow-xs">
+                                <canvas id="canvas-modal-medico" width="280" height="120" style="border:1px dashed #cbd5e1; background:#ffffff; cursor:crosshair; touch-action:none;"></canvas>
+                                <div class="mt-1.5">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2" onclick="limpiarCanvasModal('medico')">Limpiar Firma</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold border" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="bi bi-shield-check me-1"></i> Sellar y Guardar Documento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
     </div>
 HTML
+
+    print <<'JS';
+<script>
+    let canvasModPac, ctxModPac, canvasModMed, ctxModMed;
+    let isDrawModPac = false, isDrawModMed = false;
+
+    function getPacienteIdConsentimientos() {
+        const f = document.getElementById('formNuevoConsentimientoExp');
+        return f ? (f.querySelector('input[name="id_paciente"]')?.value || '') : '';
+    }
+
+    async function cargarConsentimientosHub() {
+        const tbody = document.getElementById('tbodyConsentimientosHub');
+        if (!tbody) return;
+        const pacId = getPacienteIdConsentimientos();
+        if (!pacId) return;
+
+        try {
+            const res = await fetch(`../api/consentimientos_api.pl?accion=list&id_paciente=${encodeURIComponent(pacId)}`);
+            const data = await res.json();
+
+            if (!data.ok || !Array.isArray(data.consentimientos) || data.consentimientos.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-file-earmark-check fs-1 text-muted opacity-40 d-block mb-2"></i>
+                            <h6 class="fw-bold text-dark mb-1">Sin Consentimientos Informados</h6>
+                            <p class="small text-muted mb-3" style="max-width: 480px; margin: 0 auto;">Este paciente no cuenta con procedimientos invasivos ni documentos legales registrados. Puede emitir uno nuevo usando el botón superior.</p>
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" onclick="abrirModalNuevoConsentimientoExp()">
+                                <i class="bi bi-plus-circle me-1"></i> Emitir Primer Consentimiento
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                const kTotal = document.getElementById('kpi-cons-total');
+                const kFirm = document.getElementById('kpi-cons-firmados');
+                const kProc = document.getElementById('kpi-cons-procedimientos');
+                if (kTotal) kTotal.innerText = '0';
+                if (kFirm) kFirm.innerText = '0';
+                if (kProc) kProc.innerText = '0';
+                return;
+            }
+
+            const items = data.consentimientos;
+            let rowsHtml = '';
+            let firmadosCount = 0;
+
+            items.forEach(c => {
+                const tieneFirma = (c.firmas && (c.firmas.paciente || c.firmas.medico));
+                if (tieneFirma) firmadosCount++;
+
+                let badgeTipo = '<span class="badge bg-secondary rounded-pill px-2 py-1">General</span>';
+                if (c.tipo === 'CIRUGIA_MAYOR') badgeTipo = '<span class="badge bg-danger rounded-pill px-2 py-1"><i class="bi bi-heart-pulse me-1"></i>Cirugía Mayor</span>';
+                else if (c.tipo === 'ANESTESIA') badgeTipo = '<span class="badge bg-info text-dark rounded-pill px-2 py-1"><i class="bi bi-lungs me-1"></i>Anestesia</span>';
+                else if (c.tipo === 'HEMODERIVADOS') badgeTipo = '<span class="badge bg-danger bg-opacity-75 rounded-pill px-2 py-1"><i class="bi bi-droplet me-1"></i>Hemoderivados</span>';
+                else if (c.tipo === 'CONSULTA_PROCEDIMIENTO') badgeTipo = '<span class="badge bg-primary rounded-pill px-2 py-1"><i class="bi bi-file-medical me-1"></i>Procedimiento</span>';
+
+                const estadoBadge = tieneFirma 
+                    ? '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 fw-bold"><i class="bi bi-check2-circle me-1"></i>Firmado NOM-004</span>' 
+                    : '<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1 fw-bold">Pendiente Firma</span>';
+
+                rowsHtml += `
+                    <tr>
+                        <td class="fw-bold text-dark font-monospace small">${c.id_consentimiento}</td>
+                        <td class="small">
+                            <div class="fw-semibold text-dark">${c.fecha || '--'}</div>
+                            <div class="text-muted fs-8">${c.hora || ''} hrs</div>
+                        </td>
+                        <td>${badgeTipo}</td>
+                        <td>
+                            <div class="fw-bold text-navy small">${c.procedimiento || 'Procedimiento'}</div>
+                            <div class="text-muted fs-8 text-truncate" style="max-width: 260px;">${c.objetivo || ''}</div>
+                        </td>
+                        <td class="small text-muted">${c.nombre_medico || 'Médico Asignado'}</td>
+                        <td>${estadoBadge}</td>
+                        <td class="text-end">
+                            <a href="../api/imprimir_consentimiento_api.pl?id_consentimiento=${encodeURIComponent(c.id_consentimiento)}&id_paciente=${encodeURIComponent(pacId)}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs fw-semibold">
+                                <i class="bi bi-file-pdf me-1"></i> Ver / Imprimir
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = rowsHtml;
+            const kTotal = document.getElementById('kpi-cons-total');
+            const kFirm = document.getElementById('kpi-cons-firmados');
+            const kProc = document.getElementById('kpi-cons-procedimientos');
+            if (kTotal) kTotal.innerText = items.length;
+            if (kFirm) kFirm.innerText = firmadosCount;
+            if (kProc) kProc.innerText = items.length;
+
+        } catch (e) {
+            console.error("Error al cargar consentimientos", e);
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al conectar con el repositorio de consentimientos.</td></tr>`;
+        }
+    }
+
+    function abrirModalNuevoConsentimientoExp() {
+        const form = document.getElementById('formNuevoConsentimientoExp');
+        if (form) form.reset();
+        limpiarCanvasModal('paciente');
+        limpiarCanvasModal('medico');
+
+        const modalEl = document.getElementById('modalNuevoConsentimientoExp');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+
+        setTimeout(initCanvasModalFirmas, 250);
+    }
+
+    function initCanvasModalFirmas() {
+        canvasModPac = document.getElementById('canvas-modal-paciente');
+        if (canvasModPac) {
+            ctxModPac = canvasModPac.getContext('2d');
+            bindCanvasModalEvents(canvasModPac, ctxModPac, 'paciente');
+        }
+        canvasModMed = document.getElementById('canvas-modal-medico');
+        if (canvasModMed) {
+            ctxModMed = canvasModMed.getContext('2d');
+            bindCanvasModalEvents(canvasModMed, ctxModMed, 'medico');
+        }
+    }
+
+    function bindCanvasModalEvents(canvas, ctx, tipo) {
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#0A2A66';
+        ctx.lineCap = 'round';
+
+        const getPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        };
+
+        const start = (e) => {
+            e.preventDefault();
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            if (tipo === 'paciente') isDrawModPac = true; else isDrawModMed = true;
+        };
+
+        const move = (e) => {
+            const drawing = (tipo === 'paciente') ? isDrawModPac : isDrawModMed;
+            if (!drawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        };
+
+        const stop = () => {
+            if (tipo === 'paciente') {
+                isDrawModPac = false;
+                document.getElementById('modal_exp_firma_paciente').value = canvas.toDataURL();
+            } else {
+                isDrawModMed = false;
+                document.getElementById('modal_exp_firma_medico').value = canvas.toDataURL();
+            }
+        };
+
+        canvas.onmousedown = start; canvas.onmousemove = move; window.onmouseup = stop;
+        canvas.ontouchstart = start; canvas.ontouchmove = move; window.ontouchend = stop;
+    }
+
+    function limpiarCanvasModal(tipo) {
+        if (tipo === 'paciente' && canvasModPac) {
+            ctxModPac.clearRect(0, 0, canvasModPac.width, canvasModPac.height);
+            document.getElementById('modal_exp_firma_paciente').value = '';
+        } else if (tipo === 'medico' && canvasModMed) {
+            ctxModMed.clearRect(0, 0, canvasModMed.width, canvasModMed.height);
+            document.getElementById('modal_exp_firma_medico').value = '';
+        }
+    }
+
+    async function guardarNuevoConsentimientoExp(e) {
+        e.preventDefault();
+        const form = document.getElementById('formNuevoConsentimientoExp');
+        const formData = new FormData(form);
+        formData.append('accion', 'save');
+
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Sellando Consentimiento',
+                text: 'Registrando firmas y asegurando integridad legal NOM-004...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+        }
+
+        try {
+            const res = await fetch('../api/consentimientos_api.pl', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.ok) {
+                const modalEl = document.getElementById('modalNuevoConsentimientoExp');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Consentimiento Sellado!',
+                        text: 'El documento ha sido archivado exitosamente en el expediente legal del paciente.',
+                        confirmButtonColor: 'var(--sdm-blue)'
+                    });
+                }
+                cargarConsentimientosHub();
+            } else {
+                if (window.Swal) Swal.fire('Error', data.error || 'No se pudo guardar el consentimiento', 'warning');
+                else alert(data.error || 'Error al guardar');
+            }
+        } catch (err) {
+            console.error(err);
+            if (window.Swal) Swal.fire('Error', 'Falla de red al conectar con el servidor', 'error');
+        }
+    }
+</script>
+JS
     utils::sub_sidebar::render_sidebar_footer();
 }
 

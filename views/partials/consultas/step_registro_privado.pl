@@ -204,6 +204,28 @@ HTML
                         </div>
                     </div>
                 </div>
+
+                <!-- Fila 5: Interruptor de Consentimientos & Documentación Legal -->
+                <div class="col-12 mt-2">
+                    <div class="card border-0 shadow-xs rounded-3 p-3 bg-white" style="border-left: 4px solid var(--md-blue-deep) !important; background: #f8fafc;">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="p-2 bg-primary-subtle text-primary rounded-3">
+                                    <i class="bi bi-file-earmark-check fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-navy">
+                                        ¿Requiere Consentimientos & Docs Legales para esta consulta?
+                                    </h6>
+                                    <p class="text-muted small mb-0">Active esta opción si el paciente será sometido a procedimientos, cirugía menor o requiere consentimiento informado firmado. Si decide que no, la sección legal se inhabilita para agilizar la consulta.</p>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch fs-4 mb-0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="check_requiere_consentimiento_registro" name="requiere_consentimiento_registro" value="1" onchange="sincronizarConsentimientoDesdeRegistro(this.checked)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="d-flex justify-content-end mt-5">

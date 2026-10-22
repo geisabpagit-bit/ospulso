@@ -382,6 +382,7 @@ HTML
         my $link_resumen   = $lnk->('tab2',  'bi bi-grid-1x2',            'Resumen',                ($is_in_expediente ? 1 : 0));
         my $link_ficha     = $lnk->('tab3',  'bi bi-person-gear',          'Ficha de Identificación', 0);
         my $link_consultas = $lnk->('tab10', 'bi bi-activity',             'Consultas',              (!$is_in_expediente ? 1 : 0));
+        my $link_consentimientos = $lnk->('tab11', 'bi bi-file-earmark-check-fill', 'Consentimientos Legales', 0);
         my $link_odonto    = $mostrar_odonto ? $lnk->('tab6',  'bi bi-diagram-3-fill',       'Odontograma',            0) : '';
         my $link_rayos_x   = $mostrar_imagenologia ? $lnk->('tab7',  'bi bi-camera-video-fill',    'Imagenología',           0) : '';
         my $link_finanzas  = $lnk->('tab1',  'bi bi-wallet2',              '3.1 Finanzas',           0);
@@ -422,6 +423,7 @@ HTML
                         $link_resumen
                         $link_ficha
                         $link_consultas
+                        $link_consentimientos
                     </div>
                 </div>
             </div>
