@@ -461,14 +461,13 @@ HTML
                     </div>
                 </div>
             </div>
-            
-            <hr class="my-2 opacity-25 sidebar-separator">
         };
     }
 
     # --- FINANZAS Y ADMINISTRACIÓN ---
     # 5. Finanzas Accordion (Ubicado antes de Administración)
-    if ($is_allowed{finanzas}) {
+    # Regla: Exclusivo de vistas generales (Dashboard, etc.). No mostrar dentro del expediente ($mostrar_menu_paciente)
+    if ($is_allowed{finanzas} && !$mostrar_menu_paciente) {
         my $has_pacientes_estado = 0;
         my $id_empresa_fin = $args{id_empresa} || $id_empresa || '';
         my $config_file = File::Spec->catfile($dat_dir, 'negocios_config.dat');
@@ -533,8 +532,9 @@ HTML
     }
 
     # 6. Administración Accordion
+    # Regla: Exclusivo de vistas generales (Dashboard, etc.). No mostrar dentro del expediente ($mostrar_menu_paciente)
     my $show_admin = 0;
-    if ($is_allowed{registros} || $is_allowed{clinicas} || $is_allowed{usuarios} || $is_allowed{servicios} || $is_allowed{productos} || $is_allowed{tecnico} || $is_allowed{sync_google} || $role eq 'Administrador Global') {
+    if (($is_allowed{registros} || $is_allowed{clinicas} || $is_allowed{usuarios} || $is_allowed{servicios} || $is_allowed{productos} || $is_allowed{tecnico} || $is_allowed{sync_google} || $role eq 'Administrador Global') && !$mostrar_menu_paciente) {
         $show_admin = 1;
     }
 
@@ -659,12 +659,12 @@ HTML
     }
 
     # Separador después de Finanzas y Administración
-    if ($is_allowed{finanzas} || $show_admin) {
+    if (($is_allowed{finanzas} || $show_admin) && !$mostrar_menu_paciente) {
         print qq{<hr class="my-2 opacity-25 sidebar-separator">};
     }
 
     # 7. Ventas Accordion (Ejecutivo Ventas o Administrador Global)
-    if ( ($is_allowed{crm_ventas} && $role eq 'Ejecutivo Ventas') || ($is_allowed{admin_global} && $role eq 'Administrador Global') ) {
+    if (( ($is_allowed{crm_ventas} && $role eq 'Ejecutivo Ventas') || ($is_allowed{admin_global} && $role eq 'Administrador Global') ) && !$mostrar_menu_paciente) {
         my $ventas_has_active = ($pagina_actual eq 'crm_ventas' || $pagina_actual eq 'admin_ejecutivos') ? 1 : 0;
         my $ventas_active = $ventas_has_active ? 'show' : '';
         my $collapsed_class = ($ventas_active eq 'show') ? '' : 'collapsed';
@@ -728,6 +728,7 @@ HTML
     }
 
     foreach my $raw_mod (@allowed_modules) {
+        next if $mostrar_menu_paciente;
         my $mod_key = $raw_mod;
         $mod_key =~ s/^\s+|\s+$//g;
         next if $grouped_or_drawn{$mod_key};

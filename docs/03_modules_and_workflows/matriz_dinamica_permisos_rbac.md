@@ -40,6 +40,7 @@ En código backend (`utils/permisos_utils.pl` y `api/gestion_permisos_roles_api.
   1. *Catálogos y Mantenimiento* (`tecnico` -> `administracion_catalogo.pl`), reservado a Administrador Global.
   2. *Gestión Odontograma* (`gestion_odontograma` -> `manage_catalogo_odontograma.pl`), reservado a Administrador Global.
   3. *Gestión de Catálogos* (`gestion_catalogos` -> `gestion_catalogos.pl`), reservado a Administrador Global.
+- **Aislamiento de Contexto Clínico en Expediente (`$mostrar_menu_paciente`)**: Cuando un usuario (incluyendo `Administrador Organizacion`) se encuentra dentro de un expediente clínico (`render_expediente_clinico.pl`) o consulta activa (`render_consultas_privado.pl`), los acordeones globales de **Finanzas** y **Administración** se ocultan automáticamente del menú lateral. Esto elimina la colisión de menús con las sub-secciones del paciente (*3.1 Finanzas* y *3.2 Inbox*) y garantiza que los paneles globales de administración y finanzas se activen exclusivamente en las vistas generales y en el Tablero Principal (`views/render_dashboard_principal.pl`).
 
 ### 3.3 Consola de Administración UI (`views/gestion_permisos_roles.pl`)
 - Interfaz interactiva de **alta densidad (Compact Premium UI)** exclusiva para Administradores de Organización.
