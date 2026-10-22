@@ -321,12 +321,14 @@ graph TD
   4. **Inspección de Tarjetas Clínicas**:
      - Verificar que cada tarjeta muestra la píldora de hora (`HH:MM`), sala quirúrgica, monograma circular con iniciales del paciente, nombre del paciente, procedimiento con badge suave y equipo quirúrgico (Cirujano y Anestesiólogo).
      - Comprobar que el borde izquierdo de la tarjeta (`border-left`) tiene el color identitario de su columna.
-  5. **Modal de Ficha Rápida e Inspección Quirúrgica**:
+  5. **Modal de Ficha Rápida e Inspección Quirúrgica (Diseño Compacto y Alto Contraste)**:
      - Hacer clic sobre una tarjeta quirúrgica.
-     - Confirmar que se abre el modal `#modalDetalleCirugia` con:
-       - Nombre del paciente y ID de cirugía.
-       - Resumen del procedimiento, sala y horario.
-       - Cirujano y anestesiólogo asignados.
+     - Confirmar que se abre el modal `#modalDetalleCirugia` con diseño ergonómico compacto (`.modal-qx-compact`, max-width 820px en lugar de 1140px):
+       - Header con degradado Medentia Aura (`#0A2A66` a `#124A9E`), acento turquesa clínico (`#19B7A5`) y tipografía blanca de alto contraste con subtítulo en oro/acento legible.
+       - Cuerpo del modal con fondo clínico tenue (`#F8FBFF`) y altura máxima calculada (`calc(85vh - 110px)`) para evitar scroll de ventana.
+       - Barra de navegación quirúrgica (`.nav-pills-qx`) con pestañas compactas y de alto contraste.
+       - Sub-tarjetas clínicas (`.qx-subcard`) con bordes turquesa sutiles, micro-etiquetas en gris pizarra (`#475569`) y valores legibles en azul noche (`#0f172a`).
+       - Resumen del procedimiento, sala, horario, semáforo de consentimiento NOM-004, cirujano y anestesiólogo.
        - Botón directo para "Abrir Expediente" clínico.
        - Botones de **Transición Rápida de Estado** (ej. "Mover a En Quirófano", "Mover a Recuperación", "Mover a Alta").
      - Hacer clic en uno de los botones de transición y verificar que el modal se cierra, la tarjeta se mueve de columna automáticamente y el toast de éxito se despliega.
