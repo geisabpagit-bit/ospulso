@@ -1,7 +1,7 @@
 # 📋 Guion Maestro de Pruebas: Agenda Central y Quirófano Kanban
 
 > **Ubicación Canónica**: `docs/04_standards_and_ops/guion_pruebas_agenda_quirofano.md`  
-> **Versión**: `1.1.0` (Actualizado: 2026-10-21)  
+> **Versión**: `1.2.0` (Actualizado: 2026-10-21)  
 > **Estado**: Activo / Reutilizable  
 > **Área**: Agenda Médica, Quirófano, Expedientes y Multitenancy  
 
@@ -23,6 +23,7 @@
    - [Caso 8: Edición de Citas y Recuperación de Motivo y Lugar / Consultorio](#caso-8-edición-de-citas-y-recuperación-de-motivo-y-lugar--consultorio)
    - [Caso 9: Sincronización Automática de Citas en Quirófano con el Tablero Kanban](#caso-9-sincronización-automática-de-citas-en-quirófano-con-el-tablero-kanban)
    - [Caso 10: Configuración de Quirófanos de la Organización y Visibilidad en Menú Lateral](#caso-10-configuración-de-quirófanos-de-la-organización-y-visibilidad-en-menú-lateral)
+   - [Caso 11: Experiencia UI/UX Premium del Tablero Kanban, Cero Scroll Horizontal y Ficha Rápida](#caso-11-experiencia-uiux-premium-del-tablero-kanban-cero-scroll-horizontal-y-ficha-rápida)
 5. [Protocolo de Actualización Obligatoria](#5-protocolo-de-actualización-obligatoria)
 6. [Criterios de Aceptación (Definición de Terminado)](#6-criterios-de-aceptación-definición-de-terminado)
 
@@ -75,6 +76,10 @@ graph TD
     CP4 --> CP5["Caso 5: Roles Duales (Consulta vs Quirófano)"]
     CP5 --> CP6["Caso 6: Persistencia y Renderizado Visitas"]
     CP6 --> CP7["Caso 7: Navegación y Filtros Quirófano Kanban"]
+    CP7 --> CP8["Caso 8: Edición Citas (Motivo y Consultorio)"]
+    CP8 --> CP9["Caso 9: Sincronización Automática Quirófano"]
+    CP9 --> CP10["Caso 10: Selector Quirófanos y Menú Lateral"]
+    CP10 --> CP11["Caso 11: Experiencia UI/UX Kanban y Cero Scroll"]
 ```
 
 ---
@@ -291,6 +296,42 @@ graph TD
 * **Resultado Esperado**:
   - El selector permite definir con exactitud la capacidad quirúrgica de la clínica.
   - La regla de negocio del menú lateral respeta estrictamente la existencia de quirófanos (`QUIROFANOS > 0`).
+
+---
+
+### Caso 11: Experiencia UI/UX Premium del Tablero Kanban, Cero Scroll Horizontal y Ficha Rápida
+
+* **Objetivo**: Comprobar que en pantallas de escritorio o laptops estándar ($\ge 1100\text{px}$) el Tablero Kanban renderiza sus 5 columnas clínicas en CSS Grid fluido sin ningún scroll horizontal, desplegando la barra de KPIs ejecutivos, tarjetas con monogramas de paciente, indicadores de pulso en vivo para cirugías en curso y el Modal de Inspección Rápida con transiciones de 1 clic.
+* **Componentes Involucrados**:
+  - [views/quirofano_kanban.pl](file:///c:/xampp/htdocs/ospulso/views/quirofano_kanban.pl)
+  - [api/quirofano_crud.pl](file:///c:/xampp/htdocs/ospulso/api/quirofano_crud.pl)
+  - [css/sdm_mobile_standards.css](file:///c:/xampp/htdocs/ospulso/css/sdm_mobile_standards.css)
+* **Pasos de Ejecución**:
+  1. Abrir `views/quirofano_kanban.pl` en una pantalla de escritorio (1280px, 1366px, 1920px).
+  2. **Verificación de Cero Scroll Horizontal**:
+     - Inspeccionar visualmente la ventana y la barra de desplazamiento del navegador.
+     - Constatar que **NO** existe barra de scroll horizontal en el contenedor `.kanban-board`. Las 5 columnas (`Programada`, `Pre-Operatorio`, `En Quirófano`, `Recuperación`, `Alta / Traslado`) ocupan simétricamente el 100% del ancho útil.
+  3. **Verificación de Barra de KPIs Ejecutivos**:
+     - Constatar los chips superiores con conteos del día: `Total`, `Programadas`, `Pre-Op`, `En Quirófano` (con halo pulsante rojo), `Recuperación` y `Concluidas`.
+     - Verificar que la suma de los estados coincide con el `Total`.
+  4. **Inspección de Tarjetas Clínicas**:
+     - Verificar que cada tarjeta muestra la píldora de hora (`HH:MM`), sala quirúrgica, monograma circular con iniciales del paciente, nombre del paciente, procedimiento con badge suave y equipo quirúrgico (Cirujano y Anestesiólogo).
+     - Comprobar que el borde izquierdo de la tarjeta (`border-left`) tiene el color identitario de su columna.
+  5. **Modal de Ficha Rápida e Inspección Quirúrgica**:
+     - Hacer clic sobre una tarjeta quirúrgica.
+     - Confirmar que se abre el modal `#modalDetalleCirugia` con:
+       - Nombre del paciente y ID de cirugía.
+       - Resumen del procedimiento, sala y horario.
+       - Cirujano y anestesiólogo asignados.
+       - Botón directo para "Abrir Expediente" clínico.
+       - Botones de **Transición Rápida de Estado** (ej. "Mover a En Quirófano", "Mover a Recuperación", "Mover a Alta").
+     - Hacer clic en uno de los botones de transición y verificar que el modal se cierra, la tarjeta se mueve de columna automáticamente y el toast de éxito se despliega.
+  6. **Comportamiento Táctil / Responsivo (<1100px)**:
+     - Reducir el ancho del navegador o activar el modo dispositivo móvil de las Developer Tools.
+     - Verificar que el tablero activa un deslizamiento horizontal táctil con snap suave (`scroll-snap-type: x mandatory`), manteniendo un ancho mínimo cómodo (280px) por columna sin desbordamiento destructivo de texto.
+* **Resultado Esperado**:
+  - Cero scroll horizontal en resoluciones de escritorio.
+  - Experiencia ejecutiva, profesional y fluida para el personal médico, circulantes y anestesiólogos.
 
 ---
 

@@ -24,6 +24,7 @@ graph TD
 - **[01_medentos_core_architecture.md](file:///c:/xampp/htdocs/ospulso/docs/01_architecture/01_medentos_core_architecture.md)**: Manifiesto infraestructural y reglas globales (`Const-001` a `Const-004`) de la plataforma SaaS multitenant (MedentOS Core Architecture).
 - **[02_ospulso_master_blueprint.md](file:///c:/xampp/htdocs/ospulso/docs/01_architecture/02_ospulso_master_blueprint.md)**: Blueprint estratégico de producto, modelo de negocio para directores clínicos y sistema UI/UX.
 - **[03_ospulso_master_specification.md](file:///c:/xampp/htdocs/ospulso/docs/01_architecture/03_ospulso_master_specification.md)**: Constitución técnica del ecosistema OSPulso / SDM, motor Multi-Tarifa, DataTables Server-Side y definición de hecho.
+- **[04_trazabilidad_quirofano_y_consentimientos.md](file:///c:/xampp/htdocs/ospulso/docs/01_architecture/04_trazabilidad_quirofano_y_consentimientos.md)**: Blueprint maestro de trazabilidad quirúrgica end-to-end (NOM-004 / OMS Safe Surgery) y repositorio atómico de consentimientos informados tipificados.
 
 ### 💾 Capa 2: Datos, Diccionario 3NF y Reglas de Negocio (`docs/02_data_and_rules/`)
 - **[diccionario_datos_sdm.md](file:///c:/xampp/htdocs/ospulso/docs/02_data_and_rules/diccionario_datos_sdm.md)**: Diccionario de datos unificado de todos los archivos planos `.dat` de la plataforma (Identidad, Pacientes, Citas, Catálogos 3NF por CLUE, Recibos, Tratamientos, `recetas.dat` y `consentimientos.dat`).
