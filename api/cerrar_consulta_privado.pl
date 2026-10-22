@@ -268,6 +268,32 @@ if ($requiere_consentimiento eq '1') {
         flock($fh_ja_w, LOCK_UN);
         close($fh_ja_w);
     }
+
+    # Si se vinculó un consentimiento previo por ID, marcarlo como utilizado
+    my $id_cons_vinculado = $q->param('id_consentimiento_vinculado') || '';
+    if ($id_cons_vinculado && -e $file_cons_atom && open(my $fh_vinc, '<:encoding(UTF-8)', $file_cons_atom)) {
+        local $/;
+        my $v_raw = <$fh_vinc>;
+        close($fh_vinc);
+        my $d_vinc = eval { decode_json($v_raw) };
+        if ($d_vinc && ref($d_vinc->{consentimientos}) eq 'ARRAY') {
+            my $hubo_act = 0;
+            foreach my $it (@{ $d_vinc->{consentimientos} }) {
+                if ($it->{id_consentimiento} eq $id_cons_vinculado) {
+                    $it->{utilizado} = 1;
+                    $it->{id_consulta} = $id_consulta;
+                    $hubo_act = 1;
+                    last;
+                }
+            }
+            if ($hubo_act && open(my $fh_vw, '>:encoding(UTF-8)', $file_cons_atom)) {
+                flock($fh_vw, LOCK_EX);
+                print $fh_vw encode_json($d_vinc);
+                flock($fh_vw, LOCK_UN);
+                close($fh_vw);
+            }
+        }
+    }
 } else {
     # NO requiere consentimiento: purga preventiva absoluta para evitar fugas de otras consultas
     $payload{requiere_consentimiento} = '0';

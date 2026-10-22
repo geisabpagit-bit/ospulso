@@ -1396,16 +1396,17 @@ HTML
                             <tr class="text-secondary small fw-bold">
                                 <th>FOLIO</th>
                                 <th>FECHA / HORA</th>
+                                <th>ÁMBITO</th>
                                 <th>TIPO DOCUMENTO</th>
                                 <th>PROCEDIMIENTO</th>
                                 <th>MÉDICO RESPONSABLE</th>
-                                <th>ESTADO</th>
+                                <th>SEMÁFORO USO</th>
                                 <th class="text-end">ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyConsentimientosHub">
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">
+                                <td colspan="8" class="text-center py-4 text-muted">
                                     <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
                                     Cargando repositorio de consentimientos...
                                 </td>
@@ -2724,32 +2725,50 @@ print <<HTML;
     </div>
 </div>
 <!-- MODAL: EMITIR NUEVO CONSENTIMIENTO INFORMADO (HUB EXPEDIENTE) -->
+<!-- MODAL: EMITIR NUEVO CONSENTIMIENTO INFORMADO (HUB EXPEDIENTE COMPACTO) -->
 <div class="modal fade" id="modalNuevoConsentimientoExp" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg">
-            <div class="modal-header bg-navy text-white px-4 py-3">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 640px;">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header px-4 py-2.5" style="background: #0A2A66; color: #ffffff;">
                 <div class="d-flex align-items-center gap-2">
-                    <div class="p-2 bg-white bg-opacity-10 rounded-3">
-                        <i class="bi bi-file-earmark-medical text-warning fs-5"></i>
-                    </div>
+                    <i class="bi bi-file-earmark-medical text-warning fs-5"></i>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0">Emitir Consentimiento Informado</h5>
-                        <small class="text-white-50">Documento Oficial NOM-004-SSA3 / NOM-006-SSA3</small>
+                        <h6 class="modal-title fw-bold text-white mb-0">Emitir Consentimiento Informado</h6>
+                        <small class="text-white-50" style="font-size: 0.72rem;">Normativa Oficial NOM-004-SSA3 / NOM-006-SSA3</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4 bg-light">
+            <div class="modal-body p-3 p-md-4 bg-light">
                 <form id="formNuevoConsentimientoExp" onsubmit="guardarNuevoConsentimientoExp(event)">
                     <input type="hidden" name="id_paciente" value="$d->{id_paciente}">
                     <input type="hidden" name="id_medico" value="$id_medico_actual">
                     <input type="hidden" id="modal_exp_firma_paciente" name="firma_paciente_data" value="">
                     <input type="hidden" id="modal_exp_firma_medico" name="firma_medico_data" value="">
 
-                    <div class="row g-3">
+                    <div class="row g-2.5">
+                        <!-- Semáforo de Ámbito de Destino -->
+                        <div class="col-12 mb-1">
+                            <label class="form-label small fw-bold text-dark mb-1">Destino de Uso (Semáforo Operativo) <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-2">
+                                <div class="form-check form-check-inline border rounded-3 px-3 py-1.5 bg-white shadow-xs m-0 flex-fill d-flex align-items-center gap-2">
+                                    <input class="form-check-input mt-0" type="radio" name="ambito_uso" id="modal_exp_ambito_consulta" value="USO_CONSULTA" checked onchange="ajustarTipoSegunAmbito('USO_CONSULTA')">
+                                    <label class="form-check-label small fw-bold text-primary mb-0" for="modal_exp_ambito_consulta">
+                                        <i class="bi bi-hospital me-1"></i> Uso en Consulta
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline border rounded-3 px-3 py-1.5 bg-white shadow-xs m-0 flex-fill d-flex align-items-center gap-2">
+                                    <input class="form-check-input mt-0" type="radio" name="ambito_uso" id="modal_exp_ambito_quirofano" value="USO_QUIROFANO" onchange="ajustarTipoSegunAmbito('USO_QUIROFANO')">
+                                    <label class="form-check-label small fw-bold mb-0" for="modal_exp_ambito_quirofano" style="color: #6366f1;">
+                                        <i class="bi bi-heart-pulse me-1"></i> Uso en Quirófano
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-muted">Tipo de Consentimiento <span class="text-danger">*</span></label>
-                            <select class="form-select" name="tipo_consentimiento" id="modal_exp_tipo" required>
+                            <label class="form-label small fw-bold text-dark mb-1">Tipo de Documento <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-sm" name="tipo_consentimiento" id="modal_exp_tipo" required>
                                 <option value="CONSULTA_PROCEDIMIENTO">Procedimiento Menor / Consultorio</option>
                                 <option value="CIRUGIA_MAYOR">Cirugía Mayor / Quirófano</option>
                                 <option value="ANESTESIA">Procedimiento Anestésico / Sedación</option>
@@ -2757,51 +2776,51 @@ print <<HTML;
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-muted">Procedimiento / Tratamiento <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="procedimiento_descripcion" id="modal_exp_proc" placeholder="Ej: Apendicectomía Laparoscópica / Biopsia" required>
+                            <label class="form-label small fw-bold text-dark mb-1">Procedimiento / Tratamiento <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="procedimiento_descripcion" id="modal_exp_proc" placeholder="Ej: Apendicectomía Laparoscópica / Biopsia" required>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-muted">Objetivo del Procedimiento</label>
-                            <input type="text" class="form-control" name="procedimiento_objetivo" id="modal_exp_obj" placeholder="Ej: Extirpación de lesión y diagnóstico">
+                            <label class="form-label small fw-bold text-dark mb-1">Objetivo del Procedimiento</label>
+                            <input type="text" class="form-control form-control-sm" name="procedimiento_objetivo" id="modal_exp_obj" placeholder="Ej: Extirpación de lesión y diagnóstico">
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-muted">Beneficios Esperados</label>
-                            <input type="text" class="form-control" name="procedimiento_beneficios" id="modal_exp_ben" placeholder="Ej: Resolución de sintomatología y curación">
+                            <label class="form-label small fw-bold text-dark mb-1">Beneficios Esperados</label>
+                            <input type="text" class="form-control form-control-sm" name="procedimiento_beneficios" id="modal_exp_ben" placeholder="Ej: Resolución de dolor y curación">
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-muted">Riesgos y Complicaciones</label>
-                            <textarea class="form-control" name="procedimiento_riesgos" id="modal_exp_ries" rows="2" placeholder="Ej: Sangrado leve, infección de herida, dolor"></textarea>
+                            <label class="form-label small fw-bold text-dark mb-1">Riesgos y Complicaciones</label>
+                            <textarea class="form-control form-control-sm" name="procedimiento_riesgos" id="modal_exp_ries" rows="2" placeholder="Ej: Sangrado leve, infección de herida"></textarea>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-muted">Alternativas de Manejo</label>
-                            <textarea class="form-control" name="procedimiento_alternativas" id="modal_exp_alt" rows="2" placeholder="Ej: Tratamiento farmacológico conservador"></textarea>
+                            <label class="form-label small fw-bold text-dark mb-1">Alternativas de Manejo</label>
+                            <textarea class="form-control form-control-sm" name="procedimiento_alternativas" id="modal_exp_alt" rows="2" placeholder="Ej: Tratamiento farmacológico conservador"></textarea>
                         </div>
 
-                        <!-- Pads de Firma Digital -->
-                        <div class="col-12 col-md-6 text-center mt-3">
-                            <label class="form-label small fw-bold text-muted d-block mb-1">Firma Digital del Paciente</label>
-                            <div class="border rounded-3 p-2 bg-white shadow-xs">
-                                <canvas id="canvas-modal-paciente" width="280" height="120" style="border:1px dashed #cbd5e1; background:#ffffff; cursor:crosshair; touch-action:none;"></canvas>
-                                <div class="mt-1.5">
-                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2" onclick="limpiarCanvasModal('paciente')">Limpiar Firma</button>
+                        <!-- Pads de Firma Digital Compactos -->
+                        <div class="col-12 col-md-6 text-center mt-2">
+                            <label class="form-label small fw-bold text-dark d-block mb-1">Firma Digital del Paciente</label>
+                            <div class="border rounded-3 p-1.5 bg-white shadow-xs">
+                                <canvas id="canvas-modal-paciente" width="260" height="85" style="border:1px dashed #94a3b8; background:#ffffff; cursor:crosshair; touch-action:none; border-radius: 6px;"></canvas>
+                                <div class="mt-1">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size: 0.72rem;" onclick="limpiarCanvasModal('paciente')">Limpiar Firma</button>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-12 col-md-6 text-center mt-3">
-                            <label class="form-label small fw-bold text-muted d-block mb-1">Firma Digital del Médico</label>
-                            <div class="border rounded-3 p-2 bg-white shadow-xs">
-                                <canvas id="canvas-modal-medico" width="280" height="120" style="border:1px dashed #cbd5e1; background:#ffffff; cursor:crosshair; touch-action:none;"></canvas>
-                                <div class="mt-1.5">
-                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2" onclick="limpiarCanvasModal('medico')">Limpiar Firma</button>
+                        <div class="col-12 col-md-6 text-center mt-2">
+                            <label class="form-label small fw-bold text-dark d-block mb-1">Firma Digital del Médico</label>
+                            <div class="border rounded-3 p-1.5 bg-white shadow-xs">
+                                <canvas id="canvas-modal-medico" width="260" height="85" style="border:1px dashed #94a3b8; background:#ffffff; cursor:crosshair; touch-action:none; border-radius: 6px;"></canvas>
+                                <div class="mt-1">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size: 0.72rem;" onclick="limpiarCanvasModal('medico')">Limpiar Firma</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold border" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                    <div class="d-flex justify-content-end gap-2 mt-3 pt-2.5 border-top">
+                        <button type="button" class="btn btn-sm btn-light rounded-pill px-3 fw-semibold border" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-sm">
                             <i class="bi bi-shield-check me-1"></i> Sellar y Guardar Documento
                         </button>
                     </div>
@@ -2823,6 +2842,16 @@ HTML
         return f ? (f.querySelector('input[name="id_paciente"]')?.value || '') : '';
     }
 
+    function ajustarTipoSegunAmbito(ambito) {
+        const sel = document.getElementById('modal_exp_tipo');
+        if (!sel) return;
+        if (ambito === 'USO_QUIROFANO') {
+            sel.value = 'CIRUGIA_MAYOR';
+        } else {
+            sel.value = 'CONSULTA_PROCEDIMIENTO';
+        }
+    }
+
     async function cargarConsentimientosHub() {
         const tbody = document.getElementById('tbodyConsentimientosHub');
         if (!tbody) return;
@@ -2836,7 +2865,7 @@ HTML
             if (!data.ok || !Array.isArray(data.consentimientos) || data.consentimientos.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
+                        <td colspan="8" class="text-center py-5 text-muted">
                             <i class="bi bi-file-earmark-check fs-1 text-muted opacity-40 d-block mb-2"></i>
                             <h6 class="fw-bold text-dark mb-1">Sin Consentimientos Informados</h6>
                             <p class="small text-muted mb-3" style="max-width: 480px; margin: 0 auto;">Este paciente no cuenta con procedimientos invasivos ni documentos legales registrados. Puede emitir uno nuevo usando el botón superior.</p>
@@ -2863,15 +2892,24 @@ HTML
                 const tieneFirma = (c.firmas && (c.firmas.paciente || c.firmas.medico));
                 if (tieneFirma) firmadosCount++;
 
+                // Badge de Ámbito
+                const esQuirofano = (c.ambito_uso === 'USO_QUIROFANO' || c.tipo === 'CIRUGIA_MAYOR' || c.tipo === 'ANESTESIA');
+                const badgeAmbito = esQuirofano 
+                    ? '<span class="badge text-white px-2.5 py-1 rounded-pill fw-bold" style="background-color: #6366f1 !important;"><i class="bi bi-heart-pulse me-1"></i>Quirófano</span>'
+                    : '<span class="badge bg-primary text-white px-2.5 py-1 rounded-pill fw-bold"><i class="bi bi-hospital me-1"></i>Consulta</span>';
+
+                // Badge de Tipo de Consentimiento
                 let badgeTipo = '<span class="badge bg-secondary rounded-pill px-2 py-1">General</span>';
                 if (c.tipo === 'CIRUGIA_MAYOR') badgeTipo = '<span class="badge bg-danger rounded-pill px-2 py-1"><i class="bi bi-heart-pulse me-1"></i>Cirugía Mayor</span>';
                 else if (c.tipo === 'ANESTESIA') badgeTipo = '<span class="badge bg-info text-dark rounded-pill px-2 py-1"><i class="bi bi-lungs me-1"></i>Anestesia</span>';
                 else if (c.tipo === 'HEMODERIVADOS') badgeTipo = '<span class="badge bg-danger bg-opacity-75 rounded-pill px-2 py-1"><i class="bi bi-droplet me-1"></i>Hemoderivados</span>';
-                else if (c.tipo === 'CONSULTA_PROCEDIMIENTO') badgeTipo = '<span class="badge bg-primary rounded-pill px-2 py-1"><i class="bi bi-file-medical me-1"></i>Procedimiento</span>';
+                else if (c.tipo === 'CONSULTA_PROCEDIMIENTO') badgeTipo = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1"><i class="bi bi-file-medical me-1"></i>Procedimiento</span>';
 
-                const estadoBadge = tieneFirma 
-                    ? '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 fw-bold"><i class="bi bi-check2-circle me-1"></i>Firmado NOM-004</span>' 
-                    : '<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1 fw-bold">Pendiente Firma</span>';
+                // Semáforo de Uso (Utilizado vs Disponible)
+                const esUtilizado = (c.utilizado == 1 || c.id_consulta || c.id_cirugia);
+                const semaforoUso = esUtilizado
+                    ? '<span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1 fw-bold"><i class="bi bi-check-circle-fill me-1 text-success"></i>Utilizado</span>'
+                    : '<span class="badge bg-warning bg-opacity-15 text-warning-emphasis border border-warning border-opacity-25 rounded-pill px-2.5 py-1 fw-bold"><i class="bi bi-clock-history me-1 text-warning"></i>Disponible</span>';
 
                 rowsHtml += `
                     <tr>
@@ -2880,15 +2918,16 @@ HTML
                             <div class="fw-semibold text-dark">${c.fecha || '--'}</div>
                             <div class="text-muted fs-8">${c.hora || ''} hrs</div>
                         </td>
+                        <td>${badgeAmbito}</td>
                         <td>${badgeTipo}</td>
                         <td>
                             <div class="fw-bold text-navy small">${c.procedimiento || 'Procedimiento'}</div>
-                            <div class="text-muted fs-8 text-truncate" style="max-width: 260px;">${c.objetivo || ''}</div>
+                            <div class="text-muted fs-8 text-truncate" style="max-width: 240px;">${c.objetivo || ''}</div>
                         </td>
                         <td class="small text-muted">${c.nombre_medico || 'Médico Asignado'}</td>
-                        <td>${estadoBadge}</td>
+                        <td>${semaforoUso}</td>
                         <td class="text-end">
-                            <a href="../api/imprimir_consentimiento_api.pl?id_consentimiento=${encodeURIComponent(c.id_consentimiento)}&id_paciente=${encodeURIComponent(pacId)}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs fw-semibold">
+                            <a href="../api/imprimir_consentimiento_api.pl?id_consentimiento=${encodeURIComponent(c.id_consentimiento)}&id_paciente=${encodeURIComponent(pacId)}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 shadow-xs fw-semibold">
                                 <i class="bi bi-file-pdf me-1"></i> Ver / Imprimir
                             </a>
                         </td>
@@ -2906,13 +2945,18 @@ HTML
 
         } catch (e) {
             console.error("Error al cargar consentimientos", e);
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al conectar con el repositorio de consentimientos.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error al conectar con el repositorio de consentimientos.</td></tr>`;
         }
     }
 
     function abrirModalNuevoConsentimientoExp() {
         const form = document.getElementById('formNuevoConsentimientoExp');
-        if (form) form.reset();
+        if (form) {
+            form.reset();
+            const radConsulta = document.getElementById('modal_exp_ambito_consulta');
+            if (radConsulta) radConsulta.checked = true;
+            ajustarTipoSegunAmbito('USO_CONSULTA');
+        }
         limpiarCanvasModal('paciente');
         limpiarCanvasModal('medico');
 
@@ -2994,6 +3038,7 @@ HTML
         const form = document.getElementById('formNuevoConsentimientoExp');
         const formData = new FormData(form);
         formData.append('accion', 'save');
+        const searchParams = new URLSearchParams(formData);
 
         if (window.Swal) {
             Swal.fire({
@@ -3007,7 +3052,8 @@ HTML
         try {
             const res = await fetch('../api/consentimientos_api.pl', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: searchParams
             });
             const data = await res.json();
 

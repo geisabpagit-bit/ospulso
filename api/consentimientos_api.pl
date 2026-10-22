@@ -87,6 +87,9 @@ sub cargar_consentimientos_paciente {
                     $raw_j =~ s/\\n/\n/g;
                     my $parsed_j = eval { decode_json($raw_j) } // {};
 
+                    my $amb_uso = $parsed_j->{ambito_uso} || (($parsed_j->{id_cirugia} || $parsed_j->{tipo_consentimiento} =~ /CIRUGIA|ANESTESIA/i) ? 'USO_QUIROFANO' : 'USO_CONSULTA');
+                    my $es_utilizado = defined $parsed_j->{utilizado} ? int($parsed_j->{utilizado}) : (($cols[1] || $parsed_j->{id_cirugia}) ? 1 : 0);
+
                     push @lista, {
                         id_consentimiento => $cid,
                         id_consulta       => $cols[1] || '',
@@ -95,6 +98,8 @@ sub cargar_consentimientos_paciente {
                         id_medico         => $cols[3],
                         nombre_medico     => $parsed_j->{nombre_medico} || '',
                         tipo              => $parsed_j->{tipo_consentimiento} || 'CONSULTA_PROCEDIMIENTO',
+                        ambito_uso        => $amb_uso,
+                        utilizado         => $es_utilizado,
                         fecha             => $cols[4] || '',
                         hora              => $parsed_j->{hora_consulta} || '12:00',
                         procedimiento     => $cols[5] || 'Procedimiento Médico',
@@ -119,6 +124,12 @@ sub cargar_consentimientos_paciente {
         if ($hubo_migracion) {
             guardar_json_atomico($id_p, \@lista);
         }
+    }
+
+    # Normalizar items para garantizar que todos cuenten con ambito_uso y utilizado
+    foreach my $it (@lista) {
+        $it->{ambito_uso} //= (($it->{id_cirugia} || $it->{tipo} =~ /CIRUGIA|ANESTESIA/i) ? 'USO_QUIROFANO' : 'USO_CONSULTA');
+        $it->{utilizado}  //= (($it->{id_consulta} || $it->{id_cirugia}) ? 1 : 0);
     }
 
     # Ordenar por fecha y hora descendente (más recientes primero)
@@ -147,6 +158,11 @@ sub guardar_json_atomico {
 
 if ($accion eq 'list') {
     my $lista = cargar_consentimientos_paciente($id_paciente);
+    my $filtro_ambito = $q->param('ambito') || $q->param('ambito_uso') || '';
+    if ($filtro_ambito) {
+        @$lista = grep { ($_->{ambito_uso} || 'USO_CONSULTA') eq $filtro_ambito } @$lista;
+    }
+
     print encode_json({
         ok => 1,
         id_paciente => $id_paciente,
@@ -177,6 +193,9 @@ if ($accion eq 'save') {
     my $proc_alt     = $q->param('procedimiento_alternativas') || '';
     my $id_cirugia   = $q->param('id_cirugia') || '';
     my $id_consulta  = $q->param('id_consulta') || '';
+    my $ambito_uso   = $q->param('ambito_uso') || (($tipo_cons =~ /CIRUGIA|ANESTESIA/i || $id_cirugia) ? 'USO_QUIROFANO' : 'USO_CONSULTA');
+    my $utilizado_in = $q->param('utilizado');
+    my $utilizado    = (defined $utilizado_in && $utilizado_in ne '') ? int($utilizado_in) : (($id_consulta || $id_cirugia) ? 1 : 0);
     my $id_med       = $q->param('id_medico') || $id_medico_sesion || 'DOC-00';
     my $nombre_med   = $q->param('nombre_medico') || $usuario_sesion || 'Médico Especialista';
 
@@ -214,6 +233,8 @@ if ($accion eq 'save') {
         id_medico         => $id_med,
         nombre_medico     => $nombre_med,
         tipo              => $tipo_cons,
+        ambito_uso        => $ambito_uso,
+        utilizado         => $utilizado,
         fecha             => $hoy_fecha,
         hora              => $hoy_hora,
         procedimiento     => $proc_desc,
@@ -275,6 +296,38 @@ if ($accion eq 'save') {
         id_consentimiento => $id_cons,
         consentimiento => $nuevo_item
     });
+    exit;
+}
+
+if ($accion eq 'marcar_uso') {
+    my $id_c = $q->param('id_consentimiento') || '';
+    my $id_consul = $q->param('id_consulta') || '';
+    my $id_cirug  = $q->param('id_cirugia') || '';
+    my $utilizado_flag = defined $q->param('utilizado') ? int($q->param('utilizado')) : 1;
+
+    if (!$id_c) {
+        print encode_json({ ok => 0, error => 'ID de consentimiento requerido' });
+        exit;
+    }
+
+    my $lista = cargar_consentimientos_paciente($id_paciente);
+    my $actualizado = 0;
+    foreach my $it (@$lista) {
+        if ($it->{id_consentimiento} eq $id_c) {
+            $it->{utilizado} = $utilizado_flag;
+            $it->{id_consulta} = $id_consul if $id_consul;
+            $it->{id_cirugia} = $id_cirug if $id_cirug;
+            $actualizado = 1;
+            last;
+        }
+    }
+
+    if ($actualizado) {
+        guardar_json_atomico($id_paciente, $lista);
+        print encode_json({ ok => 1, msg => 'Estado de uso actualizado con éxito', utilizado => $utilizado_flag });
+    } else {
+        print encode_json({ ok => 0, error => 'Consentimiento no encontrado para marcar' });
+    }
     exit;
 }
 

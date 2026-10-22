@@ -1,7 +1,7 @@
 # 📋 Guion Maestro de Pruebas: Agenda Central y Quirófano Kanban
 
 > **Ubicación Canónica**: `docs/04_standards_and_ops/guion_pruebas_agenda_quirofano.md`  
-> **Versión**: `1.3.0` (Actualizado: 2026-10-21)  
+> **Versión**: `1.4.0` (Actualizado: 2026-10-21)  
 > **Estado**: Activo / Reutilizable  
 > **Área**: Agenda Médica, Quirófano, Expedientes y Multitenancy  
 
@@ -24,7 +24,7 @@
    - [Caso 9: Sincronización Automática de Citas en Quirófano con el Tablero Kanban](#caso-9-sincronización-automática-de-citas-en-quirófano-con-el-tablero-kanban)
    - [Caso 10: Configuración de Quirófanos de la Organización y Visibilidad en Menú Lateral](#caso-10-configuración-de-quirófanos-de-la-organización-y-visibilidad-en-menú-lateral)
    - [Caso 11: Experiencia UI/UX Premium del Tablero Kanban, Cero Scroll Horizontal y Ficha Rápida](#caso-11-experiencia-uiux-premium-del-tablero-kanban-cero-scroll-horizontal-y-ficha-rápida)
-   - [Caso 12: Gobernanza de Consentimiento en Paso 0 Registro, Inhabilitación Reactiva y Repositorio Atómico en Expediente Clínico](#caso-12-gobernanza-de-consentimiento-en-paso-0-registro-inhabilitación-reactiva-y-repositorio-atómico-en-expediente-clínico)
+   - [Caso 12: Gobernanza de Consentimiento NOM-004, Semáforos de Ámbito (Consulta vs Quirófano) y Repositorio Atómico](#caso-12-gobernanza-de-consentimiento-nom-004-semáforos-de-ámbito-consulta-vs-quirófano-y-repositorio-atómico)
 5. [Protocolo de Actualización Obligatoria](#5-protocolo-de-actualización-obligatoria)
 6. [Criterios de Aceptación (Definición de Terminado)](#6-criterios-de-aceptación-definición-de-terminado)
 
@@ -336,49 +336,65 @@ graph TD
 
 ---
 
-### Caso 12: Gobernanza de Consentimiento en Paso 0 Registro, Inhabilitación Reactiva y Repositorio Atómico en Expediente Clínico
+### Caso 12: Gobernanza de Consentimiento NOM-004, Semáforos de Ámbito (Consulta vs Quirófano) y Repositorio Atómico
 
-* **Objetivo**: Validar que la decisión clínica sobre requerir o prescindir de consentimientos informados en el Paso 0 (Registro) desactive de forma reactiva y no intrusiva el bloque de documentación legal del Paso 5 (Acuerdos), previniendo fricción innecesaria en consultas de rutina; y comprobar que al guardarse un consentimiento informado, este se almacene en el repositorio atómico `dat/consentimientos/paciente_<id>.json` y sea accesible de manera inmediata en el expediente clínico (Pestaña 11: Consentimientos Legales) con capacidad de firma digital independiente.
+* **Objetivo**: Validar el ciclo de vida integral de los consentimientos informados bajo la NOM-004-SSA3-2012, asegurando: (1) discriminación de ámbito de uso (`USO_CONSULTA` vs `USO_QUIROFANO`), (2) semaforización de estado de consumo (🟢 *Utilizado* vs 🟡 *Disponible*), (3) renderizado tabular en Paso 5 de Consulta Privada sin duplicidad de campos, (4) visualización del semáforo quirúrgico en el Tablero Quirófano Kanban, y (5) persistencia HTTP robusta sin errores 500 de CGI en Apache.
 * **Componentes Involucrados**:
   - [views/partials/consultas/step_registro_privado.pl](file:///c:/xampp/htdocs/ospulso/views/partials/consultas/step_registro_privado.pl)
   - [views/partials/consultas/step_comunicacion.pl](file:///c:/xampp/htdocs/ospulso/views/partials/consultas/step_comunicacion.pl)
   - [views/render_consultas_privado.pl](file:///c:/xampp/htdocs/ospulso/views/render_consultas_privado.pl)
+  - [views/quirofano_kanban.pl](file:///c:/xampp/htdocs/ospulso/views/quirofano_kanban.pl)
+  - [views/render_expediente_clinico.pl](file:///c:/xampp/htdocs/ospulso/views/render_expediente_clinico.pl)
   - [api/consentimientos_api.pl](file:///c:/xampp/htdocs/ospulso/api/consentimientos_api.pl)
   - [api/cerrar_consulta_privado.pl](file:///c:/xampp/htdocs/ospulso/api/cerrar_consulta_privado.pl)
-  - [views/render_expediente_clinico.pl](file:///c:/xampp/htdocs/ospulso/views/render_expediente_clinico.pl)
-  - [utils/sub_sidebar.pl](file:///c:/xampp/htdocs/ospulso/utils/sub_sidebar.pl)
+  - [dat/consentimientos/](file:///c:/xampp/htdocs/ospulso/dat/consentimientos/)
 * **Pasos de Ejecución**:
   1. **Inicio de Consulta en Wizard Clínico**:
-     - Abrir el Wizard de Consulta Privada (`views/render_consultas_privado.pl`).
+     - Abrir el Wizard de Consulta Privada (`views/render_consultas_privado.pl?id_paciente=<id>`).
      - En el **Paso 0 (Registro de Consulta)**, localizar la tarjeta de documentación legal: *"¿Requiere Consentimientos & doc legales para esta consulta?"* (`#check_requiere_consentimiento_registro`).
-  2. **Verificación de Inhabilitación Reactiva (Flujo de Consulta de Rutina)**:
+  2. **Verificación de Inhabilitación Reactiva (Flujo de Rutina)**:
      - Desactivar el interruptor (estado `OFF` / Desmarcado).
      - Avanzar al **Paso 5 (Acuerdos / Comunicación)**.
-     - Constatar que la sección de firma y consentimiento informado se contrae automáticamente y despliega el aviso informativo: *"Documentación Legal Inhabilitada para esta Consulta - Has indicado en el Paso 0 que esta consulta prescinde de consentimientos legales..."*.
-     - Confirmar que el botón *"Habilitar Documentación Legal para esta Consulta"* permite reactivar el bloque si el médico cambia de opinión en pleno proceso clínico.
-  3. **Verificación de Activación y Sincronización Bidireccional**:
-     - Activar el interruptor (estado `ON`).
-     - Constatar que el contenedor `#seccion-consentimiento-container` se despliega de inmediato, mostrando el selector de tipo de consentimiento, campos de diagnóstico/procedimiento y el canvas interactivo de firma digital.
-     - Cambiar de pestaña (Paso 0 a Paso 5 y viceversa) y constatar que el estado del switch se mantiene sincronizado sin recargas de página.
-  4. **Cierre de Consulta y Persistencia Atómica**:
-     - Con el switch en `ON`, ingresar un consentimiento (ej. *"Consentimiento para Procedimiento Quirúrgico Menor"*), dibujar una firma en el canvas y presionar Guardar/Cerrar Consulta.
-     - Verificar que en el servidor se generó o actualizó el archivo atómico `dat/consentimientos/paciente_<id_paciente>.json` con la estructura canónica (`id_consentimiento`, `id_paciente`, `tipo_consentimiento`, `firma_digital`, `timestamp`).
-  5. **Inspección en Pestaña 11 del Expediente Clínico**:
-     - Abrir el Expediente Clínico del paciente (`views/render_expediente_clinico.pl?id_paciente=<id>`).
-     - En el menú lateral o barra de pestañas, hacer clic en **Pestaña 11: Consentimientos Legales** (icono `bi-file-earmark-check`).
-     - Confirmar que se despliegan:
-       - Los 4 KPIs superiores: Total Documentos, Quirúrgicos, Procedimientos y Revocados.
-       - La tabla interactiva DataTables `#tablaConsentimientosHub` listando los documentos del paciente con badges de tipo, médico responsable y botones de inspección.
-  6. **Emisión de Consentimiento Independiente desde el Expediente**:
-     - En la Pestaña 11, hacer clic en el botón *"Nuevo Consentimiento"*.
-     - Constatar que se abre el modal `#modalNuevoConsentimientoExp`.
-     - Seleccionar el tipo de consentimiento, redactar detalles, dibujar firma táctil y presionar *"Guardar Consentimiento"*.
-     - Verificar que el modal se cierra, la tabla se recarga vía AJAX (`api/consentimientos_api.pl?action=list`) y el nuevo documento aparece registrado sin necesidad de abrir una consulta SOAP.
+     - Constatar que el contenedor `#seccion-consentimiento-container` se contrae automáticamente y despliega el aviso informativo: *"Documentación Legal Inhabilitada para esta Consulta - Has indicado en el Paso 0 que esta consulta prescinde de consentimientos legales..."*.
+     - Confirmar que el botón *"Habilitar Documentación Legal para esta Consulta"* reactiva inmediatamente el bloque si el médico lo decide.
+  3. **Tabla Dinámica de Consentimientos en Paso 5 (`USO_CONSULTA`)**:
+     - Con el switch en `ON`, verificar que el Paso 5 renderiza la tabla interactiva `#tablaConsentimientosWizard` filtrada exclusivamente por `ambito=USO_CONSULTA`.
+     - Constatar que cada renglón muestra:
+       - Folio y Tipo de Consentimiento.
+       - Diagnóstico y Procedimiento.
+       - Fecha de emisión y Médico firmante.
+       - **Semáforo de Uso**: 🟢 *Utilizado* (si ya fue consumido en una consulta cerrada) o 🟡 *Disponible* (listo para vincular).
+       - Botón de Acción: *"Vincular a esta Consulta"* (guarda el `id_consentimiento` en `#id_consentimiento_vinculado`).
+  4. **Emisión In Situ desde Wizard con Modal Compacto**:
+     - En Paso 5, pulsar el botón `+ Emitir Nuevo Consentimiento`.
+     - Constatar que abre el modal compacto `#modalNuevoConsentimientoWizard` con diseño ergonómico de 640px y sin scroll vertical estorboso.
+     - Firmar en el pad táctil con trazo fluido y presionar *"Firmar y Guardar Documento"*.
+     - Constatar que la petición viaja con `Content-Type: application/x-www-form-urlencoded`, respondiendo `200 OK` (cero errores 500 de CGI).
+     - Verificar que el nuevo consentimiento se añade automáticamente a la tabla con semáforo 🟡 *Disponible* y queda preseleccionado.
+  5. **Cierre de Consulta y Consumo Atómico de Semáforo**:
+     - Avanzar al cierre de consulta en `api/cerrar_consulta_privado.pl`.
+     - Constatar que el consentimiento vinculado transiciona atómicamente a `utilizado = 1` y almacena el `id_consulta`.
+  6. **Expediente Clínico (Pestaña 11) y Selector de Ámbito**:
+     - Abrir el Expediente Clínico del paciente (`views/render_expediente_clinico.pl?id_paciente=<id>#tab-11`).
+     - Hacer clic en el botón *"Nuevo Consentimiento"*.
+     - Verificar los radio-pills de ámbito:
+       - 🩺 **Uso en Consulta** (`USO_CONSULTA`): Orientado a procedimientos de consultorio.
+       - 🏥 **Uso en Quirófano** (`USO_QUIROFANO`): Orientado a cirugías mayores, sedaciones y anestesia.
+     - Registrar un consentimiento marcado con **Uso en Quirófano**.
+     - Comprobar que en la tabla `#tablaConsentimientosHub` se muestran las columnas de **Ámbito** y **Semáforo** (🟢 Utilizado / 🟡 Disponible).
+  7. **Inspección de Semáforo Quirúrgico en Quirófano Kanban**:
+     - Abrir el Tablero Quirófano Kanban (`views/quirofano_kanban.pl`).
+     - Hacer clic en una cirugía del paciente para abrir la **Ficha Rápida** (`#modalDetalleCirugia`).
+     - Constatar que el bloque *"Consentimiento Quirúrgico (NOM-004)"* consulta asíncronamente los consentimientos con `ambito=USO_QUIROFANO`:
+       - Si existe firmado: muestra badge 🟢 *Firmado (NOM-004)* + Semáforo de Sala (🟢 *Utilizado* o 🟡 *Disponible*) y botón *"Ver Doc"*.
+       - Si falta firma: muestra badge 🟡 *Pendiente de Firma* con botón de enlace directo al expediente.
+       - Si no existe: muestra badge 🔴 *Sin Consentimiento Qx* con botón *"Emitir"*.
+     - Al presionar *"Ver Doc"*, se despliega el resumen con diagnóstico, procedimiento y firmas gráficas autenticadas.
 * **Resultado Esperado**:
-  - Cero fricción en consultas de rutina cuando no se requiere documentación legal.
-  - Sincronización reactiva e inmediata entre Paso 0 y Paso 5.
-  - Almacenamiento seguro, auditable y desacoplado en repositorio atómico JSON.
-  - Trazabilidad y gobernanza legal 100% visible desde el expediente clínico y el Hub de Consultas.
+  - Trazabilidad legal 100% clara y diferenciada entre la consulta externa y el quirófano.
+  - Semáforos visuales (🟢 / 🟡 / 🔴) que impiden operar sin consentimiento previo firmado.
+  - Modales compactos de alto contraste con firma táctil sensible y cero desbordamientos.
+  - Comunicación HTTP fluida y robusta sin fallas de tamaño o cortes de socket CGI en Apache.
 
 ---
 

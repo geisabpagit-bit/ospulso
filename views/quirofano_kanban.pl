@@ -501,6 +501,18 @@ print <<"HTML";
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-bold" id="mdl_horario"></span>
                                 </div>
                             </div>
+                            <!-- Semáforo Consentimiento Quirúrgico (NOM-004) -->
+                            <div class="mb-2 p-2.5 rounded-3 border" id="mdl_box_consentimiento" style="background: #f8fafc;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="text-muted small d-block fw-bold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;">Consentimiento Quirúrgico (NOM-004)</span>
+                                        <div id="mdl_semaforo_cons" class="mt-1 d-flex align-items-center gap-1.5 flex-wrap">
+                                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-0.5"><i class="bi bi-hourglass-split me-1"></i> Consultando...</span>
+                                        </div>
+                                    </div>
+                                    <div id="mdl_cons_acciones"></div>
+                                </div>
+                            </div>
                             <div class="mb-2">
                                 <span class="text-muted small d-block">Notas Clínicas / Indicaciones:</span>
                                 <p class="small text-muted bg-light p-2 rounded border mb-0" id="mdl_notas">Sin notas registradas</p>
@@ -824,8 +836,65 @@ print <<'JS';
 
         if (c.id_paciente) {
             $('#mdl_btn_expediente').attr('href', `render_expediente_clinico.pl?id_paciente=${encodeURIComponent(c.id_paciente)}`).show();
+            
+            // Consultar semáforo de consentimiento para quirófano (NOM-004)
+            $('#mdl_box_consentimiento').show();
+            $('#mdl_semaforo_cons').html('<span class="badge bg-secondary-subtle text-secondary border px-2 py-0.5"><i class="bi bi-hourglass-split me-1"></i>Verificando...</span>');
+            $('#mdl_cons_acciones').html('');
+
+            fetch(`../api/consentimientos_api.pl?accion=list&id_paciente=${encodeURIComponent(c.id_paciente)}&ambito=USO_QUIROFANO`)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok && res.consentimientos && res.consentimientos.length > 0) {
+                        const vinculado = res.consentimientos.find(cs => String(cs.id_cirugia) === String(idCirugia)) || res.consentimientos[0];
+                        const estaFirmado = vinculado.firmas && vinculado.firmas.paciente;
+                        const estaUtilizado = (vinculado.utilizado == 1 || vinculado.utilizado === '1');
+
+                        if (estaFirmado) {
+                            $('#mdl_semaforo_cons').html(`
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 fw-bold">
+                                    <i class="bi bi-shield-check me-1"></i> 🟢 Firmado (NOM-004)
+                                </span>
+                                <span class="badge ${estaUtilizado ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-warning-subtle text-dark border border-warning-subtle'}">
+                                    ${estaUtilizado ? 'Utilizado / Vinculado' : 'Disponible'}
+                                </span>
+                            `);
+                            $('#mdl_cons_acciones').html(`
+                                <button type="button" class="btn btn-sm btn-outline-success fw-semibold" onclick="verConsentimientoQuirurgico('${c.id_paciente}', '${vinculado.id_consentimiento}')">
+                                    <i class="bi bi-file-earmark-check me-1"></i>Ver Doc
+                                </button>
+                            `);
+                        } else {
+                            $('#mdl_semaforo_cons').html(`
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-0.5 fw-bold">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> 🟡 Pendiente de Firma
+                                </span>
+                            `);
+                            $('#mdl_cons_acciones').html(`
+                                <a href="render_expediente_clinico.pl?id_paciente=${encodeURIComponent(c.id_paciente)}#tab-11" target="_blank" class="btn btn-sm btn-outline-warning fw-semibold">
+                                    <i class="bi bi-pen me-1"></i>Firmar
+                                </a>
+                            `);
+                        }
+                    } else {
+                        $('#mdl_semaforo_cons').html(`
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 fw-bold">
+                                <i class="bi bi-shield-x me-1"></i> 🔴 Sin Consentimiento Qx
+                            </span>
+                        `);
+                        $('#mdl_cons_acciones').html(`
+                            <a href="render_expediente_clinico.pl?id_paciente=${encodeURIComponent(c.id_paciente)}#tab-11" target="_blank" class="btn btn-sm btn-outline-danger fw-semibold">
+                                <i class="bi bi-plus-circle me-1"></i>Emitir
+                            </a>
+                        `);
+                    }
+                })
+                .catch(err => {
+                    $('#mdl_semaforo_cons').html('<span class="badge bg-secondary text-white">No disponible</span>');
+                });
         } else {
             $('#mdl_btn_expediente').hide();
+            $('#mdl_box_consentimiento').hide();
         }
 
         // Renderizar transiciones de estado
@@ -855,6 +924,62 @@ print <<'JS';
         const modalEl = document.getElementById('modalDetalleCirugia');
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
+    }
+
+    async function verConsentimientoQuirurgico(idPaciente, idConsentimiento) {
+        try {
+            const res = await fetch(`../api/consentimientos_api.pl?accion=get&id_paciente=${encodeURIComponent(idPaciente)}&id_consentimiento=${encodeURIComponent(idConsentimiento)}`);
+            const d = await res.json();
+            if (!d.ok || !d.consentimiento) {
+                Swal.fire({ icon: 'error', title: 'Error', text: d.msg || 'No se pudo cargar el consentimiento' });
+                return;
+            }
+            const c = d.consentimiento;
+            const tieneFirmaPac = c.firmas && c.firmas.paciente;
+            const tieneFirmaMed = c.firmas && c.firmas.medico;
+
+            Swal.fire({
+                title: `<span class="fs-6 fw-bold text-navy"><i class="bi bi-shield-check text-success me-1"></i> Consentimiento Quirúrgico (NOM-004)</span>`,
+                html: `
+                    <div class="text-start small p-2">
+                        <div class="d-flex justify-content-between mb-2 border-bottom pb-1">
+                            <span class="badge bg-primary-subtle text-primary border">Folio: ${c.folio_formato || c.id_consentimiento}</span>
+                            <span class="badge ${c.utilizado == 1 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-dark border border-warning-subtle'}">
+                                ${c.utilizado == 1 ? '🟢 Utilizado' : '🟡 Disponible'}
+                            </span>
+                        </div>
+                        <div class="mb-2">
+                            <strong class="text-secondary d-block">Procedimiento Propuesto:</strong>
+                            <div class="fw-bold text-dark">${c.procedimiento_propuesto || 'No especificado'}</div>
+                        </div>
+                        <div class="mb-2">
+                            <strong class="text-secondary d-block">Diagnóstico:</strong>
+                            <div>${c.diagnostico || 'No especificado'}</div>
+                        </div>
+                        <div class="mb-2">
+                            <strong class="text-secondary d-block">Riesgos y Beneficios:</strong>
+                            <div class="text-muted fst-italic bg-light p-2 rounded border">${c.riesgos_beneficios || 'No especificado'}</div>
+                        </div>
+                        <div class="row g-2 pt-2 border-top text-center">
+                            <div class="col-6">
+                                <span class="d-block small text-muted">Firma Paciente:</span>
+                                ${tieneFirmaPac ? `<img src="${c.firmas.paciente}" style="max-height: 48px; max-width: 100%;" class="border rounded bg-white p-1" />` : '<span class="text-danger">Pendiente</span>'}
+                            </div>
+                            <div class="col-6">
+                                <span class="d-block small text-muted">Firma Médico:</span>
+                                ${tieneFirmaMed ? `<img src="${c.firmas.medico}" style="max-height: 48px; max-width: 100%;" class="border rounded bg-white p-1" />` : '<span class="text-muted">En expediente</span>'}
+                            </div>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'Cerrar',
+                customClass: {
+                    popup: 'rounded-4 shadow-lg'
+                }
+            });
+        } catch(e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Falla al recuperar documento legal' });
+        }
     }
 
     async function cambiarEstadoDesdeModal(idCirugia, nuevoEstado) {
