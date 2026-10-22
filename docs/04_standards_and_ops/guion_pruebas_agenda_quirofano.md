@@ -1,7 +1,7 @@
 # 📋 Guion Maestro de Pruebas: Agenda Central y Quirófano Kanban
 
 > **Ubicación Canónica**: `docs/04_standards_and_ops/guion_pruebas_agenda_quirofano.md`  
-> **Versión**: `1.5.0` (Actualizado: 2026-10-21)  
+> **Versión**: `1.6.0` (Actualizado: 2026-10-21)  
 > **Estado**: Activo / Reutilizable  
 > **Área**: Agenda Médica, Quirófano, Expedientes y Multitenancy  
 
@@ -27,6 +27,7 @@
    - [Caso 12: Gobernanza de Consentimiento NOM-004, Semáforos de Ámbito (Consulta vs Quirófano) y Repositorio Atómico](#caso-12-gobernanza-de-consentimiento-nom-004-semáforos-de-ámbito-consulta-vs-quirófano-y-repositorio-atómico)
    - [Caso 13: Checklist Preoperatorio OMS, Conteo de Seguridad y Nota Quirúrgica NOM-004 con Criterios Aldrete](#caso-13-checklist-preoperatorio-oms-conteo-de-seguridad-y-nota-quirúrgica-nom-004-con-criterios-aldrete)
    - [Caso 14: Pre-Liquidación Quirúrgica Automatizada e Inyección de Cargo a Estado de Cuenta para Cobro en Caja](#caso-14-pre-liquidación-quirúrgica-automatizada-e-inyección-de-cargo-a-estado-de-cuenta-para-cobro-en-caja)
+   - [Caso 15: Trazabilidad Quirúrgica en Expediente Clínico y Formato Imprimible de Nota Quirúrgica NOM-004](#caso-15-trazabilidad-quirúrgica-en-expediente-clínico-y-formato-imprimible-de-nota-quirúrgica-nom-004)
 5. [Protocolo de Actualización Obligatoria](#5-protocolo-de-actualización-obligatoria)
 6. [Criterios de Aceptación (Definición de Terminado)](#6-criterios-de-aceptación-definición-de-terminado)
 
@@ -476,11 +477,56 @@ graph TD
 
 ---
 
+### Caso 15: Trazabilidad Quirúrgica en Expediente Clínico y Formato Imprimible de Nota Quirúrgica NOM-004
+
+* **Objetivo**: Asegurar la continuidad asistencial del paciente integrando el historial quirúrgico completo en el Expediente Clínico ([views/render_expediente_clinico.pl](file:///c:/xampp/htdocs/ospulso/views/render_expediente_clinico.pl)#tab12) y facilitando la exportación/impresión inmediata de la Hoja Quirúrgica Oficial según la NOM-004-SSA3-2012 y NOM-006-SSA3-2011 ([views/imprimir_nota_quirurgica.pl](file:///c:/xampp/htdocs/ospulso/views/imprimir_nota_quirurgica.pl)).
+* **Componentes Involucrados**:
+  - [views/render_expediente_clinico.pl](file:///c:/xampp/htdocs/ospulso/views/render_expediente_clinico.pl) (`#tab12`)
+  - [views/imprimir_nota_quirurgica.pl](file:///c:/xampp/htdocs/ospulso/views/imprimir_nota_quirurgica.pl)
+  - [views/quirofano_kanban.pl](file:///c:/xampp/htdocs/ospulso/views/quirofano_kanban.pl)
+  - [utils/sub_sidebar.pl](file:///c:/xampp/htdocs/ospulso/utils/sub_sidebar.pl)
+  - [api/quirofano_crud.pl](file:///c:/xampp/htdocs/ospulso/api/quirofano_crud.pl)
+* **Pasos de Ejecución**:
+  1. **Navegación al Expediente del Paciente**:
+     - Abrir el Expediente Clínico de un paciente con cirugías previas (`views/render_expediente_clinico.pl?id=6`).
+     - Localizar en el menú lateral de la sección Expediente la opción: **Quirófano & Cirugías** (`tab12`).
+     - Hacer clic en el enlace y constatar la transición reactiva a la pestaña `#tab12`.
+  2. **Inspección de KPIs e Historial Quirúrgico**:
+     - Verificar que los contadores superiores computen: `Total de Cirugías`, `Cirugías Realizadas / Alta` y `En Programación / Activas`.
+     - Constatar que la tabla `#tablaCirugiasExpediente` lista las cirugías del paciente con:
+       - Folio QX
+       - Fecha y Horario
+       - Procedimiento Quirúrgico y notas
+       - Sala de operaciones asignada
+       - Cirujano titular y Anestesiólogo
+       - Badge semafórico de estado (`Programada`, `Pre-Op`, `En Sala Qx`, `En UCPA`, `Concluida`)
+  3. **Impresión de Nota Quirúrgica NOM-004 desde Expediente**:
+     - En la columna de Acciones de la tabla, hacer clic en el botón `🖨️` (*Imprimir Nota Quirúrgica NOM-004*).
+     - Comprobar que se abre una nueva pestaña con `views/imprimir_nota_quirurgica.pl?id_cirugia=<id>`.
+     - Validar que el formato imprimible incluye:
+       - Membrete formal con nombre de clínica y CLUE.
+       - Datos del paciente (CURP, edad, sexo, sangre, alergias).
+       - Equipo quirúrgico completo (Cirujano, Ayudante, Anestesiólogo, Instrumentista, Circulante).
+       - Protocolo Safe Surgery OMS verificado y tiempos de sala.
+       - Técnica quirúrgica detallada, hallazgos, sangrado y patología.
+       - Criterios de Aldrete UCPA (puntaje sobre 10) y estatus de alta.
+       - Espacios de firmas oficiales para Cirujano y Anestesiólogo.
+  4. **Impresión Directa desde el Tablero Quirófano Kanban**:
+     - En `views/quirofano_kanban.pl`, abrir el modal de una cirugía y navegar a la pestaña **3. Nota Quirúrgica & UCPA**.
+     - Comprobar la presencia del botón `🖨️ Imprimir Nota NOM-004`.
+     - Hacer clic y verificar que carga la hoja de impresión con los datos actualizados de la intervención.
+* **Resultado Esperado**:
+  - El expediente clínico ofrece un registro histórico completo y unificado de todas las intervenciones del paciente.
+  - Cero desconexión entre la sala de quirófano y el archivo clínico central.
+  - Generación instantánea de notas médicas legales listas para firma física, auditoría o archivo digital.
+
+---
+
 ## 5. Protocolo de Actualización Obligatoria
 
 Cada vez que un desarrollador o agente realice una modificación a la Agenda, Expedientes o Quirófano:
 1. **Identificar el Alcance**: ¿Afecta datos (`dat/`), backend (`api/`), vistas (`views/`) o scripts de cliente (`js/`)?
-2. **Revisar Casos Afectados**: Consultar los Casos 1 al 14 y verificar si la nueva funcionalidad requiere modificar los pasos o añadir un Caso 15+.
+2. **Revisar Casos Afectados**: Consultar los Casos 1 al 15 y verificar si la nueva funcionalidad requiere modificar los pasos o añadir un Caso 16+.
 3. **Actualizar el Documento**: Registrar los cambios directamente en este archivo respetando la estructura jerárquica y el índice de contenidos.
 4. **Verificación de Sintaxis y Ejecución**: Ejecutar validaciones automáticas (`perl -cw`, pruebas de API).
 5. **Sincronización Git**: Confirmar los cambios junto con el código (`git add .`, `git commit`, `git push origin main`).
@@ -503,6 +549,9 @@ Cada vez que un desarrollador o agente realice una modificación a la Agenda, Ex
 - [x] Checklist Preoperatorio OMS de 8 puntos integrado en el Modal del Tablero Kanban (`views/quirofano_kanban.pl`).
 - [x] Registro Transoperatorio y Nota Quirúrgica NOM-004-SSA3-2012 con Criterios Aldrete UCPA y cálculo reactivo de aptitud de alta.
 - [x] Pre-liquidación quirúrgica dinámica conectada al estado de cuenta del paciente (`dat/estado_cuenta.dat`) para cobro en Caja.
+- [x] Pestaña `tab12` (Quirófano & Cirugías) en Expediente Clínico (`render_expediente_clinico.pl`) con KPIs e historial de intervenciones del paciente.
+- [x] Formato oficial de impresión de Nota Quirúrgica y Hoja Transoperatoria NOM-004-SSA3-2012 (`imprimir_nota_quirurgica.pl`) accesible desde Expediente y Kanban.
 - [x] Ausencia de llamados a `utils/sub_footer.pl` en los archivos creados o refactorizados.
 - [x] Documentación registrada en la Capa 1 y 4 (`docs/01_architecture/` y `docs/04_standards_and_ops/`) y enlazada canónicamente.
+
 

@@ -168,3 +168,25 @@ Para evitar la saturación del archivo plano `dat/quirofano.dat` y garantizar la
 Al accionar *"Enviar a Caja"*, el backend valida que la cirugía no haya sido transferida con anterioridad para evitar doble facturación y escribe un registro canónico con formato:
 `ID_TRANSACCION|ID_MOVIMIENTO|ID_PACIENTE|Cargo|Servicios Quirúrgicos: <procedimiento>|<monto_total>|0|<monto_total>|<fecha>|<id_medico>|Cirugía #<id_cirugia> | Sala: <sala> | Insumos y Sala Qx|<nombre_paciente>`
 Este movimiento queda disponible de inmediato en `views/finanzas.pl` y el Módulo de Caja para su emisión de recibo o factura con folio formal.
+
+---
+
+## 7. Cierre de Bucle Clínico: Expediente del Paciente y Formato Oficial Imprimible NOM-004
+
+### 7.1 Pestaña de Quirófano en el Expediente Clínico (`views/render_expediente_clinico.pl#tab12`)
+Para cerrar la brecha de visibilidad histórica, el Expediente Clínico integra la pestaña `tab12` (**Procedimientos Quirúrgicos & Quirófano**):
+- **Sincronización Asíncrona**: Consulta `api/quirofano_crud.pl?action=read&id_paciente=<id>`.
+- **KPIs Quirúrgicos**: Total de cirugías, realizadas/alta y cirugías activas en programación.
+- **Acceso Bidireccional**: Enlace directo para visualizar la intervención activa en el Tablero Kanban (`views/quirofano_kanban.pl`) e impresión de la Nota Quirúrgica oficial.
+
+### 7.2 Formato Imprimible de Nota Quirúrgica NOM-004-SSA3-2012 (`views/imprimir_nota_quirurgica.pl`)
+Vista médica legal diseñada para archivo físico o exportación a PDF, que incluye:
+1. Membrete oficial con nombre de la clínica, CLUE, folio de cirugía, sala y fecha/hora.
+2. Identificación del paciente: Nombre, expediente, edad, sexo, CURP, grupo sanguíneo y alergias.
+3. Equipo quirúrgico completo: Cirujano, Primer Ayudante, Anestesiólogo, Instrumentista y Circulante.
+4. Protocolo de Cirugía Segura OMS y cronología transoperatoria (ingreso sala, incisión, cierre, salida).
+5. Conteo al 100% de gasas, compresas e instrumental quirúrgico con reporte de incidentes.
+6. Nota Quirúrgica NOM-004 con técnica detallada, hallazgos, sangrado cuantificado (ml) y patología.
+7. Criterios de Recuperación Post-Anestésica UCPA (Escala de Aldrete de 0 a 10 puntos) con dictamen de egreso.
+8. Espacios reglamentarios de firma y cédula profesional para Cirujano Titular y Médico Anestesiólogo.
+

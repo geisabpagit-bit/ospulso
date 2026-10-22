@@ -337,6 +337,14 @@ HTML
             }, 60);
         }
 
+        if (id === 'tab12') {
+            setTimeout(() => {
+                if (typeof cargarCirugiasExpediente === 'function') {
+                    cargarCirugiasExpediente();
+                }
+            }, 60);
+        }
+
         if(b && b.classList.contains('sub-link')){
             window.scrollTo({ top: 0, behavior: 'smooth' });
             const mainContent = document.querySelector('.sdm-main-content');
@@ -1409,6 +1417,77 @@ HTML
                                 <td colspan="8" class="text-center py-4 text-muted">
                                     <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
                                     Cargando repositorio de consentimientos...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 12: HISTORIAL QUIRÚRGICO Y QUIRÓFANO (NOM-004-SSA3 / NOM-006-SSA3) -->
+        <section class="sdm-tab-sec d-none" id="tab12">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h3 class="fw-black m-0 text-navy d-flex align-items-center gap-2">
+                        <i class="bi bi-heart-pulse-fill text-danger"></i>
+                        Procedimientos Quirúrgicos & Quirófano
+                    </h3>
+                    <p class="text-muted small fw-bold mb-0">EXPEDIENTE DE CIRUGÍAS, NOTAS QUIRÚRGICAS NOM-004 Y PROTOCOLOS OMS</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-xs d-flex align-items-center" onclick="cargarCirugiasExpediente()">
+                        <i class="bi bi-arrow-clockwise me-1.5"></i> Actualizar
+                    </button>
+                    <a href="quirofano_kanban.pl" class="btn btn-sm btn-primary rounded-pill px-3.5 shadow-sm fw-bold d-flex align-items-center">
+                        <i class="bi bi-kanban me-1.5"></i> Tablero Quirófano Kanban
+                    </a>
+                </div>
+            </div>
+
+            <!-- KPIs Quirúrgicos del Paciente -->
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-sm-4">
+                    <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100" style="border-left: 4px solid #0A2A66 !important;">
+                        <span class="text-muted small fw-bold d-block mb-1">Total de Cirugías</span>
+                        <h4 class="fw-bold mb-0 text-dark" id="kpi-qx-total">0</h4>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-4">
+                    <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100" style="border-left: 4px solid #10b981 !important;">
+                        <span class="text-muted small fw-bold d-block mb-1">Cirugías Realizadas / Alta</span>
+                        <h4 class="fw-bold mb-0 text-success" id="kpi-qx-concluidas">0</h4>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-4">
+                    <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100" style="border-left: 4px solid #f59e0b !important;">
+                        <span class="text-muted small fw-bold d-block mb-1">En Programación / Activas</span>
+                        <h4 class="fw-bold mb-0 text-warning" id="kpi-qx-activas">0</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Historial Quirúrgico -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 p-md-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle w-100" id="tablaCirugiasExpediente">
+                        <thead class="table-light">
+                            <tr class="text-secondary small fw-bold">
+                                <th>FOLIO QX</th>
+                                <th>FECHA Y HORA</th>
+                                <th>PROCEDIMIENTO QUIRÚRGICO</th>
+                                <th>SALA</th>
+                                <th>CIRUJANO TITULAR</th>
+                                <th>ANESTESIÓLOGO</th>
+                                <th>ESTADO</th>
+                                <th class="text-end">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyCirugiasExpediente">
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                    Cargando historial quirúrgico...
                                 </td>
                             </tr>
                         </tbody>
@@ -3078,6 +3157,95 @@ HTML
         } catch (err) {
             console.error(err);
             if (window.Swal) Swal.fire('Error', 'Falla de red al conectar con el servidor', 'error');
+        }
+    }
+
+    async function cargarCirugiasExpediente() {
+        const tbody = document.getElementById('tbodyCirugiasExpediente');
+        if (!tbody) return;
+        const pacId = getPacienteIdConsentimientos();
+        if (!pacId) return;
+
+        try {
+            const res = await fetch(`../api/quirofano_crud.pl?action=read&id_paciente=${encodeURIComponent(pacId)}`);
+            const items = await res.json();
+
+            if (!Array.isArray(items) || items.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-heart-pulse fs-1 text-muted opacity-40 d-block mb-2"></i>
+                            <h6 class="fw-bold text-dark mb-1">Sin Procedimientos Quirúrgicos Registrados</h6>
+                            <p class="small text-muted mb-3" style="max-width: 480px; margin: 0 auto;">El paciente no tiene intervenciones en quirófano programadas ni concluidas.</p>
+                            <a href="quirofano_kanban.pl" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                                <i class="bi bi-kanban me-1"></i> Abrir Tablero Quirófano
+                            </a>
+                        </td>
+                    </tr>
+                `;
+                const kTot = document.getElementById('kpi-qx-total');
+                const kFin = document.getElementById('kpi-qx-concluidas');
+                const kAct = document.getElementById('kpi-qx-activas');
+                if (kTot) kTot.innerText = '0';
+                if (kFin) kFin.innerText = '0';
+                if (kAct) kAct.innerText = '0';
+                return;
+            }
+
+            let rowsHtml = '';
+            let concluidasCount = 0;
+            let activasCount = 0;
+
+            items.forEach(c => {
+                if (c.estado === 'Alta' || c.estado === 'Concluida') concluidasCount++;
+                else activasCount++;
+
+                let badgeEstado = '<span class="badge bg-secondary-subtle text-secondary border px-2.5 py-1 rounded-pill">Programada</span>';
+                if (c.estado === 'Pre-Operatorio') badgeEstado = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 rounded-pill fw-bold"><i class="bi bi-hourglass-split me-1"></i>Pre-Op</span>';
+                else if (c.estado === 'En Quirófano') badgeEstado = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill fw-bold"><i class="bi bi-heart-pulse-fill me-1"></i>En Sala Qx</span>';
+                else if (c.estado === 'Recuperación') badgeEstado = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill fw-bold"><i class="bi bi-bandaid me-1"></i>En UCPA</span>';
+                else if (c.estado === 'Alta' || c.estado === 'Concluida') badgeEstado = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Concluida</span>';
+
+                rowsHtml += `
+                    <tr>
+                        <td class="fw-bold font-monospace text-dark small">#${c.id_cirugia}</td>
+                        <td class="small">
+                            <div class="fw-semibold text-dark">${c.fecha || '--'}</div>
+                            <div class="text-muted fs-8">${c.hora || ''} hrs</div>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark small">${c.procedimiento || 'Procedimiento Quirúrgico'}</div>
+                            ${c.notas ? `<div class="text-muted fs-8 fst-italic">${c.notas}</div>` : ''}
+                        </td>
+                        <td><span class="badge bg-light text-dark border px-2 py-1 font-monospace small">${c.sala || 'Sala 1'}</span></td>
+                        <td class="small fw-semibold text-dark">${c.nombre_medico || 'Por asignar'}</td>
+                        <td class="small text-muted">${c.nombre_anestesio || 'Por asignar'}</td>
+                        <td>${badgeEstado}</td>
+                        <td class="text-end">
+                            <div class="d-flex align-items-center justify-content-end gap-1">
+                                <a href="imprimir_nota_quirurgica.pl?id_cirugia=${encodeURIComponent(c.id_cirugia)}" target="_blank" class="btn btn-sm btn-outline-dark rounded-circle shadow-xs" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Imprimir Nota Quirúrgica NOM-004">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                                <a href="quirofano_kanban.pl" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle shadow-xs" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Ver en Tablero Quirófano Kanban">
+                                    <i class="bi bi-kanban"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = rowsHtml;
+            const kTot = document.getElementById('kpi-qx-total');
+            const kFin = document.getElementById('kpi-qx-concluidas');
+            const kAct = document.getElementById('kpi-qx-activas');
+            if (kTot) kTot.innerText = items.length;
+            if (kFin) kFin.innerText = concluidasCount;
+            if (kAct) kAct.innerText = activasCount;
+
+        } catch(e) {
+            console.error('Error al cargar cirugías del paciente', e);
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger small">Falla al comunicar con el servidor para cargar el historial quirúrgico.</td></tr>';
         }
     }
 </script>

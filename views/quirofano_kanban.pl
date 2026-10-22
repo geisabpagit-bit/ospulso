@@ -788,7 +788,10 @@ print <<"HTML";
                                             </div>
                                         </div>
 
-                                        <div class="d-flex justify-content-end mt-2">
+                                        <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
+                                            <a href="#" target="_blank" id="btn_imprimir_nota_qx" class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3 shadow-xs">
+                                                <i class="bi bi-printer me-1"></i> Imprimir Nota NOM-004
+                                            </a>
                                             <button type="submit" class="btn btn-sm btn-primary fw-bold rounded-pill px-4">
                                                 <i class="bi bi-save me-1"></i> Guardar Nota Quirúrgica y Aldrete
                                             </button>
@@ -1280,6 +1283,7 @@ print <<'JS';
             $('#chk_id_cirugia').val(idCirugia);
             $('#nt_id_cirugia').val(idCirugia);
             $('#liq_id_cirugia').val(idCirugia);
+            $('#btn_imprimir_nota_qx').attr('href', `imprimir_nota_quirurgica.pl?id_cirugia=${encodeURIComponent(idCirugia)}`);
 
             const res = await fetch(`../api/quirofano_crud.pl?action=get_surgical_record&id_cirugia=${encodeURIComponent(idCirugia)}`);
             const d = await res.json();

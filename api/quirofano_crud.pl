@@ -71,6 +71,12 @@ if ($action eq 'read') {
             # Filtro por Organización
             next if ($c[1] ne $id_org && $id_org ne 'ORG-000');
             
+            # Filtro por Paciente
+            my $id_paciente_filtro = $q->param('id_paciente') || '';
+            if ($id_paciente_filtro) {
+                next if ($c[2] ne $id_paciente_filtro);
+            }
+
             # Filtro por Fecha (si se especifica fecha, filtrar exactamente por esa fecha; si es 'todas', no filtrar)
             if ($fecha_filtro && $fecha_filtro ne 'todas') {
                 next if ($c[4] ne $fecha_filtro);
