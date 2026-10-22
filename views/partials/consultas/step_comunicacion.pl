@@ -6,8 +6,8 @@ sub render_step_comunicacion {
     my ($paciente) = @_;
     my $id_p = $paciente ? ($paciente->{id_paciente} || '') : '';
 
-    return qq{
-        <div class="wizard-panel" id="step-panel-5">
+    my $html = qq{
+        <div class="wizard-panel" id="step-panel-5" data-id-paciente="$id_p">
             <h3 class="mb-4" style="color: var(--md-blue-deep); font-weight: 800;">
                 <i class="bi bi-chat-heart me-2" style="color: var(--md-teal-clinical);"></i>Comunicaci&oacute;n del Plan
             </h3>
@@ -213,282 +213,307 @@ sub render_step_comunicacion {
                     </div>
                 </div>
             </div>
+        </div>
+    };
 
-            <script>
-            let canvasWizPac, ctxWizPac, canvasWizMed, ctxWizMed;
-            let isDrawingWizPac = false, isDrawingWizMed = false;
+    my $js = <<'SCRIPT_JS';
+    <script>
+    (function() {
+        let canvasWizPac, ctxWizPac, canvasWizMed, ctxWizMed;
+        let isDrawingWizPac = false, isDrawingWizMed = false;
 
-            function obtenerIdPacienteWizard() {
-                const inp = document.querySelector('input[name="id_paciente"]');
-                return inp ? inp.value : '$id_p';
+        function obtenerIdPacienteWizard() {
+            const inp = document.querySelector('input[name="id_paciente"]');
+            if (inp && inp.value) return inp.value;
+            const panel = document.getElementById('step-panel-5');
+            return panel ? (panel.getAttribute('data-id-paciente') || '') : '';
+        }
+
+        function sincronizarConsentimientoDesdeRegistro(checked) {
+            const sec = document.getElementById('seccion-consentimiento-tabla');
+            const aviso = document.getElementById('aviso-consentimiento-inhabilitado');
+            const btnEmitir = document.getElementById('btn-emitir-cons-wizard');
+            const reqInp = document.getElementById('check_requiere_consentimiento');
+
+            if (reqInp) reqInp.value = checked ? '1' : '0';
+
+            if (checked) {
+                if (sec) sec.style.display = 'block';
+                if (aviso) aviso.style.display = 'none';
+                if (btnEmitir) btnEmitir.style.display = 'inline-flex';
+                cargarConsentimientosWizard();
+            } else {
+                if (sec) sec.style.display = 'none';
+                if (aviso) aviso.style.display = 'flex';
+                if (btnEmitir) btnEmitir.style.display = 'none';
+            }
+        }
+
+        function habilitarConsentimientoDesdePaso5() {
+            const chkReg = document.getElementById('check_requiere_consentimiento_registro');
+            if (chkReg) {
+                chkReg.checked = true;
+            }
+            sincronizarConsentimientoDesdeRegistro(true);
+        }
+
+        async function cargarConsentimientosWizard() {
+            const tbody = document.getElementById('tbodyConsentimientosWizard');
+            if (!tbody) return;
+            const pacId = obtenerIdPacienteWizard();
+            if (!pacId) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">ID de paciente no definido.</td></tr>';
+                return;
             }
 
-            function sincronizarConsentimientoDesdeRegistro(checked) {
-                const sec = document.getElementById('seccion-consentimiento-tabla');
-                const aviso = document.getElementById('aviso-consentimiento-inhabilitado');
-                const btnEmitir = document.getElementById('btn-emitir-cons-wizard');
-                const reqInp = document.getElementById('check_requiere_consentimiento');
+            try {
+                const res = await fetch('../api/consentimientos_api.pl?accion=list&ambito=USO_CONSULTA&id_paciente=' + encodeURIComponent(pacId));
+                const data = await res.json();
 
-                if (reqInp) reqInp.value = checked ? '1' : '0';
-
-                if (checked) {
-                    if (sec) sec.style.display = 'block';
-                    if (aviso) aviso.style.display = 'none';
-                    if (btnEmitir) btnEmitir.style.display = 'inline-flex';
-                    cargarConsentimientosWizard();
-                } else {
-                    if (sec) sec.style.display = 'none';
-                    if (aviso) aviso.style.display = 'flex';
-                    if (btnEmitir) btnEmitir.style.display = 'none';
-                }
-            }
-
-            function habilitarConsentimientoDesdePaso5() {
-                const chkReg = document.getElementById('check_requiere_consentimiento_registro');
-                if (chkReg) {
-                    chkReg.checked = true;
-                }
-                sincronizarConsentimientoDesdeRegistro(true);
-            }
-
-            async function cargarConsentimientosWizard() {
-                const tbody = document.getElementById('tbodyConsentimientosWizard');
-                if (!tbody) return;
-                const pacId = obtenerIdPacienteWizard();
-                if (!pacId) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">ID de paciente no definido.</td></tr>';
+                if (!data.ok || !Array.isArray(data.consentimientos) || data.consentimientos.length === 0) {
+                    tbody.innerHTML = '<tr>' +
+                        '<td colspan="6" class="text-center py-4 text-muted">' +
+                            '<i class="bi bi-file-earmark-check fs-2 text-muted opacity-40 d-block mb-1"></i>' +
+                            '<span class="fw-bold d-block text-dark">Sin consentimientos de consulta registrados</span>' +
+                            '<span class="small text-muted">El paciente no tiene documentos de ámbito consulta. Si amerita, emita uno nuevo con el botón superior.</span>' +
+                        '</td>' +
+                    '</tr>';
                     return;
                 }
 
-                try {
-                    const res = await fetch('../api/consentimientos_api.pl?accion=list&ambito=USO_CONSULTA&id_paciente=' + encodeURIComponent(pacId));
-                    const data = await res.json();
+                const items = data.consentimientos;
+                const vinInp = document.getElementById('id_consentimiento_vinculado');
+                const vinId = vinInp ? vinInp.value : '';
+                let rows = '';
 
-                    if (!data.ok || !Array.isArray(data.consentimientos) || data.consentimientos.length === 0) {
-                        tbody.innerHTML = '<tr>' +
-                            '<td colspan="6" class="text-center py-4 text-muted">' +
-                                '<i class="bi bi-file-earmark-check fs-2 text-muted opacity-40 d-block mb-1"></i>' +
-                                '<span class="fw-bold d-block text-dark">Sin consentimientos de consulta registrados</span>' +
-                                '<span class="small text-muted">El paciente no tiene documentos de ámbito consulta. Si amerita, emita uno nuevo con el botón superior.</span>' +
-                            '</td>' +
-                        '</tr>';
-                        return;
-                    }
+                items.forEach(function(c) {
+                    const esUtil = (c.utilizado == 1 || c.id_consulta || c.id_cirugia);
+                    const semaforoHtml = esUtil 
+                        ? '<span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1 fw-bold"><i class="bi bi-check-circle-fill me-1 text-success"></i>Utilizado</span>'
+                        : '<span class="badge bg-warning bg-opacity-15 text-warning-emphasis border border-warning border-opacity-25 rounded-pill px-2.5 py-1 fw-bold"><i class="bi bi-clock-history me-1 text-warning"></i>Disponible</span>';
 
-                    const items = data.consentimientos;
-                    const vinId = document.getElementById('id_consentimiento_vinculado')?.value || '';
-                    let rows = '';
+                    const esVinculado = (vinId && vinId === c.id_consentimiento);
+                    const rowClass = esVinculado ? 'table-primary border-primary' : '';
+                    const procEscaped = (c.procedimiento || 'Procedimiento').replace(/'/g, "\\'");
+                    const btnVincular = esVinculado 
+                        ? '<span class="badge bg-primary text-white rounded-pill px-3 py-1.5 fw-bold"><i class="bi bi-check-lg me-1"></i>Vinculado</span>'
+                        : '<button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 fw-bold" onclick="window.vincularConsentimiento(\'' + c.id_consentimiento + '\', \'' + procEscaped + '\')"><i class="bi bi-link-45deg me-1"></i>Vincular a Consulta</button>';
 
-                    items.forEach(function(c) {
-                        const esUtil = (c.utilizado == 1 || c.id_consulta || c.id_cirugia);
-                        const semaforoHtml = esUtil 
-                            ? '<span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1 fw-bold"><i class="bi bi-check-circle-fill me-1 text-success"></i>Utilizado</span>'
-                            : '<span class="badge bg-warning bg-opacity-15 text-warning-emphasis border border-warning border-opacity-25 rounded-pill px-2.5 py-1 fw-bold"><i class="bi bi-clock-history me-1 text-warning"></i>Disponible</span>';
+                    rows += '<tr class="' + rowClass + '">' +
+                        '<td class="font-monospace fw-bold text-dark">' + c.id_consentimiento + '</td>' +
+                        '<td><div class="fw-semibold text-dark">' + (c.fecha || '--') + '</div><div class="text-muted fs-8">' + (c.hora || '') + '</div></td>' +
+                        '<td><div class="fw-bold text-dark">' + (c.procedimiento || 'Procedimiento') + '</div><div class="text-muted fs-8 text-truncate" style="max-width: 220px;">' + (c.objetivo || '') + '</div></td>' +
+                        '<td class="text-muted small">' + (c.nombre_medico || 'Médico Asignado') + '</td>' +
+                        '<td>' + semaforoHtml + '</td>' +
+                        '<td class="text-end">' +
+                            '<div class="d-inline-flex gap-1.5 align-items-center">' +
+                                '<a href="../api/imprimir_consentimiento_api.pl?id_consentimiento=' + encodeURIComponent(c.id_consentimiento) + '&id_paciente=' + encodeURIComponent(pacId) + '" target="_blank" class="btn btn-xs btn-light border rounded-pill px-2 py-1" title="Ver / Imprimir"><i class="bi bi-file-pdf"></i></a>' +
+                                btnVincular +
+                            '</div>' +
+                        '</td>' +
+                    '</tr>';
+                });
 
-                        const esVinculado = (vinId && vinId === c.id_consentimiento);
-                        const rowClass = esVinculado ? 'table-primary border-primary' : '';
-                        const btnVincular = esVinculado 
-                            ? '<span class="badge bg-primary text-white rounded-pill px-3 py-1.5 fw-bold"><i class="bi bi-check-lg me-1"></i>Vinculado</span>'
-                            : '<button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 fw-bold" onclick="vincularConsentimiento(\'' + c.id_consentimiento + '\', \'' + (c.procedimiento || 'Procedimiento').replace(/'/g, '') + '\')"><i class="bi bi-link-45deg me-1"></i>Vincular a Consulta</button>';
+                tbody.innerHTML = rows;
 
-                        rows += '<tr class="' + rowClass + '">' +
-                            '<td class="font-monospace fw-bold text-dark">' + c.id_consentimiento + '</td>' +
-                            '<td><div class="fw-semibold text-dark">' + (c.fecha || '--') + '</div><div class="text-muted fs-8">' + (c.hora || '') + '</div></td>' +
-                            '<td><div class="fw-bold text-dark">' + (c.procedimiento || 'Procedimiento') + '</div><div class="text-muted fs-8 text-truncate" style="max-width: 220px;">' + (c.objetivo || '') + '</div></td>' +
-                            '<td class="text-muted small">' + (c.nombre_medico || 'Médico Asignado') + '</td>' +
-                            '<td>' + semaforoHtml + '</td>' +
-                            '<td class="text-end">' +
-                                '<div class="d-inline-flex gap-1.5 align-items-center">' +
-                                    '<a href="../api/imprimir_consentimiento_api.pl?id_consentimiento=' + encodeURIComponent(c.id_consentimiento) + '&id_paciente=' + encodeURIComponent(pacId) + '" target="_blank" class="btn btn-xs btn-light border rounded-pill px-2 py-1" title="Ver / Imprimir"><i class="bi bi-file-pdf"></i></a>' +
-                                    btnVincular +
-                                '</div>' +
-                            '</td>' +
-                        '</tr>';
-                    });
-
-                    tbody.innerHTML = rows;
-
-                } catch(e) {
-                    console.error("Error cargando consentimientos wizard", e);
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Falla al conectar con el repositorio.</td></tr>';
-                }
+            } catch(e) {
+                console.error("Error cargando consentimientos wizard", e);
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Falla al conectar con el repositorio.</td></tr>';
             }
+        }
 
-            function vincularConsentimiento(id_c, proc) {
-                const inp = document.getElementById('id_consentimiento_vinculado');
-                if (inp) inp.value = id_c;
-                const aviso = document.getElementById('aviso-consentimiento-seleccionado');
-                const txt = document.getElementById('txt-consentimiento-vinculado');
-                if (aviso && txt) {
-                    txt.innerText = 'Documento [' + id_c + '] vinculado a esta consulta (' + proc + ')';
-                    aviso.classList.remove('d-none');
-                    aviso.classList.add('d-flex');
-                }
-                cargarConsentimientosWizard();
-                if (window.Swal) {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: 'Consentimiento Vinculado',
-                        text: 'Folio: ' + id_c,
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                }
+        function vincularConsentimiento(id_c, proc) {
+            const inp = document.getElementById('id_consentimiento_vinculado');
+            if (inp) inp.value = id_c;
+            const aviso = document.getElementById('aviso-consentimiento-seleccionado');
+            const txt = document.getElementById('txt-consentimiento-vinculado');
+            if (aviso && txt) {
+                txt.innerText = 'Documento [' + id_c + '] vinculado a esta consulta (' + proc + ')';
+                aviso.classList.remove('d-none');
+                aviso.classList.add('d-flex');
             }
-
-            function desvincularConsentimiento() {
-                const inp = document.getElementById('id_consentimiento_vinculado');
-                if (inp) inp.value = '';
-                const aviso = document.getElementById('aviso-consentimiento-seleccionado');
-                if (aviso) {
-                    aviso.classList.add('d-none');
-                    aviso.classList.remove('d-flex');
-                }
-                cargarConsentimientosWizard();
+            cargarConsentimientosWizard();
+            if (window.Swal) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Consentimiento Vinculado',
+                    text: 'Folio: ' + id_c,
+                    showConfirmButton: false,
+                    timer: 2000
+                });
             }
+        }
 
-            function abrirModalNuevoConsentimientoWizard() {
-                const pacId = obtenerIdPacienteWizard();
-                const pacInp = document.getElementById('wiz_cons_id_paciente');
-                if (pacInp) pacInp.value = pacId;
-
-                const f = document.getElementById('formNuevoConsentimientoWizard');
-                if (f) f.reset();
-                limpiarCanvasWiz('paciente');
-                limpiarCanvasWiz('medico');
-
-                const modalEl = document.getElementById('modalNuevoConsentimientoWizard');
-                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                modal.show();
-
-                setTimeout(initCanvasWizFirmas, 250);
+        function desvincularConsentimiento() {
+            const inp = document.getElementById('id_consentimiento_vinculado');
+            if (inp) inp.value = '';
+            const aviso = document.getElementById('aviso-consentimiento-seleccionado');
+            if (aviso) {
+                aviso.classList.add('d-none');
+                aviso.classList.remove('d-flex');
             }
+            cargarConsentimientosWizard();
+        }
 
-            function initCanvasWizFirmas() {
-                canvasWizPac = document.getElementById('canvas-wiz-paciente');
-                if (canvasWizPac) {
-                    ctxWizPac = canvasWizPac.getContext('2d');
-                    bindCanvasWizEvents(canvasWizPac, ctxWizPac, 'paciente');
-                }
-                canvasWizMed = document.getElementById('canvas-wiz-medico');
-                if (canvasWizMed) {
-                    ctxWizMed = canvasWizMed.getContext('2d');
-                    bindCanvasWizEvents(canvasWizMed, ctxWizMed, 'medico');
-                }
+        function abrirModalNuevoConsentimientoWizard() {
+            const pacId = obtenerIdPacienteWizard();
+            const pacInp = document.getElementById('wiz_cons_id_paciente');
+            if (pacInp) pacInp.value = pacId;
+
+            const f = document.getElementById('formNuevoConsentimientoWizard');
+            if (f) f.reset();
+            limpiarCanvasWiz('paciente');
+            limpiarCanvasWiz('medico');
+
+            const modalEl = document.getElementById('modalNuevoConsentimientoWizard');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            setTimeout(initCanvasWizFirmas, 250);
+        }
+
+        function initCanvasWizFirmas() {
+            canvasWizPac = document.getElementById('canvas-wiz-paciente');
+            if (canvasWizPac) {
+                ctxWizPac = canvasWizPac.getContext('2d');
+                bindCanvasWizEvents(canvasWizPac, ctxWizPac, 'paciente');
             }
-
-            function bindCanvasWizEvents(canvas, ctx, tipo) {
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = '#0A2A66';
-                ctx.lineCap = 'round';
-
-                const getPos = (e) => {
-                    const rect = canvas.getBoundingClientRect();
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    return { x: clientX - rect.left, y: clientY - rect.top };
-                };
-
-                const start = (e) => {
-                    e.preventDefault();
-                    const pos = getPos(e);
-                    ctx.beginPath();
-                    ctx.moveTo(pos.x, pos.y);
-                    if (tipo === 'paciente') isDrawingWizPac = true; else isDrawingWizMed = true;
-                };
-
-                const move = (e) => {
-                    const drawing = (tipo === 'paciente') ? isDrawingWizPac : isDrawingWizMed;
-                    if (!drawing) return;
-                    e.preventDefault();
-                    const pos = getPos(e);
-                    ctx.lineTo(pos.x, pos.y);
-                    ctx.stroke();
-                };
-
-                const stop = () => {
-                    if (tipo === 'paciente') {
-                        isDrawingWizPac = false;
-                        document.getElementById('wiz_firma_paciente').value = canvas.toDataURL();
-                    } else {
-                        isDrawingWizMed = false;
-                        document.getElementById('wiz_firma_medico').value = canvas.toDataURL();
-                    }
-                };
-
-                canvas.onmousedown = start; canvas.onmousemove = move; window.onmouseup = stop;
-                canvas.ontouchstart = start; canvas.ontouchmove = move; window.ontouchend = stop;
+            canvasWizMed = document.getElementById('canvas-wiz-medico');
+            if (canvasWizMed) {
+                ctxWizMed = canvasWizMed.getContext('2d');
+                bindCanvasWizEvents(canvasWizMed, ctxWizMed, 'medico');
             }
+        }
 
-            function limpiarCanvasWiz(tipo) {
-                if (tipo === 'paciente' && canvasWizPac) {
-                    ctxWizPac.clearRect(0, 0, canvasWizPac.width, canvasWizPac.height);
-                    document.getElementById('wiz_firma_paciente').value = '';
-                } else if (tipo === 'medico' && canvasWizMed) {
-                    ctxWizMed.clearRect(0, 0, canvasWizMed.width, canvasWizMed.height);
-                    document.getElementById('wiz_firma_medico').value = '';
-                }
-            }
+        function bindCanvasWizEvents(canvas, ctx, tipo) {
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#0A2A66';
+            ctx.lineCap = 'round';
 
-            async function guardarNuevoConsentimientoWizard(e) {
+            const getPos = function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            };
+
+            const start = function(e) {
                 e.preventDefault();
-                const form = document.getElementById('formNuevoConsentimientoWizard');
-                const formData = new FormData(form);
-                formData.append('accion', 'save');
-                const searchParams = new URLSearchParams(formData);
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+                if (tipo === 'paciente') isDrawingWizPac = true; else isDrawingWizMed = true;
+            };
 
-                if (window.Swal) {
-                    Swal.fire({
-                        title: 'Sellando Consentimiento',
-                        text: 'Registrando firmas y archivando en expediente...',
-                        allowOutsideClick: false,
-                        didOpen: () => Swal.showLoading()
-                    });
+            const move = function(e) {
+                const drawing = (tipo === 'paciente') ? isDrawingWizPac : isDrawingWizMed;
+                if (!drawing) return;
+                e.preventDefault();
+                const pos = getPos(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            };
+
+            const stop = function() {
+                if (tipo === 'paciente') {
+                    isDrawingWizPac = false;
+                    const hiddenPac = document.getElementById('wiz_firma_paciente');
+                    if (hiddenPac) hiddenPac.value = canvas.toDataURL();
+                } else {
+                    isDrawingWizMed = false;
+                    const hiddenMed = document.getElementById('wiz_firma_medico');
+                    if (hiddenMed) hiddenMed.value = canvas.toDataURL();
                 }
+            };
 
-                try {
-                    const res = await fetch('../api/consentimientos_api.pl', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: searchParams
-                    });
-                    const data = await res.json();
+            canvas.onmousedown = start; canvas.onmousemove = move; window.onmouseup = stop;
+            canvas.ontouchstart = start; canvas.ontouchmove = move; window.ontouchend = stop;
+        }
 
-                    if (data.ok) {
-                        const modalEl = document.getElementById('modalNuevoConsentimientoWizard');
-                        const modal = bootstrap.Modal.getInstance(modalEl);
-                        if (modal) modal.hide();
+        function limpiarCanvasWiz(tipo) {
+            if (tipo === 'paciente' && canvasWizPac) {
+                ctxWizPac.clearRect(0, 0, canvasWizPac.width, canvasWizPac.height);
+                const hiddenPac = document.getElementById('wiz_firma_paciente');
+                if (hiddenPac) hiddenPac.value = '';
+            } else if (tipo === 'medico' && canvasWizMed) {
+                ctxWizMed.clearRect(0, 0, canvasWizMed.width, canvasWizMed.height);
+                const hiddenMed = document.getElementById('wiz_firma_medico');
+                if (hiddenMed) hiddenMed.value = '';
+            }
+        }
 
-                        vincularConsentimiento(data.id_consentimiento, data.consentimiento?.procedimiento || 'Procedimiento');
+        async function guardarNuevoConsentimientoWizard(e) {
+            e.preventDefault();
+            const form = document.getElementById('formNuevoConsentimientoWizard');
+            const formData = new FormData(form);
+            formData.append('accion', 'save');
+            const searchParams = new URLSearchParams(formData);
 
-                        if (window.Swal) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '¡Consentimiento Emitido!',
-                                text: 'Documento sellado y vinculado automáticamente a esta consulta.',
-                                timer: 2200,
-                                showConfirmButton: false
-                            });
-                        }
-                    } else {
-                        if (window.Swal) Swal.fire('Error', data.error || 'No se pudo guardar', 'warning');
-                        else alert(data.error || 'Error al guardar');
-                    }
-                } catch(err) {
-                    console.error(err);
-                    if (window.Swal) Swal.fire('Error', 'Falla de red al conectar con el servidor', 'error');
-                }
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'Sellando Consentimiento',
+                    text: 'Registrando firmas y archivando en expediente...',
+                    allowOutsideClick: false,
+                    didOpen: function() { Swal.showLoading(); }
+                });
             }
 
-            document.addEventListener('DOMContentLoaded', function() {
-                const chkReg = document.getElementById('check_requiere_consentimiento_registro');
-                const checked = chkReg ? chkReg.checked : true;
-                sincronizarConsentimientoDesdeRegistro(checked);
-            });
-            </script>
-        </div>
-    };
+            try {
+                const res = await fetch('../api/consentimientos_api.pl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: searchParams
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    const modalEl = document.getElementById('modalNuevoConsentimientoWizard');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+
+                    const procNombre = (data.consentimiento && data.consentimiento.procedimiento) ? data.consentimiento.procedimiento : 'Procedimiento';
+                    vincularConsentimiento(data.id_consentimiento, procNombre);
+
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Consentimiento Emitido!',
+                            text: 'Documento sellado y vinculado automáticamente a esta consulta.',
+                            timer: 2200,
+                            showConfirmButton: false
+                        });
+                    }
+                } else {
+                    if (window.Swal) Swal.fire('Error', data.error || 'No se pudo guardar', 'warning');
+                    else alert(data.error || 'Error al guardar');
+                }
+            } catch(err) {
+                console.error(err);
+                if (window.Swal) Swal.fire('Error', 'Falla de red al conectar con el servidor', 'error');
+            }
+        }
+
+        // Exponer globalmente para bindings HTML (onclick, onchange)
+        window.sincronizarConsentimientoDesdeRegistro = sincronizarConsentimientoDesdeRegistro;
+        window.habilitarConsentimientoDesdePaso5 = habilitarConsentimientoDesdePaso5;
+        window.abrirModalNuevoConsentimientoWizard = abrirModalNuevoConsentimientoWizard;
+        window.vincularConsentimiento = vincularConsentimiento;
+        window.desvincularConsentimiento = desvincularConsentimiento;
+        window.limpiarCanvasWiz = limpiarCanvasWiz;
+        window.guardarNuevoConsentimientoWizard = guardarNuevoConsentimientoWizard;
+        window.cargarConsentimientosWizard = cargarConsentimientosWizard;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const chkReg = document.getElementById('check_requiere_consentimiento_registro');
+            const checked = chkReg ? chkReg.checked : true;
+            sincronizarConsentimientoDesdeRegistro(checked);
+        });
+    })();
+    </script>
+SCRIPT_JS
+
+    return $html . $js;
 }
 1;
