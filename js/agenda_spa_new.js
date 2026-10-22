@@ -615,6 +615,71 @@ function renderSmartSlots(date) {
     }, 150);
 }
 
+/**
+ * Formateo legible de fecha en español (ej. 22 Oct 2026)
+ */
+function formatFechaLegibleEspanol(fechaIso) {
+    if (!fechaIso) return '';
+    const partes = fechaIso.split('-');
+    if (partes.length < 3) return fechaIso;
+    const y = partes[0];
+    const m = parseInt(partes[1], 10);
+    const d = parseInt(partes[2], 10);
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const mesNombre = meses[m - 1] || partes[1];
+    return `${d} ${mesNombre} ${y}`;
+}
+
+/**
+ * Resalta en el título del modal la fecha y hora de inicio de la cita,
+ * y en la duración estimada muestra con color suave amarillo avena el bloqueo del horario aproximado.
+ */
+function actualizarResaltadoModalCita(fecha, hi, hf, label) {
+    const fechaTexto = formatFechaLegibleEspanol(fecha);
+    const horaTexto = hi ? `${hi} hrs` : '--:--';
+    const rangoTexto = (hi && hf) ? `${hi} - ${hf} hrs` : (hi ? `${hi} hrs` : '');
+    
+    let durMin = 30;
+    if (hi && hf) {
+        const [h1, m1] = hi.split(':').map(Number);
+        const [h2, m2] = hf.split(':').map(Number);
+        durMin = (h2 * 60 + m2) - (h1 * 60 + m1);
+        if (isNaN(durMin) || durMin <= 0) durMin = 30;
+    }
+    
+    // 1. Resaltar en el título del modal la fecha y hora de inicio
+    const etiqueta = label || 'GESTIÓN DE CITAS';
+    let badgeTitulo = '';
+    if (fecha || hi) {
+        badgeTitulo = `
+            <span class="badge badge-avena-highlight shadow-sm ms-2" style="font-size: 0.82rem; font-weight: 700; padding: 0.28rem 0.65rem; border-radius: 20px; letter-spacing: 0.2px;">
+                <i class="bi bi-calendar3 me-1"></i>${fechaTexto} &bull; <i class="bi bi-clock-fill ms-1 me-1" style="color: #B45309;"></i>${horaTexto}
+            </span>
+        `;
+    }
+    $("#modalCitaTitle").html(`<span class="fw-semibold">${etiqueta}</span>${badgeTitulo}`);
+
+    // 2. En la Duración Estimada: Mostrar con color suave amarillo avena el bloqueo del horario aproximado
+    const $bloqueo = $("#bloqueo-horario-avena");
+    if ($bloqueo.length) {
+        if (hi && hf) {
+            $("#bloqueo-horario-rango").html(`<i class="bi bi-clock me-1"></i>${rangoTexto} (${durMin} min)`);
+            $("#bloqueo-horario-detalle").text(`Aprox. ${durMin} min bloqueados`);
+            $bloqueo.removeClass('d-none');
+        } else {
+            $bloqueo.addClass('d-none');
+        }
+    }
+
+    // 3. Resaltar en el selector de duración el botón correspondiente en tono amarillo avena
+    $(".btn-dur").removeClass('dur-avena-active');
+    const $matchingBtn = $(`.btn-dur[data-v="${durMin}"]`);
+    if ($matchingBtn.length) {
+        $(".btn-dur").removeClass('active');
+        $matchingBtn.addClass('active dur-avena-active');
+    }
+}
+
 $(document).ready(function() {
     initClock();
     loadFormMetadata();
@@ -626,7 +691,7 @@ $(document).ready(function() {
 
     // Selector Duración (Diamond Edition Refactor)
     $(document).on('click', '.btn-dur', function() {
-        $(".btn-dur").removeClass('active');
+        $(".btn-dur").removeClass('active dur-avena-active');
         $(this).addClass('active');
         const val = $(this).attr('data-v');
         duracionCita = isNaN(val) ? val : parseInt(val);
@@ -634,9 +699,22 @@ $(document).ready(function() {
         // Limpieza estricta de horas para evitar arrastrar slots de otras duraciones
         $("#f_hi").val('');
         $("#f_hf").val('');
+        $("#bloqueo-horario-avena").addClass('d-none');
         
         console.info("Duración Seleccionada:", duracionCita);
         renderSlots($("#f_fecha").val());
+    });
+
+    // Actualización reactiva al cambiar la fecha en el modal de citas
+    $(document).on('change', '#f_fecha', function() {
+        const nuevaFecha = this.value;
+        const hi = $("#f_hi").val();
+        const hf = $("#f_hf").val();
+        const accion = $("#f_accion").val();
+        if (hi && hf) {
+            const lbl = (accion === 'update') ? 'GESTIÓN DE CITAS / EDITAR CITA' : 'GESTIÓN DE CITAS / NUEVA CITA';
+            actualizarResaltadoModalCita(nuevaFecha, hi, hf, lbl);
+        }
     });
 
     setupAutocomplete();
@@ -1924,11 +2002,13 @@ function renderSlots(date) {
         if (!isB) {
             const btn = $(`<button type="button" class="btn btn-slot btn-slot-full w-100 py-3 mb-2 fw-medium animate__animated animate__fadeIn">TODO EL DÍA (${hhmmS} - ${hhmmE})</button>`);
             btn.click(function() {
-                $(".btn-slot").removeClass("active");
-                $(this).addClass("active");
+                $(".btn-slot").removeClass("active dur-avena-slot");
+                $(this).addClass("active dur-avena-slot");
                 $("#f_hi").val(hhmmS);
                 $("#f_hf").val(hhmmE);
-                $("#modalCitaTitle").text(`NUEVA CITA: TODO EL DÍA`);
+                const accion = $("#f_accion").val();
+                const lbl = (accion === 'update') ? 'GESTIÓN DE CITAS / EDITAR CITA' : 'GESTIÓN DE CITAS / NUEVA CITA';
+                actualizarResaltadoModalCita($("#f_fecha").val(), hhmmS, hhmmE, lbl);
             });
             cont.append(btn);
         } else {
@@ -2025,17 +2105,20 @@ function renderSlots(date) {
                     });
                 });
             } else {
-                btn = $(`<button type="button" class="btn btn-slot" ${isBlocked ? 'disabled' : ''}>${btnText}</button>`);
-                if (isP) btn.addClass('bg-light text-muted opacity-50').attr('title', 'Pasado');
-                if (isL) btn.addClass('slot-lunch').attr('title', 'Comida');
-                if (isB) btn.addClass('slot-busy').attr('title', 'Ocupado');
+                const isCurrentSlot = ($("#f_hi").val() === hhmm);
+                btn = $(`<button type="button" class="btn btn-slot ${isCurrentSlot ? 'active dur-avena-slot' : ''}" ${(isBlocked && !isCurrentSlot) ? 'disabled' : ''}>${btnText}</button>`);
+                if (isP && !isCurrentSlot) btn.addClass('bg-light text-muted opacity-50').attr('title', 'Pasado');
+                if (isL && !isCurrentSlot) btn.addClass('slot-lunch').attr('title', 'Comida');
+                if (isB && !isCurrentSlot) btn.addClass('slot-busy').attr('title', 'Ocupado');
                 
                 btn.click(function() { 
-                    $(".btn-slot").removeClass("active"); 
-                    $(this).addClass("active"); 
+                    $(".btn-slot").removeClass("active dur-avena-slot"); 
+                    $(this).addClass("active dur-avena-slot"); 
                     $("#f_hi").val(hhmm); 
                     $("#f_hf").val(hhmmE); 
-                    $("#modalCitaTitle").text(`CITA: ${hhmm} - ${hhmmE}`);
+                    const accion = $("#f_accion").val();
+                    const lbl = (accion === 'update') ? 'GESTIÓN DE CITAS / EDITAR CITA' : 'GESTIÓN DE CITAS / NUEVA CITA';
+                    actualizarResaltadoModalCita($("#f_fecha").val(), hhmm, hhmmE, lbl);
                 });
             }
 
@@ -2108,7 +2191,10 @@ function abrirModalNuevaCita(f, h, idP, nomP) {
         $("#f_hf").val('');
     }
     
-    $("#modalCitaTitle").text(`GESTIÓN DE CITAS / NUEVA CITA`);
+    $("#modalCitaTitle").html('<span class="fw-semibold">GESTIÓN DE CITAS / NUEVA CITA</span>');
+    $("#bloqueo-horario-avena").addClass('d-none');
+    $(".btn-dur").removeClass('dur-avena-active');
+    $(".btn-slot").removeClass('dur-avena-slot');
     
     // Inyectar datos de paciente si vienen por parámetro o variables globales
     if (!idP && window.idPacientePre) idP = window.idPacientePre;
@@ -2155,13 +2241,14 @@ function abrirModalCita(id, isReadonly) {
     const a = appointments.find(x => x.id == id); if(!a) return;
     const hi = a.start.split('T')[1].substring(0,5);
     const hf = a.end.split('T')[1].substring(0,5);
+    const fecha = a.start.split('T')[0];
     const est = (a.extendedProps.estado || 'Programada').trim().toLowerCase();
     
     $("#f_id_cita").val(a.id); 
     $("#f_accion").val('update'); // ASEGURAR ACCION UPDATE
     $("#f_id_paciente").val(a.extendedProps.id_paciente);
     $("#f_paciente").val(a.title); // Restauramos el nombre del paciente en el buscador
-    $("#f_fecha").val(a.start.split('T')[0]); 
+    $("#f_fecha").val(fecha); 
     $("#f_hi").val(hi); 
     $("#f_hf").val(hf);
       const opcionesEdicion = [
@@ -2223,9 +2310,9 @@ function abrirModalCita(id, isReadonly) {
             $("#leyenda-cita-pagada").addClass('d-none');
         }
         if (esAtendida) {
-            $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA FINALIZADA (SOLO LECTURA)');
+            actualizarResaltadoModalCita(fecha, hi, hf, 'GESTIÓN DE CITAS / CITA FINALIZADA (SOLO LECTURA)');
         } else {
-            $("#modalCitaTitle").text('GESTIÓN DE CITAS / CITA CANCELADA (SOLO LECTURA)');
+            actualizarResaltadoModalCita(fecha, hi, hf, 'GESTIÓN DE CITAS / CITA CANCELADA (SOLO LECTURA)');
         }
     } else if (esEnConsulta) {
         $("#modalCita input, #modalCita select").prop('disabled', true);
@@ -2234,7 +2321,7 @@ function abrirModalCita(id, isReadonly) {
         $("#btn-tomar-cita").removeClass('d-none').html('<i class="bi bi-play-circle me-1"></i> IR A CONSULTA EN PROCESO');
         $("#btn-tomar-cita").attr('onclick', `window.location.href='render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}'`);
         $("#btn-cobrar-recepcion").addClass('d-none');
-        $("#modalCitaTitle").text('GESTIÓN DE CITAS / CONSULTA EN PROCESO (ACTIVA)');
+        actualizarResaltadoModalCita(fecha, hi, hf, 'GESTIÓN DE CITAS / CONSULTA EN PROCESO (ACTIVA)');
     } else if (isReadonly) {
         // Vista de solo lectura (ej. clic en el ojo de cita pasada o no atendida)
         $("#modalCita input, #modalCita select").prop('disabled', true);
@@ -2242,7 +2329,7 @@ function abrirModalCita(id, isReadonly) {
         $("#btn-del-cita").addClass('d-none');
         // El médico SÍ puede tomar la cita directamente desde la ficha
         $("#btn-tomar-cita").removeClass('d-none').html('<i class="bi bi-person-check me-1"></i> TOMAR CITA');
-        $("#modalCitaTitle").text('GESTIÓN DE CITAS / DETALLE DE CITA (NO ATENDIDA)');
+        actualizarResaltadoModalCita(fecha, hi, hf, 'GESTIÓN DE CITAS / DETALLE DE CITA (NO ATENDIDA)');
 
         if (esConsultorio) {
             $("#btn-cobrar-recepcion").addClass('d-none');
@@ -2259,7 +2346,7 @@ function abrirModalCita(id, isReadonly) {
         $("#modalCita input, #modalCita select").prop('disabled', false);
         $("#modalCita button:contains('GUARDAR CITA'), #modalCita button[onclick*='saveCita']").show();
         $("#btn-del-cita").removeClass('d-none');
-        $("#modalCitaTitle").text('GESTIÓN DE CITAS / RE-AGENDAR O MODIFICAR CITA');
+        actualizarResaltadoModalCita(fecha, hi, hf, 'GESTIÓN DE CITAS / EDITAR CITA');
 
         // En modo edición/re-agendar SIEMPRE se permite tomar la cita directamente
         $("#btn-tomar-cita").removeClass('d-none').html('<i class="bi bi-person-check me-1"></i> TOMAR CITA');
@@ -2276,7 +2363,17 @@ function abrirModalCita(id, isReadonly) {
         }
     }
 
-    renderSlots(a.start.split('T')[0]);
+    // Calcular duración de la cita para sincronizar los botones de duración
+    let durMin = 30;
+    if (hi && hf) {
+        const [h1, m1] = hi.split(':').map(Number);
+        const [h2, m2] = hf.split(':').map(Number);
+        durMin = (h2 * 60 + m2) - (h1 * 60 + m1);
+        if (isNaN(durMin) || durMin <= 0) durMin = 30;
+    }
+    duracionCita = durMin;
+
+    renderSlots(fecha);
     const m = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCita'));
     m.show();
 }

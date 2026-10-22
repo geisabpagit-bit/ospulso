@@ -442,6 +442,23 @@ print <<HTML;
                                         <div class="d-flex gap-1.5 dur-bar-premium w-100" id="btn-group-duracion">
                                             <!-- Generado dinámicamente por JS -->
                                         </div>
+
+                                        <!-- Bloqueo de Horario Estimado (Amarillo Avena Suave) -->
+                                        <div id="bloqueo-horario-avena" class="bloqueo-avena-card d-none mt-2 p-2 rounded-3 animate__animated animate__fadeIn">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center gap-1.5">
+                                                    <i class="bi bi-lock-fill" style="color: #D97706; font-size: 0.85rem;"></i>
+                                                    <span style="font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">Bloqueo Horario:</span>
+                                                </div>
+                                                <span id="bloqueo-horario-rango" class="badge badge-avena-highlight" style="font-size: 0.78rem; font-weight: 700; padding: 0.22rem 0.55rem; border-radius: 6px;">
+                                                    --:--
+                                                </span>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between mt-1 pt-1" style="border-top: 1px dashed rgba(217, 119, 6, 0.25); font-size: 0.7rem; color: #92400E;">
+                                                <span><i class="bi bi-clock-history me-1"></i>Espacio reservado aprox.</span>
+                                                <span id="bloqueo-horario-detalle" class="fw-semibold">--</span>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <!-- Horarios Disponibles -->

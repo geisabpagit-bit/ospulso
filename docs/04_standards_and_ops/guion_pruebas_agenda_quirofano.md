@@ -234,24 +234,33 @@ graph TD
 
 ---
 
-### Caso 8: Edición de Citas y Recuperación de Motivo y Lugar / Consultorio
+### Caso 8: Edición de Citas, Recuperación de Datos y Resaltado de Horario en Amarillo Avena
 
-* **Objetivo**: Asegurar que al abrir el modal para editar una cita existente en la Agenda Central, los campos **Motivo / Observaciones** (`#f_motivo`) y **Lugar / Consultorio** (`#f_consultorio`) se recuperen e hidraten fielmente sin perderse por llamadas asíncronas secundarias.
+* **Objetivo**: Asegurar que al abrir el modal para editar una cita existente en la Agenda Central:
+  1. Se resalte en el **título del modal** la **fecha y hora de inicio** de la cita con una insignia de alta visibilidad y contraste (`badge-avena-highlight`).
+  2. En el panel derecho, bajo **Duración Estimada**, se exhiba con un **color suave amarillo avena** (`#FEF9C3` / borde `#FDE68A` / texto `#78350F`) el **bloqueo de ese horario aproximado** (`#bloqueo-horario-avena`), activando el botón de duración correspondiente (`.dur-avena-active`) y marcando el slot actual (`.dur-avena-slot`).
+  3. Los campos **Motivo / Observaciones** (`#f_motivo`) y **Lugar / Consultorio** (`#f_consultorio`) se recuperen e hidraten fielmente sin perderse por llamadas asíncronas secundarias.
 * **Componentes Involucrados**:
   - [views/agenda_main.pl](file:///c:/xampp/htdocs/ospulso/views/agenda_main.pl)
   - [js/agenda_spa_new.js](file:///c:/xampp/htdocs/ospulso/js/agenda_spa_new.js)
+  - [css/ospulso_master_v2.css](file:///c:/xampp/htdocs/ospulso/css/ospulso_master_v2.css)
   - [api/citas_crud.pl](file:///c:/xampp/htdocs/ospulso/api/citas_crud.pl)
 * **Pasos de Ejecución**:
-  1. Ingresar a `views/agenda_main.pl` con la cuenta de la organización.
-  2. Localizar una cita existente en la vista diaria, semanal o mensual y hacer clic para editarla.
-  3. Comprobar que el modal se abre en modo edición (`f_accion = update`).
-  4. Revisar el valor mostrado en el input `#f_motivo`.
-  5. Revisar el valor preseleccionado en el desplegable `#f_consultorio` (ej. `Consultorio 1`, `Quirófano 1`, `Virtual`).
-  6. Cambiar el motivo o lugar y hacer clic en **Guardar Cita**.
-  7. Volver a abrir la misma cita para verificar persistencia.
+  1. Ingresar a `views/agenda_main.pl` con la cuenta de la organización o médico.
+  2. Localizar una cita agendada en la vista de calendario y hacer clic para abrirla en modo edición.
+  3. Verificar el **Título del Modal** (`#modalCitaTitle`): debe mostrar la etiqueta del estado o edición acompañada de la insignia dorada con el calendario y la hora de inicio (ej. `<i class="bi bi-calendar3"></i> 22 Oct 2026 • <i class="bi bi-clock-fill"></i> 10:00 hrs`).
+  4. Inspeccionar la sección **Duración Estimada** en el panel derecho:
+     - Debe desplegarse el contenedor `#bloqueo-horario-avena` con fondo suave amarillo avena (`#FEF9C3`), icono de candado ámbar y rango de horario aproximado bloqueado (ej. `10:00 - 10:30 hrs (30 min)`).
+     - El botón de duración correspondiente (ej. `30m` o `1h`) debe estar marcado con estilo avena activo (`.dur-avena-active`).
+     - En la grilla de horarios disponibles, el bloque del horario asignado debe reflejarse como activo (`.dur-avena-slot`).
+  5. Al hacer clic en un slot diferente, comprobar que el título del modal y el contenedor de bloqueo se recalculan reactivamente con el nuevo horario seleccionado.
+  6. Revisar el valor mostrado en `#f_motivo` y `#f_consultorio`.
+  7. Modificar los datos y hacer clic en **Guardar Cita**.
 * **Resultado Esperado**:
-  - El motivo original de la cita aparece intacto en el campo de texto.
-  - El lugar/consultorio original se mantiene seleccionado automáticamente una vez cargados los recursos de la sucursal, sin resetearse al primer valor.
+  - Título del modal resalta fecha y hora de inicio de forma elegante, nítida y legible.
+  - La duración estimada comunica de inmediato el bloqueo horario aproximado en color suave amarillo avena sin desbordar el modal.
+  - Al cambiar de horario o fecha, el bloqueo horario aproximado y el título se actualizan en tiempo real.
+  - El motivo y consultorio originales se preservan y persisten correctamente tras guardar.
 
 ---
 
@@ -554,6 +563,7 @@ Cada vez que un desarrollador o agente realice una modificación a la Agenda, Ex
 - [x] Pestaña `tab12` (Quirófano & Cirugías) en Expediente Clínico (`render_expediente_clinico.pl`) con KPIs e historial de intervenciones del paciente.
 - [x] Formato oficial de impresión de Nota Quirúrgica y Hoja Transoperatoria NOM-004-SSA3-2012 (`imprimir_nota_quirurgica.pl`) accesible desde Expediente y Kanban.
 - [x] Ausencia de llamados a `utils/sub_footer.pl` en los archivos creados o refactorizados.
+- [x] Resaltado de fecha y hora de inicio de cita en el título del modal (`#modalCitaTitle`) e indicador de bloqueo de horario aproximado en suave amarillo avena (`#bloqueo-horario-avena`, `.dur-avena-active`, `.dur-avena-slot`) en `views/agenda_main.pl`.
 - [x] Documentación registrada en la Capa 1 y 4 (`docs/01_architecture/` y `docs/04_standards_and_ops/`) y enlazada canónicamente.
 
 

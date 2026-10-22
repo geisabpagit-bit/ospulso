@@ -1221,6 +1221,32 @@ nav.navbar.sticky-top {
     background-color: #f0fdfa !important; 
     color: #0f766e !important; 
 }
+.dur-bar-premium .btn.dur-avena-active {
+    background-color: #FEF08A !important;
+    border-color: #FACC15 !important;
+    color: #78350F !important;
+    font-weight: 700 !important;
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.35) !important;
+}
+
+/* Bloqueo Horario Estimado en Amarillo Avena Suave */
+.bloqueo-avena-card {
+    background-color: #FEF9C3 !important;
+    border: 1px solid #FDE68A !important;
+    color: #78350F !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+}
+.badge-avena-highlight {
+    background-color: #FEF08A !important;
+    color: #78350F !important;
+    border: 1px solid #FACC15 !important;
+}
+#modalCita .btn-slot.dur-avena-slot { 
+    background-color: #FEF08A !important; 
+    color: #78350F !important; 
+    border-color: #FACC15 !important; 
+    font-weight: 700 !important;
+}
 
 /* Grilla Compacta de Horarios */
 #modalCita .slot-grid-compact { 
