@@ -171,6 +171,14 @@ print <<HTML;
                         </div>
                         
                         $html_filtro_medicos_toolbar
+                        <div class="d-none d-lg-block ms-1" id="wrapper_filtro_recurso_toolbar">
+                            <select id="filtro_recurso_toolbar" class="form-select form-select-sm shadow-sm border bg-white rounded-3 fw-bold text-navy" style="height:42px; font-size:0.78rem; min-width: 190px; max-width: 250px;" onchange="filtrarAgendaPorRecurso(this.value)" title="Filtrar por Consultorio o Quirófano">
+                                <option value="all">🚪 Todos los Espacios</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-none d-lg-inline-flex align-items-center justify-content-center ms-1" id="btn-toggle-side-cal" onclick="toggleSideCalendar()" style="height:42px; width:42px; padding:0;" title="Mostrar/Ocultar Minicalendario Lateral">
+                            <i class="bi bi-layout-sidebar-inset text-teal" style="font-size:1.05rem;"></i>
+                        </button>
                     </div>
 
                     <!-- CENTRO (Solo Desktop): NAVEGACIÓN DE FECHA -->
@@ -251,13 +259,18 @@ print <<HTML;
         </header>
 
         <main id="app-viewport" class="container-fluid px-1 px-md-3 pt-1 pb-4">
-            <!-- VISTA DIARIA (Matriz Multi-Recurso & Timeline) -->
+            <!-- VISTA DIARIA (Matriz de Espacios Físicos & Timeline) -->
             <div id="view-dia" class="agenda-view-container">
-                <div class="row g-3">
-                    <!-- Panel Izquierdo: Mini Calendario (Desktop Only Sticky) -->
-                    <div class="col-lg-3 d-none d-lg-block">
+                <div class="row g-3" id="dia-layout-row">
+                    <!-- Panel Izquierdo: Mini Calendario (Desktop Colapsable) -->
+                    <div class="col-lg-3 d-none d-lg-block" id="dia-side-col">
                         <div class="card border-0 shadow-sm p-3 sticky-top agenda-side-card" style="top:100px;">
-                            <h6 class="fw-black text-navy mb-3 text-uppercase small tracking-widest">Navegación</h6>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h6 class="fw-black text-navy m-0 text-uppercase small tracking-widest">Navegación</h6>
+                                <button type="button" class="btn btn-sm btn-light border p-1 rounded-2 text-secondary" onclick="toggleSideCalendar()" title="Colapsar Minicalendario para ampliar matriz">
+                                    <i class="bi bi-chevron-bar-left"></i>
+                                </button>
+                            </div>
                             <div id="side-datepicker"></div>
                             <hr class="opacity-10 my-3">
                             <button class="btn btn-light w-100 btn-sm text-start fw-bold rounded-3 py-2 border" onclick="goToday()">
@@ -265,30 +278,8 @@ print <<HTML;
                             </button>
                         </div>
                     </div>
-                    <!-- Panel Derecho: Matriz de Recursos / Profesionales -->
-                    <div class="col-lg-9">
-                        <!-- Toolbar de Distribución y Selectores de la Vista Diaria -->
-                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-2 mb-2 bg-white rounded-3 border shadow-sm" id="dia-resource-toolbar">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-light text-navy border fw-bold px-2 py-1.5" style="font-size: 0.72rem;">
-                                    <i class="bi bi-diagram-3 me-1 text-teal"></i>DISTRIBUCIÓN
-                                </span>
-                                <!-- Selector de Modo de Columnas: Por Espacio Físico vs Por Profesional -->
-                                <div class="btn-group btn-group-sm" role="group" id="btn-group-dia-mode">
-                                    <button type="button" class="btn btn-navy active fw-semibold" id="btn-dia-mode-recursos" onclick="setDiaViewMode('recursos')" title="Ver columnas por Consultorios y Quirófanos">
-                                        <i class="bi bi-door-open me-1"></i>Consultorios / Quirófanos
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary fw-semibold" id="btn-dia-mode-medicos" onclick="setDiaViewMode('medicos')" title="Ver columnas por Profesionales">
-                                        <i class="bi bi-person-badge me-1"></i>Profesionales
-                                    </button>
-                                </div>
-                            </div>
-                            <!-- Selector/Filtro Rápido de Columnas Activas (Pills) -->
-                            <div class="d-flex align-items-center gap-1.5 overflow-auto py-1" id="dia-column-filter-pills" style="max-width: 100%;">
-                                <!-- Generado dinámicamente por JS: [Todos] [Cons 1] [Cons 2] [Quirófano 1]... -->
-                            </div>
-                        </div>
-
+                    <!-- Panel Derecho: Matriz de Consultorios y Quirófanos -->
+                    <div class="col-lg-9" id="dia-main-col">
                         <!-- Contenedor Principal de la Matriz Diaria -->
                         <div id="timeline-container"></div>
                     </div>
@@ -805,6 +796,10 @@ print <<'JS';
                                 }
                             }
 
+                            if (typeof window.poblarFiltroRecursosToolbar === 'function') {
+                                window.poblarFiltroRecursosToolbar(data);
+                            }
+
                             if (typeof currentView !== 'undefined' && currentView === 'dia' && typeof renderTimeline === 'function') {
                                 renderTimeline();
                             }
@@ -834,6 +829,10 @@ print <<'JS';
                         renderSlots(document.getElementById('f_fecha').value);
                     }
                 });
+            }
+
+            if (typeof window.aplicarPreferenciaSideCalendar === 'function') {
+                window.aplicarPreferenciaSideCalendar();
             }
             
             // Carga inicial de recursos de la sucursal activa

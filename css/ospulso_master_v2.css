@@ -1301,7 +1301,7 @@ nav.navbar.sticky-top {
     background-color: #f8fafc !important;
 }
 .dia-col-quirofano {
-    border-bottom: 3px solid #8B5CF6 !important;
+    border-bottom: 3px solid #7C3AED !important;
     background-color: #faf5ff !important;
 }
 .dia-col-medico {
@@ -1311,6 +1311,22 @@ nav.navbar.sticky-top {
 .dia-col-otros {
     border-bottom: 3px solid #64748B !important;
     background-color: #f1f5f9 !important;
+}
+#dia-side-col, #dia-main-col {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#btn-toggle-side-cal.btn-teal {
+    background-color: var(--md-teal-clinical, #19B7A5) !important;
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+    color: #ffffff !important;
+}
+#filtro_recurso_toolbar {
+    border-color: #cbd5e1 !important;
+    color: #0A2A66 !important;
+}
+#filtro_recurso_toolbar:focus {
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+    box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.15) !important;
 }
 .dia-matrix-slot {
     height: 56px;

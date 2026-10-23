@@ -919,6 +919,15 @@ function switchView(v) {
     $(".agenda-view-container").addClass('d-none');
     $(`#view-${v.replace('_','-')}`).removeClass('d-none');
 
+    // Visibilidad contextual de controles exclusivos de la vista de día
+    if (v === 'dia') {
+        $("#wrapper_filtro_recurso_toolbar").removeClass('d-lg-none').addClass('d-lg-block');
+        $("#btn-toggle-side-cal").removeClass('d-lg-none').addClass('d-lg-inline-flex');
+    } else {
+        $("#wrapper_filtro_recurso_toolbar").removeClass('d-lg-block').addClass('d-lg-none');
+        $("#btn-toggle-side-cal").removeClass('d-lg-inline-flex').addClass('d-lg-none');
+    }
+
     renderHeaders();
     renderView();
 }
@@ -1003,28 +1012,79 @@ function goDay(iso) {
     switchView('dia');
 }
 
-// --- ESTADO Y CONTROLADORES DE LA VISTA DE DÍA MATRICIAL ---
-window.diaViewMode = window.diaViewMode || 'recursos'; // 'recursos' (espacios físicos) | 'medicos' (profesionales)
+// --- ESTADO Y CONTROLADORES DE LA VISTA DE DÍA MATRICIAL (ESPACIOS FÍSICOS) ---
 window.diaFilterActive = window.diaFilterActive || 'all';
 
-window.setDiaViewMode = function(mode) {
-    window.diaViewMode = mode;
-    window.diaFilterActive = 'all';
-
-    if (mode === 'recursos') {
-        $('#btn-dia-mode-recursos').removeClass('btn-outline-primary text-secondary').addClass('btn-primary shadow-sm');
-        $('#btn-dia-mode-medicos').removeClass('btn-primary shadow-sm').addClass('btn-outline-primary text-secondary');
-    } else {
-        $('#btn-dia-mode-medicos').removeClass('btn-outline-primary text-secondary').addClass('btn-primary shadow-sm');
-        $('#btn-dia-mode-recursos').removeClass('btn-primary shadow-sm').addClass('btn-outline-primary text-secondary');
+window.filtrarAgendaPorRecurso = function(val) {
+    window.diaFilterActive = val || 'all';
+    const sel = $('#filtro_recurso_toolbar');
+    if (sel.length && sel.val() !== window.diaFilterActive) {
+        sel.val(window.diaFilterActive);
     }
-
     renderTimeline();
 };
 
-window.setDiaFilterActive = function(filterId) {
-    window.diaFilterActive = filterId;
-    renderTimeline();
+window.poblarFiltroRecursosToolbar = function(data) {
+    const sel = $('#filtro_recurso_toolbar');
+    if (!sel.length) return;
+    const curVal = window.diaFilterActive || sel.val() || 'all';
+
+    let html = '<option value="all">🚪 Todos los Espacios Físicos</option>';
+    const numCons = (data && data.consultorios) ? parseInt(data.consultorios) : 1;
+    const numQx = (data && data.quirofanos) ? parseInt(data.quirofanos) : 0;
+
+    html += '<optgroup label="Consultorios">';
+    for (let i = 1; i <= numCons; i++) {
+        html += `<option value="consultorio_${i}">Consultorio ${i}</option>`;
+    }
+    html += '</optgroup>';
+
+    if (numQx > 0) {
+        html += '<optgroup label="Quirófanos">';
+        for (let i = 1; i <= numQx; i++) {
+            html += `<option value="quirofano_${i}">Quirófano ${i}</option>`;
+        }
+        html += '</optgroup>';
+    }
+
+    sel.html(html);
+    if (curVal && sel.find(`option[value="${curVal}"]`).length) {
+        sel.val(curVal);
+    } else {
+        sel.val('all');
+        window.diaFilterActive = 'all';
+    }
+};
+
+window.toggleSideCalendar = function() {
+    const sideCol = $('#dia-side-col');
+    const mainCol = $('#dia-main-col');
+    const btnToggle = $('#btn-toggle-side-cal');
+
+    if (sideCol.hasClass('d-none')) {
+        // Expandir panel
+        sideCol.removeClass('d-none');
+        mainCol.removeClass('col-12').addClass('col-lg-9');
+        localStorage.setItem('agenda_side_collapsed', '0');
+        btnToggle.removeClass('btn-teal text-white').addClass('btn-light text-navy')
+                 .attr('title', 'Ocultar Minicalendario Lateral');
+    } else {
+        // Colapsar panel
+        sideCol.addClass('d-none');
+        mainCol.removeClass('col-lg-9').addClass('col-12');
+        localStorage.setItem('agenda_side_collapsed', '1');
+        btnToggle.removeClass('btn-light text-navy').addClass('btn-teal text-white')
+                 .attr('title', 'Mostrar Minicalendario Lateral');
+    }
+};
+
+window.aplicarPreferenciaSideCalendar = function() {
+    if (localStorage.getItem('agenda_side_collapsed') === '1') {
+        $('#dia-side-col').addClass('d-none');
+        $('#dia-main-col').removeClass('col-lg-9').addClass('col-12');
+        $('#btn-toggle-side-cal').removeClass('btn-light text-navy').addClass('btn-teal text-white')
+                 .attr('title', 'Mostrar Minicalendario Lateral');
+    }
 };
 
 window.handleMatrixSlotClick = function(event, fecha, hora, recursoId, recursoTipo) {
@@ -1043,32 +1103,27 @@ window.handleMatrixSlotClick = function(event, fecha, hora, recursoId, recursoTi
 
     abrirModalNuevaCita(fecha, hora);
 
-    // Si viene un recurso seleccionado, pre-asignarlo
+    // Pre-asignar el consultorio o quirófano en #f_consultorio
     if (recursoId) {
         setTimeout(() => {
-            if (recursoTipo === 'medico') {
-                $('#f_medico_select').val(recursoId);
-            } else if (recursoTipo === 'consultorio' || recursoTipo === 'quirofano') {
-                // Si el ID mapea a un número o texto en el select
-                const consSelect = $('#f_consultorio');
-                if (consSelect.length) {
-                    let matched = false;
+            const consSelect = $('#f_consultorio');
+            if (consSelect.length) {
+                let matched = false;
+                consSelect.find('option').each(function() {
+                    if ($(this).val().toLowerCase() === recursoId.toLowerCase() || $(this).text().toLowerCase().includes(recursoId.toLowerCase())) {
+                        consSelect.val($(this).val());
+                        matched = true;
+                        return false;
+                    }
+                });
+                if (!matched && recursoId.includes('_')) {
+                    const num = recursoId.split('_')[1];
                     consSelect.find('option').each(function() {
-                        if ($(this).val().toLowerCase() === recursoId.toLowerCase() || $(this).text().toLowerCase().includes(recursoId.toLowerCase())) {
+                        if ($(this).text().includes(num)) {
                             consSelect.val($(this).val());
-                            matched = true;
                             return false;
                         }
                     });
-                    if (!matched && recursoId.includes('_')) {
-                        const num = recursoId.split('_')[1];
-                        consSelect.find('option').each(function() {
-                            if ($(this).text().includes(num)) {
-                                consSelect.val($(this).val());
-                                return false;
-                            }
-                        });
-                    }
                 }
             }
         }, 150);
@@ -1297,45 +1352,43 @@ function renderMatrixAptCard(a, interval) {
     `;
 }
 
-// Resolver columna asignada para una cita
-function getAppointmentColumnId(a, mode, columns) {
-    if (mode === 'medicos') {
-        const mId = String(a.extendedProps.id_medico || a.extendedProps.medico || '').toLowerCase();
-        const colById = columns.find(c => c.id.toLowerCase() === mId);
-        if (colById) return colById.id;
-
-        const mNom = (a.extendedProps.medico || a.extendedProps.doctor || '').toLowerCase();
-        const colByNom = columns.find(c => c.titulo.toLowerCase().includes(mNom) || mNom.includes(c.titulo.toLowerCase()));
-        if (colByNom) return colByNom.id;
-
-        return columns[0]?.id;
-    } else {
-        const cVal = (a.extendedProps.consultorio || a.extendedProps.recurso || a.extendedProps.lugar || '').trim().toLowerCase();
-        if (cVal) {
-            const col = columns.find(c => 
-                c.id.toLowerCase() === cVal || 
-                c.titulo.toLowerCase() === cVal || 
-                c.titulo.toLowerCase().includes(cVal) || 
-                cVal.includes(c.titulo.toLowerCase())
-            );
-            if (col) return col.id;
-        }
-        // Fallback al primer consultorio
-        const firstCons = columns.find(c => c.tipo === 'consultorio') || columns[0];
-        return firstCons?.id;
+// Resolver columna asignada para una cita (siempre en Espacio Físico)
+function getAppointmentColumnId(a, columns) {
+    const cVal = (a.extendedProps.consultorio || a.extendedProps.recurso || a.extendedProps.lugar || '').trim().toLowerCase();
+    if (cVal) {
+        const col = columns.find(c => 
+            c.id.toLowerCase() === cVal || 
+            c.titulo.toLowerCase() === cVal || 
+            c.titulo.toLowerCase().includes(cVal) || 
+            cVal.includes(c.titulo.toLowerCase())
+        );
+        if (col) return col.id;
     }
+    // Fallback al primer consultorio disponible
+    const firstCons = columns.find(c => c.tipo === 'consultorio') || columns[0];
+    return firstCons?.id;
 }
 
-// --- RENDER TIMELINE: VISTA DIARIA MATRICIAL MULTI-RECURSO ---
+// --- RENDER TIMELINE: VISTA DIARIA MATRICIAL DE ESPACIOS FÍSICOS ---
 function renderTimeline() {
     renderSideCalendar();
+    window.aplicarPreferenciaSideCalendar();
+
     const cont = $("#timeline-container");
     if (!cont.length) return;
 
     const iso = getISO(selectedDate);
     const todayIso = getISO(new Date());
     const isPastDay = iso < todayIso;
-    const dayApts = appointments.filter(a => a.start && a.start.startsWith(iso));
+
+    // Filtrar citas del día
+    let dayApts = appointments.filter(a => a.start && a.start.startsWith(iso));
+
+    // Si hay un médico activo seleccionado en el filtro superior, filtrar las citas
+    const medFiltro = $('#filtro_medico_toolbar').val() || $('#f_medico').val();
+    if (medFiltro && medFiltro !== 'all') {
+        dayApts = dayApts.filter(a => String(a.extendedProps.id_medico) === String(medFiltro) || String(a.extendedProps.medico) === String(medFiltro));
+    }
 
     // Si es un día pasado, renderizar vista ejecutiva o empty state estilizado
     if (isPastDay) {
@@ -1352,7 +1405,6 @@ function renderTimeline() {
                     </button>
                 </div>
             `);
-            $('#dia-column-filter-pills').empty();
             return;
         } else {
             let rowsHtml = '';
@@ -1415,143 +1467,86 @@ function renderTimeline() {
                     </div>
                 </div>
             `);
-            $('#dia-column-filter-pills').empty();
             return;
         }
     }
 
-    // 1. RESOLVER COLUMNAS SEGÚN EL MODO ACTIVO ('recursos' vs 'medicos')
+    // 1. RESOLVER COLUMNAS DE ESPACIOS FÍSICOS (Consultorios y Quirófanos)
     let columns = [];
+    const recData = window.sucursalRecursos || {};
+    const numCons = parseInt(recData.consultorios) || 0;
+    const numQx = parseInt(recData.quirofanos) || 0;
 
-    if (window.diaViewMode === 'medicos') {
-        const medsMap = new Map();
-        $('#f_medico_select option').each(function() {
-            const val = $(this).val();
-            const txt = $(this).text().trim();
-            if (val && val !== '' && !val.includes('Seleccionar')) {
-                medsMap.set(String(val), {
-                    id: String(val),
-                    tipo: 'medico',
-                    titulo: txt.startsWith('Dr') ? txt : 'Dr(a). ' + txt,
-                    subtitulo: 'Profesional Médico',
-                    badge: 'Médico'
-                });
-            }
-        });
-
-        dayApts.forEach(a => {
-            const mId = a.extendedProps.id_medico || a.extendedProps.medico;
-            const mNom = a.extendedProps.medico || a.extendedProps.doctor || 'Dr. Médico';
-            const esp = a.extendedProps.especialidad || 'Atención Médica';
-            if (mId && !medsMap.has(String(mId))) {
-                medsMap.set(String(mId), {
-                    id: String(mId),
-                    tipo: 'medico',
-                    titulo: mNom.startsWith('Dr') ? mNom : 'Dr(a). ' + mNom,
-                    subtitulo: esp,
-                    badge: 'Médico'
-                });
-            }
-        });
-
-        columns = Array.from(medsMap.values());
-        if (columns.length === 0) {
+    if (numCons > 0) {
+        for (let i = 1; i <= numCons; i++) {
             columns.push({
-                id: 'med_general',
-                tipo: 'medico',
-                titulo: 'Dr. Médico General',
-                subtitulo: 'Consulta Externa',
-                badge: 'Médico'
+                id: `consultorio_${i}`,
+                tipo: 'consultorio',
+                titulo: `Consultorio ${i}`,
+                subtitulo: 'Consulta Médica',
+                badge: `Cons ${i}`
             });
         }
-    } else {
-        // Modo Recursos Físicos
-        const recData = window.sucursalRecursos || {};
-        const numCons = parseInt(recData.consultorios) || 0;
-        const numQx = parseInt(recData.quirofanos) || 0;
-
-        if (numCons > 0) {
-            for (let i = 1; i <= numCons; i++) {
-                columns.push({
-                    id: `consultorio_${i}`,
-                    tipo: 'consultorio',
-                    titulo: `Consultorio ${i}`,
-                    subtitulo: 'Consulta Médica',
-                    badge: `Cons ${i}`
-                });
-            }
-        }
-
-        if (numQx > 0) {
-            for (let i = 1; i <= numQx; i++) {
-                columns.push({
-                    id: `quirofano_${i}`,
-                    tipo: 'quirofano',
-                    titulo: `Quirófano ${i}`,
-                    subtitulo: 'Cirugía / Procedimientos',
-                    badge: `Qx ${i}`
-                });
-            }
-        }
-
-        if (columns.length === 0) {
-            columns.push(
-                { id: 'consultorio_1', tipo: 'consultorio', titulo: 'Consultorio 1', subtitulo: 'Medicina General', badge: 'Cons 1' },
-                { id: 'consultorio_2', tipo: 'consultorio', titulo: 'Consultorio 2', subtitulo: 'Especialidades', badge: 'Cons 2' },
-                { id: 'quirofano_1', tipo: 'quirofano', titulo: 'Quirófano 1', subtitulo: 'Cirugía Ambulatoria', badge: 'Qx 1' }
-            );
-        }
-
-        // Recursos adicionales nombrados en citas
-        dayApts.forEach(a => {
-            const cVal = (a.extendedProps.consultorio || a.extendedProps.recurso || '').trim();
-            if (cVal) {
-                const low = cVal.toLowerCase();
-                const exists = columns.some(c => c.titulo.toLowerCase() === low || c.id.toLowerCase() === low);
-                if (!exists) {
-                    const esQx = low.includes('quir') || low.includes('qx') || low.includes('cirug');
-                    columns.push({
-                        id: cVal.toLowerCase().replace(/\s+/g, '_'),
-                        tipo: esQx ? 'quirofano' : 'consultorio',
-                        titulo: cVal,
-                        subtitulo: esQx ? 'Procedimientos' : 'Atención Médica',
-                        badge: esQx ? 'Qx' : 'Cons'
-                    });
-                }
-            }
-        });
     }
 
-    // 2. RENDERIZAR PILLS SELECTORES DE COLUMNA
-    let pillsHtml = `
-        <button type="button" class="btn btn-sm rounded-pill dia-pill ${window.diaFilterActive === 'all' ? 'active' : ''}" onclick="setDiaFilterActive('all')">
-            <i class="bi bi-grid-fill me-1"></i> Todos (${columns.length})
-        </button>
-    `;
-    columns.forEach(col => {
-        const isAct = (window.diaFilterActive === col.id);
-        const icon = col.tipo === 'quirofano' ? 'bi-scissors' : (col.tipo === 'medico' ? 'bi-person-badge' : 'bi-door-closed');
-        pillsHtml += `
-            <button type="button" class="btn btn-sm rounded-pill dia-pill ${isAct ? 'active' : ''}" onclick="setDiaFilterActive('${col.id}')">
-                <i class="bi ${icon} me-1"></i> ${col.badge || col.titulo}
-            </button>
-        `;
-    });
-    $('#dia-column-filter-pills').html(pillsHtml);
+    if (numQx > 0) {
+        for (let i = 1; i <= numQx; i++) {
+            columns.push({
+                id: `quirofano_${i}`,
+                tipo: 'quirofano',
+                titulo: `Quirófano ${i}`,
+                subtitulo: 'Cirugía / Procedimientos',
+                badge: `Qx ${i}`
+            });
+        }
+    }
 
-    // 3. APLICAR FILTRO ACTIVO
-    const visibleColumns = (window.diaFilterActive === 'all') 
+    if (columns.length === 0) {
+        columns.push(
+            { id: 'consultorio_1', tipo: 'consultorio', titulo: 'Consultorio 1', subtitulo: 'Medicina General', badge: 'Cons 1' },
+            { id: 'consultorio_2', tipo: 'consultorio', titulo: 'Consultorio 2', subtitulo: 'Especialidades', badge: 'Cons 2' },
+            { id: 'quirofano_1', tipo: 'quirofano', titulo: 'Quirófano 1', subtitulo: 'Cirugía Ambulatoria', badge: 'Qx 1' }
+        );
+    }
+
+    // Incorporar recursos adicionales de citas si existen
+    dayApts.forEach(a => {
+        const cVal = (a.extendedProps.consultorio || a.extendedProps.recurso || '').trim();
+        if (cVal) {
+            const low = cVal.toLowerCase();
+            const exists = columns.some(c => c.titulo.toLowerCase() === low || c.id.toLowerCase() === low);
+            if (!exists) {
+                const esQx = low.includes('quir') || low.includes('qx') || low.includes('cirug');
+                columns.push({
+                    id: cVal.toLowerCase().replace(/\s+/g, '_'),
+                    tipo: esQx ? 'quirofano' : 'consultorio',
+                    titulo: cVal,
+                    subtitulo: esQx ? 'Procedimientos' : 'Atención Médica',
+                    badge: esQx ? 'Qx' : 'Cons'
+                });
+            }
+        }
+    });
+
+    // Sincronizar el selector superior de recursos si está vacío
+    if ($('#filtro_recurso_toolbar option').length <= 1) {
+        window.poblarFiltroRecursosToolbar(recData);
+    }
+
+    // 2. APLICAR FILTRO DEL SELECTOR SUPERIOR DE RECURSOS
+    const activeRec = window.diaFilterActive || $('#filtro_recurso_toolbar').val() || 'all';
+    const visibleColumns = (activeRec === 'all') 
         ? columns 
-        : columns.filter(c => c.id === window.diaFilterActive);
+        : columns.filter(c => c.id === activeRec);
     const colsToRender = visibleColumns.length > 0 ? visibleColumns : columns;
 
-    // 4. PARÁMETROS HORARIOS
+    // 3. PARÁMETROS HORARIOS
     const s = parseInt(agendaConfig.laborStart?.split(':')[0] || 8);
     const e = parseInt(agendaConfig.laborEnd?.split(':')[0] || 20);
     const interval = parseInt(agendaConfig.intervalo_minutos || 30);
     const holiday = isHoliday(iso);
 
-    // 5. CONSTRUCCIÓN DE LA MATRIZ TABLE
+    // 4. CONSTRUCCIÓN DE LA MATRIZ TABLE
     let tableHtml = `
         <div class="dia-matrix-card card shadow-sm border-0 rounded-4 overflow-hidden animate__animated animate__fadeIn">
             <div class="dia-matrix-responsive">
@@ -1571,10 +1566,6 @@ function renderTimeline() {
             headerClass = 'dia-col-quirofano';
             typeBadge = '<span class="badge rounded-pill px-2 py-0.5" style="font-size:0.65rem; background-color:#F3E8FF; color:#7C3AED; border:1px solid #E9D5FF;">QUIROFANO</span>';
             icon = '<i class="bi bi-scissors me-1.5" style="color:#7C3AED;"></i>';
-        } else if (col.tipo === 'medico') {
-            headerClass = 'dia-col-medico';
-            typeBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size:0.65rem;">MÉDICO</span>';
-            icon = '<i class="bi bi-person-badge-fill text-primary me-1.5"></i>';
         }
 
         tableHtml += `
@@ -1618,7 +1609,7 @@ function renderTimeline() {
             colsToRender.forEach(col => {
                 // Citas que inician exactamente dentro de este slot para esta columna
                 const aptsStartingHere = dayApts.filter(a => {
-                    const aColId = getAppointmentColumnId(a, window.diaViewMode, columns);
+                    const aColId = getAppointmentColumnId(a, columns);
                     if (aColId !== col.id) return false;
                     const aHi = a.start.split('T')[1].substring(0, 5);
                     const [ah, am] = aHi.split(':').map(Number);

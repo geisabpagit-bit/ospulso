@@ -28,7 +28,7 @@
    - [Caso 13: Checklist Preoperatorio OMS, Conteo de Seguridad y Nota Quirúrgica NOM-004 con Criterios Aldrete](#caso-13-checklist-preoperatorio-oms-conteo-de-seguridad-y-nota-quirúrgica-nom-004-con-criterios-aldrete)
    - [Caso 14: Pre-Liquidación Quirúrgica Automatizada e Inyección de Cargo a Estado de Cuenta para Cobro en Caja](#caso-14-pre-liquidación-quirúrgica-automatizada-e-inyección-de-cargo-a-estado-de-cuenta-para-cobro-en-caja)
    - [Caso 15: Trazabilidad Quirúrgica en Expediente Clínico y Formato Imprimible de Nota Quirúrgica NOM-004](#caso-15-trazabilidad-quirúrgica-en-expediente-clínico-y-formato-imprimible-de-nota-quirúrgica-nom-004)
-   - [Caso 16: Vista Diaria Matricial Multi-Recurso y Popup Rápido de Inspección de Citas](#caso-16-vista-diaria-matricial-multi-recurso-y-popup-rápido-de-inspección-de-citas)
+   - [Caso 16: Vista Diaria Matricial de Espacios Físicos, Selector Superior Unificado y Minicalendario Colapsable](#caso-16-vista-diaria-matricial-de-espacios-físicos-selector-superior-unificado-y-minicalendario-colapsable)
 5. [Protocolo de Actualización Obligatoria](#5-protocolo-de-actualización-obligatoria)
 6. [Criterios de Aceptación (Definición de Terminado)](#6-criterios-de-aceptación-definición-de-terminado)
 
@@ -534,31 +534,35 @@ graph TD
 
 ---
 
-### Caso 16: Vista Diaria Matricial Multi-Recurso y Popup Rápido de Inspección de Citas
+### Caso 16: Vista Diaria Matricial de Espacios Físicos, Selector Superior Unificado y Minicalendario Colapsable
 
-* **Objetivo**: Proveer una experiencia de alta densidad y agilidad operativa en la vista diaria de la Agenda (`views/agenda_main.pl`), distribuyendo la jornada en una matriz horizontal de columnas dinámicas por recurso físico (Consultorios y Quirófanos) o profesional médico, con agendamiento por clic en celdas y un modal intermedio ágil (`#appointmentQuickModal`) para previsualización y acciones directas.
+* **Objetivo**: Proveer una experiencia de alta densidad y agilidad operativa en la vista diaria de la Agenda (`views/agenda_main.pl`), distribuyendo la jornada en una matriz horizontal de columnas por espacio físico (Consultorios y Quirófanos), con selector superior unificado (`#filtro_recurso_toolbar`) situado junto al selector de médicos, panel de minicalendario colapsable para expandir la matriz al 100% del ancho, y modal intermedio ágil (`#appointmentQuickModal`) para previsualización y acciones directas.
 * **Actores**: Recepción, Coordinador Médico, Médicos Especialistas y Cirujanos.
 * **Componentes Involucrados**:
-  - `views/agenda_main.pl` (Toolbar multi-recurso `#dia-resource-toolbar`, `#appointmentQuickModal`).
-  - `css/ospulso_master_v2.css` (Clases de matriz `.dia-matrix-card`, `.dia-matrix-responsive`, `.dia-matrix-table`, headers estilizados `.dia-col-consultorio`, `.dia-col-quirofano`, `.dia-col-medico` y estilos del popup rápido).
-  - `js/agenda_spa_new.js` (Funciones `renderTimeline()`, `setDiaViewMode()`, `setDiaFilterActive()`, `handleMatrixSlotClick()`, `openAppointmentQuickDetail()`, `renderMatrixAptCard()`).
+  - `views/agenda_main.pl` (Selector superior `#filtro_recurso_toolbar`, botón `#btn-toggle-side-cal`, panel `#dia-side-col`, contenedor `#dia-main-col`, `#appointmentQuickModal`).
+  - `css/ospulso_master_v2.css` (Clases de matriz `.dia-matrix-card`, `.dia-matrix-responsive`, `.dia-matrix-table`, headers estilizados `.dia-col-consultorio` Teal `#19B7A5` y `.dia-col-quirofano` Púrpura `#7C3AED`, transiciones de colapso y estilos del popup rápido).
+  - `js/agenda_spa_new.js` (Funciones `renderTimeline()`, `filtrarAgendaPorRecurso()`, `poblarFiltroRecursosToolbar()`, `toggleSideCalendar()`, `aplicarPreferenciaSideCalendar()`, `handleMatrixSlotClick()`, `openAppointmentQuickDetail()`, `renderMatrixAptCard()`).
 * **Pasos de Ejecución**:
   1. **Navegación a la Vista de Día**:
      - Entrar a la Agenda Central (`views/agenda_main.pl`).
-     - Seleccionar el selector de vista **DÍA** (botón `#btn-v-dia` o navegación directa a fecha).
-  2. **Alternancia de Modo en Barra de Distribución**:
-     - Localizar la barra superior `#dia-resource-toolbar`.
-     - Presionar el botón **"Espacios Físicos"**: la matriz genera columnas para cada Consultorio (1..N) y Quirófano (1..N) configurados en la sucursal activa (`window.sucursalRecursos`), identificando consultorios con tono Verde Azulado (`#19B7A5`) y quirófanos con Púrpura Quirúrgico (`#7C3AED`).
-     - Presionar el botón **"Profesionales"**: la matriz se reconfigura dinámicamente desplegando columnas por cada médico activo con consultas en la jornada (`#f_medico_select`), identificadas con Azul Profundo (`#0A2A66`).
-  3. **Filtrado por Pills de Columna**:
-     - Hacer clic en los selectores tipo pill (`[Todos]`, `[Cons 1]`, `[Quirófano 1]`, etc.).
-     - Constatar que la tabla filtra de inmediato la columna seleccionada, permitiendo aislar un recurso específico o restaurar la cuadrícula completa con `[Todos]`.
-  4. **Agendamiento Rápido por Celda**:
-     - En una celda horaria vacía de un consultorio o médico, hacer clic.
-     - Constatar que se abre `#modalCita` pre-cargando la fecha, la hora exacta del slot y pre-seleccionando el consultorio o médico de dicha columna.
-  5. **Inspección Rápida con `#appointmentQuickModal`**:
+     - Seleccionar la vista **DÍA** (botón `#btn-v-dia`).
+     - Constatar que la cabecera superior despliega en una sola fila integrada: `[HOY]` + `[VISTAS]` + `[REPORTES]` + `[👥 Selector Médicos]` + `[🚪 Selector Espacios Físicos]` + `[📅 Toggle Minicalendario]`.
+  2. **Filtrado por Médico Superior (Sin Colisión de Roles)**:
+     - En `#filtro_medico_toolbar`, alternar entre *"👥 Todos los Médicos"* y un médico particular.
+     - Constatar que la matriz de consultorios y quirófanos muestra fidedignamente solo las citas de dicho profesional sin duplicar controles.
+  3. **Filtrado Dinámico de Espacios Físicos (Consultorios y Quirófanos)**:
+     - En `#filtro_recurso_toolbar`, seleccionar un consultorio o quirófano específico (ej. *"Consultorio 1"* o *"Quirófano 1"*).
+     - La cuadrícula aísla de inmediato dicha columna; seleccionar *"🚪 Todos los Espacios Físicos"* restaura la matriz completa.
+  4. **Colapso y Expansión del Minicalendario Lateral**:
+     - Presionar el botón `[ ⮜ ]` en la tarjeta de navegación lateral o el botón de barra superior `#btn-toggle-side-cal`.
+     - Constatar que el minicalendario se oculta y la matriz se expande instantáneamente a **`col-12` (100% de la pantalla)**, permitiendo visualización panorámica óptima en laptops.
+     - Presionar nuevamente el botón para desplegar el minicalendario; verificar persistencia en recarga vía `localStorage`.
+  5. **Agendamiento Rápido por Celda**:
+     - En una celda horaria vacía de un consultorio o quirófano, hacer clic.
+     - Constatar que se abre `#modalCita` pre-cargando la fecha, la hora exacta del slot y pre-seleccionando el espacio físico de dicha columna.
+  6. **Inspección Rápida con `#appointmentQuickModal`**:
      - Hacer clic sobre la tarjeta de cualquier cita dentro de la matriz.
-     - Comprobar que NO abre el formulario pesado completo inmediatamente, sino el popup emergente de inspección rápida `#appointmentQuickModal`:
+     - Comprobar que despliega el popup emergente de inspección rápida `#appointmentQuickModal`:
        - Cabecera con badge de estado canónico (`Programada`, `Confirmada`, `En Sala de Espera`, `En Consulta`, etc.).
        - Nombre completo del paciente con enlace a expediente.
        - Badge de pago (`Pagado` en verde o `Pendiente de Pago` en ámbar).
@@ -566,15 +570,16 @@ graph TD
        - Médico tratante, especialidad y motivo de consulta.
        - Tarjeta de horario destacada con fondo suave amarillo avena (`#FFFBEB`, borde `#FDE68A`).
        - Recurso físico o consultorio asignado.
-  6. **Ejecución de Acciones Rápidas**:
+  7. **Ejecución de Acciones Rápidas**:
      - Botón `▶️ Iniciar Cita`: dispara `window.tomarCitaDirecto()` para iniciar consulta clínica.
      - Botón `Expediente`: abre el expediente del paciente en nueva pestaña.
      - Botón `Editar / Re-agendar`: abre `#modalCita` en modo edición para ajustes finos.
      - Botón `Cobrar`: abre la recepción o registro de pago si la cita está pendiente.
      - Botón `Eliminar`: cancela/elimina la cita previa confirmación.
 * **Resultado Esperado**:
-  - Cuadrícula de jornada diaria nítida, profesional y organizada espacialmente por salas y médicos.
-  - Cero confusión de empalmes entre consultorios y quirófanos.
+  - Cuadrícula de jornada diaria nítida, profesional y organizada espacialmente por salas físicas.
+  - Cero contraposición con el filtro de médicos superior.
+  - Capacidad de expandir la pantalla al 100% eliminando barras intermedias y colapsando el panel lateral.
   - Flujo ágil de recepción y pase a consulta en un solo clic sin recargar la pantalla.
 
 ---
