@@ -926,12 +926,13 @@ sub obtener_metadatos_formulario {
 
 sub obtener_recursos_sucursal {
     my ($q) = @_;
-    my $id_sucursal = $q->param('id_sucursal') // '';
+    my $id_sucursal_solicitada = $q->param('id_sucursal') // '';
     
     my $my_org = $session_data->{id_empresa} // '0';
     $my_org = '0' if $my_org eq '';
 
     my $file_cfg = "$dirname/../dat/negocios_config.dat";
+    my $file_neg = "$dirname/../dat/negocios.dat";
 
     # Detectar si esta organización es Consultorio Individual
     my $tipo_org = 'Clínica';
@@ -953,13 +954,19 @@ sub obtener_recursos_sucursal {
     # Si es Consultorio Individual, por regla de arquitectura clínica SOLO maneja 1 consultorio y 0 quirófanos
     if ($tipo_org eq 'Consultorio Individual') {
         print $q->header(-type => 'application/json', -charset => 'utf-8');
-        print encode_json({ ok => 1, consultorios => 1, quirofanos => 0, tipo_org => 'Consultorio Individual' });
+        print encode_json({
+            ok => 1,
+            consultorios => 1,
+            quirofanos => 0,
+            tipo_org => 'Consultorio Individual',
+            es_unica => 1,
+            sucursales => [{ id => $my_org, nombre => 'Consultorio Principal', consultorios => 1, quirofanos => 0, es_unica => 1 }]
+        });
         return;
     }
 
-    my $consultorios = 1;
-    my $quirofanos = 0;
-    
+    # Leer configuración de consultorios y quirófanos por ID de negocio
+    my %config_por_negocio;
     if (-e $file_cfg && open my $fh, '<:encoding(UTF-8)', $file_cfg) {
         my $cnt = 0;
         while (my $line = <$fh>) {
@@ -968,38 +975,94 @@ sub obtener_recursos_sucursal {
             next if $cnt == 1 || $line =~ /^\s*$/;
             my @f = split(/\|/, $line);
             next unless scalar(@f) >= 3;
-            if ($f[0] eq $id_sucursal || ($id_sucursal eq '' && $f[0] eq $my_org)) {
-                if ($f[1] eq 'CONSULTORIOS') { $consultorios = $f[2] + 0; }
-                if ($f[1] eq 'QUIROFANOS') { $quirofanos = $f[2] + 0; }
-            }
+            $config_por_negocio{$f[0]}{$f[1]} = $f[2];
         }
         close $fh;
     }
-    
-    # Fallback: si la sucursal o matriz reporta 0 quirófanos, verificar si alguna sucursal o la matriz tiene quirófanos
-    if ($quirofanos <= 0) {
-        my %org_ids_check = ($my_org => 1);
-        my $file_neg = "$dirname/../dat/negocios.dat";
-        if (-e $file_neg && open my $fhn, '<:encoding(UTF-8)', $file_neg) {
-            while (my $nl = <$fhn>) {
-                $nl =~ s/\R//g;
-                my @nf = split(/\|/, $nl);
-                if (scalar(@nf) >= 3 && ($nf[2] eq $my_org || $nf[0] eq $my_org)) {
-                    $org_ids_check{$nf[0]} = 1;
-                }
+
+    # Leer todas las sucursales vinculadas a la organización
+    my @sucursales;
+    my %vistas_ids;
+    if (-e $file_neg && open my $fhn, '<:encoding(UTF-8)', $file_neg) {
+        while (my $nl = <$fhn>) {
+            $nl =~ s/\R//g;
+            my @nf = split(/\|/, $nl);
+            next unless scalar(@nf) >= 2;
+            my $id_neg = $nf[0];
+            my $nom_neg = $nf[1];
+            my $id_matriz = $nf[2] // '0';
+            my $activo = $nf[3] // '1';
+            next if $activo ne '1' && $activo ne '';
+
+            # Es la matriz o es sucursal hija de my_org
+            if ($id_neg eq $my_org || $id_matriz eq $my_org || ($my_org eq '0' && $id_matriz eq '0')) {
+                next if $vistas_ids{$id_neg}++;
+                my $c_num = $config_por_negocio{$id_neg}{CONSULTORIOS} // 1;
+                my $q_num = $config_por_negocio{$id_neg}{QUIROFANOS} // 0;
+                $c_num = int($c_num) || 1;
+                $q_num = int($q_num) || 0;
+                
+                my $nom_lower = lc($nom_neg);
+                $nom_lower =~ s/[áàä]/a/g;
+                $nom_lower =~ s/[éèë]/e/g;
+                $nom_lower =~ s/[íìï]/i/g;
+                $nom_lower =~ s/[óòö]/o/g;
+                $nom_lower =~ s/[úùü]/u/g;
+                my $es_nom_unica = ($nom_lower =~ /^unica$/);
+
+                push @sucursales, {
+                    id => $id_neg,
+                    nombre => $nom_neg,
+                    consultorios => $c_num,
+                    quirofanos => $q_num,
+                    es_unica => $es_nom_unica ? 1 : 0
+                };
             }
-            close $fhn;
         }
-        if (-e $file_cfg && open my $fhc2, '<:encoding(UTF-8)', $file_cfg) {
-            while (my $line = <$fhc2>) {
-                $line =~ s/\R//g;
-                my @f = split(/\|/, $line);
-                if (scalar(@f) >= 3 && $org_ids_check{$f[0]} && $f[1] eq 'QUIROFANOS') {
-                    my $qn = $f[2] + 0;
-                    $quirofanos = $qn if $qn > $quirofanos;
-                }
+        close $fhn;
+    }
+
+    # Si no se encontró ninguna sucursal registrada, fallback a matriz
+    if (scalar(@sucursales) == 0) {
+        push @sucursales, {
+            id => $my_org,
+            nombre => 'Clínica Principal',
+            consultorios => 1,
+            quirofanos => 0,
+            es_unica => 1
+        };
+    }
+
+    # Regla de Sucursal Única: Si solo hay 1 sucursal operativa o su nombre es "unica"
+    my $es_unica = 0;
+    my @sucursales_operativas = grep { $_->{id} ne $my_org || scalar(@sucursales) == 1 } @sucursales;
+    if (scalar(@sucursales_operativas) <= 1) {
+        $es_unica = 1;
+    } elsif (scalar(grep { !$_->{es_unica} && $_->{id} ne $my_org } @sucursales) == 0) {
+        $es_unica = 1;
+    }
+
+    # Determinar consultorios y quirófanos para la sucursal activa o solicitada
+    my ($consultorios, $quirofanos) = (1, 0);
+    my $suc_target;
+    if ($id_sucursal_solicitada ne '') {
+        ($suc_target) = grep { $_->{id} eq $id_sucursal_solicitada } @sucursales;
+    }
+    if (!$suc_target) {
+        ($suc_target) = grep { $_->{id} ne $my_org } @sucursales;
+        $suc_target //= $sucursales[0];
+    }
+
+    if ($suc_target) {
+        $consultorios = $suc_target->{consultorios};
+        $quirofanos = $suc_target->{quirofanos};
+    }
+
+    if ($quirofanos <= 0) {
+        foreach my $s (@sucursales) {
+            if ($s->{quirofanos} > $quirofanos) {
+                $quirofanos = $s->{quirofanos};
             }
-            close $fhc2;
         }
     }
 
@@ -1007,7 +1070,14 @@ sub obtener_recursos_sucursal {
     $quirofanos   = 0 if $quirofanos < 0;
 
     print $q->header(-type => 'application/json', -charset => 'utf-8');
-    print encode_json({ ok => 1, consultorios => $consultorios, quirofanos => $quirofanos, tipo_org => $tipo_org });
+    print encode_json({
+        ok => 1,
+        consultorios => $consultorios,
+        quirofanos => $quirofanos,
+        tipo_org => $tipo_org,
+        es_unica => $es_unica,
+        sucursales => \@sucursales
+    });
 }
 
 sub sincronizar_cita_con_quirofano {

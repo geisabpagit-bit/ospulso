@@ -534,32 +534,39 @@ graph TD
 
 ---
 
-### Caso 16: Vista Diaria Matricial de Espacios Físicos, Selector Superior Unificado y Minicalendario Colapsable
+### Caso 16: Vista Diaria Matricial de Espacios Físicos, Agrupación Canónica por Sucursales ("única" vs múltiples), Botón Único de Colapso y Eliminación de Scrolls Triples
 
-* **Objetivo**: Proveer una experiencia de alta densidad y agilidad operativa en la vista diaria de la Agenda (`views/agenda_main.pl`), distribuyendo la jornada en una matriz horizontal de columnas por espacio físico (Consultorios y Quirófanos), con selector superior unificado (`#filtro_recurso_toolbar`) situado junto al selector de médicos, panel de minicalendario colapsable para expandir la matriz al 100% del ancho, y modal intermedio ágil (`#appointmentQuickModal`) para previsualización y acciones directas.
+* **Objetivo**: Proveer una experiencia panorámica de alta densidad y agilidad operativa en la vista diaria de la Agenda (`views/agenda_main.pl`), distribuyendo la jornada en una matriz horizontal de columnas por espacio físico (Consultorios y Quirófanos), con selector superior unificado (`#filtro_recurso_toolbar`) situado junto al selector de médicos, panel de minicalendario lateral colapsable mediante un **único botón maestro** en la toolbar (`#btn-toggle-side-cal`), arquitectura Flexbox anti-apilamiento (`.dia-view-layout`, `.dia-side-panel`, `.dia-main-panel`) y **eliminación de scrolls verticales triples** dejando un único scroll viewport acotado a `.dia-matrix-responsive`.
 * **Actores**: Recepción, Coordinador Médico, Médicos Especialistas y Cirujanos.
 * **Componentes Involucrados**:
-  - `views/agenda_main.pl` (Selector superior `#filtro_recurso_toolbar`, botón `#btn-toggle-side-cal`, panel `#dia-side-col`, contenedor `#dia-main-col`, `#appointmentQuickModal`).
-  - `css/ospulso_master_v2.css` (Clases de matriz `.dia-matrix-card`, `.dia-matrix-responsive`, `.dia-matrix-table`, headers estilizados `.dia-col-consultorio` Teal `#19B7A5` y `.dia-col-quirofano` Púrpura `#7C3AED`, transiciones de colapso y estilos del popup rápido).
+  - `views/agenda_main.pl` (Selector superior `#filtro_recurso_toolbar`, botón único `#btn-toggle-side-cal`, estructura flex `.dia-view-layout`, panel `#dia-side-col`, contenedor `#dia-main-col`, clase `agenda-page-layout`, `#appointmentQuickModal`).
+  - `api/citas_crud.pl` (Endpoint `get_recursos` / `obtener_recursos_sucursal`: detección automática de sucursales en `negocios.dat` y `negocios_config.dat`, cálculo de `es_unica` si el nombre es `"unica"` o solo existe una sede, y entrega del payload estructurado `sucursales: [...]`).
+  - `css/ospulso_master_v2.css` (Clases de matriz `.dia-matrix-card`, `.dia-matrix-responsive`, `.dia-matrix-table`, headers estilizados `.dia-col-consultorio` Teal `#19B7A5` y `.dia-col-quirofano` Púrpura `#7C3AED`, supresión de scrolls en `body.agenda-page-layout` y `.sdm-main-content`, y scroll único dentro de la matriz).
   - `js/agenda_spa_new.js` (Funciones `renderTimeline()`, `filtrarAgendaPorRecurso()`, `poblarFiltroRecursosToolbar()`, `toggleSideCalendar()`, `aplicarPreferenciaSideCalendar()`, `handleMatrixSlotClick()`, `openAppointmentQuickDetail()`, `renderMatrixAptCard()`).
 * **Pasos de Ejecución**:
   1. **Navegación a la Vista de Día**:
      - Entrar a la Agenda Central (`views/agenda_main.pl`).
      - Seleccionar la vista **DÍA** (botón `#btn-v-dia`).
-     - Constatar que la cabecera superior despliega en una sola fila integrada: `[HOY]` + `[VISTAS]` + `[REPORTES]` + `[👥 Selector Médicos]` + `[🚪 Selector Espacios Físicos]` + `[📅 Toggle Minicalendario]`.
-  2. **Filtrado por Médico Superior (Sin Colisión de Roles)**:
-     - En `#filtro_medico_toolbar`, alternar entre *"👥 Todos los Médicos"* y un médico particular.
-     - Constatar que la matriz de consultorios y quirófanos muestra fidedignamente solo las citas de dicho profesional sin duplicar controles.
-  3. **Filtrado Dinámico de Espacios Físicos (Consultorios y Quirófanos)**:
-     - En `#filtro_recurso_toolbar`, seleccionar un consultorio o quirófano específico (ej. *"Consultorio 1"* o *"Quirófano 1"*).
-     - La cuadrícula aísla de inmediato dicha columna; seleccionar *"🚪 Todos los Espacios Físicos"* restaura la matriz completa.
-  4. **Colapso y Expansión del Minicalendario Lateral**:
-     - Presionar el botón `[ ⮜ ]` en la tarjeta de navegación lateral o el botón de barra superior `#btn-toggle-side-cal`.
-     - Constatar que el minicalendario se oculta y la matriz se expande instantáneamente a **`col-12` (100% de la pantalla)**, permitiendo visualización panorámica óptima en laptops.
-     - Presionar nuevamente el botón para desplegar el minicalendario; verificar persistencia en recarga vía `localStorage`.
+     - Constatar que la cabecera superior despliega en una sola fila integrada: `[HOY]` + `[VISTAS]` + `[REPORTES]` + `[👥 Selector Médicos]` + `[🏢 Selector Espacios Físicos]` + `[⮜⮞ Toggle Minicalendario]`.
+  2. **Regla de Sucursal Única vs Múltiples Sucursales**:
+     - **Caso Sucursal "Única"**: Si la organización tiene una sola sucursal o su nombre es `"unica"` / `"única"`, el selector `#filtro_recurso_toolbar` muestra directamente los espacios:
+       - `🏢 Todos los Espacios Físicos`
+       - `<optgroup label="Consultorios">` $\to$ `Consultorio 1..N`
+       - `<optgroup label="Quirófanos">` $\to$ `Quirófano 1..N`
+     - **Caso Múltiples Sucursales**: Si existen varias sedes registradas, el selector agrupa por sede:
+       - `🏢 Todos los Espacios (Todas las Sucursales)`
+       - `<optgroup label="Sucursal: [Nombre Sede 1]">` $\to$ `Consultorio 1..N`, `Quirófano 1..N`
+       - `<optgroup label="Sucursal: [Nombre Sede 2]">` $\to$ `Consultorio 1..N`, `Quirófano 1..N`
+  3. **Colapso y Expansión del Minicalendario con Botón Único**:
+     - Constatar que la tarjeta de minicalendario **no** contiene un segundo botón redundante de colapso; el control reside exclusivamente en `#btn-toggle-side-cal` en la barra superior.
+     - Presionar `#btn-toggle-side-cal`: el panel lateral `#dia-side-col` se oculta limpiamente y el panel de matriz `#dia-main-col` se expande al 100% del ancho disponible sin saltos ni saltos de línea verticales (gracias a Flexbox `.dia-view-layout`).
+     - La preferencia persiste tras recargar la página mediante `localStorage.getItem('agenda_side_collapsed')`.
+  4. **Eliminación de Scrolls Triples**:
+     - Verificar que no existan 3 barras de scroll vertical simultáneas (ventana general, contenedor intermedio `.sdm-main-content` y matriz).
+     - La clase `agenda-page-layout` suprime el desbordamiento innecesario del contenedor principal, canalizando todo el desplazamiento de la cuadrícula horaria de forma fluida y única dentro de `.dia-matrix-responsive`.
   5. **Agendamiento Rápido por Celda**:
      - En una celda horaria vacía de un consultorio o quirófano, hacer clic.
-     - Constatar que se abre `#modalCita` pre-cargando la fecha, la hora exacta del slot y pre-seleccionando el espacio físico de dicha columna.
+     - Constatar que se abre `#modalCita` pre-cargando la fecha, la hora exacta del slot y pre-seleccionando el espacio físico y sucursal de dicha columna.
   6. **Inspección Rápida con `#appointmentQuickModal`**:
      - Hacer clic sobre la tarjeta de cualquier cita dentro de la matriz.
      - Comprobar que despliega el popup emergente de inspección rápida `#appointmentQuickModal`:
@@ -577,9 +584,11 @@ graph TD
      - Botón `Cobrar`: abre la recepción o registro de pago si la cita está pendiente.
      - Botón `Eliminar`: cancela/elimina la cita previa confirmación.
 * **Resultado Esperado**:
-  - Cuadrícula de jornada diaria nítida, profesional y organizada espacialmente por salas físicas.
+  - Cuadrícula de jornada diaria nítida, profesional y organizada espacialmente por salas físicas y sucursales.
   - Cero contraposición con el filtro de médicos superior.
-  - Capacidad de expandir la pantalla al 100% eliminando barras intermedias y colapsando el panel lateral.
+  - Estricto respeto al diseño Flexbox: minicalendario a la izquierda y matriz a la derecha sin apilamientos defectuosos.
+  - Cero scrolls verticales triples: un solo scroll controlado y fluido dentro de la matriz.
+  - Botón único de colapso en toolbar sin duplicidades.
   - Flujo ágil de recepción y pase a consulta en un solo clic sin recargar la pantalla.
 
 ---

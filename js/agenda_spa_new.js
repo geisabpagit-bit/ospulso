@@ -1029,22 +1029,47 @@ window.poblarFiltroRecursosToolbar = function(data) {
     if (!sel.length) return;
     const curVal = window.diaFilterActive || sel.val() || 'all';
 
-    let html = '<option value="all">🚪 Todos los Espacios Físicos</option>';
-    const numCons = (data && data.consultorios) ? parseInt(data.consultorios) : 1;
-    const numQx = (data && data.quirofanos) ? parseInt(data.quirofanos) : 0;
+    let html = '<option value="all">🏢 Todos los Espacios Físicos</option>';
+    
+    // Regla Canónica de Sucursal:
+    // Si data.es_unica es verdadero o sólo hay 1 sucursal, no se anida nombre de sucursal
+    const esUnica = (data && (data.es_unica === 1 || data.es_unica === true || data.es_unica === "1")) || 
+                    (!data || !data.sucursales || data.sucursales.length <= 1);
 
-    html += '<optgroup label="Consultorios">';
-    for (let i = 1; i <= numCons; i++) {
-        html += `<option value="consultorio_${i}">Consultorio ${i}</option>`;
-    }
-    html += '</optgroup>';
+    if (esUnica) {
+        const numCons = (data && data.consultorios) ? parseInt(data.consultorios) : 1;
+        const numQx = (data && data.quirofanos) ? parseInt(data.quirofanos) : 0;
 
-    if (numQx > 0) {
-        html += '<optgroup label="Quirófanos">';
-        for (let i = 1; i <= numQx; i++) {
-            html += `<option value="quirofano_${i}">Quirófano ${i}</option>`;
+        html += '<optgroup label="Consultorios">';
+        for (let i = 1; i <= numCons; i++) {
+            html += `<option value="consultorio_${i}">Consultorio ${i}</option>`;
         }
         html += '</optgroup>';
+
+        if (numQx > 0) {
+            html += '<optgroup label="Quirófanos">';
+            for (let i = 1; i <= numQx; i++) {
+                html += `<option value="quirofano_${i}">Quirófano ${i}</option>`;
+            }
+            html += '</optgroup>';
+        }
+    } else {
+        // Múltiples sucursales: Agrupadas por Sucursal [nombre_sucursal]
+        data.sucursales.forEach(s => {
+            const sId = s.id;
+            const sNom = s.nombre || `Sucursal ${sId}`;
+            const numCons = parseInt(s.consultorios) || 1;
+            const numQx = parseInt(s.quirofanos) || 0;
+
+            html += `<optgroup label="Sucursal: ${sNom}">`;
+            for (let i = 1; i <= numCons; i++) {
+                html += `<option value="suc_${sId}_consultorio_${i}">Consultorio ${i}</option>`;
+            }
+            for (let i = 1; i <= numQx; i++) {
+                html += `<option value="suc_${sId}_quirofano_${i}">Quirófano ${i}</option>`;
+            }
+            html += `</optgroup>`;
+        });
     }
 
     sel.html(html);
@@ -1058,20 +1083,17 @@ window.poblarFiltroRecursosToolbar = function(data) {
 
 window.toggleSideCalendar = function() {
     const sideCol = $('#dia-side-col');
-    const mainCol = $('#dia-main-col');
     const btnToggle = $('#btn-toggle-side-cal');
 
     if (sideCol.hasClass('d-none')) {
         // Expandir panel
         sideCol.removeClass('d-none');
-        mainCol.removeClass('col-12').addClass('col-lg-9');
         localStorage.setItem('agenda_side_collapsed', '0');
         btnToggle.removeClass('btn-teal text-white').addClass('btn-light text-navy')
                  .attr('title', 'Ocultar Minicalendario Lateral');
     } else {
         // Colapsar panel
         sideCol.addClass('d-none');
-        mainCol.removeClass('col-lg-9').addClass('col-12');
         localStorage.setItem('agenda_side_collapsed', '1');
         btnToggle.removeClass('btn-light text-navy').addClass('btn-teal text-white')
                  .attr('title', 'Mostrar Minicalendario Lateral');
@@ -1079,11 +1101,20 @@ window.toggleSideCalendar = function() {
 };
 
 window.aplicarPreferenciaSideCalendar = function() {
-    if (localStorage.getItem('agenda_side_collapsed') === '1') {
-        $('#dia-side-col').addClass('d-none');
-        $('#dia-main-col').removeClass('col-lg-9').addClass('col-12');
-        $('#btn-toggle-side-cal').removeClass('btn-light text-navy').addClass('btn-teal text-white')
+    const sideCol = $('#dia-side-col');
+    const btnToggle = $('#btn-toggle-side-cal');
+    const isCollapsed = localStorage.getItem('agenda_side_collapsed') === '1';
+
+    if (isCollapsed) {
+        sideCol.addClass('d-none');
+        btnToggle.removeClass('btn-light text-navy').addClass('btn-teal text-white')
                  .attr('title', 'Mostrar Minicalendario Lateral');
+    } else {
+        if (window.innerWidth >= 992) {
+            sideCol.removeClass('d-none');
+        }
+        btnToggle.removeClass('btn-teal text-white').addClass('btn-light text-navy')
+                 .attr('title', 'Ocultar Minicalendario Lateral');
     }
 };
 
@@ -1103,27 +1134,50 @@ window.handleMatrixSlotClick = function(event, fecha, hora, recursoId, recursoTi
 
     abrirModalNuevaCita(fecha, hora);
 
-    // Pre-asignar el consultorio o quirófano en #f_consultorio
+    // Pre-asignar el consultorio o quirófano en #f_consultorio y sucursal si aplica
     if (recursoId) {
         setTimeout(() => {
-            const consSelect = $('#f_consultorio');
-            if (consSelect.length) {
-                let matched = false;
-                consSelect.find('option').each(function() {
-                    if ($(this).val().toLowerCase() === recursoId.toLowerCase() || $(this).text().toLowerCase().includes(recursoId.toLowerCase())) {
-                        consSelect.val($(this).val());
-                        matched = true;
-                        return false;
+            if (recursoId.startsWith('suc_')) {
+                const parts = recursoId.split('_'); // ['suc', id, 'consultorio', num]
+                const sId = parts[1];
+                const tipo = parts[2];
+                const num = parts[3];
+                const fSuc = $('#f_sucursal');
+                if (fSuc.length && fSuc.val() !== sId) {
+                    fSuc.val(sId).trigger('change');
+                }
+                setTimeout(() => {
+                    const targetText = `${tipo === 'quirofano' ? 'Quirófano' : 'Consultorio'} ${num}`;
+                    const consSelect = $('#f_consultorio');
+                    if (consSelect.length) {
+                        consSelect.find('option').each(function() {
+                            if ($(this).text().toLowerCase().includes(targetText.toLowerCase()) || $(this).val().toLowerCase().includes(targetText.toLowerCase())) {
+                                consSelect.val($(this).val());
+                                return false;
+                            }
+                        });
                     }
-                });
-                if (!matched && recursoId.includes('_')) {
-                    const num = recursoId.split('_')[1];
+                }, 200);
+            } else {
+                const consSelect = $('#f_consultorio');
+                if (consSelect.length) {
+                    let matched = false;
                     consSelect.find('option').each(function() {
-                        if ($(this).text().includes(num)) {
+                        if ($(this).val().toLowerCase() === recursoId.toLowerCase() || $(this).text().toLowerCase().includes(recursoId.toLowerCase())) {
                             consSelect.val($(this).val());
+                            matched = true;
                             return false;
                         }
                     });
+                    if (!matched && recursoId.includes('_')) {
+                        const num = recursoId.split('_')[1];
+                        consSelect.find('option').each(function() {
+                            if ($(this).text().includes(num)) {
+                                consSelect.val($(this).val());
+                                return false;
+                            }
+                        });
+                    }
                 }
             }
         }, 150);
@@ -1355,7 +1409,18 @@ function renderMatrixAptCard(a, interval) {
 // Resolver columna asignada para una cita (siempre en Espacio Físico)
 function getAppointmentColumnId(a, columns) {
     const cVal = (a.extendedProps.consultorio || a.extendedProps.recurso || a.extendedProps.lugar || '').trim().toLowerCase();
+    const aSucId = String(a.extendedProps.id_sucursal || a.extendedProps.id_negocio || '').trim();
+
     if (cVal) {
+        // Si hay sucursal asociada y coincide con una columna multi-sucursal
+        if (aSucId) {
+            const matchSuc = columns.find(c => 
+                c.sucursalId && String(c.sucursalId) === aSucId &&
+                (c.id.toLowerCase() === cVal || c.titulo.toLowerCase() === cVal || c.titulo.toLowerCase().includes(cVal) || cVal.includes(c.titulo.toLowerCase()))
+            );
+            if (matchSuc) return matchSuc.id;
+        }
+
         const col = columns.find(c => 
             c.id.toLowerCase() === cVal || 
             c.titulo.toLowerCase() === cVal || 
@@ -1474,31 +1539,68 @@ function renderTimeline() {
     // 1. RESOLVER COLUMNAS DE ESPACIOS FÍSICOS (Consultorios y Quirófanos)
     let columns = [];
     const recData = window.sucursalRecursos || {};
-    const numCons = parseInt(recData.consultorios) || 0;
-    const numQx = parseInt(recData.quirofanos) || 0;
+    const esUnica = (recData && (recData.es_unica === 1 || recData.es_unica === true || recData.es_unica === "1")) || 
+                    (!recData || !recData.sucursales || recData.sucursales.length <= 1);
 
-    if (numCons > 0) {
-        for (let i = 1; i <= numCons; i++) {
-            columns.push({
-                id: `consultorio_${i}`,
-                tipo: 'consultorio',
-                titulo: `Consultorio ${i}`,
-                subtitulo: 'Consulta Médica',
-                badge: `Cons ${i}`
-            });
-        }
-    }
+    if (esUnica) {
+        const numCons = parseInt(recData.consultorios) || 0;
+        const numQx = parseInt(recData.quirofanos) || 0;
 
-    if (numQx > 0) {
-        for (let i = 1; i <= numQx; i++) {
-            columns.push({
-                id: `quirofano_${i}`,
-                tipo: 'quirofano',
-                titulo: `Quirófano ${i}`,
-                subtitulo: 'Cirugía / Procedimientos',
-                badge: `Qx ${i}`
-            });
+        if (numCons > 0) {
+            for (let i = 1; i <= numCons; i++) {
+                columns.push({
+                    id: `consultorio_${i}`,
+                    tipo: 'consultorio',
+                    titulo: `Consultorio ${i}`,
+                    subtitulo: 'Consulta Médica',
+                    badge: `Cons ${i}`
+                });
+            }
         }
+
+        if (numQx > 0) {
+            for (let i = 1; i <= numQx; i++) {
+                columns.push({
+                    id: `quirofano_${i}`,
+                    tipo: 'quirofano',
+                    titulo: `Quirófano ${i}`,
+                    subtitulo: 'Cirugía / Procedimientos',
+                    badge: `Qx ${i}`
+                });
+            }
+        }
+    } else {
+        // Múltiples sucursales: generar columnas agrupadas por sucursal
+        recData.sucursales.forEach(s => {
+            const sId = s.id;
+            const sNom = s.nombre || `Sucursal ${sId}`;
+            const numCons = parseInt(s.consultorios) || 1;
+            const numQx = parseInt(s.quirofanos) || 0;
+
+            for (let i = 1; i <= numCons; i++) {
+                columns.push({
+                    id: `suc_${sId}_consultorio_${i}`,
+                    sucursalId: sId,
+                    sucursalNombre: sNom,
+                    tipo: 'consultorio',
+                    titulo: `Cons ${i}`,
+                    subtitulo: sNom,
+                    badge: `${sNom.substring(0, 3)} C${i}`
+                });
+            }
+
+            for (let i = 1; i <= numQx; i++) {
+                columns.push({
+                    id: `suc_${sId}_quirofano_${i}`,
+                    sucursalId: sId,
+                    sucursalNombre: sNom,
+                    tipo: 'quirofano',
+                    titulo: `Qx ${i}`,
+                    subtitulo: sNom,
+                    badge: `${sNom.substring(0, 3)} Q${i}`
+                });
+            }
+        });
     }
 
     if (columns.length === 0) {

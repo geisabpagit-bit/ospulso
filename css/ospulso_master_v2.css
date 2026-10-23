@@ -1251,12 +1251,109 @@ nav.navbar.sticky-top {
 /* ========================================================
    MATRIZ MULTI-RECURSO - VISTA DIARIA (Diamond Edition)
    ======================================================== */
+/* --- OPTIMIZACIÓN DE SCROLL UNIFICADO PARA AGENDA (Eliminación de scrolls triples) --- */
+body.agenda-page-layout,
+body:has(.main-container-agenda) {
+    overflow: hidden !important;
+}
+
+body.agenda-page-layout .sdm-main-content,
+body:has(.main-container-agenda) .sdm-main-content {
+    overflow-y: hidden !important;
+    height: 100vh !important;
+}
+
+body.agenda-page-layout .sdm-content,
+body:has(.main-container-agenda) .sdm-content {
+    padding: 0.25rem 1rem 0 1rem !important;
+    height: calc(100vh - 10px);
+    display: flex;
+    flex-direction: column;
+}
+
+.main-container-agenda {
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#app-viewport {
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding-bottom: 0.5rem !important;
+}
+
+#view-dia {
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    padding: 0 !important;
+}
+
+.dia-view-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 1rem;
+    align-items: stretch;
+    width: 100%;
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 100%;
+}
+
+.dia-side-panel {
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+    flex-shrink: 0;
+    height: 100%;
+    overflow-y: auto;
+    transition: all 0.25s ease;
+}
+
+.dia-side-panel.d-none {
+    display: none !important;
+}
+
+.dia-main-panel {
+    flex: 1 1 0%;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#timeline-container {
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+}
+
 .dia-matrix-card {
     border: 1px solid #e2e8f0 !important;
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
 }
+
 .dia-matrix-responsive {
-    max-height: calc(100vh - 220px);
-    overflow: auto;
+    flex: 1 1 0%;
+    min-height: 0;
+    max-height: calc(100vh - 165px);
+    overflow-y: auto !important;
+    overflow-x: auto !important;
 }
 .dia-matrix-table {
     width: 100%;

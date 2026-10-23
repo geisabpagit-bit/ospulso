@@ -129,6 +129,7 @@ print <<HTML;
     <input type="hidden" id="agenda_es_consultorio" value="$es_consultorio">
     <input type="hidden" id="agenda_tipo_organizacion" value="$tipo_organizacion">
     <script>
+        document.body.classList.add('agenda-page-layout');
         window.idPacientePre = "$id_paciente_pre";
         window.nombrePacientePre = "$nombre_paciente_pre";
     </script>
@@ -261,25 +262,22 @@ print <<HTML;
         <main id="app-viewport" class="container-fluid px-1 px-md-3 pt-1 pb-4">
             <!-- VISTA DIARIA (Matriz de Espacios Físicos & Timeline) -->
             <div id="view-dia" class="agenda-view-container">
-                <div class="row g-3" id="dia-layout-row">
+                <div class="dia-view-layout d-flex gap-3 align-items-start w-100" id="dia-layout-row">
                     <!-- Panel Izquierdo: Mini Calendario (Desktop Colapsable) -->
-                    <div class="col-lg-3 d-none d-lg-block" id="dia-side-col">
-                        <div class="card border-0 shadow-sm p-3 sticky-top agenda-side-card" style="top:100px;">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <h6 class="fw-black text-navy m-0 text-uppercase small tracking-widest">Navegación</h6>
-                                <button type="button" class="btn btn-sm btn-light border p-1 rounded-2 text-secondary" onclick="toggleSideCalendar()" title="Colapsar Minicalendario para ampliar matriz">
-                                    <i class="bi bi-chevron-bar-left"></i>
-                                </button>
+                    <div class="dia-side-panel d-none d-lg-block" id="dia-side-col">
+                        <div class="card border-0 shadow-sm p-3 sticky-top agenda-side-card" style="top:75px;">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="fw-black text-navy m-0 text-uppercase small tracking-widest"><i class="bi bi-calendar3 me-1 text-teal"></i> Navegación</h6>
                             </div>
                             <div id="side-datepicker"></div>
-                            <hr class="opacity-10 my-3">
-                            <button class="btn btn-light w-100 btn-sm text-start fw-bold rounded-3 py-2 border" onclick="goToday()">
+                            <hr class="opacity-10 my-2.5">
+                            <button class="btn btn-light w-100 btn-sm text-start fw-bold rounded-3 py-1.5 border" onclick="goToday()">
                                 <i class="bi bi-calendar2-check me-2 text-primary"></i> Ir a Hoy
                             </button>
                         </div>
                     </div>
                     <!-- Panel Derecho: Matriz de Consultorios y Quirófanos -->
-                    <div class="col-lg-9" id="dia-main-col">
+                    <div class="dia-main-panel flex-grow-1" id="dia-main-col" style="min-width: 0;">
                         <!-- Contenedor Principal de la Matriz Diaria -->
                         <div id="timeline-container"></div>
                     </div>

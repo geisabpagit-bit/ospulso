@@ -1,0 +1,24 @@
+ID|CODE|NOMBRE|GRUPO|CATEGORIA|SUBSTATUS|COLOR_HEX|PRECIO|ICONO|ACTIVO
+1|CARIES|Caries Dental (Activa)|PATHOLOGY|PENDING|ACTIVE|#FF3B30|850.00|bi-circle-fill text-danger|1
+2|CARIES_RECURRENT|Caries Recurrente / Filtrada|PATHOLOGY|PENDING|RECURRENT|#FF3B30|950.00|bi-exclamation-triangle-fill text-danger|1
+3|FRACTURE|Fractura Dental|PATHOLOGY|PENDING|FRACTURE|#FF3B30|1200.00|bi-slash-circle-fill text-danger|1
+4|ABSENT|Diente Ausente|PATHOLOGY|EXISTING|ABSENT|#64748B|0.00|bi-x-lg text-secondary|1
+5|EXTRACTION_REQ|Extracción Indicada|PATHOLOGY|PENDING|EXTRACTION|#FF3B30|1100.00|bi-x-octagon-fill text-danger|1
+6|AMALGAM|Amalgama Adaptada|RESTORATION|EXISTING|ADAPTED|#007AFF|0.00|bi-shield-check text-primary|1
+7|AMALGAM_DEFECTIVE|Amalgama Desadaptada (Recambio)|RESTORATION|PENDING|DEFECTIVE|#FF9500|850.00|bi-shield-exclamation text-warning|1
+8|COMPOSITE|Resina Adaptada|RESTORATION|EXISTING|ADAPTED|#007AFF|0.00|bi-check-circle-fill text-primary|1
+9|COMPOSITE_DEFECTIVE|Resina Desadaptada (Filtrada)|RESTORATION|PENDING|DEFECTIVE|#FF9500|950.00|bi-exclamation-circle-fill text-warning|1
+10|CROWN_DONE|Corona Buena|RESTORATION|EXISTING|ADAPTED|#007AFF|0.00|bi-trophy-fill text-primary|1
+11|CROWN_DEFECTIVE|Corona Desadaptada (Reemplazo)|RESTORATION|PENDING|DEFECTIVE|#FF9500|3500.00|bi-exclamation-triangle-fill text-warning|1
+12|POST_GOOD|Perno Bueno|RESTORATION|EXISTING|ADAPTED|#007AFF|0.00|bi-pin-fill text-primary|1
+13|POST_DEFECTIVE|Perno Malo / Desajustado|RESTORATION|PENDING|DEFECTIVE|#FF9500|1400.00|bi-pin-angle-fill text-warning|1
+14|SEALANT_GOOD|Sellante Bueno|RESTORATION|EXISTING|ADAPTED|#007AFF|0.00|bi-shield-shaded text-primary|1
+15|SEALANT_DEFECTIVE|Sellante Desadaptado|RESTORATION|PENDING|DEFECTIVE|#FF9500|450.00|bi-shield-slash text-warning|1
+16|PROVISIONAL|Restauración Provisional|RESTORATION|PENDING|TEMPORARY|#FF9500|600.00|bi-clock-history text-warning|1
+17|ENDO_DONE|Endodoncia Realizada / Buena|RESTORATION|EXISTING|ADAPTED|#007AFF|0.00|bi-activity text-primary|1
+18|ENDO_DEFECTIVE|Endodoncia Indicada / Fallida|RESTORATION|PENDING|DEFECTIVE|#FF3B30|2600.00|bi-lightning-charge-fill text-danger|1
+19|IMPLANT|Implante Integrado Bueno|RESTORATION|EXISTING|ADAPTED|#007AFF|0.00|bi-nut-fill text-primary|1
+20|IMPLANT_DEFECTIVE|Implante con Periimplantitis / Falla|RESTORATION|PENDING|DEFECTIVE|#FF3B30|4500.00|bi-slash-square-fill text-danger|1
+21|PONTIC|Póntico de Puente Fijo|RESTORATION|PENDING|PONTIC|#007AFF|2800.00|bi-link-45deg text-primary|1
+22|HEALTHY|Diente Sano (Sin Hallazgos)|NORMAL|HEALTHY|HEALTHY|#FFFFFF|0.00|bi-shield-check text-success|1
+23|OTHER|Otros Hallazgos Fisiológicos|NORMAL|HEALTHY|OTHER|#94A3B8|0.00|bi-info-circle-fill text-secondary|1
