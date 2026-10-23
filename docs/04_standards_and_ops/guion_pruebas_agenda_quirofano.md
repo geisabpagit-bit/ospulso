@@ -549,10 +549,11 @@ graph TD
      - Seleccionar la vista **DÍA** (botón `#btn-v-dia`).
      - Constatar que la cabecera superior despliega en una sola fila integrada: `[HOY]` + `[VISTAS]` + `[REPORTES]` + `[👥 Selector Médicos]` + `[🏢 Selector Espacios Físicos]` + `[⮜⮞ Toggle Minicalendario]`.
   2. **Regla de Sucursal Única vs Múltiples Sucursales**:
-     - **Caso Sucursal "Única"**: Si la organización tiene una sola sucursal o su nombre es `"unica"` / `"única"`, el selector `#filtro_recurso_toolbar` muestra directamente los espacios:
+     - **Caso Sucursal "Única" (ej. sede `965257` / `"unica"` con 8 consultorios y 2 quirófanos)**: Si la organización tiene una sola sucursal operativa o su nombre es `"unica"` / `"única"`, el backend (`api/citas_crud.pl?accion=get_recursos`) extrae fidedignamente los recursos de la sede hija vinculada a la matriz (`ID_MATRIZ`). El selector `#filtro_recurso_toolbar` muestra directamente:
        - `🏢 Todos los Espacios Físicos`
-       - `<optgroup label="Consultorios">` $\to$ `Consultorio 1..N`
-       - `<optgroup label="Quirófanos">` $\to$ `Quirófano 1..N`
+       - `<optgroup label="Consultorios">` $\to$ `Consultorio 1` al `Consultorio 8`
+       - `<optgroup label="Quirófanos">` $\to$ `Quirófano 1` y `Quirófano 2`
+       - La matriz diaria renderiza las 10 columnas horizontales de forma panorámica y nítida.
      - **Caso Múltiples Sucursales**: Si existen varias sedes registradas, el selector agrupa por sede:
        - `🏢 Todos los Espacios (Todas las Sucursales)`
        - `<optgroup label="Sucursal: [Nombre Sede 1]">` $\to$ `Consultorio 1..N`, `Quirófano 1..N`
@@ -561,9 +562,9 @@ graph TD
      - Constatar que la tarjeta de minicalendario **no** contiene un segundo botón redundante de colapso; el control reside exclusivamente en `#btn-toggle-side-cal` en la barra superior.
      - Presionar `#btn-toggle-side-cal`: el panel lateral `#dia-side-col` se oculta limpiamente y el panel de matriz `#dia-main-col` se expande al 100% del ancho disponible sin saltos ni saltos de línea verticales (gracias a Flexbox `.dia-view-layout`).
      - La preferencia persiste tras recargar la página mediante `localStorage.getItem('agenda_side_collapsed')`.
-  4. **Eliminación de Scrolls Triples**:
-     - Verificar que no existan 3 barras de scroll vertical simultáneas (ventana general, contenedor intermedio `.sdm-main-content` y matriz).
-     - La clase `agenda-page-layout` suprime el desbordamiento innecesario del contenedor principal, canalizando todo el desplazamiento de la cuadrícula horaria de forma fluida y única dentro de `.dia-matrix-responsive`.
+  4. **Gobernanza Contextual de Scrolls entre Vistas**:
+     - **En Vista de Día (`dia`)**: Se activa `agenda-view-dia-active` en el `body`. Se bloquean scrolls redundantes en la ventana y `.sdm-main-content`, canalizando todo el desplazamiento vertical exclusivamente dentro de `.dia-matrix-responsive`.
+     - **Al Alternar a Otras Vistas (`semana_smart`, `semana`, `mes`, `calendario`)**: La función `switchView()` remueve la clase `agenda-view-dia-active`, restaurando el scroll vertical completo (`overflow-y: auto`) del contenedor principal para permitir la navegación y desplazamiento natural a través de todas las tarjetas y reportes DataTables.
   5. **Agendamiento Rápido por Celda**:
      - En una celda horaria vacía de un consultorio o quirófano, hacer clic.
      - Constatar que se abre `#modalCita` pre-cargando la fecha, la hora exacta del slot y pre-seleccionando el espacio físico y sucursal de dicha columna.

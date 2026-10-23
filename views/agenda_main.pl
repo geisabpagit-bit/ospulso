@@ -97,17 +97,37 @@ foreach my $m (@medicos) {
 }
 
 my $negocios = leer_tabla($archivo_negocios, '\|');
-my $nombre_sucursal = 'Clínica Principal';
+my @sucursales_org;
 if ($negocios) {
     foreach my $n (@$negocios) {
-        if ($n->[0] eq $id_negocio_activo) {
-            $nombre_sucursal = $n->[1];
+        next if @$n < 3;
+        my $id_neg = $n->[0];
+        my $nom_neg = $n->[1];
+        my $id_matriz = $n->[2] // '0';
+        my $activo = $n->[3] // '1';
+        next if $activo ne '1' && $activo ne '';
+        if ($id_matriz eq $id_negocio && $id_matriz ne '0') {
+            push @sucursales_org, { id => $id_neg, nombre => $nom_neg };
+        }
+    }
+}
+if (!@sucursales_org && $negocios) {
+    foreach my $n (@$negocios) {
+        if ($n->[0] eq $id_negocio) {
+            push @sucursales_org, { id => $n->[0], nombre => $n->[1] };
             last;
         }
     }
 }
-$nombre_sucursal = 'Consultorio Principal' if ($es_consultorio_ind && ($nombre_sucursal eq 'Clínica Principal' || $nombre_sucursal eq ''));
-my $html_sucursal = qq(<option value="$id_negocio_activo" selected>$nombre_sucursal</option>);
+if (!@sucursales_org) {
+    push @sucursales_org, { id => $id_negocio, nombre => ($es_consultorio_ind ? 'Consultorio Principal' : 'Clínica Principal') };
+}
+
+my $html_sucursal = '';
+foreach my $s (@sucursales_org) {
+    my $sel = ($s->{id} eq $id_negocio_activo || scalar(@sucursales_org) == 1) ? 'selected' : '';
+    $html_sucursal .= qq(<option value="$s->{id}" $sel>$s->{nombre}</option>\n);
+}
 
 # 1. Cabecera Corporativa
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
@@ -129,7 +149,7 @@ print <<HTML;
     <input type="hidden" id="agenda_es_consultorio" value="$es_consultorio">
     <input type="hidden" id="agenda_tipo_organizacion" value="$tipo_organizacion">
     <script>
-        document.body.classList.add('agenda-page-layout');
+        document.body.classList.add('agenda-page-layout', 'agenda-view-dia-active');
         window.idPacientePre = "$id_paciente_pre";
         window.nombrePacientePre = "$nombre_paciente_pre";
     </script>
@@ -838,6 +858,8 @@ print <<'JS';
                 window.cargarRecursos('');
             } else if (fSucursal && fSucursal.value) {
                 window.cargarRecursos(fSucursal.value);
+            } else {
+                window.cargarRecursos('');
             }
         });
     </script>

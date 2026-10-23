@@ -1251,27 +1251,26 @@ nav.navbar.sticky-top {
 /* ========================================================
    MATRIZ MULTI-RECURSO - VISTA DIARIA (Diamond Edition)
    ======================================================== */
-/* --- OPTIMIZACIÓN DE SCROLL UNIFICADO PARA AGENDA (Eliminación de scrolls triples) --- */
-body.agenda-page-layout,
-body:has(.main-container-agenda) {
+/* --- GOBERNANZA DE SCROLL PARA LA VISTA DIARIA (DÍA) --- */
+/* Cuando está en la Vista de Día, bloqueamos scrolls parásitos en body y contenedores:
+   el único scroll vertical activo debe pertenecer a .dia-matrix-responsive */
+body.agenda-view-dia-active {
     overflow: hidden !important;
 }
 
-body.agenda-page-layout .sdm-main-content,
-body:has(.main-container-agenda) .sdm-main-content {
+body.agenda-view-dia-active .sdm-main-content {
     overflow-y: hidden !important;
     height: 100vh !important;
 }
 
-body.agenda-page-layout .sdm-content,
-body:has(.main-container-agenda) .sdm-content {
+body.agenda-view-dia-active .sdm-content {
     padding: 0.25rem 1rem 0 1rem !important;
     height: calc(100vh - 10px);
     display: flex;
     flex-direction: column;
 }
 
-.main-container-agenda {
+body.agenda-view-dia-active .main-container-agenda {
     flex: 1 1 0%;
     display: flex;
     flex-direction: column;
@@ -1279,22 +1278,44 @@ body:has(.main-container-agenda) .sdm-content {
     overflow: hidden;
 }
 
-#app-viewport {
+body.agenda-view-dia-active #app-viewport {
     flex: 1 1 0%;
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: hidden;
-    padding-bottom: 0.5rem !important;
+    overflow: hidden !important;
+    padding-bottom: 0.25rem !important;
 }
 
-#view-dia {
+body.agenda-view-dia-active #view-dia {
     flex: 1 1 0%;
     display: flex;
     flex-direction: column;
     min-height: 0;
     height: 100%;
     padding: 0 !important;
+}
+
+/* --- GOBERNANZA DE SCROLL PARA LAS DEMÁS VISTAS (SEMANA, MES, CALENDARIO, REPORTES) --- */
+/* Al cambiar a cualquier otra vista, el contenedor principal y viewport permiten scroll vertical completo y natural */
+body.agenda-page-layout:not(.agenda-view-dia-active) {
+    overflow-y: auto !important;
+}
+
+body.agenda-page-layout:not(.agenda-view-dia-active) .sdm-main-content {
+    overflow-y: auto !important;
+    height: 100vh !important;
+}
+
+body.agenda-page-layout:not(.agenda-view-dia-active) #app-viewport {
+    overflow-y: visible !important;
+    min-height: auto;
+    padding-bottom: 3.5rem !important;
+}
+
+body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
+    min-height: auto;
+    padding: 15px 0;
 }
 
 .dia-view-layout {

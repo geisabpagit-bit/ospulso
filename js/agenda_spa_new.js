@@ -919,11 +919,15 @@ function switchView(v) {
     $(".agenda-view-container").addClass('d-none');
     $(`#view-${v.replace('_','-')}`).removeClass('d-none');
 
-    // Visibilidad contextual de controles exclusivos de la vista de día
+    // Gestión contextual de scroll entre vistas:
+    // En 'dia': el scroll vertical pertenece única y exclusivamente a la matriz (.dia-matrix-responsive)
+    // En las demás vistas (semana_smart, semana, mes, calendario): se libera el scroll vertical para navegación completa
     if (v === 'dia') {
+        $('body').addClass('agenda-view-dia-active');
         $("#wrapper_filtro_recurso_toolbar").removeClass('d-lg-none').addClass('d-lg-block');
         $("#btn-toggle-side-cal").removeClass('d-lg-none').addClass('d-lg-inline-flex');
     } else {
+        $('body').removeClass('agenda-view-dia-active');
         $("#wrapper_filtro_recurso_toolbar").removeClass('d-lg-block').addClass('d-lg-none');
         $("#btn-toggle-side-cal").removeClass('d-lg-inline-flex').addClass('d-lg-none');
     }
@@ -1037,8 +1041,13 @@ window.poblarFiltroRecursosToolbar = function(data) {
                     (!data || !data.sucursales || data.sucursales.length <= 1);
 
     if (esUnica) {
-        const numCons = (data && data.consultorios) ? parseInt(data.consultorios) : 1;
-        const numQx = (data && data.quirofanos) ? parseInt(data.quirofanos) : 0;
+        let numCons = (data && data.consultorios) ? parseInt(data.consultorios) : 0;
+        let numQx = (data && data.quirofanos) ? parseInt(data.quirofanos) : 0;
+        if (data && data.sucursales && data.sucursales.length > 0) {
+            if (!numCons && data.sucursales[0].consultorios) numCons = parseInt(data.sucursales[0].consultorios);
+            if (!numQx && data.sucursales[0].quirofanos) numQx = parseInt(data.sucursales[0].quirofanos);
+        }
+        numCons = Math.max(1, numCons);
 
         html += '<optgroup label="Consultorios">';
         for (let i = 1; i <= numCons; i++) {
@@ -1543,8 +1552,13 @@ function renderTimeline() {
                     (!recData || !recData.sucursales || recData.sucursales.length <= 1);
 
     if (esUnica) {
-        const numCons = parseInt(recData.consultorios) || 0;
-        const numQx = parseInt(recData.quirofanos) || 0;
+        let numCons = parseInt(recData.consultorios) || 0;
+        let numQx = parseInt(recData.quirofanos) || 0;
+        if (recData.sucursales && recData.sucursales.length > 0) {
+            if (!numCons && recData.sucursales[0].consultorios) numCons = parseInt(recData.sucursales[0].consultorios);
+            if (!numQx && recData.sucursales[0].quirofanos) numQx = parseInt(recData.sucursales[0].quirofanos);
+        }
+        numCons = Math.max(1, numCons);
 
         if (numCons > 0) {
             for (let i = 1; i <= numCons; i++) {
