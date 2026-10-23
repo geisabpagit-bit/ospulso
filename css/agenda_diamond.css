@@ -137,7 +137,7 @@
 
 /* --- DIAMOND HEADER STYLES --- */
 @media (min-width: 769px) {
-    .main-container-agenda { margin-top: -1.5rem; }
+    .main-container-agenda { margin-top: 0 !important; }
 }
 @media (max-width: 768px) {
     .main-container-agenda { margin-top: 0 !important; }

@@ -60,7 +60,7 @@
 .sidebar-menu {
     flex: 1;
     min-height: 0;
-    padding: 0.5rem 0.5rem 40px 0.5rem !important;
+    padding: 0.5rem 0.5rem 90px 0.5rem !important;
     overflow-y: auto;
     overflow-x: hidden;
 }

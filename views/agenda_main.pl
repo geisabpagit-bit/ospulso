@@ -171,47 +171,57 @@ print <<HTML;
     <div class="main-container-agenda">
         <header class="agenda-header sticky-top animate__animated animate__fadeInDown">
             <div class="container-fluid">
-                <!-- ROW 1: TOOLS AND ACTIONS -->
-                <div class="d-flex align-items-center justify-content-between gap-2 py-2">
+                <!-- ROW 1: TOOLS AND ACTIONS (ORGANIZACIÓN JERÁRQUICA) -->
+                <div class="d-flex align-items-center justify-content-between gap-2 py-2 w-100 flex-nowrap overflow-x-auto">
                     
-                    <!-- LADO IZQUIERDO: HOY + VISTAS + REPORTES -->
-                    <div class="d-flex align-items-center gap-2">
+                    <!-- BLOQUE 1: NAVEGACIÓN TEMPORAL Y MODOS DE VISUALIZACIÓN (IZQUIERDA) -->
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        <!-- Navegación Temporal -->
                         <button onclick="goToday()" class="btn btn-navy fw-black rounded-3 px-3 shadow-sm text-uppercase" style="font-size:0.75rem; height:42px;">HOY</button>
                         
-                        <!-- GRUPO VISTAS -->
-                        <div class="nav-pill-group">
-                            <button onclick="switchView('dia')" class="btn-view-toggle active" id="btn-v-dia" title="Vista Diaria"><i class="bi bi-calendar-event"></i></button>
+                        <div class="d-none d-md-flex align-items-center date-nav-pill shadow-sm">
+                            <button onclick="moveDate(-1)" class="btn btn-link text-navy p-1" title="Día Anterior"><i class="bi bi-chevron-left"></i></button>
+                            <h1 class="h6 mb-0 fw-black text-navy text-uppercase tracking-tight mx-2 text-nowrap" id="current-date-label-desktop" style="min-width: 170px; text-align: center; font-size: 0.82rem;">
+                                CARGANDO...
+                            </h1>
+                            <button onclick="moveDate(1)" class="btn btn-link text-navy p-1" title="Día Siguiente"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+
+                        <div class="vr mx-1 opacity-25 d-none d-lg-block" style="height: 26px;"></div>
+
+                        <!-- Modos de Vista Principal -->
+                        <div class="nav-pill-group shadow-sm">
+                            <button onclick="switchView('dia')" class="btn-view-toggle active" id="btn-v-dia" title="Vista Diaria (Consultorios y Quirófanos)"><i class="bi bi-calendar-event"></i></button>
                             <button onclick="switchView('semana_smart')" class="btn-view-toggle" id="btn-v-semana-smart" title="Vista Semanal Smart"><i class="bi bi-calendar-week"></i></button>
                             <button onclick="switchView('calendario')" class="btn-view-toggle" id="btn-v-calendario" title="Vista Mensual Grid"><i class="bi bi-grid-3x3"></i></button>
                         </div>
 
-                        <!-- GRUPO REPORTES -->
-                        <div class="nav-pill-group">
+                        <!-- Reportes Operativos -->
+                        <div class="nav-pill-group shadow-sm d-none d-xl-flex">
                             <button onclick="switchView('semana')" class="btn-report-toggle" id="btn-r-semana" title="Reporte Semanal"><i class="bi bi-file-earmark-text"></i></button>
                             <button onclick="switchView('mes')" class="btn-report-toggle" id="btn-r-mes" title="Reporte Mensual"><i class="bi bi-file-earmark-bar-graph"></i></button>
                         </div>
-                        
+                    </div>
+
+                    <!-- BLOQUE 2: FILTROS OPERATIVOS Y UTILIDADES (DERECHA) -->
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
+                        <!-- Filtro Médicos -->
                         $html_filtro_medicos_toolbar
-                        <div class="d-none d-lg-block ms-1" id="wrapper_filtro_recurso_toolbar">
-                            <select id="filtro_recurso_toolbar" class="form-select form-select-sm shadow-sm border bg-white rounded-3 fw-bold text-navy" style="height:42px; font-size:0.78rem; min-width: 190px; max-width: 250px;" onchange="filtrarAgendaPorRecurso(this.value)" title="Filtrar por Consultorio o Quirófano">
+
+                        <!-- Filtro Espacios Físicos -->
+                        <div class="d-none d-lg-block" id="wrapper_filtro_recurso_toolbar">
+                            <select id="filtro_recurso_toolbar" class="form-select form-select-sm shadow-sm border bg-white rounded-3 fw-bold text-navy" style="height:42px; font-size:0.80rem; min-width: 180px; max-width: 230px;" onchange="filtrarAgendaPorRecurso(this.value)" title="Filtrar por Consultorio o Quirófano">
                                 <option value="all">🚪 Todos los Espacios</option>
                             </select>
                         </div>
-                        <button type="button" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-none d-lg-inline-flex align-items-center justify-content-center ms-1" id="btn-toggle-side-cal" onclick="toggleSideCalendar()" style="height:42px; width:42px; padding:0;" title="Mostrar/Ocultar Minicalendario Lateral">
+
+                        <!-- Toggle Mini Calendario Lateral -->
+                        <button type="button" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-none d-lg-inline-flex align-items-center justify-content-center" id="btn-toggle-side-cal" onclick="toggleSideCalendar()" style="height:42px; width:42px; padding:0;" title="Mostrar/Ocultar Minicalendario Lateral">
                             <i class="bi bi-layout-sidebar-inset text-teal" style="font-size:1.05rem;"></i>
                         </button>
-                    </div>
 
-                    <!-- CENTRO (Solo Desktop): NAVEGACIÓN DE FECHA -->
-                    <div class="d-none d-md-flex align-items-center date-nav-pill mx-auto">
-                        <button onclick="moveDate(-1)" class="btn btn-link text-navy p-2"><i class="bi bi-chevron-left"></i></button>
-                        <h1 class="h6 mb-0 fw-black text-navy text-uppercase tracking-tight mx-2" id="current-date-label-desktop" style="min-width: 180px; text-align: center;">
-                            CARGANDO...
-                        </h1>
-                        <button onclick="moveDate(1)" class="btn btn-link text-navy p-2"><i class="bi bi-chevron-right"></i></button>
-                    </div>
+                        <div class="vr mx-1 opacity-25 d-none d-md-block" style="height: 26px;"></div>
 
-                    <div class="d-flex align-items-center gap-2">
                         <!-- Leyenda de Estados y Colores -->
                         <div class="dropdown">
                             <button class="btn btn-light fw-medium rounded-3 shadow-sm border bg-white px-2.5 d-flex align-items-center gap-1.5" type="button" id="dropdownLeyendaColores" data-bs-toggle="dropdown" aria-expanded="false" style="height:42px;" title="Significado de Colores de la Agenda">
@@ -261,6 +271,8 @@ print <<HTML;
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Botón Ajustes de Jornada -->
                         <button onclick="abrirModalAjustes()" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white" style="height:42px; width:42px; padding:0;" title="Ajustes de Jornada"><i class="bi bi-gear-fill"></i></button>
                     </div>
 

@@ -1264,8 +1264,8 @@ body.agenda-view-dia-active .sdm-main-content {
 }
 
 body.agenda-view-dia-active .sdm-content {
-    padding: 0.25rem 1rem 0 1rem !important;
-    height: calc(100vh - 10px);
+    padding: 0.85rem 1.25rem 0.5rem 1.25rem !important;
+    height: calc(100vh - 15px);
     display: flex;
     flex-direction: column;
 }
@@ -1372,12 +1372,13 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
 .dia-matrix-responsive {
     flex: 1 1 0%;
     min-height: 0;
-    max-height: calc(100vh - 165px);
+    max-height: calc(100vh - 170px);
     overflow-y: auto !important;
     overflow-x: auto !important;
 }
 .dia-matrix-table {
     width: 100%;
+    min-width: max-content;
     table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
@@ -1386,6 +1387,11 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
 .dia-matrix-table td {
     border-right: 1px solid #e2e8f0;
     border-bottom: 1px solid #e2e8f0;
+}
+.dia-matrix-table th:not(.time-col),
+.dia-matrix-table td:not(.time-col) {
+    min-width: 140px !important;
+    width: 145px !important;
 }
 .dia-matrix-table th.time-col,
 .dia-matrix-table td.time-col {
@@ -1408,27 +1414,73 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
     top: 0;
     z-index: 18;
     background-color: #ffffff;
-    padding: 10px 12px;
+    padding: 8px 10px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.03);
 }
 .dia-matrix-table thead th.time-col {
     z-index: 25;
 }
+
+/* --- ESTILOS DE CABECERAS Y BADGES DE ALTO CONTRASTE --- */
+.dia-th-container {
+    min-height: 56px;
+    user-select: none;
+}
+.dia-th-title {
+    font-size: 0.88rem !important;
+    color: #0A2A66 !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.2px;
+    line-height: 1.25;
+}
+.dia-th-subtitle {
+    color: #64748B !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    margin-top: 2px;
+}
+.dia-th-badge {
+    display: inline-block;
+    font-size: 0.62rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+    line-height: 1.2;
+}
+.dia-th-badge-consultorio {
+    background-color: #E6FFFA !important;
+    color: #007A78 !important;
+    border: 1px solid #99F6E4 !important;
+    box-shadow: 0 1px 2px rgba(0, 122, 120, 0.08);
+}
+.dia-th-badge-quirofano {
+    background-color: #F3E8FF !important;
+    color: #6D28D9 !important;
+    border: 1px solid #DDD6FE !important;
+    box-shadow: 0 1px 2px rgba(109, 40, 217, 0.08);
+}
+
 .dia-col-consultorio {
-    border-bottom: 3px solid var(--md-teal-clinical, #19B7A5) !important;
-    background-color: #f8fafc !important;
+    border-top: 3px solid var(--md-teal-clinical, #19B7A5) !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%) !important;
 }
 .dia-col-quirofano {
-    border-bottom: 3px solid #7C3AED !important;
-    background-color: #faf5ff !important;
+    border-top: 3px solid #7C3AED !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%) !important;
 }
 .dia-col-medico {
-    border-bottom: 3px solid #0A2A66 !important;
-    background-color: #f0f4f8 !important;
+    border-top: 3px solid #0A2A66 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    background: linear-gradient(180deg, #f0f4f8 0%, #ffffff 100%) !important;
 }
 .dia-col-otros {
-    border-bottom: 3px solid #64748B !important;
-    background-color: #f1f5f9 !important;
+    border-top: 3px solid #64748B !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    background: linear-gradient(180deg, #f1f5f9 0%, #ffffff 100%) !important;
 }
 #dia-side-col, #dia-main-col {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);

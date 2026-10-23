@@ -626,6 +626,10 @@ Cada vez que un desarrollador o agente realice una modificación a la Agenda, Ex
 - [x] Ausencia de llamados a `utils/sub_footer.pl` en los archivos creados o refactorizados.
 - [x] Resaltado de fecha y hora de inicio de cita en el título del modal (`#modalCitaTitle`) e indicador de bloqueo de horario aproximado en suave amarillo avena (`#bloqueo-horario-avena`, `.dur-avena-active`, `.dur-avena-slot`) en `views/agenda_main.pl`.
 - [x] Vista diaria de la agenda (`views/agenda_main.pl`, `js/agenda_spa_new.js`) refactorizada con matriz multi-recurso (Consultorios, Quirófanos y Médicos), selectores de modo/pills y popup intermedio de inspección rápida (`#appointmentQuickModal`).
+- [x] Organización visual y jerárquica de la barra de herramientas de la agenda: Bloque izquierdo (tiempo: `HOY` + navegación de fecha, modos de vista y reportes) y Bloque derecho (filtros operativos de Médicos y Espacios Físicos, toggle minicalendario, leyenda de estados y ajustes).
+- [x] Eliminación de cortes del menú y margen superior negativo (`margin-top: 0 !important;` en `.main-container-agenda`, `padding-top: 0.85rem;` en `.sdm-content` y `padding-bottom: 90px;` en `.sidebar-menu`) otorgando holgura y visibilidad completa al topbar y breadcrumb.
+- [x] Cabeceras de columnas en la matriz diaria apiladas verticalmente con alto contraste (títulos prominentes en Navy `#0A2A66` y badges temáticos de alto contraste `#007A78`/`#E6FFFA` para Consultorios y `#6D28D9`/`#F3E8FF` para Quirófanos) con ancho mínimo garantizado de 140px para desplazamiento horizontal fluido.
 - [x] Documentación registrada en la Capa 1 y 4 (`docs/01_architecture/` y `docs/04_standards_and_ops/`) y enlazada canónicamente.
+
 
 

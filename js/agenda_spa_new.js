@@ -1675,25 +1675,27 @@ function renderTimeline() {
     `;
 
     colsToRender.forEach(col => {
-        let headerClass = 'dia-col-consultorio';
-        let typeBadge = '<span class="badge bg-teal-subtle text-teal border border-teal-subtle rounded-pill px-2 py-0.5" style="font-size:0.65rem;">CONSULTORIO</span>';
-        let icon = '<i class="bi bi-door-closed-fill text-teal me-1.5"></i>';
-        if (col.tipo === 'quirofano') {
-            headerClass = 'dia-col-quirofano';
-            typeBadge = '<span class="badge rounded-pill px-2 py-0.5" style="font-size:0.65rem; background-color:#F3E8FF; color:#7C3AED; border:1px solid #E9D5FF;">QUIROFANO</span>';
-            icon = '<i class="bi bi-scissors me-1.5" style="color:#7C3AED;"></i>';
-        }
+        const isQuirofano = (col.tipo === 'quirofano');
+        const headerClass = isQuirofano ? 'dia-col-quirofano' : 'dia-col-consultorio';
+        const typeBadge = isQuirofano 
+            ? '<span class="dia-th-badge dia-th-badge-quirofano">QUIRÓFANO</span>' 
+            : '<span class="dia-th-badge dia-th-badge-consultorio">CONSULTORIO</span>';
+        const icon = isQuirofano 
+            ? '<i class="bi bi-scissors me-1" style="color:#7C3AED;"></i>' 
+            : '<i class="bi bi-door-closed-fill me-1" style="color:var(--md-teal-clinical, #19B7A5);"></i>';
 
         tableHtml += `
-            <th class="${headerClass}">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <div class="d-flex align-items-center fw-bold text-navy text-truncate" style="font-size:0.88rem;">
+            <th class="${headerClass} text-center">
+                <div class="dia-th-container d-flex flex-column align-items-center justify-content-center py-1">
+                    <div class="dia-th-badge-wrapper mb-1">
+                        ${typeBadge}
+                    </div>
+                    <div class="dia-th-title d-flex align-items-center justify-content-center fw-black text-navy text-truncate w-100 px-1" title="${col.titulo}">
                         ${icon}<span>${col.titulo}</span>
                     </div>
-                    ${typeBadge}
-                </div>
-                <div class="text-secondary small fw-normal text-truncate" style="font-size:0.75rem;">
-                    ${col.subtitulo}
+                    <div class="dia-th-subtitle text-muted small fw-semibold text-truncate w-100 px-1" title="${col.subtitulo}">
+                        ${col.subtitulo}
+                    </div>
                 </div>
             </th>
         `;
