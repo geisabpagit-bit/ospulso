@@ -251,11 +251,10 @@ print <<HTML;
         </header>
 
         <main id="app-viewport" class="container-fluid px-1 px-md-3 pt-1 pb-4">
-            <!-- VISTA DIARIA (Timeline) -->
+            <!-- VISTA DIARIA (Matriz Multi-Recurso & Timeline) -->
             <div id="view-dia" class="agenda-view-container">
-                <div class="row g-4">
-                    <!-- Panel Izquierdo: Mini Calendario (Desktop Only) -->
-                    <!-- Panel Izquierdo: Mini Calendario (Sticky) -->
+                <div class="row g-3">
+                    <!-- Panel Izquierdo: Mini Calendario (Desktop Only Sticky) -->
                     <div class="col-lg-3 d-none d-lg-block">
                         <div class="card border-0 shadow-sm p-3 sticky-top agenda-side-card" style="top:100px;">
                             <h6 class="fw-black text-navy mb-3 text-uppercase small tracking-widest">Navegación</h6>
@@ -266,8 +265,31 @@ print <<HTML;
                             </button>
                         </div>
                     </div>
-                    <!-- Panel Derecho: Timeline -->
+                    <!-- Panel Derecho: Matriz de Recursos / Profesionales -->
                     <div class="col-lg-9">
+                        <!-- Toolbar de Distribución y Selectores de la Vista Diaria -->
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-2 mb-2 bg-white rounded-3 border shadow-sm" id="dia-resource-toolbar">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-navy border fw-bold px-2 py-1.5" style="font-size: 0.72rem;">
+                                    <i class="bi bi-diagram-3 me-1 text-teal"></i>DISTRIBUCIÓN
+                                </span>
+                                <!-- Selector de Modo de Columnas: Por Espacio Físico vs Por Profesional -->
+                                <div class="btn-group btn-group-sm" role="group" id="btn-group-dia-mode">
+                                    <button type="button" class="btn btn-navy active fw-semibold" id="btn-dia-mode-recursos" onclick="setDiaViewMode('recursos')" title="Ver columnas por Consultorios y Quirófanos">
+                                        <i class="bi bi-door-open me-1"></i>Consultorios / Quirófanos
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary fw-semibold" id="btn-dia-mode-medicos" onclick="setDiaViewMode('medicos')" title="Ver columnas por Profesionales">
+                                        <i class="bi bi-person-badge me-1"></i>Profesionales
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Selector/Filtro Rápido de Columnas Activas (Pills) -->
+                            <div class="d-flex align-items-center gap-1.5 overflow-auto py-1" id="dia-column-filter-pills" style="max-width: 100%;">
+                                <!-- Generado dinámicamente por JS: [Todos] [Cons 1] [Cons 2] [Quirófano 1]... -->
+                            </div>
+                        </div>
+
+                        <!-- Contenedor Principal de la Matriz Diaria -->
                         <div id="timeline-container"></div>
                     </div>
                 </div>
@@ -328,6 +350,103 @@ print <<HTML;
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- MODAL DE INSPECCIÓN RÁPIDA DE CITA (Reutilizable en todas las vistas) -->
+    <div class="modal fade modal-diamond" id="appointmentQuickModal" tabindex="-1" aria-hidden="true" style="z-index: 105160 !important;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Cabecera con Estado Canónico -->
+                <div class="modal-header py-2 px-3 d-flex align-items-center justify-content-between border-0" id="quickModalHeader" style="background-color: var(--md-blue-deep, #0A2A66); color: white;">
+                    <div class="d-flex align-items-center gap-2">
+                        <span id="quickModalDot" class="rounded-circle d-inline-block" style="width: 10px; height: 10px; background-color: #19B7A5;"></span>
+                        <span class="modal-title fw-bold text-uppercase" id="quickModalEstatus" style="font-size: 0.82rem; letter-spacing: 0.5px;">PROGRAMADA</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" style="font-size: 0.72rem; opacity: 0.9;" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Cuerpo: Datos Clínicos y Badge de Fecha -->
+                <div class="modal-body p-3">
+                    <div class="row g-2 align-items-start mb-3">
+                        <!-- Columna Izquierda: Información de Paciente, Médico y Consulta -->
+                        <div class="col-8 pe-1">
+                            <div class="d-flex align-items-center gap-1.5 mb-1.5 text-navy">
+                                <i class="bi bi-person-circle fs-5" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                                <span id="quickModalPaciente" class="fw-black text-truncate" style="font-size: 0.96rem;">Paciente</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-1.5 mb-1 text-muted small" style="font-size: 0.78rem;">
+                                <i class="bi bi-telephone text-secondary"></i>
+                                <span id="quickModalTelefono" class="fw-medium">--</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-1.5 mb-2 text-muted small" style="font-size: 0.78rem;">
+                                <i class="bi bi-person-badge text-secondary"></i>
+                                <span id="quickModalMedico" class="fw-medium text-truncate">Dr. Médico</span>
+                            </div>
+
+                            <hr class="my-2 opacity-10">
+
+                            <div class="d-flex align-items-start gap-1.5 mb-1.5 text-secondary" style="font-size: 0.78rem;">
+                                <i class="bi bi-tag-fill text-teal mt-0.5"></i>
+                                <span id="quickModalMotivo" class="fw-medium text-dark">Motivo de consulta</span>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-1.5 mb-1.5" style="font-size: 0.76rem;">
+                                <i class="bi bi-door-open-fill text-muted"></i>
+                                <span id="quickModalLugar" class="badge bg-light text-dark border fw-semibold">Consultorio 1</span>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-1.5" style="font-size: 0.76rem;">
+                                <i class="bi bi-cash-stack text-muted"></i>
+                                <span id="quickModalPago" class="badge fw-bold">No pagado</span>
+                            </div>
+                        </div>
+
+                        <!-- Columna Derecha: Tarjeta de Fecha Estilizada en Amarillo Avena -->
+                        <div class="col-4 ps-1">
+                            <div class="date-badge rounded-3 overflow-hidden text-center border shadow-2xs" style="background: #ffffff; border-color: #FDE68A !important;">
+                                <div class="date-badge-header py-1 text-white fw-bold text-uppercase" id="quickModalMes" style="background-color: var(--md-blue-deep, #0A2A66); font-size: 0.7rem; letter-spacing: 0.4px;">
+                                    OCTUBRE
+                                </div>
+                                <div class="date-badge-body py-2" style="background-color: #FEF9C3;">
+                                    <p class="date-badge-day m-0 fw-bold" id="quickModalDiaNum" style="font-size: 1.85rem; line-height: 1; color: #78350F;">23</p>
+                                    <span class="date-badge-weekday text-uppercase fw-semibold" id="quickModalDiaSemana" style="font-size: 0.65rem; color: #92400E;">VIERNES</span>
+                                </div>
+                                <div class="date-badge-time py-1 fw-bold text-navy" id="quickModalHora" style="background-color: #FEF08A; border-top: 1px solid #FDE047; font-size: 0.8rem; color: #78350F !important;">
+                                    10:00
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer: Botones de Acción Rápida -->
+                <div class="modal-footer p-2.5 bg-light border-0 d-flex flex-column gap-1.5">
+                    <!-- Botón Principal: Iniciar Consulta / Tomar Cita -->
+                    <button type="button" class="btn btn-success w-100 py-2 fw-bold d-flex align-items-center justify-content-between shadow-sm" id="btnQuickIniciarCita" style="background-color: #059669; border: none; font-size: 0.85rem;">
+                        <span class="mx-auto"><i class="bi bi-play-circle-fill me-1.5"></i> Iniciar la cita</span>
+                        <i class="bi bi-chevron-right opacity-75"></i>
+                    </button>
+
+                    <div class="d-flex gap-2 w-100">
+                        <button type="button" class="btn btn-outline-primary btn-sm flex-fill fw-semibold py-1.5" id="btnQuickExpediente">
+                            <i class="bi bi-person-vcard me-1"></i> Expediente
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill fw-semibold py-1.5" id="btnQuickEditar">
+                            <i class="bi bi-pencil-square me-1"></i> Editar / Re-agendar
+                        </button>
+                    </div>
+
+                    <div class="d-flex gap-2 w-100">
+                        <button type="button" class="btn btn-outline-success btn-sm flex-fill fw-semibold py-1.5 d-none" id="btnQuickCobrar">
+                            <i class="bi bi-cash-coin me-1"></i> Cobrar en Recepción
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-semibold py-1.5" id="btnQuickEliminar">
+                            <i class="bi bi-trash me-1"></i> Eliminar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL CITAS (Diseño Clínico Minimalista Teal - Zero Scroll & Ajuste Perfecto) -->
@@ -640,50 +759,63 @@ print <<'JS';
             var esIndividual = document.getElementById('agenda_es_individual') && document.getElementById('agenda_es_individual').value === '1';
             
             window.cargarRecursos = function(idSucursal, consultorioSeleccionado) {
-                if (!fConsultorio) return;
-
                 if (esIndividual) {
-                    fConsultorio.innerHTML = '<optgroup label="Consultorio"><option value="Consultorio 1">Consultorio 1</option></optgroup><optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
-                    if (consultorioSeleccionado) fConsultorio.value = consultorioSeleccionado;
+                    window.sucursalRecursos = { ok: 1, consultorios: 1, quirofanos: 0, tipo_org: 'Consultorio Individual' };
+                    if (fConsultorio) {
+                        fConsultorio.innerHTML = '<optgroup label="Consultorio"><option value="Consultorio 1">Consultorio 1</option></optgroup><optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
+                        if (consultorioSeleccionado) fConsultorio.value = consultorioSeleccionado;
+                    }
+                    if (typeof currentView !== 'undefined' && currentView === 'dia' && typeof renderTimeline === 'function') {
+                        renderTimeline();
+                    }
                     return;
                 }
 
-                fConsultorio.innerHTML = '<option value="">Cargando recursos...</option>';
+                if (fConsultorio) fConsultorio.innerHTML = '<option value="">Cargando recursos...</option>';
                 
                 fetch('../api/citas_crud.pl?accion=get_recursos&id_sucursal=' + (idSucursal || ''))
                     .then(r => r.json())
                     .then(data => {
                         if (data.ok) {
-                            if (data.tipo_org === 'Consultorio Individual' || (data.consultorios === 1 && (!data.quirofanos || data.quirofanos === 0))) {
-                                fConsultorio.innerHTML = '<optgroup label="Consultorio"><option value="Consultorio 1">Consultorio 1</option></optgroup><optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
-                            } else {
-                                let html = '<optgroup label="Consultorios">';
-                                for (let i = 1; i <= data.consultorios; i++) {
-                                    html += `<option value="Consultorio ${i}">Consultorio ${i}</option>`;
-                                }
-                                html += '</optgroup>';
-                                
-                                if (data.quirofanos > 0) {
-                                    html += '<optgroup label="Quirófanos">';
-                                    for (let i = 1; i <= data.quirofanos; i++) {
-                                        html += `<option value="Quirófano ${i}">Quirófano ${i}</option>`;
+                            window.sucursalRecursos = data;
+                            if (fConsultorio) {
+                                if (data.tipo_org === 'Consultorio Individual' || (data.consultorios === 1 && (!data.quirofanos || data.quirofanos === 0))) {
+                                    fConsultorio.innerHTML = '<optgroup label="Consultorio"><option value="Consultorio 1">Consultorio 1</option></optgroup><optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
+                                } else {
+                                    let html = '<optgroup label="Consultorios">';
+                                    for (let i = 1; i <= data.consultorios; i++) {
+                                        html += `<option value="Consultorio ${i}">Consultorio ${i}</option>`;
                                     }
                                     html += '</optgroup>';
+                                    
+                                    if (data.quirofanos > 0) {
+                                        html += '<optgroup label="Quirófanos">';
+                                        for (let i = 1; i <= data.quirofanos; i++) {
+                                            html += `<option value="Quirófano ${i}">Quirófano ${i}</option>`;
+                                        }
+                                        html += '</optgroup>';
+                                    }
+                                    
+                                    html += '<optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
+                                    fConsultorio.innerHTML = html;
                                 }
-                                
-                                html += '<optgroup label="Otros"><option value="Virtual">Virtual</option></optgroup>';
-                                fConsultorio.innerHTML = html;
+
+                                if (consultorioSeleccionado) {
+                                    fConsultorio.value = consultorioSeleccionado;
+                                }
                             }
 
-                            if (consultorioSeleccionado) {
-                                fConsultorio.value = consultorioSeleccionado;
+                            if (typeof currentView !== 'undefined' && currentView === 'dia' && typeof renderTimeline === 'function') {
+                                renderTimeline();
                             }
                         }
                     })
                     .catch(e => {
                         console.error("Error cargando recursos", e);
-                        fConsultorio.innerHTML = '<option value="Consultorio 1">Consultorio 1</option><option value="Virtual">Virtual</option>';
-                        if (consultorioSeleccionado) fConsultorio.value = consultorioSeleccionado;
+                        if (fConsultorio) {
+                            fConsultorio.innerHTML = '<option value="Consultorio 1">Consultorio 1</option><option value="Virtual">Virtual</option>';
+                            if (consultorioSeleccionado) fConsultorio.value = consultorioSeleccionado;
+                        }
                     });
             };
 
@@ -704,23 +836,11 @@ print <<'JS';
                 });
             }
             
-            // Cargar inicial solo si es creación nueva de cita
-            let modalEl = document.getElementById('modalCita');
-            if (modalEl) {
-                modalEl.addEventListener('show.bs.modal', function () {
-                    const accionActual = document.getElementById('f_accion') ? document.getElementById('f_accion').value : 'create';
-                    if (accionActual === 'create') {
-                        if (esIndividual) {
-                            window.cargarRecursos('');
-                        } else {
-                            setTimeout(() => {
-                                if (fSucursal && fSucursal.value) {
-                                    window.cargarRecursos(fSucursal.value);
-                                }
-                            }, 150);
-                        }
-                    }
-                });
+            // Carga inicial de recursos de la sucursal activa
+            if (esIndividual) {
+                window.cargarRecursos('');
+            } else if (fSucursal && fSucursal.value) {
+                window.cargarRecursos(fSucursal.value);
             }
         });
     </script>

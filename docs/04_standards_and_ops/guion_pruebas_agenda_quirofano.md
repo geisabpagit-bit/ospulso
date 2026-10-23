@@ -28,6 +28,7 @@
    - [Caso 13: Checklist Preoperatorio OMS, Conteo de Seguridad y Nota Quirúrgica NOM-004 con Criterios Aldrete](#caso-13-checklist-preoperatorio-oms-conteo-de-seguridad-y-nota-quirúrgica-nom-004-con-criterios-aldrete)
    - [Caso 14: Pre-Liquidación Quirúrgica Automatizada e Inyección de Cargo a Estado de Cuenta para Cobro en Caja](#caso-14-pre-liquidación-quirúrgica-automatizada-e-inyección-de-cargo-a-estado-de-cuenta-para-cobro-en-caja)
    - [Caso 15: Trazabilidad Quirúrgica en Expediente Clínico y Formato Imprimible de Nota Quirúrgica NOM-004](#caso-15-trazabilidad-quirúrgica-en-expediente-clínico-y-formato-imprimible-de-nota-quirúrgica-nom-004)
+   - [Caso 16: Vista Diaria Matricial Multi-Recurso y Popup Rápido de Inspección de Citas](#caso-16-vista-diaria-matricial-multi-recurso-y-popup-rápido-de-inspección-de-citas)
 5. [Protocolo de Actualización Obligatoria](#5-protocolo-de-actualización-obligatoria)
 6. [Criterios de Aceptación (Definición de Terminado)](#6-criterios-de-aceptación-definición-de-terminado)
 
@@ -533,11 +534,56 @@ graph TD
 
 ---
 
+### Caso 16: Vista Diaria Matricial Multi-Recurso y Popup Rápido de Inspección de Citas
+
+* **Objetivo**: Proveer una experiencia de alta densidad y agilidad operativa en la vista diaria de la Agenda (`views/agenda_main.pl`), distribuyendo la jornada en una matriz horizontal de columnas dinámicas por recurso físico (Consultorios y Quirófanos) o profesional médico, con agendamiento por clic en celdas y un modal intermedio ágil (`#appointmentQuickModal`) para previsualización y acciones directas.
+* **Actores**: Recepción, Coordinador Médico, Médicos Especialistas y Cirujanos.
+* **Componentes Involucrados**:
+  - `views/agenda_main.pl` (Toolbar multi-recurso `#dia-resource-toolbar`, `#appointmentQuickModal`).
+  - `css/ospulso_master_v2.css` (Clases de matriz `.dia-matrix-card`, `.dia-matrix-responsive`, `.dia-matrix-table`, headers estilizados `.dia-col-consultorio`, `.dia-col-quirofano`, `.dia-col-medico` y estilos del popup rápido).
+  - `js/agenda_spa_new.js` (Funciones `renderTimeline()`, `setDiaViewMode()`, `setDiaFilterActive()`, `handleMatrixSlotClick()`, `openAppointmentQuickDetail()`, `renderMatrixAptCard()`).
+* **Pasos de Ejecución**:
+  1. **Navegación a la Vista de Día**:
+     - Entrar a la Agenda Central (`views/agenda_main.pl`).
+     - Seleccionar el selector de vista **DÍA** (botón `#btn-v-dia` o navegación directa a fecha).
+  2. **Alternancia de Modo en Barra de Distribución**:
+     - Localizar la barra superior `#dia-resource-toolbar`.
+     - Presionar el botón **"Espacios Físicos"**: la matriz genera columnas para cada Consultorio (1..N) y Quirófano (1..N) configurados en la sucursal activa (`window.sucursalRecursos`), identificando consultorios con tono Verde Azulado (`#19B7A5`) y quirófanos con Púrpura Quirúrgico (`#7C3AED`).
+     - Presionar el botón **"Profesionales"**: la matriz se reconfigura dinámicamente desplegando columnas por cada médico activo con consultas en la jornada (`#f_medico_select`), identificadas con Azul Profundo (`#0A2A66`).
+  3. **Filtrado por Pills de Columna**:
+     - Hacer clic en los selectores tipo pill (`[Todos]`, `[Cons 1]`, `[Quirófano 1]`, etc.).
+     - Constatar que la tabla filtra de inmediato la columna seleccionada, permitiendo aislar un recurso específico o restaurar la cuadrícula completa con `[Todos]`.
+  4. **Agendamiento Rápido por Celda**:
+     - En una celda horaria vacía de un consultorio o médico, hacer clic.
+     - Constatar que se abre `#modalCita` pre-cargando la fecha, la hora exacta del slot y pre-seleccionando el consultorio o médico de dicha columna.
+  5. **Inspección Rápida con `#appointmentQuickModal`**:
+     - Hacer clic sobre la tarjeta de cualquier cita dentro de la matriz.
+     - Comprobar que NO abre el formulario pesado completo inmediatamente, sino el popup emergente de inspección rápida `#appointmentQuickModal`:
+       - Cabecera con badge de estado canónico (`Programada`, `Confirmada`, `En Sala de Espera`, `En Consulta`, etc.).
+       - Nombre completo del paciente con enlace a expediente.
+       - Badge de pago (`Pagado` en verde o `Pendiente de Pago` en ámbar).
+       - Teléfono del paciente con llamada directa `tel:`.
+       - Médico tratante, especialidad y motivo de consulta.
+       - Tarjeta de horario destacada con fondo suave amarillo avena (`#FFFBEB`, borde `#FDE68A`).
+       - Recurso físico o consultorio asignado.
+  6. **Ejecución de Acciones Rápidas**:
+     - Botón `▶️ Iniciar Cita`: dispara `window.tomarCitaDirecto()` para iniciar consulta clínica.
+     - Botón `Expediente`: abre el expediente del paciente en nueva pestaña.
+     - Botón `Editar / Re-agendar`: abre `#modalCita` en modo edición para ajustes finos.
+     - Botón `Cobrar`: abre la recepción o registro de pago si la cita está pendiente.
+     - Botón `Eliminar`: cancela/elimina la cita previa confirmación.
+* **Resultado Esperado**:
+  - Cuadrícula de jornada diaria nítida, profesional y organizada espacialmente por salas y médicos.
+  - Cero confusión de empalmes entre consultorios y quirófanos.
+  - Flujo ágil de recepción y pase a consulta en un solo clic sin recargar la pantalla.
+
+---
+
 ## 5. Protocolo de Actualización Obligatoria
 
 Cada vez que un desarrollador o agente realice una modificación a la Agenda, Expedientes o Quirófano:
 1. **Identificar el Alcance**: ¿Afecta datos (`dat/`), backend (`api/`), vistas (`views/`) o scripts de cliente (`js/`)?
-2. **Revisar Casos Afectados**: Consultar los Casos 1 al 15 y verificar si la nueva funcionalidad requiere modificar los pasos o añadir un Caso 16+.
+2. **Revisar Casos Afectados**: Consultar los Casos 1 al 16 y verificar si la nueva funcionalidad requiere modificar los pasos o añadir un Caso 17+.
 3. **Actualizar el Documento**: Registrar los cambios directamente en este archivo respetando la estructura jerárquica y el índice de contenidos.
 4. **Verificación de Sintaxis y Ejecución**: Ejecutar validaciones automáticas (`perl -cw`, pruebas de API).
 5. **Sincronización Git**: Confirmar los cambios junto con el código (`git add .`, `git commit`, `git push origin main`).
@@ -564,6 +610,7 @@ Cada vez que un desarrollador o agente realice una modificación a la Agenda, Ex
 - [x] Formato oficial de impresión de Nota Quirúrgica y Hoja Transoperatoria NOM-004-SSA3-2012 (`imprimir_nota_quirurgica.pl`) accesible desde Expediente y Kanban.
 - [x] Ausencia de llamados a `utils/sub_footer.pl` en los archivos creados o refactorizados.
 - [x] Resaltado de fecha y hora de inicio de cita en el título del modal (`#modalCitaTitle`) e indicador de bloqueo de horario aproximado en suave amarillo avena (`#bloqueo-horario-avena`, `.dur-avena-active`, `.dur-avena-slot`) en `views/agenda_main.pl`.
+- [x] Vista diaria de la agenda (`views/agenda_main.pl`, `js/agenda_spa_new.js`) refactorizada con matriz multi-recurso (Consultorios, Quirófanos y Médicos), selectores de modo/pills y popup intermedio de inspección rápida (`#appointmentQuickModal`).
 - [x] Documentación registrada en la Capa 1 y 4 (`docs/01_architecture/` y `docs/04_standards_and_ops/`) y enlazada canónicamente.
 
 

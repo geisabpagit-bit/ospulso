@@ -1248,6 +1248,136 @@ nav.navbar.sticky-top {
     font-weight: 700 !important;
 }
 
+/* ========================================================
+   MATRIZ MULTI-RECURSO - VISTA DIARIA (Diamond Edition)
+   ======================================================== */
+.dia-matrix-card {
+    border: 1px solid #e2e8f0 !important;
+}
+.dia-matrix-responsive {
+    max-height: calc(100vh - 220px);
+    overflow: auto;
+}
+.dia-matrix-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.dia-matrix-table th, 
+.dia-matrix-table td {
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+.dia-matrix-table th.time-col,
+.dia-matrix-table td.time-col {
+    position: sticky;
+    left: 0;
+    z-index: 15;
+    background-color: #f8fafc;
+    width: 65px;
+    min-width: 65px;
+    max-width: 65px;
+    border-right: 2px solid #cbd5e1 !important;
+    font-weight: 700;
+    font-size: 0.74rem;
+    color: #475569;
+    text-align: center;
+    vertical-align: middle;
+}
+.dia-matrix-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 18;
+    background-color: #ffffff;
+    padding: 10px 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+.dia-matrix-table thead th.time-col {
+    z-index: 25;
+}
+.dia-col-consultorio {
+    border-bottom: 3px solid var(--md-teal-clinical, #19B7A5) !important;
+    background-color: #f8fafc !important;
+}
+.dia-col-quirofano {
+    border-bottom: 3px solid #8B5CF6 !important;
+    background-color: #faf5ff !important;
+}
+.dia-col-medico {
+    border-bottom: 3px solid #0A2A66 !important;
+    background-color: #f0f4f8 !important;
+}
+.dia-col-otros {
+    border-bottom: 3px solid #64748B !important;
+    background-color: #f1f5f9 !important;
+}
+.dia-matrix-slot {
+    height: 56px;
+    min-height: 56px;
+    vertical-align: top;
+    padding: 3px !important;
+    background-color: #ffffff;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+    position: relative;
+}
+.dia-matrix-slot:hover {
+    background-color: #f0fdfa;
+}
+.dia-matrix-slot.slot-past {
+    background-color: #fcfcfc;
+    opacity: 0.8;
+}
+.dia-matrix-slot.slot-lunch {
+    background-color: #fffbeb;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(245, 158, 11, 0.04) 10px, rgba(245, 158, 11, 0.04) 20px);
+}
+
+/* Tarjeta de Cita en Matriz Diaria */
+.dia-matrix-apt-card {
+    position: relative;
+    border-radius: 6px;
+    padding: 5px 7px;
+    font-size: 0.74rem;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 48px;
+    border-left: 4px solid;
+}
+.dia-matrix-apt-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    z-index: 10;
+}
+
+/* Modal Rápido de Detalle */
+#appointmentQuickModal .date-badge-body {
+    background-color: #FEF9C3;
+}
+#appointmentQuickModal .date-badge-day {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: #78350F;
+}
+#appointmentQuickModal .date-badge-weekday {
+    font-size: 0.65rem;
+    color: #92400E;
+    font-weight: 600;
+}
+#appointmentQuickModal .date-badge-time {
+    background-color: #FEF08A;
+    color: #78350F;
+    border-top: 1px solid #FDE047;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
 /* Grilla Compacta de Horarios */
 #modalCita .slot-grid-compact { 
     display: grid !important; 
