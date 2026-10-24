@@ -1,3 +1,4 @@
 ID_CIRUGIA|ID_ORG|ID_PACIENTE|ID_MEDICO|FECHA_PROGRAMADA|HORA_PROGRAMADA|ESTADO|SALA_QUIROFANO|PROCEDIMIENTO|ID_ANESTESIOLOGO|NOTAS
 1792635886|723800|7|581519598|2026-10-23|16:00|Pre-Operatorio|Quirófano 1|cirugia simple||Agendada desde Agenda Central (Normal)
 1792813119|723800|6|214123358|2026-10-24|16:00|Programada|Quirófano 1|cirugia de emergencia||Agendada desde Agenda Central (Alta)
+1792878436|723800|5|672769338|2026-10-25|16:00|Pre-Operatorio|Quirófano 1|consulta x||Agendada desde Agenda Central (Normal)

@@ -338,6 +338,9 @@ print <<HTML;
                             </div>
                         </div>
 
+                        <!-- Botón Imprimir Resumen de Agenda (Día, Semana, Mes) -->
+                        <button onclick="window.abrirModalImpresionAgenda()" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white" style="height:42px; width:42px; padding:0;" title="Imprimir Resumen de Citas Filtradas"><i class="bi bi-printer-fill" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.05rem;"></i></button>
+
                         <!-- Botón Ajustes de Jornada -->
                         <button onclick="abrirModalAjustes()" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white" style="height:42px; width:42px; padding:0;" title="Ajustes de Jornada"><i class="bi bi-gear-fill"></i></button>
                     </div>
@@ -439,6 +442,82 @@ print <<HTML;
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- MODAL DE RESUMEN E IMPRESIÓN DE AGENDA (Día, Semana y Mes) -->
+    <div class="modal fade modal-diamond" id="modalImpresionAgenda" tabindex="-1" aria-hidden="true" style="z-index: 105155 !important;">
+        <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 980px;">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Cabecera Corporativa -->
+                <div class="modal-header d-flex align-items-center justify-content-between py-2.5 px-3.5" style="background-color: var(--md-blue-deep, #0A2A66); color: white;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(255, 255, 255, 0.16); color: #ffffff;">
+                            <i class="bi bi-printer text-white" style="font-size: 1rem;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-black text-uppercase m-0" style="font-size: 0.92rem; letter-spacing: 0.5px;">RESUMEN DE CITAS PARA IMPRESIÓN</h5>
+                            <span class="small opacity-75" id="printModalSubtitulo" style="font-size: 0.72rem;">Vista activa con filtros aplicados</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Cuerpo con Filtros y Tabla -->
+                <div class="modal-body p-3.5" id="printReportContainer">
+                    <!-- Membrete de Impresión -->
+                    <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom print-only-header">
+                        <div>
+                            <h4 class="fw-black text-navy m-0" style="font-size: 1.25rem;">OSPULSO • AGENDA CLÍNICA</h4>
+                            <p class="text-secondary small m-0" id="printClinicaNombre">Clínica Médica de Especialidades</p>
+                            <span class="badge bg-light text-muted border px-2 py-0.5 small mt-1" id="printPeriodoBadge">Periodo: Hoy</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary-subtle text-primary border border-primary px-2.5 py-1 fw-bold small d-block mb-1" id="printTotalCitasBadge">Total Citas: 0</span>
+                            <small class="text-muted" id="printFechaGeneracion">Generado: 24/10/2026</small>
+                        </div>
+                    </div>
+
+                    <!-- Píldoras de Filtros Activos -->
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-3 bg-light p-2.5 rounded-3 border">
+                        <span class="fw-bold text-navy small"><i class="bi bi-funnel-fill text-primary me-1"></i>Filtros Activos:</span>
+                        <span class="badge bg-white text-navy border fw-semibold" id="printFiltroMedicos">Médicos: Todos</span>
+                        <span class="badge bg-white text-navy border fw-semibold" id="printFiltroEspacios">Espacios: Todos</span>
+                    </div>
+
+                    <!-- Tabla de Citas Filtradas -->
+                    <div class="table-responsive rounded-3 border">
+                        <table class="table table-hover align-middle mb-0" id="printCitasTable" style="font-size: 0.82rem;">
+                            <thead class="table-light text-navy text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.4px;">
+                                <tr>
+                                    <th class="py-2 px-2.5">Fecha</th>
+                                    <th class="py-2 px-2">Horario</th>
+                                    <th class="py-2 px-2.5">Paciente</th>
+                                    <th class="py-2 px-2">Médico</th>
+                                    <th class="py-2 px-2">Espacio</th>
+                                    <th class="py-2 px-2">Motivo</th>
+                                    <th class="py-2 px-2 text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="printCitasTableBody">
+                                <!-- Filas dinámicas generadas por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Footer con Botones -->
+                <div class="modal-footer bg-light p-2.5 border-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-3 px-3 fw-bold" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cerrar
+                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-teal text-white btn-sm rounded-3 px-3 fw-bold shadow-sm" onclick="window.ejecutarImpresionAgendaDirecta()">
+                            <i class="bi bi-printer-fill me-1"></i> Imprimir / Guardar PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL DE INSPECCIÓN RÁPIDA DE CITA (Reutilizable en todas las vistas) -->

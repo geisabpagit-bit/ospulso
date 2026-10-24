@@ -312,7 +312,7 @@ function renderSmartSlots(date) {
                                 <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1.5 fw-medium" style="font-size:0.75rem;" onclick="event.stopPropagation(); abrirModalCita('${apt.id}')" title="Re-agendar o Modificar">
                                     <i class="bi bi-pencil-square me-1"></i> Re-agendar
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1.5" style="font-size:0.75rem;" onclick="event.stopPropagation(); abrirModalCita('${apt.id}', true)" title="Ver Detalle Completo">
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1.5" style="font-size:0.75rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${apt.id}')" title="Ver Detalle Rápido">
                                     <i class="bi bi-eye me-1"></i> Ver Detalle
                                 </button>
                             </div>
@@ -383,7 +383,7 @@ function renderSmartSlots(date) {
                                 <span class="d-block text-muted" style="font-size:0.75rem;">Asignado a: <strong>${secAllDayCover.title}</strong> (${sec.start.toString().padStart(2, '0')}:00 - ${sec.end.toString().padStart(2, '0')}:00)</span>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-teal rounded-pill px-3 py-1" style="font-size:0.72rem;" onclick="abrirModalCita('${secAllDayCover.id}')">
+                        <button type="button" class="btn btn-sm btn-outline-teal rounded-pill px-3 py-1" style="font-size:0.72rem;" onclick="openAppointmentQuickDetail('${secAllDayCover.id}')">
                             <i class="bi bi-eye me-1"></i> Ver Ficha
                         </button>
                     </div>
@@ -464,7 +464,7 @@ function renderSmartSlots(date) {
                             </div>
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
-                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}', true)" title="Ver Detalle"><i class="bi bi-eye"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${aptInSlot.id}')" title="Ver Detalle Rápido"><i class="bi bi-eye"></i></button>
                             </div>
                         `;
                     } else if (esCancelada) {
@@ -492,7 +492,7 @@ function renderSmartSlots(date) {
                             <div class="d-flex justify-content-end gap-1 mt-1">
                                 <button type="button" class="btn btn-sm btn-success text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${aptInSlot.id}', '${aptInSlot.extendedProps?.id_paciente}')" title="Tomar Cita Ahora"><i class="bi bi-play-fill"></i> Tomar</button>
                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}')" title="Re-agendar"><i class="bi bi-pencil-square"></i></button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}', true)" title="Ver Detalle"><i class="bi bi-eye"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${aptInSlot.id}')" title="Ver Detalle Rápido"><i class="bi bi-eye"></i></button>
                             </div>
                         `;
                     } else {
@@ -534,7 +534,7 @@ function renderSmartSlots(date) {
                             <div class="liquid-slot-btn liquid-anim ${slotClass}" 
                                  style="${slotStyle}; cursor:pointer;"
                                  title="${slotTitle}"
-                                 onclick="abrirModalCita('${aptInSlot.id}')">
+                                 onclick="openAppointmentQuickDetail('${aptInSlot.id}')">
                                 ${slotContent}
                             </div>
                         </div>
@@ -592,7 +592,7 @@ function renderSmartSlots(date) {
                     <div class="d-flex align-items-center gap-1 mt-1 mt-sm-0">
                         ${esTomable ? `<button type="button" class="btn btn-sm btn-success text-white rounded-pill px-2.5 py-0.5 fw-bold" style="font-size:0.68rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${a.id}', '${a.extendedProps.id_paciente}')" title="Tomar Cita"><i class="bi bi-play-fill me-1"></i> Tomar</button>` : ''}
                         <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0.5" style="font-size:0.68rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Editar / Re-agendar"><i class="bi bi-pencil-square"></i></button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size:0.68rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Detalle"><i class="bi bi-eye"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size:0.68rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${a.id}')" title="Ver Detalle Rápido"><i class="bi bi-eye"></i></button>
                     </div>
                 </div>
             `;
@@ -1038,6 +1038,37 @@ function goDay(iso) {
 window.recursosChecked = null; // null = todos seleccionados por defecto; Array de IDs cuando el usuario filtra
 window.todosLosRecursosIds = [];
 
+// Claves de memoria local segmentadas por sucursal
+function getFiltroStorageKey(tipo) {
+    const sucursalId = $('#f_sucursal').val() || $('#f_id_negocio').val() || 'default';
+    return `ospulso_agenda_filtro_${tipo}_${sucursalId}`;
+}
+
+window.guardarFiltroMemoria = function(tipo) {
+    try {
+        if (tipo === 'medicos' && Array.isArray(window.medicosChecked)) {
+            localStorage.setItem(getFiltroStorageKey('medicos'), JSON.stringify(window.medicosChecked));
+        } else if (tipo === 'recursos' && Array.isArray(window.recursosChecked)) {
+            localStorage.setItem(getFiltroStorageKey('recursos'), JSON.stringify(window.recursosChecked));
+        }
+    } catch(e) {
+        console.warn("No se pudo guardar filtro en localStorage:", e);
+    }
+};
+
+window.recuperarFiltroMemoria = function(tipo) {
+    try {
+        const raw = localStorage.getItem(getFiltroStorageKey(tipo));
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed;
+        }
+    } catch(e) {
+        console.warn("No se pudo recuperar filtro de localStorage:", e);
+    }
+    return null;
+};
+
 window.seleccionarTodosEspacios = function(marcar) {
     $('.chk-recurso-item').prop('checked', !!marcar);
     if (marcar) {
@@ -1045,6 +1076,7 @@ window.seleccionarTodosEspacios = function(marcar) {
     } else {
         window.recursosChecked = [];
     }
+    window.guardarFiltroMemoria('recursos');
     window.actualizarLabelFiltroRecursos();
     renderView();
 };
@@ -1055,6 +1087,7 @@ window.onRecursoCheckChange = function() {
         marcados.push($(this).val());
     });
     window.recursosChecked = marcados;
+    window.guardarFiltroMemoria('recursos');
     window.actualizarLabelFiltroRecursos();
     renderView();
 };
@@ -1074,7 +1107,7 @@ window.actualizarLabelFiltroRecursos = function() {
     }
 };
 
-// --- ESTADO Y CONTROLADORES DE MÉDICOS (MULTI-CHECK INTERACTIVO) ---
+// --- ESTADO Y CONTROLADORES DE MÉDICOS (MULTI-CHECK INTERACTIVO CON MEMORIA) ---
 window.medicosChecked = null; // null = todos seleccionados por defecto; Array de IDs cuando el usuario filtra
 window.todosLosMedicosIds = [];
 
@@ -1085,9 +1118,16 @@ window.inicializarFiltroMedicos = function() {
     });
     if (allIds.length > 0) {
         window.todosLosMedicosIds = allIds;
-        if (window.medicosChecked === null) {
+        
+        // Intentar restaurar desde memoria persistente
+        const guardado = window.recuperarFiltroMemoria('medicos');
+        if (guardado !== null) {
+            // Filtrar IDs guardados para asegurar que existan actualmente
+            window.medicosChecked = guardado.filter(id => allIds.includes(String(id)));
+        } else if (window.medicosChecked === null) {
             window.medicosChecked = [...allIds];
         }
+
         $('.chk-medico-item').each(function() {
             const val = String($(this).val());
             $(this).prop('checked', window.medicosChecked.includes(val));
@@ -1108,6 +1148,7 @@ window.seleccionarTodosMedicos = function(marcar) {
     } else {
         window.medicosChecked = [];
     }
+    window.guardarFiltroMemoria('medicos');
     window.actualizarLabelFiltroMedicos();
     renderView();
 };
@@ -1123,6 +1164,7 @@ window.onMedicoCheckChange = function() {
         marcados.push(String($(this).val()));
     });
     window.medicosChecked = marcados;
+    window.guardarFiltroMemoria('medicos');
     window.actualizarLabelFiltroMedicos();
     renderView();
 };
@@ -1286,9 +1328,15 @@ window.poblarFiltroRecursosToolbar = function(data) {
     listContainer.html(html);
     window.todosLosRecursosIds = allIds;
 
-    // Sincronizar estado de selección de checkboxes
+    // Sincronizar estado de selección de checkboxes con memoria
     if (window.recursosChecked === null) {
-        window.recursosChecked = [...allIds];
+        const memoriaRec = window.recuperarFiltroMemoria('recursos');
+        if (memoriaRec && Array.isArray(memoriaRec) && memoriaRec.length > 0) {
+            window.recursosChecked = memoriaRec.filter(id => allIds.includes(id));
+            if (window.recursosChecked.length === 0) window.recursosChecked = [...allIds];
+        } else {
+            window.recursosChecked = [...allIds];
+        }
     }
     $('.chk-recurso-item').each(function() {
         const val = $(this).val();
@@ -2456,12 +2504,12 @@ function renderGrid() {
                         `;
                     } else if (st.toLowerCase().includes('sala de espera')) {
                         actionIcons = `
-                            <i class="bi bi-clock-history cursor-pointer text-white" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Ver Cita"></i>
+                            <i class="bi bi-clock-history cursor-pointer text-white" style="font-size:0.6rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${a.id}')" title="Ver Cita"></i>
                             <i class="bi bi-calendar2-event cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
                         `;
                     } else if (res.esAtendida) {
                         actionIcons = `
-                            <i class="bi bi-eye cursor-pointer text-white" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Ficha (Solo Lectura)"></i>
+                            <i class="bi bi-eye cursor-pointer text-white" style="font-size:0.6rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${a.id}')" title="Ver Ficha Rápida"></i>
                             <i class="bi bi-calendar2-event cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')" title="Ver Día"></i>
                         `;
                     } else if (isPast) {
@@ -2469,7 +2517,7 @@ function renderGrid() {
                         const esTomable = (!st.toLowerCase().includes('atendida') && !st.toLowerCase().includes('cancelada'));
                         actionIcons = `
                             ${esTomable ? `<i class="bi bi-play-fill cursor-pointer text-white" style="font-size:0.75rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${a.id}', '${a.extendedProps.id_paciente}')" title="Tomar Cita Ahora"></i>` : ''}
-                            <i class="bi bi-eye cursor-pointer text-white" style="font-size:0.6rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}', true)" title="Ver Detalle"></i>
+                            <i class="bi bi-eye cursor-pointer text-white" style="font-size:0.6rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${a.id}')" title="Ver Detalle Rápido"></i>
                             ${esTomable ? `<i class="bi bi-pencil-square cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); abrirModalCita('${a.id}')" title="Re-agendar"></i>` : ''}
                             <i class="bi bi-trash cursor-pointer text-white" style="font-size:0.55rem;" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar"></i>
                         `;
@@ -2482,7 +2530,7 @@ function renderGrid() {
                         `;
                     }
                     
-                    const itemClick = (res.esAtendida || isPast) ? `abrirModalCita('${a.id}', true)` : `handleAptClick('${a.id}')`;
+                    const itemClick = `openAppointmentQuickDetail('${a.id}')`;
 
                     return `
                     <div class="mini-apt-pro d-flex justify-content-between align-items-center mb-1 ${a.id == manualDragId ? 'is-dragging-manual':''} ${isPast ? 'is-past-apt':''}" 
@@ -2575,7 +2623,7 @@ function renderMobileDayList() {
         const color = res.color;
         
         const card = $(`
-            <div class="mob-apt-card" style="border-left-color: ${color}" onclick="abrirModalCita('${a.id}')">
+            <div class="mob-apt-card" style="border-left-color: ${color}" onclick="openAppointmentQuickDetail('${a.id}')">
                 <div class="mob-apt-time-box">
                     <span class="mob-apt-time-start">${hi}</span>
                     <span class="mob-apt-time-end">${hf}</span>
@@ -3600,8 +3648,8 @@ function sendWA(id) {
 }
 
 function handleAptClick(id) {
-    if (currentView === 'calendario') {
-        activateManualDrag(id);
+    if (typeof window.openAppointmentQuickDetail === 'function') {
+        window.openAppointmentQuickDetail(id);
     } else {
         abrirModalCita(id);
     }
@@ -4031,6 +4079,150 @@ window.abrirModalAjustes = abrirModalAjustes;
 window.guardarAjustes = guardarAjustes;
 window.toggleComidaAjustes = toggleComidaAjustes;
 
+// ==========================================
+// MÓDULO DE RESUMEN E IMPRESIÓN DE AGENDA
+// ==========================================
+window.abrirModalImpresionAgenda = function() {
+    // 1. Determinar rango de fechas de la vista activa
+    let fechaInicio = currentDate;
+    let fechaFin = currentDate;
+    let periodoLabel = `Día: ${currentDate}`;
+
+    if (currentView === 'semana') {
+        const curr = new Date(currentDate + 'T00:00:00');
+        const dayOfWeek = curr.getDay(); // 0 domingo, 1 lunes
+        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const monday = new Date(curr);
+        monday.setDate(curr.getDate() + diffToMonday);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+
+        fechaInicio = getISO(monday);
+        fechaFin = getISO(sunday);
+        periodoLabel = `Semana: ${fechaInicio} al ${fechaFin}`;
+    } else if (currentView === 'calendario') {
+        const [y, m] = currentDate.split('-').map(Number);
+        const primerDia = new Date(y, m - 1, 1);
+        const ultimoDia = new Date(y, m, 0);
+
+        fechaInicio = getISO(primerDia);
+        fechaFin = getISO(ultimoDia);
+        const mesesNombres = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        periodoLabel = `Mes: ${mesesNombres[m - 1]} ${y}`;
+    }
+
+    // 2. Obtener citas aplicando los filtros activos (médicos y espacios)
+    const citasFiltradas = (typeof getFilteredAppointments === 'function') ? getFilteredAppointments() : appointments;
+
+    // Filtrar por el rango de fechas de la vista activa y ordenar cronológicamente
+    const citasRango = citasFiltradas.filter(a => {
+        const fApt = a.start.split('T')[0];
+        return (fApt >= fechaInicio && fApt <= fechaFin);
+    }).sort((a, b) => a.start.localeCompare(b.start));
+
+    // 3. Poblar membrete de clínica y periodo
+    const nombreClinica = (document.getElementById('agenda_nombre_clinica') ? document.getElementById('agenda_nombre_clinica').value : '') || 
+                          (agendaConfig && agendaConfig.nombre_clinica) || 'Clínica Médica de Especialidades';
+    $('#printClinicaNombre').text(nombreClinica);
+    $('#printPeriodoBadge').text(periodoLabel);
+    $('#printTotalCitasBadge').text(`Total Citas: ${citasRango.length}`);
+
+    const now = new Date();
+    const fechaGenStr = `${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+    $('#printFechaGeneracion').text(`Generado: ${fechaGenStr}`);
+
+    // 4. Poblar etiquetas legibles de filtros aplicados
+    let medicosLabel = 'Todos los Médicos';
+    if (window.medicosChecked && window.todosLosMedicosIds && window.medicosChecked.length < window.todosLosMedicosIds.length) {
+        if (window.medicosChecked.length === 0) {
+            medicosLabel = 'Ningún médico seleccionado';
+        } else if (window.medicosChecked.length === 1) {
+            const mId = window.medicosChecked[0];
+            const mName = (window.medicosCatalogo && window.medicosCatalogo[mId]) || `Médico #${mId}`;
+            medicosLabel = `Médico: ${mName}`;
+        } else {
+            medicosLabel = `Médicos (${window.medicosChecked.length} seleccionados)`;
+        }
+    }
+    $('#printFiltroMedicos').html(`<i class="bi bi-person-badge text-primary me-1"></i>${medicosLabel}`);
+
+    let recursosLabel = 'Todos los Espacios';
+    if (window.recursosChecked && window.todosLosRecursosIds && window.recursosChecked.length < window.todosLosRecursosIds.length) {
+        if (window.recursosChecked.length === 0) {
+            recursosLabel = 'Ningún espacio seleccionado';
+        } else if (window.recursosChecked.length === 1) {
+            recursosLabel = `Espacio: ${window.recursosChecked[0]}`;
+        } else {
+            recursosLabel = `Espacios (${window.recursosChecked.length} seleccionados)`;
+        }
+    }
+    $('#printFiltroEspacios').html(`<i class="bi bi-door-open-fill text-primary me-1"></i>${recursosLabel}`);
+
+    // 5. Poblar filas de la tabla
+    const tbody = $('#printCitasTableBody');
+    tbody.empty();
+
+    if (citasRango.length === 0) {
+        tbody.html(`
+            <tr>
+                <td colspan="7" class="text-center py-4 text-muted">
+                    <i class="bi bi-calendar-x fs-2 d-block mb-1 opacity-50"></i>
+                    No se encontraron citas en este periodo con los filtros seleccionados.
+                </td>
+            </tr>
+        `);
+    } else {
+        citasRango.forEach(a => {
+            const fApt = a.start.split('T')[0];
+            const hIni = a.start.split('T')[1].substring(0, 5);
+            const hFin = a.end.split('T')[1].substring(0, 5);
+            const res = resolverEstadoCita(a.extendedProps.estado, fApt, hFin);
+
+            let mNom = a.extendedProps.medico || a.extendedProps.doctor || '';
+            if (!mNom || mNom === 'Profesional Asignado') {
+                const medId = a.extendedProps.id_medico;
+                if (medId && window.medicosCatalogo && window.medicosCatalogo[medId]) {
+                    mNom = window.medicosCatalogo[medId];
+                }
+            }
+            if (!mNom) mNom = '---';
+
+            const espNom = a.extendedProps.consultorio || a.extendedProps.recurso || a.extendedProps.lugar || 'Consultorio 1';
+            const motivo = a.extendedProps.motivo || 'Consulta General';
+            const pacNom = a.title || 'Paciente';
+            const expNum = a.extendedProps.id_paciente ? `#${a.extendedProps.id_paciente}` : '';
+
+            tbody.append(`
+                <tr>
+                    <td class="fw-semibold text-nowrap">${fApt}</td>
+                    <td class="text-nowrap"><span class="badge bg-light text-navy border">${hIni} - ${hFin}</span></td>
+                    <td>
+                        <strong class="text-navy">${pacNom}</strong>
+                        ${expNum ? `<small class="text-muted d-block">${expNum}</small>` : ''}
+                    </td>
+                    <td class="text-secondary">${mNom}</td>
+                    <td><span class="badge bg-light text-secondary border">${espNom}</span></td>
+                    <td class="text-muted text-truncate" style="max-width: 180px;" title="${motivo}">${motivo}</td>
+                    <td class="text-center">
+                        <span class="badge ${res.badgeClass}" style="font-size:0.7rem;">${res.clave}</span>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    // 6. Mostrar el modal
+    const modalEl = document.getElementById('modalImpresionAgenda');
+    if (modalEl) {
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        bsModal.show();
+    }
+};
+
+window.ejecutarImpresionAgendaDirecta = function() {
+    window.print();
+};
+
 // [SDM FIX] DOM Teleportation Protocol para evadir secuestros de z-index en moviles
 document.addEventListener('DOMContentLoaded', function() {
     var modalCita = document.getElementById('modalCita');
@@ -4044,5 +4236,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var quickModal = document.getElementById('appointmentQuickModal');
     if (quickModal) {
         document.body.appendChild(quickModal);
+    }
+    var printModal = document.getElementById('modalImpresionAgenda');
+    if (printModal) {
+        document.body.appendChild(printModal);
     }
 });
