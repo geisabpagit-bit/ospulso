@@ -160,35 +160,40 @@ function renderWeeklySmartView() {
     const slotsCont = $("#weekly-smart-slots");
     scroll.empty(); slotsCont.empty();
 
-    const base = new Date(selectedDate);
     const todayISO = getISO(new Date());
-    
-    // Mostramos los 7 días de la semana con estilo card-acrilico y contador de citas
-    const numDays = 7;
-    const offset = 3; // -3 a +3 = 7 días centrados en selectedDate
-    
+    const selISO = getISO(selectedDate);
+
+    // Calcular el Lunes de la semana activa correspondiente a selectedDate
+    const dObj = new Date(selectedDate);
+    const dayOfWeek = dObj.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+    const diffToMonday = (dayOfWeek === 0) ? -6 : (1 - dayOfWeek);
+    const monday = new Date(dObj);
+    monday.setDate(dObj.getDate() + diffToMonday);
+    monday.setHours(12, 0, 0, 0);
+
     scroll.removeClass('justify-content-start justify-content-center').addClass('justify-content-center');
 
-    for (let i = -offset; i <= offset; i++) {
-        const d = new Date(base);
-        d.setDate(d.getDate() + i);
+    // 7 días exactos: Lunes a Domingo
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
         const iso = getISO(d);
-        const active = iso === getISO(selectedDate);
+        const active = (iso === selISO);
         const holiday = isHoliday(iso);
-        const isToday = iso === todayISO;
-        const dayName = d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '');
+        const isToday = (iso === todayISO);
+        const dayName = d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '').toUpperCase();
         const dayNum = d.getDate();
 
         // Conteo de citas del día para visibilidad inmediata (respetando filtros activos)
         const dayAptsCount = getFilteredAppointments().filter(a => a.start && a.start.startsWith(iso)).length;
         const countBadge = dayAptsCount > 0 
-            ? `<span class="badge rounded-pill ${active ? 'bg-white text-dark' : 'bg-teal text-white'} fw-bold" style="font-size:0.58rem; margin-top:3px; padding:2px 6px;">${dayAptsCount} cita${dayAptsCount > 1 ? 's' : ''}</span>`
+            ? `<span class="badge rounded-pill ${active ? 'bg-white text-dark' : 'bg-teal text-white'} fw-bold shadow-xs" style="font-size:0.58rem; margin-top:3px; padding:2px 6px;">${dayAptsCount} cita${dayAptsCount > 1 ? 's' : ''}</span>`
             : (isToday && !active ? '<div style="width:6px; height:6px; background:var(--md-teal-clinical, #19B7A5); border-radius:50%; margin-top:5px;"></div>' : '<div style="height:11px"></div>');
 
         const card = $(`
             <div class="smart-day-card card-acrilico ${active ? 'active' : ''} ${holiday ? 'holiday' : ''}" 
                  onclick="selectSmartDate('${iso}')"
-                 style="flex: 0 0 auto;">
+                 style="flex: 0 0 auto; cursor: pointer;">
                 <span class="small text-uppercase fw-bold ${active ? 'text-white' : 'opacity-50'}" style="font-size:0.6rem;">${dayName}</span>
                 <span class="h4 fw-black m-0">${dayNum}</span>
                 ${countBadge}
@@ -196,7 +201,7 @@ function renderWeeklySmartView() {
         `);
         scroll.append(card);
     }
-    renderSmartSlots(getISO(selectedDate));
+    renderSmartSlots(selISO);
 }
 
 function selectSmartDate(iso) {
@@ -1746,21 +1751,8 @@ function renderTimeline() {
     const todayIso = getISO(new Date());
     const isPastDay = iso < todayIso;
 
-    // Filtrar citas del día
-    let dayApts = appointments.filter(a => a.start && a.start.startsWith(iso));
-
-    // Filtrado interactivo por Médicos (Multi-check Dropdown)
-    if (window.medicosChecked !== null && Array.isArray(window.medicosChecked)) {
-        dayApts = dayApts.filter(a => {
-            const mId = String(a.extendedProps.id_medico || '');
-            return window.medicosChecked.includes(mId);
-        });
-    } else {
-        const medFiltro = $('#filtro_medico_toolbar').val() || $('#f_medico').val();
-        if (medFiltro && medFiltro !== 'all') {
-            dayApts = dayApts.filter(a => String(a.extendedProps.id_medico) === String(medFiltro) || String(a.extendedProps.medico) === String(medFiltro));
-        }
-    }
+    // Filtrar citas del día respetando los filtros activos de médicos y espacios
+    let dayApts = getFilteredAppointments().filter(a => a.start && a.start.startsWith(iso));
 
     // Si es un día pasado, renderizar vista ejecutiva o empty state estilizado
     if (isPastDay) {
@@ -2336,7 +2328,7 @@ function prevSideMonth() {
     selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
     renderHeaders();
     if (currentView === 'dia') renderTimeline();
-    else if (currentView === 'mes') renderMonthlyGrid();
+    else if (currentView === 'calendario') renderGrid();
     else if (currentView === 'semana_smart') renderWeeklySmartView();
     else renderSideCalendar();
 }
@@ -2345,13 +2337,14 @@ function nextSideMonth() {
     selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1);
     renderHeaders();
     if (currentView === 'dia') renderTimeline();
-    else if (currentView === 'mes') renderMonthlyGrid();
+    else if (currentView === 'calendario') renderGrid();
     else if (currentView === 'semana_smart') renderWeeklySmartView();
     else renderSideCalendar();
 }
 
 function dummyReminder(id) {
     const a = appointments.find(x => x.id == id);
+    if (!a) return;
     CrystalToast.fire({
         icon: 'info',
         title: 'Recordatorio Preparado',
@@ -2359,104 +2352,6 @@ function dummyReminder(id) {
     });
 }
 
-function renderTable(type) {
-    const el = $("#agendaTable");
-    let data = [];
-    const normalizedSelected = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-
-    if (type === 'semana') {
-        const start = new Date(normalizedSelected);
-        const day = start.getDay() || 7; 
-        if (day !== 1) start.setHours(-24 * (day - 1));
-        const end = new Date(start);
-        end.setDate(end.getDate() + 6);
-        end.setHours(23, 59, 59);
-        data = appointments.filter(a => {
-            const d = new Date(a.start);
-            return d >= start && d <= end;
-        });
-    } else {
-        const m = normalizedSelected.getMonth();
-        const y = normalizedSelected.getFullYear();
-        data = appointments.filter(a => {
-            const d = new Date(a.start);
-            return d.getMonth() === m && d.getFullYear() === y;
-        });
-    }
-
-    const todayIso = getISO(new Date());
-    const now = new Date();
-    const nowHHMM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-    const mappedData = data.map(a => {
-        const aptDate = a.start.split('T')[0];
-        const aptEnd = a.end.split('T')[1].substring(0,5);
-        let st = (a.extendedProps && a.extendedProps.estado) ? a.extendedProps.estado.trim() : 'Programada';
-        const stLow = st.toLowerCase();
-
-        if (!stLow.includes('atendida') && !stLow.includes('cancelada')) {
-            if (aptDate < todayIso || (aptDate === todayIso && aptEnd < nowHHMM && !stLow.includes('en consulta') && !stLow.includes('proceso'))) {
-                st = 'No realizada';
-            }
-        }
-
-        return { 
-            fecha: aptDate, 
-            hora: `${a.start.split('T')[1].substring(0,5)} - ${aptEnd}`, 
-            paciente: a.title, 
-            motivo: (a.extendedProps && a.extendedProps.motivo) ? a.extendedProps.motivo : 'Consulta', 
-            status: st, 
-            id: a.id 
-        };
-    });
-
-    if ($.fn.DataTable.isDataTable(el)) {
-        const dt = el.DataTable();
-        dt.clear().rows.add(mappedData).draw();
-    } else {
-        tableInstance = el.DataTable({
-            data: mappedData,
-            columns: [
-                {data:'fecha', render: d => `<span class="fw-bold">${d}</span>`},
-                {data:'hora', render: d => `<span class="text-primary fw-bold">${d}</span>`},
-                {data:'paciente'},
-                {data:'motivo', render: m => `<span class="text-secondary">${m || 'Consulta'}</span>`},
-                {data:'status', render: s => {
-                    const st = (s || '').toLowerCase();
-                    let cls = 'bg-secondary text-white';
-                    if (st.includes('atendida')) cls = 'bg-teal text-white';
-                    else if (st.includes('no realizada')) cls = 'bg-danger text-white badge-no-realizada';
-                    else if (st.includes('confirmada')) cls = 'bg-primary text-white';
-                    else if (st.includes('espera')) cls = 'bg-warning text-dark';
-                    return `<span class="badge rounded-pill ${cls} px-2 py-1">${s}</span>`;
-                }},
-                {data:'id', render: (id, type, row) => `
-                    <div class="d-flex gap-1 justify-content-end">
-                        <button class="btn btn-sm btn-light border text-navy" onclick="goDay('${row.fecha}')" title="Ver Día"><i class="bi bi-calendar2-day"></i></button>
-                        <button class="btn btn-sm btn-light border text-success" onclick="sendWA('${id}')" title="WhatsApp"><i class="bi bi-whatsapp"></i></button>
-                        <button class="btn btn-sm btn-light border text-primary" onclick="abrirModalCita('${id}')" title="Editar"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-sm btn-light border text-danger" onclick="delCita('${id}')" title="Eliminar"><i class="bi bi-trash"></i></button>
-                    </div>
-                `}
-            ],
-            createdRow: function(row, data, dataIndex) {
-                $(row).find('td').each(function(i) {
-                    const labels = ['Fecha', 'Hora', 'Paciente', 'Motivo', 'Status', 'Acciones'];
-                    $(this).attr('data-label', labels[i]);
-                });
-            },
-            dom: '<"d-flex justify-content-between align-items-center mb-4"Bf>rtip',
-            buttons: [
-                { extend: 'copy', text: '<i class="bi bi-clipboard"></i>', className: 'btn btn-sm btn-navy fw-bold px-3 rounded-3', titleAttr: 'Copiar' },
-                { extend: 'excel', text: '<i class="bi bi-file-earmark-excel"></i>', className: 'btn btn-sm btn-success fw-bold px-3 rounded-3', titleAttr: 'Excel' },
-                { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf"></i>', className: 'btn btn-sm btn-danger fw-bold px-3 rounded-3', titleAttr: 'PDF' },
-                { extend: 'print', text: '<i class="bi bi-printer"></i>', className: 'btn btn-sm btn-dark fw-bold px-3 rounded-3', titleAttr: 'Imprimir' }
-            ],
-            language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-            order: [[0, 'asc'], [1, 'asc']]
-        });
-    }
-}
 
 function renderGrid() {
     if (window.innerWidth < 992) {
@@ -3656,7 +3551,14 @@ function handleAptClick(id) {
 }
 
 function initClock() { setInterval(() => { const n = new Date(); $("#digital-clock").text(n.toLocaleTimeString()); }, 1000); }
-function getISO(d) { const tz = d.getTimezoneOffset() * 60000; return new Date(d.getTime() - tz).toISOString().split('T')[0]; }
+function getISO(d) {
+    if (!d) return '';
+    if (typeof d === 'string') return d.split('T')[0];
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
 function isHoliday(iso) { 
     if (!agendaConfig.festivos) return false;
     let list = [];
