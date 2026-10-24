@@ -1300,7 +1300,7 @@ body.agenda-page-layout #app-viewport {
     padding: 0.25rem 0 0.5rem 0 !important;
 }
 
-body.agenda-page-layout .agenda-view-container {
+body.agenda-page-layout .agenda-view-container:not(.d-none) {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -1309,10 +1309,13 @@ body.agenda-page-layout .agenda-view-container {
     padding: 0 !important;
     overflow: hidden !important;
 }
+body.agenda-page-layout .agenda-view-container.d-none {
+    display: none !important;
+}
 
 /* --- REGLAS ENCAPSULADAS DE SCROLL INTERNO POR CADA VISTA --- */
 /* 1. Vista Semanal Smart: Carrusel de días fijo arriba, slots scrollables abajo */
-#view-semana-smart {
+#view-semana-smart:not(.d-none) {
     display: flex !important;
     flex-direction: column !important;
     height: 100%;
@@ -1336,7 +1339,7 @@ body.agenda-page-layout .agenda-view-container {
 }
 
 /* 2. Vista Mensual Grid: Contenedor con scroll vertical propio y cabeceras fijas */
-#view-calendario {
+#view-calendario:not(.d-none) {
     display: flex !important;
     flex-direction: column !important;
     height: 100%;
