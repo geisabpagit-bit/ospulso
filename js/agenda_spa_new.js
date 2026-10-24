@@ -722,6 +722,9 @@ $(document).ready(function() {
         }
     });
 
+    if (typeof window.inicializarFiltroMedicos === 'function') {
+        window.inicializarFiltroMedicos();
+    }
     setupAutocomplete();
     switchView('calendario'); // Vista por defecto cambiada a GRID
 
@@ -1056,6 +1059,74 @@ window.actualizarLabelFiltroRecursos = function() {
     }
 };
 
+// --- ESTADO Y CONTROLADORES DE MÉDICOS (MULTI-CHECK INTERACTIVO) ---
+window.medicosChecked = null; // null = todos seleccionados por defecto; Array de IDs cuando el usuario filtra
+window.todosLosMedicosIds = [];
+
+window.inicializarFiltroMedicos = function() {
+    const allIds = [];
+    $('.chk-medico-item').each(function() {
+        allIds.push(String($(this).val()));
+    });
+    if (allIds.length > 0) {
+        window.todosLosMedicosIds = allIds;
+        if (window.medicosChecked === null) {
+            window.medicosChecked = [...allIds];
+        }
+        $('.chk-medico-item').each(function() {
+            const val = String($(this).val());
+            $(this).prop('checked', window.medicosChecked.includes(val));
+        });
+        window.actualizarLabelFiltroMedicos();
+    }
+};
+
+window.seleccionarTodosMedicos = function(marcar) {
+    if (!window.todosLosMedicosIds.length) {
+        $('.chk-medico-item').each(function() {
+            window.todosLosMedicosIds.push(String($(this).val()));
+        });
+    }
+    $('.chk-medico-item').prop('checked', !!marcar);
+    if (marcar) {
+        window.medicosChecked = [...window.todosLosMedicosIds];
+    } else {
+        window.medicosChecked = [];
+    }
+    window.actualizarLabelFiltroMedicos();
+    renderView();
+};
+
+window.onMedicoCheckChange = function() {
+    if (!window.todosLosMedicosIds.length) {
+        $('.chk-medico-item').each(function() {
+            window.todosLosMedicosIds.push(String($(this).val()));
+        });
+    }
+    const marcados = [];
+    $('.chk-medico-item:checked').each(function() {
+        marcados.push(String($(this).val()));
+    });
+    window.medicosChecked = marcados;
+    window.actualizarLabelFiltroMedicos();
+    renderView();
+};
+
+window.actualizarLabelFiltroMedicos = function() {
+    const total = window.todosLosMedicosIds.length;
+    const marcados = (window.medicosChecked !== null) ? window.medicosChecked.length : total;
+    const labelSpan = $('#filtro_medico_btn_label');
+    if (!labelSpan.length) return;
+
+    if (marcados === total && total > 0) {
+        labelSpan.html('<i class="bi bi-people-fill text-primary"></i> <span class="text-truncate">Todos los Médicos (' + total + ')</span>');
+    } else if (marcados === 0) {
+        labelSpan.html('<i class="bi bi-dash-circle text-danger"></i> <span class="text-truncate">Sin Médicos (0/' + total + ')</span>');
+    } else {
+        labelSpan.html('<i class="bi bi-funnel-fill text-primary"></i> <span class="text-truncate">Médicos (' + marcados + '/' + total + ')</span>');
+    }
+};
+
 window.poblarFiltroRecursosToolbar = function(data) {
     const listContainer = $('#lista_checkboxes_recursos');
     if (!listContainer.length) return;
@@ -1258,14 +1329,16 @@ window.handleMatrixSlotClick = function(event, fecha, hora, recursoId, recursoTi
 // POPUP INTERMEDIO DE INSPECCIÓN RÁPIDA (#appointmentQuickModal)
 window.openAppointmentQuickDetail = function(id) {
     const a = appointments.find(x => x.id == id);
-    if (!a) return;
+    if (!a) {
+        console.warn("No se encontró la cita con ID:", id);
+        return;
+    }
 
     const hi = a.start.split('T')[1].substring(0, 5);
     const hf = a.end.split('T')[1].substring(0, 5);
     const fecha = a.start.split('T')[0];
     const res = resolverEstadoCita(a.extendedProps.estado, fecha, hf);
     const status = res.clave;
-    const badgeClass = res.badgeClass;
     const stLow = status.toLowerCase();
 
     // Guardar referencia en el modal
@@ -1273,68 +1346,94 @@ window.openAppointmentQuickDetail = function(id) {
     qModal.data('cita-id', a.id);
     qModal.data('paciente-id', a.extendedProps.id_paciente);
 
-    // 1. Badge de estado en cabecera
-    $('#quickModalHeaderStatus')
-        .attr('class', `badge ${badgeClass} rounded-pill px-3 py-1.5 fw-bold text-uppercase`)
-        .text(status);
+    // 1. Cabecera con Estado Canónico y Punto de Color Dinámico
+    const headerEl = $('#quickModalHeader');
+    const dotEl = $('#quickModalDot');
+    const estatusEl = $('#quickModalEstatus');
 
-    // 2. Nombre del paciente y Expediente
-    $('#quickModalPacienteNombre').text(a.title || 'Paciente');
+    let bgHeader = '#0A2A66';
+    let dotColor = '#19B7A5';
+
+    if (res.esEnConsulta) {
+        bgHeader = '#16a34a'; dotColor = '#86efac';
+    } else if (stLow.includes('sala de espera')) {
+        bgHeader = '#d97706'; dotColor = '#fde68a';
+    } else if (res.esAtendida) {
+        bgHeader = '#0d9488'; dotColor = '#5eead4';
+    } else if (res.esNoRealizada) {
+        bgHeader = '#dc2626'; dotColor = '#fca5a5';
+    } else if (stLow.includes('confirmada')) {
+        bgHeader = '#2563eb'; dotColor = '#93c5fd';
+    } else if (stLow.includes('cancelada')) {
+        bgHeader = '#475569'; dotColor = '#cbd5e1';
+    }
+
+    headerEl.css('background-color', bgHeader);
+    dotEl.css('background-color', dotColor);
+    estatusEl.text(res.clave || status.toUpperCase());
+
+    // 2. Nombre del Paciente y Expediente
+    const pacNom = a.title || a.extendedProps.paciente || 'Paciente';
+    $('#quickModalPaciente').text(pacNom).attr('title', pacNom);
     const expNum = a.extendedProps.id_paciente || '---';
-    $('#quickModalExpedienteBadge').text(`Exp. #${expNum}`);
+    $('#quickModalExpediente').text(`Exp. #${expNum}`);
 
-    // 3. Badge de Pago
+    // 3. Teléfono de Contacto
+    const tel = (a.extendedProps.telefono || a.extendedProps.tel_paciente || '').trim();
+    if (tel && tel !== '' && tel !== '--' && tel !== 'No registrado') {
+        $('#quickModalTelefonoIcon').attr('class', 'bi bi-telephone-fill text-teal');
+        $('#quickModalTelefono').html(`<a href="tel:${tel}" class="text-navy text-decoration-none fw-semibold">${tel}</a>`);
+    } else {
+        $('#quickModalTelefonoIcon').attr('class', 'bi bi-telephone text-secondary');
+        $('#quickModalTelefono').html('<span class="text-muted">No registrado</span>');
+    }
+
+    // 4. Médico Asignado (Resolución Robusta de Nombre)
+    let medicoNom = a.extendedProps.medico || a.extendedProps.doctor || '';
+    if (!medicoNom || medicoNom === 'Profesional Asignado' || medicoNom === 'Médico') {
+        const medId = a.extendedProps.id_medico;
+        if (medId && window.medicosCatalogo && window.medicosCatalogo[medId]) {
+            medicoNom = window.medicosCatalogo[medId];
+        } else if (medId) {
+            const mMatch = $('.chk-medico-item[value="' + medId + '"]');
+            if (mMatch.length) {
+                medicoNom = mMatch.closest('label').find('span').text().trim();
+            }
+        }
+    }
+    if (!medicoNom) medicoNom = 'Profesional Asignado';
+    $('#quickModalMedico').text(medicoNom).attr('title', medicoNom);
+
+    // 5. Motivo de Consulta
+    const mot = a.extendedProps.motivo || 'Consulta General';
+    $('#quickModalMotivo').text(mot).attr('title', mot);
+
+    // 6. Recurso / Espacio Asignado (Consultorio o Quirófano)
+    const recursoTxt = a.extendedProps.consultorio || a.extendedProps.recurso || a.extendedProps.lugar || 'Consultorio 1';
+    $('#quickModalLugar').text(recursoTxt);
+
+    // 7. Badge de Pago con Alto Contraste y Claridad Visual
     const pagado = a.extendedProps.pagado === 1 || a.extendedProps.pagado === '1' || a.extendedProps.pagado === true;
     if (pagado) {
-        $('#quickModalPagoBadge')
-            .removeClass('bg-warning-subtle text-warning-emphasis border-warning')
-            .addClass('bg-success-subtle text-success border border-success')
-            .html('<i class="bi bi-check-circle-fill me-1"></i>Pagado');
+        $('#quickModalPago')
+            .attr('class', 'badge bg-success-subtle text-success-emphasis border border-success-subtle px-2 py-1 fw-bold')
+            .html('<i class="bi bi-check-circle-fill me-1 text-success"></i>Pagado');
     } else {
-        $('#quickModalPagoBadge')
-            .removeClass('bg-success-subtle text-success border-success')
-            .addClass('bg-warning-subtle text-warning-emphasis border border-warning')
-            .html('<i class="bi bi-clock-history me-1"></i>Pendiente de Pago');
+        $('#quickModalPago')
+            .attr('class', 'badge bg-warning-subtle text-dark border border-warning px-2 py-1 fw-bold')
+            .html('<i class="bi bi-clock-history me-1 text-warning"></i>Pendiente de Pago');
     }
 
-    // 4. Teléfono
-    const tel = a.extendedProps.telefono || a.extendedProps.tel_paciente || '';
-    if (tel && tel.trim() !== '') {
-        $('#quickModalTelefono')
-            .attr('href', `tel:${tel}`)
-            .html(`<i class="bi bi-telephone-fill me-1 text-teal"></i>${tel}`);
-    } else {
-        $('#quickModalTelefono')
-            .removeAttr('href')
-            .html('<i class="bi bi-telephone me-1 text-muted"></i>No registrado');
-    }
-
-    // 5. Médico y Especialidad
-    const medicoNom = a.extendedProps.medico || a.extendedProps.doctor || 'Profesional Asignado';
-    const espNom = a.extendedProps.especialidad || 'Consulta Médica';
-    $('#quickModalMedico').text(medicoNom);
-    $('#quickModalEspecialidad').text(espNom);
-
-    // 6. Motivo y Notas
-    $('#quickModalMotivo').text(a.extendedProps.motivo || 'Consulta General');
-    const notas = a.extendedProps.notas || a.extendedProps.observaciones || '';
-    if (notas && notas.trim() !== '') {
-        $('#quickModalNotasRow').show();
-        $('#quickModalNotas').text(notas);
-    } else {
-        $('#quickModalNotasRow').hide();
-    }
-
-    // 7. Tarjeta Fecha y Hora con fondo suave amarillo avena
+    // 8. Tarjeta de Fecha en Amarillo Avena (Mes, Día Numérico, Día Semana y Rango Horario)
     const [y, m, d] = fecha.split('-').map(Number);
     const fechaObj = new Date(y, m - 1, d, 12, 0, 0);
-    const fechaFormat = fechaObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-    $('#quickModalFecha').text(fechaFormat);
-    $('#quickModalHora').text(`${hi} - ${hf}`);
+    const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+    const diasSemana = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
 
-    // 8. Recurso / Espacio Asignado
-    const recursoTxt = a.extendedProps.consultorio || a.extendedProps.recurso || a.extendedProps.lugar || 'Consultorio 1';
-    $('#quickModalRecurso').text(recursoTxt);
+    $('#quickModalMes').text(meses[fechaObj.getMonth()]);
+    $('#quickModalDiaNum').text(fechaObj.getDate());
+    $('#quickModalDiaSemana').text(diasSemana[fechaObj.getDay()]);
+    $('#quickModalHora').text(`${hi} – ${hf}`);
 
     // 9. Configuración de Botones de Acción
     const btnIniciar = $('#btnQuickIniciarCita');
@@ -1349,18 +1448,21 @@ window.openAppointmentQuickDetail = function(id) {
     btnCobrar.off('click');
     btnEliminar.off('click');
 
-    // Comportamiento de Iniciar Cita
+    // Botón Iniciar Cita
     if (stLow.includes('atendida') || stLow.includes('cancelada')) {
-        btnIniciar.prop('disabled', true).addClass('opacity-50').html('<i class="bi bi-slash-circle me-1"></i>Finalizada');
+        btnIniciar.prop('disabled', true).addClass('opacity-50')
+            .html('<i class="bi bi-slash-circle fs-5 me-1.5"></i><span>Finalizada</span>');
     } else if (stLow.includes('consulta') || res.esEnConsulta) {
-        btnIniciar.prop('disabled', false).removeClass('opacity-50').html('<i class="bi bi-play-circle-fill me-1"></i>En Consulta')
+        btnIniciar.prop('disabled', false).removeClass('opacity-50')
+            .html('<i class="bi bi-play-circle-fill fs-5 me-1.5"></i><span>En Consulta</span>')
             .on('click', function() {
                 const bsModal = bootstrap.Modal.getInstance(document.getElementById('appointmentQuickModal'));
                 if (bsModal) bsModal.hide();
                 window.location.href = `render_consultas_privado.pl?id=${a.extendedProps.id_paciente}&id_cita=${a.id}`;
             });
     } else {
-        btnIniciar.prop('disabled', false).removeClass('opacity-50').html('<i class="bi bi-play-fill me-1"></i>Iniciar Cita')
+        btnIniciar.prop('disabled', false).removeClass('opacity-50')
+            .html('<i class="bi bi-play-fill fs-5 me-1.5"></i><span>Iniciar Cita</span>')
             .on('click', function() {
                 const bsModal = bootstrap.Modal.getInstance(document.getElementById('appointmentQuickModal'));
                 if (bsModal) bsModal.hide();
@@ -1368,12 +1470,12 @@ window.openAppointmentQuickDetail = function(id) {
             });
     }
 
-    // Expediente
+    // Botón Expediente
     btnExp.on('click', function() {
         window.open(`render_expediente_clinico.pl?id=${a.extendedProps.id_paciente}`, '_blank');
     });
 
-    // Editar
+    // Botón Editar / Re-agendar
     btnEditar.on('click', function() {
         const bsModal = bootstrap.Modal.getInstance(document.getElementById('appointmentQuickModal'));
         if (bsModal) bsModal.hide();
@@ -1382,11 +1484,11 @@ window.openAppointmentQuickDetail = function(id) {
         }, 200);
     });
 
-    // Cobrar
+    // Botón Cobrar en Recepción
     if (pagado) {
-        btnCobrar.hide();
+        btnCobrar.addClass('d-none');
     } else {
-        btnCobrar.show().on('click', function() {
+        btnCobrar.removeClass('d-none').show().on('click', function() {
             const bsModal = bootstrap.Modal.getInstance(document.getElementById('appointmentQuickModal'));
             if (bsModal) bsModal.hide();
             setTimeout(() => {
@@ -1399,11 +1501,11 @@ window.openAppointmentQuickDetail = function(id) {
         });
     }
 
-    // Eliminar
+    // Botón Eliminar
     if (stLow.includes('atendida')) {
-        btnEliminar.hide();
+        btnEliminar.addClass('d-none');
     } else {
-        btnEliminar.show().on('click', function() {
+        btnEliminar.removeClass('d-none').show().on('click', function() {
             const bsModal = bootstrap.Modal.getInstance(document.getElementById('appointmentQuickModal'));
             if (bsModal) bsModal.hide();
             setTimeout(() => {
@@ -1524,10 +1626,17 @@ function renderTimeline() {
     // Filtrar citas del día
     let dayApts = appointments.filter(a => a.start && a.start.startsWith(iso));
 
-    // Si hay un médico activo seleccionado en el filtro superior, filtrar las citas
-    const medFiltro = $('#filtro_medico_toolbar').val() || $('#f_medico').val();
-    if (medFiltro && medFiltro !== 'all') {
-        dayApts = dayApts.filter(a => String(a.extendedProps.id_medico) === String(medFiltro) || String(a.extendedProps.medico) === String(medFiltro));
+    // Filtrado interactivo por Médicos (Multi-check Dropdown)
+    if (window.medicosChecked !== null && Array.isArray(window.medicosChecked)) {
+        dayApts = dayApts.filter(a => {
+            const mId = String(a.extendedProps.id_medico || '');
+            return window.medicosChecked.includes(mId);
+        });
+    } else {
+        const medFiltro = $('#filtro_medico_toolbar').val() || $('#f_medico').val();
+        if (medFiltro && medFiltro !== 'all') {
+            dayApts = dayApts.filter(a => String(a.extendedProps.id_medico) === String(medFiltro) || String(a.extendedProps.medico) === String(medFiltro));
+        }
     }
 
     // Si es un día pasado, renderizar vista ejecutiva o empty state estilizado

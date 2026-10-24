@@ -1593,26 +1593,62 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
     z-index: 10;
 }
 
+/* Dropdowns Multi-Check Operativos (Espacios y Médicos) */
+#dropdown_filtro_medico_menu,
+#dropdown_filtro_recurso_menu {
+    border: 1px solid rgba(10, 42, 102, 0.08) !important;
+    box-shadow: 0 14px 34px rgba(10, 42, 102, 0.16) !important;
+}
+
+#dropdown_filtro_medico_menu .dropdown-item:hover,
+#dropdown_filtro_recurso_menu .dropdown-item:hover {
+    background-color: #f1f5f9;
+}
+
+#dropdown_filtro_medico_menu .form-check-input:checked,
+#dropdown_filtro_recurso_menu .form-check-input:checked {
+    background-color: var(--md-teal-clinical, #19B7A5);
+    border-color: var(--md-teal-clinical, #19B7A5);
+}
+
 /* Modal Rápido de Detalle */
+#appointmentQuickModal .modal-content {
+    border: none !important;
+    box-shadow: 0 20px 45px rgba(10, 42, 102, 0.22) !important;
+}
+
 #appointmentQuickModal .date-badge-body {
     background-color: #FEF9C3;
 }
 #appointmentQuickModal .date-badge-day {
-    font-size: 1.85rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 800;
     color: #78350F;
 }
 #appointmentQuickModal .date-badge-weekday {
-    font-size: 0.65rem;
+    font-size: 0.68rem;
     color: #92400E;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.5px;
 }
 #appointmentQuickModal .date-badge-time {
     background-color: #FEF08A;
     color: #78350F;
     border-top: 1px solid #FDE047;
-    font-size: 0.8rem;
-    font-weight: 700;
+    font-size: 0.80rem;
+    font-weight: 800;
+}
+
+#appointmentQuickModal #btnQuickIniciarCita {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease-in-out;
+}
+
+#appointmentQuickModal #btnQuickIniciarCita:hover {
+    background-color: #047857 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.28);
 }
 
 /* Grilla Compacta de Horarios */

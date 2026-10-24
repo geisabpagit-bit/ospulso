@@ -11,6 +11,7 @@ use open qw(:std :utf8);
 
 # --- CONFIGURACIÓN DE RUTAS ABSOLUTAS (Protocolo 11.1) ---
 use lib "$FindBin::Bin/..";
+use JSON::PP qw(encode_json);
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
@@ -78,15 +79,50 @@ my $id_medico_activo = $es_solo_admin_o_recep ? 'all' : ($id_medico || 'all');
 my $html_medicos = '';
 my $html_filtro_medicos_toolbar = '';
 if ($es_solo_admin_o_recep && scalar(@medicos) > 0) {
-    my $options_m = qq(<option value="all" selected>👥 Todos los Médicos</option>\n);
+    my $items_m = '';
+    my @m_ids = ();
     foreach my $m (@medicos) {
-        $options_m .= qq(<option value="$m->{id}">👨‍⚕️ $m->{nombre}</option>\n);
+        push @m_ids, $m->{id};
+        $items_m .= qq{
+            <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5">
+                <input type="checkbox" class="form-check-input mt-0 chk-medico-item" value="$m->{id}" onchange="window.onMedicoCheckChange()" checked>
+                <i class="bi bi-person-fill text-primary" style="font-size:0.95rem;"></i>
+                <span class="fw-semibold text-navy small text-truncate">$m->{nombre}</span>
+            </label>
+        };
     }
+    my $cnt_med = scalar(@medicos);
     $html_filtro_medicos_toolbar = qq{
-        <div class="d-none d-lg-block ms-1">
-            <select id="filtro_medico_toolbar" class="form-select form-select-sm shadow-sm border bg-white rounded-3 fw-bold text-navy" style="height:42px; font-size:0.78rem; min-width: 190px; max-width: 250px;" onchange="filtrarAgendaPorMedico(this.value)">
-                $options_m
-            </select>
+        <div class="d-none d-lg-block dropdown" id="wrapper_filtro_medicos_toolbar" style="position: relative; z-index: 106000;">
+            <button class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-flex align-items-center justify-content-between px-3 text-navy dropdown-toggle" 
+                    type="button" 
+                    id="btn_filtro_medico_dropdown" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-auto-close="outside" 
+                    data-bs-popper-config='{"strategy":"fixed"}'
+                    aria-expanded="false" 
+                    style="height:42px; font-size:0.80rem; min-width: 190px; max-width: 250px;" 
+                    title="Filtrar por Médicos / Profesionales">
+                <span class="d-flex align-items-center gap-1.5 text-truncate" id="filtro_medico_btn_label">
+                    <i class="bi bi-people-fill text-primary"></i>
+                    <span class="text-truncate">Todos los Médicos ($cnt_med)</span>
+                </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_medico_menu" aria-labelledby="btn_filtro_medico_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 106000 !important;">
+                <!-- Encabezado de Acciones Rápidas -->
+                <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom mb-2">
+                    <span class="fw-black text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px;">Médicos Clínicos</span>
+                    <div class="d-flex align-items-center gap-1.5">
+                        <button type="button" class="btn btn-link btn-sm p-0 text-primary fw-bold text-decoration-none" onclick="window.seleccionarTodosMedicos(true)" style="font-size:0.72rem;">Marcar todos</button>
+                        <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-secondary fw-semibold text-decoration-none" onclick="window.seleccionarTodosMedicos(false)" style="font-size:0.72rem;">Desmarcar</button>
+                    </div>
+                </div>
+                <!-- Lista de Checkboxes Dinámica de Médicos -->
+                <div id="lista_checkboxes_medicos" class="d-flex flex-column gap-1">
+                    $items_m
+                </div>
+            </div>
         </div>
     };
 }
@@ -142,6 +178,9 @@ render_header(
     skip_header => 1
 );
 
+my %map_medicos = map { $_->{id} => $_->{nombre} } @medicos;
+my $json_catalogo_medicos = encode_json(\%map_medicos);
+
 print <<HTML;
     <!-- Datos de Sesión para JS -->
     <input type="hidden" id="f_medico" value="$id_medico_activo">
@@ -152,6 +191,7 @@ print <<HTML;
         document.body.classList.add('agenda-page-layout', 'agenda-view-dia-active');
         window.idPacientePre = "$id_paciente_pre";
         window.nombrePacientePre = "$nombre_paciente_pre";
+        window.medicosCatalogo = $json_catalogo_medicos;
     </script>
 
     <!-- DataTables CSS Core (Carga Paralela) -->
@@ -404,91 +444,108 @@ print <<HTML;
         <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
                 <!-- Cabecera con Estado Canónico -->
-                <div class="modal-header py-2 px-3 d-flex align-items-center justify-content-between border-0" id="quickModalHeader" style="background-color: var(--md-blue-deep, #0A2A66); color: white;">
+                <div class="modal-header py-2.5 px-3.5 d-flex align-items-center justify-content-between border-0" id="quickModalHeader" style="background-color: var(--md-blue-deep, #0A2A66); color: white;">
                     <div class="d-flex align-items-center gap-2">
-                        <span id="quickModalDot" class="rounded-circle d-inline-block" style="width: 10px; height: 10px; background-color: #19B7A5;"></span>
-                        <span class="modal-title fw-bold text-uppercase" id="quickModalEstatus" style="font-size: 0.82rem; letter-spacing: 0.5px;">PROGRAMADA</span>
+                        <span id="quickModalDot" class="rounded-circle d-inline-block shadow-sm" style="width: 11px; height: 11px; background-color: #19B7A5;"></span>
+                        <span class="modal-title fw-black text-uppercase tracking-wider" id="quickModalEstatus" style="font-size: 0.84rem; letter-spacing: 0.6px;">PROGRAMADA</span>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" style="font-size: 0.72rem; opacity: 0.9;" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" style="font-size: 0.75rem; opacity: 0.95;" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <!-- Cuerpo: Datos Clínicos y Badge de Fecha -->
-                <div class="modal-body p-3">
-                    <div class="row g-2 align-items-start mb-3">
+                <div class="modal-body p-3.5">
+                    <div class="row g-2 align-items-stretch mb-2">
                         <!-- Columna Izquierda: Información de Paciente, Médico y Consulta -->
-                        <div class="col-8 pe-1">
-                            <div class="d-flex align-items-center gap-1.5 mb-1.5 text-navy">
-                                <i class="bi bi-person-circle fs-5" style="color: var(--md-teal-clinical, #19B7A5);"></i>
-                                <span id="quickModalPaciente" class="fw-black text-truncate" style="font-size: 0.96rem;">Paciente</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-1.5 mb-1 text-muted small" style="font-size: 0.78rem;">
-                                <i class="bi bi-telephone text-secondary"></i>
-                                <span id="quickModalTelefono" class="fw-medium">--</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-1.5 mb-2 text-muted small" style="font-size: 0.78rem;">
-                                <i class="bi bi-person-badge text-secondary"></i>
-                                <span id="quickModalMedico" class="fw-medium text-truncate">Dr. Médico</span>
+                        <div class="col-8 pe-2 d-flex flex-column justify-content-between">
+                            <div>
+                                <!-- Paciente y Expediente -->
+                                <div class="d-flex align-items-start gap-2 mb-1.5 text-navy">
+                                    <i class="bi bi-person-circle fs-4" style="color: var(--md-teal-clinical, #19B7A5); line-height: 1.1;"></i>
+                                    <div class="text-truncate">
+                                        <div id="quickModalPaciente" class="fw-black text-truncate text-navy" style="font-size: 1.02rem; line-height: 1.2;">Paciente</div>
+                                        <span id="quickModalExpediente" class="badge bg-light text-secondary border px-1.5 py-0.5 fw-semibold" style="font-size: 0.68rem;">Exp. #---</span>
+                                    </div>
+                                </div>
+
+                                <!-- Teléfono -->
+                                <div class="d-flex align-items-center gap-1.5 mb-1 text-secondary small" style="font-size: 0.80rem;">
+                                    <i class="bi bi-telephone" id="quickModalTelefonoIcon"></i>
+                                    <span id="quickModalTelefono" class="fw-medium text-truncate">No registrado</span>
+                                </div>
+
+                                <!-- Médico Asignado -->
+                                <div class="d-flex align-items-center gap-1.5 mb-2 text-secondary small" style="font-size: 0.80rem;">
+                                    <i class="bi bi-person-badge text-secondary"></i>
+                                    <span id="quickModalMedico" class="fw-semibold text-truncate text-navy">Profesional Asignado</span>
+                                </div>
                             </div>
 
-                            <hr class="my-2 opacity-10">
+                            <hr class="my-2 opacity-15">
 
-                            <div class="d-flex align-items-start gap-1.5 mb-1.5 text-secondary" style="font-size: 0.78rem;">
-                                <i class="bi bi-tag-fill text-teal mt-0.5"></i>
-                                <span id="quickModalMotivo" class="fw-medium text-dark">Motivo de consulta</span>
-                            </div>
+                            <div>
+                                <!-- Motivo -->
+                                <div class="d-flex align-items-start gap-1.5 mb-1.5" style="font-size: 0.80rem;">
+                                    <i class="bi bi-tag-fill mt-0.5" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                                    <span id="quickModalMotivo" class="fw-semibold text-dark text-truncate">Motivo de consulta</span>
+                                </div>
 
-                            <div class="d-flex align-items-center gap-1.5 mb-1.5" style="font-size: 0.76rem;">
-                                <i class="bi bi-door-open-fill text-muted"></i>
-                                <span id="quickModalLugar" class="badge bg-light text-dark border fw-semibold">Consultorio 1</span>
-                            </div>
+                                <!-- Lugar / Recurso -->
+                                <div class="d-flex align-items-center gap-1.5 mb-1.5" style="font-size: 0.78rem;">
+                                    <i class="bi bi-door-open-fill text-muted"></i>
+                                    <span id="quickModalLugar" class="badge bg-light text-navy border fw-bold px-2 py-1">Consultorio 1</span>
+                                </div>
 
-                            <div class="d-flex align-items-center gap-1.5" style="font-size: 0.76rem;">
-                                <i class="bi bi-cash-stack text-muted"></i>
-                                <span id="quickModalPago" class="badge fw-bold">No pagado</span>
+                                <!-- Badge de Pago con Alto Contraste -->
+                                <div class="d-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
+                                    <i class="bi bi-cash-stack text-muted"></i>
+                                    <span id="quickModalPago" class="badge px-2 py-1 fw-bold">Pendiente de Pago</span>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Columna Derecha: Tarjeta de Fecha Estilizada en Amarillo Avena -->
-                        <div class="col-4 ps-1">
-                            <div class="date-badge rounded-3 overflow-hidden text-center border shadow-2xs" style="background: #ffffff; border-color: #FDE68A !important;">
-                                <div class="date-badge-header py-1 text-white fw-bold text-uppercase" id="quickModalMes" style="background-color: var(--md-blue-deep, #0A2A66); font-size: 0.7rem; letter-spacing: 0.4px;">
+                        <div class="col-4 ps-1 d-flex">
+                            <div class="date-badge rounded-3 overflow-hidden text-center border shadow-2xs w-100 d-flex flex-column justify-content-between" style="background: #ffffff; border-color: #FDE68A !important;">
+                                <div class="date-badge-header py-1 text-white fw-bold text-uppercase" id="quickModalMes" style="background-color: var(--md-blue-deep, #0A2A66); font-size: 0.72rem; letter-spacing: 0.5px;">
                                     OCTUBRE
                                 </div>
-                                <div class="date-badge-body py-2" style="background-color: #FEF9C3;">
-                                    <p class="date-badge-day m-0 fw-bold" id="quickModalDiaNum" style="font-size: 1.85rem; line-height: 1; color: #78350F;">23</p>
-                                    <span class="date-badge-weekday text-uppercase fw-semibold" id="quickModalDiaSemana" style="font-size: 0.65rem; color: #92400E;">VIERNES</span>
+                                <div class="date-badge-body py-2.5 flex-fill d-flex flex-column justify-content-center align-items-center" style="background-color: #FEF9C3;">
+                                    <p class="date-badge-day m-0 fw-black" id="quickModalDiaNum" style="font-size: 2rem; line-height: 1; color: #78350F;">23</p>
+                                    <span class="date-badge-weekday text-uppercase fw-bold mt-1" id="quickModalDiaSemana" style="font-size: 0.68rem; color: #92400E; letter-spacing: 0.5px;">VIERNES</span>
                                 </div>
-                                <div class="date-badge-time py-1 fw-bold text-navy" id="quickModalHora" style="background-color: #FEF08A; border-top: 1px solid #FDE047; font-size: 0.8rem; color: #78350F !important;">
-                                    10:00
+                                <div class="date-badge-time py-1.5 fw-black text-navy" id="quickModalHora" style="background-color: #FEF08A; border-top: 1px solid #FDE047; font-size: 0.80rem; color: #78350F !important;">
+                                    08:00 – 09:00
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Footer: Botones de Acción Rápida -->
-                <div class="modal-footer p-2.5 bg-light border-0 d-flex flex-column gap-1.5">
-                    <!-- Botón Principal: Iniciar Consulta / Tomar Cita -->
-                    <button type="button" class="btn btn-success w-100 py-2 fw-bold d-flex align-items-center justify-content-between shadow-sm" id="btnQuickIniciarCita" style="background-color: #059669; border: none; font-size: 0.85rem;">
-                        <span class="mx-auto"><i class="bi bi-play-circle-fill me-1.5"></i> Iniciar la cita</span>
-                        <i class="bi bi-chevron-right opacity-75"></i>
+                <!-- Footer: Botones de Acción Rápida con Jerarquía Visual -->
+                <div class="modal-footer p-3 bg-light border-0 d-flex flex-column gap-2">
+                    <!-- Botón Principal: Iniciar Cita (Verde Institucional con Play) -->
+                    <button type="button" class="btn btn-success w-100 py-2.5 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-3" id="btnQuickIniciarCita" style="background-color: #059669; border: none; font-size: 0.92rem;">
+                        <i class="bi bi-play-fill fs-5"></i>
+                        <span>Iniciar Cita</span>
                     </button>
 
+                    <!-- Fila 2: Expediente y Editar -->
                     <div class="d-flex gap-2 w-100">
-                        <button type="button" class="btn btn-outline-primary btn-sm flex-fill fw-semibold py-1.5" id="btnQuickExpediente">
-                            <i class="bi bi-person-vcard me-1"></i> Expediente
+                        <button type="button" class="btn btn-outline-primary flex-fill fw-bold py-2 rounded-3 shadow-2xs d-flex align-items-center justify-content-center gap-1.5" id="btnQuickExpediente" style="font-size: 0.82rem;">
+                            <i class="bi bi-person-vcard text-primary"></i> Expediente
                         </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill fw-semibold py-1.5" id="btnQuickEditar">
-                            <i class="bi bi-pencil-square me-1"></i> Editar / Re-agendar
+                        <button type="button" class="btn btn-outline-secondary flex-fill fw-bold py-2 rounded-3 shadow-2xs d-flex align-items-center justify-content-center gap-1.5" id="btnQuickEditar" style="font-size: 0.82rem;">
+                            <i class="bi bi-pencil-square"></i> Editar / Re-agendar
                         </button>
                     </div>
 
+                    <!-- Fila 3: Cobrar y Eliminar -->
                     <div class="d-flex gap-2 w-100">
-                        <button type="button" class="btn btn-outline-success btn-sm flex-fill fw-semibold py-1.5 d-none" id="btnQuickCobrar">
-                            <i class="bi bi-cash-coin me-1"></i> Cobrar en Recepción
+                        <button type="button" class="btn btn-outline-success flex-fill fw-bold py-2 rounded-3 shadow-2xs d-flex align-items-center justify-content-center gap-1.5 d-none" id="btnQuickCobrar" style="font-size: 0.82rem;">
+                            <i class="bi bi-cash-coin"></i> Cobrar en Recepción
                         </button>
-                        <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-semibold py-1.5" id="btnQuickEliminar">
-                            <i class="bi bi-trash me-1"></i> Eliminar
+                        <button type="button" class="btn btn-outline-danger flex-fill fw-bold py-2 rounded-3 shadow-2xs d-flex align-items-center justify-content-center gap-1.5" id="btnQuickEliminar" style="font-size: 0.82rem;">
+                            <i class="bi bi-trash"></i> Eliminar
                         </button>
                     </div>
                 </div>

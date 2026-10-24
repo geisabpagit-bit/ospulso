@@ -532,8 +532,9 @@ sub enviar_eventos_oficial {
     $my_org = '0' if $my_org eq '';
     my $filtro_medico = $q->param('id_medico') // '';
 
-    # Identificar los IDs de médicos de esta organización
+    # Identificar los IDs y nombres de médicos de esta organización
     my %meds_org;
+    my %meds_nombres;
     my $file_usu = "$dirname/../dat/usuarios.dat";
     if (-e $file_usu && open my $fh_u, '<:encoding(UTF-8)', $file_usu) {
         my $cnt = 0;
@@ -542,13 +543,29 @@ sub enviar_eventos_oficial {
             $l =~ s/\R//g;
             next if $cnt == 1 || $l =~ /^\s*$/;
             my @u = split(/!/, $l);
-            next unless scalar(@u) >= 7;
             my ($u_biz) = split(/:/, $u[6] // '');
+            $meds_nombres{$u[0]} = $u[1];
             if ($u_biz eq $my_org || ($my_org eq '0' && ($u_biz eq '0' || $u_biz eq ''))) {
                 $meds_org{$u[0]} = 1;
             }
         }
         close $fh_u;
+    }
+
+    # Precargar teléfonos de pacientes
+    my %pacs_telefonos;
+    my $pac_file = "$dirname/../dat/pacientes.dat";
+    if (-e $pac_file && open my $fh_p, '<:encoding(UTF-8)', $pac_file) {
+        my $cnt = 0;
+        while (my $l = <$fh_p>) {
+            $cnt++;
+            $l =~ s/\R//g;
+            next if $cnt == 1 || $l =~ /^\s*$/;
+            my @p = split(/\|/, $l);
+            next unless scalar(@p) >= 13;
+            $pacs_telefonos{$p[0]} = $p[12] // '';
+        }
+        close $fh_p;
     }
 
     foreach my $c (@$arr) {
@@ -577,6 +594,10 @@ sub enviar_eventos_oficial {
             $motivo = "Reservado";
         }
         
+        my $tel_pac = $pacs_telefonos{$c->{id_paciente}} // '';
+        my $nom_med = $meds_nombres{$c->{id_medico}} // 'Profesional Asignado';
+        my $es_pagado = ($c->{estado} eq 'Atendida') ? 1 : 0;
+
         push @eventos, {
             id => $c->{id_cita},
             title => $titulo,
@@ -588,13 +609,17 @@ sub enviar_eventos_oficial {
 
             extendedProps => {
                 id_paciente => $c->{id_paciente},
+                paciente => $titulo,
+                telefono => $tel_pac,
                 id_medico => $c->{id_medico},
+                medico => $nom_med,
                 motivo => $motivo,
                 estado => $c->{estado},
                 event_id => $c->{event_id},
                 prioridad => $c->{prioridad},
                 sucursal => $c->{sucursal},
-                consultorio => $c->{consultorio}
+                consultorio => $c->{consultorio},
+                pagado => $es_pagado
             }
         };
     }
