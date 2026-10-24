@@ -927,15 +927,11 @@ function switchView(v) {
     $(".agenda-view-container").addClass('d-none');
     $(`#view-${v.replace('_','-')}`).removeClass('d-none');
 
-    // Gestión contextual de scroll entre vistas:
-    // En 'dia': el scroll vertical pertenece única y exclusivamente a la matriz (.dia-matrix-responsive)
-    // En las demás vistas (semana_smart, semana, mes, calendario): se libera el scroll vertical para navegación completa
+    // Gestión de controles de toolbar según la vista activa:
     if (v === 'dia') {
-        $('body').addClass('agenda-view-dia-active');
         $("#wrapper_filtro_recurso_toolbar").removeClass('d-lg-none').addClass('d-lg-block');
         $("#btn-toggle-side-cal").removeClass('d-lg-none').addClass('d-lg-inline-flex');
     } else {
-        $('body').removeClass('agenda-view-dia-active');
         $("#wrapper_filtro_recurso_toolbar").removeClass('d-lg-block').addClass('d-lg-none');
         $("#btn-toggle-side-cal").removeClass('d-lg-inline-flex').addClass('d-lg-none');
     }

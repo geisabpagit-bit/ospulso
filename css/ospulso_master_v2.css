@@ -1251,78 +1251,135 @@ nav.navbar.sticky-top {
 /* ========================================================
    MATRIZ MULTI-RECURSO - VISTA DIARIA (Diamond Edition)
    ======================================================== */
-/* --- GOBERNANZA DE SCROLL PARA LA VISTA DIARIA (DÍA) --- */
-/* Cuando está en la Vista de Día, bloqueamos scrolls parásitos en body y contenedores:
-   el único scroll vertical activo debe pertenecer a .dia-matrix-responsive */
-body.agenda-view-dia-active {
+/* --- GOBERNANZA DE VIEWPORT INVIOLABLE PARA TODA LA AGENDA (DIAMOND UNIFIED ARCHITECTURE) --- */
+/* Bloqueamos scrolls parásitos en body y contenedores padre en TODAS las vistas:
+   el único scroll vertical activo debe pertenecer al contenedor interno de datos de la vista activa */
+body.agenda-page-layout {
     overflow: hidden !important;
-}
-
-body.agenda-view-dia-active .sdm-main-content {
-    overflow-y: hidden !important;
     height: 100vh !important;
 }
 
-body.agenda-view-dia-active .sdm-content {
-    padding: 0.65rem 1rem 0.4rem 1rem !important;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: visible !important;
+body.agenda-page-layout .sdm-main-content {
+    overflow: hidden !important;
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
-body.agenda-view-dia-active .main-container-agenda {
+body.agenda-page-layout .sdm-content {
+    padding: 0.5rem 1rem 0.25rem 1rem !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+body.agenda-page-layout .main-container-agenda {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: visible !important;
+    height: 100%;
+    overflow: hidden !important;
 }
 
-body.agenda-view-dia-active .agenda-header {
+body.agenda-page-layout .agenda-header {
     z-index: 1050 !important;
+    flex-shrink: 0;
     overflow: visible !important;
 }
 
-body.agenda-view-dia-active #app-viewport {
+body.agenda-page-layout #app-viewport {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: visible !important;
-    padding-bottom: 0.25rem !important;
+    height: 100%;
+    overflow: hidden !important;
+    padding: 0.25rem 0 0.5rem 0 !important;
 }
 
-body.agenda-view-dia-active #view-dia {
+body.agenda-page-layout .agenda-view-container {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
     height: 100%;
     padding: 0 !important;
-    overflow: visible !important;
+    overflow: hidden !important;
 }
 
-/* --- GOBERNANZA DE SCROLL PARA LAS DEMÁS VISTAS (SEMANA, MES, CALENDARIO, REPORTES) --- */
-/* Al cambiar a cualquier otra vista, el contenedor principal y viewport permiten scroll vertical completo y natural */
-body.agenda-page-layout:not(.agenda-view-dia-active) {
+/* --- REGLAS ENCAPSULADAS DE SCROLL INTERNO POR CADA VISTA --- */
+/* 1. Vista Semanal Smart: Carrusel de días fijo arriba, slots scrollables abajo */
+#view-semana-smart {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden !important;
+}
+#view-semana-smart #weekly-smart-scroll {
+    flex-shrink: 0;
+    margin-bottom: 0.5rem !important;
+    padding: 0.4rem 0 !important;
+    overflow-x: auto;
+}
+#view-semana-smart #weekly-smart-slots {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
     overflow-y: auto !important;
+    overflow-x: hidden;
+    padding: 0.5rem 0.5rem 4.5rem 0.5rem !important;
+    scroll-behavior: smooth;
 }
 
-body.agenda-page-layout:not(.agenda-view-dia-active) .sdm-main-content {
+/* 2. Vista Mensual Grid: Contenedor con scroll vertical propio y cabeceras fijas */
+#view-calendario {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden !important;
+}
+#calendar-grid-sdm {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
     overflow-y: auto !important;
-    height: 100vh !important;
+    overflow-x: hidden;
+    border-radius: 16px;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    padding-bottom: 4rem !important;
+    scroll-behavior: smooth;
+}
+.cal-grid-header-day {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 15 !important;
+    background-color: var(--sdm-blue, #0A2A66) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1) !important;
 }
 
-body.agenda-page-layout:not(.agenda-view-dia-active) #app-viewport {
-    overflow-y: visible !important;
-    min-height: auto;
+/* 3. Reportes Semanal y Mensual (DataTables) */
+#view-semana .agenda-report-card,
+#view-mes .agenda-report-card {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
+}
+#view-semana .agenda-table-responsive,
+#view-mes .agenda-table-responsive {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto !important;
     padding-bottom: 3.5rem !important;
-}
-
-body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
-    min-height: auto;
-    padding: 15px 0;
 }
 
 .dia-view-layout {
