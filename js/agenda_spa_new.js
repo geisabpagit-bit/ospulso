@@ -43,6 +43,22 @@ var tableInstance = tableInstance || null;
 var draggedId = draggedId || null;
 var manualDragId = manualDragId || null; // Para modo Doble Clic (Regla Smart-Drag)
 
+/**
+ * Normalización Canónica Universal de Espacios Físicos (Consultorios y Quirófanos)
+ * Elimina acentos/tildes diacríticas y homologa sinónimos operativos (ej: 'Quirófano 1' <=> 'quirofano 1' <=> 'qx 1')
+ */
+function normalizarTextoEspacio(txt) {
+    if (!txt) return '';
+    return String(txt)
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quita tildes: ó -> o, etc.
+        .replace(/\bquirofanos?\b/g, 'qx')
+        .replace(/\bconsultorios?\b/g, 'cons')
+        .replace(/[^a-z0-9]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 // --- DICCIONARIO CANÓNICO DE ESTADOS DE CITAS (Sincronizado con dat/catalogo_estados_citas.dat) ---
 const ESTADOS_CITAS_CONFIG = {
     'programada': {
@@ -1222,25 +1238,25 @@ function getFilteredAppointments(customList) {
         if (total > 0 && window.recursosChecked.length < total) {
             list = list.filter(a => {
                 const cVal = (a.extendedProps?.consultorio || a.extendedProps?.recurso || a.extendedProps?.lugar || '').trim();
-                const aSucId = String(a.extendedProps?.id_sucursal || a.extendedProps?.id_negocio || '').trim();
+                const normCVal = normalizarTextoEspacio(cVal); // ej: "qx 1" o "cons 1"
+                const aSucId = String(a.extendedProps?.sucursal || a.extendedProps?.id_sucursal || a.extendedProps?.id_negocio || '').trim();
                 
                 // Evaluar si coincide con alguno de los espacios físicos seleccionados
                 return window.recursosChecked.some(recId => {
-                    const recIdLow = recId.toLowerCase();
-                    // Si el espacio seleccionado es específico de una sucursal (ej: suc_1_consultorio_1)
-                    if (recIdLow.startsWith('suc_')) {
-                        const parts = recIdLow.split('_');
+                    const normRecId = normalizarTextoEspacio(recId);
+                    // Si el espacio seleccionado es específico de una sucursal (ej: suc_965257_quirofano_1)
+                    if (recId.toLowerCase().startsWith('suc_')) {
+                        const parts = recId.toLowerCase().split('_');
                         const rSuc = parts[1];
+                        if (aSucId && aSucId !== rSuc) return false;
                         const rTipo = parts[2]; // consultorio o quirofano
                         const rNum = parts[3];
-                        if (aSucId && aSucId !== rSuc) return false;
-                        const targetPattern = `${rTipo} ${rNum}`;
-                        return cVal.toLowerCase().includes(targetPattern) || cVal.toLowerCase() === targetPattern;
+                        const targetPattern = normalizarTextoEspacio(`${rTipo} ${rNum}`); // "qx 1" o "cons 1"
+                        return normCVal.includes(targetPattern) || targetPattern.includes(normCVal) || normRecId.includes(normCVal);
                     }
 
                     // En organización simple o única sucursal (ej: consultorio_1, quirofano_1)
-                    const normalizedTarget = recIdLow.replace('_', ' '); // consultorio 1
-                    return cVal.toLowerCase().includes(normalizedTarget) || cVal.toLowerCase() === normalizedTarget;
+                    return normRecId.includes(normCVal) || normCVal.includes(normRecId);
                 });
             });
         }
@@ -1713,28 +1729,33 @@ function renderMatrixAptCard(a, interval, maxSlots = 1) {
 
 // Resolver columna asignada para una cita (siempre en Espacio Físico)
 function getAppointmentColumnId(a, columns) {
-    const cVal = (a.extendedProps.consultorio || a.extendedProps.recurso || a.extendedProps.lugar || '').trim().toLowerCase();
-    const aSucId = String(a.extendedProps.id_sucursal || a.extendedProps.id_negocio || '').trim();
+    if (!Array.isArray(columns) || columns.length === 0) return null;
+    const rawVal = (a.extendedProps?.consultorio || a.extendedProps?.recurso || a.extendedProps?.lugar || '').trim();
+    const normVal = normalizarTextoEspacio(rawVal);
+    const aSucId = String(a.extendedProps?.sucursal || a.extendedProps?.id_sucursal || a.extendedProps?.id_negocio || '').trim();
 
-    if (cVal) {
-        // Si hay sucursal asociada y coincide con una columna multi-sucursal
+    if (normVal) {
+        // 1. Si hay sucursal asociada y coincide con una columna multi-sucursal
         if (aSucId) {
-            const matchSuc = columns.find(c => 
-                c.sucursalId && String(c.sucursalId) === aSucId &&
-                (c.id.toLowerCase() === cVal || c.titulo.toLowerCase() === cVal || c.titulo.toLowerCase().includes(cVal) || cVal.includes(c.titulo.toLowerCase()))
-            );
+            const matchSuc = columns.find(c => {
+                if (c.sucursalId && String(c.sucursalId) !== aSucId) return false;
+                const cIdNorm = normalizarTextoEspacio(c.id);
+                const cTitNorm = normalizarTextoEspacio(c.titulo);
+                return cIdNorm.includes(normVal) || normVal.includes(cTitNorm) || cTitNorm === normVal || cIdNorm === normVal;
+            });
             if (matchSuc) return matchSuc.id;
         }
 
-        const col = columns.find(c => 
-            c.id.toLowerCase() === cVal || 
-            c.titulo.toLowerCase() === cVal || 
-            c.titulo.toLowerCase().includes(cVal) || 
-            cVal.includes(c.titulo.toLowerCase())
-        );
+        // 2. Coincidencia directa por ID o Título de Columna
+        const col = columns.find(c => {
+            const cIdNorm = normalizarTextoEspacio(c.id);
+            const cTitNorm = normalizarTextoEspacio(c.titulo);
+            return cIdNorm.includes(normVal) || normVal.includes(cTitNorm) || cTitNorm === normVal || cIdNorm === normVal;
+        });
         if (col) return col.id;
     }
-    // Fallback al primer consultorio disponible
+
+    // 3. Fallback al primer consultorio disponible
     const firstCons = columns.find(c => c.tipo === 'consultorio') || columns[0];
     return firstCons?.id;
 }
@@ -4144,3 +4165,21 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(printModal);
     }
 });
+
+// ==========================================================================
+// SECCIÓN DE CUARENTENA: FUNCIONES LEGACY / COMPATIBILIDAD (NO BORRAR)
+// Rutinas y stubs defensivos para garantizar retrocompatibilidad absoluta
+// con otros scripts del ecosistema OSPulso.
+// ==========================================================================
+window.legacyRefreshCalendar = window.legacyRefreshCalendar || function() {
+    if (typeof renderView === 'function') renderView();
+};
+
+window.legacyFilterDoctor = window.legacyFilterDoctor || function(docId) {
+    if (typeof window.onMedicoCheckChange === 'function') window.onMedicoCheckChange();
+};
+
+window.legacyFilterResource = window.legacyFilterResource || function(resId) {
+    if (typeof window.onRecursoCheckChange === 'function') window.onRecursoCheckChange();
+};
+

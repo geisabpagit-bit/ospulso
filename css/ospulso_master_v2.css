@@ -1254,39 +1254,82 @@ nav.navbar.sticky-top {
 /* --- GOBERNANZA DE VIEWPORT INVIOLABLE PARA TODA LA AGENDA (DIAMOND UNIFIED ARCHITECTURE) --- */
 /* Bloqueamos scrolls parásitos en body y contenedores padre en TODAS las vistas:
    el único scroll vertical activo debe pertenecer al contenedor interno de datos de la vista activa */
+html:has(body.agenda-page-layout),
 body.agenda-page-layout {
     overflow: hidden !important;
-    height: 100vh !important;
-}
-
-body.agenda-page-layout .sdm-main-content {
-    overflow: hidden !important;
-    height: 100vh !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-body.agenda-page-layout .sdm-content {
-    padding: 0.5rem 1rem 0.25rem 1rem !important;
     height: 100vh !important;
     max-height: 100vh !important;
     display: flex !important;
     flex-direction: column !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.agenda-page-layout .sdm-navbar {
+    flex-shrink: 0 !important;
+    position: relative !important;
+    top: 0 !important;
+    z-index: 1060 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+
+body.agenda-page-layout > main.container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: calc(100vh - 65px) !important;
+    max-height: calc(100vh - 65px) !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.agenda-page-layout .sdm-layout-wrapper {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.agenda-page-layout .sdm-main-content {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.agenda-page-layout .sdm-content {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    padding: 0.25rem 0.75rem 0 0.75rem !important;
     overflow: hidden !important;
 }
 
 body.agenda-page-layout .main-container-agenda {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    height: 100%;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
     overflow: hidden !important;
 }
 
 body.agenda-page-layout .agenda-header {
     z-index: 1050 !important;
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    top: 0 !important;
     overflow: visible !important;
 }
 
@@ -3135,5 +3178,26 @@ body.agenda-page-layout .agenda-view-container.d-none {
         print-color-adjust: exact !important;
     }
 }
+
+/* ==========================================================================
+   SECCIÓN DE CUARENTENA: CLASES CANDIDATAS A DEPRECACIÓN FUTURA (NO BORRAR)
+   Observadas durante la refactorización de la Agenda Clínica Diamond.
+   Se mantienen aquí para garantizar retrocompatibilidad total con otros scripts.
+   ========================================================================== */
+.agenda-legacy-view-wrapper {
+    display: block;
+    width: 100%;
+}
+
+.agenda-cell-old-style {
+    min-height: 80px;
+    border: 1px solid #e2e8f0;
+}
+
+.agenda-slot-legacy {
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
 
 

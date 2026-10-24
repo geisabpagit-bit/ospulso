@@ -150,8 +150,21 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   3. **Restauración y Eliminación Controlada**: Despliegue de confirmaciones destructivas SweetAlert2 antes de aplicar restauraciones o purgas manuales de respaldos históricos en `dat/backups/`.
   4. **Gobernanza RBAC y UI Estándar**: Integración con el layout unificado de OSPulso (`utils/sub_sidebar.pl`, `utils/sub_bottom_nav.pl`) y protección estricta con fallback amigable mediante `utils/sub_acceso_denegado.pl`.
 
-### 2.7 Mapa de Módulos del Sistema
+### 2.7 Agenda Clínica Inteligente (`views/agenda_main.pl`, `js/agenda_spa_new.js`)
+- Motor de agenda multi-vista de alta fidelidad clínica (Día Matricial de Espacios, Semana Smart, Mes Grid y Reportes Operativos).
+- **Gobernanza de Viewport Inviolable (`css/ospulso_master_v2.css`)**:
+  1. `body.agenda-page-layout`: opera como contenedor Flexbox vertical estricto (`height: 100vh; max-height: 100vh; overflow: hidden !important;`).
+  2. Menú institucional superior (`.sdm-navbar`): fijado como primer elemento `flex-shrink: 0; position: relative !important; z-index: 1060;` impidiendo cualquier solapamiento o invasión por scroll de ventana.
+  3. Contenedor de contenido (`main.container-fluid`, `.sdm-layout-wrapper`, `.main-container-agenda`): confinado a `height: calc(100vh - 65px)` con scroll vertical interno exclusivo por vista (`#weekly-smart-slots-container`, `#calendar-grid-sdm`, `.dia-matrix-responsive`).
+- **Normalización Canónica Universal de Espacios Físicos (`normalizarTextoEspacio`)**:
+  1. Homologación tolerante a diacríticos y acentos (NFD replace): elimina tildes (`Quirófano` <=> `quirofano`).
+  2. Equivalencia de sinónimos: `qx` <=> `quirofano`, `cons` <=> `consultorio`.
+  3. Coherencia multi-recurso en `getFilteredAppointments` y `getAppointmentColumnId`: asegura que citas registradas con nombres acentuados en `dat/citas.dat` (ej. `Quirófano 1`) se vinculen con precisión matemática a los filtros de recursos multi-sucursal (`suc_965257_quirofano_1`) y se mantengan visibles en Día, Semana Smart y Mes Grid al alternar vistas.
+- **Cuarentena de Compatibilidad**: Rutinas obsoletas o stubs legacy se agrupan al final de `js/agenda_spa_new.js` y `css/ospulso_master_v2.css` para proteger retrocompatibilidad global.
+
+### 2.8 Mapa de Módulos del Sistema
 - **Dashboard / Inicial**: `views/inicial.pl`, `views/render_dashboard_principal.pl`.
+- **Agenda Clínica**: `views/agenda_main.pl`.
 - **Caja Rápida (Pública/Hospitalaria)**: `views/generar_recibo.pl`.
 - **Caja Consultorio (Privada/Punto de Venta)**: `views/caja_consultorio.pl`.
 - **Catálogo Universal**: `views/manage_catalogo_universal.pl`.
@@ -160,4 +173,5 @@ Este documento agrupa la especificación de los módulos complementarios y espec
 - **Finanzas**: `views/finanzas.pl`, `views/estado_cuenta.pl`.
 - **Reset Operativo**: `views/admin_organizacion_reset.pl`.
 - **Backup & Restore**: `views/admin_backups.pl`.
+
 
