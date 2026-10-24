@@ -1417,7 +1417,7 @@ window.openAppointmentQuickDetail = function(id) {
 };
 
 // Generador de Tarjeta Matriz para Cita
-function renderMatrixAptCard(a, interval) {
+function renderMatrixAptCard(a, interval, maxSlots = 1) {
     const startH = a.start.split('T')[1].substring(0, 5);
     const endH = a.end.split('T')[1].substring(0, 5);
     const aDate = a.start.split('T')[0];
@@ -1448,9 +1448,13 @@ function renderMatrixAptCard(a, interval) {
     }
 
     const pagado = a.extendedProps.pagado === 1 || a.extendedProps.pagado === '1' || a.extendedProps.pagado === true;
+    const cardHeightStyle = (maxSlots > 1) 
+        ? `height: 100%; min-height: ${(maxSlots * 56) - 10}px;` 
+        : `min-height: 48px; height: 100%;`;
 
     return `
         <div class="dia-matrix-apt-card ${statusClass} animate__animated animate__fadeIn"
+             style="${cardHeightStyle}"
              onclick="event.stopPropagation(); openAppointmentQuickDetail('${a.id}')"
              title="Clic para inspección rápida">
             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -1467,7 +1471,7 @@ function renderMatrixAptCard(a, interval) {
             <div class="apt-motif text-truncate" title="${a.extendedProps.motivo || 'Consulta'}">
                 ${a.extendedProps.motivo || 'Consulta Médica'}
             </div>
-            <div class="d-flex align-items-center justify-content-between mt-1 pt-1 border-top border-light-subtle" style="font-size:0.68rem;">
+            <div class="d-flex align-items-center justify-content-between mt-auto pt-1 border-top border-light-subtle" style="font-size:0.68rem;">
                 <span class="text-secondary text-truncate" style="max-width: 75%;">
                     <i class="bi bi-person-badge me-0.5 opacity-75"></i>${a.extendedProps.medico || a.extendedProps.doctor || 'Médico'}
                 </span>
@@ -1761,12 +1765,14 @@ function renderTimeline() {
     colsToRender.forEach(col => {
         const isQuirofano = (col.tipo === 'quirofano');
         const headerClass = isQuirofano ? 'dia-col-quirofano' : 'dia-col-consultorio';
-        const typeBadge = isQuirofano 
-            ? '<span class="dia-th-badge dia-th-badge-quirofano">QUIRÓFANO</span>' 
-            : '<span class="dia-th-badge dia-th-badge-consultorio">CONSULTORIO</span>';
         const icon = isQuirofano 
             ? '<i class="bi bi-scissors me-1" style="color:#7C3AED;"></i>' 
             : '<i class="bi bi-door-closed-fill me-1" style="color:var(--md-teal-clinical, #19B7A5);"></i>';
+
+        // En la píldora va el icono + etiqueta + número (Consultorio 1 / Quirófano 1)
+        const typeBadge = isQuirofano 
+            ? `<span class="dia-th-badge dia-th-badge-quirofano">${icon}${col.titulo}</span>` 
+            : `<span class="dia-th-badge dia-th-badge-consultorio">${icon}${col.titulo}</span>`;
 
         tableHtml += `
             <th class="${headerClass} text-center">
@@ -1774,10 +1780,7 @@ function renderTimeline() {
                     <div class="dia-th-badge-wrapper mb-1">
                         ${typeBadge}
                     </div>
-                    <div class="dia-th-title d-flex align-items-center justify-content-center fw-black text-navy text-truncate w-100 px-1" title="${col.titulo}">
-                        ${icon}<span>${col.titulo}</span>
-                    </div>
-                    <div class="dia-th-subtitle text-muted small fw-semibold text-truncate w-100 px-1" title="${col.subtitulo}">
+                    <div class="dia-th-title fw-black text-navy text-truncate w-100 px-1" title="${col.subtitulo}" style="color: #0A2A66 !important; font-size: 0.88rem; font-weight: 800;">
                         ${col.subtitulo}
                     </div>
                 </div>
@@ -1790,6 +1793,9 @@ function renderTimeline() {
             </thead>
             <tbody>
     `;
+
+    // Mapa para controlar celdas cubiertas por rowspan en filas subsecuentes
+    const activeRowspans = {};
 
     for (let h = s; h < e; h++) {
         for (let m = 0; m < 60; m += interval) {
@@ -1809,6 +1815,12 @@ function renderTimeline() {
             `;
 
             colsToRender.forEach(col => {
+                // Si esta columna ya está cubierta por un rowspan de un slot previo, omitimos el <td>
+                if (activeRowspans[col.id] && activeRowspans[col.id] > 0) {
+                    activeRowspans[col.id]--;
+                    return;
+                }
+
                 // Citas que inician exactamente dentro de este slot para esta columna
                 const aptsStartingHere = dayApts.filter(a => {
                     const aColId = getAppointmentColumnId(a, columns);
@@ -1821,12 +1833,41 @@ function renderTimeline() {
 
                 const cellClass = (isP || holiday) ? 'slot-past' : '';
 
-                tableHtml += `
-                    <td class="dia-matrix-slot ${cellClass}" 
-                        onclick="handleMatrixSlotClick(event, '${iso}', '${hhmm}', '${col.id}', '${col.tipo}')">
-                        ${aptsStartingHere.map(a => renderMatrixAptCard(a, interval)).join('')}
-                    </td>
-                `;
+                if (aptsStartingHere.length > 0) {
+                    // Calcular la máxima duración en slots para aplicar rowspan exacto
+                    let maxSlots = 1;
+                    aptsStartingHere.forEach(a => {
+                        const startMs = new Date(a.start).getTime();
+                        const endMs = new Date(a.end).getTime();
+                        let durMin = (endMs - startMs) / 60000;
+                        if (isNaN(durMin) || durMin <= 0) durMin = interval;
+                        const sCount = Math.max(1, Math.round(durMin / interval));
+                        if (sCount > maxSlots) maxSlots = sCount;
+                    });
+
+                    // Si abarca más de 1 slot, reservamos los slots siguientes a saltar
+                    if (maxSlots > 1) {
+                        activeRowspans[col.id] = maxSlots - 1;
+                    }
+
+                    const rowspanAttr = maxSlots > 1 ? `rowspan="${maxSlots}"` : '';
+                    const slotHeight = maxSlots * 56;
+
+                    tableHtml += `
+                        <td class="dia-matrix-slot has-appointment ${cellClass}" 
+                            ${rowspanAttr}
+                            style="height: ${slotHeight}px;"
+                            onclick="handleMatrixSlotClick(event, '${iso}', '${hhmm}', '${col.id}', '${col.tipo}')">
+                            ${aptsStartingHere.map(a => renderMatrixAptCard(a, interval, maxSlots)).join('')}
+                        </td>
+                    `;
+                } else {
+                    tableHtml += `
+                        <td class="dia-matrix-slot ${cellClass}" 
+                            onclick="handleMatrixSlotClick(event, '${iso}', '${hhmm}', '${col.id}', '${col.tipo}')">
+                        </td>
+                    `;
+                }
             });
 
             tableHtml += `</tr>`;

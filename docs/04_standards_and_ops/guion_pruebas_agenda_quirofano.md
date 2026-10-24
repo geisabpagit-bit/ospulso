@@ -630,7 +630,12 @@ Cada vez que un desarrollador o agente realice una modificación a la Agenda, Ex
 - [x] Eliminación de cortes del menú y margen superior negativo (`margin-top: 0 !important;` en `.main-container-agenda`, `padding-top: 0.85rem;` en `.sdm-content` y `padding-bottom: 90px;` en `.sidebar-menu`) otorgando holgura y visibilidad completa al topbar y breadcrumb.
 - [x] Cabeceras de columnas en la matriz diaria apiladas verticalmente con alto contraste (títulos prominentes en Navy `#0A2A66` y badges temáticos de alto contraste `#007A78`/`#E6FFFA` para Consultorios y `#6D28D9`/`#F3E8FF` para Quirófanos) con ancho mínimo garantizado de 140px para desplazamiento horizontal fluido.
 - [x] Selector multi-check de Espacios Físicos con dropdown interactivo (`#wrapper_filtro_recurso_toolbar`, `#btn_filtro_recurso_dropdown`, `.chk-recurso-item`) que permite marcar/desmarcar consultorios y quirófanos individuales o en masa (`Marcar todos` / `Desmarcar`), filtrando reactivamente las columnas visibles en la matriz de la jornada con contador dinámico en tiempo real y estado vacío amigable.
+- [x] Posicionamiento flotante de primer nivel para el Dropdown de Espacios Físicos con estrategia fija (`data-bs-popper-config='{"strategy":"fixed"}'`, `overflow: visible !important;` y `z-index: 106000 !important;`) impidiendo que quede recortado u oculto por la cuadrícula horaria o el scroll.
+- [x] Cabeceras de columnas reorganizadas: píldoras superiores personalizadas por espacio (`🚪 Consultorio N` en verde teal y `✂ Quirófano N` en violeta) y título principal de servicio (`Consulta Médica`, `Cirugía / Proc.`) en Azul Marino Institucional (`#0A2A66`).
+- [x] Citas en matriz de la jornada diaria abarcan el total de su tiempo programado mediante cálculo dinámico de `rowspan` y altura de slot proporcional (`maxSlots`), eliminando huecos blancos y desajustes temporales.
+- [x] Ajuste perfecto de scrolls y área visible en la vista diaria mediante arquitectura Flexbox pura (`flex: 1 1 auto; min-height: 0;`), adaptándose a cualquier resolución de pantalla y maximizando el espacio de trabajo al colapsar el menú lateral o el minicalendario.
 - [x] Documentación registrada en la Capa 1 y 4 (`docs/01_architecture/` y `docs/04_standards_and_ops/`) y enlazada canónicamente.
+
 
 
 

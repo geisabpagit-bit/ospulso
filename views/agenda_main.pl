@@ -172,7 +172,7 @@ print <<HTML;
         <header class="agenda-header sticky-top animate__animated animate__fadeInDown">
             <div class="container-fluid">
                 <!-- ROW 1: TOOLS AND ACTIONS (ORGANIZACIÓN JERÁRQUICA) -->
-                <div class="d-flex align-items-center justify-content-between gap-2 py-2 w-100 flex-nowrap overflow-x-auto">
+                <div class="d-flex align-items-center justify-content-between gap-2 py-2 w-100 flex-nowrap" style="overflow: visible !important;">
                     
                     <!-- BLOQUE 1: NAVEGACIÓN TEMPORAL Y MODOS DE VISUALIZACIÓN (IZQUIERDA) -->
                     <div class="d-flex align-items-center gap-2 flex-shrink-0">
@@ -208,13 +208,14 @@ print <<HTML;
                         <!-- Filtro Médicos -->
                         $html_filtro_medicos_toolbar
 
-                        <!-- Filtro Espacios Físicos (Selector Multi-Check con Checkboxes) -->
-                        <div class="d-none d-lg-block dropdown" id="wrapper_filtro_recurso_toolbar">
+                        <!-- Filtro Espacios Físicos (Selector Multi-Check con Checkboxes y Popper Fixed) -->
+                        <div class="d-none d-lg-block dropdown" id="wrapper_filtro_recurso_toolbar" style="position: relative; z-index: 106000;">
                             <button class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-flex align-items-center justify-content-between px-3 text-navy dropdown-toggle" 
                                     type="button" 
                                     id="btn_filtro_recurso_dropdown" 
                                     data-bs-toggle="dropdown" 
                                     data-bs-auto-close="outside" 
+                                    data-bs-popper-config='{"strategy":"fixed"}'
                                     aria-expanded="false" 
                                     style="height:42px; font-size:0.80rem; min-width: 190px; max-width: 250px;" 
                                     title="Filtrar por Consultorios y Quirófanos">
@@ -223,7 +224,7 @@ print <<HTML;
                                     <span class="text-truncate">Todos los Espacios</span>
                                 </span>
                             </button>
-                            <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_recurso_menu" aria-labelledby="btn_filtro_recurso_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 105200;">
+                            <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_recurso_menu" aria-labelledby="btn_filtro_recurso_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 106000 !important;">
                                 <!-- Encabezado de Acciones Rápidas -->
                                 <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom mb-2">
                                     <span class="fw-black text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px;">Espacios Físicos</span>

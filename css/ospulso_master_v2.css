@@ -1264,36 +1264,43 @@ body.agenda-view-dia-active .sdm-main-content {
 }
 
 body.agenda-view-dia-active .sdm-content {
-    padding: 0.85rem 1.25rem 0.5rem 1.25rem !important;
-    height: calc(100vh - 15px);
+    padding: 0.65rem 1rem 0.4rem 1rem !important;
+    height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow: visible !important;
 }
 
 body.agenda-view-dia-active .main-container-agenda {
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible !important;
+}
+
+body.agenda-view-dia-active .agenda-header {
+    z-index: 1050 !important;
+    overflow: visible !important;
 }
 
 body.agenda-view-dia-active #app-viewport {
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: hidden !important;
+    overflow: visible !important;
     padding-bottom: 0.25rem !important;
 }
 
 body.agenda-view-dia-active #view-dia {
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
     height: 100%;
     padding: 0 !important;
+    overflow: visible !important;
 }
 
 /* --- GOBERNANZA DE SCROLL PARA LAS DEMÁS VISTAS (SEMANA, MES, CALENDARIO, REPORTES) --- */
@@ -1324,9 +1331,10 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
     gap: 1rem;
     align-items: stretch;
     width: 100%;
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     min-height: 0;
     height: 100%;
+    overflow: visible !important;
 }
 
 .dia-side-panel {
@@ -1344,35 +1352,41 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
 }
 
 .dia-main-panel {
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     min-width: 0;
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: visible !important;
 }
 
 #timeline-container {
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
     height: 100%;
+    overflow: visible !important;
 }
 
 .dia-matrix-card {
     border: 1px solid #e2e8f0 !important;
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
     height: 100%;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
 }
 
 .dia-matrix-responsive {
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     min-height: 0;
-    max-height: calc(100vh - 170px);
+    height: 100%;
+    max-height: calc(100vh - 145px);
     overflow-y: auto !important;
     overflow-x: auto !important;
 }
@@ -1423,7 +1437,7 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
 
 /* --- ESTILOS DE CABECERAS Y BADGES DE ALTO CONTRASTE --- */
 .dia-th-container {
-    min-height: 56px;
+    min-height: 52px;
     user-select: none;
 }
 .dia-th-title {
@@ -1433,19 +1447,16 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
     letter-spacing: -0.2px;
     line-height: 1.25;
 }
-.dia-th-subtitle {
-    color: #64748B !important;
-    font-size: 0.72rem !important;
-    font-weight: 600 !important;
-    margin-top: 2px;
-}
 .dia-th-badge {
-    display: inline-block;
-    font-size: 0.62rem !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 0.70rem !important;
     font-weight: 800 !important;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-    padding: 2px 8px;
+    letter-spacing: 0.3px;
+    text-transform: capitalize;
+    padding: 3px 10px;
     border-radius: 999px;
     line-height: 1.2;
 }
@@ -1550,6 +1561,15 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
     background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(245, 158, 11, 0.04) 10px, rgba(245, 158, 11, 0.04) 20px);
 }
 
+.dia-matrix-slot.has-appointment {
+    padding: 2px !important;
+    vertical-align: top;
+    cursor: default;
+}
+.dia-matrix-slot.has-appointment:hover {
+    background-color: transparent !important;
+}
+
 /* Tarjeta de Cita en Matriz Diaria */
 .dia-matrix-apt-card {
     position: relative;
@@ -1564,6 +1584,7 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
     flex-direction: column;
     justify-content: space-between;
     min-height: 48px;
+    height: 100%;
     border-left: 4px solid;
 }
 .dia-matrix-apt-card:hover {
