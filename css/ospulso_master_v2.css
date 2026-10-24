@@ -1328,7 +1328,8 @@ body.agenda-page-layout .agenda-view-container.d-none {
     padding: 0.4rem 0 !important;
     overflow-x: auto;
 }
-#view-semana-smart #weekly-smart-slots {
+#view-semana-smart #weekly-smart-slots-container,
+#view-semana-smart .weekly-smart-slots-scroll-area {
     flex: 1 1 auto;
     min-height: 0;
     height: 100%;

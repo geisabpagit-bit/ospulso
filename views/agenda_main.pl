@@ -188,7 +188,7 @@ print <<HTML;
     <input type="hidden" id="agenda_es_consultorio" value="$es_consultorio">
     <input type="hidden" id="agenda_tipo_organizacion" value="$tipo_organizacion">
     <script>
-        document.body.classList.add('agenda-page-layout', 'agenda-view-dia-active');
+        document.body.classList.add('agenda-page-layout');
         window.idPacientePre = "$id_paciente_pre";
         window.nombrePacientePre = "$nombre_paciente_pre";
         window.medicosCatalogo = $json_catalogo_medicos;
@@ -384,11 +384,13 @@ print <<HTML;
 
             <!-- VISTA SEMANAL SMART (Nueva) -->
             <div id="view-semana-smart" class="agenda-view-container d-none">
-                <div id="weekly-smart-scroll" class="d-flex justify-content-center gap-2 py-3 mb-4 overflow-auto no-scrollbar">
+                <div id="weekly-smart-scroll" class="d-flex justify-content-center gap-2 py-2 mb-2 overflow-auto no-scrollbar">
                     <!-- Días generados por JS -->
                 </div>
-                <div id="weekly-smart-slots" class="row g-4">
-                    <!-- Slots generados por JS -->
+                <div id="weekly-smart-slots-container" class="weekly-smart-slots-scroll-area">
+                    <div id="weekly-smart-slots" class="row g-4 m-0">
+                        <!-- Slots generados por JS -->
+                    </div>
                 </div>
             </div>
 

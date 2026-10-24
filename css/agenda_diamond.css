@@ -82,7 +82,7 @@
 
 .text-navy { color: #0d1e3d; }
 
-.agenda-view-container { min-height: 80vh; padding: 20px 0; }
+.agenda-view-container { min-height: 0; padding: 0; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 

@@ -609,16 +609,31 @@ function renderSmartSlots(date) {
         `);
     }
 
-    // Auto-scroll a la hora actual o primer slot
+    // Auto-scroll encapsulado a la hora actual o primer slot dentro del contenedor interno
     setTimeout(() => {
+        const scrollParent = document.getElementById('weekly-smart-slots-container') || cont[0];
+        if (!scrollParent) return;
+        
         const todayStr = getISO(new Date());
+        let targetEl = null;
         if (date === todayStr) {
             const h = new Date().getHours().toString().padStart(2, '0');
             const targetBtn = cont.find(`.liquid-slot-btn:contains('${h}:')`).first();
-            if (targetBtn.length) targetBtn[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (targetBtn.length) targetEl = targetBtn[0];
         } else {
             const firstActive = cont.find('.liquid-slot-btn:not(:disabled)').first();
-            if (firstActive.length) firstActive[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (firstActive.length) targetEl = firstActive[0];
+        }
+
+        if (targetEl && scrollParent) {
+            // Calculamos offsetTop relativo al contenedor sin disparar scroll global en window/body
+            const parentRect = scrollParent.getBoundingClientRect();
+            const elRect = targetEl.getBoundingClientRect();
+            const relativeTop = elRect.top - parentRect.top + scrollParent.scrollTop;
+            scrollParent.scrollTo({
+                top: Math.max(0, relativeTop - 80),
+                behavior: 'smooth'
+            });
         }
     }, 150);
 }
