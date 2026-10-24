@@ -943,11 +943,10 @@ function switchView(v) {
     $(`#view-${v.replace('_','-')}`).removeClass('d-none');
 
     // Gestión de controles de toolbar según la vista activa:
+    $("#wrapper_filtro_recurso_toolbar").removeClass('d-none').addClass('d-none d-lg-block');
     if (v === 'dia') {
-        $("#wrapper_filtro_recurso_toolbar").removeClass('d-lg-none').addClass('d-lg-block');
         $("#btn-toggle-side-cal").removeClass('d-lg-none').addClass('d-lg-inline-flex');
     } else {
-        $("#wrapper_filtro_recurso_toolbar").removeClass('d-lg-block').addClass('d-lg-none');
         $("#btn-toggle-side-cal").removeClass('d-lg-inline-flex').addClass('d-lg-none');
     }
 
@@ -1047,7 +1046,7 @@ window.seleccionarTodosEspacios = function(marcar) {
         window.recursosChecked = [];
     }
     window.actualizarLabelFiltroRecursos();
-    renderTimeline();
+    renderView();
 };
 
 window.onRecursoCheckChange = function() {
@@ -1057,7 +1056,7 @@ window.onRecursoCheckChange = function() {
     });
     window.recursosChecked = marcados;
     window.actualizarLabelFiltroRecursos();
-    renderTimeline();
+    renderView();
 };
 
 window.actualizarLabelFiltroRecursos = function() {
@@ -1144,29 +1143,63 @@ window.actualizarLabelFiltroMedicos = function() {
 };
 
 /**
- * Función Canónica Universal de Filtrado de Citas por Médico
+ * Función Canónica Universal de Filtrado de Citas por Médico y Espacios Físicos (Consultorios / Quirófanos)
  * Aplica de forma coherente el filtro activo en Día, Semana Smart, Mes Grid y Reportes
  */
 function getFilteredAppointments(customList) {
-    const baseList = customList || appointments;
-    if (!Array.isArray(baseList)) return [];
+    let list = customList || appointments;
+    if (!Array.isArray(list)) return [];
 
+    // 1. Filtrado interactivo por Médicos
     if (window.medicosChecked !== null && Array.isArray(window.medicosChecked)) {
-        return baseList.filter(a => {
+        list = list.filter(a => {
             const mId = String(a.extendedProps?.id_medico || '');
             return window.medicosChecked.includes(mId);
         });
+    } else {
+        const medFiltro = $('#filtro_medico_toolbar').val() || $('#f_medico').val();
+        if (medFiltro && medFiltro !== 'all') {
+            list = list.filter(a => 
+                String(a.extendedProps?.id_medico) === String(medFiltro) || 
+                String(a.extendedProps?.medico) === String(medFiltro)
+            );
+        }
     }
 
-    const medFiltro = $('#filtro_medico_toolbar').val() || $('#f_medico').val();
-    if (medFiltro && medFiltro !== 'all') {
-        return baseList.filter(a => 
-            String(a.extendedProps?.id_medico) === String(medFiltro) || 
-            String(a.extendedProps?.medico) === String(medFiltro)
-        );
+    // 2. Filtrado interactivo por Consultorios y Espacios Físicos (Quirófanos / Consultorios)
+    if (window.recursosChecked !== null && Array.isArray(window.recursosChecked)) {
+        if (window.recursosChecked.length === 0) {
+            return []; // El usuario desmarcó todos los espacios
+        }
+        const total = window.todosLosRecursosIds ? window.todosLosRecursosIds.length : 0;
+        if (total > 0 && window.recursosChecked.length < total) {
+            list = list.filter(a => {
+                const cVal = (a.extendedProps?.consultorio || a.extendedProps?.recurso || a.extendedProps?.lugar || '').trim();
+                const aSucId = String(a.extendedProps?.id_sucursal || a.extendedProps?.id_negocio || '').trim();
+                
+                // Evaluar si coincide con alguno de los espacios físicos seleccionados
+                return window.recursosChecked.some(recId => {
+                    const recIdLow = recId.toLowerCase();
+                    // Si el espacio seleccionado es específico de una sucursal (ej: suc_1_consultorio_1)
+                    if (recIdLow.startsWith('suc_')) {
+                        const parts = recIdLow.split('_');
+                        const rSuc = parts[1];
+                        const rTipo = parts[2]; // consultorio o quirofano
+                        const rNum = parts[3];
+                        if (aSucId && aSucId !== rSuc) return false;
+                        const targetPattern = `${rTipo} ${rNum}`;
+                        return cVal.toLowerCase().includes(targetPattern) || cVal.toLowerCase() === targetPattern;
+                    }
+
+                    // En organización simple o única sucursal (ej: consultorio_1, quirofano_1)
+                    const normalizedTarget = recIdLow.replace('_', ' '); // consultorio 1
+                    return cVal.toLowerCase().includes(normalizedTarget) || cVal.toLowerCase() === normalizedTarget;
+                });
+            });
+        }
     }
 
-    return baseList;
+    return list;
 }
 
 window.poblarFiltroRecursosToolbar = function(data) {
