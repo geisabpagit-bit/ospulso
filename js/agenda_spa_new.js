@@ -852,7 +852,8 @@ function filtrarAgendaPorMedico(idMed) {
 
 function cargarEventosYConfig(idMed) {
     const dest = idMed || $("#f_medico").val() || 'all';
-    $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: dest }, function(res) {
+    const suc = $("#f_sucursal").val() || '1';
+    $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: dest, id_sucursal: suc }, function(res) {
         if (res.ok) {
             appointments = res.data;
             if (res.config) {
@@ -868,8 +869,9 @@ function cargarEventosYConfig(idMed) {
 function actualizarAgendaDestino() {
     // Si la recepcionista cambia de médico al agendar, recargamos la configuración de jornada real para slots
     const destId = $("#f_medico_select").val();
+    const suc = $("#f_sucursal").val() || '1';
     if (!destId) return;
-    $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: destId }, function(res) {
+    $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: destId, id_sucursal: suc }, function(res) {
         if (res.ok) {
             if (res.config) {
                 agendaConfig = res.config;

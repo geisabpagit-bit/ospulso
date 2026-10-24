@@ -29,8 +29,9 @@ my $HEADER  = "id_cita|id_medico|id_paciente|fecha|hora_ini|hora_fin|motivo|nota
 my $q = CGI->new;
 my $accion = $q->param('accion') // '';
 my $id_medico = $q->param('id_medico') // '2';
+my $id_sucursal = $q->param('id_sucursal') // $session_data->{id_empresa} // '1';
 
-my %CONF = cargar_agenda_config($id_medico);
+my %CONF = cargar_agenda_config($id_medico, $id_sucursal);
 
 sub cargar_agenda_config_sucursal {
     my ($id_suc) = @_;
