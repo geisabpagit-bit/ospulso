@@ -2008,7 +2008,157 @@ function renderTimeline() {
     `;
 
     cont.html(tableHtml);
+    initMatrixScrollEdgeDetector();
 }
+
+// --- DETECTOR INTELIGENTE DE LÍMITES DE SCROLL (INFINITE DAY OVER-SCROLL) ---
+let isChangingDayScroll = false;
+let topOverscrollDelta = 0;
+let bottomOverscrollDelta = 0;
+let scrollEdgeTimeout = null;
+
+function initMatrixScrollEdgeDetector() {
+    const scroller = document.querySelector('.dia-matrix-responsive');
+    if (!scroller || !scroller.parentElement) return;
+
+    // Crear elementos de aviso flotante si no existen
+    let topBanner = document.getElementById('dia-edge-banner-top');
+    if (!topBanner) {
+        topBanner = document.createElement('div');
+        topBanner.id = 'dia-edge-banner-top';
+        topBanner.className = 'dia-scroll-edge-banner edge-top animate__animated d-none';
+        scroller.parentElement.appendChild(topBanner);
+    }
+
+    let bottomBanner = document.getElementById('dia-edge-banner-bottom');
+    if (!bottomBanner) {
+        bottomBanner = document.createElement('div');
+        bottomBanner.id = 'dia-edge-banner-bottom';
+        bottomBanner.className = 'dia-scroll-edge-banner edge-bottom animate__animated d-none';
+        scroller.parentElement.appendChild(bottomBanner);
+    }
+
+    // Calcular nombres de días anterior y siguiente
+    const curDate = new Date(selectedDate);
+    const prevDate = new Date(curDate); prevDate.setDate(curDate.getDate() - 1);
+    const nextDate = new Date(curDate); nextDate.setDate(curDate.getDate() + 1);
+
+    const prevDayName = prevDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
+    const nextDayName = nextDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
+
+    topBanner.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between gap-3 px-3 py-2 text-white rounded-pill shadow-lg border border-teal" style="font-size: 0.8rem; background-color: #0A2A66 !important;">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-up-circle-fill text-teal fs-6 animate__animated animate__bounce animate__infinite"></i>
+                <span>Tope superior alcanzado (00:00). Continúa deslizando o haz clic para ir a: <strong>${prevDayName}</strong></span>
+            </div>
+            <button type="button" class="btn btn-teal btn-sm rounded-pill px-3 py-1 fw-bold text-white shadow-xs" onclick="transicionarDiaScroll(-1)">
+                <i class="bi bi-chevron-left me-1"></i> Ir a ${prevDayName}
+            </button>
+        </div>
+    `;
+
+    bottomBanner.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between gap-3 px-3 py-2 text-white rounded-pill shadow-lg border border-teal" style="font-size: 0.8rem; background-color: #0A2A66 !important;">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-down-circle-fill text-teal fs-6 animate__animated animate__bounce animate__infinite"></i>
+                <span>Fin de jornada alcanzado (23:59). Continúa deslizando o haz clic para pasar a: <strong>${nextDayName}</strong></span>
+            </div>
+            <button type="button" class="btn btn-teal btn-sm rounded-pill px-3 py-1 fw-bold text-white shadow-xs" onclick="transicionarDiaScroll(1)">
+                Ir a ${nextDayName} <i class="bi bi-chevron-right ms-1"></i>
+            </button>
+        </div>
+    `;
+
+    // Resetear contadores
+    topOverscrollDelta = 0;
+    bottomOverscrollDelta = 0;
+
+    // Escuchador de rueda de scroll
+    scroller.onwheel = function(e) {
+        if (isChangingDayScroll) return;
+
+        const isAtTop = scroller.scrollTop <= 4;
+        const isAtBottom = (scroller.scrollTop + scroller.clientHeight) >= (scroller.scrollHeight - 10);
+
+        // Desplazamiento hacia arriba en el tope superior
+        if (isAtTop && e.deltaY < 0) {
+            topOverscrollDelta += Math.abs(e.deltaY);
+            topBanner.classList.remove('d-none');
+            
+            clearTimeout(scrollEdgeTimeout);
+            scrollEdgeTimeout = setTimeout(() => {
+                topBanner.classList.add('d-none');
+                topOverscrollDelta = 0;
+            }, 1800);
+
+            if (topOverscrollDelta > 220) {
+                transicionarDiaScroll(-1);
+            }
+        } else if (!isAtTop) {
+            topBanner.classList.add('d-none');
+            topOverscrollDelta = 0;
+        }
+
+        // Desplazamiento hacia abajo en el fondo
+        if (isAtBottom && e.deltaY > 0) {
+            bottomOverscrollDelta += Math.abs(e.deltaY);
+            bottomBanner.classList.remove('d-none');
+
+            clearTimeout(scrollEdgeTimeout);
+            scrollEdgeTimeout = setTimeout(() => {
+                bottomBanner.classList.add('d-none');
+                bottomOverscrollDelta = 0;
+            }, 1800);
+
+            if (bottomOverscrollDelta > 220) {
+                transicionarDiaScroll(1);
+            }
+        } else if (!isAtBottom) {
+            bottomBanner.classList.add('d-none');
+            bottomOverscrollDelta = 0;
+        }
+    };
+}
+
+function transicionarDiaScroll(dir) {
+    if (isChangingDayScroll) return;
+    isChangingDayScroll = true;
+
+    const toast = Swal.mixin({
+        toast: true,
+        position: dir < 0 ? 'top' : 'bottom',
+        showConfirmButton: false,
+        timer: 1200,
+        timerProgressBar: true
+    });
+    
+    selectedDate.setDate(selectedDate.getDate() + dir);
+    const dayStr = selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+    
+    toast.fire({
+        icon: 'info',
+        title: dir < 0 ? `⬅ Día Anterior: ${dayStr}` : `➡ Siguiente Día: ${dayStr}`
+    });
+
+    renderHeaders();
+    renderView();
+
+    setTimeout(() => {
+        const scroller = document.querySelector('.dia-matrix-responsive');
+        if (scroller) {
+            if (dir < 0) {
+                // Al retroceder, situar al final del día
+                scroller.scrollTop = scroller.scrollHeight - scroller.clientHeight - 80;
+            } else {
+                // Al avanzar, situar al inicio del día
+                scroller.scrollTop = 5;
+            }
+        }
+        isChangingDayScroll = false;
+    }, 280);
+}
+window.transicionarDiaScroll = transicionarDiaScroll;
 
 function renderSideCalendar() {
     const cont = $("#side-datepicker"); if(!cont.length) return;

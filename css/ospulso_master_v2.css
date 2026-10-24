@@ -1613,6 +1613,25 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
     border-color: var(--md-teal-clinical, #19B7A5);
 }
 
+/* Banners flotantes de transición por límite de scroll (Overscroll Day Navigation) */
+.dia-scroll-edge-banner {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    max-width: 92%;
+    pointer-events: auto;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dia-scroll-edge-banner.edge-top {
+    top: 70px;
+    animation: fadeInDown 0.25s ease;
+}
+.dia-scroll-edge-banner.edge-bottom {
+    bottom: 25px;
+    animation: fadeInUp 0.25s ease;
+}
+
 /* Modal Rápido de Detalle */
 #appointmentQuickModal .modal-content {
     border: none !important;
