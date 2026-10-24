@@ -104,17 +104,23 @@ Registro principal de la agenda médica y estados de citas. Delimitador: `|`.
 | 9 | `estado` | String | `Programada`, `Confirmada`, `En consulta`, `Atendida`, `Cancelada` |
 | 10 | `event_id` | String | ID del evento sincronizado en Google Calendar |
 
-### 3.2 `agenda_config.dat` (y `agenda_config_medico_X.dat`)
-Configuración de jornadas, intervalos y descansos de la agenda. Formato: `llave=valor`.
+### 3.2 `agenda_config.dat`, `agenda_config_sucursal_<ID>.dat` y `agenda_config_medico_<ID>.dat`
+Configuración de jornadas, intervalos y descansos de la agenda desacoplados por ámbito:
+- **`agenda_config_sucursal_<id_sucursal>.dat`**: Define el marco macro de apertura física de la sede (07:00 - 21:00 por defecto). Gobierna la rejilla horaria de consultorios y quirófanos.
+- **`agenda_config_medico_<id_medico>.dat`**: Define la disponibilidad de consulta privada del profesional (08:00 - 18:00 por defecto), días laborales específicos, límites de cancelación del paciente y vacaciones/festivos individuales.
+- **`agenda_config.dat`**: Fallback global para compatibilidad histórica.
+
+Formato flat-file: `llave=valor`.
 
 | Llave | Tipo | Descripción | Ejemplo |
 | :--- | :--- | :--- | :--- |
-| `horario_inicio` | String | Hora inicio jornada (`HH:MM`) | `08:00` |
-| `horario_fin` | String | Hora fin jornada (`HH:MM`) | `20:00` |
+| `horario_inicio` | String | Hora inicio jornada (`HH:MM`) | `07:00` |
+| `horario_fin` | String | Hora fin jornada (`HH:MM`) | `21:00` |
 | `horario_comida_inicio` | String | Inicio receso comida | `14:00` |
 | `horario_comida_fin` | String | Fin receso comida | `15:00` |
 | `intervalo_minutos` | Int | Duración del slot de atención (min) | `30` |
-| `dias_habiles` | String | Días laborables ISO (1=Lunes, 7=Dom) | `1,2,3,4,5,6` |
+| `dias_habiles` | String | Días laborables ISO (1=Lunes, 7=Dom) | `1,2,3,4,5,6,7` |
+| `cancel_hours` | Int | Horas previas mínimas para cancelación de paciente (sólo médico) | `24` |
 | `festivos` | String | Lista de fechas asueto (`YYYY-MM-DD`) | `2026-11-16,2026-12-25` |
 
 ---

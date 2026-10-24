@@ -3562,11 +3562,73 @@ function renderTable(type) {
     }, 150);
 }
 /**
- * Ajustes de Agenda (Per-User Configuration)
+ * Ajustes de Agenda (Multi-Ámbito: Sucursal Física vs Médico)
  */
+function cambiarAmbitoAjustes(tipo) {
+    if (tipo === 'sucursal') {
+        $("#adj_sucursal_wrapper").removeClass('d-none');
+        $("#adj_medico_wrapper").addClass('d-none');
+        $("#adj_cancel_hours_wrapper").addClass('d-none');
+        $("#adj_ambito_help_text span").html("Define el <strong>horario general de apertura</strong> de la sede física (rige la cuadrícula visible de Consultorios y Quirófanos).");
+        $("#lbl_adj_h_ini").text("Apertura de Sede");
+        $("#lbl_adj_h_fin").text("Cierre de Sede");
+        $("#lbl_adj_dias").text("Días de Apertura de la Sede");
+        $("#lbl_adj_festivos").text("Días Inhábiles / Asuetos de la Sede");
+        
+        const curSuc = $("#adj_sucursal_select").val() || $("#f_sucursal").val() || '1';
+        if ($("#adj_sucursal_select").length) {
+            $("#adj_sucursal_select").val(curSuc);
+        }
+        cargarAjustesSucursal(curSuc);
+    } else {
+        $("#adj_sucursal_wrapper").addClass('d-none');
+        $("#adj_medico_wrapper").removeClass('d-none');
+        $("#adj_cancel_hours_wrapper").removeClass('d-none');
+        $("#adj_ambito_help_text span").html("Define el <strong>horario de consulta individual</strong> del profesional seleccionado.");
+        $("#lbl_adj_h_ini").text("Inicio de Consulta");
+        $("#lbl_adj_h_fin").text("Fin de Consulta");
+        $("#lbl_adj_dias").text("Días Laborales del Médico");
+        $("#lbl_adj_festivos").text("Vacaciones / Inasistencias del Médico");
+        
+        const curMed = $("#adj_medico_select").val() || $("#f_medico").val() || '2';
+        if ($("#adj_medico_select").length) {
+            $("#adj_medico_select").val(curMed);
+        }
+        cargarAjustesMedico(curMed);
+    }
+}
+
+function cargarAjustesSucursal(idSuc) {
+    if (!idSuc) {
+        idSuc = $("#adj_sucursal_select").val() || $("#f_sucursal").val() || '1';
+    }
+    $.get('../api/citas_crud.pl', { accion: 'get_config', tipo_ambito: 'sucursal', id_sucursal: idSuc }, function(res) {
+        if (res.ok && res.config) {
+            const cfg = res.config;
+            $("#adj_h_ini").val(cfg.laborStart || '07:00');
+            $("#adj_h_fin").val(cfg.laborEnd || '21:00');
+            $("#adj_c_ini").val(cfg.lunchStart || '14:00');
+            $("#adj_c_fin").val(cfg.lunchEnd || '15:00');
+            $("#adj_int").val(cfg.intervalo_minutos || '30');
+            $("#adj_cancel_hours").val(cfg.cancel_hours || '24');
+            $("#adj_fest").val(cfg.festivos_medico || '');
+            
+            $(".adj-dia").prop('checked', false);
+            if (cfg.workDays && Array.isArray(cfg.workDays)) {
+                cfg.workDays.forEach(d => {
+                    $(`#d${d}`).prop('checked', true);
+                    if (d == 7 || d == 0) {
+                        $("#d7, #d0").prop('checked', true);
+                    }
+                });
+            }
+        }
+    });
+}
+
 function cargarAjustesMedico(idMed) {
     if (!idMed) return;
-    $.get('../api/citas_crud.pl', { accion: 'get_events', id_medico: idMed }, function(res) {
+    $.get('../api/citas_crud.pl', { accion: 'get_config', tipo_ambito: 'medico', id_medico: idMed }, function(res) {
         if (res.ok && res.config) {
             const cfg = res.config;
             $("#adj_h_ini").val(cfg.laborStart || '08:00');
@@ -3602,63 +3664,61 @@ function abrirModalAjustes() {
         return;
     }
 
-    const m = new bootstrap.Modal(el);
+    const m = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
     
-    // Si la vista dispone de selector de médico a configurar, inicializarlo
-    const medSel = $("#adj_medico_select");
-    const currentMed = $("#f_medico_select").val() || $("#f_medico").val() || '';
-    if (medSel.length && currentMed) {
-        medSel.val(currentMed);
-        cargarAjustesMedico(currentMed);
-    } else {
-        // Poblar con valores actuales
-        $("#adj_h_ini").val(agendaConfig.laborStart || '08:00');
-        $("#adj_h_fin").val(agendaConfig.laborEnd || '18:00');
-        $("#adj_c_ini").val(agendaConfig.lunchStart || '14:00');
-        $("#adj_c_fin").val(agendaConfig.lunchEnd || '16:00');
-        $("#adj_int").val(agendaConfig.intervalo_minutos || '30');
-        $("#adj_cancel_hours").val(agendaConfig.cancel_hours || '24');
-        $("#adj_fest").val(agendaConfig.festivos_medico || '');
-        
-        // Checkboxes días
-        $(".adj-dia").prop('checked', false);
-        if (agendaConfig.workDays && Array.isArray(agendaConfig.workDays)) {
-            agendaConfig.workDays.forEach(d => {
-                $(`#d${d}`).prop('checked', true);
-                if (d == 7 || d == 0) {
-                    $("#d7, #d0").prop('checked', true);
-                }
-            });
-        }
+    // Determinar ámbito inicial
+    const curSuc = $("#f_sucursal").val() || '1';
+    if ($("#adj_sucursal_select").length) {
+        $("#adj_sucursal_select").val(curSuc);
     }
+    const curMed = $("#f_medico").val() || $("#f_medico_select").val() || '';
+    if (curMed && curMed !== 'todos' && $("#adj_medico_select").length) {
+        $("#adj_medico_select").val(curMed);
+    }
+
+    let ambito = $('input[name="adj_tipo_ambito"]:checked').val() || 'sucursal';
+    $(`input[name="adj_tipo_ambito"][value="${ambito}"]`).prop('checked', true);
+    cambiarAmbitoAjustes(ambito);
     
     m.show();
 }
 
 function guardarAjustes() {
-    const idMed = ($("#adj_medico_select").length && $("#adj_medico_select").val()) ? $("#adj_medico_select").val() : ($("#f_medico").val() || '2');
+    const tipoAmbito = $('input[name="adj_tipo_ambito"]:checked').val() || 'sucursal';
     const dias = [];
     $(".adj-dia:checked").each(function() { dias.push($(this).val()); });
     
     const data = {
         accion: 'save_config',
-        id_medico: idMed,
+        tipo_ambito: tipoAmbito,
         h_ini: $("#adj_h_ini").val(),
         h_fin: $("#adj_h_fin").val(),
         c_ini: $("#adj_c_ini").val(),
         c_fin: $("#adj_c_fin").val(),
         int: $("#adj_int").val(),
-        cancel_hours: $("#adj_cancel_hours").val(),
         festivos: $("#adj_fest").val(),
         dias: dias.join(',')
     };
+
+    if (tipoAmbito === 'sucursal') {
+        const idSuc = $("#adj_sucursal_select").val() || $("#f_sucursal").val() || '1';
+        data.id_sucursal = idSuc;
+    } else {
+        const idMed = ($("#adj_medico_select").length && $("#adj_medico_select").val()) 
+            ? $("#adj_medico_select").val() 
+            : ($("#f_medico").val() || '2');
+        data.id_medico = idMed;
+        data.cancel_hours = $("#adj_cancel_hours").val();
+    }
 
     $.post('../api/citas_crud.pl', data, function(res) {
         if (res.ok) {
             let swalConfig = {
                 icon: 'success',
                 title: 'Ajustes Guardados',
-                text: 'Las preferencias de la agenda han sido actualizadas.',
+                text: tipoAmbito === 'sucursal' 
+                    ? 'El horario operativo de la sucursal ha sido actualizado con éxito.' 
+                    : 'Las preferencias del médico han sido actualizadas con éxito.',
                 confirmButtonColor: '#103070'
             };
             if (res.warning) {
@@ -3669,13 +3729,26 @@ function guardarAjustes() {
             Swal.fire(swalConfig).then(() => {
                 const bootstrapModal = bootstrap.Modal.getInstance(document.getElementById('modalAjustes'));
                 if (bootstrapModal) bootstrapModal.hide();
-                loadContext(); // Recargar para aplicar cambios visualmente
+                if (typeof loadContext === 'function') {
+                    loadContext(); // Recargar para aplicar cambios visualmente
+                } else if (typeof cargarCitas === 'function') {
+                    cargarCitas();
+                } else {
+                    location.reload();
+                }
             });
         } else {
             Swal.fire('Error', res.msg, 'error');
         }
     });
 }
+
+// Exponer al ámbito global para compatibilidad con eventos inline
+window.cambiarAmbitoAjustes = cambiarAmbitoAjustes;
+window.cargarAjustesSucursal = cargarAjustesSucursal;
+window.cargarAjustesMedico = cargarAjustesMedico;
+window.abrirModalAjustes = abrirModalAjustes;
+window.guardarAjustes = guardarAjustes;
 
 // [SDM FIX] DOM Teleportation Protocol para evadir secuestros de z-index en moviles
 document.addEventListener('DOMContentLoaded', function() {

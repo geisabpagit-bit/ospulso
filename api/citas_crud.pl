@@ -32,43 +32,98 @@ my $id_medico = $q->param('id_medico') // '2';
 
 my %CONF = cargar_agenda_config($id_medico);
 
+sub cargar_agenda_config_sucursal {
+    my ($id_suc) = @_;
+    my %c = (
+        laborStart => '07:00', laborEnd => '21:00', 
+        lunchStart => '14:00', lunchEnd => '15:00',
+        workDays => [1,2,3,4,5,6,7], intervalo_minutos => 30,
+        cancel_hours => 24,
+        festivos => '',
+        festivos_global => '',
+        festivos_sucursal => ''
+    );
+
+    # 1. Config Global Base
+    if (-e $CONFIG_FILE) {
+        my %g = ();
+        _parse_config_file($CONFIG_FILE, \%g);
+        $c{festivos_global} = $g{festivos} // '';
+        foreach my $k (keys %g) { $c{$k} = $g{$k} unless $k eq 'festivos'; }
+    }
+
+    # 2. Config Específica de la Sucursal
+    if ($id_suc) {
+        my $SUC_CONFIG = "$dirname/../dat/agenda_config_sucursal_$id_suc.dat";
+        if (-e $SUC_CONFIG) {
+            my %s = ();
+            _parse_config_file($SUC_CONFIG, \%s);
+            $c{festivos_sucursal} = $s{festivos} // '';
+            foreach my $k (keys %s) {
+                next if $k eq 'festivos';
+                $c{$k} = $s{$k};
+            }
+        }
+    }
+
+    my @unificados = ();
+    push @unificados, split(/,/, $c{festivos_global}) if $c{festivos_global};
+    push @unificados, split(/,/, $c{festivos_sucursal}) if $c{festivos_sucursal};
+    my %seen = ();
+    my @limpios = grep { $_ && !$seen{$_}++ } map { s/^\s+|\s+$//g; $_ } @unificados;
+    $c{festivos} = join(',', @limpios);
+
+    return %c;
+}
+
 sub cargar_agenda_config {
-    my ($id_m) = @_;
+    my ($id_m, $id_suc) = @_;
     my %c = (
         laborStart => '08:00', laborEnd => '18:00', 
         lunchStart => '14:00', lunchEnd => '16:00',
         workDays => [1,2,3,4,5,6,7], intervalo_minutos => 30,
         festivos => '',        # Unión de ambos (para lógica de bloqueos)
         festivos_global => '', # Solo los del sistema
-        festivos_medico => ''  # Solo los del médico
+        festivos_medico => '', # Solo los del médico
+        festivos_sucursal => ''
     );
 
-    # 1. Cargar Config Global
-    if (-e $CONFIG_FILE) {
-        my %g = ();
-        _parse_config_file($CONFIG_FILE, \%g);
-        $c{festivos_global} = $g{festivos} // '';
-        # Copiar valores globales como base
-        foreach my $k (keys %g) { $c{$k} = $g{$k} unless $k eq 'festivos'; }
+    # 1. Si hay sucursal, tomar la configuración de la sucursal como marco macro
+    if ($id_suc) {
+        my %conf_suc = cargar_agenda_config_sucursal($id_suc);
+        foreach my $k (keys %conf_suc) {
+            $c{$k} = $conf_suc{$k};
+        }
+    } else {
+        # Config Global Base
+        if (-e $CONFIG_FILE) {
+            my %g = ();
+            _parse_config_file($CONFIG_FILE, \%g);
+            $c{festivos_global} = $g{festivos} // '';
+            foreach my $k (keys %g) { $c{$k} = $g{$k} unless $k eq 'festivos'; }
+        }
     }
 
-    # 2. Cargar Config Específica del Médico
-    my $MED_CONFIG = "$dirname/../dat/agenda_config_medico_$id_m.dat";
-    if (-e $MED_CONFIG) {
-        my %m = ();
-        _parse_config_file($MED_CONFIG, \%m);
-        $c{festivos_medico} = $m{festivos} // '';
-        
-        # Sobrescribir el resto de parámetros (horarios, intervalos, días hábiles)
-        foreach my $k (keys %m) {
-            next if $k eq 'festivos';
-            $c{$k} = $m{$k};
+    # 2. Cargar Config Específica del Médico (si se solicita un médico individual específico)
+    if ($id_m && $id_m ne 'all' && $id_m ne '0') {
+        my $MED_CONFIG = "$dirname/../dat/agenda_config_medico_$id_m.dat";
+        if (-e $MED_CONFIG) {
+            my %m = ();
+            _parse_config_file($MED_CONFIG, \%m);
+            $c{festivos_medico} = $m{festivos} // '';
+            
+            # Sobrescribir el resto de parámetros (horarios, intervalos, días hábiles)
+            foreach my $k (keys %m) {
+                next if $k eq 'festivos';
+                $c{$k} = $m{$k};
+            }
         }
     }
     
     # 3. Mezclar para el Motor de Agenda (Bloqueos en Calendario)
     my @unificados = ();
     push @unificados, split(/,/, $c{festivos_global}) if $c{festivos_global};
+    push @unificados, split(/,/, $c{festivos_sucursal}) if $c{festivos_sucursal};
     push @unificados, split(/,/, $c{festivos_medico}) if $c{festivos_medico};
     
     my %seen = ();
@@ -109,7 +164,8 @@ auto_actualizar_citas_vencidas($citas);
 if    ($accion eq 'create')     { crear_cita($citas, $q); }
 elsif ($accion eq 'update')     { actualizar_cita($citas, $q); }
 elsif ($accion eq 'delete')     { eliminar_cita($citas, $q); }
-elsif ($accion eq 'save_config') { guardar_config_medico($q); }
+elsif ($accion eq 'save_config') { guardar_config_agenda($q); }
+elsif ($accion eq 'get_config')  { obtener_config_agenda($q); }
 elsif ($accion eq 'get_form_metadata') { obtener_metadatos_formulario($q); }
 elsif ($accion eq 'get_recursos') { obtener_recursos_sucursal($q); }
 elsif ($accion eq 'get_events') { enviar_eventos_oficial($citas); }
@@ -680,21 +736,49 @@ sub log_google {
     }
 }
 
-sub guardar_config_medico {
+sub obtener_config_agenda {
     my ($q) = @_;
-    my $id_m = $q->param('id_medico') // return;
+    my $tipo = $q->param('tipo_ambito') // 'medico';
+    my %c;
+    if ($tipo eq 'sucursal') {
+        my $id_suc = $q->param('id_sucursal') // '';
+        %c = cargar_agenda_config_sucursal($id_suc);
+    } else {
+        my $id_m = $q->param('id_medico') // '2';
+        %c = cargar_agenda_config($id_m);
+    }
+    print $q->header(-type => 'application/json', -charset => 'utf-8');
+    print encode_json({ ok => 1, config => \%c });
+    exit;
+}
+
+sub guardar_config_agenda {
+    my ($q) = @_;
+    my $tipo_ambito = $q->param('tipo_ambito') // 'medico';
+    my $id_m = $q->param('id_medico');
+    my $id_suc = $q->param('id_sucursal');
+
+    my $file;
+    if ($tipo_ambito eq 'sucursal') {
+        $id_suc //= $session_data->{id_empresa};
+        return responder_json(0, "Identificador de sucursal no especificado.") unless $id_suc;
+        $file = "$dirname/../dat/agenda_config_sucursal_$id_suc.dat";
+    } else {
+        return responder_json(0, "Identificador de médico no especificado.") unless $id_m;
+        $file = "$dirname/../dat/agenda_config_medico_$id_m.dat";
+    }
     
     my $h_ini = $q->param('h_ini') // '08:00';
     my $h_fin = $q->param('h_fin') // '18:00';
     my $c_ini = $q->param('c_ini') // '14:00';
     my $c_fin = $q->param('c_fin') // '16:00';
-    my $d_hab = $q->param('dias')  // '1,2,3,4,5';
+    my $d_hab = $q->param('dias')  // '1,2,3,4,5,6,7';
     my @norm_days = map { $_ eq '0' ? '7' : $_ } split(/,/, $d_hab);
     $d_hab = join(',', @norm_days);
     my $int   = $q->param('int')   // '30';
+    my $cancel_hours = $q->param('cancel_hours') // '24';
+    my $festivos = $q->param('festivos') // '';
 
-    my $file = "$dirname/../dat/agenda_config_medico_$id_m.dat";
-    
     if (open my $fh, '>:encoding(UTF-8)', $file) {
         print $fh "horario_inicio=$h_ini\n";
         print $fh "horario_fin=$h_fin\n";
@@ -702,57 +786,61 @@ sub guardar_config_medico {
         print $fh "horario_comida_fin=$c_fin\n";
         print $fh "intervalo_minutos=$int\n";
         print $fh "dias_habiles=$d_hab\n";
-        print $fh "cancel_hours=" . ($q->param('cancel_hours') // '24') . "\n";
-        print $fh "festivos=" . ($q->param('festivos') // '') . "\n";
+        print $fh "cancel_hours=$cancel_hours\n";
+        print $fh "festivos=$festivos\n";
         close $fh;
         
-        # --- Mitigación Mega Regla: Análisis Predictivo de Colisiones Futuras ---
-        my $citas = cargar_citas();
-        my ($s, $m, $h, $D, $M, $Y) = localtime;
-        my $today = sprintf("%04d-%02d-%02d", $Y+1900, $M+1, $D);
         my $warning_msg = "";
-        my $afectadas = 0;
-        
-        my @work_days = split(/,/, $d_hab);
-        my @fest = split(/,/, $q->param('festivos') // '');
-        
-        foreach my $c (@$citas) {
-            next if $c->{id_medico} ne $id_m;
-            next if $c->{estado} eq 'Cancelada' || $c->{estado} =~ /Atendida/i;
-            next if $c->{fecha} lt $today;
+        # Si es de médico, correr verificación predictiva de colisiones
+        if ($tipo_ambito eq 'medico') {
+            my $citas = cargar_citas();
+            my ($s, $m, $h, $D, $M, $Y) = localtime;
+            my $today = sprintf("%04d-%02d-%02d", $Y+1900, $M+1, $D);
+            my $afectadas = 0;
             
-            my $clash = 0;
-            # 1. Fuera de nuevo horario laboral
-            if ($c->{hora_ini} lt $h_ini || $c->{hora_fin} gt $h_fin) { $clash = 1; }
-            # 2. Traslape con nueva comida (si no es de todo el día)
-            if (!$clash && $c->{hora_fin} ne $h_fin) {
-                if ($c->{hora_ini} lt $c_fin && $c->{hora_fin} gt $c_ini) { $clash = 1; }
-            }
-            # 3. Día no laborable
-            if (!$clash) {
-                use Time::Piece;
-                my $t = eval { Time::Piece->strptime($c->{fecha}, "%Y-%m-%d") };
-                unless ($@) {
-                    my $wday = $t->wday; my $iso_wday = ($wday == 1) ? 7 : $wday - 1;
-                    my $found_d = 0;
-                    foreach (@work_days) { if ($_ == $iso_wday) { $found_d = 1; last; } }
-                    if (!$found_d) { $clash = 1; }
+            my @work_days = split(/,/, $d_hab);
+            my @fest = split(/,/, $festivos);
+            
+            foreach my $c (@$citas) {
+                next if $c->{id_medico} ne $id_m;
+                next if $c->{estado} eq 'Cancelada' || $c->{estado} =~ /Atendida/i;
+                next if $c->{fecha} lt $today;
+                
+                my $clash = 0;
+                # 1. Fuera de nuevo horario laboral
+                if ($c->{hora_ini} lt $h_ini || $c->{hora_fin} gt $h_fin) { $clash = 1; }
+                # 2. Traslape con nueva comida (si no es de todo el día)
+                if (!$clash && $c->{hora_fin} ne $h_fin) {
+                    if ($c->{hora_ini} lt $c_fin && $c->{hora_fin} gt $c_ini) { $clash = 1; }
                 }
+                # 3. Día no laborable
+                if (!$clash) {
+                    use Time::Piece;
+                    my $t = eval { Time::Piece->strptime($c->{fecha}, "%Y-%m-%d") };
+                    unless ($@) {
+                        my $wday = $t->wday; my $iso_wday = ($wday == 1) ? 7 : $wday - 1;
+                        my $found_d = 0;
+                        foreach (@work_days) { if ($_ == $iso_wday) { $found_d = 1; last; } }
+                        if (!$found_d) { $clash = 1; }
+                    }
+                }
+                # 4. Festivos
+                if (!$clash) {
+                    foreach my $f (@fest) { $f =~ s/^\s+|\s+$//g; if ($f eq $c->{fecha}) { $clash = 1; last; } }
+                }
+                if ($clash) { $afectadas++; }
             }
-            # 4. Festivos
-            if (!$clash) {
-                foreach my $f (@fest) { $f =~ s/^\s+|\s+$//g; if ($f eq $c->{fecha}) { $clash = 1; last; } }
+            if ($afectadas > 0) {
+                $warning_msg = "Existen <strong>$afectadas cita(s) futura(s)</strong> que caen fuera de este nuevo horario o en un día no laborable/festivo recién configurado.<br><br>El sistema ha guardado la configuración, pero se sugiere revisar la agenda mensual y reagendar aquellas citas que visualmente choquen o se salgan del marco de disponibilidad.";
             }
-            
-            if ($clash) { $afectadas++; }
-        }
-        
-        if ($afectadas > 0) {
-            $warning_msg = "Existen <strong>$afectadas cita(s) futura(s)</strong> que caen fuera de este nuevo horario o en un día no laborable/festivo recién configurado.<br><br>El sistema ha guardado la configuración, pero se sugiere revisar la agenda mensual y reagendar aquellas citas que visualmente choquen o se salgan del marco de disponibilidad.";
         }
 
         print $q->header(-type => 'application/json', -charset => 'utf-8');
-        print encode_json({ ok => 1, msg => "Configuración guardada correctamente.", warning => $warning_msg });
+        print encode_json({ 
+            ok => 1, 
+            msg => ($tipo_ambito eq 'sucursal' ? "Horario operativo de la sucursal guardado exitosamente." : "Configuración del profesional guardada correctamente."), 
+            warning => $warning_msg 
+        });
     } else {
         print $q->header(-type => 'application/json', -charset => 'utf-8');
         print encode_json({ ok => 0, msg => "Error al guardar el archivo de configuración." });

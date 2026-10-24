@@ -724,52 +724,91 @@ print <<HTML;
         </div>
     </div>
 
-    <!-- MODAL AJUSTES -->
+    <!-- MODAL AJUSTES DE HORARIO Y JORNADA -->
     <div class="modal fade modal-diamond" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header fw-bold">
-                    <h5 class="modal-title d-flex align-items-center"><i class="bi bi-gear-fill me-2" style="color: #6366f1 !important;"></i> AJUSTES DE AGENDA</h5>
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header py-3 px-4 border-bottom bg-white d-flex align-items-center justify-content-between">
+                    <h5 class="modal-title fw-bold text-navy d-flex align-items-center mb-0" style="font-size: 1.05rem;">
+                        <i class="bi bi-clock-history text-teal me-2 fs-5"></i> AJUSTES DE HORARIOS Y JORNADA
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4 bg-light">
                     <form id="formAjustes">
                         <div class="row g-3">
-                            <div class="col-12 $class_col_medico" id="adj_medico_wrapper">
+                            <!-- SELECTOR DE ÁMBITO: SUCURSAL VS MÉDICO -->
+                            <div class="col-12 mb-1">
+                                <label class="small fw-bold text-muted mb-1.5 d-block text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Ámbito a Configurar</label>
+                                <div class="btn-group w-100 shadow-2xs p-1 bg-white rounded-3 border" role="group">
+                                    <input type="radio" class="btn-check" name="adj_tipo_ambito" id="adj_ambito_sucursal" value="sucursal" autocomplete="off" checked onchange="cambiarAmbitoAjustes('sucursal')">
+                                    <label class="btn btn-sm rounded-2 fw-bold d-flex align-items-center justify-content-center gap-1.5 py-2 text-uppercase" for="adj_ambito_sucursal" style="font-size: 0.76rem;">
+                                        <i class="bi bi-building"></i> Horario de Sucursal
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="adj_tipo_ambito" id="adj_ambito_medico" value="medico" autocomplete="off" onchange="cambiarAmbitoAjustes('medico')">
+                                    <label class="btn btn-sm rounded-2 fw-bold d-flex align-items-center justify-content-center gap-1.5 py-2 text-uppercase" for="adj_ambito_medico" style="font-size: 0.76rem;">
+                                        <i class="bi bi-person-badge"></i> Horario por Médico
+                                    </label>
+                                </div>
+                                <div class="p-2 mt-2 rounded-2 border bg-white small text-secondary" id="adj_ambito_help_text" style="font-size: 0.74rem;">
+                                    <i class="bi bi-info-circle-fill text-teal me-1"></i>
+                                    <span>Define el <strong>horario general de apertura</strong> de la sede física (rige la cuadrícula visible de Consultorios y Quirófanos).</span>
+                                </div>
+                            </div>
+
+                            <!-- SELECTOR DE SUCURSAL (Visible en ámbito sucursal) -->
+                            <div class="col-12" id="adj_sucursal_wrapper">
+                                <div class="form-floating mb-1">
+                                    <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_sucursal_select" onchange="cargarAjustesSucursal(this.value)">
+                                        $html_sucursal
+                                    </select>
+                                    <label class="text-muted fw-bold small text-uppercase">Sucursal / Sede Física</label>
+                                </div>
+                            </div>
+
+                            <!-- SELECTOR DE MÉDICO (Visible en ámbito médico) -->
+                            <div class="col-12 d-none" id="adj_medico_wrapper">
                                 <div class="form-floating mb-1">
                                     <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_medico_select" onchange="cargarAjustesMedico(this.value)">
                                         $html_medicos
                                     </select>
-                                    <label class="text-muted fw-bold small text-uppercase">Médico a Configurar</label>
+                                    <label class="text-muted fw-bold small text-uppercase">Médico / Profesional a Configurar</label>
+                                </div>
+                            </div>
+
+                            <!-- RANGO HORARIO JORNADA -->
+                            <div class="col-6">
+                                <div class="form-floating mb-2">
+                                    <input type="time" class="form-control shadow-sm border-0 rounded-3 fw-bold" id="adj_h_ini" name="h_ini" required>
+                                    <label class="text-muted fw-bold small text-uppercase" id="lbl_adj_h_ini">Apertura / Inicio</label>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_h_ini" name="h_ini" required>
-                                    <label class="text-muted fw-bold small text-uppercase">Inicio Jornada</label>
+                                    <input type="time" class="form-control shadow-sm border-0 rounded-3 fw-bold" id="adj_h_fin" name="h_fin" required>
+                                    <label class="text-muted fw-bold small text-uppercase" id="lbl_adj_h_fin">Cierre / Fin</label>
                                 </div>
                             </div>
-                            <div class="col-6">
-                                <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_h_fin" name="h_fin" required>
-                                    <label class="text-muted fw-bold small text-uppercase">Fin Jornada</label>
-                                </div>
-                            </div>
+
+                            <!-- RECESO / COMIDA -->
                             <div class="col-6">
                                 <div class="form-floating mb-2">
                                     <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_ini" name="c_ini" required>
-                                    <label class="text-muted fw-bold small text-uppercase">Inicio Comida</label>
+                                    <label class="text-muted fw-bold small text-uppercase">Inicio Receso / Comida</label>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="form-floating mb-2">
                                     <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_fin" name="c_fin" required>
-                                    <label class="text-muted fw-bold small text-uppercase">Fin Comida</label>
+                                    <label class="text-muted fw-bold small text-uppercase">Fin Receso / Comida</label>
                                 </div>
                             </div>
-                            <div class="col-12 mt-4">
-                                <label class="small fw-bold text-muted mb-2 d-block text-uppercase">Días Laborales</label>
-                                <div class="d-flex flex-wrap gap-2 mb-2 p-3 bg-white rounded-3 shadow-sm">
+
+                            <!-- DÍAS LABORALES -->
+                            <div class="col-12 mt-3">
+                                <label class="small fw-bold text-muted mb-2 d-block text-uppercase" id="lbl_adj_dias">Días de Apertura de la Sede</label>
+                                <div class="d-flex flex-wrap gap-2 mb-2 p-3 bg-white rounded-3 shadow-sm border">
                                     <div class="form-check form-check-inline m-0 me-2">
                                         <input class="form-check-input adj-dia" type="checkbox" value="1" id="d1"> <label class="form-check-label small fw-bold" for="d1">Lun</label>
                                     </div>
@@ -793,34 +832,40 @@ print <<HTML;
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-12 mt-3">
+
+                            <!-- INTERVALO DE SLOTS -->
+                            <div class="col-12 mt-2">
                                 <div class="form-floating mb-2">
                                     <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_int" name="int">
                                         <option value="15">15 minutos</option>
-                                        <option value="30">30 minutos</option>
+                                        <option value="30" selected>30 minutos</option>
                                         <option value="45">45 minutos</option>
                                         <option value="60">60 minutos</option>
                                     </select>
-                                    <label class="text-muted fw-bold small text-uppercase">Intervalo de Slots</label>
+                                    <label class="text-muted fw-bold small text-uppercase">Duración Base de Slot</label>
                                 </div>
                             </div>
-                            <div class="col-12 mt-3">
+
+                            <!-- LÍMITE DE CANCELACIÓN (Visible para médicos / pacientes) -->
+                            <div class="col-12 mt-2" id="adj_cancel_hours_wrapper">
                                 <div class="form-floating mb-2">
                                     <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_cancel_hours" name="cancel_hours">
                                         <option value="0">Sin Límite (0 hrs)</option>
                                         <option value="12">12 Horas previas</option>
-                                        <option value="24">24 Horas previas</option>
+                                        <option value="24" selected>24 Horas previas</option>
                                         <option value="48">48 Horas previas</option>
                                         <option value="72">72 Horas previas</option>
                                     </select>
                                     <label class="text-muted fw-bold small text-uppercase">Límite Cancelación (Paciente)</label>
                                 </div>
                             </div>
-                            <div class="col-12 mt-3">
-                                <label class="small fw-bold text-muted mb-2 d-block text-uppercase">Festivos Personales</label>
+
+                            <!-- FESTIVOS / DIAS INHABILES -->
+                            <div class="col-12 mt-2">
+                                <label class="small fw-bold text-muted mb-2 d-block text-uppercase" id="lbl_adj_festivos">Días Inhábiles / Asuetos de la Sede</label>
                                 <div class="input-group mb-2 shadow-sm rounded-3">
                                     <input type="date" class="form-control border-0" id="adj_fest_picker">
-                                    <button type="button" class="btn btn-primary px-3 fw-bold border-0" style="background-color: #6366f1;" onclick="var f = document.getElementById('adj_fest'); var p = document.getElementById('adj_fest_picker'); if(p.value){ f.value = f.value ? f.value + ',' + p.value : p.value; p.value = ''; }"><i class="bi bi-plus-lg"></i> Agregar</button>
+                                    <button type="button" class="btn btn-teal text-white px-3 fw-bold border-0" onclick="var f = document.getElementById('adj_fest'); var p = document.getElementById('adj_fest_picker'); if(p.value){ f.value = f.value ? f.value + ',' + p.value : p.value; p.value = ''; }"><i class="bi bi-plus-lg"></i> Agregar</button>
                                 </div>
                                 <div class="form-floating">
                                     <input type="text" class="form-control shadow-sm border-0 rounded-3" id="adj_fest" name="festivos" placeholder="YYYY-MM-DD, ...">
@@ -831,8 +876,8 @@ print <<HTML;
                     </form>
                 </div>
                 <div class="modal-footer bg-light border-0 pt-0">
-                    <button type="button" onclick="guardarAjustes()" class="btn btn-primary w-100 py-3 fw-bold shadow-sm border-0 rounded-pill" style="background: #6366f1;">
-                        <i class="bi bi-save me-2"></i> GUARDAR PREFERENCIAS
+                    <button type="button" onclick="guardarAjustes()" class="btn btn-navy w-100 py-3 fw-bold shadow-sm border-0 rounded-3 text-uppercase" style="font-size: 0.88rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-save me-2"></i> Guardar Configuración de Horario
                     </button>
                 </div>
             </div>
