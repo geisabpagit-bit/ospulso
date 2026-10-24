@@ -179,8 +179,8 @@ function renderWeeklySmartView() {
         const dayName = d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '');
         const dayNum = d.getDate();
 
-        // Conteo de citas del día para visibilidad inmediata
-        const dayAptsCount = appointments.filter(a => a.start && a.start.startsWith(iso)).length;
+        // Conteo de citas del día para visibilidad inmediata (respetando filtros activos)
+        const dayAptsCount = getFilteredAppointments().filter(a => a.start && a.start.startsWith(iso)).length;
         const countBadge = dayAptsCount > 0 
             ? `<span class="badge rounded-pill ${active ? 'bg-white text-dark' : 'bg-teal text-white'} fw-bold" style="font-size:0.58rem; margin-top:3px; padding:2px 6px;">${dayAptsCount} cita${dayAptsCount > 1 ? 's' : ''}</span>`
             : (isToday && !active ? '<div style="width:6px; height:6px; background:var(--md-teal-clinical, #19B7A5); border-radius:50%; margin-top:5px;"></div>' : '<div style="height:11px"></div>');
@@ -231,7 +231,7 @@ function renderSmartSlots(date) {
     const laborTotalMin = (leH * 60 + (leM || 0)) - (lsH * 60 + (lsM || 0));
 
     const interval = parseInt(agendaConfig.intervalo_minutos) || 30;
-    const dayApts = appointments.filter(a => a.start && a.start.startsWith(date));
+    const dayApts = getFilteredAppointments().filter(a => a.start && a.start.startsWith(date));
 
     const now = new Date();
     const todayISO = getISO(now);
@@ -1142,6 +1142,32 @@ window.actualizarLabelFiltroMedicos = function() {
         labelSpan.html('<i class="bi bi-funnel-fill text-primary"></i> <span class="text-truncate">Médicos (' + marcados + '/' + total + ')</span>');
     }
 };
+
+/**
+ * Función Canónica Universal de Filtrado de Citas por Médico
+ * Aplica de forma coherente el filtro activo en Día, Semana Smart, Mes Grid y Reportes
+ */
+function getFilteredAppointments(customList) {
+    const baseList = customList || appointments;
+    if (!Array.isArray(baseList)) return [];
+
+    if (window.medicosChecked !== null && Array.isArray(window.medicosChecked)) {
+        return baseList.filter(a => {
+            const mId = String(a.extendedProps?.id_medico || '');
+            return window.medicosChecked.includes(mId);
+        });
+    }
+
+    const medFiltro = $('#filtro_medico_toolbar').val() || $('#f_medico').val();
+    if (medFiltro && medFiltro !== 'all') {
+        return baseList.filter(a => 
+            String(a.extendedProps?.id_medico) === String(medFiltro) || 
+            String(a.extendedProps?.medico) === String(medFiltro)
+        );
+    }
+
+    return baseList;
+}
 
 window.poblarFiltroRecursosToolbar = function(data) {
     const listContainer = $('#lista_checkboxes_recursos');
@@ -2368,7 +2394,8 @@ function renderGrid() {
     for (let i=0; i<fd; i++) container.append('<div class="bg-white opacity-25"></div>');
     for (let d=1; d<=days; d++) {
         const iso = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
-        const holiday = isHoliday(iso); const dayApts = appointments.filter(a => a.start.startsWith(iso));
+        const holiday = isHoliday(iso); 
+        const dayApts = getFilteredAppointments().filter(a => a.start.startsWith(iso));
         const isWork = isWorkDay(iso);
         const bgColor = holiday ? '#fee2e2' : (isWork ? 'white' : '#f8fafc');
         const borderColor = holiday ? 'border-top:3px solid #ef4444' : (!isWork ? 'border-top:3px solid #cbd5e1' : '');
@@ -2475,7 +2502,7 @@ function renderMobileMiniGrid() {
         const dayOfWeek = dateObj.getDay(); // 0=Dom, 6=Sab
         const holiday = isHoliday(iso);
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        const hasApts = appointments.some(a => a.start.startsWith(iso));
+        const hasApts = getFilteredAppointments().some(a => a.start.startsWith(iso));
         const isActive = iso === selectedISO;
         const isToday = iso === todayISO;
 
@@ -2495,7 +2522,7 @@ function renderMobileDayList() {
     cont.empty();
     
     const iso = getISO(selectedDate);
-    const dayApts = appointments.filter(a => a.start.startsWith(iso)).sort((a,b) => a.start.localeCompare(b.start));
+    const dayApts = getFilteredAppointments().filter(a => a.start.startsWith(iso)).sort((a,b) => a.start.localeCompare(b.start));
 
     if (dayApts.length === 0) {
         cont.html(`
@@ -3588,7 +3615,7 @@ function renderTable(type) {
         endRange = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     }
 
-    const filtered = appointments.filter(a => {
+    const filtered = getFilteredAppointments().filter(a => {
         const ad = new Date(a.start.split('T')[0] + 'T12:00:00');
         return ad >= startRange && ad <= endRange;
     }).sort((a,b) => a.start.localeCompare(b.start));
