@@ -771,8 +771,13 @@ sub guardar_config_agenda {
     
     my $h_ini = $q->param('h_ini') // '08:00';
     my $h_fin = $q->param('h_fin') // '18:00';
-    my $c_ini = $q->param('c_ini') // '14:00';
-    my $c_fin = $q->param('c_fin') // '16:00';
+    my $sin_comida = $q->param('sin_comida') // '0';
+    my $c_ini = $q->param('c_ini') // '';
+    my $c_fin = $q->param('c_fin') // '';
+    if ($sin_comida eq '1' || $sin_comida eq 'true' || $c_ini eq $c_fin) {
+        $c_ini = '';
+        $c_fin = '';
+    }
     my $d_hab = $q->param('dias')  // '1,2,3,4,5,6,7';
     my @norm_days = map { $_ eq '0' ? '7' : $_ } split(/,/, $d_hab);
     $d_hab = join(',', @norm_days);
@@ -810,8 +815,8 @@ sub guardar_config_agenda {
                 my $clash = 0;
                 # 1. Fuera de nuevo horario laboral
                 if ($c->{hora_ini} lt $h_ini || $c->{hora_fin} gt $h_fin) { $clash = 1; }
-                # 2. Traslape con nueva comida (si no es de todo el día)
-                if (!$clash && $c->{hora_fin} ne $h_fin) {
+                # 2. Traslape con nueva comida (si no es de todo el día y hay comida configurada)
+                if (!$clash && $c_ini && $c_fin && $c->{hora_fin} ne $h_fin) {
                     if ($c->{hora_ini} lt $c_fin && $c->{hora_fin} gt $c_ini) { $clash = 1; }
                 }
                 # 3. Día no laborable

@@ -1,0 +1,8 @@
+horario_inicio=00:00
+horario_fin=23:59
+horario_comida_inicio=14:00
+horario_comida_fin=15:00
+intervalo_minutos=30
+dias_habiles=1,2,3,4,5,6,7
+cancel_hours=24
+festivos=

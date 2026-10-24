@@ -25,10 +25,14 @@ Este documento agrupa la especificación de los módulos complementarios y espec
        - `● Horario de Sucursal`: Permite a administradores y recepcionistas configurar la apertura, cierre, comida, días de operación e inhábiles de cada sucursal/sede física (`#adj_sucursal_select`).
        - `○ Horario por Médico`: Permite configurar la disponibilidad de consulta privada del profesional seleccionado (`#adj_medico_select`).
      - Al alternar el ámbito, el modal conmuta automáticamente etiquetas, selectores y campos de captura (`cambiarAmbitoAjustes(tipo)`), cargando vía API (`api/citas_crud.pl?accion=get_config&tipo_ambito=...`) y persistiendo (`api/citas_crud.pl?accion=save_config&tipo_ambito=...`) de manera aislada e independiente.
-  4. **Normalización ISO de Días Hábiles (Domingo = 7)**:
+     - **Horario Continuo / 24 Horas sin Comida**: Incorpora el switch interactivo `#adj_sin_comida` ("Omitir horario de comida / Horario continuo"). Al activarse, los campos de inicio y fin de comida se omiten y el sistema no genera falsos bloqueos de receso, permitiendo a clínicas y hospitales con atención continua operar sin pausas institucionales, dejando las comidas al relevo interno del personal.
+  4. **Jornada Continua Completa (12:00 am a 11:59 pm / 24h) y Desahogo de Scroll**:
+     - El motor de renderizado (`renderTimeline`, `renderSlots` y `renderSmartSlots`) normaliza el rango horario a minutos continuos (`0` a `1440 min`), garantizando que la última hora del día (23:00 a 23:59) se genere y se renderice en su totalidad.
+     - Se integra un padding inferior reforzado (`padding-bottom: 4.5rem !important`) en `.dia-matrix-responsive` y un espaciador físico (`.dia-matrix-bottom-spacer` de 60px), eliminando cualquier recorte visual de la última franja horaria ocasionado por la barra horizontal o el borde de la ventana.
+  5. **Normalización ISO de Días Hábiles (Domingo = 7)**:
      - El checkbox de domingo en `#modalAjustes` utiliza el estándar canónico ISO `value="7"` (compatible con `Time::Piece->_wday` y el frontend `isWorkDay`).
      - `api/citas_crud.pl` y `js/agenda_spa_new.js` implementan tolerancia bidireccional continua (soporte de `0` y `7`), normalizando de manera transparente a `7` al persistir tanto para sucursales como para médicos.
-  5. **Filtro Inteligente de Visualización y Visibilidad Global para Administración/Recepción**:
+  6. **Filtro Inteligente de Visualización y Visibilidad Global para Administración/Recepción**:
      - Para roles administrativos (`Administrador Organizacion`, `Recepcionista`, `Asistente`), la agenda carga de manera predeterminada todas las visitas activas de la institución (`id_medico=all`). Esto impide que el ID de sesión del administrador (que no es un médico con citas propias) bloquee u oculte las visitas de la clínica.
      - En organizaciones multi-rol o multi-médico, la barra superior de herramientas integra el selector dinámico `#filtro_medico_toolbar`, permitiendo al personal de recepción o dirección alternar instantáneamente entre *"Todos los Médicos"* o un profesional específico, recargando reactivamente sus citas y su configuración horaria individual.
 - **Catálogo Canónico de Estados de Citas (`dat/catalogo_estados_citas.dat`)**:

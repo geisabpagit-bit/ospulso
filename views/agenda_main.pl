@@ -792,15 +792,23 @@ print <<HTML;
                             </div>
 
                             <!-- RECESO / COMIDA -->
-                            <div class="col-6">
+                            <div class="col-12 mt-1 mb-1">
+                                <div class="form-check form-switch p-2 ps-5 bg-white rounded-3 border shadow-2xs d-flex align-items-center">
+                                    <input class="form-check-input ms-n5 me-2" type="checkbox" role="switch" id="adj_sin_comida" onchange="toggleComidaAjustes(this.checked)">
+                                    <label class="form-check-label small fw-bold text-navy" for="adj_sin_comida" style="cursor: pointer;">
+                                        <i class="bi bi-cup-hot text-teal me-1"></i> Omitir horario de comida (Horario continuo / 24 hrs)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6" id="wrapper_adj_c_ini">
                                 <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_ini" name="c_ini" required>
+                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_ini" name="c_ini" value="14:00">
                                     <label class="text-muted fw-bold small text-uppercase">Inicio Receso / Comida</label>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" id="wrapper_adj_c_fin">
                                 <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_fin" name="c_fin" required>
+                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_fin" name="c_fin" value="15:00">
                                     <label class="text-muted fw-bold small text-uppercase">Fin Receso / Comida</label>
                                 </div>
                             </div>

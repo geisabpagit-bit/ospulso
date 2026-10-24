@@ -1389,6 +1389,8 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
     max-height: calc(100vh - 145px);
     overflow-y: auto !important;
     overflow-x: auto !important;
+    padding-bottom: 4.5rem !important;
+    scroll-behavior: smooth;
 }
 .dia-matrix-table {
     width: 100%;

@@ -219,12 +219,15 @@ function renderSmartSlots(date) {
         return;
     }
 
-    const s = parseInt(agendaConfig.laborStart?.split(':')[0] || 9);
-    const e = parseInt(agendaConfig.laborEnd?.split(':')[0] || 18);
     const lStart = agendaConfig.laborStart || '08:00';
     const lEnd = agendaConfig.laborEnd || '18:00';
     const [lsH, lsM] = lStart.split(':').map(Number);
     const [leH, leM] = lEnd.split(':').map(Number);
+    const s = lsH || 0;
+    let e = leH || 18;
+    if (e <= s || (leH === 23 && leM >= 50) || lEnd === '23:59' || lEnd === '24:00') {
+        e = 24;
+    }
     const laborTotalMin = (leH * 60 + (leM || 0)) - (lsH * 60 + (lsM || 0));
 
     const interval = parseInt(agendaConfig.intervalo_minutos) || 30;
@@ -1856,8 +1859,19 @@ function renderTimeline() {
     }
 
     // 3. PARÁMETROS HORARIOS
-    const s = parseInt(agendaConfig.laborStart?.split(':')[0] || 8);
-    const e = parseInt(agendaConfig.laborEnd?.split(':')[0] || 20);
+    const lStart = agendaConfig.laborStart || '08:00';
+    const lEnd = agendaConfig.laborEnd || '20:00';
+    const [lsH, lsM] = lStart.split(':').map(Number);
+    const [leH, leM] = lEnd.split(':').map(Number);
+    
+    let startMin = (lsH || 0) * 60 + (lsM || 0);
+    let endMin = (leH || 0) * 60 + (leM || 0);
+
+    // Si termina en 23:59, 23:55 o 24:00 (o si cubre 24 horas continuas), extender hasta 1440 min (24:00)
+    if (endMin <= startMin || (leH === 23 && leM >= 50) || lEnd === '23:59' || lEnd === '24:00') {
+        endMin = 1440;
+    }
+
     const interval = parseInt(agendaConfig.intervalo_minutos || 30);
     const holiday = isHoliday(iso);
 
@@ -1908,15 +1922,16 @@ function renderTimeline() {
     // Mapa para controlar celdas cubiertas por rowspan en filas subsecuentes
     const activeRowspans = {};
 
-    for (let h = s; h < e; h++) {
-        for (let m = 0; m < 60; m += interval) {
-            const hStr = h.toString().padStart(2, '0');
-            const mStr = m.toString().padStart(2, '0');
-            const hhmm = `${hStr}:${mStr}`;
-            const isP = !isFuture(iso, hhmm);
+    for (let curMin = startMin; curMin < endMin; curMin += interval) {
+        const h = Math.floor(curMin / 60);
+        const m = curMin % 60;
+        const hStr = h.toString().padStart(2, '0');
+        const mStr = m.toString().padStart(2, '0');
+        const hhmm = `${hStr}:${mStr}`;
+        const isP = !isFuture(iso, hhmm);
 
-            const slotStartMin = h * 60 + m;
-            const slotEndMin = slotStartMin + interval;
+        const slotStartMin = curMin;
+        const slotEndMin = slotStartMin + interval;
 
             tableHtml += `
                 <tr>
@@ -1982,12 +1997,12 @@ function renderTimeline() {
             });
 
             tableHtml += `</tr>`;
-        }
     }
 
     tableHtml += `
                     </tbody>
                 </table>
+                <div class="dia-matrix-bottom-spacer" style="height: 60px; width: 100%; pointer-events: none;"></div>
             </div>
         </div>
     `;
@@ -2808,28 +2823,40 @@ function renderSlots(date) {
     const interval = isNaN(duracionCita) ? 30 : duracionCita;
     const lStart = agendaConfig.laborStart || '09:00';
     const lEnd = agendaConfig.laborEnd || '20:00';
+    const [lsH, lsM] = lStart.split(':').map(Number);
+    const [leH, leM] = lEnd.split(':').map(Number);
+    
+    let startMin = (lsH || 0) * 60 + (lsM || 0);
+    let endMin = (leH || 0) * 60 + (leM || 0);
+    if (endMin <= startMin || (leH === 23 && leM >= 50) || lEnd === '23:59' || lEnd === '24:00') {
+        endMin = 1440;
+    }
 
     let viableRestSlots = 0;
 
-    for (let h = s; h < e; h++) {
-        for (let m = 0; m < 60; m += interval) {
-            const hh = h.toString().padStart(2,'0'); 
-            const mm = m.toString().padStart(2,'0');
-            const hhmm = `${hh}:${mm}`;
-            
-            let hhmmE;
-            if (duracionCita === 'rest') {
-                hhmmE = lEnd;
-            } else {
-                let tM = h * 60 + m + interval; 
-                const hE = Math.floor(tM / 60).toString().padStart(2,'0'); 
-                const mE = (tM % 60).toString().padStart(2,'0'); 
-                hhmmE = `${hE}:${mE}`;
-            }
-            
-            // Verificamos si el slot está en el pasado
-            const isP = !isFuture(date, hhmm);
-            let isL = (hhmm < le && hhmmE > ls);
+    for (let curMin = startMin; curMin < endMin; curMin += interval) {
+        const h = Math.floor(curMin / 60);
+        const m = curMin % 60;
+        const hh = h.toString().padStart(2,'0'); 
+        const mm = m.toString().padStart(2,'0');
+        const hhmm = `${hh}:${mm}`;
+        
+        let hhmmE;
+        if (duracionCita === 'rest') {
+            hhmmE = (endMin === 1440) ? '23:59' : lEnd;
+        } else {
+            let tM = curMin + interval; 
+            const hE = Math.floor(tM / 60).toString().padStart(2,'0'); 
+            const mE = (tM % 60).toString().padStart(2,'0'); 
+            hhmmE = (tM >= 1440) ? '23:59' : `${hE}:${mE}`;
+        }
+        
+        // Verificamos si el slot está en el pasado
+        const isP = !isFuture(date, hhmm);
+        let isL = false;
+        if (ls && le && ls !== le) {
+            isL = (hhmm < le && hhmmE > ls);
+        }
             
             // Detección de Colisión Reforzada y captura de la cita en conflicto
             let isB = false;
@@ -2897,7 +2924,6 @@ function renderSlots(date) {
             }
 
             cont.append(btn);
-        }
     }
 
     // Si en 'rest' no hubo ningún slot viable en todo el día, anteponer banner explicativo
@@ -3600,6 +3626,18 @@ function cambiarAmbitoAjustes(tipo) {
     }
 }
 
+function toggleComidaAjustes(sinComida) {
+    if (sinComida) {
+        $("#wrapper_adj_c_ini, #wrapper_adj_c_fin").addClass('opacity-50');
+        $("#adj_c_ini, #adj_c_fin").prop('disabled', true);
+    } else {
+        $("#wrapper_adj_c_ini, #wrapper_adj_c_fin").removeClass('opacity-50');
+        $("#adj_c_ini, #adj_c_fin").prop('disabled', false);
+        if (!$("#adj_c_ini").val()) $("#adj_c_ini").val('14:00');
+        if (!$("#adj_c_fin").val()) $("#adj_c_fin").val('15:00');
+    }
+}
+
 function cargarAjustesSucursal(idSuc) {
     if (!idSuc) {
         idSuc = $("#adj_sucursal_select").val() || $("#f_sucursal").val() || '1';
@@ -3609,8 +3647,15 @@ function cargarAjustesSucursal(idSuc) {
             const cfg = res.config;
             $("#adj_h_ini").val(cfg.laborStart || '07:00');
             $("#adj_h_fin").val(cfg.laborEnd || '21:00');
-            $("#adj_c_ini").val(cfg.lunchStart || '14:00');
-            $("#adj_c_fin").val(cfg.lunchEnd || '15:00');
+
+            const sinComida = (!cfg.lunchStart || !cfg.lunchEnd || cfg.lunchStart === cfg.lunchEnd || (cfg.lunchStart === '00:00' && cfg.lunchEnd === '00:00'));
+            $("#adj_sin_comida").prop('checked', sinComida);
+            toggleComidaAjustes(sinComida);
+            if (!sinComida) {
+                $("#adj_c_ini").val(cfg.lunchStart || '14:00');
+                $("#adj_c_fin").val(cfg.lunchEnd || '15:00');
+            }
+
             $("#adj_int").val(cfg.intervalo_minutos || '30');
             $("#adj_cancel_hours").val(cfg.cancel_hours || '24');
             $("#adj_fest").val(cfg.festivos_medico || '');
@@ -3635,8 +3680,15 @@ function cargarAjustesMedico(idMed) {
             const cfg = res.config;
             $("#adj_h_ini").val(cfg.laborStart || '08:00');
             $("#adj_h_fin").val(cfg.laborEnd || '18:00');
-            $("#adj_c_ini").val(cfg.lunchStart || '14:00');
-            $("#adj_c_fin").val(cfg.lunchEnd || '16:00');
+
+            const sinComida = (!cfg.lunchStart || !cfg.lunchEnd || cfg.lunchStart === cfg.lunchEnd || (cfg.lunchStart === '00:00' && cfg.lunchEnd === '00:00'));
+            $("#adj_sin_comida").prop('checked', sinComida);
+            toggleComidaAjustes(sinComida);
+            if (!sinComida) {
+                $("#adj_c_ini").val(cfg.lunchStart || '14:00');
+                $("#adj_c_fin").val(cfg.lunchEnd || '16:00');
+            }
+
             $("#adj_int").val(cfg.intervalo_minutos || '30');
             $("#adj_cancel_hours").val(cfg.cancel_hours || '24');
             $("#adj_fest").val(cfg.festivos_medico || '');
@@ -3689,14 +3741,19 @@ function guardarAjustes() {
     const tipoAmbito = $('input[name="adj_tipo_ambito"]:checked').val() || 'sucursal';
     const dias = [];
     $(".adj-dia:checked").each(function() { dias.push($(this).val()); });
+
+    const sinComida = $("#adj_sin_comida").is(':checked');
+    const c_ini = sinComida ? '' : $("#adj_c_ini").val();
+    const c_fin = sinComida ? '' : $("#adj_c_fin").val();
     
     const data = {
         accion: 'save_config',
         tipo_ambito: tipoAmbito,
         h_ini: $("#adj_h_ini").val(),
         h_fin: $("#adj_h_fin").val(),
-        c_ini: $("#adj_c_ini").val(),
-        c_fin: $("#adj_c_fin").val(),
+        sin_comida: sinComida ? 1 : 0,
+        c_ini: c_ini,
+        c_fin: c_fin,
         int: $("#adj_int").val(),
         festivos: $("#adj_fest").val(),
         dias: dias.join(',')
@@ -3751,6 +3808,7 @@ window.cargarAjustesSucursal = cargarAjustesSucursal;
 window.cargarAjustesMedico = cargarAjustesMedico;
 window.abrirModalAjustes = abrirModalAjustes;
 window.guardarAjustes = guardarAjustes;
+window.toggleComidaAjustes = toggleComidaAjustes;
 
 // [SDM FIX] DOM Teleportation Protocol para evadir secuestros de z-index en moviles
 document.addEventListener('DOMContentLoaded', function() {
