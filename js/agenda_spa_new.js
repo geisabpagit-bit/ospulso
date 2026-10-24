@@ -4006,32 +4006,37 @@ window.toggleComidaAjustes = toggleComidaAjustes;
 // MÓDULO DE RESUMEN E IMPRESIÓN DE AGENDA
 // ==========================================
 window.abrirModalImpresionAgenda = function() {
-    // 1. Determinar rango de fechas de la vista activa
-    let fechaInicio = currentDate;
-    let fechaFin = currentDate;
-    let periodoLabel = `Día: ${currentDate}`;
+    // 1. Determinar fecha activa base y rango de fechas de la vista activa
+    const activeDateObj = (selectedDate instanceof Date && !isNaN(selectedDate)) ? new Date(selectedDate) : new Date();
+    activeDateObj.setHours(12, 0, 0, 0);
+    const currIso = (typeof getISO === 'function') ? getISO(activeDateObj) : activeDateObj.toISOString().split('T')[0];
 
-    if (currentView === 'semana') {
-        const curr = new Date(currentDate + 'T00:00:00');
-        const dayOfWeek = curr.getDay(); // 0 domingo, 1 lunes
+    let fechaInicio = currIso;
+    let fechaFin = currIso;
+    let periodoLabel = `Día: ${activeDateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+
+    if (currentView === 'semana' || currentView === 'semana_smart') {
+        const dayOfWeek = activeDateObj.getDay(); // 0 domingo, 1 lunes
         const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        const monday = new Date(curr);
-        monday.setDate(curr.getDate() + diffToMonday);
+        const monday = new Date(activeDateObj);
+        monday.setDate(activeDateObj.getDate() + diffToMonday);
         const sunday = new Date(monday);
         sunday.setDate(monday.getDate() + 6);
 
-        fechaInicio = getISO(monday);
-        fechaFin = getISO(sunday);
-        periodoLabel = `Semana: ${fechaInicio} al ${fechaFin}`;
-    } else if (currentView === 'calendario') {
-        const [y, m] = currentDate.split('-').map(Number);
-        const primerDia = new Date(y, m - 1, 1);
-        const ultimoDia = new Date(y, m, 0);
+        fechaInicio = (typeof getISO === 'function') ? getISO(monday) : monday.toISOString().split('T')[0];
+        fechaFin = (typeof getISO === 'function') ? getISO(sunday) : sunday.toISOString().split('T')[0];
+        const startStr = monday.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        const endStr = sunday.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+        periodoLabel = `Semana: ${startStr} al ${endStr}`.replace(/\./g, '');
+    } else if (currentView === 'calendario' || currentView === 'mes') {
+        const y = activeDateObj.getFullYear();
+        const m = activeDateObj.getMonth();
+        const primerDia = new Date(y, m, 1);
+        const ultimoDia = new Date(y, m + 1, 0);
 
-        fechaInicio = getISO(primerDia);
-        fechaFin = getISO(ultimoDia);
-        const mesesNombres = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        periodoLabel = `Mes: ${mesesNombres[m - 1]} ${y}`;
+        fechaInicio = (typeof getISO === 'function') ? getISO(primerDia) : primerDia.toISOString().split('T')[0];
+        fechaFin = (typeof getISO === 'function') ? getISO(ultimoDia) : ultimoDia.toISOString().split('T')[0];
+        periodoLabel = `Mes: ${activeDateObj.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
     }
 
     // 2. Obtener citas aplicando los filtros activos (médicos y espacios)
