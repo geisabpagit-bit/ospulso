@@ -629,7 +629,9 @@ Cada vez que un desarrollador o agente realice una modificación a la Agenda, Ex
 - [x] Organización visual y jerárquica de la barra de herramientas de la agenda: Bloque izquierdo (tiempo: `HOY` + navegación de fecha, modos de vista y reportes) y Bloque derecho (filtros operativos de Médicos y Espacios Físicos, toggle minicalendario, leyenda de estados y ajustes).
 - [x] Eliminación de cortes del menú y margen superior negativo (`margin-top: 0 !important;` en `.main-container-agenda`, `padding-top: 0.85rem;` en `.sdm-content` y `padding-bottom: 90px;` en `.sidebar-menu`) otorgando holgura y visibilidad completa al topbar y breadcrumb.
 - [x] Cabeceras de columnas en la matriz diaria apiladas verticalmente con alto contraste (títulos prominentes en Navy `#0A2A66` y badges temáticos de alto contraste `#007A78`/`#E6FFFA` para Consultorios y `#6D28D9`/`#F3E8FF` para Quirófanos) con ancho mínimo garantizado de 140px para desplazamiento horizontal fluido.
+- [x] Selector multi-check de Espacios Físicos con dropdown interactivo (`#wrapper_filtro_recurso_toolbar`, `#btn_filtro_recurso_dropdown`, `.chk-recurso-item`) que permite marcar/desmarcar consultorios y quirófanos individuales o en masa (`Marcar todos` / `Desmarcar`), filtrando reactivamente las columnas visibles en la matriz de la jornada con contador dinámico en tiempo real y estado vacío amigable.
 - [x] Documentación registrada en la Capa 1 y 4 (`docs/01_architecture/` y `docs/04_standards_and_ops/`) y enlazada canónicamente.
+
 
 
 

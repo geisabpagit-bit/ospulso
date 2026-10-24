@@ -1016,29 +1016,55 @@ function goDay(iso) {
     switchView('dia');
 }
 
-// --- ESTADO Y CONTROLADORES DE LA VISTA DE DÍA MATRICIAL (ESPACIOS FÍSICOS) ---
-window.diaFilterActive = window.diaFilterActive || 'all';
+// --- ESTADO Y CONTROLADORES DE LA VISTA DE DÍA MATRICIAL (ESPACIOS FÍSICOS MULTI-CHECK) ---
+window.recursosChecked = null; // null = todos seleccionados por defecto; Array de IDs cuando el usuario filtra
+window.todosLosRecursosIds = [];
 
-window.filtrarAgendaPorRecurso = function(val) {
-    window.diaFilterActive = val || 'all';
-    const sel = $('#filtro_recurso_toolbar');
-    if (sel.length && sel.val() !== window.diaFilterActive) {
-        sel.val(window.diaFilterActive);
+window.seleccionarTodosEspacios = function(marcar) {
+    $('.chk-recurso-item').prop('checked', !!marcar);
+    if (marcar) {
+        window.recursosChecked = [...window.todosLosRecursosIds];
+    } else {
+        window.recursosChecked = [];
     }
+    window.actualizarLabelFiltroRecursos();
     renderTimeline();
 };
 
-window.poblarFiltroRecursosToolbar = function(data) {
-    const sel = $('#filtro_recurso_toolbar');
-    if (!sel.length) return;
-    const curVal = window.diaFilterActive || sel.val() || 'all';
+window.onRecursoCheckChange = function() {
+    const marcados = [];
+    $('.chk-recurso-item:checked').each(function() {
+        marcados.push($(this).val());
+    });
+    window.recursosChecked = marcados;
+    window.actualizarLabelFiltroRecursos();
+    renderTimeline();
+};
 
-    let html = '<option value="all">🏢 Todos los Espacios Físicos</option>';
-    
-    // Regla Canónica de Sucursal:
-    // Si data.es_unica es verdadero o sólo hay 1 sucursal, no se anida nombre de sucursal
+window.actualizarLabelFiltroRecursos = function() {
+    const total = window.todosLosRecursosIds.length;
+    const marcados = (window.recursosChecked !== null) ? window.recursosChecked.length : total;
+    const labelSpan = $('#filtro_recurso_btn_label');
+    if (!labelSpan.length) return;
+
+    if (marcados === total && total > 0) {
+        labelSpan.html('<i class="bi bi-door-open-fill text-teal"></i> <span class="text-truncate">Todos los Espacios (' + total + ')</span>');
+    } else if (marcados === 0) {
+        labelSpan.html('<i class="bi bi-dash-circle text-danger"></i> <span class="text-truncate">Sin Espacios (0/' + total + ')</span>');
+    } else {
+        labelSpan.html('<i class="bi bi-funnel-fill text-teal"></i> <span class="text-truncate">Espacios (' + marcados + '/' + total + ')</span>');
+    }
+};
+
+window.poblarFiltroRecursosToolbar = function(data) {
+    const listContainer = $('#lista_checkboxes_recursos');
+    if (!listContainer.length) return;
+
     const esUnica = (data && (data.es_unica === 1 || data.es_unica === true || data.es_unica === "1")) || 
                     (!data || !data.sucursales || data.sucursales.length <= 1);
+
+    const allIds = [];
+    let html = '';
 
     if (esUnica) {
         let numCons = (data && data.consultorios) ? parseInt(data.consultorios) : 0;
@@ -1049,45 +1075,81 @@ window.poblarFiltroRecursosToolbar = function(data) {
         }
         numCons = Math.max(1, numCons);
 
-        html += '<optgroup label="Consultorios">';
+        html += '<div class="px-2 pt-1 pb-0.5 text-muted fw-bold text-uppercase" style="font-size:0.65rem; letter-spacing:0.5px;">Consultorios</div>';
         for (let i = 1; i <= numCons; i++) {
-            html += `<option value="consultorio_${i}">Consultorio ${i}</option>`;
+            const idVal = `consultorio_${i}`;
+            allIds.push(idVal);
+            html += `
+                <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5">
+                    <input type="checkbox" class="form-check-input mt-0 chk-recurso-item" value="${idVal}" onchange="window.onRecursoCheckChange()">
+                    <i class="bi bi-door-closed-fill text-teal" style="font-size:0.95rem;"></i>
+                    <span class="fw-semibold text-navy small">Consultorio ${i}</span>
+                </label>
+            `;
         }
-        html += '</optgroup>';
 
         if (numQx > 0) {
-            html += '<optgroup label="Quirófanos">';
+            html += '<div class="px-2 pt-2 pb-0.5 text-muted fw-bold text-uppercase border-top mt-1" style="font-size:0.65rem; letter-spacing:0.5px;">Quirófanos</div>';
             for (let i = 1; i <= numQx; i++) {
-                html += `<option value="quirofano_${i}">Quirófano ${i}</option>`;
+                const idVal = `quirofano_${i}`;
+                allIds.push(idVal);
+                html += `
+                    <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5">
+                        <input type="checkbox" class="form-check-input mt-0 chk-recurso-item" value="${idVal}" onchange="window.onRecursoCheckChange()">
+                        <i class="bi bi-scissors" style="font-size:0.95rem; color:#7C3AED;"></i>
+                        <span class="fw-semibold text-navy small">Quirófano ${i}</span>
+                    </label>
+                `;
             }
-            html += '</optgroup>';
         }
     } else {
         // Múltiples sucursales: Agrupadas por Sucursal [nombre_sucursal]
-        data.sucursales.forEach(s => {
+        data.sucursales.forEach((s, idx) => {
             const sId = s.id;
             const sNom = s.nombre || `Sucursal ${sId}`;
             const numCons = parseInt(s.consultorios) || 1;
             const numQx = parseInt(s.quirofanos) || 0;
+            const borderTop = idx > 0 ? 'border-top mt-1.5 pt-1.5' : 'pt-1';
 
-            html += `<optgroup label="Sucursal: ${sNom}">`;
+            html += `<div class="px-2 pb-0.5 text-navy fw-black text-uppercase ${borderTop}" style="font-size:0.68rem; letter-spacing:0.5px;">🏢 ${sNom}</div>`;
             for (let i = 1; i <= numCons; i++) {
-                html += `<option value="suc_${sId}_consultorio_${i}">Consultorio ${i}</option>`;
+                const idVal = `suc_${sId}_consultorio_${i}`;
+                allIds.push(idVal);
+                html += `
+                    <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5">
+                        <input type="checkbox" class="form-check-input mt-0 chk-recurso-item" value="${idVal}" onchange="window.onRecursoCheckChange()">
+                        <i class="bi bi-door-closed-fill text-teal" style="font-size:0.95rem;"></i>
+                        <span class="fw-semibold text-navy small">Consultorio ${i}</span>
+                    </label>
+                `;
             }
             for (let i = 1; i <= numQx; i++) {
-                html += `<option value="suc_${sId}_quirofano_${i}">Quirófano ${i}</option>`;
+                const idVal = `suc_${sId}_quirofano_${i}`;
+                allIds.push(idVal);
+                html += `
+                    <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5">
+                        <input type="checkbox" class="form-check-input mt-0 chk-recurso-item" value="${idVal}" onchange="window.onRecursoCheckChange()">
+                        <i class="bi bi-scissors" style="font-size:0.95rem; color:#7C3AED;"></i>
+                        <span class="fw-semibold text-navy small">Quirófano ${i}</span>
+                    </label>
+                `;
             }
-            html += `</optgroup>`;
         });
     }
 
-    sel.html(html);
-    if (curVal && sel.find(`option[value="${curVal}"]`).length) {
-        sel.val(curVal);
-    } else {
-        sel.val('all');
-        window.diaFilterActive = 'all';
+    listContainer.html(html);
+    window.todosLosRecursosIds = allIds;
+
+    // Sincronizar estado de selección de checkboxes
+    if (window.recursosChecked === null) {
+        window.recursosChecked = [...allIds];
     }
+    $('.chk-recurso-item').each(function() {
+        const val = $(this).val();
+        $(this).prop('checked', window.recursosChecked.includes(val));
+    });
+
+    window.actualizarLabelFiltroRecursos();
 };
 
 window.toggleSideCalendar = function() {
@@ -1645,16 +1707,38 @@ function renderTimeline() {
     });
 
     // Sincronizar el selector superior de recursos si está vacío
-    if ($('#filtro_recurso_toolbar option').length <= 1) {
+    if ($('#lista_checkboxes_recursos .chk-recurso-item').length === 0) {
         window.poblarFiltroRecursosToolbar(recData);
     }
 
-    // 2. APLICAR FILTRO DEL SELECTOR SUPERIOR DE RECURSOS
-    const activeRec = window.diaFilterActive || $('#filtro_recurso_toolbar').val() || 'all';
-    const visibleColumns = (activeRec === 'all') 
-        ? columns 
-        : columns.filter(c => c.id === activeRec);
-    const colsToRender = visibleColumns.length > 0 ? visibleColumns : columns;
+    // 2. APLICAR FILTRO MULTI-CHECK DE ESPACIOS FÍSICOS
+    let colsToRender = columns;
+    if (Array.isArray(window.recursosChecked)) {
+        if (window.recursosChecked.length === 0) {
+            colsToRender = []; // Ningún espacio marcado
+        } else if (window.recursosChecked.length < columns.length) {
+            colsToRender = columns.filter(c => window.recursosChecked.includes(c.id));
+        }
+    }
+
+    // Si el usuario desmarcó todos los espacios, mostrar estado vacío amigable
+    if (colsToRender.length === 0) {
+        $('#timeline-container').html(`
+            <div class="dia-matrix-card card shadow-sm border-0 rounded-4 overflow-hidden animate__animated animate__fadeIn p-5 d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 420px; background-color:#ffffff;">
+                <div class="mb-3 p-3 rounded-circle bg-light d-inline-flex align-items-center justify-content-center" style="width: 76px; height: 76px;">
+                    <i class="bi bi-funnel text-teal" style="font-size: 2.2rem;"></i>
+                </div>
+                <h5 class="fw-black text-navy mb-1.5">No hay espacios físicos seleccionados</h5>
+                <p class="text-secondary small mb-3.5" style="max-width: 400px; font-size: 0.85rem;">
+                    Has desmarcado todos los consultorios y quirófanos. Haz clic en el selector de <strong>Espacios Físicos</strong> arriba para marcar los que deseas visualizar en la agenda.
+                </p>
+                <button type="button" class="btn btn-teal text-white fw-bold btn-sm rounded-3 px-3.5 py-2 shadow-sm" onclick="window.seleccionarTodosEspacios(true)">
+                    <i class="bi bi-check2-all me-1.5"></i> Mostrar todos los espacios
+                </button>
+            </div>
+        `);
+        return;
+    }
 
     // 3. PARÁMETROS HORARIOS
     const s = parseInt(agendaConfig.laborStart?.split(':')[0] || 8);

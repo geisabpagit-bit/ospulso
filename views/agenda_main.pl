@@ -208,11 +208,36 @@ print <<HTML;
                         <!-- Filtro Médicos -->
                         $html_filtro_medicos_toolbar
 
-                        <!-- Filtro Espacios Físicos -->
-                        <div class="d-none d-lg-block" id="wrapper_filtro_recurso_toolbar">
-                            <select id="filtro_recurso_toolbar" class="form-select form-select-sm shadow-sm border bg-white rounded-3 fw-bold text-navy" style="height:42px; font-size:0.80rem; min-width: 180px; max-width: 230px;" onchange="filtrarAgendaPorRecurso(this.value)" title="Filtrar por Consultorio o Quirófano">
-                                <option value="all">🚪 Todos los Espacios</option>
-                            </select>
+                        <!-- Filtro Espacios Físicos (Selector Multi-Check con Checkboxes) -->
+                        <div class="d-none d-lg-block dropdown" id="wrapper_filtro_recurso_toolbar">
+                            <button class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-flex align-items-center justify-content-between px-3 text-navy dropdown-toggle" 
+                                    type="button" 
+                                    id="btn_filtro_recurso_dropdown" 
+                                    data-bs-toggle="dropdown" 
+                                    data-bs-auto-close="outside" 
+                                    aria-expanded="false" 
+                                    style="height:42px; font-size:0.80rem; min-width: 190px; max-width: 250px;" 
+                                    title="Filtrar por Consultorios y Quirófanos">
+                                <span class="d-flex align-items-center gap-1.5 text-truncate" id="filtro_recurso_btn_label">
+                                    <i class="bi bi-door-open-fill text-teal"></i>
+                                    <span class="text-truncate">Todos los Espacios</span>
+                                </span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_recurso_menu" aria-labelledby="btn_filtro_recurso_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 105200;">
+                                <!-- Encabezado de Acciones Rápidas -->
+                                <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom mb-2">
+                                    <span class="fw-black text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px;">Espacios Físicos</span>
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <button type="button" class="btn btn-link btn-sm p-0 text-primary fw-bold text-decoration-none" onclick="window.seleccionarTodosEspacios(true)" style="font-size:0.72rem;">Marcar todos</button>
+                                        <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
+                                        <button type="button" class="btn btn-link btn-sm p-0 text-secondary fw-semibold text-decoration-none" onclick="window.seleccionarTodosEspacios(false)" style="font-size:0.72rem;">Desmarcar</button>
+                                    </div>
+                                </div>
+                                <!-- Lista de Checkboxes Dinámica -->
+                                <div id="lista_checkboxes_recursos" class="d-flex flex-column gap-1">
+                                    <div class="text-center py-2 text-muted small">Cargando espacios...</div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Toggle Mini Calendario Lateral -->

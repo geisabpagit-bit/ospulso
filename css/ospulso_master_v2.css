@@ -1490,9 +1490,39 @@ body.agenda-page-layout:not(.agenda-view-dia-active) .agenda-view-container {
     border-color: var(--md-teal-clinical, #19B7A5) !important;
     color: #ffffff !important;
 }
-#filtro_recurso_toolbar {
+
+/* --- DROPDOWN MULTI-CHECK DE ESPACIOS FÍSICOS --- */
+#btn_filtro_recurso_dropdown {
     border-color: #cbd5e1 !important;
     color: #0A2A66 !important;
+    transition: all 0.2s ease;
+}
+#btn_filtro_recurso_dropdown:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+}
+#dropdown_filtro_recurso_menu .dropdown-item {
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+}
+#dropdown_filtro_recurso_menu .dropdown-item:hover {
+    background-color: #f1f5f9 !important;
+}
+#dropdown_filtro_recurso_menu .form-check-input {
+    width: 1.05rem;
+    height: 1.05rem;
+    cursor: pointer;
+}
+#dropdown_filtro_recurso_menu .form-check-input:checked {
+    background-color: var(--md-teal-clinical, #19B7A5);
+    border-color: var(--md-teal-clinical, #19B7A5);
+}
+#dropdown_filtro_recurso_menu::-webkit-scrollbar {
+    width: 5px;
+}
+#dropdown_filtro_recurso_menu::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
 }
 #filtro_recurso_toolbar:focus {
     border-color: var(--md-teal-clinical, #19B7A5) !important;
