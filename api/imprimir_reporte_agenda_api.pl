@@ -6,6 +6,7 @@ use utf8;
 use open qw(:std :utf8);
 use CGI;
 use JSON qw(decode_json encode_json);
+use MIME::Base64 qw(encode_base64);
 use FindBin;
 use File::Spec;
 use lib "$FindBin::Bin/..";
@@ -49,8 +50,31 @@ my ($y, $m, $d) = split(/-/, $fecha);
 my $my_org = $session_data->{id_empresa} // '0';
 $my_org = '0' if $my_org eq '';
 
-# 2. Obtener Nombre de la Clínica desde negocios.dat
+# Función canónica de normalización de espacios (Idéntica a normalizarTextoEspacio en JS)
+sub normalizar_espacio_perl {
+    my ($str) = @_;
+    return '' unless defined $str;
+    $str = lc($str);
+    $str =~ s/[áàäâ]/a/g;
+    $str =~ s/[éèëê]/e/g;
+    $str =~ s/[íìïî]/i/g;
+    $str =~ s/[óòöô]/o/g;
+    $str =~ s/[úùüû]/u/g;
+    $str =~ s/ñ/n/g;
+    $str =~ s/[^a-z0-9]/ /g;
+    $str =~ s/\bquirofanos?\b/qx/g;
+    $str =~ s/\bconsultorios?\b/cons/g;
+    $str =~ s/\s+/ /g;
+    $str =~ s/^\s+|\s+$//g;
+    return $str;
+}
+
+# 2. Obtener Datos de la Clínica desde negocios.dat (nombre, logo, clues, jerarquía matriz)
 my $nombre_clinica = "Clínica Médica de Especialidades";
+my $clues_clinica = "";
+my $logo_url_clinica = "";
+my %id_matriz_map;
+
 my $neg_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
 if (-e $neg_file && open my $fhn, '<:encoding(UTF-8)', $neg_file) {
     my $cnt = 0;
@@ -59,12 +83,51 @@ if (-e $neg_file && open my $fhn, '<:encoding(UTF-8)', $neg_file) {
         $line =~ s/\R//g;
         next if $cnt == 1 || $line =~ /^\s*$/;
         my @f = split(/\|/, $line);
-        if ($f[0] eq $my_org && $f[1]) {
-            $nombre_clinica = $f[1];
-            last;
+        my $neg_id = $f[0] // '';
+        my $id_mat = $f[2] // '0';
+        $id_matriz_map{$neg_id} = $id_mat if $neg_id;
+        
+        if ($neg_id eq $my_org || ($my_org ne '0' && ($id_mat eq $my_org || $neg_id eq '723800'))) {
+            $nombre_clinica = $f[1] if $f[1] && ($nombre_clinica eq "Clínica Médica de Especialidades" || $neg_id eq $my_org);
+            $clues_clinica = $f[18] if scalar(@f) > 18 && $f[18] && $f[18] ne 'No aplica';
+            $logo_url_clinica = $f[9] if scalar(@f) > 9 && $f[9] && $f[9] ne 'No aplica';
         }
     }
     close $fhn;
+}
+
+# Resolver Logo Oficial con incrustación Base64 Anti-Bloqueo (.htaccess)
+my $logo_img_html = '';
+my $logo_path = '';
+
+if ($clues_clinica) {
+    my $p1 = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'logos', "logo_${clues_clinica}.jpg");
+    my $p2 = File::Spec->catfile($FindBin::Bin, '..', 'img', 'logos', "logo_${clues_clinica}.jpg");
+    if (-e $p1) { $logo_path = $p1; }
+    elsif (-e $p2) { $logo_path = $p2; }
+}
+if (!$logo_path && -e File::Spec->catfile($FindBin::Bin, '..', 'dat', 'logos', "logo_QTSMP000116.jpg")) {
+    $logo_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'logos', "logo_QTSMP000116.jpg");
+}
+if (!$logo_path && $my_org ne '0') {
+    my $p3 = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'logos', "logo_${my_org}.jpg");
+    my $p4 = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'logos', "logo_${my_org}.png");
+    if (-e $p3) { $logo_path = $p3; }
+    elsif (-e $p4) { $logo_path = $p4; }
+}
+if (!$logo_path && $logo_url_clinica && $logo_url_clinica ne 'No aplica') {
+    my $p5 = File::Spec->catfile($FindBin::Bin, '..', $logo_url_clinica);
+    $logo_path = $p5 if -e $p5;
+}
+
+if ($logo_path && -e $logo_path && open(my $lfh, '<:raw', $logo_path)) {
+    my $raw_img = do { local $/; <$lfh> };
+    close $lfh;
+    my $b64_img = encode_base64($raw_img, '');
+    my $mime = ($logo_path =~ /\.png$/i) ? 'image/png' : 'image/jpeg';
+    $logo_img_html = qq{<img src="data:$mime;base64,$b64_img" alt="Logo Institucional" style="max-height: 48px; max-width: 140px; object-fit: contain;">};
+} else {
+    $logo_img_html = qq{<img src="../favicon/favicon.svg" alt="OSPulso Logo" style="width: 44px; height: 44px; object-fit: contain;">};
 }
 
 # 3. Precargar Médicos desde usuarios.dat
@@ -127,7 +190,6 @@ if ($tipo eq 'semana') {
 } elsif ($tipo eq 'mes') {
     $titulo_doc = "REPORTE MENSUAL DE CITAS MÉDICAS";
     $f_inicio = sprintf("%04d-%02d-01", $y, $m);
-    # Último día de mes
     my $ts_prox = ($m == 12) ? timelocal(0, 0, 12, 1, 0, $y + 1) : timelocal(0, 0, 12, 1, $m, $y);
     my $ts_ult = $ts_prox - 86400;
     my @u = localtime($ts_ult);
@@ -137,7 +199,7 @@ if ($tipo eq 'semana') {
 
 # 6. Parsear filtros de médicos y recursos
 my %meds_filter;
-if ($medicos_param ne 'all' && $medicos_param ne '') {
+if ($medicos_param ne 'all' && $medicos_param ne '' && $medicos_param ne 'none') {
     foreach my $id (split(/,/, $medicos_param)) {
         $id =~ s/^\s+|\s+$//g;
         $meds_filter{$id} = 1 if $id ne '';
@@ -145,7 +207,7 @@ if ($medicos_param ne 'all' && $medicos_param ne '') {
 }
 
 my %recs_filter;
-if ($recursos_param ne 'all' && $recursos_param ne '') {
+if ($recursos_param ne 'all' && $recursos_param ne '' && $recursos_param ne 'none') {
     foreach my $r (split(/,/, $recursos_param)) {
         $r =~ s/^\s+|\s+$//g;
         $recs_filter{lc($r)} = 1 if $r ne '';
@@ -183,9 +245,19 @@ if (-e $citas_file && open my $fhc, '<:encoding(UTF-8)', $citas_file) {
 
         next if $estado =~ /^Cancelada$/i;
 
-        # Filtro de empresa / organización
-        if ($my_org ne '0' && $id_neg ne '' && $id_neg ne '0' && $id_neg ne $my_org) {
-            next;
+        # Filtro de empresa / organización con tolerancia a matriz y sucursales
+        if ($my_org ne '0' && $my_org ne '') {
+            my $match_org = 0;
+            if ($id_neg eq '' || $id_neg eq '0' || $id_neg eq $my_org) {
+                $match_org = 1;
+            } elsif ($suc ne '' && $suc eq $my_org) {
+                $match_org = 1;
+            } elsif ($id_matriz_map{$suc} && $id_matriz_map{$suc} eq $my_org) {
+                $match_org = 1;
+            } elsif ($id_matriz_map{$my_org} && ($id_matriz_map{$my_org} eq $id_neg || $id_matriz_map{$my_org} eq $suc)) {
+                $match_org = 1;
+            }
+            next unless $match_org;
         }
 
         # Filtro de rango de fecha
@@ -196,22 +268,28 @@ if (-e $citas_file && open my $fhc, '<:encoding(UTF-8)', $citas_file) {
             next unless $meds_filter{$id_m};
         }
 
-        # Filtro de recursos / espacios
+        # Filtro de recursos / espacios físico robusto
         if (%recs_filter) {
-            my $norm_esp = lc($espacio);
-            $norm_esp =~ s/[^a-z0-9]/ /g;
-            $norm_esp =~ s/\s+/ /g;
-            $norm_esp =~ s/^\s+|\s+$//g;
-            
+            my $norm_esp = normalizar_espacio_perl($espacio);
             my $match_rec = 0;
             foreach my $rf (keys %recs_filter) {
-                my $norm_rf = $rf;
-                $norm_rf =~ s/[^a-z0-9]/ /g;
-                $norm_rf =~ s/\s+/ /g;
-                $norm_rf =~ s/^\s+|\s+$//g;
-                if ($norm_esp =~ /\Q$norm_rf\E/ || $norm_rf =~ /\Q$norm_esp\E/) {
-                    $match_rec = 1;
-                    last;
+                if ($rf =~ /^suc_(\d+)_(.+)$/i) {
+                    my $rf_suc = $1;
+                    my $rf_sub = $2;
+                    if ($suc ne '' && $suc ne '0' && $suc ne $rf_suc) {
+                        next;
+                    }
+                    my $norm_sub = normalizar_espacio_perl($rf_sub);
+                    if ($norm_esp eq $norm_sub || index($norm_esp, $norm_sub) != -1 || index($norm_sub, $norm_esp) != -1) {
+                        $match_rec = 1;
+                        last;
+                    }
+                } else {
+                    my $norm_rf = normalizar_espacio_perl($rf);
+                    if ($norm_esp eq $norm_rf || index($norm_esp, $norm_rf) != -1 || index($norm_rf, $norm_esp) != -1) {
+                        $match_rec = 1;
+                        last;
+                    }
                 }
             }
             next unless $match_rec;
@@ -263,7 +341,7 @@ print <<HTML;
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>$titulo_doc | OsPulso Diamond</title>
+    <title>$titulo_doc | OsPulso</title>
 
     <!-- OSPulso Brand Identity (Favicons) -->
     <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
@@ -394,8 +472,8 @@ print <<HTML;
         <!-- Encabezado Institucional -->
         <div class="header-brand d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">
-                <div class="d-flex align-items-center justify-content-center rounded-3 text-white shadow-sm" style="width: 50px; height: 50px; background-color: var(--md-blue-deep);">
-                    <i class="bi bi-hospital fs-3 text-white"></i>
+                <div class="d-flex align-items-center justify-content-center rounded-3 bg-white border shadow-xs p-1" style="min-width: 54px; height: 54px;">
+                    $logo_img_html
                 </div>
                 <div>
                     <h3 class="fw-black m-0" style="color: var(--md-blue-deep); font-size: 1.35rem; letter-spacing: 0.5px;">$nombre_clinica</h3>
@@ -406,15 +484,14 @@ print <<HTML;
             <div class="text-end">
                 <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-1 fw-bold small d-inline-block mb-1" style="font-size: 0.76rem;">$folio_reporte</span>
                 <div class="text-muted small" style="font-size: 0.75rem;">Emisión: $fecha_emision</div>
-                <div class="text-muted small" style="font-size: 0.70rem;">Plataforma Clínica OSPulso Diamond</div>
             </div>
         </div>
 
         <!-- Píldoras de Filtros Activos -->
         <div class="d-flex flex-wrap align-items-center gap-2 mb-3 bg-light p-2.5 rounded-3 border">
             <span class="fw-bold small" style="color: var(--md-blue-deep); font-size: 0.80rem;"><i class="bi bi-funnel-fill text-primary me-1"></i>Filtros Activos:</span>
-            <span class="badge bg-white text-dark border fw-semibold px-2.5 py-1.5"><i class="bi bi-person-badge text-primary me-1"></i>Médicos: $medicos_label</span>
-            <span class="badge bg-white text-dark border fw-semibold px-2.5 py-1.5"><i class="bi bi-door-open-fill text-teal me-1" style="color: var(--md-teal-clinical);"></i>Espacios: $espacios_label</span>
+            <span class="badge bg-white text-dark border fw-semibold px-2.5 py-1.5" id="filtroBadgeMedicos"><i class="bi bi-person-badge text-primary me-1"></i>Médicos: $medicos_label</span>
+            <span class="badge bg-white text-dark border fw-semibold px-2.5 py-1.5" id="filtroBadgeEspacios"><i class="bi bi-door-open-fill text-teal me-1" style="color: var(--md-teal-clinical);"></i>Espacios: $espacios_label</span>
         </div>
 
         <!-- Resumen Cuantitativo (KPIs) -->
@@ -422,25 +499,25 @@ print <<HTML;
             <div class="col-3">
                 <div class="kpi-box">
                     <span class="kpi-title">Total Citas</span>
-                    <span class="kpi-val" style="color: var(--md-blue-deep);">$total_citas</span>
+                    <span class="kpi-val" id="kpiValTotal" style="color: var(--md-blue-deep);">$total_citas</span>
                 </div>
             </div>
             <div class="col-3">
                 <div class="kpi-box">
                     <span class="kpi-title">Confirmadas / Prog.</span>
-                    <span class="kpi-val text-primary">$cnt_confirmadas</span>
+                    <span class="kpi-val text-primary" id="kpiValConfirmadas">$cnt_confirmadas</span>
                 </div>
             </div>
             <div class="col-3">
                 <div class="kpi-box">
                     <span class="kpi-title">En Sala / Atención</span>
-                    <span class="kpi-val text-warning">$cnt_en_espera</span>
+                    <span class="kpi-val text-warning" id="kpiValProceso">$cnt_en_espera</span>
                 </div>
             </div>
             <div class="col-3">
                 <div class="kpi-box">
                     <span class="kpi-title">Atendidas</span>
-                    <span class="kpi-val" style="color: var(--md-teal-clinical);">$cnt_atendidas</span>
+                    <span class="kpi-val" id="kpiValAtendidas" style="color: var(--md-teal-clinical);">$cnt_atendidas</span>
                 </div>
             </div>
         </div>
@@ -514,7 +591,7 @@ print <<HTML;
                 </div>
                 <div class="col-5 text-end">
                     <div class="d-inline-block text-center border-top border-dark pt-1 px-4" style="min-width: 220px;">
-                        <span class="fw-bold d-block" style="color: var(--md-blue-deep); font-size: 0.75rem;">Firma y Sello de Autorización</span>
+                        <span class="fw-bold d-block" style="color: var(--md-blue-deep); font-size: 0.75rem;">Nombre y Firma de Autorización</span>
                         <span class="text-muted" style="font-size: 0.68rem;">Coordinación Médica / Recepción</span>
                     </div>
                 </div>
@@ -522,15 +599,62 @@ print <<HTML;
         </div>
     </div>
 
-    <!-- Script de sincronización reactiva desde sessionStorage (Opcional) -->
+    <!-- Script de sincronización reactiva desde sessionStorage -->
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener("DOMContentLoaded", function() {
         try {
-            const raw = sessionStorage.getItem('ospulso_reporte_agenda_payload');
+            var raw = sessionStorage.getItem("ospulso_reporte_agenda_payload");
             if (raw) {
-                const p = JSON.parse(raw);
-                if (p && p.tipo === '$tipo' && p.fecha === '$fecha' && Array.isArray(p.citas) && p.citas.length > 0) {
-                    // Si el cliente cuenta con un snapshot en memoria fresco, verificar sincronización
+                var p = JSON.parse(raw);
+                if (p && Array.isArray(p.citas) && p.citas.length > 0) {
+                    var currentRows = document.querySelectorAll("#citasTableBody tr");
+                    var esVacio = currentRows.length === 0 || (currentRows.length === 1 && currentRows[0].textContent.indexOf("No se registraron") !== -1);
+                    
+                    if (esVacio && p.citas.length > 0) {
+                        var tbody = document.getElementById("citasTableBody");
+                        tbody.innerHTML = "";
+                        
+                        p.citas.forEach(function(a) {
+                            var f = (a.start) ? a.start.split("T")[0] : (a.fecha || "$fecha");
+                            var h = (a.start && a.start.indexOf("T") !== -1) ? a.start.split("T")[1].substring(0, 5) : (a.hora_ini || "");
+                            var hFin = (a.end && a.end.indexOf("T") !== -1) ? a.end.split("T")[1].substring(0, 5) : (a.hora_fin || "");
+                            var hDisp = hFin ? (h + " - " + hFin) : h;
+                            var st = (a.extendedProps && a.extendedProps.estado) || a.estado || "Programada";
+                            var pacNom = a.title || a.paciente || "Paciente";
+                            var expNum = (a.extendedProps && a.extendedProps.id_paciente) ? ("#" + a.extendedProps.id_paciente) : (a.id_pac ? ("#" + a.id_pac) : "");
+                            var motivo = (a.extendedProps && a.extendedProps.motivo) || a.motivo || "Consulta General";
+                            var mNom = (a.extendedProps && (a.extendedProps.medico || a.extendedProps.doctor)) || a.medico || "Profesional Asignado";
+                            var espNom = (a.extendedProps && (a.extendedProps.consultorio || a.extendedProps.recurso || a.extendedProps.lugar)) || a.espacio || "Consultorio 1";
+                            
+                            var badgeCls = "bg-primary text-white";
+                            var stLow = st.toLowerCase();
+                            if (stLow.indexOf("atendida") !== -1) badgeCls = "bg-success text-white";
+                            else if (stLow.indexOf("espera") !== -1) badgeCls = "bg-warning text-dark";
+                            else if (stLow.indexOf("proceso") !== -1 || stLow.indexOf("consulta") !== -1) badgeCls = "bg-info text-white";
+                            
+                            var tr = document.createElement("tr");
+                            tr.innerHTML = '<td class="fw-bold text-nowrap px-3">' + f + '</td>' +
+                                           '<td class="text-nowrap px-2"><span class="badge bg-light text-dark border px-2 py-1">' + hDisp + '</span></td>' +
+                                           '<td class="px-3"><strong style="color: var(--md-blue-deep);">' + pacNom + '</strong>' + 
+                                           (expNum ? '<small class="text-muted d-block" style="font-size:0.75rem;">' + expNum + '</small>' : '') + '</td>' +
+                                           '<td class="text-muted px-2" style="max-width: 180px;">' + motivo + '</td>' +
+                                           '<td class="text-secondary px-2">' + mNom + '</td>' +
+                                           '<td class="px-2"><span class="badge bg-light text-secondary border px-2 py-1">' + espNom + '</span></td>' +
+                                           '<td class="text-center px-2"><span class="badge ' + badgeCls + ' px-2 py-1" style="font-size: 0.72rem;">' + st.toUpperCase() + '</span></td>';
+                            tbody.appendChild(tr);
+                        });
+                        
+                        if (p.kpis) {
+                            var kTotal = document.getElementById("kpiValTotal");
+                            var kConf = document.getElementById("kpiValConfirmadas");
+                            var kProc = document.getElementById("kpiValProceso");
+                            var kAtend = document.getElementById("kpiValAtendidas");
+                            if (kTotal) kTotal.textContent = p.kpis.total || p.citas.length;
+                            if (kConf) kConf.textContent = p.kpis.confirmadas || 0;
+                            if (kProc) kProc.textContent = p.kpis.enProceso || 0;
+                            if (kAtend) kAtend.textContent = p.kpis.atendidas || 0;
+                        }
+                    }
                 }
             }
         } catch(e) { console.warn("Sync warning", e); }
