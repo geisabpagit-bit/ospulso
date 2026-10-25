@@ -957,7 +957,7 @@ function switchView(v) {
     
     // Desktop Header Toggles
     $(".btn-view-toggle, .btn-report-toggle").removeClass('active');
-    $(`#btn-v-${v.replace('_','-')}, #btn-r-${v}`).addClass('active');
+    $(`#btn-v-${v.replace('_','-')}, #btn-r-${v.replace('_','-')}, #btn-r-${v}`).addClass('active');
     
     // Show/Hide Containers
     $(".agenda-view-container").addClass('d-none');
@@ -971,14 +971,6 @@ function switchView(v) {
         $("#btn-toggle-side-cal").removeClass('d-lg-inline-flex').addClass('d-lg-none');
     }
 
-    // Regla de Oro: El icono de impresión solo va en Vista Diaria y Semanal Smart (para el día activo).
-    // En Vista Mensual Grid (calendario) y Reportes Semanal/Mensual se oculta (los reportes usan su barra DataTables).
-    if (v === 'dia' || v === 'semana_smart') {
-        $('#btn-print-agenda-toolbar').removeClass('d-none');
-    } else {
-        $('#btn-print-agenda-toolbar').addClass('d-none');
-    }
-
     renderHeaders();
     renderView();
 }
@@ -986,6 +978,7 @@ function switchView(v) {
 function renderView() {
     if (currentView === 'dia') renderTimeline();
     else if (currentView === 'semana_smart') renderWeeklySmartView();
+    else if (currentView === 'dia_reporte') renderTable('dia_reporte');
     else if (currentView === 'semana') renderTable('semana');
     else if (currentView === 'mes') renderTable('mes');
     else renderGrid();
@@ -999,7 +992,7 @@ function renderHeaders() {
     const optionsFull = { day: 'numeric', month: 'long', year: 'numeric' };
     const optionsShort = { day: 'numeric', month: 'long' };
 
-    if (currentView === 'dia') {
+    if (currentView === 'dia' || currentView === 'dia_reporte') {
         const diff = Math.round((sel - today) / (1000 * 60 * 60 * 24));
         if (diff === 0) title = "Agenda de Hoy: " + selectedDate.toLocaleDateString('es-ES', optionsShort);
         else if (diff === 1) title = "Agenda para Mañana: " + selectedDate.toLocaleDateString('es-ES', optionsShort);
@@ -1034,7 +1027,7 @@ function renderHeaders() {
 }
 
 function moveDate(offset) {
-    if (currentView === 'dia') selectedDate.setDate(selectedDate.getDate() + offset);
+    if (currentView === 'dia' || currentView === 'dia_reporte') selectedDate.setDate(selectedDate.getDate() + offset);
     else if (currentView === 'semana' || currentView === 'semana_smart') selectedDate.setDate(selectedDate.getDate() + (offset * 7));
     else if (currentView === 'mes' || currentView === 'calendario') selectedDate.setMonth(selectedDate.getMonth() + offset);
     
@@ -3609,14 +3602,18 @@ function isWorkDay(iso) {
 }
 
 function renderTable(type) {
-    const tableId = (type === 'semana') ? '#agendaTable' : '#mesTable';
-    const title = (type === 'semana') ? 'REPORTE SEMANAL DE CITAS' : 'REPORTE MENSUAL DE CITAS';
+    const tableId = (type === 'dia_reporte') ? '#diaReporteTable' : (type === 'semana') ? '#agendaTable' : '#mesTable';
+    const title = (type === 'dia_reporte') ? 'REPORTE DIARIO DE CITAS' : (type === 'semana') ? 'REPORTE SEMANAL DE CITAS' : 'REPORTE MENSUAL DE CITAS';
     
     // Filtrar citas según el rango
     const today = new Date(selectedDate);
     let startRange, endRange;
 
-    if (type === 'semana') {
+    if (type === 'dia_reporte') {
+        const isoHoy = (typeof getISO === 'function') ? getISO(today) : today.toISOString().split('T')[0];
+        startRange = new Date(isoHoy + 'T00:00:00');
+        endRange = new Date(isoHoy + 'T23:59:59');
+    } else if (type === 'semana') {
         const d = today.getDay() || 7;
         startRange = new Date(today);
         startRange.setDate(today.getDate() - (d - 1));
@@ -4010,132 +4007,6 @@ window.abrirModalAjustes = abrirModalAjustes;
 window.guardarAjustes = guardarAjustes;
 window.toggleComidaAjustes = toggleComidaAjustes;
 
-// ==========================================
-// MÓDULO DE RESUMEN E IMPRESIÓN DE AGENDA
-// ==========================================
-window.abrirModalImpresionAgenda = function() {
-    // 1. Determinar fecha activa base (SIEMPRE por el día activo seleccionado)
-    const activeDateObj = (selectedDate instanceof Date && !isNaN(selectedDate)) ? new Date(selectedDate) : new Date();
-    activeDateObj.setHours(12, 0, 0, 0);
-    const currIso = (typeof getISO === 'function') ? getISO(activeDateObj) : activeDateObj.toISOString().split('T')[0];
-
-    // Regla de Oro: En vista diaria y semanal el resumen previo es estrictamente para el día activo seleccionado
-    const fechaInicio = currIso;
-    const fechaFin = currIso;
-    const periodoLabel = `Día: ${activeDateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-
-    // 2. Obtener citas aplicando los filtros activos (médicos y espacios)
-    const citasFiltradas = (typeof getFilteredAppointments === 'function') ? getFilteredAppointments() : appointments;
-
-    // Filtrar estrictamente por el día activo y ordenar cronológicamente
-    const citasRango = citasFiltradas.filter(a => {
-        const fApt = (a.start ? a.start.split('T')[0] : '').trim();
-        return (fApt === currIso);
-    }).sort((a, b) => (a.start || '').localeCompare(b.start || ''));
-
-    // 3. Poblar membrete de clínica y periodo
-    const nombreClinica = (document.getElementById('agenda_nombre_clinica') ? document.getElementById('agenda_nombre_clinica').value : '') || 
-                          (agendaConfig && agendaConfig.nombre_clinica) || 'Clínica Médica de Especialidades';
-    $('#printClinicaNombre').text(nombreClinica);
-    $('#printPeriodoBadge').text(periodoLabel);
-    $('#printTotalCitasBadge').text(`Total Citas: ${citasRango.length}`);
-
-    const now = new Date();
-    const fechaGenStr = `${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-    $('#printFechaGeneracion').text(`Generado: ${fechaGenStr}`);
-
-    // 4. Poblar etiquetas legibles de filtros aplicados
-    let medicosLabel = 'Todos los Médicos';
-    if (window.medicosChecked && window.todosLosMedicosIds && window.medicosChecked.length < window.todosLosMedicosIds.length) {
-        if (window.medicosChecked.length === 0) {
-            medicosLabel = 'Ningún médico seleccionado';
-        } else if (window.medicosChecked.length === 1) {
-            const mId = window.medicosChecked[0];
-            const mName = (window.medicosCatalogo && window.medicosCatalogo[mId]) || `Médico #${mId}`;
-            medicosLabel = `Médico: ${mName}`;
-        } else {
-            medicosLabel = `Médicos (${window.medicosChecked.length} seleccionados)`;
-        }
-    }
-    $('#printFiltroMedicos').html(`<i class="bi bi-person-badge text-primary me-1"></i>${medicosLabel}`);
-
-    let recursosLabel = 'Todos los Espacios';
-    if (window.recursosChecked && window.todosLosRecursosIds && window.recursosChecked.length < window.todosLosRecursosIds.length) {
-        if (window.recursosChecked.length === 0) {
-            recursosLabel = 'Ningún espacio seleccionado';
-        } else if (window.recursosChecked.length === 1) {
-            recursosLabel = `Espacio: ${window.recursosChecked[0]}`;
-        } else {
-            recursosLabel = `Espacios (${window.recursosChecked.length} seleccionados)`;
-        }
-    }
-    $('#printFiltroEspacios').html(`<i class="bi bi-door-open-fill text-primary me-1"></i>${recursosLabel}`);
-
-    // 5. Poblar filas de la tabla
-    const tbody = $('#printCitasTableBody');
-    tbody.empty();
-
-    if (citasRango.length === 0) {
-        tbody.html(`
-            <tr>
-                <td colspan="7" class="text-center py-4 text-muted">
-                    <i class="bi bi-calendar-x fs-2 d-block mb-1 opacity-50"></i>
-                    No se encontraron citas en este periodo con los filtros seleccionados.
-                </td>
-            </tr>
-        `);
-    } else {
-        citasRango.forEach(a => {
-            const fApt = a.start.split('T')[0];
-            const hIni = a.start.split('T')[1].substring(0, 5);
-            const hFin = a.end.split('T')[1].substring(0, 5);
-            const res = resolverEstadoCita(a.extendedProps.estado, fApt, hFin);
-
-            let mNom = a.extendedProps.medico || a.extendedProps.doctor || '';
-            if (!mNom || mNom === 'Profesional Asignado') {
-                const medId = a.extendedProps.id_medico;
-                if (medId && window.medicosCatalogo && window.medicosCatalogo[medId]) {
-                    mNom = window.medicosCatalogo[medId];
-                }
-            }
-            if (!mNom) mNom = '---';
-
-            const espNom = a.extendedProps.consultorio || a.extendedProps.recurso || a.extendedProps.lugar || 'Consultorio 1';
-            const motivo = a.extendedProps.motivo || 'Consulta General';
-            const pacNom = a.title || 'Paciente';
-            const expNum = a.extendedProps.id_paciente ? `#${a.extendedProps.id_paciente}` : '';
-
-            tbody.append(`
-                <tr>
-                    <td class="fw-semibold text-nowrap">${fApt}</td>
-                    <td class="text-nowrap"><span class="badge bg-light text-navy border">${hIni} - ${hFin}</span></td>
-                    <td>
-                        <strong class="text-navy">${pacNom}</strong>
-                        ${expNum ? `<small class="text-muted d-block">${expNum}</small>` : ''}
-                    </td>
-                    <td class="text-secondary">${mNom}</td>
-                    <td><span class="badge bg-light text-secondary border">${espNom}</span></td>
-                    <td class="text-muted text-truncate" style="max-width: 180px;" title="${motivo}">${motivo}</td>
-                    <td class="text-center">
-                        <span class="badge ${res.badgeClass}" style="font-size:0.7rem;">${res.clave}</span>
-                    </td>
-                </tr>
-            `);
-        });
-    }
-
-    // 6. Mostrar el modal
-    const modalEl = document.getElementById('modalImpresionAgenda');
-    if (modalEl) {
-        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        bsModal.show();
-    }
-};
-
-window.ejecutarImpresionAgendaDirecta = function() {
-    window.print();
-};
-
 // [SDM FIX] DOM Teleportation Protocol para evadir secuestros de z-index en moviles
 document.addEventListener('DOMContentLoaded', function() {
     var modalCita = document.getElementById('modalCita');
@@ -4150,10 +4021,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (quickModal) {
         document.body.appendChild(quickModal);
     }
-    var printModal = document.getElementById('modalImpresionAgenda');
-    if (printModal) {
-        document.body.appendChild(printModal);
-    }
 });
 
 // ==========================================================================
@@ -4161,6 +4028,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // Rutinas y stubs defensivos para garantizar retrocompatibilidad absoluta
 // con otros scripts del ecosistema OSPulso.
 // ==========================================================================
+window.abrirModalImpresionAgenda = window.abrirModalImpresionAgenda || function() {
+    if (typeof switchView === 'function') switchView('dia_reporte');
+};
+
+window.ejecutarImpresionAgendaDirecta = window.ejecutarImpresionAgendaDirecta || function() {
+    window.print();
+};
+
 window.legacyRefreshCalendar = window.legacyRefreshCalendar || function() {
     if (typeof renderView === 'function') renderView();
 };

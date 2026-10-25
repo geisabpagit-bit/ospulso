@@ -1410,7 +1410,8 @@ body.agenda-page-layout .agenda-view-container.d-none {
     box-shadow: 0 2px 6px rgba(0,0,0,0.1) !important;
 }
 
-/* 3. Reportes Semanal y Mensual (DataTables) */
+/* 3. Reportes Diario, Semanal y Mensual (DataTables) */
+#view-dia-reporte .agenda-report-card,
 #view-semana .agenda-report-card,
 #view-mes .agenda-report-card {
     flex: 1 1 auto;
@@ -1420,6 +1421,7 @@ body.agenda-page-layout .agenda-view-container.d-none {
     flex-direction: column;
     overflow: hidden !important;
 }
+#view-dia-reporte .agenda-table-responsive,
 #view-semana .agenda-table-responsive,
 #view-mes .agenda-table-responsive {
     flex: 1 1 auto;
