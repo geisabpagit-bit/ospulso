@@ -3617,11 +3617,13 @@ function renderTable(type) {
         const d = today.getDay() || 7;
         startRange = new Date(today);
         startRange.setDate(today.getDate() - (d - 1));
+        startRange.setHours(0, 0, 0, 0);
         endRange = new Date(startRange);
         endRange.setDate(startRange.getDate() + 6);
+        endRange.setHours(23, 59, 59, 999);
     } else {
-        startRange = new Date(today.getFullYear(), today.getMonth(), 1);
-        endRange = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        startRange = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0);
+        endRange = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
     }
 
     const filtered = getFilteredAppointments().filter(a => {
@@ -3637,19 +3639,41 @@ function renderTable(type) {
     filtered.forEach(a => {
         const f = a.start.split('T')[0];
         const h = a.start.split('T')[1].substring(0, 5);
-        const st = a.extendedProps.estado || 'Programada';
+        const hFin = (a.end && a.end.includes('T')) ? a.end.split('T')[1].substring(0, 5) : '';
+        const hDisplay = hFin ? `${h} - ${hFin}` : h;
+        const st = a.extendedProps?.estado || 'Programada';
         const esProc = st.toLowerCase().includes('consulta') || st.toLowerCase().includes('proceso');
-        const stBadgeCls = (st==='Atendida'||st==='atendida') ? 'bg-teal text-white' : (esProc ? 'bg-teal text-white' : (st==='En Sala de Espera' ? 'bg-warning text-dark' : 'bg-primary'));
+        const stBadgeCls = (st==='Atendida'||st==='atendida') ? 'bg-teal text-white' : (esProc ? 'bg-teal text-white' : (st==='En Sala de Espera' ? 'bg-warning text-dark' : (st==='No realizada'||st==='Cancelada' ? 'bg-danger text-white' : 'bg-primary text-white')));
         const stBadgeStyle = (st==='Atendida'||st==='atendida') ? 'background-color: #19B7A5 !important;' : (esProc ? 'background-color: #059669 !important;' : '');
+
+        let mNom = a.extendedProps?.medico || a.extendedProps?.doctor || '';
+        if (!mNom || mNom === 'Profesional Asignado') {
+            const medId = a.extendedProps?.id_medico;
+            if (medId && window.medicosCatalogo && window.medicosCatalogo[medId]) {
+                mNom = window.medicosCatalogo[medId];
+            }
+        }
+        if (!mNom) mNom = '---';
+
+        const espNom = a.extendedProps?.consultorio || a.extendedProps?.recurso || a.extendedProps?.lugar || 'Consultorio 1';
+        const pacNom = a.title || 'Paciente';
+        const expNum = a.extendedProps?.id_paciente ? `#${a.extendedProps?.id_paciente}` : '';
+        const motivo = a.extendedProps?.motivo || 'Consulta General';
+
         $(tableId + ' tbody').append(`
             <tr>
                 <td class="fw-bold" data-label="Fecha">${f}</td>
-                <td data-label="Hora"><span class="badge bg-light text-navy border">${h}</span></td>
-                <td class="fw-black text-primary" data-label="Paciente">${a.title}</td>
-                <td class="small" data-label="Motivo">${a.extendedProps.motivo || ''}</td>
+                <td data-label="Hora"><span class="badge bg-light text-navy border">${hDisplay}</span></td>
+                <td class="fw-black text-primary" data-label="Paciente">
+                    <div>${pacNom}</div>
+                    ${expNum ? `<small class="text-muted d-block fw-normal" style="font-size:0.75rem;">${expNum}</small>` : ''}
+                </td>
+                <td class="small" data-label="Motivo">${motivo}</td>
+                <td class="text-secondary small" data-label="Médico"><i class="bi bi-person-badge text-teal me-1"></i>${mNom}</td>
+                <td data-label="Espacio"><span class="badge bg-light text-navy border">${espNom}</span></td>
                 <td data-label="Status"><span class="badge ${stBadgeCls} rounded-pill" style="${stBadgeStyle}">${st.toUpperCase()}</span></td>
                 <td class="text-end" data-label="Acciones">
-                    <button class="btn btn-sm btn-light rounded-3" onclick="abrirModalCita('${a.id}')"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-light rounded-3" onclick="abrirModalCita('${a.id}')" title="Editar / Ver Cita"><i class="bi bi-pencil"></i></button>
                 </td>
             </tr>
         `);
@@ -3679,7 +3703,7 @@ function renderTable(type) {
                     extend: 'copy', 
                     text: '<i class="bi bi-clipboard"></i><span class="export-label d-none d-md-inline ms-1">Copiar</span>',
                     titleAttr: 'Copiar al portapapeles',
-                    exportOptions: { columns: [0, 1, 2, 3, 4] }
+                    exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6] }
                 },
                 { 
                     extend: 'excel', 
@@ -3688,7 +3712,7 @@ function renderTable(type) {
                     title: 'Hospital SDM',
                     messageTop: 'Módulo: ' + title,
                     messageBottom: 'Aviso de confidencialidad: Este documento contiene información confidencial destinada únicamente al receptor autorizado.\r\nCódigo interno: SDM-AGENDA',
-                    exportOptions: { columns: [0, 1, 2, 3, 4] },
+                    exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6] },
                     customize: function(xlsx) {
                         var sheet = xlsx.xl.worksheets['sheet1.xml'];
                         $('row c[r^="A1"]', sheet).attr('s', '2');
@@ -3700,9 +3724,9 @@ function renderTable(type) {
                     titleAttr: 'Exportar a PDF',
                     title: 'Hospital SDM',
                     messageTop: 'Módulo: ' + title,
-                    exportOptions: { columns: [0, 1, 2, 3, 4] },
+                    exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6] },
                     customize: function (doc) {
-                        doc.styles.tableHeader = { fillColor: '#0d1e3d', color: 'white', alignment: 'center', bold: true, fontSize: 10 };
+                        doc.styles.tableHeader = { fillColor: '#0d1e3d', color: 'white', alignment: 'center', bold: true, fontSize: 9 };
                         
                         var tableIndex = -1;
                         for (var i = 0; i < doc.content.length; i++) {
@@ -3713,7 +3737,7 @@ function renderTable(type) {
                         }
 
                         if (tableIndex > -1) {
-                            doc.content[tableIndex].table.widths = ['15%', '15%', '30%', '25%', '15%'];
+                            doc.content[tableIndex].table.widths = ['12%', '12%', '22%', '18%', '16%', '10%', '10%'];
                             doc.content[tableIndex].margin = [0, 10, 0, 10];
                             if (tableIndex > 0) {
                                 doc.content.splice(0, tableIndex);
@@ -3745,29 +3769,11 @@ function renderTable(type) {
                     }
                 },
                 { 
-                    extend: 'print', 
                     text: '<i class="bi bi-printer"></i><span class="export-label d-none d-md-inline ms-1">Imprimir</span>',
-                    titleAttr: 'Imprimir Reporte',
-                    title: '',
-                    exportOptions: { columns: [0, 1, 2, 3, 4] },
-                    customize: function (win) {
-                        var now = new Date();
-                        var jsDate = now.getDate().toString().padStart(2, '0') + '/' + (now.getMonth() + 1).toString().padStart(2, '0') + '/' + now.getFullYear();
-                        
-                        $(win.document.body).css('font-family', 'Inter, sans-serif');
-                        $(win.document.body).prepend(
-                            '<div style="text-align:center; margin-bottom: 20px;">' +
-                            '<h2>Hospital SDM</h2>' +
-                            '<p><strong>Módulo:</strong> ' + title + '<br>' +
-                            '<strong>Fecha:</strong> ' + jsDate + '</p>' +
-                            '</div><hr>'
-                        );
-                        $(win.document.body).append(
-                            '<hr><div style="font-size: 0.8rem; text-align:center; margin-top: 20px;">' +
-                            '<p><strong>Aviso de confidencialidad:</strong> Este documento contiene información confidencial destinada únicamente al receptor autorizado.</p>' +
-                            '<p><strong>Código interno:</strong> SDM-AGENDA</p>' +
-                            '</div>'
-                        );
+                    titleAttr: 'Ver Reporte Personalizado para Impresión',
+                    className: 'btn-export btn-export-print',
+                    action: function (e, dt, node, config) {
+                        window.abrirReportePersonalizado(type);
                     }
                 }
             ]
@@ -4007,6 +4013,178 @@ window.abrirModalAjustes = abrirModalAjustes;
 window.guardarAjustes = guardarAjustes;
 window.toggleComidaAjustes = toggleComidaAjustes;
 
+// ==========================================================================
+// MÓDULO DE REPORTE PERSONALIZADO EJECUTIVO (DIARIO, SEMANAL Y MENSUAL)
+// ==========================================================================
+window.abrirReportePersonalizado = function(type) {
+    type = type || currentView || 'dia_reporte';
+    if (type === 'dia') type = 'dia_reporte';
+
+    const today = (selectedDate instanceof Date && !isNaN(selectedDate)) ? new Date(selectedDate) : new Date();
+    let startRange, endRange;
+    let tituloDoc = 'REPORTE DIARIO DE CITAS MÉDICAS';
+    let periodoTexto = '';
+
+    if (type === 'dia_reporte') {
+        const isoHoy = (typeof getISO === 'function') ? getISO(today) : today.toISOString().split('T')[0];
+        startRange = new Date(isoHoy + 'T00:00:00');
+        endRange = new Date(isoHoy + 'T23:59:59');
+        tituloDoc = 'REPORTE DIARIO DE CITAS MÉDICAS';
+        periodoTexto = `Día: ${today.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
+    } else if (type === 'semana') {
+        const d = today.getDay() || 7;
+        startRange = new Date(today);
+        startRange.setDate(today.getDate() - (d - 1));
+        startRange.setHours(0, 0, 0, 0);
+        endRange = new Date(startRange);
+        endRange.setDate(startRange.getDate() + 6);
+        endRange.setHours(23, 59, 59, 999);
+        tituloDoc = 'REPORTE SEMANAL DE CITAS MÉDICAS';
+        const fIniStr = startRange.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        const fFinStr = endRange.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+        periodoTexto = `Semana: del ${fIniStr} al ${fFinStr}`;
+    } else {
+        startRange = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0);
+        endRange = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+        tituloDoc = 'REPORTE MENSUAL DE CITAS MÉDICAS';
+        periodoTexto = `Mes: ${today.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+    }
+
+    // 1. Filtrar citas respetando los filtros activos y el rango de fechas
+    const citasFiltradas = (typeof getFilteredAppointments === 'function') ? getFilteredAppointments() : appointments;
+    const citasRango = citasFiltradas.filter(a => {
+        const ad = new Date(a.start.split('T')[0] + 'T12:00:00');
+        return ad >= startRange && ad <= endRange;
+    }).sort((a, b) => (a.start || '').localeCompare(b.start || ''));
+
+    // 2. Encabezados Institucionales
+    const nombreClinica = (document.getElementById('agenda_nombre_clinica') ? document.getElementById('agenda_nombre_clinica').value : '') || 
+                          (agendaConfig && agendaConfig.nombre_clinica) || 'Clínica Médica de Especialidades';
+    $('#repClinicaNombre').text(nombreClinica);
+    $('#repTituloDocumento').text(tituloDoc);
+    $('#repPeriodoBadge').text(periodoTexto);
+    $('#repFolioBadge').text(`Folio: SDM-REP-${Date.now().toString().slice(-6)}`);
+
+    const now = new Date();
+    const fechaEmisionStr = `${now.toLocaleDateString('es-ES')} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} hrs`;
+    $('#repFechaEmision').text(`Emisión: ${fechaEmisionStr}`);
+
+    // 3. Etiquetas de Filtros Activos
+    let medicosLabel = 'Todos los Médicos';
+    if (window.medicosChecked && window.todosLosMedicosIds && window.medicosChecked.length < window.todosLosMedicosIds.length) {
+        if (window.medicosChecked.length === 0) {
+            medicosLabel = 'Ninguno';
+        } else if (window.medicosChecked.length === 1) {
+            const mId = window.medicosChecked[0];
+            const mName = (window.medicosCatalogo && window.medicosCatalogo[mId]) || `Médico #${mId}`;
+            medicosLabel = mName;
+        } else {
+            medicosLabel = `${window.medicosChecked.length} seleccionados`;
+        }
+    }
+    $('#repFiltroMedicos').html(`<i class="bi bi-person-badge text-primary me-1"></i>Médicos: ${medicosLabel}`);
+
+    let recursosLabel = 'Todos los Espacios';
+    if (window.recursosChecked && window.todosLosRecursosIds && window.recursosChecked.length < window.todosLosRecursosIds.length) {
+        if (window.recursosChecked.length === 0) {
+            recursosLabel = 'Ninguno';
+        } else if (window.recursosChecked.length === 1) {
+            recursosLabel = window.recursosChecked[0].replace(/_/g, ' ');
+        } else {
+            recursosLabel = `${window.recursosChecked.length} seleccionados`;
+        }
+    }
+    $('#repFiltroEspacios').html(`<i class="bi bi-door-open-fill text-teal me-1"></i>Espacios: ${recursosLabel}`);
+
+    // 4. Resumen Cuantitativo (KPIs)
+    let total = citasRango.length;
+    let confirmadas = 0;
+    let enProceso = 0;
+    let atendidas = 0;
+
+    citasRango.forEach(c => {
+        const st = (c.extendedProps?.estado || 'Programada').toLowerCase();
+        if (st === 'atendida') {
+            atendidas++;
+        } else if (st.includes('consulta') || st.includes('proceso') || st.includes('espera')) {
+            enProceso++;
+        } else {
+            confirmadas++;
+        }
+    });
+
+    $('#kpiRepTotal').text(total);
+    $('#kpiRepConfirmadas').text(confirmadas);
+    $('#kpiRepEnProceso').text(enProceso);
+    $('#kpiRepAtendidas').text(atendidas);
+
+    // 5. Poblar Cuerpo de la Tabla
+    const tbody = $('#repCitasTableBody');
+    tbody.empty();
+
+    if (citasRango.length === 0) {
+        tbody.html(`
+            <tr>
+                <td colspan="7" class="text-center py-4 text-muted">
+                    <i class="bi bi-calendar-x fs-2 d-block mb-1 opacity-50"></i>
+                    No se encontraron citas en este periodo con los filtros seleccionados.
+                </td>
+            </tr>
+        `);
+    } else {
+        citasRango.forEach(a => {
+            const f = a.start.split('T')[0];
+            const h = a.start.split('T')[1].substring(0, 5);
+            const hFin = (a.end && a.end.includes('T')) ? a.end.split('T')[1].substring(0, 5) : '';
+            const hDisplay = hFin ? `${h} - ${hFin}` : h;
+            const st = a.extendedProps?.estado || 'Programada';
+            const res = (typeof resolverEstadoCita === 'function') ? resolverEstadoCita(st, f, hFin) : { clave: st, badgeClass: 'bg-primary' };
+
+            let mNom = a.extendedProps?.medico || a.extendedProps?.doctor || '';
+            if (!mNom || mNom === 'Profesional Asignado') {
+                const medId = a.extendedProps?.id_medico;
+                if (medId && window.medicosCatalogo && window.medicosCatalogo[medId]) {
+                    mNom = window.medicosCatalogo[medId];
+                }
+            }
+            if (!mNom) mNom = '---';
+
+            const espNom = a.extendedProps?.consultorio || a.extendedProps?.recurso || a.extendedProps?.lugar || 'Consultorio 1';
+            const pacNom = a.title || 'Paciente';
+            const expNum = a.extendedProps?.id_paciente ? `#${a.extendedProps?.id_paciente}` : '';
+            const motivo = a.extendedProps?.motivo || 'Consulta General';
+
+            tbody.append(`
+                <tr>
+                    <td class="fw-semibold text-nowrap">${f}</td>
+                    <td class="text-nowrap"><span class="badge bg-light text-navy border">${hDisplay}</span></td>
+                    <td>
+                        <strong class="text-navy">${pacNom}</strong>
+                        ${expNum ? `<small class="text-muted d-block">${expNum}</small>` : ''}
+                    </td>
+                    <td class="text-muted text-truncate" style="max-width: 170px;" title="${motivo}">${motivo}</td>
+                    <td class="text-secondary">${mNom}</td>
+                    <td><span class="badge bg-light text-secondary border">${espNom}</span></td>
+                    <td class="text-center">
+                        <span class="badge ${res.badgeClass}" style="font-size:0.7rem;">${res.clave}</span>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    // 6. Abrir Modal
+    const modalEl = document.getElementById('modalReportePersonalizado');
+    if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        bsModal.show();
+    }
+};
+
+window.imprimirReportePersonalizadoDirecto = function() {
+    window.print();
+};
+
 // [SDM FIX] DOM Teleportation Protocol para evadir secuestros de z-index en moviles
 document.addEventListener('DOMContentLoaded', function() {
     var modalCita = document.getElementById('modalCita');
@@ -4021,6 +4199,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (quickModal) {
         document.body.appendChild(quickModal);
     }
+    var repModal = document.getElementById('modalReportePersonalizado');
+    if (repModal) {
+        document.body.appendChild(repModal);
+    }
 });
 
 // ==========================================================================
@@ -4029,11 +4211,19 @@ document.addEventListener('DOMContentLoaded', function() {
 // con otros scripts del ecosistema OSPulso.
 // ==========================================================================
 window.abrirModalImpresionAgenda = window.abrirModalImpresionAgenda || function() {
-    if (typeof switchView === 'function') switchView('dia_reporte');
+    if (typeof window.abrirReportePersonalizado === 'function') {
+        window.abrirReportePersonalizado(currentView);
+    } else if (typeof switchView === 'function') {
+        switchView('dia_reporte');
+    }
 };
 
 window.ejecutarImpresionAgendaDirecta = window.ejecutarImpresionAgendaDirecta || function() {
-    window.print();
+    if (typeof window.imprimirReportePersonalizadoDirecto === 'function') {
+        window.imprimirReportePersonalizadoDirecto();
+    } else {
+        window.print();
+    }
 };
 
 window.legacyRefreshCalendar = window.legacyRefreshCalendar || function() {

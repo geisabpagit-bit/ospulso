@@ -403,7 +403,7 @@ print <<HTML;
                     <div class="table-responsive agenda-table-responsive">
                         <table id="diaReporteTable" class="table table-diamond table-hover w-100 mb-0">
                             <thead>
-                                <tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Motivo</th><th>Status</th><th class="text-end">Acciones</th></tr>
+                                <tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Motivo</th><th>Médico</th><th>Espacio</th><th>Status</th><th class="text-end">Acciones</th></tr>
                             </thead>
                             <tbody></tbody>
                         </table>
@@ -418,7 +418,7 @@ print <<HTML;
                     <div class="table-responsive agenda-table-responsive">
                         <table id="agendaTable" class="table table-diamond table-hover w-100 mb-0">
                             <thead>
-                                <tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Motivo</th><th>Status</th><th class="text-end">Acciones</th></tr>
+                                <tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Motivo</th><th>Médico</th><th>Espacio</th><th>Status</th><th class="text-end">Acciones</th></tr>
                             </thead>
                             <tbody></tbody>
                         </table>
@@ -433,7 +433,7 @@ print <<HTML;
                     <div class="table-responsive agenda-table-responsive">
                         <table id="mesTable" class="table table-diamond table-hover w-100 mb-0">
                             <thead>
-                                <tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Motivo</th><th>Status</th><th class="text-end">Acciones</th></tr>
+                                <tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Motivo</th><th>Médico</th><th>Espacio</th><th>Status</th><th class="text-end">Acciones</th></tr>
                             </thead>
                             <tbody></tbody>
                         </table>
@@ -456,6 +456,131 @@ print <<HTML;
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- MODAL DE REPORTE PERSONALIZADO (Diario, Semanal y Mensual con Resumen Cuantitativo) -->
+    <div class="modal fade modal-diamond" id="modalReportePersonalizado" tabindex="-1" aria-hidden="true" style="z-index: 105155 !important;">
+        <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 1050px;">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Cabecera Corporativa de la Ventana Modal -->
+                <div class="modal-header d-flex align-items-center justify-content-between py-2.5 px-3.5" style="background-color: var(--md-blue-deep, #0A2A66); color: white;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(255, 255, 255, 0.16); color: #ffffff;">
+                            <i class="bi bi-file-earmark-text text-white" style="font-size: 1rem;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-black text-uppercase m-0" style="font-size: 0.92rem; letter-spacing: 0.5px;" id="repModalTituloPrincipal">REPORTE PERSONALIZADO DE CITAS</h5>
+                            <span class="small opacity-75" id="repModalSubtitulo" style="font-size: 0.72rem;">Vista ejecutiva con filtros activos</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Contenedor Oficial del Reporte (Área Imprimible / Visible) -->
+                <div class="modal-body p-3.5 p-md-4" id="reportePersonalizadoPrintArea">
+                    <!-- 1. ENCABEZADOS INSTITUCIONALES -->
+                    <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom print-only-header">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center justify-content-center rounded-3 text-white shadow-sm" style="width: 46px; height: 46px; background-color: var(--md-blue-deep, #0A2A66) !important;">
+                                <i class="bi bi-hospital fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-black text-navy m-0" style="font-size: 1.25rem; letter-spacing: 0.5px;" id="repClinicaNombre">OSPULSO • CLÍNICA MÉDICA</h4>
+                                <h5 class="fw-bold text-teal m-0" style="font-size: 0.95rem;" id="repTituloDocumento">REPORTE DE CITAS MÉDICAS</h5>
+                                <span class="badge bg-light text-navy border px-2 py-0.5 small mt-1" id="repPeriodoBadge">Periodo: Hoy</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary-subtle text-primary border border-primary px-2.5 py-1 fw-bold small d-inline-block mb-1" id="repFolioBadge">Folio: SDM-REP</span>
+                            <div class="text-muted small" style="font-size: 0.75rem;" id="repFechaEmision">Emisión: Hoy</div>
+                            <div class="text-muted small" style="font-size: 0.70rem;">Plataforma Clínica OSPulso Diamond</div>
+                        </div>
+                    </div>
+
+                    <!-- Píldoras de Filtros Activos Aplicados -->
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-3 bg-light p-2.5 rounded-3 border">
+                        <span class="fw-bold text-navy small"><i class="bi bi-funnel-fill text-primary me-1"></i>Filtros Activos:</span>
+                        <span class="badge bg-white text-navy border fw-semibold" id="repFiltroMedicos"><i class="bi bi-person-badge text-primary me-1"></i>Médicos: Todos</span>
+                        <span class="badge bg-white text-navy border fw-semibold" id="repFiltroEspacios"><i class="bi bi-door-open-fill text-teal me-1"></i>Espacios: Todos</span>
+                    </div>
+
+                    <!-- 2. RESUMEN CUANTITATIVO (KPIs Ejecutivos) -->
+                    <div class="row g-2 mb-3" id="repResumenCuantitativo">
+                        <div class="col-6 col-md-3">
+                            <div class="p-2.5 rounded-3 bg-white border shadow-sm text-center">
+                                <span class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.65rem; letter-spacing: 0.4px;">Total Citas</span>
+                                <span class="fs-4 fw-black text-navy" id="kpiRepTotal">0</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2.5 rounded-3 bg-white border shadow-sm text-center">
+                                <span class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.65rem; letter-spacing: 0.4px;">Confirmadas / Prog.</span>
+                                <span class="fs-4 fw-black text-primary" id="kpiRepConfirmadas">0</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2.5 rounded-3 bg-white border shadow-sm text-center">
+                                <span class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.65rem; letter-spacing: 0.4px;">En Sala / Atención</span>
+                                <span class="fs-4 fw-black text-warning" id="kpiRepEnProceso">0</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2.5 rounded-3 bg-white border shadow-sm text-center">
+                                <span class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.65rem; letter-spacing: 0.4px;">Atendidas (Finalizadas)</span>
+                                <span class="fs-4 fw-black text-teal" id="kpiRepAtendidas">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. CUERPO: TABLA DE CITAS CON COLUMNAS REQUERIDAS -->
+                    <div class="table-responsive rounded-3 border mb-3">
+                        <table class="table table-hover align-middle mb-0" id="repCitasTable" style="font-size: 0.82rem;">
+                            <thead class="table-light text-navy text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.4px; background-color: #F8FBFF;">
+                                <tr>
+                                    <th class="py-2 px-2.5">Fecha</th>
+                                    <th class="py-2 px-2">Hora</th>
+                                    <th class="py-2 px-2.5">Paciente</th>
+                                    <th class="py-2 px-2">Motivo</th>
+                                    <th class="py-2 px-2">Médico</th>
+                                    <th class="py-2 px-2">Espacio</th>
+                                    <th class="py-2 px-2 text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="repCitasTableBody">
+                                <!-- Filas dinámicas generadas por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 4. PIE DE PÁGINA FORMAL -->
+                    <div class="pt-3 border-top mt-3">
+                        <div class="row align-items-center g-2">
+                            <div class="col-12 col-md-7">
+                                <p class="text-muted m-0" style="font-size: 0.68rem; line-height: 1.4;">
+                                    <strong>Aviso de Confidencialidad y Secreto Médico:</strong> Este reporte contiene información clínica confidencial protegida por la normativa vigente. Queda prohibida su reproducción o distribución sin autorización previa.
+                                </p>
+                            </div>
+                            <div class="col-12 col-md-5 text-md-end">
+                                <div class="d-inline-block text-center border-top border-dark pt-1 px-4 mt-2 mt-md-0" style="min-width: 200px;">
+                                    <span class="text-navy fw-bold d-block" style="font-size: 0.72rem;">Firma y Sello de Autorización</span>
+                                    <span class="text-muted" style="font-size: 0.65rem;">Coordinación Médica / Recepción</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer del Modal con Acciones -->
+                <div class="modal-footer bg-light p-2.5 border-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-3 px-3 fw-bold" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cerrar
+                    </button>
+                    <button type="button" class="btn btn-navy text-white btn-sm rounded-3 px-4 py-2 fw-bold shadow-sm" style="background-color: var(--md-blue-deep, #0A2A66) !important; color: #ffffff !important;" onclick="window.imprimirReportePersonalizadoDirecto()">
+                        <i class="bi bi-printer-fill me-1" style="color: var(--md-teal-clinical, #19B7A5) !important;"></i> Imprimir / Guardar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
 

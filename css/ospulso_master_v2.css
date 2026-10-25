@@ -3106,12 +3106,15 @@ body.agenda-page-layout .agenda-view-container.d-none {
     #reporteImpresionOficial,
     #reporteImpresionOficial *,
     #printReportContainer,
-    #printReportContainer * {
+    #printReportContainer *,
+    #reportePersonalizadoPrintArea,
+    #reportePersonalizadoPrintArea * {
         visibility: visible !important;
     }
 
     #reporteImpresionOficial,
-    #printReportContainer {
+    #printReportContainer,
+    #reportePersonalizadoPrintArea {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
