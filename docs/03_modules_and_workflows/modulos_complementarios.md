@@ -158,8 +158,12 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   3. Contenedor de contenido (`main.container-fluid`, `.sdm-layout-wrapper`, `.main-container-agenda`): confinado a `height: calc(100vh - 65px)` con scroll vertical interno exclusivo por vista (`#weekly-smart-slots-container`, `#calendar-grid-sdm`, `.dia-matrix-responsive`).
 - **Normalización Canónica Universal de Espacios Físicos (`normalizarTextoEspacio`)**:
   1. Homologación tolerante a diacríticos y acentos (NFD replace): elimina tildes (`Quirófano` <=> `quirofano`).
-  2. Equivalencia de sinónimos: `qx` <=> `quirofano`, `cons` <=> `consultorio`.
+  2. Equivalencia de sinónimos: `qx` <=> `quirofano`, `cons` <=> `consultorio`. Se procesa primero la conversión de guiones bajos y símbolos a espacios para permitir coincidencia exacta en identificadores con guión bajo (ej: `quirofano_1` $\leftrightarrow$ `Quirófano 1` $\leftrightarrow$ `qx 1`).
   3. Coherencia multi-recurso en `getFilteredAppointments` y `getAppointmentColumnId`: asegura que citas registradas con nombres acentuados en `dat/citas.dat` (ej. `Quirófano 1`) se vinculen con precisión matemática a los filtros de recursos multi-sucursal (`suc_965257_quirofano_1`) y se mantengan visibles en Día, Semana Smart y Mes Grid al alternar vistas.
+- **Protocolo de Impresión Rápida de Agenda**:
+  1. **Visibilidad Condicional**: El icono de impresión en toolbar (`#btn-print-agenda-toolbar`) se muestra exclusivamente en las vistas **Diaria** (`dia`) y **Semanal Smart** (`semana_smart`). Se oculta en **Mes Grid** (`calendario`), **Reporte Semanal** (`semana`) y **Reporte Mensual** (`mes`) ya que estos últimos cuentan con sus botones nativos de exportación DataTables.
+  2. **Alcance Estricto por Día Activo**: El modal previo de impresión (`window.abrirModalImpresionAgenda`) procesa de forma estricta las citas del **Día Activo Seleccionado** (`selectedDate`), respetando los filtros de médicos y espacios.
+  3. **Paso Previo y Botón de Impresión Directa**: Despliega el resumen previo formateado con botón visible de acción (`Imprimir / Guardar PDF`) con estilos `@media print` para generar la hoja ejecutiva limpia.
 - **Cuarentena de Compatibilidad**: Rutinas obsoletas o stubs legacy se agrupan al final de `js/agenda_spa_new.js` y `css/ospulso_master_v2.css` para proteger retrocompatibilidad global.
 
 ### 2.8 Mapa de Módulos del Sistema

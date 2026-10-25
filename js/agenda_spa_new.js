@@ -52,9 +52,9 @@ function normalizarTextoEspacio(txt) {
     return String(txt)
         .toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quita tildes: ó -> o, etc.
-        .replace(/\bquirofanos?\b/g, 'qx')
-        .replace(/\bconsultorios?\b/g, 'cons')
-        .replace(/[^a-z0-9]/g, ' ')
+        .replace(/[^a-z0-9]/g, ' ')                        // 1º convierte guiones bajos y símbolos a espacios
+        .replace(/\bquirofanos?\b/g, 'qx')                  // 2º normaliza quirofano a qx
+        .replace(/\bconsultorios?\b/g, 'cons')              // 3º normaliza consultorio a cons
         .replace(/\s+/g, ' ')
         .trim();
 }
@@ -969,6 +969,14 @@ function switchView(v) {
         $("#btn-toggle-side-cal").removeClass('d-lg-none').addClass('d-lg-inline-flex');
     } else {
         $("#btn-toggle-side-cal").removeClass('d-lg-inline-flex').addClass('d-lg-none');
+    }
+
+    // Regla de Oro: El icono de impresión solo va en Vista Diaria y Semanal Smart (para el día activo).
+    // En Vista Mensual Grid (calendario) y Reportes Semanal/Mensual se oculta (los reportes usan su barra DataTables).
+    if (v === 'dia' || v === 'semana_smart') {
+        $('#btn-print-agenda-toolbar').removeClass('d-none');
+    } else {
+        $('#btn-print-agenda-toolbar').addClass('d-none');
     }
 
     renderHeaders();
@@ -4006,47 +4014,24 @@ window.toggleComidaAjustes = toggleComidaAjustes;
 // MÓDULO DE RESUMEN E IMPRESIÓN DE AGENDA
 // ==========================================
 window.abrirModalImpresionAgenda = function() {
-    // 1. Determinar fecha activa base y rango de fechas de la vista activa
+    // 1. Determinar fecha activa base (SIEMPRE por el día activo seleccionado)
     const activeDateObj = (selectedDate instanceof Date && !isNaN(selectedDate)) ? new Date(selectedDate) : new Date();
     activeDateObj.setHours(12, 0, 0, 0);
     const currIso = (typeof getISO === 'function') ? getISO(activeDateObj) : activeDateObj.toISOString().split('T')[0];
 
-    let fechaInicio = currIso;
-    let fechaFin = currIso;
-    let periodoLabel = `Día: ${activeDateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-
-    if (currentView === 'semana' || currentView === 'semana_smart') {
-        const dayOfWeek = activeDateObj.getDay(); // 0 domingo, 1 lunes
-        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        const monday = new Date(activeDateObj);
-        monday.setDate(activeDateObj.getDate() + diffToMonday);
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-
-        fechaInicio = (typeof getISO === 'function') ? getISO(monday) : monday.toISOString().split('T')[0];
-        fechaFin = (typeof getISO === 'function') ? getISO(sunday) : sunday.toISOString().split('T')[0];
-        const startStr = monday.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-        const endStr = sunday.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
-        periodoLabel = `Semana: ${startStr} al ${endStr}`.replace(/\./g, '');
-    } else if (currentView === 'calendario' || currentView === 'mes') {
-        const y = activeDateObj.getFullYear();
-        const m = activeDateObj.getMonth();
-        const primerDia = new Date(y, m, 1);
-        const ultimoDia = new Date(y, m + 1, 0);
-
-        fechaInicio = (typeof getISO === 'function') ? getISO(primerDia) : primerDia.toISOString().split('T')[0];
-        fechaFin = (typeof getISO === 'function') ? getISO(ultimoDia) : ultimoDia.toISOString().split('T')[0];
-        periodoLabel = `Mes: ${activeDateObj.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
-    }
+    // Regla de Oro: En vista diaria y semanal el resumen previo es estrictamente para el día activo seleccionado
+    const fechaInicio = currIso;
+    const fechaFin = currIso;
+    const periodoLabel = `Día: ${activeDateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`;
 
     // 2. Obtener citas aplicando los filtros activos (médicos y espacios)
     const citasFiltradas = (typeof getFilteredAppointments === 'function') ? getFilteredAppointments() : appointments;
 
-    // Filtrar por el rango de fechas de la vista activa y ordenar cronológicamente
+    // Filtrar estrictamente por el día activo y ordenar cronológicamente
     const citasRango = citasFiltradas.filter(a => {
-        const fApt = a.start.split('T')[0];
-        return (fApt >= fechaInicio && fApt <= fechaFin);
-    }).sort((a, b) => a.start.localeCompare(b.start));
+        const fApt = (a.start ? a.start.split('T')[0] : '').trim();
+        return (fApt === currIso);
+    }).sort((a, b) => (a.start || '').localeCompare(b.start || ''));
 
     // 3. Poblar membrete de clínica y periodo
     const nombreClinica = (document.getElementById('agenda_nombre_clinica') ? document.getElementById('agenda_nombre_clinica').value : '') || 

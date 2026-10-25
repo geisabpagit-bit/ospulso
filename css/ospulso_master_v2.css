@@ -3177,6 +3177,38 @@ body.agenda-page-layout .agenda-view-container.d-none {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
+
+    /* Impresión Limpia del Resumen de Agenda (Día Activo) */
+    body:has(#modalImpresionAgenda.show) {
+        background: #ffffff !important;
+    }
+    body:has(#modalImpresionAgenda.show) > *:not(.modal):not(.modal-backdrop) {
+        display: none !important;
+    }
+    #modalImpresionAgenda.show {
+        position: static !important;
+        display: block !important;
+        background: transparent !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+    #modalImpresionAgenda.show .modal-dialog {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    #modalImpresionAgenda.show .modal-content {
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+    #modalImpresionAgenda.show .modal-header,
+    #modalImpresionAgenda.show .modal-footer {
+        display: none !important;
+    }
+    #modalImpresionAgenda.show .modal-body {
+        padding: 0 !important;
+    }
 }
 
 /* ==========================================================================

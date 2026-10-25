@@ -338,8 +338,8 @@ print <<HTML;
                             </div>
                         </div>
 
-                        <!-- Botón Imprimir Resumen de Agenda (Día, Semana, Mes) -->
-                        <button onclick="window.abrirModalImpresionAgenda()" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white" style="height:42px; width:42px; padding:0;" title="Imprimir Resumen de Citas Filtradas"><i class="bi bi-printer-fill" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.05rem;"></i></button>
+                        <!-- Botón Imprimir Resumen de Agenda (Solo Día y Semana Smart) -->
+                        <button id="btn-print-agenda-toolbar" onclick="window.abrirModalImpresionAgenda()" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white" style="height:42px; width:42px; padding:0;" title="Imprimir Resumen de Citas del Día Activo"><i class="bi bi-printer-fill" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.05rem;"></i></button>
 
                         <!-- Botón Ajustes de Jornada -->
                         <button onclick="abrirModalAjustes()" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white" style="height:42px; width:42px; padding:0;" title="Ajustes de Jornada"><i class="bi bi-gear-fill"></i></button>
@@ -511,8 +511,8 @@ print <<HTML;
                         <i class="bi bi-x-lg me-1"></i> Cerrar
                     </button>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-teal text-white btn-sm rounded-3 px-3 fw-bold shadow-sm" onclick="window.ejecutarImpresionAgendaDirecta()">
-                            <i class="bi bi-printer-fill me-1"></i> Imprimir / Guardar PDF
+                        <button type="button" class="btn btn-navy text-white btn-sm rounded-3 px-4 py-2 fw-bold shadow-sm" style="background-color: var(--md-blue-deep, #0A2A66) !important; color: #ffffff !important;" onclick="window.ejecutarImpresionAgendaDirecta()">
+                            <i class="bi bi-printer-fill me-1" style="color: var(--md-teal-clinical, #19B7A5) !important;"></i> Imprimir / Guardar PDF
                         </button>
                     </div>
                 </div>
