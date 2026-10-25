@@ -4173,16 +4173,40 @@ window.abrirReportePersonalizado = function(type) {
         });
     }
 
-    // 6. Abrir Modal
-    const modalEl = document.getElementById('modalReportePersonalizado');
-    if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        bsModal.show();
+    // 6. Guardar snapshot en sessionStorage para sincronización reactiva instantánea
+    try {
+        const payload = {
+            tipo: type,
+            fecha: (typeof getISO === 'function') ? getISO(today) : today.toISOString().split('T')[0],
+            titulo: tituloDoc,
+            periodo: periodoTexto,
+            clinica: nombreClinica,
+            medicosLabel: medicosLabel,
+            recursosLabel: recursosLabel,
+            kpis: { total, confirmadas, enProceso, atendidas },
+            citas: citasRango
+        };
+        sessionStorage.setItem('ospulso_reporte_agenda_payload', JSON.stringify(payload));
+    } catch(e) { console.warn("Storage sync warning", e); }
+
+    // 7. Parámetros de filtros para endpoint independiente
+    const fIso = (typeof getISO === 'function') ? getISO(today) : today.toISOString().split('T')[0];
+    let medsParam = 'all';
+    if (window.medicosChecked && window.todosLosMedicosIds && window.medicosChecked.length < window.todosLosMedicosIds.length) {
+        medsParam = (window.medicosChecked.length === 0) ? 'none' : window.medicosChecked.join(',');
     }
+    let recsParam = 'all';
+    if (window.recursosChecked && window.todosLosRecursosIds && window.recursosChecked.length < window.todosLosRecursosIds.length) {
+        recsParam = (window.recursosChecked.length === 0) ? 'none' : window.recursosChecked.join(',');
+    }
+
+    // 8. Abrir reporte personalizado independiente (Estilo consentimientos, sin salida directa)
+    const url = `../api/imprimir_reporte_agenda_api.pl?tipo=${encodeURIComponent(type)}&fecha=${encodeURIComponent(fIso)}&medicos=${encodeURIComponent(medsParam)}&recursos=${encodeURIComponent(recsParam)}`;
+    window.open(url, '_blank');
 };
 
 window.imprimirReportePersonalizadoDirecto = function() {
-    window.print();
+    window.abrirReportePersonalizado(currentView);
 };
 
 // [SDM FIX] DOM Teleportation Protocol para evadir secuestros de z-index en moviles

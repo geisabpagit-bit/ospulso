@@ -164,13 +164,16 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   1. **Tríada de Reportes Operativos**: En la barra de herramientas, dentro de `nav-pill-group`, se consolida la tríada de iconos de reportes DataTables: **Reporte Diario** (`#btn-r-dia-reporte` / `switchView('dia_reporte')`), **Reporte Semanal** (`#btn-r-semana` / `switchView('semana')`) y **Reporte Mensual** (`#btn-r-mes` / `switchView('mes')`).
   2. **Estructura Columnar Completa**: Las tres tablas DataTables (`#diaReporteTable`, `#agendaTable`, `#mesTable`) despliegan las columnas canónicas completas: `Fecha`, `Hora`, `Paciente`, `Motivo`, `Médico`, `Espacio`, `Status` y `Acciones`, sincronizadas con sus respectivos selectores móviles en `css/agenda_diamond.css`.
   3. **Aplicación Estricta de Filtros Activos**: Cada vista de reporte filtra dinámicamente las citas respetando tanto el rango de fechas (`dia_reporte`, `semana`, `mes`) como los filtros interactivos seleccionados de **Médicos** (`medicosChecked`) y **Espacios Físicos** (`recursosChecked`), actualizándose reactivamente al alternar filtros o navegar fechas.
-  4. **Reporte Personalizado Ejecutivo (`#modalReportePersonalizado` / `window.abrirReportePersonalizado`)**:
-     - El botón de exportación "Imprimir" de cada DataTable se desacopló de la salida directa del navegador y se vinculó al visor de reporte personalizado previo.
-     - **Encabezados Institucionales**: Membrete clínico con nombre de la institución, título del reporte, periodo exacto, folio de auditoría y píldoras con los filtros activos de médicos y espacios.
-     - **Resumen Cuantitativo**: Tarjetas KPI ejecutivas con desglose de Total de Citas, Confirmadas/Programadas, En Sala de Espera/Atención y Atendidas (Finalizadas).
-     - **Cuerpo Clínico**: Tabla estilizada con las columnas Fecha, Horario (con rango inicio-fin), Paciente (con folio de expediente), Motivo, Médico Asignado, Espacio Físico y Badge de Estado Canónico.
-     - **Pie de Página**: Declaración legal de secreto médico, folio de trazabilidad y recuadro formal para firma y sello de autorización.
-     - **Aislamiento para Impresión (`@media print`)**: Botón directo de impresión física o exportación a PDF, aislando `#reportePersonalizadoPrintArea` en `css/ospulso_master_v2.css` para una salida ejecutiva limpia.
+  4. **Reporte Personalizado Independiente (`api/imprimir_reporte_agenda_api.pl`, estilo Consentimientos)**:
+     - El botón de exportación "Imprimir" de cada DataTable se desacopló de la salida directa del navegador y de la pantalla activa (`agenda_main.pl`).
+     - Al hacer clic, abre en una nueva pestaña el endpoint dedicado `api/imprimir_reporte_agenda_api.pl`, siguiendo la misma arquitectura de `api/imprimir_consentimiento_api.pl`.
+     - **Barra de Control Superior (`.no-print`)**: Incluye botones visibles para `Imprimir Reporte` (disparando `window.print()` cuando el usuario lo determine) y `Cerrar Ventana`, garantizando que no haya salidas directas forzadas a la impresora.
+     - **Lienzo Clínico Oficial (`.doc-card`)**:
+       - **Encabezados Institucionales**: Membrete clínico con nombre de la institución, título del reporte, periodo exacto, folio de auditoría y píldoras con los filtros activos de médicos y espacios.
+       - **Resumen Cuantitativo**: Tarjetas KPI ejecutivas con desglose de Total de Citas, Confirmadas/Programadas, En Sala de Espera/Atención y Atendidas (Finalizadas).
+       - **Cuerpo Clínico**: Tabla estilizada con las columnas Fecha, Horario (con rango inicio-fin), Paciente (con folio de expediente), Motivo, Médico Asignado, Espacio Físico y Badge de Estado Canónico.
+       - **Pie de Página**: Declaración legal de secreto médico, folio de trazabilidad y recuadro formal para firma y sello de autorización.
+     - **Garantía Anti-Hojas Blancas (`@media print`)**: El documento se aísla de forma nativa en su propia ventana con `@page { size: letter portrait; margin: 10mm 12mm; }`, evitando que selectores del SPA o modales de Bootstrap produzcan hojas en blanco al imprimir.
 - **Cuarentena de Compatibilidad**: Rutinas obsoletas o stubs legacy (como `abrirModalImpresionAgenda`, `ejecutarImpresionAgendaDirecta`) se agrupan al final de `js/agenda_spa_new.js` y `css/ospulso_master_v2.css` para proteger retrocompatibilidad global.
 
 ### 2.8 Mapa de Módulos del Sistema
