@@ -426,6 +426,25 @@ Para erradicar la degradación visual provocada por imprimir directamente la int
 
 ---
 
+## 16. Estándar de Documentos Clínicos Imprimibles Autónomos (`.doc-card` / `api/imprimir_*_api.pl`)
+
+Para la emisión de reportes clínicos y operacionales autónomos (ej. `api/imprimir_reporte_agenda_api.pl`, `api/imprimir_consentimiento_api.pl`, `api/imprimir_receta_api.pl`):
+
+1. **Apertura Desacoplada y Ventana Dedicada**:
+   - Todo botón de exportación a impresión en módulos SPA (Agenda, Recetas, Consentimientos) abre un endpoint CGI autónomo en una pestaña nueva (`window.open(url, '_blank')`).
+   - Se prohíbe terminantemente la invocación directa de `window.print()` sobre la pantalla activa del usuario, ya que captura barras de navegación, botones y viewports reducidos.
+2. **Tarjeta de Documento `.doc-card` y Control de Márgenes**:
+   - En pantalla, el documento se monta centrado sobre fondo slate suave (`#f1f5f9`), contenido en `.doc-card` (`max-width: 980px; border-radius: 18px; border: 1.5px solid #0A2A66; box-shadow: 0 15px 35px rgba(10, 42, 102, 0.08); padding: 2.5rem; background: #ffffff;`).
+   - En impresión (`@media print`), la tarjeta remueve márgenes, bordes y sombras (`border: none !important; box-shadow: none !important; padding: 0 !important; max-width: 100% !important;`), ajustándose automáticamente a las dimensiones `@page { size: letter portrait; margin: 10mm 12mm; }`.
+3. **Barra de Acciones Flotante `.no-print`**:
+   - Encabezando la vista se coloca una barra de utilidades `.no-print` con el botón primario `[Imprimir Reporte]` (`window.print()`) y el botón secundario `[Cerrar]` (`window.close()`).
+4. **Logotipos Institucionales en Base64 Data URI**:
+   - Para eliminar fallos HTTP 403 Forbidden derivados de directivas de Apache en carpetas protegidas como `dat/`, el servidor lee el archivo gráfico directamente de disco (`dat/logos/logo_<CLUES>.jpg` o `img/logos/`) y lo codifica en Base64 inline (`data:image/jpeg;base64,...`) dentro del HTML.
+5. **Avisos Legales y Bloque de Firmas**:
+   - En la parte inferior se incluye la cláusula de Secreto Médico y Confidencialidad NOM-004-SSA3-2012 y la línea formal centrada con la leyenda mandante: *"Nombre y Firma de Autorización"* y el cargo responsable (*Coordinación Médica / Recepción*).
+
+---
+
 ## 8. Landing Page y Suite Metodológica 5S (`index.html`)
 
 ### 8.1. Principio de Separación Estricta (CSS y JavaScript)
