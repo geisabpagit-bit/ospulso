@@ -669,37 +669,58 @@ PAGE_HTML
 
             <!-- TAB: GASTOS -->
             <div id="tab_gastos" class="sdm-tab-pane d-none">
-                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <div>
-                        <h4 class="fw-bold plus-jakarta m-0" style="color: var(--md-blue-deep, #0A2A66);"><i class="bi bi-cash-stack me-2 text-danger"></i>Control de Egresos y Gastos Operativos</h4>
-                        <p class="text-muted m-0 small" style="font-size: 0.82rem;">Administración, comprobación y clasificación de gastos operativos, proveedores y pagos de la organización.</p>
-                    </div>
-                    <div class="d-flex gap-2 flex-wrap align-items-center">
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="small text-muted fw-bold">Desde:</span>
-                            <input type="date" id="gastos_f_inicio" class="form-control form-control-sm" title="Fecha Inicio">
+                
+                <!-- Dock Premium de Filtros de Egresos (Una Sola Fila) -->
+                <div class="card card-mobile-flush border-0 shadow-sm mb-3" style="border-radius: 14px; background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
+                    <div class="card-body p-2 p-md-2.5">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            
+                            <!-- Grupo de Filtros Integrados -->
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                
+                                <!-- Rango de Fechas (Executive Range Bar) -->
+                                <div class="financial-date-range-bar d-flex align-items-center bg-white p-1 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important;">
+                                    <div class="d-flex align-items-center min-w-0">
+                                        <span class="text-muted small ps-2 pe-1 fw-bold" style="font-size: 0.72rem;">Desde:</span>
+                                        <input type="date" id="gastos_f_inicio" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Desde">
+                                        <span class="text-muted small px-1 flex-shrink-0"><i class="bi bi-arrow-right"></i></span>
+                                        <span class="text-muted small px-1 fw-bold" style="font-size: 0.72rem;">Hasta:</span>
+                                        <input type="date" id="gastos_f_fin" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Hasta">
+                                    </div>
+                                    <button class="btn btn-sm rounded-pill px-2.5 px-sm-3 text-white flex-shrink-0 d-inline-flex align-items-center justify-content-center" style="background: var(--md-blue-deep, #0A2A66); min-height: 32px;" onclick="renderGastos()" title="Filtrar">
+                                        <i class="bi bi-funnel me-1"></i><span class="d-none d-sm-inline">Filtrar</span>
+                                    </button>
+                                </div>
+
+                                <!-- Selector de Categoría (Cápsula Ejecutiva) -->
+                                <div class="d-flex align-items-center bg-white p-1 ps-2.5 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important; min-height: 36px;">
+                                    <span class="text-muted small pe-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Categoría:</span>
+                                    <select id="filtro_cat_gasto" class="form-select form-select-sm border-0 bg-transparent fw-semibold" style="font-size:0.76rem; min-width: 140px; color: var(--md-blue-deep, #0A2A66);" onchange="alCambiarFiltroCategoriaGasto()">
+                                        <option value="">Todas las Categorías</option>
+                                    </select>
+                                </div>
+
+                                <!-- Selector de Subcategoría en Cascada (Cápsula Ejecutiva) -->
+                                <div id="wrap_filtro_subcat_gasto" class="d-flex align-items-center bg-white p-1 ps-2.5 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important; min-height: 36px;">
+                                    <span class="text-muted small pe-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Subcategoría:</span>
+                                    <select id="filtro_subcat_gasto" class="form-select form-select-sm border-0 bg-transparent fw-semibold" style="font-size:0.76rem; min-width: 140px; color: var(--md-blue-deep, #0A2A66);" onchange="renderGastos()">
+                                        <option value="">Todas las Subcategorías</option>
+                                    </select>
+                                    <span id="badge_sin_subcat_gasto" class="badge bg-light text-muted border rounded-pill px-2.5 py-1 d-none align-items-center ms-1" style="font-size: 0.72rem;">
+                                        <i class="bi bi-dash-circle me-1 text-secondary"></i>Sin Subcategorias
+                                    </span>
+                                </div>
+
+                            </div>
+
+                            <!-- Botón de Acción Principal -->
+                            <div class="d-flex align-items-center">
+                                <button class="btn btn-sm rounded-pill px-3 text-white fw-bold flex-shrink-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="background: var(--md-teal-clinical, #19B7A5); min-height: 36px; font-size: 0.78rem;" onclick="abrirModalGasto()">
+                                    <i class="bi bi-plus-lg me-1"></i>Registrar Gasto
+                                </button>
+                            </div>
+
                         </div>
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="small text-muted fw-bold">Hasta:</span>
-                            <input type="date" id="gastos_f_fin" class="form-control form-control-sm" title="Fecha Fin">
-                        </div>
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="small text-muted fw-bold">Categoría:</span>
-                            <select id="filtro_cat_gasto" class="form-select form-select-sm" style="min-width: 140px; font-size: 0.8rem;" onchange="alCambiarFiltroCategoriaGasto()">
-                                <option value="">Todas las Categorías</option>
-                            </select>
-                        </div>
-                        <div id="wrap_filtro_subcat_gasto" class="d-flex align-items-center gap-1">
-                            <span class="small text-muted fw-bold">Subcategoría:</span>
-                            <select id="filtro_subcat_gasto" class="form-select form-select-sm" style="min-width: 140px; font-size: 0.8rem;" onchange="renderGastos()">
-                                <option value="">Todas las Subcategorías</option>
-                            </select>
-                            <span id="badge_sin_subcat_gasto" class="badge bg-light text-muted border py-1.5 px-2.5 d-none align-items-center" style="font-size: 0.78rem; height: 31px;">
-                                <i class="bi bi-dash-circle me-1 text-secondary"></i>Sin Subcategorias
-                            </span>
-                        </div>
-                        <button class="btn btn-sm px-3 fw-bold shadow-sm btn-mobile-standard" style="background: var(--md-blue-deep, #0A2A66); color: #FFFFFF; border-radius: 50rem;" onclick="renderGastos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
-                        <button class="btn btn-sm px-3 fw-bold text-white shadow-sm btn-mobile-standard rounded-pill" style="background: var(--md-teal-clinical, #19B7A5);" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar Gasto</button>
                     </div>
                 </div>
 

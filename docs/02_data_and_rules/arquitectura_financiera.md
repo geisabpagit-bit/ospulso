@@ -197,20 +197,20 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
      - Badges de identificación de origen a la derecha (`Efectivo / Ventanilla` y `Convenio Institucional`).
      - Barra superior de filtrado de fecha con botón de acción estilizado en Azul Marino sólido y redondeado estándar (`50rem`).
 
-5. **Homogeneización Visual, Título Unificado y Filtros en Cascada en Egresos y Gastos Operativos (`views/finanzas.pl`, `tab=gastos`)**:
-   - **Área de Título Principal Unificada y Elegante**:
-     * Fusión de textos redundantes en una redacción canónica institucional de alto impacto:
+5. **Dock Premium de Filtros y Egresos Operativos (`views/finanzas.pl`, `tab=gastos`)**:
+   - **Depuración de Encabezado Redundante**:
+     * Se erradicó el bloque duplicado de título/subtítulo que se mostraba en el cuerpo de `#tab_gastos`, dado que la cabecera general `.diamond-header-compact` (`#mainPageTitle` y `#mainPageSubtitle`) ya exhibe de forma nítida la redacción canónica y su icono:
        - **Título**: `<i class="bi bi-cash-stack me-2 text-danger"></i>Control de Egresos y Gastos Operativos`
        - **Subtítulo**: `Administración, comprobación y clasificación de gastos operativos, proveedores y pagos de la organización.`
-     * Sincronización bidireccional tanto en el encabezado general del dashboard (`#mainPageTitle` y `#mainPageSubtitle` mediante `window.swTab`) como en el encabezado contextual de `#tab_gastos`, preservando la iconografía temática.
-   - **Filtros en Cascada de Categoría y Subcategoría**:
-     * Al inicio de la vista de gastos, se incorporaron selectores en cascada integrados a la barra de herramientas de filtrado temporal (`#gastos_f_inicio`, `#gastos_f_fin`, `#filtro_cat_gasto` y `#filtro_subcat_gasto`).
-     * **Comportamiento en Cascada y Fallback Dinámico**:
-       - Al seleccionar una categoría, se evalúa si existen subcategorías relacionadas (`subcatGastos.filter(...)`).
-       - Si existen subcategorías asociadas, se hace visible `#filtro_subcat_gasto` y se oculta la leyenda de advertencia.
-       - Si **NO** existe relación entre la categoría seleccionada y subcategorías, el selector de subcategorías se oculta automáticamente (`d-none` / `display: none`) y en su lugar se presenta la cápsula badge institucional `"Sin Subcategorias"` (`#badge_sin_subcat_gasto`).
-     * **Soporte Backend Multi-Tenant y por Rol**:
-       - El endpoint `api/finanzas_api.pl?action=get_gastos` procesa opcionalmente los parámetros `id_cat` e `id_subcat`, garantizando filtrado reactivo instantáneo tanto por servidor como al redibujar DataTables (`#tablaGastos`).
+   - **Dock Premium con Borde Teal en Una Sola Fila**:
+     * Se refactorizó la barra de filtros integrando una tarjeta dock premium inspirada y estandarizada con el diseño del *Tablero Financiero Ejecutivo*:
+       - Borde perimetral en Teal Clínico (`1.5px solid var(--md-teal-clinical, #19B7A5)`), fondo blanco y esquinas redondeadas (`border-radius: 14px`).
+       - Disposición `flex` horizontal en una sola fila que agrupa controles de fecha, selectores en cápsula y botón de acción principal.
+     * **Controles Cápsula (Executive Pills)**:
+       - Rango de fechas (`.financial-date-range-bar`) con inputs limpios transparentes y botón redondeado (`rounded-pill`) en Azul Marino profundo (`#0A2A66`) para acción de filtrado.
+       - Selector de Categoría en píldora con borde translúcido teal (`rgba(25, 183, 165, 0.4)`), texto semibold y menú dinámico.
+       - Selector de Subcategoría en cascada con evaluación reactiva: si la categoría no tiene hijos, se oculta el selector y se muestra en su lugar la insignia `"Sin Subcategorias"` (`#badge_sin_subcat_gasto`).
+       - Botón de acción principal `+ Registrar Gasto` con estilo `rounded-pill` en Teal Clínico (`#19B7A5`), sombra sutil y tipografía destacada.
    - Modal `#modalGasto` armonizado con cabecera en Azul Marino/Teal y botón de guardado institucional.
 
 6. **Eliminación y Depuración de Pestañas Redundantes de CxC (`views/finanzas.pl`, `tab=cxc` y `tab=cxc_estado`)**:
