@@ -145,8 +145,8 @@ print <<'PAGE_HTML';
         const subtitleEl = document.getElementById('mainPageSubtitle');
         if (titleEl && subtitleEl) {
             if (tabId === 'tab_gastos') {
-                titleEl.innerText = 'Control de Egresos';
-                subtitleEl.innerText = 'Administración de gastos operativos, proveedores y pagos.';
+                titleEl.innerHTML = '<i class="bi bi-cash-stack me-2 text-danger"></i>Control de Egresos y Gastos Operativos';
+                subtitleEl.innerText = 'Administración, comprobación y clasificación de gastos operativos, proveedores y pagos de la organización.';
                 subtitleEl.classList.remove('d-none');
             } else {
                 titleEl.innerText = 'Módulo Financiero';
@@ -672,7 +672,7 @@ PAGE_HTML
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <div>
                         <h4 class="fw-bold plus-jakarta m-0" style="color: var(--md-blue-deep, #0A2A66);"><i class="bi bi-cash-stack me-2 text-danger"></i>Control de Egresos y Gastos Operativos</h4>
-                        <p class="text-muted m-0 small" style="font-size: 0.82rem;">Registro, comprobación y clasificación de egresos de la organización.</p>
+                        <p class="text-muted m-0 small" style="font-size: 0.82rem;">Administración, comprobación y clasificación de gastos operativos, proveedores y pagos de la organización.</p>
                     </div>
                     <div class="d-flex gap-2 flex-wrap align-items-center">
                         <div class="d-flex align-items-center gap-1">
@@ -682,6 +682,21 @@ PAGE_HTML
                         <div class="d-flex align-items-center gap-1">
                             <span class="small text-muted fw-bold">Hasta:</span>
                             <input type="date" id="gastos_f_fin" class="form-control form-control-sm" title="Fecha Fin">
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="small text-muted fw-bold">Categoría:</span>
+                            <select id="filtro_cat_gasto" class="form-select form-select-sm" style="min-width: 140px; font-size: 0.8rem;" onchange="alCambiarFiltroCategoriaGasto()">
+                                <option value="">Todas las Categorías</option>
+                            </select>
+                        </div>
+                        <div id="wrap_filtro_subcat_gasto" class="d-flex align-items-center gap-1">
+                            <span class="small text-muted fw-bold">Subcategoría:</span>
+                            <select id="filtro_subcat_gasto" class="form-select form-select-sm" style="min-width: 140px; font-size: 0.8rem;" onchange="renderGastos()">
+                                <option value="">Todas las Subcategorías</option>
+                            </select>
+                            <span id="badge_sin_subcat_gasto" class="badge bg-light text-muted border py-1.5 px-2.5 d-none align-items-center" style="font-size: 0.78rem; height: 31px;">
+                                <i class="bi bi-dash-circle me-1 text-secondary"></i>Sin Subcategorias
+                            </span>
                         </div>
                         <button class="btn btn-sm px-3 fw-bold shadow-sm btn-mobile-standard" style="background: var(--md-blue-deep, #0A2A66); color: #FFFFFF; border-radius: 50rem;" onclick="renderGastos()"><i class="bi bi-funnel me-1"></i>Filtrar</button>
                         <button class="btn btn-sm px-3 fw-bold text-white shadow-sm btn-mobile-standard rounded-pill" style="background: var(--md-teal-clinical, #19B7A5);" onclick="abrirModalGasto()"><i class="bi bi-plus-lg me-1"></i>Registrar Gasto</button>
@@ -1975,7 +1990,7 @@ PAGE_HTML
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="../js/estado_cuenta_spa.js?v=20260906_4"></script>
+<script src="../js/estado_cuenta_spa.js?v=20261027_1"></script>
 
 <script>
     window.bootFinanzas = function() {

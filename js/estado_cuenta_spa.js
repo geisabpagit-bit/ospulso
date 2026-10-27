@@ -1266,6 +1266,9 @@ async function cargarCategoriasGastos(force = false) {
             catGastos = data.categorias;
             subcatGastos = data.subcategorias;
             subcat3Gastos = data.subcategorias3;
+            window.catGastos = catGastos;
+            window.subcatGastos = subcatGastos;
+            window.subcat3Gastos = subcat3Gastos;
             categoriasGastosCargadas = true;
             
             const catSelect = document.getElementById('cat_gasto');
@@ -1275,6 +1278,16 @@ async function cargarCategoriasGastos(force = false) {
                     catSelect.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
                 });
             }
+
+            const filtroCatSelect = document.getElementById('filtro_cat_gasto');
+            if (filtroCatSelect) {
+                const currentVal = filtroCatSelect.value;
+                filtroCatSelect.innerHTML = '<option value="">Todas las Categorías</option>';
+                catGastos.forEach(c => {
+                    filtroCatSelect.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+                });
+                if (currentVal) filtroCatSelect.value = currentVal;
+            }
         } else {
             if (data.message === 'Sesión expirada') {
                 window.location.reload();
@@ -1282,6 +1295,56 @@ async function cargarCategoriasGastos(force = false) {
         }
     } catch (e) { console.error("Error cargando categorías de gastos", e); }
 }
+
+window.alCambiarFiltroCategoriaGasto = function() {
+    const catSelect = document.getElementById('filtro_cat_gasto');
+    const subcatSelect = document.getElementById('filtro_subcat_gasto');
+    const badgeSinSub = document.getElementById('badge_sin_subcat_gasto');
+    if (!catSelect || !subcatSelect) return;
+
+    const idCat = catSelect.value;
+    subcatSelect.innerHTML = '<option value="">Todas las Subcategorías</option>';
+
+    if (!idCat) {
+        // Todas las categorías seleccionadas
+        subcatSelect.classList.remove('d-none');
+        subcatSelect.style.display = '';
+        if (badgeSinSub) {
+            badgeSinSub.classList.add('d-none');
+            badgeSinSub.style.display = 'none';
+        }
+        renderGastos();
+        return;
+    }
+
+    const arrSub = window.subcatGastos || subcatGastos || [];
+    const filtradas = arrSub.filter(s => String(s.id_cat) === String(idCat));
+    if (filtradas.length > 0) {
+        // Existe relación: mostrar selector y ocultar leyenda
+        subcatSelect.classList.remove('d-none');
+        subcatSelect.style.display = '';
+        if (badgeSinSub) {
+            badgeSinSub.classList.add('d-none');
+            badgeSinSub.style.display = 'none';
+        }
+        filtradas.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.nombre;
+            subcatSelect.appendChild(opt);
+        });
+    } else {
+        // NO existe relación: selector no debe ser visible y en su lugar mostrar leyenda "Sin Subcategorias"
+        subcatSelect.classList.add('d-none');
+        subcatSelect.style.display = 'none';
+        subcatSelect.value = '';
+        if (badgeSinSub) {
+            badgeSinSub.classList.remove('d-none');
+            badgeSinSub.style.display = 'inline-flex';
+        }
+    }
+    renderGastos();
+};
 
 window.filtrarSubcategorias = function() {
     const idCat = document.getElementById('cat_gasto').value;
@@ -1338,8 +1401,14 @@ window.filtrarSubcategorias3 = function() {
 
 window.renderGastos = async function() {
     try {
+        if (!categoriasGastosCargadas && typeof cargarCategoriasGastos === 'function') {
+            await cargarCategoriasGastos();
+        }
+
         const fi_input = document.getElementById('gastos_f_inicio');
         const ff_input = document.getElementById('gastos_f_fin');
+        const cat_input = document.getElementById('filtro_cat_gasto');
+        const subcat_input = document.getElementById('filtro_subcat_gasto');
         
         // Default to today if empty
         if (fi_input && !fi_input.value) {
@@ -1351,6 +1420,8 @@ window.renderGastos = async function() {
         
         const f_inicio = fi_input ? fi_input.value : '';
         const f_fin = ff_input ? ff_input.value : '';
+        const id_cat = cat_input ? cat_input.value : '';
+        const id_subcat = (subcat_input && subcat_input.style.display !== 'none' && !subcat_input.classList.contains('d-none')) ? subcat_input.value : '';
 
         const tbody = document.getElementById('tbodyGastos');
         if ($.fn.DataTable && $.fn.DataTable.isDataTable('#tablaGastos')) {
@@ -1358,10 +1429,14 @@ window.renderGastos = async function() {
         }
         if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando...</td></tr>';
         
+        const params = { action: 'get_gastos', f_inicio: f_inicio, f_fin: f_fin };
+        if (id_cat) params.id_cat = id_cat;
+        if (id_subcat) params.id_subcat = id_subcat;
+
         const res = await fetch('../api/finanzas_api.pl', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: new URLSearchParams({ action: 'get_gastos', f_inicio: f_inicio, f_fin: f_fin })
+            body: new URLSearchParams(params)
         });
         
         let data;

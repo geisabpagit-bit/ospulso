@@ -219,6 +219,8 @@ elsif ($action eq 'get_gastos') {
     
     my $f_inicio = $q->param('f_inicio') || '';
     my $f_fin = $q->param('f_fin') || '';
+    my $f_cat = $q->param('id_cat') || '';
+    my $f_subcat = $q->param('id_subcat') || '';
 
     my @gastos;
     for my $g (@gastos_raw) {
@@ -245,6 +247,14 @@ elsif ($action eq 'get_gastos') {
         my $id_subcat = $g->[3] || '';
         my $id_subcat3 = $g->[4] || '';
         my $id_origen = $g->[9] || '';
+        
+        # Filtros de Categoría y Subcategoría
+        if ($f_cat ne '') {
+            next if ($id_cat ne $f_cat);
+        }
+        if ($f_subcat ne '' && $f_subcat ne '0') {
+            next if ($id_subcat ne $f_subcat);
+        }
         
         push @gastos, {
             id_gasto => $g->[0],

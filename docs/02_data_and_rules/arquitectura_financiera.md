@@ -197,13 +197,21 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
      - Badges de identificación de origen a la derecha (`Efectivo / Ventanilla` y `Convenio Institucional`).
      - Barra superior de filtrado de fecha con botón de acción estilizado en Azul Marino sólido y redondeado estándar (`50rem`).
 
-5. **Homogeneización Visual en Egresos y Gastos Operativos (`views/finanzas.pl`, `tab=gastos`)**:
-   - En la pestaña de Control de Gastos (`#tab_gastos`), la tarjeta de `#tablaGastos` carecía de cabecera interna institucional y utilizaba clases de contenedor obsoletas.
-   - Se estandarizó bajo la misma jerarquía en capas:
-     - Tarjeta en blanco clínico con borde teal perimetral (`1.5px solid var(--md-teal-clinical, #19B7A5)`), sombra suave institucional y padding simétrico (`p-3 p-md-4`).
-     - Cabecera de tarjeta integrada: cápsula circular de 38px en rojo translúcido (`rgba(239, 68, 68, 0.1)`) con `<i class="bi bi-cash-stack text-danger fs-5">`, título en `1.15rem` en Azul Marino (`#0A2A66`), subtítulo explicativo en `0.82rem` y badge temático `<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 fw-semibold small">Egresos / Salidas</span>`.
-     - Barra superior de filtros con botón "Filtrar" unificado en Azul Marino sólido (`50rem`) y botón de acción "Registrar Gasto" en Teal clínico rounded-pill.
-     - Modal `#modalGasto` armonizado con cabecera en Azul Marino/Teal y botón de guardado institucional.
+5. **Homogeneización Visual, Título Unificado y Filtros en Cascada en Egresos y Gastos Operativos (`views/finanzas.pl`, `tab=gastos`)**:
+   - **Área de Título Principal Unificada y Elegante**:
+     * Fusión de textos redundantes en una redacción canónica institucional de alto impacto:
+       - **Título**: `<i class="bi bi-cash-stack me-2 text-danger"></i>Control de Egresos y Gastos Operativos`
+       - **Subtítulo**: `Administración, comprobación y clasificación de gastos operativos, proveedores y pagos de la organización.`
+     * Sincronización bidireccional tanto en el encabezado general del dashboard (`#mainPageTitle` y `#mainPageSubtitle` mediante `window.swTab`) como en el encabezado contextual de `#tab_gastos`, preservando la iconografía temática.
+   - **Filtros en Cascada de Categoría y Subcategoría**:
+     * Al inicio de la vista de gastos, se incorporaron selectores en cascada integrados a la barra de herramientas de filtrado temporal (`#gastos_f_inicio`, `#gastos_f_fin`, `#filtro_cat_gasto` y `#filtro_subcat_gasto`).
+     * **Comportamiento en Cascada y Fallback Dinámico**:
+       - Al seleccionar una categoría, se evalúa si existen subcategorías relacionadas (`subcatGastos.filter(...)`).
+       - Si existen subcategorías asociadas, se hace visible `#filtro_subcat_gasto` y se oculta la leyenda de advertencia.
+       - Si **NO** existe relación entre la categoría seleccionada y subcategorías, el selector de subcategorías se oculta automáticamente (`d-none` / `display: none`) y en su lugar se presenta la cápsula badge institucional `"Sin Subcategorias"` (`#badge_sin_subcat_gasto`).
+     * **Soporte Backend Multi-Tenant y por Rol**:
+       - El endpoint `api/finanzas_api.pl?action=get_gastos` procesa opcionalmente los parámetros `id_cat` e `id_subcat`, garantizando filtrado reactivo instantáneo tanto por servidor como al redibujar DataTables (`#tablaGastos`).
+   - Modal `#modalGasto` armonizado con cabecera en Azul Marino/Teal y botón de guardado institucional.
 
 6. **Eliminación y Depuración de Pestañas Redundantes de CxC (`views/finanzas.pl`, `tab=cxc` y `tab=cxc_estado`)**:
    - Se erradicaron por completo los contenedores y pestañas secundarias `#tab_cxc` y `#tab_cxc_estado` tanto de `views/finanzas.pl` como del acordeón de navegación de [utils/sub_sidebar.pl](file:///c:/xampp/htdocs/ospulso/utils/sub_sidebar.pl).
