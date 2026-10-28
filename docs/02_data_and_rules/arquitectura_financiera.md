@@ -188,14 +188,22 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
    - Se erradican las discrepancias de tamaño (`14px` vs `h5`), padding (`p-3` vs `p-4`) y estilos dispersos entre los contenedores de `#dtIngresosPrivados` e `#dtIngresosMunicipio` en `views/render_dashboard_principal.pl`.
    - Ambos contenedores adoptan el patrón unificado: tarjeta blanca sólida (`#FFFFFF`), bordes perimetrales en Teal clínico (`var(--md-teal-clinical, #19B7A5)`), cabeceras con cápsulas circulares de icono (38px), títulos estandarizados en `1.15rem` con tipografía Plus Jakarta Sans en Azul Marino (`#0A2A66`), subtítulos uniformes en `0.82rem` y badges temáticos discretos (*Efectivo / Ventanilla* vs *Convenio Institucional*).
 
-4. **Homogeneización Visual en DataTables del Módulo Finanzas (`views/finanzas.pl`, `tab=ingresos`)**:
-   - En la pestaña de Historial de Ingresos (`#tab_ingresos`), los contenedores de las tablas `#dtIngresosPrivados` y `#dtIngresosMunicipio` presentaban la misma disparidad visual heredada (`font-size: 14px` y `p-3` en Municipio vs `h5` y `p-4` con `card-medentia-aura` en Privados).
-   - Se homologaron ambos contenedores aplicando idéntica estructura y jerarquía visual:
-     - Contenedores de tarjeta en blanco clínico puro (`#FFFFFF`) con borde teal perimetral (`1.5px solid var(--md-teal-clinical, #19B7A5)`), padding responsive unificado (`p-3 p-md-4`) y sombra limpia (`box-shadow: 0 4px 15px rgba(10, 42, 102, 0.05)`).
-     - Cabeceras estandarizadas con cápsula de icono circular de 38px (verde para Privados/Ventanilla y cyan para Municipio/Institucional).
-     - Títulos en `1.15rem` con tipografía `Plus Jakarta Sans`, peso 700 y color Azul Marino Profundo (`var(--md-blue-deep, #0A2A66)`), acompañados de subtítulos legibles en `0.82rem` (`#64748B`).
-     - Badges de identificación de origen a la derecha (`Efectivo / Ventanilla` y `Convenio Institucional`).
-     - Barra superior de filtrado de fecha con botón de acción estilizado en Azul Marino sólido y redondeado estándar (`50rem`).
+4. **Dock Premium de Filtros, Título Sincronizado y Estandarización de Ingresos (`views/finanzas.pl`, `tab=ingresos`)**:
+   - **Depuración de Encabezado Redundante y Sincronización Superior**:
+     * La cabecera superior `.diamond-header-compact` (`#mainPageTitle` y `#mainPageSubtitle`) ahora se actualiza dinámicamente al alternar al tab:
+       - **Título**: `<i class="bi bi-graph-up-arrow me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Historial de Ingresos`
+       - **Subtítulo**: `Filtro y registro de ingresos por rango de fecha.`
+     * Se erradicó el encabezado redundante del cuerpo del tab, optimizando el espacio vertical en pantalla.
+   - **Dock Premium con Borde Teal en Una Sola Fila**:
+     * Implementación idéntica al dock de egresos con borde perimetral Teal Clínico (`1.5px solid var(--md-teal-clinical, #19B7A5)`), bordes redondeados (`14px`) y fondo blanco.
+     * **Rango de Fechas (`.financial-date-range-bar`)**: Cápsula de fechas con inputs limpios y flecha separadora.
+     * **Filtro Dinámico por Médico (Cápsula Ejecutiva)**:
+       - Menú desplegable `#filtro_medico_ingresos` estilizado con opción por defecto `"Todos"`.
+       - Detección y población automática del catálogo de médicos activos en el periodo consultado.
+       - **Filtrado Reactivo Multi-Tabla**: Opera simultáneamente sobre las tablas `#dtIngresosPrivados` y `#dtIngresosMunicipio` (a pesar de las diferencias de columnas donde Municipio incluye la columna Dependencia y ambas convergen en la columna Médico), recalculando al instante los totales del pie de página sin latencia de red.
+     * **Botón Filtrar**: Ubicado a la derecha con estilo píldora (`rounded-pill`) en Azul Marino (`#0A2A66`).
+   - **Renombramiento Canónico de Tarjeta**:
+     * Se actualizó la leyenda de la tarjeta de cobranza directa a `"Ingresos Privados"` (eliminando la denominación obsoleta `Ingresos (Efectivo / Privados)`).
 
 5. **Dock Premium de Filtros y Egresos Operativos (`views/finanzas.pl`, `tab=gastos`)**:
    - **Depuración de Encabezado Redundante**:
