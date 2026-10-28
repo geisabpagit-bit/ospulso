@@ -1298,6 +1298,7 @@ async function cargarCategoriasGastos(force = false) {
 
 window.alCambiarFiltroCategoriaGasto = function() {
     const catSelect = document.getElementById('filtro_cat_gasto');
+    const wrapSubcat = document.getElementById('wrap_filtro_subcat_gasto');
     const subcatSelect = document.getElementById('filtro_subcat_gasto');
     const badgeSinSub = document.getElementById('badge_sin_subcat_gasto');
     if (!catSelect || !subcatSelect) return;
@@ -1306,15 +1307,20 @@ window.alCambiarFiltroCategoriaGasto = function() {
     subcatSelect.innerHTML = '<option value="">Todas las Subcategorías</option>';
 
     if (!idCat) {
-        // Todas las categorías seleccionadas
-        subcatSelect.classList.remove('d-none');
-        subcatSelect.style.display = '';
-        if (badgeSinSub) {
-            badgeSinSub.classList.add('d-none');
-            badgeSinSub.style.display = 'none';
+        // Estado inicial o sin categoría seleccionada: el selector subcategoría debe ser hidden
+        if (wrapSubcat) {
+            wrapSubcat.classList.add('d-none');
+            wrapSubcat.style.display = 'none';
         }
+        subcatSelect.value = '';
         renderGastos();
         return;
+    }
+
+    // Se ha seleccionado una categoría: hacer visible el contenedor wrap
+    if (wrapSubcat) {
+        wrapSubcat.classList.remove('d-none');
+        wrapSubcat.style.display = '';
     }
 
     const arrSub = window.subcatGastos || subcatGastos || [];
@@ -1408,6 +1414,7 @@ window.renderGastos = async function() {
         const fi_input = document.getElementById('gastos_f_inicio');
         const ff_input = document.getElementById('gastos_f_fin');
         const cat_input = document.getElementById('filtro_cat_gasto');
+        const wrap_subcat = document.getElementById('wrap_filtro_subcat_gasto');
         const subcat_input = document.getElementById('filtro_subcat_gasto');
         
         // Default to today if empty
@@ -1421,7 +1428,8 @@ window.renderGastos = async function() {
         const f_inicio = fi_input ? fi_input.value : '';
         const f_fin = ff_input ? ff_input.value : '';
         const id_cat = cat_input ? cat_input.value : '';
-        const id_subcat = (subcat_input && subcat_input.style.display !== 'none' && !subcat_input.classList.contains('d-none')) ? subcat_input.value : '';
+        const subcatVisible = wrap_subcat && wrap_subcat.style.display !== 'none' && !wrap_subcat.classList.contains('d-none') && subcat_input && subcat_input.style.display !== 'none' && !subcat_input.classList.contains('d-none');
+        const id_subcat = subcatVisible ? subcat_input.value : '';
 
         const tbody = document.getElementById('tbodyGastos');
         if ($.fn.DataTable && $.fn.DataTable.isDataTable('#tablaGastos')) {

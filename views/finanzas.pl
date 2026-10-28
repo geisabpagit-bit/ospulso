@@ -687,9 +687,6 @@ PAGE_HTML
                                         <span class="text-muted small px-1 fw-bold" style="font-size: 0.72rem;">Hasta:</span>
                                         <input type="date" id="gastos_f_fin" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Hasta">
                                     </div>
-                                    <button class="btn btn-sm rounded-pill px-2.5 px-sm-3 text-white flex-shrink-0 d-inline-flex align-items-center justify-content-center" style="background: var(--md-blue-deep, #0A2A66); min-height: 32px;" onclick="renderGastos()" title="Filtrar">
-                                        <i class="bi bi-funnel me-1"></i><span class="d-none d-sm-inline">Filtrar</span>
-                                    </button>
                                 </div>
 
                                 <!-- Selector de Categoría (Cápsula Ejecutiva) -->
@@ -700,8 +697,8 @@ PAGE_HTML
                                     </select>
                                 </div>
 
-                                <!-- Selector de Subcategoría en Cascada (Cápsula Ejecutiva) -->
-                                <div id="wrap_filtro_subcat_gasto" class="d-flex align-items-center bg-white p-1 ps-2.5 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important; min-height: 36px;">
+                                <!-- Selector de Subcategoría en Cascada (Cápsula Ejecutiva, Estado Inicial: Hidden) -->
+                                <div id="wrap_filtro_subcat_gasto" class="d-flex align-items-center bg-white p-1 ps-2.5 rounded-pill border shadow-xs d-none" style="border-color: rgba(25, 183, 165, 0.4) !important; min-height: 36px; display: none;">
                                     <span class="text-muted small pe-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Subcategoría:</span>
                                     <select id="filtro_subcat_gasto" class="form-select form-select-sm border-0 bg-transparent fw-semibold" style="font-size:0.76rem; min-width: 140px; color: var(--md-blue-deep, #0A2A66);" onchange="renderGastos()">
                                         <option value="">Todas las Subcategorías</option>
@@ -713,8 +710,11 @@ PAGE_HTML
 
                             </div>
 
-                            <!-- Botón de Acción Principal -->
-                            <div class="d-flex align-items-center">
+                            <!-- Botones de Acción (Filtrar a la izquierda de Registrar Gasto) -->
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-sm rounded-pill px-3 text-white fw-bold flex-shrink-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="background: var(--md-blue-deep, #0A2A66); min-height: 36px; font-size: 0.78rem;" onclick="renderGastos()" title="Filtrar">
+                                    <i class="bi bi-funnel me-1"></i>Filtrar
+                                </button>
                                 <button class="btn btn-sm rounded-pill px-3 text-white fw-bold flex-shrink-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="background: var(--md-teal-clinical, #19B7A5); min-height: 36px; font-size: 0.78rem;" onclick="abrirModalGasto()">
                                     <i class="bi bi-plus-lg me-1"></i>Registrar Gasto
                                 </button>
@@ -2011,7 +2011,7 @@ PAGE_HTML
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="../js/estado_cuenta_spa.js?v=20261027_1"></script>
+<script src="../js/estado_cuenta_spa.js?v=20261028_1"></script>
 
 <script>
     window.bootFinanzas = function() {

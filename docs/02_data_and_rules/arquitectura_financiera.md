@@ -207,10 +207,10 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
        - Borde perimetral en Teal Clínico (`1.5px solid var(--md-teal-clinical, #19B7A5)`), fondo blanco y esquinas redondeadas (`border-radius: 14px`).
        - Disposición `flex` horizontal en una sola fila que agrupa controles de fecha, selectores en cápsula y botón de acción principal.
      * **Controles Cápsula (Executive Pills)**:
-       - Rango de fechas (`.financial-date-range-bar`) con inputs limpios transparentes y botón redondeado (`rounded-pill`) en Azul Marino profundo (`#0A2A66`) para acción de filtrado.
+       - Rango de fechas (`.financial-date-range-bar`) con inputs limpios transparentes en cápsula fluida.
        - Selector de Categoría en píldora con borde translúcido teal (`rgba(25, 183, 165, 0.4)`), texto semibold y menú dinámico.
-       - Selector de Subcategoría en cascada con evaluación reactiva: si la categoría no tiene hijos, se oculta el selector y se muestra en su lugar la insignia `"Sin Subcategorias"` (`#badge_sin_subcat_gasto`).
-       - Botón de acción principal `+ Registrar Gasto` con estilo `rounded-pill` en Teal Clínico (`#19B7A5`), sombra sutil y tipografía destacada.
+       - Selector de Subcategoría en cascada con estado inicial **Hidden** (`d-none` / `display: none`): permanece oculto hasta que se elija una categoría. Si la categoría seleccionada posee hijos, se despliega el selector con las opciones; de lo contrario, muestra la insignia `"Sin Subcategorias"` (`#badge_sin_subcat_gasto`).
+       - **Botones de Acción**: Agrupados en el extremo derecho con el botón `Filtrar` (Azul Marino `#0A2A66`) posicionado inmediatamente a la izquierda del botón `+ Registrar Gasto` (Teal Clínico `#19B7A5`), ambos con acabado `rounded-pill`.
    - Modal `#modalGasto` armonizado con cabecera en Azul Marino/Teal y botón de guardado institucional.
 
 6. **Eliminación y Depuración de Pestañas Redundantes de CxC (`views/finanzas.pl`, `tab=cxc` y `tab=cxc_estado`)**:
