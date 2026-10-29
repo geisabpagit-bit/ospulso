@@ -25,6 +25,11 @@ unless ($id_os) {
     exit;
 }
 
+if ($tipo eq 'gasto' || $tipo eq 'gastos' || $tipo eq 'egreso' || $tipo eq 'egresos') {
+    print $q->redirect(-uri => "imprimir_recibo_gasto.pl?id_gasto=$id_os");
+    exit;
+}
+
 if ($tipo eq 'publicos' || $tipo eq 'publico' || $tipo eq 'municipio') {
     print $q->redirect(-uri => "imprimir_recibo_publico.pl?id_consulta=$id_os");
     exit;

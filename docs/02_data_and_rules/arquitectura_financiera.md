@@ -63,6 +63,18 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
   `ID|NOMBRE|DESC|ID_NEGOCIO`
   Las categorías, subcategorías y niveles de detalle operan de manera autónoma por tenant. Si una organización no cuenta con categorías personalizadas, se auto-siembra el árbol base vinculado a su `ID_NEGOCIO`, garantizando que ediciones o eliminaciones no alteren a otros tenants.
 
+### 2.9 Comprobante de Egreso y Control Operativo (`api/imprimir_recibo_gasto.pl`)
+- **Naturaleza y Objetivo**: Documento oficial de egreso operativo emitido por la organización para amparar y justificar salidas de efectivo, cheques o transferencias hacia proveedores, insumos y gastos operativos.
+- **Acceso desde DataTables**: La tabla `#tablaGastos` en `views/finanzas.pl?tab=gastos` incorpora en su columna *Acciones* el botón interactivo con icono de recibo (`bi bi-receipt`), disparando la función `abrirReciboGasto(idGasto)` hacia `api/imprimir_recibo_gasto.pl?id_gasto=...`.
+- **Jerarquía de Importancia en Impresión**:
+  1. **Proveedor / Beneficiario**: Resaltado como dato primordial en cabecera con tipografía destacada y borde teal.
+  2. **Categoría y Clasificación Contable**: Despliegue jerárquico de Categoría Principal, Subcategoría y Nivel 3.
+  3. **Concepto y Justificación**: Descripción del egreso con indicación de comprobante fiscal adjunto si existe (`factura_path`).
+  4. **Origen de Fondos**: Medio o caja dispersora (`dat/origen_dinero.dat`).
+  5. **Monto en Número y Letra**: Cifra numérica formal (`$XX,XXX.XX`) acompañada de su transcripción legal en texto en pesos mexicanos (`(SON: ... PESOS XX/100 M.N.)`).
+  6. **Auditoría y Doble Firma**: Bloque de firmas formales de control interno: *Entrega / Autoriza (Control Caja)* y *Recibe Conforme (Beneficiario)*.
+  7. **Pie Institucional**: Domicilio y datos de contacto de la clínica/sucursal idénticos a los del recibo de ingresos.
+
 ---
 
 ## 3. Matriz Multi-Tarifa por Organización (`tipos_tarifas_<CLUES>.dat`)

@@ -1485,6 +1485,7 @@ window.renderGastos = async function() {
                     <td class="text-muted">${facturaBtn}${g.concepto}</td>
                     <td class="fw-bold text-danger text-end">${formatter.format(g.monto)}</td>
                     <td class="text-center">
+                        <button class="btn btn-sm btn-outline-info rounded-pill me-1" onclick="abrirReciboGasto('${g.id_gasto}')" title="Ver / Imprimir Recibo de Egreso"><i class="bi bi-receipt"></i></button>
                         <button class="btn btn-sm btn-outline-primary rounded-pill me-1" onclick="editarGastoUi('${g.id_gasto}')" title="Editar"><i class="bi bi-pencil"></i></button>
                         <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarGasto('${g.id_gasto}')" title="Borrar"><i class="bi bi-trash"></i></button>
                     </td>
@@ -1557,6 +1558,12 @@ window.abrirModalGasto = async function() {
         mg.show();
     }
 }
+
+window.abrirReciboGasto = function(idGasto) {
+    if (!idGasto) return;
+    const url = `../api/imprimir_recibo_gasto.pl?id_gasto=${encodeURIComponent(idGasto)}`;
+    window.open(url, '_blank');
+};
 
 window.editarGastoUi = async function(id) {
     if (!window.currentGastos) return;

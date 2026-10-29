@@ -90,6 +90,22 @@ Para garantizar la exactitud entre lo seleccionado en la vista previa ([views/ge
    - **Eliminación de Bordes Punteados / Dobles**: Se erradicaron las líneas `dashed` o `dotted`. Los conceptos internos usan divisores sólidos limpios (`1px solid #e2e8f0`) con `tr:last-child td { border-bottom: none !important; }` para evitar colisión con el borde de la celda padre.
    - **Unificación de Celda de Totales**: Se eliminaron tablas anidadas en el pie de totales, utilizando celdas nativas `td colspan="3"` con flexbox interno, garantizando alineación geométrica milimétrica de 1px (`#94a3b8`) sin encimados ni desajustes.
 
+### 3.6 Recibo / Comprobante de Egreso y Gasto Operativo (`api/imprimir_recibo_gasto.pl`)
+- **Naturaleza**: Comprobante oficial de dispersión de caja y salida operativa para justificar gastos ante proveedores, compras de insumos y servicios clínicos/administrativos.
+- **Fuente Canónica**: Inserción única en `dat/gastos.dat` con aislamiento estricto por `ID_NEGOCIO`.
+- **Vista Previa de Impresión y Generación de PDF**:
+  - Cuenta con la barra interactiva `.no-print` con botón `← Volver / Cerrar` (`volverPadre()`) y `🖨️ Imprimir / Guardar PDF` (`window.print()`).
+  - En `@media print`, la vista se adapta a hoja carta vertical (Letter Portrait) sin cabeceras sobrantes, facilitando la impresión directa o exportación a PDF.
+- **Jerarquía Visual de Contenido**:
+  1. **Proveedor / Beneficiario**: Ubicado de forma prominente como dato de primer orden con estilo visual destacado y borde teal (`#19B7A5`).
+  2. **Categoría y Clasificación Contable**: Representación jerárquica con badges de Categoría Principal, Subcategoría y Subcategoría Nivel 3.
+  3. **Concepto y Justificación**: Detalle descriptivo de la erogación y enlace/indicador de comprobante fiscal adjunto (`factura_path`).
+  4. **Origen de Fondos**: Caja o cuenta dispersora (`dat/origen_dinero.dat`).
+  5. **Monto en Número y Letra**: Cifra numérica formal (`$XX,XXX.XX`) y transcripción completa en texto en pesos mexicanos (`(SON: ... PESOS XX/100 M.N.)`).
+  6. **Auditoría y Firmas**: Doble casilla de firma para *Entrega / Autoriza (Control Caja)* y *Recibe Conforme (Beneficiario)*.
+  7. **Pie Institucional**: Domicilio estructurado y teléfonos oficiales de la clínica/sucursal.
+- **Enrutamiento Polimórfico**: Integrado en `api/ver_recibo.pl` bajo los parámetros `tipo=gasto|gastos&id_os=ID_GASTO`.
+
 ---
 
 ## 4. Flujo de Datos End-to-End (Emisión → Persistencia → Impresión y DataTables)
