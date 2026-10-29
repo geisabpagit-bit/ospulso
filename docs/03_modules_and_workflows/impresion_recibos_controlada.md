@@ -99,11 +99,16 @@ Para garantizar la exactitud entre lo seleccionado en la vista previa ([views/ge
 - **Jerarquía Visual de Contenido**:
   1. **Proveedor / Beneficiario**: Ubicado de forma prominente como dato de primer orden con estilo visual destacado y borde teal (`#19B7A5`).
   2. **Categoría y Clasificación Contable**: Representación jerárquica con badges de Categoría Principal, Subcategoría y Subcategoría Nivel 3.
-  3. **Concepto y Justificación**: Detalle descriptivo de la erogación y enlace/indicador de comprobante fiscal adjunto (`factura_path`).
-  4. **Origen de Fondos**: Caja o cuenta dispersora (`dat/origen_dinero.dat`).
-  5. **Monto en Número y Letra**: Cifra numérica formal (`$XX,XXX.XX`) y transcripción completa en texto en pesos mexicanos (`(SON: ... PESOS XX/100 M.N.)`).
-  6. **Auditoría y Firmas**: Doble casilla de firma para *Entrega / Autoriza (Control Caja)* y *Recibe Conforme (Beneficiario)*.
-  7. **Pie Institucional**: Domicilio estructurado y teléfonos oficiales de la clínica/sucursal.
+  3. **Desglose Clínico de Honorarios Médicos (Condicional)**:
+     - Si el egreso corresponde a *Honorarios Médicos*, *Consultas Especialidad* o *Consultas Generales*, se renderiza la sección dedicada con:
+       * **Médico Tratante**: Nombre y apellidos del especialista beneficiario.
+       * **Especialidad Médica**: Badge destacado con la rama clínica.
+       * **Recibos de Ingreso Amparados**: Listado de los folios de caja liquidados (ej. `Folio #28858, Folio #28859`), vinculando el comprobante de egreso con los ingresos originales de caja.
+  4. **Concepto y Justificación**: Detalle descriptivo de la erogación y enlace/indicador de comprobante fiscal adjunto (`factura_path`).
+  5. **Origen de Fondos**: Caja o cuenta dispersora (`dat/origen_dinero.dat`).
+  6. **Monto en Número y Letra**: Cifra numérica formal (`$XX,XXX.XX`) y transcripción completa en texto en pesos mexicanos (`(SON: ... PESOS XX/100 M.N.)`).
+  7. **Auditoría y Firmas**: Doble casilla de firma para *Entrega / Autoriza (Control Caja)* y *Recibe Conforme (Beneficiario)*.
+  8. **Pie Institucional**: Domicilio estructurado y teléfonos oficiales de la clínica/sucursal.
 - **Enrutamiento Polimórfico**: Integrado en `api/ver_recibo.pl` bajo los parámetros `tipo=gasto|gastos&id_os=ID_GASTO`.
 
 ---

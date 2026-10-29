@@ -52,8 +52,12 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
   - En la vista de Recepcionista, el DataTable `#dtIngresosMunicipio` (últimas 24 hrs) también se suprime condicionalmente si `PACIENTES_ESTADO` no está activo.
 ### 2.8 Aislamiento Multi-Tenant de Egresos, Categorías y Orígenes de Dinero
 - **Esquema de Gastos (`dat/gastos.dat`)**:
-  `ID_GASTO|FECHA|ID_CAT|ID_SUBCAT|ID_SUBCAT3|CONCEPTO|MONTO|PROVEEDOR|FACTURA_PATH|ID_ORIGEN|ID_CREADOR|ID_NEGOCIO`
-  Toda inserción o consulta de gastos DEBE aislarse por `ID_NEGOCIO` (columna índice `[11]`).
+  `ID_GASTO|FECHA|ID_CAT|ID_SUBCAT|ID_SUBCAT3|CONCEPTO|MONTO|PROVEEDOR|FACTURA_PATH|ID_ORIGEN|ID_CREADOR|ID_NEGOCIO|ID_ESPECIALIDAD|ID_MEDICO|RECIBOS_ASOCIADOS`
+  - Toda inserción o consulta de gastos DEBE aislarse por `ID_NEGOCIO` (columna índice `[11]`).
+  - Columnas extendidas para liquidación de honorarios médicos:
+    * `[12] ID_ESPECIALIDAD`: Identificador de la especialidad médica.
+    * `[13] ID_MEDICO`: Identificador o clave del médico tratante.
+    * `[14] RECIBOS_ASOCIADOS`: Cadena separada por comas con los folios de recibos privados amparados (ej. `28858,28859`).
 - **Regla Anti-Confusión `ID_ORIGEN` vs `ID_NEGOCIO`**:
   Queda estrictamente prohibido utilizar la columna `[9]` (`ID_ORIGEN`) para filtrar por empresa. El índice `[9]` corresponde al identificador del medio de pago en `dat/origen_dinero.dat`. Toda validación multi-tenant debe ejecutarse sobre el índice `[11]`.
 - **Orígenes del Dinero (`dat/origen_dinero.dat`)**:
@@ -73,7 +77,24 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
   4. **Origen de Fondos**: Medio o caja dispersora (`dat/origen_dinero.dat`).
   5. **Monto en Número y Letra**: Cifra numérica formal (`$XX,XXX.XX`) acompañada de su transcripción legal en texto en pesos mexicanos (`(SON: ... PESOS XX/100 M.N.)`).
   6. **Auditoría y Doble Firma**: Bloque de firmas formales de control interno: *Entrega / Autoriza (Control Caja)* y *Recibe Conforme (Beneficiario)*.
-  7. **Pie Institucional**: Domicilio y datos de contacto de la clínica/sucursal idénticos a los del recibo de ingresos.
+
+### 2.10 Liquidación Dinámica de Honorarios Médicos y Consultas (`#modalGasto`)
+- **Detección Condicional por Categoría**:
+  Al seleccionar una categoría que contenga las palabras `honorarios`, `consultas especialidad` o `consultas generales` (insensible a mayúsculas/minúsculas):
+  - El modal de egresos `#modalGasto` despliega un contenedor dinámico (`#contenedor_honorarios_medicos`) con borde cian y fondo suave.
+  - Para categorías operativas estándar ("Insumos", "Papelería", "Mantenimiento", "Sin Categoría", etc.), este contenedor permanece estrictamente oculto (`display: none`).
+- **Campos Médicos Integrados (UI/UX)**:
+  1. **Especialidad Médica**: Selector poblado dinámicamente desde `api/finanzas_api.pl?action=get_medicos_especialidades`. Al cambiar de especialidad, filtra en cascada el catálogo de médicos tratantes.
+  2. **Médico Tratante**: Selector del especialista. Al seleccionar un médico:
+     - Auto-llena el campo `Proveedor / Beneficiario` con el nombre del médico.
+     - Consulta de forma asíncrona sus recibos de consulta activos mediante `api/finanzas_api.pl?action=get_recibos_medico&id_medico=...`.
+  3. **Recibos de Ingresos Asociados (Checklist Múltiple)**:
+     - Desplegable tipo dropdown con checkboxes individuales por recibo.
+     - Cada elemento visualiza: `Folio`, `Fecha/Hora`, `Importe ($)`, `Paciente` y `Concepto`.
+     - Permite selección individual o múltiple ("Seleccionar / Deseleccionar Todos").
+     - **Auto-cálculo y Sugerencia**: La suma acumulada de los recibos seleccionados se calcula en tiempo real; si el campo `Monto ($)` está en $0.00 o coincide con el cálculo anterior, se auto-actualiza automáticamente. El campo `Concepto` se pre-redacta sugiriendo los folios amparados (ej. `Liquidación honorarios médicos de consultas: Folio #28858, #28859`).
+- **Persistencia y Retrocompatibilidad**:
+  Los valores capturados (`id_especialidad`, `id_medico`, `recibos_asociados`) se transmiten al backend `api/finanzas_api.pl?action=save_gasto` y se almacenan en las columnas `[12]`, `[13]` y `[14]` de `dat/gastos.dat`. Registros históricos previos a esta versión mantienen compatibilidad íntegra gracias al manejo de valores por defecto vacíos.
 
 ---
 

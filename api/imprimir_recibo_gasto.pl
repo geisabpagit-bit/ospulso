@@ -56,7 +56,10 @@ if (-e $gastos_file && open(my $fh, '<:encoding(UTF-8)', $gastos_file)) {
                 factura_path => $c[8] // '',
                 id_origen    => $c[9] // '',
                 id_creador   => $c[10] // '',
-                id_negocio   => $c[11] // '0'
+                id_negocio   => $c[11] // '0',
+                id_especialidad   => $c[12] // '',
+                id_medico         => $c[13] // '',
+                recibos_asociados => $c[14] // ''
             };
             last;
         }
@@ -406,6 +409,120 @@ if ($subcat3_nombre && $subcat3_nombre ne 'N/A') {
     $arbol_categoria_html .= qq{ <span class="cat-sep">▸</span> <span class="badge-cat-sub3">$subcat3_nombre</span>};
 }
 
+# 3.1 Resolver Datos Médicos si aplica (Honorarios / Consultas)
+my $especialidad_nombre_res = '';
+my $medico_nombre_res = '';
+
+if ($gasto->{id_especialidad}) {
+    my $cat_clues = $negocio->{clues};
+    if ($cat_clues) {
+        my $esp_file = File::Spec->catfile($script_dir, '..', 'dat', 'catalogos_CLUE', $cat_clues, "especialidades_${cat_clues}.dat");
+        if (-e $esp_file && open(my $fe, '<:encoding(UTF-8)', $esp_file)) {
+            while (my $le = <$fe>) {
+                chomp $le;
+                my @e = split /\|/, $le, -1;
+                if ($e[0] eq $gasto->{id_especialidad}) {
+                    $especialidad_nombre_res = $e[1] // '';
+                    last;
+                }
+            }
+            close $fe;
+        }
+    }
+    if (!$especialidad_nombre_res) {
+        my $esp_dat = File::Spec->catfile($script_dir, '..', 'dat', 'especialidades.dat');
+        if (-e $esp_dat && open(my $fe, '<:encoding(UTF-8)', $esp_dat)) {
+            while (my $le = <$fe>) {
+                chomp $le;
+                my @e = split /\|/, $le, -1;
+                if ($e[0] eq $gasto->{id_especialidad}) {
+                    $especialidad_nombre_res = $e[1] // '';
+                    last;
+                }
+            }
+            close $fe;
+        }
+    }
+    $especialidad_nombre_res ||= $gasto->{id_especialidad};
+}
+
+if ($gasto->{id_medico}) {
+    my $cat_clues = $negocio->{clues};
+    if ($cat_clues) {
+        my $med_file = File::Spec->catfile($script_dir, '..', 'dat', 'catalogos_CLUE', $cat_clues, "medicos_${cat_clues}.dat");
+        if (-e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
+            while (my $lm = <$fm>) {
+                chomp $lm;
+                my @m = split /\|/, $lm, -1;
+                if ($m[0] eq $gasto->{id_medico}) {
+                    $medico_nombre_res = $m[2] // '';
+                    last;
+                }
+            }
+            close $fm;
+        }
+    }
+    if (!$medico_nombre_res) {
+        my $usr_file = File::Spec->catfile($script_dir, '..', 'dat', 'usuarios.dat');
+        if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
+            while (my $lu = <$fu>) {
+                chomp $lu;
+                my @u = split /!/, $lu, -1;
+                if ($u[0] eq $gasto->{id_medico}) {
+                    $medico_nombre_res = $u[1] // '';
+                    last;
+                }
+            }
+            close $fu;
+        }
+    }
+    $medico_nombre_res ||= $gasto->{id_medico};
+}
+
+# Preparar bloque HTML para honorarios si existen datos
+my $bloque_honorarios_html = '';
+my $es_cat_honorarios = ($cat_nombre =~ /honorarios/i || $cat_nombre =~ /consultas?\s*especialidad/i || $cat_nombre =~ /consultas?\s*generales?/i) ? 1 : 0;
+
+if ($es_cat_honorarios || $medico_nombre_res || $especialidad_nombre_res || $gasto->{recibos_asociados}) {
+    my $med_display = uc($medico_nombre_res || $gasto->{proveedor} || 'NO ESPECIFICADO');
+    my $esp_display = uc($especialidad_nombre_res || 'CONSULTA MÉDICA');
+    
+    my $rec_row = '';
+    if ($gasto->{recibos_asociados}) {
+        my @fol_arr = split /,/, $gasto->{recibos_asociados};
+        my $fol_txt = join(', ', map { "Folio #$_" } @fol_arr);
+        $rec_row = qq{
+            <tr>
+                <td class="info-label-cell" style="vertical-align: top;">Recibos de Ingreso Amparados :</td>
+                <td colspan="2">
+                    <div style="font-weight: 700; color: #047857; font-size: 11px; margin-bottom: 2px;">
+                        $fol_txt
+                    </div>
+                    <span style="font-size: 9.5px; color: #64748b;">Comprobantes de ingreso liquidados correspondientes a los honorarios médicos.</span>
+                </td>
+            </tr>
+        };
+    }
+    
+    $bloque_honorarios_html = qq{
+        <tr>
+            <td class="info-label-cell" style="border-left: 4px solid #19B7A5;">Médico Tratante :</td>
+            <td colspan="2" style="font-weight: 800; color: #0A2A66; font-size: 12px; text-transform: uppercase;">
+                $med_display
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label-cell">Especialidad :</td>
+            <td colspan="2">
+                <span style="background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; display: inline-block;">
+                    $esp_display
+                </span>
+            </td>
+        </tr>
+        $rec_row
+    };
+}
+
 # Comprobante / Factura adjunta
 my $adjunto_html = '';
 if ($gasto->{factura_path}) {
@@ -676,6 +793,8 @@ print <<HTML;
                     $arbol_categoria_html
                 </td>
             </tr>
+
+            $bloque_honorarios_html
 
             <!-- 4. Concepto y Justificación Operativa -->
             <tr>

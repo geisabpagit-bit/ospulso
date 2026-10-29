@@ -271,7 +271,10 @@ elsif ($action eq 'get_gastos') {
             cat_nombre => $c_map{$id_cat} || 'N/A',
             subcat_nombre => $s_map{$id_subcat} || 'N/A',
             subcat3_nombre => $s3_map{$id_subcat3} || 'N/A',
-            id_negocio => $g_empresa
+            id_negocio => $g_empresa,
+            id_especialidad => $g->[12] || '',
+            id_medico => $g->[13] || '',
+            recibos_asociados => $g->[14] || ''
         };
     }
     
@@ -308,6 +311,13 @@ elsif ($action eq 'save_gasto') {
         }
     }
     
+    my $id_espe = $q->param('id_especialidad') || '';
+    my $id_med  = $q->param('id_medico') || '';
+    my $rec_asc = $q->param('recibos_asociados') || '';
+    $id_espe =~ s/^\s+|\s+$//g;
+    $id_med  =~ s/^\s+|\s+$//g;
+    $rec_asc =~ s/^\s+|\s+$//g;
+
     if (!$id_gasto) {
         my $nuevo_id = obtener_nuevo_id("$FindBin::Bin/../dat/id_gasto.counter");
         my $linea = join("|", 
@@ -322,7 +332,10 @@ elsif ($action eq 'save_gasto') {
             $factura_path,
             $q->param('id_origen') || '',
             $session_data->{usuario} || '',
-            $target_org
+            $target_org,
+            $id_espe,
+            $id_med,
+            $rec_asc
         );
         guardar_registro("$FindBin::Bin/../dat/gastos.dat", $linea);
     } else {
@@ -342,6 +355,10 @@ elsif ($action eq 'save_gasto') {
                 if ($campos[0] eq $id_gasto && ($es_admin_global || $g_neg eq $target_org)) {
                     # Conservar factura antigua si no se subió una nueva
                     my $final_factura = $factura_path ne "" ? $factura_path : ($campos[8] || '');
+                    my $final_espe = defined $q->param('id_especialidad') ? $id_espe : ($campos[12] || '');
+                    my $final_med  = defined $q->param('id_medico') ? $id_med : ($campos[13] || '');
+                    my $final_rec  = defined $q->param('recibos_asociados') ? $rec_asc : ($campos[14] || '');
+                    
                     $l = join("|", 
                         $id_gasto,
                         $q->param('fecha') || $campos[1],
@@ -354,7 +371,10 @@ elsif ($action eq 'save_gasto') {
                         $final_factura,
                         $q->param('id_origen') || $campos[9],
                         $campos[10] || $session_data->{usuario} || '',
-                        $campos[11] // $target_org
+                        $campos[11] // $target_org,
+                        $final_espe,
+                        $final_med,
+                        $final_rec
                     );
                 }
                 print $fh_out "$l\n";
@@ -372,6 +392,210 @@ elsif ($action eq 'delete_gasto') {
     } else {
         print encode_json({ success => 0, message => "ID no especificado" });
     }
+}
+elsif ($action eq 'get_medicos_especialidades') {
+    my $org_clues = '';
+    my $negocios_file = "$FindBin::Bin/../dat/negocios.dat";
+    if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
+        <$fhn>;
+        while (my $ln = <$fhn>) {
+            chomp $ln;
+            my @n = split /\|/, $ln, -1;
+            if ($n[0] eq $id_empresa || ($id_empresa eq '0' && $n[0])) {
+                $org_clues = $n[18] // '';
+                last;
+            }
+        }
+        close $fhn;
+    }
+    $org_clues =~ s/^\s+|\s+$//g;
+    
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+    my $rutas = $org_clues ? catalogo_org_utils::obtener_rutas_por_clue($org_clues) : catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
+    
+    my @especialidades = ();
+    my %espe_seen = ();
+    
+    my $espe_file = $rutas->{especialidades};
+    if ($espe_file && -e $espe_file && open(my $fe, '<:encoding(UTF-8)', $espe_file)) {
+        while (my $le = <$fe>) {
+            chomp $le;
+            next if $le =~ /^\s*$/ || $le =~ /^#/;
+            my @e = split /\|/, $le, -1;
+            if (@e >= 2 && $e[1]) {
+                my $eid = $e[0];
+                my $enom = $e[1];
+                $enom =~ s/^\s+|\s+$//g;
+                if (!$espe_seen{$eid}++) {
+                    push @especialidades, { id => $eid, nombre => $enom };
+                }
+            }
+        }
+        close $fe;
+    }
+    
+    if (!@especialidades) {
+        my $espe_dat = "$FindBin::Bin/../dat/especialidades.dat";
+        if (-e $espe_dat && open(my $fed, '<:encoding(UTF-8)', $espe_dat)) {
+            while (my $le = <$fed>) {
+                chomp $le;
+                next if $le =~ /^\s*$/;
+                my @e = split /\|/, $le, -1;
+                if (@e >= 2 && $e[1] && !$espe_seen{$e[0]}++) {
+                    push @especialidades, { id => $e[0], nombre => $e[1] };
+                }
+            }
+            close $fed;
+        }
+    }
+    
+    @especialidades = sort { $a->{nombre} cmp $b->{nombre} } @especialidades;
+    
+    my @medicos = ();
+    my %med_seen = ();
+    
+    my $med_file = $rutas->{medicos};
+    if ($med_file && -e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
+        while (my $lm = <$fm>) {
+            chomp $lm;
+            next if $lm =~ /^\s*$/ || $lm =~ /^#/;
+            my @m = split /\|/, $lm, -1;
+            if (@m >= 3 && $m[2]) {
+                my $mid = $m[0];
+                my $mespe = $m[1] // '';
+                my $mnom = $m[2];
+                $mnom =~ s/^\s+|\s+$//g;
+                if (!$med_seen{$mid}++) {
+                    push @medicos, { id => $mid, id_especialidad => $mespe, nombre => $mnom };
+                }
+            }
+        }
+        close $fm;
+    }
+    
+    my $items_file = $rutas->{items};
+    if ($items_file && -e $items_file && open(my $fi, '<:encoding(UTF-8)', $items_file)) {
+        while (my $li = <$fi>) {
+            chomp $li;
+            my @fc = split /\|/, $li, -1;
+            if (@fc >= 4 && $fc[3] =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                my $esp_c = $1;
+                my $med_c = $2;
+                $esp_c =~ s/^\s+|\s+$//g;
+                $med_c =~ s/\s*\(.*?\)//g;
+                $med_c =~ s/^\s+|\s+$//g;
+                
+                my $match_espe_id = '';
+                foreach my $esp_obj (@especialidades) {
+                    if (uc($esp_obj->{nombre}) eq uc($esp_c)) {
+                        $match_espe_id = $esp_obj->{id};
+                        last;
+                    }
+                }
+                if (!$match_espe_id && $esp_c) {
+                    my $new_eid = 'ESP_' . (scalar(@especialidades) + 1);
+                    push @especialidades, { id => $new_eid, nombre => uc($esp_c) };
+                    $match_espe_id = $new_eid;
+                }
+                
+                if ($med_c && !$med_seen{$fc[0]}++) {
+                    push @medicos, { id => $fc[0], id_especialidad => $match_espe_id, nombre => uc($med_c) };
+                }
+            }
+        }
+        close $fi;
+    }
+    
+    my $usr_file = "$FindBin::Bin/../dat/usuarios.dat";
+    if (-e $usr_file && open(my $fu, '<:encoding(UTF-8)', $usr_file)) {
+        while (my $lu = <$fu>) {
+            chomp $lu;
+            next if $lu =~ /^\s*$/ || $lu =~ /^#/;
+            my @u = split /!/, $lu, -1;
+            if (@u >= 5 && ($u[4] =~ /m[eé]dico/i || $u[4] =~ /especialista/i)) {
+                if (!$med_seen{$u[0]}++) {
+                    push @medicos, { id => $u[0], id_especialidad => '', nombre => $u[1] };
+                }
+            }
+        }
+        close $fu;
+    }
+    
+    @medicos = sort { $a->{nombre} cmp $b->{nombre} } @medicos;
+    print encode_json({ success => 1, especialidades => \@especialidades, medicos => \@medicos });
+}
+elsif ($action eq 'get_recibos_medico') {
+    my $target_med_id = $q->param('id_medico') || '';
+    my $target_med_nom = uc($q->param('nombre_medico') || '');
+    $target_med_id =~ s/^\s+|\s+$//g;
+    $target_med_nom =~ s/^\s+|\s+$//g;
+    
+    my $recibos_file = "$FindBin::Bin/../dat/folios_recibos_privados.dat";
+    my @recibos = ();
+    
+    my %pacientes_map = ();
+    my $pac_file = "$FindBin::Bin/../dat/pacientes.dat";
+    if (-e $pac_file && open(my $fp, '<:encoding(UTF-8)', $pac_file)) {
+        <$fp>;
+        while (my $lp = <$fp>) {
+            chomp $lp;
+            my @p = split /\|/, $lp, -1;
+            $pacientes_map{$p[0]} = $p[2] if @p >= 3;
+        }
+        close $fp;
+    }
+    
+    if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
+        <$fh>;
+        while (my $line = <$fh>) {
+            chomp $line;
+            next if $line =~ /^\s*$/;
+            my @r = split /\|/, $line, -1;
+            
+            my $r_neg = $r[2] // '0';
+            $r_neg =~ s/^\s+|\s+$//g;
+            if (defined $id_empresa && $id_empresa ne '' && !$es_admin_global) {
+                next if ($r_neg ne $id_empresa && !($r_neg eq '0' && $id_empresa eq '0'));
+            }
+            
+            my $estatus = $r[14] || 'Cobrado';
+            next if $estatus eq 'Cancelado';
+            
+            my $rec_med_id = $r[15] // '';
+            my $rec_conc = $r[12] // '';
+            my $rec_items = $r[13] // '';
+            
+            my $match = 0;
+            if ($target_med_id ne '' && $rec_med_id eq $target_med_id) {
+                $match = 1;
+            }
+            if (!$match && $target_med_nom ne '') {
+                if (uc($rec_conc) =~ /\Q$target_med_nom\E/) {
+                    $match = 1;
+                } elsif ($rec_items =~ /\Q$target_med_nom\E/i) {
+                    $match = 1;
+                }
+            }
+            
+            if ($match) {
+                my $pac_id = $r[5] // '';
+                my $pac_nom = $pacientes_map{$pac_id} || "Paciente #$pac_id";
+                push @recibos, {
+                    id_recibo => $r[0],
+                    folio     => $r[1],
+                    fecha     => $r[6],
+                    hora      => $r[7],
+                    monto     => $r[8] || $r[9] || 0,
+                    paciente  => $pac_nom,
+                    concepto  => $r[12] || 'Consulta Médica'
+                };
+            }
+        }
+        close $fh;
+    }
+    
+    @recibos = sort { $b->{fecha} cmp $a->{fecha} || $b->{folio} cmp $a->{folio} } @recibos;
+    print encode_json({ success => 1, data => \@recibos });
 }
 elsif ($action eq 'get_ingresos') {
     my @movimientos_raw = @{ leer_tabla("$FindBin::Bin/../dat/estado_cuenta.dat") };

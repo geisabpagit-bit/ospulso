@@ -1380,7 +1380,244 @@ window.filtrarSubcategorias = function() {
         subcatSelect.value = '';
     }
     colSub3.style.display = 'none';
+    verificarCategoriaHonorarios();
 }
+
+let catalogoMedicosCache = [];
+let catalogoEspecialidadesCache = [];
+let recibosDisponiblesCache = [];
+
+window.verificarCategoriaHonorarios = async function(preselectedEspe, preselectedMed, preselectedRecibos) {
+    const catSelect = document.getElementById('cat_gasto');
+    const contenedor = document.getElementById('contenedor_honorarios_medicos');
+    if (!contenedor) return;
+    
+    let catText = '';
+    let catVal = catSelect ? catSelect.value : '';
+    if (catSelect && catSelect.selectedIndex >= 0) {
+        catText = catSelect.options[catSelect.selectedIndex].text || '';
+    }
+    if (!catText && catVal && typeof catGastos !== 'undefined') {
+        const cObj = catGastos.find(c => String(c.id) === String(catVal));
+        if (cObj) catText = cObj.nombre || '';
+    }
+    
+    const esHonorarios = /honorarios/i.test(catText) || 
+                         /consultas?\s*especialidad/i.test(catText) || 
+                         /consultas?\s*generales?/i.test(catText);
+    
+    if (esHonorarios) {
+        contenedor.style.display = 'block';
+        await cargarMedicosYEspecialidades(preselectedEspe, preselectedMed, preselectedRecibos);
+    } else {
+        contenedor.style.display = 'none';
+        limpiarCamposHonorarios();
+    }
+};
+
+function limpiarCamposHonorarios() {
+    const esp = document.getElementById('especialidad_gasto');
+    if (esp) esp.innerHTML = '<option value="">-- Selecciona Especialidad --</option>';
+    const med = document.getElementById('medico_gasto');
+    if (med) med.innerHTML = '<option value="">-- Selecciona Médico --</option>';
+    const rec = document.getElementById('recibos_asociados_gasto');
+    if (rec) rec.value = '';
+    const badge = document.getElementById('badge_recibos_count');
+    if (badge) badge.textContent = '0 seleccionados';
+    const txt = document.getElementById('txtBtnRecibos');
+    if (txt) txt.textContent = '-- Selecciona recibos para liquidar --';
+    const menu = document.getElementById('menuRecibosCheckboxes');
+    if (menu) menu.innerHTML = '<div class="text-muted text-center py-2 small" id="recibos_placeholder">Selecciona un médico tratante para cargar sus recibos.</div>';
+}
+
+async function cargarMedicosYEspecialidades(preselectedEspe, preselectedMed, preselectedRecibos) {
+    if (catalogoMedicosCache.length === 0 || catalogoEspecialidadesCache.length === 0) {
+        try {
+            const res = await fetch('../api/finanzas_api.pl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ action: 'get_medicos_especialidades' })
+            }).then(r => r.json());
+            
+            if (res.success) {
+                catalogoEspecialidadesCache = res.especialidades || [];
+                catalogoMedicosCache = res.medicos || [];
+            }
+        } catch (e) {
+            console.error("Error al cargar médicos y especialidades:", e);
+        }
+    }
+    poblarEspecialidadesGasto(preselectedEspe, preselectedMed, preselectedRecibos);
+}
+
+function poblarEspecialidadesGasto(preselectedEspe, preselectedMed, preselectedRecibos) {
+    const selEspe = document.getElementById('especialidad_gasto');
+    if (!selEspe) return;
+    
+    let html = '<option value="">-- Selecciona Especialidad --</option>';
+    catalogoEspecialidadesCache.forEach(e => {
+        let isSel = (preselectedEspe && (String(e.id) === String(preselectedEspe) || e.nombre.toUpperCase() === String(preselectedEspe).toUpperCase())) ? 'selected' : '';
+        html += `<option value="${e.id}" ${isSel}>${e.nombre}</option>`;
+    });
+    selEspe.innerHTML = html;
+    
+    onEspecialidadGastoChange(preselectedMed, preselectedRecibos);
+}
+
+window.onEspecialidadGastoChange = function(preselectedMed, preselectedRecibos) {
+    const selEspe = document.getElementById('especialidad_gasto');
+    const selMed = document.getElementById('medico_gasto');
+    if (!selMed) return;
+    
+    const idEspe = selEspe ? selEspe.value : '';
+    let medicosFiltrados = catalogoMedicosCache;
+    if (idEspe) {
+        medicosFiltrados = catalogoMedicosCache.filter(m => !m.id_especialidad || String(m.id_especialidad) === String(idEspe));
+    }
+    
+    let html = '<option value="">-- Selecciona Médico --</option>';
+    medicosFiltrados.forEach(m => {
+        let isSel = (preselectedMed && (String(m.id) === String(preselectedMed) || m.nombre.toUpperCase() === String(preselectedMed).toUpperCase())) ? 'selected' : '';
+        html += `<option value="${m.id}" ${isSel}>${m.nombre}</option>`;
+    });
+    selMed.innerHTML = html;
+    
+    if (preselectedMed) {
+        onMedicoGastoChange(preselectedRecibos);
+    }
+};
+
+window.onMedicoGastoChange = async function(preselectedRecibos) {
+    const selMed = document.getElementById('medico_gasto');
+    if (!selMed) return;
+    
+    const idMed = selMed.value;
+    const opt = (selMed.selectedIndex >= 0) ? selMed.options[selMed.selectedIndex] : null;
+    const nomMed = (opt && opt.value) ? opt.text.trim() : '';
+    
+    if (nomMed) {
+        // Auto-llenar Proveedor con el nombre del médico (Requerimiento A2)
+        const iptProv = document.getElementById('proveedor_gasto');
+        if (iptProv) iptProv.value = nomMed;
+        
+        // Sugerir concepto si está vacío o genérico
+        const iptConc = document.getElementById('concepto_gasto');
+        if (iptConc && (!iptConc.value || iptConc.value.startsWith('Honorarios Médicos'))) {
+            iptConc.value = `Honorarios Médicos - ${nomMed}`;
+        }
+        
+        await cargarRecibosDeMedico(idMed, nomMed, preselectedRecibos);
+    } else {
+        const menu = document.getElementById('menuRecibosCheckboxes');
+        if (menu) menu.innerHTML = '<div class="text-muted text-center py-2 small">Selecciona un médico tratante para cargar sus recibos.</div>';
+        const badge = document.getElementById('badge_recibos_count');
+        if (badge) badge.textContent = '0 seleccionados';
+        const txt = document.getElementById('txtBtnRecibos');
+        if (txt) txt.textContent = '-- Selecciona recibos para liquidar --';
+        const hid = document.getElementById('recibos_asociados_gasto');
+        if (hid) hid.value = '';
+    }
+};
+
+async function cargarRecibosDeMedico(idMed, nomMed, preselectedRecibos) {
+    const menu = document.getElementById('menuRecibosCheckboxes');
+    if (!menu) return;
+    
+    menu.innerHTML = '<div class="text-center py-2 text-muted small"><div class="spinner-border spinner-border-sm me-1 text-primary"></div> Cargando recibos...</div>';
+    
+    try {
+        const res = await fetch('../api/finanzas_api.pl', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                action: 'get_recibos_medico',
+                id_medico: idMed,
+                nombre_medico: nomMed
+            })
+        }).then(r => r.json());
+        
+        recibosDisponiblesCache = (res.success && res.data) ? res.data : [];
+        
+        if (recibosDisponiblesCache.length === 0) {
+            menu.innerHTML = '<div class="text-muted text-center py-2 small">Sin recibos de ingreso registrados para este médico.</div>';
+            return;
+        }
+        
+        let preSet = new Set();
+        if (preselectedRecibos) {
+            preselectedRecibos.split(',').forEach(f => preSet.add(f.trim()));
+        }
+        
+        let html = '';
+        recibosDisponiblesCache.forEach(r => {
+            let isChecked = preSet.has(String(r.folio)) ? 'checked' : '';
+            let montoFmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(r.monto);
+            html += `
+            <div class="form-check p-2 rounded hover-bg-light border-bottom d-flex align-items-center">
+                <input class="form-check-input chk-recibo me-2 mt-0" type="checkbox" value="${r.folio}" id="chk_rec_${r.id_recibo}" data-monto="${r.monto}" data-folio="${r.folio}" ${isChecked} onchange="onToggleReciboGasto()">
+                <label class="form-check-label w-100 mb-0 cursor-pointer small lh-sm" for="chk_rec_${r.id_recibo}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold" style="color: #0A2A66;">Folio #${r.folio}</span>
+                        <span class="fw-bold text-success">${montoFmt}</span>
+                    </div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem;">${r.fecha} | ${r.paciente}</div>
+                </label>
+            </div>`;
+        });
+        menu.innerHTML = html;
+        onToggleReciboGasto();
+    } catch (e) {
+        console.error("Error al cargar recibos del médico:", e);
+        menu.innerHTML = '<div class="text-danger text-center py-2 small">Error al conectar con los recibos.</div>';
+    }
+}
+
+window.onToggleReciboGasto = function() {
+    const checkboxes = document.querySelectorAll('#menuRecibosCheckboxes .chk-recibo:checked');
+    let totalMonto = 0;
+    let folios = [];
+    
+    checkboxes.forEach(cb => {
+        let m = parseFloat(cb.getAttribute('data-monto')) || 0;
+        let f = cb.getAttribute('data-folio');
+        totalMonto += m;
+        if (f) folios.push(f);
+    });
+    
+    const count = folios.length;
+    const badge = document.getElementById('badge_recibos_count');
+    if (badge) badge.textContent = `${count} seleccionado${count === 1 ? '' : 's'}`;
+    
+    const txt = document.getElementById('txtBtnRecibos');
+    if (txt) {
+        if (count > 0) {
+            let totalFmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(totalMonto);
+            txt.textContent = `${count} Recibo(s): #${folios.slice(0, 3).join(', #')}${count > 3 ? '...' : ''} (${totalFmt})`;
+        } else {
+            txt.textContent = '-- Selecciona recibos para liquidar --';
+        }
+    }
+    
+    const hid = document.getElementById('recibos_asociados_gasto');
+    if (hid) hid.value = folios.join(',');
+    
+    // Auto-completar el Monto sugerido si hay recibos seleccionados
+    if (count > 0) {
+        const iptMonto = document.getElementById('monto_gasto');
+        if (iptMonto && (!iptMonto.value || iptMonto.dataset.autoFilled === 'true' || parseFloat(iptMonto.value) === 0)) {
+            iptMonto.value = totalMonto.toFixed(2);
+            iptMonto.dataset.autoFilled = 'true';
+        }
+        
+        // Sugerir concepto detallado
+        const iptConc = document.getElementById('concepto_gasto');
+        const selMed = document.getElementById('medico_gasto');
+        const nomMed = (selMed && selMed.selectedIndex >= 0 && selMed.value) ? selMed.options[selMed.selectedIndex].text.trim() : '';
+        if (iptConc && nomMed) {
+            iptConc.value = `Honorarios Médicos - ${nomMed} (Recibos: #${folios.join(', #')})`;
+        }
+    }
+};
 
 window.filtrarSubcategorias3 = function() {
     const idSub = document.getElementById('subcat_gasto').value;
@@ -1549,6 +1786,10 @@ window.abrirModalGasto = async function() {
     document.getElementById('id_gasto').value = '';
     const tzoffset = (new Date()).getTimezoneOffset() * 60000;
     document.getElementById('fecha_gasto').value = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+    const contHon = document.getElementById('contenedor_honorarios_medicos');
+    if (contHon) contHon.style.display = 'none';
+    limpiarCamposHonorarios();
+
     const el = document.getElementById('modalGasto');
     if (el) {
         $(el).appendTo('body');
@@ -1592,6 +1833,7 @@ window.editarGastoUi = async function(id) {
                 document.getElementById('subcat3_gasto').value = g.id_subcat3;
             }
         }
+        await verificarCategoriaHonorarios(g.id_especialidad, g.id_medico, g.recibos_asociados);
     }
     
     const el = document.getElementById('modalGasto');
@@ -1624,6 +1866,10 @@ function attachFinanzasListeners() {
             payload.append('id_origen', document.getElementById('origen_gasto').value);
             payload.append('concepto', document.getElementById('concepto_gasto').value);
             payload.append('monto', document.getElementById('monto_gasto').value);
+            
+            payload.append('id_especialidad', document.getElementById('especialidad_gasto')?.value || '');
+            payload.append('id_medico', document.getElementById('medico_gasto')?.value || '');
+            payload.append('recibos_asociados', document.getElementById('recibos_asociados_gasto')?.value || '');
             
             const fileInput = document.getElementById('factura_gasto');
             if (fileInput && fileInput.files.length > 0) {

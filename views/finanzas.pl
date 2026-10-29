@@ -880,6 +880,47 @@ PAGE_HTML
                             </div>
                         </div>
                     </div>
+                    <!-- Campos Dinámicos: Honorarios y Consultas Médicas -->
+                    <div id="contenedor_honorarios_medicos" style="display: none; background: #f8fafc; border: 1.5px solid rgba(25, 183, 165, 0.35); border-radius: 12px; padding: 14px 14px 6px 14px; margin-bottom: 16px;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="small fw-bold text-uppercase" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.78rem; letter-spacing: 0.3px;">
+                                <i class="bi bi-person-badge-fill me-1" style="color: var(--md-teal-clinical, #19B7A5);"></i> Vinculación Médica y Recibos
+                            </span>
+                            <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">Honorarios / Consultas</span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="especialidad_gasto" class="form-label small fw-bold text-muted mb-1 ps-1">Especialidad</label>
+                                <select class="form-select form-select-sm fw-semibold" id="especialidad_gasto" onchange="onEspecialidadGastoChange()">
+                                    <option value="">-- Selecciona Especialidad --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="medico_gasto" class="form-label small fw-bold text-muted mb-1 ps-1">Médico Tratante</label>
+                                <select class="form-select form-select-sm fw-semibold" id="medico_gasto" onchange="onMedicoGastoChange()">
+                                    <option value="">-- Selecciona Médico --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label small fw-bold text-muted mb-0 ps-1">Recibos de Ingresos Asociados</label>
+                                    <span id="badge_recibos_count" class="badge bg-secondary rounded-pill" style="font-size: 0.68rem;">0 seleccionados</span>
+                                </div>
+                                <div class="dropdown w-100">
+                                    <button class="btn btn-sm btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center bg-white shadow-none" type="button" id="btnDropdownRecibos" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="border: 1px solid #ced4da; padding: 6px 12px; font-size: 0.85rem;">
+                                        <span id="txtBtnRecibos" class="text-truncate" style="max-width: 90%;">-- Selecciona recibos para liquidar --</span>
+                                        <i class="bi bi-chevron-down text-muted"></i>
+                                    </button>
+                                    <div class="dropdown-menu p-2 shadow-lg w-100" id="menuRecibosCheckboxes" style="max-height: 220px; overflow-y: auto; font-size: 0.82rem;">
+                                        <div class="text-muted text-center py-2 small" id="recibos_placeholder">Selecciona un médico tratante para cargar sus recibos.</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="recibos_asociados_gasto" name="recibos_asociados" value="">
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
