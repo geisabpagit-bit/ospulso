@@ -3,7 +3,7 @@ use cPanelUserConfig;
 use strict;
 use warnings;
 use utf8;
-use CGI;
+use CGI qw(-utf8);
 use CGI::Carp qw(fatalsToBrowser);
 use JSON qw(decode_json encode_json);
 use FindBin;
@@ -13,7 +13,8 @@ require "$FindBin::Bin/../auth/check_session.pl";
 use utils::db_manager qw(leer_tabla guardar_registro eliminar_registro obtener_nuevo_id);
 
 $CGI::POST_MAX = 1024 * 1024 * 10; # 10MB limit
-binmode STDIN;
+binmode STDIN,  ':encoding(UTF-8)';
+binmode STDOUT, ':encoding(UTF-8)';
 my $q = CGI->new;
 my $session_data = check_session();
 
@@ -318,6 +319,14 @@ elsif ($action eq 'save_gasto') {
     $id_med  =~ s/^\s+|\s+$//g;
     $rec_asc =~ s/^\s+|\s+$//g;
 
+    my $concepto_in = $q->param('concepto') || '';
+    if (!$rec_asc && $concepto_in =~ /Recibos:\s*#?([0-9,\s#]+)\)/i) {
+        my $f_str = $1;
+        $f_str =~ s/#//g;
+        $f_str =~ s/\s+//g;
+        $rec_asc = $f_str;
+    }
+
     if (!$id_gasto) {
         my $nuevo_id = obtener_nuevo_id("$FindBin::Bin/../dat/id_gasto.counter");
         my $linea = join("|", 
@@ -453,6 +462,7 @@ elsif ($action eq 'get_medicos_especialidades') {
     
     my @medicos = ();
     my %med_seen = ();
+    my %med_nom_seen = ();
     
     my $med_file = $rutas->{medicos};
     if ($med_file && -e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
@@ -465,7 +475,9 @@ elsif ($action eq 'get_medicos_especialidades') {
                 my $mespe = $m[1] // '';
                 my $mnom = $m[2];
                 $mnom =~ s/^\s+|\s+$//g;
-                if (!$med_seen{$mid}++) {
+                my $norm_nom = uc($mnom);
+                $norm_nom =~ s/\s+/ /g;
+                if (!$med_seen{$mid}++ && !$med_nom_seen{$norm_nom}++) {
                     push @medicos, { id => $mid, id_especialidad => $mespe, nombre => $mnom };
                 }
             }
@@ -473,37 +485,42 @@ elsif ($action eq 'get_medicos_especialidades') {
         close $fm;
     }
     
-    my $items_file = $rutas->{items};
-    if ($items_file && -e $items_file && open(my $fi, '<:encoding(UTF-8)', $items_file)) {
-        while (my $li = <$fi>) {
-            chomp $li;
-            my @fc = split /\|/, $li, -1;
-            if (@fc >= 4 && $fc[3] =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
-                my $esp_c = $1;
-                my $med_c = $2;
-                $esp_c =~ s/^\s+|\s+$//g;
-                $med_c =~ s/\s*\(.*?\)//g;
-                $med_c =~ s/^\s+|\s+$//g;
-                
-                my $match_espe_id = '';
-                foreach my $esp_obj (@especialidades) {
-                    if (uc($esp_obj->{nombre}) eq uc($esp_c)) {
-                        $match_espe_id = $esp_obj->{id};
-                        last;
+    # Solo si el catálogo oficial de médicos está vacío, consultar items como fallback
+    if (!@medicos) {
+        my $items_file = $rutas->{items};
+        if ($items_file && -e $items_file && open(my $fi, '<:encoding(UTF-8)', $items_file)) {
+            while (my $li = <$fi>) {
+                chomp $li;
+                my @fc = split /\|/, $li, -1;
+                if (@fc >= 4 && $fc[3] =~ /CONSULTA\s+([^-]+)\s+-\s+(.+)/i) {
+                    my $esp_c = $1;
+                    my $med_c = $2;
+                    $esp_c =~ s/^\s+|\s+$//g;
+                    $med_c =~ s/\s*\(.*?\)//g;
+                    $med_c =~ s/^\s+|\s+$//g;
+                    my $norm_nom = uc($med_c);
+                    $norm_nom =~ s/\s+/ /g;
+                    
+                    my $match_espe_id = '';
+                    foreach my $esp_obj (@especialidades) {
+                        if (uc($esp_obj->{nombre}) eq uc($esp_c)) {
+                            $match_espe_id = $esp_obj->{id};
+                            last;
+                        }
+                    }
+                    if (!$match_espe_id && $esp_c) {
+                        my $new_eid = 'ESP_' . (scalar(@especialidades) + 1);
+                        push @especialidades, { id => $new_eid, nombre => uc($esp_c) };
+                        $match_espe_id = $new_eid;
+                    }
+                    
+                    if ($med_c && !$med_seen{$fc[0]}++ && !$med_nom_seen{$norm_nom}++) {
+                        push @medicos, { id => $fc[0], id_especialidad => $match_espe_id, nombre => uc($med_c) };
                     }
                 }
-                if (!$match_espe_id && $esp_c) {
-                    my $new_eid = 'ESP_' . (scalar(@especialidades) + 1);
-                    push @especialidades, { id => $new_eid, nombre => uc($esp_c) };
-                    $match_espe_id = $new_eid;
-                }
-                
-                if ($med_c && !$med_seen{$fc[0]}++) {
-                    push @medicos, { id => $fc[0], id_especialidad => $match_espe_id, nombre => uc($med_c) };
-                }
             }
+            close $fi;
         }
-        close $fi;
     }
     
     my $usr_file = "$FindBin::Bin/../dat/usuarios.dat";
@@ -513,8 +530,12 @@ elsif ($action eq 'get_medicos_especialidades') {
             next if $lu =~ /^\s*$/ || $lu =~ /^#/;
             my @u = split /!/, $lu, -1;
             if (@u >= 5 && ($u[4] =~ /m[eé]dico/i || $u[4] =~ /especialista/i)) {
-                if (!$med_seen{$u[0]}++) {
-                    push @medicos, { id => $u[0], id_especialidad => '', nombre => $u[1] };
+                my $unom = $u[1] // '';
+                $unom =~ s/^\s+|\s+$//g;
+                my $norm_nom = uc($unom);
+                $norm_nom =~ s/\s+/ /g;
+                if (!$med_seen{$u[0]}++ && !$med_nom_seen{$norm_nom}++) {
+                    push @medicos, { id => $u[0], id_especialidad => '', nombre => $unom };
                 }
             }
         }
@@ -530,20 +551,88 @@ elsif ($action eq 'get_recibos_medico') {
     $target_med_id =~ s/^\s+|\s+$//g;
     $target_med_nom =~ s/^\s+|\s+$//g;
     
-    my $recibos_file = "$FindBin::Bin/../dat/folios_recibos_privados.dat";
-    my @recibos = ();
+    # 1. Resolver CLUE de la Organización
+    my $org_clues = '';
+    my $negocios_file = "$FindBin::Bin/../dat/negocios.dat";
+    if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
+        <$fhn>;
+        while (my $ln = <$fhn>) {
+            chomp $ln;
+            my @n = split /\|/, $ln, -1;
+            if ($n[0] eq $id_empresa || ($id_empresa eq '0' && $n[0])) {
+                $org_clues = $n[18] // '';
+                last;
+            }
+        }
+        close $fhn;
+    }
+    $org_clues =~ s/^\s+|\s+$//g;
+    $org_clues ||= 'QTSMP000116';
     
+    # 2. Mapa Exhaustivo de Pacientes (Privados, Clínicos y Estado de Cuenta)
     my %pacientes_map = ();
+    my %folio_paciente_map = ();
+    
+    # 2.1 Pacientes Privados de Mostrador
+    my $priv_pac_file = "$FindBin::Bin/../dat/catalogos_CLUE/$org_clues/pacientes_privados_${org_clues}.dat";
+    if (-e $priv_pac_file && open(my $fpp, '<:encoding(UTF-8)', $priv_pac_file)) {
+        <$fpp>;
+        while (my $lp = <$fpp>) {
+            chomp $lp;
+            my @p = split /\|/, $lp, -1;
+            if (@p >= 2 && $p[0] ne '') {
+                $pacientes_map{$p[0]} = $p[1];
+            }
+        }
+        close $fpp;
+    }
+    
+    # 2.2 Pacientes Generales
     my $pac_file = "$FindBin::Bin/../dat/pacientes.dat";
     if (-e $pac_file && open(my $fp, '<:encoding(UTF-8)', $pac_file)) {
         <$fp>;
         while (my $lp = <$fp>) {
             chomp $lp;
             my @p = split /\|/, $lp, -1;
-            $pacientes_map{$p[0]} = $p[2] if @p >= 3;
+            if (@p >= 3 && $p[0] ne '') {
+                $pacientes_map{$p[0]} = $p[2];
+            }
         }
         close $fp;
     }
+    
+    # 2.3 Empleados Municipio
+    my $emp_file = "$FindBin::Bin/../dat/catalogos_CLUE/$org_clues/empleadosmun_${org_clues}.dat";
+    if (-e $emp_file && open(my $fe, '<:encoding(UTF-8)', $emp_file)) {
+        <$fe>;
+        while (my $le = <$fe>) {
+            chomp $le;
+            my @e = split /!/, $le, -1;
+            if (@e >= 2 && $e[0] ne '') {
+                $pacientes_map{$e[0]} = $e[1];
+                $pacientes_map{"EMP-$e[0]"} = $e[1];
+            }
+        }
+        close $fe;
+    }
+    
+    # 2.4 Estado de Cuenta (Fallback Canónico de Nombre por Folio y Paciente)
+    my $edo_file = "$FindBin::Bin/../dat/estado_cuenta.dat";
+    if (-e $edo_file && open(my $fe_edo, '<:encoding(UTF-8)', $edo_file)) {
+        while (my $le = <$fe_edo>) {
+            chomp $le;
+            my @e = split /\|/, $le, -1;
+            if (@e >= 12 && $e[11]) {
+                $pacientes_map{$e[2]} = $e[11] if $e[2] && !$pacientes_map{$e[2]};
+                $folio_paciente_map{$e[0]} = $e[11] if $e[0];
+            }
+        }
+        close $fe_edo;
+    }
+    
+    # 3. Leer Recibos Privados del Médico
+    my $recibos_file = "$FindBin::Bin/../dat/folios_recibos_privados.dat";
+    my @recibos = ();
     
     if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
         <$fh>;
@@ -579,7 +668,28 @@ elsif ($action eq 'get_recibos_medico') {
             
             if ($match) {
                 my $pac_id = $r[5] // '';
-                my $pac_nom = $pacientes_map{$pac_id} || "Paciente #$pac_id";
+                my $pac_nom = $pacientes_map{$pac_id} || $folio_paciente_map{$r[1]} || $folio_paciente_map{$r[0]} || '';
+                if (!$pac_nom || $pac_nom =~ /^PRIV-/ || $pac_nom =~ /^EMP-/) {
+                    $pac_nom = "Paciente #$pac_id";
+                }
+                
+                # Desglose del concepto desde el array de items si está disponible
+                my $concepto_detalle = '';
+                if ($rec_items) {
+                    eval {
+                        my $items_arr = decode_json($rec_items);
+                        if (ref($items_arr) eq 'ARRAY' && @$items_arr) {
+                            my @names = ();
+                            for my $it (@$items_arr) {
+                                my $nom_it = $it->{nombre} || $it->{concepto} || '';
+                                push @names, $nom_it if $nom_it ne '';
+                            }
+                            $concepto_detalle = join(', ', @names) if @names;
+                        }
+                    };
+                }
+                $concepto_detalle ||= $r[12] || 'Consulta Médica';
+                
                 push @recibos, {
                     id_recibo => $r[0],
                     folio     => $r[1],
@@ -587,7 +697,7 @@ elsif ($action eq 'get_recibos_medico') {
                     hora      => $r[7],
                     monto     => $r[8] || $r[9] || 0,
                     paciente  => $pac_nom,
-                    concepto  => $r[12] || 'Consulta Médica'
+                    concepto  => $concepto_detalle
                 };
             }
         }

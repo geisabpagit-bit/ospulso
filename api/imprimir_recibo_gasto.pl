@@ -90,7 +90,25 @@ if ($ses_role ne 'Administrador Global' && defined $ses_org && $ses_org ne '') {
     }
 }
 
-# 3. Resolver Categorías, Subcategorías y Nivel 3
+# Función para reparar posibles cadenas con doble codificación UTF-8
+sub reparar_utf8 {
+    my ($str) = @_;
+    return '' unless defined $str;
+    if ($str =~ /[\xC2\xC3][\x80-\xBF]/) {
+        eval {
+            require Encode;
+            my $bytes = Encode::encode('latin1', $str);
+            my $decoded = Encode::decode('utf8', $bytes);
+            $str = $decoded if $decoded;
+        };
+    }
+    return $str;
+}
+
+# 3. Resolver Categorías, Subcategorías y Nivel 3 con Aislamiento Multi-Tenant Estricto
+my $target_negocio_id = $gasto->{id_negocio} || $session_data->{id_empresa} || '0';
+$target_negocio_id =~ s/^\s+|\s+$//g;
+
 my $cat_nombre    = 'Sin Categoría';
 my $subcat_nombre = '';
 my $subcat3_nombre = '';
@@ -99,14 +117,22 @@ if ($gasto->{id_cat}) {
     my $cat_file = File::Spec->catfile($script_dir, '..', 'dat', 'categorias.dat');
     if (-e $cat_file && open(my $fc, '<:encoding(UTF-8)', $cat_file)) {
         <$fc>;
+        my $cat_fallback = '';
         while (my $l = <$fc>) {
             chomp $l;
             my @f = split /\|/, $l, -1;
+            my $f_neg = $f[3] // '0';
+            $f_neg =~ s/^\s+|\s+$//g;
             if ($f[0] eq $gasto->{id_cat}) {
-                $cat_nombre = $f[1] // 'Sin Categoría';
-                last;
+                $cat_fallback ||= $f[1];
+                if ($f_neg eq $target_negocio_id || (!$f_neg && $target_negocio_id eq '0')) {
+                    $cat_nombre = $f[1] // 'Sin Categoría';
+                    $cat_fallback = '';
+                    last;
+                }
             }
         }
+        $cat_nombre = $cat_fallback if $cat_fallback && $cat_nombre eq 'Sin Categoría';
         close $fc;
     }
 }
@@ -115,14 +141,22 @@ if ($gasto->{id_subcat}) {
     my $sc_file = File::Spec->catfile($script_dir, '..', 'dat', 'sub_categoria.dat');
     if (-e $sc_file && open(my $fsc, '<:encoding(UTF-8)', $sc_file)) {
         <$fsc>;
+        my $sc_fallback = '';
         while (my $l = <$fsc>) {
             chomp $l;
             my @f = split /\|/, $l, -1;
+            my $f_neg = $f[4] // '0';
+            $f_neg =~ s/^\s+|\s+$//g;
             if ($f[0] eq $gasto->{id_subcat}) {
-                $subcat_nombre = $f[2] // '';
-                last;
+                $sc_fallback ||= $f[2];
+                if ($f_neg eq $target_negocio_id || (!$f_neg && $target_negocio_id eq '0')) {
+                    $subcat_nombre = $f[2] // '';
+                    $sc_fallback = '';
+                    last;
+                }
             }
         }
+        $subcat_nombre = $sc_fallback if $sc_fallback && !$subcat_nombre;
         close $fsc;
     }
 }
@@ -131,32 +165,48 @@ if ($gasto->{id_subcat3}) {
     my $sc3_file = File::Spec->catfile($script_dir, '..', 'dat', 'sub_categoria_nivel3.dat');
     if (-e $sc3_file && open(my $fsc3, '<:encoding(UTF-8)', $sc3_file)) {
         <$fsc3>;
+        my $sc3_fallback = '';
         while (my $l = <$fsc3>) {
             chomp $l;
             my @f = split /\|/, $l, -1;
+            my $f_neg = $f[3] // '0';
+            $f_neg =~ s/^\s+|\s+$//g;
             if ($f[0] eq $gasto->{id_subcat3}) {
-                $subcat3_nombre = $f[2] // '';
-                last;
+                $sc3_fallback ||= $f[2];
+                if ($f_neg eq $target_negocio_id || (!$f_neg && $target_negocio_id eq '0')) {
+                    $subcat3_nombre = $f[2] // '';
+                    $sc3_fallback = '';
+                    last;
+                }
             }
         }
+        $subcat3_nombre = $sc3_fallback if $sc3_fallback && !$subcat3_nombre;
         close $fsc3;
     }
 }
 
-# 4. Resolver Origen del Dinero
+# 4. Resolver Origen del Dinero con Aislamiento Multi-Tenant
 my $origen_nombre = 'Efectivo / Caja General';
 if ($gasto->{id_origen}) {
     my $orig_file = File::Spec->catfile($script_dir, '..', 'dat', 'origen_dinero.dat');
     if (-e $orig_file && open(my $fo, '<:encoding(UTF-8)', $orig_file)) {
         <$fo>;
+        my $o_fallback = '';
         while (my $l = <$fo>) {
             chomp $l;
             my @f = split /\|/, $l, -1;
+            my $f_neg = $f[3] // '0';
+            $f_neg =~ s/^\s+|\s+$//g;
             if ($f[0] eq $gasto->{id_origen}) {
-                $origen_nombre = $f[1] // 'Efectivo / Caja General';
-                last;
+                $o_fallback ||= $f[1];
+                if ($f_neg eq $target_negocio_id || (!$f_neg && $target_negocio_id eq '0')) {
+                    $origen_nombre = $f[1] // 'Efectivo / Caja General';
+                    $o_fallback = '';
+                    last;
+                }
             }
         }
+        $origen_nombre = $o_fallback if $o_fallback && $origen_nombre eq 'Efectivo / Caja General';
         close $fo;
     }
 }
@@ -169,8 +219,6 @@ my $negocio = {
     logo_url  => '',
     clues     => ''
 };
-
-my $target_negocio_id = $gasto->{id_negocio} || $session_data->{id_empresa} || '0';
 my $negocios_file = File::Spec->catfile($script_dir, '..', 'dat', 'negocios.dat');
 if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
     <$fhn>;
@@ -396,9 +444,23 @@ my $monto_num = $gasto->{monto} || 0;
 my $monto_formateado = formato_moneda($monto_num);
 my $monto_en_letras  = numero_a_letras($monto_num);
 
-# 9. Folio y Jerarquía de Datos
+# 9. Folio y Jerarquía de Datos (Con Sanitización UTF-8)
 my $folio_egreso = ($id_gasto =~ /^\d+$/) ? sprintf("EGR-%05d", $id_gasto) : "EGR-$id_gasto";
-my $proveedor_display = uc($gasto->{proveedor} || 'DIVERSO / PÚBLICO GENERAL');
+my $proveedor_display = uc(reparar_utf8($gasto->{proveedor} || 'DIVERSO / PÚBLICO GENERAL'));
+$cat_nombre    = reparar_utf8($cat_nombre);
+$subcat_nombre = reparar_utf8($subcat_nombre);
+$subcat3_nombre= reparar_utf8($subcat3_nombre);
+$origen_nombre = reparar_utf8($origen_nombre);
+$gasto->{concepto} = reparar_utf8($gasto->{concepto});
+$elaborado_por = reparar_utf8($elaborado_por);
+
+# Inferencia de Recibos Asociados desde el Concepto si no se guardaron en la columna
+if (!$gasto->{recibos_asociados} && $gasto->{concepto} =~ /Recibos:\s*#?([0-9,\s#]+)\)/i) {
+    my $f_str = $1;
+    $f_str =~ s/#//g;
+    $f_str =~ s/\s+//g;
+    $gasto->{recibos_asociados} = $f_str;
+}
 
 # Breadcrumb jerárquico de categorías
 my $arbol_categoria_html = qq{<span class="badge-cat-main">$cat_nombre</span>};
@@ -479,13 +541,50 @@ if ($gasto->{id_medico}) {
     $medico_nombre_res ||= $gasto->{id_medico};
 }
 
+# Fallback: Inferencia desde el Proveedor si el concepto o categoría indican honorarios
+if (!$medico_nombre_res && ($gasto->{proveedor} =~ /^(DR|DRA|M[EÉ]DICO|LIC)/i || $cat_nombre =~ /honorarios/i)) {
+    my $cat_clues = $negocio->{clues} || 'QTSMP000116';
+    my $med_file = File::Spec->catfile($script_dir, '..', 'dat', 'catalogos_CLUE', $cat_clues, "medicos_${cat_clues}.dat");
+    if (-e $med_file && open(my $fm, '<:encoding(UTF-8)', $med_file)) {
+        my $prov_clean = uc($gasto->{proveedor});
+        $prov_clean =~ s/^\s+|\s+$//g;
+        while (my $lm = <$fm>) {
+            chomp $lm;
+            my @m = split /\|/, $lm, -1;
+            if (@m >= 3) {
+                my $m_nom = uc($m[2]);
+                $m_nom =~ s/^\s+|\s+$//g;
+                if ($m_nom eq $prov_clean || $prov_clean =~ /\Q$m_nom\E/) {
+                    $medico_nombre_res = $m[2];
+                    if (!$especialidad_nombre_res && $m[1]) {
+                        my $esp_file = File::Spec->catfile($script_dir, '..', 'dat', 'catalogos_CLUE', $cat_clues, "especialidades_${cat_clues}.dat");
+                        if (-e $esp_file && open(my $fe, '<:encoding(UTF-8)', $esp_file)) {
+                            while (my $le = <$fe>) {
+                                chomp $le;
+                                my @e = split /\|/, $le, -1;
+                                if ($e[0] eq $m[1]) {
+                                    $especialidad_nombre_res = $e[1];
+                                    last;
+                                }
+                            }
+                            close $fe;
+                        }
+                    }
+                    last;
+                }
+            }
+        }
+        close $fm;
+    }
+}
+
 # Preparar bloque HTML para honorarios si existen datos
 my $bloque_honorarios_html = '';
 my $es_cat_honorarios = ($cat_nombre =~ /honorarios/i || $cat_nombre =~ /consultas?\s*especialidad/i || $cat_nombre =~ /consultas?\s*generales?/i) ? 1 : 0;
 
 if ($es_cat_honorarios || $medico_nombre_res || $especialidad_nombre_res || $gasto->{recibos_asociados}) {
-    my $med_display = uc($medico_nombre_res || $gasto->{proveedor} || 'NO ESPECIFICADO');
-    my $esp_display = uc($especialidad_nombre_res || 'CONSULTA MÉDICA');
+    my $med_display = uc(reparar_utf8($medico_nombre_res || $gasto->{proveedor} || 'NO ESPECIFICADO'));
+    my $esp_display = uc(reparar_utf8($especialidad_nombre_res || 'CONSULTA MÉDICA'));
     
     my $rec_row = '';
     if ($gasto->{recibos_asociados}) {

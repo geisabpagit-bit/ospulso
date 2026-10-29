@@ -85,16 +85,19 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
   - Para categorías operativas estándar ("Insumos", "Papelería", "Mantenimiento", "Sin Categoría", etc.), este contenedor permanece estrictamente oculto (`display: none`).
 - **Campos Médicos Integrados (UI/UX)**:
   1. **Especialidad Médica**: Selector poblado dinámicamente desde `api/finanzas_api.pl?action=get_medicos_especialidades`. Al cambiar de especialidad, filtra en cascada el catálogo de médicos tratantes.
-  2. **Médico Tratante**: Selector del especialista. Al seleccionar un médico:
+  2. **Médico Tratante (Anti-Duplicidad)**: Selector del especialista con deduplicación dual (backend y frontend) por identificador y nombre normalizado, evitando repeticiones provenientes de múltiples catálogos. Al seleccionar un médico:
      - Auto-llena el campo `Proveedor / Beneficiario` con el nombre del médico.
      - Consulta de forma asíncrona sus recibos de consulta activos mediante `api/finanzas_api.pl?action=get_recibos_medico&id_medico=...`.
-  3. **Recibos de Ingresos Asociados (Checklist Múltiple)**:
+  3. **Recibos de Ingresos Asociados (Checklist Múltiple con Paciente y Concepto)**:
      - Desplegable tipo dropdown con checkboxes individuales por recibo.
-     - Cada elemento visualiza: `Folio`, `Fecha/Hora`, `Importe ($)`, `Paciente` y `Concepto`.
+     - Cada elemento visualiza de forma estructurada: `Folio`, `Importe ($)`, `Fecha`, `Nombre Real del Paciente` (resuelto exhaustivamente desde `pacientes_privados_<CLUES>.dat`, `estado_cuenta.dat` y `pacientes.dat`) y `Concepto / Servicio Médico` (desglosado desde el payload de items JSON).
      - Permite selección individual o múltiple ("Seleccionar / Deseleccionar Todos").
-     - **Auto-cálculo y Sugerencia**: La suma acumulada de los recibos seleccionados se calcula en tiempo real; si el campo `Monto ($)` está en $0.00 o coincide con el cálculo anterior, se auto-actualiza automáticamente. El campo `Concepto` se pre-redacta sugiriendo los folios amparados (ej. `Liquidación honorarios médicos de consultas: Folio #28858, #28859`).
+     - **Auto-cálculo y Sugerencia**: La suma acumulada de los recibos seleccionados se calcula en tiempo real; si el campo `Monto ($)` está en $0.00 o coincide con el cálculo anterior, se auto-actualiza automáticamente. El campo `Concepto` se pre-redacta sugiriendo los folios amparados (ej. `Honorarios Médicos - DRA HYPATIA GUILLEN (Recibos: #28988, #28983)`).
+- **Aislamiento Multi-Tenant de Categorías y Sanitización UTF-8**:
+  - En la vista previa e impresión de comprobantes de egreso (`api/imprimir_recibo_gasto.pl`), la resolución de la categoría principal, subcategorías y origen de dinero evalúa de forma obligatoria el `ID_NEGOCIO` del gasto, erradicando confusiones con registros homónimos de otros consultorios (ej. ID 2 = Honorarios Médicos en tenant 723800 vs Marketing en tenant 0).
+  - Integración de función reparadora de secuencias UTF-8 (`reparar_utf8`), previniendo cualquier anomalía de Mojibake (doble codificación) en pantalla o impresión PDF.
 - **Persistencia y Retrocompatibilidad**:
-  Los valores capturados (`id_especialidad`, `id_medico`, `recibos_asociados`) se transmiten al backend `api/finanzas_api.pl?action=save_gasto` y se almacenan en las columnas `[12]`, `[13]` y `[14]` de `dat/gastos.dat`. Registros históricos previos a esta versión mantienen compatibilidad íntegra gracias al manejo de valores por defecto vacíos.
+  Los valores capturados (`id_especialidad`, `id_medico`, `recibos_asociados`) se transmiten al backend `api/finanzas_api.pl?action=save_gasto` y se almacenan en las columnas `[12]`, `[13]` y `[14]` de `dat/gastos.dat`. Si los valores no son enviados explícitamente en el payload pero existen en el texto del concepto o proveedor, el backend ejecuta auto-inferencia inteligente para salvaguardar la trazabilidad. Registros históricos previos a esta versión mantienen compatibilidad íntegra gracias al manejo de valores por defecto vacíos.
 
 ---
 

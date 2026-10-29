@@ -2134,8 +2134,12 @@ PAGE_HTML
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="../js/estado_cuenta_spa.js?v=20261028_1"></script>
+PAGE_HTML
 
+my $t_spa = time();
+print qq{<script src="../js/estado_cuenta_spa.js?v=$t_spa" charset="UTF-8"></script>\n};
+
+print <<'PAGE_HTML';
 <script>
     window.bootFinanzas = function() {
         console.log("[SPA Debug] Ejecutando bootFinanzas...");

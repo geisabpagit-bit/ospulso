@@ -1476,8 +1476,12 @@ window.onEspecialidadGastoChange = function(preselectedMed, preselectedRecibos) 
     }
     
     let html = '<option value="">-- Selecciona Médico --</option>';
+    const seenNombres = new Set();
     medicosFiltrados.forEach(m => {
-        let isSel = (preselectedMed && (String(m.id) === String(preselectedMed) || m.nombre.toUpperCase() === String(preselectedMed).toUpperCase())) ? 'selected' : '';
+        const norm = (m.nombre || '').trim().toUpperCase();
+        if (!norm || seenNombres.has(norm)) return;
+        seenNombres.add(norm);
+        let isSel = (preselectedMed && (String(m.id) === String(preselectedMed) || norm === String(preselectedMed).toUpperCase())) ? 'selected' : '';
         html += `<option value="${m.id}" ${isSel}>${m.nombre}</option>`;
     });
     selMed.innerHTML = html;
@@ -1553,14 +1557,20 @@ async function cargarRecibosDeMedico(idMed, nomMed, preselectedRecibos) {
             let isChecked = preSet.has(String(r.folio)) ? 'checked' : '';
             let montoFmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(r.monto);
             html += `
-            <div class="form-check p-2 rounded hover-bg-light border-bottom d-flex align-items-center">
-                <input class="form-check-input chk-recibo me-2 mt-0" type="checkbox" value="${r.folio}" id="chk_rec_${r.id_recibo}" data-monto="${r.monto}" data-folio="${r.folio}" ${isChecked} onchange="onToggleReciboGasto()">
+            <div class="form-check p-2 rounded hover-bg-light border-bottom d-flex align-items-start">
+                <input class="form-check-input chk-recibo me-2 mt-1" type="checkbox" value="${r.folio}" id="chk_rec_${r.id_recibo}" data-monto="${r.monto}" data-folio="${r.folio}" ${isChecked} onchange="onToggleReciboGasto()">
                 <label class="form-check-label w-100 mb-0 cursor-pointer small lh-sm" for="chk_rec_${r.id_recibo}">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold" style="color: #0A2A66;">Folio #${r.folio}</span>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold" style="color: #0A2A66; font-size: 0.84rem;">Folio #${r.folio}</span>
                         <span class="fw-bold text-success">${montoFmt}</span>
                     </div>
-                    <div class="text-muted text-truncate" style="font-size: 0.72rem;">${r.fecha} | ${r.paciente}</div>
+                    <div class="text-secondary" style="font-size: 0.74rem;">
+                        <span class="me-2"><i class="bi bi-calendar3 me-1 text-muted"></i>${r.fecha}</span>
+                        <span class="fw-semibold text-dark"><i class="bi bi-person me-1 text-primary"></i>${r.paciente}</span>
+                    </div>
+                    <div class="text-truncate text-muted mt-1" style="font-size: 0.72rem;" title="${r.concepto}">
+                        <i class="bi bi-card-text me-1 text-teal"></i>${r.concepto}
+                    </div>
                 </label>
             </div>`;
         });
