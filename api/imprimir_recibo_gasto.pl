@@ -592,34 +592,194 @@ if (!$medico_nombre_res && ($gasto->{proveedor} =~ /^(DR|DRA|M[EÉ]DICO|LIC)/i |
 my $bloque_honorarios_html = '';
 my $es_cat_honorarios = ($cat_nombre =~ /honorarios/i || $cat_nombre =~ /consultas?\s*especialidad/i || $cat_nombre =~ /consultas?\s*generales?/i) ? 1 : 0;
 
+my $proveedor_label = 'Proveedor / Beneficiario :';
+my $es_mismo_medico = 0;
+
 if ($es_cat_honorarios || $medico_nombre_res || $especialidad_nombre_res || $gasto->{recibos_asociados}) {
     my $med_display = uc(reparar_utf8($medico_nombre_res || $gasto->{proveedor} || 'NO ESPECIFICADO'));
     my $esp_display = uc(reparar_utf8($especialidad_nombre_res || 'CONSULTA MÉDICA'));
     
+    # Comprobar si el proveedor y el médico tratante son la misma persona para no duplicar filas
+    my $m_c = $med_display;
+    $m_c =~ s/^(DR|DRA|LIC|MTRO|ING)\.?\s*//i;
+    $m_c =~ s/^\s+|\s+$//g;
+    my $p_c = $proveedor_display;
+    $p_c =~ s/^(DR|DRA|LIC|MTRO|ING)\.?\s*//i;
+    $p_c =~ s/^\s+|\s+$//g;
+    if ($m_c && $p_c && ($m_c eq $p_c || $m_c =~ /\Q$p_c\E/ || $p_c =~ /\Q$m_c\E/)) {
+        $es_mismo_medico = 1;
+        $proveedor_label = 'Médico / Beneficiario :';
+    }
+    
     my $rec_row = '';
     if ($gasto->{recibos_asociados}) {
-        my @fol_arr = split /,/, $gasto->{recibos_asociados};
-        my $fol_txt = join(', ', map { "Folio #$_" } @fol_arr);
+        my @fol_arr = grep { $_ ne '' } split(/\s*,\s*/, $gasto->{recibos_asociados});
+        my %fol_lookup = map { $_ => 1 } @fol_arr;
+        
+        # 1. Cargar Mapa de Pacientes Privados de la Organización
+        my %pac_map = ();
+        my $cat_clues = $negocio->{clues} || 'QTSMP000116';
+        my $pac_file = File::Spec->catfile($script_dir, '..', 'dat', 'catalogos_CLUE', $cat_clues, "pacientes_privados_${cat_clues}.dat");
+        if (-e $pac_file && open(my $fp, '<:encoding(UTF-8)', $pac_file)) {
+            <$fp>;
+            while (my $lp = <$fp>) {
+                chomp $lp;
+                my @f = split /\|/, $lp, -1;
+                $pac_map{$f[0]} = $f[1] if @f >= 2 && $f[0];
+            }
+            close $fp;
+        }
+        
+        # 2. Cargar Fallback desde estado_cuenta.dat
+        my %edo_pac = ();
+        my $edo_file = File::Spec->catfile($script_dir, '..', 'dat', 'estado_cuenta.dat');
+        if (-e $edo_file && open(my $fe_edo, '<:encoding(UTF-8)', $edo_file)) {
+            <$fe_edo>;
+            while (my $le = <$fe_edo>) {
+                chomp $le;
+                my @f = split /\|/, $le, -1;
+                if ($f[0] && $f[11] && !$edo_pac{$f[0]}) {
+                    $edo_pac{$f[0]} = $f[11];
+                } elsif ($f[0] && $f[10] && $f[10] =~ /Paciente:\s*([^\|]+)/i && !$edo_pac{$f[0]}) {
+                    my $np = $1;
+                    $np =~ s/^\s+|\s+$//g;
+                    $edo_pac{$f[0]} = $np;
+                }
+            }
+            close $fe_edo;
+        }
+        
+        # 3. Consultar folios_recibos_privados.dat
+        my %recibos_data = ();
+        my $rf_file = File::Spec->catfile($script_dir, '..', 'dat', 'folios_recibos_privados.dat');
+        if (-e $rf_file && open(my $frf, '<:encoding(UTF-8)', $rf_file)) {
+            <$frf>;
+            while (my $lrf = <$frf>) {
+                chomp $lrf;
+                my @r = split /\|/, $lrf, -1;
+                my $fol = $r[1] // '';
+                if ($fol_lookup{$fol}) {
+                    my $id_pac = $r[5] // '';
+                    my $pac_nom = $pac_map{$id_pac} || $edo_pac{$fol} || $id_pac || 'PACIENTE GENERAL';
+                    my $conc = '';
+                    if ($r[13]) {
+                        eval {
+                            my $items = JSON::decode_json($r[13]);
+                            if (ref($items) eq 'ARRAY' && @$items) {
+                                $conc = $items->[0]{nombre} || $items->[0]{concepto} || '';
+                            }
+                        };
+                    }
+                    $conc ||= $r[12] || 'Consulta Médica';
+                    $conc =~ s/^\s+|\s+$//g;
+                    my $monto_rec = $r[9] // $r[8] // 0;
+                    $recibos_data{$fol} = {
+                        folio    => $fol,
+                        fecha    => $r[6] // '',
+                        hora     => $r[7] // '',
+                        paciente => uc(reparar_utf8($pac_nom)),
+                        concepto => reparar_utf8($conc),
+                        monto    => $monto_rec
+                    };
+                }
+            }
+            close $frf;
+        }
+        
+        my $filas_html = '';
+        my $suma_recibos = 0;
+        for my $fol (@fol_arr) {
+            my $info = $recibos_data{$fol};
+            if ($info) {
+                $suma_recibos += $info->{monto};
+                my $monto_rec_fmt = formato_moneda($info->{monto});
+                $filas_html .= qq{
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 5px 8px; font-weight: 700; color: #0A2A66; white-space: nowrap;">#$info->{folio}</td>
+                        <td style="padding: 5px 8px; color: #475569; white-space: nowrap;">$info->{fecha}</td>
+                        <td style="padding: 5px 8px; font-weight: 600; text-transform: uppercase; color: #1e293b;">$info->{paciente}</td>
+                        <td style="padding: 5px 8px; color: #334155;">$info->{concepto}</td>
+                        <td style="padding: 5px 8px; text-align: right; font-weight: 700; color: #059669; white-space: nowrap;">$monto_rec_fmt</td>
+                    </tr>
+                };
+            } else {
+                $filas_html .= qq{
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 5px 8px; font-weight: 700; color: #0A2A66;">#$fol</td>
+                        <td colspan="4" style="padding: 5px 8px; color: #64748b; font-style: italic;">Comprobante de ingreso liquidado</td>
+                    </tr>
+                };
+            }
+        }
+        
+        my $suma_fmt = formato_moneda($suma_recibos);
+        my $pie_recibos_html = qq{
+            <tr style="background: #f8fafc; font-weight: bold; border-top: 1px solid #cbd5e1;">
+                <td colspan="4" style="padding: 5px 8px; text-align: right; color: #475569; font-size: 10px;">Total Recibos Cobrados:</td>
+                <td style="padding: 5px 8px; text-align: right; color: #047857; font-size: 10.5px;">$suma_fmt</td>
+            </tr>
+        };
+        
+        if ($monto_num > 0 && abs($suma_recibos - $monto_num) > 0.01) {
+            my $dif = $suma_recibos - $monto_num;
+            if ($dif > 0) {
+                my $dif_fmt = formato_moneda($dif);
+                $pie_recibos_html .= qq{
+                    <tr style="background: #fff; font-size: 9.5px; color: #b91c1c;">
+                        <td colspan="4" style="padding: 4px 8px; text-align: right;">Comisión / Retención Clínica:</td>
+                        <td style="padding: 4px 8px; text-align: right;">-$dif_fmt</td>
+                    </tr>
+                    <tr style="background: #ecfdf5; font-weight: bold; color: #065f46;">
+                        <td colspan="4" style="padding: 5px 8px; text-align: right; font-size: 10px;">Neto Liquidado al Médico:</td>
+                        <td style="padding: 5px 8px; text-align: right; font-size: 11px;">$monto_formateado</td>
+                    </tr>
+                };
+            }
+        }
+        
         $rec_row = qq{
             <tr>
-                <td class="info-label-cell" style="vertical-align: top;">Recibos de Ingreso Amparados :</td>
-                <td colspan="2">
-                    <div style="font-weight: 700; color: #047857; font-size: 11px; margin-bottom: 2px;">
-                        $fol_txt
+                <td class="info-label-cell" style="vertical-align: top; border-left: 4px solid #059669;">Recibos Amparados :</td>
+                <td colspan="2" style="padding: 6px 8px; background: #fff;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; overflow: hidden;">
+                        <thead>
+                            <tr style="background: #f1f5f9; color: #0A2A66; font-weight: bold; border-bottom: 1px solid #cbd5e1; font-size: 9px; text-transform: uppercase;">
+                                <th style="padding: 5px 8px; text-align: left; width: 14%;">Folio</th>
+                                <th style="padding: 5px 8px; text-align: left; width: 14%;">Fecha</th>
+                                <th style="padding: 5px 8px; text-align: left; width: 34%;">Paciente</th>
+                                <th style="padding: 5px 8px; text-align: left; width: 24%;">Servicio / Concepto</th>
+                                <th style="padding: 5px 8px; text-align: right; width: 14%;">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            $filas_html
+                        </tbody>
+                        <tfoot>
+                            $pie_recibos_html
+                        </tfoot>
+                    </table>
+                    <div style="margin-top: 4px; font-size: 8.5px; color: #64748b;">
+                        Comprobantes de ingreso liquidados correspondientes a los honorarios médicos amparados en este egreso.
                     </div>
-                    <span style="font-size: 9.5px; color: #64748b;">Comprobantes de ingreso liquidados correspondientes a los honorarios médicos.</span>
+                </td>
+            </tr>
+        };
+    }
+    
+    my $fila_medico_tratante = '';
+    if (!$es_mismo_medico) {
+        $fila_medico_tratante = qq{
+            <tr>
+                <td class="info-label-cell" style="border-left: 4px solid #19B7A5;">Médico Tratante :</td>
+                <td colspan="2" style="font-weight: 800; color: #0A2A66; font-size: 12px; text-transform: uppercase;">
+                    $med_display
                 </td>
             </tr>
         };
     }
     
     $bloque_honorarios_html = qq{
-        <tr>
-            <td class="info-label-cell" style="border-left: 4px solid #19B7A5;">Médico Tratante :</td>
-            <td colspan="2" style="font-weight: 800; color: #0A2A66; font-size: 12px; text-transform: uppercase;">
-                $med_display
-            </td>
-        </tr>
+        $fila_medico_tratante
         <tr>
             <td class="info-label-cell">Especialidad :</td>
             <td colspan="2">
@@ -889,7 +1049,7 @@ print <<HTML;
 
             <!-- 2. Jerarquía Primordial: PROVEEDOR / BENEFICIARIO -->
             <tr>
-                <td class="info-label-cell" style="border-left: 4px solid #19B7A5;">Proveedor / Beneficiario :</td>
+                <td class="info-label-cell" style="border-left: 4px solid #19B7A5;">$proveedor_label</td>
                 <td colspan="2" class="primary-highlight-cell">
                     <div class="proveedor-destacado">$proveedor_display</div>
                 </td>

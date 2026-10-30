@@ -71,12 +71,14 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
 - **Naturaleza y Objetivo**: Documento oficial de egreso operativo emitido por la organización para amparar y justificar salidas de efectivo, cheques o transferencias hacia proveedores, insumos y gastos operativos.
 - **Acceso desde DataTables**: La tabla `#tablaGastos` en `views/finanzas.pl?tab=gastos` incorpora en su columna *Acciones* el botón interactivo con icono de recibo (`bi bi-receipt`), disparando la función `abrirReciboGasto(idGasto)` hacia `api/imprimir_recibo_gasto.pl?id_gasto=...`.
 - **Jerarquía de Importancia en Impresión**:
-  1. **Proveedor / Beneficiario**: Resaltado como dato primordial en cabecera con tipografía destacada y borde teal.
+  1. **Proveedor o Médico / Beneficiario**: Resaltado como dato primordial en cabecera con tipografía destacada y borde teal. Si el gasto corresponde a honorarios médicos y el proveedor coincide con el especialista, la etiqueta se unifica a `Médico / Beneficiario :` eliminando filas redundantes.
   2. **Categoría y Clasificación Contable**: Despliegue jerárquico de Categoría Principal, Subcategoría y Nivel 3.
-  3. **Concepto y Justificación**: Descripción del egreso con indicación de comprobante fiscal adjunto si existe (`factura_path`).
-  4. **Origen de Fondos**: Medio o caja dispersora (`dat/origen_dinero.dat`).
-  5. **Monto en Número y Letra**: Cifra numérica formal (`$XX,XXX.XX`) acompañada de su transcripción legal en texto en pesos mexicanos (`(SON: ... PESOS XX/100 M.N.)`).
-  6. **Auditoría y Doble Firma**: Bloque de firmas formales de control interno: *Entrega / Autoriza (Control Caja)* y *Recibe Conforme (Beneficiario)*.
+  3. **Especialidad Médica**: En egresos clínicos, se visualiza con badge contrastado.
+  4. **Desglose Tabular de Recibos Amparados**: Cuando ampara recibos de ingresos, despliega una tabla estructurada con columnas auditables: `Folio Recibo`, `Fecha`, `Paciente Real`, `Servicio / Concepto Médico` e `Importe ($)`. Incluye cómputo automático de total cobrado y retención/comisión de la clínica si el monto liquidado al médico difiere del total cobrado.
+  5. **Concepto y Justificación**: Descripción del egreso con indicación de comprobante fiscal adjunto si existe (`factura_path`).
+  6. **Origen de Fondos**: Medio o caja dispersora (`dat/origen_dinero.dat`).
+  7. **Monto en Número y Letra**: Cifra numérica formal (`$XX,XXX.XX`) acompañada de su transcripción legal en texto en pesos mexicanos (`(SON: ... PESOS XX/100 M.N.)`).
+  8. **Auditoría y Doble Firma**: Bloque de firmas formales de control interno: *Entrega / Autoriza (Control Caja)* y *Recibe Conforme (Beneficiario)*.
 
 ### 2.10 Liquidación Dinámica de Honorarios Médicos y Consultas (`#modalGasto`)
 - **Detección Condicional por Categoría**:
