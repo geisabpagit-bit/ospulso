@@ -7,7 +7,7 @@ use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use FindBin;
 use File::Spec;
-use JSON qw(encode_json decode_json);
+use JSON qw(encode_json decode_json to_json);
 use open qw(:std :utf8);
 
 use lib "$FindBin::Bin/..";
@@ -128,7 +128,7 @@ if ($regs_sub) {
         };
     }
 }
-my $subespecialidades_json_inline = encode_json(\@lista_subespe_json);
+my $subespecialidades_json_inline = to_json(\@lista_subespe_json, { utf8 => 0 });
 
 # 2.2 Obtener usuarios registrados para filtrar médicos ya asignados
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
