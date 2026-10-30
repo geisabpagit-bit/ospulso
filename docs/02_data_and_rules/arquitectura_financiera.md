@@ -308,3 +308,17 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
      * Capa 2: Grilla compacta de 2 columnas enfocada en *Recibos Emitidos (Personales)* y *Eficiencia Cobro Turno* (ocultando CxC Privadas y CxC Estado).
    - **Para Administrador Organización**:
      * Mantiene el consolidado macro de 3 capas con visión global de la clínica.
+
+---
+
+## 11. Gobernanza de Comprobantes de Egreso y Codificación de Caracteres en Finanzas
+
+1. **Codificación Canónica en APIs JSON (`binmode STDOUT, ':raw'` vs Mojibake)**:
+   - En scripts Perl CGI que emiten respuestas JSON mediante `encode_json()` (de `JSON::XS` o similar), los datos se serializan directamente a secuencias de octetos UTF-8.
+   - Establecer `binmode STDOUT, ':encoding(UTF-8)'` en conjunto con `encode_json()` fuerza una segunda codificación a nivel de capa I/O de Perl, resultando en doble codificación UTF-8 (Mojibake como `MÃ©dicos` o `BUZÃ“N`).
+   - La directiva canónica en `api/finanzas_api.pl` es fijar `binmode STDOUT, ':raw';` garantizando que los octetos UTF-8 viajen intactos al navegador.
+   - En la persistencia y lectura de `dat/gastos.dat`, se aplica la función `reparar_utf8` tanto al registrar (`action=save_gasto`) como al deserializar en la tabla de DataTable (`action=get_gastos`).
+
+2. **Estándar Visual del Comprobante de Egreso y Gasto Operativo (`api/imprimir_recibo_gasto.pl`)**:
+   - Para garantizar legibilidad, pulcritud y sobriedad ejecutiva en la impresión en papel o exportación a PDF, se erradican los bordes laterales izquierdos multicolores (`style="border-left: 4px solid ..."` con tonos teal o azul marino) en las celdas descriptivas de Proveedor/Médico, Categoría y Recibos Amparados.
+   - Toda la estructura tabular del recibo de egresos conserva bordes uniformes de 1px en gris pizarra suave (`#CBD5E1`), manteniendo armonía estética y evitando la contaminación visual del reporte impreso.

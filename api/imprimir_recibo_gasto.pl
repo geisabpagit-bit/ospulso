@@ -739,7 +739,7 @@ if ($es_cat_honorarios || $medico_nombre_res || $especialidad_nombre_res || $gas
         
         $rec_row = qq{
             <tr>
-                <td class="info-label-cell" style="vertical-align: top; border-left: 4px solid #059669;">Recibos Amparados :</td>
+                <td class="info-label-cell" style="vertical-align: top;">Recibos Amparados :</td>
                 <td colspan="2" style="padding: 6px 8px; background: #fff;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; overflow: hidden;">
                         <thead>
@@ -770,7 +770,7 @@ if ($es_cat_honorarios || $medico_nombre_res || $especialidad_nombre_res || $gas
     if (!$es_mismo_medico) {
         $fila_medico_tratante = qq{
             <tr>
-                <td class="info-label-cell" style="border-left: 4px solid #19B7A5;">Médico Tratante :</td>
+                <td class="info-label-cell">Médico Tratante :</td>
                 <td colspan="2" style="font-weight: 800; color: #0A2A66; font-size: 12px; text-transform: uppercase;">
                     $med_display
                 </td>
@@ -1049,7 +1049,7 @@ print <<HTML;
 
             <!-- 2. Jerarquía Primordial: PROVEEDOR / BENEFICIARIO -->
             <tr>
-                <td class="info-label-cell" style="border-left: 4px solid #19B7A5;">$proveedor_label</td>
+                <td class="info-label-cell">$proveedor_label</td>
                 <td colspan="2" class="primary-highlight-cell">
                     <div class="proveedor-destacado">$proveedor_display</div>
                 </td>
@@ -1057,7 +1057,7 @@ print <<HTML;
 
             <!-- 3. Jerarquía Primordial: CATEGORÍA Y SUB-CLASIFICACIÓN -->
             <tr>
-                <td class="info-label-cell" style="border-left: 4px solid #0A2A66;">Categoría / Clasificación :</td>
+                <td class="info-label-cell">Categoría / Clasificación :</td>
                 <td colspan="2" class="primary-highlight-cell">
                     $arbol_categoria_html
                 </td>

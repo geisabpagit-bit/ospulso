@@ -14,9 +14,31 @@ use utils::db_manager qw(leer_tabla guardar_registro eliminar_registro obtener_n
 
 $CGI::POST_MAX = 1024 * 1024 * 10; # 10MB limit
 binmode STDIN,  ':encoding(UTF-8)';
-binmode STDOUT, ':encoding(UTF-8)';
+binmode STDOUT, ':raw'; # JSON outputs UTF-8 octets directly via encode_json sin doble encoding
 my $q = CGI->new;
 my $session_data = check_session();
+
+sub reparar_utf8 {
+    my ($str) = @_;
+    return '' unless defined $str;
+    if ($str =~ /[\xC3\xC2][\x80-\xBF]/ || $str =~ /[ÃÂ]/) {
+        eval {
+            require Encode;
+            my $bytes = Encode::encode('cp1252', $str);
+            my $decoded = Encode::decode('utf8', $bytes);
+            $str = $decoded if $decoded;
+        };
+        if ($@ || $str =~ /[ÃÂ]/) {
+            eval {
+                require Encode;
+                my $bytes = Encode::encode('latin1', $str);
+                my $decoded = Encode::decode('utf8', $bytes);
+                $str = $decoded if $decoded;
+            };
+        }
+    }
+    return $str;
+}
 
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
@@ -240,8 +262,8 @@ elsif ($action eq 'get_gastos') {
         }
         
         my $id_creador = $g->[10] || '';
-        if ($session_data->{role} eq 'Recepcionista') {
-            next unless ($id_creador eq $session_data->{usuario} || $id_creador eq $session_data->{uid});
+        if (($session_data->{role} // '') eq 'Recepcionista') {
+            next unless ($id_creador eq ($session_data->{usuario} // '') || $id_creador eq ($session_data->{uid} // ''));
         }
 
         my $id_cat = $g->[2] || '';
@@ -263,15 +285,15 @@ elsif ($action eq 'get_gastos') {
             id_cat => $id_cat,
             id_subcat => $id_subcat,
             id_subcat3 => $id_subcat3,
-            concepto => $g->[5],
+            concepto => reparar_utf8($g->[5]),
             monto => $g->[6],
-            proveedor => $g->[7] || '',
+            proveedor => reparar_utf8($g->[7] || ''),
             factura_path => $g->[8] || '',
             id_origen => $id_origen,
-            origen_nombre => $o_map{$id_origen} || 'Efectivo / Caja General',
-            cat_nombre => $c_map{$id_cat} || 'N/A',
-            subcat_nombre => $s_map{$id_subcat} || 'N/A',
-            subcat3_nombre => $s3_map{$id_subcat3} || 'N/A',
+            origen_nombre => reparar_utf8($o_map{$id_origen} || 'Efectivo / Caja General'),
+            cat_nombre => reparar_utf8($c_map{$id_cat} || 'N/A'),
+            subcat_nombre => reparar_utf8($s_map{$id_subcat} || 'N/A'),
+            subcat3_nombre => reparar_utf8($s3_map{$id_subcat3} || 'N/A'),
             id_negocio => $g_empresa,
             id_especialidad => $g->[12] || '',
             id_medico => $g->[13] || '',
@@ -329,15 +351,17 @@ elsif ($action eq 'save_gasto') {
 
     if (!$id_gasto) {
         my $nuevo_id = obtener_nuevo_id("$FindBin::Bin/../dat/id_gasto.counter");
+        my $concepto_save  = reparar_utf8($q->param('concepto') || '');
+        my $proveedor_save = reparar_utf8($q->param('proveedor') || '');
         my $linea = join("|", 
             $nuevo_id,
             $q->param('fecha') || '',
             $q->param('id_cat') || '',
             $q->param('id_subcat') || '',
             $q->param('id_subcat3') || '',
-            $q->param('concepto') || '',
+            $concepto_save,
             $q->param('monto') || 0,
-            $q->param('proveedor') || '',
+            $proveedor_save,
             $factura_path,
             $q->param('id_origen') || '',
             $session_data->{usuario} || '',
@@ -367,6 +391,8 @@ elsif ($action eq 'save_gasto') {
                     my $final_espe = defined $q->param('id_especialidad') ? $id_espe : ($campos[12] || '');
                     my $final_med  = defined $q->param('id_medico') ? $id_med : ($campos[13] || '');
                     my $final_rec  = defined $q->param('recibos_asociados') ? $rec_asc : ($campos[14] || '');
+                    my $final_concepto  = defined $q->param('concepto')  ? reparar_utf8($q->param('concepto'))  : $campos[5];
+                    my $final_proveedor = defined $q->param('proveedor') ? reparar_utf8($q->param('proveedor')) : $campos[7];
                     
                     $l = join("|", 
                         $id_gasto,
@@ -374,9 +400,9 @@ elsif ($action eq 'save_gasto') {
                         $q->param('id_cat') || $campos[2],
                         $q->param('id_subcat') || '',
                         $q->param('id_subcat3') || '',
-                        $q->param('concepto') || $campos[5],
+                        $final_concepto,
                         $q->param('monto') || $campos[6],
-                        $q->param('proveedor') || $campos[7],
+                        $final_proveedor,
                         $final_factura,
                         $q->param('id_origen') || $campos[9],
                         $campos[10] || $session_data->{usuario} || '',
