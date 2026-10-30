@@ -364,3 +364,17 @@ Para clínicas y consultorios independientes, ciertos catálogos se particionan 
 2. **Configuraciones en `negocios_config.dat`**: Las claves y banderas de configuración (`CAPACIDAD`, `TIPO_ORGANIZACION`, etc.) deben apuntar a un negocio registrado.
 3. **Pureza en `estado_cuenta.dat`**: El archivo de movimientos clínicos y abonos debe contener exclusivamente transacciones serializadas con formato pipe (`id_tx|id_mov|...`). Las referencias de memoria u outputs residuales de depuración son estrictamente purgados.
 4. **Gobernanza de Documentación**: La carpeta `dat/` almacena exclusivamente archivos de datos (`.dat`, `.counter`). No se permite la persistencia de archivos Markdown (`.md`) dentro de `dat/`; toda especificación técnica reside en las 4 capas de `docs/`.
+
+### 10.3 Catálogos Particionados por CLUE (`dat/catalogos_CLUE/{CLUE}/`)
+Para organizaciones institucionales o gubernamentales registradas con clave CLUE (ej. `QTSMP000116`):
+- `medicos_{CLUE}.dat`: Catálogo de médicos institucionales con su identificador, especialidad y nombre completo.
+- `especialidades_{CLUE}.dat`: Especialidades médicas habilitadas para la unidad de salud.
+- `subespecialidades_{CLUE}.dat`: Relación canónica de subespecialidades vinculadas a las especialidades del CLUE. Delimitador: `|`.
+
+| Campo | Nombre | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | `ID_ESPE` | String (FK) | ID de la especialidad padre en `especialidades_{CLUE}.dat` | `12` |
+| 2 | `ID_SUBESPECIALIDAD` | String (PK) | Identificador único de la subespecialidad | `12.1` |
+| 3 | `ESP_NOMBRE_SUBESPECIALIDAD` | String | Nombre oficial descriptivo de la subespecialidad | `Medicina Materno-Fetal` |
+
+

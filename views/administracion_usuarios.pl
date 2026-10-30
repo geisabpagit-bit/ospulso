@@ -7,6 +7,7 @@ use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use FindBin;
 use File::Spec;
+use JSON qw(encode_json decode_json);
 use open qw(:std :utf8);
 
 use lib "$FindBin::Bin/..";
@@ -74,7 +75,19 @@ if (!@mis_sucursales) {
     push @mis_sucursales, { id => '0', nombre => 'Matriz Principal' };
 }
 
-# 2. Cargar Catálogos de Especialidades
+# 2. Cargar CLUE de la Organización y Catálogos
+my $clues_org = '';
+if (defined $id_empresa && $id_empresa eq '0') {
+    $clues_org = 'QTSMP000116';
+} elsif ($regs_negocios) {
+    foreach my $r (@$regs_negocios) {
+        if ($r->[0] eq $id_empresa) {
+            $clues_org = $r->[18] // '';
+            last;
+        }
+    }
+}
+
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 my $rutas_cat = catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
 my $archivo_espe = $rutas_cat->{especialidades};
@@ -85,7 +98,10 @@ if (!-e $archivo_espe) {
     $espe_delimiter = '\|';
 }
 
-my $archivo_sub  = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'sub_especialidades.dat');
+my $archivo_sub = $rutas_cat->{subespecialidades};
+if (!defined $archivo_sub || !-e $archivo_sub) {
+    $archivo_sub = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'sub_especialidades.dat');
+}
 
 my %espe_hash = ();
 my @lista_espe = ();
@@ -99,11 +115,39 @@ if ($regs_espe) {
 }
 
 my %subespe_hash = ();
+my @lista_subespe_json = ();
 my $regs_sub = leer_tabla($archivo_sub, '\|');
 if ($regs_sub) {
     foreach my $r (@$regs_sub) {
         next if @$r < 3 || $r->[0] =~ /^ID_ESPE$/i;
         $subespe_hash{$r->[1]} = $r->[2];
+        push @lista_subespe_json, {
+            id_espe => $r->[0],
+            id_sub  => $r->[1],
+            nombre  => $r->[2]
+        };
+    }
+}
+my $subespecialidades_json_inline = encode_json(\@lista_subespe_json);
+
+# 2.2 Obtener usuarios registrados para filtrar médicos ya asignados
+my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
+my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
+my $norm_nom = sub {
+    my $s = lc(shift // '');
+    $s =~ s/\.//g;
+    $s =~ s/\s+/ /g;
+    $s =~ s/^\s+|\s+$//g;
+    return $s;
+};
+
+my %medicos_ya_registrados = ();
+if ($regs_usuarios) {
+    foreach my $u (@$regs_usuarios) {
+        next if @$u < 7;
+        my $nom_u = $u->[1] // '';
+        my $k = $norm_nom->($nom_u);
+        $medicos_ya_registrados{$k} = 1 if length($k);
     }
 }
 
@@ -115,10 +159,19 @@ if (-e $archivo_medicos) {
     if ($regs_medicos) {
         foreach my $r (@$regs_medicos) {
             next if @$r < 3 || $r->[0] =~ /^\$T_medid/i;
+            my $nom_m = $r->[2] // '';
+            $nom_m =~ s/^\s+|\s+$//g;
+            my $nom_clean = $norm_nom->($nom_m);
+
+            # EXCLUSIVAMENTE para CLUE QTSMP000116: excluir si ya está registrado en usuarios.dat
+            if ($clues_org eq 'QTSMP000116' && $medicos_ya_registrados{$nom_clean}) {
+                next;
+            }
+
             push @lista_medicos_custom, { 
                 id_medico => $r->[0], 
                 id_espe   => $r->[1], 
-                nombre    => $r->[2] 
+                nombre    => $nom_m 
             };
         }
     }
@@ -185,8 +238,6 @@ sub get_rol_badge {
 }
 
 # 3. Obtener usuarios (activos e inactivos)
-my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
-my $regs_usuarios = leer_tabla($archivo_usuarios, '!');
 my @mi_personal = ();
 my @personal_inactivo = ();
 
@@ -332,7 +383,7 @@ print <<HTML;
                             </div>
                             <div class="col-12 col-md-6" id="box_espe">
                                 <label class="form-label small fw-bold text-muted"><i class="bi bi-patch-check-fill text-primary me-1"></i>Especialidad Médica</label>
-                                <select class="form-select form-select-sm shadow-sm" id="form_id_espe" name="id_espe" onchange="actualizarSubespecialidades(this.value)">
+                                <select class="form-select form-select-sm shadow-sm" id="form_id_espe" name="id_espe" onchange="actualizarSubespecialidades(this.value, '0')">
                                     <option value="0">General / Ninguna</option>
 HTML
 
@@ -641,34 +692,56 @@ print <<HTML;
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script id="data_subespecialidades" type="application/json">$subespecialidades_json_inline</script>
 HTML
 
 print <<'JS';
 <script>
     let subespecialidadesData = [];
+    try {
+        const domSub = document.getElementById('data_subespecialidades');
+        if (domSub && domSub.textContent) {
+            subespecialidadesData = JSON.parse(domSub.textContent);
+        }
+    } catch(e) {
+        console.error("Error al parsear subespecialidades del DOM:", e);
+    }
 
-    // Cargar catálogo de subespecialidades vía API
-    fetch('../api/get_especialidades_api.pl')
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                subespecialidadesData = data.subespecialidades || [];
-            }
-        })
-        .catch(err => console.error("Error al cargar especialidades:", err));
+    // Salvaguarda reactiva o carga continua vía API
+    if (!subespecialidadesData || subespecialidadesData.length === 0) {
+        fetch('../api/get_especialidades_api.pl')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success' && data.subespecialidades) {
+                    subespecialidadesData = data.subespecialidades;
+                }
+            })
+            .catch(err => console.error("Error al cargar especialidades:", err));
+    }
 
     window.actualizarSubespecialidades = function(idEspe, selectedSub = '0') {
         const selectSub = document.getElementById('form_id_subespe');
         if (!selectSub) return;
         selectSub.innerHTML = '<option value="0">General / Ninguna</option>';
+        if (!idEspe || idEspe === '0' || idEspe === '') {
+            selectSub.value = '0';
+            return;
+        }
         const subs = subespecialidadesData.filter(s => String(s.id_espe) === String(idEspe));
+        let matched = false;
         subs.forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.id_sub;
             opt.textContent = s.nombre;
-            if (String(s.id_sub) === String(selectedSub)) opt.selected = true;
+            if (String(s.id_sub) === String(selectedSub)) {
+                opt.selected = true;
+                matched = true;
+            }
             selectSub.appendChild(opt);
         });
+        if (!matched) {
+            selectSub.value = '0';
+        }
     };
 
     // Funciones para Catálogo Custom de Médicos
@@ -718,18 +791,23 @@ print <<'JS';
     window.seleccionarMedicoCatalogo = function() {
         const sel = document.getElementById('form_nombre_select');
         const opt = sel.options[sel.selectedIndex];
+        const selectEspe = document.getElementById('form_id_espe');
         if(opt && opt.value) {
             document.getElementById('form_nombre').value = opt.value;
             const idEspe = opt.getAttribute('data-espe');
-            if(idEspe) {
-                const selectEspe = document.getElementById('form_id_espe');
-                if(selectEspe) {
-                    selectEspe.value = idEspe;
-                    actualizarSubespecialidades(idEspe);
-                }
+            if(idEspe && selectEspe) {
+                selectEspe.value = idEspe;
+                actualizarSubespecialidades(idEspe, '0');
+            } else if (selectEspe) {
+                selectEspe.value = '0';
+                actualizarSubespecialidades('0', '0');
             }
         } else {
             document.getElementById('form_nombre').value = '';
+            if (selectEspe) {
+                selectEspe.value = '0';
+                actualizarSubespecialidades('0', '0');
+            }
         }
     };
 
@@ -766,10 +844,15 @@ print <<'JS';
         formRol.value = 'Medico';
         document.getElementById('form_id_sucursal').value = '';
         document.getElementById('form_id_espe').value = '0';
-        actualizarSubespecialidades('0');
+        actualizarSubespecialidades('0', '0');
         
         const selectNombre = document.getElementById('form_nombre_select');
-        if(selectNombre) selectNombre.value = '';
+        if(selectNombre) {
+            Array.from(selectNombre.options).forEach(opt => {
+                if (opt.getAttribute('data-temp-medico')) opt.remove();
+            });
+            selectNombre.value = '';
+        }
         cambiarRol('Medico');
         
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Añadir Colaborador';
@@ -814,11 +897,24 @@ print <<'JS';
         
         const selectNombre = document.getElementById('form_nombre_select');
         if(selectNombre) {
-            // Verificar si el nombre está en el catálogo, sino se deja en blanco o se agrega un option.
+            Array.from(selectNombre.options).forEach(opt => {
+                if (opt.getAttribute('data-temp-medico')) opt.remove();
+            });
             const options = Array.from(selectNombre.options);
             const found = options.find(o => o.value === nombre);
-            if(found) selectNombre.value = nombre;
-            else selectNombre.value = '';
+            if(found) {
+                selectNombre.value = nombre;
+            } else if (nombre && rol === 'Medico') {
+                const tempOpt = document.createElement('option');
+                tempOpt.value = nombre;
+                tempOpt.text = nombre;
+                tempOpt.setAttribute('data-espe', id_espe || '0');
+                tempOpt.setAttribute('data-temp-medico', '1');
+                selectNombre.appendChild(tempOpt);
+                selectNombre.value = nombre;
+            } else {
+                selectNombre.value = '';
+            }
         }
         cambiarRol(rol);
         

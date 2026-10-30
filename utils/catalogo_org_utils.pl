@@ -140,6 +140,7 @@ sub obtener_rutas_por_clue {
         productos => File::Spec->catfile($clue_dir, "productos_${clues}.dat"),
         medicos => File::Spec->catfile($clue_dir, "medicos_${clues}.dat"),
         especialidades => File::Spec->catfile($clue_dir, "especialidades_${clues}.dat"),
+        subespecialidades => File::Spec->catfile($clue_dir, "subespecialidades_${clues}.dat"),
         dependencia => File::Spec->catfile($clue_dir, "dependencia_${clues}.dat"),
         empleadosmun => File::Spec->catfile($clue_dir, "empleadosmun_${clues}.dat"),
         municipios => File::Spec->catfile($clue_dir, "municipios_${clues}.dat"),

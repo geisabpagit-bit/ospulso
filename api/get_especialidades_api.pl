@@ -18,14 +18,19 @@ my $q = CGI->new;
 print $q->header(-type => 'application/json', -charset => 'UTF-8');
 
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
-my $archivo_espe = catalogo_org_utils::obtener_rutas_catalogo($id_empresa)->{especialidades};
+my $rutas_cat = catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
+my $archivo_espe = $rutas_cat->{especialidades};
 my $espe_delimiter = '\|';
 
 if (!-e $archivo_espe || !$id_empresa) {
     $archivo_espe = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'especialidades.dat');
     $espe_delimiter = '\|';
 }
-my $archivo_sub  = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'sub_especialidades.dat');
+
+my $archivo_sub = $rutas_cat->{subespecialidades};
+if (!defined $archivo_sub || !-e $archivo_sub) {
+    $archivo_sub = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'sub_especialidades.dat');
+}
 
 my @especialidades;
 my @subespecialidades;

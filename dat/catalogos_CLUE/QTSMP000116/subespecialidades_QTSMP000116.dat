@@ -1,0 +1,121 @@
+ID_ESPE|ID_SUBESPECIALIDAD|ESP_NOMBRE_SUBESPECIALIDAD
+1|1.1|Alergia e Inmunología Clínica
+1|1.2|Alergología Pediátrica
+2|2.1|Cirugía Vascular y Endovascular
+2|2.2|Flebología
+3|3.1|Audiometría y Otoneurología
+3|3.2|Foniatría y Terapia del Lenguaje
+4|4.1|Cardiología Clínica
+4|4.2|Cardiología Intervencionista
+4|4.3|Electrofisiología
+4|4.4|Ecocardiografía
+5|5.1|Cardiología Pediátrica Clínica
+5|5.2|Cateterismo Cardíaco Pediátrico
+6|6.1|Cirugía Estética
+6|6.2|Cirugía Craneofacial y Reconstructiva
+6|6.3|Cirugía de Mano
+7|7.1|Dermatología Pediátrica
+7|7.2|Dermatooncología
+7|7.3|Cirugía Dermatológica
+8|8.1|Diabetes y Metabolismo
+8|8.2|Tiroides y Paratiroides
+8|8.3|Neuroendocrinología
+9|9.1|Trastornos del Crecimiento
+9|9.2|Diabetes Pediátrica
+10|10.1|Rehabilitación Neurológica
+10|10.2|Rehabilitación Deportiva y Ortopédica
+10|10.3|Rehabilitación Pediátrica
+11|11.1|Hepatología
+11|11.2|Endoscopia Terapéutica
+11|11.3|Enfermedad Inflamatoria Intestinal
+12|12.1|Medicina Materno-Fetal
+12|12.2|Uroginecología
+12|12.3|Endocrinología Ginecológica e Infertilidad
+12|12.4|Oncología Ginecológica
+12|12.5|Colposcopia y Patología del Tracto Genital
+13|13.1|Hematología Pediátrica y Leucemias
+13|13.2|Coagulopatías y Hemoglobinopatías
+14|14.1|Trasplante de Médula Ósea
+14|14.2|Hemostasia y Trombosis
+14|14.3|Oncohematología
+15|15.1|Atención Primaria y Preventiva
+15|15.2|Control de Enfermedades Crónicas
+16|16.1|Cardiología Clínica
+16|16.2|Endocrinología Clínica
+16|16.3|Nefrología Clínica
+16|16.4|Neumología Clínica
+16|16.5|Reumatología Clínica
+17|17.1|Cuidados del Paciente Complejo
+17|17.2|Manejo Integral de Comorbilidades
+18|18.1|Diálisis Peritoneal y Hemodiálisis
+18|18.2|Nefropatía Diabética e Hipertensiva
+18|18.3|Trasplante Renal
+19|19.1|Fisiología Pulmonar y Espirometría
+19|19.2|Broncoscopia y Neumología Intervencionista
+19|19.3|Trastornos del Sueño y Apnea
+20|20.1|Asma Pediátrica y Alergias Respiratorias
+20|20.2|Fibrosis Quística y Neumonías Crónicas
+21|21.1|Epileptología y Electroencefalografía
+21|21.2|Enfermedad Vascular Cerebral (EVC)
+21|21.3|Cefaleas y Dolor Neuropático
+21|21.4|Trastornos del Movimiento y Parkinson
+22|22.1|Neurodesarrollo y TDAH
+22|22.2|Epilepsia Infantil
+23|23.1|Nutrición Clínica y Bariátrica
+23|23.2|Nutrición Renal y Diabética
+23|23.3|Nutrición Pediátrica
+24|24.1|Retina y Vítreo
+24|24.2|Glaucoma
+24|24.3|Oftalmología Pediátrica y Estrabismo
+24|24.4|Segmento Anterior y Cirugía Refractiva
+25|25.1|Quimioterapia y Terapias Dirigidas
+25|25.2|Inmunooncología
+25|25.3|Cuidados Paliativos Oncológicos
+26|26.1|Oncología de Mama
+26|26.2|Cirugía Oncológica Digestiva
+26|26.3|Cirugía Oncológica Ginecológica
+27|27.1|Otología y Cirugía de Oído
+27|27.2|Rinología y Cirugía Endoscópica de Senos Paranasales
+27|27.3|Laringología y Fonocirugía
+28|28.1|Control del Niño Sano y Vacunación
+28|28.2|Neonatología
+28|28.3|Infectología Pediátrica
+28|28.4|Urgencias Pediátricas
+29|29.1|Cirugía Anorrectal y Láser
+29|29.2|Endoscopia y Colonoscopia
+30|30.1|Psiquiatría de Adultos y Trastornos Afectivos
+30|30.2|Psiquiatría Infantil y de la Adolescencia
+30|30.3|Psiquiatría Geriátrica
+30|30.4|Tratamiento de Adicciones
+31|31.1|Artritis Reumatoide y Lupus
+31|31.2|Espondiloartropatías y Vasculitis
+31|31.3|Reumatología Pediátrica
+32|32.1|Cirugía Articular y Artroscopia
+32|32.2|Cirugía de Columna Vertebral
+32|32.3|Ortopedia Pediátrica
+32|32.4|Traumatología Deportiva
+33|33.1|Incontinencia Urinaria y Piso Pélvico
+33|33.2|Cirugía Reconstructiva Ginecológica
+34|34.1|Endourología y Litiasis Urinaria
+34|34.2|Urología Oncológica
+34|34.3|Andrología e Infertilidad Masculina
+34|34.4|Urología Pediátrica
+35|35.1|Enfermería Quirúrgica
+35|35.2|Enfermería en Cuidados Intensivos
+35|35.3|Enfermería Pediátrica
+36|36.1|Psicología Clínica y Psicoterapia
+36|36.2|Terapia Cognitivo-Conductual
+36|36.3|Psicología Infantil y Familiar
+37|37.1|Tracción y Terapia de Columna
+37|37.2|Kinesioterapia
+38|38.1|SPECT y Gammagrafía
+38|38.2|PET-CT y Terapia Metabólica
+39|39.1|Cirugía Laparoscópica Avanzada
+39|39.2|Cirugía Bariátrica y Metabólica
+39|39.3|Cirugía Hepatobiliar y Pancreática
+39|39.4|Cirugía de Pared Abdominal y Hernias
+40|40.1|Ultrasonido Doppler Color
+40|40.2|Ultrasonido Estructural y Obstétrico
+40|40.3|Ultrasonido Músculo-Esquelético
+41|41.1|Dermatología Neonatal y Pediatría
+41|41.2|Dermatitis Atópica y Alergias Cutáneas

@@ -204,6 +204,25 @@ Permite al **Administrador de Organización** enviar enlaces de configuración/r
   2. Fallback secundario a pipe Unix `/usr/sbin/sendmail` si el módulo no está en `@INC`.
   3. Modo de simulación transparente en entornos locales (XAMPP/Windows) con registro en `logs/debug_email.log`, garantizando respuestas JSON válidas (`HTTP 200 { status: 'success' }`) sin provocar errores 500 en la consola del navegador.
 
+---
 
+## 10. Gestión de Personal y Reglas Específicas por Tenant (CLUE QTSMP000116)
 
+### 10.1 Restricción de Roles Operativos para `Administrador Organizacion`
+En la vista de Gestión de Personal (`views/administracion_usuarios.pl`), cuando el usuario activo tiene rol `Administrador Organizacion`:
+- Se restringen los roles operativos disponibles en el formulario únicamente a perfiles de piso clínico: **Médico** y **Recepcionista**.
+- Se excluyen deliberadamente de la lista: `Administrador Organizacion`, `Ejecutivo Ventas`, `Enfermeria`, `Soporte` y `Administrador Global`, previniendo escalamiento de privilegios o asignación de roles no operativos.
 
+### 10.2 Exclusión Dinámica de Médicos ya Registrados (CLUE QTSMP000116)
+- **Problema abordado**: En organizaciones institucionales que emplean catálogo oficial de médicos (`dat/catalogos_CLUE/QTSMP000116/medicos_QTSMP000116.dat`), los médicos ya dados de alta en `dat/usuarios.dat` seguían mostrándose en el desplegable *"Médico (Catálogo Institucional)"*, propiciando duplicidad de registros y colisión de cuentas.
+- **Solución implementada**:
+  1. Al renderizar el formulario para el CLUE `QTSMP000116`, se cruza el catálogo institucional contra los nombres normalizados (`_norm_nom`) de `dat/usuarios.dat`.
+  2. Aquellos facultativos ya registrados son **omitidos** de la lista desplegable de alta.
+  3. Al editar un médico previamente registrado (`abrirFormEditar`), el sistema inyecta un `<option>` temporal (`data-temp-medico="1"`) que se selecciona automáticamente para preservar la trazabilidad sin reactivarlo en el dropdown para nuevas altas.
+
+### 10.3 Cascada Dinámica de Especialidad y Sub-Especialidad
+- **Aislamiento Multi-Tenant**: Cada CLUE cuenta con su catálogo canónico de subespecialidades (`dat/catalogos_CLUE/QTSMP000116/subespecialidades_QTSMP000116.dat`), resuelto vía `utils/catalogo_org_utils.pl` y consumible tanto vía API (`api/get_especialidades_api.pl`) como pre-serializado en DOM (`<script id="data_subespecialidades" type="application/json">`).
+- **Cascada Frontend**:
+  1. Al cambiar la "Especialidad Médica" (`#form_id_espe`), se desencadena `actualizarSubespecialidades(idEspe, '0')`.
+  2. La lista de "Sub-Especialidad" (`#form_id_subespe`) se vacía y se reconstruye reactivamente únicamente con los ítems subordinados a dicha especialidad (`subs.filter(s => s.id_espe === idEspe)`), manteniendo siempre la opción por defecto `General / Ninguna`.
+  3. Al seleccionar un médico del catálogo institucional (`seleccionarMedicoCatalogo`), se recupera su atributo `data-espe`, asignando la especialidad y actualizando de inmediato la cascada de subespecialidades dependientes.
