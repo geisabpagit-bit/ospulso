@@ -554,7 +554,17 @@ if (!$medico_nombre_res && ($gasto->{proveedor} =~ /^(DR|DRA|M[EÉ]DICO|LIC)/i |
             if (@m >= 3) {
                 my $m_nom = uc($m[2]);
                 $m_nom =~ s/^\s+|\s+$//g;
-                if ($m_nom eq $prov_clean || $prov_clean =~ /\Q$m_nom\E/) {
+                my $m_clean = $m_nom;
+                $m_clean =~ s/^(DR|DRA|LIC|MTRO|ING)\.?\s*//i;
+                my $p_clean = $prov_clean;
+                $p_clean =~ s/^(DR|DRA|LIC|MTRO|ING)\.?\s*//i;
+                
+                my $is_match = ($m_nom eq $prov_clean || $prov_clean =~ /\Q$m_nom\E/ || $m_nom =~ /\Q$prov_clean\E/);
+                if (!$is_match && $m_clean && $p_clean) {
+                    $is_match = ($m_clean =~ /\Q$p_clean\E/ || $p_clean =~ /\Q$m_clean\E/);
+                }
+                
+                if ($is_match) {
                     $medico_nombre_res = $m[2];
                     if (!$especialidad_nombre_res && $m[1]) {
                         my $esp_file = File::Spec->catfile($script_dir, '..', 'dat', 'catalogos_CLUE', $cat_clues, "especialidades_${cat_clues}.dat");

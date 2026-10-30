@@ -87,12 +87,18 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
   1. **Especialidad Médica**: Selector poblado dinámicamente desde `api/finanzas_api.pl?action=get_medicos_especialidades`. Al cambiar de especialidad, filtra en cascada el catálogo de médicos tratantes.
   2. **Médico Tratante (Anti-Duplicidad)**: Selector del especialista con deduplicación dual (backend y frontend) por identificador y nombre normalizado, evitando repeticiones provenientes de múltiples catálogos. Al seleccionar un médico:
      - Auto-llena el campo `Proveedor / Beneficiario` con el nombre del médico.
-     - Consulta de forma asíncrona sus recibos de consulta activos mediante `api/finanzas_api.pl?action=get_recibos_medico&id_medico=...`.
+     - Consulta de forma asíncrona sus recibos de consulta activos mediante `api/finanzas_api.pl?action=get_recibos_medico&id_medico=...&nombre_medico=...`.
   3. **Recibos de Ingresos Asociados (Checklist Múltiple con Paciente y Concepto)**:
      - Desplegable tipo dropdown con checkboxes individuales por recibo.
      - Cada elemento visualiza de forma estructurada: `Folio`, `Importe ($)`, `Fecha`, `Nombre Real del Paciente` (resuelto exhaustivamente desde `pacientes_privados_<CLUES>.dat`, `estado_cuenta.dat` y `pacientes.dat`) y `Concepto / Servicio Médico` (desglosado desde el payload de items JSON).
      - Permite selección individual o múltiple ("Seleccionar / Deseleccionar Todos").
      - **Auto-cálculo y Sugerencia**: La suma acumulada de los recibos seleccionados se calcula en tiempo real; si el campo `Monto ($)` está en $0.00 o coincide con el cálculo anterior, se auto-actualiza automáticamente. El campo `Concepto` se pre-redacta sugiriendo los folios amparados (ej. `Honorarios Médicos - DRA HYPATIA GUILLEN (Recibos: #28988, #28983)`).
+- **Motor de Resolución Inteligente y Bidireccional de Recibos Médicos (`get_recibos_medico`)**:
+  - En la práctica operativa de emisión de recibos en caja rápida o mostrador, el especialista puede registrarse con variantes en el nombre (ej. `DR VICTOR TSUTSUMI` en recibos de consulta vs `DR VICTOR TSUTSUMI HARA` en el catálogo de médicos), o bien la columna `id_medico` en `folios_recibos_privados.dat` almacena el ID del ítem de consulta en lugar del ID numérico del médico (ej. items `4` y `14` para Consulta Traumatología).
+  - Para erradicar falsos negativos y garantizar 100% de recuperabilidad:
+    1. **Mapeo Cruzado de Ítems de Consulta**: El backend indexa `catalogo_items_<CLUES>.dat` para asociar los IDs de conceptos de consulta de cada especialidad con el médico correspondiente.
+    2. **Normalización y Matching Bidireccional de Tokens**: Se eliminan prefijos de título profesional (`DR`, `DRA`, `LIC`, `MEDICO`, etc.) y se evalúa coincidencia bidireccional (A dentro de B o B dentro de A), así como intersección de tokens mayores a 3 caracteres entre el catálogo de médicos y el payload de items de cada recibo.
+    3. **Trazabilidad en Impresión**: `api/imprimir_recibo_gasto.pl` replica idéntica lógica heurística bidireccional sobre el campo `proveedor` para resolver el médico y su especialidad al emitir el comprobante formal de egreso.
 - **Aislamiento Multi-Tenant de Categorías y Sanitización UTF-8**:
   - En la vista previa e impresión de comprobantes de egreso (`api/imprimir_recibo_gasto.pl`), la resolución de la categoría principal, subcategorías y origen de dinero evalúa de forma obligatoria el `ID_NEGOCIO` del gasto, erradicando confusiones con registros homónimos de otros consultorios (ej. ID 2 = Honorarios Médicos en tenant 723800 vs Marketing en tenant 0).
   - Integración de función reparadora de secuencias UTF-8 (`reparar_utf8`), previniendo cualquier anomalía de Mojibake (doble codificación) en pantalla o impresión PDF.

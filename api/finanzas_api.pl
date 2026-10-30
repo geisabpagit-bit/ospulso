@@ -629,6 +629,49 @@ elsif ($action eq 'get_recibos_medico') {
         }
         close $fe_edo;
     }
+
+    # 2.5 Resolver y normalizar tokens del Médico Buscado
+    if (!$target_med_nom && $target_med_id) {
+        my $mf = "$FindBin::Bin/../dat/catalogos_CLUE/$org_clues/medicos_${org_clues}.dat";
+        if (-e $mf && open(my $fmed, '<:encoding(UTF-8)', $mf)) {
+            while (my $lm = <$fmed>) {
+                chomp $lm;
+                my @fm = split /\|/, $lm, -1;
+                if ($fm[0] eq $target_med_id) {
+                    $target_med_nom = uc($fm[2] || '');
+                    last;
+                }
+            }
+            close $fmed;
+        }
+    }
+
+    my $nom_clean = uc($target_med_nom);
+    $nom_clean =~ s/^(DR|DRA|LIC|MTRO|ING)\.?\s*//i;
+    $nom_clean =~ s/^\s+|\s+$//g;
+    my @target_tokens = grep { length($_) > 2 && $_ !~ /^(DR|DRA|LIC|DEL?|LAS?|LOS)$/i } split(/\s+/, $nom_clean);
+
+    # 2.6 Mapeo Cruzado de IDs de Ítems de Consulta asignados al Médico
+    my %item_ids_del_medico = ();
+    my $cat_items_file = "$FindBin::Bin/../dat/catalogos_CLUE/$org_clues/catalogo_items_${org_clues}.dat";
+    if (-e $cat_items_file && open(my $fit, '<:encoding(UTF-8)', $cat_items_file)) {
+        while (my $lit = <$fit>) {
+            chomp $lit;
+            my @it_col = split /\|/, $lit, -1;
+            next if @it_col < 4;
+            my $conc_upper = uc($it_col[3]);
+            if ($conc_upper =~ /CONSULTA/i && @target_tokens) {
+                my $hits = 0;
+                for my $tk (@target_tokens) {
+                    $hits++ if $conc_upper =~ /\Q$tk\E/;
+                }
+                if ($hits >= 2 || ($hits >= 1 && scalar(@target_tokens) == 1) || ($nom_clean && $conc_upper =~ /\Q$nom_clean\E/)) {
+                    $item_ids_del_medico{$it_col[0]} = 1;
+                }
+            }
+        }
+        close $fit;
+    }
     
     # 3. Leer Recibos Privados del Médico
     my $recibos_file = "$FindBin::Bin/../dat/folios_recibos_privados.dat";
@@ -651,18 +694,53 @@ elsif ($action eq 'get_recibos_medico') {
             next if $estatus eq 'Cancelado';
             
             my $rec_med_id = $r[15] // '';
-            my $rec_conc = $r[12] // '';
+            my $rec_conc = uc($r[12] // '');
             my $rec_items = $r[13] // '';
             
             my $match = 0;
-            if ($target_med_id ne '' && $rec_med_id eq $target_med_id) {
+            # 1. Match por ID exacto de médico o ID cruzado de ítem de consulta
+            if ($target_med_id ne '' && ($rec_med_id eq $target_med_id || $item_ids_del_medico{$rec_med_id})) {
                 $match = 1;
             }
-            if (!$match && $target_med_nom ne '') {
-                if (uc($rec_conc) =~ /\Q$target_med_nom\E/) {
-                    $match = 1;
-                } elsif ($rec_items =~ /\Q$target_med_nom\E/i) {
-                    $match = 1;
+            
+            # 2. Match inteligente por nombre bidireccional y tokens en items/concepto
+            if (!$match && @target_tokens) {
+                # A. Extraer nombres explícitos de médicos desde items_json
+                my @medicos_en_recibo = ();
+                if ($rec_items) {
+                    eval {
+                        my $arr = decode_json($rec_items);
+                        if (ref($arr) eq 'ARRAY') {
+                            for my $it (@$arr) {
+                                push @medicos_en_recibo, uc($it->{nombre_medico}) if $it->{nombre_medico};
+                                push @medicos_en_recibo, uc($it->{medico}) if $it->{medico};
+                            }
+                        }
+                    };
+                }
+
+                # B. Comparación bidireccional (ignora si el recibo tiene solo un apellido o el nombre completo)
+                for my $mr (@medicos_en_recibo) {
+                    my $mr_clean = $mr;
+                    $mr_clean =~ s/^(DR|DRA|LIC|MTRO|ING)\.?\s*//i;
+                    $mr_clean =~ s/^\s+|\s+$//g;
+                    if ($mr_clean && ($nom_clean =~ /\Q$mr_clean\E/ || $mr_clean =~ /\Q$nom_clean\E/)) {
+                        $match = 1;
+                        last;
+                    }
+                }
+
+                # C. Coincidencia por tokens significativos en items o concepto
+                if (!$match) {
+                    my $hits = 0;
+                    for my $tk (@target_tokens) {
+                        if ($rec_items =~ /\Q$tk\E/i || $rec_conc =~ /\Q$tk\E/i) {
+                            $hits++;
+                        }
+                    }
+                    if ($hits >= 2 || ($hits >= 1 && scalar(@target_tokens) == 1)) {
+                        $match = 1;
+                    }
                 }
             }
             
