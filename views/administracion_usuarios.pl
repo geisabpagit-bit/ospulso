@@ -149,7 +149,20 @@ if (-e $archivo_roles && open(my $rf_roles, '<:encoding(UTF-8)', $archivo_roles)
     close $rf_roles;
 }
 
-my @lista_roles_canonicos = sort keys %roles_canonicos_map;
+# Restricción RBAC: Para "Administrador Organizacion" en gestión de personal,
+# no deben mostrarse "Administrador Organizacion", "Ejecutivo Ventas", "Enfermeria" ni "Soporte"
+my %roles_excluidos_admon_org = (
+    'Administrador Organizacion' => 1,
+    'Ejecutivo Ventas'           => 1,
+    'Enfermeria'                 => 1,
+    'Soporte'                    => 1,
+    'Administrador Global'       => 1,
+    'Paciente'                   => 1
+);
+
+my @lista_roles_canonicos = grep {
+    !($role eq 'Administrador Organizacion' && $roles_excluidos_admon_org{$_})
+} sort keys %roles_canonicos_map;
 
 sub get_rol_badge {
     my ($r_name) = @_;
@@ -746,7 +759,11 @@ print <<'JS';
         document.getElementById('form_clave').classList.remove('is-invalid', 'is-valid');
         document.getElementById('btn-submit-form').disabled = false;
         document.getElementById('passwordConfirmContainer').classList.remove('d-none');
-        document.getElementById('form_rol').value = 'Medico';
+        const formRol = document.getElementById('form_rol');
+        Array.from(formRol.options).forEach(opt => {
+            if (opt.getAttribute('data-temp-role')) opt.remove();
+        });
+        formRol.value = 'Medico';
         document.getElementById('form_id_sucursal').value = '';
         document.getElementById('form_id_espe').value = '0';
         actualizarSubespecialidades('0');
@@ -778,7 +795,19 @@ print <<'JS';
         document.getElementById('form_clave').classList.remove('is-invalid', 'is-valid');
         document.getElementById('btn-submit-form').disabled = false;
         document.getElementById('passwordConfirmContainer').classList.remove('d-none');
-        document.getElementById('form_rol').value = rol;
+        
+        const formRol = document.getElementById('form_rol');
+        Array.from(formRol.options).forEach(opt => {
+            if (opt.getAttribute('data-temp-role')) opt.remove();
+        });
+        if (rol && !Array.from(formRol.options).some(o => o.value === rol)) {
+            const tempOpt = document.createElement('option');
+            tempOpt.value = rol;
+            tempOpt.text = rol + ' (Rol no reasignable)';
+            tempOpt.setAttribute('data-temp-role', '1');
+            formRol.appendChild(tempOpt);
+        }
+        formRol.value = rol;
         document.getElementById('form_id_sucursal').value = id_sucursal;
         document.getElementById('form_id_espe').value = id_espe || '0';
         actualizarSubespecialidades(id_espe || '0', id_subespe || '0');

@@ -62,6 +62,21 @@ unless ($roles_validos_chk{$rol}) {
     exit;
 }
 
+# Restricción RBAC: Administrador Organizacion no puede asignar roles restringidos
+my %roles_prohibidos_org = (
+    'Administrador Organizacion' => 1,
+    'Ejecutivo Ventas'           => 1,
+    'Enfermeria'                 => 1,
+    'Soporte'                    => 1,
+    'Administrador Global'       => 1,
+    'Paciente'                   => 1
+);
+
+if ($sd->{role} eq 'Administrador Organizacion' && $roles_prohibidos_org{$rol}) {
+    print encode_json({ status => 'error', message => "El Administrador de Organización no tiene permitido asignar el rol '$rol'." });
+    exit;
+}
+
 if ($rol ne 'Medico') {
     $id_espe    = '0';
     $id_subespe = '0';

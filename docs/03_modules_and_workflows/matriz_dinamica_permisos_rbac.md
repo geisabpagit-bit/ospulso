@@ -61,7 +61,8 @@ En código backend (`utils/permisos_utils.pl` y `api/gestion_permisos_roles_api.
 ---
 
 ### 3.5 Consola de Gestión de Personal (`views/administracion_usuarios.pl`)
-- **Consumo Dinámico de Roles**: El selector `<select id="form_rol">` consume dinámicamente todos los roles canónicos de `dat/roles.dat` (*Administrador Organización*, *Médico*, *Recepcionista*, *Enfermería*, *Ejecutivo Ventas*, *Soporte*).
+- **Consumo Dinámico de Roles y Segregación RBAC**: El selector `<select id="form_rol">` filtra rigurosamente los roles para el *Administrador Organización*. Para evitar escalación de privilegios o fugas de roles SaaS a nivel de clínica, quedan **excluidos**: *Administrador Organización*, *Ejecutivo Ventas*, *Enfermería* y *Soporte Técnico*. El administrador local solo puede asignar perfiles clínicos operativos autorizados (*Médico*, *Recepcionista*).
+- **Validación Estricta en Backend (API-RBAC)**: Los endpoints `api/alta_usuario_api.pl` y `api/editar_usuario_api.pl` rechazan activamente cualquier intento de asignar roles restringidos si la sesión proviene de un Administrador de Organización.
 - **Badges Visuales Colorimétricos**: Cada colaborador en DataTables exhibe un badge estilizado y codificado por color según su rol.
 - **Botón Táctico [🛡️ Permisos]**: Permite abrir el modal `#modalPermisosUsuario` en la fila de cualquier colaborador para consultar en tiempo real las facultades CRUD activas del rol de ese usuario.
 - **Puerta de Enlace a la Matriz (`?rol=XXXX`)**: El modal de permisos incluye el botón *"Personalizar Facultades de este Rol en la Matriz"*, el cual redirige a `gestion_permisos_roles.pl?rol=NombreRol` auto-enfocando la vista del rol seleccionado.
