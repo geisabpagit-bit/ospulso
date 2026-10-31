@@ -1,0 +1,7 @@
+ID|TITULO|DESCRIPCION|ICONO_BS|COLOR_BS|DESTINO|ORDEN|ACTIVO
+1|Gestión de Registros|Monitoreo y consulta de logs y registros del sistema.|bi-person-lines-fill|primary|manage_registros.pl|1|1
+2|Matriz de Permisos|Control granular de perfiles, facultades y accesos RBAC.|bi-shield-lock-fill|info|gestion_permisos_roles.pl|2|1
+3|Usuarios en Línea|Supervisión en tiempo real de sesiones activas en la plataforma.|bi-activity|success|usuarios_online.pl|3|1
+4|Catálogos y Mantenimiento|Administración de tablas maestras, copias de seguridad y SaaS.|bi-tools|warning|administracion_catalogo.pl|4|1
+5|Copias de Seguridad|Respaldos de base de datos y migración segura.|bi-hdd-network-fill|primary|admin_backups.pl|5|1
+6|Actualización en Caliente|Despliegue ágil en segundo plano sin alterar datos operativos.|bi-lightning-charge-fill|teal|javascript:iniciarHotDeploy()|6|1

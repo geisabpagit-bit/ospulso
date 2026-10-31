@@ -36,35 +36,278 @@ sub render_dashboard_principal {
     
     if ($role eq 'Administrador Global') {
         utils::sub_sidebar::render_sidebar(
-            usuario => $usuario,
-            role => $role,
-            id_medico => $id_medico,
+            usuario       => $usuario,
+            role          => $role,
+            id_medico     => $id_medico,
             pagina_actual => 'dashboard'
         );
-        print <<HTML;
-        <!-- Dashboard Content para Administrador Global -->
-        <div class="container-fluid px-4 pb-5 mt-4 animate__animated animate__fadeIn">
-            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white text-center" style="border: 1.5px solid rgba(25, 183, 165, 0.3) !important;">
-                <div class="mx-auto mb-3 rounded-circle d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary" style="width: 70px; height: 70px;">
-                    <i class="bi bi-shield-lock-fill fs-2"></i>
+
+        # 1. Cargar dinámicamente los minicards configurados en dat/cards_inicio_admin.dat
+        my $dat_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat');
+        my $cards_file = File::Spec->catfile($dat_dir, 'cards_inicio_admin.dat');
+        my @admin_minicards = ();
+
+        if (-e $cards_file && open(my $fh, '<:encoding(UTF-8)', $cards_file)) {
+            my $hdr = <$fh>;
+            while (my $line = <$fh>) {
+                chomp $line;
+                next if $line =~ /^\s*#|^\s*$/;
+                my ($c_id, $c_titulo, $c_desc, $c_icono, $c_color, $c_destino, $c_orden, $c_activo) = split(/\|/, $line, -1);
+                if (int($c_activo // 1) == 1) {
+                    push @admin_minicards, {
+                        id      => $c_id,
+                        titulo  => $c_titulo,
+                        desc    => $c_desc,
+                        icono   => $c_icono || 'bi-grid-fill',
+                        color   => $c_color || 'primary',
+                        destino => $c_destino || '#',
+                        orden   => int($c_orden // 0)
+                    };
+                }
+            }
+            close($fh);
+            @admin_minicards = sort { $a->{orden} <=> $b->{orden} || $a->{id} <=> $b->{id} } @admin_minicards;
+        }
+
+        # Fallback de seguridad si no hay cards configurados
+        if (!@admin_minicards) {
+            @admin_minicards = (
+                { titulo => 'Gestión de Registros', desc => 'Supervisión centralizada de logs y auditoría del sistema.', icono => 'bi-person-lines-fill', color => 'primary', destino => 'manage_registros.pl', orden => 1 },
+                { titulo => 'Matriz de Permisos', desc => 'Control granular de facultades y matrices de acceso por rol.', icono => 'bi-shield-lock-fill', color => 'info', destino => 'gestion_permisos_roles.pl', orden => 2 },
+                { titulo => 'Usuarios en Línea', desc => 'Monitoreo en tiempo real de sesiones activas en la plataforma.', icono => 'bi-activity', color => 'success', destino => 'usuarios_online.pl', orden => 3 },
+                { titulo => 'Catálogos y Mantenimiento', desc => 'Mantenimiento maestro de infraestructura y copias.', icono => 'bi-tools', color => 'warning', destino => 'administracion_catalogo.pl', orden => 4 },
+                { titulo => 'Copias de Seguridad', desc => 'Generación, descarga y restauración de respaldos globales.', icono => 'bi-hdd-network-fill', color => 'primary', destino => 'admin_backups.pl', orden => 5 },
+                { titulo => 'Actualización en Caliente', desc => 'Despliegue ágil en segundo plano sin alterar datos operativos.', icono => 'bi-lightning-charge-fill', color => 'teal', destino => 'javascript:iniciarHotDeploy()', orden => 6 }
+            );
+        }
+
+        my $cards_html = '';
+        foreach my $c (@admin_minicards) {
+            my $href = $c->{destino};
+            my $onclick = '';
+            if ($href =~ /^javascript:(.*)$/) {
+                $onclick = $1;
+                $href = 'javascript:void(0);';
+            }
+
+            my $onclick_attr = $onclick ? qq{onclick="$onclick"} : '';
+
+            $cards_html .= qq{
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                    <a href="$href" $onclick_attr class="card h-100 text-decoration-none minicard-admin-item p-3 shadow-sm rounded-4 position-relative overflow-hidden">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="minicard-icon-wrap rounded-3 d-flex align-items-center justify-content-center flex-shrink-0">
+                                <i class="bi $c->{icono} fs-4"></i>
+                            </div>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="mb-1">
+                                    <span class="badge px-2 py-1 rounded-pill fw-bold text-white text-truncate max-w-100 minicard-title-badge">
+                                        $c->{titulo}
+                                    </span>
+                                </div>
+                                <p class="small text-muted mb-0 minicard-desc-text">
+                                    $c->{desc}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-top border-light-subtle">
+                            <span class="small fw-semibold text-teal d-flex align-items-center gap-1 minicard-action-link">
+                                Acceder <i class="bi bi-arrow-right"></i>
+                            </span>
+                        </div>
+                    </a>
                 </div>
-                <h3 class="fw-bold text-dark plus-jakarta">Panel Maestro - Administrador Global (SaaS)</h3>
-                <p class="text-muted col-md-8 mx-auto small mb-4">
-                    Has iniciado sesión con el rol de administración de plataforma. Desde aquí puedes supervisar organizaciones, sucursales, usuarios globales y respaldos del sistema.
-                </p>
-                <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <a href="manage_clinicas.pl" class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="bi bi-building me-2"></i>Organizaciones y Clínicas
-                    </a>
-                    <a href="administracion_usuarios.pl" class="btn btn-outline-secondary rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="bi bi-people-fill me-2"></i>Usuarios Globales
-                    </a>
-                    <a href="admin_backups.pl" class="btn btn-outline-success rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="bi bi-hdd-network-fill me-2"></i>Copias de Seguridad
-                    </a>
+            };
+        }
+
+        print <<HTML;
+        <!-- Dashboard Content Dinámico para Administrador Global -->
+        <style>
+            .minicard-admin-item {
+                border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+                background: #ffffff;
+                transition: all 0.25s ease-in-out;
+            }
+            .minicard-admin-item:hover {
+                transform: translateY(-3px);
+                border-color: #0d9488 !important;
+                box-shadow: 0 10px 24px rgba(25, 183, 165, 0.2) !important;
+            }
+            .minicard-icon-wrap {
+                width: 46px;
+                height: 46px;
+                background-color: rgba(25, 183, 165, 0.12);
+                color: #19B7A5;
+                transition: all 0.25s ease;
+            }
+            .minicard-admin-item:hover .minicard-icon-wrap {
+                background-color: #19B7A5;
+                color: #ffffff;
+            }
+            .minicard-title-badge {
+                background-color: #0A2A66 !important;
+                color: #ffffff !important;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                font-size: 0.85rem;
+                letter-spacing: 0.3px;
+            }
+            .minicard-desc-text {
+                font-size: 0.82rem;
+                line-height: 1.35;
+            }
+            .minicard-action-link {
+                color: #19B7A5 !important;
+                font-size: 0.78rem;
+                transition: transform 0.2s ease;
+            }
+            .minicard-admin-item:hover .minicard-action-link {
+                transform: translateX(3px);
+                color: #0d9488 !important;
+            }
+        </style>
+
+        <div class="container-fluid px-3 px-md-4 pb-5 mt-3 animate__animated animate__fadeIn">
+            
+            <!-- Banner Superior Panel Maestro -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white" style="border: 1.5px solid rgba(25, 183, 165, 0.4) !important;">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 60px; height: 60px; background: linear-gradient(135deg, #0A2A66, #124A9E); color: #19B7A5; border: 2px solid #19B7A5;">
+                            <i class="bi bi-shield-lock-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge rounded-pill px-3 py-1 fw-bold text-white" style="background-color: #0A2A66;">
+                                    Panel Maestro
+                                </span>
+                                <span class="badge rounded-pill px-3 py-1 fw-bold" style="background-color: rgba(25, 183, 165, 0.15); color: #0d9488; border: 1px solid rgba(25, 183, 165, 0.3);">
+                                    <i class="bi bi-shield-check me-1"></i>SaaS Platform
+                                </span>
+                            </div>
+                            <h3 class="fw-bold plus-jakarta mb-1" style="color: #0A2A66;">
+                                Panel Maestro - Administrador Global
+                            </h3>
+                            <p class="text-muted small mb-0">
+                                Accesos directos dinámicos a las herramientas de supervisión, mantenimiento y gestión transversal de la plataforma.
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="gestion_cards_inicio.pl" class="btn btn-premium-primary rounded-pill px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" title="Agregar o editar cards">
+                            <i class="bi bi-gear-fill"></i>
+                            <span>Configurar Accesos</span>
+                        </a>
+                    </div>
                 </div>
             </div>
+
+            <!-- Grilla Dinámica de Minicards -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-grid-fill" style="color: #19B7A5;"></i>
+                    Accesos Directos del Sistema
+                </h6>
+                <span class="badge bg-light text-muted border rounded-pill px-3 py-1 small">
+                    Personalizable vía menú lateral
+                </span>
+            </div>
+
+            <div class="row g-3 g-md-4">
+                $cards_html
+            </div>
+
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            window.iniciarHotDeploy = function() {
+                Swal.fire({
+                    title: '¿Actualización en Caliente?',
+                    html: `<div class="text-start small">
+                        <p class="mb-2">Esta acción sincronizará el código fuente del sistema descargando la última versión de <strong>origin/main</strong> en segundo plano.</p>
+                        <div class="alert alert-info py-2 px-3 small border-0 mb-0">
+                            <i class="bi bi-shield-check me-2"></i><strong>Garantía de Integridad:</strong> La carpeta <code>/dat</code> está protegida con respaldo automático previo y restauración atómica.
+                        </div>
+                    </div>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#19B7A5',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="bi bi-lightning-charge-fill me-1"></i>Sí, actualizar ahora',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        ejecutarHotDeploy();
+                    }
+                });
+            };
+
+            function ejecutarHotDeploy() {
+                Swal.fire({
+                    title: 'Iniciando actualización...',
+                    html: `<div class="text-center py-2">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <p class="small text-muted mb-2">Descargando cambios y ejecutando verificación de permisos...</p>
+                        <div id="deployTerminal" class="p-2 text-start font-monospace bg-dark text-light rounded small" style="height: 160px; overflow-y: auto; font-size: 0.75rem;">
+                            Conectando con el servidor...
+                        </div>
+                    </div>`,
+                    allowOutsideClick: false,
+                    showConfirmButton: false
+                });
+
+                fetch('../api/hot_deploy_api.pl?action=trigger')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'started' || data.status === 'already_running') {
+                        monitorearHotDeploy();
+                    } else {
+                        Swal.fire('Error', data.message || 'No se pudo iniciar el proceso.', 'error');
+                    }
+                })
+                .catch(err => {
+                    Swal.fire('Error de Conexión', 'No se pudo conectar con api/hot_deploy_api.pl', 'error');
+                });
+            }
+
+            function monitorearHotDeploy() {
+                const interval = setInterval(() => {
+                    fetch('../api/hot_deploy_api.pl?action=status')
+                    .then(r => r.json())
+                    .then(res => {
+                        const term = document.getElementById('deployTerminal');
+                        if (term && res.log) {
+                            term.textContent = res.log;
+                            term.scrollTop = term.scrollHeight;
+                        }
+
+                        if (!res.is_running) {
+                            clearInterval(interval);
+                            if (res.exit_code === 0) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Despliegue Exitoso!',
+                                    text: 'El código ha sido actualizado correctamente.',
+                                    confirmButtonColor: '#19B7A5'
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error en la actualización',
+                                    text: 'Revisa el log para más detalles.',
+                                    confirmButtonColor: '#dc3545'
+                                });
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        clearInterval(interval);
+                    });
+                }, 2000);
+            }
+        </script>
 HTML
         utils::sub_sidebar::render_sidebar_footer();
         return;

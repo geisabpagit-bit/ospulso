@@ -183,6 +183,7 @@ Este documento agrupa la especificación de los módulos complementarios y espec
 
 ### 2.8 Mapa de Módulos del Sistema
 - **Dashboard / Inicial**: `views/inicial.pl`, `views/render_dashboard_principal.pl`.
+- **Cards Dinámicos Vista Inicial (CRUD Admin Global)**: `views/gestion_cards_inicio.pl`, `api/cards_inicio_api.pl`, `dat/cards_inicio_admin.dat`.
 - **Agenda Clínica**: `views/agenda_main.pl`.
 - **Caja Rápida (Pública/Hospitalaria)**: `views/generar_recibo.pl`.
 - **Caja Consultorio (Privada/Punto de Venta)**: `views/caja_consultorio.pl`.
@@ -192,5 +193,15 @@ Este documento agrupa la especificación de los módulos complementarios y espec
 - **Finanzas**: `views/finanzas.pl`, `views/estado_cuenta.pl`.
 - **Reset Operativo**: `views/admin_organizacion_reset.pl`.
 - **Backup & Restore**: `views/admin_backups.pl`.
+- **Hot Deploy CI/CD**: `api/hot_deploy_api.pl`, `hot_deploy.sh`.
+
+### 2.9 Gestión Dinámica de Minicards en Vista Inicial (Administrador Global)
+- **Propósito**: Erradicación de accesos directos hardcodeados en el panel de inicio del Administrador Global, permitiendo configurar de forma ágil y visual los minicards de navegación hacia herramientas de infraestructura y administración.
+- **Componentes**:
+  - **Almacenamiento Canónico**: `dat/cards_inicio_admin.dat` con formato `ID|TITULO|DESCRIPCION|ICONO_BS|COLOR_BS|DESTINO|ORDEN|ACTIVO`.
+  - **API Backend**: `api/cards_inicio_api.pl` con RBAC estricto (`Administrador Global`) para listar, obtener, guardar (crear/actualizar), eliminar y conmutar estado activo.
+  - **Vista CRUD**: `views/gestion_cards_inicio.pl` integrada al submenú de Administración del sidebar (`utils/sub_sidebar.pl`), con previsualización en vivo, selector de plantillas predefinidas y SweetAlert2.
+  - **Renderizado Dinámico**: `views/render_dashboard_principal.pl` genera dinámicamente los minicards activos respetando la paleta corporativa: bordes en teal (`#19B7A5`), títulos destacados en azul marino (`#0A2A66`) con texto blanco, iconos vectoriales y enlace de acción directo (incluyendo integración nativa con Hot Deploy).
+
 
 

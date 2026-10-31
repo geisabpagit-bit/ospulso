@@ -555,7 +555,7 @@ HTML
     }
 
     if ($show_admin) {
-        my $admin_has_active = ($pagina_actual eq 'registros' || $pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos' || $pagina_actual eq 'gestion_permisos' || $pagina_actual eq 'usuarios_online' || $pagina_actual eq 'gestion_odontograma' || $pagina_actual eq 'tecnico' || $pagina_actual eq 'gestion_catalogos' || $pagina_actual eq 'reset_datos_org') ? 1 : 0;
+        my $admin_has_active = ($pagina_actual eq 'registros' || $pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos' || $pagina_actual eq 'gestion_permisos' || $pagina_actual eq 'usuarios_online' || $pagina_actual eq 'gestion_odontograma' || $pagina_actual eq 'tecnico' || $pagina_actual eq 'gestion_catalogos' || $pagina_actual eq 'cards_inicio' || $pagina_actual eq 'reset_datos_org') ? 1 : 0;
         my $admin_active = $admin_has_active ? 'show' : '';
         my $collapsed_class = ($admin_active eq 'show') ? '' : 'collapsed';
         my $admin_aria = ($admin_active eq 'show') ? 'true' : 'false';
@@ -584,6 +584,7 @@ HTML
             'gestion_odontograma' => { file => 'manage_catalogo_odontograma.pl', icon => 'bi-diagram-3-fill text-primary', title => 'Gesti&oacute;n Odontograma' },
             'tecnico'     => { file => 'administracion_catalogo.pl', icon => 'bi-tools', title => 'Cat&aacute;logos y Mantenimiento' },
             'gestion_catalogos' => { file => 'gestion_catalogos.pl', icon => 'bi-database-gear', title => 'Gesti&oacute;n de Cat&aacute;logos' },
+            'cards_inicio'      => { file => 'gestion_cards_inicio.pl', icon => 'bi-window-stack text-info', title => 'Cards Vista Inicio' },
             'reset_datos_org'   => { file => 'admin_organizacion_reset.pl', icon => 'bi-arrow-counterclockwise text-danger', title => 'Reset Operativo Org' },
             'sync_google' => { file => '#', icon => 'bi-google', title => 'Sincronizaci&oacute;n Google', onclick => "iniciarVinculacionGoogle('$id_medico'); return false;" }
         );
@@ -615,6 +616,13 @@ HTML
             $is_allowed{'registros'} = 1;
         } else {
             $is_allowed{'registros'} = 0;
+        }
+
+        # Permitir CRUD de Cards de Vista Inicio exclusivamente para Administrador Global
+        if ($role eq 'Administrador Global') {
+            $is_allowed{'cards_inicio'} = 1;
+        } else {
+            $is_allowed{'cards_inicio'} = 0;
         }
 
         # Saneamiento de Administración para Administrador Global:
@@ -664,7 +672,7 @@ HTML
             $is_allowed{'gestion_permisos'} = 1;
         }
 
-        foreach my $k ('registros', 'clinicas', 'usuarios', 'gestion_permisos', 'usuarios_online', 'servicios', 'productos', 'gestion_odontograma', 'tecnico', 'gestion_catalogos', 'reset_datos_org', 'sync_google') {
+        foreach my $k ('registros', 'clinicas', 'usuarios', 'gestion_permisos', 'usuarios_online', 'servicios', 'productos', 'gestion_odontograma', 'tecnico', 'gestion_catalogos', 'cards_inicio', 'reset_datos_org', 'sync_google') {
             if ($is_allowed{$k}) {
                 my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
                 my $cfg = $admin_mod_names{$k};
