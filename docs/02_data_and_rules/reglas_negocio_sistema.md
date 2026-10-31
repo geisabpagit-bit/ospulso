@@ -153,7 +153,7 @@
      - **Catálogo Universal / Servicios / Productos** (`servicios = 0`, `productos = 0` $\rightarrow$ `views/manage_catalogo_universal.pl`, `manage_servicios.pl`, `manage_productos.pl`).
      - **Reset Operativo Org** (`reset_datos_org = 0` $\rightarrow$ `views/admin_organizacion_reset.pl`, `api/reset_datos_organizacion_api.pl`).
    - El `Administrador Global` conserva exclusivamente herramientas transversales de plataforma:
-     - **Gestión de Registros** (`manage_registros.pl`).
+     - **Gestión de Registros** (`views/manage_registros.pl en submenú **Ventas**`).
      - **Matriz de Permisos** (`gestion_permisos_roles.pl`).
      - **Usuarios en Línea** (`usuarios_online.pl`).
      - **Catálogos y Mantenimiento** (`administracion_catalogo.pl`).
