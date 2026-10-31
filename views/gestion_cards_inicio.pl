@@ -254,21 +254,18 @@ print <<'PAGE_HTML';
                                     
                                     <div id="demoCard" class="card border-0 rounded-4 p-3 shadow-sm position-relative overflow-hidden" style="border: 1.5px solid #19B7A5 !important; background: #ffffff;">
                                         <div class="d-flex align-items-start gap-3">
-                                            <div id="demoIconWrap" class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(25, 183, 165, 0.12); color: #19B7A5;">
+                                            <div id="demoIconWrap" class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(25, 183, 165, 0.12); color: #19B7A5; transition: all 0.25s ease;">
                                                 <i class="bi bi-grid-fill fs-5" id="demoIcon"></i>
                                             </div>
-                                            <div class="flex-grow-1">
+                                            <div class="flex-grow-1 min-w-0">
                                                 <div class="mb-1">
-                                                    <span class="badge px-2 py-1 rounded-pill fw-bold text-white" id="demoTitle" style="background-color: #0A2A66; font-size: 0.85rem;">
+                                                    <span class="badge px-2 py-1 rounded-pill fw-bold text-white text-truncate max-w-100" id="demoTitle" style="background-color: #0A2A66; font-size: 0.85rem;">
                                                         Título del Minicard
                                                     </span>
                                                 </div>
                                                 <p class="small text-muted mb-0" id="demoDesc" style="font-size: 0.82rem; line-height: 1.35;">
                                                     Descripción concisa del acceso directo configurado.
                                                 </p>
-                                            </div>
-                                            <div class="text-teal">
-                                                <i class="bi bi-arrow-right-circle-fill fs-5"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -379,6 +376,16 @@ print <<'JS';
         }
     };
 
+    const COLOR_PALETTES = {
+        'teal':    { bg: 'rgba(25, 183, 165, 0.12)', fg: '#19B7A5' },
+        'primary': { bg: 'rgba(10, 42, 102, 0.10)',  fg: '#0A2A66' },
+        'info':    { bg: 'rgba(14, 165, 233, 0.12)', fg: '#0284c7' },
+        'success': { bg: 'rgba(22, 163, 74, 0.12)',  fg: '#16a34a' },
+        'warning': { bg: 'rgba(234, 88, 12, 0.12)',  fg: '#ea580c' },
+        'danger':  { bg: 'rgba(220, 38, 38, 0.12)',  fg: '#dc2626' },
+        'dark':    { bg: 'rgba(51, 65, 85, 0.12)',   fg: '#334155' }
+    };
+
     let modalInstance = null;
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -423,6 +430,9 @@ print <<'JS';
             cards.forEach(c => {
                 const iconoClase = c.icono || 'bi-grid-fill';
                 const esActivo = parseInt(c.activo) === 1;
+                const cColor = (c.color || 'teal').toLowerCase();
+                const cPal = COLOR_PALETTES[cColor] || COLOR_PALETTES['teal'];
+
                 const badgeActivo = esActivo
                     ? `<span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"><i class="bi bi-check-circle me-1"></i>Activo</span>`
                     : `<span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary border px-2 py-1"><i class="bi bi-eye-slash me-1"></i>Inactivo</span>`;
@@ -433,7 +443,7 @@ print <<'JS';
                         <td>
                             <div class="d-flex align-items-center gap-3">
                                 <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" 
-                                     style="width: 38px; height: 38px; background: rgba(25, 183, 165, 0.12); color: #19B7A5;">
+                                     style="width: 38px; height: 38px; background: ${cPal.bg}; color: ${cPal.fg};">
                                     <i class="bi ${iconoClase} fs-5"></i>
                                 </div>
                                 <div>
@@ -453,7 +463,7 @@ print <<'JS';
                             <span class="font-mono small text-secondary">${c.destino}</span>
                         </td>
                         <td>
-                            <span class="badge bg-${c.color} bg-opacity-10 text-${c.color} border px-2 py-1 text-capitalize">${c.color}</span>
+                            <span class="badge border px-2 py-1 text-capitalize" style="background-color: ${cPal.bg}; color: ${cPal.fg}; border-color: ${cPal.fg}40 !important;">${c.color}</span>
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-sm p-0 border-0" onclick="toggleEstado('${c.id}')" title="Clic para alternar estado">
@@ -510,11 +520,19 @@ print <<'JS';
         const desc = document.getElementById('cardDesc').value || 'Descripción concisa del acceso directo configurado.';
         let icono = document.getElementById('cardIcono').value.trim() || 'bi-grid-fill';
         if (!icono.startsWith('bi-')) icono = 'bi-' + icono;
+        const color = (document.getElementById('cardColor').value || 'teal').toLowerCase();
+        const pal = COLOR_PALETTES[color] || COLOR_PALETTES['teal'];
 
         document.getElementById('demoTitle').textContent = titulo;
         document.getElementById('demoDesc').textContent = desc;
         document.getElementById('demoIcon').className = `bi ${icono} fs-5`;
         document.getElementById('previewIconoElem').className = `bi ${icono}`;
+
+        const iconWrap = document.getElementById('demoIconWrap');
+        if (iconWrap) {
+            iconWrap.style.backgroundColor = pal.bg;
+            iconWrap.style.color = pal.fg;
+        }
     }
 
     async function editarCard(id) {

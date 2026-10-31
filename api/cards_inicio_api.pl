@@ -8,6 +8,9 @@ use FindBin;
 use File::Spec;
 use Fcntl qw(:flock);
 use JSON::PP qw(encode_json decode_json);
+use Encode qw(decode_utf8 is_utf8);
+
+binmode STDOUT, ':raw';
 
 # --- CONFIGURACIÓN DE RUTAS ABSOLUTAS ---
 use lib "$FindBin::Bin/..";
@@ -18,7 +21,7 @@ my $session_data = check_session();
 
 # 1. Validación de Sesión
 unless ($session_data->{session_ok}) {
-    print $q->header(-type => 'application/json', -status => '401 Unauthorized', -charset => 'UTF-8');
+    print $q->header(-type => 'application/json; charset=UTF-8', -status => '401 Unauthorized');
     print encode_json({ success => 0, error => 'Sesión expirada o no válida.' });
     exit;
 }
@@ -26,15 +29,24 @@ unless ($session_data->{session_ok}) {
 # 2. Control de Acceso Estricto RBAC: Exclusivo Administrador Global
 my $role = $session_data->{role} || '';
 unless ($role =~ /Administrador Global/i) {
-    print $q->header(-type => 'application/json', -status => '403 Forbidden', -charset => 'UTF-8');
+    print $q->header(-type => 'application/json; charset=UTF-8', -status => '403 Forbidden');
     print encode_json({ success => 0, error => 'Acceso denegado: Acción exclusiva de Administrador Global.' });
     exit;
 }
 
-print $q->header(-type => 'application/json', -charset => 'UTF-8');
+print $q->header(-type => 'application/json; charset=UTF-8');
 
 my $dat_dir   = File::Spec->catdir($FindBin::Bin, '..', 'dat');
 my $data_file = File::Spec->catfile($dat_dir, 'cards_inicio_admin.dat');
+
+# Función para extraer y sanitizar parámetros en UTF-8 limpio
+sub get_param_utf8 {
+    my ($name) = @_;
+    my $v = $q->param($name);
+    return '' unless defined $v;
+    $v = decode_utf8($v) unless is_utf8($v);
+    return $v;
+}
 
 # Subrutina para leer todas las tarjetas
 sub leer_cards {
@@ -96,7 +108,7 @@ sub guardar_cards {
     return 1;
 }
 
-my $accion = $q->param('accion') || 'listar';
+my $accion = get_param_utf8('accion') || 'listar';
 
 if ($accion eq 'listar') {
     my $cards = leer_cards();
@@ -105,7 +117,7 @@ if ($accion eq 'listar') {
 }
 
 elsif ($accion eq 'obtener') {
-    my $id = $q->param('id') // '';
+    my $id = get_param_utf8('id');
     my $cards = leer_cards();
     my ($encontrado) = grep { $_->{id} eq $id } @$cards;
     if ($encontrado) {
@@ -117,14 +129,14 @@ elsif ($accion eq 'obtener') {
 }
 
 elsif ($accion eq 'guardar') {
-    my $id      = $q->param('id') // '';
-    my $titulo  = $q->param('titulo') // '';
-    my $desc    = $q->param('desc') // '';
-    my $icono   = $q->param('icono') // 'bi-grid-fill';
-    my $color   = $q->param('color') // 'primary';
-    my $destino = $q->param('destino') // '';
-    my $orden   = $q->param('orden');
-    my $activo  = $q->param('activo');
+    my $id      = get_param_utf8('id');
+    my $titulo  = get_param_utf8('titulo');
+    my $desc    = get_param_utf8('desc');
+    my $icono   = get_param_utf8('icono') || 'bi-grid-fill';
+    my $color   = get_param_utf8('color') || 'primary';
+    my $destino = get_param_utf8('destino');
+    my $orden   = get_param_utf8('orden');
+    my $activo  = get_param_utf8('activo');
 
     $titulo =~ s/^\s+|\s+$//g;
     $desc   =~ s/^\s+|\s+$//g;

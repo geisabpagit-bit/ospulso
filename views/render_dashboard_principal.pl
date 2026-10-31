@@ -81,6 +81,16 @@ sub render_dashboard_principal {
             );
         }
 
+        my %color_palettes = (
+            'teal'    => { bg => 'rgba(25, 183, 165, 0.12)', fg => '#19B7A5' },
+            'primary' => { bg => 'rgba(10, 42, 102, 0.10)',  fg => '#0A2A66' },
+            'info'    => { bg => 'rgba(14, 165, 233, 0.12)', fg => '#0284c7' },
+            'success' => { bg => 'rgba(22, 163, 74, 0.12)',  fg => '#16a34a' },
+            'warning' => { bg => 'rgba(234, 88, 12, 0.12)',  fg => '#ea580c' },
+            'danger'  => { bg => 'rgba(220, 38, 38, 0.12)',  fg => '#dc2626' },
+            'dark'    => { bg => 'rgba(51, 65, 85, 0.12)',   fg => '#334155' }
+        );
+
         my $cards_html = '';
         foreach my $c (@admin_minicards) {
             my $href = $c->{destino};
@@ -91,12 +101,14 @@ sub render_dashboard_principal {
             }
 
             my $onclick_attr = $onclick ? qq{onclick="$onclick"} : '';
+            my $c_color = lc($c->{color} || 'teal');
+            my $pal = $color_palettes{$c_color} || $color_palettes{'teal'};
 
             $cards_html .= qq{
                 <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-                    <a href="$href" $onclick_attr class="card h-100 text-decoration-none minicard-admin-item p-3 shadow-sm rounded-4 position-relative overflow-hidden">
+                    <a href="$href" $onclick_attr class="card h-100 text-decoration-none minicard-admin-item p-3 shadow-sm rounded-4 position-relative overflow-hidden d-flex flex-column justify-content-between">
                         <div class="d-flex align-items-start gap-3">
-                            <div class="minicard-icon-wrap rounded-3 d-flex align-items-center justify-content-center flex-shrink-0">
+                            <div class="minicard-icon-wrap rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="background-color: $pal->{bg}; color: $pal->{fg};">
                                 <i class="bi $c->{icono} fs-4"></i>
                             </div>
                             <div class="flex-grow-1 min-w-0">
@@ -109,11 +121,6 @@ sub render_dashboard_principal {
                                     $c->{desc}
                                 </p>
                             </div>
-                        </div>
-                        <div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-top border-light-subtle">
-                            <span class="small fw-semibold text-teal d-flex align-items-center gap-1 minicard-action-link">
-                                Acceder <i class="bi bi-arrow-right"></i>
-                            </span>
                         </div>
                     </a>
                 </div>
@@ -136,13 +143,10 @@ sub render_dashboard_principal {
             .minicard-icon-wrap {
                 width: 46px;
                 height: 46px;
-                background-color: rgba(25, 183, 165, 0.12);
-                color: #19B7A5;
                 transition: all 0.25s ease;
             }
             .minicard-admin-item:hover .minicard-icon-wrap {
-                background-color: #19B7A5;
-                color: #ffffff;
+                transform: scale(1.08);
             }
             .minicard-title-badge {
                 background-color: #0A2A66 !important;
