@@ -129,6 +129,94 @@ NO_CARDS
     </div>
 </div>
 HTML
+
+    # --- Script JS Aislado con comillas simples (Sin colisión de sigilos) para Hot Deploy ---
+    print <<'JS';
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+window.iniciarHotDeploy = function() {
+    Swal.fire({
+        title: '¿Actualización en Caliente?',
+        html: `<div class="text-start small">
+            <p class="mb-2">Esta acción sincronizará el código fuente del sistema descargando la última versión de <strong>origin/main</strong> en segundo plano.</p>
+            <div class="alert alert-info py-2 px-3 small border-0 mb-0">
+                <i class="bi bi-shield-check me-2"></i><strong>Garantía de Integridad:</strong> La carpeta <code>/dat</code> está protegida con respaldo automático previo y restauración atómica.
+            </div>
+        </div>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#19B7A5',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="bi bi-lightning-charge-fill me-1"></i>Sí, actualizar ahora',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            ejecutarHotDeploy();
+        }
+    });
+};
+
+function ejecutarHotDeploy() {
+    Swal.fire({
+        title: 'Iniciando actualización...',
+        html: `<div class="text-center py-2">
+            <div class="spinner-border text-primary mb-3" role="status"></div>
+            <p class="small text-muted mb-2">Descargando cambios y ejecutando verificación de permisos...</p>
+            <div id="deployTerminal" class="p-2 text-start font-monospace bg-dark text-light rounded small" style="height: 160px; overflow-y: auto; font-size: 0.75rem;">
+                Conectando con el servidor...
+            </div>
+        </div>`,
+        allowOutsideClick: false,
+        showConfirmButton: false
+    });
+
+    fetch('../api/hot_deploy_api.pl?action=trigger')
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'started' || data.status === 'already_running') {
+            monitorearHotDeploy();
+        } else {
+            Swal.fire('Error', data.message || 'No se pudo iniciar el proceso.', 'error');
+        }
+    })
+    .catch(err => {
+        Swal.fire('Error de Conexión', 'No se pudo conectar con api/hot_deploy_api.pl', 'error');
+    });
+}
+
+function monitorearHotDeploy() {
+    const pollInterval = setInterval(() => {
+        fetch('../api/hot_deploy_api.pl?action=status')
+        .then(r => r.json())
+        .then(res => {
+            const terminal = document.getElementById('deployTerminal');
+            if (terminal && res.log) {
+                terminal.innerText = res.log;
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+
+            if (!res.running) {
+                clearInterval(pollInterval);
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Actualización Completada!',
+                        text: 'El sistema se ha actualizado con éxito a la última versión.',
+                        confirmButtonColor: '#19B7A5',
+                        confirmButtonText: 'Recargar Sistema'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                }, 1000);
+            }
+        })
+        .catch(err => {
+            console.warn("Sondeando estado...", err);
+        });
+    }, 2000);
+}
+</script>
+JS
 }
 
 1;

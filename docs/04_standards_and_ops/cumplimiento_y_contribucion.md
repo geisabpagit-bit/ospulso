@@ -33,3 +33,22 @@ Para descargar datos reales de pacientes, citas y finanzas generados en producci
    - Incluye blindaje anti-vaciado y crea un respaldo preventivo fechado (`dat_backup_YYYYMMDD_HHMMSS`) en la raíz del proyecto antes de sobreescribir.
    - Descarga de forma recursiva todos los catálogos y archivos planos hacia `c:\xampp\htdocs\ospulso\dat\`.
 
+---
+
+## 4. Despliegue en Caliente de Código Fuente (Git Hot-Deploy)
+
+Para desplegar actualizaciones de código desde GitHub hacia el servidor de producción sin afectar las bases de datos planas en vivo:
+1. **Script Bash Autónomo (`hot_deploy.sh`)**:
+   - Auto-posicionamiento en la raíz del proyecto (`$DIR_RAIZ`, equivalente a `public_html`).
+   - Candado de concurrencia mediante `dat/hot_deploy.lock` y auditoría en `dat/hot_deploy.log`.
+   - Respaldo atómico preventivo de la carpeta `dat/` hacia `dat_backup_seguridad_temp/`.
+   - Sincronización forzada con Git (`git fetch origin main` y `git reset --hard origin/main`).
+   - Restauración íntegra de los datos reales de producción sobre `dat/` y remoción del respaldo temporal.
+   - Normalización automática de permisos (`chmod 755`) y saltos de línea LF mediante `bash fix_permissions.sh`.
+2. **Endpoint Seguro de Disparo (`api/hot_deploy_api.pl`)**:
+   - Control de acceso estricto RBAC: Exclusivo para el rol `Administrador Global`.
+   - Doble candado: `chdir(abs_path("$FindBin::Bin/.."))` para garantizar ejecución en la raíz.
+   - Modos: `action=trigger` (ejecución en background) y `action=status` (monitoreo en tiempo real del log).
+3. **Consola Interactiva UI (`views/administracion_catalogo.pl`)**:
+   - Tarjeta dinámica `cat_hot_deploy` con confirmación modal SweetAlert2 y terminal de progreso en vivo.
+
