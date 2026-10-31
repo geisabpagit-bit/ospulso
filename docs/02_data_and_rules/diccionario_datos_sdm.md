@@ -36,24 +36,44 @@ Almacena información complementaria y extendida del perfil de usuario. Delimita
 | 9 | `fecha_actualizacion` | Timestamp | Fecha y hora de última modificación (`YYYY-MM-DD HH:MM:SS`) |
 
 ### 1.3 `negocios.dat`
-Catálogo de establecimientos, clínicas y sucursales del tenant. Delimitador: `|`.
+Catálogo de organizaciones matrices, clínicas y sucursales del tenant SaaS. Delimitador: `|`.
 
 | Campo | Nombre | Tipo | Descripción |
 | :--- | :--- | :--- | :--- |
-| 1 | `ID` | String (PK) | Identificador único de la clínica |
-| 2 | `NOMBRE_NEGOCIO` | String | Nombre comercial oficial |
-| 3 | `ID_MATRIZ` | Char(1) | `0` (Matriz), `1` (Sucursal) |
-| 4 | `Activo` | Char(1) | Estado de suscripción: `1` (Activo), `0` (Suspendido) |
+| 1 | `ID` | String (PK) | Identificador único de la organización o sucursal |
+| 2 | `NOMBRE_NEGOCIO` | String | Nombre comercial o razón comercial oficial |
+| 3 | `ID_MATRIZ` | String (FK) | `0` o vacío si es la Organización Matriz; ID numérico de la matriz si es una Sucursal |
+| 4 | `Activo` | Char(2) | Estado del registro: `1` (Activo), `0` (Suspendido), `-1` (En Papelera / Soft-Delete) |
 | 5 | `inicio_suscripcion` | Date | Fecha inicio de suscripción (`YYYY-MM-DD`) |
 | 6 | `fin_suscripcion` | Date | Fecha vencimiento de suscripción (`YYYY-MM-DD`) |
-| 14 | `codigo_postal` | String | Código postal a 5 dígitos |
-| 15 | `entidad` | String | Estado o Entidad federativa |
-| 16 | `municipio` | String | Municipio o Alcaldía |
-| 17 | `colonia` | String | Colonia o Asentamiento |
-| 18 | `CLUES` | String | Clave Única de Establecimientos de Salud |
-| 19 | `extension` | String | Extensión telefónica de la clínica |
-| 20 | `latitud` | Decimal | Coordenada geográfica (Latitud) |
-| 21 | `longitud` | Decimal | Coordenada geográfica (Longitud) |
+| 7 | `domicilio` | String | Dirección del establecimiento |
+| 8 | `telefono` | String | Teléfono principal o de contacto |
+| 9 | `contacto_email` | String | Correo electrónico oficial del negocio |
+| 10 | `logo_url` | String | Ruta del logotipo institucional |
+| 11 | `rfc` | String | Registro Federal de Contribuyentes (RFC) |
+| 12 | `razon_social` | String | Razón social fiscal |
+| 13 | `id_tienda` | String | Identificador opcional de comercio electrónico |
+| 14 | `id_vendedor` | String | ID del ejecutivo de ventas asignado |
+| 15 | `codigo_postal` | String | Código postal a 5 dígitos |
+| 16 | `entidad` | String | Estado o Entidad federativa |
+| 17 | `municipio` | String | Municipio o Alcaldía |
+| 18 | `colonia` | String | Colonia o Asentamiento |
+| 19 | `clues` | String | Clave Única de Establecimientos de Salud |
+| 20 | `extension` | String | Extensión telefónica de la clínica |
+| 21 | `latitud` | Decimal | Coordenada geográfica (Latitud) |
+| 22 | `longitud` | Decimal | Coordenada geográfica (Longitud) |
+
+### 1.4 `audit_logs.dat`
+Bitácora inmutable de auditoría forense y operativa para acciones de alto impacto (Soft-Delete, Restauraciones, Hard-Delete de organizaciones y purga de pacientes). Delimitador: `|`.
+
+| Campo | Nombre | Tipo | Descripción |
+| :--- | :--- | :--- | :--- |
+| 1 | `timestamp` | Datetime | Fecha y hora exacta (`YYYY-MM-DD HH:MM:SS`) |
+| 2 | `operador` | String | Usuario o correo que ejecutó la operación |
+| 3 | `modulo` | String | Módulo de origen (ej. `GestionRegistros`, `Pacientes`) |
+| 4 | `accion` | String | Tipo de acción (`SOFT_DELETE`, `RESTAURAR_ORG`, `HARD_DELETE_ORGANIZACION`, `Eliminar`) |
+| 5 | `id_ref` | String | Identificador del registro u organización afectada |
+| 6 | `detalle` | String | Resumen exhaustivo del evento y métricas de registros/archivos purgados |
 
 ---
 
