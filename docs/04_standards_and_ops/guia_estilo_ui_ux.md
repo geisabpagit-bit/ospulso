@@ -494,9 +494,30 @@ Para garantizar accesibilidad universal (WCAG 2.1 AA/AAA) y consistencia editori
      - Carga canónica de Google Fonts (`Outfit` para titulares/menú y `Plus Jakarta Sans` para lectura/subtítulos) mediante `<link rel="preconnect">` y `@import` unificado.
      - Integración de `-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;` para un renderizado ultra-nítido, eliminando aberraciones, engrosamientos artificiales o deformaciones de fuentes del sistema.
 
+### 8.3. Estándares PWA Standalone Fullscreen, Safe Areas y Adaptabilidad a Smartphones
+Para que la plataforma se renderice en dispositivos móviles con la apariencia de una **aplicación nativa instalada** (sin barras del navegador, aprovechando toda la altura de la pantalla y respetando la barra de estado del sistema):
 
+1. **Manifiesto de Aplicación PWA (`manifest.json` y `favicon/site.webmanifest`)**:
+   - Declaración de `"display": "standalone"` para eliminar la barra de URL y botones de navegación web, manteniendo la barra de estado nativa (batería, reloj) para máxima seriedad profesional.
+   - Parámetros de color unificados (`"background_color": "#0A2A66"`, `"theme_color": "#0A2A66"`) que eliminan parpadeos blancos durante el arranque.
+   - Rutas relativas (`"start_url": "./index.html"`, `"scope": "./"`) para compatibilidad universal en localhost, dominios de producción y subdirectorios.
+   - Catálogo de íconos de alta resolución (192x192, 512x512 maskable/any, 180x180 apple-touch, SVG vectorial).
 
+2. **Metadatos en `<head>` (`index.html`)**:
+   - `viewport-fit=cover`: Permite que los fondos y colores fluyan detrás de muescas (notch), islas dinámicas y barras de gestos de Android e iOS.
+   - Control de barra de estado en Safari iOS: `<meta name="apple-mobile-web-app-capable" content="yes">`, `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`, `<meta name="apple-mobile-web-app-title" content="OsPulso">`.
+   - Soporte Android: `<meta name="mobile-web-app-capable" content="yes">`, `<meta name="theme-color" content="#0A2A66">`.
 
+3. **Arquitectura CSS para Áreas Seguras (Safe Areas) y Densidad Móvil (`css/sdm_mobile_standards.css`)**:
+   - `overscroll-behavior-y: none;`: Bloquea los rebotes elásticos molestos de pull-to-refresh en navegadores móviles.
+   - `-webkit-text-size-adjust: 100%;`: Evita que teléfonos con fuentes aumentadas por accesibilidad descuadren los layouts.
+   - Padding dinámico mediante variables de entorno `env(safe-area-inset-top)` y `env(safe-area-inset-bottom)` en el encabezado `.glass-navbar`, el sticky bar inferior `.mobile-sticky-cta`, el botón flotante `.btn-whatsapp-global` y el drawer `.mobile-sidebar`.
+   - **Densidad Óptima en Smartphones de Gama Media (360px a 430px)**:
+     - Reducción de paddings estorbosos en la tarjeta Hero (`.hero-glass-card`) de `p-4` a `p-3.5` con esquinas `1.25rem`.
+     - Escalado fluido de tipografía (`.hero-title-responsive`: `clamp(1.65rem, 6.5vw, 2.1rem)`, `.hero-subtitle-responsive`: `0.95rem` en móvil).
+     - Botones de acción con touch target de mínimo 48px (`.btn-mobile-standard`).
 
+4. **Soporte Offline y Service Worker (`sw.js`)**:
+   - Registro en `index.html` de `sw.js` con precaché de recursos estáticos críticos (HTML, CSS, íconos y manifiesto) bajo estrategia Stale-While-Revalidate, permitiendo la instalación directa como PWA nativa y disponibilidad ante intermitencias de red.
 
 

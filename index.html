@@ -3,7 +3,14 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="OsPulso" />
+    <meta name="theme-color" content="#0A2A66" />
+    <meta name="msapplication-navbutton-color" content="#0A2A66" />
+    <meta name="msapplication-TileColor" content="#0A2A66" />
 
     <!-- =========================================================================         
          CAPA 1: SEO TÉCNICO E INDEXACIÓN CANÓNICA
@@ -101,15 +108,17 @@
     }
     </script>
 
-    <!-- OSPulso Brand Identity (Favicons) -->
-    <link rel="icon" type="image/svg+xml" href="https://ospulso.com/favicon/favicon.svg">
-    <link rel="icon" type="image/png" sizes="16x16" href="https://ospulso.com/favicon/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="https://ospulso.com/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="64x64" href="https://ospulso.com/favicon/favicon-64x64.png">
-    <link rel="icon" type="image/png" sizes="128x128" href="https://ospulso.com/favicon/favicon-128x128.png">
-    <link rel="icon" type="image/x-icon" href="https://ospulso.com/favicon/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://ospulso.com/favicon/apple-touch-icon.png">
-    <link rel="manifest" href="https://ospulso.com/favicon/site.webmanifest">
+    <!-- OSPulso Brand Identity (Favicons & PWA Icons) -->
+    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon/favicon-64x64.png">
+    <link rel="icon" type="image/png" sizes="128x128" href="favicon/favicon-128x128.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="favicon/icon-512x512.png">
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
 
     <!-- Tipografía Oficial: Outfit & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -197,19 +206,19 @@
             <div class="container h-100 position-relative z-2">
                 <div class="row w-100 m-0">
                     <div class="col-12 col-lg-7 col-xl-6 p-0">
-                        <div class="hero-glass-card p-4 p-md-5 rounded-5 shadow-premium">
-                            <h1 class="fw-bold text-navy mb-3 reveal-1 hero-title-responsive">El orden definitivo para
+                        <div class="hero-glass-card p-3.5 p-sm-4 p-md-5 rounded-4 rounded-md-5 shadow-premium">
+                            <h1 class="fw-bold text-navy mb-2 mb-md-3 reveal-1 hero-title-responsive">El orden definitivo para
                                 tu práctica médica.</h1>
-                            <h2 class="fs-4 text-secondary-clinical fw-normal mb-4 reveal-2">Sustituye la fragmentación
+                            <h2 class="hero-subtitle-responsive text-secondary-clinical fw-normal mb-3 mb-md-4 reveal-2">Sustituye la fragmentación
                                 por un ecosistema digital estructurado bajo la <strong>Metodología 5S</strong>. Agenda,
                                 expedientes, finanzas y mucho más coexistiendo con lógica impecable.</h2>
-                            <div class="d-flex flex-column flex-md-row gap-3 reveal-3">
+                            <div class="d-flex flex-column flex-md-row gap-2.5 gap-md-3 reveal-3">
                                 <a href="https://wa.me/525643555072" target="_blank"
-                                    class="btn btn-premium-primary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse w-100 w-md-auto text-center px-4 py-3">
+                                    class="btn btn-premium-primary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse w-100 w-md-auto text-center px-3 px-md-4 py-2.5 py-md-3">
                                     <i class="bi bi-rocket-takeoff-fill me-2"></i> Evolucionar mi clínica
                                 </a>
                                 <a href="#interfaz"
-                                    class="btn btn-premium-secondary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse w-100 w-md-auto text-center px-4 py-3">
+                                    class="btn btn-premium-secondary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse w-100 w-md-auto text-center px-3 px-md-4 py-2.5 py-md-3">
                                     Ver Plataforma
                                 </a>
                             </div>
@@ -1088,7 +1097,20 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>
     <script src="js/indexLogic.js" defer></script>
     <script src="js/validarCorreoLogin.js" defer></script>
-    <script src="js/loginScript.js" defer></script>
+    <!-- REGISTRO SERVICE WORKER PWA (STANDALONE FULLSCREEN & CACHÉ OFFLINE) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(reg) {
+                        console.log('OsPulso PWA: Service Worker activo con alcance:', reg.scope);
+                    })
+                    .catch(function(err) {
+                        console.warn('OsPulso PWA: Error al registrar Service Worker:', err);
+                    });
+            });
+        }
+    </script>
 </body>
 
 </html>

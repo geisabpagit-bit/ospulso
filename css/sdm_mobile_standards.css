@@ -183,3 +183,128 @@
     }
 }
 
+/* ==========================================================================
+   PWA STANDALONE & SAFE AREAS (PANTALLA COMPLETA Y EXPERIENCIA NATIVA)
+   ========================================================================== */
+:root {
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    height: 100%;
+}
+
+body {
+    /* Evita rebotes elásticos molestos (pull-to-refresh) emulando una app nativa */
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    /* Respeta áreas seguras (notch, dynamic island y barra inferior de gestos) */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Header Navbar con soporte para notch / Dynamic Island */
+.glass-navbar {
+    padding-top: calc(0.5rem + env(safe-area-inset-top, 0px)) !important;
+    padding-left: calc(1rem + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(1rem + env(safe-area-inset-right, 0px)) !important;
+}
+
+/* Barra inferior flotante y botones fijos adaptados a la barra de gestos */
+.mobile-sticky-cta {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-left: calc(16px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(16px + env(safe-area-inset-right, 0px)) !important;
+}
+
+.btn-whatsapp-global {
+    bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+    right: calc(15px + env(safe-area-inset-right, 0px)) !important;
+}
+
+/* Sidebar móvil respetando Safe Areas */
+.mobile-sidebar {
+    padding-top: calc(1.5rem + env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* ==========================================================================
+   OPTIMIZACIÓN DE ESCALA PARA TELÉFONOS MÓVILES (GAMA MEDIA: 360px - 430px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Hero a pantalla completa equilibrada */
+    .hero-immersive {
+        min-height: calc(100svh - 60px) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding-top: 4.5rem !important;
+        padding-bottom: 5.5rem !important;
+    }
+
+    /* Tarjeta Hero compacta y espaciosa */
+    .hero-glass-card {
+        padding: 1.35rem 1.15rem !important;
+        border-radius: 1.25rem !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        box-shadow: 0 15px 35px rgba(10, 42, 102, 0.08) !important;
+    }
+
+    /* Tipografía Hero adaptada a smartphones */
+    .hero-title-responsive {
+        font-size: clamp(1.65rem, 6.5vw, 2.1rem) !important;
+        line-height: 1.18 !important;
+        letter-spacing: -0.5px !important;
+        margin-bottom: 0.65rem !important;
+    }
+
+    .hero-glass-card h2 {
+        font-size: clamp(0.92rem, 3.8vw, 1.05rem) !important;
+        line-height: 1.45 !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    /* Botones CTA en Hero con touch target ergonómico */
+    .hero-glass-card .btn-lg {
+        min-height: 48px !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.95rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Cinta de confianza compacta */
+    .trust-banner {
+        padding: 1.25rem 0.5rem !important;
+    }
+    .trust-logo {
+        font-size: 0.8rem !important;
+        gap: 0.4rem !important;
+    }
+    .trust-logo i {
+        font-size: 1.25rem !important;
+    }
+
+    /* Tarjetas de filosofía 5S compactas */
+    .holo-card {
+        padding: 1.25rem 1rem !important;
+        border-radius: 1rem !important;
+    }
+
+    /* Modales en móvil: ocupan ancho completo con esquinas redondeadas estándar */
+    .modal-dialog {
+        margin: 0.75rem !important;
+    }
+}
+
+

@@ -1,0 +1,48 @@
+{
+  "name": "OsPulso - Inteligencia Clínica Operativa",
+  "short_name": "OsPulso",
+  "description": "Software Médico y Sistema Operativo para Clínicas en México",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0A2A66",
+  "theme_color": "#0A2A66",
+  "orientation": "portrait",
+  "categories": ["medical", "health", "business"],
+  "icons": [
+    {
+      "src": "favicon/favicon-64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon/favicon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon/favicon.svg",
+      "sizes": "500x500",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
