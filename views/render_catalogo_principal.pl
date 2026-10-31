@@ -76,6 +76,20 @@ sub render_catalogo_principal {
     # 2. Cargar los detalles visuales de los cards de catálogo
     my $CARD_DETAILS = cargar_config_catalogo_cards();
 
+    # 3. Inyección programática garantizada para Administrador Global (Inmune a sobrescrituras de /dat)
+    if ($role =~ /Administrador Global/i) {
+        if (!grep { $_ eq 'cat_hot_deploy' } @menu_keys) {
+            push @menu_keys, 'cat_hot_deploy';
+        }
+        $CARD_DETAILS->{cat_hot_deploy} //= {
+            destino => 'javascript:iniciarHotDeploy()',
+            title   => 'Actualización en Caliente',
+            desc    => 'Descarga y despliega en caliente la última versión de GitHub sin tocar /dat.',
+            icon    => 'bi-lightning-charge-fill',
+            color   => 'success'
+        };
+    }
+
     print <<'HTML';
 <div class="container mt-2">
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
