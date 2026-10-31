@@ -555,7 +555,7 @@ HTML
     }
 
     if ($show_admin) {
-        my $admin_has_active = ($pagina_actual eq 'registros' || $pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos' || $pagina_actual eq 'gestion_permisos' || $pagina_actual eq 'usuarios_online' || $pagina_actual eq 'gestion_odontograma' || $pagina_actual eq 'tecnico' || $pagina_actual eq 'gestion_catalogos' || $pagina_actual eq 'cards_inicio' || $pagina_actual eq 'reset_datos_org') ? 1 : 0;
+        my $admin_has_active = ($pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos' || $pagina_actual eq 'gestion_permisos' || $pagina_actual eq 'usuarios_online' || $pagina_actual eq 'gestion_odontograma' || $pagina_actual eq 'tecnico' || $pagina_actual eq 'gestion_catalogos' || $pagina_actual eq 'cards_inicio' || $pagina_actual eq 'reset_datos_org') ? 1 : 0;
         my $admin_active = $admin_has_active ? 'show' : '';
         my $collapsed_class = ($admin_active eq 'show') ? '' : 'collapsed';
         my $admin_aria = ($admin_active eq 'show') ? 'true' : 'false';
@@ -611,13 +611,6 @@ HTML
             $is_allowed{'productos'} = 0;
         }
         
-        # Only allow registros for Administrador Global
-        if ($role eq 'Administrador Global') {
-            $is_allowed{'registros'} = 1;
-        } else {
-            $is_allowed{'registros'} = 0;
-        }
-
         # Permitir CRUD de Cards de Vista Inicio exclusivamente para Administrador Global
         if ($role eq 'Administrador Global') {
             $is_allowed{'cards_inicio'} = 1;
@@ -672,7 +665,7 @@ HTML
             $is_allowed{'gestion_permisos'} = 1;
         }
 
-        foreach my $k ('registros', 'clinicas', 'usuarios', 'gestion_permisos', 'usuarios_online', 'servicios', 'productos', 'gestion_odontograma', 'tecnico', 'gestion_catalogos', 'cards_inicio', 'reset_datos_org', 'sync_google') {
+        foreach my $k ('clinicas', 'usuarios', 'gestion_permisos', 'usuarios_online', 'servicios', 'productos', 'gestion_odontograma', 'tecnico', 'gestion_catalogos', 'cards_inicio', 'reset_datos_org', 'sync_google') {
             if ($is_allowed{$k}) {
                 my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
                 my $cfg = $admin_mod_names{$k};
@@ -699,7 +692,7 @@ HTML
 
     # 7. Ventas Accordion (Ejecutivo Ventas o Administrador Global)
     if (( ($is_allowed{crm_ventas} && $role eq 'Ejecutivo Ventas') || ($is_allowed{admin_global} && $role eq 'Administrador Global') ) && !$mostrar_menu_paciente) {
-        my $ventas_has_active = ($pagina_actual eq 'crm_ventas' || $pagina_actual eq 'admin_ejecutivos') ? 1 : 0;
+        my $ventas_has_active = ($pagina_actual eq 'crm_ventas' || $pagina_actual eq 'admin_ejecutivos' || $pagina_actual eq 'registros') ? 1 : 0;
         my $ventas_active = $ventas_has_active ? 'show' : '';
         my $collapsed_class = ($ventas_active eq 'show') ? '' : 'collapsed';
         my $ventas_aria = ($ventas_active eq 'show') ? 'true' : 'false';
@@ -715,7 +708,15 @@ HTML
             };
         }
         my $ejec_html = '';
+        my $registros_html = '';
         if ($role eq 'Administrador Global') {
+            my $reg_active = ($pagina_actual eq 'registros') ? 'active' : '';
+            $registros_html = qq{
+                <a href="../views/manage_registros.pl" class="sub-link $reg_active w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Gestión de Registros">
+                    <i class="bi bi-person-lines-fill me-2 text-primary" style="font-size:1.1rem;"></i> <span class="sidebar-text">Gesti&oacute;n de Registros</span>
+                </a>
+            };
+
             my $ejec_active = ($pagina_actual eq 'admin_ejecutivos') ? 'active' : '';
             $ejec_html = qq{
                 <a href="../views/admin_ejecutivos.pl" class="sub-link $ejec_active w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Ejecutivos">
@@ -733,6 +734,7 @@ HTML
                 </h2>
                 <div id="c-ventas" class="accordion-collapse collapse $ventas_active" aria-labelledby="h-ventas">
                     <div class="accordion-body pb-0 pt-1">
+                        $registros_html
                         $crm_html
                         $ejec_html
                     </div>

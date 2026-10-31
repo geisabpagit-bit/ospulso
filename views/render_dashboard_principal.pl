@@ -171,55 +171,9 @@ sub render_dashboard_principal {
         </style>
 
         <div class="container-fluid px-3 px-md-4 pb-5 mt-3 animate__animated animate__fadeIn">
-            
-            <!-- Banner Superior Panel Maestro -->
-            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white" style="border: 1.5px solid rgba(25, 183, 165, 0.4) !important;">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 60px; height: 60px; background: linear-gradient(135deg, #0A2A66, #124A9E); color: #19B7A5; border: 2px solid #19B7A5;">
-                            <i class="bi bi-shield-lock-fill fs-3"></i>
-                        </div>
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge rounded-pill px-3 py-1 fw-bold text-white" style="background-color: #0A2A66;">
-                                    Panel Maestro
-                                </span>
-                                <span class="badge rounded-pill px-3 py-1 fw-bold" style="background-color: rgba(25, 183, 165, 0.15); color: #0d9488; border: 1px solid rgba(25, 183, 165, 0.3);">
-                                    <i class="bi bi-shield-check me-1"></i>SaaS Platform
-                                </span>
-                            </div>
-                            <h3 class="fw-bold plus-jakarta mb-1" style="color: #0A2A66;">
-                                Panel Maestro - Administrador Global
-                            </h3>
-                            <p class="text-muted small mb-0">
-                                Accesos directos dinámicos a las herramientas de supervisión, mantenimiento y gestión transversal de la plataforma.
-                            </p>
-                        </div>
-                    </div>
-                    <div>
-                        <a href="gestion_cards_inicio.pl" class="btn btn-premium-primary rounded-pill px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" title="Agregar o editar cards">
-                            <i class="bi bi-gear-fill"></i>
-                            <span>Configurar Accesos</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Grilla Dinámica de Minicards -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                    <i class="bi bi-grid-fill" style="color: #19B7A5;"></i>
-                    Accesos Directos del Sistema
-                </h6>
-                <span class="badge bg-light text-muted border rounded-pill px-3 py-1 small">
-                    Personalizable vía menú lateral
-                </span>
-            </div>
-
             <div class="row g-3 g-md-4">
                 $cards_html
             </div>
-
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
