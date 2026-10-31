@@ -1,2 +1,13 @@
-# Blindaje de seguridad: Bloquear acceso web directo a bases de datos planas
+# ==============================================================================
+# SEGURIDAD OSPULSO: POLÍTICA ZERO-TRUST EN /dat/
+# Denegación general por defecto e impedimento de listado de directorios
+# ==============================================================================
+Options -Indexes
+
+# 1. Denegación general por defecto: Bloquear acceso a archivos en /dat
 Require all denied
+
+# 2. Excepción Controlada (Lista Blanca): Permitir exclusivamente medios y documentos
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|pdf|zip)$">
+    Require all granted
+</FilesMatch>

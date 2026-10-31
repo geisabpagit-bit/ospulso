@@ -50,7 +50,8 @@
 4. **Vaciado de Endpoints Radioactivos (`api/hard_reset_db_api.pl`)**:
    - Se despojó de todo código de reseteo y retorna inmediatamente `403 Forbidden`.
 5. **Aislamiento Perimetral en `.htaccess`**:
-   - `utils/.htaccess`, `scratch/.htaccess` y `dat/.htaccess` bloquean todo acceso web directo (`Require all denied`).
+   - `utils/.htaccess` y `scratch/.htaccess` bloquean todo acceso web directo (`Require all denied`).
+   - `dat/.htaccess` implementa una política Zero-Trust (Fase 1): denegación general por defecto (`Require all denied`) y bloqueo de listado de directorios (`Options -Indexes`), con lista blanca controlada (`FilesMatch`) que autoriza exclusivamente recursos multimedia y documentos legítimos (`.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.svg`, `.pdf`, `.zip`) para visualización de logos, adjuntos CRM y descargas autorizadas, manteniendo 100% inaccesibles bases de datos planas (`.dat`), contadores, logs y metadatos.
    - El `.htaccess` de la raíz bloquea mediante regex cualquier script que coincida con `^(scratch_.*|test.*|prueba.*|mock.*|hard_reset.*|fix_.*)\.(pl|py|sh|ps1)$`.
 6. **Consistencia de Cabeceras Canónicas**:
    - Se normalizaron todos los endpoints de organizaciones y ejecutivos (`crud_organizaciones_api.pl`, `crud_ejecutivos_api.pl`) para exigir y escribir siempre la cabecera canónica de 12 columnas en `usuarios.dat`.
