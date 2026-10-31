@@ -276,8 +276,14 @@ sub tiene_permiso_modulo {
     $accion //= 'R';
     $accion = uc($accion);
 
-    # Administrador Global siempre posee acceso completo
-    return 1 if ($role eq 'Administrador Global');
+    # Administrador Global posee acceso completo a infraestructura y catálogos globales,
+    # pero NO a datos clínicos y financieros privados de organizaciones (Segregación Multi-Tenant NOM-004)
+    if ($role eq 'Administrador Global') {
+        if ($modulo eq 'finanzas' || $modulo eq 'pacientes' || $modulo eq 'agenda' || $modulo eq 'quirofano') {
+            return 0;
+        }
+        return 1;
+    }
 
     # Administrador Organizacion en modulos de gestion y usuarios siempre posee acceso completo (Lockout protection)
     if ($role eq 'Administrador Organizacion' && ($modulo eq 'usuarios' || $modulo eq 'gestion_permisos')) {

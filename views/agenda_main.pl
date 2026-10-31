@@ -30,6 +30,22 @@ unless ($sd->{session_ok}) {
 
 my $usuario   = $sd->{usuario};
 my $role      = $sd->{role};
+
+# Seguridad Estricta RBAC / Privacidad Multi-Tenant
+if ($role =~ /Administrador Global/i) {
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_acceso_denegado.pl');
+    print $q->header(-type => 'text/html', -charset => 'UTF-8');
+    render_acceso_denegado(
+        q             => $q,
+        usuario       => $usuario,
+        role          => $role,
+        titulo        => "Agenda Dinámica - Acceso Restringido",
+        mensaje       => "Por políticas de privacidad multi-tenant y confidencialidad médica, el Administrador Global no tiene acceso a la agenda de citas de las organizaciones.",
+        rol_requerido => "Médico / Recepcionista / Administrador Organización"
+    );
+    exit;
+}
+
 my $id_medico = $sd->{id_medico};
 my $id_negocio = $sd->{session} ? $sd->{session}->param('id_empresa') : '';
 $id_negocio = '0' if (!defined $id_negocio || $id_negocio eq '');

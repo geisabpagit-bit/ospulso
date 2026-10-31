@@ -246,6 +246,17 @@ HTML
         $is_allowed{'gestion_permisos'} = 1;
     }
 
+    # --- PRIVACIDAD Y SEGREGACIÓN MULTI-TENANT (NOM-004) ---
+    # El Administrador Global es un rol técnico de plataforma/infraestructura.
+    # No debe tener visibilidad de datos operacionales de organizaciones:
+    # Finanzas, Pacientes, Agenda Dinámica y Quirófano quedan estrictamente restringidos.
+    if ($role =~ /Administrador Global/i) {
+        $is_allowed{finanzas}  = 0;
+        $is_allowed{pacientes} = 0;
+        $is_allowed{agenda}    = 0;
+        $is_allowed{quirofano} = 0;
+    }
+
     # --- GOBERNANZA SAAS: CAPACIDAD HOSPITALIZACIÓN ---
     # REGLA: Si en las capacidades del SaaS "Hospitalización" no está activa
     # o si la organización carece de quirófanos (quirofanos == 0), no debe mostrarse en el menú

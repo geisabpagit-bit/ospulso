@@ -30,6 +30,22 @@ unless ($sd->{session_ok}) {
 
 my $usuario   = $sd->{usuario};
 my $role      = $sd->{role};
+
+# Seguridad Estricta RBAC / Privacidad Multi-Tenant
+if ($role =~ /Administrador Global/i) {
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_acceso_denegado.pl');
+    print $q->header(-type => 'text/html', -charset => 'UTF-8');
+    render_acceso_denegado(
+        q             => $q,
+        usuario       => $usuario,
+        role          => $role,
+        titulo        => "Pacientes - Acceso Restringido",
+        mensaje       => "Por políticas de privacidad multi-tenant y confidencialidad médica (NOM-004), el Administrador Global no tiene acceso al padrón de pacientes de las organizaciones.",
+        rol_requerido => "Médico / Recepcionista / Administrador Organización"
+    );
+    exit;
+}
+
 my $id_medico = $sd->{id_medico} || '';
 my $archivo_pacientes = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat');
 
