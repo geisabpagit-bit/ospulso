@@ -197,18 +197,51 @@ html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     scroll-behavior: smooth;
-    height: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    touch-action: pan-y;
 }
 
 body {
-    /* Evita rebotes elásticos molestos (pull-to-refresh) emulando una app nativa */
-    overscroll-behavior-y: none;
+    min-height: 100%;
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
     -webkit-tap-highlight-color: transparent;
     /* Respeta áreas seguras (notch, dynamic island y barra inferior de gestos) */
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     padding-left: env(safe-area-inset-left, 0px);
     padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Habilitar deslizamiento vertical táctil en todos los contenedores principales */
+main, section, .hero-immersive, .hero-glass-card, .holo-card, .showcase-wrapper, .card {
+    touch-action: pan-y;
+}
+
+/* Overlay de menú móvil con pointer-events controlado para no bloquear toques */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 42, 102, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9998;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 /* Header Navbar con soporte para notch / Dynamic Island */
@@ -304,6 +337,11 @@ body {
     /* Modales en móvil: ocupan ancho completo con esquinas redondeadas estándar */
     .modal-dialog {
         margin: 0.75rem !important;
+    }
+
+    /* Desactivar background-attachment: fixed en móvil para eliminar congelamientos de touchmove y lags */
+    .hero-immersive, .parallax-section {
+        background-attachment: scroll !important;
     }
 }
 

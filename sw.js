@@ -5,7 +5,7 @@
  * ==========================================================================
  */
 
-const CACHE_NAME = 'ospulso-pwa-v1.0';
+const CACHE_NAME = 'ospulso-pwa-v1.1';
 
 // Recursos críticos para arranque instantáneo (App Shell)
 const STATIC_ASSETS = [
