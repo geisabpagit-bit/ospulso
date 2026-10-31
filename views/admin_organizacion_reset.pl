@@ -29,8 +29,8 @@ my $role       = $sd->{role};
 my $id_empresa = $sd->{id_empresa};
 $id_empresa = '0' if (!defined $id_empresa || $id_empresa eq '');
 
-# Validación estricta de rol RBAC
-if ($role ne 'Administrador Organizacion' && $role ne 'Administrador Global') {
+# Validación estricta de rol RBAC (exclusivo para Administrador de Organización)
+if ($role ne 'Administrador Organizacion') {
     render_acceso_denegado(
         q => $q, usuario => $usuario, role => $role,
         mensaje => 'Esta sección es de acceso exclusivo para el Administrador de la Organización.',

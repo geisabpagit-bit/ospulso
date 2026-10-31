@@ -133,3 +133,30 @@
 3. **Resolución Canónica del Nombre Médico (`limpiar_titulo_medico`)**:
    - Se garantiza la visualización del nombre de pila y apellidos reales del facultativo tratante (vía `usuarios.dat`, sesión activa o catálogos CLUE), eliminando identificadores opacos numéricos y prefijos redundantes (`Dr(a).`) ante la etiqueta de la interfaz.
 
+---
+
+## 13. Segregación RBAC Multi-Tenant del Administrador Global (NOM-004 y Privacidad)
+
+1. **Principio de Privacidad Organizacional**:
+   - El rol `Administrador Global` es una figura técnica de infraestructura, gobernanza global de la plataforma SaaS y mantenimiento de catálogos maestros.
+   - Carece de facultades asistenciales o directivas sobre organizaciones específicas.
+2. **Módulos Clínicos y Financieros Restringidos**:
+   - En `utils/sub_sidebar.pl`, `utils/permisos_utils.pl`, `views/pacientes.pl` y `views/agenda_main.pl`:
+     - **Finanzas**: Ocultado y denegado (`finanzas = 0`).
+     - **Pacientes**: Ocultado y denegado (`pacientes = 0`).
+     - **Agenda Dinámica**: Ocultado y denegado (`agenda = 0`).
+     - **Quirófano / Hospitalización**: Ocultado y denegado (`quirofano = 0`).
+3. **Saneamiento del Submenú Administración**:
+   - Para no invadir la gestión propia de cada organización/clínica, se omiten expresamente del submenú "Administración":
+     - **Gestión de Clínicas / Sucursales** (`clinicas = 0` $\rightarrow$ `views/manage_clinicas.pl`).
+     - **Gestión de Personal** (`usuarios = 0` $\rightarrow$ `views/administracion_usuarios.pl`).
+     - **Catálogo Universal / Servicios / Productos** (`servicios = 0`, `productos = 0` $\rightarrow$ `views/manage_catalogo_universal.pl`, `manage_servicios.pl`, `manage_productos.pl`).
+     - **Reset Operativo Org** (`reset_datos_org = 0` $\rightarrow$ `views/admin_organizacion_reset.pl`, `api/reset_datos_organizacion_api.pl`).
+   - El `Administrador Global` conserva exclusivamente herramientas transversales de plataforma:
+     - **Gestión de Registros** (`manage_registros.pl`).
+     - **Matriz de Permisos** (`gestion_permisos_roles.pl`).
+     - **Usuarios en Línea** (`usuarios_online.pl`).
+     - **Catálogos y Mantenimiento** (`administracion_catalogo.pl`).
+     - **Gestión de Catálogos** (`gestion_catalogos.pl`).
+
+

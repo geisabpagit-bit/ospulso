@@ -29,7 +29,7 @@ my $role       = $sd->{role};
 my $id_empresa = $sd->{id_empresa};
 
 # Seguridad
-if ($role ne 'Administrador Organizacion' && $role ne 'Administrador Global' && $role !~ /Recepcionista/i) {
+if ($role ne 'Administrador Organizacion' && $role !~ /Recepcionista/i) {
     render_acceso_denegado(
         q => $q, usuario => $usuario, role => $role,
         mensaje => 'Esta sección es exclusiva para el Administrador de la Organización y Recepcionistas.',

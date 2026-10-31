@@ -249,12 +249,17 @@ HTML
     # --- PRIVACIDAD Y SEGREGACIÓN MULTI-TENANT (NOM-004) ---
     # El Administrador Global es un rol técnico de plataforma/infraestructura.
     # No debe tener visibilidad de datos operacionales de organizaciones:
-    # Finanzas, Pacientes, Agenda Dinámica y Quirófano quedan estrictamente restringidos.
+    # Finanzas, Pacientes, Agenda Dinámica, Quirófano, Clínicas, Personal, Servicios y Reset quedan estrictamente restringidos.
     if ($role =~ /Administrador Global/i) {
-        $is_allowed{finanzas}  = 0;
-        $is_allowed{pacientes} = 0;
-        $is_allowed{agenda}    = 0;
-        $is_allowed{quirofano} = 0;
+        $is_allowed{finanzas}        = 0;
+        $is_allowed{pacientes}       = 0;
+        $is_allowed{agenda}          = 0;
+        $is_allowed{quirofano}       = 0;
+        $is_allowed{clinicas}        = 0;
+        $is_allowed{usuarios}        = 0;
+        $is_allowed{servicios}       = 0;
+        $is_allowed{productos}       = 0;
+        $is_allowed{reset_datos_org} = 0;
     }
 
     # --- GOBERNANZA SAAS: CAPACIDAD HOSPITALIZACIÓN ---
@@ -612,6 +617,16 @@ HTML
             $is_allowed{'registros'} = 0;
         }
 
+        # Saneamiento de Administración para Administrador Global:
+        # Se omiten expresamente de su submenú: Gestión de Clínicas, Gestión de Personal, Catálogo Universal / Servicios / Productos y Reset Operativo Org
+        if ($role =~ /Administrador Global/i) {
+            $is_allowed{'clinicas'}        = 0;
+            $is_allowed{'usuarios'}        = 0;
+            $is_allowed{'servicios'}       = 0;
+            $is_allowed{'productos'}       = 0;
+            $is_allowed{'reset_datos_org'} = 0;
+        }
+
         # Only allow gestion_catalogos for Administrador Global with CLUE (omitido para Administrador Organizacion)
         if ($role eq 'Administrador Global' && $org_clues ne '') {
             $is_allowed{'gestion_catalogos'} = 1;
@@ -619,8 +634,8 @@ HTML
             $is_allowed{'gestion_catalogos'} = 0;
         }
         
-        # Allow reset_datos_org for Administrador Organizacion & Global
-        if ($role eq 'Administrador Organizacion' || $role eq 'Administrador Global') {
+        # Allow reset_datos_org ONLY for Administrador Organizacion (omitido para Administrador Global)
+        if ($role eq 'Administrador Organizacion') {
             $is_allowed{'reset_datos_org'} = 1;
         } else {
             $is_allowed{'reset_datos_org'} = 0;

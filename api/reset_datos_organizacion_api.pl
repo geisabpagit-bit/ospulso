@@ -30,7 +30,7 @@ my $role = $sd->{role} || '';
 my $id_empresa = $sd->{id_empresa};
 $id_empresa = '0' if (!defined $id_empresa || $id_empresa eq '');
 
-unless ($role eq 'Administrador Organizacion' || $role eq 'Administrador Global') {
+unless ($role eq 'Administrador Organizacion') {
     print encode_json({ success => 0, error => 'Acceso denegado. Se requieren permisos de Administrador de Organización.' });
     exit;
 }

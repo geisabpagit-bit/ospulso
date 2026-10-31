@@ -278,8 +278,10 @@ sub tiene_permiso_modulo {
 
     # Administrador Global posee acceso completo a infraestructura y catálogos globales,
     # pero NO a datos clínicos y financieros privados de organizaciones (Segregación Multi-Tenant NOM-004)
+    # ni a la gestión operativa interna de clínicas/organizaciones (clínicas, usuarios, servicios, productos, reset org).
     if ($role eq 'Administrador Global') {
-        if ($modulo eq 'finanzas' || $modulo eq 'pacientes' || $modulo eq 'agenda' || $modulo eq 'quirofano') {
+        if ($modulo eq 'finanzas' || $modulo eq 'pacientes' || $modulo eq 'agenda' || $modulo eq 'quirofano' ||
+            $modulo eq 'clinicas' || $modulo eq 'usuarios' || $modulo eq 'servicios' || $modulo eq 'productos' || $modulo eq 'reset_datos_org') {
             return 0;
         }
         return 1;
