@@ -12,6 +12,7 @@ cd "$DIR_RAIZ"
 
 LOG_FILE="dat/hot_deploy.log"
 LOCK_FILE="dat/hot_deploy.lock"
+STATUS_FILE="dat/hot_deploy.status"
 BACKUP_DIR="dat_backup_seguridad_temp"
 
 log() {
@@ -53,6 +54,7 @@ if git fetch origin main >> "$LOG_FILE" 2>&1; then
     log "✅ git fetch completado."
 else
     log "❌ Error en git fetch. Restaurando datos y abortando."
+    echo "1" > "$STATUS_FILE"
     rm -f "$LOCK_FILE"
     exit 1
 fi
@@ -69,6 +71,7 @@ else
         \cp -rf "$BACKUP_DIR/"* dat/ 2>/dev/null || true
         rm -rf "$BACKUP_DIR"
     fi
+    echo "1" > "$STATUS_FILE"
     rm -f "$LOCK_FILE"
     exit 1
 fi
@@ -81,7 +84,6 @@ if [ -d "$BACKUP_DIR" ]; then
     log "✅ Datos reales de producción restaurados al 100%."
 fi
 
-# 6. Corrección obligatoria de permisos y finales de línea Unix
 log "Paso 4: Ejecutando fix_permissions.sh..."
 if [ -f "fix_permissions.sh" ]; then
     bash fix_permissions.sh >> "$LOG_FILE" 2>&1
@@ -92,7 +94,9 @@ else
 fi
 
 # 7. Liberar bloqueo y registrar éxito
+echo "0" > "$STATUS_FILE"
 rm -f "$LOCK_FILE"
 log ">>> ACTUALIZACIÓN EN CALIENTE FINALIZADA CON ÉXITO."
 log "========================================================================"
 exit 0
+

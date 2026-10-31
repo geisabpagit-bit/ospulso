@@ -88,6 +88,16 @@ if ($action eq 'trigger') {
 }
 elsif ($action eq 'status') {
     my $is_running = (-f $lock_file) ? 1 : 0;
+    my $status_file = File::Spec->catfile($dat_dir, 'hot_deploy.status');
+    my $exit_code = 0;
+
+    if (-f $status_file && open(my $sf, '<', $status_file)) {
+        my $val = <$sf>;
+        close($sf);
+        chomp($val) if defined $val;
+        $exit_code = int($val || 0);
+    }
+
     my @lines = ();
 
     if (-f $log_file && open(my $fh, '<:encoding(UTF-8)', $log_file)) {
@@ -98,11 +108,19 @@ elsif ($action eq 'status') {
         @lines = @all[$start .. $#all];
     }
 
+    # Si en el log se lee abortando o error y no hay status_file, asignar exit_code = 1
+    my $full_log = join('', @lines);
+    if ($full_log =~ /❌|Error|abortando/i && $exit_code == 0 && !$is_running) {
+        $exit_code = 1;
+    }
+
     print $q->header(-type => 'application/json', -charset => 'UTF-8');
     print encode_json({
-        status  => 'success',
-        running => $is_running,
-        log     => join('', @lines)
+        status     => 'success',
+        is_running => $is_running,
+        running    => $is_running,
+        exit_code  => $exit_code,
+        log        => $full_log
     });
     exit;
 }
