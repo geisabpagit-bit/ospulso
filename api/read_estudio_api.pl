@@ -21,7 +21,7 @@ if (!$session_data->{session_ok}) {
 
 my $ruta = $q->param('ruta') || '';
 
-if (!$ruta || $ruta !~ /^dat\/estudiosRX\/(\d+)\/(.+)$/) {
+if (!$ruta || $ruta !~ /^(?:dat|uploads)\/(?:estudiosRX|estudios)\/(\d+)\/(.+)$/) {
     print $q->header(-status => 400, -type => 'text/plain');
     print "Ruta invalida o malformada.";
     exit;

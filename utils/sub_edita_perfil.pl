@@ -5,6 +5,8 @@ use warnings;
 use utf8;
 use Encode qw(encode); 
 use JSON::PP;
+use FindBin;
+use File::Spec;
 
 sub render_edita_perfil {
     my %args = @_;
@@ -93,9 +95,11 @@ sub render_edita_perfil {
         $role_title = 'Paciente';
     }
 
-    # Avatar URL o inicial
+    # Avatar URL o inicial con validación física y fallback anti-rotura
     my $avatar_src = ($avatar_url ne '') ? "../$avatar_url" : '';
     my $inicial = uc(substr($u_nombre, 0, 1) || 'U');
+    my $avatar_disk_file = ($avatar_url ne '') ? File::Spec->catfile($FindBin::Bin, '..', $avatar_url) : '';
+    my $avatar_exists = ($avatar_disk_file ne '' && -f $avatar_disk_file) ? 1 : 0;
 
 print <<HTML;
 <link rel="stylesheet" href="../css/perfil_flow.css">
@@ -107,7 +111,8 @@ print <<HTML;
             <div class="d-flex align-items-center gap-4">
                 <div class="profile-avatar-wrapper position-relative flex-shrink-0" onclick="document.getElementById('avatar_file').click();" title="Haz clic para subir o cambiar foto de perfil">
                     <div class="profile-avatar-circle">
-                        @{[ $avatar_src ne '' ? qq(<img id="avatar_preview_header" src="$avatar_src" alt="Avatar" class="avatar-img-circle">) : qq(<i id="avatar_placeholder_icon" class="bi bi-person-fill avatar-icon-fallback"></i><img id="avatar_preview_header" src="" alt="Avatar" class="avatar-img-circle d-none">) ]}
+                        <img id="avatar_preview_header" src="$avatar_src" alt="Avatar" class="avatar-img-circle @{[ $avatar_exists ? '' : 'd-none' ]}" onerror="this.classList.add('d-none'); var icon=document.getElementById('avatar_placeholder_icon'); if(icon) icon.classList.remove('d-none');">
+                        <i id="avatar_placeholder_icon" class="bi bi-person-fill avatar-icon-fallback @{[ $avatar_exists ? 'd-none' : '' ]}"></i>
                     </div>
                     <div class="avatar-badge-edit shadow-sm" title="Subir o cambiar fotografía">
                         <i class="bi bi-camera-fill"></i>

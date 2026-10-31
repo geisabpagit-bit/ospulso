@@ -142,6 +142,23 @@ if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
     close $fhn;
 }
 
+my $logo_src = '';
+if ($negocio_logo ne '') {
+    if (-f File::Spec->catfile($FindBin::Bin, '..', 'uploads', 'logos', $negocio_logo)) {
+        $logo_src = "../uploads/logos/$negocio_logo";
+    } elsif (-f File::Spec->catfile($FindBin::Bin, '..', 'dat', 'logos', $negocio_logo)) {
+        $logo_src = "../dat/logos/$negocio_logo";
+    }
+}
+if (!$logo_src && $negocio_clues) {
+    my $clues_logo = "logo_${negocio_clues}.jpg";
+    if (-f File::Spec->catfile($FindBin::Bin, '..', 'uploads', 'logos', $clues_logo)) {
+        $logo_src = "../uploads/logos/$clues_logo";
+    } elsif (-f File::Spec->catfile($FindBin::Bin, '..', 'dat', 'logos', $clues_logo)) {
+        $logo_src = "../dat/logos/$clues_logo";
+    }
+}
+
 my ($sec_c,$min_c,$hour_c,$mday_c,$mon_c,$year_c) = localtime();
 my $fecha_actual = sprintf("%02d/%02d/%04d %02d:%02d", $mday_c, $mon_c+1, $year_c+1900, $hour_c, $min_c);
 my $usuario_sesion = $session_data->{usuario} || 'Dr(a). Odontólogo';
@@ -622,7 +639,7 @@ print <<HTML;
             <div class="odonto-print-header">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-3">
-                        @{[ $negocio_logo ? qq{<img src="../dat/logos/$negocio_logo" alt="Logo" style="max-height: 52px; object-fit: contain;">} : qq{<div class="p-2 rounded bg-primary text-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;"><i class="bi bi-hospital fs-4"></i></div>} ]}
+                        @{[ $logo_src ? qq{<img src="$logo_src" alt="Logo" style="max-height: 52px; object-fit: contain;">} : qq{<div class="p-2 rounded bg-primary text-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;"><i class="bi bi-hospital fs-4"></i></div>} ]}
                         <div>
                             <h4 class="fw-black mb-0 text-dark">$negocio_nombre</h4>
                             <div class="small text-secondary">

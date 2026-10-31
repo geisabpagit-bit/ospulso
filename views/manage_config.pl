@@ -1307,12 +1307,13 @@ foreach my $att (@attachments) {
     my $name = basename($att->{path});
     my $path_encoded = $att->{path};
     my $size_kb = sprintf("%.1f KB", $att->{size}/1024);
+    my $att_url = -f File::Spec->catfile($FindBin::Bin, '..', 'uploads', 'crm', $path_encoded) ? "../uploads/crm/$path_encoded" : "../dat/adjuntos_crm/$path_encoded";
     print <<HTML;
                             <tr>
                                 <td class="text-truncate small" style="max-width: 250px;" title="$name">$name</td>
                                 <td class="small">$size_kb</td>
                                 <td class="text-end text-nowrap">
-                                    <a href="../dat/adjuntos_crm/$path_encoded" target="_blank" class="btn btn-light btn-sm rounded-circle" title="Descargar">
+                                    <a href="$att_url" target="_blank" class="btn btn-light btn-sm rounded-circle" title="Descargar">
                                         <i class="bi bi-download"></i>
                                     </a>
                                     <a href="?action=do_delete_attachment&att_file=$path_encoded" class="btn btn-outline-danger btn-sm rounded-circle" onclick="return confirm('¿Eliminar adjunto?');" title="Borrar">

@@ -86,9 +86,10 @@ sub render_header {
     }
 
     my $avatar_html = '';
-    if ($avatar_url ne '') {
+    my $avatar_disk_file = ($avatar_url ne '') ? File::Spec->catfile($FindBin::Bin, '..', $avatar_url) : '';
+    if ($avatar_url ne '' && -f $avatar_disk_file) {
         my $src_url = ($avatar_url =~ /^\.\./) ? $avatar_url : "../$avatar_url";
-        $avatar_html = qq{<img src="$src_url" alt="$usuario" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">};
+        $avatar_html = qq{<img src="$src_url" alt="$usuario" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.style.display='none'; var s=this.nextElementSibling; if(s) s.style.display='inline-flex';"><span class="avatar-initials" style="display:none;">$iniciales</span>};
     } else {
         $avatar_html = qq{<span class="avatar-initials">$iniciales</span>};
     }

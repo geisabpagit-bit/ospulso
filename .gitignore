@@ -17,8 +17,17 @@ cgi-bin/sessions/
 # Scripts de trabajo auxiliar y pruebas locales
 scratch/
 
-# Archivos subidos dinámicamente
-uploads/
-dat/estudiosRX/
+# Archivos subidos dinámicamente (preservar estructura, seguridad y logos institucionales)
+uploads/*
+!uploads/.htaccess
+!uploads/.gitkeep
+!uploads/*/
+uploads/*/*
+!uploads/*/.gitkeep
+!uploads/logos/*.jpg
+!uploads/logos/*.png
+!uploads/logos/*.svg
+dat/estudiosRX/*
+!dat/estudiosRX/.htaccess
 dat/odontogramas/
 

@@ -1,0 +1,12 @@
+# ==============================================================================
+# CUMPLIMIENTO NOM-004-SSA3-2012: PROTECCIÓN ESTRICTA DE ESTUDIOS DIAGNÓSTICOS
+# ==============================================================================
+# Queda terminantemente prohibido el acceso HTTP directo desde internet a los estudios.
+# Toda visualización y streaming médico debe canalizarse por api/read_estudio_api.pl
+# con sesión clínica autenticada y permisos RBAC verificados.
+Options -Indexes
+Require all denied
+
+<FilesMatch ".*">
+    Require all denied
+</FilesMatch>

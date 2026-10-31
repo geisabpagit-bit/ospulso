@@ -1,0 +1,28 @@
+# ==============================================================================
+# SEGURIDAD OSPULSO: PERMISOS CONTROLADOS EN CARPETA DE SUBIDAS (UPLOADS)
+# ==============================================================================
+# 1. Deshabilitar ejecución de scripts y listado de directorios
+Options -Indexes -ExecCGI
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# 2. Desasociar cualquier manejador de scripts en esta carpeta
+RemoveHandler .pl .cgi .php .py .sh
+AddType text/plain .pl .cgi .php .py .sh
+
+# 3. Bloquear estrictamente cualquier intento de invocar scripts ejecutables
+<FilesMatch "\.(php|phtml|pl|py|cgi|sh|bash|exe|cmd|bat)$">
+    Require all denied
+</FilesMatch>
+
+# 4. Permitir exclusivamente lectura de archivos multimedia y documentos estáticos
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|pdf|zip|dcm|txt)$">
+    Require all granted
+</FilesMatch>

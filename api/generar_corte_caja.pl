@@ -57,8 +57,13 @@ if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
 }
 
 # Resolver logo_url
-if ($org_clues eq 'QTSMP000116' || ($org_clues && -e File::Spec->catfile($dat_dir, 'logos', "logo_${org_clues}.jpg"))) {
+my $uploads_dir = File::Spec->catdir($FindBin::Bin, '..', 'uploads');
+if ($org_clues && -e File::Spec->catfile($uploads_dir, 'logos', "logo_${org_clues}.jpg")) {
+    $negocio_logo_url = "../uploads/logos/logo_${org_clues}.jpg";
+} elsif ($org_clues && -e File::Spec->catfile($dat_dir, 'logos', "logo_${org_clues}.jpg")) {
     $negocio_logo_url = "../dat/logos/logo_${org_clues}.jpg";
+} elsif ($org_clues eq 'QTSMP000116') {
+    $negocio_logo_url = "../uploads/logos/logo_${org_clues}.jpg";
 } elsif ($negocio_logo_url) {
     $negocio_logo_url = "../$negocio_logo_url" unless $negocio_logo_url =~ /^\.\.\//;
 }

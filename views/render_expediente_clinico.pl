@@ -2299,13 +2299,13 @@ print <<HTML;
             document.body.appendChild(modalEl);
         }
 
-        const url = '../dat/adjuntos_crm/$d->{id_paciente}/' + file;
+        let url = '../uploads/crm/$d->{id_paciente}/' + file;
         const previewBody = document.getElementById('previewBody');
         previewBody.innerHTML = '';
         
         const ext = file.split('.').pop().toLowerCase();
         if(['jpg','jpeg','png','webp','gif'].includes(ext)) {
-            previewBody.innerHTML = '<div class="preview-container"><img src="' + url + '" class="animate__animated animate__zoomIn"></div>';
+            previewBody.innerHTML = '<div class="preview-container"><img src="' + url + '" class="animate__animated animate__zoomIn" onerror="if(!this.dataset.retried){this.dataset.retried=1; this.src=\\'../dat/adjuntos_crm/$d->{id_paciente}/' + file + '\\';}"></div>';
         } else if(ext === 'pdf') {
             previewBody.innerHTML = '<div class="preview-container"><iframe src="' + url + '"></iframe></div>';
         } else {
