@@ -63,6 +63,9 @@ fi
 git update-index --no-skip-worktree dat/.htaccess dat/catalogo_cards.dat dat/roles_catalogo.dat 2>/dev/null || true
 git ls-files -v | grep '^S' | awk '{print $2}' | xargs -r git update-index --no-skip-worktree 2>/dev/null || true
 
+# Limpiar archivos no trackeados fuera de dat/ que pudieran bloquear el checkout/reset
+git clean -fd -e dat -e dat/* >> "$LOG_FILE" 2>&1 || true
+
 if git reset --hard origin/main >> "$LOG_FILE" 2>&1; then
     log "✅ git reset --hard origin/main completado."
 else
