@@ -263,4 +263,16 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.scroll-reveal').forEach(el => {
         revealObserver.observe(el);
     });
+
+    // 4. Controlador de Navegación "Volver Arriba" (Back to Top)
+    const btnBackToTop = document.getElementById('btnBackToTop');
+    if (btnBackToTop) {
+        btnBackToTop.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
 });

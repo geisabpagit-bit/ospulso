@@ -509,13 +509,19 @@ Para que la plataforma se renderice en dispositivos móviles con la apariencia d
    - Soporte Android: `<meta name="mobile-web-app-capable" content="yes">`, `<meta name="theme-color" content="#0A2A66">`.
 
 3. **Arquitectura CSS para Áreas Seguras (Safe Areas) y Densidad Móvil (`css/sdm_mobile_standards.css`)**:
-   - `overscroll-behavior-y: none;`: Bloquea los rebotes elásticos molestos de pull-to-refresh en navegadores móviles.
+   - `touch-action: pan-y;` y `-webkit-overflow-scrolling: touch;`: Desplazamiento táctil vertical fluido en smartphones sin intercepciones ni congelamiento de gestos.
    - `-webkit-text-size-adjust: 100%;`: Evita que teléfonos con fuentes aumentadas por accesibilidad descuadren los layouts.
-   - Padding dinámico mediante variables de entorno `env(safe-area-inset-top)` y `env(safe-area-inset-bottom)` en el encabezado `.glass-navbar`, el sticky bar inferior `.mobile-sticky-cta`, el botón flotante `.btn-whatsapp-global` y el drawer `.mobile-sidebar`.
-   - **Densidad Óptima en Smartphones de Gama Media (360px a 430px)**:
-     - Reducción de paddings estorbosos en la tarjeta Hero (`.hero-glass-card`) de `p-4` a `p-3.5` con esquinas `1.25rem`.
-     - Escalado fluido de tipografía (`.hero-title-responsive`: `clamp(1.65rem, 6.5vw, 2.1rem)`, `.hero-subtitle-responsive`: `0.95rem` en móvil).
-     - Botones de acción con touch target de mínimo 48px (`.btn-mobile-standard`).
+   - Padding dinámico mediante variables de entorno `env(safe-area-inset-top)` y `env(safe-area-inset-bottom)` en el encabezado `.glass-navbar`, el drawer `.mobile-sidebar` y el stack flotante de acciones `.floating-actions-stack`.
+   - **Desactivación de Sticky Bar Redundante (`.mobile-sticky-cta`)**:
+     - Se eliminó la barra inferior fija en móvil por redundancia funcional con el botón de WhatsApp (ambos invocaban el mismo CTA de agendar/chatear) y por canibalizar ~65px de espacio vertical que tapaba los botones principales de la tarjeta Hero.
+   - **Stack Flotante Ergonómico (FAB Stack)**:
+     - Ubicado en la esquina inferior derecha con `z-index: 9999` y respetando `safe-area-inset-bottom` y `safe-area-inset-right`.
+     - **Botón Back to Top (`.btn-back-to-top`)**: Ubicado verticalmente **justo arriba** del botón de WhatsApp, circular (42px) en azul marino OsPulso acrílico con icono chevron y comportamiento smooth scroll a `#inicio`.
+     - **Botón WhatsApp (`.btn-whatsapp-global`)**: Ubicado en la base del stack (50px), verde esmeralda oficial con sombra suave.
+   - **Hero Welcome Card Premium con Padding Mínimo Lateral**:
+     - Utiliza `.container-mobile-flush` con márgenes laterales de 6px para aprovechar al máximo el ancho de pantalla.
+     - `.hero-glass-card`: Padding mínimo lateral optimizado (`1.25rem 0.85rem`) y esquinas satinadas de `1.35rem`.
+     - Tipografía fluida calibrada (`.hero-title-responsive`: `clamp(1.42rem, 5.8vw, 1.85rem)`, `.hero-subtitle-responsive`: `clamp(0.85rem, 3.4vw, 0.96rem)`), garantizando que todo el mensaje de bienvenida y sus 2 botones de acción quepan 100% visibles "above the fold" en cualquier smartphone moderno (360px a 430px).
 
 4. **Soporte Offline y Service Worker (`sw.js`)**:
    - Registro en `index.html` de `sw.js` con precaché de recursos estáticos críticos (HTML, CSS, íconos y manifiesto) bajo estrategia Stale-While-Revalidate, permitiendo la instalación directa como PWA nativa y disponibilidad ante intermitencias de red.

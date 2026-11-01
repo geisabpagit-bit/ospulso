@@ -829,47 +829,74 @@ h1, h2, h3, h4, h5, .nav-link-react, .sidebar-nav-link, .btn-skeuo-raised {
     box-shadow: 0 10px 20px rgba(10, 42, 102, 0.2);
 }
 
-.btn-whatsapp-global {
+/* Floating Action Buttons Stack (FAB) */
+.floating-actions-stack {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 55px;
-    height: 55px;
-    background: #25D366;
-    border-radius: 50%;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    right: calc(20px + env(safe-area-inset-right, 0px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    z-index: 9998;
+    pointer-events: none;
+}
+
+.floating-actions-stack a {
+    pointer-events: auto;
+}
+
+.btn-floating-action {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white !important;
-    font-size: 1.8rem;
+    border-radius: 50%;
     text-decoration: none !important;
-    box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
-    z-index: 9998;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, opacity 0.3s ease, visibility 0.3s ease, background 0.25s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
+/* 1. Botón "Volver al Top" (Ubicado ARRIBA del botón WhatsApp) */
 .btn-back-to-top {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    width: 55px;
-    height: 55px;
-    background: var(--md-blue-deep);
-    border: 1.5px solid rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white !important;
-    font-size: 1.5rem;
-    text-decoration: none !important;
-    box-shadow: var(--shadow-md);
-    z-index: 9998;
-    transition: all 0.3s ease;
+    width: 44px;
+    height: 44px;
+    background: rgba(10, 42, 102, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff !important;
+    font-size: 1.25rem;
+    box-shadow: 0 6px 18px rgba(10, 42, 102, 0.25);
+    opacity: 0.95;
+    visibility: visible;
+    transform: translateY(0) scale(1);
 }
 
-.btn-back-to-top:hover {
-    transform: translateY(-5px);
-    background: var(--md-blue-medical);
+.btn-back-to-top:hover,
+.btn-back-to-top:active {
+    transform: translateY(-3px) scale(1.08);
+    background: var(--md-blue-deep, #0A2A66);
+    box-shadow: 0 10px 24px rgba(10, 42, 102, 0.35);
+    color: #ffffff !important;
+    opacity: 1;
+}
+
+/* 2. Botón WhatsApp Oficial */
+.btn-whatsapp-global {
+    width: 52px;
+    height: 52px;
+    background: #25D366;
+    color: #ffffff !important;
+    font-size: 1.75rem;
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-whatsapp-global:hover {
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 12px 28px rgba(37, 211, 102, 0.45);
+    color: #ffffff !important;
 }
 
 .login-card-container {
@@ -1485,16 +1512,7 @@ footer {
     transform: scale(1.2);
 }
 .mobile-sticky-cta {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(10, 42, 102, 0.08);
-    z-index: 999;
-    padding: 12px 20px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+    display: none !important; /* Desactivado por redundancia UI/UX con FAB de WhatsApp */
 }
 .social-proof-card {
     transition: all 0.3s;
@@ -1553,15 +1571,22 @@ footer {
     }
 }
 
-/* Fix overlapping floating buttons with mobile sticky CTA */
+/* FAB Stack en Móviles y Tablets */
 @media (max-width: 991px) {
+    .floating-actions-stack {
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        right: calc(14px + env(safe-area-inset-right, 0px));
+        gap: 10px;
+    }
     .btn-whatsapp-global {
-        bottom: 80px; /* Push above sticky CTA */
-        transform: scale(0.9);
-        right: 15px;
+        width: 48px;
+        height: 48px;
+        font-size: 1.55rem;
     }
     .btn-back-to-top {
-        display: none !important; /* Hide on mobile to reduce clutter */
+        width: 40px;
+        height: 40px;
+        font-size: 1.15rem;
     }
 }
 

@@ -251,16 +251,60 @@ main, section, .hero-immersive, .hero-glass-card, .holo-card, .showcase-wrapper,
     padding-right: calc(1rem + env(safe-area-inset-right, 0px)) !important;
 }
 
-/* Barra inferior flotante y botones fijos adaptados a la barra de gestos */
+/* Barra inferior flotante desactivada por redundancia */
 .mobile-sticky-cta {
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
-    padding-left: calc(16px + env(safe-area-inset-left, 0px)) !important;
-    padding-right: calc(16px + env(safe-area-inset-right, 0px)) !important;
+    display: none !important;
+}
+
+/* Floating Actions Stack respetando barra de gestos / Safe Area */
+.floating-actions-stack {
+    position: fixed !important;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    right: calc(14px + env(safe-area-inset-right, 0px)) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
+    z-index: 9999 !important;
+    pointer-events: none !important;
+}
+
+.floating-actions-stack a {
+    pointer-events: auto !important;
+}
+
+.btn-floating-action {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+}
+
+.btn-back-to-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 42px !important;
+    height: 42px !important;
+    background: rgba(10, 42, 102, 0.92) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+    color: #ffffff !important;
+    font-size: 1.25rem !important;
+    opacity: 0.95 !important;
+    visibility: visible !important;
+    box-shadow: 0 4px 14px rgba(10, 42, 102, 0.3) !important;
 }
 
 .btn-whatsapp-global {
-    bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
-    right: calc(15px + env(safe-area-inset-right, 0px)) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 50px !important;
+    height: 50px !important;
+    background: #25D366 !important;
+    color: #ffffff !important;
+    font-size: 1.7rem !important;
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35) !important;
 }
 
 /* Sidebar móvil respetando Safe Areas */
@@ -279,41 +323,57 @@ main, section, .hero-immersive, .hero-glass-card, .holo-card, .showcase-wrapper,
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        padding-top: 4.5rem !important;
-        padding-bottom: 5.5rem !important;
+        padding-top: 4.25rem !important;
+        padding-bottom: 2rem !important;
     }
 
-    /* Tarjeta Hero compacta y espaciosa */
+    /* Contenedor móvil con padding mínimo por lado */
+    .container-mobile-flush {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+
+    /* Tarjeta Hero Welcome Premium con padding mínimo por lado */
     .hero-glass-card {
-        padding: 1.35rem 1.15rem !important;
-        border-radius: 1.25rem !important;
+        padding: 1.25rem 0.85rem !important;
+        border-radius: 1.35rem !important;
         margin: 0 auto !important;
         width: 100% !important;
-        box-shadow: 0 15px 35px rgba(10, 42, 102, 0.08) !important;
+        background: rgba(255, 255, 255, 0.84) !important;
+        backdrop-filter: blur(25px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.9) !important;
+        box-shadow: 0 16px 36px -10px rgba(10, 42, 102, 0.12), 0 0 0 1px rgba(0, 196, 196, 0.12) !important;
     }
 
-    /* Tipografía Hero adaptada a smartphones */
+    /* Tipografía Hero adaptada a smartphones (proporción premium) */
     .hero-title-responsive {
-        font-size: clamp(1.65rem, 6.5vw, 2.1rem) !important;
+        font-size: clamp(1.42rem, 5.8vw, 1.85rem) !important;
         line-height: 1.18 !important;
-        letter-spacing: -0.5px !important;
-        margin-bottom: 0.65rem !important;
+        letter-spacing: -0.025em !important;
+        margin-bottom: 0.55rem !important;
     }
 
-    .hero-glass-card h2 {
-        font-size: clamp(0.92rem, 3.8vw, 1.05rem) !important;
-        line-height: 1.45 !important;
-        margin-bottom: 1.25rem !important;
+    .hero-glass-card h2,
+    .hero-subtitle-responsive {
+        font-size: clamp(0.85rem, 3.4vw, 0.96rem) !important;
+        line-height: 1.44 !important;
+        margin-bottom: 1.15rem !important;
+        padding: 0 0.1rem !important;
     }
 
     /* Botones CTA en Hero con touch target ergonómico */
     .hero-glass-card .btn-lg {
-        min-height: 48px !important;
-        padding: 0.75rem 1rem !important;
-        font-size: 0.95rem !important;
+        min-height: 46px !important;
+        padding: 0.65rem 1rem !important;
+        font-size: 0.92rem !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
+    }
+
+    .hero-actions-group {
+        gap: 0.55rem !important;
     }
 
     /* Cinta de confianza compacta */

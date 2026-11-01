@@ -131,8 +131,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    <link href="css/ospulso_master.css" rel="stylesheet" />
-    <link href="css/sdm_mobile_standards.css" rel="stylesheet" />
+    <link href="css/ospulso_master.css?v=2.2" rel="stylesheet" />
+    <link href="css/sdm_mobile_standards.css?v=2.2" rel="stylesheet" />
 </head>
 
 <body class="d-flex flex-column min-vh-100 body-layout">
@@ -203,16 +203,16 @@
             <div class="floating-orb orb-teal"></div>
             <div class="floating-orb orb-navy"></div>
 
-            <div class="container h-100 position-relative z-2">
+            <div class="container container-mobile-flush h-100 position-relative z-2">
                 <div class="row w-100 m-0">
                     <div class="col-12 col-lg-7 col-xl-6 p-0">
-                        <div class="hero-glass-card p-3.5 p-sm-4 p-md-5 rounded-4 rounded-md-5 shadow-premium">
+                        <div class="hero-glass-card hero-welcome-premium p-3.5 p-sm-4 p-md-5 rounded-4 rounded-md-5 shadow-premium">
                             <h1 class="fw-bold text-navy mb-2 mb-md-3 reveal-1 hero-title-responsive">El orden definitivo para
                                 tu práctica médica.</h1>
                             <h2 class="hero-subtitle-responsive text-secondary-clinical fw-normal mb-3 mb-md-4 reveal-2">Sustituye la fragmentación
                                 por un ecosistema digital estructurado bajo la <strong>Metodología 5S</strong>. Agenda,
                                 expedientes, finanzas y mucho más coexistiendo con lógica impecable.</h2>
-                            <div class="d-flex flex-column flex-md-row gap-2.5 gap-md-3 reveal-3">
+                            <div class="d-flex flex-column flex-md-row gap-2.5 gap-md-3 reveal-3 hero-actions-group">
                                 <a href="https://wa.me/525643555072" target="_blank"
                                     class="btn btn-premium-primary btn-lg fw-bold btn-pill-unify btn-magnetic-pulse w-100 w-md-auto text-center px-3 px-md-4 py-2.5 py-md-3">
                                     <i class="bi bi-rocket-takeoff-fill me-2"></i> Evolucionar mi clínica
@@ -986,13 +986,14 @@
         </div>
     </footer>
 
-    <!-- MOBILE STICKY BAR -->
+    <!-- MOBILE STICKY BAR: Retirado por redundancia UI/UX con botón WhatsApp y para maximizar visibilidad del Hero -->
+    <!--
     <div class="mobile-sticky-cta d-lg-none d-flex align-items-center justify-content-between">
         <span class="small fw-bold text-navy">Digitaliza tu clínica hoy</span>
         <a href="https://wa.me/525643555072" target="_blank"
-            class="btn btn-success fw-bold px-3 py-2 btn-pill-unify btn-magnetic-pulse shadow text-sm-custom">Agendar
-            Demo</a>
+            class="btn btn-success fw-bold px-3 py-2 btn-pill-unify btn-magnetic-pulse shadow text-sm-custom">Agendar Demo</a>
     </div>
+    -->
 
     <!-- Modals de Acceso -->
     <!-- Modal Iniciar Sesión -->
@@ -1084,18 +1085,20 @@
         </div>
     </div>
 
-    <!-- Floating Buttons -->
-    <a href="https://wa.me/525643555072" target="_blank" class="btn-whatsapp-global" title="Chatea con un especialista">
-        <i class="bi bi-whatsapp"></i>
-    </a>
-    <a href="#inicio" class="btn-back-to-top" title="Volver al inicio">
-        <i class="bi bi-arrow-up"></i>
-    </a>
+    <!-- Floating Action Buttons Stack (Back to Top ARRIBA de WhatsApp) -->
+    <div class="floating-actions-stack" id="floatingActionsStack">
+        <a href="#inicio" class="btn-floating-action btn-back-to-top" id="btnBackToTop" title="Volver al inicio" aria-label="Volver al inicio">
+            <i class="bi bi-chevron-up"></i>
+        </a>
+        <a href="https://wa.me/525643555072" target="_blank" class="btn-floating-action btn-whatsapp-global" id="btnWhatsappGlobal" title="Chatea con un especialista" aria-label="Chatear por WhatsApp">
+            <i class="bi bi-whatsapp"></i>
+        </a>
+    </div>
 
     <!-- SCRIPTS MODULARES EXTERNOS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>
-    <script src="js/indexLogic.js" defer></script>
+    <script src="js/indexLogic.js?v=2.2" defer></script>
     <script src="js/validarCorreoLogin.js" defer></script>
     <!-- REGISTRO SERVICE WORKER PWA (STANDALONE FULLSCREEN & CACHÉ OFFLINE) -->
     <script>
