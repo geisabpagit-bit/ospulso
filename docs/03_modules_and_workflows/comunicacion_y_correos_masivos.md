@@ -96,8 +96,10 @@ Para garantizar accesibilidad total, ergonomía visual y prevenir bloqueos de pa
    * Los modales (`#modalDespacho`, `#modalAuditoriaCampana`) se ubican estrictamente **después** del cierre de la estructura del layout principal mediante `utils::sub_sidebar::render_sidebar_footer();`. Esto evita que queden atrapados dentro del árbol subordinado del sidebar o del contenedor de la página.
 3. **Cierre Multi-Vía y Limpieza de Backdrop**:
    * El modal de despacho integra botón de cierre en cabecera (`#btnCerrarModalX`), botón de éxito en pie (`#btnCerrarModalExito`) y un interceptor de desmonte (`hidden.bs.modal`) que purga cualquier clase residual en `document.body` y elimina backdrops huérfanos en el DOM.
-4. **Encoding Puro UTF-8**:
-   * Los controladores JSON emiten cabeceras UTF-8 con directiva `use open qw(:utf8);` y flujo `binmode STDOUT, ":raw"` para evitar doble serialización o mojibake de caracteres especiales.
+4. **Encoding Puro UTF-8 y Protocolo Anti-Mojibake (Defensa en Profundidad)**:
+   * **Persistencia Canónica en Flat-Files:** `campanas_comunicacion.dat` y `cola_correos_masivos.dat` almacenan caracteres acentuados en UTF-8 nativo estricto, previniendo secuencias de doble codificación (`\xC3\x83\xC2\xAD`).
+   * **Sanitización Dinámica en Endpoints API:** `api/listar_campanas_comunicacion_api.pl`, `api/detalle_campana_comunicacion_api.pl` y `api/crear_campana_correo_api.pl` incorporan la función `sanear_utf8()` basada en `Encode qw(decode encode is_utf8)` que detecta y repara automáticamente patrones residuales de doble UTF-8 antes de serializar a JSON.
+   * **Defensa en Capa Cliente (Frontend):** En `views/comunicacion_masiva.pl`, las rutinas JS `sanearTextoUtf8()` y `escapeHtml()` procesan reactivamente el asunto, remitente y desglose de destinatarios en la tabla de historial y en el modal de auditoría, blindando la visualización en pantalla frente a cualquier anomalía de transporte o colisión de caracteres.
 
 
 

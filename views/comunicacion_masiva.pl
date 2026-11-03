@@ -972,6 +972,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Función de saneamiento UTF-8 (defensa en profundidad contra mojibake residual)
+    function sanearTextoUtf8(str) {
+        if (!str || typeof str !== 'string') return '';
+        if (/[\u00C2\u00C3]/.test(str)) {
+            try {
+                return decodeURIComponent(escape(str));
+            } catch (e) {
+                return str;
+            }
+        }
+        return str;
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, function (m) { return map[m]; });
+    }
+
     // 10. Historial y Trazabilidad de Campañas Anteriores (Tab 2)
     const tbodyHistorial = document.getElementById('tbodyHistorial');
     const btnRecargarHistorial = document.getElementById('btnRecargarHistorial');
@@ -995,11 +1020,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         ? '<span class="badge bg-success">Completado</span>' 
                         : '<span class="badge bg-warning text-dark">En Proceso</span>';
 
+                    const asuntoDisplay = escapeHtml(sanearTextoUtf8(c.asunto));
+                    const remitenteDisplay = escapeHtml(sanearTextoUtf8(c.remitente));
+                    const segmentoDisplay = escapeHtml(c.segmento);
+
                     html += '<tr>' +
                         '<td><span class="small fw-bold text-dark">' + c.fecha + '</span> <span class="small text-muted d-block">' + c.hora + '</span></td>' +
-                        '<td><div class="fw-bold text-dark">' + c.asunto + '</div><span class="badge bg-light text-muted border">' + c.id_campana + '</span></td>' +
-                        '<td><span class="badge bg-light text-dark border">' + c.segmento + '</span></td>' +
-                        '<td><span class="small text-dark">' + c.remitente + '</span></td>' +
+                        '<td><div class="fw-bold text-dark">' + asuntoDisplay + '</div><span class="badge bg-light text-muted border">' + c.id_campana + '</span></td>' +
+                        '<td><span class="badge bg-light text-dark border">' + segmentoDisplay + '</span></td>' +
+                        '<td><span class="small text-dark">' + remitenteDisplay + '</span></td>' +
                         '<td class="text-center fw-bold">' + c.enviados + ' / ' + c.total + '</td>' +
                         '<td class="text-center"><span class="badge bg-success-subtle text-success">' + c.tasa_exito + '</span></td>' +
                         '<td class="text-center">' + badgeEstado + '</td>' +
@@ -1057,9 +1086,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
 
-                auditAsunto.innerText = data.campana.asunto;
+                auditAsunto.innerText = sanearTextoUtf8(data.campana.asunto);
                 auditFecha.innerText = data.campana.fecha + ' ' + data.campana.hora;
-                auditRemitente.innerText = data.campana.remitente;
+                auditRemitente.innerText = sanearTextoUtf8(data.campana.remitente);
 
                 if (!data.destinatarios || data.destinatarios.length === 0) {
                     tbodyAudit.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No se encontraron destinatarios registrados en la cola.</td></tr>';
@@ -1073,12 +1102,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     else if (d.estado === 'FALLIDO') stBadge = '<span class="badge bg-danger">Fallido</span>';
                     else if (d.estado === 'PENDIENTE') stBadge = '<span class="badge bg-warning text-dark">Pendiente</span>';
 
+                    const nombreDisplay = escapeHtml(sanearTextoUtf8(d.nombre || 'N/A'));
+                    const emailDisplay = escapeHtml(d.email);
+                    const detalleDisplay = escapeHtml(sanearTextoUtf8(d.fecha_envio || d.error_msg || '-'));
+
                     rowsHtml += '<tr>' +
-                        '<td class="fw-bold">' + (d.nombre || 'N/A') + '</td>' +
-                        '<td>' + d.email + '</td>' +
+                        '<td class="fw-bold">' + nombreDisplay + '</td>' +
+                        '<td>' + emailDisplay + '</td>' +
                         '<td class="text-center">' + stBadge + '</td>' +
                         '<td class="text-center">' + d.intentos + '</td>' +
-                        '<td class="small text-muted">' + (d.fecha_envio || d.error_msg || '-') + '</td>' +
+                        '<td class="small text-muted">' + detalleDisplay + '</td>' +
                     '</tr>';
                 });
 

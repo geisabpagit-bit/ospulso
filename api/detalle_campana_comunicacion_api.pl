@@ -6,6 +6,7 @@ use open qw(:utf8);
 use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use JSON::PP;
+use Encode qw(decode encode is_utf8);
 use FindBin;
 use lib "$FindBin::Bin/..";
 
@@ -28,6 +29,16 @@ if (!$id_campana) {
     exit;
 }
 
+sub sanear_utf8 {
+    my ($str) = @_;
+    return '' unless defined $str;
+    if ($str =~ /[\xC2\xC3]/) {
+        my $fixed = eval { decode('UTF-8', encode('ISO-8859-1', $str)) };
+        return $fixed if ($fixed && !$@);
+    }
+    return $str;
+}
+
 my $campanas_file = "$FindBin::Bin/../dat/campanas_comunicacion.dat";
 my $cola_file     = "$FindBin::Bin/../dat/cola_correos_masivos.dat";
 
@@ -46,9 +57,9 @@ if (-f $campanas_file) {
                 id_campana => $c[0],
                 fecha      => $c[1],
                 hora       => $c[2],
-                remitente  => "$c[4] ($c[5])",
+                remitente  => sanear_utf8("$c[4] ($c[5])"),
                 segmento   => $c[7],
-                asunto     => $c[8],
+                asunto     => sanear_utf8($c[8]),
                 total      => int($c[9] || 0),
                 enviados   => int($c[10] || 0),
                 fallidos   => int($c[11] || 0),
@@ -78,12 +89,12 @@ if (-f $cola_file) {
             push @destinatarios, {
                 id_cola     => $f[0],
                 email       => $f[2],
-                nombre      => $f[3],
+                nombre      => sanear_utf8($f[3]),
                 tipo        => $f[4],
                 estado      => $f[7],
                 intentos    => int($f[8] || 0),
                 fecha_envio => $f[9] || '',
-                error_msg   => $f[10] || ''
+                error_msg   => sanear_utf8($f[10] || '')
             };
         }
     }

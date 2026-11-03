@@ -6,6 +6,7 @@ use open qw(:utf8);
 use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use JSON::PP;
+use Encode qw(decode encode is_utf8);
 use FindBin;
 use lib "$FindBin::Bin/..";
 
@@ -26,6 +27,17 @@ my $rol_sesion     = $sd->{role} || 'Invitado';
 my $id_usuario     = $sd->{id_registro} // $sd->{id_usuario} // '';
 my $id_medico_ses  = $sd->{id_medico} // '';
 my $id_empresa     = $sd->{id_empresa} // '0';
+
+sub sanear_utf8 {
+    my ($str) = @_;
+    return '' unless defined $str;
+    # Detectar y reparar doble codificación si existiera
+    if ($str =~ /[\xC2\xC3]/) {
+        my $fixed = eval { decode('UTF-8', encode('ISO-8859-1', $str)) };
+        return $fixed if ($fixed && !$@);
+    }
+    return $str;
+}
 
 my $campanas_file = "$FindBin::Bin/../dat/campanas_comunicacion.dat";
 my @campanas = ();
@@ -62,9 +74,9 @@ if (-f $campanas_file) {
                 id_campana => $id_campana,
                 fecha      => $fecha,
                 hora       => $hora,
-                remitente  => "$usr_rem ($rol_rem)",
+                remitente  => sanear_utf8("$usr_rem ($rol_rem)"),
                 segmento   => $segmento,
-                asunto     => $asunto,
+                asunto     => sanear_utf8($asunto),
                 total      => $t,
                 enviados   => $ok,
                 fallidos   => int($fail_count || 0),

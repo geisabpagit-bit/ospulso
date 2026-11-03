@@ -6,6 +6,7 @@ use open qw(:utf8);
 use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use JSON::PP;
+use Encode qw(decode encode is_utf8);
 use POSIX qw(strftime);
 use FindBin;
 use lib "$FindBin::Bin/..";
@@ -23,9 +24,22 @@ unless ($sd->{session_ok}) {
     exit;
 }
 
-my $asunto   = $q->param('asunto') || '';
-my $cuerpo   = $q->param('cuerpo') || '';
-my $segmento = $q->param('segmento') || '';
+sub limpiar_input_utf8 {
+    my ($val) = @_;
+    return '' unless defined $val;
+    if (!is_utf8($val)) {
+        eval { $val = decode('UTF-8', $val); };
+    }
+    if ($val =~ /[\xC2\xC3]/) {
+        my $fixed = eval { decode('UTF-8', encode('ISO-8859-1', $val)) };
+        $val = $fixed if ($fixed && !$@);
+    }
+    return $val;
+}
+
+my $asunto   = limpiar_input_utf8($q->param('asunto') || '');
+my $cuerpo   = limpiar_input_utf8($q->param('cuerpo') || '');
+my $segmento = limpiar_input_utf8($q->param('segmento') || '');
 
 if (!$asunto || !$cuerpo || !$segmento) {
     print encode_json({ ok => 0, msg => "Parámetros incompletos (asunto, cuerpo y segmento son obligatorios)" });
@@ -172,7 +186,7 @@ open(my $qfh, ">>:encoding(UTF-8)", $cola_file) or die "No se pudo abrir cola_co
 my $item_num = 1;
 foreach my $dst (@destinatarios) {
     my $id_cola = "${id_campana}_" . $item_num++;
-    my $nombre_dst = $dst->{nombre} // '';
+    my $nombre_dst = limpiar_input_utf8($dst->{nombre} // '');
     $nombre_dst =~ s/\|/ /g;
     my $email_dst  = $dst->{email} // '';
     my $tipo_dst   = $dst->{tipo} // 'usuario';
