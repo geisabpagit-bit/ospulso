@@ -52,8 +52,78 @@ my $id_usuario     = $sd->{id_registro} // $sd->{id_usuario} // '';
 my $id_medico_ses  = $sd->{id_medico} // '';
 my $id_empresa     = $sd->{id_empresa} // '0';
 
+# Detección de Organización sin CLUE o Administrador único/Médico
+my $sin_clue = 0;
+my $admin_es_medico = 0;
+my $clues_org = '';
+
+if ($id_empresa && $id_empresa ne '0') {
+    my $neg_file = "$FindBin::Bin/../dat/negocios.dat";
+    if (-f $neg_file && open(my $fh_n, "<:encoding(UTF-8)", $neg_file)) {
+        <$fh_n>;
+        while (my $line = <$fh_n>) {
+            chomp $line;
+            next if $line =~ /^\s*$/;
+            my @cols = split(/\|/, $line);
+            if ($cols[0] eq $id_empresa) {
+                $clues_org = $cols[18] // '';
+                $clues_org =~ s/^\s+|\s+$//g;
+                if (!$clues_org || $clues_org eq '0' || $clues_org =~ /^No\s*(asignada|aplica)$/i) {
+                    $sin_clue = 1;
+                }
+                last;
+            }
+        }
+        close($fh_n);
+    }
+
+    if ($rol_sesion =~ /Administrador/i && $rol_sesion =~ /Medico/i) {
+        $admin_es_medico = 1;
+    } elsif ($id_medico_ses && $id_medico_ses ne '0' && $rol_sesion =~ /Administrador/i) {
+        $admin_es_medico = 1;
+    } else {
+        my $usr_file = "$FindBin::Bin/../dat/usuarios.dat";
+        if (-f $usr_file && open(my $fh_u, "<:encoding(UTF-8)", $usr_file)) {
+            <$fh_u>;
+            my $admin_es_med = 0;
+            while (my $line = <$fh_u>) {
+                chomp $line;
+                next if $line =~ /^\s*$/;
+                my @cols = split(/!/, $line);
+                next if @cols < 7;
+                my $u_id    = $cols[0] // '';
+                my $u_email = lc($cols[2] // '');
+                my $u_rol   = $cols[5] // '';
+                my $u_neg   = $cols[6] // '';
+                my $u_ced   = $cols[9] // '';
+                $u_ced =~ s/^\s+|\s+$//g;
+
+                if ($u_neg =~ /^$id_empresa:/) {
+                    if ($u_id eq $id_usuario || (defined $sd->{correo_login} && $u_email eq lc($sd->{correo_login}))) {
+                        if ($u_rol =~ /Administrador/i && ($u_rol =~ /Medico/i || ($u_ced && $u_ced ne '0'))) {
+                            $admin_es_med = 1;
+                        }
+                    }
+                }
+            }
+            close($fh_u);
+            if ($admin_es_med) {
+                $admin_es_medico = 1;
+            }
+        }
+    }
+}
+
+my $solo_pacientes = ($sin_clue || $admin_es_medico) ? 1 : 0;
+$solo_pacientes = 0 if ($rol_sesion =~ /Administrador Global/i);
+
+# Si la organización no tiene CLUE o admin es médico, reconducir cualquier segmento de personal a pacientes
+if ($solo_pacientes && $segmento =~ /^personal_clinica|solo_medicos|solo_recepcion$/) {
+    $segmento = 'todos_pacientes_clinica';
+}
+
 # Aplicar API-RBAC estricto
-if ($rol_sesion =~ /Medico/i && $segmento ne 'mis_pacientes') {
+if ($rol_sesion =~ /Medico/i && $segmento ne 'mis_pacientes' && $segmento ne 'individual_org') {
     $segmento = 'mis_pacientes';
 }
 

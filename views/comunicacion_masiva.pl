@@ -29,6 +29,71 @@ my $id_medico   = $session_data->{id_medico} // '';
 my $id_empresa  = $session_data->{id_empresa} // '0';
 my $id_registro = $session_data->{id_registro} // '';
 
+# Detección de Organización sin CLUE o Administrador único/Médico
+my $sin_clue = 0;
+my $admin_es_medico = 0;
+my $clues_org = '';
+
+if ($id_empresa && $id_empresa ne '0') {
+    my $neg_file = "$FindBin::Bin/../dat/negocios.dat";
+    if (-f $neg_file && open(my $fh_n, "<:encoding(UTF-8)", $neg_file)) {
+        <$fh_n>;
+        while (my $line = <$fh_n>) {
+            chomp $line;
+            next if $line =~ /^\s*$/;
+            my @cols = split(/\|/, $line);
+            if ($cols[0] eq $id_empresa) {
+                $clues_org = $cols[18] // '';
+                $clues_org =~ s/^\s+|\s+$//g;
+                if (!$clues_org || $clues_org eq '0' || $clues_org =~ /^No\s*(asignada|aplica)$/i) {
+                    $sin_clue = 1;
+                }
+                last;
+            }
+        }
+        close($fh_n);
+    }
+
+    if ($role =~ /Administrador/i && $role =~ /Medico/i) {
+        $admin_es_medico = 1;
+    } elsif ($id_medico && $id_medico ne '0' && $role =~ /Administrador/i) {
+        $admin_es_medico = 1;
+    } else {
+        my $usr_file = "$FindBin::Bin/../dat/usuarios.dat";
+        if (-f $usr_file && open(my $fh_u, "<:encoding(UTF-8)", $usr_file)) {
+            <$fh_u>;
+            my $admin_es_med = 0;
+            while (my $line = <$fh_u>) {
+                chomp $line;
+                next if $line =~ /^\s*$/;
+                my @cols = split(/!/, $line);
+                next if @cols < 7;
+                my $u_id    = $cols[0] // '';
+                my $u_email = lc($cols[2] // '');
+                my $u_rol   = $cols[5] // '';
+                my $u_neg   = $cols[6] // '';
+                my $u_ced   = $cols[9] // '';
+                $u_ced =~ s/^\s+|\s+$//g;
+
+                if ($u_neg =~ /^$id_empresa:/) {
+                    if ($u_id eq ($id_registro // '') || (defined $session_data->{correo_login} && $u_email eq lc($session_data->{correo_login}))) {
+                        if ($u_rol =~ /Administrador/i && ($u_rol =~ /Medico/i || ($u_ced && $u_ced ne '0'))) {
+                            $admin_es_med = 1;
+                        }
+                    }
+                }
+            }
+            close($fh_u);
+            if ($admin_es_med) {
+                $admin_es_medico = 1;
+            }
+        }
+    }
+}
+
+my $solo_pacientes = ($sin_clue || $admin_es_medico) ? 1 : 0;
+$solo_pacientes = 0 if ($role =~ /Administrador Global/i);
+
 # Encabezado HTML
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 render_header(
@@ -66,6 +131,7 @@ print <<"PAGE_HTML";
          data-usuario="$usuario" 
          data-id-empresa="$id_empresa" 
          data-id-medico="$id_medico" 
+         data-solo-pacientes="$solo_pacientes" 
          style="display:none;"></div>
 
     <!-- Hero Header Institucional Alto Contraste -->
@@ -161,7 +227,14 @@ PAGE_HTML
                                 </optgroup>
 PAGE_HTML
 } elsif ($role =~ /Administrador Organizacion/i) {
-    print <<'PAGE_HTML';
+    if ($solo_pacientes) {
+        print <<'PAGE_HTML';
+                                <optgroup label="Pacientes de Mi Clínica">
+                                    <option value="todos_pacientes_clinica" selected>📋 Todos los Pacientes de mi Organización</option>
+                                </optgroup>
+PAGE_HTML
+    } else {
+        print <<'PAGE_HTML';
                                 <optgroup label="Personal de Mi Clínica">
                                     <option value="personal_clinica" selected>👥 Todo el Personal de mi Clínica (Médicos y Recepción)</option>
                                     <option value="solo_medicos">🩺 Únicamente Médicos de mi Clínica</option>
@@ -171,6 +244,7 @@ PAGE_HTML
                                     <option value="todos_pacientes_clinica">📋 Todos los Pacientes de mi Organización</option>
                                 </optgroup>
 PAGE_HTML
+    }
 } elsif ($role =~ /Medico/i) {
     print <<'PAGE_HTML';
                                 <optgroup label="Mi Cartera Clínica">
@@ -183,7 +257,57 @@ PAGE_HTML
 PAGE_HTML
 }
 
-print <<'PAGE_HTML';
+if ($solo_pacientes) {
+    print <<'PAGE_HTML';
+                                <optgroup label="Búsqueda Directa de Pacientes">
+                                    <option value="individual_org">🎯 Seleccionar paciente específico de mi organización</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <!-- Buscador y Selector Interactivo de Pacientes de la Organización -->
+                        <div id="boxBuscadorIndividual" class="buscador-org-box d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label m-0" style="font-size: 0.82rem; font-weight: 500; color: #475569;" for="iptBuscarDestinatario">
+                                    <i class="fa-solid fa-magnifying-glass text-teal me-1"></i> Buscar paciente:
+                                </label>
+                                <span class="text-muted" style="font-size: 0.74rem;">Selecciona 1 o más con la casilla</span>
+                            </div>
+                            <div class="input-group input-group-sm mb-2">
+                                <span class="input-group-text bg-white border-end-0" style="color: #64748B;"><i class="fa-solid fa-filter"></i></span>
+                                <input type="text" id="iptBuscarDestinatario" class="form-control border-start-0" style="font-size: 0.82rem; color: #334155;" placeholder="Buscar por nombre o correo del paciente...">
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-1 px-1">
+                                <span style="font-size: 0.75rem; color: #64748B;">Directorio de pacientes</span>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" id="btnMarcarVisibles" style="font-size: 0.73rem; color: #19B7A5;">Marcar visibles</button>
+                                    <span style="color: #CBD5E1;">|</span>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" id="btnDesmarcarTodos" style="font-size: 0.73rem;">Desmarcar todos</button>
+                                </div>
+                            </div>
+
+                            <div id="listaDestinatariosOrg" class="lista-destinatarios-org">
+                                <div class="text-center py-3 text-muted small"><i class="fa-solid fa-spinner fa-spin text-teal me-1"></i> Cargando pacientes de la organización...</div>
+                            </div>
+
+                            <!-- Lista generada de nombres y correos seleccionados -->
+                            <div id="boxDestinatariosSeleccionados" class="mt-2 p-2 rounded border d-none" style="background: #F8FAFC; border-color: #CBD5E1 !important;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span style="font-size: 0.78rem; font-weight: 500; color: #475569;">
+                                        <i class="fa-solid fa-user-check text-teal me-1"></i> Pacientes seleccionados (<span id="txtCountSeleccionados" class="fw-semibold text-teal">0</span>):
+                                    </span>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-danger text-decoration-none" id="btnVaciarSeleccionados" style="font-size: 0.73rem;">
+                                        <i class="fa-solid fa-trash-can me-1"></i> Limpiar selección
+                                    </button>
+                                </div>
+                                <div id="listaChipsSeleccionados" class="d-flex flex-wrap gap-1" style="max-height: 130px; overflow-y: auto;">
+                                </div>
+                            </div>
+                        </div>
+PAGE_HTML
+} else {
+    print <<'PAGE_HTML';
                                 <optgroup label="Búsqueda Directa en la Organización">
                                     <option value="individual_org">🎯 Seleccionar correo específico de mi organización</option>
                                 </optgroup>
@@ -230,7 +354,10 @@ print <<'PAGE_HTML';
                                 </div>
                             </div>
                         </div>
+PAGE_HTML
+}
 
+print <<'PAGE_HTML';
                         <!-- Métrica de Audiencia en Vivo -->
                         <div class="audience-metric-card">
                             <div>
@@ -930,7 +1057,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function cargarDirectorioOrganizacion() {
         if (!listaDestinatariosOrg) return;
-        listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-muted small" style="font-size: 0.8rem;"><i class="fa-solid fa-spinner fa-spin me-1 text-teal"></i> Cargando miembros de la organización...</div>';
+        const esSoloPac = configEl && configEl.dataset.soloPacientes === '1';
+        const txtCargando = esSoloPac ? 'Cargando pacientes de la organización...' : 'Cargando miembros de la organización...';
+        listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-muted small" style="font-size: 0.8rem;"><i class="fa-solid fa-spinner fa-spin me-1 text-teal"></i> ' + txtCargando + '</div>';
 
         fetch('../api/comunicacion_audiencia_api.pl?segmento=miembros_organizacion')
             .then(res => res.json())

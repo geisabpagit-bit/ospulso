@@ -130,6 +130,11 @@ Para garantizar accesibilidad total, ergonomía visual y prevenir bloqueos de pa
 * **Botones Delgados Premium:** Clases `.btn-premium-primary`, `.btn-outline-teal` y `.btn-outline-danger-thin` con radio `rounded-pill` y contraste equilibrado.
 * **Navegación en Menú Lateral:** Enlace `'Comunicaci&oacute;n'` (`views/comunicacion_masiva.pl`) registrado en `utils/sub_sidebar.pl` y `dat/menu_cards.dat` dentro del acordeón "Administración" debajo de "Gestión de Personal".
 
-
-
-
+### 8.5 Segmentación Especial: Organizaciones sin CLUE y Consultorios Unipersonales (Solo Pacientes)
+* **Regla de Negocio:** Cuando se trate de una organización **sin clave CLUE** (campo 18 en `dat/negocios.dat` vacío, `'0'`, `'No asignada'` o `'No aplica'`) O donde el **Administrador de la organización y el Médico sean la misma persona** (rol dual `Administrador Organizacion,Medico`, o el administrador cuenta con perfil/cédula médica y no existen otros médicos en la clínica):
+  * **Punto 1. Audiencia y Segmentación:** Se restringen y ocultan automáticamente todas las opciones dirigidas a personal de clínica (`personal_clinica`, `solo_medicos`, `solo_recepcion`).
+  * **Opciones Habilitadas:** Únicamente se muestran opciones dirigidas a pacientes:
+    * `todos_pacientes_clinica`: Todos los Pacientes de mi Organización.
+    * `individual_org`: Búsqueda directa y selección interactiva de pacientes con casillas de verificación.
+  * **Adaptación Dinámica de la Interfaz:** Las etiquetas del buscador cambian contextualmente a "Buscar paciente:", "Directorio de pacientes" y "Pacientes seleccionados", reflejando que la clínica opera como consultorio individual o práctica médica directa sin personal intermedio.
+  * **Protección Backend (API-RBAC):** Tanto `api/comunicacion_audiencia_api.pl` como `api/crear_campana_correo_api.pl` detectan esta condición y descartan cualquier usuario operativo de `usuarios.dat`, garantizando que únicamente se listen y despachen correos a pacientes registrados en `pacientes.dat`.
