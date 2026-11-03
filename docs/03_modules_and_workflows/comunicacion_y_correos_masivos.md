@@ -106,9 +106,11 @@ Para garantizar accesibilidad total, ergonomía visual y prevenir bloqueos de pa
 
 ## 8. Funcionalidades de Nueva Campaña e Historial
 
-### 8.1 Selección de Destinatario Individual en Organización
-* La opción **"Miembro Individual de la Organización"** (`individual_org`) despliega un buscador con filtro interactivo en tiempo real que consulta `api/comunicacion_audiencia_api.pl?segmento=miembros_organizacion`.
-* Permite buscar por nombre, correo electrónico o rol de usuario, mostrando la selección visual con badge interactivo y botón de remoción.
+### 8.1 Selección de Destinatarios Específicos de la Organización
+* La opción **"Seleccionar correo específico de mi organización"** (`individual_org`) despliega un buscador con filtro interactivo en tiempo real que consulta `api/comunicacion_audiencia_api.pl?segmento=miembros_organizacion`.
+* **Casillas de Verificación Multi-Selección:** Cada elemento de la lista incorpora una casilla de verificación al lado del nombre para seleccionar 1 o más destinatarios de forma simultánea.
+* **Generación de Lista Dinámica:** Genera en vivo la lista interactiva de nombres y correos seleccionados (`#boxDestinatariosSeleccionados`) con conteo en tiempo real, chips descriptivos con botón de remoción y botones de acción rápida para marcar visibles o desmarcar todos.
+* **Control de Tipografía y Paleta:** Se redujo el tamaño de las etiquetas eliminando negritas invasivas y reemplazando el color negro por tonos gris pizarra mandantes (`#475569`, `#334155`, `#64748B`), idénticos a los del menú lateral.
 
 ### 8.2 Gestión de Archivos Adjuntos
 * Soporta hasta **2 archivos adjuntos** por campaña con validación estricta de extensiones permitidas:

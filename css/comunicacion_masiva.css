@@ -267,13 +267,14 @@
 }
 
 .destinatario-item {
-    padding: 0.55rem 0.85rem;
+    padding: 0.45rem 0.65rem;
     border-bottom: 1px solid #F1F5F9;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
     transition: background 0.15s ease;
+    user-select: none;
 }
 
 .destinatario-item:last-child {
@@ -281,12 +282,46 @@
 }
 
 .destinatario-item:hover {
-    background: #F0FDFA;
+    background: #F8FAFC;
 }
 
-.destinatario-item.selected {
-    background: #CCFBF1;
-    border-left: 4px solid var(--md-teal-clinical, #19B7A5);
+.destinatario-item.seleccionado {
+    background: #F0FDFA;
+    border-left: 3px solid var(--md-teal-clinical, #19B7A5);
+}
+
+.destinatario-item .form-check-input {
+    cursor: pointer;
+    border-color: #94A3B8;
+}
+
+.destinatario-item .form-check-input:checked {
+    background-color: var(--md-teal-clinical, #19B7A5);
+    border-color: var(--md-teal-clinical, #19B7A5);
+}
+
+.destinatario-chip-badge {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 50rem;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: #334155;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.destinatario-chip-badge .btn-quitar-destinatario {
+    cursor: pointer;
+    color: #94A3B8;
+    transition: color 0.15s ease;
+}
+
+.destinatario-chip-badge .btn-quitar-destinatario:hover {
+    color: #EF4444;
 }
 
 /* Contenedor de Adjuntos */

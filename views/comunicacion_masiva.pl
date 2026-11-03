@@ -134,10 +134,10 @@ print <<"PAGE_HTML";
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold text-dark small" for="selAudiencia">
+                            <label class="form-label mb-1" style="font-size: 0.83rem; font-weight: 500; color: #475569;" for="selAudiencia">
                                 Selecciona el público objetivo:
                             </label>
-                            <select id="selAudiencia" class="form-select form-select-lg fw-semibold" style="border-radius: 10px;">
+                            <select id="selAudiencia" class="form-select" style="border-radius: 8px; font-size: 0.86rem; font-weight: 400; color: #334155; border-color: #CBD5E1;">
 PAGE_HTML
 
 # Renderizado Condicional del Select de Audiencias según Rol (UI-RBAC)
@@ -185,26 +185,49 @@ PAGE_HTML
 
 print <<'PAGE_HTML';
                                 <optgroup label="Búsqueda Directa en la Organización">
-                                    <option value="individual_org">🎯 Seleccionar Correo Específico de mi Organización</option>
+                                    <option value="individual_org">🎯 Seleccionar correo específico de mi organización</option>
                                 </optgroup>
                             </select>
                         </div>
 
                         <!-- Buscador y Selector Interactivo de Miembro/Paciente de la Organización -->
                         <div id="boxBuscadorIndividual" class="buscador-org-box d-none">
-                            <label class="form-label fw-bold text-dark small mb-1" for="iptBuscarDestinatario">
-                                <i class="fa-solid fa-magnifying-glass text-teal me-1"></i> Buscar por Nombre o Correo en la Organización:
-                            </label>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label m-0" style="font-size: 0.82rem; font-weight: 500; color: #475569;" for="iptBuscarDestinatario">
+                                    <i class="fa-solid fa-magnifying-glass text-teal me-1"></i> Buscar en la organización:
+                                </label>
+                                <span class="text-muted" style="font-size: 0.74rem;">Selecciona 1 o más con la casilla</span>
+                            </div>
                             <div class="input-group input-group-sm mb-2">
-                                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-filter text-muted"></i></span>
-                                <input type="text" id="iptBuscarDestinatario" class="form-control border-start-0" placeholder="Escribe para buscar (ej. Juan, Pérez, recepcion, doctor@...)...">
+                                <span class="input-group-text bg-white border-end-0" style="color: #64748B;"><i class="fa-solid fa-filter"></i></span>
+                                <input type="text" id="iptBuscarDestinatario" class="form-control border-start-0" style="font-size: 0.82rem; color: #334155;" placeholder="Buscar por nombre, correo o rol...">
                             </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-1 px-1">
+                                <span style="font-size: 0.75rem; color: #64748B;">Directorio de contactos</span>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" id="btnMarcarVisibles" style="font-size: 0.73rem; color: #19B7A5;">Marcar visibles</button>
+                                    <span style="color: #CBD5E1;">|</span>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" id="btnDesmarcarTodos" style="font-size: 0.73rem;">Desmarcar todos</button>
+                                </div>
+                            </div>
+
                             <div id="listaDestinatariosOrg" class="lista-destinatarios-org">
-                                <div class="text-center py-3 text-muted small"><i class="fa-solid fa-spinner fa-spin text-primary me-1"></i> Cargando miembros de la organización...</div>
+                                <div class="text-center py-3 text-muted small"><i class="fa-solid fa-spinner fa-spin text-teal me-1"></i> Cargando miembros de la organización...</div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
-                                <span id="txtInfoSeleccionIndividual"><i class="fa-solid fa-circle-info me-1 text-primary"></i> Haz clic en un contacto de la lista para seleccionarlo</span>
-                                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-danger d-none" id="btnLimpiarSeleccionIndividual">Quitar selección</button>
+
+                            <!-- Lista generada de nombres y correos seleccionados -->
+                            <div id="boxDestinatariosSeleccionados" class="mt-2 p-2 rounded border d-none" style="background: #F8FAFC; border-color: #CBD5E1 !important;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span style="font-size: 0.78rem; font-weight: 500; color: #475569;">
+                                        <i class="fa-solid fa-user-check text-teal me-1"></i> Destinatarios seleccionados (<span id="txtCountSeleccionados" class="fw-semibold text-teal">0</span>):
+                                    </span>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-danger text-decoration-none" id="btnVaciarSeleccionados" style="font-size: 0.73rem;">
+                                        <i class="fa-solid fa-trash-can me-1"></i> Limpiar selección
+                                    </button>
+                                </div>
+                                <div id="listaChipsSeleccionados" class="d-flex flex-wrap gap-1" style="max-height: 130px; overflow-y: auto;">
+                                </div>
                             </div>
                         </div>
 
@@ -236,17 +259,17 @@ print <<'PAGE_HTML';
 
                         <!-- Asunto -->
                         <div class="mb-3">
-                            <label class="form-label fw-bold text-dark small" for="iptAsunto">
+                            <label class="form-label mb-1" style="font-size: 0.83rem; font-weight: 500; color: #475569;" for="iptAsunto">
                                 Asunto del Correo: <span class="text-danger">*</span>
                             </label>
                             <input type="text" id="iptAsunto" class="form-control" 
                                    placeholder="Ej. Aviso Importante: Horarios de Atención y Promoción de Salud" 
-                                   maxlength="150" value="Comunicado Oficial de la Clínica" style="border-radius: 10px;">
+                                   maxlength="150" value="Comunicado Oficial de la Clínica" style="border-radius: 8px; font-size: 0.88rem; color: #334155; border-color: #CBD5E1;">
                         </div>
 
                         <!-- Variables Dinámicas de Personalización -->
                         <div class="mb-2">
-                            <span class="small fw-bold text-muted">Insertar Variable Dinámica (Se sustituirá automáticamente):</span>
+                            <span class="small" style="font-size: 0.8rem; font-weight: 500; color: #64748B;">Insertar Variable Dinámica (Se sustituirá automáticamente):</span>
                             <div class="variable-tags-container">
                                 <button type="button" class="btn-tag-variable" data-tag="{{nombre}}">
                                     <i class="fa-solid fa-user text-primary"></i> {{nombre}}
@@ -265,17 +288,17 @@ print <<'PAGE_HTML';
 
                         <!-- Cuerpo del Correo -->
                         <div class="mb-3">
-                            <label class="form-label fw-bold text-dark small" for="txtCuerpo">
+                            <label class="form-label mb-1" style="font-size: 0.83rem; font-weight: 500; color: #475569;" for="txtCuerpo">
                                 Mensaje / Contenido: <span class="text-danger">*</span>
                             </label>
-                            <textarea id="txtCuerpo" class="form-control" rows="8" style="border-radius: 10px; font-size: 0.95rem;" 
+                            <textarea id="txtCuerpo" class="form-control" rows="8" style="border-radius: 8px; font-size: 0.9rem; color: #334155; border-color: #CBD5E1;" 
                                       placeholder="Escribe aquí el contenido del correo... Puedes usar las variables dinámicas de arriba."></textarea>
                         </div>
 
                         <!-- Archivos Adjuntos (Hasta 2, máx 5 MB en total) -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label fw-bold text-dark small m-0">
+                                <label class="form-label m-0" style="font-size: 0.83rem; font-weight: 500; color: #475569;">
                                     <i class="fa-solid fa-paperclip text-teal me-1"></i> Archivos Adjuntos:
                                 </label>
                                 <span class="text-muted" style="font-size: 0.74rem;">Hasta 2 archivos • Imágenes, Docs o Hojas de Cálculo</span>
@@ -289,7 +312,7 @@ print <<'PAGE_HTML';
                                         </button>
                                         <span class="small text-muted" id="txtConteoAdjuntos">0 / 2 adjuntos</span>
                                     </div>
-                                    <div class="small fw-bold text-muted" id="txtPesoTotalAdjuntos">
+                                    <div class="small fw-semibold text-muted" id="txtPesoTotalAdjuntos">
                                         <i class="fa-solid fa-hard-drive me-1 text-teal"></i> 0.00 MB / 5.00 MB
                                     </div>
                                 </div>
@@ -302,7 +325,7 @@ print <<'PAGE_HTML';
                         <!-- Indicador de Salud y Entregabilidad (Spam Score Meter) -->
                         <div class="spam-meter-card mb-4" id="spamMeterCard">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="small fw-bold text-dark"><i class="fa-solid fa-gauge-high text-teal me-1"></i> Índice de Entregabilidad (Anti-SPAM)</span>
+                                <span class="small" style="font-size: 0.82rem; font-weight: 500; color: #475569;"><i class="fa-solid fa-gauge-high text-teal me-1"></i> Índice de Entregabilidad (Anti-SPAM)</span>
                                 <span class="badge bg-success fw-bold" id="spamScoreBadge">95% Excelente</span>
                             </div>
                             <div class="spam-meter-bar">
@@ -718,17 +741,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const iptAsunto = document.getElementById('iptAsunto');
     const txtCuerpo = document.getElementById('txtCuerpo');
 
-    // Elementos del Directorio Individual
+    // Elementos del Directorio y Selección Múltiple de la Organización
     const boxBuscadorIndividual = document.getElementById('boxBuscadorIndividual');
     const iptBuscarDestinatario = document.getElementById('iptBuscarDestinatario');
     const listaDestinatariosOrg = document.getElementById('listaDestinatariosOrg');
-    const destinatarioSeleccionadoDisplay = document.getElementById('destinatarioSeleccionadoDisplay');
-    const nombreDestinatarioBadge = document.getElementById('nombreDestinatarioBadge');
-    const emailDestinatarioBadge = document.getElementById('emailDestinatarioBadge');
-    const btnQuitarDestinatario = document.getElementById('btnQuitarDestinatario');
+    const boxDestinatariosSeleccionados = document.getElementById('boxDestinatariosSeleccionados');
+    const listaChipsSeleccionados = document.getElementById('listaChipsSeleccionados');
+    const txtCountSeleccionados = document.getElementById('txtCountSeleccionados');
+    const btnVaciarSeleccionados = document.getElementById('btnVaciarSeleccionados');
+    const btnMarcarVisibles = document.getElementById('btnMarcarVisibles');
+    const btnDesmarcarTodos = document.getElementById('btnDesmarcarTodos');
 
     let miembrosOrgCache = [];
-    let destinatarioSeleccionado = null;
+    let miembrosFiltradosActuales = [];
+    // Mapa de destinatarios seleccionados (clave: email en minúsculas)
+    let destinatariosSeleccionados = new Map();
 
     // Elementos de Archivos Adjuntos
     const iptAdjuntos = document.getElementById('iptAdjuntos');
@@ -757,67 +784,153 @@ document.addEventListener('DOMContentLoaded', function () {
         prevBrandName.innerText = 'Consultorio Médico & Dental';
     }
 
-    // 3. Conteo Dinámico en Vivo de Destinatarios y Directorio de Organización
+    // 3. Conteo Dinámico en Vivo de Destinatarios y Directorio de Organización con Checkboxes
+    function actualizarVistaSeleccionados() {
+        const totalSel = destinatariosSeleccionados.size;
+
+        // Actualizar contadores
+        if (txtCountSeleccionados) txtCountSeleccionados.innerText = totalSel;
+        if (txtTotalDestinatarios) txtTotalDestinatarios.innerText = totalSel;
+
+        // Sincronizar simulación en vivo del destinatario
+        if (prevDestinatario) {
+            if (totalSel === 0) {
+                prevDestinatario.innerText = 'Seleccionar destinatario(s)...';
+            } else if (totalSel === 1) {
+                const primer = destinatariosSeleccionados.values().next().value;
+                prevDestinatario.innerText = primer.nombre + ' <' + primer.email + '>';
+            } else {
+                const arr = Array.from(destinatariosSeleccionados.values());
+                const previewText = arr.slice(0, 2).map(x => x.nombre + ' <' + x.email + '>').join(', ');
+                prevDestinatario.innerText = previewText + (arr.length > 2 ? ' ... (+' + (arr.length - 2) + ' más)' : '');
+            }
+        }
+
+        // Generar lista de chips con nombres y correos seleccionados
+        if (!boxDestinatariosSeleccionados || !listaChipsSeleccionados) return;
+
+        if (totalSel === 0) {
+            boxDestinatariosSeleccionados.classList.add('d-none');
+            listaChipsSeleccionados.innerHTML = '';
+        } else {
+            boxDestinatariosSeleccionados.classList.remove('d-none');
+            let chipsHtml = '';
+            destinatariosSeleccionados.forEach(function (m) {
+                const nomEsc = escapeHtml(m.nombre);
+                const emEsc = escapeHtml(m.email);
+                chipsHtml += '<span class="destinatario-chip-badge d-inline-flex align-items-center gap-1 py-1 px-2 rounded-pill border" style="background: #FFFFFF; font-size: 0.76rem; color: #334155; border-color: #CBD5E1;">' +
+                    '<i class="fa-regular fa-envelope text-teal" style="font-size: 0.7rem;"></i>' +
+                    '<span class="text-truncate" style="max-width: 220px;" title="' + nomEsc + ' (' + emEsc + ')">' + nomEsc + ' &lt;' + emEsc + '&gt;</span>' +
+                    '<button type="button" class="btn-quitar-destinatario border-0 bg-transparent text-danger p-0 ms-1" data-email="' + emEsc + '" style="line-height: 1; font-size: 0.85rem;" title="Quitar destinatario">&times;</button>' +
+                '</span>';
+            });
+            listaChipsSeleccionados.innerHTML = chipsHtml;
+
+            // Evento para deseleccionar desde el chip
+            listaChipsSeleccionados.querySelectorAll('.btn-quitar-destinatario').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const emailParaQuitar = this.dataset.email.toLowerCase();
+                    destinatariosSeleccionados.delete(emailParaQuitar);
+                    actualizarCheckboxesLista();
+                    actualizarVistaSeleccionados();
+                    refrescarSimulador();
+                });
+            });
+        }
+    }
+
+    function actualizarCheckboxesLista() {
+        if (!listaDestinatariosOrg) return;
+        listaDestinatariosOrg.querySelectorAll('.destinatario-item').forEach(function (row) {
+            const em = (row.dataset.email || '').toLowerCase();
+            const chk = row.querySelector('.chk-destinatario');
+            const isSel = destinatariosSeleccionados.has(em);
+            if (chk) chk.checked = isSel;
+            if (isSel) {
+                row.classList.add('seleccionado');
+            } else {
+                row.classList.remove('seleccionado');
+            }
+        });
+    }
+
+    function toggleDestinatario(email, nombre, rol) {
+        const key = (email || '').toLowerCase().trim();
+        if (!key) return;
+
+        if (destinatariosSeleccionados.has(key)) {
+            destinatariosSeleccionados.delete(key);
+        } else {
+            destinatariosSeleccionados.set(key, { email: key, nombre: nombre, rol: rol });
+        }
+
+        actualizarCheckboxesLista();
+        actualizarVistaSeleccionados();
+        refrescarSimulador();
+    }
+
     function renderizarListaMiembros(lista) {
         if (!listaDestinatariosOrg) return;
+        miembrosFiltradosActuales = lista || [];
+
         if (!lista || lista.length === 0) {
-            listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-muted small"><i class="fa-solid fa-user-slash me-1"></i> No se encontraron resultados en el directorio.</div>';
+            listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-muted small" style="font-size: 0.8rem;"><i class="fa-solid fa-user-slash me-1"></i> No se encontraron contactos en la búsqueda.</div>';
             return;
         }
 
         let html = '';
         lista.forEach(function (m) {
-            const isSel = destinatarioSeleccionado && destinatarioSeleccionado.email === m.email;
+            const emLower = (m.email || '').toLowerCase().trim();
+            const isSel = destinatariosSeleccionados.has(emLower);
             const selClass = isSel ? ' seleccionado' : '';
             const nombreClean = escapeHtml(sanearTextoUtf8(m.nombre));
-            const emailClean = escapeHtml(m.email);
+            const emailClean = escapeHtml(emLower);
             const rolClean = escapeHtml(sanearTextoUtf8(m.rol || 'Miembro'));
 
-            html += '<div class="destinatario-item d-flex justify-content-between align-items-center p-2 border-bottom' + selClass + '" data-email="' + emailClean + '" data-nombre="' + nombreClean + '" data-rol="' + rolClean + '">' +
-                '<div>' +
-                    '<div class="fw-bold small text-dark">' + nombreClean + '</div>' +
-                    '<div class="small text-muted" style="font-size: 0.78rem;">' + emailClean + '</div>' +
+            html += '<div class="destinatario-item d-flex justify-content-between align-items-center py-1 px-2 border-bottom' + selClass + '" data-email="' + emailClean + '" data-nombre="' + nombreClean + '" data-rol="' + rolClean + '">' +
+                '<div class="d-flex align-items-center gap-2">' +
+                    '<input type="checkbox" class="form-check-input chk-destinatario m-0" data-email="' + emailClean + '" data-nombre="' + nombreClean + '" data-rol="' + rolClean + '" ' + (isSel ? 'checked' : '') + '>' +
+                    '<div>' +
+                        '<div class="dest-nombre" style="font-size: 0.82rem; font-weight: 500; color: #334155;">' + nombreClean + '</div>' +
+                        '<div class="dest-email" style="font-size: 0.74rem; font-weight: 400; color: #64748B;">' + emailClean + '</div>' +
+                    '</div>' +
                 '</div>' +
-                '<span class="badge bg-light text-dark border">' + rolClean + '</span>' +
+                '<span class="badge" style="font-size: 0.72rem; font-weight: 400; background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0;">' + rolClean + '</span>' +
             '</div>';
         });
 
         listaDestinatariosOrg.innerHTML = html;
 
-        // Asignar eventos de click a cada fila
+        // Asignar eventos de toggle tanto al checkbox como a la fila completa
         listaDestinatariosOrg.querySelectorAll('.destinatario-item').forEach(function (row) {
-            row.addEventListener('click', function () {
+            row.addEventListener('click', function (e) {
+                // Si hizo clic directamente en el checkbox, dejamos que el evento change maneje o sincronizamos
+                if (e.target && e.target.classList.contains('chk-destinatario')) {
+                    return; // se procesa en el listener de cambio del checkbox
+                }
                 const email = this.dataset.email;
                 const nombre = this.dataset.nombre;
                 const rol = this.dataset.rol;
-
-                destinatarioSeleccionado = { email: email, nombre: nombre, rol: rol };
-
-                // Resaltar selección visual
-                listaDestinatariosOrg.querySelectorAll('.destinatario-item').forEach(el => el.classList.remove('seleccionado'));
-                this.classList.add('seleccionado');
-
-                // Mostrar badge de destinatario seleccionado
-                if (destinatarioSeleccionadoDisplay) {
-                    destinatarioSeleccionadoDisplay.classList.remove('d-none');
-                }
-                if (nombreDestinatarioBadge) nombreDestinatarioBadge.innerText = nombre;
-                if (emailDestinatarioBadge) emailDestinatarioBadge.innerText = email;
-
-                // Actualizar conteo a 1
-                if (txtTotalDestinatarios) txtTotalDestinatarios.innerText = '1';
-
-                // Actualizar simulador
-                if (prevDestinatario) {
-                    prevDestinatario.innerText = nombre + ' <' + email + '>';
-                }
+                toggleDestinatario(email, nombre, rol);
             });
+
+            const chk = row.querySelector('.chk-destinatario');
+            if (chk) {
+                chk.addEventListener('change', function (e) {
+                    e.stopPropagation();
+                    const email = this.dataset.email;
+                    const nombre = this.dataset.nombre;
+                    const rol = this.dataset.rol;
+                    toggleDestinatario(email, nombre, rol);
+                });
+            }
         });
     }
 
     function cargarDirectorioOrganizacion() {
         if (!listaDestinatariosOrg) return;
-        listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-muted small"><i class="fa-solid fa-spinner fa-spin me-1 text-teal"></i> Cargando miembros de la organización...</div>';
+        listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-muted small" style="font-size: 0.8rem;"><i class="fa-solid fa-spinner fa-spin me-1 text-teal"></i> Cargando miembros de la organización...</div>';
 
         fetch('../api/comunicacion_audiencia_api.pl?segmento=miembros_organizacion')
             .then(res => res.json())
@@ -833,12 +946,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(err => {
                 console.error('[Comunicación] Error al cargar miembros de organización:', err);
                 if (listaDestinatariosOrg) {
-                    listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-danger small"><i class="fa-solid fa-triangle-exclamation me-1"></i> No se pudo cargar el directorio.</div>';
+                    listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-danger small" style="font-size: 0.8rem;"><i class="fa-solid fa-triangle-exclamation me-1"></i> No se pudo cargar el directorio.</div>';
                 }
             });
     }
 
-    // Filtrado en vivo por nombre o correo
+    // Filtrado en vivo por nombre, correo o rol
     if (iptBuscarDestinatario) {
         iptBuscarDestinatario.addEventListener('input', function () {
             const q = this.value.toLowerCase().trim();
@@ -856,18 +969,40 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Quitar destinatario individual seleccionado
-    if (btnQuitarDestinatario) {
-        btnQuitarDestinatario.addEventListener('click', function () {
-            destinatarioSeleccionado = null;
-            if (destinatarioSeleccionadoDisplay) {
-                destinatarioSeleccionadoDisplay.classList.add('d-none');
-            }
-            if (txtTotalDestinatarios) txtTotalDestinatarios.innerText = '0';
-            if (prevDestinatario) prevDestinatario.innerText = 'Juan Pérez <juan.perez@ejemplo.com>';
-            if (listaDestinatariosOrg) {
-                listaDestinatariosOrg.querySelectorAll('.destinatario-item').forEach(el => el.classList.remove('seleccionado'));
-            }
+    // Acciones Rápidas: Marcar visibles y Desmarcar todos
+    if (btnMarcarVisibles) {
+        btnMarcarVisibles.addEventListener('click', function () {
+            miembrosFiltradosActuales.forEach(function (m) {
+                const em = (m.email || '').toLowerCase().trim();
+                if (em) {
+                    destinatariosSeleccionados.set(em, {
+                        email: em,
+                        nombre: sanearTextoUtf8(m.nombre || em),
+                        rol: sanearTextoUtf8(m.rol || 'Miembro')
+                    });
+                }
+            });
+            actualizarCheckboxesLista();
+            actualizarVistaSeleccionados();
+            refrescarSimulador();
+        });
+    }
+
+    if (btnDesmarcarTodos) {
+        btnDesmarcarTodos.addEventListener('click', function () {
+            destinatariosSeleccionados.clear();
+            actualizarCheckboxesLista();
+            actualizarVistaSeleccionados();
+            refrescarSimulador();
+        });
+    }
+
+    if (btnVaciarSeleccionados) {
+        btnVaciarSeleccionados.addEventListener('click', function () {
+            destinatariosSeleccionados.clear();
+            actualizarCheckboxesLista();
+            actualizarVistaSeleccionados();
+            refrescarSimulador();
         });
     }
 
@@ -877,13 +1012,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (val === 'individual_org') {
             if (boxBuscadorIndividual) boxBuscadorIndividual.classList.remove('d-none');
-            if (destinatarioSeleccionado) {
-                if (txtTotalDestinatarios) txtTotalDestinatarios.innerText = '1';
-                if (prevDestinatario) prevDestinatario.innerText = destinatarioSeleccionado.nombre + ' <' + destinatarioSeleccionado.email + '>';
-            } else {
-                if (txtTotalDestinatarios) txtTotalDestinatarios.innerText = '0';
-                if (prevDestinatario) prevDestinatario.innerText = 'Seleccionar miembro...';
-            }
+            actualizarVistaSeleccionados();
             if (miembrosOrgCache.length === 0) {
                 cargarDirectorioOrganizacion();
             }
@@ -892,8 +1021,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Segmento masivo estándar
         if (boxBuscadorIndividual) boxBuscadorIndividual.classList.add('d-none');
-        destinatarioSeleccionado = null;
-        if (destinatarioSeleccionadoDisplay) destinatarioSeleccionadoDisplay.classList.add('d-none');
         if (prevDestinatario) prevDestinatario.innerText = 'Juan Pérez <juan.perez@ejemplo.com>';
 
         if (txtTotalDestinatarios) {
@@ -1032,7 +1159,11 @@ document.addEventListener('DOMContentLoaded', function () {
             cuerpo = 'Estimado(a) Juan Pérez,\n\nEscribe en el panel izquierdo para ver la simulación en tiempo real de tu correo...';
         } else {
             // Sustituir variables de ejemplo en la vista previa
-            cuerpo = cuerpo.replace(/\{\{nombre\}\}/g, (destinatarioSeleccionado ? destinatarioSeleccionado.nombre : 'Juan Pérez'))
+            let primerNombre = 'Juan Pérez';
+            if (destinatariosSeleccionados.size > 0) {
+                primerNombre = destinatariosSeleccionados.values().next().value.nombre;
+            }
+            cuerpo = cuerpo.replace(/\{\{nombre\}\}/g, primerNombre)
                            .replace(/\{\{clinica\}\}/g, prevBrandName.innerText)
                            .replace(/\{\{medico\}\}/g, 'Dr. ' + nombreUsuario)
                            .replace(/\{\{fecha\}\}/g, new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }));
@@ -1130,8 +1261,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            if (segmento === 'individual_org' && !destinatarioSeleccionado) {
-                alert('Por favor selecciona un destinatario del directorio de tu organización.');
+            if (segmento === 'individual_org' && destinatariosSeleccionados.size === 0) {
+                alert('Por favor selecciona al menos un destinatario de tu organización marcando la casilla de verificación.');
                 if (iptBuscarDestinatario) iptBuscarDestinatario.focus();
                 return;
             }
@@ -1147,16 +1278,17 @@ document.addEventListener('DOMContentLoaded', function () {
             footerFinalizado.classList.add('d-none');
             if (btnCerrarModalX) btnCerrarModalX.classList.add('d-none');
 
-            // 1. Encolar Campaña en Backend con Soporte de Adjuntos y Destinatario Único
+            // 1. Encolar Campaña en Backend con Soporte de Adjuntos y Múltiples Destinatarios
             const formData = new FormData();
             formData.append('asunto', asunto);
             formData.append('cuerpo', cuerpo);
             formData.append('segmento', segmento);
 
-            if (segmento === 'individual_org' && destinatarioSeleccionado) {
-                formData.append('email_individual', destinatarioSeleccionado.email);
-                formData.append('nombre_individual', destinatarioSeleccionado.nombre);
-                formData.append('destinatarios_custom', JSON.stringify([destinatarioSeleccionado]));
+            if (segmento === 'individual_org' && destinatariosSeleccionados.size > 0) {
+                const arrDest = Array.from(destinatariosSeleccionados.values());
+                formData.append('email_individual', arrDest[0].email);
+                formData.append('nombre_individual', arrDest[0].nombre);
+                formData.append('destinatarios_custom', JSON.stringify(arrDest));
             }
 
             // Adjuntar archivos seleccionados
