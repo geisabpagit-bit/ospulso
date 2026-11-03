@@ -184,7 +184,28 @@ PAGE_HTML
 }
 
 print <<'PAGE_HTML';
+                                <optgroup label="Búsqueda Directa en la Organización">
+                                    <option value="individual_org">🎯 Seleccionar Correo Específico de mi Organización</option>
+                                </optgroup>
                             </select>
+                        </div>
+
+                        <!-- Buscador y Selector Interactivo de Miembro/Paciente de la Organización -->
+                        <div id="boxBuscadorIndividual" class="buscador-org-box d-none">
+                            <label class="form-label fw-bold text-dark small mb-1" for="iptBuscarDestinatario">
+                                <i class="fa-solid fa-magnifying-glass text-teal me-1"></i> Buscar por Nombre o Correo en la Organización:
+                            </label>
+                            <div class="input-group input-group-sm mb-2">
+                                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-filter text-muted"></i></span>
+                                <input type="text" id="iptBuscarDestinatario" class="form-control border-start-0" placeholder="Escribe para buscar (ej. Juan, Pérez, recepcion, doctor@...)...">
+                            </div>
+                            <div id="listaDestinatariosOrg" class="lista-destinatarios-org">
+                                <div class="text-center py-3 text-muted small"><i class="fa-solid fa-spinner fa-spin text-primary me-1"></i> Cargando miembros de la organización...</div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
+                                <span id="txtInfoSeleccionIndividual"><i class="fa-solid fa-circle-info me-1 text-primary"></i> Haz clic en un contacto de la lista para seleccionarlo</span>
+                                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-danger d-none" id="btnLimpiarSeleccionIndividual">Quitar selección</button>
+                            </div>
                         </div>
 
                         <!-- Métrica de Audiencia en Vivo -->
@@ -206,9 +227,9 @@ print <<'PAGE_HTML';
                     <div class="panel-card">
                         <div class="panel-header">
                             <h3 class="panel-title">
-                                <i class="fa-solid fa-envelope-open-text text-primary"></i> 2. Contenido del Mensaje
+                                <i class="fa-solid fa-envelope-open-text text-teal"></i> 2. Contenido del Mensaje
                             </h3>
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" id="btnCargarPlantillaEjemplo">
+                            <button type="button" class="btn btn-sm btn-outline-teal" id="btnCargarPlantillaEjemplo">
                                 <i class="fa-solid fa-wand-magic-sparkles text-warning me-1"></i> Cargar Plantilla
                             </button>
                         </div>
@@ -220,7 +241,7 @@ print <<'PAGE_HTML';
                             </label>
                             <input type="text" id="iptAsunto" class="form-control" 
                                    placeholder="Ej. Aviso Importante: Horarios de Atención y Promoción de Salud" 
-                                   maxlength="150" value="Comunicado Oficial de la Clínica">
+                                   maxlength="150" value="Comunicado Oficial de la Clínica" style="border-radius: 10px;">
                         </div>
 
                         <!-- Variables Dinámicas de Personalización -->
@@ -247,27 +268,54 @@ print <<'PAGE_HTML';
                             <label class="form-label fw-bold text-dark small" for="txtCuerpo">
                                 Mensaje / Contenido: <span class="text-danger">*</span>
                             </label>
-                            <textarea id="txtCuerpo" class="form-control" rows="8" style="border-radius: 8px; font-size: 0.95rem;" 
+                            <textarea id="txtCuerpo" class="form-control" rows="8" style="border-radius: 10px; font-size: 0.95rem;" 
                                       placeholder="Escribe aquí el contenido del correo... Puedes usar las variables dinámicas de arriba."></textarea>
-                            
-                            <!-- Indicador de Salud y Entregabilidad (Spam Score Meter) -->
-                            <div class="spam-meter-card" id="spamMeterCard">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="small fw-bold text-dark"><i class="fa-solid fa-gauge-high text-primary me-1"></i> Índice de Entregabilidad (Anti-SPAM)</span>
-                                    <span class="badge bg-success fw-bold" id="spamScoreBadge">95% Excelente</span>
+                        </div>
+
+                        <!-- Archivos Adjuntos (Hasta 2, máx 5 MB en total) -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fw-bold text-dark small m-0">
+                                    <i class="fa-solid fa-paperclip text-teal me-1"></i> Archivos Adjuntos:
+                                </label>
+                                <span class="text-muted" style="font-size: 0.74rem;">Hasta 2 archivos • Imágenes, Docs o Hojas de Cálculo</span>
+                            </div>
+                            <div class="adjuntos-wrapper">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="file" id="iptAdjuntos" class="d-none" multiple accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.txt,.xls,.xlsx,.csv">
+                                        <button type="button" class="btn btn-sm btn-outline-teal" id="btnExaminarAdjuntos">
+                                            <i class="fa-solid fa-cloud-arrow-up me-1"></i> Adjuntar Archivos
+                                        </button>
+                                        <span class="small text-muted" id="txtConteoAdjuntos">0 / 2 adjuntos</span>
+                                    </div>
+                                    <div class="small fw-bold text-muted" id="txtPesoTotalAdjuntos">
+                                        <i class="fa-solid fa-hard-drive me-1 text-teal"></i> 0.00 MB / 5.00 MB
+                                    </div>
                                 </div>
-                                <div class="spam-meter-bar">
-                                    <div class="spam-meter-fill bg-success" id="spamMeterFill" style="width: 95%;"></div>
+                                <div id="contenedorChipsAdjuntos" class="d-flex flex-wrap gap-2">
+                                    <span class="text-muted small fst-italic" id="txtSinAdjuntos">No hay archivos adjuntos seleccionados.</span>
                                 </div>
-                                <p class="small text-muted mb-0" id="spamAdviceText">
-                                    <i class="fa-solid fa-check text-success me-1"></i> Asunto balanceado y personalización dinámica detectada.
-                                </p>
                             </div>
                         </div>
 
-                        <!-- Botón de Lanzamiento -->
-                        <div class="d-grid mt-4">
-                            <button type="button" class="btn btn-premium-primary py-3 fs-6" id="btnLanzarCampana">
+                        <!-- Indicador de Salud y Entregabilidad (Spam Score Meter) -->
+                        <div class="spam-meter-card mb-4" id="spamMeterCard">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small fw-bold text-dark"><i class="fa-solid fa-gauge-high text-teal me-1"></i> Índice de Entregabilidad (Anti-SPAM)</span>
+                                <span class="badge bg-success fw-bold" id="spamScoreBadge">95% Excelente</span>
+                            </div>
+                            <div class="spam-meter-bar">
+                                <div class="spam-meter-fill bg-success" id="spamMeterFill" style="width: 95%;"></div>
+                            </div>
+                            <p class="small text-muted mb-0" id="spamAdviceText">
+                                <i class="fa-solid fa-check text-success me-1"></i> Asunto balanceado y personalización dinámica detectada.
+                            </p>
+                        </div>
+
+                        <!-- Botón de Lanzamiento Delgado Premium -->
+                        <div class="d-grid mt-3">
+                            <button type="button" class="btn btn-premium-primary py-2 px-4 fs-6" id="btnLanzarCampana">
                                 <i class="fa-solid fa-paper-plane me-2"></i> Revisar y Despachar Campaña
                             </button>
                         </div>
@@ -350,11 +398,16 @@ El Equipo Médico
             <div class="panel-card">
                 <div class="panel-header">
                     <h3 class="panel-title">
-                        <i class="fa-solid fa-clock-rotate-left text-primary"></i> Registro de Campañas Anteriores
+                        <i class="fa-solid fa-clock-rotate-left text-teal"></i> Registro de Campañas Anteriores
                     </h3>
-                    <button class="btn btn-sm btn-outline-primary rounded-pill" id="btnRecargarHistorial">
-                        <i class="fa-solid fa-arrows-rotate me-1"></i> Actualizar
-                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-danger-thin" id="btnLimpiarHistorial">
+                            <i class="fa-solid fa-trash-can me-1"></i> Limpiar Historial
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-teal" id="btnRecargarHistorial">
+                            <i class="fa-solid fa-arrows-rotate me-1"></i> Actualizar
+                        </button>
+                    </div>
                 </div>
 
                 <div class="table-responsive">
@@ -374,7 +427,7 @@ El Equipo Médico
                         <tbody id="tbodyHistorial">
                             <tr>
                                 <td colspan="8" class="text-center py-4 text-muted">
-                                    <i class="fa-solid fa-spinner fa-spin me-2 text-primary"></i> Cargando historial de campañas...
+                                    <i class="fa-solid fa-spinner fa-spin me-2 text-teal"></i> Cargando historial de campañas...
                                 </td>
                             </tr>
                         </tbody>
@@ -407,7 +460,7 @@ El Equipo Médico
                                 <h5 class="fw-bold fs-6 text-dark mb-2">Chequeo Médico Preventivo</h5>
                                 <p class="text-muted small mb-3">Recordatorio para pacientes enfocado en la importancia de revisiones periódicas anuales.</p>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary w-100 rounded-pill btn-usar-plantilla" 
+                            <button type="button" class="btn btn-sm btn-outline-teal w-100 rounded-pill btn-usar-plantilla" 
                                     data-asunto="Recordatorio de Chequeo Médico Preventivo y Revisión Periódica"
                                     data-cuerpo="Estimado(a) {{nombre}},&#10;&#10;Esperamos que te encuentres con excelente salud. Desde {{clinica}} queremos recordarte la importancia de mantener al día tus revisiones preventivas periódicas con {{medico}}.&#10;&#10;La detección temprana es el pilar de tu bienestar. Si deseas agendar o reprogramar tu próxima cita, puedes responder directamente a este correo o llamar a recepción.&#10;&#10;¡Cuidar de ti es nuestra prioridad!&#10;&#10;Atentamente,&#10;El Equipo de {{clinica}}">
                                 <i class="fa-solid fa-file-import me-1"></i> Usar Plantilla
@@ -426,7 +479,7 @@ El Equipo Médico
                                 <h5 class="fw-bold fs-6 text-dark mb-2">Horarios en Días Festivos</h5>
                                 <p class="text-muted small mb-3">Comunicado oficial para informar modificaciones en los días de atención y guardias.</p>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary w-100 rounded-pill btn-usar-plantilla"
+                            <button type="button" class="btn btn-sm btn-outline-teal w-100 rounded-pill btn-usar-plantilla"
                                     data-asunto="Aviso Importante: Horarios de Atención en Días Festivos"
                                     data-cuerpo="Estimado(a) {{nombre}},&#10;&#10;Te informamos que con motivo de las fechas festivas próximas, nuestros horarios de atención en {{clinica}} tendrán ajustes temporales.&#10;&#10;Nuestras consultas regulares y servicio de citas operarán en su horario habitual a partir de la siguiente semana. En caso de emergencias o para reprogramar una cita ya agendada con {{medico}}, nuestro conmutador permanecerá disponible.&#10;&#10;¡Te deseamos excelentes días!&#10;&#10;Atentamente,&#10;Administración de {{clinica}}">
                                 <i class="fa-solid fa-file-import me-1"></i> Usar Plantilla
@@ -445,7 +498,7 @@ El Equipo Médico
                                 <h5 class="fw-bold fs-6 text-dark mb-2">Cuidados Post-Tratamiento</h5>
                                 <p class="text-muted small mb-3">Mensaje de acompañamiento clínico para asegurar el cumplimiento del tratamiento.</p>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary w-100 rounded-pill btn-usar-plantilla"
+                            <button type="button" class="btn btn-sm btn-outline-teal w-100 rounded-pill btn-usar-plantilla"
                                     data-asunto="Recomendaciones y Seguimiento Tras tu Consulta Médica"
                                     data-cuerpo="Hola {{nombre}},&#10;&#10;Esperamos que te encuentres muy bien tras tu reciente atención con {{medico}} en {{clinica}}.&#10;&#10;Te recordamos la importancia de seguir al pie de la letra las indicaciones de tu receta médica, mantener reposo si te fue prescrito e hidratarte adecuadamente. Si notas cualquier síntoma inesperado, ponte en contacto de inmediato con nosotros.&#10;&#10;¡Deseamos tu pronta recuperación!&#10;&#10;Atentamente,&#10;{{medico}} y el equipo de {{clinica}}">
                                 <i class="fa-solid fa-file-import me-1"></i> Usar Plantilla
@@ -464,7 +517,7 @@ El Equipo Médico
                                 <h5 class="fw-bold fs-6 text-dark mb-2">Bienvenida al Portal Digital</h5>
                                 <p class="text-muted small mb-3">Invitación para consultar recetas, historial de visitas y comprobantes en línea.</p>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary w-100 rounded-pill btn-usar-plantilla"
+                            <button type="button" class="btn btn-sm btn-outline-teal w-100 rounded-pill btn-usar-plantilla"
                                     data-asunto="Activación de tu Expediente y Portal Digital en OSPulso"
                                     data-cuerpo="Estimado(a) {{nombre}},&#10;&#10;En {{clinica}} tenemos el gusto de informarte que ya se encuentra habilitado tu acceso a la plataforma de salud digital OSPulso.&#10;&#10;A través del Portal del Paciente podrás revisar tus recetas electrónicas, descargar recibos fiscales de caja y consultar tu historial de consultas en cualquier momento de manera 100% segura.&#10;&#10;Accede utilizando este correo electrónico para iniciar sesión.&#10;&#10;Atentamente,&#10;El Equipo de {{clinica}}">
                                 <i class="fa-solid fa-file-import me-1"></i> Usar Plantilla
@@ -628,6 +681,31 @@ print <<'JS';
 document.addEventListener('DOMContentLoaded', function () {
     console.log('[Comunicación Masiva] Inicializando controlador frontend.');
 
+    // Funciones de saneamiento y utilidad UTF-8
+    function sanearTextoUtf8(str) {
+        if (!str || typeof str !== 'string') return '';
+        if (/[\u00C2\u00C3]/.test(str)) {
+            try {
+                return decodeURIComponent(escape(str));
+            } catch (e) {
+                return str;
+            }
+        }
+        return str;
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, function (m) { return map[m]; });
+    }
+
     // 1. Obtención segura de metadatos desde el DOM
     const configEl = document.getElementById('comunicacionConfig');
     const rolUsuario = configEl ? configEl.dataset.rol : 'Staff';
@@ -640,10 +718,34 @@ document.addEventListener('DOMContentLoaded', function () {
     const iptAsunto = document.getElementById('iptAsunto');
     const txtCuerpo = document.getElementById('txtCuerpo');
 
+    // Elementos del Directorio Individual
+    const boxBuscadorIndividual = document.getElementById('boxBuscadorIndividual');
+    const iptBuscarDestinatario = document.getElementById('iptBuscarDestinatario');
+    const listaDestinatariosOrg = document.getElementById('listaDestinatariosOrg');
+    const destinatarioSeleccionadoDisplay = document.getElementById('destinatarioSeleccionadoDisplay');
+    const nombreDestinatarioBadge = document.getElementById('nombreDestinatarioBadge');
+    const emailDestinatarioBadge = document.getElementById('emailDestinatarioBadge');
+    const btnQuitarDestinatario = document.getElementById('btnQuitarDestinatario');
+
+    let miembrosOrgCache = [];
+    let destinatarioSeleccionado = null;
+
+    // Elementos de Archivos Adjuntos
+    const iptAdjuntos = document.getElementById('iptAdjuntos');
+    const btnExaminarAdjuntos = document.getElementById('btnExaminarAdjuntos');
+    const txtConteoAdjuntos = document.getElementById('txtConteoAdjuntos');
+    const txtPesoTotalAdjuntos = document.getElementById('txtPesoTotalAdjuntos');
+    const contenedorChipsAdjuntos = document.getElementById('contenedorChipsAdjuntos');
+    let archivosAdjuntos = [];
+    const MAX_ARCHIVOS = 2;
+    const MAX_PESO_BYTES = 5 * 1024 * 1024; // 5 MB acumulado
+    const EXTENSIONES_VALIDAS = /\.(jpg|jpeg|png|webp|gif|pdf|doc|docx|txt|xls|xlsx|csv)$/i;
+
     // Elementos del Simulador
     const prevAsunto = document.getElementById('prevAsunto');
     const prevCuerpoTexto = document.getElementById('prevCuerpoTexto');
     const prevRemitente = document.getElementById('prevRemitente');
+    const prevDestinatario = document.getElementById('prevDestinatario');
     const prevBrandName = document.getElementById('prevBrandName');
 
     // Ajustar remitente y marca según el rol activo
@@ -655,10 +757,144 @@ document.addEventListener('DOMContentLoaded', function () {
         prevBrandName.innerText = 'Consultorio Médico & Dental';
     }
 
-    // 3. Conteo Dinámico en Vivo de Destinatarios consultando la API Backend
+    // 3. Conteo Dinámico en Vivo de Destinatarios y Directorio de Organización
+    function renderizarListaMiembros(lista) {
+        if (!listaDestinatariosOrg) return;
+        if (!lista || lista.length === 0) {
+            listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-muted small"><i class="fa-solid fa-user-slash me-1"></i> No se encontraron resultados en el directorio.</div>';
+            return;
+        }
+
+        let html = '';
+        lista.forEach(function (m) {
+            const isSel = destinatarioSeleccionado && destinatarioSeleccionado.email === m.email;
+            const selClass = isSel ? ' seleccionado' : '';
+            const nombreClean = escapeHtml(sanearTextoUtf8(m.nombre));
+            const emailClean = escapeHtml(m.email);
+            const rolClean = escapeHtml(sanearTextoUtf8(m.rol || 'Miembro'));
+
+            html += '<div class="destinatario-item d-flex justify-content-between align-items-center p-2 border-bottom' + selClass + '" data-email="' + emailClean + '" data-nombre="' + nombreClean + '" data-rol="' + rolClean + '">' +
+                '<div>' +
+                    '<div class="fw-bold small text-dark">' + nombreClean + '</div>' +
+                    '<div class="small text-muted" style="font-size: 0.78rem;">' + emailClean + '</div>' +
+                '</div>' +
+                '<span class="badge bg-light text-dark border">' + rolClean + '</span>' +
+            '</div>';
+        });
+
+        listaDestinatariosOrg.innerHTML = html;
+
+        // Asignar eventos de click a cada fila
+        listaDestinatariosOrg.querySelectorAll('.destinatario-item').forEach(function (row) {
+            row.addEventListener('click', function () {
+                const email = this.dataset.email;
+                const nombre = this.dataset.nombre;
+                const rol = this.dataset.rol;
+
+                destinatarioSeleccionado = { email: email, nombre: nombre, rol: rol };
+
+                // Resaltar selección visual
+                listaDestinatariosOrg.querySelectorAll('.destinatario-item').forEach(el => el.classList.remove('seleccionado'));
+                this.classList.add('seleccionado');
+
+                // Mostrar badge de destinatario seleccionado
+                if (destinatarioSeleccionadoDisplay) {
+                    destinatarioSeleccionadoDisplay.classList.remove('d-none');
+                }
+                if (nombreDestinatarioBadge) nombreDestinatarioBadge.innerText = nombre;
+                if (emailDestinatarioBadge) emailDestinatarioBadge.innerText = email;
+
+                // Actualizar conteo a 1
+                if (txtTotalDestinatarios) txtTotalDestinatarios.innerText = '1';
+
+                // Actualizar simulador
+                if (prevDestinatario) {
+                    prevDestinatario.innerText = nombre + ' <' + email + '>';
+                }
+            });
+        });
+    }
+
+    function cargarDirectorioOrganizacion() {
+        if (!listaDestinatariosOrg) return;
+        listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-muted small"><i class="fa-solid fa-spinner fa-spin me-1 text-teal"></i> Cargando miembros de la organización...</div>';
+
+        fetch('../api/comunicacion_audiencia_api.pl?segmento=miembros_organizacion')
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok && data.destinatarios) {
+                    miembrosOrgCache = data.destinatarios;
+                    renderizarListaMiembros(miembrosOrgCache);
+                } else {
+                    miembrosOrgCache = [];
+                    renderizarListaMiembros([]);
+                }
+            })
+            .catch(err => {
+                console.error('[Comunicación] Error al cargar miembros de organización:', err);
+                if (listaDestinatariosOrg) {
+                    listaDestinatariosOrg.innerHTML = '<div class="p-3 text-center text-danger small"><i class="fa-solid fa-triangle-exclamation me-1"></i> No se pudo cargar el directorio.</div>';
+                }
+            });
+    }
+
+    // Filtrado en vivo por nombre o correo
+    if (iptBuscarDestinatario) {
+        iptBuscarDestinatario.addEventListener('input', function () {
+            const q = this.value.toLowerCase().trim();
+            if (!q) {
+                renderizarListaMiembros(miembrosOrgCache);
+                return;
+            }
+            const filtrados = miembrosOrgCache.filter(function (m) {
+                const nom = (m.nombre || '').toLowerCase();
+                const em = (m.email || '').toLowerCase();
+                const rl = (m.rol || '').toLowerCase();
+                return nom.includes(q) || em.includes(q) || rl.includes(q);
+            });
+            renderizarListaMiembros(filtrados);
+        });
+    }
+
+    // Quitar destinatario individual seleccionado
+    if (btnQuitarDestinatario) {
+        btnQuitarDestinatario.addEventListener('click', function () {
+            destinatarioSeleccionado = null;
+            if (destinatarioSeleccionadoDisplay) {
+                destinatarioSeleccionadoDisplay.classList.add('d-none');
+            }
+            if (txtTotalDestinatarios) txtTotalDestinatarios.innerText = '0';
+            if (prevDestinatario) prevDestinatario.innerText = 'Juan Pérez <juan.perez@ejemplo.com>';
+            if (listaDestinatariosOrg) {
+                listaDestinatariosOrg.querySelectorAll('.destinatario-item').forEach(el => el.classList.remove('seleccionado'));
+            }
+        });
+    }
+
     function actualizarConteoAudiencia() {
         const val = selAudiencia ? selAudiencia.value : '';
         if (!val) return;
+
+        if (val === 'individual_org') {
+            if (boxBuscadorIndividual) boxBuscadorIndividual.classList.remove('d-none');
+            if (destinatarioSeleccionado) {
+                if (txtTotalDestinatarios) txtTotalDestinatarios.innerText = '1';
+                if (prevDestinatario) prevDestinatario.innerText = destinatarioSeleccionado.nombre + ' <' + destinatarioSeleccionado.email + '>';
+            } else {
+                if (txtTotalDestinatarios) txtTotalDestinatarios.innerText = '0';
+                if (prevDestinatario) prevDestinatario.innerText = 'Seleccionar miembro...';
+            }
+            if (miembrosOrgCache.length === 0) {
+                cargarDirectorioOrganizacion();
+            }
+            return;
+        }
+
+        // Segmento masivo estándar
+        if (boxBuscadorIndividual) boxBuscadorIndividual.classList.add('d-none');
+        destinatarioSeleccionado = null;
+        if (destinatarioSeleccionadoDisplay) destinatarioSeleccionadoDisplay.classList.add('d-none');
+        if (prevDestinatario) prevDestinatario.innerText = 'Juan Pérez <juan.perez@ejemplo.com>';
 
         if (txtTotalDestinatarios) {
             txtTotalDestinatarios.innerText = '...';
@@ -684,7 +920,109 @@ document.addEventListener('DOMContentLoaded', function () {
         actualizarConteoAudiencia();
     }
 
-    // 4. Actualización en Tiempo Real del Simulador
+    // 4. Gestión de Archivos Adjuntos (Hasta 2, máx 5 MB en total)
+    function renderizarChipsAdjuntos() {
+        if (!contenedorChipsAdjuntos) return;
+
+        let totalPeso = 0;
+        archivosAdjuntos.forEach(f => { totalPeso += f.size; });
+
+        if (txtConteoAdjuntos) {
+            txtConteoAdjuntos.innerText = archivosAdjuntos.length + ' / ' + MAX_ARCHIVOS + ' adjuntos';
+        }
+        if (txtPesoTotalAdjuntos) {
+            const mb = (totalPeso / (1024 * 1024)).toFixed(2);
+            txtPesoTotalAdjuntos.innerHTML = '<i class="fa-solid fa-hard-drive me-1 text-teal"></i> ' + mb + ' MB / 5.00 MB';
+            if (totalPeso > MAX_PESO_BYTES) {
+                txtPesoTotalAdjuntos.classList.add('text-danger');
+            } else {
+                txtPesoTotalAdjuntos.classList.remove('text-danger');
+            }
+        }
+
+        if (archivosAdjuntos.length === 0) {
+            contenedorChipsAdjuntos.innerHTML = '<span class="text-muted small fst-italic" id="txtSinAdjuntos">No hay archivos adjuntos seleccionados.</span>';
+            return;
+        }
+
+        let chipsHtml = '';
+        archivosAdjuntos.forEach(function (f, idx) {
+            let iconClass = 'fa-file';
+            const nameLower = f.name.toLowerCase();
+            if (/\.(jpg|jpeg|png|webp|gif)$/i.test(nameLower)) iconClass = 'fa-file-image';
+            else if (/\.pdf$/i.test(nameLower)) iconClass = 'fa-file-pdf';
+            else if (/\.(doc|docx|txt)$/i.test(nameLower)) iconClass = 'fa-file-lines';
+            else if (/\.(xls|xlsx|csv)$/i.test(nameLower)) iconClass = 'fa-file-excel';
+
+            const sizeDisplay = (f.size > 1024 * 1024) 
+                ? (f.size / (1024 * 1024)).toFixed(2) + ' MB'
+                : Math.round(f.size / 1024) + ' KB';
+
+            chipsHtml += '<div class="adjunto-chip d-inline-flex align-items-center gap-1 py-1 px-2 border rounded-pill bg-light small">' +
+                '<i class="fa-solid ' + iconClass + ' text-teal"></i>' +
+                '<span class="fw-semibold text-dark text-truncate" style="max-width: 140px;" title="' + escapeHtml(f.name) + '">' + escapeHtml(f.name) + '</span>' +
+                '<span class="text-muted small">(' + sizeDisplay + ')</span>' +
+                '<button type="button" class="btn-remove-chip ms-1 border-0 bg-transparent text-danger fw-bold" data-index="' + idx + '" title="Quitar archivo">&times;</button>' +
+            '</div>';
+        });
+
+        contenedorChipsAdjuntos.innerHTML = chipsHtml;
+
+        // Asignar click para quitar adjunto
+        contenedorChipsAdjuntos.querySelectorAll('.btn-remove-chip').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const idx = parseInt(this.dataset.index, 10);
+                archivosAdjuntos.splice(idx, 1);
+                renderizarChipsAdjuntos();
+            });
+        });
+    }
+
+    if (btnExaminarAdjuntos && iptAdjuntos) {
+        btnExaminarAdjuntos.addEventListener('click', function () {
+            iptAdjuntos.click();
+        });
+
+        iptAdjuntos.addEventListener('change', function () {
+            const files = Array.from(this.files || []);
+            if (files.length === 0) return;
+
+            let pesoActual = 0;
+            archivosAdjuntos.forEach(f => { pesoActual += f.size; });
+
+            for (let i = 0; i < files.length; i++) {
+                const f = files[i];
+
+                // 1. Validar límite de cantidad
+                if (archivosAdjuntos.length >= MAX_ARCHIVOS) {
+                    alert('Límite alcanzado: Sólo se permite adjuntar hasta ' + MAX_ARCHIVOS + ' archivos por campaña.');
+                    break;
+                }
+
+                // 2. Validar tipo / extensión
+                if (!EXTENSIONES_VALIDAS.test(f.name)) {
+                    alert('El archivo "' + f.name + '" no es válido. Solo se admiten imágenes, documentos de texto y hojas de cálculo (.jpg, .png, .pdf, .docx, .xlsx, etc.).');
+                    continue;
+                }
+
+                // 3. Validar peso acumulado
+                if (pesoActual + f.size > MAX_PESO_BYTES) {
+                    const mbExc = ((pesoActual + f.size) / (1024 * 1024)).toFixed(2);
+                    alert('El peso del archivo "' + f.name + '" excede el límite máximo acumulado de 5.00 MB (Total resultante: ' + mbExc + ' MB).');
+                    continue;
+                }
+
+                archivosAdjuntos.push(f);
+                pesoActual += f.size;
+            }
+
+            // Limpiar input file para permitir seleccionar el mismo archivo si fue removido
+            iptAdjuntos.value = '';
+            renderizarChipsAdjuntos();
+        });
+    }
+
+    // 5. Actualización en Tiempo Real del Simulador
     function refrescarSimulador() {
         const asunto = iptAsunto.value.trim() || 'Sin Asunto';
         prevAsunto.innerText = asunto;
@@ -694,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cuerpo = 'Estimado(a) Juan Pérez,\n\nEscribe en el panel izquierdo para ver la simulación en tiempo real de tu correo...';
         } else {
             // Sustituir variables de ejemplo en la vista previa
-            cuerpo = cuerpo.replace(/\{\{nombre\}\}/g, 'Juan Pérez')
+            cuerpo = cuerpo.replace(/\{\{nombre\}\}/g, (destinatarioSeleccionado ? destinatarioSeleccionado.nombre : 'Juan Pérez'))
                            .replace(/\{\{clinica\}\}/g, prevBrandName.innerText)
                            .replace(/\{\{medico\}\}/g, 'Dr. ' + nombreUsuario)
                            .replace(/\{\{fecha\}\}/g, new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }));
@@ -705,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (iptAsunto) iptAsunto.addEventListener('input', refrescarSimulador);
     if (txtCuerpo) txtCuerpo.addEventListener('input', refrescarSimulador);
 
-    // 5. Inserción de Variables Dinámicas en la posición del cursor
+    // 6. Inserción de Variables Dinámicas en la posición del cursor
     document.querySelectorAll('.btn-tag-variable').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const tag = this.dataset.tag;
@@ -724,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // 6. Cargar Plantilla de Ejemplo
+    // 7. Cargar Plantilla de Ejemplo
     const btnCargarPlantilla = document.getElementById('btnCargarPlantillaEjemplo');
     if (btnCargarPlantilla) {
         btnCargarPlantilla.addEventListener('click', function () {
@@ -738,7 +1076,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 7. Despacho Real Progresivo por Lotes (API Encolar + API Despachar)
+    // 8. Despacho Real Progresivo por Lotes (API Encolar con FormData + API Despachar)
     const btnLanzar = document.getElementById('btnLanzarCampana');
     const modalEl = document.getElementById('modalDespacho');
     const progressBar = document.getElementById('modalProgressBar');
@@ -792,6 +1130,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            if (segmento === 'individual_org' && !destinatarioSeleccionado) {
+                alert('Por favor selecciona un destinatario del directorio de tu organización.');
+                if (iptBuscarDestinatario) iptBuscarDestinatario.focus();
+                return;
+            }
+
             const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
             bsModal.show();
 
@@ -799,15 +1143,28 @@ document.addEventListener('DOMContentLoaded', function () {
             progressBar.style.width = '0%';
             progresoTexto.innerText = 'Encolando campaña...';
             progresoConteo.innerText = '0 / --';
-            logEnvio.innerHTML = '<div class="text-muted"><i class="fa-solid fa-spinner fa-spin text-primary me-1"></i> Registrando campaña y resolviendo lista de destinatarios...</div>';
+            logEnvio.innerHTML = '<div class="text-muted"><i class="fa-solid fa-spinner fa-spin text-teal me-1"></i> Registrando campaña y resolviendo lista de destinatarios...</div>';
             footerFinalizado.classList.add('d-none');
             if (btnCerrarModalX) btnCerrarModalX.classList.add('d-none');
 
-            // 1. Encolar Campaña en Backend
-            const formData = new URLSearchParams();
+            // 1. Encolar Campaña en Backend con Soporte de Adjuntos y Destinatario Único
+            const formData = new FormData();
             formData.append('asunto', asunto);
             formData.append('cuerpo', cuerpo);
             formData.append('segmento', segmento);
+
+            if (segmento === 'individual_org' && destinatarioSeleccionado) {
+                formData.append('email_individual', destinatarioSeleccionado.email);
+                formData.append('nombre_individual', destinatarioSeleccionado.nombre);
+                formData.append('destinatarios_custom', JSON.stringify([destinatarioSeleccionado]));
+            }
+
+            // Adjuntar archivos seleccionados
+            if (archivosAdjuntos.length > 0) {
+                archivosAdjuntos.forEach(function (f, idx) {
+                    formData.append('adjunto_' + (idx + 1), f);
+                });
+            }
 
             fetch('../api/crear_campana_correo_api.pl', {
                 method: 'POST',
@@ -848,7 +1205,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             const itemLog = document.createElement('div');
                             itemLog.className = 'text-success mt-1';
-                            itemLog.innerHTML = '<i class="fa-solid fa-paper-plane text-primary me-1"></i> Lote despachado (' + procesados + ' de ' + totalDest + ' entregados)';
+                            itemLog.innerHTML = '<i class="fa-solid fa-paper-plane text-teal me-1"></i> Lote despachado (' + procesados + ' de ' + totalDest + ' entregados)';
                             logEnvio.appendChild(itemLog);
                             logEnvio.scrollTop = logEnvio.scrollHeight;
 
@@ -882,8 +1239,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-
-    // 8. Calculadora Reactiva de Salud y Entregabilidad (Spam Score)
+    // 9. Calculadora Reactiva de Salud y Entregabilidad (Spam Score)
     const spamScoreBadge = document.getElementById('spamScoreBadge');
     const spamMeterFill = document.getElementById('spamMeterFill');
     const spamAdviceText = document.getElementById('spamAdviceText');
@@ -951,7 +1307,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (txtCuerpo) txtCuerpo.addEventListener('input', calcularSpamScore);
     calcularSpamScore();
 
-    // 9. Uso de Plantillas desde la Biblioteca (Tab 3)
+    // 10. Uso de Plantillas desde la Biblioteca (Tab 3)
     document.querySelectorAll('.btn-usar-plantilla').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const asunto = this.dataset.asunto;
@@ -972,39 +1328,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Función de saneamiento UTF-8 (defensa en profundidad contra mojibake residual)
-    function sanearTextoUtf8(str) {
-        if (!str || typeof str !== 'string') return '';
-        if (/[\u00C2\u00C3]/.test(str)) {
-            try {
-                return decodeURIComponent(escape(str));
-            } catch (e) {
-                return str;
-            }
-        }
-        return str;
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return String(text).replace(/[&<>"']/g, function (m) { return map[m]; });
-    }
-
-    // 10. Historial y Trazabilidad de Campañas Anteriores (Tab 2)
+    // 11. Historial y Trazabilidad de Campañas Anteriores (Tab 2)
     const tbodyHistorial = document.getElementById('tbodyHistorial');
     const btnRecargarHistorial = document.getElementById('btnRecargarHistorial');
+    const btnLimpiarHistorial = document.getElementById('btnLimpiarHistorial');
     const tabHistorialBtn = document.getElementById('tab-historial-btn');
 
     function cargarHistorialCampanas() {
         if (!tbodyHistorial) return;
-        tbodyHistorial.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin me-2 text-primary"></i> Consultando historial de campañas...</td></tr>';
+        tbodyHistorial.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin me-2 text-teal"></i> Consultando historial de campañas...</td></tr>';
 
         fetch('../api/listar_campanas_comunicacion_api.pl')
             .then(res => res.json())
@@ -1033,7 +1365,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         '<td class="text-center"><span class="badge bg-success-subtle text-success">' + c.tasa_exito + '</span></td>' +
                         '<td class="text-center">' + badgeEstado + '</td>' +
                         '<td class="text-center">' +
-                            '<button type="button" class="btn btn-sm btn-outline-primary rounded-pill btn-ver-auditoria" data-id="' + c.id_campana + '">' +
+                            '<button type="button" class="btn btn-sm btn-outline-teal rounded-pill btn-ver-auditoria" data-id="' + c.id_campana + '">' +
                                 '<i class="fa-solid fa-magnifying-glass me-1"></i> Detalle' +
                             '</button>' +
                         '</td>' +
@@ -1059,7 +1391,40 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnRecargarHistorial) btnRecargarHistorial.addEventListener('click', cargarHistorialCampanas);
     if (tabHistorialBtn) tabHistorialBtn.addEventListener('shown.bs.tab', cargarHistorialCampanas);
 
-    // 11. Modal de Auditoría de Destinatarios de una Campaña
+    // Botón de Limpiar Historial de Campañas
+    if (btnLimpiarHistorial) {
+        btnLimpiarHistorial.addEventListener('click', function () {
+            const confirmar = confirm('¿Estás seguro de que deseas vaciar todo el historial de campañas y la cola de envíos? Esta acción eliminará permanentemente los registros de trazabilidad.');
+            if (!confirmar) return;
+
+            btnLimpiarHistorial.disabled = true;
+            btnLimpiarHistorial.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Limpiando...';
+
+            fetch('../api/limpiar_historial_comunicacion_api.pl', {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                btnLimpiarHistorial.disabled = false;
+                btnLimpiarHistorial.innerHTML = '<i class="fa-solid fa-trash-can me-1"></i> Limpiar Historial';
+
+                if (data.ok) {
+                    alert('Historial de campañas y cola de envíos limpiados con éxito.');
+                    cargarHistorialCampanas();
+                } else {
+                    alert('Error: ' + (data.msg || 'No se pudo limpiar el historial'));
+                }
+            })
+            .catch(err => {
+                console.error('[Comunicación] Error al limpiar historial:', err);
+                btnLimpiarHistorial.disabled = false;
+                btnLimpiarHistorial.innerHTML = '<i class="fa-solid fa-trash-can me-1"></i> Limpiar Historial';
+                alert('Ocurrió un error al intentar comunicar con el servidor.');
+            });
+        });
+    }
+
+    // 12. Modal de Auditoría de Destinatarios de una Campaña
     const modalAuditoriaEl = document.getElementById('modalAuditoriaCampana');
     const auditCampanaId = document.getElementById('auditCampanaId');
     const auditAsunto = document.getElementById('auditAsunto');
@@ -1076,7 +1441,7 @@ document.addEventListener('DOMContentLoaded', function () {
         auditAsunto.innerText = 'Cargando...';
         auditFecha.innerText = '--';
         auditRemitente.innerText = '--';
-        tbodyAudit.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin me-2 text-primary"></i> Cargando destinatarios...</td></tr>';
+        tbodyAudit.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin me-2 text-teal"></i> Cargando destinatarios...</td></tr>';
 
         fetch('../api/detalle_campana_comunicacion_api.pl?id_campana=' + encodeURIComponent(idCampana))
             .then(res => res.json())

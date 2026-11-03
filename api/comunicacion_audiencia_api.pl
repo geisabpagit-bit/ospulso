@@ -6,6 +6,7 @@ use open qw(:utf8);
 use CGI;
 use CGI::Carp qw(fatalsToBrowser);
 use JSON::PP;
+use Encode qw(decode encode is_utf8);
 use FindBin;
 use lib "$FindBin::Bin/..";
 
@@ -29,8 +30,18 @@ my $id_empresa    = $sd->{id_empresa} // '0';
 
 my $segmento = $q->param('segmento') || 'default';
 
+sub sanear_utf8 {
+    my ($str) = @_;
+    return '' unless defined $str;
+    if ($str =~ /[\xC2\xC3]/) {
+        my $fixed = eval { decode('UTF-8', encode('ISO-8859-1', $str)) };
+        return $fixed if ($fixed && !$@);
+    }
+    return $str;
+}
+
 # Validación de Gobernanza RBAC en Backend (API-RBAC)
-if ($rol_sesion =~ /Medico/i && $segmento ne 'mis_pacientes') {
+if ($rol_sesion =~ /Medico/i && $segmento ne 'mis_pacientes' && $segmento ne 'miembros_organizacion' && $segmento ne 'individual_org') {
     # El médico solo tiene permiso de consultar su propia cartera
     $segmento = 'mis_pacientes';
 }
@@ -132,7 +143,7 @@ if ($segmento =~ /^todos_admin_org|ejecutivos_ventas|broadcast_plataforma|person
                         $emails_vistos{$correo} = 1;
                         push @destinatarios, {
                             id     => $id_pac,
-                            nombre => $nombre,
+                            nombre => sanear_utf8($nombre),
                             email  => $correo,
                             tipo   => 'paciente'
                         };
@@ -140,6 +151,73 @@ if ($segmento =~ /^todos_admin_org|ejecutivos_ventas|broadcast_plataforma|person
                 } else {
                     $invalidos++;
                 }
+            }
+        }
+        close($fh);
+    }
+} elsif ($segmento eq 'miembros_organizacion' || $segmento eq 'individual_org') {
+    # 1. Personal y colaboradores de la organización
+    if (-f $usuarios_file) {
+        open(my $fh, "<:encoding(UTF-8)", $usuarios_file);
+        my $header = <$fh>;
+        while (my $line = <$fh>) {
+            chomp($line);
+            next if $line =~ /^\s*$/;
+            my @cols = split(/!/, $line);
+            next if @cols < 7;
+            my $id      = $cols[0] // '';
+            my $nombre  = sanear_utf8($cols[1] // '');
+            my $correo  = lc($cols[2] // '');
+            my $activo  = $cols[4] // '0';
+            my $rol     = $cols[5] // '';
+            my $negocio = $cols[6] // '';
+
+            next unless $activo eq '1';
+            my $cumple = ($negocio =~ /^$id_empresa:/ || $id_empresa eq '0' || $rol_sesion =~ /Administrador Global/i);
+            if ($cumple && es_email_valido($correo) && !$emails_vistos{$correo}) {
+                $emails_vistos{$correo} = 1;
+                push @destinatarios, {
+                    id     => $id,
+                    nombre => $nombre,
+                    email  => $correo,
+                    tipo   => "Personal ($rol)",
+                    rol    => $rol
+                };
+            }
+        }
+        close($fh);
+    }
+
+    # 2. Pacientes de la organización
+    if (-f $pacientes_file) {
+        open(my $fh, "<:encoding(UTF-8)", $pacientes_file);
+        my $header = <$fh>;
+        while (my $line = <$fh>) {
+            chomp($line);
+            next if $line =~ /^\s*$/;
+            my @cols = split(/\|/, $line);
+            next if @cols < 6;
+            my $id_pac = $cols[0] // '';
+            my $id_med = $cols[1] // '';
+            my $nombre = sanear_utf8($cols[2] // '');
+            my $correo = lc($cols[5] // '');
+            my $tenant = $cols[13] // '';
+
+            my $cumple = 0;
+            if ($rol_sesion =~ /Medico/i) {
+                $cumple = 1 if ($id_med eq $id_medico_ses || $id_med eq $id_usuario);
+            } else {
+                $cumple = 1 if ($tenant =~ /^$id_empresa:/ || $id_empresa eq '0' || $rol_sesion =~ /Administrador Global/i);
+            }
+
+            if ($cumple && es_email_valido($correo) && !$emails_vistos{$correo}) {
+                $emails_vistos{$correo} = 1;
+                push @destinatarios, {
+                    id     => $id_pac,
+                    nombre => $nombre,
+                    email  => $correo,
+                    tipo   => 'Paciente'
+                };
             }
         }
         close($fh);

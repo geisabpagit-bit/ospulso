@@ -154,6 +154,37 @@ if ($segmento =~ /^todos_admin_org|ejecutivos_ventas|broadcast_plataforma|person
         }
         close($fh);
     }
+} elsif ($segmento eq 'individual_org') {
+    my $custom_json = $q->param('destinatarios_custom') || '';
+    if ($custom_json) {
+        my $arr = eval { decode_json($custom_json) };
+        if ($arr && ref($arr) eq 'ARRAY') {
+            foreach my $item (@$arr) {
+                my $e = lc(limpiar_input_utf8($item->{email} // ''));
+                my $n = limpiar_input_utf8($item->{nombre} // $e);
+                if (es_email_valido($e) && !$emails_vistos{$e}) {
+                    $emails_vistos{$e} = 1;
+                    push @destinatarios, {
+                        id     => $item->{id} // 'INDIVIDUAL',
+                        nombre => $n,
+                        email  => $e,
+                        tipo   => $item->{tipo} // 'individual'
+                    };
+                }
+            }
+        }
+    }
+    my $single_email  = lc(limpiar_input_utf8($q->param('email_individual') || ''));
+    my $single_nombre = limpiar_input_utf8($q->param('nombre_individual') || $single_email);
+    if ($single_email && es_email_valido($single_email) && !$emails_vistos{$single_email}) {
+        $emails_vistos{$single_email} = 1;
+        push @destinatarios, {
+            id     => 'INDIVIDUAL',
+            nombre => $single_nombre,
+            email  => $single_email,
+            tipo   => 'individual'
+        };
+    }
 }
 
 if (!@destinatarios) {
@@ -167,6 +198,74 @@ my $ahora_hora  = strftime("%H:%M:%S", localtime);
 my $id_campana  = "CMP_" . strftime("%Y%m%d%H%M%S", localtime) . "_" . int(rand(1000));
 my $total = scalar(@destinatarios);
 
+# 2.1 Procesar Archivos Adjuntos (Hasta 2 archivos, máximo 5 MB en total)
+my @adjuntos_guardados = ();
+my $peso_total_adjuntos = 0;
+my $max_bytes = 5 * 1024 * 1024; # 5 MB
+
+my $upload_dir_base = "$FindBin::Bin/../uploads/adjuntos_campanas";
+unless (-d "$FindBin::Bin/../uploads") {
+    mkdir("$FindBin::Bin/../uploads", 0777);
+}
+unless (-d $upload_dir_base) {
+    mkdir($upload_dir_base, 0777);
+}
+my $campana_upload_dir = "$upload_dir_base/$id_campana";
+
+# Buscar parámetros de adjuntos (adjunto_1, adjunto_2 o campo general)
+my @upload_param_names = ('adjunto_1', 'adjunto_2', 'archivos', 'adjuntos');
+my @file_handles_found = ();
+
+foreach my $pname (@upload_param_names) {
+    my @fhs = $q->upload($pname);
+    foreach my $fh (@fhs) {
+        push @file_handles_found, { fh => $fh, orig => $q->param($pname) } if $fh;
+    }
+}
+
+if (@file_handles_found > 2) {
+    print encode_json({ ok => 0, msg => "Se permite un máximo de 2 archivos adjuntos." });
+    exit;
+}
+
+if (@file_handles_found > 0) {
+    mkdir($campana_upload_dir, 0777) unless -d $campana_upload_dir;
+
+    foreach my $item (@file_handles_found) {
+        my $fh = $item->{fh};
+        my $filename = $item->{orig} // '';
+        # Limpiar nombre
+        $filename =~ s/^.*[\\\/]//; # Quitar ruta de windows o unix
+        $filename =~ s/[^\w\.\-\s]/_/g; # Caracteres seguros
+
+        # Validar extensión permitida
+        unless ($filename =~ /\.(jpe?g|png|webp|gif|pdf|docx?|txt|xlsx?|csv)$/i) {
+            print encode_json({ ok => 0, msg => "El archivo '$filename' no tiene un formato permitido (Solo imágenes, documentos de texto y hojas de cálculo)." });
+            exit;
+        }
+
+        my $target_path = "$campana_upload_dir/$filename";
+        open(my $out_fh, ">:raw", $target_path) or die "No se pudo guardar adjunto $filename: $!";
+        my $bytes_leidos = 0;
+        my $buffer;
+        while (my $bytes = read($fh, $buffer, 4096)) {
+            $bytes_leidos += $bytes;
+            $peso_total_adjuntos += $bytes;
+            if ($peso_total_adjuntos > $max_bytes) {
+                close($out_fh);
+                unlink($target_path);
+                print encode_json({ ok => 0, msg => "El peso total de los archivos adjuntos excede el límite máximo de 5 MB." });
+                exit;
+            }
+            print $out_fh $buffer;
+        }
+        close($out_fh);
+        push @adjuntos_guardados, $filename;
+    }
+}
+
+my $adjuntos_str = join(";", @adjuntos_guardados);
+
 # Sanitizar strings para evitar romper delimitadores flat-file
 my $asunto_limpio = $asunto;
 $asunto_limpio =~ s/\|/ /g;
@@ -176,9 +275,9 @@ my $cuerpo_encoded = $cuerpo;
 $cuerpo_encoded =~ s/\|/&#124;/g;
 $cuerpo_encoded =~ s/\r\n|\r|\n/<br>/g;
 
-# 3. Guardar en campanas_comunicacion.dat
+# 3. Guardar en campanas_comunicacion.dat (con adjuntos en columna 14)
 open(my $cfh, ">>:encoding(UTF-8)", $campanas_file) or die "No se pudo abrir campanas_comunicacion.dat: $!";
-print $cfh "$id_campana|$ahora_fecha|$ahora_hora|$id_usuario|$usuario_sesion|$rol_sesion|$id_empresa|$segmento|$asunto_limpio|$total|0|0|EN_PROCESO\n";
+print $cfh "$id_campana|$ahora_fecha|$ahora_hora|$id_usuario|$usuario_sesion|$rol_sesion|$id_empresa|$segmento|$asunto_limpio|$total|0|0|EN_PROCESO|$adjuntos_str\n";
 close($cfh);
 
 # 4. Encolar Destinatarios en cola_correos_masivos.dat
@@ -199,5 +298,6 @@ print encode_json({
     ok         => 1,
     id_campana => $id_campana,
     total      => $total,
+    adjuntos   => scalar(@adjuntos_guardados),
     msg        => "Campaña encolada exitosamente para $total destinatarios."
 });

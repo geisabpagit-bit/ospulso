@@ -550,12 +550,12 @@ HTML
     # 6. Administración Accordion
     # Regla: Exclusivo de vistas generales (Dashboard, etc.). No mostrar dentro del expediente ($mostrar_menu_paciente)
     my $show_admin = 0;
-    if (($is_allowed{registros} || $is_allowed{clinicas} || $is_allowed{usuarios} || $is_allowed{servicios} || $is_allowed{productos} || $is_allowed{tecnico} || $is_allowed{sync_google} || $role eq 'Administrador Global') && !$mostrar_menu_paciente) {
+    if (($is_allowed{registros} || $is_allowed{clinicas} || $is_allowed{usuarios} || $is_allowed{comunicacion_masiva} || $is_allowed{servicios} || $is_allowed{productos} || $is_allowed{tecnico} || $is_allowed{sync_google} || $role eq 'Administrador Global') && !$mostrar_menu_paciente) {
         $show_admin = 1;
     }
 
     if ($show_admin) {
-        my $admin_has_active = ($pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos' || $pagina_actual eq 'gestion_permisos' || $pagina_actual eq 'usuarios_online' || $pagina_actual eq 'gestion_odontograma' || $pagina_actual eq 'tecnico' || $pagina_actual eq 'gestion_catalogos' || $pagina_actual eq 'cards_inicio' || $pagina_actual eq 'reset_datos_org') ? 1 : 0;
+        my $admin_has_active = ($pagina_actual eq 'clinicas' || $pagina_actual eq 'usuarios' || $pagina_actual eq 'comunicacion_masiva' || $pagina_actual eq 'servicios' || $pagina_actual eq 'productos' || $pagina_actual eq 'gestion_permisos' || $pagina_actual eq 'usuarios_online' || $pagina_actual eq 'gestion_odontograma' || $pagina_actual eq 'tecnico' || $pagina_actual eq 'gestion_catalogos' || $pagina_actual eq 'cards_inicio' || $pagina_actual eq 'reset_datos_org') ? 1 : 0;
         my $admin_active = $admin_has_active ? 'show' : '';
         my $collapsed_class = ($admin_active eq 'show') ? '' : 'collapsed';
         my $admin_aria = ($admin_active eq 'show') ? 'true' : 'false';
@@ -577,6 +577,7 @@ HTML
             'registros'   => { file => 'manage_registros.pl', icon => 'bi-person-lines-fill text-primary', title => 'Gesti&oacute;n de Registros' },
             'clinicas'    => { file => 'manage_clinicas.pl', icon => 'bi-building-gear', title => 'Gesti&oacute;n de Cl&iacute;nicas' },
             'usuarios'    => { file => 'administracion_usuarios.pl', icon => 'bi-people-fill', title => 'Gesti&oacute;n de Personal' },
+            'comunicacion_masiva' => { file => 'comunicacion_masiva.pl', icon => 'bi-envelope-paper-fill text-teal', title => 'Comunicaci&oacute;n' },
             'gestion_permisos' => { file => 'gestion_permisos_roles.pl', icon => 'bi-shield-lock-fill text-info', title => 'Matriz de Permisos' },
             'usuarios_online' => { file => 'usuarios_online.pl', icon => 'bi-activity text-success', title => 'Usuarios en L&iacute;nea' },
             'servicios'   => { file => 'manage_servicios.pl', icon => 'bi-heart-pulse-fill', title => 'Gesti&oacute;n de Servicios' },
@@ -665,7 +666,12 @@ HTML
             $is_allowed{'gestion_permisos'} = 1;
         }
 
-        foreach my $k ('clinicas', 'usuarios', 'gestion_permisos', 'usuarios_online', 'servicios', 'productos', 'gestion_odontograma', 'tecnico', 'gestion_catalogos', 'cards_inicio', 'reset_datos_org', 'sync_google') {
+        # Habilitar comunicacion_masiva para personal administrativo
+        if ($role =~ /Administrador/i) {
+            $is_allowed{'comunicacion_masiva'} = 1;
+        }
+
+        foreach my $k ('clinicas', 'usuarios', 'comunicacion_masiva', 'gestion_permisos', 'usuarios_online', 'servicios', 'productos', 'gestion_odontograma', 'tecnico', 'gestion_catalogos', 'cards_inicio', 'reset_datos_org', 'sync_google') {
             if ($is_allowed{$k}) {
                 my $active_sub = ($pagina_actual eq $k) ? 'active' : '';
                 my $cfg = $admin_mod_names{$k};

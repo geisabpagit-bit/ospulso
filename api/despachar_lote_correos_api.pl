@@ -111,13 +111,47 @@ foreach my $item (@lote_a_procesar) {
                 </html>
             };
 
-            my $msg = MIME::Lite->new(
-                From    => 'notificaciones@ospulso.com',
-                To      => $email,
-                Subject => $asunto,
-                Type    => 'text/html; charset=UTF-8',
-                Data    => $html_template
-            );
+            my $adj_dir = "$FindBin::Bin/../uploads/adjuntos_campanas/$cmp_id";
+            my @archivos_adjuntos = ();
+            if (-d $adj_dir && opendir(my $adh, $adj_dir)) {
+                while (my $fl = readdir($adh)) {
+                    next if $fl =~ /^\./;
+                    my $full_f = "$adj_dir/$fl";
+                    push @archivos_adjuntos, { path => $full_f, name => $fl } if -f $full_f;
+                }
+                closedir($adh);
+            }
+
+            my $msg;
+            if (@archivos_adjuntos > 0) {
+                $msg = MIME::Lite->new(
+                    From    => 'notificaciones@ospulso.com',
+                    To      => $email,
+                    Subject => $asunto,
+                    Type    => 'multipart/mixed'
+                );
+                $msg->attach(
+                    Type => 'text/html; charset=UTF-8',
+                    Data => $html_template
+                );
+                foreach my $adj (@archivos_adjuntos) {
+                    $msg->attach(
+                        Type        => 'AUTO',
+                        Path        => $adj->{path},
+                        Filename    => $adj->{name},
+                        Disposition => 'attachment'
+                    );
+                }
+            } else {
+                $msg = MIME::Lite->new(
+                    From    => 'notificaciones@ospulso.com',
+                    To      => $email,
+                    Subject => $asunto,
+                    Type    => 'text/html; charset=UTF-8',
+                    Data    => $html_template
+                );
+            }
+
             $msg->send;
             $envio_exitoso = 1;
         };

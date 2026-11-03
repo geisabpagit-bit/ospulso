@@ -69,15 +69,16 @@ El redactor soporta las siguientes etiquetas que se sustituyen en el cuerpo del 
 ## 6. Endpoints y Estructuras de Datos Backend
 
 ### 6.1 Endpoints API
-* **`api/comunicacion_audiencia_api.pl`**: Calcula de forma dinámica la audiencia según el rol de la sesión activa y deduplica destinatarios válidos omitiendo correos sintácticamente incorrectos.
-* **`api/crear_campana_correo_api.pl`**: Registra la campaña en `campanas_comunicacion.dat` y desglosa los registros de los destinatarios en la cola `cola_correos_masivos.dat` en menos de 1 segundo.
-* **`api/despachar_lote_correos_api.pl`**: Ejecuta el despacho secuencial por lotes configurables (5 a 10 correos), sustituye dinámicamente las variables de personalización, actualiza los contadores de entrega y registra la auditoría en `historial_correos.dat`.
-* **`api/listar_campanas_comunicacion_api.pl`**: Recupera el histórico de campañas filtrado con estricto RBAC (Global vs Tenant vs Médico tratante) en orden cronológico inverso.
+* **`api/limpiar_historial_comunicacion_api.pl`**: Vacía y purga el historial de campañas y cola de envíos respetando la segregación de tenant (RBAC).
+* **`api/comunicacion_audiencia_api.pl`**: Calcula de forma dinámica la audiencia según el rol de la sesión activa, deduplica destinatarios válidos e incorpora soporte para el directorio de organización (`miembros_organizacion` / `individual_org`).
+* **`api/crear_campana_correo_api.pl`**: Registra la campaña en `campanas_comunicacion.dat` (incluyendo validación y persistencia de hasta 2 archivos adjuntos con peso total <= 5 MB en `uploads/adjuntos_campanas/{id_campana}/`) y desglosa los registros de los destinatarios en la cola `cola_correos_masivos.dat`.
+* **`api/despachar_lote_correos_api.pl`**: Ejecuta el despacho secuencial por lotes (soporte MIME multipart para adjuntos), sustituye variables de personalización, actualiza contadores y registra la auditoría.
+* **`api/listar_campanas_comunicacion_api.pl`**: Recupera el histórico de campañas filtrado con estricto RBAC en orden cronológico inverso.
 * **`api/detalle_campana_comunicacion_api.pl`**: Retorna los metadatos y la lista individualizada de destinatarios en cola de una campaña específica para auditoría forense de entrega.
 
 ### 6.2 Estructura Flat-File (`dat/`)
 * **`dat/campanas_comunicacion.dat`**:
-  `ID_CAMPANA|FECHA|HORA|ID_REMITENTE|USUARIO_REMITENTE|ROL_REMITENTE|ID_NEGOCIO|SEGMENTO|ASUNTO|TOTAL_DESTINATARIOS|ENVIADOS_OK|FALLIDOS|ESTADO`
+  `ID_CAMPANA|FECHA|HORA|ID_REMITENTE|USUARIO_REMITENTE|ROL_REMITENTE|ID_NEGOCIO|SEGMENTO|ASUNTO|TOTAL_DESTINATARIOS|ENVIADOS_OK|FALLIDOS|ESTADO|ADJUNTOS`
 * **`dat/cola_correos_masivos.dat`**:
   `ID_COLA|ID_CAMPANA|EMAIL_DESTINATARIO|NOMBRE_DESTINATARIO|TIPO_DESTINATARIO|ASUNTO|CUERPO_HTML|ESTADO|INTENTOS|FECHA_ENVIO|ERROR_MSG`
 
@@ -100,6 +101,33 @@ Para garantizar accesibilidad total, ergonomía visual y prevenir bloqueos de pa
    * **Persistencia Canónica en Flat-Files:** `campanas_comunicacion.dat` y `cola_correos_masivos.dat` almacenan caracteres acentuados en UTF-8 nativo estricto, previniendo secuencias de doble codificación (`\xC3\x83\xC2\xAD`).
    * **Sanitización Dinámica en Endpoints API:** `api/listar_campanas_comunicacion_api.pl`, `api/detalle_campana_comunicacion_api.pl` y `api/crear_campana_correo_api.pl` incorporan la función `sanear_utf8()` basada en `Encode qw(decode encode is_utf8)` que detecta y repara automáticamente patrones residuales de doble UTF-8 antes de serializar a JSON.
    * **Defensa en Capa Cliente (Frontend):** En `views/comunicacion_masiva.pl`, las rutinas JS `sanearTextoUtf8()` y `escapeHtml()` procesan reactivamente el asunto, remitente y desglose de destinatarios en la tabla de historial y en el modal de auditoría, blindando la visualización en pantalla frente a cualquier anomalía de transporte o colisión de caracteres.
+
+---
+
+## 8. Funcionalidades de Nueva Campaña e Historial
+
+### 8.1 Selección de Destinatario Individual en Organización
+* La opción **"Miembro Individual de la Organización"** (`individual_org`) despliega un buscador con filtro interactivo en tiempo real que consulta `api/comunicacion_audiencia_api.pl?segmento=miembros_organizacion`.
+* Permite buscar por nombre, correo electrónico o rol de usuario, mostrando la selección visual con badge interactivo y botón de remoción.
+
+### 8.2 Gestión de Archivos Adjuntos
+* Soporta hasta **2 archivos adjuntos** por campaña con validación estricta de extensiones permitidas:
+  * **Imágenes:** `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`
+  * **Documentos:** `.pdf`, `.doc`, `.docx`, `.txt`
+  * **Hojas de Cálculo:** `.xls`, `.xlsx`, `.csv`
+* **Límite de Peso Acumulado:** 5.00 MB en total. El frontend calcula y visualiza dinámicamente el tamaño acumulado en tiempo real, bloqueando archivos excedentes antes del envío.
+* En backend, los archivos se almacenan en un directorio aislado `uploads/adjuntos_campanas/{id_campana}/` y se adjuntan mediante `MIME::Lite` con codificación base64.
+
+### 8.3 Vaciado y Purga de Historial
+* El Tab 2 incorpora el botón **"Limpiar Historial"**, que solicita confirmación al usuario y envía una petición a `api/limpiar_historial_comunicacion_api.pl`.
+* La operación purga de manera segura `dat/campanas_comunicacion.dat` y `dat/cola_correos_masivos.dat` manteniendo las cabeceras canónicas intactas y respetando las fronteras RBAC de cada tenant.
+
+### 8.4 Estándares de Diseño y UI/UX de Producción
+* **Tipografías Mandantes:** `Plus Jakarta Sans` y `Outfit` integradas para máxima legibilidad clínica y ejecutiva.
+* **Bordes Clínicos Teal:** Contenedores y paneles estilizados con borde sutil `1.5px solid var(--md-teal-clinical, #19B7A5)` acorde a la identidad del Tablero Financiero.
+* **Botones Delgados Premium:** Clases `.btn-premium-primary`, `.btn-outline-teal` y `.btn-outline-danger-thin` con radio `rounded-pill` y contraste equilibrado.
+* **Navegación en Menú Lateral:** Enlace `'Comunicaci&oacute;n'` (`views/comunicacion_masiva.pl`) registrado en `utils/sub_sidebar.pl` y `dat/menu_cards.dat` dentro del acordeón "Administración" debajo de "Gestión de Personal".
+
 
 
 
