@@ -44,6 +44,8 @@
   * 3.8 Visor de Imágenes Médicas, Estudios Radiológicos y HUB DICOM PACS
   * 3.9 Módulo de Comunicación Masiva, Campañas Sanitarias y Notificaciones Automatizadas
   * 3.10 Diagrama Sintetizado de Arquitectura Funcional del SIRES
+  * 3.11 Hub Integral y Modal 360° del Paciente (Ficha, Citas, Estado de Cuenta y Cotizaciones)
+  * 3.12 Arquitectura del Wizard de Consulta Dual (Flujo Privado con Cotización/Caja vs Flujo Público)
 * **4. ARQUITECTURA FINANCIERA, CAJA Y COBRANZA**
   * 4.1 Principio de Integridad Contable al Centavo y Drilldown Transparente
   * 4.2 Segregación Canónica de Flujo de Efectivo Real vs Cuentas por Cobrar (CXC Estado)
@@ -54,6 +56,7 @@
   * 5.2 Estándares Móviles Táctiles (Touch Target 48px y Layouts Flush)
   * 5.3 Regla de los Tres Clics y Optimización del Flujo Clínico
   * 5.4 Formato Editorial de Reportes en Dos Páginas Carta Exactas
+  * 5.5 Motor de Analítica Directiva y Reporte Asistido por Inteligencia Artificial (IA)
 * **6. DIAGRAMAS TÉCNICOS Y MODELOS DE ARQUITECTURA**
   * 6.1 Diagrama de Arquitectura Multitenant SaaS por CLUES
   * 6.2 Diagrama de Flujo del Pipeline SOAP Polimórfico
@@ -298,6 +301,26 @@ El siguiente blueprint sintetiza de forma integral el ecosistema clínico y fina
 
 ---
 
+### 3.11 Hub Integral y Modal 360° del Paciente (Ficha, Citas, Finanzas y Cotizaciones)
+OSpulso consolida la administración del paciente mediante un componente de interfaz reactivo de 360 grados (implementado en `views/pacientes.pl`, `views/render_expediente_clinico.pl` y `js/cotizaciones_spa.js`). Este Hub centraliza en una sola vista modal con pestañas dinámicas la totalidad de los datos operativos y clínicos del individuo sin necesidad de recargas de página:
+
+* **Ficha de Identificación del Paciente**: Enrolamiento demográfico canónico (`views/imprime_ficha_identificacion.pl`), registrando CURP normalizada, fecha de nacimiento, sexo, contacto telefónico, correo, persona responsable y antecedentes patológicos/no patológicos.
+* **Historial de Citas y Agendamientos**: Conexión con `api/citas_crud.pl` para visualizar citas históricas, consultas completadas, inasistencias y citas programadas con estatus en tiempo real.
+* **Estado de Cuenta Financiero**: Despliegue de cargos, abonos, saldo deudor o a favor y recibos foliados emitidos (`views/estado_cuenta.pl` y `api/estado_cuenta_api.pl`).
+* **Módulo de Cotizaciones y Presupuestos Clínicos**: Motor presupuestal (`api/cotizaciones_api.pl`, persistido en `dat/cotizaciones.dat` y `dat/cotizaciones_items.dat`) que permite cotizar tratamientos odontológicos o quirúrgicos complejos, calcular subtotales e impuestos, y registrar su conversión automática a plan de tratamiento al abrir consulta.
+* **Expediente Clínico y Notas SOAP**: Histórico cronológico inmutable de consultas previas con opción de reimpresión de notas de evolución.
+* **Repositorio de Consentimientos Informados**: Acceso a los formatos tipificados firmados digitalmente por el paciente o tutor.
+* **Archivo de Imágenes Diagnósticas (DICOM / PACS)**: Galería de estudios radiológicos enlazados con opción de apertura directa en el visor.
+* **Historial de Recetas Médicas Foliadas**: Bitácora de prescripciones farmacológicas emitidas para consulta y reimpresión controlada.
+
+### 3.12 Arquitectura del Wizard de Consulta Dual (Privada con Cotización vs Pública)
+Para atender simultáneamente la medicina privada y los modelos asistenciales comunitarios, OSpulso implementa un motor dual desacoplado de atención clínica:
+
+* **Wizard de Consulta Privada (`views/render_consultas_privado.pl`)**: Diseñado para consultorios y hospitales privados. Opera a través de un wizard modular de 6 pasos (`step_registro_privado.pl`, `step_anamnesis.pl`, `step_exploracion.pl`, `step_soap.pl`, `step_cierre_privado.pl` y `step_caja_privado.pl`). En el paso de registro, el facultativo puede vincular una cotización presupuestada previa (`$id_cotizacion_activa`) cargando automáticamente sus conceptos al carrito universal, agregar insumos o servicios adicionales de catálogo, emitir recetas médicas foliadas y derivar al paciente a la ventanilla de cobro con registro atómico en `dat/folios_recibos_privados.dat`.
+* **Wizard de Consulta Pública / Convenio Social (`views/render_consultas.pl`)**: Especializado para policlínicas públicas, programas de subsidio municipal al 100% o convenios estatales. Erradica el módulo de cobro en ventanilla al paciente, simplificando la captura clínica hacia la nota SOAP y emitiendo folios de servicio público que se asientan en `dat/folios_recibos_publicos.dat` como Cuentas por Cobrar (CXC Estado) para la comprobación y facturación global al ente gubernamental.
+
+---
+
 ## 4. ARQUITECTURA FINANCIERA, CAJA Y COBRANZA
 
 ### 4.1 Principio de Integridad Contable al Centavo y Drilldown Transparente
@@ -341,6 +364,13 @@ La navegación está optimizada para que un médico acceda desde la Agenda a cua
 ### 5.4 Formato Editorial de Reportes en Dos Páginas Carta Exactas
 Los reportes ejecutivos semanales y resúmenes directivos están diagramados para ajustarse de forma estricta a dos páginas tamaño Carta exactas, evitando saltos de línea huérfanos o desbordamientos estéticos al imprimirse o exportarse a PDF.
 
+### 5.5 Motor de Analítica Directiva y Reporte Asistido por Inteligencia Artificial (IA)
+El subsistema de Inteligencia de Negocios (`views/resumen_ejecutivo.pl` y `api/resumen_ejecutivo_api.pl`) incorpora una capa analítica avanzada basada en **Modelos de Inteligencia Artificial (IA)**:
+
+* **Generador de Prompts Estructurados de Alta Dirección**: El backend extrae y audita en caliente la sumatoria de ingresos privados y cargos públicos, el ticket promedio ponderado, el crecimiento porcentual semanal y el índice de calidad contable (100% de cuadre). Con estos datos, construye un prompt analítico contextual estructurado (`prompt_ia_completo`, `PROMPT_IA`) que se inyecta al motor de IA para generar interpretaciones ejecutivas automatizadas.
+* **Detección de Tendencias y Patrones de Estacionalidad**: La IA analiza la dispersión del ingreso entre días laborables y fines de semana, detecta servicios clínicos pico y genera un dictamen general sobre la solvencia y dinámica de atención de la institución médica.
+* **Recomendaciones Directivas Automatizadas**: El algoritmo emite sugerencias estratégicas accionables (`recomendaciones_alta_direccion`) para optimizar la ocupación de consultorios, ajustar los esquemas tarifarios de urgencias y reducir las cuentas por cobrar pendientes con entidades públicas.
+
 ---
 
 ---
@@ -354,7 +384,7 @@ Este diagrama ilustra la arquitectura de alto nivel y el ciclo de vida de ejecuc
 +───────────────────────────────────────────────────────────────────────────────────+
 |                                CLIENTES / FRONTEND                                |
 |   Estación Médica (PC)  │  Tablet Clínica (Móvil)  │  Ventanilla de Caja y Recepción |
-|   • HTML5 Semántico     │  • CSS3 Medentia Aura    │  • JavaScript ES6+ / jQuery  |
+|   • HTML5 Semántico     │  • CSS3 Ospulso Aura     │  • JavaScript ES6+ / jQuery  |
 +───────────────────────────────────────────────────────────────────────────────────+
                                           │ HTTPS / TLS 1.3
                                           ▼
