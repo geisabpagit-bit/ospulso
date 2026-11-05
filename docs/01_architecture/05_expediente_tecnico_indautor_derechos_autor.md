@@ -10,7 +10,7 @@
 * **Rama y Versión de la Obra**: Ospulso Diamond Edition v4.5.0 / Release v3.4.0 Estable
 * **Naturaleza de la Obra**: Programa de Computación (Software Aplicativo y Base de Datos)
 * **Autor (Persona Física Creadora)**: **Israel Garay de la Cruz**
-* **Titular de los Derechos Patrimoniales**: **Plataformas Digitales de México, S.A. de C.V.**
+* **Titular de los Derechos Patrimoniales**: **Plataformas Digitales de México, S.A. de C.V.** (Representada Legalmente por: **Israel Garay de la Cruz**)
 * **Fecha de Fijación de la Obra**: Octubre / Noviembre de 2026
 * **Lugar de Fijación**: San Luis Potosí, S.L.P. / Ciudad de México, México
 * **Declaración de Confidencialidad y Reserva**:
@@ -40,16 +40,17 @@
   * 3.4 Odontograma Digital Plus (Canvas HTML5 / SVG Vectorial Interactivo)
   * 3.5 Trazabilidad Quirúrgica End-to-End y Checklist OMS "Safe Surgery"
   * 3.6 Repositorio Atómico y Tipificado de Consentimientos Informados
-  * 3.7 Agenda Médica Central, Gestión de Citas y Recepción
+  * 3.7 Agenda Médica Central, Gestión de Citas y Recepción Inteligente
   * 3.8 Visor de Imágenes Médicas, Estudios Radiológicos y HUB DICOM PACS
-  * 3.9 Módulo de Comunicación Masiva, Campañas Preventivas y Notificaciones
+  * 3.9 Módulo de Comunicación Masiva, Campañas Sanitarias y Notificaciones Automatizadas
+  * 3.10 Diagrama Sintetizado de Arquitectura Funcional del SIRES
 * **4. ARQUITECTURA FINANCIERA, CAJA Y COBRANZA**
   * 4.1 Principio de Integridad Contable al Centavo y Drilldown Transparente
   * 4.2 Segregación Canónica de Flujo de Efectivo Real vs Cuentas por Cobrar (CXC Estado)
   * 4.3 Módulo de Caja Rápida y Motor Multi-Tarifa Reactivo
   * 4.4 Protocolo de Impresión Controlada de Recibos y Barra `.no-print`
 * **5. ESTÁNDARES DE DISEÑO UI/UX, INTERFAZ MÓVIL Y ACCESIBILIDAD**
-  * 5.1 Sistema de Diseño Medentia Aura y Paleta Cromática Institucional
+  * 5.1 Sistema de Diseño Ospulso Aura y Paleta Cromática Institucional
   * 5.2 Estándares Móviles Táctiles (Touch Target 48px y Layouts Flush)
   * 5.3 Regla de los Tres Clics y Optimización del Flujo Clínico
   * 5.4 Formato Editorial de Reportes en Dos Páginas Carta Exactas
@@ -67,7 +68,10 @@
   * 7.4 Extracto Sustancial II: Motor Clínico SOAP y Transaccional (`api/autosave_consulta.pl`, `api/cerrar_consulta_privado.pl`)
   * 7.5 Extracto Sustancial III: Motor Quirúrgico OMS y Consentimientos (`views/quirofano_kanban.pl`, `api/consentimientos_api.pl`)
   * 7.6 Extracto Sustancial IV: Motor Financiero Multi-Tarifa y Caja (`views/generar_recibo.pl`, `api/imprimir_recibo_caja.pl`)
-  * 7.7 Extracto Sustancial V: Catálogos Server-Side y Auditoría Append-Only (`api/crud_catalogo_universal_api.pl`, `utils/audit_manager.pm`)
+  * 7.5 Extractos de Código Representativo del Core de OSpulso
+* **8. DECLARACIÓN JURADA, PROTESTA DE DECIR VERDAD Y RATIFICACIÓN DE FIRMAS**
+  * 8.1 Declaración Solemne bajo Protesta de Decir Verdad
+  * 8.2 Cuadro Institucional de Firmas al Calce
 
 ---
 
@@ -81,7 +85,7 @@
 
 ### 1.2 Declaración de Autoría y Titularidad Patrimonial
 * **Autor Persona Física**: **Israel Garay de la Cruz**, en su carácter de desarrollador principal, arquitecto de software y creador intelectual originario de la totalidad de las líneas de código, algoritmos, contratos de datos, estructuras de persistencia y módulos funcionales que integran la obra.
-* **Titular de los Derechos Patrimoniales**: **Plataformas Digitales de México, S.A. de C.V.**, persona moral legalmente constituida conforme a las leyes de los Estados Unidos Mexicanos, titular exclusiva de las facultades de explotación, distribución, reproducción, comercialización, modificación y licenciamiento de la obra, al amparo de los artículos 103, 105 y 106 de la Ley Federal del Derecho de Autor.
+* **Titular de los Derechos Patrimoniales**: **Plataformas Digitales de México, S.A. de C.V.**, debidamente representada por su Representante Legal y Administrador, **Israel Garay de la Cruz**, persona moral legalmente constituida conforme a las leyes de los Estados Unidos Mexicanos, titular exclusiva de las facultades de explotación, distribución, reproducción, comercialización, modificación y licenciamiento de la obra, al amparo de los artículos 103, 105 y 106 de la Ley Federal del Derecho de Autor.
 
 ### 1.3 Clasificación Funcional: SIRES y Expediente Clínico Electrónico
 La obra **OSpulso** clasifica formalmente como un **Sistema de Información de Registros Electrónicos de Salud (SIRES)** y software integral de **Expediente Clínico Electrónico (ECE)**. Su cometido radica en la gestión, registro, almacenamiento, procesamiento, prescripción e intercambio seguro de datos clínicos, asistenciales, epidemiológicos, administrativos y financieros generados durante el acto médico ambulatorio, hospitalario y quirúrgico.
@@ -211,19 +215,70 @@ Superando los formatos aislados, OSpulso implementa un **Repositorio Atómico de
 * Captura de firmas digitales del paciente o tutor legal, médico tratante y testigos presenciales.
 * Generación de comprobante documental foliado con sello institucional, disponible para visualización e impresión controlada en cualquier momento.
 
-### 3.7 Agenda Médica Central, Gestión de Citas y Recepción
-* Programación inteligente de citas con visualización multitemporal (mensual, semanal, diaria y lista).
-* Filtros dinámicos por médico, especialidad, consultorio y sucursal.
-* Control de estado de la cita: `Programada`, `Confirmada`, `En Espera`, `En Consulta`, `Completada` o `Cancelada`.
-* Transición de alta velocidad hacia el expediente clínico en menos de 3 clics.
+### 3.7 Agenda Médica Central, Gestión de Citas y Recepción Inteligente
+La **Agenda Médica Central** es un pilar fundamental en la operación de OSpulso como plataforma SaaS. Provee una visualización multitemporal reactiva (vistas por día, semana, mes y lista de espera de pacientes), con capacidades avanzadas de filtrado por médico especialista, consultorio físico y clínica sucursal. El motor gestiona el ciclo de vida completo de cada cita médica mediante estados tipificados (`Programada` ➔ `Confirmada` ➔ `En Sala de Espera` ➔ `En Consulta` ➔ `Completada` ➔ `Cancelada`) e incorpora mecanismos de confirmación interactiva, reduciendo drásticamente las cancelaciones y garantizando una transición directa de un solo clic hacia el Expediente Clínico Electrónico y la apertura de la Nota SOAP.
 
 ### 3.8 Visor de Imágenes Médicas, Estudios Radiológicos y HUB DICOM PACS
-* Almacenamiento y vinculación de archivos radiológicos (Rayos X, Ultrasonido, Mastografía, Tomografía).
-* Visor web integrado con herramientas de zoom, manipulación de contraste/brillo, mediciones anatómicas e inspección de metadatos clínicos bajo estándar DICOM.
+El **Visor Radiológico y HUB PACS** desacoplado permite la importación, almacenamiento seguro y visualización médica web de estudios de imagenología (Rayos X digitales, Ultrasonografías, Mastografías diagnósticas, Tomografías computarizadas y Resonancias Magnéticas). Construido sobre tecnología Canvas HTML5 y estándares de la industria diagnóstica, provee al médico herramientas diagnósticas de alta precisión en tiempo real: zoom digital sin pérdida de resolución, ventana interactiva de ajuste de contraste y brillo dinámico (*Window/Level*), inversión cromática negativa/positiva, rotación angular y reglas de calibración para medición milimétrica de estructuras anatómicas. El visor vincula automáticamente cada serie de imágenes al número de expediente del paciente y a la nota de evolución correspondiente, permitiendo su consulta inmediata durante el acto médico sin requerir software externo.
 
-### 3.9 Módulo de Comunicación Masiva, Campañas Preventivas y Notificaciones
-* Herramienta institucional para envío de recordatorios de citas, avisos de seguimiento médico y campañas de medicina preventiva.
-* Segmentación de audiencias por grupos etarios, diagnósticos previos o fechas de atención.
+### 3.9 Módulo de Comunicación Masiva, Campañas Sanitarias y Notificaciones Automatizadas
+El **Módulo de Comunicación Masiva y Notificaciones** es un componente nuclear del SaaS OSpulso diseñado para fortalecer la relación médico-paciente y mitigar el ausentismo clínico. Dispone de un motor transaccional multicanal capaz de despachar recordatorios automatizados de citas programadas vía mensajería instantánea y correo electrónico, avisos de disponibilidad de resultados de estudios de laboratorio o gabinete, y difusión masiva de campañas sanitarias preventivas (jornadas de vacunación, despistaje oncológico, control metabólico en diabetes e hipertensión). El sistema incorpora un módulo de segmentación avanzada por grupos etarios, diagnósticos nosológicos CIE-10 previos o periodos de inactividad asistencial, garantizando un estricto respeto a la privacidad del paciente y a la normativa sanitaria de consentimiento para comunicaciones electrónicas.
+
+### 3.10 Diagrama Sintetizado de Arquitectura Funcional del SIRES
+El siguiente diagrama sintetiza de forma integral el ecosistema clínico unificado del sistema SaaS OSpulso, detallando la interacción armónica entre la agenda, el expediente, el pipeline SOAP, los módulos de especialidad, el apoyo diagnóstico y la pasarela a finanzas:
+
+```
++═════════════════════════════════════════════════════════════════════════════════════+
+|                 ECOSISTEMA INTEGRAL CLÍNICO Y ASISTENCIAL (SIRES)                   |
++═════════════════════════════════════════════════════════════════════════════════════+
+                                         │
+                   ┌─────────────────────┴─────────────────────┐
+                   ▼                                           ▼
++─────────────────────────────────────+     +─────────────────────────────────────+
+|   [3.7] AGENDA MÉDICA Y RECEPCIÓN   |     |    [3.9] COMUNICACIÓN MASIVA        |
+|  • Citas multitemporal (Día/Sem/Mes)|     |  • Recordatorios automáticos de cita|
+|  • Control de estados y sala espera |     |  • Avisos de estudios de laboratorio|
+|  • Filtro por Especialista/Consult. |     |  • Campañas preventivas por CIE-10  |
++─────────────────────────────────────+     +─────────────────────────────────────+
+                   │                                           ▲
+                   ▼ (1 Clic)                                  │
++──────────────────────────────────────────────────────────────┴──────────────────────+
+|                     [3.3] EXPEDIENTE CLÍNICO ELECTRÓNICO (ECE)                      |
+|       • Historial Médico Unificado   • Antecedentes Heredo-Familiares y Patológicos |
+|       • Alergias y Signos Vitales    • Trazabilidad y NOM-004-SSA3-2012 Inmutable   |
++─────────────────────────────────────────────────────────────────────────────────────+
+                                         │
+                                         ▼
++─────────────────────────────────────────────────────────────────────────────────────+
+|                    [3.1 & 3.2] PIPELINE SOAP CLÍNICO POLIMÓRFICO                    |
+|   [S] Subjetivo: Interrogatorio  │ [O] Objetivo: Signos vitales y exploración física|
+|   [A] Apreciación: CIE-10        │ [P] Plan Terapéutico: Indicaciones y Medicación  |
++─────────────────────────────────────────────────────────────────────────────────────+
+                                         │
+        ┌────────────────────────────────┼────────────────────────────────┐
+        ▼                                ▼                                ▼
++───────────────────+            +───────────────────+            +───────────────────+
+| [3.4] ODONTOGRAMA |            | [3.5] QUIRÓFANO   |            | [3.8] VISOR PACS  |
+|  • 52 Piezas      |            |  • Tablero Kanban |            |  • Rayos X / USG  |
+|  • 5 Caras anatóm.|            |  • Checklist OMS  |            |  • DICOM / Web    |
+|  • Patologías SVG |            |  • Escala Aldrete |            |  • Zoom/Contraste |
++───────────────────+            +───────────────────+            +───────────────────+
+        │                                │                                │
+        └────────────────────────────────┼────────────────────────────────┘
+                                         ▼
++─────────────────────────────────────────────────────────────────────────────────────+
+|               [3.6] PRESCRIPCIÓN, CONSENTIMIENTOS Y CIERRE CLÍNICO                  |
+|    • Receta Médica Electrónica Foliada      • Repositorio de Consentimientos JSON   |
+|    • Sellado Temporal y Firma Digital       • Inmutabilidad de la Nota Médica       |
++─────────────────────────────────────────────────────────────────────────────────────+
+                                         │
+                                         ▼
++─────────────────────────────────────────────────────────────────────────────────────+
+|                 [SECCIÓN 4] MÓDULO DE CAJA Y LIQUIDACIÓN FINANCIERA                 |
+|   • Caja Rápida & Motor Multi-Tarifa   • Recibos Privados: Flujo Efectivo Real      |
+|   • Exclusión inteligente de consultas • Recibos Públicos: Cuentas por Cobrar (CXC) |
++─────────────────────────────────────────────────────────────────────────────────────+
+```
 
 ---
 
@@ -817,5 +872,27 @@ sub log_audit {
 
 ---
 
-### CONCLUSIÓN Y DECLARACIÓN FINAL DE DEPÓSITO
-La presente Memoria Técnica y Extracto de Código Fuente acreditan la originalidad, diseño de ingeniería, arquitectura de software e integración funcional del sistema **OSpulso / SDM 2.0**, constituyendo un programa de computación y base de datos protegidos en los términos más amplios por los artículos 101, 102, 103, 107 y demás relativos y aplicables de la Ley Federal del Derecho de Autor de los Estados Unidos Mexicanos, expidiéndose para constancia legal y trámite de registro ante el Instituto Nacional del Derecho de Autor (INDAUTOR).
+## 8. DECLARACIÓN JURADA, PROTESTA DE DECIR VERDAD Y RATIFICACIÓN DE FIRMAS
+
+### 8.1 Declaración Solemne bajo Protesta de Decir Verdad
+En estricto cumplimiento de los artículos 101, 102, 103, 105, 106, 107 y demás relativos y aplicables de la **Ley Federal del Derecho de Autor** de los Estados Unidos Mexicanos, de su Reglamento en vigor, y debidamente enterados y apercibidos de las sanciones administrativas y de las penas de orden civil y penal en que incurren las personas que declaran con falsedad ante autoridad legalmente facultada, los comparecientes **DECLARAMOS SOLEMNEMENTE BAJO PROTESTA DE DECIR VERDAD**:
+
+1. **VERACIDAD Y EXACTITUD TÉCNICA:** Que la totalidad de la información, memorias descriptivas, esquemas de arquitectura de software, especificaciones de motores de datos en Tercera Forma Normal (3NF), contratos de persistencia y extractos sustanciales de código fuente asentados en el presente instrumento documental son verídicos, exactos, fidedignos y reflejan fielmente el estado actual de ingeniería, lógica algorítmica y funcionalidad del sistema aplicativo denominado **OSpulso** (*Ospulso Platform Core v2.0 / Diamond Edition v4.5.0*).
+2. **ORIGINALIDAD Y AUTORÍA INTELECTUAL:** Que la obra computacional descrita es una creación intelectual original, concebida, desarrollada y programada por el **C. Israel Garay de la Cruz** en su calidad de *Autor, Arquitecto de Software y Creador Intelectual Originario*, habiéndose generado de forma independiente y sin incurrir en plagio, reproducción indebida ni vulneración alguna de los derechos de propiedad intelectual, derechos morales o derechos conexos de terceras personas físicas o morales.
+3. **TITULARIDAD PATRIMONIAL EXCLUSIVA:** Que la sociedad mercantil denominada **Plataformas Digitales de México, S.A. de C.V.**, por conducto de su Representante Legal el **C. Israel Garay de la Cruz**, ostenta de manera exclusiva, legítima e incontrovertible la titularidad de los derechos patrimoniales sobre la obra en términos de los artículos 103 y 105 de la Ley Federal del Derecho de Autor, estando plenamente facultada para el uso, comercialización, comunicación pública, distribución, adaptación, licenciamiento y explotación comercial en la modalidad Software as a Service (SaaS).
+4. **APEGO NORMATIVO SANITARIO:** Que los procesos clínicos descritos han sido diseñados en estricto apego a las disposiciones de las Normas Oficiales Mexicanas **NOM-004-SSA3-2012** (Del Expediente Clínico), **NOM-024-SSA3-2012** (Sistemas de Información de Registro Electrónico para la Salud), las directrices de la Organización Mundial de la Salud (OMS) en materia de seguridad quirúrgica y la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP).
+5. **FINALIDAD DEL DEPÓSITO:** Que la presente Memoria Técnica y Extracto Sustancial de Código Fuente se integran y expiden de buena fe para su formal depósito legal, solicitud de inscripción y expedición del correspondiente **Certificado de Registro de Obra de Programa de Computación** ante la Dirección del Registro Público del Derecho de Autor del **Instituto Nacional del Derecho de Autor (INDAUTOR)**.
+
+Para debida constancia legal y surtimiento de los efectos procedentes, se firma y suscribe el presente documento en la Ciudad de México / San Luis Potosí, México, a los 04 días del mes de noviembre del año 2026.
+
+---
+
+### 8.2 Cuadro Institucional de Firmas al Calce
+
+| AUTOR Y DESARROLLADOR PRINCIPAL | TITULAR DE DERECHOS PATRIMONIALES |
+| :---: | :---: |
+| <br><br>_____________________________________________ | <br><br>_____________________________________________ |
+| **ISRAEL GARAY DE LA CRUZ** | **PLATAFORMAS DIGITALES DE MÉXICO, S.A. DE C.V.** |
+| Autor Intelectual y Creador de la Obra | Por conducto de su Representante Legal: |
+| *(Persona Física)* | **ISRAEL GARAY DE LA CRUZ** |
+| | *Representante Legal y Administrador* |
