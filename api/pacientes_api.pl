@@ -101,6 +101,10 @@ if ($accion eq 'get_perfil') {
                         } || eval {
                             $perfil->{antecedentes} = JSON::PP->new->utf8(1)->decode($av[2]);
                         };
+                        if (ref $perfil->{antecedentes} eq 'HASH') {
+                            $perfil->{dependencia} = $perfil->{antecedentes}->{dependencia} // '';
+                            $perfil->{num_empleado_estado} = $perfil->{antecedentes}->{num_empleado_estado} // '';
+                        }
                         last;
                     }
                 }

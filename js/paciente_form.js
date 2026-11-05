@@ -1,3 +1,14 @@
+// Helper de seguridad HTML
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Helpers globales para toggles de detalle en Antecedentes
 window.toggleDetalle = function(selectEl, containerId) {
     const cont = document.getElementById(containerId);
@@ -20,6 +31,178 @@ window.toggleAlimentacionOtro = function(selectEl) {
         cont.classList.add('d-none');
         const input = cont.querySelector('input');
         if (input) input.value = '';
+    }
+};
+
+// --- CONTROL DE IMPORTACIÓN DE EMPLEADO DE MUNICIPIO ---
+let debounceTimerBusquedaEmp = null;
+
+window.debounceBuscarEmpleadoModal = function(val) {
+    clearTimeout(debounceTimerBusquedaEmp);
+    if (!val || val.trim().length < 2) return;
+    debounceTimerBusquedaEmp = setTimeout(() => {
+        window.ejecutarBusquedaEmpleadoModal();
+    }, 350);
+};
+
+window.abrirModalImportarEmpleado = function() {
+    const el = document.getElementById('modalImportarEmpleado');
+    if (!el) return;
+    if (window.bootstrap && bootstrap.Modal) {
+        const modal = bootstrap.Modal.getOrCreateInstance(el);
+        modal.show();
+    } else {
+        $(el).modal('show');
+    }
+    setTimeout(() => {
+        const inp = document.getElementById('iptBuscarEmpleadoModal');
+        if (inp) {
+            inp.focus();
+            inp.select();
+        }
+    }, 400);
+};
+
+window.ejecutarBusquedaEmpleadoModal = function() {
+    const inp = document.getElementById('iptBuscarEmpleadoModal');
+    const cont = document.getElementById('resultadosEmpleadoModalCont');
+    if (!inp || !cont) return;
+    const qStr = inp.value.trim();
+    if (qStr.length < 2) {
+        cont.innerHTML = `<div class="alert alert-warning py-2 px-3 small m-2"><i class="bi bi-exclamation-circle me-1"></i>Ingresa al menos 2 caracteres o dígitos para buscar.</div>`;
+        return;
+    }
+
+    cont.innerHTML = `
+        <div class="text-center py-5 text-muted">
+            <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>
+            <span class="small fw-semibold">Consultando padrón oficial...</span>
+        </div>`;
+
+    const clues = window.ORG_CLUES || '';
+    $.ajax({
+        url: '../api/buscar_empleadosmun.pl',
+        type: 'POST',
+        data: { q: qStr, clues: clues },
+        dataType: 'json',
+        success: function(data) {
+            if (!data || data.length === 0) {
+                cont.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-person-x fs-1 text-secondary opacity-50 d-block mb-2"></i>
+                        <span class="fw-bold small text-dark">No se encontraron registros en el padrón</span>
+                        <p class="text-muted small m-0" style="font-size:0.75rem;">Verifica el número de empleado o la ortografía del nombre.</p>
+                    </div>`;
+                return;
+            }
+
+            let html = '<div class="list-group list-group-flush gap-2">';
+            data.forEach((emp, idx) => {
+                let isBeneficiario = emp.relacion && emp.relacion.toLowerCase() !== 'empleado';
+                let badgeClass = isBeneficiario ? 'bg-info text-dark' : 'bg-primary text-white';
+                let depHtml = emp.dependencia ? `<div class="small text-muted text-truncate" style="font-size:0.73rem;"><i class="bi bi-building me-1"></i>${escapeHtml(emp.dependencia)}</div>` : '';
+                let telHtml = emp.telefono ? `<span class="me-2"><i class="bi bi-telephone me-1"></i>${escapeHtml(emp.telefono)}</span>` : '';
+                let corHtml = emp.correo ? `<span><i class="bi bi-envelope me-1"></i>${escapeHtml(emp.correo)}</span>` : '';
+
+                let empJson = JSON.stringify(emp).replace(/'/g, "&apos;");
+
+                html += `
+                    <div class="list-group-item bg-light rounded-3 p-2.5 border shadow-2xs d-flex align-items-center justify-content-between gap-2">
+                        <div class="overflow-hidden flex-grow-1 min-w-0">
+                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                <span class="fw-bold text-dark text-truncate small" style="font-size:0.85rem;">${escapeHtml(emp.nombre)}</span>
+                                <span class="badge ${badgeClass} rounded-pill px-2 py-0.5" style="font-size:0.65rem;">${escapeHtml(emp.relacion || 'Empleado')}</span>
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" style="font-size:0.65rem;">No. #${escapeHtml(emp.num_empleado)}</span>
+                            </div>
+                            ${depHtml}
+                            <div class="small text-muted mt-1" style="font-size:0.72rem;">
+                                ${telHtml}${corHtml}
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm rounded-pill text-white px-3 fw-bold flex-shrink-0" style="background: var(--md-teal-clinical, #19B7A5); font-size:0.75rem;" onclick='window.seleccionarEmpleadoParaImportar(${empJson})'>
+                            <i class="bi bi-box-arrow-in-down-right me-1"></i>Importar
+                        </button>
+                    </div>`;
+            });
+            html += '</div>';
+            cont.innerHTML = html;
+        },
+        error: function(xhr, status, err) {
+            console.error("Error al buscar empleados:", err);
+            cont.innerHTML = `<div class="alert alert-danger py-2 px-3 small m-2">Error de comunicación con el servidor al consultar el padrón.</div>`;
+        }
+    });
+};
+
+window.volcarEmpleadoAPaciente = function(emp) {
+    if (!emp) return;
+    const inputNom = document.getElementById("nombreCompleto");
+    const inputTel = document.getElementById("telefono");
+    const inputCor = document.getElementById("correo");
+    const inputDep = document.getElementById("dependencia");
+    const inputNum = document.getElementById("num_empleado_estado");
+    const inputOcu = document.getElementById("ocupacion");
+    const badgeOrig = document.getElementById("badgeOrigenEmpleado");
+
+    if (inputNom && emp.nombre) {
+        let normNom = String(emp.nombre).replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+        inputNom.value = normNom;
+    }
+    if (inputTel && emp.telefono) {
+        let cleanTel = String(emp.telefono).replace(/[^0-9\+]/g, '');
+        if (cleanTel.length >= 7) inputTel.value = cleanTel;
+    }
+    if (inputCor && emp.correo) {
+        inputCor.value = String(emp.correo).trim();
+    }
+    if (inputDep) {
+        let depNom = emp.dependencia || (emp.id_dependencia ? 'Dependencia #' + emp.id_dependencia : '');
+        inputDep.value = depNom;
+    }
+    if (inputNum && emp.num_empleado) {
+        inputNum.value = emp.num_empleado;
+    }
+    if (inputOcu && !inputOcu.value.trim()) {
+        let ocuText = (emp.relacion && emp.relacion.toLowerCase() !== 'empleado') 
+            ? 'Beneficiario (' + emp.relacion + ')' 
+            : 'Servidor Público Municipal';
+        if (emp.dependencia) ocuText += ' - ' + emp.dependencia;
+        inputOcu.value = ocuText;
+    }
+    if (badgeOrig) {
+        let relText = emp.relacion || 'Empleado';
+        let numText = emp.num_empleado ? ` (#${emp.num_empleado})` : '';
+        badgeOrig.innerHTML = `<i class="bi bi-building-check me-1"></i>Padrón Municipal: ${escapeHtml(relText)}${numText}`;
+        badgeOrig.classList.remove('d-none');
+    }
+
+    if (inputNom) inputNom.dispatchEvent(new Event('input'));
+};
+
+window.seleccionarEmpleadoParaImportar = function(emp) {
+    if (!emp) return;
+    window.volcarEmpleadoAPaciente(emp);
+
+    const el = document.getElementById('modalImportarEmpleado');
+    if (el) {
+        if (window.bootstrap && bootstrap.Modal) {
+            const modal = bootstrap.Modal.getInstance(el);
+            if (modal) modal.hide();
+        } else {
+            $(el).modal('hide');
+        }
+    }
+
+    if (window.Swal) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Datos Importados',
+            text: `Se cargó la ficha de ${emp.nombre} (${emp.relacion || 'Empleado'})`,
+            timer: 2500,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
     }
 };
 
@@ -161,8 +344,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     inputTelefono.value = data.perfil.telefono || '';
                     if (document.getElementById("correo")) document.getElementById("correo").value = data.perfil.correo !== 'No registrado' ? data.perfil.correo : '';
-                    if (document.getElementById("nacionalidad")) document.getElementById("nacionalidad").value = data.perfil.nacionalidad || '';
                     if (document.getElementById("ocupacion")) document.getElementById("ocupacion").value = data.perfil.ocupacion || '';
+                    if (document.getElementById("dependencia") && data.perfil.dependencia) {
+                        document.getElementById("dependencia").value = data.perfil.dependencia;
+                    }
+                    if (document.getElementById("num_empleado_estado") && (data.perfil.num_empleado_estado || data.perfil.num_empleado)) {
+                        document.getElementById("num_empleado_estado").value = data.perfil.num_empleado_estado || data.perfil.num_empleado;
+                        const badgeEl = document.getElementById("badgeOrigenEmpleado");
+                        if (badgeEl) {
+                            badgeEl.innerHTML = `<i class="bi bi-building-check me-1"></i>Padr&oacute;n Municipal (#${document.getElementById("num_empleado_estado").value})`;
+                            badgeEl.classList.remove('d-none');
+                        }
+                    }
                     if (document.getElementById("idMedicoAsignado") && data.perfil.id_medico !== undefined) {
                         document.getElementById("idMedicoAsignado").value = data.perfil.id_medico;
                     }
@@ -227,6 +420,29 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
             });
+    } else {
+        // Modo Registro Nuevo: Revisar si existe importación pendiente desde sessionStorage
+        const pendingEmp = sessionStorage.getItem('sdm_import_empleado');
+        if (pendingEmp) {
+            try {
+                const empObj = JSON.parse(pendingEmp);
+                sessionStorage.removeItem('sdm_import_empleado');
+                window.volcarEmpleadoAPaciente(empObj);
+                if (window.Swal) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Empleado municipal importado',
+                        text: 'Datos volcados a Información de Identidad.',
+                        showConfirmButton: false,
+                        timer: 3500
+                    });
+                }
+            } catch (err) {
+                console.error("Error al procesar empleado pendiente:", err);
+            }
+        }
     }
 
     // BUSCADOR SEPOMEX POR CP
@@ -422,6 +638,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 correo: document.getElementById("correo") ? document.getElementById("correo").value.trim() : "",
                 nacionalidad: document.getElementById("nacionalidad") ? document.getElementById("nacionalidad").value.trim() : "",
                 ocupacion: document.getElementById("ocupacion") ? document.getElementById("ocupacion").value.trim() : "",
+                dependencia: document.getElementById("dependencia") ? document.getElementById("dependencia").value.trim() : "",
+                num_empleado_estado: document.getElementById("num_empleado_estado") ? document.getElementById("num_empleado_estado").value.trim() : "",
                 tipo_sangre: document.getElementById("tipoSangre") ? document.getElementById("tipoSangre").value : "",
                 tutor: inputTutor ? inputTutor.value.trim() : "",
                 id_medico: document.getElementById("idMedicoAsignado") ? document.getElementById("idMedicoAsignado").value : "",

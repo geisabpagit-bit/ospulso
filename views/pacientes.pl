@@ -148,6 +148,47 @@ if ($regs) {
     }
 }
 
+# --- VERIFICAR SAAS CAPABILITIES (PACIENTES_ESTADO) Y CLUES ---
+my $has_pacientes_estado = 0;
+my $found_pacientes_estado = 0;
+my $id_empresa = $sd->{id_empresa} // '';
+my $org_clues = '';
+
+my $negocios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+if (-e $negocios_file && open(my $fn, '<:raw', $negocios_file)) {
+    while(my $ln = <$fn>) {
+        chomp($ln);
+        my @f = split(/\|/, $ln, -1);
+        my $row_id = $f[0] // '';
+        $row_id =~ s/\x00//g; $row_id =~ s/^\s+|\s+$//g;
+        if ($row_id eq $id_empresa || ($id_empresa eq '0' && ($row_id eq '0' || $row_id eq ''))) {
+            my $c_val = $f[18] // '';
+            $c_val =~ s/\x00//g; $c_val =~ s/^\s+|\s+$//g;
+            $org_clues = $c_val if $c_val;
+            last;
+        }
+    }
+    close($fn);
+}
+
+my $config_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
+if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
+    while (my $line = <$cf>) {
+        chomp($line);
+        next if $line =~ /^#|^\s*$/;
+        my ($biz_id, $key, $val) = split(/\|/, $line);
+        if ($biz_id eq $id_empresa && $key eq 'PACIENTES_ESTADO') {
+            $has_pacientes_estado = ($val eq '1') ? 1 : 0;
+            $found_pacientes_estado = 1;
+            last;
+        }
+    }
+    close($cf);
+}
+if (!$found_pacientes_estado && ($id_empresa eq '0' || $id_empresa eq '') && length($org_clues)) {
+    $has_pacientes_estado = 1;
+}
+
 print <<HTML;
 <link rel="stylesheet" href="../css/ospulso_master_v2.css">
 <link rel="stylesheet" href="../css/tabla_pacientes.css?v=$^T">
@@ -175,9 +216,9 @@ print <<HTML;
                     </div>
                 </div>
                 <div>
-                    <a href="crud_paciente.pl" class="btn text-white fw-bold rounded-pill px-4 py-2 shadow-sm d-flex align-items-center gap-2" style="background: #082050; border: 1px solid rgba(255,255,255,0.2);">
+                    <button type="button" class="btn text-white fw-bold rounded-pill px-4 py-2 shadow-sm d-flex align-items-center gap-2" style="background: #082050; border: 1px solid rgba(255,255,255,0.2);" onclick="iniciarAltaPaciente()">
                         <i class="bi bi-person-plus-fill text-white"></i><span>Agregar nuevo paciente</span>
-                    </a>
+                    </button>
                 </div>
             </div>
         </header>
@@ -445,7 +486,219 @@ print <<'HTML';
             }
         });
     }
+
+    // --- FLUJO INTELIGENTE DE ALTA DE PACIENTE (CAPACIDAD SAAS) ---
+    window.HAS_PACIENTES_ESTADO = $has_pacientes_estado;
+    window.ORG_CLUES = "$org_clues";
+
+    function iniciarAltaPaciente() {
+        if (!window.HAS_PACIENTES_ESTADO) {
+            sessionStorage.removeItem('sdm_import_empleado');
+            window.location.href = 'crud_paciente.pl';
+            return;
+        }
+
+        Swal.fire({
+            title: 'Registro de Paciente',
+            text: '¿Deseas realizar una captura en blanco o importar un empleado de municipio?',
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: '#0A2A66',
+            denyButtonColor: '#19B7A5',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: '<i class="bi bi-pencil-square me-1"></i> Captura Nueva',
+            denyButtonText: '<i class="bi bi-building-down me-1"></i> Importar Municipio',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'rounded-4 shadow-lg'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                sessionStorage.removeItem('sdm_import_empleado');
+                window.location.href = 'crud_paciente.pl';
+            } else if (result.isDenied) {
+                abrirModalImportarEmpleadoPacientes();
+            }
+        });
+    }
+
+    let debounceTimerPacientes = null;
+    function debounceBuscarEmpleadoPacientes(val) {
+        clearTimeout(debounceTimerPacientes);
+        if (!val || val.trim().length < 2) return;
+        debounceTimerPacientes = setTimeout(() => {
+            ejecutarBusquedaEmpleadoPacientes();
+        }, 350);
+    }
+
+    function abrirModalImportarEmpleadoPacientes() {
+        const el = document.getElementById('modalImportarEmpleadoPacientes');
+        if (!el) return;
+        if (window.bootstrap && bootstrap.Modal) {
+            const modal = bootstrap.Modal.getOrCreateInstance(el);
+            modal.show();
+        } else {
+            $(el).modal('show');
+        }
+        setTimeout(() => {
+            const inp = document.getElementById('iptBuscarEmpleadoPacientes');
+            if (inp) {
+                inp.focus();
+                inp.select();
+            }
+        }, 400);
+    }
+
+    function escapeHtmlSafe(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function ejecutarBusquedaEmpleadoPacientes() {
+        const inp = document.getElementById('iptBuscarEmpleadoPacientes');
+        const cont = document.getElementById('resEmpleadoPacientesCont');
+        if (!inp || !cont) return;
+        const qStr = inp.value.trim();
+        if (qStr.length < 2) {
+            cont.innerHTML = '<div class="alert alert-warning py-2 px-3 small m-2"><i class="bi bi-exclamation-circle me-1"></i>Ingresa al menos 2 caracteres o dígitos para buscar.</div>';
+            return;
+        }
+
+        cont.innerHTML = `
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>
+                <span class="small fw-semibold">Consultando padrón oficial...</span>
+            </div>`;
+
+        $.ajax({
+            url: '../api/buscar_empleadosmun.pl',
+            type: 'POST',
+            data: { q: qStr, clues: window.ORG_CLUES || '' },
+            dataType: 'json',
+            success: function(data) {
+                if (!data || data.length === 0) {
+                    cont.innerHTML = `
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-person-x fs-1 text-secondary opacity-50 d-block mb-2"></i>
+                            <span class="fw-bold small text-dark">No se encontraron registros en el padrón</span>
+                            <p class="text-muted small m-0" style="font-size:0.75rem;">Verifica el número de empleado o la ortografía del nombre.</p>
+                        </div>`;
+                    return;
+                }
+
+                let html = '<div class="list-group list-group-flush gap-2">';
+                data.forEach((emp) => {
+                    let isBeneficiario = emp.relacion && emp.relacion.toLowerCase() !== 'empleado';
+                    let badgeClass = isBeneficiario ? 'bg-info text-dark' : 'bg-primary text-white';
+                    let depHtml = emp.dependencia ? `<div class="small text-muted text-truncate" style="font-size:0.73rem;"><i class="bi bi-building me-1"></i>${escapeHtmlSafe(emp.dependencia)}</div>` : '';
+                    let telHtml = emp.telefono ? `<span class="me-2"><i class="bi bi-telephone me-1"></i>${escapeHtmlSafe(emp.telefono)}</span>` : '';
+                    let corHtml = emp.correo ? `<span><i class="bi bi-envelope me-1"></i>${escapeHtmlSafe(emp.correo)}</span>` : '';
+
+                    let empJson = JSON.stringify(emp).replace(/'/g, "&apos;");
+
+                    html += `
+                        <div class="list-group-item bg-light rounded-3 p-2.5 border shadow-2xs d-flex align-items-center justify-content-between gap-2">
+                            <div class="overflow-hidden flex-grow-1 min-w-0">
+                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                    <span class="fw-bold text-dark text-truncate small" style="font-size:0.85rem;">${escapeHtmlSafe(emp.nombre)}</span>
+                                    <span class="badge ${badgeClass} rounded-pill px-2 py-0.5" style="font-size:0.65rem;">${escapeHtmlSafe(emp.relacion || 'Empleado')}</span>
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" style="font-size:0.65rem;">No. #${escapeHtmlSafe(emp.num_empleado)}</span>
+                                </div>
+                                ${depHtml}
+                                <div class="small text-muted mt-1" style="font-size:0.72rem;">
+                                    ${telHtml}${corHtml}
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm rounded-pill text-white px-3 fw-bold flex-shrink-0" style="background: var(--md-teal-clinical, #19B7A5); font-size:0.75rem;" onclick='seleccionarEmpleadoParaImportarPacientes(${empJson})'>
+                                <i class="bi bi-box-arrow-in-down-right me-1"></i>Importar
+                            </button>
+                        </div>`;
+                });
+                html += '</div>';
+                cont.innerHTML = html;
+            },
+            error: function(xhr, status, err) {
+                console.error("Error al buscar empleados:", err);
+                cont.innerHTML = '<div class="alert alert-danger py-2 px-3 small m-2">Error de comunicación con el servidor al consultar el padrón.</div>';
+            }
+        });
+    }
+
+    function seleccionarEmpleadoParaImportarPacientes(emp) {
+        if (!emp) return;
+        sessionStorage.setItem('sdm_import_empleado', JSON.stringify(emp));
+        const el = document.getElementById('modalImportarEmpleadoPacientes');
+        if (el) {
+            if (window.bootstrap && bootstrap.Modal) {
+                const modal = bootstrap.Modal.getInstance(el);
+                if (modal) modal.hide();
+            } else {
+                $(el).modal('hide');
+            }
+        }
+        window.location.href = 'crud_paciente.pl?origen=municipio';
+    }
 </script>
+
+<!-- MODAL PARA IMPORTACIÓN ASISTIDA EN DIRECTORIO (ESTÁNDAR IMAGEN 3) -->
+<div class="modal fade" id="modalImportarEmpleadoPacientes" tabindex="-1" aria-labelledby="modalImportarEmpleadoPacientesLabel" aria-hidden="true" style="z-index: 105160 !important;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header text-white px-4 py-3" style="background: var(--md-blue-deep, #0A2A66);">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(255,255,255,0.15);">
+                        <i class="bi bi-building-down text-white fs-6"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold m-0" id="modalImportarEmpleadoPacientesLabel">Importar Empleado de Municipio / Estado</h6>
+                        <span class="text-white-50 small" style="font-size: 0.75rem;">Búsqueda directa en el padrón oficial de la organización</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 p-md-4 bg-light">
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted mb-1 ps-1">Número de Empleado o Nombre</label>
+                    <div class="input-group shadow-xs">
+                        <span class="input-group-text bg-white border-end-0 rounded-pill-start ps-3" style="border-color: #cbd5e1;"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="iptBuscarEmpleadoPacientes" class="form-control border-start-0 border-end-0 py-2.5 fw-bold" placeholder="Escribe al menos 2 letras o dígitos del No. de empleado..." style="border-color: #cbd5e1;" oninput="debounceBuscarEmpleadoPacientes(this.value)" onkeypress="if(event.key==='Enter') ejecutarBusquedaEmpleadoPacientes()">
+                        <button class="btn text-white rounded-pill-end px-3 px-md-4 fw-bold" type="button" style="background: var(--md-blue-deep, #0A2A66);" onclick="ejecutarBusquedaEmpleadoPacientes()">
+                            Buscar
+                        </button>
+                    </div>
+                    <div class="form-text small ps-2 text-muted" style="font-size: 0.75rem;">
+                        <i class="bi bi-info-circle me-1"></i>Puedes ingresar el número exacto de empleado o su nombre/apellidos para ver sugerencias automáticas.
+                    </div>
+                </div>
+
+                <div id="resEmpleadoPacientesCont" class="p-2 bg-white rounded-3 border" style="min-height: 200px; max-height: 360px; overflow-y: auto;">
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-person-badge fs-1 text-secondary opacity-50 d-block mb-2"></i>
+                        <span class="fw-bold small">Ingresa un criterio de búsqueda</span>
+                        <p class="text-muted small m-0" style="font-size: 0.75rem;">Los empleados y su rama familiar de beneficiarios se desplegarán aquí.</p>
+                    </div>
+                </div>
+
+                <!-- Aviso Fase Posterior: Rama Familiar Completa -->
+                <div class="mt-3 p-2.5 rounded-3 border d-flex align-items-center justify-content-between gap-2" style="background: #f0fdfa; border-color: #ccfbf1 !important;">
+                    <div class="d-flex align-items-center gap-2 small" style="color: #0f766e; font-size: 0.75rem;">
+                        <i class="bi bi-diagram-3-fill fs-6"></i>
+                        <span><b>Rama Familiar:</b> Se muestran el empleado titular y sus beneficiarios asociados. En esta fase puedes importar individualmente a cualquiera de ellos.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top px-4 py-2.5 d-flex justify-content-end">
+                <button type="button" class="btn btn-sm btn-light border rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 HTML
 
 render_bottom_nav('pacientes');

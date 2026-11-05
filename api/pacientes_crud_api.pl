@@ -116,6 +116,10 @@ if ($input->{accion} eq 'crear') {
         $extra_tenant
     );
 
+    if (ref $input->{antecedentes} eq 'HASH') {
+        $input->{antecedentes}->{dependencia} = $input->{dependencia} // '';
+        $input->{antecedentes}->{num_empleado_estado} = $input->{num_empleado_estado} // '';
+    }
     guardar_registro('../dat/pacientes.dat', $nueva_linea);
     guardar_antecedentes_paciente($id_paciente, $input->{tutor}, $input->{antecedentes});
     my $dom_data = $input->{domicilio} || ($input->{antecedentes} ? $input->{antecedentes}->{domicilio} : undef) || {};
@@ -326,6 +330,10 @@ if ($input->{accion} eq 'crear') {
     }
 
     if ($encontrado) {
+        if (ref $input->{antecedentes} eq 'HASH') {
+            $input->{antecedentes}->{dependencia} = $input->{dependencia} // '';
+            $input->{antecedentes}->{num_empleado_estado} = $input->{num_empleado_estado} // '';
+        }
         actualizar_archivo('../dat/pacientes.dat', "ID_PACIENTE|ID_MEDICO|NOMBRE|RFC|CURP|CORREO|FECHA_NAC|SEXO|OCUPACION|ESTADO_CIVIL|NACIONALIDAD|TIPO_SANGRE|TELEFONO|TENANT", \@nuevos_registros);
         guardar_antecedentes_paciente($id_target, $input->{tutor}, $input->{antecedentes});
         my $dom_data = $input->{domicilio} || ($input->{antecedentes} ? $input->{antecedentes}->{domicilio} : undef) || {};
