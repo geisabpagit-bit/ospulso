@@ -1021,12 +1021,12 @@ PAGE_HTML
 
 PAGE_HTML
 
-    my $grid_kpi_cc = $has_pacientes_estado ? 'row-cols-1 row-cols-sm-2 row-cols-lg-4' : 'row-cols-1 row-cols-sm-2 row-cols-lg-3';
+    my $grid_kpi_cc = $has_pacientes_estado ? 'row-cols-1 row-cols-sm-2 row-cols-lg-3' : 'row-cols-1 row-cols-sm-2';
 
     print <<"PAGE_HTML";
     <!-- KPIs Ejecutivos (Mismo diseño y clases de la vista inicial) -->
     <div class="row $grid_kpi_cc g-2 g-md-3 mb-2 mb-md-3">
-        <!-- 1. Ingresos Cobrados -->
+        <!-- 1. Ingresos en Caja -->
         <div class="col">
             <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
                 <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
@@ -1042,11 +1042,28 @@ PAGE_HTML
                 </div>
             </div>
         </div>
+
+        <!-- 2. Egresos Operativos -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Egresos Operativos</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(239, 68, 68, 0.1);">
+                        <i class="bi bi-graph-down-arrow text-danger fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold m-0 text-danger plus-jakarta" id="cc_egresos" style="font-size: 1.5rem;">\$0.00</h2>
+                <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
+                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Pagado / Salidas</span>
+                    <span class="small text-muted" style="font-size: 0.72rem;">Periodo actual</span>
+                </div>
+            </div>
+        </div>
 PAGE_HTML
 
     if ($has_pacientes_estado) {
         print <<'PAGE_HTML';
-        <!-- 2. Ingresos Municipio -->
+        <!-- 3. Ingresos Municipio -->
         <div class="col">
             <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
                 <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
@@ -1066,61 +1083,6 @@ PAGE_HTML
     }
 
     print <<'PAGE_HTML';
-        <!-- 3. Egresos Operativos -->
-        <div class="col">
-            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
-                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
-                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Egresos Operativos</span>
-                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(239, 68, 68, 0.1);">
-                        <i class="bi bi-graph-down-arrow text-danger fs-5"></i>
-                    </div>
-                </div>
-                <h2 class="fw-bold m-0 text-danger plus-jakarta" id="cc_egresos" style="font-size: 1.5rem;">$0.00</h2>
-                <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
-                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Pagado / Salidas</span>
-                    <span class="small text-muted" style="font-size: 0.72rem;">Periodo actual</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. Efectivo Físico -->
-        <div class="col">
-            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
-                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
-                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Efectivo Físico</span>
-                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(245, 158, 11, 0.1);">
-                        <i class="bi bi-cash-stack text-warning fs-5"></i>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center my-1">
-                    <input type="number" id="cc_fisico" class="form-control form-control-sm text-center fw-bold fs-5 shadow-xs border rounded-pill" style="border-color: rgba(25, 183, 165, 0.5); color: var(--md-blue-deep, #0A2A66);" value="0" oninput="calcularFaltante()" placeholder="0.00" title="Ingresa el conteo físico en caja">
-                </div>
-                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-light">
-                    <span class="badge bg-warning bg-opacity-10 text-dark rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Arqueo en Mano</span>
-                    <span class="small text-muted" style="font-size: 0.72rem;">Conteo Físico</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. Diferencia de Arqueo -->
-        <div class="col-12 mt-2">
-            <div class="card card-mobile-flush p-2.5 p-md-3 border-0 shadow-sm rounded-4" id="kpi_diferencia_box" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important; transition: all 0.25s ease;">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" id="cc_dif_icon_wrapper" style="width: 40px; height: 40px; background: rgba(100, 116, 139, 0.1);">
-                            <div class="fs-4 text-secondary" id="cc_dif_icon"><i class="bi bi-calculator"></i></div>
-                        </div>
-                        <div>
-                            <div class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Balance de Arqueo (Efectivo Físico vs Saldo Esperado)</div>
-                            <div class="small text-muted" id="cc_dif_label" style="font-size: 0.75rem;">Efectivo Físico - (Ingresos Efectivo - Egresos Físicos)</div>
-                        </div>
-                    </div>
-                    <div class="text-end">
-                        <h3 class="fw-bold m-0 plus-jakarta" id="cc_diferencia" style="font-size: 1.55rem;">$0.00</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="row">
@@ -2068,9 +2030,9 @@ PAGE_HTML
     };
 
     window.calcularFaltante = function() {
-        let fisico = parseFloat(document.getElementById('cc_fisico').value) || 0;
-        // Formula Faltante Físico: Efectivo Físico - (Ingresos Seleccionados - Egresos Físicos)
-        let saldoEsperado = ccTotalIngresos - ccTotalEgresosFisicos;
+        let elFisico = document.getElementById('cc_fisico');
+        let fisico = elFisico ? (parseFloat(elFisico.value) || 0) : 0;
+        let saldoEsperado = ccTotalIngresos - ccTotalEgresos;
         let diferencia = fisico - saldoEsperado;
 
         let elDif = document.getElementById('cc_diferencia');
@@ -2142,16 +2104,12 @@ PAGE_HTML
         let fFin = document.getElementById('cc_fecha_fin').value;
         let fechaTexto = fInicio === fFin ? fInicio : (fInicio + " al " + fFin);
 
-        // 1. Obtener Métodos de Pago Activos y Texto Informativo
-        let labelMetodosEl = document.getElementById('labelMetodosSeleccionados') || document.getElementById('lblMetodosSeleccionados');
-        let metodosTexto = (labelMetodosEl && labelMetodosEl.textContent) ? labelMetodosEl.textContent.trim() : 'Todos';
-
         let checks = $('.chk-metodo-pago:checked');
         let totalChecks = $('.chk-metodo-pago').length;
         let metodosSeleccionados = [];
         checks.each(function() { metodosSeleccionados.push($(this).val()); });
 
-        // 2. Determinar Ingresos Activos con los filtros aplicados
+        // 1. Determinar Ingresos Activos con los filtros aplicados
         let ingresosParaReporte = [];
         if (window.ingresosCorteFiltradosActivos) {
             ingresosParaReporte = window.ingresosCorteFiltradosActivos;
@@ -2178,7 +2136,7 @@ PAGE_HTML
             }
         }
 
-        // 3. Determinar Egresos Activos con los filtros aplicados
+        // 2. Determinar Egresos Activos con los filtros aplicados
         let egresosParaReporte = [];
         if ($.fn.DataTable && $.fn.DataTable.isDataTable('#dtCorteEgresos')) {
             egresosParaReporte = $('#dtCorteEgresos').DataTable().rows({ search: 'applied' }).data().toArray();
@@ -2186,7 +2144,7 @@ PAGE_HTML
             egresosParaReporte = ultimoResCorte.egresos || [];
         }
 
-        // 4. Cálculos de Totales con Separador de Miles
+        // 3. Cálculos de Totales con Separador de Miles
         let totalIngresosImpresion = 0;
         let totalCanceladosImpresion = 0;
         (ingresosParaReporte || []).forEach(i => {
@@ -2199,21 +2157,11 @@ PAGE_HTML
         });
 
         let totalEgresosImpresion = 0;
-        let totalEgresosFisicosImpresion = 0;
         (egresosParaReporte || []).forEach(e => {
-            let m = parseFloat(e.monto) || 0;
-            totalEgresosImpresion += m;
-            let orig = (e.origen_nombre || '').toLowerCase();
-            if (orig === 'no especificado' || orig === 'desconocido' || orig.includes('caja') || orig.includes('efectivo')) {
-                totalEgresosFisicosImpresion += m;
-            }
+            totalEgresosImpresion += parseFloat(e.monto) || 0;
         });
 
-        let fisico = parseFloat(document.getElementById('cc_fisico').value) || 0;
-        let saldoEsperado = totalIngresosImpresion - totalEgresosFisicosImpresion;
-        let dif = fisico - saldoEsperado;
-        let difTexto = dif > 0 ? "Sobrante" : (dif < 0 ? "Faltante" : "Cuadrado Perfecto");
-        let difColor = dif > 0 ? "#10b981" : (dif < 0 ? "#ef4444" : "#64748b");
+        let ingresoNeto = totalIngresosImpresion - totalEgresosImpresion;
 
         let logoUrl = (ultimoResCorte && ultimoResCorte.logo_url) ? ultimoResCorte.logo_url : '';
         let negocioNombre = (ultimoResCorte && ultimoResCorte.negocio_nombre) ? ultimoResCorte.negocio_nombre : 'SDM OSPulso';
@@ -2277,8 +2225,8 @@ PAGE_HTML
                 .text-right { text-align: right; }
                 .section-title { font-size: 15px; margin: 20px 0 10px; color: #004d40; border-bottom: 1px solid #eee; padding-bottom: 5px; }
                 
-                .footer-box { margin-top: 25px; border: 2px dashed #ccc; padding: 15px; text-align: center; background: #fcfcfc; border-radius: 8px; }
-                .footer-box h3 { margin: 0 0 10px; color: #333; font-size: 15px; }
+                .footer-box { margin-top: 25px; border: 2px dashed #00C4C4; padding: 16px; text-align: center; background: #fcfcfc; border-radius: 8px; max-width: 420px; margin-left: auto; margin-right: auto; }
+                .footer-box h3 { margin: 0 0 12px; color: #004d40; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
                 .footer-box p { margin: 4px 0; font-size: 13px; }
 
                 .signature-section { margin-top: 45px; text-align: center; page-break-inside: avoid; }
@@ -2312,22 +2260,22 @@ PAGE_HTML
                 </div>
                 <div style="text-align: right;">
                     <h2>Resumen Ejecutivo de Caja</h2>
-                    <p>Periodo: <strong>${fechaTexto}</strong> | Métodos de Pago: <strong>${metodosTexto}</strong></p>
+                    <p>Periodo: <strong>${fechaTexto}</strong></p>
                 </div>
             </div>
 
             <div class="kpi-container">
                 <div class="kpi-box">
-                    <h4>Ingresos Total (${metodosTexto})</h4>
+                    <h4>Ingresos Total</h4>
                     <p class="val" style="color: #10b981;">${fmtMoneda(totalIngresosImpresion)}</p>
                 </div>
                 <div class="kpi-box">
-                    <h4>Egresos Físicos</h4>
-                    <p class="val" style="color: #ef4444;">${fmtMoneda(totalEgresosFisicosImpresion)}</p>
+                    <h4>Egresos Operativos</h4>
+                    <p class="val" style="color: #ef4444;">${fmtMoneda(totalEgresosImpresion)}</p>
                 </div>
                 <div class="kpi-box" style="background: #e0f7fa; border-color: #00C4C4;">
-                    <h4>Saldo Esperado</h4>
-                    <p class="val" style="color: #00838F;">${fmtMoneda(saldoEsperado)}</p>
+                    <h4>Ingreso Neto</h4>
+                    <p class="val" style="color: #00838F;">${fmtMoneda(ingresoNeto)}</p>
                 </div>
             </div>
 
@@ -2365,9 +2313,10 @@ PAGE_HTML
 
             <div class="footer-box">
                 <h3>Declaración Física de Caja</h3>
-                <p>Efectivo Físico Reportado: <strong>${fmtMoneda(fisico)}</strong></p>
-                <p>Saldo Esperado (Ingresos Filtrados - Egresos Físicos): <strong>${fmtMoneda(saldoEsperado)}</strong></p>
-                <p>Resultado del Cuadre: <strong style="color: ${difColor};">${difTexto} por ${fmtMoneda(Math.abs(dif))}</strong></p>
+                <p>Ingresos = <strong>${fmtMoneda(totalIngresosImpresion)}</strong></p>
+                <p style="margin: 2px 0; font-weight: bold; font-size: 14px; color: #64748b;">-</p>
+                <p>Egresos = <strong>${fmtMoneda(totalEgresosImpresion)}</strong></p>
+                <p style="margin-top: 8px; font-size: 14px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">Ingreso Neto = <strong style="color: #004d40;">${fmtMoneda(ingresoNeto)}</strong></p>
             </div>
             
             <div class="signature-section">
