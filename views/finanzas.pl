@@ -1604,6 +1604,7 @@ PAGE_HTML
         if(!document.getElementById('cc_fecha_inicio').value) document.getElementById('cc_fecha_inicio').value = hoy;
         if(!document.getElementById('cc_fecha_fin').value) document.getElementById('cc_fecha_fin').value = hoy;
         
+        poblarSelectorMetodosPago([]);
         cargarCorteCaja();
     };
 
@@ -1794,40 +1795,42 @@ PAGE_HTML
     ];
 
     window.poblarSelectorMetodosPago = function(ingresos) {
-        let container = document.getElementById('dropdownMetodosPagoList');
-        if (!container) return;
+        let container = document.getElementById('listaMetodosPagoCheckboxes') || document.getElementById('dropdownMetodosPagoList');
+        if (!container) {
+            console.warn('[poblarSelectorMetodosPago] No se encontró el contenedor de checkboxes');
+            return;
+        }
 
-        let metodosUnicos = new Set();
+        // Métodos canónicos estándar de OSPulso
+        let metodosUnicos = new Set([
+            'Efectivo',
+            'Tarjeta',
+            'Transferencia',
+            'Convenio / Aseguradora',
+            'Cortesía'
+        ]);
+
+        // Agregar cualquier método adicional presente en los datos recibidos
         (ingresos || []).forEach(i => {
-            let mp = (i.forma_pago || 'Efectivo').trim();
+            let mp = (i.forma_pago || '').trim();
             if (mp) metodosUnicos.add(mp);
         });
 
-        // Asegurar métodos estándar si no hay datos
-        if (metodosUnicos.size === 0) {
-            metodosUnicos.add('Efectivo');
-            metodosUnicos.add('Tarjeta de Crédito');
-            metodosUnicos.add('Tarjeta de Débito');
-            metodosUnicos.add('Transferencia');
-        }
-
-        let arrMetodos = Array.from(metodosUnicos).sort();
+        let arrMetodos = Array.from(metodosUnicos).filter(m => m !== '').sort();
         let html = '';
         arrMetodos.forEach((m, idx) => {
             html += `
-            <li class="px-2 py-1">
-                <div class="form-check">
-                    <input class="form-check-input chk-metodo-pago" type="checkbox" value="${escapeHtml(m)}" id="chk_mp_${idx}" checked onchange="aplicarFiltroMetodosPago()">
-                    <label class="form-check-label user-select-none text-dark" for="chk_mp_${idx}" style="cursor: pointer; font-size: 12px;">
-                        ${escapeHtml(m)}
-                    </label>
-                </div>
-            </li>`;
+            <div class="form-check px-1 py-1 mb-1 rounded d-flex align-items-center" style="cursor: pointer;">
+                <input class="form-check-input ms-1 me-2 chk-metodo-pago" type="checkbox" value="${escapeHtml(m)}" id="chk_mp_${idx}" checked onchange="aplicarFiltroMetodosPago()" style="cursor: pointer;">
+                <label class="form-check-label user-select-none text-dark fw-semibold mb-0" for="chk_mp_${idx}" style="cursor: pointer; font-size: 11.5px;">
+                    ${escapeHtml(m)}
+                </label>
+            </div>`;
         });
 
         container.innerHTML = html;
-        let lbl = document.getElementById('lblMetodosSeleccionados');
-        if (lbl) lbl.textContent = 'Todos (' + arrMetodos.length + ')';
+        let lbl = document.getElementById('labelMetodosSeleccionados') || document.getElementById('lblMetodosSeleccionados');
+        if (lbl) lbl.textContent = 'Todos';
     };
 
     window.marcarTodosMetodosPago = function(marcar) {
@@ -1843,16 +1846,16 @@ PAGE_HTML
         let seleccionados = [];
         checks.each(function() { seleccionados.push($(this).val()); });
 
-        let lbl = document.getElementById('lblMetodosSeleccionados');
+        let lbl = document.getElementById('labelMetodosSeleccionados') || document.getElementById('lblMetodosSeleccionados');
         if (lbl) {
             if (seleccionados.length === 0) {
-                lbl.textContent = 'Ninguno seleccionado';
+                lbl.textContent = 'Ninguno';
             } else if (seleccionados.length === totalChecks) {
-                lbl.textContent = 'Todos (' + totalChecks + ')';
+                lbl.textContent = 'Todos';
             } else if (seleccionados.length === 1) {
                 lbl.textContent = seleccionados[0];
             } else {
-                lbl.textContent = seleccionados.length + ' de ' + totalChecks + ' seleccionados';
+                lbl.textContent = seleccionados.length + ' de ' + totalChecks;
             }
         }
 
