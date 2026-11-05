@@ -1859,10 +1859,26 @@ PAGE_HTML
             }
         }
 
-        let ingresosFiltrados = (ultimoResCorte.ingresos || []).filter(i => {
-            let mp = (i.forma_pago || 'Efectivo').trim();
-            return seleccionados.includes(mp);
-        });
+        let ingresosFiltrados = [];
+        if (seleccionados.length === 0) {
+            ingresosFiltrados = [];
+        } else if (seleccionados.length === totalChecks) {
+            ingresosFiltrados = (ultimoResCorte.ingresos || []).slice();
+        } else {
+            ingresosFiltrados = (ultimoResCorte.ingresos || []).filter(i => {
+                let mp = (i.forma_pago || 'Efectivo').trim();
+                let mpLower = mp.toLowerCase();
+                return seleccionados.some(sel => {
+                    let sLower = sel.toLowerCase();
+                    if (mpLower === sLower) return true;
+                    if (sLower === 'tarjeta' && mpLower.includes('tarjeta')) return true;
+                    if (sLower === 'transferencia' && (mpLower.includes('transferencia') || mpLower.includes('spei'))) return true;
+                    if (sLower === 'efectivo' && mpLower.includes('efectivo')) return true;
+                    return false;
+                });
+            });
+        }
+        window.ingresosCorteFiltradosActivos = ingresosFiltrados;
 
         let totalIngresosFiltrados = 0;
         ingresosFiltrados.forEach(i => {
@@ -1873,7 +1889,7 @@ PAGE_HTML
 
         ccTotalIngresos = totalIngresosFiltrados;
         let elCcIng = document.getElementById('cc_ingresos');
-        if (elCcIng) elCcIng.textContent = '$' + ccTotalIngresos.toFixed(2);
+        if (elCcIng) elCcIng.textContent = '$' + ccTotalIngresos.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         renderTablaCorte('#dtCorteIngresos', ingresosFiltrados, colsCorteIngresos);
         calcularFaltante();
@@ -2117,37 +2133,84 @@ PAGE_HTML
             return;
         }
 
+        const fmtMoneda = function(val) {
+            let num = parseFloat(val) || 0;
+            return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+
         let fInicio = document.getElementById('cc_fecha_inicio').value;
         let fFin = document.getElementById('cc_fecha_fin').value;
         let fechaTexto = fInicio === fFin ? fInicio : (fInicio + " al " + fFin);
 
-        // Obtener métodos seleccionados para filtrar la vista previa e impresión
+        // 1. Obtener Métodos de Pago Activos y Texto Informativo
+        let labelMetodosEl = document.getElementById('labelMetodosSeleccionados') || document.getElementById('lblMetodosSeleccionados');
+        let metodosTexto = (labelMetodosEl && labelMetodosEl.textContent) ? labelMetodosEl.textContent.trim() : 'Todos';
+
         let checks = $('.chk-metodo-pago:checked');
         let totalChecks = $('.chk-metodo-pago').length;
         let metodosSeleccionados = [];
         checks.each(function() { metodosSeleccionados.push($(this).val()); });
 
-        let metodosTexto = 'Todos';
-        if (metodosSeleccionados.length === 0) {
-            metodosTexto = 'Ninguno';
-        } else if (metodosSeleccionados.length < totalChecks) {
-            metodosTexto = metodosSeleccionados.join(', ');
+        // 2. Determinar Ingresos Activos con los filtros aplicados
+        let ingresosParaReporte = [];
+        if (window.ingresosCorteFiltradosActivos) {
+            ingresosParaReporte = window.ingresosCorteFiltradosActivos;
+        } else if ($.fn.DataTable && $.fn.DataTable.isDataTable('#dtCorteIngresos')) {
+            ingresosParaReporte = $('#dtCorteIngresos').DataTable().rows({ search: 'applied' }).data().toArray();
+        } else {
+            if (metodosSeleccionados.length === 0 && totalChecks > 0) {
+                ingresosParaReporte = [];
+            } else if (metodosSeleccionados.length === totalChecks || totalChecks === 0) {
+                ingresosParaReporte = (ultimoResCorte.ingresos || []).slice();
+            } else {
+                ingresosParaReporte = (ultimoResCorte.ingresos || []).filter(i => {
+                    let mp = (i.forma_pago || 'Efectivo').trim();
+                    let mpLower = mp.toLowerCase();
+                    return metodosSeleccionados.some(sel => {
+                        let sLower = sel.toLowerCase();
+                        if (mpLower === sLower) return true;
+                        if (sLower === 'tarjeta' && mpLower.includes('tarjeta')) return true;
+                        if (sLower === 'transferencia' && (mpLower.includes('transferencia') || mpLower.includes('spei'))) return true;
+                        if (sLower === 'efectivo' && mpLower.includes('efectivo')) return true;
+                        return false;
+                    });
+                });
+            }
         }
 
-        let ingresosFiltrados = (ultimoResCorte.ingresos || []).filter(i => {
-            let mp = (i.forma_pago || 'Efectivo').trim();
-            return metodosSeleccionados.includes(mp);
+        // 3. Determinar Egresos Activos con los filtros aplicados
+        let egresosParaReporte = [];
+        if ($.fn.DataTable && $.fn.DataTable.isDataTable('#dtCorteEgresos')) {
+            egresosParaReporte = $('#dtCorteEgresos').DataTable().rows({ search: 'applied' }).data().toArray();
+        } else {
+            egresosParaReporte = ultimoResCorte.egresos || [];
+        }
+
+        // 4. Cálculos de Totales con Separador de Miles
+        let totalIngresosImpresion = 0;
+        let totalCanceladosImpresion = 0;
+        (ingresosParaReporte || []).forEach(i => {
+            let m = parseFloat(i.monto) || 0;
+            if (i.estatus === 'Cancelado') {
+                totalCanceladosImpresion += m;
+            } else {
+                totalIngresosImpresion += m;
+            }
         });
 
-        let totalIngresosImpresion = 0;
-        ingresosFiltrados.forEach(i => {
-            if (i.estatus !== 'Cancelado') {
-                totalIngresosImpresion += parseFloat(i.monto) || 0;
+        let totalEgresosImpresion = 0;
+        let totalEgresosFisicosImpresion = 0;
+        (egresosParaReporte || []).forEach(e => {
+            let m = parseFloat(e.monto) || 0;
+            totalEgresosImpresion += m;
+            let orig = (e.origen_nombre || '').toLowerCase();
+            if (orig === 'no especificado' || orig === 'desconocido' || orig.includes('caja') || orig.includes('efectivo')) {
+                totalEgresosFisicosImpresion += m;
             }
         });
 
         let fisico = parseFloat(document.getElementById('cc_fisico').value) || 0;
-        let saldoEsperado = totalIngresosImpresion - ccTotalEgresosFisicos;
+        let saldoEsperado = totalIngresosImpresion - totalEgresosFisicosImpresion;
         let dif = fisico - saldoEsperado;
         let difTexto = dif > 0 ? "Sobrante" : (dif < 0 ? "Faltante" : "Cuadrado Perfecto");
         let difColor = dif > 0 ? "#10b981" : (dif < 0 ? "#ef4444" : "#64748b");
@@ -2175,7 +2238,7 @@ PAGE_HTML
             return `${dNom} ${dia} de ${mNom} de ${anio}, ${String(h12).padStart(2, '0')}:${mm}:${ss} ${ampm}`;
         })();
 
-        let htmlIngresos = (ingresosFiltrados && ingresosFiltrados.length) ? ingresosFiltrados.map(i => {
+        let htmlIngresos = (ingresosParaReporte && ingresosParaReporte.length) ? ingresosParaReporte.map(i => {
             let med = (i.medico || '').trim();
             let con = (i.concepto || '').trim();
             let medCon = '';
@@ -2185,12 +2248,12 @@ PAGE_HTML
                 medCon = med + (con ? (' - ' + con) : '');
             }
             let isCancel = (i.estatus === 'Cancelado');
-            let montoFmt = '$' + parseFloat(i.monto || 0).toFixed(2);
+            let montoFmt = fmtMoneda(i.monto);
             let montoHtml = isCancel ? `<span style="text-decoration: line-through; color: #ef4444;">${montoFmt} (Cancelado)</span>` : montoFmt;
             return `<tr><td>${i.folio || ''}</td><td>${i.fecha || ''}</td><td>${i.paciente || ''}</td><td>${escapeHtml(medCon)}</td><td>${i.forma_pago || 'Efectivo'}</td><td class="text-right">${montoHtml}</td></tr>`;
-        }).join('') : '<tr><td colspan="6" style="text-align:center;">Sin ingresos para los filtros seleccionados</td></tr>';
+        }).join('') : '<tr><td colspan="6" style="text-align:center; padding: 12px; color: #888;">Sin ingresos para los filtros seleccionados</td></tr>';
         
-        let htmlEgresos = (ultimoResCorte.egresos && ultimoResCorte.egresos.length) ? ultimoResCorte.egresos.map(i => '<tr><td>' + (i.folio || '') + '</td><td>' + (i.fecha || '') + '</td><td>' + (i.categoria || 'General') + '</td><td>' + (i.origen_nombre || 'No Especificado') + '</td><td>' + escapeHtml(i.concepto || '') + '</td><td class="text-right">$' + parseFloat(i.monto || 0).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin egresos en este periodo</td></tr>';
+        let htmlEgresos = (egresosParaReporte && egresosParaReporte.length) ? egresosParaReporte.map(i => '<tr><td>' + (i.folio || '') + '</td><td>' + (i.fecha || '') + '</td><td>' + (i.categoria || 'General') + '</td><td>' + (i.origen_nombre || 'No Especificado') + '</td><td>' + escapeHtml(i.concepto || '') + '</td><td class="text-right">' + fmtMoneda(i.monto) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center; padding: 12px; color: #888;">Sin egresos en este periodo</td></tr>';
 
         let html = `
         <html>
@@ -2210,6 +2273,7 @@ PAGE_HTML
                 table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; }
                 th, td { border: 1px solid #eee; padding: 6px; text-align: left; }
                 th { background-color: #f1f1f1; font-weight: bold; color: #555; }
+                tfoot td { font-weight: bold; background-color: #f8fafc; border-top: 2px solid #00C4C4; }
                 .text-right { text-align: right; }
                 .section-title { font-size: 15px; margin: 20px 0 10px; color: #004d40; border-bottom: 1px solid #eee; padding-bottom: 5px; }
                 
@@ -2248,26 +2312,26 @@ PAGE_HTML
                 </div>
                 <div style="text-align: right;">
                     <h2>Resumen Ejecutivo de Caja</h2>
-                    <p>Periodo: <strong>${fechaTexto}</strong> | Métodos: <strong>${metodosTexto}</strong></p>
+                    <p>Periodo: <strong>${fechaTexto}</strong> | Métodos de Pago: <strong>${metodosTexto}</strong></p>
                 </div>
             </div>
 
             <div class="kpi-container">
                 <div class="kpi-box">
                     <h4>Ingresos Total (${metodosTexto})</h4>
-                    <p class="val" style="color: #10b981;">$${totalIngresosImpresion.toFixed(2)}</p>
+                    <p class="val" style="color: #10b981;">${fmtMoneda(totalIngresosImpresion)}</p>
                 </div>
                 <div class="kpi-box">
                     <h4>Egresos Físicos</h4>
-                    <p class="val" style="color: #ef4444;">$${ccTotalEgresosFisicos.toFixed(2)}</p>
+                    <p class="val" style="color: #ef4444;">${fmtMoneda(totalEgresosFisicosImpresion)}</p>
                 </div>
                 <div class="kpi-box" style="background: #e0f7fa; border-color: #00C4C4;">
                     <h4>Saldo Esperado</h4>
-                    <p class="val" style="color: #00838F;">$${saldoEsperado.toFixed(2)}</p>
+                    <p class="val" style="color: #00838F;">${fmtMoneda(saldoEsperado)}</p>
                 </div>
             </div>
 
-            <div class="section-title">Detalle de Ingresos (${ingresosFiltrados.length} registros)</div>
+            <div class="section-title">Detalle de Ingresos (${ingresosParaReporte.length} registros)</div>
             <table>
                 <thead>
                     <tr><th>Folio</th><th>Fecha</th><th>Paciente</th><th>Médico / Concepto</th><th>Forma Pago</th><th class="text-right">Monto</th></tr>
@@ -2275,9 +2339,15 @@ PAGE_HTML
                 <tbody>
                     ${htmlIngresos}
                 </tbody>
+                <tfoot>
+                    <tr style="background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #00C4C4;">
+                        <td colspan="5" style="text-align: right; padding: 7px 10px; font-size: 11px; color: #0A2A66; text-transform: uppercase;">TOTAL INGRESOS (${ingresosParaReporte.length} registros):</td>
+                        <td class="text-right" style="padding: 7px 10px; font-size: 11.5px; color: #10b981; font-weight: bold;">${fmtMoneda(totalIngresosImpresion)}</td>
+                    </tr>
+                </tfoot>
             </table>
 
-            <div class="section-title">Detalle de Egresos</div>
+            <div class="section-title">Detalle de Egresos (${egresosParaReporte.length} registros)</div>
             <table>
                 <thead>
                     <tr><th>Folio</th><th>Fecha</th><th>Categoría</th><th>Origen</th><th>Concepto</th><th class="text-right">Monto</th></tr>
@@ -2285,13 +2355,19 @@ PAGE_HTML
                 <tbody>
                     ${htmlEgresos}
                 </tbody>
+                <tfoot>
+                    <tr style="background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #ef4444;">
+                        <td colspan="5" style="text-align: right; padding: 7px 10px; font-size: 11px; color: #0A2A66; text-transform: uppercase;">TOTAL EGRESOS (${egresosParaReporte.length} registros):</td>
+                        <td class="text-right" style="padding: 7px 10px; font-size: 11.5px; color: #ef4444; font-weight: bold;">${fmtMoneda(totalEgresosImpresion)}</td>
+                    </tr>
+                </tfoot>
             </table>
 
             <div class="footer-box">
                 <h3>Declaración Física de Caja</h3>
-                <p>Efectivo Físico Reportado: <strong>$${fisico.toFixed(2)}</strong></p>
-                <p>Saldo Esperado (Ingresos Filtrados - Egresos Físicos): <strong>$${saldoEsperado.toFixed(2)}</strong></p>
-                <p>Resultado del Cuadre: <strong style="color: ${difColor};">${difTexto} por $${Math.abs(dif).toFixed(2)}</strong></p>
+                <p>Efectivo Físico Reportado: <strong>${fmtMoneda(fisico)}</strong></p>
+                <p>Saldo Esperado (Ingresos Filtrados - Egresos Físicos): <strong>${fmtMoneda(saldoEsperado)}</strong></p>
+                <p>Resultado del Cuadre: <strong style="color: ${difColor};">${difTexto} por ${fmtMoneda(Math.abs(dif))}</strong></p>
             </div>
             
             <div class="signature-section">

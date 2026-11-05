@@ -341,3 +341,8 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
    - En las tablas de `tab=ingresos` (`#dtIngresosPrivados`, `#dtIngresosMunicipio`) y `tab=corte_caja` (`#dtCorteIngresos`, `#dtCorteCxC`), la columna cabecera se amplía formalmente a *"Médico / Concepto"*.
    - En los registros originados por Caja Rápida donde no existe médico asignado (`id_medico` vacío o `'N/D'`), se erradica la etiqueta vacía "N/D" y se muestra prioritariamente el concepto descriptivo del recibo (extraído de `ITEMS_JSON`).
    - Cuando existe un médico responsable asignado, se muestra el nombre del médico en negrita acompañado sutilmente por el concepto de ingreso en una línea secundaria.
+
+4. **Estándar del Reporte Ejecutivo de Corte de Caja e Impresión**:
+   - **Aplicación de Filtros Activos**: La función `imprimirResumenEjecutivo()` toma de forma estricta los ingresos y egresos actualmente filtrados en la vista (respetando fechas, métodos de pago seleccionados y búsquedas aplicadas).
+   - **Separador de Miles Estandarizado**: Todos los importes numéricos (KPIs, filas de detalle, totales y arqueo físico) se formatean con separador de miles y dos decimales (`$1,234.56`).
+   - **Fila de Totales al Pie (`<tfoot>`)**: Tanto la tabla de *Detalle de Ingresos* como la de *Detalle de Egresos* incorporan al pie un bloque `<tfoot>` destacado que sintetiza el conteo total de registros y la sumatoria monetaria acumulada.
