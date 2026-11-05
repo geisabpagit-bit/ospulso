@@ -1,3 +1,26 @@
+# COMUNICADO OFICIAL TIPO OFICIO
+## FOLIO OFICIAL: GEISABPA-001/2026
+### PLATAFORMAS DIGITALES DE MÉXICO, S.A. DE C.V.
+**Dirección General / Dirección Jurídica y Propiedad Intelectual**  
+*Registro Federal de Contribuyentes: PDM-190408-XXX | Registro Patronal Sanitario*  
+
+---
+
+**OFICIO NO.:** GEISABPA-001/2026  
+**EXPEDIENTE:** INDAUTOR-SFT-2026/01  
+**ASUNTO:** Constancia de Obra por Encargo y Finiquito de Derechos Patrimoniales  
+**FECHA:** Ciudad de México, a 4 de noviembre de 2026  
+
+---
+
+**A QUIEN CORRESPONDA:**  
+**INSTITUTO NACIONAL DEL DERECHO DE AUTOR (INDAUTOR)**  
+**DIRECCIÓN DEL REGISTRO PÚBLICO DEL DERECHO DE AUTOR**  
+**SECRETARÍA DE CULTURA / GOBIERNO DE MÉXICO**  
+**P R E S E N T E .**  
+
+---
+
 # OBRA POR ENCARGO
 ## CONVENIO DE RECONOCIMIENTO DE AUTORÍA INTELECTUAL, TRANSMISIÓN EXCLUSIVA DE DERECHOS PATRIMONIALES Y CONSTANCIA DE FINIQUITO ECONÓMICO
 **Fundamento Legal: Artículos 13 fracción XI, 27, 30, 31, 83 y 103 de la Ley Federal del Derecho de Autor (LFDA)**
@@ -7,6 +30,7 @@
 ### DATOS DE IDENTIFICACIÓN DEL INSTRUMENTO LEGAL
 
 * **Título Oficial del Acto**: Constancia y Convenio de Obra por Encargo con Remuneración Integral.
+* **Número de Comunicado Oficial**: **OFICIO No. GEISABPA-001/2026**.
 * **Obra Objeto del Convenio**: **OSpulso** (Sistema de Información de Registros Electrónicos de Salud - SIRES / ECE).
 * **Denominación Técnica de la Plataforma**: Ospulso Platform Core v2.0 / Diamond Edition v4.5.0 (Release v3.4.0 Estable).
 * **Naturaleza de la Obra**: Programa de Computación (Software Aplicativo) y Bases de Datos Relacionales Estructuradas Normalizadas en 3NF (`.dat`).
