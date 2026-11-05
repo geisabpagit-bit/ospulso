@@ -272,121 +272,198 @@ Los reportes ejecutivos semanales y resúmenes directivos están diagramados par
 
 ---
 
+---
+
 ## 6. DIAGRAMAS TÉCNICOS Y MODELOS DE ARQUITECTURA
 
-### 6.1 Diagrama de Arquitectura Multitenant SaaS por CLUES
+### 6.1 Diagrama General del Sistema y Flujo de Control de Código
+Este diagrama ilustra la arquitectura de alto nivel y el ciclo de vida de ejecución que sigue cada petición cliente en la plataforma OSpulso, desde la interfaz de usuario hasta la capa de persistencia 3NF atómica:
+
 ```
-+-----------------------------------------------------------------------------------+
-|                            CLIENTES / DISPOSITIVOS                                |
-|   Estación Médica (PC)  |  Tablet Clínica (Móvil)  |  Módulo de Caja (Ventanilla) |
-+-----------------------------------------------------------------------------------+
-                                         │ HTTPS / TLS 1.3
-                                         ▼
-+-----------------------------------------------------------------------------------+
-|                         CAPA DE CONTROL Y SEGURIDAD CGI                           |
-|       Apache HTTP Server  |  CGI::Session  |  Zero-Trust Firewall Guard           |
-+-----------------------------------------------------------------------------------+
-                                         │
-                                         ▼
-+-----------------------------------------------------------------------------------+
-|                   KERNEL DE GOBERNANZA RBAC (utils/permisos_utils.pl)             |
-|   Resolución de 5 Parámetros: ($id_empresa, $rol, $modulo, $accion, $id_usuario)  |
-|   [1. User Override]  ──>  [2. Fallback Rol Org]  ──>  [3. Fallback Matriz Base]  |
-+-----------------------------------------------------------------------------------+
-                                         │
-        ┌────────────────────────────────┼────────────────────────────────┐
-        ▼                                ▼                                ▼
-+──────────────────+            +──────────────────+            +──────────────────+
-|  CLINICAL ENGINE |            | SURGICAL/CONSENT |            |  FINANCIAL CORE  |
-|  Pipeline SOAP   |            | Kanban Quirófano |            | Caja Rápida      |
-|  Subformularios  |            | Checklist OMS    |            | Multi-Tarifa     |
-|  Inmutabilidad   |            | UCPA Aldrete     |            | Flujo Efectivo   |
-+──────────────────+            +──────────────────+            +──────────────────+
-        │                                │                                │
-        └────────────────────────────────┼────────────────────────────────┘
-                                         ▼
-+-----------------------------------------------------------------------------------+
-|                 CAPA DE PERSISTENCIA FLAT-FILE 3NF RELACIONAL (.dat)              |
-|        Atomicidad flock(LOCK_EX)  |  Codificación UTF-8 LF  |  Aislamiento CLUE   |
++───────────────────────────────────────────────────────────────────────────────────+
+|                                CLIENTES / FRONTEND                                |
+|   Estación Médica (PC)  │  Tablet Clínica (Móvil)  │  Ventanilla de Caja y Recepción |
+|   • HTML5 Semántico     │  • CSS3 Medentia Aura    │  • JavaScript ES6+ / jQuery  |
++───────────────────────────────────────────────────────────────────────────────────+
+                                          │ HTTPS / TLS 1.3
+                                          ▼
++───────────────────────────────────────────────────────────────────────────────────+
+|                      SERVIDOR WEB Y CAPA PERIMETRAL APACHE                        |
+|       Apache HTTP Server  │  Directivas CGI::Session  │  Zero-Trust Firewall Guard  |
++───────────────────────────────────────────────────────────────────────────────────+
+                                          │
+                                          ▼
++───────────────────────────────────────────────────────────────────────────────────+
+|                 KERNEL DE SEGURIDAD, RBAC Y CONMUTADOR DE ROL                     |
+|                   utils/permisos_utils.pl  │  auth/check_session.pl               |
+|                   api/switch_role_api.pl   │  utils/audit_manager.pm              |
+|        Evaluación de 5 Parámetros: ($id_empresa, $rol, $mod, $acc, $id_usuario)   |
+|        [1. User Overrides]  ──>  [2. Matriz Rol Org]  ──>  [3. Matriz Base Roles] |
++───────────────────────────────────────────────────────────────────────────────────+
+                                          │
+        ┌─────────────────────────────────┼─────────────────────────────────┐
+        ▼                                 ▼                                 ▼
++───────────────────+             +───────────────────+             +───────────────────+
+|  CLINICAL CORE    |             | SURGICAL / CONSENT|             |  FINANCIAL CORE   |
+|  views/consulta_* |             | views/quirofano_* |             | views/generar_*   |
+|  api/autosave_*   |             | api/quirofano_*   |             | api/imprimir_*    |
+|  api/cerrar_*     |             | api/consentim.*   |             | api/finanzas_*    |
+|  Pipeline SOAP    |             | Checklist OMS     |             | Caja Rápida       |
+|  Plugins Slots    |             | UCPA Aldrete      |             | Multi-Tarifa      |
+|  Inmutabilidad    |             | Repositorio CNS   |             | Flujo Efectivo    |
++───────────────────+             +───────────────────+             +───────────────────+
+        │                                 │                                 │
+        └─────────────────────────────────┼─────────────────────────────────┘
+                                          ▼
++───────────────────────────────────────────────────────────────────────────────────+
+|                CAPA DE PERSISTENCIA RELACIONAL FLAT-FILE 3NF (.dat)               |
+|          Bloqueo Atómico flock(LOCK_EX) │ Codificación UTF-8 │ Línea Unix \n      |
 |                                                                                   |
-|  dat/catalogos_CLUE/<CLUES>/           dat/folios_recibos_privados.dat (Efectivo) |
-|  ├── departamentos_<CLUES>.dat         dat/folios_recibos_publicos.dat (CXC Edo)  |
-|  ├── categorias_<CLUES>.dat            dat/quirofano.dat (Bitácora Quirúrgica)    |
-|  ├── catalogo_items_<CLUES>.dat        dat/consentimientos/paciente_<id>.json     |
-|  └── catalogo_precios_<CLUES>.dat      dat/audit_logs.dat (Trazabilidad Inmutable)|
-+-----------------------------------------------------------------------------------+
+|  dat/catalogos_CLUE/<CLUES>/                dat/folios_recibos_privados.dat (Cash)|
+|  ├── departamentos_<CLUES>.dat              dat/folios_recibos_publicos.dat (CXC) |
+|  ├── categorias_<CLUES>.dat                 dat/quirofano.dat (Checklist OMS)     |
+|  ├── catalogo_items_<CLUES>.dat             dat/consentimientos/paciente_<id>.json|
+|  └── catalogo_precios_<CLUES>.dat           dat/audit_logs.dat (NOM-024 Audit)    |
++───────────────────────────────────────────────────────────────────────────────────+
 ```
 
-### 6.2 Diagrama de Flujo del Pipeline SOAP Polimórfico
+### 6.2 Diagrama Detallado de Procesos (End-to-End Pipeline)
+A continuación se detalla la secuencia de ejecución de los procesos vitales del sistema, asociando cada fase funcional con sus archivos de código fuente, contratos de datos y almacenamiento:
+
 ```
-[Inicio de Consulta] ──> [Guardia: ¿Consulta Activa?] ──> [Cargar Expediente Prev.]
-                                                                     │
-                                                                     ▼
-                                                         [Interrogatorio Clínico]
-                                                         • S: Subjetivo (Síntomas)
-                                                                     │
-                                                                     ▼
-                                                         [Exploración y Somatometría]
-                                                         • O: Objetivo (Signos Vitales)
-                                                                     │
-                                                                     ▼
-                                                         [Plugin Slot Especialidad]
-                                                         • soap.objective.especialidad
-                                                           (Pediatría / Gineco / Dental)
-                                                                     │
-                                                                     ▼
-                                                         [Juicio Diagnóstico]
-                                                         • A: Apreciación (CIE-10)
-                                                                     │
-                                                                     ▼
-                                                         [Prescripción y Plan]
-                                                         • P: Plan y Receta Aislada
-                                                                     │
-                                                                     ▼
-                                                         [Firma Digital & Sello]
-                                                         • Inmutabilidad NOM-004
-                                                                     │
-                                                                     ▼
-                                                         [Generación de Cargo / Caja]
+[FASE 1: AUTENTICACIÓN & GOBERNANZA RBAC]
+   Entrada: Credenciales (auth/acceso.pl) ──> Verificación hash SHA-256 (dat/usuarios.dat)
+   Resolución de Permisos: utils/permisos_utils.pl ──> Overrides (permisos_usuarios_<ID>.dat)
+   Salida: Token CGI::Session + Menú Lateral Filtrado (utils/sub_sidebar.pl)
+                        │
+                        ▼
+[FASE 2: ADMISIÓN, EXPEDIENTE & AGENDA MÉDICA]
+   Búsqueda de Paciente: api/autocomplete_pacientes.pl ──> dat/pacientes.dat
+   Programación de Cita: views/agenda_main.pl ──> api/citas_crud.pl ──> dat/citas.dat
+   Check-in Paciente en Sala: Estado "En Espera" en Agenda
+                        │
+                        ▼
+[FASE 3: ATENCIÓN CLÍNICA SOAP POLIMÓRFICA & ODONTOGRAMA]
+   Apertura de Consulta: views/render_expediente_clinico.pl (Valida Consulta Activa)
+   Borrador Atómico: api/autosave_consulta.pl (Autoguardado en dat/consulta_draft.dat)
+   Captura SOAP:
+      • S (Subjetivo): Interrogatorio clínico
+      • O (Objetivo): Signos Vitales + Plugin Slot (views/partials/consultas/*)
+      • Odontología Especializada: js/odontograma_plus.js ──> dat/odontogramas/paciente_<id>.json
+      • A (Apreciación): Diagnóstico nosológico CIE-10 (api/buscar_cie10.pl)
+      • P (Plan): Prescripción médica
+   Cierre y Firma: api/cerrar_consulta_privado.pl ──> Sello Inmutable en dat/consultas.dat
+   Receta Electrónica Foliada: api/imprimir_receta_api.pl ──> dat/recetas.dat
+                        │
+                        ▼
+[FASE 4: TRAZABILIDAD QUIRÚRGICA OMS & CONSENTIMIENTOS]
+   Asignación a Quirófano: views/quirofano_kanban.pl (5 Estados: Prog ➔ PreOp ➔ QX ➔ UCPA ➔ Alta)
+   Checklist Quirúrgico OMS (3 Tiempos):
+      • Entrada (Sign-In) ➔ Pausa Quirúrgica (Time-Out) ➔ Salida (Sign-Out)
+   Consentimiento Informado Atómico:
+      • api/consentimientos_api.pl ──> dat/consentimientos/paciente_<id>.json
+   Criterios de Egreso UCPA: Escala Aldrete (views/imprimir_nota_quirurgica.pl)
+                        │
+                        ▼
+[FASE 5: COBRANZA EN CAJA RÁPIDA & MOTOR MULTI-TARIFA]
+   Generación de Cobro: views/generar_recibo.pl (Recibe cargos de consulta / quirofano)
+   Resolución Tarifaria: Matriz N-Tarifas (tipos_tarifas_<CLUES>.dat y catalogo_precios_<CLUES>.dat)
+   Cálculo Reactivo: Subtotal + IVA 16% + Total (recalcularTotalesCarrito())
+   Segregación de Ingreso:
+      • Recibo Privado: api/imprimir_recibo_caja.pl ──> dat/folios_recibos_privados.dat (Efectivo Real)
+      • Recibo Público: api/imprimir_recibo_publico.pl ──> dat/folios_recibos_publicos.dat (CXC Estado)
+   Liquidación en Cuenta: dat/estado_cuenta.dat
+                        │
+                        ▼
+[FASE 6: REPORTING EJECUTIVO, CATÁLOGOS SERVER-SIDE & AUDITORÍA]
+   Tablero Financiero: views/finanzas.pl ──> api/finanzas_api.pl (Drilldown exacto al centavo)
+   Catálogos 3NF por CLUES: views/manage_catalogo_universal.pl ──> api/crud_catalogo_universal_api.pl
+   Bitácora Inmutable (NOM-024): utils/audit_manager.pm ──> dat/audit_logs.dat
 ```
 
-### 6.3 Diagrama del Modelo Relacional Flat-File 3NF por Organización
-```
-+───────────────────────────+          +───────────────────────────+
-|   DEPARTAMENTOS_<CLUES>   |          |    CATEGORIAS_<CLUES>     |
-+───────────────────────────+          +───────────────────────────+
-| ID_DEP (PK)               | 1      N | ID_CAT (PK)               |
-| Nombre Departamento       |──────────| ID_DEP (FK)               |
-| Estado                    |          | Nombre Categoría          |
-+───────────────────────────+          +───────────────────────────+
-                                                     │ 1
-                                                     │ N
-                                       +───────────────────────────+
-                                       |   CATALOGO_ITEMS_<CLUES>  |
-                                       +───────────────────────────+
-                                       | ID_ITEM (PK)              |
-                                       | SKU (LAB-, RX-, CONS-)    |
-                                       | ID_CAT (FK)               |
-                                       | Nombre del Procedimiento  |
-                                       | Descripción               |
-                                       +───────────────────────────+
-                                                     │ 1
-                                                     │ N
-                                       +───────────────────────────+
-                                       |  CATALOGO_PRECIOS_<CLUES> |
-                                       +───────────────────────────+
-                                       | ID_ITEM (FK)              |
-                                       | ID_TARIFA (FK)            |
-                                       | Precio Base               |
-                                       | IVA Aplicable             |
-                                       +───────────────────────────+
-```
+### 6.3 Matriz de Correlación de Procesos y Archivos de Código Fuente
+La siguiente matriz correlaciona cada fase del proceso con los archivos de código fuente exactos del proyecto:
+
+| Fase del Proceso | Archivos de Código Fuente (Controladores / Vistas / Utilidades) | Archivos de Persistencia (.dat / JSON) | Propósito Técnico y Legal |
+|---|---|---|---|
+| **P1. Seguridad y Gobernanza RBAC** | `auth/acceso.pl`<br>`auth/check_session.pl`<br>`utils/permisos_utils.pl`<br>`api/switch_role_api.pl` | `dat/usuarios.dat`<br>`dat/roles.dat`<br>`dat/permisos_usuarios_*.dat` | Autenticación, Zero-Trust, evaluación de 5 parámetros y control de acceso NOM-024. |
+| **P2. Admisión y Agenda** | `views/agenda_main.pl`<br>`api/citas_crud.pl`<br>`views/crud_paciente.pl`<br>`api/pacientes_crud_api.pl` | `dat/pacientes.dat`<br>`dat/citas.dat` | Enrolamiento de derechohabientes, citas multitemporales y paso a consulta en < 3 clics. |
+| **P3. Núcleo Clínico SOAP** | `views/render_expediente_clinico.pl`<br>`api/autosave_consulta.pl`<br>`api/cerrar_consulta_privado.pl`<br>`js/odontograma_plus.js` | `dat/consultas.dat`<br>`dat/recetas.dat`<br>`dat/odontogramas/*.json` | Nota médica inmutable NOM-004, plugins de especialidad, canvas dental y prescripción. |
+| **P4. Quirófano y Consentimiento** | `views/quirofano_kanban.pl`<br>`api/quirofano_crud.pl`<br>`api/consentimientos_api.pl`<br>`views/imprimir_nota_quirurgica.pl` | `dat/quirofano.dat`<br>`dat/consentimientos/*.json` | Checklist OMS 3 tiempos, tiempos quirúrgicos, escala Aldrete y repositorio CNS atómico. |
+| **P5. Caja y Multi-Tarifa** | `views/generar_recibo.pl`<br>`api/imprimir_recibo_caja.pl`<br>`api/imprimir_recibo_publico.pl`<br>`api/finanzas_api.pl` | `dat/folios_recibos_privados.dat`<br>`dat/folios_recibos_publicos.dat`<br>`dat/estado_cuenta.dat` | Segregación de Efectivo Real vs CXC Estado, esquemas tarifarios y recibos controlados. |
+| **P6. Catálogos y Auditoría** | `views/manage_catalogo_universal.pl`<br>`api/crud_catalogo_universal_api.pl`<br>`utils/catalogo_org_utils.pl`<br>`utils/audit_manager.pm` | `dat/catalogos_CLUE/<CLUES>/*`<br>`dat/audit_logs.dat` | Normalización 3NF por CLUES, DataTables Server-Side a 10 filas y trazabilidad legal. |
 
 ---
 
 ## 7. ANEXO DE CÓDIGO FUENTE (DEPÓSITO SUSTANCIAL ANTE INDAUTOR)
 
-### 7.1 Encabezado Canónico de Licencia y Reserva de Derechos
+### 7.1 Criterio Jurídico de Presentación ante INDAUTOR (Código Completo vs Extractos)
+Conforme a la **Ley Federal del Derecho de Autor (Artículos 101, 102 y 103)** y el **Artículo 55 del Reglamento de la LFDA**, el solicitante de registro de software debe considerar la siguiente directriz legal sobre el código fuente:
+
+1. **Memoria Técnica con Extractos Sustanciales (Recomendada para Registro):**
+   * El criterio administrativo del INDAUTOR **no exige la impresión física de la totalidad de cientos de miles de líneas de código fuente**, ya que en proyectos de escala profesional como OSpulso esto crearía tomos de miles de páginas imprácticos de almacenar.
+   * La normativa permite la presentación de una **muestra representativa o extracto sustancial** (primeras y últimas 10 a 25 páginas, o los algoritmos nucleares del sistema), acompañada de la memoria técnica y los diagramas de proceso que demuestren la originalidad de la obra.
+   * **Protección de Secretos Industriales:** Este método evita la exposición pública o vulneración de llaves criptográficas, semillas de hashing y secretos comerciales sensibles.
+2. **Depósito Íntegro del Código Fuente Completo (Soporte Digital / Anexo Secuencial):**
+   * Si por requerimiento específico del registrador o estrategia jurídica de la empresa se solicita el código fuente completo, este debe entregarse en **soporte digital (archivo PDF consolidado)**.
+   * **Regla de Ordenación Procesal:** En tal caso, el código fuente **NO debe listarse en orden alfabético arbitrario**. Debe estructurarse y compilarse **estrictamente en el orden de los diagramas de proceso** (Fase 1 a Fase 6), de manera que el examinador del INDAUTOR pueda seguir el flujo de control del sistema de forma coherente y lógica.
+
+### 7.2 Mapeo y Guía de Ordenación del Código Fuente Completo según el Flujo de Procesos
+Para la conformación del tomo digital completo, los archivos fuente de OSpulso se ordenan secuencialmente de acuerdo a los diagramas de proceso descritos:
+
+```
+TOMO DE CÓDIGO FUENTE COMPLETO (ORDENACIÓN POR DIAGRAMAS DE PROCESO):
+
+SECUENCIA I: NÚCLEO DE ARRANQUE, SESIÓN Y GOBERNANZA RBAC (Proceso 1)
+ 1. auth/acceso.pl                    ── Procesamiento de credenciales y arranque de sesión
+ 2. auth/check_session.pl             ── Guardia perimetral de token y verificación de estado
+ 3. utils/permisos_utils.pl           ── Kernel de permisos híbrido con resolución de 5 parámetros
+ 4. api/switch_role_api.pl            ── Conmutador atómico de rol médico/administrador
+ 5. utils/sub_sidebar.pl              ── Renderizado reactivo del menú según permisos evaluados
+ 6. auth/cerrar_sesion.pl             ── Destrucción segura y purga de sesiones inactivas
+
+SECUENCIA II: ADMISIÓN DE PACIENTES Y AGENDA MÉDICA CENTRAL (Proceso 2)
+ 7. views/agenda_main.pl              ── Consola multitemporal de citas y asignación médica
+ 8. api/citas_crud.pl                 ── Controlador transaccional de citas y estados
+ 9. views/crud_paciente.pl            ── Formulario maestro de identificación del derechohabiente
+10. api/pacientes_crud_api.pl         ── Operaciones CRUD de pacientes y validación CURP/RFC
+11. api/autocomplete_pacientes.pl     ── Búsqueda de alta velocidad para recepción
+
+SECUENCIA III: NÚCLEO CLÍNICO SOAP, ODONTOGRAMA Y RECETA (Proceso 3)
+12. views/render_expediente_clinico.pl ── Expediente unificado e historial clínico NOM-004
+13. api/autosave_consulta.pl         ── Guardado automático concurrente de borradores SOAP
+14. views/partials/consultas/*        ── Subformularios desacoplados (Plugin Slots de especialidad)
+15. js/odontograma_plus.js           ── Motor gráfico Canvas HTML5/SVG de 52 piezas dentales
+16. api/odontograma_api.pl           ── Persistencia de estados dentales atómicos
+17. api/buscar_cie10.pl              ── Catálogo nosológico de diagnósticos
+18. api/cerrar_consulta_privado.pl   ── Cierre transaccional, firma digital y sello inmutable
+19. api/imprimir_receta_api.pl       ── Emisión foliada de prescripción farmacológica
+
+SECUENCIA IV: TRAZABILIDAD QUIRÚRGICA OMS Y CONSENTIMIENTOS (Proceso 4)
+20. views/quirofano_kanban.pl        ── Tablero Kanban hospitalario de 5 estados
+21. api/quirofano_crud.pl            ── Registro de tiempos y checklist quirúrgico OMS (3 fases)
+22. api/consentimientos_api.pl       ── Repositorio atómico de consentimientos tipificados
+23. views/imprimir_nota_quirurgica.pl── Nota transoperatoria y criterios de alta UCPA Aldrete
+
+SECUENCIA V: MOTOR FINANCIERO MULTI-TARIFA Y CAJA RÁPIDA (Proceso 5)
+24. views/generar_recibo.pl          ── Punto de venta, carrito dinámico y multi-tarifa
+25. api/guardar_recibo_rapido.pl     ── Procesamiento transaccional de cobro en ventanilla
+26. api/imprimir_recibo_caja.pl      ── Recibo privado de efectivo real con toolbar .no-print
+27. api/imprimir_recibo_publico.pl   ── Recibo público de cuentas por cobrar (CXC Estado)
+28. api/finanzas_api.pl              ── Indicadores KPI y conciliación al centavo
+29. views/finanzas.pl                ── Tablero ejecutivo y arqueo de caja con drilldown
+
+SECUENCIA VI: CATÁLOGOS SERVER-SIDE 3NF Y AUDITORÍA INMUTABLE (Proceso 6)
+30. views/manage_catalogo_universal.pl ── Administración de catálogos 3NF por CLUES
+31. api/crud_catalogo_universal_api.pl ── DataTables Server-Side AJAX a 10 registros
+32. utils/catalogo_org_utils.pl      ── Resolución jerárquica de rutas de catálogo CLUE
+33. utils/db_manager.pm              ── Capa de persistencia plana con bloqueos flock(LOCK_EX)
+34. utils/audit_manager.pm           ── Registro append-only de eventos de auditoría NOM-024
+```
+
+---
+
+### 7.3 Encabezado Canónico de Licencia y Reserva de Derechos
 Conforme a la práctica de depósito de código fuente de la Ley Federal del Derecho de Autor, cada módulo de software cuenta con la siguiente inscripción registral:
 
 ```perl
@@ -401,7 +478,7 @@ Conforme a la práctica de depósito de código fuente de la Ley Federal del Der
  * ======================================================================== */
 ```
 
-### 7.2 Árbol Jerárquico de Directorios y Estructura Modular
+### 7.4 Árbol Jerárquico de Directorios y Estructura Modular
 ```
 ospulso/
 ├── api/                             # Endpoints del Backend Transaccional (Perl CGI)
@@ -453,6 +530,7 @@ ospulso/
     ├── manage_catalogo_universal.pl # Consola de administración de catálogos 3NF
     ├── quirofano_kanban.pl          # Tablero Kanban y checklist quirúrgico OMS
     └── render_expediente_clinico.pl # Expediente clínico unificado NOM-004
+```
 ```
 
 ---
