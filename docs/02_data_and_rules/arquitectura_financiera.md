@@ -361,7 +361,7 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
 
 2. **Filtro Multi-Método de Pago en `tab=ingresos`**:
    - Se incorpora a la izquierda del selector de *Médico* el componente multiselección `#dropdownMetodosPagoIngresosWrapper` con checkboxes dinámicos, permitiendo filtrar los ingresos privados y públicos por métodos individuales (Efectivo, Tarjeta, Transferencia, Convenio, etc.) o en lote (*Todos* / *Ninguno*).
-   - El filtrado es reactivo y trabaja de manera combinada con el filtro de médico y las fechas automáticas.
+   - El filtrado por método de pago aplica exclusivamente a los Ingresos Privados de ventanilla; la tabla de Ingresos Municipio opera de forma independiente y únicamente se filtra por el rango de fechas seleccionado, garantizando que los registros institucionales y subsidios amparados no sean omitidos por los filtros de cobro comercial.
 
 3. **Excepción de Impresión para Dependencia DIF (`api/imprimir_recibo_publico.pl`)**:
    - Por regla general de convenios públicos y subsidios al 100%, los recibos públicos ocultan los precios por concepto y los totales monetarios para el paciente.

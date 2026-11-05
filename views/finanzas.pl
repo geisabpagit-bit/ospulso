@@ -1582,19 +1582,18 @@ PAGE_HTML
         }
 
         let priv = window.cacheIngresosPrivados || [];
-        let muni = window.cacheIngresosMunicipio || [];
+        // REGLA: Los ingresos del Municipio SOLO se filtran por rango de fechas (con ellos no aplica método de pago)
+        let muni = (window.cacheIngresosMunicipio || []).slice();
 
         // 1. Filtrar por Médico si aplica
         if (medFiltro && medFiltro !== '' && medFiltro !== 'TODOS') {
             priv = priv.filter(r => (r.medico || '').trim().toUpperCase() === medFiltro);
-            muni = muni.filter(r => (r.medico || '').trim().toUpperCase() === medFiltro);
         }
 
-        // 2. Filtrar por Métodos de Pago seleccionados
+        // 2. Filtrar por Métodos de Pago seleccionados (Aplica exclusivamente a Ingresos Privados)
         if (totalChecks > 0) {
             if (metodosSeleccionados.length === 0) {
                 priv = [];
-                muni = [];
             } else if (metodosSeleccionados.length < totalChecks) {
                 priv = priv.filter(i => {
                     let mp = (i.forma_pago || 'Efectivo').trim();
@@ -1607,12 +1606,6 @@ PAGE_HTML
                         if (sLower === 'efectivo' && mpLower.includes('efectivo')) return true;
                         if (sLower.includes('convenio') && (mpLower.includes('convenio') || mpLower.includes('aseguradora'))) return true;
                         return false;
-                    });
-                });
-                muni = muni.filter(i => {
-                    return metodosSeleccionados.some(sel => {
-                        let sLower = sel.toLowerCase();
-                        return sLower.includes('convenio') || sLower.includes('aseguradora');
                     });
                 });
             }
