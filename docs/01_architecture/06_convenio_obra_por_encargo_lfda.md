@@ -33,9 +33,10 @@
 * **Número de Comunicado Oficial**: **OFICIO No. GEISABPA-001/2026**.
 * **Obra Objeto del Convenio**: **OSpulso** (Sistema de Información de Registros Electrónicos de Salud - SIRES / ECE).
 * **Denominación Técnica de la Plataforma**: Ospulso Platform Core v2.0 / Diamond Edition v4.5.0 (Release v3.4.0 Estable).
-* **Naturaleza de la Obra**: Programa de Computación (Software Aplicativo) y Bases de Datos Relacionales Estructuradas Normalizadas en 3NF (`.dat`).
+* **Naturaleza de la Obra**: Programa de Computación (Software Aplicativo).
 * **Autor Intelectual (Persona Física)**: **Israel Garay de la Cruz**.
 * **Titular Patrimonial y Contratante (Persona Moral)**: **Plataformas Digitales de México, S.A. de C.V.**
+* **Domicilio Legal de la Empresa**: Sierra Madre Oriental #163 Edificio i-301, Col. La Pradera, C.P. 07500, Alcaldia Gustavo A. Madero, Ciudad de México.
 * **Representante Legal de la Persona Moral**: **Israel Garay de la Cruz**.
 * **Lugar y Fecha de Celebración**: Ciudad de México, México, a los 4 días del mes de noviembre del año 2026.
 
@@ -50,7 +51,7 @@
 4. Que la obra es una creación 100% original, concebida y desarrollada de forma independiente, libre de plagio o vulneración de derechos de propiedad intelectual de terceras personas físicas o morales.
 
 **II. DECLARA LA EMPRESA (PLATAFORMAS DIGITALES DE MÉXICO, S.A. DE C.V.), POR CONDUCTO DE SU REPRESENTANTE LEGAL:**
-1. Ser una persona moral debidamente constituida y con existencia legal conforme a las leyes de los Estados Unidos Mexicanos, con facultades suficientes para comisionar la producción de programas de computación, adquirir la titularidad patrimonial sobre los mismos y comercializarlos en la modalidad Software as a Service (SaaS).
+1. Ser una persona moral debidamente constituida y con existencia legal conforme a las leyes de los Estados Unidos Mexicanos, con domicilio en Sierra Madre Oriental #163 Edificio i-301, Col. La Pradera, C.P. 07500, Alcaldia Gustavo A. Madero, Ciudad de México, con facultades suficientes para comisionar la producción de programas de computación, adquirir la titularidad patrimonial sobre los mismos y comercializarlos en la modalidad Software as a Service (SaaS).
 2. Que su Representante Legal y Administrador, el **C. Israel Garay de la Cruz**, cuenta con facultades legales plenas y vigentes para representarla en este acto, las cuales no le han sido revocadas, modificadas ni limitadas en forma alguna.
 3. Que encomendó e instruyó expresamente al C. Israel Garay de la Cruz la producción, arquitectura y programación integral del sistema de registros electrónicos de salud denominado OSpulso.
 
@@ -63,16 +64,10 @@
 ### CLÁUSULAS
 
 #### PRIMERA. RÉGIMEN JURÍDICO DE OBRA POR ENCARGO (ARTÍCULOS 83 Y 103 LFDA)
-Las partes acuerdan y ratifican de forma inequívoca que la obra computacional y literaria denominada **OSpulso** fue comisionada, producida y concluida bajo la modalidad legal y formal de **OBRA POR ENCARGO**, al amparo expreso de lo preceptuado en los **artículos 83 y 103 de la Ley Federal del Derecho de Autor (LFDA)** de los Estados Unidos Mexicanos.
-
-En consecuencia directa de dicho régimen, la titularidad exclusiva, integral y originaria de la totalidad de los derechos patrimoniales sobre el programa de computación y su documentación técnica corresponde a **Plataformas Digitales de México, S.A. de C.V.**
+Las partes acuerdan y ratifican de forma inequívoca que la obra computacional y literaria denominada **OSpulso** fue comisionada, producida y concluida bajo la modalidad legal y formal de **OBRA POR ENCARGO**, al amparo expreso de lo preceptuado en los **artículos 83 y 103 de la Ley Federal del Derecho de Autor (LFDA)** de los Estados Unidos Mexicanos. En consecuencia directa de dicho régimen, la titularidad exclusiva, integral y originaria de la totalidad de los derechos patrimoniales sobre el programa de computación y su documentación técnica corresponde a **Plataformas Digitales de México, S.A. de C.V.**
 
 #### SEGUNDA. CONSTANCIA DE DEBIDA REMUNERACIÓN Y FINIQUITO ECONÓMICO TOTAL
-En cumplimiento riguroso de los **artículos 30, 31 y 83 de la Ley Federal del Derecho de Autor**, el Autor, C. Israel Garay de la Cruz, **HACE CONSTAR DE MANERA EXPRESA, FEHACIENTE E INCONDICIONAL QUE LA CREACIÓN, DISEÑO, CODIFICACIÓN Y ENTREGA DE LA OBRA FUE DEBIDAMENTE REMUNERADA EN SU TOTALIDAD POR PLATAFORMAS DIGITALES DE MÉXICO, S.A. DE C.V.**
-
-El Autor manifiesta haber recibido a su entera y cabal satisfacción la totalidad de las contraprestaciones económicas, compensaciones y honorarios convenidos para la producción integral del software OSpulso. Por lo tanto, el Autor otorga a favor de la empresa el más amplio, formal y eficaz **FINIQUITO ECONÓMICO Y LEGAL** que en derecho proceda, declarando bajo protesta de decir verdad que:
-* No existe ningún saldo, diferencia, adeudo ni reclamación económica pendiente de cubrir a su favor.
-* Renuncia expresamente a ejercer cualquier acción civil, penal, mercantil o administrativa de carácter pecuniario o de cobro de regalías presentes o futuras en relación con la producción, explotación y aprovechamiento de la obra.
+En estricto cumplimiento de lo preceptuado en los artículos 30, 31 y 83 de la Ley Federal del Derecho de Autor, el Autor, **C. Israel Garay de la Cruz**, hace constar bajo protesta de decir verdad que **LA CREACIÓN Y ENTREGA DE LA OBRA FUE DEBIDAMENTE REMUNERADA EN SU TOTALIDAD POR PLATAFORMAS DIGITALES DE MÉXICO, S.A. DE C.V.** El Autor declara haber recibido a su entera y cabal satisfacción la totalidad de las contraprestaciones, honorarios y compensaciones pactadas por el desarrollo del software y la cesión de los derechos patrimoniales. Por tanto, otorga a favor de la empresa el más amplio **FINIQUITO ECONÓMICO Y LEGAL** que en derecho proceda, manifestando que no existe adeudo, saldo, reclamación ni diferencia pendiente de liquidar a la fecha, renunciando expresamente a ejercer cualquier acción de cobro o reclamación de regalías presentes o futuras.
 
 #### TERCERA. TRANSMISIÓN Y ALCANCE DE LOS DERECHOS PATRIMONIALES (ARTS. 27 Y 30 LFDA)
 En virtud de la figura de obra por encargo debidamente remunerada, **Plataformas Digitales de México, S.A. de C.V.** ostenta en exclusiva la totalidad de los derechos patrimoniales sobre la obra **OSpulso**, incluyendo de forma enunciativa mas no limitativa las siguientes facultades:
