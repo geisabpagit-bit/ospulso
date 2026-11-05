@@ -12,7 +12,7 @@
 * **Autor (Persona Física Creadora)**: **Israel Garay de la Cruz**
 * **Titular de los Derechos Patrimoniales**: **Plataformas Digitales de México, S.A. de C.V.** (Representada Legalmente por: **Israel Garay de la Cruz**)
 * **Fecha de Fijación de la Obra**: Octubre / Noviembre de 2026
-* **Lugar de Fijación**: San Luis Potosí, S.L.P. / Ciudad de México, México
+* **Lugar de Fijación**: Ciudad de México, México
 * **Declaración de Confidencialidad y Reserva**:
   > *Obra Protegida bajo la Ley Federal del Derecho de Autor (INDAUTOR - México). Todos los derechos reservados © 2026 Plataformas Digitales de México, S.A. de C.V. Queda estrictamente prohibida la reproducción, descompilación, ingeniería inversa, alteración, distribución o explotación no autorizada de este código fuente y memoria técnica sin el consentimiento previo y por escrito de su titular patrimonial.*
 
@@ -224,61 +224,77 @@ El **Visor Radiológico y HUB PACS** desacoplado permite la importación, almace
 ### 3.9 Módulo de Comunicación Masiva, Campañas Sanitarias y Notificaciones Automatizadas
 El **Módulo de Comunicación Masiva y Notificaciones** es un componente nuclear del SaaS OSpulso diseñado para fortalecer la relación médico-paciente y mitigar el ausentismo clínico. Dispone de un motor transaccional multicanal capaz de despachar recordatorios automatizados de citas programadas vía mensajería instantánea y correo electrónico, avisos de disponibilidad de resultados de estudios de laboratorio o gabinete, y difusión masiva de campañas sanitarias preventivas (jornadas de vacunación, despistaje oncológico, control metabólico en diabetes e hipertensión). El sistema incorpora un módulo de segmentación avanzada por grupos etarios, diagnósticos nosológicos CIE-10 previos o periodos de inactividad asistencial, garantizando un estricto respeto a la privacidad del paciente y a la normativa sanitaria de consentimiento para comunicaciones electrónicas.
 
+---
+
 ### 3.10 Diagrama Sintetizado de Arquitectura Funcional del SIRES
-El siguiente diagrama sintetiza de forma integral el ecosistema clínico unificado del sistema SaaS OSpulso, detallando la interacción armónica entre la agenda, el expediente, el pipeline SOAP, los módulos de especialidad, el apoyo diagnóstico y la pasarela a finanzas:
+El siguiente blueprint sintetiza de forma integral el ecosistema clínico y financiero unificado del sistema SaaS OSpulso, detallando la interacción armónica entre la agenda, el expediente unificado, el pipeline SOAP, los módulos de especialidad, el apoyo diagnóstico y la pasarela a finanzas:
 
 ```
-+═════════════════════════════════════════════════════════════════════════════════════+
-|                 ECOSISTEMA INTEGRAL CLÍNICO Y ASISTENCIAL (SIRES)                   |
-+═════════════════════════════════════════════════════════════════════════════════════+
-                                         │
-                   ┌─────────────────────┴─────────────────────┐
-                   ▼                                           ▼
-+─────────────────────────────────────+     +─────────────────────────────────────+
-|   [3.7] AGENDA MÉDICA Y RECEPCIÓN   |     |    [3.9] COMUNICACIÓN MASIVA        |
-|  • Citas multitemporal (Día/Sem/Mes)|     |  • Recordatorios automáticos de cita|
-|  • Control de estados y sala espera |     |  • Avisos de estudios de laboratorio|
-|  • Filtro por Especialista/Consult. |     |  • Campañas preventivas por CIE-10  |
-+─────────────────────────────────────+     +─────────────────────────────────────+
-                   │                                           ▲
-                   ▼ (1 Clic)                                  │
-+──────────────────────────────────────────────────────────────┴──────────────────────+
-|                     [3.3] EXPEDIENTE CLÍNICO ELECTRÓNICO (ECE)                      |
-|       • Historial Médico Unificado   • Antecedentes Heredo-Familiares y Patológicos |
-|       • Alergias y Signos Vitales    • Trazabilidad y NOM-004-SSA3-2012 Inmutable   |
-+─────────────────────────────────────────────────────────────────────────────────────+
-                                         │
-                                         ▼
-+─────────────────────────────────────────────────────────────────────────────────────+
-|                    [3.1 & 3.2] PIPELINE SOAP CLÍNICO POLIMÓRFICO                    |
-|   [S] Subjetivo: Interrogatorio  │ [O] Objetivo: Signos vitales y exploración física|
-|   [A] Apreciación: CIE-10        │ [P] Plan Terapéutico: Indicaciones y Medicación  |
-+─────────────────────────────────────────────────────────────────────────────────────+
-                                         │
-        ┌────────────────────────────────┼────────────────────────────────┐
-        ▼                                ▼                                ▼
-+───────────────────+            +───────────────────+            +───────────────────+
-| [3.4] ODONTOGRAMA |            | [3.5] QUIRÓFANO   |            | [3.8] VISOR PACS  |
-|  • 52 Piezas      |            |  • Tablero Kanban |            |  • Rayos X / USG  |
-|  • 5 Caras anatóm.|            |  • Checklist OMS  |            |  • DICOM / Web    |
-|  • Patologías SVG |            |  • Escala Aldrete |            |  • Zoom/Contraste |
-+───────────────────+            +───────────────────+            +───────────────────+
-        │                                │                                │
-        └────────────────────────────────┼────────────────────────────────┘
-                                         ▼
-+─────────────────────────────────────────────────────────────────────────────────────+
-|               [3.6] PRESCRIPCIÓN, CONSENTIMIENTOS Y CIERRE CLÍNICO                  |
-|    • Receta Médica Electrónica Foliada      • Repositorio de Consentimientos JSON   |
-|    • Sellado Temporal y Firma Digital       • Inmutabilidad de la Nota Médica       |
-+─────────────────────────────────────────────────────────────────────────────────────+
-                                         │
-                                         ▼
-+─────────────────────────────────────────────────────────────────────────────────────+
-|                 [SECCIÓN 4] MÓDULO DE CAJA Y LIQUIDACIÓN FINANCIERA                 |
-|   • Caja Rápida & Motor Multi-Tarifa   • Recibos Privados: Flujo Efectivo Real      |
-|   • Exclusión inteligente de consultas • Recibos Públicos: Cuentas por Cobrar (CXC) |
-+─────────────────────────────────────────────────────────────────────────────────────+
++═════════════════════════════════════════════════════════════════════════════════════════════════+
+|                   SISTEMA INTEGRAL DE REGISTROS ELECTRÓNICOS DE SALUD (SIRES)                   |
+|                     BLUEPRINT FUNCIONAL DEL CICLO ASISTENCIAL Y FINANCIERO                      |
++═════════════════════════════════════════════════════════════════════════════════════════════════+
+
+ [CIRCUITO DE ADMISIÓN Y CONTACTO]
+   ┌──────────────────────────────────────────┐         ┌──────────────────────────────────────────┐
+   │ [3.7] AGENDA MÉDICA & RECEPCIÓN CENTRAL  │         │  [3.9] COMUNICACIÓN MASIVA SANITARIA     │
+   │ • Planificación Multitemporal (Día/Sem)  │◄───────►│  • Recordatorios automáticos de cita     │
+   │ • Control de Sala de Espera y Filtros    │         │  • Campañas preventivas por CIE-10       │
+   │ • Conmutación ágil Médico Tratante       │         │  • Notificación de estudios disponibles  │
+   └────────────────────┬─────────────────────┘         └──────────────────────────────────────────┘
+                        │ Transición Inmediata (1 Clic)
+                        ▼
+ [CIRCUITO DEL EXPEDIENTE CLÍNICO]
+   ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+   │ [3.3] EXPEDIENTE CLÍNICO ELECTRÓNICO UNIFICADO (ECE - NOM-004-SSA3-2012)                     │
+   │ • Historial cronológico continuo        • Antecedentes Heredo-Familiares y Patológicos       │
+   │ • Registro inmutable de Signos Vitales  • Alergias, Toxicomanías e Interrogatorio por Sistema│
+   └────────────────────────────────────────────┬─────────────────────────────────────────────────┘
+                                                │ Apertura de Consulta
+                                                ▼
+ [CIRCUITO DE ATENCIÓN SOAP POLIMÓRFICA]
+   ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+   │ [3.1 & 3.2] PIPELINE UNIVERSAL SOAP POLIMÓRFICO (views/partials/consultas/)                  │
+   │  [S] Subjetivo: Padecimiento actual        │ [O] Objetivo: Somatometría y exploración física │
+   │  [A] Apreciación: Catálogo CIE-10          │ [P] Plan: Indicaciones, fármacos y estudios     │
+   └────────────────────────────────────────────┬─────────────────────────────────────────────────┘
+                                                │
+                ┌───────────────────────────────┼───────────────────────────────┐
+                ▼                               ▼                               ▼
+ [CIRCUITO DE MÓDULOS ESPECIALIZADOS Y APOYO DIAGNÓSTICO]
+   ┌─────────────────────────┐     ┌─────────────────────────┐     ┌─────────────────────────┐
+   │ [3.4] ODONTOGRAMA PLUS  │     │ [3.5] QUIRÓFANO KANBAN  │     │ [3.8] VISOR DICOM PACS  │
+   │ • 52 Piezas Dentales    │     │ • Tablero de 5 Estados  │     │ • Rayos X, USG, Mastogr.│
+   │ • 5 Caras Anatómicas    │     │ • Checklist OMS 3 Fases │     │ • Zoom, Contraste, W/L  │
+   │ • Patologías SVG/Canvas │     │ • Escala Aldrete (UCPA) │     │ • Calibración en mm     │
+   └────────────┬────────────┘     └────────────┬────────────┘     └────────────┬────────────┘
+                │                               │                               │
+                └───────────────────────────────┼───────────────────────────────┘
+                                                ▼
+ [CIRCUITO DE CIERRE CLÍNICO LEGAL]
+   ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+   │ [3.6] PRESCRIPCIÓN ELECTRÓNICA, CONSENTIMIENTOS Y SELLADO CRIPTOGRÁFICO                      │
+   │ • Recetas Médicas Foliadas con Cédula      • Repositorio Atómico JSON (paciente_<id>.json)   │
+   │ • Firma Digital de Médico y Testigos       • Bloqueo Inmutable de Nota tras Cierre           │
+   └────────────────────────────────────────────┬─────────────────────────────────────────────────┘
+                                                │ Pasarela de Cobro
+                                                ▼
+ [CIRCUITO FINANCIERO Y DE LIQUIDACIÓN]
+   ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+   │ [SECCIÓN 4] CAJA RÁPIDA, FACTURACIÓN Y CONTROL CONTABLE AL CENTAVO                           │
+   │ • Motor Multi-Tarifa (Estándar/Urgencias/Otro)   • Exclusión inteligente de consultas        │
+   │ • dat/folios_recibos_privados.dat (Flujo Real)   • dat/folios_recibos_publicos.dat (CXC)     │
+   └──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+#### Matriz de Correlación Arquitectural del Circuito SIRES
+
+| Circuito Funcional | Módulos y Endpoints Involucrados | Garantía Técnica y Normativa |
+|---|---|---|
+| **1. Admisión y Contacto** | `views/agenda.pl`, `api/citas_api.pl`, `api/mensajeria_api.pl` | Regla de 3 clics; gestión multitemporal sin recarga y mitigación proactiva de ausentismo. |
+| **2. Expediente y SOAP** | `views/expediente.pl`, `views/consulta_paciente.pl`, `api/autosave_consulta.pl` | NOM-004-SSA3-2012; autosave reactivo cada 30s con cerrojo atómico `flock(LOCK_EX)`. |
+| **3. Especialidades / PACS** | Odontograma Canvas 52 piezas, Quirófano Kanban, `views/visor_dicom.pl` | Iniciativa OMS "Safe Surgery" de tres tiempos y renderizado radiológico sin pérdida. |
+| **4. Cierre y Finanzas** | `api/cerrar_consulta_privado.pl`, `views/generar_recibo.pl`, `views/finanzas.pl` | Inmutabilidad de la nota médica y segregación contable de efectivo real vs convenios CXC. |
 
 ---
 
@@ -883,7 +899,7 @@ En estricto cumplimiento de los artículos 101, 102, 103, 105, 106, 107 y demás
 4. **APEGO NORMATIVO SANITARIO:** Que los procesos clínicos descritos han sido diseñados en estricto apego a las disposiciones de las Normas Oficiales Mexicanas **NOM-004-SSA3-2012** (Del Expediente Clínico), **NOM-024-SSA3-2012** (Sistemas de Información de Registro Electrónico para la Salud), las directrices de la Organización Mundial de la Salud (OMS) en materia de seguridad quirúrgica y la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP).
 5. **FINALIDAD DEL DEPÓSITO:** Que la presente Memoria Técnica y Extracto Sustancial de Código Fuente se integran y expiden de buena fe para su formal depósito legal, solicitud de inscripción y expedición del correspondiente **Certificado de Registro de Obra de Programa de Computación** ante la Dirección del Registro Público del Derecho de Autor del **Instituto Nacional del Derecho de Autor (INDAUTOR)**.
 
-Para debida constancia legal y surtimiento de los efectos procedentes, se firma y suscribe el presente documento en la Ciudad de México / San Luis Potosí, México, a los 04 días del mes de noviembre del año 2026.
+Para debida constancia legal y surtimiento de los efectos procedentes, se firma y suscribe el presente documento en la Ciudad de México, México, a los 4 días del mes de noviembre del año 2026.
 
 ---
 
