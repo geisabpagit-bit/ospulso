@@ -322,3 +322,22 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
 2. **Estándar Visual del Comprobante de Egreso y Gasto Operativo (`api/imprimir_recibo_gasto.pl`)**:
    - Para garantizar legibilidad, pulcritud y sobriedad ejecutiva en la impresión en papel o exportación a PDF, se erradican los bordes laterales izquierdos multicolores (`style="border-left: 4px solid ..."` con tonos teal o azul marino) en las celdas descriptivas de Proveedor/Médico, Categoría y Recibos Amparados.
    - Toda la estructura tabular del recibo de egresos conserva bordes uniformes de 1px en gris pizarra suave (`#CBD5E1`), manteniendo armonía estética y evitando la contaminación visual del reporte impreso.
+
+---
+
+## 12. Estandarización y Filtrado Dinámico en Corte de Caja (`tab=corte_caja`)
+
+1. **Homologación de Dock de Filtros y KPIs con Tablero Principal**:
+   - La barra de filtros de Corte de Caja adopta el diseño idéntico de `tab=ingresos`: tarjeta con borde sutil teal clínico (`1.5px solid var(--md-teal-clinical)`), esquinas redondeadas (`border-radius: 14px`), inputs fluidos de fecha con selector canónico `.financial-date-range-bar` y botón de acción principal `.btn-filter-gold`.
+   - Las tarjetas KPI adoptan los estilos y clases de la vista inicial (`tab=resumen`): tarjetas blancas con esquinas `.rounded-4`, sombras suaves, tipografía *Plus Jakarta Sans*, borde izquierdo de acento teal y píldora de entrada estilizada para el *Efectivo Físico*.
+   - El contenedor de resultado `#kpi_diferencia_box` reacciona dinámicamente con bordes y fondos contextuales: verde esmeralda para *Sobrante*, rojo carmesí para *Faltante*, y gris pizarra neutro para estado *Cuadrado*.
+
+2. **Filtro Multi-Método de Pago Reactivo**:
+   - Se incluye un selector desplegable multiselección (`#dropdownMetodosPagoWrapper`) que detecta dinámicamente las formas de pago presentes en los ingresos del periodo (Efectivo, Tarjetas, Transferencias).
+   - El operador puede marcar o desmarcar métodos individualmente o mediante los botones de acción rápida *"Todos"* y *"Ninguno"*.
+   - El filtrado recalcula reactivamente en el cliente el KPI de *Ingresos Totales*, el *Saldo Esperado*, el *Faltante / Sobrante*, las filas de DataTables (`#dtCorteIngresos`) y la *Vista Previa de Resumen Ejecutivo* con su impresión física/PDF.
+
+3. **Columna "Médico / Concepto" (Tratamiento de Caja Rápida sin Médico)**:
+   - En las tablas de `tab=ingresos` (`#dtIngresosPrivados`, `#dtIngresosMunicipio`) y `tab=corte_caja` (`#dtCorteIngresos`, `#dtCorteCxC`), la columna cabecera se amplía formalmente a *"Médico / Concepto"*.
+   - En los registros originados por Caja Rápida donde no existe médico asignado (`id_medico` vacío o `'N/D'`), se erradica la etiqueta vacía "N/D" y se muestra prioritariamente el concepto descriptivo del recibo (extraído de `ITEMS_JSON`).
+   - Cuando existe un médico responsable asignado, se muestra el nombre del médico en negrita acompañado sutilmente por el concepto de ingreso en una línea secundaria.

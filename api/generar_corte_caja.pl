@@ -311,6 +311,33 @@ sub resolver_nombre_medico_recibo {
     return $nombre_med;
 }
 
+sub resolver_concepto_recibo {
+    my ($concepto_hdr, $items_raw) = @_;
+    my @conceptos = ();
+    if ($items_raw && $items_raw ne '[]') {
+        eval {
+            my $its = decode_json($items_raw);
+            if (ref($its) eq 'ARRAY') {
+                foreach my $it (@$its) {
+                    my $c = $it->{concepto} || $it->{nombre} || $it->{descripcion} || '';
+                    if ($c) {
+                        $c =~ s/^\s+|\s+$//g;
+                        push @conceptos, $c;
+                    }
+                }
+            }
+        };
+    }
+    my $res = join(" / ", @conceptos);
+    if (!$res || $res =~ /^\s*$/) {
+        $res = $concepto_hdr || '';
+        $res =~ s/Paciente:\s*[^\|]+//i;
+        $res =~ s/^\s*\|+\s*|\s*\|+\s*$//g;
+        $res =~ s/^\s+|\s+$//g;
+    }
+    return $res || 'Servicio General';
+}
+
 # 4. Procesar Ingresos (Recibos Privados)
 my $archivo_ingresos = File::Spec->catfile($dat_dir, 'folios_recibos_privados.dat');
 my @ingresos_filtrados = ();
@@ -381,6 +408,8 @@ if (-e $archivo_ingresos) {
                 $origen = 'Consulta Médica';
             }
 
+            my $concepto_rec = resolver_concepto_recibo($f->[12] || '', $items_raw);
+
             push @ingresos_filtrados, {
                 folio      => $folio_corto || $folio_raw,
                 folio_raw  => $folio_raw,
@@ -388,6 +417,7 @@ if (-e $archivo_ingresos) {
                 origen     => $origen,
                 paciente   => $nombre_pac,
                 medico     => $nombre_med,
+                concepto   => $concepto_rec,
                 forma_pago => $f->[10] || 'Efectivo',
                 monto      => $abono,
                 estatus    => $is_cancelado ? 'Cancelado' : 'Activo',
@@ -549,6 +579,8 @@ if (-e $archivo_publicos) {
                 $origen_pub = 'Consulta Municipio';
             }
 
+            my $concepto_cxc = resolver_concepto_recibo($f->[12] || '', $items_raw);
+
             push @cxc_filtrados, {
                 folio             => $folio_corto || $folio_raw,
                 folio_raw         => $folio_raw,
@@ -559,6 +591,7 @@ if (-e $archivo_publicos) {
                 trabajador_nombre => $trabajador_nom,
                 dependencia       => $dep_nom || 'Municipio',
                 medico            => $nombre_med,
+                concepto          => $concepto_cxc,
                 forma_pago        => $f->[10] || 'Crédito CxC',
                 monto             => $monto_cxc,
                 estatus           => $is_cancelado ? 'Cancelado' : 'Activo',

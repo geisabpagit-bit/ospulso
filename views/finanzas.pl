@@ -152,6 +152,10 @@ print <<'PAGE_HTML';
                 titleEl.innerHTML = '<i class="bi bi-graph-up-arrow me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Historial de Ingresos';
                 subtitleEl.innerText = 'Filtro y registro de ingresos por rango de fecha.';
                 subtitleEl.classList.remove('d-none');
+            } else if (tabId === 'tab_corte_caja') {
+                titleEl.innerHTML = '<i class="bi bi-safe me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Corte de Caja Diario';
+                subtitleEl.innerText = 'Arqueo de caja física, balance de cobros y resumen ejecutivo de turno.';
+                subtitleEl.classList.remove('d-none');
             } else {
                 titleEl.innerText = 'Módulo Financiero';
                 subtitleEl.classList.add('d-none');
@@ -621,8 +625,8 @@ PAGE_HTML
                                             <th style="width: 7%;">Folio</th>
                                             <th style="width: 12%;">Fecha</th>
                                             <th style="width: 12%;">Origen</th>
-                                            <th style="width: 25%;">Paciente</th>
-                                            <th style="width: 18%;">Médico</th>
+                                            <th style="width: 23%;">Paciente</th>
+                                            <th style="width: 20%;">Médico / Concepto</th>
                                             <th style="width: 10%;">Forma Pago</th>
                                             <th style="width: 8%;" class="text-end">Monto</th>
                                             <th style="width: 8%;" class="text-center">Acciones</th>
@@ -668,9 +672,9 @@ PAGE_HTML
                                         <tr>
                                             <th style="width: 8%;">Folio OS</th>
                                             <th style="width: 12%;">Fecha</th>
-                                            <th style="width: 32%;">Paciente / Trabajador</th>
-                                            <th style="width: 18%;">Dependencia</th>
-                                            <th style="width: 15%;">Médico</th>
+                                            <th style="width: 30%;">Paciente / Trabajador</th>
+                                            <th style="width: 16%;">Dependencia</th>
+                                            <th style="width: 19%;">Médico / Concepto</th>
                                             <th style="width: 7%;" class="text-end">Monto</th>
                                             <th style="width: 8%;" class="text-center">Acciones</th>
                                         </tr>
@@ -958,65 +962,163 @@ PAGE_HTML
 
 <!-- TAB: CORTE DE CAJA -->
 <div id="tab_corte_caja" class="sdm-tab-pane d-none">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-        <h5 class="fw-bold mb-2 m-0" style="color: var(--md-blue-medical);"><i class="bi bi-safe me-2"></i>Corte de Caja Diario</h5>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary btn-mobile-standard px-3 fw-bold" onclick="imprimirResumenEjecutivo()"><i class="bi bi-printer me-1"></i>Imprimir Resumen</button>
-            <input type="date" id="cc_fecha_inicio" class="form-control" title="Fecha Inicio">
-            <input type="date" id="cc_fecha_fin" class="form-control" title="Fecha Fin">
-            <button class="btn btn-aura-save btn-mobile-standard px-4" onclick="cargarCorteCaja()"><i class="bi bi-search me-1"></i>Generar</button>
+    
+    <!-- Dock Premium de Filtros de Corte de Caja (Una Sola Fila con Mismo Diseño de tab=ingresos) -->
+    <div class="card card-mobile-flush border-0 shadow-sm mb-3" style="border-radius: 14px; background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
+        <div class="card-body p-2 p-md-2.5">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                
+                <!-- Grupo de Filtros Integrados -->
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    
+                    <!-- Rango de Fechas (Executive Range Bar) -->
+                    <div class="financial-date-range-bar d-flex align-items-center bg-white p-1 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important;">
+                        <div class="d-flex align-items-center min-w-0">
+                            <span class="text-muted small ps-2 pe-1 fw-bold" style="font-size: 0.72rem;">Desde:</span>
+                            <input type="date" id="cc_fecha_inicio" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Desde">
+                            <span class="text-muted small px-1 flex-shrink-0"><i class="bi bi-arrow-right"></i></span>
+                            <span class="text-muted small px-1 fw-bold" style="font-size: 0.72rem;">Hasta:</span>
+                            <input type="date" id="cc_fecha_fin" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Hasta">
+                        </div>
+                    </div>
+
+                    <!-- Selector Multi-select de Método de Pago (Cápsula Ejecutiva) -->
+                    <div class="dropdown" id="dropdownMetodosPagoWrapper">
+                        <button class="btn btn-sm bg-white rounded-pill border shadow-xs d-flex align-items-center gap-2 px-3 dropdown-toggle" type="button" id="btnDropdownMetodosPago" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="border-color: rgba(25, 183, 165, 0.4) !important; min-height: 36px; color: var(--md-blue-deep, #0A2A66); font-size: 0.76rem; font-weight: 600;">
+                            <span class="text-muted fw-bold" style="font-size: 0.72rem;">Método de Pago:</span>
+                            <span id="labelMetodosSeleccionados" class="badge rounded-pill" style="background: rgba(25, 183, 165, 0.15); color: #00796b; font-size: 0.72rem;">Todos</span>
+                        </button>
+                        <div class="dropdown-menu p-2 shadow-lg border-0 rounded-3" aria-labelledby="btnDropdownMetodosPago" style="min-width: 260px; font-size: 0.8rem; z-index: 1050;">
+                            <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom">
+                                <span class="fw-bold small text-muted">Filtrar por Método</span>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.7rem; color: #19B7A5;" onclick="marcarTodosMetodosPago(true)">Todos</button>
+                                    <span class="text-muted small">|</span>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold text-danger" style="font-size: 0.7rem;" onclick="marcarTodosMetodosPago(false)">Ninguno</button>
+                                </div>
+                            </div>
+                            <div id="listaMetodosPagoCheckboxes" style="max-height: 220px; overflow-y: auto;">
+                                <!-- Checkboxes generados dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Botones de Acción (Filtrar + Imprimir Resumen) -->
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm rounded-pill px-3 text-white fw-bold flex-shrink-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="background: var(--md-blue-deep, #0A2A66); min-height: 36px; font-size: 0.78rem;" onclick="cargarCorteCaja()" title="Filtrar">
+                        <i class="bi bi-funnel me-1"></i>Filtrar
+                    </button>
+                    <button class="btn btn-sm rounded-pill px-3 fw-bold flex-shrink-0 d-inline-flex align-items-center justify-content-center shadow-xs btn-outline-secondary" style="min-height: 36px; font-size: 0.78rem; border-color: rgba(10, 42, 102, 0.25);" onclick="imprimirResumenEjecutivo()" title="Imprimir Resumen Ejecutivo">
+                        <i class="bi bi-printer me-1"></i>Imprimir Resumen
+                    </button>
+                </div>
+
+            </div>
         </div>
     </div>
 
 PAGE_HTML
 
-    my $kpi_cc_col = $has_pacientes_estado ? 'col-12 col-sm-6 col-md-3' : 'col-12 col-sm-6 col-md-4';
+    my $grid_kpi_cc = $has_pacientes_estado ? 'row-cols-1 row-cols-sm-2 row-cols-lg-4' : 'row-cols-1 row-cols-sm-2 row-cols-lg-3';
 
     print <<"PAGE_HTML";
-    <!-- KPIs -->
-    <div class="row g-3 mb-4">
-        <div class="$kpi_cc_col">
-            <div class="kpi-acrilico h-100">
-                <div class="kpi-icono text-success"><i class="bi bi-arrow-down-circle"></i></div>
-                <div class="kpi-titulo">Ingresos (Efvo)</div>
-                <div class="kpi-valor" id="cc_ingresos">\$0.00</div>
+    <!-- KPIs Ejecutivos (Mismo diseño y clases de la vista inicial) -->
+    <div class="row $grid_kpi_cc g-2 g-md-3 mb-2 mb-md-3">
+        <!-- 1. Ingresos Cobrados -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Ingresos en Caja</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(16, 185, 129, 0.1);">
+                        <i class="bi bi-arrow-down-circle text-success fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold m-0 text-success plus-jakarta" id="cc_ingresos" style="font-size: 1.5rem;">\$0.00</h2>
+                <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Cobrado en Caja</span>
+                    <span class="small text-muted" style="font-size: 0.72rem;" id="cc_sub_ingresos">Filtrado</span>
+                </div>
             </div>
         </div>
 PAGE_HTML
 
     if ($has_pacientes_estado) {
         print <<'PAGE_HTML';
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="kpi-acrilico h-100">
-                <div class="kpi-icono text-info"><i class="bi bi-building"></i></div>
-                <div class="kpi-titulo">Ingresos Municipio</div>
-                <div class="kpi-valor" id="cc_cxc">$0.00</div>
+        <!-- 2. Ingresos Municipio -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Ingresos Municipio</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(14, 165, 233, 0.1);">
+                        <i class="bi bi-building text-info fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold m-0 text-info plus-jakarta" id="cc_cxc" style="font-size: 1.5rem;">$0.00</h2>
+                <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
+                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Convenio Estatal</span>
+                    <span class="small text-muted" style="font-size: 0.72rem;">Órdenes Públicas</span>
+                </div>
             </div>
         </div>
 PAGE_HTML
     }
 
-    print <<"PAGE_HTML";
-        <div class="$kpi_cc_col">
-            <div class="kpi-acrilico h-100">
-                <div class="kpi-icono text-danger"><i class="bi bi-arrow-up-circle"></i></div>
-                <div class="kpi-titulo">Egresos</div>
-                <div class="kpi-valor" id="cc_egresos">\$0.00</div>
+    print <<'PAGE_HTML';
+        <!-- 3. Egresos Operativos -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Egresos Operativos</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(239, 68, 68, 0.1);">
+                        <i class="bi bi-graph-down-arrow text-danger fs-5"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold m-0 text-danger plus-jakarta" id="cc_egresos" style="font-size: 1.5rem;">$0.00</h2>
+                <div class="d-flex justify-content-between align-items-center mt-2 mt-md-3 pt-2 border-top border-light">
+                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Pagado / Salidas</span>
+                    <span class="small text-muted" style="font-size: 0.72rem;">Periodo actual</span>
+                </div>
             </div>
         </div>
-        <div class="$kpi_cc_col">
-            <div class="kpi-acrilico bg-white bg-opacity-75 h-100">
-                <div class="kpi-icono text-warning"><i class="bi bi-cash"></i></div>
-                <div class="kpi-titulo">Efectivo Físico</div>
-                <input type="number" id="cc_fisico" class="form-control mt-2 text-center fw-bold fs-5 shadow-sm border-2 rounded-3 text-primary" value="0" oninput="calcularFaltante()" placeholder="0.00">
+
+        <!-- 4. Efectivo Físico -->
+        <div class="col">
+            <div class="card card-mobile-flush h-100 p-2.5 p-md-3 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1 mb-md-2">
+                    <span class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Efectivo Físico</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(245, 158, 11, 0.1);">
+                        <i class="bi bi-cash-stack text-warning fs-5"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center my-1">
+                    <input type="number" id="cc_fisico" class="form-control form-control-sm text-center fw-bold fs-5 shadow-xs border rounded-pill" style="border-color: rgba(25, 183, 165, 0.5); color: var(--md-blue-deep, #0A2A66);" value="0" oninput="calcularFaltante()" placeholder="0.00" title="Ingresa el conteo físico en caja">
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-light">
+                    <span class="badge bg-warning bg-opacity-10 text-dark rounded-pill px-2 py-1 small fw-semibold" style="font-size: 0.65rem;">Arqueo en Mano</span>
+                    <span class="small text-muted" style="font-size: 0.72rem;">Conteo Físico</span>
+                </div>
             </div>
         </div>
-        <div class="col-12">
-            <div class="kpi-acrilico h-100" id="kpi_diferencia_box">
-                <div class="kpi-icono text-secondary" id="cc_dif_icon"><i class="bi bi-calculator"></i></div>
-                <div class="kpi-titulo">Faltante / Sobrante</div>
-                <div class="kpi-valor" id="cc_diferencia">\$0.00</div>
-                <div class="kpi-subtexto" id="cc_dif_label">Efectivo Físico - (Ingresos - Egresos)</div>
+
+        <!-- 5. Diferencia de Arqueo -->
+        <div class="col-12 mt-2">
+            <div class="card card-mobile-flush p-2.5 p-md-3 border-0 shadow-sm rounded-4" id="kpi_diferencia_box" style="background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.35) !important; transition: all 0.25s ease;">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" id="cc_dif_icon_wrapper" style="width: 40px; height: 40px; background: rgba(100, 116, 139, 0.1);">
+                            <div class="fs-4 text-secondary" id="cc_dif_icon"><i class="bi bi-calculator"></i></div>
+                        </div>
+                        <div>
+                            <div class="small fw-bold text-muted text-uppercase tracking-wider" style="font-size: 0.72rem;">Balance de Arqueo (Efectivo Físico vs Saldo Esperado)</div>
+                            <div class="small text-muted" id="cc_dif_label" style="font-size: 0.75rem;">Efectivo Físico - (Ingresos Efectivo - Egresos Físicos)</div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <h3 class="fw-bold m-0 plus-jakarta" id="cc_diferencia" style="font-size: 1.55rem;">$0.00</h3>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1052,8 +1154,8 @@ PAGE_HTML
                                     <tr>
                                         <th style="width: 8%;">Folio</th>
                                         <th style="width: 12%;">Fecha</th>
-                                        <th style="width: 25%;">Paciente</th>
-                                        <th style="width: 18%;">Médico</th>
+                                        <th style="width: 23%;">Paciente</th>
+                                        <th style="width: 20%;">Médico / Concepto</th>
                                         <th style="width: 14%;">Forma Pago</th>
                                         <th style="width: 13%;" class="text-end">Monto</th>
                                         <th style="width: 10%;" class="text-center">Acciones</th>
@@ -1075,7 +1177,7 @@ PAGE_HTML
                                         <th style="width: 8%;">Folio OS</th>
                                         <th style="width: 12%;">Fecha</th>
                                         <th style="width: 27%;">Paciente</th>
-                                        <th style="width: 20%;">Médico</th>
+                                        <th style="width: 20%;">Médico / Concepto</th>
                                         <th style="width: 15%;">Dependencia</th>
                                         <th style="width: 18%;" class="text-end">Monto</th>
                                     </tr>
@@ -1245,8 +1347,17 @@ PAGE_HTML
         },
         { 
             data: 'medico',
-            render: function(d) {
-                return `<span class="text-muted fw-semibold d-block text-truncate" style="max-width: 140px; font-size: 10px;" title="${d || 'N/D'}">${d || 'N/D'}</span>`;
+            render: function(d, type, row) {
+                let med = (d || '').trim();
+                let conc = (row.concepto || '').trim();
+                let hasMed = (med && med !== 'N/D' && med !== 'NO ESPECIFICADO');
+                if (hasMed) {
+                    return `<div class="fw-semibold text-dark text-truncate" style="max-width: 150px; font-size: 10px;" title="${escapeHtml(med)}">${escapeHtml(med)}</div>` + 
+                           (conc ? `<div class="text-muted text-truncate" style="max-width: 150px; font-size: 8.5px;" title="${escapeHtml(conc)}">${escapeHtml(conc)}</div>` : '');
+                } else {
+                    let displayConc = conc || 'Ingreso General';
+                    return `<span class="badge bg-light text-dark border px-2 py-1 text-wrap text-start text-truncate d-block" style="max-width: 150px; font-size: 9.5px;" title="${escapeHtml(displayConc)}"><i class="bi bi-tag me-1 text-secondary"></i>${escapeHtml(displayConc)}</span>`;
+                }
             }
         },
         { 
@@ -1345,8 +1456,17 @@ PAGE_HTML
         },
         { 
             data: 'medico',
-            render: function(d) {
-                return `<span class="text-muted fw-semibold d-block text-truncate" style="max-width: 130px; font-size: 10px;" title="${d || 'N/D'}">${d || 'N/D'}</span>`;
+            render: function(d, type, row) {
+                let med = (d || '').trim();
+                let conc = (row.concepto || '').trim();
+                let hasMed = (med && med !== 'N/D' && med !== 'NO ESPECIFICADO');
+                if (hasMed) {
+                    return `<div class="fw-semibold text-dark text-truncate" style="max-width: 140px; font-size: 10px;" title="${escapeHtml(med)}">${escapeHtml(med)}</div>` + 
+                           (conc ? `<div class="text-muted text-truncate" style="max-width: 140px; font-size: 8.5px;" title="${escapeHtml(conc)}">${escapeHtml(conc)}</div>` : '');
+                } else {
+                    let displayConc = conc || 'Servicio Convenio';
+                    return `<span class="badge bg-light text-dark border px-2 py-1 text-wrap text-start text-truncate d-block" style="max-width: 140px; font-size: 9.5px;" title="${escapeHtml(displayConc)}"><i class="bi bi-tag me-1 text-secondary"></i>${escapeHtml(displayConc)}</span>`;
+                }
             }
         },
         { 
@@ -1487,12 +1607,274 @@ PAGE_HTML
         cargarCorteCaja();
     };
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>"']/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+        });
+    }
+
     let ccTotalIngresos = 0;
     let ccTotalCxC = 0;
     let ccTotalEgresos = 0;
     let ccTotalEgresosFisicos = 0;
     let chartCorte = null;
     let ultimoResCorte = null;
+
+    const colsCorteIngresos = [
+        { 
+            data: 'folio',
+            render: function(d) {
+                return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
+            }
+        },
+        { 
+            data: 'fecha',
+            render: function(d) {
+                if (!d) return '';
+                let parts = d.split(' ');
+                let f = parts[0] || '';
+                let h = parts[1] || '';
+                return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
+            }
+        },
+        { 
+            data: 'paciente',
+            render: function(data, type, row) {
+                let isCancel = (row.estatus === 'Cancelado');
+                let pacHtml = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;">${data || ''}</div>`;
+                if (isCancel) {
+                    pacHtml += `<div class="d-flex align-items-center gap-1 mt-1"><span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span></div>`;
+                }
+                return pacHtml;
+            }
+        },
+        { 
+            data: 'medico',
+            render: function(data, type, row) {
+                let med = (data || '').trim();
+                let con = (row.concepto || '').trim();
+                let isNd = (!med || med === 'N/D' || med === 'Sin Asignar');
+                
+                if (isNd) {
+                    if (con) {
+                        return `<div class="d-flex align-items-center gap-1" title="${escapeHtml(con)}">
+                            <span class="badge bg-light text-primary border px-2 py-1 text-truncate" style="max-width: 170px; font-size: 10px; font-weight: 600;">
+                                <i class="bi bi-tag-fill me-1 text-secondary"></i>${escapeHtml(con)}
+                            </span>
+                        </div>`;
+                    } else {
+                        return `<span class="badge bg-light text-muted border px-2 py-0" style="font-size: 9.5px;">Concepto General</span>`;
+                    }
+                } else {
+                    let html = `<div class="fw-bold text-dark text-truncate" style="max-width: 170px; font-size: 10.5px;" title="${escapeHtml(med)}">
+                        <i class="bi bi-person-badge text-teal-clinical me-1"></i>${escapeHtml(med)}
+                    </div>`;
+                    if (con) {
+                        html += `<div class="text-muted text-truncate" style="max-width: 170px; font-size: 9.5px;" title="${escapeHtml(con)}">${escapeHtml(con)}</div>`;
+                    }
+                    return html;
+                }
+            }
+        },
+        { 
+            data: 'forma_pago',
+            render: function(data, type, row) {
+                if (row.estatus === 'Cancelado') {
+                    return `<span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>`;
+                }
+                return `<span class="badge bg-light text-dark border px-2 py-1" style="font-size: 9.5px;">${data || 'Efectivo'}</span>`;
+            }
+        },
+        { 
+            data: 'monto', 
+            className: 'text-end',
+            render: function(data, type, row) {
+                let val = parseFloat(data) || 0;
+                let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                if (row.estatus === 'Cancelado') {
+                    return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+                }
+                return `<span class="text-success fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+            }
+        },
+        {
+            data: null,
+            className: 'text-center',
+            orderable: false,
+            render: function(data, type, row) {
+                let f = row.folio_raw || row.folio || '';
+                let isCancel = (row.estatus === 'Cancelado');
+                let btnDelete = isCancel ?
+                    `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
+                    `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
+                return `<div class="d-flex justify-content-center align-items-center gap-2">
+                    <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
+                    ${btnDelete}
+                </div>`;
+            }
+        }
+    ];
+
+    const colsCorteCxC = [
+        { 
+            data: 'folio',
+            render: function(d) {
+                return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
+            }
+        },
+        { 
+            data: 'fecha',
+            render: function(d) {
+                if (!d) return '';
+                let parts = d.split(' ');
+                let f = parts[0] || '';
+                let h = parts[1] || '';
+                return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
+            }
+        },
+        { 
+            data: 'paciente',
+            render: function(data, type, row) {
+                let isCancel = (row.estatus === 'Cancelado');
+                let rawPac = (data || '').replace(/^Paciente:\s*/i, '').trim();
+                if (!rawPac || /^Metodo:/i.test(rawPac)) {
+                    rawPac = row.trabajador_nombre || 'Empleado Estatal';
+                }
+                return `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
+            }
+        },
+        { 
+            data: 'medico',
+            render: function(data, type, row) {
+                let med = (data || '').trim();
+                let con = (row.concepto || '').trim();
+                let isNd = (!med || med === 'N/D' || med === 'Sin Asignar');
+                
+                if (isNd) {
+                    if (con) {
+                        return `<div class="d-flex align-items-center gap-1" title="${escapeHtml(con)}">
+                            <span class="badge bg-light text-info border px-2 py-1 text-truncate" style="max-width: 160px; font-size: 10px; font-weight: 600;">
+                                <i class="bi bi-tag-fill me-1 text-info"></i>${escapeHtml(con)}
+                            </span>
+                        </div>`;
+                    } else {
+                        return `<span class="badge bg-light text-muted border px-2 py-0" style="font-size: 9.5px;">Atención Municipio</span>`;
+                    }
+                } else {
+                    let html = `<div class="fw-bold text-dark text-truncate" style="max-width: 160px; font-size: 10.5px;" title="${escapeHtml(med)}">
+                        <i class="bi bi-person-badge text-teal-clinical me-1"></i>${escapeHtml(med)}
+                    </div>`;
+                    if (con) {
+                        html += `<div class="text-muted text-truncate" style="max-width: 160px; font-size: 9.5px;" title="${escapeHtml(con)}">${escapeHtml(con)}</div>`;
+                    }
+                    return html;
+                }
+            }
+        },
+        { 
+            data: 'dependencia',
+            render: function(data, type, row) {
+                let dep = data || 'Municipio';
+                return `<div class="d-inline-block text-truncate border rounded px-2 py-0 bg-light text-dark" style="max-width: 150px; font-size: 9.5px;" title="${dep}"><i class="bi bi-building me-1 text-info"></i>${dep}</div>`;
+            }
+        },
+        { 
+            data: 'monto', 
+            className: 'text-end',
+            render: function(data, type, row) {
+                let val = parseFloat(data) || 0;
+                let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                if (row.estatus === 'Cancelado') {
+                    return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+                }
+                return `<span class="text-info fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+            }
+        }
+    ];
+
+    window.poblarSelectorMetodosPago = function(ingresos) {
+        let container = document.getElementById('dropdownMetodosPagoList');
+        if (!container) return;
+
+        let metodosUnicos = new Set();
+        (ingresos || []).forEach(i => {
+            let mp = (i.forma_pago || 'Efectivo').trim();
+            if (mp) metodosUnicos.add(mp);
+        });
+
+        // Asegurar métodos estándar si no hay datos
+        if (metodosUnicos.size === 0) {
+            metodosUnicos.add('Efectivo');
+            metodosUnicos.add('Tarjeta de Crédito');
+            metodosUnicos.add('Tarjeta de Débito');
+            metodosUnicos.add('Transferencia');
+        }
+
+        let arrMetodos = Array.from(metodosUnicos).sort();
+        let html = '';
+        arrMetodos.forEach((m, idx) => {
+            html += `
+            <li class="px-2 py-1">
+                <div class="form-check">
+                    <input class="form-check-input chk-metodo-pago" type="checkbox" value="${escapeHtml(m)}" id="chk_mp_${idx}" checked onchange="aplicarFiltroMetodosPago()">
+                    <label class="form-check-label user-select-none text-dark" for="chk_mp_${idx}" style="cursor: pointer; font-size: 12px;">
+                        ${escapeHtml(m)}
+                    </label>
+                </div>
+            </li>`;
+        });
+
+        container.innerHTML = html;
+        let lbl = document.getElementById('lblMetodosSeleccionados');
+        if (lbl) lbl.textContent = 'Todos (' + arrMetodos.length + ')';
+    };
+
+    window.marcarTodosMetodosPago = function(marcar) {
+        $('.chk-metodo-pago').prop('checked', !!marcar);
+        aplicarFiltroMetodosPago();
+    };
+
+    window.aplicarFiltroMetodosPago = function() {
+        if (!ultimoResCorte) return;
+
+        let checks = $('.chk-metodo-pago:checked');
+        let totalChecks = $('.chk-metodo-pago').length;
+        let seleccionados = [];
+        checks.each(function() { seleccionados.push($(this).val()); });
+
+        let lbl = document.getElementById('lblMetodosSeleccionados');
+        if (lbl) {
+            if (seleccionados.length === 0) {
+                lbl.textContent = 'Ninguno seleccionado';
+            } else if (seleccionados.length === totalChecks) {
+                lbl.textContent = 'Todos (' + totalChecks + ')';
+            } else if (seleccionados.length === 1) {
+                lbl.textContent = seleccionados[0];
+            } else {
+                lbl.textContent = seleccionados.length + ' de ' + totalChecks + ' seleccionados';
+            }
+        }
+
+        let ingresosFiltrados = (ultimoResCorte.ingresos || []).filter(i => {
+            let mp = (i.forma_pago || 'Efectivo').trim();
+            return seleccionados.includes(mp);
+        });
+
+        let totalIngresosFiltrados = 0;
+        ingresosFiltrados.forEach(i => {
+            if (i.estatus !== 'Cancelado') {
+                totalIngresosFiltrados += parseFloat(i.monto) || 0;
+            }
+        });
+
+        ccTotalIngresos = totalIngresosFiltrados;
+        let elCcIng = document.getElementById('cc_ingresos');
+        if (elCcIng) elCcIng.textContent = '$' + ccTotalIngresos.toFixed(2);
+
+        renderTablaCorte('#dtCorteIngresos', ingresosFiltrados, colsCorteIngresos);
+        calcularFaltante();
+    };
 
     window.cargarCorteCaja = function() {
         const elCcInicio = document.getElementById('cc_fecha_inicio');
@@ -1533,87 +1915,22 @@ PAGE_HTML
                     });
                 }
                 
-                let elCcIng = document.getElementById('cc_ingresos');
-                if (elCcIng) elCcIng.textContent = '\$' + ccTotalIngresos.toFixed(2);
                 let elCcCxc = document.getElementById('cc_cxc');
-                if (elCcCxc) elCcCxc.textContent = '\$' + ccTotalCxC.toFixed(2);
+                if (elCcCxc) elCcCxc.textContent = '$' + ccTotalCxC.toFixed(2);
                 let elCcEgr = document.getElementById('cc_egresos');
-                if (elCcEgr) elCcEgr.textContent = '\$' + ccTotalEgresos.toFixed(2);
+                if (elCcEgr) elCcEgr.textContent = '$' + ccTotalEgresos.toFixed(2);
                 
-                // Actualizar tablas
-                renderTablaCorte('#dtCorteIngresos', res.ingresos, [
-                    { 
-                        data: 'folio',
-                        render: function(d) {
-                            return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
-                        }
-                    },
-                    { 
-                        data: 'fecha',
-                        render: function(d) {
-                            if (!d) return '';
-                            let parts = d.split(' ');
-                            let f = parts[0] || '';
-                            let h = parts[1] || '';
-                            return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
-                        }
-                    },
-                    { 
-                        data: 'paciente',
-                        render: function(data, type, row) {
-                            let isCancel = (row.estatus === 'Cancelado');
-                            let pacHtml = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;">${data || ''}</div>`;
-                            if (isCancel) {
-                                pacHtml += `<div class="d-flex align-items-center gap-1 mt-1"><span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span></div>`;
-                            }
-                            return pacHtml;
-                        }
-                    },
-                    { 
-                        data: 'medico',
-                        render: function(d) {
-                            return `<span class="text-muted fw-semibold d-block text-truncate" style="max-width: 140px; font-size: 10px;" title="${d || 'N/D'}">${d || 'N/D'}</span>`;
-                        }
-                    },
-                    { 
-                        data: 'forma_pago',
-                        render: function(data, type, row) {
-                            if (row.estatus === 'Cancelado') {
-                                return `<span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>`;
-                            }
-                            return `<span class="badge bg-light text-dark border px-2 py-1" style="font-size: 9.5px;">${data || 'Efectivo'}</span>`;
-                        }
-                    },
-                    { 
-                        data: 'monto', 
-                        className: 'text-end',
-                        render: function(data, type, row) {
-                            let val = parseFloat(data) || 0;
-                            let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                            if (row.estatus === 'Cancelado') {
-                                return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
-                            }
-                            return `<span class="text-success fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
-                        }
-                    },
-                    {
-                        data: null,
-                        className: 'text-center',
-                        orderable: false,
-                        render: function(data, type, row) {
-                            let f = row.folio_raw || row.folio || '';
-                            let isCancel = (row.estatus === 'Cancelado');
-                            let btnDelete = isCancel ?
-                                `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
-                                `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
-                            return `<div class="d-flex justify-content-center align-items-center gap-2">
-                                <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
-                                ${btnDelete}
-                            </div>`;
-                        }
-                    }
-                ]);
+                // Poblar filtro interactivo de Métodos de Pago
+                poblarSelectorMetodosPago(res.ingresos);
                 
+                // Renderizar tabla de Ingresos Privados con los datos iniciales
+                renderTablaCorte('#dtCorteIngresos', res.ingresos, colsCorteIngresos);
+                
+                // Actualizar KPI de Ingresos
+                let elCcIng = document.getElementById('cc_ingresos');
+                if (elCcIng) elCcIng.textContent = '$' + ccTotalIngresos.toFixed(2);
+                
+                // Renderizar tabla de Egresos
                 renderTablaCorte('#dtCorteEgresos', res.egresos, [
                     { 
                         data: 'folio',
@@ -1646,7 +1963,7 @@ PAGE_HTML
                     { 
                         data: 'concepto',
                         render: function(d) {
-                            return `<span class="text-muted text-truncate d-block" style="max-width: 200px; font-size: 10px;" title="${d || ''}">${d || ''}</span>`;
+                            return `<span class="text-muted text-truncate d-block" style="max-width: 200px; font-size: 10px;" title="${escapeHtml(d || '')}">${escapeHtml(d || '')}</span>`;
                         }
                     },
                     { 
@@ -1661,60 +1978,7 @@ PAGE_HTML
                 ]);
 
                 if(res.cxc) {
-                    renderTablaCorte('#dtCorteCxC', res.cxc, [
-                        { 
-                            data: 'folio',
-                            render: function(d) {
-                                return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
-                            }
-                        },
-                        { 
-                            data: 'fecha',
-                            render: function(d) {
-                                if (!d) return '';
-                                let parts = d.split(' ');
-                                let f = parts[0] || '';
-                                let h = parts[1] || '';
-                                return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
-                            }
-                        },
-                        { 
-                            data: 'paciente',
-                            render: function(data, type, row) {
-                                let isCancel = (row.estatus === 'Cancelado');
-                                let rawPac = (data || '').replace(/^Paciente:\s*/i, '').trim();
-                                if (!rawPac || /^Metodo:/i.test(rawPac)) {
-                                    rawPac = row.trabajador_nombre || 'Empleado Estatal';
-                                }
-                                return `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
-                            }
-                        },
-                        { 
-                            data: 'medico',
-                            render: function(d) {
-                                return `<span class="text-muted fw-semibold d-block text-truncate" style="max-width: 130px; font-size: 10px;" title="${d || 'N/D'}">${d || 'N/D'}</span>`;
-                            }
-                        },
-                        { 
-                            data: 'dependencia',
-                            render: function(data, type, row) {
-                                let dep = data || 'Municipio';
-                                return `<div class="d-inline-block text-truncate border rounded px-2 py-0 bg-light text-dark" style="max-width: 150px; font-size: 9.5px;" title="${dep}"><i class="bi bi-building me-1 text-info"></i>${dep}</div>`;
-                            }
-                        },
-                        { 
-                            data: 'monto', 
-                            className: 'text-end',
-                            render: function(data, type, row) {
-                                let val = parseFloat(data) || 0;
-                                let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                                if (row.estatus === 'Cancelado') {
-                                    return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
-                                }
-                                return `<span class="text-info fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
-                            }
-                        }
-                    ]);
+                    renderTablaCorte('#dtCorteCxC', res.cxc, colsCorteCxC);
                 }
 
                 calcularFaltante();
@@ -1786,7 +2050,7 @@ PAGE_HTML
 
     window.calcularFaltante = function() {
         let fisico = parseFloat(document.getElementById('cc_fisico').value) || 0;
-        // Formula Faltante Físico: Efectivo Físico - (Ingresos Efectivo - Egresos Físicos)
+        // Formula Faltante Físico: Efectivo Físico - (Ingresos Seleccionados - Egresos Físicos)
         let saldoEsperado = ccTotalIngresos - ccTotalEgresosFisicos;
         let diferencia = fisico - saldoEsperado;
 
@@ -1795,8 +2059,9 @@ PAGE_HTML
         let labelDif = document.getElementById('cc_dif_label');
         let boxDif = document.getElementById('kpi_diferencia_box');
 
-        if (elDif) elDif.textContent = '\$' + Math.abs(diferencia).toFixed(2);
-        if(diferencia > 0) {
+        if (elDif) elDif.textContent = '$' + Math.abs(diferencia).toFixed(2);
+        
+        if (diferencia > 0) {
             if (elDif) elDif.className = 'kpi-valor text-success';
             if (iconDif) {
                 iconDif.style.color = '#10b981';
@@ -1807,10 +2072,10 @@ PAGE_HTML
                 labelDif.className = 'kpi-subtexto text-success fw-bold';
             }
             if (boxDif) {
-                boxDif.style.border = '2px solid #10b981';
+                boxDif.style.borderColor = '#10b981';
                 boxDif.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
             }
-        } else if(diferencia < 0) {
+        } else if (diferencia < 0) {
             if (elDif) elDif.className = 'kpi-valor text-danger';
             if (iconDif) {
                 iconDif.style.color = '#ef4444';
@@ -1821,8 +2086,22 @@ PAGE_HTML
                 labelDif.className = 'kpi-subtexto text-danger fw-bold';
             }
             if (boxDif) {
-                boxDif.style.border = '2px solid #ef4444';
+                boxDif.style.borderColor = '#ef4444';
                 boxDif.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+            }
+        } else {
+            if (elDif) elDif.className = 'kpi-valor text-muted';
+            if (iconDif) {
+                iconDif.style.color = 'var(--md-teal-clinical, #00C4C4)';
+                iconDif.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+            }
+            if (labelDif) {
+                labelDif.textContent = 'Cuadrado';
+                labelDif.className = 'kpi-subtexto text-muted fw-bold';
+            }
+            if (boxDif) {
+                boxDif.style.borderColor = '#cbd5e1';
+                boxDif.style.backgroundColor = '#f8fafc';
             }
         }
 
@@ -1839,11 +2118,36 @@ PAGE_HTML
         let fFin = document.getElementById('cc_fecha_fin').value;
         let fechaTexto = fInicio === fFin ? fInicio : (fInicio + " al " + fFin);
 
+        // Obtener métodos seleccionados para filtrar la vista previa e impresión
+        let checks = $('.chk-metodo-pago:checked');
+        let totalChecks = $('.chk-metodo-pago').length;
+        let metodosSeleccionados = [];
+        checks.each(function() { metodosSeleccionados.push($(this).val()); });
+
+        let metodosTexto = 'Todos';
+        if (metodosSeleccionados.length === 0) {
+            metodosTexto = 'Ninguno';
+        } else if (metodosSeleccionados.length < totalChecks) {
+            metodosTexto = metodosSeleccionados.join(', ');
+        }
+
+        let ingresosFiltrados = (ultimoResCorte.ingresos || []).filter(i => {
+            let mp = (i.forma_pago || 'Efectivo').trim();
+            return metodosSeleccionados.includes(mp);
+        });
+
+        let totalIngresosImpresion = 0;
+        ingresosFiltrados.forEach(i => {
+            if (i.estatus !== 'Cancelado') {
+                totalIngresosImpresion += parseFloat(i.monto) || 0;
+            }
+        });
+
         let fisico = parseFloat(document.getElementById('cc_fisico').value) || 0;
-        let saldoEsperado = ccTotalIngresos - ccTotalEgresosFisicos;
+        let saldoEsperado = totalIngresosImpresion - ccTotalEgresosFisicos;
         let dif = fisico - saldoEsperado;
         let difTexto = dif > 0 ? "Sobrante" : (dif < 0 ? "Faltante" : "Cuadrado Perfecto");
-        let difColor = dif > 0 ? "green" : (dif < 0 ? "red" : "gray");
+        let difColor = dif > 0 ? "#10b981" : (dif < 0 ? "#ef4444" : "#64748b");
 
         let logoUrl = (ultimoResCorte && ultimoResCorte.logo_url) ? ultimoResCorte.logo_url : '';
         let negocioNombre = (ultimoResCorte && ultimoResCorte.negocio_nombre) ? ultimoResCorte.negocio_nombre : 'SDM OSPulso';
@@ -1868,9 +2172,22 @@ PAGE_HTML
             return `${dNom} ${dia} de ${mNom} de ${anio}, ${String(h12).padStart(2, '0')}:${mm}:${ss} ${ampm}`;
         })();
 
-        let htmlIngresos = (ultimoResCorte.ingresos && ultimoResCorte.ingresos.length) ? ultimoResCorte.ingresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.paciente + '</td><td>' + i.medico + '</td><td>' + i.forma_pago + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin ingresos en este periodo</td></tr>';
+        let htmlIngresos = (ingresosFiltrados && ingresosFiltrados.length) ? ingresosFiltrados.map(i => {
+            let med = (i.medico || '').trim();
+            let con = (i.concepto || '').trim();
+            let medCon = '';
+            if (!med || med === 'N/D' || med === 'Sin Asignar') {
+                medCon = con || 'Concepto General';
+            } else {
+                medCon = med + (con ? (' - ' + con) : '');
+            }
+            let isCancel = (i.estatus === 'Cancelado');
+            let montoFmt = '$' + parseFloat(i.monto || 0).toFixed(2);
+            let montoHtml = isCancel ? `<span style="text-decoration: line-through; color: #ef4444;">${montoFmt} (Cancelado)</span>` : montoFmt;
+            return `<tr><td>${i.folio || ''}</td><td>${i.fecha || ''}</td><td>${i.paciente || ''}</td><td>${escapeHtml(medCon)}</td><td>${i.forma_pago || 'Efectivo'}</td><td class="text-right">${montoHtml}</td></tr>`;
+        }).join('') : '<tr><td colspan="6" style="text-align:center;">Sin ingresos para los filtros seleccionados</td></tr>';
         
-        let htmlEgresos = (ultimoResCorte.egresos && ultimoResCorte.egresos.length) ? ultimoResCorte.egresos.map(i => '<tr><td>' + i.folio + '</td><td>' + i.fecha + '</td><td>' + i.categoria + '</td><td>' + (i.origen_nombre || 'No Especificado') + '</td><td>' + i.concepto + '</td><td class="text-right">$' + parseFloat(i.monto).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin egresos en este periodo</td></tr>';
+        let htmlEgresos = (ultimoResCorte.egresos && ultimoResCorte.egresos.length) ? ultimoResCorte.egresos.map(i => '<tr><td>' + (i.folio || '') + '</td><td>' + (i.fecha || '') + '</td><td>' + (i.categoria || 'General') + '</td><td>' + (i.origen_nombre || 'No Especificado') + '</td><td>' + escapeHtml(i.concepto || '') + '</td><td class="text-right">$' + parseFloat(i.monto || 0).toFixed(2) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;">Sin egresos en este periodo</td></tr>';
 
         let html = `
         <html>
@@ -1928,18 +2245,18 @@ PAGE_HTML
                 </div>
                 <div style="text-align: right;">
                     <h2>Resumen Ejecutivo de Caja</h2>
-                    <p>Periodo: ${fechaTexto}</p>
+                    <p>Periodo: <strong>${fechaTexto}</strong> | Métodos: <strong>${metodosTexto}</strong></p>
                 </div>
             </div>
 
             <div class="kpi-container">
                 <div class="kpi-box">
-                    <h4>Ingresos Total</h4>
-                    <p class="val" style="color: green;">$${ccTotalIngresos.toFixed(2)}</p>
+                    <h4>Ingresos Total (${metodosTexto})</h4>
+                    <p class="val" style="color: #10b981;">$${totalIngresosImpresion.toFixed(2)}</p>
                 </div>
                 <div class="kpi-box">
-                    <h4>Egresos Total</h4>
-                    <p class="val" style="color: red;">$${ccTotalEgresos.toFixed(2)}</p>
+                    <h4>Egresos Físicos</h4>
+                    <p class="val" style="color: #ef4444;">$${ccTotalEgresosFisicos.toFixed(2)}</p>
                 </div>
                 <div class="kpi-box" style="background: #e0f7fa; border-color: #00C4C4;">
                     <h4>Saldo Esperado</h4>
@@ -1947,10 +2264,10 @@ PAGE_HTML
                 </div>
             </div>
 
-            <div class="section-title">Detalle de Ingresos</div>
+            <div class="section-title">Detalle de Ingresos (${ingresosFiltrados.length} registros)</div>
             <table>
                 <thead>
-                    <tr><th>Folio</th><th>Fecha</th><th>Paciente</th><th>Médico</th><th>Forma Pago</th><th class="text-right">Monto</th></tr>
+                    <tr><th>Folio</th><th>Fecha</th><th>Paciente</th><th>Médico / Concepto</th><th>Forma Pago</th><th class="text-right">Monto</th></tr>
                 </thead>
                 <tbody>
                     ${htmlIngresos}
@@ -1970,7 +2287,7 @@ PAGE_HTML
             <div class="footer-box">
                 <h3>Declaración Física de Caja</h3>
                 <p>Efectivo Físico Reportado: <strong>$${fisico.toFixed(2)}</strong></p>
-                <p>Saldo Esperado (Ingresos Efectivo - Egresos Físicos): <strong>$${saldoEsperado.toFixed(2)}</strong></p>
+                <p>Saldo Esperado (Ingresos Filtrados - Egresos Físicos): <strong>$${saldoEsperado.toFixed(2)}</strong></p>
                 <p>Resultado del Cuadre: <strong style="color: ${difColor};">${difTexto} por $${Math.abs(dif).toFixed(2)}</strong></p>
             </div>
             
