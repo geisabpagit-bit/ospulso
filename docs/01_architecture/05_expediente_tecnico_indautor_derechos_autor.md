@@ -6,8 +6,8 @@
 
 ### PORTADA OFICIAL DE DEPÓSITO DE OBRA
 
-* **Título de la Obra**: OSpulso (Sistema de Información de Registros Electrónicos de Salud - SIRES / MedentOS Platform Core)
-* **Rama y Versión de la Obra**: OsPulso Diamond Edition v4.5.0 / Release v3.4.0 Estable
+* **Título de la Obra**: OSpulso (Sistema de Información de Registros Electrónicos de Salud - SIRES / Ospulso Platform Core v2.0)
+* **Rama y Versión de la Obra**: Ospulso Diamond Edition v4.5.0 / Release v3.4.0 Estable
 * **Naturaleza de la Obra**: Programa de Computación (Software Aplicativo y Base de Datos)
 * **Autor (Persona Física Creadora)**: **Israel Garay de la Cruz**
 * **Titular de los Derechos Patrimoniales**: **Plataformas Digitales de México, S.A. de C.V.**
@@ -75,7 +75,7 @@
 
 ### 1.1 Datos Generales del Software
 * **Nombre Comercial**: OSpulso
-* **Denominación Técnica de la Plataforma**: MedentOS Platform Core / SDM 2.0 (Sistema Digital Médico)
+* **Denominación Técnica de la Plataforma**: Ospulso Platform Core v2.0 / SDM 2.0 (Sistema Digital Médico)
 * **Tipo de Arquitectura**: Software as a Service (SaaS) Multitenant con aislamiento criptográfico y particionamiento por Clave Única de Establecimientos de Salud (CLUES) y Código de Empresa.
 * **Dominio y Entorno de Despliegue**: Hospedaje en nube privada / infraestructura de servidor web Apache HTTP con soporte CGI de alto rendimiento.
 
@@ -113,7 +113,7 @@ Lejos de abstracciones genéricas, OSpulso está construido sobre una arquitectu
 ## 2. ARQUITECTURA TÉCNICA Y BLUEPRINT INFRAESTRUCTURAL
 
 ### 2.1 Arquitectura General del Sistema y Topología Multitenant
-La arquitectura de OSpulso responde al estándar **MedentOS Platform Core v2.0**, cimentado sobre cuatro axiomas infraestructurales invariables:
+La arquitectura de OSpulso responde al estándar **Ospulso Platform Core v2.0**, cimentado sobre cuatro axiomas infraestructurales invariables:
 1. **Const-001 — Aislamiento de Motores**: Los subsistemas centrales (`EN-xxx`) interactúan de forma desacoplada y auditable.
 2. **Const-002 — Fuente de Verdad de Persistencia**: La persistencia transaccional oficial reside de forma estricta e inmutable en el repositorio relacional `.dat`.
 3. **Const-003 — Desacoplamiento de Rutas Frontend**: Las vistas no contienen políticas estáticas codificadas; las autorizaciones se resuelven dinámicamente mediante el motor de gobernanza RBAC.
@@ -253,8 +253,8 @@ El módulo de Caja (`views/generar_recibo.pl`) permite cobros de servicios ambul
 
 ## 5. ESTÁNDARES DE DISEÑO UI/UX, INTERFAZ MÓVIL Y ACCESIBILIDAD
 
-### 5.1 Sistema de Diseño Medentia Aura y Paleta Cromática Institucional
-OSpulso se rige por el sistema de diseño propio **Medentia Aura**:
+### 5.1 Sistema de Diseño Ospulso Aura y Paleta Cromática Institucional
+OSpulso se rige por el sistema de diseño propio **Ospulso Aura**:
 * Azul Clínico Profundo (`--md-blue-deep`: `#0A2A66`): Transmite solidez institucional y confianza.
 * Verde Azulado Sanitario (`--md-teal-clinical`: `#19B7A5`): Enfatiza vitalidad, salud y acción clínica.
 * Fondos Limpios (`--md-bg-light`: `#F8FBFF`): Maximizan el contraste y reducen la fatiga visual del personal de salud en jornadas prolongadas.
