@@ -2,7 +2,7 @@
 ## FOLIO OFICIAL: GEISABPA-001/2026
 ### PLATAFORMAS DIGITALES DE MÉXICO, S.A. DE C.V.
 **Dirección General / Dirección Jurídica y Propiedad Intelectual**  
-*Registro Federal de Contribuyentes: PDM-190408-XXX | Registro Patronal Sanitario*  
+*Registro Federal de Contribuyentes: GPD2405311B8*  
 
 ---
 
