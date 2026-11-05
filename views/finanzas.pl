@@ -572,10 +572,31 @@ PAGE_HTML
                                 <div class="financial-date-range-bar d-flex align-items-center bg-white p-1 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important;">
                                     <div class="d-flex align-items-center min-w-0">
                                         <span class="text-muted small ps-2 pe-1 fw-bold" style="font-size: 0.72rem;">Desde:</span>
-                                        <input type="date" id="ing_fecha_inicio" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Desde">
+                                        <input type="date" id="ing_fecha_inicio" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Desde" onchange="cargarIngresos()">
                                         <span class="text-muted small px-1 flex-shrink-0"><i class="bi bi-arrow-right"></i></span>
                                         <span class="text-muted small px-1 fw-bold" style="font-size: 0.72rem;">Hasta:</span>
-                                        <input type="date" id="ing_fecha_fin" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Hasta">
+                                        <input type="date" id="ing_fecha_fin" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Hasta" onchange="cargarIngresos()">
+                                    </div>
+                                </div>
+
+                                <!-- Selector Multi-select de Método de Pago (Cápsula Ejecutiva) a la izquierda de Médico -->
+                                <div class="dropdown" id="dropdownMetodosPagoIngresosWrapper">
+                                    <button class="btn btn-sm bg-white rounded-pill border shadow-xs d-flex align-items-center gap-2 px-3 dropdown-toggle" type="button" id="btnDropdownMetodosPagoIngresos" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="border-color: rgba(25, 183, 165, 0.4) !important; min-height: 36px; color: var(--md-blue-deep, #0A2A66); font-size: 0.76rem; font-weight: 600;">
+                                        <span class="text-muted fw-bold" style="font-size: 0.72rem;">Método de Pago:</span>
+                                        <span id="labelMetodosSeleccionadosIngresos" class="badge rounded-pill" style="background: rgba(25, 183, 165, 0.15); color: #00796b; font-size: 0.72rem;">Todos</span>
+                                    </button>
+                                    <div class="dropdown-menu p-2 shadow-lg border-0 rounded-3" aria-labelledby="btnDropdownMetodosPagoIngresos" style="min-width: 260px; font-size: 0.8rem; z-index: 1050;">
+                                        <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom">
+                                            <span class="fw-bold small text-muted">Filtrar por Método</span>
+                                            <div class="d-flex gap-1">
+                                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.7rem; color: #19B7A5;" onclick="marcarTodosMetodosPagoIngresos(true)">Todos</button>
+                                                <span class="text-muted small">|</span>
+                                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold text-danger" style="font-size: 0.7rem;" onclick="marcarTodosMetodosPagoIngresos(false)">Ninguno</button>
+                                            </div>
+                                        </div>
+                                        <div id="listaMetodosPagoIngresosCheckboxes" style="max-height: 220px; overflow-y: auto;">
+                                            <!-- Checkboxes generados dinámicamente -->
+                                        </div>
                                     </div>
                                 </div>
 
@@ -972,13 +993,14 @@ PAGE_HTML
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     
                     <!-- Rango de Fechas (Executive Range Bar) -->
+                    <!-- Rango de Fechas (Executive Range Bar) -->
                     <div class="financial-date-range-bar d-flex align-items-center bg-white p-1 rounded-pill border shadow-xs" style="border-color: rgba(25, 183, 165, 0.4) !important;">
                         <div class="d-flex align-items-center min-w-0">
                             <span class="text-muted small ps-2 pe-1 fw-bold" style="font-size: 0.72rem;">Desde:</span>
-                            <input type="date" id="cc_fecha_inicio" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Desde">
+                            <input type="date" id="cc_fecha_inicio" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Desde" onchange="cargarCorteCaja()">
                             <span class="text-muted small px-1 flex-shrink-0"><i class="bi bi-arrow-right"></i></span>
                             <span class="text-muted small px-1 fw-bold" style="font-size: 0.72rem;">Hasta:</span>
-                            <input type="date" id="cc_fecha_fin" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Hasta">
+                            <input type="date" id="cc_fecha_fin" class="form-control form-control-sm border-0 bg-transparent px-1 px-sm-2 text-center financial-date-input" style="font-size:0.75rem; min-width:0; width:115px;" title="Fecha Hasta" onchange="cargarCorteCaja()">
                         </div>
                     </div>
 
@@ -1005,13 +1027,13 @@ PAGE_HTML
 
                 </div>
 
-                <!-- Botones de Acción (Filtrar + Imprimir Resumen) -->
+                <!-- Botones de Acción (Filtrar + Imprimir Resumen con Jerarquía Clara) -->
                 <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-sm rounded-pill px-3 text-white fw-bold flex-shrink-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="background: var(--md-blue-deep, #0A2A66); min-height: 36px; font-size: 0.78rem;" onclick="cargarCorteCaja()" title="Filtrar">
+                    <button class="btn btn-sm rounded-pill px-3 text-white fw-bold flex-shrink-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="background: var(--md-blue-deep, #0A2A66); min-height: 36px; font-size: 0.78rem;" onclick="cargarCorteCaja()" title="Actualizar / Filtrar">
                         <i class="bi bi-funnel me-1"></i>Filtrar
                     </button>
-                    <button class="btn btn-sm rounded-pill px-3 fw-bold flex-shrink-0 d-inline-flex align-items-center justify-content-center shadow-xs btn-outline-secondary" style="min-height: 36px; font-size: 0.78rem; border-color: rgba(10, 42, 102, 0.25);" onclick="imprimirResumenEjecutivo()" title="Imprimir Resumen Ejecutivo">
-                        <i class="bi bi-printer me-1"></i>Imprimir Resumen
+                    <button class="btn btn-sm rounded-pill px-3.5 text-white fw-bold flex-shrink-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="background: var(--md-teal-clinical, #19B7A5); min-height: 36px; font-size: 0.78rem; border: none;" onclick="imprimirResumenEjecutivo()" title="Generar e Imprimir Resumen Ejecutivo">
+                        <i class="bi bi-printer-fill me-1.5"></i>Imprimir Resumen
                     </button>
                 </div>
 
@@ -1492,16 +1514,108 @@ PAGE_HTML
         }
     };
 
+    window.poblarSelectorMetodosPagoIngresos = function(ingresos) {
+        let container = document.getElementById('listaMetodosPagoIngresosCheckboxes');
+        if (!container) return;
+
+        let metodosUnicos = new Set([
+            'Efectivo',
+            'Tarjeta',
+            'Transferencia',
+            'Convenio / Aseguradora',
+            'Cortesía'
+        ]);
+
+        (ingresos || []).forEach(i => {
+            let mp = (i.forma_pago || '').trim();
+            if (mp) metodosUnicos.add(mp);
+        });
+
+        let checksPrevios = $('.chk-metodo-pago-ing:checked');
+        let seleccionadosPrevios = null;
+        if (checksPrevios.length > 0) {
+            seleccionadosPrevios = new Set();
+            checksPrevios.each(function() { seleccionadosPrevios.add($(this).val()); });
+        }
+
+        let arrMetodos = Array.from(metodosUnicos).filter(m => m !== '').sort();
+        let html = '';
+        arrMetodos.forEach((m, idx) => {
+            let isChecked = seleccionadosPrevios ? seleccionadosPrevios.has(m) : true;
+            html += `
+            <div class="form-check px-1 py-1 mb-1 rounded d-flex align-items-center" style="cursor: pointer;">
+                <input class="form-check-input ms-1 me-2 chk-metodo-pago-ing" type="checkbox" value="${escapeHtml(m)}" id="chk_mp_ing_${idx}" ${isChecked ? 'checked' : ''} onchange="aplicarFiltroMedicoIngresos()" style="cursor: pointer;">
+                <label class="form-check-label user-select-none text-dark fw-semibold mb-0" for="chk_mp_ing_${idx}" style="cursor: pointer; font-size: 11.5px;">
+                    ${escapeHtml(m)}
+                </label>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+    };
+
+    window.marcarTodosMetodosPagoIngresos = function(marcar) {
+        $('.chk-metodo-pago-ing').prop('checked', !!marcar);
+        aplicarFiltroMedicoIngresos();
+    };
+
     window.aplicarFiltroMedicoIngresos = function() {
         const sel = document.getElementById('filtro_medico_ingresos');
         const medFiltro = sel ? sel.value.trim().toUpperCase() : '';
 
+        let checks = $('.chk-metodo-pago-ing:checked');
+        let totalChecks = $('.chk-metodo-pago-ing').length;
+        let metodosSeleccionados = [];
+        checks.each(function() { metodosSeleccionados.push($(this).val()); });
+
+        let lbl = document.getElementById('labelMetodosSeleccionadosIngresos');
+        if (lbl) {
+            if (metodosSeleccionados.length === 0 && totalChecks > 0) {
+                lbl.textContent = 'Ninguno';
+            } else if (metodosSeleccionados.length === totalChecks || totalChecks === 0) {
+                lbl.textContent = 'Todos';
+            } else if (metodosSeleccionados.length === 1) {
+                lbl.textContent = metodosSeleccionados[0];
+            } else {
+                lbl.textContent = metodosSeleccionados.length + ' de ' + totalChecks;
+            }
+        }
+
         let priv = window.cacheIngresosPrivados || [];
         let muni = window.cacheIngresosMunicipio || [];
 
+        // 1. Filtrar por Médico si aplica
         if (medFiltro && medFiltro !== '' && medFiltro !== 'TODOS') {
             priv = priv.filter(r => (r.medico || '').trim().toUpperCase() === medFiltro);
             muni = muni.filter(r => (r.medico || '').trim().toUpperCase() === medFiltro);
+        }
+
+        // 2. Filtrar por Métodos de Pago seleccionados
+        if (totalChecks > 0) {
+            if (metodosSeleccionados.length === 0) {
+                priv = [];
+                muni = [];
+            } else if (metodosSeleccionados.length < totalChecks) {
+                priv = priv.filter(i => {
+                    let mp = (i.forma_pago || 'Efectivo').trim();
+                    let mpLower = mp.toLowerCase();
+                    return metodosSeleccionados.some(sel => {
+                        let sLower = sel.toLowerCase();
+                        if (mpLower === sLower) return true;
+                        if (sLower === 'tarjeta' && mpLower.includes('tarjeta')) return true;
+                        if (sLower === 'transferencia' && (mpLower.includes('transferencia') || mpLower.includes('spei'))) return true;
+                        if (sLower === 'efectivo' && mpLower.includes('efectivo')) return true;
+                        if (sLower.includes('convenio') && (mpLower.includes('convenio') || mpLower.includes('aseguradora'))) return true;
+                        return false;
+                    });
+                });
+                muni = muni.filter(i => {
+                    return metodosSeleccionados.some(sel => {
+                        let sLower = sel.toLowerCase();
+                        return sLower.includes('convenio') || sLower.includes('aseguradora');
+                    });
+                });
+            }
         }
 
         renderTablaCorte('#dtIngresosPrivados', priv, colsIngresosPrivados);
@@ -1551,12 +1665,26 @@ PAGE_HTML
                 window.cacheIngresosMunicipio = (res && Array.isArray(res.cxc)) ? res.cxc : [];
 
                 window.poblarSelectorMedicosIngresos();
+                window.poblarSelectorMetodosPagoIngresos(res.ingresos);
                 window.aplicarFiltroMedicoIngresos();
             },
             error: function() {
                 if (typeof Swal !== 'undefined') Swal.fire('Error', 'Fallo al comunicarse con la API de Corte de Caja', 'error');
             }
         });
+    };
+
+    window.renderIngresos = function() {
+        console.log("[Ingresos] Inicializando vista");
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        let hoy = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+        if (document.getElementById('ing_fecha_inicio') && !document.getElementById('ing_fecha_inicio').value) {
+            document.getElementById('ing_fecha_inicio').value = hoy;
+        }
+        if (document.getElementById('ing_fecha_fin') && !document.getElementById('ing_fecha_fin').value) {
+            document.getElementById('ing_fecha_fin').value = hoy;
+        }
+        cargarIngresos();
     };
 
     window.renderCorteCaja = function() {
@@ -1778,12 +1906,21 @@ PAGE_HTML
             if (mp) metodosUnicos.add(mp);
         });
 
+        // PRESERVAR selección previa del usuario si ya existía
+        let checksPrevios = $('.chk-metodo-pago:checked');
+        let seleccionadosPrevios = null;
+        if (checksPrevios.length > 0) {
+            seleccionadosPrevios = new Set();
+            checksPrevios.each(function() { seleccionadosPrevios.add($(this).val()); });
+        }
+
         let arrMetodos = Array.from(metodosUnicos).filter(m => m !== '').sort();
         let html = '';
         arrMetodos.forEach((m, idx) => {
+            let isChecked = seleccionadosPrevios ? seleccionadosPrevios.has(m) : true;
             html += `
             <div class="form-check px-1 py-1 mb-1 rounded d-flex align-items-center" style="cursor: pointer;">
-                <input class="form-check-input ms-1 me-2 chk-metodo-pago" type="checkbox" value="${escapeHtml(m)}" id="chk_mp_${idx}" checked onchange="aplicarFiltroMetodosPago()" style="cursor: pointer;">
+                <input class="form-check-input ms-1 me-2 chk-metodo-pago" type="checkbox" value="${escapeHtml(m)}" id="chk_mp_${idx}" ${isChecked ? 'checked' : ''} onchange="aplicarFiltroMetodosPago()" style="cursor: pointer;">
                 <label class="form-check-label user-select-none text-dark fw-semibold mb-0" for="chk_mp_${idx}" style="cursor: pointer; font-size: 11.5px;">
                     ${escapeHtml(m)}
                 </label>
@@ -1791,8 +1928,7 @@ PAGE_HTML
         });
 
         container.innerHTML = html;
-        let lbl = document.getElementById('labelMetodosSeleccionados') || document.getElementById('lblMetodosSeleccionados');
-        if (lbl) lbl.textContent = 'Todos';
+        aplicarFiltroMetodosPago();
     };
 
     window.marcarTodosMetodosPago = function(marcar) {
@@ -2102,7 +2238,7 @@ PAGE_HTML
 
         let fInicio = document.getElementById('cc_fecha_inicio').value;
         let fFin = document.getElementById('cc_fecha_fin').value;
-        let fechaTexto = fInicio === fFin ? fInicio : (fInicio + " al " + fFin);
+        let periodoTexto = "Periodo: " + fInicio + " al Periodo: " + fFin;
 
         let checks = $('.chk-metodo-pago:checked');
         let totalChecks = $('.chk-metodo-pago').length;
@@ -2260,7 +2396,7 @@ PAGE_HTML
                 </div>
                 <div style="text-align: right;">
                     <h2>Resumen Ejecutivo de Caja</h2>
-                    <p>Periodo: <strong>${fechaTexto}</strong></p>
+                    <p style="margin: 4px 0 0; color: #475569; font-size: 13px;"><strong>${periodoTexto}</strong></p>
                 </div>
             </div>
 

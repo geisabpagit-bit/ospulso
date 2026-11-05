@@ -387,7 +387,9 @@ if ($num_empleado && $negocio->{clues}) {
             if ($e[0] eq $num_empleado) {
                 if ($e[2] eq 'Empleado') {
                     $empleado_nombre = $e[1] // '';
-                    $id_dep = $e[4] // '';
+                    $id_dep = $e[4] // '' if ($e[4] // '') ne '';
+                } elsif (!$id_dep && ($e[4] // '') ne '') {
+                    $id_dep = $e[4];
                 }
             }
         }
@@ -410,6 +412,8 @@ if ($num_empleado && $negocio->{clues}) {
         }
     }
 }
+
+my $es_dif = ($dependencia_nombre =~ /\bDIF\b/i || ($recibo->{dependencia} && $recibo->{dependencia} =~ /\bDIF\b/i)) ? 1 : 0;
 
 my $medico_nombre = "NO ESPECIFICADO";
 my $especialidad_nombre = '';
@@ -573,8 +577,7 @@ if (!$especialidad_nombre || $especialidad_nombre eq '') {
 
 sub formato_moneda {
     my ($monto) = @_;
-    $monto ||= 0;
-    return '' if $monto == 0;
+    return '$0.00' if !defined $monto || $monto eq '' || $monto == 0;
     my $fmt = sprintf("%.2f", $monto);
     while ($fmt =~ s/^(-?\d+)(\d{3})/$1,$2/) {}
     return '$' . $fmt;
@@ -858,8 +861,13 @@ foreach my $c (@cargos) {
     }
 
     my $precio_col_html = '';
-    # En recibos públicos los conceptos cubiertos por convenio no imprimen precio ni etiquetas
-    if (!$c->{cubierto_convenio} && defined $c->{precio_paciente} && $c->{precio_paciente} > 0 && $recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
+    # En recibos públicos normales no se muestran cantidades.
+    # Excepción cliente: Sólo si la dependencia es "DIF", sí se muestran monto por concepto y total.
+    if ($es_dif) {
+        my $monto_num = $c->{subtotal} || $c->{precio} || 0;
+        my $subtotal_fmt = formato_moneda($monto_num);
+        $precio_col_html = qq{<span style="font-size: 10px; font-weight: bold; color: #1e293b;">$subtotal_fmt</span>};
+    } elsif (!$c->{cubierto_convenio} && defined $c->{precio_paciente} && $c->{precio_paciente} > 0 && $recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
         my $subtotal_fmt = formato_moneda($c->{subtotal});
         $precio_col_html = qq{<span style="font-size: 10px; font-weight: bold; color: #1e293b;">$subtotal_fmt</span>};
     }
@@ -949,9 +957,26 @@ if (@indicaciones_lista) {
     };
 }
 
-my $pago_ventanilla_html = '';
-if ($recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
-    $pago_ventanilla_html = qq{
+my $bloque_totales_html = '';
+if ($es_dif) {
+    my $total_dif = $recibo->{total_cargos} || 0;
+    if (!$total_dif) {
+        foreach my $c (@cargos) { $total_dif += ($c->{subtotal} || $c->{precio} || 0); }
+    }
+    $bloque_totales_html .= qq{
+        <div style="margin-bottom: 4px; font-size: 12px; font-weight: bold; color: #0A2A66;">
+            <span>Total : @{[ formato_moneda($total_dif) ]}</span>
+        </div>
+    };
+    if ($recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
+        $bloque_totales_html .= qq{
+            <div style="margin-bottom: 4px; font-size: 11px; font-weight: bold; color: #059669;">
+                <span>Pago en Ventanilla : @{[ formato_moneda($recibo->{total_abonos}) ]}</span>
+            </div>
+        };
+    }
+} elsif ($recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
+    $bloque_totales_html = qq{
         <div style="margin-bottom: 6px; font-size: 12px; font-weight: bold; color: #059669;">
             <span>Pago en Ventanilla : @{[ formato_moneda($recibo->{total_abonos}) ]}</span>
         </div>
@@ -972,7 +997,7 @@ print <<HTML;
                             </div>
                         </div>
                         <div style="flex: 1; text-align: right;">
-                            $pago_ventanilla_html
+                            $bloque_totales_html
                             <div style="font-size: 10px; color: #64748b; margin-top: 8px;">
                                 Elaboró : $elaborado_por
                             </div>

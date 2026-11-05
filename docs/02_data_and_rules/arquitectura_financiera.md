@@ -348,3 +348,21 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
    - **Fila de Totales al Pie (`<tfoot>`)**: Tanto la tabla de *Detalle de Ingresos* como la de *Detalle de Egresos* incorporan al pie un bloque `<tfoot>` destacado que sintetiza el conteo total de registros y la sumatoria monetaria acumulada.
    - **Declaración Física de Caja y Cuadre Simplificado**: La sección final de cuadre presenta la fórmula ejecutiva directa: `Ingresos - Egresos = Ingreso Neto` con importes formateados con separador de miles.
    - **Orden y Limpieza de KPIs en Vista**: En `tab=corte_caja`, se ordenan las tarjetas principales en: 1. `Ingresos en Caja`, 2. `Egresos Operativos` y 3. `Ingresos Municipio`, prescindiendo de las tarjetas de conteo físico individual y arqueo diferencial para máxima sobriedad y legibilidad.
+
+---
+
+## 13. Optimización UX de Eventos de Filtro e Impresión, Filtro en Ingresos y Excepción DIF en Recibos Públicos
+
+1. **Refactorización de Eventos y Experiencia de Usuario (UX) en `tab=corte_caja`**:
+   - **Reactividad Automática en Fechas**: Los inputs `#cc_fecha_inicio` y `#cc_fecha_fin` ejecutan `cargarCorteCaja()` en el evento `onchange`, eliminando la fricción de requerir un clic forzado para actualizar datos y alineándose a la reactividad inmediata del selector de métodos de pago.
+   - **Persistencia de Métodos de Pago Seleccionados**: Al modificar fechas o refrescar datos del servidor, `poblarSelectorMetodosPago()` preserva el estado de los checkboxes previamente elegidos por el usuario, evitando que se reinicien forzosamente a "Todos".
+   - **Jerarquía Visual Clara entre Filtro y Acción de Salida**: El botón *"Filtrar"* mantiene su función como disparador manual explícito (`btn-deep-blue`), mientras que *"Imprimir Resumen"* se destaca visualmente con estilo primario teal (`var(--md-teal-clinical)`) e icono de impresora, marcando claramente que es la acción final de exportación.
+   - **Estándar Explícito de Periodo en Vista Previa Ejecutiva**: En el encabezado del reporte impreso se establece de forma inequívoca el rango con la leyenda `"Periodo: YYYY-MM-DD al Periodo: YYYY-MM-DD"` (ej. `Periodo: 2026-11-04 al Periodo: 2026-11-05`).
+
+2. **Filtro Multi-Método de Pago en `tab=ingresos`**:
+   - Se incorpora a la izquierda del selector de *Médico* el componente multiselección `#dropdownMetodosPagoIngresosWrapper` con checkboxes dinámicos, permitiendo filtrar los ingresos privados y públicos por métodos individuales (Efectivo, Tarjeta, Transferencia, Convenio, etc.) o en lote (*Todos* / *Ninguno*).
+   - El filtrado es reactivo y trabaja de manera combinada con el filtro de médico y las fechas automáticas.
+
+3. **Excepción de Impresión para Dependencia DIF (`api/imprimir_recibo_publico.pl`)**:
+   - Por regla general de convenios públicos y subsidios al 100%, los recibos públicos ocultan los precios por concepto y los totales monetarios para el paciente.
+   - **Regla Especial DIF**: Para aquellos recibos cuya dependencia asociada sea el `"DIF"` (resuelto vía `dependencia_CLUE.dat` o `empleadosmun_CLUE.dat`), el sistema **SÍ** imprime de forma visible el monto por cada concepto médico y el bloque de **Total** acumulado al pie del recibo.
