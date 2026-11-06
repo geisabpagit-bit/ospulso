@@ -76,8 +76,7 @@ else
 fi
 
 # Desactivar temporalmente marcas skip-worktree y assume-unchanged para permitir el reset
-git ls-files dat/ | xargs -r git update-index --no-skip-worktree --no-assume-unchanged 2>/dev/null || true
-git ls-files -v | grep -i '^[sh]' | awk '{print $2}' | xargs -r git update-index --no-skip-worktree --no-assume-unchanged 2>/dev/null || true
+git ls-files -z dat/ | xargs -0 -r git update-index --no-skip-worktree --no-assume-unchanged 2>/dev/null || true
 
 # Limpiar archivos no trackeados fuera de dat/ que pudieran bloquear el checkout/reset
 git clean -fd -e dat -e dat/* >> "$LOG_FILE" 2>&1 || true
@@ -114,7 +113,7 @@ if [ -d "$BACKUP_DIR" ]; then
 fi
 
 # Re-aplicar skip-worktree universal sobre TODOS los archivos de /dat trackeados para que Git nunca vuelva a rastrearlos
-git ls-files dat/ | xargs -r git update-index --skip-worktree 2>/dev/null || true
+git ls-files -z dat/ | xargs -0 -r git update-index --skip-worktree 2>/dev/null || true
 log "✅ Blindaje skip-worktree re-activado sobre todos los archivos de /dat."
 
 log "Paso 4: Ejecutando fix_permissions.sh..."
