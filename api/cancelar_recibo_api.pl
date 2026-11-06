@@ -91,9 +91,9 @@ close($fh);
 if ($found && $id_consulta && $total > 0) {
     # Revertir KPI en estado_cuenta.dat
     # Insertar un cargo negativo para compensar
-    my $fecha_actual = strftime("%d/%m/%Y", localtime);
+    my $fecha_actual = strftime("%Y-%m-%d", localtime);
     my $edo_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'estado_cuenta.dat');
-    my $id_mov = obtener_nuevo_id($edo_path, 'MOV-');
+    my $id_mov = "MOV-" . time() . "-" . int(rand(900) + 100);
     
     my $med_id = $session_data->{id_usuario} || '';
 
