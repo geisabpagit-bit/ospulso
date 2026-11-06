@@ -586,12 +586,19 @@ if (-e $archivo_publicos) {
 
             # 2. Obtener Nombre del PACIENTE REAL que recibió la consulta/servicio
             my $nombre_pac = '';
+            my $id_cons_clean = $id_consulta;
+            $id_cons_clean =~ s/^0+// if $id_cons_clean;
+
             if ($folio_raw && $pacientes_edc{$folio_raw}) {
                 $nombre_pac = $pacientes_edc{$folio_raw};
+            } elsif ($folio_corto && $pacientes_edc{$folio_corto}) {
+                $nombre_pac = $pacientes_edc{$folio_corto};
             } elsif ($id_recibo && $pacientes_edc{$id_recibo}) {
                 $nombre_pac = $pacientes_edc{$id_recibo};
             } elsif ($id_consulta && $pacientes_edc{$id_consulta}) {
                 $nombre_pac = $pacientes_edc{$id_consulta};
+            } elsif ($id_cons_clean && $pacientes_edc{$id_cons_clean}) {
+                $nombre_pac = $pacientes_edc{$id_cons_clean};
             } elsif ($pacientes{$id_pac}) {
                 $nombre_pac = $pacientes{$id_pac};
             }

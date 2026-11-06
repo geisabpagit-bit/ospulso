@@ -1415,10 +1415,10 @@ PAGE_HTML
 
                 let html = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
                 
-                if (txtTrabajador && rawPac.toLowerCase() !== empNom.toLowerCase()) {
-                    html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i><strong>Trabajador:</strong> ${escapeHtml(txtTrabajador)}</div>`;
+                if (txtTrabajador) {
+                    html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i>Trabajador: ${escapeHtml(txtTrabajador)}</div>`;
                 } else if (empNum) {
-                    html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-card-text me-1 text-secondary"></i><strong>Num. Empleado:</strong> ${escapeHtml(empNum)}</div>`;
+                    html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i>Trabajador: ${escapeHtml(empNum)}</div>`;
                 }
 
                 if (isCancel) {

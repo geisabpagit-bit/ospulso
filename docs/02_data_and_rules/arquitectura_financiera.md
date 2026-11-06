@@ -377,5 +377,10 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
    - **Cascada de Fallback Titular / Beneficiario**: Si el paciente atendido no cuenta con un alias explícito en la cuenta corriente, el sistema mapea el número de empleado contra el catálogo municipal; si coincide con un beneficiario de la consulta o cargo se asigna su nombre, y en caso contrario se adopta de forma determinista el nombre del trabajador titular (`Osornio Castillo Maria Cecilia`), erradicando cualquier salida como *"Paciente Desconocido"*.
 
 2. **Consistencia Bidireccional entre Datatables e Impresión de Recibos**:
-   - En la tabla de **Ingresos Municipio** (`tab=ingresos` y `tab=corte_caja`), se muestra prominentemente el nombre del paciente real (sea beneficiario o titular) con su desglose subordinado de trabajador y número de nómina.
-   - En el formato de impresión pública (`api/imprimir_recibo_publico.pl`), el renglón *Paciente* refleja exactamente el mismo nombre resuelto en la tabla contable, manteniendo en el renglón superior los datos del trabajador y su dependencia correspondiente.
+   - **Estructura Visual Íntegra en Columna "Paciente / Trabajador" (`views/finanzas.pl`)**:
+     * **Renglón 1 (Paciente)**: Exhibe íntegramente el nombre del paciente en negrita (`.fw-bold text-dark`, `10.5px`) precedido por el icono de persona (`<i class="bi bi-person-fill text-primary"></i>`).
+     * **Renglón 2 (Trabajador Titular)**: Exhibe de forma obligatoria e incondicional los datos de adscripción institucional: `<i class="bi bi-person-badge text-secondary"></i> Trabajador: [NUM_EMPLEADO] - [NOMBRE_TRABAJADOR]`.
+     * **Regla de No Omisión**: El renglón de *Trabajador* NUNCA se oculta ni se sustituye cuando el paciente atendido es el propio trabajador titular. Ambos renglones coexisten siempre para permitir la verificación documental inmediata contra la nómina municipal y el expediente clínico.
+   - **Segregación de Montos en Interfaz Web vs Recibo Impreso**:
+     * En la interfaz web de Finanzas (`#dtIngresosMunicipio`), **todos los registros muestran sus montos íntegros** en color azul/celeste (`$210.00`, `$35.00`, etc.), garantizando que la administración conozca el valor total del servicio devengado para el Municipio.
+     * La restricción de ocultar montos y totales aplica de forma **exclusiva al recibo físico impreso** (`api/imprimir_recibo_publico.pl`), donde solo los empleados de la dependencia `"DIF"` ven los importes impresos en el voucher de ventanilla.
