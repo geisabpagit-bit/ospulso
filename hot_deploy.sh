@@ -75,9 +75,8 @@ else
     exit 1
 fi
 
-# Desactivar marcas skip-worktree y assume-unchanged que puedan impedir el reset
-git update-index --no-skip-worktree dat/.htaccess dat/catalogo_cards.dat dat/roles_catalogo.dat dat/estado_cuenta.dat dat/folios_recibos_publicos.dat 2>/dev/null || true
-git update-index --no-assume-unchanged dat/.htaccess dat/catalogo_cards.dat dat/roles_catalogo.dat dat/estado_cuenta.dat dat/folios_recibos_publicos.dat 2>/dev/null || true
+# Desactivar temporalmente marcas skip-worktree y assume-unchanged para permitir el reset
+git ls-files dat/ | xargs -r git update-index --no-skip-worktree --no-assume-unchanged 2>/dev/null || true
 git ls-files -v | grep -i '^[sh]' | awk '{print $2}' | xargs -r git update-index --no-skip-worktree --no-assume-unchanged 2>/dev/null || true
 
 # Limpiar archivos no trackeados fuera de dat/ que pudieran bloquear el checkout/reset
@@ -114,8 +113,9 @@ if [ -d "$BACKUP_DIR" ]; then
     log "✅ Datos reales de producción restaurados al 100%."
 fi
 
-# Re-aplicar skip-worktree en producción para que Git nunca vuelva a rastrear cambios en caliente
-git update-index --skip-worktree dat/estado_cuenta.dat dat/folios_recibos_publicos.dat dat/.htaccess dat/catalogo_cards.dat dat/roles_catalogo.dat 2>/dev/null || true
+# Re-aplicar skip-worktree universal sobre TODOS los archivos de /dat trackeados para que Git nunca vuelva a rastrearlos
+git ls-files dat/ | xargs -r git update-index --skip-worktree 2>/dev/null || true
+log "✅ Blindaje skip-worktree re-activado sobre todos los archivos de /dat."
 
 log "Paso 4: Ejecutando fix_permissions.sh..."
 if [ -f "fix_permissions.sh" ]; then
