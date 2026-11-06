@@ -391,3 +391,18 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
    - **Segregación de Montos en Interfaz Web vs Recibo Impreso**:
      * En la interfaz web de Finanzas (`#dtIngresosMunicipio`), **todos los registros muestran sus montos íntegros** en color azul/celeste (`$210.00`, `$35.00`, etc.), garantizando que la administración conozca el valor total del servicio devengado para el Municipio.
      * La restricción de ocultar montos y totales aplica de forma **exclusiva al recibo físico impreso** (`api/imprimir_recibo_publico.pl`), donde solo los empleados de la dependencia `"DIF"` ven los importes impresos en el voucher de ventanilla.
+
+---
+
+## 15. Blindaje de Integridad de `estado_cuenta.dat` y Despliegues en Caliente (Hot Deploy)
+
+1. **Prohibición Estricta de `obtener_nuevo_id` sobre Tablas de Datos**:
+   - La función `obtener_nuevo_id($archivo)` en `utils/db_manager.pm` opera rebobinando y truncando (`truncate($fh, 0)`) el archivo para escribir un valor numérico incremental. Está diseñada **exclusivamente para archivos de contador unitario** (ej. `dat/*.counter`, `contador_pacientes.dat`).
+   - Está **estrictamente prohibido** invocar `obtener_nuevo_id` sobre `dat/estado_cuenta.dat` o cualquier tabla de registros.
+   - En cancelaciones de recibos (`api/cancelar_recibo_api.pl`), la asignación del ID de movimiento se realiza de forma atómica y no destructiva mediante `"MOV-" . time() . "-" . int(rand(900) + 100)`, preservando al 100% el histórico contable previo.
+
+2. **Gobernanza de Despliegue Atómico en Producción (`hot_deploy.sh`)**:
+   - **Ciclo de Protección de Datos**: Ante cada actualización, el script respalda íntegramente la carpeta `/dat` antes de sincronizar el código fuente con `origin/main` y restaura los datos vivos de producción inmediatamente después del reset.
+   - **Gestión Universal de `skip-worktree` con Delimitadores Nulos**:
+     * Para evitar conflictos de merge por modificaciones en caliente en archivos de datos, `hot_deploy.sh` desactiva temporalmente las marcas de índice antes del reset y las re-aplica universalmente sobre todos los archivos rastreados en `dat/` tras la restauración.
+     * El procesamiento utiliza `git ls-files -z dat/ | xargs -0 -r git update-index --skip-worktree` para garantizar compatibilidad con nombres de archivos que contengan espacios en blanco o caracteres especiales sin interrupciones fatales.
