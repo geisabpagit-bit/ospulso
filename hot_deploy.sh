@@ -19,19 +19,20 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
 }
 
-# 2. Control estricto de concurrencia
+# 2. Control estricto de concurrencia con detección de PID activo
 if [ -f "$LOCK_FILE" ]; then
-    # Verificar si el lock está huérfano (más de 10 minutos de antigüedad)
-    if test "$(find "$LOCK_FILE" -mmin +10 2>/dev/null)"; then
-        log "Aviso: Se detectó un lock huérfano de más de 10 minutos. Limpiando..."
-        rm -f "$LOCK_FILE"
-    else
-        log "ERROR: Ya existe una actualización en ejecución. Abortando."
+    PREV_PID=$(cat "$LOCK_FILE" 2>/dev/null)
+    if [ -n "$PREV_PID" ] && kill -0 "$PREV_PID" 2>/dev/null; then
+        log "ERROR: Ya existe una actualización en ejecución (PID: $PREV_PID). Abortando."
         exit 1
+    else
+        log "Aviso: Se detectó un bloqueo inactivo o huérfano (PID no activo: $PREV_PID). Liberando..."
+        rm -f "$LOCK_FILE"
     fi
 fi
 
-touch "$LOCK_FILE"
+echo "$$" > "$LOCK_FILE"
+trap 'rm -f "$LOCK_FILE"' EXIT INT TERM
 log "========================================================================"
 log ">>> INICIANDO ACTUALIZACIÓN EN CALIENTE DE OSPULSO (Git Hot-Deploy)"
 log "Directorio de trabajo: $DIR_RAIZ"
