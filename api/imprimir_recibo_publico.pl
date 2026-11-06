@@ -154,10 +154,20 @@ if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
             $express_fecha = $e[8] if !$express_fecha;
             $express_folio = $e[0] if !$express_folio;
             
-            # Rescatar nombre de empleado/paciente si se pasó por ALIAS (columna 11)
-            if (defined $e[11] && $e[11] ne '') {
-                $paciente_nombre = $e[11];
-                $paciente_nombre =~ s/.*Paciente:\s*//i;
+            # Rescatar nombre de empleado/paciente si se pasó por ALIAS o NOTAS
+            if ($le =~ /Paciente:\s*([^\|]+)/i) {
+                my $nom = $1;
+                $nom =~ s/^\s+|\s+$//g;
+                $paciente_nombre = $nom if $nom && $nom !~ /^Metodo:/i;
+            } elsif (defined $e[-1] && $e[-1] ne '' && $e[-1] !~ /^(?:Cargo|Abono|Metodo:|Cobrado)/i) {
+                my $alias = $e[-1];
+                $alias =~ s/^\s+|\s+$//g;
+                $paciente_nombre = $alias if $alias;
+            } elsif (defined $e[11] && $e[11] ne '') {
+                my $nom = $e[11];
+                $nom =~ s/.*Paciente:\s*//i;
+                $nom =~ s/^\s+|\s+$//g;
+                $paciente_nombre = $nom if $nom && $nom !~ /^Metodo:/i;
             }
         }
     }
@@ -230,21 +240,37 @@ my $negocio = {
     clues => ''
 };
 my $neg_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
+my %neg_map = ();
 if (-e $neg_file && open(my $fn, '<:encoding(UTF-8)', $neg_file)) {
     my $hn = <$fn>;
     while (my $ln = <$fn>) {
         chomp $ln;
         my @n = split /\|/, $ln, -1;
-        if ($n[0] eq ($recibo->{id_negocio} // '')) {
-            $negocio->{nombre} = $n[1] // '';
-            $negocio->{direccion} = ($n[3] // '') . ', ' . ($n[4] // '') . ', ' . ($n[7] // '') . ', ' . ($n[8] // '');
-            $negocio->{telefono} = $n[12] // '';
-            $negocio->{clues} = $n[18] // $n[1] // '';
-            $negocio->{logo_url} = $n[9] // '';
-            last;
-        }
+        $neg_map{$n[0]} = \@n;
     }
     close $fn;
+}
+
+my $id_neg_target = $recibo->{id_negocio} || $session_data->{id_empresa} || '';
+my $n_info = $neg_map{$id_neg_target};
+if ($n_info) {
+    $negocio->{nombre}    = $n_info->[1] // '';
+    $negocio->{direccion} = ($n_info->[3] // '') . ', ' . ($n_info->[4] // '') . ', ' . ($n_info->[7] // '') . ', ' . ($n_info->[8] // '');
+    $negocio->{telefono}  = $n_info->[12] // '';
+    $negocio->{logo_url}  = $n_info->[9] // '';
+    
+    my $clue_val = $n_info->[18] // '';
+    $clue_val =~ s/^\s+|\s+$//g;
+    # Si la sucursal no tiene CLUE propia, heredar de la matriz (id_padre = n[2])
+    if (!$clue_val && $n_info->[2] && $neg_map{$n_info->[2]}) {
+        $clue_val = $neg_map{$n_info->[2]}->[18] // '';
+        $clue_val =~ s/^\s+|\s+$//g;
+    }
+    $negocio->{clues} = $clue_val;
+}
+if (!$negocio->{clues} || $negocio->{clues} eq '') {
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+    $negocio->{clues} = catalogo_org_utils::resolver_clue_empresa($id_neg_target) || 'QTSMP000116';
 }
 # 3.1 Obtener datos estructurados para el pie del recibo (CLUE o Sucursal)
 my $clue_encontrada = 0;
@@ -374,6 +400,7 @@ if ($recibo->{id_paciente} =~ /^EMP-(\w+)/) {
     $num_empleado = $1;
 }
 
+my %beneficiarios_map = ();
 if ($num_empleado && $negocio->{clues}) {
     require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
     my $emp_file = catalogo_org_utils::obtener_rutas_por_clue($negocio->{clues})->{empleadosmun};
@@ -390,6 +417,10 @@ if ($num_empleado && $negocio->{clues}) {
                     $id_dep = $e[4] // '' if ($e[4] // '') ne '';
                 } elsif (!$id_dep && ($e[4] // '') ne '') {
                     $id_dep = $e[4];
+                }
+                # Indexar beneficiarios por si se necesita resolución
+                if ($e[1]) {
+                    $beneficiarios_map{uc($e[1])} = $e[1];
                 }
             }
         }
@@ -410,6 +441,30 @@ if ($num_empleado && $negocio->{clues}) {
             }
             close $fd;
         }
+    }
+}
+
+# Regla de Oro: Si paciente_nombre sigue siendo "Paciente Desconocido" o el ID crudo (ej. EMP-6883):
+if ($paciente_nombre eq 'Paciente Desconocido' || $paciente_nombre eq ($recibo->{id_paciente} // '') || $paciente_nombre eq '') {
+    my $ben_encontrado = '';
+    # 1. Buscar si algún beneficiario coincide con lo mencionado en conceptos o cargos
+    foreach my $c (@cargos) {
+        my $txt = ($c->{concepto} // '') . ' ' . ($c->{nombre} // '');
+        foreach my $b_nom (keys %beneficiarios_map) {
+            if (index(uc($txt), $b_nom) != -1) {
+                $ben_encontrado = $beneficiarios_map{$b_nom};
+                last;
+            }
+        }
+        last if $ben_encontrado;
+    }
+    if ($ben_encontrado) {
+        $paciente_nombre = $ben_encontrado;
+    } elsif ($empleado_nombre) {
+        # Si no hay beneficiario específico, el paciente es el trabajador titular
+        $paciente_nombre = $empleado_nombre;
+    } elsif ($num_empleado) {
+        $paciente_nombre = "EMPLEADO $num_empleado";
     }
 }
 

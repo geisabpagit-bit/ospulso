@@ -39,21 +39,36 @@ my $negocio_domicilio = '';
 my $negocio_logo_url = '';
 my $org_clues = '';
 
+my %neg_map = ();
 my $negocios_file = File::Spec->catfile($dat_dir, 'negocios.dat');
 if (-e $negocios_file && open(my $fhn, '<:encoding(UTF-8)', $negocios_file)) {
     my $hn = <$fhn>;
     while (my $ln = <$fhn>) {
         chomp $ln;
         my @n = split /\|/, $ln, -1;
-        if ($n[0] eq $id_empresa) {
-            $negocio_nombre    = $n[1] // '';
-            $negocio_domicilio = ($n[3] // '') . ', ' . ($n[4] // '') . ', ' . ($n[7] // '') . ', ' . ($n[8] // '');
-            $negocio_logo_url  = $n[9] // '';
-            $org_clues         = $n[18] // $n[1] // '';
-            last;
-        }
+        $neg_map{$n[0]} = \@n;
     }
     close $fhn;
+}
+
+if ($id_empresa && $neg_map{$id_empresa}) {
+    my $n = $neg_map{$id_empresa};
+    $negocio_nombre    = $n->[1] // '';
+    $negocio_domicilio = ($n->[3] // '') . ', ' . ($n->[4] // '') . ', ' . ($n->[7] // '') . ', ' . ($n->[8] // '');
+    $negocio_logo_url  = $n->[9] // '';
+    my $clue_val = $n->[18] // '';
+    $clue_val =~ s/^\s+|\s+$//g;
+    # Si la sucursal no tiene CLUE propia, heredar de la matriz (id_padre = n[2])
+    if (!$clue_val && $n->[2] && $neg_map{$n->[2]}) {
+        $clue_val = $neg_map{$n->[2]}->[18] // '';
+        $clue_val =~ s/^\s+|\s+$//g;
+    }
+    $org_clues = $clue_val;
+}
+
+if (!$org_clues) {
+    require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+    $org_clues = catalogo_org_utils::resolver_clue_empresa($id_empresa) || 'QTSMP000116';
 }
 
 # Resolver logo_url
@@ -441,14 +456,25 @@ if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
         chomp $le;
         my @e = split /\|/, $le, -1;
         next if ($e[3] && $e[3] =~ /Cancelac/i) || ($e[4] && $e[4] =~ /Cancelac/i);
-        if (defined $e[11] && $e[11] ne '') {
-            my $alias = $e[11];
-            next if $alias =~ /Metodo:/i || $alias =~ /^Cargo/i || $alias =~ /^Abono/i;
-            $alias =~ s/.*Paciente:\s*//i;
-            $alias =~ s/^\s+|\s+$//g;
-            if ($alias && $alias !~ /^Metodo:/i) {
-                $pacientes_edc{$e[0]} = $alias if $e[0];
-            }
+        my $id_os = $e[0] // '';
+        my $id_mov = $e[1] // '';
+        
+        my $nom_edc = '';
+        if ($le =~ /Paciente:\s*([^\|]+)/i) {
+            $nom_edc = $1;
+            $nom_edc =~ s/^\s+|\s+$//g;
+        } elsif (defined $e[-1] && $e[-1] ne '' && $e[-1] !~ /^(?:Cargo|Abono|Metodo:|Cobrado)/i) {
+            $nom_edc = $e[-1];
+            $nom_edc =~ s/^\s+|\s+$//g;
+        } elsif (defined $e[11] && $e[11] ne '') {
+            $nom_edc = $e[11];
+            $nom_edc =~ s/.*Paciente:\s*//i;
+            $nom_edc =~ s/^\s+|\s+$//g;
+        }
+        
+        if ($nom_edc && $nom_edc !~ /^Metodo:/i) {
+            $pacientes_edc{$id_os} = $nom_edc if $id_os;
+            $pacientes_edc{$id_mov} = $nom_edc if $id_mov;
         }
     }
     close($fhe);
@@ -570,8 +596,8 @@ if (-e $archivo_publicos) {
                 $nombre_pac = $pacientes{$id_pac};
             }
 
-            if (!$nombre_pac || $nombre_pac eq $id_pac || $nombre_pac =~ /^Metodo:/i) {
-                $nombre_pac = $trabajador_nom || $id_pac || 'Empleado Estatal';
+            if (!$nombre_pac || $nombre_pac eq $id_pac || $nombre_pac =~ /^Metodo:/i || $nombre_pac =~ /Desconocido/i) {
+                $nombre_pac = $trabajador_nom || ($num_emp ? ("Empleado " . $num_emp) : 'Empleado Estatal');
             }
 
             my $origen_pub = 'Convenio Municipio';

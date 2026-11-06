@@ -1405,8 +1405,8 @@ PAGE_HTML
             render: function(data, type, row) {
                 let isCancel = (row.estatus === 'Cancelado');
                 let rawPac = (data || '').replace(/^Paciente:\s*/i, '').trim();
-                if (!rawPac || /^Metodo:/i.test(rawPac)) {
-                    rawPac = row.trabajador_nombre || 'Empleado Estatal';
+                if (!rawPac || /^Metodo:/i.test(rawPac) || /^Paciente Desconocido$/i.test(rawPac)) {
+                    rawPac = row.trabajador_nombre || (row.num_empleado ? ('Empleado ' + row.num_empleado) : 'Empleado Estatal');
                 }
                 let empNum = row.num_empleado || '';
                 let empNom = row.trabajador_nombre || '';
@@ -1822,8 +1822,8 @@ PAGE_HTML
             render: function(data, type, row) {
                 let isCancel = (row.estatus === 'Cancelado');
                 let rawPac = (data || '').replace(/^Paciente:\s*/i, '').trim();
-                if (!rawPac || /^Metodo:/i.test(rawPac)) {
-                    rawPac = row.trabajador_nombre || 'Empleado Estatal';
+                if (!rawPac || /^Metodo:/i.test(rawPac) || /^Paciente Desconocido$/i.test(rawPac)) {
+                    rawPac = row.trabajador_nombre || (row.num_empleado ? ('Empleado ' + row.num_empleado) : 'Empleado Estatal');
                 }
                 return `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
             }

@@ -366,3 +366,16 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
 3. **Excepción de Impresión para Dependencia DIF (`api/imprimir_recibo_publico.pl`)**:
    - Por regla general de convenios públicos y subsidios al 100%, los recibos públicos ocultan los precios por concepto y los totales monetarios para el paciente.
    - **Regla Especial DIF**: Para aquellos recibos cuya dependencia asociada sea el `"DIF"` (resuelto vía `dependencia_CLUE.dat` o `empleadosmun_CLUE.dat`), el sistema **SÍ** imprime de forma visible el monto por cada concepto médico y el bloque de **Total** acumulado al pie del recibo.
+
+---
+
+## 14. Resolución Canónica de Pacientes, Trabajadores y Beneficiarios en Ingresos Municipio
+
+1. **Prevención de Degradación a "Paciente Desconocido"**:
+   - **Extracción Resiliente desde `estado_cuenta.dat`**: Tanto `api/imprimir_recibo_publico.pl` como `api/generar_corte_caja.pl` procesan las líneas contables de walk-in mediante expresiones regulares tolerantes a pipes internos (`/Paciente:\s*([^\|]+)/i`), columna de ALIAS (`$e[-1]`) e indexación dual por folio de OS (`$e[0]`) e ID de movimiento (`$e[1]`).
+   - **Herencia Automática de CLUE en Sucursales**: Si una sucursal clínica opera con `clues` vacía en `negocios.dat`, hereda automáticamente el código CLUE de su matriz (`ID_MATRIZ`) o vía `catalogo_org_utils::resolver_clue_empresa()`, permitiendo el acceso ininterrumpido a los catálogos de `empleadosmun` y `dependencias`.
+   - **Cascada de Fallback Titular / Beneficiario**: Si el paciente atendido no cuenta con un alias explícito en la cuenta corriente, el sistema mapea el número de empleado contra el catálogo municipal; si coincide con un beneficiario de la consulta o cargo se asigna su nombre, y en caso contrario se adopta de forma determinista el nombre del trabajador titular (`Osornio Castillo Maria Cecilia`), erradicando cualquier salida como *"Paciente Desconocido"*.
+
+2. **Consistencia Bidireccional entre Datatables e Impresión de Recibos**:
+   - En la tabla de **Ingresos Municipio** (`tab=ingresos` y `tab=corte_caja`), se muestra prominentemente el nombre del paciente real (sea beneficiario o titular) con su desglose subordinado de trabajador y número de nómina.
+   - En el formato de impresión pública (`api/imprimir_recibo_publico.pl`), el renglón *Paciente* refleja exactamente el mismo nombre resuelto en la tabla contable, manteniendo en el renglón superior los datos del trabajador y su dependencia correspondiente.
