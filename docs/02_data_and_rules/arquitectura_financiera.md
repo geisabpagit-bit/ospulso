@@ -376,11 +376,12 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
    - **Persistencia Dual Autofuncional**:
      * `dat/estado_cuenta.dat`: Almacena en la columna 11 (`ALIAS`) y en la columna 10 (`NOTAS`: `Cargo Walk-in | Paciente: [NOMBRE]`) el nombre exacto del paciente atendido (beneficiario o titular).
      * `dat/folios_recibos_publicos.dat`: `api/guardar_recibo_rapido.pl` asienta en la columna 12 (`CONCEPTO`) el prefijo `Paciente: [NOMBRE_BENEFICIARIO] | [CONCEPTO]` para blindar la trazabilidad directamente en el registro del recibo público, garantizando independencia ante cualquier eventualidad con la cuenta contable.
-   - **Resolución Multi-Nivel en `api/generar_corte_caja.pl`**:
-     * *Nivel 1 (Estado de Cuenta)*: Búsqueda indexada en `%pacientes_edc` por `FOLIO_RAW`, `FOLIO_CORTO`, `ID_RECIBO` e `ID_CONSULTA`.
+   - **Resolución Multi-Nivel Blindada en `api/generar_corte_caja.pl`**:
+     * *Nivel 1 (Estado de Cuenta Validado por Empleado)*: Búsqueda indexada en `%pacientes_edc` por `FOLIO_RAW`, `FOLIO_CORTO`, `ID_RECIBO` e `ID_CONSULTA` verificando la coincidencia del número de empleado (`id_os . '_' . num_emp`) para impedir colisiones cruzadas.
      * *Nivel 2 (Cabecera de Recibo Público)*: Extracción directa desde la columna `CONCEPTO` (`/Paciente:\s*([^\|]+)/i`).
-     * *Nivel 3 (Coincidencia de Beneficiarios por Catálogo)*: Mapeo contra los beneficiarios registrados del número de empleado en `empleadosmun_<CLUES>.dat`; si el concepto o items mencionan a un beneficiario o si el empleado cuenta con un único beneficiario, se asocia certeramente.
-     * *Nivel 4 (Catálogo General / Titular)*: Solo en caso de ausencia total de datos de beneficiario, se asume que la consulta fue tomada directamente por el trabajador titular, erradicando cadenas como *"Paciente Desconocido"*.
+     * *Nivel 3 (Coincidencia Textual de Beneficiarios)*: Mapeo contra los beneficiarios registrados del número de empleado en `empleadosmun_<CLUES>.dat`; si el concepto o items mencionan a un beneficiario, se asocia certeramente.
+     * *Nivel 4 (Contexto Clínico Pediátrico)*: Si la consulta es de especialidad pediátrica (ej. `Consulta - PEDIATRIA`, `Consulta - NEUROLOGIA PEDIATRICA`), se asocia determinísticamente al beneficiario menor/hijo (código de parentesco `6` o dependiente registrado en nómina, ej. `Pizano Hernandez Josefina Guadalupe` para el empleado `1615`), ya que el trabajador titular adulto no es sujeto de atención pediátrica.
+     * *Nivel 5 (Catálogo General / Titular)*: Solo en caso de ausencia total de datos de beneficiario y especialidad general/adulta, se asume que la consulta fue tomada directamente por el trabajador titular, erradicando cadenas como *"Paciente Desconocido"*.
 
 2. **Consistencia Bidireccional entre Datatables e Impresión de Recibos**:
    - **Estructura Visual Íntegra en Columna "Paciente / Trabajador" (`views/finanzas.pl`)**:

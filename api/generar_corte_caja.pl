@@ -447,17 +447,22 @@ my $archivo_publicos = File::Spec->catfile($dat_dir, 'folios_recibos_publicos.da
 my @cxc_filtrados = ();
 my $total_cxc = 0;
 
-# Indexar ALIAS de pacientes desde estado_cuenta.dat
+# Indexar ALIAS de pacientes desde estado_cuenta.dat verificando coincidencia por empleado
 my %pacientes_edc = ();
+my %pacientes_edc_folio = ();
 my $edc_file = File::Spec->catfile($dat_dir, 'estado_cuenta.dat');
 if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
     my $he = <$fhe>;
     while (my $le = <$fhe>) {
+        $le =~ s/\r//g;
         chomp $le;
         my @e = split /\|/, $le, -1;
         next if ($e[3] && $e[3] =~ /Cancelac/i) || ($e[4] && $e[4] =~ /Cancelac/i);
         my $id_os = $e[0] // '';
         my $id_mov = $e[1] // '';
+        my $id_pac_edc = $e[2] // '';
+        my $num_emp_edc = '';
+        if ($id_pac_edc =~ /^EMP-(.+)/) { $num_emp_edc = $1; }
         
         my $nom_edc = '';
         if ($le =~ /Paciente:\s*([^\|]+)/i) {
@@ -473,8 +478,22 @@ if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
         }
         
         if ($nom_edc && $nom_edc !~ /^Metodo:/i) {
-            $pacientes_edc{$id_os} = $nom_edc if $id_os;
-            $pacientes_edc{$id_mov} = $nom_edc if $id_mov;
+            if ($id_os) {
+                if ($num_emp_edc) {
+                    $pacientes_edc{$id_os . '_' . $num_emp_edc} = $nom_edc;
+                    $pacientes_edc_folio{$id_os} = { nombre => $nom_edc, num_emp => $num_emp_edc };
+                } else {
+                    $pacientes_edc_folio{$id_os} = { nombre => $nom_edc, num_emp => '' };
+                }
+            }
+            if ($id_mov) {
+                if ($num_emp_edc) {
+                    $pacientes_edc{$id_mov . '_' . $num_emp_edc} = $nom_edc;
+                    $pacientes_edc_folio{$id_mov} = { nombre => $nom_edc, num_emp => $num_emp_edc };
+                } else {
+                    $pacientes_edc_folio{$id_mov} = { nombre => $nom_edc, num_emp => '' };
+                }
+            }
         }
     }
     close($fhe);
@@ -484,6 +503,7 @@ if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
 my %dependencias = ();
 my %empleados = ();
 my %beneficiarios_por_emp = ();
+my %bens_info = ();
 if ($org_clues) {
     require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
     my $dep_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{dependencia};
@@ -517,6 +537,11 @@ if ($org_clues) {
                 }
                 if ($rel_emp eq 'Beneficiario' && $nom_emp) {
                     push @{$beneficiarios_por_emp{$num_emp}}, $nom_emp;
+                    push @{$bens_info{$num_emp}}, {
+                        nombre      => $nom_emp,
+                        parentesco  => $f[9] || '',
+                        parentesco2 => $f[10] || ''
+                    };
                 }
             }
         }
@@ -593,17 +618,21 @@ if (-e $archivo_publicos) {
             my $id_cons_clean = $id_consulta;
             $id_cons_clean =~ s/^0+// if $id_cons_clean;
 
-            # 2.1 Búsqueda prioritaria en estado_cuenta.dat
-            if ($folio_raw && $pacientes_edc{$folio_raw}) {
-                $nombre_pac = $pacientes_edc{$folio_raw};
-            } elsif ($folio_corto && $pacientes_edc{$folio_corto}) {
-                $nombre_pac = $pacientes_edc{$folio_corto};
-            } elsif ($id_recibo && $pacientes_edc{$id_recibo}) {
-                $nombre_pac = $pacientes_edc{$id_recibo};
-            } elsif ($id_consulta && $pacientes_edc{$id_consulta}) {
-                $nombre_pac = $pacientes_edc{$id_consulta};
-            } elsif ($id_cons_clean && $pacientes_edc{$id_cons_clean}) {
-                $nombre_pac = $pacientes_edc{$id_cons_clean};
+            # 2.1 Búsqueda prioritaria y blindada en estado_cuenta.dat verificando coincidencia de empleado
+            if ($num_emp && $folio_raw && $pacientes_edc{$folio_raw . '_' . $num_emp}) {
+                $nombre_pac = $pacientes_edc{$folio_raw . '_' . $num_emp};
+            } elsif ($num_emp && $folio_corto && $pacientes_edc{$folio_corto . '_' . $num_emp}) {
+                $nombre_pac = $pacientes_edc{$folio_corto . '_' . $num_emp};
+            } elsif ($num_emp && $id_recibo && $pacientes_edc{$id_recibo . '_' . $num_emp}) {
+                $nombre_pac = $pacientes_edc{$id_recibo . '_' . $num_emp};
+            } elsif ($num_emp && $id_consulta && $pacientes_edc{$id_consulta . '_' . $num_emp}) {
+                $nombre_pac = $pacientes_edc{$id_consulta . '_' . $num_emp};
+            } elsif ($num_emp && $id_cons_clean && $pacientes_edc{$id_cons_clean . '_' . $num_emp}) {
+                $nombre_pac = $pacientes_edc{$id_cons_clean . '_' . $num_emp};
+            } elsif ($folio_raw && $pacientes_edc_folio{$folio_raw} && (!$pacientes_edc_folio{$folio_raw}->{num_emp} || $pacientes_edc_folio{$folio_raw}->{num_emp} eq $num_emp)) {
+                $nombre_pac = $pacientes_edc_folio{$folio_raw}->{nombre};
+            } elsif ($folio_corto && $pacientes_edc_folio{$folio_corto} && (!$pacientes_edc_folio{$folio_corto}->{num_emp} || $pacientes_edc_folio{$folio_corto}->{num_emp} eq $num_emp)) {
+                $nombre_pac = $pacientes_edc_folio{$folio_corto}->{nombre};
             }
 
             # 2.2 Búsqueda en columna CONCEPTO de folios_recibos_publicos.dat (Paciente: ...)
@@ -613,7 +642,7 @@ if (-e $archivo_publicos) {
                 $nombre_pac = $nom if ($nom && $nom !~ /^Metodo:/i);
             }
 
-            # 2.3 Búsqueda de coincidencia con beneficiarios del empleado
+            # 2.3 Búsqueda de coincidencia textual de beneficiarios del empleado en ítems o concepto
             if (!$nombre_pac && $num_emp && exists $beneficiarios_por_emp{$num_emp}) {
                 my $bens = $beneficiarios_por_emp{$num_emp};
                 my $texto_busqueda = ($f->[12] || '') . ' ' . $items_raw;
@@ -623,18 +652,29 @@ if (-e $archivo_publicos) {
                         last;
                     }
                 }
-                # Si no está en notas pero el empleado tiene exactamente 1 beneficiario registrado
-                if (!$nombre_pac && scalar(@$bens) == 1) {
-                    $nombre_pac = $bens->[0];
+            }
+
+            # 2.4 Contexto clínico de especialidad pediátrica (un empleado adulto no consulta pediatría; consulta el beneficiario menor)
+            if (!$nombre_pac && $num_emp && ($items_raw =~ /PEDIATR/i || ($f->[12] && $f->[12] =~ /PEDIATR/i))) {
+                if ($bens_info{$num_emp}) {
+                    for my $bi (@{$bens_info{$num_emp}}) {
+                        if (($bi->{parentesco} && $bi->{parentesco} eq '6') || ($bi->{parentesco2} && $bi->{parentesco2} eq '6')) {
+                            $nombre_pac = $bi->{nombre};
+                            last;
+                        }
+                    }
+                    if (!$nombre_pac && @{$bens_info{$num_emp}} > 0) {
+                        $nombre_pac = $bens_info{$num_emp}->[-1]->{nombre};
+                    }
                 }
             }
 
-            # 2.4 Búsqueda en catálogo de pacientes si no coincide con el trabajador
+            # 2.5 Búsqueda en catálogo de pacientes si no coincide con el trabajador
             if (!$nombre_pac && $pacientes{$id_pac} && $pacientes{$id_pac} ne $trabajador_nom) {
                 $nombre_pac = $pacientes{$id_pac};
             }
 
-            # 2.5 Fallback final: Si el paciente fue el trabajador titular
+            # 2.6 Fallback final: Si el paciente fue el trabajador titular
             if (!$nombre_pac || $nombre_pac eq $id_pac || $nombre_pac =~ /^Metodo:/i || $nombre_pac =~ /Desconocido/i) {
                 $nombre_pac = $trabajador_nom || ($num_emp ? ("Empleado " . $num_emp) : 'Empleado Estatal');
             }

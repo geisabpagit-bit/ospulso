@@ -1825,7 +1825,17 @@ PAGE_HTML
                 if (!rawPac || /^Metodo:/i.test(rawPac) || /^Paciente Desconocido$/i.test(rawPac)) {
                     rawPac = row.trabajador_nombre || (row.num_empleado ? ('Empleado ' + row.num_empleado) : 'Empleado Estatal');
                 }
-                return `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
+                let empNum = row.num_empleado || '';
+                let empNom = row.trabajador_nombre || '';
+                let txtTrabajador = empNom ? (empNum ? `${empNum} - ${empNom}` : empNom) : (empNum ? empNum : '');
+
+                let html = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
+                if (txtTrabajador) {
+                    html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i>Trabajador: ${escapeHtml(txtTrabajador)}</div>`;
+                } else if (empNum) {
+                    html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i>Trabajador: ${escapeHtml(empNum)}</div>`;
+                }
+                return html;
             }
         },
         { 
