@@ -51,26 +51,47 @@ fi
 
 # 4. Descarga y forzado del código fuente desde Git
 log "Paso 2: Sincronizando con origin/main..."
-if git fetch origin main >> "$LOG_FILE" 2>&1; then
+
+# Limpiar posibles bloqueos huérfanos internos de Git (.git/index.lock, etc.)
+rm -f .git/index.lock .git/refs/heads/main.lock 2>/dev/null || true
+git merge --abort 2>/dev/null || true
+git rebase --abort 2>/dev/null || true
+
+FETCH_OUTPUT=$(git fetch origin main 2>&1)
+FETCH_STATUS=$?
+echo "$FETCH_OUTPUT" >> "$LOG_FILE"
+
+if [ $FETCH_STATUS -eq 0 ]; then
     log "✅ git fetch completado."
 else
-    log "❌ Error en git fetch. Restaurando datos y abortando."
+    log "❌ Error en git fetch: $FETCH_OUTPUT"
+    log "Restaurando datos y abortando."
+    if [ -d "$BACKUP_DIR" ]; then
+        \cp -rf "$BACKUP_DIR/"* dat/ 2>/dev/null || true
+        rm -rf "$BACKUP_DIR"
+    fi
     echo "1" > "$STATUS_FILE"
     rm -f "$LOCK_FILE"
     exit 1
 fi
 
-# Desactivar marcas skip-worktree que puedan impedir el reset
+# Desactivar marcas skip-worktree y assume-unchanged que puedan impedir el reset
 git update-index --no-skip-worktree dat/.htaccess dat/catalogo_cards.dat dat/roles_catalogo.dat 2>/dev/null || true
-git ls-files -v | grep '^S' | awk '{print $2}' | xargs -r git update-index --no-skip-worktree 2>/dev/null || true
+git ls-files -v | grep -i '^[sh]' | awk '{print $2}' | xargs -r git update-index --no-skip-worktree --no-assume-unchanged 2>/dev/null || true
 
 # Limpiar archivos no trackeados fuera de dat/ que pudieran bloquear el checkout/reset
 git clean -fd -e dat -e dat/* >> "$LOG_FILE" 2>&1 || true
 
-if git reset --hard origin/main >> "$LOG_FILE" 2>&1; then
+# Ejecutar git reset capturando el mensaje exacto de error en consola
+RESET_OUTPUT=$(git reset --hard origin/main 2>&1)
+RESET_STATUS=$?
+echo "$RESET_OUTPUT" >> "$LOG_FILE"
+
+if [ $RESET_STATUS -eq 0 ]; then
     log "✅ git reset --hard origin/main completado."
 else
-    log "❌ Error en git reset. Restaurando datos y abortando."
+    log "❌ Error en git reset: $RESET_OUTPUT"
+    log "Restaurando datos y abortando."
     if [ -d "$BACKUP_DIR" ]; then
         \cp -rf "$BACKUP_DIR/"* dat/ 2>/dev/null || true
         rm -rf "$BACKUP_DIR"
