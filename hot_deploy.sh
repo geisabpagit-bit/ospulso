@@ -82,6 +82,9 @@ git ls-files -v | grep -i '^[sh]' | awk '{print $2}' | xargs -r git update-index
 # Limpiar archivos no trackeados fuera de dat/ que pudieran bloquear el checkout/reset
 git clean -fd -e dat -e dat/* >> "$LOG_FILE" 2>&1 || true
 
+# Guardar temporalmente cambios sucios en working tree para permitir reset sin conflictos
+git stash 2>/dev/null || true
+
 # Ejecutar git reset capturando el mensaje exacto de error en consola
 RESET_OUTPUT=$(git reset --hard origin/main 2>&1)
 RESET_STATUS=$?
@@ -89,6 +92,7 @@ echo "$RESET_OUTPUT" >> "$LOG_FILE"
 
 if [ $RESET_STATUS -eq 0 ]; then
     log "✅ git reset --hard origin/main completado."
+    git stash drop 2>/dev/null || true
 else
     log "❌ Error en git reset: $RESET_OUTPUT"
     log "Restaurando datos y abortando."
