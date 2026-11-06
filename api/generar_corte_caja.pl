@@ -483,6 +483,7 @@ if (-e $edc_file && open(my $fhe, '<:encoding(UTF-8)', $edc_file)) {
 # Definir variables de contexto para CxC (Trabajadores y Dependencias)
 my %dependencias = ();
 my %empleados = ();
+my %beneficiarios_por_emp = ();
 if ($org_clues) {
     require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
     my $dep_file = catalogo_org_utils::obtener_rutas_por_clue($org_clues)->{dependencia};
@@ -513,6 +514,9 @@ if ($org_clues) {
                         nombre     => $nom_emp,
                         dep_nombre => $dependencias{$id_dep} || ''
                     };
+                }
+                if ($rel_emp eq 'Beneficiario' && $nom_emp) {
+                    push @{$beneficiarios_por_emp{$num_emp}}, $nom_emp;
                 }
             }
         }
@@ -589,6 +593,7 @@ if (-e $archivo_publicos) {
             my $id_cons_clean = $id_consulta;
             $id_cons_clean =~ s/^0+// if $id_cons_clean;
 
+            # 2.1 Búsqueda prioritaria en estado_cuenta.dat
             if ($folio_raw && $pacientes_edc{$folio_raw}) {
                 $nombre_pac = $pacientes_edc{$folio_raw};
             } elsif ($folio_corto && $pacientes_edc{$folio_corto}) {
@@ -599,10 +604,37 @@ if (-e $archivo_publicos) {
                 $nombre_pac = $pacientes_edc{$id_consulta};
             } elsif ($id_cons_clean && $pacientes_edc{$id_cons_clean}) {
                 $nombre_pac = $pacientes_edc{$id_cons_clean};
-            } elsif ($pacientes{$id_pac}) {
+            }
+
+            # 2.2 Búsqueda en columna CONCEPTO de folios_recibos_publicos.dat (Paciente: ...)
+            if (!$nombre_pac && $f->[12] && $f->[12] =~ /Paciente:\s*([^\|]+)/i) {
+                my $nom = $1;
+                $nom =~ s/^\s+|\s+$//g;
+                $nombre_pac = $nom if ($nom && $nom !~ /^Metodo:/i);
+            }
+
+            # 2.3 Búsqueda de coincidencia con beneficiarios del empleado
+            if (!$nombre_pac && $num_emp && exists $beneficiarios_por_emp{$num_emp}) {
+                my $bens = $beneficiarios_por_emp{$num_emp};
+                my $texto_busqueda = ($f->[12] || '') . ' ' . $items_raw;
+                foreach my $b (@$bens) {
+                    if (index(uc($texto_busqueda), uc($b)) != -1) {
+                        $nombre_pac = $b;
+                        last;
+                    }
+                }
+                # Si no está en notas pero el empleado tiene exactamente 1 beneficiario registrado
+                if (!$nombre_pac && scalar(@$bens) == 1) {
+                    $nombre_pac = $bens->[0];
+                }
+            }
+
+            # 2.4 Búsqueda en catálogo de pacientes si no coincide con el trabajador
+            if (!$nombre_pac && $pacientes{$id_pac} && $pacientes{$id_pac} ne $trabajador_nom) {
                 $nombre_pac = $pacientes{$id_pac};
             }
 
+            # 2.5 Fallback final: Si el paciente fue el trabajador titular
             if (!$nombre_pac || $nombre_pac eq $id_pac || $nombre_pac =~ /^Metodo:/i || $nombre_pac =~ /Desconocido/i) {
                 $nombre_pac = $trabajador_nom || ($num_emp ? ("Empleado " . $num_emp) : 'Empleado Estatal');
             }

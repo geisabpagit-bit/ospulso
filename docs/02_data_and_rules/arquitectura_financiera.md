@@ -371,15 +371,21 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
 
 ## 14. Resolución Canónica de Pacientes, Trabajadores y Beneficiarios en Ingresos Municipio
 
-1. **Prevención de Degradación a "Paciente Desconocido"**:
-   - **Extracción Resiliente desde `estado_cuenta.dat`**: Tanto `api/imprimir_recibo_publico.pl` como `api/generar_corte_caja.pl` procesan las líneas contables de walk-in mediante expresiones regulares tolerantes a pipes internos (`/Paciente:\s*([^\|]+)/i`), columna de ALIAS (`$e[-1]`) e indexación dual por folio de OS (`$e[0]`) e ID de movimiento (`$e[1]`).
-   - **Herencia Automática de CLUE en Sucursales**: Si una sucursal clínica opera con `clues` vacía en `negocios.dat`, hereda automáticamente el código CLUE de su matriz (`ID_MATRIZ`) o vía `catalogo_org_utils::resolver_clue_empresa()`, permitiendo el acceso ininterrumpido a los catálogos de `empleadosmun` y `dependencias`.
-   - **Cascada de Fallback Titular / Beneficiario**: Si el paciente atendido no cuenta con un alias explícito en la cuenta corriente, el sistema mapea el número de empleado contra el catálogo municipal; si coincide con un beneficiario de la consulta o cargo se asigna su nombre, y en caso contrario se adopta de forma determinista el nombre del trabajador titular (`Osornio Castillo Maria Cecilia`), erradicando cualquier salida como *"Paciente Desconocido"*.
+1. **Prevención de Confusión entre Trabajador Titular y Beneficiario**:
+   - **Distinción Estricta Paciente vs Trabajador**: En atenciones por convenio institucional municipal, el **Paciente** es la persona física concreta que recibió la atención médica (puede ser el trabajador titular o cualquiera de sus beneficiarios afiliados: cónyuge, hijos, ascendientes). El **Trabajador** es el empleado titular adscrito al Municipio que otorga el derecho de cobertura (`NUM_EMPLEADO` y nombre de nómina).
+   - **Persistencia Dual Autofuncional**:
+     * `dat/estado_cuenta.dat`: Almacena en la columna 11 (`ALIAS`) y en la columna 10 (`NOTAS`: `Cargo Walk-in | Paciente: [NOMBRE]`) el nombre exacto del paciente atendido (beneficiario o titular).
+     * `dat/folios_recibos_publicos.dat`: `api/guardar_recibo_rapido.pl` asienta en la columna 12 (`CONCEPTO`) el prefijo `Paciente: [NOMBRE_BENEFICIARIO] | [CONCEPTO]` para blindar la trazabilidad directamente en el registro del recibo público, garantizando independencia ante cualquier eventualidad con la cuenta contable.
+   - **Resolución Multi-Nivel en `api/generar_corte_caja.pl`**:
+     * *Nivel 1 (Estado de Cuenta)*: Búsqueda indexada en `%pacientes_edc` por `FOLIO_RAW`, `FOLIO_CORTO`, `ID_RECIBO` e `ID_CONSULTA`.
+     * *Nivel 2 (Cabecera de Recibo Público)*: Extracción directa desde la columna `CONCEPTO` (`/Paciente:\s*([^\|]+)/i`).
+     * *Nivel 3 (Coincidencia de Beneficiarios por Catálogo)*: Mapeo contra los beneficiarios registrados del número de empleado en `empleadosmun_<CLUES>.dat`; si el concepto o items mencionan a un beneficiario o si el empleado cuenta con un único beneficiario, se asocia certeramente.
+     * *Nivel 4 (Catálogo General / Titular)*: Solo en caso de ausencia total de datos de beneficiario, se asume que la consulta fue tomada directamente por el trabajador titular, erradicando cadenas como *"Paciente Desconocido"*.
 
 2. **Consistencia Bidireccional entre Datatables e Impresión de Recibos**:
    - **Estructura Visual Íntegra en Columna "Paciente / Trabajador" (`views/finanzas.pl`)**:
-     * **Renglón 1 (Paciente)**: Exhibe íntegramente el nombre del paciente en negrita (`.fw-bold text-dark`, `10.5px`) precedido por el icono de persona (`<i class="bi bi-person-fill text-primary"></i>`).
-     * **Renglón 2 (Trabajador Titular)**: Exhibe de forma obligatoria e incondicional los datos de adscripción institucional: `<i class="bi bi-person-badge text-secondary"></i> Trabajador: [NUM_EMPLEADO] - [NOMBRE_TRABAJADOR]`.
+     * **Renglón 1 (Paciente)**: Exhibe íntegramente el nombre del paciente en negrita (`.fw-bold text-dark`, `10.5px`) precedido por el icono de persona (`<i class="bi bi-person-fill text-primary"></i>`). Si fue un beneficiario, se muestra su nombre completo (ej. `LOPERENA CASTILLO DANA ELIZABETH`, `ESPINO PANTOJA DANIELA`, `CRUZ RUÍZ OMAR`, `AXEL FERNANDEZ AYALA`).
+     * **Renglón 2 (Trabajador Titular)**: Exhibe de forma obligatoria e incondicional los datos de adscripción institucional: `<i class="bi bi-person-badge text-secondary"></i> Trabajador: [NUM_EMPLEADO] - [NOMBRE_TRABAJADOR]` (ej. `Trabajador: 5805 - Loperena Victoria Alejandro`).
      * **Regla de No Omisión**: El renglón de *Trabajador* NUNCA se oculta ni se sustituye cuando el paciente atendido es el propio trabajador titular. Ambos renglones coexisten siempre para permitir la verificación documental inmediata contra la nómina municipal y el expediente clínico.
    - **Segregación de Montos en Interfaz Web vs Recibo Impreso**:
      * En la interfaz web de Finanzas (`#dtIngresosMunicipio`), **todos los registros muestran sus montos íntegros** en color azul/celeste (`$210.00`, `$35.00`, etc.), garantizando que la administración conozca el valor total del servicio devengado para el Municipio.

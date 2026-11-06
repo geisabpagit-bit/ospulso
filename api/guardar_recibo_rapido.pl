@@ -325,7 +325,11 @@ $caja_items_json = encode_json($caja_items);
 my $id_recibo_folio = 'R-' . time() . '-' . int(rand(1000));
 my $hoy_hora = sprintf("%02d:%02d", $hour, $min);
 my $estatus = 'Cobrado';
-my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $folio_impreso, $id_paciente, $hoy_fecha, $hoy_hora, $total_cargos_final, $total_abonos_final, $caja_metodo_pago, $usuario, $concepto_recibo, $caja_items_json, $estatus, $id_medico);
+my $concepto_folio_guardar = $concepto_recibo;
+if ($is_estado && $nombre_empleado && $concepto_folio_guardar !~ /Paciente:/i) {
+    $concepto_folio_guardar = "Paciente: $nombre_empleado | " . ($concepto_folio_guardar || 'CONSULTAS');
+}
+my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $folio_impreso, $id_paciente, $hoy_fecha, $hoy_hora, $total_cargos_final, $total_abonos_final, $caja_metodo_pago, $usuario, $concepto_folio_guardar, $caja_items_json, $estatus, $id_medico);
 utils::db_manager::guardar_registro($folios_file, $linea_folio);
 
 # 2. Guardar Cargos y Abonos en estado_cuenta.dat usando el FOLIO ABSOLUTO como ID_OS
