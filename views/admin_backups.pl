@@ -505,33 +505,54 @@ print <<'JS';
     }
 
     function monitorearHotDeploy() {
+        let failCount = 0;
         const pollInterval = setInterval(() => {
             fetch('../api/hot_deploy_api.pl?action=status')
             .then(r => r.json())
             .then(res => {
+                failCount = 0;
                 const terminal = document.getElementById('deployTerminal');
                 if (terminal && res.log) {
                     terminal.innerText = res.log;
                     terminal.scrollTop = terminal.scrollHeight;
                 }
 
-                if (!res.running) {
+                if (!res.running && !res.is_running) {
                     clearInterval(pollInterval);
                     setTimeout(() => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Actualización Completada!',
-                            text: 'El sistema se ha actualizado con éxito a la última versión.',
-                            confirmButtonColor: '#19B7A5',
-                            confirmButtonText: 'Recargar Sistema'
-                        }).then(() => {
-                            window.location.reload();
-                        });
+                        if (res.exit_code === 0) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Actualización Completada!',
+                                text: 'El sistema se ha actualizado con éxito a la última versión.',
+                                confirmButtonColor: '#19B7A5',
+                                confirmButtonText: 'Recargar Sistema'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error en la actualización',
+                                text: 'El script finalizó con incidencias (código ' + res.exit_code + '). Revisa la terminal o los logs.',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        }
                     }, 1000);
                 }
             })
             .catch(err => {
-                console.warn("Sondeando estado...", err);
+                failCount++;
+                console.warn("Sondeando estado (" + failCount + "/8)...", err);
+                if (failCount >= 8) {
+                    clearInterval(pollInterval);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sondeo interrumpido',
+                        text: 'Se perdió la conexión temporalmente con el endpoint de estado. Por favor verifica en consola o recarga la página.',
+                        confirmButtonColor: '#19B7A5'
+                    });
+                }
             });
         }, 2000);
     }

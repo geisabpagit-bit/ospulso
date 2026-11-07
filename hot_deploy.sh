@@ -81,19 +81,29 @@ git ls-files -z dat/ | xargs -0 -r git update-index --no-skip-worktree --no-assu
 # Limpiar archivos no trackeados fuera de dat/ que pudieran bloquear el checkout/reset
 git clean -fd -e dat -e dat/* >> "$LOG_FILE" 2>&1 || true
 
-# Guardar temporalmente cambios sucios en working tree para permitir reset sin conflictos
-git stash 2>/dev/null || true
+# Forzar sobreescritura de todo el working tree al estado de origin/main (elimina conflictos de 'not uptodate')
+git checkout -f origin/main -- . >> "$LOG_FILE" 2>&1 || true
 
-# Ejecutar git reset capturando el mensaje exacto de error en consola
+# Sincronizar el índice de Git directamente con origin/main
+git reset --mixed origin/main >> "$LOG_FILE" 2>&1 || true
+
+# Ejecutar git reset hard para alinear HEAD y working tree
 RESET_OUTPUT=$(git reset --hard origin/main 2>&1)
 RESET_STATUS=$?
 echo "$RESET_OUTPUT" >> "$LOG_FILE"
 
+# Fallback incondicional si el reset devolviera advertencia
+if [ $RESET_STATUS -ne 0 ]; then
+    log "Aviso: git reset inicial requirió forzado. Aplicando checkout forzado de rama (checkout -B main origin/main -f)..."
+    RESET_OUTPUT=$(git checkout -B main origin/main -f 2>&1)
+    RESET_STATUS=$?
+    echo "$RESET_OUTPUT" >> "$LOG_FILE"
+fi
+
 if [ $RESET_STATUS -eq 0 ]; then
-    log "✅ git reset --hard origin/main completado."
-    git stash drop 2>/dev/null || true
+    log "✅ Sincronización de código con origin/main completada con éxito."
 else
-    log "❌ Error en git reset: $RESET_OUTPUT"
+    log "❌ Error en sincronización Git: $RESET_OUTPUT"
     log "Restaurando datos y abortando."
     if [ -d "$BACKUP_DIR" ]; then
         \cp -rf "$BACKUP_DIR/"* dat/ 2>/dev/null || true

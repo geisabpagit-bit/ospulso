@@ -229,10 +229,12 @@ sub render_dashboard_principal {
             }
 
             function monitorearHotDeploy() {
+                let failCount = 0;
                 const interval = setInterval(() => {
                     fetch('../api/hot_deploy_api.pl?action=status')
                     .then(r => r.json())
                     .then(res => {
+                        failCount = 0;
                         const term = document.getElementById('deployTerminal');
                         if (term && res.log) {
                             term.textContent = res.log;
@@ -260,8 +262,18 @@ sub render_dashboard_principal {
                             }
                         }
                     })
-                    .catch(() => {
-                        clearInterval(interval);
+                    .catch((err) => {
+                        failCount++;
+                        console.warn("Intento de sondeo fallido (" + failCount + "/8):", err);
+                        if (failCount >= 8) {
+                            clearInterval(interval);
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Sondeo interrumpido',
+                                text: 'Se perdió la conexión temporalmente con el endpoint de estado. Por favor verifica en consola o recarga la página.',
+                                confirmButtonColor: '#19B7A5'
+                            });
+                        }
                     });
                 }, 2000);
             }
