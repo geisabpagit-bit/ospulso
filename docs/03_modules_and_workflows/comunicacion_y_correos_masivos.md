@@ -131,10 +131,16 @@ Para garantizar accesibilidad total, ergonomía visual y prevenir bloqueos de pa
 * **Navegación en Menú Lateral:** Enlace `'Comunicaci&oacute;n'` (`views/comunicacion_masiva.pl`) registrado en `utils/sub_sidebar.pl` y `dat/menu_cards.dat` dentro del acordeón "Administración" debajo de "Gestión de Personal".
 
 ### 8.5 Segmentación Especial: Organizaciones sin CLUE y Consultorios Unipersonales (Solo Pacientes)
-* **Regla de Negocio:** Cuando se trate de una organización **sin clave CLUE** (campo 18 en `dat/negocios.dat` vacío, `'0'`, `'No asignada'` o `'No aplica'`) O donde el **Administrador de la organización y el Médico sean la misma persona** (rol dual `Administrador Organizacion,Medico`, o el administrador cuenta con perfil/cédula médica y no existen otros médicos en la clínica):
-  * **Punto 1. Audiencia y Segmentación:** Se restringen y ocultan automáticamente todas las opciones dirigidas a personal de clínica (`personal_clinica`, `solo_medicos`, `solo_recepcion`).
-  * **Opciones Habilitadas:** Únicamente se muestran opciones dirigidas a pacientes:
-    * `todos_pacientes_clinica`: Todos los Pacientes de mi Organización.
-    * `individual_org`: Búsqueda directa y selección interactiva de pacientes con casillas de verificación.
-  * **Adaptación Dinámica de la Interfaz:** Las etiquetas del buscador cambian contextualmente a "Buscar paciente:", "Directorio de pacientes" y "Pacientes seleccionados", reflejando que la clínica opera como consultorio individual o práctica médica directa sin personal intermedio.
-  * **Protección Backend (API-RBAC):** Tanto `api/comunicacion_audiencia_api.pl` como `api/crear_campana_correo_api.pl` detectan esta condición y descartan cualquier usuario operativo de `usuarios.dat`, garantizando que únicamente se listen y despachen correos a pacientes registrados en `pacientes.dat`.
+* **Regla de Negocio y Diferenciación Canónica:**
+  * **Organizaciones con CLUE o con Personal Dado de Alta (ej. `QTSMP000116` / `723800` o sucursales con matriz):**
+    * El Administrador de Organización dispone del abanico completo de segmentación:
+      * `personal_clinica`: Todo el Personal de mi Clínica (Médicos y Recepción).
+      * `solo_medicos`: Únicamente Médicos de mi Clínica.
+      * `solo_recepcion`: Únicamente Personal de Recepción y Caja.
+      * `todos_pacientes_clinica`: Todos los Pacientes de mi Organización.
+      * `individual_org`: Directorio interactivo de contactos que incluye tanto a colaboradores operativos (recepcionistas, médicos) como a pacientes.
+  * **Organizaciones sin CLUE o Consultorios Unipersonales (Admin y Médico es una sola persona):**
+    * Aplica cuando el negocio **no cuenta con clave CLUE** (campo 18 en `dat/negocios.dat` vacío o no asignado) **O** cuando el usuario tiene rol dual `'Administrador Organizacion,Medico'` y **no existen otros colaboradores** registrados para el negocio en `usuarios.dat`.
+    * **Punto 1. Audiencia y Segmentación:** Se ocultan automáticamente las opciones de personal (`personal_clinica`, `solo_medicos`, `solo_recepcion`) y se muestran exclusivamente opciones de pacientes (`todos_pacientes_clinica` e `individual_org` adaptado al directorio exclusivo de pacientes).
+    * **Protección Backend (API-RBAC):** `api/comunicacion_audiencia_api.pl` y `api/crear_campana_correo_api.pl` validan la presencia de CLUE y colaboradores, garantizando que el personal de clínicas multi-staff nunca sea excluido ni filtrado indebidamente.
+
