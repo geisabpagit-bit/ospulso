@@ -23,17 +23,22 @@ if (!$sd->{session_ok} || $sd->{role} !~ /Administrador Global/i) {
 }
 
 my $config_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'backup_cron_config.dat');
-my %config = ( enabled => 0, time => '03:00', days => '' );
+my %config = ( enabled => 0, time => '04:00', days => '1,2,3,4,5,6,0' );
 
 if (-f $config_file) {
-    open(my $fh, '<:encoding(UTF-8)', $config_file);
-    while(<$fh>) {
-        chomp;
-        if (/^ENABLED\|(\d+)$/) { $config{enabled} = $1; }
-        if (/^TIME\|(.+)$/) { $config{time} = $1; }
-        if (/^DAYS\|(.+)$/) { $config{days} = $1; }
+    if (open(my $fh, '<:encoding(UTF-8)', $config_file)) {
+        while(<$fh>) {
+            chomp;
+            if (/^ENABLED\|(\d+)$/) { $config{enabled} = int($1); }
+            if (/^TIME\|(.+)$/)    { $config{time} = $1; }
+            if (/^DAYS\|(.+)$/)    { $config{days} = $1; }
+        }
+        close($fh);
     }
-    close($fh);
 }
+
+my @times_arr = split(',', $config{time});
+@times_arr = grep { /^\d{1,2}:\d{2}$/ } @times_arr;
+$config{times} = \@times_arr;
 
 print to_json({ status => 'success', config => \%config });

@@ -203,5 +203,33 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   - **Vista CRUD**: `views/gestion_cards_inicio.pl` integrada al submenú de Administración del sidebar (`utils/sub_sidebar.pl`), con previsualización en vivo, selector de plantillas predefinidas y SweetAlert2.
   - **Renderizado Dinámico**: `views/render_dashboard_principal.pl` genera dinámicamente los minicards activos respetando la paleta corporativa: bordes en teal (`#19B7A5`), títulos destacados en azul marino (`#0A2A66`) con texto blanco, iconos vectoriales y enlace de acción directo (incluyendo integración nativa con Hot Deploy).
 
+### 2.10 Arquitectura de Respaldos Automáticos, Zero-Change Guard y Retención Estricta
+- **Propósito**: Garantizar la continuidad operativa y la resiliencia de la base de datos flat-file de OSPulso mediante respaldos automáticos programados, optimización de almacenamiento en el VPS y política de retención determinista.
+- **Componentes y Rutas del Sistema**:
+  - **Vista Web de Administración**: `views/admin_backups.pl` (exclusiva para rol `Administrador Global`). Se eliminó cualquier purga destructiva durante la carga web (respetando la idempotencia de peticiones GET); la vista solo audita, lista y expone acciones manuales/programadas.
+  - **Worker de Cron Backend**: `api/cron_backup_worker.pl` (soporta ejecución CLI vía Crontab de cPanel/Linux y modo web forzado `?force=1` o `--force`).
+  - **APIs de Configuración**:
+    - `api/get_cron_backup_config_api.pl`: Retorna estado, días y desglose de horarios configurados.
+    - `api/save_cron_backup_config_api.pl`: Sanitiza y persiste hasta 3 horarios cronológicos y días seleccionados.
+  - **Almacén y Archivos de Control**:
+    - `dat/backup_cron_config.dat`: Configuración canónica con formato `ENABLED|1`, `TIME|04:00,12:00,20:00`, `DAYS|1,2,3,4,5,6,0`.
+    - `dat/last_backup_fingerprint.dat`: Huella digital SHA-256 de los datos auditados.
+    - `dat/last_cron_backup_run.dat`: Timestamp unix de la última ejecución para evitar re-ejecuciones redundantes dentro de una misma ventana horaria (cooldown de 30 minutos).
+    - `dat/cron_backup.log`: Bitácora rotativa de auditoría y diagnósticos del worker.
+    - `dat/backups/`: Directorio de almacenamiento protegido (ignorado en git) para archivos comprimidos ZIP.
+- **Protección Zero-Change Guard (Ahorro Inteligente de Disco y CPU)**:
+  - Antes de empaquetar ~53 MB, el worker ejecuta una auditoría de ultra bajo consumo (~200-300 ms) recorriendo recursivamente todos los archivos de `dat/` y `uploads/`.
+  - Se obtienen las tuplas `rel_path:size:mtime` y se calcula su huella SHA-256, excluyendo archivos efímeros (`.log`, `.lock`, `.status`, `.tmp`, `*.fingerprint`, `backup_cron_config.dat`, `last_cron_backup_run.dat` y subcarpetas `backups/`, `migraciones/`).
+  - Si la huella coincide exactamente con `last_backup_fingerprint.dat` y no es una ejecución forzada (`$force == 0`), el worker omite la creación del ZIP y registra en el log: `"Zero-Change Guard: Sin modificaciones detectadas en datos desde el último respaldo. Respaldo omitido para optimizar almacenamiento."`. Esto previene el desperdicio de 150 MB diarios en días sin actividad clínica.
+- **Soporte Multi-Horario (Hasta 3 Respaldos Diarios)**:
+  - El modal de administración permite configurar hasta 3 turnos al día (ej. Mañana `04:00`, Tarde `12:00`, Noche `20:00`).
+  - El cron del VPS (ejecutado cada hora `0 * * * *`) evalúa coincidencia contra cualquiera de los horarios configurados con una tolerancia de ±15 minutos.
+- **Política de Retención Estricta (Los 3 Respaldos Más Recientes)**:
+  - El worker analiza los archivos en `dat/backups/` que coincidan con `auto_backup_ospulso_YYYYMMDD_HHMMSS.zip`.
+  - Ordena la colección de forma descendente por timestamp en nombre (los más nuevos en posiciones 0, 1 y 2).
+  - Conserva siempre y sagradamente los primeros 3 respaldos automáticos.
+  - Elimina automáticamente del 4º en adelante (`$i >= 3`), garantizando que jamás se borren todos los respaldos por antigüedad y manteniendo el almacén acotado.
+  - **Inmunidad de Respaldos Manuales**: Los respaldos creados manualmente por el usuario (`ospulso_backup_*.zip`) quedan 100% excluidos de la purga automática y solo pueden eliminarse a petición expresa del Administrador Global.
+
 
 

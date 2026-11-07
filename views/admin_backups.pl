@@ -66,15 +66,6 @@ if (-d $backups_dir) {
 
         foreach my $f (@all_files) {
             next unless $f =~ /\.zip$/;
-            # Purga de respaldos automáticos con permanencia mayor a 3 días (3 * 86400 = 259,200 segundos)
-            if ($f =~ /^auto_backup_ospulso_/) {
-                my $fp = File::Spec->catfile($backups_dir, $f);
-                my $mtime = (stat($fp))[9] || 0;
-                if ($mtime > 0 && ($now - $mtime) > (3 * 86400)) {
-                    unlink($fp);
-                    next;
-                }
-            }
             push @backups, $f;
         }
     }
@@ -226,11 +217,28 @@ print <<HTML;
                         <input type="checkbox" class="btn-check day-check" id="day_0" value="0" autocomplete="off"><label class="btn btn-outline-primary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;" for="day_0">D</label>
                     </div>
 
-                    <h6 class="fw-bold text-muted mb-2">Hora de ejecución</h6>
-                    <input type="time" id="cronTime" class="form-control form-control-lg rounded-3 mb-3">
+                    <h6 class="fw-bold text-muted mb-2">Horarios diarios de ejecución (Hasta 3 al día)</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-sunrise me-1 text-warning"></i>Turno 1 (Principal)</label>
+                            <input type="time" id="cronTime1" class="form-control rounded-3" value="04:00">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-sun me-1 text-primary"></i>Turno 2 (Opcional)</label>
+                            <input type="time" id="cronTime2" class="form-control rounded-3" placeholder="--:--">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-moon-stars me-1 text-info"></i>Turno 3 (Opcional)</label>
+                            <input type="time" id="cronTime3" class="form-control rounded-3" placeholder="--:--">
+                        </div>
+                    </div>
                     
+                    <div class="alert alert-success border-0 shadow-sm rounded-3 py-2 px-3 small mb-2">
+                        <i class="bi bi-shield-check me-2"></i><strong>Protección Zero-Change:</strong> Si no hay modificaciones en los datos entre horarios, el sistema omite inteligentemente el respaldo para ahorrar almacenamiento y recursos del VPS.
+                    </div>
+
                     <div class="alert alert-info border-0 shadow-sm rounded-3 py-2 px-3 small mb-0">
-                        <i class="bi bi-info-circle-fill me-2"></i>El sistema conservará únicamente los respaldos automáticos de los últimos 3 días.
+                        <i class="bi bi-clock-history me-2"></i><strong>Política de Retención:</strong> El sistema conservará sagradamente los <strong>3 respaldos automáticos más recientes</strong>. Los respaldos manuales nunca expiran.
                     </div>
                 </div>
             </div>
@@ -280,7 +288,14 @@ print <<'JS';
             if(data.status === 'success') {
                 document.getElementById('cronEnabled').checked = (data.config.enabled == 1);
                 document.getElementById('cronSettings').style.display = (data.config.enabled == 1) ? 'block' : 'none';
-                document.getElementById('cronTime').value = data.config.time || '03:00';
+                
+                let times = data.config.times || [];
+                if (!times.length && data.config.time) {
+                    times = data.config.time.split(',').map(t => t.trim());
+                }
+                document.getElementById('cronTime1').value = times[0] || '04:00';
+                document.getElementById('cronTime2').value = times[1] || '';
+                document.getElementById('cronTime3').value = times[2] || '';
                 
                 document.querySelectorAll('.day-check').forEach(cb => cb.checked = false);
                 if(data.config.days) {
@@ -292,7 +307,9 @@ print <<'JS';
             } else {
                 document.getElementById('cronEnabled').checked = false;
                 document.getElementById('cronSettings').style.display = 'none';
-                document.getElementById('cronTime').value = '03:00';
+                document.getElementById('cronTime1').value = '04:00';
+                document.getElementById('cronTime2').value = '';
+                document.getElementById('cronTime3').value = '';
                 document.querySelectorAll('.day-check').forEach(cb => cb.checked = false);
             }
             var myModal = new bootstrap.Modal(document.getElementById('modalCron'));
@@ -305,17 +322,21 @@ print <<'JS';
 
     window.saveCronConfig = function() {
         let enabled = document.getElementById('cronEnabled').checked ? 1 : 0;
-        let time = document.getElementById('cronTime').value;
+        let t1 = document.getElementById('cronTime1').value.trim();
+        let t2 = document.getElementById('cronTime2').value.trim();
+        let t3 = document.getElementById('cronTime3').value.trim();
+        
+        let selectedTimes = [t1, t2, t3].filter(t => Boolean(t));
         let days = Array.from(document.querySelectorAll('.day-check:checked')).map(cb => cb.value).join(',');
 
-        if (enabled && (!time || !days)) {
-            Swal.fire('Atención', 'Si activas el respaldo, debes elegir al menos un día y la hora.', 'warning');
+        if (enabled && (!selectedTimes.length || !days)) {
+            Swal.fire('Atención', 'Si activas el respaldo, debes elegir al menos un día y al menos un horario de ejecución.', 'warning');
             return;
         }
 
         let fd = new FormData();
         fd.append('enabled', enabled);
-        fd.append('time', time);
+        fd.append('time', selectedTimes.join(','));
         fd.append('days', days);
 
         fetch('../api/save_cron_backup_config_api.pl', { method: 'POST', body: fd })

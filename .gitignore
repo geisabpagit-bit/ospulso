@@ -5,6 +5,8 @@ dat/backups/
 *.tmp
 *.log
 *.zip
+dat/last_backup_fingerprint.dat
+dat/last_cron_backup_run.dat
 
 # Archivos de sistema operativo y editores
 .DS_Store
