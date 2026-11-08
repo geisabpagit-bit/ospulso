@@ -409,19 +409,24 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
 
 ---
 
-## 16. Alineación Canónica de Columnas y Desempaque Tolerante en Recibos de Municipio (`#dtIngresosMunicipio`)
+## 16. Alineación Canónica de Columnas y Desempaque Tolerante en Recibos de Municipio (`#dtIngresosMunicipio` y `#dtCorteCxC`)
 
-1. **Alineación Estricta de Columnas DataTables (`views/finanzas.pl`)**:
-   - La tabla de ingresos de Municipio (`#dtIngresosMunicipio`) cuenta con exactamente 7 encabezados en su definición HTML `<thead>`:
+1. **Alineación y Consistencia de Columnas entre `tab=ingresos` y `tab=corte_caja` (`views/finanzas.pl`)**:
+   - Ambas tablas comparten exactamente el mismo orden para sus primeras 6 columnas mediante el generador unificado `getColsMunicipio(includeAcciones)`:
      * **Col 0 (`folio`)**: Folio oficial OS con enlace al recibo imprimible.
      * **Col 1 (`fecha`)**: Fecha y hora de emisión.
-     * **Col 2 (`paciente`)**: Paciente físico atendido (beneficiario) y Trabajador titular de nómina municipal.
+     * **Col 2 (`paciente`)**: Paciente físico atendido (beneficiario o titular) y Trabajador de nómina municipal adscrito.
      * **Col 3 (`dependencia`)**: Dependencia municipal o institución adscrita (con icono `bi-building`).
      * **Col 4 (`medico`)**: Nombre del Médico Tratante (con icono `bi-person-badge`) y desglose del Concepto / Especialidad.
      * **Col 5 (`monto`)**: Monto total amparado para cobro institucional (`text-info fw-bold`).
-     * **Col 6 (`acciones`)**: Botón para Ver/Imprimir Recibo de Municipio y botón para Cancelar Recibo.
-   - En la configuración `colsCorteCxC`, el orden de las columnas debe corresponder biunívocamente con el `<thead>`, evitando intercambios entre *Dependencia* y *Médico / Concepto*.
+   - **Segregación Operativa vs Reporte**:
+     * `tab=ingresos` (`#dtIngresosMunicipio`): Cuenta con 7 columnas (`colsIngresosMunicipio = getColsMunicipio(true)`), incorporando la **Col 6 (`acciones`)** con botones para ver/reimprimir y cancelar recibos.
+     * `tab=corte_caja` (`#dtCorteCxC`): Es un reporte ejecutivo y de auditoría; cuenta estrictamente con 6 columnas (`colsCorteCxC = getColsMunicipio(false)`), suprimiendo la columna de acciones.
 
-2. **Blindaje de Delimitadores en Archivos Planos (`dat/folios_recibos_publicos.dat`)**:
-   - Al registrar un recibo de municipio rápido (`api/guardar_recibo_rapido.pl`), está estrictamente prohibido utilizar el carácter pleca (`|`) como separador visual en cadenas de texto (ej. `"Paciente: $nombre | $concepto"`), ya que causa una fragmentación no deseada de columnas (17 columnas en lugar de 16). Se utiliza el separador con guion (`"Paciente: $nombre - $concepto"`).
+2. **Integración Completa en Procesos de Impresión y Exportación**:
+   - **Exportación DataTables (Excel, PDF, Imprimir)**: `renderTablaCorte` detecta dinámicamente si la tabla posee columna de acciones. Si existe (`#dtIngresosMunicipio`, `#dtCorteIngresos`), aplica `:not(:last-child)` excluyendo los botones; si no existe (`#dtCorteCxC`, `#dtCorteEgresos`), exporta `:visible` garantizando que la columna de **Monto** nunca sea excluida del reporte impreso.
+   - **Resumen Ejecutivo de Caja (`imprimirResumenEjecutivo`)**: Vuelca la tabla completa de *Detalle de Ingresos Municipio / Convenio* con las 6 columnas canónicas idénticas, incluye el KPI de *Ingresos Municipio (CXC)* y mantiene la separación contable entre dinero físico en caja y derechos de cobro institucional.
+
+3. **Blindaje de Delimitadores en Archivos Planos (`dat/folios_recibos_publicos.dat`)**:
+   - Al registrar un recibo de municipio rápido (`api/guardar_recibo_rapido.pl`), se prohíbe el uso de plecas (`|`) como separador visual (ej. `"Paciente: $nombre - $concepto"`).
    - **Desempaque Tolerante Multi-Versión**: Los endpoints de consumo (`api/generar_corte_caja.pl`, `api/imprimir_recibo_publico.pl`, `api/get_recibos_caja_api.pl`) implementan autodetección dinámica de corrimiento de columnas: si el campo 14 contiene la apertura JSON `[`, se extrae el concepto combinando las columnas 12 y 13, y se toman los ítems, estatus y médico de las columnas 14, 15 y 16 respectivamente, garantizando una resolución del 100% tanto en registros históricos como nuevos.

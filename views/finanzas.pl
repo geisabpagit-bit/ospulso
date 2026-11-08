@@ -1160,9 +1160,9 @@ PAGE_HTML
                                     <tr>
                                         <th style="width: 8%;">Folio OS</th>
                                         <th style="width: 12%;">Fecha</th>
-                                        <th style="width: 27%;">Paciente</th>
-                                        <th style="width: 20%;">Médico / Concepto</th>
+                                        <th style="width: 27%;">Paciente / Trabajador</th>
                                         <th style="width: 15%;">Dependencia</th>
+                                        <th style="width: 20%;">Médico / Concepto</th>
                                         <th style="width: 18%;" class="text-end">Monto</th>
                                     </tr>
                                 </thead>
@@ -1376,112 +1376,125 @@ PAGE_HTML
                     `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
                     `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
                 return `<div class="d-flex justify-content-center align-items-center gap-2">
-                    <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Privado"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
-                    ${btnDelete}
-                </div>`;
-            }
-        }
-    ];
-
-    const colsIngresosMunicipio = [
-        { 
-            data: 'folio',
-            render: function(d) {
-                return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
-            }
-        },
-        { 
-            data: 'fecha',
-            render: function(d) {
-                if (!d) return '';
-                let parts = d.split(' ');
-                let f = parts[0] || '';
-                let h = parts[1] || '';
-                return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
-            }
-        },
-        { 
-            data: 'paciente',
-            render: function(data, type, row) {
-                let isCancel = (row.estatus === 'Cancelado');
-                let rawPac = (data || '').replace(/^Paciente:\s*/i, '').trim();
-                if (!rawPac || /^Metodo:/i.test(rawPac) || /^Paciente Desconocido$/i.test(rawPac)) {
-                    rawPac = row.trabajador_nombre || (row.num_empleado ? ('Empleado ' + row.num_empleado) : 'Empleado Estatal');
+                    <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Privado"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;    function getColsMunicipio(includeAcciones) {
+        const cols = [
+            { 
+                data: 'folio',
+                render: function(d) {
+                    return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
                 }
-                let empNum = row.num_empleado || '';
-                let empNom = row.trabajador_nombre || '';
-
-                let txtTrabajador = empNom ? (empNum ? `${empNum} - ${empNom}` : empNom) : (empNum ? empNum : '');
-
-                let html = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
-                
-                if (txtTrabajador) {
-                    html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i>Trabajador: ${escapeHtml(txtTrabajador)}</div>`;
-                } else if (empNum) {
-                    html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i>Trabajador: ${escapeHtml(empNum)}</div>`;
+            },
+            { 
+                data: 'fecha',
+                render: function(d) {
+                    if (!d) return '';
+                    let parts = d.split(' ');
+                    let f = parts[0] || '';
+                    let h = parts[1] || '';
+                    return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
                 }
+            },
+            { 
+                data: 'paciente',
+                render: function(data, type, row) {
+                    let isCancel = (row.estatus === 'Cancelado');
+                    let rawPac = (data || '').replace(/^Paciente:\s*/i, '').trim();
+                    if (!rawPac || /^Metodo:/i.test(rawPac) || /^Paciente Desconocido$/i.test(rawPac)) {
+                        rawPac = row.trabajador_nombre || (row.num_empleado ? ('Empleado ' + row.num_empleado) : 'Empleado Estatal');
+                    }
+                    let empNum = row.num_empleado || '';
+                    let empNom = row.trabajador_nombre || '';
+                    let txtTrabajador = empNom ? (empNum ? `${empNum} - ${empNom}` : empNom) : (empNum ? empNum : '');
 
-                if (isCancel) {
-                    html += `<div class="d-flex align-items-center gap-1 mt-1">
-                        <span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>
-                        <span class="text-danger fw-semibold" style="font-size: 9.5px;">Motivo: ${escapeHtml(row.motivo || 'Sin motivo registrado')}</span>
+                    let html = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
+                    
+                    if (txtTrabajador) {
+                        html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i>Trabajador: ${escapeHtml(txtTrabajador)}</div>`;
+                    } else if (empNum) {
+                        html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i>Trabajador: ${escapeHtml(empNum)}</div>`;
+                    }
+
+                    if (isCancel) {
+                        html += `<div class="d-flex align-items-center gap-1 mt-1">
+                            <span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>
+                            <span class="text-danger fw-semibold" style="font-size: 9.5px;">Motivo: ${escapeHtml(row.motivo || 'Sin motivo registrado')}</span>
+                        </div>`;
+                    }
+                    return html;
+                }
+            },
+            { 
+                data: 'dependencia',
+                render: function(data, type, row) {
+                    let dep = data || 'Municipio';
+                    let isCancel = (row.estatus === 'Cancelado');
+                    return `<div class="d-inline-block text-truncate border rounded px-2 py-0 bg-light text-dark ${isCancel ? 'text-decoration-line-through opacity-75' : ''}" style="max-width: 150px; font-size: 9.5px;" title="${escapeHtml(dep)}"><i class="bi bi-building me-1 text-info"></i>${escapeHtml(dep)}</div>`;
+                }
+            },
+            { 
+                data: 'medico',
+                render: function(d, type, row) {
+                    let med = (d || '').trim();
+                    let conc = (row.concepto || '').trim();
+                    let isNd = (!med || med === 'N/D' || med === 'Sin Asignar' || med === 'NO ESPECIFICADO');
+                    if (isNd) {
+                        if (conc) {
+                            return `<div class="d-flex align-items-center gap-1" title="${escapeHtml(conc)}">
+                                <span class="badge bg-light text-info border px-2 py-1 text-truncate" style="max-width: 160px; font-size: 10px; font-weight: 600;">
+                                    <i class="bi bi-tag-fill me-1 text-info"></i>${escapeHtml(con)}
+                                </span>
+                            </div>`;
+                        } else {
+                            return `<span class="badge bg-light text-muted border px-2 py-0" style="font-size: 9.5px;">Atención Municipio</span>`;
+                        }
+                    } else {
+                        let html = `<div class="fw-bold text-dark text-truncate" style="max-width: 160px; font-size: 10.5px;" title="${escapeHtml(med)}">
+                            <i class="bi bi-person-badge text-teal-clinical me-1"></i>${escapeHtml(med)}
+                        </div>`;
+                        if (conc) {
+                            html += `<div class="text-muted text-truncate" style="max-width: 160px; font-size: 9.5px;" title="${escapeHtml(con)}">${escapeHtml(con)}</div>`;
+                        }
+                        return html;
+                    }
+                }
+            },
+            { 
+                data: 'monto', 
+                className: 'text-end',
+                render: function(data, type, row) {
+                    let val = parseFloat(data) || 0;
+                    let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    if (row.estatus === 'Cancelado') {
+                        return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+                    }
+                    return `<span class="text-info fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+                }
+            }
+        ];
+
+        if (includeAcciones) {
+            cols.push({
+                data: null,
+                className: 'text-center',
+                orderable: false,
+                render: function(data, type, row) {
+                    let f = row.folio_raw || row.folio || '';
+                    let isCancel = (row.estatus === 'Cancelado');
+                    let btnDelete = isCancel ?
+                        `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
+                        `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
+                    return `<div class="d-flex justify-content-center align-items-center gap-2">
+                        <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=publicos&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Municipio"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
+                        ${btnDelete}
                     </div>`;
                 }
-                return html;
-            }
-        },
-        { 
-            data: 'dependencia',
-            render: function(data, type, row) {
-                let dep = data || 'Municipio';
-                let isCancel = (row.estatus === 'Cancelado');
-                return `<div class="d-inline-block text-truncate border rounded px-2 py-0 bg-light text-dark ${isCancel ? 'text-decoration-line-through opacity-75' : ''}" style="max-width: 150px; font-size: 9.5px;" title="${dep}"><i class="bi bi-building me-1 text-info"></i>${dep}</div>`;
-            }
-        },
-        { 
-            data: 'medico',
-            render: function(d, type, row) {
-                let med = (d || '').trim();
-                let conc = (row.concepto || '').trim();
-                let hasMed = (med && med !== 'N/D' && med !== 'NO ESPECIFICADO');
-                if (hasMed) {
-                    return `<div class="fw-semibold text-dark text-truncate" style="max-width: 140px; font-size: 10px;" title="${escapeHtml(med)}">${escapeHtml(med)}</div>` + 
-                           (conc ? `<div class="text-muted text-truncate" style="max-width: 140px; font-size: 8.5px;" title="${escapeHtml(conc)}">${escapeHtml(conc)}</div>` : '');
-                } else {
-                    let displayConc = conc || 'Servicio Convenio';
-                    return `<span class="badge bg-light text-dark border px-2 py-1 text-wrap text-start text-truncate d-block" style="max-width: 140px; font-size: 9.5px;" title="${escapeHtml(displayConc)}"><i class="bi bi-tag me-1 text-secondary"></i>${escapeHtml(displayConc)}</span>`;
-                }
-            }
-        },
-        { 
-            data: 'monto', 
-            className: 'text-end',
-            render: function(data, type, row) {
-                let val = parseFloat(data) || 0;
-                let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                if (row.estatus === 'Cancelado') {
-                    return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
-                }
-                return `<span class="text-info fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
-            }
-        },
-        {
-            data: null,
-            className: 'text-center',
-            orderable: false,
-            render: function(data, type, row) {
-                let f = row.folio_raw || row.folio || '';
-                let isCancel = (row.estatus === 'Cancelado');
-                let btnDelete = isCancel ?
-                    `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
-                    `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
-                return `<div class="d-flex justify-content-center align-items-center gap-2">
-                    <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=publicos&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Municipio"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
-                    ${btnDelete}
-                </div>`;
-            }
+            });
         }
-    ];
+
+        return cols;
+    }
+
+    const colsIngresosMunicipio = getColsMunicipio(true);
 
     window.poblarSelectorMedicosIngresos = function() {
         const sel = document.getElementById('filtro_medico_ingresos');
@@ -1800,109 +1813,7 @@ PAGE_HTML
         }
     ];
 
-    const colsCorteCxC = [
-        { 
-            data: 'folio',
-            render: function(d) {
-                return `<span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 9.5px;">${d || ''}</span>`;
-            }
-        },
-        { 
-            data: 'fecha',
-            render: function(d) {
-                if (!d) return '';
-                let parts = d.split(' ');
-                let f = parts[0] || '';
-                let h = parts[1] || '';
-                return `<div class="text-nowrap fw-semibold" style="font-size: 10px;">${f}</div><div class="text-muted text-nowrap" style="font-size: 9.5px;">${h}</div>`;
-            }
-        },
-        { 
-            data: 'paciente',
-            render: function(data, type, row) {
-                let isCancel = (row.estatus === 'Cancelado');
-                let rawPac = (data || '').replace(/^Paciente:\s*/i, '').trim();
-                if (!rawPac || /^Metodo:/i.test(rawPac) || /^Paciente Desconocido$/i.test(rawPac)) {
-                    rawPac = row.trabajador_nombre || (row.num_empleado ? ('Empleado ' + row.num_empleado) : 'Empleado Estatal');
-                }
-                let empNum = row.num_empleado || '';
-                let empNom = row.trabajador_nombre || '';
-                let txtTrabajador = empNom ? (empNum ? `${empNum} - ${empNom}` : empNom) : (empNum ? empNum : '');
-
-                let html = `<div class="fw-bold ${isCancel ? 'text-decoration-line-through text-muted' : 'text-dark'}" style="font-size: 10.5px;"><i class="bi bi-person-fill me-1 text-primary"></i>${escapeHtml(rawPac)}</div>`;
-                if (txtTrabajador) {
-                    html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i>Trabajador: ${escapeHtml(txtTrabajador)}</div>`;
-                } else if (empNum) {
-                    html += `<div class="text-muted ${isCancel ? 'text-decoration-line-through' : ''}" style="font-size: 9.5px;"><i class="bi bi-person-badge me-1 text-secondary"></i>Trabajador: ${escapeHtml(empNum)}</div>`;
-                }
-                return html;
-            }
-        },
-        { 
-            data: 'dependencia',
-            render: function(data, type, row) {
-                let dep = data || 'Municipio';
-                let isCancel = (row.estatus === 'Cancelado');
-                return `<div class="d-inline-block text-truncate border rounded px-2 py-0 bg-light text-dark ${isCancel ? 'text-decoration-line-through opacity-75' : ''}" style="max-width: 150px; font-size: 9.5px;" title="${escapeHtml(dep)}"><i class="bi bi-building me-1 text-info"></i>${escapeHtml(dep)}</div>`;
-            }
-        },
-        { 
-            data: 'medico',
-            render: function(data, type, row) {
-                let med = (data || '').trim();
-                let con = (row.concepto || '').trim();
-                let isNd = (!med || med === 'N/D' || med === 'Sin Asignar');
-                
-                if (isNd) {
-                    if (con) {
-                        return `<div class="d-flex align-items-center gap-1" title="${escapeHtml(con)}">
-                            <span class="badge bg-light text-info border px-2 py-1 text-truncate" style="max-width: 160px; font-size: 10px; font-weight: 600;">
-                                <i class="bi bi-tag-fill me-1 text-info"></i>${escapeHtml(con)}
-                            </span>
-                        </div>`;
-                    } else {
-                        return `<span class="badge bg-light text-muted border px-2 py-0" style="font-size: 9.5px;">Atención Municipio</span>`;
-                    }
-                } else {
-                    let html = `<div class="fw-bold text-dark text-truncate" style="max-width: 160px; font-size: 10.5px;" title="${escapeHtml(med)}">
-                        <i class="bi bi-person-badge text-teal-clinical me-1"></i>${escapeHtml(med)}
-                    </div>`;
-                    if (con) {
-                        html += `<div class="text-muted text-truncate" style="max-width: 160px; font-size: 9.5px;" title="${escapeHtml(con)}">${escapeHtml(con)}</div>`;
-                    }
-                    return html;
-                }
-            }
-        },
-        { 
-            data: 'monto', 
-            className: 'text-end',
-            render: function(data, type, row) {
-                let val = parseFloat(data) || 0;
-                let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                if (row.estatus === 'Cancelado') {
-                    return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
-                }
-                return `<span class="text-info fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
-            }
-        },
-        {
-            data: null,
-            className: 'text-center',
-            orderable: false,
-            render: function(data, type, row) {
-                let f = row.folio_raw || row.folio || '';
-                let isCancel = (row.estatus === 'Cancelado');
-                let btnDelete = isCancel ?
-                    `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
-                    `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
-                return `<div class="d-flex justify-content-center align-items-center gap-2">
-                    <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=publicos&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Municipio"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
-                    ${btnDelete}
-                </div>`;
-            }
-        }
-    ];
+    const colsCorteCxC = getColsMunicipio(false);
 
     window.poblarSelectorMetodosPago = function(ingresos) {
         let container = document.getElementById('listaMetodosPagoCheckboxes') || document.getElementById('dropdownMetodosPagoList');
@@ -2159,6 +2070,9 @@ PAGE_HTML
             return;
         }
 
+        let hasAcciones = $(selector).find('thead th:last-child').text().toLowerCase().includes('acci');
+        let exportCols = hasAcciones ? ':not(:last-child)' : ':visible';
+
         try {
             $(selector).DataTable({
                 data: data || [],
@@ -2166,10 +2080,10 @@ PAGE_HTML
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
                 dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                 buttons: [
-                    { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: ':not(:last-child)' } }
+                    { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } },
+                    { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } },
+                    { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } },
+                    { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } }
                 ],
                 responsive: false, // Handle via SDM mobile styles data-label
                 createdRow: function(row, data, dataIndex) {
@@ -2317,6 +2231,15 @@ PAGE_HTML
             totalEgresosImpresion += parseFloat(e.monto) || 0;
         });
 
+        // 2.5 Determinar Ingresos Municipio (CXC) para Reporte
+        let cxcParaReporte = (ultimoResCorte && Array.isArray(ultimoResCorte.cxc)) ? ultimoResCorte.cxc : [];
+        let totalCxcImpresion = 0;
+        (cxcParaReporte || []).forEach(c => {
+            if (c.estatus !== 'Cancelado') {
+                totalCxcImpresion += parseFloat(c.monto) || 0;
+            }
+        });
+
         let ingresoNeto = totalIngresosImpresion - totalEgresosImpresion;
 
         let logoUrl = (ultimoResCorte && ultimoResCorte.logo_url) ? ultimoResCorte.logo_url : '';
@@ -2356,6 +2279,38 @@ PAGE_HTML
             let montoHtml = isCancel ? `<span style="text-decoration: line-through; color: #ef4444;">${montoFmt} (Cancelado)</span>` : montoFmt;
             return `<tr><td>${i.folio || ''}</td><td>${i.fecha || ''}</td><td>${i.paciente || ''}</td><td>${escapeHtml(medCon)}</td><td>${i.forma_pago || 'Efectivo'}</td><td class="text-right">${montoHtml}</td></tr>`;
         }).join('') : '<tr><td colspan="6" style="text-align:center; padding: 12px; color: #888;">Sin ingresos para los filtros seleccionados</td></tr>';
+
+        let htmlCxC = (cxcParaReporte && cxcParaReporte.length) ? cxcParaReporte.map(c => {
+            let med = (c.medico || '').trim();
+            let con = (c.concepto || '').trim();
+            let medCon = '';
+            if (!med || med === 'N/D' || med === 'Sin Asignar' || med === 'NO ESPECIFICADO') {
+                medCon = con || 'Atención Municipio';
+            } else {
+                medCon = med + (con ? (' - ' + con) : '');
+            }
+            let isCancel = (c.estatus === 'Cancelado');
+            let montoFmt = fmtMoneda(c.monto);
+            let montoHtml = isCancel ? `<span style="text-decoration: line-through; color: #ef4444;">${montoFmt} (Cancelado)</span>` : montoFmt;
+
+            let rawPac = (c.paciente || '').replace(/^Paciente:\s*/i, '').trim();
+            if (!rawPac || /^Metodo:/i.test(rawPac) || /^Paciente Desconocido$/i.test(rawPac)) {
+                rawPac = c.trabajador_nombre || (c.num_empleado ? ('Empleado ' + c.num_empleado) : 'Empleado Estatal');
+            }
+            let empNum = c.num_empleado || '';
+            let empNom = c.trabajador_nombre || '';
+            let txtTrabajador = empNom ? (empNum ? `${empNum} - ${empNom}` : empNom) : (empNum ? empNum : '');
+            let pacHtml = `<strong>${escapeHtml(rawPac)}</strong>` + (txtTrabajador ? `<br><small style="color: #64748b;">Trabajador: ${escapeHtml(txtTrabajador)}</small>` : '');
+
+            return `<tr>
+                <td>${c.folio || ''}</td>
+                <td>${c.fecha || ''}</td>
+                <td>${pacHtml}</td>
+                <td>${escapeHtml(c.dependencia || 'Municipio')}</td>
+                <td>${escapeHtml(medCon)}</td>
+                <td class="text-right">${montoHtml}</td>
+            </tr>`;
+        }).join('') : '';
         
         let htmlEgresos = (egresosParaReporte && egresosParaReporte.length) ? egresosParaReporte.map(i => '<tr><td>' + (i.folio || '') + '</td><td>' + (i.fecha || '') + '</td><td>' + (i.categoria || 'General') + '</td><td>' + (i.origen_nombre || 'No Especificado') + '</td><td>' + escapeHtml(i.concepto || '') + '</td><td class="text-right">' + fmtMoneda(i.monto) + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center; padding: 12px; color: #888;">Sin egresos en este periodo</td></tr>';
 
@@ -2381,7 +2336,7 @@ PAGE_HTML
                 .text-right { text-align: right; }
                 .section-title { font-size: 15px; margin: 20px 0 10px; color: #004d40; border-bottom: 1px solid #eee; padding-bottom: 5px; }
                 
-                .footer-box { margin-top: 25px; border: 2px dashed #00C4C4; padding: 16px; text-align: center; background: #fcfcfc; border-radius: 8px; max-width: 420px; margin-left: auto; margin-right: auto; }
+                .footer-box { margin-top: 25px; border: 2px dashed #00C4C4; padding: 16px; text-align: center; background: #fcfcfc; border-radius: 8px; max-width: 450px; margin-left: auto; margin-right: auto; }
                 .footer-box h3 { margin: 0 0 12px; color: #004d40; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
                 .footer-box p { margin: 4px 0; font-size: 13px; }
 
@@ -2422,20 +2377,26 @@ PAGE_HTML
 
             <div class="kpi-container">
                 <div class="kpi-box">
-                    <h4>Ingresos Total</h4>
+                    <h4>Ingresos en Caja</h4>
                     <p class="val" style="color: #10b981;">${fmtMoneda(totalIngresosImpresion)}</p>
                 </div>
+                ${cxcParaReporte.length ? `
+                <div class="kpi-box" style="background: rgba(14, 165, 233, 0.05); border-color: #0284c7;">
+                    <h4 style="color: #0284c7;">Ingresos Municipio (CXC)</h4>
+                    <p class="val" style="color: #0284c7;">${fmtMoneda(totalCxcImpresion)}</p>
+                </div>
+                ` : ''}
                 <div class="kpi-box">
                     <h4>Egresos Operativos</h4>
                     <p class="val" style="color: #ef4444;">${fmtMoneda(totalEgresosImpresion)}</p>
                 </div>
                 <div class="kpi-box" style="background: #e0f7fa; border-color: #00C4C4;">
-                    <h4>Ingreso Neto</h4>
+                    <h4>Ingreso Neto en Caja</h4>
                     <p class="val" style="color: #00838F;">${fmtMoneda(ingresoNeto)}</p>
                 </div>
             </div>
 
-            <div class="section-title">Detalle de Ingresos (${ingresosParaReporte.length} registros)</div>
+            <div class="section-title">Detalle de Ingresos en Caja (${ingresosParaReporte.length} registros)</div>
             <table>
                 <thead>
                     <tr><th>Folio</th><th>Fecha</th><th>Paciente</th><th>Médico / Concepto</th><th>Forma Pago</th><th class="text-right">Monto</th></tr>
@@ -2445,13 +2406,31 @@ PAGE_HTML
                 </tbody>
                 <tfoot>
                     <tr style="background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #00C4C4;">
-                        <td colspan="5" style="text-align: right; padding: 7px 10px; font-size: 11px; color: #0A2A66; text-transform: uppercase;">TOTAL INGRESOS (${ingresosParaReporte.length} registros):</td>
+                        <td colspan="5" style="text-align: right; padding: 7px 10px; font-size: 11px; color: #0A2A66; text-transform: uppercase;">TOTAL INGRESOS CAJA (${ingresosParaReporte.length} registros):</td>
                         <td class="text-right" style="padding: 7px 10px; font-size: 11.5px; color: #10b981; font-weight: bold;">${fmtMoneda(totalIngresosImpresion)}</td>
                     </tr>
                 </tfoot>
             </table>
 
-            <div class="section-title">Detalle de Egresos (${egresosParaReporte.length} registros)</div>
+            ${cxcParaReporte.length ? `
+            <div class="section-title">Detalle de Ingresos Municipio / Convenio (${cxcParaReporte.length} registros)</div>
+            <table>
+                <thead>
+                    <tr><th>Folio OS</th><th>Fecha</th><th>Paciente / Trabajador</th><th>Dependencia</th><th>Médico / Concepto</th><th class="text-right">Monto</th></tr>
+                </thead>
+                <tbody>
+                    ${htmlCxC}
+                </tbody>
+                <tfoot>
+                    <tr style="background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #0284c7;">
+                        <td colspan="5" style="text-align: right; padding: 7px 10px; font-size: 11px; color: #0A2A66; text-transform: uppercase;">TOTAL INGRESOS MUNICIPIO (${cxcParaReporte.length} registros):</td>
+                        <td class="text-right" style="padding: 7px 10px; font-size: 11.5px; color: #0284c7; font-weight: bold;">${fmtMoneda(totalCxcImpresion)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+            ` : ''}
+
+            <div class="section-title">Detalle de Egresos Operativos (${egresosParaReporte.length} registros)</div>
             <table>
                 <thead>
                     <tr><th>Folio</th><th>Fecha</th><th>Categoría</th><th>Origen</th><th>Concepto</th><th class="text-right">Monto</th></tr>
@@ -2469,10 +2448,11 @@ PAGE_HTML
 
             <div class="footer-box">
                 <h3>Declaración Física de Caja</h3>
-                <p>Ingresos = <strong>${fmtMoneda(totalIngresosImpresion)}</strong></p>
+                <p>Ingresos en Caja = <strong>${fmtMoneda(totalIngresosImpresion)}</strong></p>
                 <p style="margin: 2px 0; font-weight: bold; font-size: 14px; color: #64748b;">-</p>
-                <p>Egresos = <strong>${fmtMoneda(totalEgresosImpresion)}</strong></p>
-                <p style="margin-top: 8px; font-size: 14px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">Ingreso Neto = <strong style="color: #004d40;">${fmtMoneda(ingresoNeto)}</strong></p>
+                <p>Egresos Operativos = <strong>${fmtMoneda(totalEgresosImpresion)}</strong></p>
+                <p style="margin-top: 8px; font-size: 14px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">Ingreso Neto en Caja = <strong style="color: #004d40;">${fmtMoneda(ingresoNeto)}</strong></p>
+                ${cxcParaReporte.length ? `<p style="margin-top: 6px; font-size: 11px; color: #64748b;">* Cuentas por Cobrar Municipio (CXC): <strong>${fmtMoneda(totalCxcImpresion)}</strong> (Trámite institucional)</p>` : ''}
             </div>
             
             <div class="signature-section">
