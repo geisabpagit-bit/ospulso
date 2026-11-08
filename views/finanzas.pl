@@ -1376,7 +1376,14 @@ PAGE_HTML
                     `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
                     `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'privados')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
                 return `<div class="d-flex justify-content-center align-items-center gap-2">
-                    <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Privado"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;    function getColsMunicipio(includeAcciones) {
+                    <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=privados&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Privado"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
+                    ${btnDelete}
+                </div>`;
+            }
+        }
+    ];
+
+    function getColsMunicipio(includeAcciones) {
         const cols = [
             { 
                 data: 'folio',
@@ -1441,7 +1448,7 @@ PAGE_HTML
                         if (conc) {
                             return `<div class="d-flex align-items-center gap-1" title="${escapeHtml(conc)}">
                                 <span class="badge bg-light text-info border px-2 py-1 text-truncate" style="max-width: 160px; font-size: 10px; font-weight: 600;">
-                                    <i class="bi bi-tag-fill me-1 text-info"></i>${escapeHtml(con)}
+                                    <i class="bi bi-tag-fill me-1 text-info"></i>${escapeHtml(conc)}
                                 </span>
                             </div>`;
                         } else {
@@ -1452,7 +1459,7 @@ PAGE_HTML
                             <i class="bi bi-person-badge text-teal-clinical me-1"></i>${escapeHtml(med)}
                         </div>`;
                         if (conc) {
-                            html += `<div class="text-muted text-truncate" style="max-width: 160px; font-size: 9.5px;" title="${escapeHtml(con)}">${escapeHtml(con)}</div>`;
+                            html += `<div class="text-muted text-truncate" style="max-width: 160px; font-size: 9.5px;" title="${escapeHtml(conc)}">${escapeHtml(conc)}</div>`;
                         }
                         return html;
                     }
