@@ -327,7 +327,7 @@ my $hoy_hora = sprintf("%02d:%02d", $hour, $min);
 my $estatus = 'Cobrado';
 my $concepto_folio_guardar = $concepto_recibo;
 if ($is_estado && $nombre_empleado && $concepto_folio_guardar !~ /Paciente:/i) {
-    $concepto_folio_guardar = "Paciente: $nombre_empleado | " . ($concepto_folio_guardar || 'CONSULTAS');
+    $concepto_folio_guardar = "Paciente: $nombre_empleado - " . ($concepto_folio_guardar || 'CONSULTAS');
 }
 my $linea_folio = join('|', $id_recibo_folio, $folio_impreso, $id_neg, $id_suc, $folio_impreso, $id_paciente, $hoy_fecha, $hoy_hora, $total_cargos_final, $total_abonos_final, $caja_metodo_pago, $usuario, $concepto_folio_guardar, $caja_items_json, $estatus, $id_medico);
 utils::db_manager::guardar_registro($folios_file, $linea_folio);

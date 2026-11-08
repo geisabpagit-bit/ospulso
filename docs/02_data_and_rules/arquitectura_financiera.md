@@ -406,3 +406,22 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
    - **Gestión Universal de `skip-worktree` con Delimitadores Nulos**:
      * Para evitar conflictos de merge por modificaciones en caliente en archivos de datos, `hot_deploy.sh` desactiva temporalmente las marcas de índice antes del reset y las re-aplica universalmente sobre todos los archivos rastreados en `dat/` tras la restauración.
      * El procesamiento utiliza `git ls-files -z dat/ | xargs -0 -r git update-index --skip-worktree` para garantizar compatibilidad con nombres de archivos que contengan espacios en blanco o caracteres especiales sin interrupciones fatales.
+
+---
+
+## 16. Alineación Canónica de Columnas y Desempaque Tolerante en Recibos de Municipio (`#dtIngresosMunicipio`)
+
+1. **Alineación Estricta de Columnas DataTables (`views/finanzas.pl`)**:
+   - La tabla de ingresos de Municipio (`#dtIngresosMunicipio`) cuenta con exactamente 7 encabezados en su definición HTML `<thead>`:
+     * **Col 0 (`folio`)**: Folio oficial OS con enlace al recibo imprimible.
+     * **Col 1 (`fecha`)**: Fecha y hora de emisión.
+     * **Col 2 (`paciente`)**: Paciente físico atendido (beneficiario) y Trabajador titular de nómina municipal.
+     * **Col 3 (`dependencia`)**: Dependencia municipal o institución adscrita (con icono `bi-building`).
+     * **Col 4 (`medico`)**: Nombre del Médico Tratante (con icono `bi-person-badge`) y desglose del Concepto / Especialidad.
+     * **Col 5 (`monto`)**: Monto total amparado para cobro institucional (`text-info fw-bold`).
+     * **Col 6 (`acciones`)**: Botón para Ver/Imprimir Recibo de Municipio y botón para Cancelar Recibo.
+   - En la configuración `colsCorteCxC`, el orden de las columnas debe corresponder biunívocamente con el `<thead>`, evitando intercambios entre *Dependencia* y *Médico / Concepto*.
+
+2. **Blindaje de Delimitadores en Archivos Planos (`dat/folios_recibos_publicos.dat`)**:
+   - Al registrar un recibo de municipio rápido (`api/guardar_recibo_rapido.pl`), está estrictamente prohibido utilizar el carácter pleca (`|`) como separador visual en cadenas de texto (ej. `"Paciente: $nombre | $concepto"`), ya que causa una fragmentación no deseada de columnas (17 columnas en lugar de 16). Se utiliza el separador con guion (`"Paciente: $nombre - $concepto"`).
+   - **Desempaque Tolerante Multi-Versión**: Los endpoints de consumo (`api/generar_corte_caja.pl`, `api/imprimir_recibo_publico.pl`, `api/get_recibos_caja_api.pl`) implementan autodetección dinámica de corrimiento de columnas: si el campo 14 contiene la apertura JSON `[`, se extrae el concepto combinando las columnas 12 y 13, y se toman los ítems, estatus y médico de las columnas 14, 15 y 16 respectivamente, garantizando una resolución del 100% tanto en registros históricos como nuevos.

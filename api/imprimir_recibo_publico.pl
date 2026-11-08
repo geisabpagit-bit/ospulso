@@ -57,6 +57,19 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
         }
 
         if ($match) {
+            my ($concepto_val, $items_json_val, $estatus_val, $id_medico_val);
+            if (defined $c[14] && $c[14] =~ /^\s*\[/) {
+                $concepto_val   = ($c[12] || '') . ' - ' . ($c[13] || '');
+                $items_json_val = $c[14] || '';
+                $estatus_val    = $c[15] || '';
+                $id_medico_val  = $c[16] || '';
+            } else {
+                $concepto_val   = $c[12] || '';
+                $items_json_val = $c[13] || '';
+                $estatus_val    = $c[14] || '';
+                $id_medico_val  = $c[15] || '';
+            }
+
             $recibo = {
                 id_recibo     => $c[0],
                 folio         => $c[1],
@@ -70,10 +83,10 @@ if (-e $recibos_file && open(my $fh, '<:encoding(UTF-8)', $recibos_file)) {
                 total_abonos  => $c[9] || 0,
                 metodo_pago   => $c[10] || 'Efectivo',
                 elaborado_por => $c[11] || '',
-                concepto      => $c[12] || '',
-                items_json    => $c[13] || '',
-                estatus       => $c[14] || '',
-                id_medico     => $c[15] || ''
+                concepto      => $concepto_val,
+                items_json    => $items_json_val,
+                estatus       => $estatus_val,
+                id_medico     => $id_medico_val
             };
             last;
         }

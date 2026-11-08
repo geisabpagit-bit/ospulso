@@ -558,6 +558,26 @@ if (-e $archivo_publicos) {
             next if $id_negocio ne $id_empresa;
         }
 
+        # Desempaquetado tolerante a columnas desplazadas por pipes en concepto
+        my ($items_raw, $estatus, $id_med, $concepto_raw);
+        if ($f->[13] && $f->[13] =~ /^\s*\[/) {
+            $items_raw    = $f->[13];
+            $estatus      = $f->[14] || '';
+            $id_med       = $f->[15] || '';
+            $concepto_raw = $f->[12] || '';
+        } elsif ($f->[14] && $f->[14] =~ /^\s*\[/) {
+            # Desplazamiento por pipe en concepto
+            $items_raw    = $f->[14];
+            $estatus      = $f->[15] || '';
+            $id_med       = $f->[16] || '';
+            $concepto_raw = ($f->[12] || '') . ' - ' . ($f->[13] || '');
+        } else {
+            $items_raw    = $f->[13] || '';
+            $estatus      = $f->[14] || '';
+            $id_med       = $f->[15] || '';
+            $concepto_raw = $f->[12] || '';
+        }
+
         # Filtro RBAC Recepcionista / Medico
         my $elaborado_por = $f->[11] || '';
         if ($session_data->{role} eq 'Recepcionista') {
@@ -568,12 +588,10 @@ if (-e $archivo_publicos) {
         } elsif ($session_data->{role} eq 'Medico') {
             my $mi_med = $session_data->{id_medico};
             my $mi_user = $session_data->{usuario};
-            my $id_med = $f->[15] || '';
             next unless (($mi_med && $id_med eq $mi_med) || ($mi_user && $elaborado_por eq $mi_user));
         }
 
         my $fecha = $f->[6] || '';
-        my $estatus = $f->[14] || '';
         my $is_cancelado = ($estatus =~ /Cancelado/i) ? 1 : 0;
         
         if ($fecha ge $f_inicio && $fecha le $f_fin) {
@@ -589,8 +607,6 @@ if (-e $archivo_publicos) {
                 $total_cxc += $monto_cxc;
             }
             
-            my $id_med = $f->[15] || '';
-            my $items_raw = $f->[13] || '';
             my $nombre_med = resolver_nombre_medico_recibo($id_med, $items_raw);
 
             my $folio_raw = $f->[1] || '';
@@ -636,7 +652,7 @@ if (-e $archivo_publicos) {
             }
 
             # 2.2 Búsqueda en columna CONCEPTO de folios_recibos_publicos.dat (Paciente: ...)
-            if (!$nombre_pac && $f->[12] && $f->[12] =~ /Paciente:\s*([^\|]+)/i) {
+            if (!$nombre_pac && $concepto_raw && $concepto_raw =~ /Paciente:\s*([^\|-]+)/i) {
                 my $nom = $1;
                 $nom =~ s/^\s+|\s+$//g;
                 $nombre_pac = $nom if ($nom && $nom !~ /^Metodo:/i);
@@ -645,7 +661,7 @@ if (-e $archivo_publicos) {
             # 2.3 Búsqueda de coincidencia textual de beneficiarios del empleado en ítems o concepto
             if (!$nombre_pac && $num_emp && exists $beneficiarios_por_emp{$num_emp}) {
                 my $bens = $beneficiarios_por_emp{$num_emp};
-                my $texto_busqueda = ($f->[12] || '') . ' ' . $items_raw;
+                my $texto_busqueda = ($concepto_raw || '') . ' ' . ($items_raw || '');
                 foreach my $b (@$bens) {
                     if (index(uc($texto_busqueda), uc($b)) != -1) {
                         $nombre_pac = $b;
@@ -655,7 +671,7 @@ if (-e $archivo_publicos) {
             }
 
             # 2.4 Contexto clínico de especialidad pediátrica (un empleado adulto no consulta pediatría; consulta el beneficiario menor)
-            if (!$nombre_pac && $num_emp && ($items_raw =~ /PEDIATR/i || ($f->[12] && $f->[12] =~ /PEDIATR/i))) {
+            if (!$nombre_pac && $num_emp && (($items_raw && $items_raw =~ /PEDIATR/i) || ($concepto_raw && $concepto_raw =~ /PEDIATR/i))) {
                 if ($bens_info{$num_emp}) {
                     for my $bi (@{$bens_info{$num_emp}}) {
                         if (($bi->{parentesco} && $bi->{parentesco} eq '6') || ($bi->{parentesco2} && $bi->{parentesco2} eq '6')) {
@@ -684,7 +700,13 @@ if (-e $archivo_publicos) {
                 $origen_pub = 'Consulta Municipio';
             }
 
-            my $concepto_cxc = resolver_concepto_recibo($f->[12] || '', $items_raw);
+            my $concepto_cxc = resolver_concepto_recibo($concepto_raw || '', $items_raw);
+
+            my $motivo_cxc = '';
+            if ($is_cancelado) {
+                $motivo_cxc = ($f->[14] && $f->[14] =~ /^\s*\[/) ? ($f->[17] || $f->[16] || '') : ($f->[16] || $f->[15] || '');
+                $motivo_cxc ||= 'Sin motivo registrado';
+            }
 
             push @cxc_filtrados, {
                 folio             => $folio_corto || $folio_raw,
@@ -700,7 +722,7 @@ if (-e $archivo_publicos) {
                 forma_pago        => $f->[10] || 'Crédito CxC',
                 monto             => $monto_cxc,
                 estatus           => $is_cancelado ? 'Cancelado' : 'Activo',
-                motivo            => $is_cancelado ? ($f->[16] || $f->[15] || 'Sin motivo registrado') : ''
+                motivo            => $motivo_cxc
             };
         }
     }

@@ -1839,6 +1839,14 @@ PAGE_HTML
             }
         },
         { 
+            data: 'dependencia',
+            render: function(data, type, row) {
+                let dep = data || 'Municipio';
+                let isCancel = (row.estatus === 'Cancelado');
+                return `<div class="d-inline-block text-truncate border rounded px-2 py-0 bg-light text-dark ${isCancel ? 'text-decoration-line-through opacity-75' : ''}" style="max-width: 150px; font-size: 9.5px;" title="${escapeHtml(dep)}"><i class="bi bi-building me-1 text-info"></i>${escapeHtml(dep)}</div>`;
+            }
+        },
+        { 
             data: 'medico',
             render: function(data, type, row) {
                 let med = (data || '').trim();
@@ -1867,13 +1875,6 @@ PAGE_HTML
             }
         },
         { 
-            data: 'dependencia',
-            render: function(data, type, row) {
-                let dep = data || 'Municipio';
-                return `<div class="d-inline-block text-truncate border rounded px-2 py-0 bg-light text-dark" style="max-width: 150px; font-size: 9.5px;" title="${dep}"><i class="bi bi-building me-1 text-info"></i>${dep}</div>`;
-            }
-        },
-        { 
             data: 'monto', 
             className: 'text-end',
             render: function(data, type, row) {
@@ -1883,6 +1884,22 @@ PAGE_HTML
                     return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
                 }
                 return `<span class="text-info fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+            }
+        },
+        {
+            data: null,
+            className: 'text-center',
+            orderable: false,
+            render: function(data, type, row) {
+                let f = row.folio_raw || row.folio || '';
+                let isCancel = (row.estatus === 'Cancelado');
+                let btnDelete = isCancel ?
+                    `<button class="btn btn-sm btn-link text-secondary p-1 disabled" title="Ya está cancelado"><i class="bi bi-x-circle text-muted"></i></button>` :
+                    `<button class="btn btn-sm btn-link text-danger p-1 shadow-none" onclick="cancelarRecibo('${f}', 'publicos')" title="Cancelar Recibo"><i class="bi bi-trash-fill"></i></button>`;
+                return `<div class="d-flex justify-content-center align-items-center gap-2">
+                    <button class="btn btn-sm btn-link p-1 shadow-none" onclick="window.open('../api/ver_recibo.pl?tipo=publicos&id_os=${f}', '_blank')" title="Ver / Imprimir Recibo Municipio"><i class="fas fa-receipt" style="color: #0A2A66; font-size: 1.15rem;"></i></button>
+                    ${btnDelete}
+                </div>`;
             }
         }
     ];

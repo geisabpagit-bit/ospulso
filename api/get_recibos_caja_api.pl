@@ -147,7 +147,18 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
         my $fecha = $r[6] || '';
         my $total = $r[8] || 0;
         my $elaborado_por = $r[11] || '';
-        my $concepto_recibo = $r[12] || 'Servicios Múltiples';
+        my ($concepto_recibo, $items_json_str, $estatus, $id_medico_saved);
+        if (defined $r[14] && $r[14] =~ /^\s*\[/) {
+            $concepto_recibo = ($r[12] || '') . ' - ' . ($r[13] || '');
+            $items_json_str  = $r[14] || '';
+            $estatus         = $r[15] || 'Cobrado';
+            $id_medico_saved = $r[16] || $elaborado_por;
+        } else {
+            $concepto_recibo = $r[12] || 'Servicios Múltiples';
+            $items_json_str  = $r[13] || '';
+            $estatus         = $r[14] || 'Cobrado';
+            $id_medico_saved = $r[15] || $elaborado_por;
+        }
         
         # Filtros de tipo
         if ($tipo eq 'publicos') {
@@ -184,14 +195,12 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
             $nombre_final = "<strong>Empleado:</strong> $num_emp - $empleado_nombre<br><strong>Paciente:</strong> $paciente_nombre";
         }
         
-        # El ID del médico (si se guardó) viene en $r[15], de lo contrario fallback a elaborado_por
-        my $id_medico_saved = $r[15] || $elaborado_por;
         my $medico = '';
 
         # 1. Extraer primero de ITEMS_JSON si el ítem guardó 'medico' o 'nombre_medico' de la transacción
-        if ($r[13] && $r[13] ne '[]') {
+        if ($items_json_str && $items_json_str ne '[]') {
             eval {
-                my $items_list = JSON::decode_json($r[13]);
+                my $items_list = JSON::decode_json($items_json_str);
                 if (ref($items_list) eq 'ARRAY') {
                     foreach my $it (@$items_list) {
                         if ($it->{medico} || $it->{nombre_medico}) {
@@ -237,7 +246,6 @@ if (-e $folios_file && open(my $fh, '<:encoding(UTF-8)', $folios_file)) {
         my $btn_print = qq{<a href="../api/$script_print?id_consulta=$folio_absoluto" target="_blank" class="btn btn-sm btn-info text-white me-1" title="Ver Recibo (HTML)"><i class="bi bi-file-earmark-text"></i></a>};
         my $btn_cancel = qq{<button onclick="cancelarRecibo('$folio_absoluto', '$tipo')" class="btn btn-sm btn-danger text-white" title="Borrar Recibo"><i class="bi bi-trash"></i></button>};
         
-        my $estatus = $r[14] || 'Cobrado';
         my $estatus_badge = $estatus eq 'Cancelado' ? '<span class="badge bg-danger">Cancelado</span>' : '<span class="badge bg-success">Cobrado</span>';
         
         push @data, {
