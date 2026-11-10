@@ -3,7 +3,9 @@
 ## 1. Visión General y Arquitectura
 El Módulo de **Catálogo Universal** (`views/manage_catalogo_universal.pl`) implementa una arquitectura relacional normalizada (3NF) aislada por organización/tenant bajo la clave sanitaria CLUES (`dat/catalogos_CLUE/<CLUES>/`).
 Permite la administración integral de Departamentos, Categorías, Servicios, Productos y Tipos de Tarifa / Condiciones.
-Su acceso principal desde el panel administrativo de tarjetas se encuentra enlazado a través de `dat/catalogo_cards.dat` (`cat_catalogo_org`), garantizando que la navegación visual de la consola dirija al catálogo relacional 3NF.
+Su acceso desde el panel administrativo de tarjetas (`views/render_catalogo_principal.pl`) opera mediante **enrutamiento polimórfico inteligente**:
+- Si la organización en sesión cuenta con clave sanitaria CLUES (`$rutas->{is_universal} == 1`), la tarjeta `cat_catalogo_org` se titula **"Catálogo Universal"** y conduce a `manage_catalogo_universal.pl`.
+- Si la organización es un consultorio privado estándar sin CLUES (ej. dental o nutrición), la tarjeta se titula **"Catálogo de Servicios"** y conduce al catálogo 2D `manage_servicios.pl`, preservando la compatibilidad de cotizaciones y presupuestos históricos.
 
 ---
 

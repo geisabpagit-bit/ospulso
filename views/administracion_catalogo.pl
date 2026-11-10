@@ -44,8 +44,8 @@ if ($session_ok) {
         skip_header => 1 
     );
 
-    # 2. Renderizamos el contenido de Catálogos (NIVEL 2)
-    render_catalogo_principal(role => $role);
+    # 2. Renderizamos el contenido de Catálogos (NIVEL 2 con resolución polimórfica)
+    render_catalogo_principal(role => $role, id_empresa => ($session_data->{id_empresa} || 0));
 
     # 3. Navegación Inferior (Móvil)
     render_bottom_nav('ajustes');

@@ -99,13 +99,44 @@ sub render_catalogo_principal {
     <div class="row g-4 justify-content-start">
 HTML
 
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+
     # Generación de Cards basada en el Rol (NIVEL 2)
+    my $id_empresa_activa = $args{id_empresa};
+    if (!defined $id_empresa_activa || $id_empresa_activa eq '') {
+        eval {
+            require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
+            my $sd = check_session();
+            $id_empresa_activa = $sd->{id_empresa} if $sd && defined $sd->{id_empresa};
+        };
+    }
+
     foreach my $menu_key (@menu_keys) {
         $menu_key =~ s/^\s+|\s+$//g;
         next unless $CARD_DETAILS->{$menu_key};
 
-        my $details = $CARD_DETAILS->{$menu_key};
-        my $url     = $details->{destino} || 'administracion_catalogo.pl';
+        my $details = { %{$CARD_DETAILS->{$menu_key}} }; # Copia local para evitar mutaciones globales
+
+        # Resolución Polimórfica Inteligente de Catálogo: 3NF (CLUES) vs 2D (Consultorios estándar)
+        if ($menu_key eq 'cat_catalogo_org' || $menu_key eq 'cat_servicios') {
+            my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_empresa_activa || 0);
+            my $rutas = catalogo_org_utils::obtener_rutas_catalogo($id_raiz);
+            if ($rutas && $rutas->{is_universal}) {
+                $details->{destino} = 'views/manage_catalogo_universal.pl';
+                $details->{title}   = 'Catálogo Universal';
+                $details->{desc}    = 'Gestión centralizada del catálogo maestro 3NF de servicios, productos y tarifas.';
+                $details->{icon}    = 'bi-globe';
+                $details->{color}   = 'primary';
+            } else {
+                $details->{destino} = 'views/manage_servicios.pl';
+                $details->{title}   = 'Catálogo de Servicios';
+                $details->{desc}    = 'Gestión de servicios y productos de la organización.';
+                $details->{icon}    = 'bi-tags-fill';
+                $details->{color}   = 'warning';
+            }
+        }
+
+        my $url = $details->{destino} || 'administracion_catalogo.pl';
         $url =~ s/^views\///; # Evitar duplicación de carpeta /views/ al estar ya en ella
 
         print <<CARD_HTML;

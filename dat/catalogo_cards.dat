@@ -2,7 +2,7 @@ CLAVE_SUBMENU|ARCHIVO_DESTINO|TÍTULO|DESCRIPCIÓN|ICONO_BS|COLOR_BS
 cat_admin_global|views/admin_global.pl|Hard Reset|Reinicio de la BD|bi-globe|danger
 cat_backups|views/admin_backups.pl|Backup / Restore|Copias de seguridad del sistema global.|bi-hdd-network-fill|primary
 cat_config|views/manage_config.pl|Catálogos globales|Administración de datos Maestros y Tablas Generales.|bi-gear-fill|danger
-cat_catalogo_org|views/manage_catalogo_universal.pl|Catálogo Universal|Gestión centralizada del catálogo maestro 3NF de servicios, productos y tarifas.|bi-globe|warning
+cat_catalogo_org|views/manage_servicios.pl|Catálogo de Servicios|Gestión de servicios y productos de la organización.|bi-tags-fill|warning
 cat_migracion|views/admin_migracion.pl|Migración SaaS|Copia completa del código fuente e información para traspaso de servidor.|bi-cloud-arrow-down-fill|dark
 cat_hot_deploy|javascript:iniciarHotDeploy()|Actualización en Caliente|Descarga y despliega en caliente la última versión de GitHub sin tocar /dat.|bi-lightning-charge-fill|success
 
