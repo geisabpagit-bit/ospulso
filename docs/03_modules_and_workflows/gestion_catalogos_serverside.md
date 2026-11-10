@@ -62,6 +62,7 @@ Para optimizar el rendimiento y la memoria en el navegador frente a catálogos e
 - Modificaciones a catálogos se realizan bajo codificación `:raw :encoding(UTF-8)`.
 - Bloqueo concurrente mediante `flock($fh, LOCK_EX)`.
 - Formato de fin de línea estricto: **Pure LF (`\n`, 0 CRLF)**.
+- **Serialización Segura a JavaScript (Anti-Mojibake)**: Al inyectar variables de catálogo en el DOM (`window.CATALOGO_TIPOS_TARIFAS`, etc.) dentro de scripts Perl con `use open qw(:std :utf8)`, se utiliza `JSON::PP->new->ascii(1)->encode(...)`. Esto escapa caracteres no ASCII a formato canónico `\uXXXX`, erradicando la doble codificación UTF-8 que generaba caracteres rotos (ej. `ESTÃNDAR` en lugar de `ESTÁNDAR`) en los dropdowns de la interfaz.
 
 ---
 

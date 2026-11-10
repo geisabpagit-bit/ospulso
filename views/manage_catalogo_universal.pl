@@ -389,10 +389,11 @@ foreach my $dep (@deps_ordenados) {
     $deps_options .= "<option value='$dep->{id_dep}'>$dep->{nombre}</option>";
 }
 
-my $deps_json = encode_json(\@deps_ordenados);
-my $cats_json = encode_json(\@cats_ordenadas);
-my $items_min_json = encode_json([ map { { id_item => $_->{id_item}, codigo_sku => ($_->{codigo_sku} // ''), id_cat => ($_->{id_cat} // '') } } @{$cat_univ->{items} || []} ]);
-my $tipos_tarifas_json = encode_json($cat_univ->{tipos_tarifas} || []);
+my $json_safe = JSON::PP->new->ascii(1);
+my $deps_json = $json_safe->encode(\@deps_ordenados);
+my $cats_json = $json_safe->encode(\@cats_ordenadas);
+my $items_min_json = $json_safe->encode([ map { { id_item => $_->{id_item}, codigo_sku => ($_->{codigo_sku} // ''), id_cat => ($_->{id_cat} // '') } } @{$cat_univ->{items} || []} ]);
+my $tipos_tarifas_json = $json_safe->encode($cat_univ->{tipos_tarifas} || []);
 
 print <<HTML;
 <div id="config-catalogo" style="display:none;" data-cats="$cats_options" data-deps="$deps_options"></div>
