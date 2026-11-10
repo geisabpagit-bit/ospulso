@@ -1072,15 +1072,29 @@ print <<'JS';
                     });
                 });
 
-                (res.catalogo.productos || []).forEach(p => {
-                    masterCatalogoRecibo.push({
-                        id: p.id_prod,
-                        nombre: p.nombre,
-                        precio: parseFloat(p.precio) || 0,
-                        cat: '',
-                        dep: ''
+                // Mapear Productos al departamento virtual 'FARMACIA' para permitir filtrado por departamento
+                if (res.catalogo.productos && res.catalogo.productos.length > 0) {
+                    recDepsMap['FARMACIA'] = 'Farmacia / Insumos';
+                    recCatsMap['FARMACIA_CAT'] = { n: 'Medicamentos y Materiales', d: 'FARMACIA' };
+
+                    res.catalogo.productos.forEach(p => {
+                        let precioP = parseFloat(p.precio) || 0;
+                        let nombreDisplay = p.nombre ? (p.presentacion ? p.nombre + ' (' + p.presentacion + ')' : p.nombre) : 'Producto';
+                        masterCatalogoRecibo.push({
+                            id: 'PROD-' + p.id_prod,
+                            id_prod: p.id_prod,
+                            nombre: nombreDisplay,
+                            precio_estandar: precioP,
+                            precio_municipio: precioP,
+                            precio: precioP,
+                            precios: [{ tipo_tarifa: 'ESTANDAR', precio_publico: precioP }],
+                            indicaciones: p.descripcion || '',
+                            cat: 'FARMACIA_CAT',
+                            dep: 'FARMACIA',
+                            is_producto: true
+                        });
                     });
-                });
+                }
 
                 _poblarFiltrosRecibo();
                 _poblarDepartamentosSegunPaciente();
@@ -1088,9 +1102,24 @@ print <<'JS';
                 (res.servicios || []).forEach(s => {
                     masterCatalogoRecibo.push({ id: s.id, nombre: s.nombre, precio: parseFloat(s.precio) || 0, cat: '', dep: '' });
                 });
-                (res.productos || []).forEach(p => {
-                    masterCatalogoRecibo.push({ id: p.id, nombre: p.nombre, precio: parseFloat(p.precio) || 0, cat: '', dep: '' });
-                });
+                if (res.productos && res.productos.length > 0) {
+                    recDepsMap['FARMACIA'] = 'Farmacia / Insumos';
+                    recCatsMap['FARMACIA_CAT'] = { n: 'Medicamentos y Materiales', d: 'FARMACIA' };
+                    res.productos.forEach(p => {
+                        let precioP = parseFloat(p.precio) || 0;
+                        masterCatalogoRecibo.push({
+                            id: 'PROD-' + (p.id || p.id_prod),
+                            nombre: p.nombre,
+                            precio_estandar: precioP,
+                            precio_municipio: precioP,
+                            precio: precioP,
+                            precios: [{ tipo_tarifa: 'ESTANDAR', precio_publico: precioP }],
+                            cat: 'FARMACIA_CAT',
+                            dep: 'FARMACIA',
+                            is_producto: true
+                        });
+                    });
+                }
             }
         } catch (e) {
             console.error("Error al cargar catálogo de recibo:", e);

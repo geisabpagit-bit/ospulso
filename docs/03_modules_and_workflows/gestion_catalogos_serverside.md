@@ -74,3 +74,10 @@ Para optimizar el rendimiento y la memoria en el navegador frente a catálogos e
 - **Regla de Guarda Estricta**: La función `obtener_rutas_por_clue` implementa un guard clause temprano: si `$clues` está vacío o no contiene caracteres no vacíos (`!defined $clues || $clues !~ /\S/`), devuelve un hashref seguro con rutas vacías y `is_universal => 0`, omitiendo cualquier creación en disco.
 - **Creación Segura**: La condición de auto-sembrado exige que `$clues ne ''` y que el subdirectorio específico del CLUE (`-d $clue_dir`) exista físicamente antes de emitir cualquier archivo `.dat`.
 
+---
+
+## 7. Visibilidad Departamental de Productos en Caja Rápida (`views/generar_recibo.pl`)
+- **Problema Solucionado**: Los productos físicos (`productos_<CLUES>.dat`) carecen de columnas relacionales `ID_DEP` e `ID_CAT`. Al cargarse en memoria sin departamento (`dep: ''`), cualquier filtrado departamental en el modal de conceptos los excluía de la vista.
+- **Mapeo Virtual en Tiempo de Ejecución**: En `_cargarCatalogoRecibo()`, los productos se registran bajo el departamento virtual `FARMACIA` (*"Farmacia / Insumos"*) y categoría `FARMACIA_CAT` (*"Medicamentos y Materiales"*).
+- **Compatibilidad e Inmutabilidad**: Esto permite que el personal de caja filtre exclusivamente los medicamentos y materiales sin alterar la estructura física ni el contenido plano de `productos_<CLUES>.dat`, conservando la total compatibilidad con cotizaciones y recibos históricos.
+
