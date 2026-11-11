@@ -14,7 +14,6 @@ use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
-require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_bottom_nav.pl');
 use utils::db_manager qw(leer_tabla);
 
@@ -364,19 +363,48 @@ print <<'JS';
                 (data.catalogo.items || []).forEach(function(c) {
                     let pObj = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (c.precios || [])[0];
                     let precio = pObj ? parseFloat(pObj.precio_publico || 0) : 0;
-                    catalogoMaster.push({ id: c.id_item, nombre: c.concepto || c.nombre, precio: precio });
+                    catalogoMaster.push({
+                        id: c.id_item,
+                        nombre: c.concepto || c.nombre,
+                        precio: precio,
+                        is_producto: false
+                    });
                 });
                 (data.catalogo.productos || []).forEach(function(p) {
-                    catalogoMaster.push({ id: p.id_prod, nombre: p.nombre, precio: parseFloat(p.precio) || 0 });
+                    catalogoMaster.push({
+                        id: 'P-' + p.id_prod,
+                        id_prod: String(p.id_prod),
+                        nombre: p.nombre,
+                        presentacion: p.presentacion || '',
+                        precio: parseFloat(p.precio) || 0,
+                        cantidad: parseInt(p.cantidad !== undefined ? p.cantidad : 0, 10),
+                        stock_minimo: parseInt(p.stock_minimo !== undefined ? p.stock_minimo : 5, 10),
+                        is_producto: true
+                    });
                 });
             } else {
-                catalogoMaster = [...(data.servicios || []), ...(data.productos || [])];
+                const servs = (data.servicios || []).map(s => ({
+                    ...s,
+                    precio: parseFloat(s.precio) || 0,
+                    is_producto: false
+                }));
+                const prods = (data.productos || []).map(p => ({
+                    ...p,
+                    id: p.id || ('P-' + p.id_prod),
+                    id_prod: String(p.id_prod || String(p.id || '').replace(/^P-/, '')),
+                    precio: parseFloat(p.precio) || 0,
+                    cantidad: parseInt(p.cantidad !== undefined ? p.cantidad : 0, 10),
+                    stock_minimo: parseInt(p.stock_minimo !== undefined ? p.stock_minimo : 5, 10),
+                    is_producto: true
+                }));
+                catalogoMaster = [...servs, ...prods];
             }
         } catch(e) {
             console.error("Error al cargar catálogo:", e);
             catalogoMaster = [];
         }
-        renderCatalogo('');
+        const buscador = document.getElementById('txt_buscar_catalogo');
+        renderCatalogo(buscador ? buscador.value : '');
     }
 
     function renderCatalogo(filtro = '') {
@@ -395,13 +423,36 @@ print <<'JS';
         items.forEach(it => {
             const idEsc = encodeURIComponent(it.id || it.nombre);
             const nomEsc = encodeURIComponent(it.nombre || '');
+            let badgeStock = '';
+            let isAgotado = false;
+
+            if (it.is_producto) {
+                const stockAct = parseInt(it.cantidad !== undefined ? it.cantidad : 0, 10);
+                const stockMin = parseInt(it.stock_minimo !== undefined ? it.stock_minimo : 5, 10);
+                if (stockAct <= 0) {
+                    isAgotado = true;
+                    badgeStock = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-2" style="font-size:0.68rem;">Agotado (0)</span>';
+                } else if (stockAct <= stockMin) {
+                    badgeStock = `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning ms-2" style="font-size:0.68rem;">Bajo Stock: ${stockAct} u.</span>`;
+                } else {
+                    badgeStock = `<span class="badge bg-info bg-opacity-10 text-info border border-info ms-2" style="font-size:0.68rem;">Stock: ${stockAct} u.</span>`;
+                }
+            }
+
+            const rowStyle = isAgotado ? 'cursor: not-allowed; opacity: 0.6;' : 'cursor: pointer;';
+            const rowClick = isAgotado
+                ? `Swal.fire('Producto Agotado', 'El producto no cuenta con unidades disponibles en inventario (Stock: 0).', 'error')`
+                : `agregarAlCarrito('${idEsc}', '${nomEsc}', ${it.precio})`;
+
             html += `
-                <tr style="cursor: pointer;" onclick="agregarAlCarrito('${idEsc}', '${nomEsc}', ${it.precio})">
-                    <td class="ps-3 py-2 fw-bold text-dark small text-truncate" style="max-width: 280px;">${it.nombre}</td>
+                <tr style="${rowStyle}" onclick="${rowClick}">
+                    <td class="ps-3 py-2 fw-bold text-dark small" style="max-width: 280px;">
+                        <span class="text-truncate d-inline-block align-middle" style="max-width: 190px;" title="${it.nombre}">${it.nombre}</span>${badgeStock}
+                    </td>
                     <td class="text-end py-2 text-primary fw-bold small">$${parseFloat(it.precio || 0).toFixed(2)}</td>
                     <td class="text-center py-2">
-                        <button type="button" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
-                            <i class="bi bi-plus-lg"></i>
+                        <button type="button" class="btn btn-sm ${isAgotado ? 'btn-outline-secondary' : 'btn-outline-primary'} rounded-circle p-1 d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" ${isAgotado ? 'disabled' : ''}>
+                            <i class="bi ${isAgotado ? 'bi-slash-circle' : 'bi-plus-lg'}"></i>
                         </button>
                     </td>
                 </tr>
@@ -435,14 +486,32 @@ print <<'JS';
     }
 
     function agregarAlCarrito(idRaw, nombreRaw, precio) {
+        const idDecoded = decodeURIComponent(idRaw);
         const nombre = decodeURIComponent(nombreRaw);
-        const idx = carrito.findIndex(i => i.nombre === nombre && Math.abs(i.precio - precio) < 0.001);
+        const catItem = catalogoMaster.find(c => String(c.id) === String(idDecoded));
+        const isProd = catItem ? !!catItem.is_producto : String(idDecoded).startsWith('P-');
+        const idProd = catItem && catItem.id_prod ? catItem.id_prod : (isProd ? String(idDecoded).replace(/^P-/, '') : '');
+        const stockMax = (catItem && catItem.is_producto) ? parseInt(catItem.cantidad !== undefined ? catItem.cantidad : 0, 10) : null;
+
+        if (isProd && stockMax !== null && stockMax <= 0) {
+            Swal.fire('Producto Agotado', `El producto "${nombre}" se encuentra agotado (Stock: 0).`, 'error');
+            return;
+        }
+
+        const idx = carrito.findIndex(i => (i.id && i.id === idDecoded) || (i.nombre === nombre && Math.abs(i.precio - precio) < 0.001));
         if (idx !== -1) {
+            if (isProd && stockMax !== null && (carrito[idx].cantidad + 1) > stockMax) {
+                Swal.fire('Stock Insuficiente', `Solo hay ${stockMax} unidad(es) disponible(s) de "${nombre}".`, 'warning');
+                return;
+            }
             carrito[idx].cantidad += 1;
             carrito[idx].subtotal = carrito[idx].cantidad * carrito[idx].precio;
         } else {
             carrito.push({
-                id: decodeURIComponent(idRaw),
+                id: idDecoded,
+                id_prod: idProd,
+                is_producto: isProd,
+                stock_max: stockMax,
                 nombre: nombre,
                 precio: parseFloat(precio || 0),
                 cantidad: 1,
@@ -454,11 +523,18 @@ print <<'JS';
 
     function cambiarCantidad(idx, delta) {
         if (!carrito[idx]) return;
-        carrito[idx].cantidad += delta;
-        if (carrito[idx].cantidad <= 0) {
+        const item = carrito[idx];
+        if (delta > 0 && item.is_producto && item.stock_max !== null && item.stock_max !== undefined) {
+            if ((item.cantidad + delta) > item.stock_max) {
+                Swal.fire('Stock Insuficiente', `Solo hay ${item.stock_max} unidad(es) disponible(s) de "${item.nombre}".`, 'warning');
+                return;
+            }
+        }
+        item.cantidad += delta;
+        if (item.cantidad <= 0) {
             carrito.splice(idx, 1);
         } else {
-            carrito[idx].subtotal = carrito[idx].cantidad * carrito[idx].precio;
+            item.subtotal = item.cantidad * item.precio;
         }
         renderCarrito();
     }
@@ -591,8 +667,11 @@ print <<'JS';
             montoCobrar = abonoVal;
         }
 
-        // Formatear items para api/guardar_recibo_rapido.pl
+        // Formatear items para api/guardar_recibo_rapido.pl (preservando id_prod e is_producto para descuento atómico de stock)
         const itemsPayload = carrito.map(it => ({
+            id: it.id || '',
+            id_prod: it.id_prod || '',
+            is_producto: it.is_producto ? 1 : 0,
             concepto: it.nombre,
             nombre: it.nombre,
             precio: it.precio,
@@ -626,10 +705,20 @@ print <<'JS';
 
             if (data.ok) {
                 const folioRecibo = data.folio || data.id_recibo || '';
+                let alertasHtml = '';
+                if (Array.isArray(data.alertas_stock) && data.alertas_stock.length > 0) {
+                    const itemsAlerta = data.alertas_stock.map(a => `<li class="text-start small mb-1">${a}</li>`).join('');
+                    alertasHtml = `
+                        <div class="alert alert-warning border-warning text-start mt-3 mb-0 p-2 rounded-3">
+                            <div class="fw-bold small text-warning-emphasis mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Alerta de Inventario (Stock Mínimo):</div>
+                            <ul class="mb-0 ps-3">${itemsAlerta}</ul>
+                        </div>
+                    `;
+                }
                 Swal.fire({
                     icon: 'success',
                     title: '¡Cobro Exitoso!',
-                    html: `Recibo generado satisfactoriamente.<br><strong class="fs-4 text-navy">Folio: ${folioRecibo}</strong>`,
+                    html: `Recibo generado satisfactoriamente.<br><strong class="fs-4 text-navy">Folio: ${folioRecibo}</strong>${alertasHtml}`,
                     showDenyButton: true,
                     confirmButtonText: '<i class="bi bi-printer me-1"></i> Imprimir Recibo',
                     denyButtonText: '<i class="bi bi-plus-circle me-1"></i> Nueva Venta',
@@ -641,6 +730,7 @@ print <<'JS';
                         window.open('../api/imprimir_recibo_caja_consultorio.pl?id_consulta=' + encodeURIComponent(folioRecibo), '_blank');
                     }
                     limpiarCarrito();
+                    cargarCatalogo();
                     document.getElementById('txt_concepto_recibo').value = '';
                     document.getElementById('txt_monto_abono').value = '';
                 });

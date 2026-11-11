@@ -491,17 +491,33 @@ sub render_step_caja_privado {
                         (data.catalogo.items || []).forEach(function(c) {
                             var pObj = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (c.precios || [])[0];
                             var precio = pObj ? parseFloat(pObj.precio_publico || 0) : 0;
-                            catalogoMasterConsultas.push({ id: c.id_item, nombre: fixUTF8(c.concepto || c.nombre), precio: precio });
+                            catalogoMasterConsultas.push({ id: c.id_item, nombre: fixUTF8(c.concepto || c.nombre), precio: precio, is_producto: false });
                         });
                         (data.catalogo.productos || []).forEach(function(p) {
-                            catalogoMasterConsultas.push({ id: p.id_prod, nombre: fixUTF8(p.nombre), precio: parseFloat(p.precio) || 0 });
+                            catalogoMasterConsultas.push({
+                                id: 'P-' + p.id_prod,
+                                id_prod: String(p.id_prod),
+                                nombre: fixUTF8(p.nombre),
+                                precio: parseFloat(p.precio) || 0,
+                                cantidad: parseInt(p.cantidad !== undefined ? p.cantidad : 0, 10),
+                                stock_minimo: parseInt(p.stock_minimo !== undefined ? p.stock_minimo : 5, 10),
+                                is_producto: true
+                            });
                         });
                     } else {
                         (data.servicios || []).forEach(function(s) {
-                            catalogoMasterConsultas.push({ id: s.id, nombre: fixUTF8(s.nombre), precio: parseFloat(s.precio) || 0 });
+                            catalogoMasterConsultas.push({ id: s.id, nombre: fixUTF8(s.nombre), precio: parseFloat(s.precio) || 0, is_producto: false });
                         });
                         (data.productos || []).forEach(function(p) {
-                            catalogoMasterConsultas.push({ id: p.id, nombre: fixUTF8(p.nombre), precio: parseFloat(p.precio) || 0 });
+                            catalogoMasterConsultas.push({
+                                id: p.id || ('P-' + p.id_prod),
+                                id_prod: String(p.id_prod || String(p.id || '').replace(/^P-/, '')),
+                                nombre: fixUTF8(p.nombre),
+                                precio: parseFloat(p.precio) || 0,
+                                cantidad: parseInt(p.cantidad !== undefined ? p.cantidad : 0, 10),
+                                stock_minimo: parseInt(p.stock_minimo !== undefined ? p.stock_minimo : 5, 10),
+                                is_producto: true
+                            });
                         });
                     }
                 } catch(e) {
@@ -518,12 +534,30 @@ sub render_step_caja_privado {
             
             filtered.forEach(it => {
                 const nombreSano = fixUTF8(it.nombre);
+                let badgeStock = '';
+                let isAgotado = false;
+                if (it.is_producto) {
+                    const stockAct = parseInt(it.cantidad !== undefined ? it.cantidad : 0, 10);
+                    const stockMin = parseInt(it.stock_minimo !== undefined ? it.stock_minimo : 5, 10);
+                    if (stockAct <= 0) {
+                        isAgotado = true;
+                        badgeStock = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-2" style="font-size:0.65rem;">Agotado (0)</span>';
+                    } else if (stockAct <= stockMin) {
+                        badgeStock = `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning ms-2" style="font-size:0.65rem;">Bajo Stock: \${stockAct} u.</span>`;
+                    } else {
+                        badgeStock = `<span class="badge bg-info bg-opacity-10 text-info border border-info ms-2" style="font-size:0.65rem;">Stock: \${stockAct} u.</span>`;
+                    }
+                }
+                const rowStyle = isAgotado ? 'cursor:not-allowed; opacity:0.6;' : 'cursor:pointer;';
+                const rowClick = isAgotado
+                    ? `Swal.fire("Producto Agotado", "Este producto no cuenta con existencias disponibles (Stock: 0).", "error")`
+                    : `agregarAlCarritoConsultas('\${it.id}')`;
                 tbody.innerHTML += `
-                    <tr style="cursor:pointer;" onclick="agregarAlCarritoConsultas('\${it.id}')">
-                        <td class="fw-bold text-dark small text-truncate" style="max-width:250px;">\${nombreSano}</td>
+                    <tr style="\${rowStyle}" onclick="\${rowClick}">
+                        <td class="fw-bold text-dark small" style="max-width:250px;"><span class="text-truncate d-inline-block align-middle" style="max-width:170px;">\${nombreSano}</span>\${badgeStock}</td>
                         <td class="text-primary fw-bold text-end small">\$\${it.precio.toFixed(2)}</td>
                         <td class="text-center" style="width: 40px;">
-                            <div class="btn btn-sm btn-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width:24px; height:24px; padding:0; border:none;"><i class="bi bi-plus" style="font-size:1rem;"></i></div>
+                            <div class="btn btn-sm \${isAgotado ? 'btn-secondary' : 'btn-primary'} rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width:24px; height:24px; padding:0; border:none;"><i class="bi \${isAgotado ? 'bi-slash-circle' : 'bi-plus'}" style="font-size:1rem;"></i></div>
                         </td>
                     </tr>`;
             });
@@ -547,11 +581,29 @@ sub render_step_caja_privado {
         
         function agregarAlCarritoConsultas(id) {
             const it = catalogoMasterConsultas.find(x => x.id === id); if(!it) return;
+            const isProd = !!it.is_producto;
+            const stockMax = isProd ? parseInt(it.cantidad !== undefined ? it.cantidad : 0, 10) : null;
+            if (isProd && stockMax !== null && stockMax <= 0) {
+                Swal.fire("Producto Agotado", `El producto "\${it.nombre}" se encuentra agotado (Stock: 0).`, "error");
+                return;
+            }
             let ex = carritoLocalConsultas.find(x => x.id === id);
             if(ex) {
+                if (isProd && stockMax !== null && (ex.cantidad + 1) > stockMax) {
+                    Swal.fire("Stock Insuficiente", `Solo hay \${stockMax} unidad(es) disponible(s) de "\${it.nombre}".`, "warning");
+                    return;
+                }
                 ex.cantidad++;
             } else {
-                carritoLocalConsultas.push({ id: it.id, nombre: it.nombre, precio: parseFloat(it.precio), cantidad: 1 });
+                carritoLocalConsultas.push({
+                    id: it.id,
+                    id_prod: it.id_prod || '',
+                    is_producto: isProd ? 1 : 0,
+                    stock_max: stockMax,
+                    nombre: it.nombre,
+                    precio: parseFloat(it.precio),
+                    cantidad: 1
+                });
             }
             refrescarGUICarritoConsultas();
         }
@@ -585,10 +637,18 @@ sub render_step_caja_privado {
         }
         
         function updateLocalCartQty(idx, delta) {
-            if (carritoLocalConsultas[idx].cantidad + delta <= 0) {
+            const item = carritoLocalConsultas[idx];
+            if (!item) return;
+            if (delta > 0 && item.is_producto && item.stock_max !== null && item.stock_max !== undefined) {
+                if ((item.cantidad + delta) > item.stock_max) {
+                    Swal.fire("Stock Insuficiente", `Solo hay \${item.stock_max} unidad(es) disponible(s) de "\${item.nombre}".`, "warning");
+                    return;
+                }
+            }
+            if (item.cantidad + delta <= 0) {
                 carritoLocalConsultas.splice(idx, 1);
             } else {
-                carritoLocalConsultas[idx].cantidad += delta;
+                item.cantidad += delta;
             }
             refrescarGUICarritoConsultas();
         }

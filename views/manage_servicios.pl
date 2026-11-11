@@ -53,8 +53,12 @@ render_header(
     skip_header => 1
 );
 
-my $rutas_cat = catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
+my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_empresa);
+my $rutas_cat = catalogo_org_utils::obtener_rutas_catalogo($id_raiz);
 my $archivo_serv = $rutas_cat->{servicios};
+unless (-e $archivo_serv) {
+    catalogo_org_utils::crear_catalogo_org_desde_global($id_raiz);
+}
 
 my $regs = leer_tabla($archivo_serv, '\|');
 my @mis_servicios = ();
@@ -194,7 +198,9 @@ print <<HTML;
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+HTML
 
+print <<'JS';
 <script>
     // 1. Declarar funciones globales primero (Garantiza acceso en navegación SPA)
     window.toggleFormulario = function() {
@@ -242,11 +248,11 @@ print <<HTML;
     var dtServicios;
     function initServiciosTable() {
         try {
-            if (\$('#tablaServicios').length && \$('#tablaServicios tbody tr td').length > 1) {
-                dtServicios = \$('#tablaServicios').DataTable({
+            if ($('#tablaServicios').length && $('#tablaServicios tbody tr td').length > 1) {
+                dtServicios = $('#tablaServicios').DataTable({
                     destroy: true,
                     language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-                    dom: '<"p-3 d-flex justify-content-start align-items-center"B>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                    dom: '<"p-3 d-flex flex-wrap justify-content-between align-items-center gap-2"Bf>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
                     buttons: {
                         dom: {
                             container: { className: 'dt-buttons export-toolbar' },
@@ -300,7 +306,7 @@ print <<HTML;
     }
 
     try {
-        \$(document).ready(initServiciosTable);
+        $(document).ready(initServiciosTable);
         document.addEventListener("spa:contentLoaded", initServiciosTable);
     } catch(e) {
         console.error("Error al configurar bindings jQuery en servicios:", e);
@@ -359,6 +365,6 @@ print <<HTML;
         });
     };
 </script>
-HTML
+JS
 render_bottom_nav('servicios');
 print $q->end_html;

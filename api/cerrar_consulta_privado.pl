@@ -522,6 +522,84 @@ eval {
 };
 my $tiene_cargos_directos = (ref($caja_items) eq 'ARRAY' && @$caja_items) ? 1 : 0;
 
+# --- VALIDACIÓN Y DESCUENTO ATÓMICO DE STOCK DE PRODUCTOS EN CIERRE DE CONSULTA ---
+my @alertas_stock_cierre;
+if ($tiene_cargos_directos) {
+    my $id_raiz_cat_c = catalogo_org_utils::resolver_id_raiz_catalogo($id_neg);
+    my $rutas_cat_c   = catalogo_org_utils::obtener_rutas_catalogo($id_raiz_cat_c);
+    my $archivo_prod_c = $rutas_cat_c->{productos} || '';
+
+    my %demanda_prod_c;
+    foreach my $it (@$caja_items) {
+        my $raw_id = $it->{id} // '';
+        my $id_pr  = $it->{id_prod} // '';
+        if (!$id_pr && $raw_id =~ /^(?:PROD-|P-)(.+)$/) {
+            $id_pr = $1;
+        }
+        if ($it->{is_producto} || $raw_id =~ /^(?:PROD-|P-)/ || $id_pr ne '') {
+            $id_pr =~ s/^P-//;
+            my $cant_req = int($it->{cantidad} || 1);
+            $cant_req = 1 if $cant_req < 1;
+            $demanda_prod_c{$id_pr} += $cant_req if $id_pr ne '';
+        }
+    }
+
+    if (keys %demanda_prod_c && $archivo_prod_c && -e $archivo_prod_c) {
+        if (open(my $fh_pr, '+<:encoding(UTF-8)', $archivo_prod_c)) {
+            flock($fh_pr, LOCK_EX);
+            my @raw_pr_lines = <$fh_pr>;
+            my $pr_header = shift @raw_pr_lines // "id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo\n";
+            chomp $pr_header;
+            $pr_header .= "|stock_minimo" unless $pr_header =~ /stock_minimo/i;
+
+            my @nuevas_pr_lines;
+            foreach my $pl (@raw_pr_lines) {
+                chomp $pl;
+                next if $pl =~ /^\s*$/;
+                my @c = split(/\|/, $pl, -1);
+                push @c, '5' while @c < 7;
+                my $pid = $c[0] // '';
+
+                if (exists $demanda_prod_c{$pid}) {
+                    my $nom_p     = $c[1] || "Producto #$pid";
+                    my $stock_act = int($c[3] || 0);
+                    my $stock_min = (defined $c[6] && $c[6] ne '') ? int($c[6]) : 5;
+                    my $req_q     = $demanda_prod_c{$pid};
+
+                    if ($stock_act <= 0) {
+                        close($fh_pr);
+                        print encode_json({ ok => JSON::false, msg => "Cierre bloqueado: El producto '$nom_p' se encuentra agotado (Stock: 0)." });
+                        exit;
+                    }
+                    if ($req_q > $stock_act) {
+                        close($fh_pr);
+                        print encode_json({ ok => JSON::false, msg => "Stock insuficiente para '$nom_p': solicitó $req_q unidad(es) y solo hay $stock_act disponible(s)." });
+                        exit;
+                    }
+
+                    my $nuevo_stock = $stock_act - $req_q;
+                    $c[3] = $nuevo_stock;
+
+                    if ($nuevo_stock == 0) {
+                        push @alertas_stock_cierre, "$nom_p se ha AGOTADO (0 u. restantes / Mínimo: $stock_min).";
+                    } elsif ($nuevo_stock <= $stock_min) {
+                        push @alertas_stock_cierre, "$nom_p alcanzó nivel de stock bajo ($nuevo_stock u. restantes / Mínimo: $stock_min).";
+                    }
+                }
+                push @nuevas_pr_lines, join('|', @c[0..6]);
+            }
+
+            seek($fh_pr, 0, 0);
+            truncate($fh_pr, 0);
+            print $fh_pr "$pr_header\n";
+            foreach my $nlp (@nuevas_pr_lines) {
+                print $fh_pr "$nlp\n";
+            }
+            close($fh_pr);
+        }
+    }
+}
+
 my $caja_estado_tratamiento = $q->param('caja_estado_tratamiento') // 'Abierto';
 my $es_cobro_recepcion = ($caja_estado_tratamiento =~ /Cobro/i) ? 1 : 0;
 if ($es_cobro_recepcion) {
@@ -1050,6 +1128,7 @@ print encode_json({
     id_recibo      => $id_recibo,
     id_paciente    => $id_paciente,
     es_consultorio => $es_consultorio,
-    recibo_script  => ($es_consultorio ? 'imprimir_recibo_caja_consultorio.pl' : 'imprimir_recibo_caja.pl')
+    recibo_script  => ($es_consultorio ? 'imprimir_recibo_caja_consultorio.pl' : 'imprimir_recibo_caja.pl'),
+    alertas_stock  => \@alertas_stock_cierre
 });
 exit;

@@ -7,6 +7,7 @@ use CGI::Carp qw(fatalsToBrowser);
 use JSON::PP qw(encode_json decode_json);
 use FindBin;
 use File::Spec;
+use Fcntl qw(:flock);
 
 # Protocolo SDA-11.1: Rutas Absolutas Dinámicas
 my $dat_path = File::Spec->catdir($FindBin::Bin, '..', 'dat');
@@ -229,6 +230,81 @@ if ($accion eq 'get_catalogo') {
     my @lt = localtime($t);
     my $f = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $lt[5]+1900, $lt[4]+1, $lt[3], $lt[2], $lt[1], $lt[0]);
     my $f_folio = sprintf("%04d%02d%02d", $lt[5]+1900, $lt[4]+1, $lt[3]);
+
+    # 0. Validar y descontar stock de productos de forma atómica antes de registrar el cargo
+    my $id_emp_sesion = $session_data->{id_empresa} || 0;
+    my $id_raiz_cat = $id_emp_sesion ? catalogo_org_utils::resolver_id_raiz_catalogo($id_emp_sesion) : 0;
+    my $rutas_cat_p = $id_raiz_cat ? catalogo_org_utils::obtener_rutas_catalogo($id_raiz_cat) : {};
+    my $archivo_productos = $rutas_cat_p->{productos} || File::Spec->catfile($dat_path, 'productos.dat');
+
+    my %demanda_productos;
+    foreach my $it (@$items) {
+        my $raw_id = $it->{id} // '';
+        my $id_pr  = $it->{id_prod} // '';
+        if (!$id_pr && $raw_id =~ /^(?:PROD-|P-)(.+)$/) {
+            $id_pr = $1;
+        }
+        if ($it->{is_producto} || $raw_id =~ /^(?:PROD-|P-)/ || $id_pr ne '') {
+            $id_pr =~ s/^P-//;
+            my $cant_req = int($it->{cantidad} || 1);
+            $cant_req = 1 if $cant_req < 1;
+            $demanda_productos{$id_pr} += $cant_req if $id_pr ne '';
+        }
+    }
+
+    my @alertas_stock;
+    if (keys %demanda_productos && $archivo_productos && -e $archivo_productos) {
+        if (open(my $fh_prod, '+<:encoding(UTF-8)', $archivo_productos)) {
+            flock($fh_prod, LOCK_EX);
+            my @raw_prod_lines = <$fh_prod>;
+            my $prod_header = shift @raw_prod_lines // "id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo\n";
+            chomp $prod_header;
+            $prod_header .= "|stock_minimo" unless $prod_header =~ /stock_minimo/i;
+
+            my @nuevas_lineas_prod;
+            foreach my $pl (@raw_prod_lines) {
+                chomp $pl;
+                next if $pl =~ /^\s*$/;
+                my @c = split(/\|/, $pl, -1);
+                push @c, '5' while @c < 7;
+                my $pid = $c[0] // '';
+
+                if (exists $demanda_productos{$pid}) {
+                    my $nom_p     = $c[1] || "Producto #$pid";
+                    my $stock_act = int($c[3] || 0);
+                    my $stock_min = (defined $c[6] && $c[6] ne '') ? int($c[6]) : 5;
+                    my $req_q     = $demanda_productos{$pid};
+
+                    if ($stock_act <= 0) {
+                        close($fh_prod);
+                        responder({ success => 0, error => "Venta bloqueada: El producto '$nom_p' se encuentra agotado (Stock: 0)." });
+                    }
+                    if ($req_q > $stock_act) {
+                        close($fh_prod);
+                        responder({ success => 0, error => "Stock insuficiente para '$nom_p': solicitó $req_q unidad(es) y solo hay $stock_act disponible(s)." });
+                    }
+
+                    my $nuevo_stock = $stock_act - $req_q;
+                    $c[3] = $nuevo_stock;
+
+                    if ($nuevo_stock == 0) {
+                        push @alertas_stock, "$nom_p se ha AGOTADO (0 u. restantes / Mínimo: $stock_min).";
+                    } elsif ($nuevo_stock <= $stock_min) {
+                        push @alertas_stock, "$nom_p alcanzó nivel de stock bajo ($nuevo_stock u. restantes / Mínimo: $stock_min).";
+                    }
+                }
+                push @nuevas_lineas_prod, join('|', @c[0..6]);
+            }
+
+            seek($fh_prod, 0, 0);
+            truncate($fh_prod, 0);
+            print $fh_prod "$prod_header\n";
+            foreach my $nlp (@nuevas_lineas_prod) {
+                print $fh_prod "$nlp\n";
+            }
+            close($fh_prod);
+        }
+    }
     
     # GENERACIÓN DE ID_OS (Protocolo v3.5.5 Diamond)
     my $id_os = $id_os_manual;
@@ -279,7 +355,7 @@ if ($accion eq 'get_catalogo') {
         print $fh "$id_os|$id_mov|$id_p|Cargo|$it->{nombre}|$base|$iva|$total|$f|$id_m_req|$aplica_para|$alias_os\n";
     }
     close $fh;
-    responder({ success => 1, os => $id_os });
+    responder({ success => 1, os => $id_os, alertas_stock => \@alertas_stock });
 
 } elsif ($accion eq 'add_abono') {
     my $m = scalar($q->param('monto')) || 0; $m += 0;

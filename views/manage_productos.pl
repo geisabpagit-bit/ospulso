@@ -53,8 +53,12 @@ render_header(
     skip_header => 1
 );
 
-my $rutas_cat = catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
+my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_empresa);
+my $rutas_cat = catalogo_org_utils::obtener_rutas_catalogo($id_raiz);
 my $archivo_prod = $rutas_cat->{productos};
+unless (-e $archivo_prod) {
+    catalogo_org_utils::crear_catalogo_org_desde_global($id_raiz);
+}
 
 my $regs = leer_tabla($archivo_prod, '\|');
 my @mis_productos = ();
@@ -223,7 +227,9 @@ print <<HTML;
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2\@11"></script>
+HTML
 
+print <<'JS';
 <script>
     // 1. Declarar funciones globales primero (Garantiza acceso en navegación SPA)
     window.toggleFormulario = function() {
@@ -277,11 +283,11 @@ print <<HTML;
     var dtProductos;
     function initProductosTable() {
         try {
-            if (\$('#tablaProductos').length && \$('#tablaProductos tbody tr td').length > 1) {
-                dtProductos = \$('#tablaProductos').DataTable({
+            if ($('#tablaProductos').length && $('#tablaProductos tbody tr td').length > 1) {
+                dtProductos = $('#tablaProductos').DataTable({
                     destroy: true,
                     language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
-                    dom: '<"p-3 d-flex justify-content-start align-items-center"B>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
+                    dom: '<"p-3 d-flex flex-wrap justify-content-between align-items-center gap-2"Bf>rt<"p-3 d-flex justify-content-between align-items-center"i p>',
                     buttons: {
                         dom: {
                             container: { className: 'dt-buttons export-toolbar' },
@@ -335,7 +341,7 @@ print <<HTML;
     }
 
     try {
-        \$(document).ready(initProductosTable);
+        $(document).ready(initProductosTable);
         document.addEventListener("spa:contentLoaded", initProductosTable);
     } catch(e) {
         console.error("Error al configurar bindings jQuery en productos:", e);
@@ -394,6 +400,6 @@ print <<HTML;
         });
     };
 </script>
-HTML
+JS
 render_bottom_nav('productos');
 print $q->end_html;

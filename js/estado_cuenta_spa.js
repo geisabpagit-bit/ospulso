@@ -541,6 +541,10 @@ async function cargarCatalogo() {
                 catalogoMaster.push({
                     id: `P-${prod.id_prod}`,
                     id_item: prod.id_prod,
+                    id_prod: String(prod.id_prod),
+                    is_producto: true,
+                    cantidad: parseInt(prod.cantidad !== undefined ? prod.cantidad : 0, 10),
+                    stock_minimo: parseInt(prod.stock_minimo !== undefined ? prod.stock_minimo : 5, 10),
                     nombre: `${prod.nombre} (${prod.presentacion})`,
                     precio: prod.precio,
                     aplica_iva: 0,
@@ -581,7 +585,16 @@ async function cargarCatalogo() {
                 }
             }
         } else {
-            catalogoMaster = [...(data.servicios||[]), ...(data.productos||[])];
+            const servs = (data.servicios || []).map(s => ({ ...s, is_producto: false }));
+            const prods = (data.productos || []).map(p => ({
+                ...p,
+                id: p.id || `P-${p.id_prod}`,
+                id_prod: String(p.id_prod || String(p.id || '').replace(/^P-/, '')),
+                is_producto: true,
+                cantidad: parseInt(p.cantidad !== undefined ? p.cantidad : 0, 10),
+                stock_minimo: parseInt(p.stock_minimo !== undefined ? p.stock_minimo : 5, 10)
+            }));
+            catalogoMaster = [...servs, ...prods];
         }
         
         renderCatalogoGUI();
@@ -607,12 +620,30 @@ function renderCatalogoGUI(f = '', depFilter = '', catFilter = '') {
     filtered.slice(0, 50).forEach(it => {
         totalCount++;
         let badgeDepto = it.departamento ? `<br><span class="badge bg-light text-secondary border mt-1" style="font-size:0.65rem;">${it.departamento} > ${it.categoria}</span>` : '';
+        let badgeStock = '';
+        let isAgotado = false;
+        if (it.is_producto) {
+            const stockAct = parseInt(it.cantidad !== undefined ? it.cantidad : 0, 10);
+            const stockMin = parseInt(it.stock_minimo !== undefined ? it.stock_minimo : 5, 10);
+            if (stockAct <= 0) {
+                isAgotado = true;
+                badgeStock = `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-2" style="font-size:0.65rem;">Agotado (0)</span>`;
+            } else if (stockAct <= stockMin) {
+                badgeStock = `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning ms-2" style="font-size:0.65rem;">Bajo Stock: ${stockAct} u.</span>`;
+            } else {
+                badgeStock = `<span class="badge bg-info bg-opacity-10 text-info border border-info ms-2" style="font-size:0.65rem;">Stock: ${stockAct} u.</span>`;
+            }
+        }
+        const rowStyle = isAgotado ? 'cursor:not-allowed; opacity:0.6;' : 'cursor:pointer;';
+        const rowClick = isAgotado
+            ? `Swal.fire('Producto Agotado', 'El producto no cuenta con existencias disponibles (Stock: 0).', 'error')`
+            : `agregarAlCarrito('${it.id}')`;
         tbody.insertAdjacentHTML('beforeend', `
-            <tr style="cursor:pointer;" onclick="agregarAlCarrito('${it.id}')" class="hover-shadow">
-                <td class="fw-bold text-dark small" title="${it.nombre}">${it.nombre}${badgeDepto}</td>
+            <tr style="${rowStyle}" onclick="${rowClick}" class="hover-shadow">
+                <td class="fw-bold text-dark small" title="${it.nombre}">${it.nombre}${badgeStock}${badgeDepto}</td>
                 <td class="text-primary fw-bold text-end small align-middle">${formatter.format(it.precio)}</td>
                 <td class="text-center align-middle" style="width: 40px;">
-                    <div class="btn btn-sm btn-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width:24px; height:24px; padding:0; border:none;"><i class="bi bi-plus" style="font-size:1rem;"></i></div>
+                    <div class="btn btn-sm ${isAgotado ? 'btn-secondary' : 'btn-primary'} rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width:24px; height:24px; padding:0; border:none;"><i class="bi ${isAgotado ? 'bi-slash-circle' : 'bi-plus'}" style="font-size:1rem;"></i></div>
                 </td>
             </tr>`);
     });
@@ -639,8 +670,27 @@ function agregarCargoManual() {
 
 function agregarAlCarrito(id) {
     const it = catalogoMaster.find(x => x.id === id); if(!it) return;
+    const isProd = !!it.is_producto;
+    const stockMax = isProd ? parseInt(it.cantidad !== undefined ? it.cantidad : 0, 10) : null;
+    if (isProd && stockMax !== null && stockMax <= 0) {
+        return Swal.fire("Producto Agotado", `El producto "${it.nombre}" se encuentra agotado (Stock: 0).`, "error");
+    }
     let ex = carritoApp.find(x => x.id === id);
-    if(ex) ex.cantidad++; else carritoApp.push({ ...it, precio: parseFloat(it.precio), cantidad: 1 });
+    if(ex) {
+        if (isProd && stockMax !== null && (ex.cantidad + 1) > stockMax) {
+            return Swal.fire("Stock Insuficiente", `Solo hay ${stockMax} unidad(es) disponible(s) de "${it.nombre}".`, "warning");
+        }
+        ex.cantidad++;
+    } else {
+        carritoApp.push({
+            ...it,
+            id_prod: it.id_prod || '',
+            is_producto: isProd ? 1 : 0,
+            stock_max: stockMax,
+            precio: parseFloat(it.precio),
+            cantidad: 1
+        });
+    }
     refrescarGUICarrito();
 }
 
@@ -678,7 +728,15 @@ function refrescarGUICarrito() {
 function removeCartItem(idx) { carritoApp.splice(idx, 1); refrescarGUICarrito(); }
 
 function updateCartItemQty(idx, delta) {
-    if (carritoApp[idx].cantidad + delta <= 0) {
+    const item = carritoApp[idx];
+    if (!item) return;
+    if (delta > 0 && item.is_producto && item.stock_max !== null && item.stock_max !== undefined) {
+        if ((item.cantidad + delta) > item.stock_max) {
+            Swal.fire("Stock Insuficiente", `Solo hay ${item.stock_max} unidad(es) disponible(s) de "${item.nombre}".`, "warning");
+            return;
+        }
+    }
+    if (item.cantidad + delta <= 0) {
         Swal.fire({
             title: '¿Eliminar ítem?',
             text: "¿Deseas quitar este concepto del cargo?",
@@ -693,7 +751,7 @@ function updateCartItemQty(idx, delta) {
             }
         });
     } else {
-        carritoApp[idx].cantidad += delta;
+        item.cantidad += delta;
         refrescarGUICarrito();
     }
 }
@@ -735,8 +793,21 @@ async function procesarCarrito() {
         if(json.success) {
             const m = bootstrap.Modal.getInstance(document.getElementById('modalCargo'));
             if (m) m.hide();
+            carritoApp = [];
+            refrescarGUICarrito();
             await cargarHistorialCuentas();
-            Swal.fire("Éxito", "Cargo registrado correctamente", "success");
+            await cargarCatalogo();
+            let alertaStockHtml = '';
+            if (Array.isArray(json.alertas_stock) && json.alertas_stock.length > 0) {
+                alertaStockHtml = `<div class="alert alert-warning text-start small mt-3 mb-0"><strong><i class="bi bi-exclamation-triangle-fill me-1"></i>Alerta de Stock:</strong><ul class="mb-0 ps-3">${json.alertas_stock.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
+            }
+            Swal.fire({
+                icon: "success",
+                title: "Éxito",
+                html: `Cargo registrado correctamente.${alertaStockHtml}`
+            });
+        } else if (json.error) {
+            Swal.fire("Atención", json.error, "error");
         }
     } catch(e) { console.error(e); }
     btn.disabled = false; btn.innerHTML = oldText;
