@@ -1079,10 +1079,12 @@ print <<'JS';
 
                     res.catalogo.productos.forEach(p => {
                         let precioP = parseFloat(p.precio) || 0;
+                        let stockP = (p.cantidad !== undefined && p.cantidad !== null && p.cantidad !== '') ? parseInt(p.cantidad, 10) : 0;
+                        let stockMinP = (p.stock_minimo !== undefined && p.stock_minimo !== null && p.stock_minimo !== '') ? parseInt(p.stock_minimo, 10) : 5;
                         let nombreDisplay = p.nombre ? (p.presentacion ? p.nombre + ' (' + p.presentacion + ')' : p.nombre) : 'Producto';
                         masterCatalogoRecibo.push({
                             id: 'PROD-' + p.id_prod,
-                            id_prod: p.id_prod,
+                            id_prod: String(p.id_prod),
                             nombre: nombreDisplay,
                             precio_estandar: precioP,
                             precio_municipio: precioP,
@@ -1091,7 +1093,9 @@ print <<'JS';
                             indicaciones: p.descripcion || '',
                             cat: 'FARMACIA_CAT',
                             dep: 'FARMACIA',
-                            is_producto: true
+                            is_producto: true,
+                            stock: isNaN(stockP) ? 0 : stockP,
+                            stock_minimo: isNaN(stockMinP) ? 5 : stockMinP
                         });
                     });
                 }
@@ -1107,19 +1111,28 @@ print <<'JS';
                     recCatsMap['FARMACIA_CAT'] = { n: 'Medicamentos y Materiales', d: 'FARMACIA' };
                     res.productos.forEach(p => {
                         let precioP = parseFloat(p.precio) || 0;
+                        let rawProdId = String(p.id_prod || p.id || '').replace(/^P-/, '');
+                        let stockP = (p.cantidad !== undefined && p.cantidad !== null && p.cantidad !== '') ? parseInt(p.cantidad, 10) : 0;
+                        let stockMinP = (p.stock_minimo !== undefined && p.stock_minimo !== null && p.stock_minimo !== '') ? parseInt(p.stock_minimo, 10) : 5;
+                        let nombreDisplay = p.nombre ? (p.presentacion ? p.nombre + ' (' + p.presentacion + ')' : p.nombre) : 'Producto';
                         masterCatalogoRecibo.push({
-                            id: 'PROD-' + (p.id || p.id_prod),
-                            nombre: p.nombre,
+                            id: 'PROD-' + rawProdId,
+                            id_prod: rawProdId,
+                            nombre: nombreDisplay,
                             precio_estandar: precioP,
                             precio_municipio: precioP,
                             precio: precioP,
                             precios: [{ tipo_tarifa: 'ESTANDAR', precio_publico: precioP }],
+                            indicaciones: p.descripcion || '',
                             cat: 'FARMACIA_CAT',
                             dep: 'FARMACIA',
-                            is_producto: true
+                            is_producto: true,
+                            stock: isNaN(stockP) ? 0 : stockP,
+                            stock_minimo: isNaN(stockMinP) ? 5 : stockMinP
                         });
                     });
                 }
+                _poblarFiltrosRecibo();
             }
         } catch (e) {
             console.error("Error al cargar catálogo de recibo:", e);
@@ -1271,14 +1284,33 @@ print <<'JS';
                 colPrecioHtml = `<span class="fw-bold text-success small">${formatCurrency(it.precio)}</span>`;
             }
 
-            tr.innerHTML = `
-                <td class="ps-3 fw-bold small text-dark align-middle">${escapeHtml(it.nombre)}</td>
-                <td class="text-end align-middle px-2">${colPrecioHtml}</td>
-                <td class="text-center align-middle">
-                    <button type="button" class="btn btn-sm text-white rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-sm" style="width:26px; height:26px; background: var(--md-blue-deep, #0A2A66);" onclick="agregarAlCarritoModalRecibo('${escapeHtml(it.id)}')">
+            let stockBadgeHtml = '';
+            let isAgotado = false;
+            if (it.is_producto) {
+                let st = (it.stock !== undefined) ? parseInt(it.stock, 10) : 0;
+                let stMin = (it.stock_minimo !== undefined) ? parseInt(it.stock_minimo, 10) : 5;
+                if (st <= 0) {
+                    isAgotado = true;
+                    stockBadgeHtml = `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle ms-1" style="font-size:0.65rem;"><i class="bi bi-x-octagon-fill me-1"></i>Agotado (0 disp.)</span>`;
+                } else if (st <= stMin) {
+                    stockBadgeHtml = `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle ms-1" style="font-size:0.65rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Bajo stock (${st} disp. / Mín: ${stMin})</span>`;
+                } else {
+                    stockBadgeHtml = `<span class="badge bg-info bg-opacity-10 text-info border border-info-subtle ms-1" style="font-size:0.65rem;">Stock: ${st} disp.</span>`;
+                }
+            }
+
+            let btnActionHtml = isAgotado
+                ? `<button type="button" class="btn btn-sm bg-secondary text-white rounded-circle p-0 d-inline-flex align-items-center justify-content-center opacity-50" style="width:26px; height:26px; cursor:not-allowed;" disabled title="Producto agotado — Venta bloqueada">
+                        <i class="bi bi-slash-circle" style="font-size:0.9rem;"></i>
+                   </button>`
+                : `<button type="button" class="btn btn-sm text-white rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-sm" style="width:26px; height:26px; background: var(--md-blue-deep, #0A2A66);" onclick="agregarAlCarritoModalRecibo('${escapeHtml(it.id)}')">
                         <i class="bi bi-plus" style="font-size:1.1rem;"></i>
-                    </button>
-                </td>
+                   </button>`;
+
+            tr.innerHTML = `
+                <td class="ps-3 fw-bold small text-dark align-middle">${escapeHtml(it.nombre)} ${stockBadgeHtml}</td>
+                <td class="text-end align-middle px-2">${colPrecioHtml}</td>
+                <td class="text-center align-middle">${btnActionHtml}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -1302,6 +1334,21 @@ print <<'JS';
     function agregarAlCarritoModalRecibo(id) {
         const item = masterCatalogoRecibo.find(x => x.id === id);
         if (!item) return;
+
+        if (item.is_producto) {
+            let maxStock = (item.stock !== undefined) ? parseInt(item.stock, 10) : 0;
+            if (maxStock <= 0) {
+                Swal.fire('Producto Agotado', 'No hay existencias disponibles en inventario para "' + item.nombre + '". Su venta está bloqueada.', 'error');
+                return;
+            }
+            let currentInCart = modalCartItems
+                .filter(x => x.id === item.id)
+                .reduce((acc, x) => acc + (parseInt(x.cantidad, 10) || 1), 0);
+            if (currentInCart + 1 > maxStock) {
+                Swal.fire('Stock Insuficiente', 'Solo existen ' + maxStock + ' unidad(es) disponibles en inventario para "' + item.nombre + '".', 'warning');
+                return;
+            }
+        }
         
         let tarifas = getTarifasAplicables(item);
         let selectedTarifaClave = 'ESTANDAR';
@@ -1323,6 +1370,10 @@ print <<'JS';
         } else {
             modalCartItems.push({
                 id: item.id,
+                id_prod: item.id_prod || '',
+                is_producto: !!item.is_producto,
+                stock: item.stock,
+                stock_minimo: item.stock_minimo,
                 nombre: item.nombre,
                 precio: selectedPrecio,
                 tipo_tarifa: selectedTarifaClave,
@@ -1425,8 +1476,17 @@ print <<'JS';
 
     function updateModalQtyRecibo(idx, delta) {
         if (modalCartItems[idx]) {
-            modalCartItems[idx].cantidad += delta;
-            if (modalCartItems[idx].cantidad < 1) modalCartItems[idx].cantidad = 1;
+            const it = modalCartItems[idx];
+            if (delta > 0 && (it.is_producto || String(it.id).startsWith('PROD-'))) {
+                const masterObj = masterCatalogoRecibo.find(m => m.id === it.id);
+                const maxStock = (it.stock !== undefined) ? parseInt(it.stock, 10) : (masterObj && masterObj.stock !== undefined ? parseInt(masterObj.stock, 10) : undefined);
+                if (maxStock !== undefined && (it.cantidad + delta) > maxStock) {
+                    Swal.fire('Stock Insuficiente', 'Solo existen ' + maxStock + ' unidad(es) disponibles en inventario para "' + it.nombre + '".', 'warning');
+                    return;
+                }
+            }
+            it.cantidad += delta;
+            if (it.cantidad < 1) it.cantidad = 1;
             _renderizarCarritoModalRecibo();
         }
     }
@@ -1453,8 +1513,17 @@ print <<'JS';
 
     function updateCantidad(idx, delta) {
         if (cartItems[idx]) {
-            cartItems[idx].cantidad += delta;
-            if (cartItems[idx].cantidad < 1) cartItems[idx].cantidad = 1;
+            const it = cartItems[idx];
+            if (delta > 0 && (it.is_producto || String(it.id).startsWith('PROD-'))) {
+                const masterObj = masterCatalogoRecibo.find(m => m.id === it.id);
+                const maxStock = (it.stock !== undefined) ? parseInt(it.stock, 10) : (masterObj && masterObj.stock !== undefined ? parseInt(masterObj.stock, 10) : undefined);
+                if (maxStock !== undefined && (it.cantidad + delta) > maxStock) {
+                    Swal.fire('Stock Insuficiente', 'Solo existen ' + maxStock + ' unidad(es) disponibles en inventario para "' + it.nombre + '".', 'warning');
+                    return;
+                }
+            }
+            it.cantidad += delta;
+            if (it.cantidad < 1) it.cantidad = 1;
             renderCart();
         }
     }
@@ -1792,10 +1861,20 @@ print <<'JS';
             console.log("Respuesta del servidor:", res);
             
             if (res.ok) {
+                let alertaStockHtml = '';
+                if (res.alertas_stock && res.alertas_stock.length > 0) {
+                    let itemsAlerta = res.alertas_stock.map(a => `<li class="text-start small mb-1">${escapeHtml(a)}</li>`).join('');
+                    alertaStockHtml = `
+                        <div class="alert alert-warning border-warning text-dark mt-3 mb-0 p-2.5 rounded-3 text-start">
+                            <div class="fw-bold small mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>Alerta de Inventario (Stock Mínimo):</div>
+                            <ul class="mb-0 ps-3">${itemsAlerta}</ul>
+                        </div>
+                    `;
+                }
                 Swal.fire({
                     icon: 'success',
                     title: '¡Recibo Emitido!',
-                    text: 'El ingreso ha sido registrado exitosamente en caja.',
+                    html: `<div>El ingreso ha sido registrado exitosamente en caja.</div>${alertaStockHtml}`,
                     confirmButtonText: 'Abrir PDF y Volver'
                 }).then(() => {
                     $('#modalReciboPrevio').modal('hide');

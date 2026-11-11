@@ -258,11 +258,22 @@ elsif ($action eq 'save_producto') {
     my $id = sanitizar_campo($cgi->param('id'));
     my $nombre = uc(sanitizar_campo($cgi->param('nombre')));
     my $precio = sanitizar_campo($cgi->param('precio')) || '0.00';
-    my $cantidad = sanitizar_campo($cgi->param('cantidad')) || '0';
+    my $cantidad = sanitizar_campo($cgi->param('cantidad'));
+    $cantidad = '0' if !defined $cantidad || $cantidad eq '';
+    $cantidad =~ s/[^\d]//g;
+    $cantidad = '0' if $cantidad eq '';
+
     my $presentacion = sanitizar_campo($cgi->param('presentacion'));
     my $descripcion = sanitizar_campo($cgi->param('descripcion'));
+    my $stock_minimo = sanitizar_campo($cgi->param('stock_minimo'));
+    $stock_minimo = '5' if !defined $stock_minimo || $stock_minimo eq '';
+    $stock_minimo =~ s/[^\d]//g;
+    $stock_minimo = '5' if $stock_minimo eq '';
     
     my ($header, $lines) = leer_archivo($rutas->{productos});
+    $header ||= "id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo";
+    $header .= "|stock_minimo" unless $header =~ /stock_minimo/i;
+
     my @new_lines;
     my $found = 0;
 
@@ -270,18 +281,25 @@ elsif ($action eq 'save_producto') {
         foreach my $l (@$lines) {
             my @c = split /\|/, $l, -1;
             if ($c[0] eq $id) {
-                $l = "$id|$nombre|$precio|$cantidad|$presentacion|$descripcion";
+                $l = "$id|$nombre|$precio|$cantidad|$presentacion|$descripcion|$stock_minimo";
                 $found = 1;
+            } else {
+                push @c, '5' while @c < 7;
+                $l = join('|', @c[0..6]);
             }
             push @new_lines, $l;
         }
     } else {
         $id = get_next_id($rutas->{productos});
-        @new_lines = @$lines;
-        push @new_lines, "$id|$nombre|$precio|$cantidad|$presentacion|$descripcion";
+        foreach my $l (@$lines) {
+            my @c = split /\|/, $l, -1;
+            push @c, '5' while @c < 7;
+            push @new_lines, join('|', @c[0..6]);
+        }
+        push @new_lines, "$id|$nombre|$precio|$cantidad|$presentacion|$descripcion|$stock_minimo";
     }
 
-    actualizar_archivo($rutas->{productos}, $header || "ID|NOMBRE|PRECIO|CANTIDAD|PRESENTACION|DESCRIPCION", \@new_lines);
+    actualizar_archivo($rutas->{productos}, $header, \@new_lines);
     responder({ success => 1, msg => 'Producto guardado' });
 }
 elsif ($action eq 'delete_producto') {

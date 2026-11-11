@@ -121,9 +121,88 @@ if (!$has_portal_paciente && ($id_paciente eq $nombre_empleado || $id_paciente !
     $id_paciente = $new_id;
 }
 
-# 1. Generar Folio Consecutivo Blindado
-my $is_estado = ($id_paciente =~ /^EMP-/) ? 1 : 0;
+# 1. Validar y descontar stock de productos de forma atómica antes de emitir folio
+my $id_estado_check = ($id_paciente =~ /^EMP-/) ? 1 : 0;
 my $id_raiz = catalogo_org_utils::resolver_id_raiz_catalogo($id_neg);
+my $rutas_cat_prod = catalogo_org_utils::obtener_rutas_catalogo($id_raiz);
+my $archivo_productos = $rutas_cat_prod->{productos} || '';
+
+my %demanda_productos;
+foreach my $it (@$caja_items) {
+    my $raw_id = $it->{id} // '';
+    my $id_p   = $it->{id_prod} // '';
+    if (!$id_p && $raw_id =~ /^PROD-(.+)$/) {
+        $id_p = $1;
+    }
+    if ($it->{is_producto} || $raw_id =~ /^PROD-/ || $id_p ne '') {
+        $id_p =~ s/^P-//;
+        my $cant_req = int($it->{cantidad} || 1);
+        $cant_req = 1 if $cant_req < 1;
+        $demanda_productos{$id_p} += $cant_req if $id_p ne '';
+    }
+}
+
+my @alertas_stock;
+if (keys %demanda_productos && $archivo_productos && -e $archivo_productos) {
+    if (open(my $fh_prod, '+<:encoding(UTF-8)', $archivo_productos)) {
+        flock($fh_prod, LOCK_EX);
+        my @raw_prod_lines = <$fh_prod>;
+        my $prod_header = shift @raw_prod_lines // "id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo\n";
+        chomp $prod_header;
+        $prod_header .= "|stock_minimo" unless $prod_header =~ /stock_minimo/i;
+
+        my %encontrados_prod;
+        my @nuevas_lineas_prod;
+
+        foreach my $pl (@raw_prod_lines) {
+            chomp $pl;
+            next if $pl =~ /^\s*$/;
+            my @c = split(/\|/, $pl, -1);
+            push @c, '5' while @c < 7;
+            my $pid = $c[0] // '';
+
+            if (exists $demanda_productos{$pid}) {
+                $encontrados_prod{$pid} = 1;
+                my $nom_p     = $c[1] || "Producto #$pid";
+                my $stock_act = int($c[3] || 0);
+                my $stock_min = (defined $c[6] && $c[6] ne '') ? int($c[6]) : 5;
+                my $req_q     = $demanda_productos{$pid};
+
+                if ($stock_act <= 0) {
+                    close($fh_prod);
+                    print encode_json({ ok => JSON::false, msg => "Venta bloqueada: El producto '$nom_p' se encuentra agotado (Stock: 0)." });
+                    exit;
+                }
+                if ($req_q > $stock_act) {
+                    close($fh_prod);
+                    print encode_json({ ok => JSON::false, msg => "Stock insuficiente para '$nom_p': solicitó $req_q unidad(es) y solo hay $stock_act disponible(s)." });
+                    exit;
+                }
+
+                my $nuevo_stock = $stock_act - $req_q;
+                $c[3] = $nuevo_stock;
+
+                if ($nuevo_stock == 0) {
+                    push @alertas_stock, "$nom_p se ha AGOTADO (0 u. restantes / Mínimo: $stock_min).";
+                } elsif ($nuevo_stock <= $stock_min) {
+                    push @alertas_stock, "$nom_p alcanzó nivel de stock bajo ($nuevo_stock u. restantes / Mínimo: $stock_min).";
+                }
+            }
+            push @nuevas_lineas_prod, join('|', @c[0..6]);
+        }
+
+        seek($fh_prod, 0, 0);
+        truncate($fh_prod, 0);
+        print $fh_prod "$prod_header\n";
+        foreach my $nlp (@nuevas_lineas_prod) {
+            print $fh_prod "$nlp\n";
+        }
+        close($fh_prod);
+    }
+}
+
+# 2. Generar Folio Consecutivo Blindado
+my $is_estado = $id_estado_check;
 my $next_folio = catalogo_org_utils::obtener_siguiente_folio_blindado($id_raiz, $is_estado, $id_neg, $id_suc);
 my $folio_impreso = $next_folio;
 my $folios_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', $is_estado ? 'folios_recibos_publicos.dat' : 'folios_recibos_privados.dat');
@@ -371,5 +450,5 @@ if ($total_abonos_final > 0) {
     utils::db_manager::guardar_registro($fin_file, $linea_abono);
 }
 
-print encode_json({ ok => JSON::true, id_tratamiento => $folio_impreso, folio => $folio_impreso, is_estado => $is_estado });
+print encode_json({ ok => JSON::true, id_tratamiento => $folio_impreso, folio => $folio_impreso, is_estado => $is_estado, alertas_stock => \@alertas_stock });
 1;

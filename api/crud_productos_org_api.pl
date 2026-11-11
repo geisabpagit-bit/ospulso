@@ -36,18 +36,24 @@ my $rutas_cat = catalogo_org_utils::obtener_rutas_catalogo($id_empresa);
 my $archivo_prod = $rutas_cat->{productos};
 
 if ($action eq 'create' || $action eq 'update') {
-    my $id_producto = $q->param('id_producto') || '';
-    my $nombre      = $q->param('nombre') || '';
-    my $precio      = $q->param('precio') || '0';
-    my $cantidad    = $q->param('cantidad') || '0';
+    my $id_producto  = $q->param('id_producto') || '';
+    my $nombre       = $q->param('nombre') || '';
+    my $precio       = $q->param('precio') || '0';
+    my $cantidad     = $q->param('cantidad');
+    $cantidad        = '0' if !defined $cantidad || $cantidad eq '';
     my $presentacion = $q->param('presentacion') || '';
-    my $descripcion = $q->param('descripcion') || '';
+    my $descripcion  = $q->param('descripcion') || '';
+    my $stock_minimo = $q->param('stock_minimo');
+    $stock_minimo    = '5' if !defined $stock_minimo || $stock_minimo eq '';
 
-    $nombre =~ s/\|/ /g;
+    $nombre       =~ s/\|/ /g;
     $presentacion =~ s/\|/ /g;
-    $descripcion =~ s/\|/ /g;
-    $precio =~ s/[^\d\.]//g;
-    $cantidad =~ s/[^\d]//g;
+    $descripcion  =~ s/\|/ /g;
+    $precio       =~ s/[^\d\.]//g;
+    $cantidad     =~ s/[^\d]//g;
+    $cantidad     = '0' if $cantidad eq '';
+    $stock_minimo =~ s/[^\d]//g;
+    $stock_minimo = '5' if $stock_minimo eq '';
 
     if (!$nombre) {
         print encode_json({ status => 'error', message => 'El nombre es obligatorio.' });
@@ -63,23 +69,27 @@ if ($action eq 'create' || $action eq 'update') {
             exit;
         };
         my $cabecera = <$fh>;
-        push @lineas, $cabecera;
+        chomp $cabecera if defined $cabecera;
+        $cabecera ||= "id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo";
+        $cabecera .= "|stock_minimo" unless $cabecera =~ /stock_minimo/i;
+        push @lineas, "$cabecera\n";
         while (my $line = <$fh>) {
             chomp $line;
             next if $line =~ /^\s*$/;
-            push @lineas, $line . "\n";
-            my @f = split(/\|/, $line);
+            my @f = split(/\|/, $line, -1);
+            push @f, '5' while @f < 7;
+            push @lineas, join('|', @f[0..6]) . "\n";
             if ($f[0] =~ /^\d+$/ && $f[0] >= $nuevo_id) {
                 $nuevo_id = $f[0] + 1;
             }
         }
         close $fh;
     } else {
-        push @lineas, "id|nombre|precio|cantidad|presentacion|descripcion\n";
+        push @lineas, "id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo\n";
     }
 
     if ($action eq 'create') {
-        push @lineas, "$nuevo_id|$nombre|$precio|$cantidad|$presentacion|$descripcion\n";
+        push @lineas, "$nuevo_id|$nombre|$precio|$cantidad|$presentacion|$descripcion|$stock_minimo\n";
     } else {
         if (!$id_producto) {
             print encode_json({ status => 'error', message => 'ID de producto no proporcionado para actualizar.' });
@@ -89,9 +99,9 @@ if ($action eq 'create' || $action eq 'update') {
         for (my $i = 1; $i < @lineas; $i++) {
             my $line = $lineas[$i];
             chomp $line;
-            my @f = split(/\|/, $line);
+            my @f = split(/\|/, $line, -1);
             if ($f[0] eq $id_producto) {
-                $lineas[$i] = "$id_producto|$nombre|$precio|$cantidad|$presentacion|$descripcion\n";
+                $lineas[$i] = "$id_producto|$nombre|$precio|$cantidad|$presentacion|$descripcion|$stock_minimo\n";
                 $actualizado = 1;
                 last;
             }

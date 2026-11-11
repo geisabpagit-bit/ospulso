@@ -80,7 +80,16 @@ if ($accion eq 'get_catalogo') {
         while (<$fh>) {
             chomp; next if /^\s*$/;
             my @c = split /\|/, $_, -1;
-            push @p, { id => "P-$c[0]", nombre => $c[1], precio => $c[2]+0 };
+            push @p, {
+                id           => "P-$c[0]",
+                id_prod      => $c[0],
+                nombre       => $c[1],
+                precio       => ($c[2] // 0) + 0,
+                cantidad     => ($c[3] // 0) + 0,
+                presentacion => $c[4] // '',
+                descripcion  => $c[5] // '',
+                stock_minimo => (defined $c[6] && $c[6] ne '') ? ($c[6] + 0) : 5
+            };
         }
         close $fh;
     }

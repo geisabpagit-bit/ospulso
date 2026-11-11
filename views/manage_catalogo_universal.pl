@@ -192,6 +192,7 @@ print <<HTML;
                                                 <th class="border-0">Nombre</th>
                                                 <th class="border-0">Descripción</th>
                                                 <th class="border-0">Presentación</th>
+                                                <th class="border-0 text-center" style="width: 150px;">Stock / Mín.</th>
                                                 <th class="border-0" style="width: 110px;">Precio</th>
                                                 <th class="border-0 text-end text-nowrap" style="width: 95px; min-width: 95px;">Acciones</th>
                                             </tr>
@@ -200,16 +201,28 @@ print <<HTML;
 HTML
 
 foreach my $prod (@{$cat_univ->{productos} || []}) {
+    my $cant_p = (defined $$prod{cantidad} && $$prod{cantidad} ne '') ? ($$prod{cantidad} + 0) : 0;
+    my $min_p  = (defined $$prod{stock_minimo} && $$prod{stock_minimo} ne '') ? ($$prod{stock_minimo} + 0) : 5;
+    my $badge_stock_p = '';
+    if ($cant_p <= 0) {
+        $badge_stock_p = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle px-2.5 py-1 rounded-pill fw-bold"><i class="bi bi-x-octagon-fill me-1"></i>Agotado (0 u.)</span>';
+    } elsif ($cant_p <= $min_p) {
+        $badge_stock_p = "<span class=\"badge bg-warning bg-opacity-10 text-warning border border-warning-subtle px-2.5 py-1 rounded-pill fw-bold\"><i class=\"bi bi-exclamation-triangle-fill me-1\"></i>$cant_p u. (Mín: $min_p)</span>";
+    } else {
+        $badge_stock_p = "<span class=\"badge bg-info bg-opacity-10 text-info border border-info-subtle px-2.5 py-1 rounded-pill fw-bold\">$cant_p u. <small class=\"text-muted fw-normal\">(Mín: $min_p)</small></span>";
+    }
+
     print <<HTML;
                                         <tr>
                                             <td><span class="badge bg-secondary">$$prod{id_prod}</span></td>
                                             <td class="fw-bold" style="color: var(--inst-navy-deep);">$$prod{nombre}</td>
                                             <td class="small text-muted">$$prod{descripcion}</td>
                                             <td class="small">$$prod{presentacion}</td>
+                                            <td class="text-center">$badge_stock_p</td>
                                             <td class="fw-bold text-success">\$$$prod{precio}</td>
                                             <td class="text-end text-nowrap" style="width: 95px; min-width: 95px;">
                                                 <div class="d-inline-flex align-items-center justify-content-end gap-1">
-                                                    <button class="btn btn-sm btn-navy-outline rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('producto', '$$prod{id_prod}', '$$prod{nombre}', '$$prod{precio}', '$$prod{cantidad}', '$$prod{presentacion}', '$$prod{descripcion}')" title="Editar Producto"><i class="bi bi-pencil"></i></button>
+                                                    <button class="btn btn-sm btn-navy-outline rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="abrirFormulario('producto', '$$prod{id_prod}', '$$prod{nombre}', '$$prod{precio}', '$cant_p', '$$prod{presentacion}', '$$prod{descripcion}', '$min_p')" title="Editar Producto"><i class="bi bi-pencil"></i></button>
                                                     <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEntity('producto', '$$prod{id_prod}')" title="Eliminar Producto"><i class="bi bi-trash"></i></button>
                                                 </div>
                                             </td>
@@ -924,9 +937,10 @@ print <<'JS';
                     const id = args[0] || '';
                     const nombre = args[1] || '';
                     const precio = args[2] || '';
-                    const cantidad = args[3] || '0';
+                    const cantidad = (args[3] !== undefined && args[3] !== '') ? args[3] : '0';
                     const presentacion = args[4] || '';
                     const descripcion = args[5] || '';
+                    const stock_minimo = (args[6] !== undefined && args[6] !== '') ? args[6] : '5';
                     title.innerHTML = `<i class="bi bi-box-seam me-2"></i>${id ? 'Editar' : 'Nuevo'} Producto`;
                     body.innerHTML = `
                         <form id="crudForm" onsubmit="saveEntity(event, 'producto')">
@@ -941,15 +955,19 @@ print <<'JS';
                                     <label class="form-label fw-bold small text-muted">Precio Público</label>
                                     <input type="number" step="0.01" min="0.01" class="form-control" name="precio" value="${precio}" placeholder="Monto mayor a 0" required>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold small text-muted">Stock / Cantidad</label>
-                                    <input type="number" class="form-control" name="cantidad" value="${cantidad}">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small text-muted">Stock / Cantidad Actual</label>
+                                    <input type="number" min="0" class="form-control" name="cantidad" value="${cantidad}" required>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small text-muted">Stock Mínimo (Alerta)</label>
+                                    <input type="number" min="0" class="form-control" name="stock_minimo" value="${stock_minimo}" placeholder="Ej: 5" required>
+                                </div>
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted">Presentación</label>
                                     <input type="text" class="form-control" name="presentacion" value="${presentacion}" placeholder="Ej: Caja 20 tab">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted">Descripción Corta</label>
                                     <input type="text" class="form-control" name="descripcion" value="${descripcion}">
                                 </div>

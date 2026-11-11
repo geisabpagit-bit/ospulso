@@ -61,14 +61,15 @@ my @mis_productos = ();
 
 if ($regs) {
     foreach my $r (@$regs) {
-        next if @$r < 4; # id|nombre|precio|cantidad|presentacion|descripcion
+        next if @$r < 4; # id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo
         push @mis_productos, { 
             id           => $r->[0], 
             nombre       => $r->[1],
             precio       => $r->[2] || '0.00',
-            cantidad     => $r->[3] || '0',
+            cantidad     => (defined $r->[3] && $r->[3] ne '') ? $r->[3] : '0',
             presentacion => $r->[4] || '',
-            descripcion  => $r->[5] || ''
+            descripcion  => $r->[5] || '',
+            stock_minimo => (defined $r->[6] && $r->[6] ne '') ? $r->[6] : '5'
         };
     }
 }
@@ -105,13 +106,17 @@ print <<HTML;
                                 <label class="form-label small fw-bold">Nombre del Producto</label>
                                 <input type="text" class="form-control form-control-sm shadow-sm" name="nombre" id="in_nombre" required placeholder="Ej. Resina 3M">
                             </div>
-                            <div class="col-12 col-md-3">
+                            <div class="col-12 col-md-2">
                                 <label class="form-label small fw-bold">Precio Unitario (\$)</label>
                                 <input type="number" step="0.01" class="form-control form-control-sm shadow-sm" name="precio" id="in_precio" required placeholder="Ej. 150.00">
                             </div>
-                            <div class="col-12 col-md-3">
-                                <label class="form-label small fw-bold">Stock Inicial</label>
-                                <input type="number" class="form-control form-control-sm shadow-sm" name="cantidad" id="in_cant" required placeholder="Ej. 10">
+                            <div class="col-12 col-md-2">
+                                <label class="form-label small fw-bold">Stock Actual</label>
+                                <input type="number" min="0" class="form-control form-control-sm shadow-sm" name="cantidad" id="in_cant" required placeholder="Ej. 10">
+                            </div>
+                            <div class="col-12 col-md-2">
+                                <label class="form-label small fw-bold">Stock Mínimo</label>
+                                <input type="number" min="0" class="form-control form-control-sm shadow-sm" name="stock_minimo" id="in_stock_min" required placeholder="Ej. 5" value="5">
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold">Presentación</label>
@@ -150,15 +155,17 @@ HTML
 
 if (@mis_productos) {
     foreach my $prd (@mis_productos) {
-        my $id_prd = $prd->{id};
-        my $nombre = $prd->{nombre};
-        my $pres = $prd->{presentacion};
-        my $cant = $prd->{cantidad};
-        my $precio = $prd->{precio};
-        my $desc = $prd->{descripcion};
+        my $id_prd    = $prd->{id};
+        my $nombre    = $prd->{nombre};
+        my $pres      = $prd->{presentacion};
+        my $cant      = ($prd->{cantidad} // 0) + 0;
+        my $precio    = $prd->{precio};
+        my $desc      = $prd->{descripcion};
+        my $stock_min = (defined $prd->{stock_minimo} && $prd->{stock_minimo} ne '') ? ($prd->{stock_minimo} + 0) : 5;
         
-        my $badge_stock = $cant > 5 ? 'bg-info bg-opacity-10 text-info' : 'bg-warning bg-opacity-10 text-warning';
+        my $badge_stock = $cant > $stock_min ? 'bg-info bg-opacity-10 text-info' : 'bg-warning bg-opacity-10 text-warning';
         $badge_stock = 'bg-danger bg-opacity-10 text-danger' if $cant <= 0;
+        my $label_stock = $cant <= 0 ? "Agotado (0 u.)" : "$cant u. (Mín: $stock_min)";
 
         my $nombre_esc = $nombre; $nombre_esc =~ s/'/\\'/g;
         my $pres_esc = $pres; $pres_esc =~ s/'/\\'/g;
@@ -171,10 +178,10 @@ if (@mis_productos) {
                                         <small class="text-muted">$desc</small>
                                     </td>
                                     <td><span class="text-muted small">$pres</span></td>
-                                    <td class="text-center"><span class="badge $badge_stock px-3 py-2 rounded-pill fw-bold">$cant u.</span></td>
+                                    <td class="text-center"><span class="badge $badge_stock px-3 py-2 rounded-pill fw-bold">$label_stock</span></td>
                                     <td><span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold">\$ $precio</span></td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-light text-primary rounded-pill me-1" onclick="editarProducto('$id_prd', '$nombre_esc', '$precio', '$cant', '$pres_esc', '$desc_esc')"><i class="bi bi-pencil"></i></button>
+                                        <button class="btn btn-sm btn-light text-primary rounded-pill me-1" onclick="editarProducto('$id_prd', '$nombre_esc', '$precio', '$cant', '$pres_esc', '$desc_esc', '$stock_min')"><i class="bi bi-pencil"></i></button>
                                         <button class="btn btn-sm btn-light text-danger rounded-pill" onclick="eliminarProducto('$id_prd')"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
@@ -236,6 +243,7 @@ print <<HTML;
         document.getElementById('in_nombre').value = '';
         document.getElementById('in_precio').value = '';
         document.getElementById('in_cant').value = '';
+        document.getElementById('in_stock_min').value = '5';
         document.getElementById('in_pres').value = '';
         document.getElementById('in_desc').value = '';
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-box-seam me-2"></i>Nuevo Producto';
@@ -247,12 +255,13 @@ print <<HTML;
         window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
-    window.editarProducto = function(id, nombre, precio, cant, pres, desc) {
+    window.editarProducto = function(id, nombre, precio, cant, pres, desc, stock_min) {
         document.getElementById('action_prod').value = 'update';
         document.getElementById('id_producto_edit').value = id;
         document.getElementById('in_nombre').value = nombre;
         document.getElementById('in_precio').value = precio;
         document.getElementById('in_cant').value = cant;
+        document.getElementById('in_stock_min').value = (stock_min !== undefined && stock_min !== '') ? stock_min : '5';
         document.getElementById('in_pres').value = pres;
         document.getElementById('in_desc').value = desc;
         document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Producto';

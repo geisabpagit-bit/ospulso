@@ -355,7 +355,13 @@ sub get_catalogo_universal {
             chomp; next if /^\s*$/;
             my @c = split /\|/, $_, -1;
             push @productos, {
-                id_prod => $c[0], nombre => $c[1], precio => $c[2], cantidad => $c[3], presentacion => $c[4], descripcion => $c[5]
+                id_prod      => $c[0],
+                nombre       => $c[1],
+                precio       => $c[2],
+                cantidad     => ($c[3] // 0) + 0,
+                presentacion => $c[4] // '',
+                descripcion  => $c[5] // '',
+                stock_minimo => (defined $c[6] && $c[6] ne '') ? ($c[6] + 0) : 5
             };
         }
         close $fh;
@@ -432,10 +438,24 @@ sub crear_catalogo_org_desde_global {
                 open(my $fh_out, '>:encoding(UTF-8)', $rutas->{productos}) or die "Error: $!";
                 if (-e $prod_global) {
                     open(my $fh_in, '<:encoding(UTF-8)', $prod_global) or die "Error: $!";
-                    while (my $line = <$fh_in>) { print $fh_out $line; }
+                    my $hdr = <$fh_in>;
+                    if (defined $hdr) {
+                        chomp $hdr;
+                        $hdr .= '|stock_minimo' unless $hdr =~ /stock_minimo/i;
+                        print $fh_out "$hdr\n";
+                    } else {
+                        print $fh_out "id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo\n";
+                    }
+                    while (my $line = <$fh_in>) {
+                        chomp $line;
+                        next if $line =~ /^\s*$/;
+                        my @cols = split /\|/, $line, -1;
+                        push @cols, '5' while @cols < 7;
+                        print $fh_out join('|', @cols[0..6]) . "\n";
+                    }
                     close $fh_in;
                 } else {
-                    print $fh_out "ID|NOMBRE|PRECIO|CANTIDAD|PRESENTACION|DESCRIPCION\n";
+                    print $fh_out "id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo\n";
                 }
                 close $fh_out;
             }
@@ -497,11 +517,25 @@ sub crear_catalogo_org_desde_global {
                 if (-e $prod_global) {
                     open(my $fh_in, '<:encoding(UTF-8)', $prod_global)
                         or die "No se pudo leer productos.dat: $!";
-                    while (my $line = <$fh_in>) { print $fh_out $line; }
+                    my $hdr = <$fh_in>;
+                    if (defined $hdr) {
+                        chomp $hdr;
+                        $hdr .= '|stock_minimo' unless $hdr =~ /stock_minimo/i;
+                        print $fh_out "$hdr\n";
+                    } else {
+                        print $fh_out "id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo\n";
+                    }
+                    while (my $line = <$fh_in>) {
+                        chomp $line;
+                        next if $line =~ /^\s*$/;
+                        my @cols = split /\|/, $line, -1;
+                        push @cols, '5' while @cols < 7;
+                        print $fh_out join('|', @cols[0..6]) . "\n";
+                    }
                     close $fh_in;
                 } else {
-                    print $fh_out "ID|NOMBRE|PRECIO|CANTIDAD|PRESENTACION|DESCRIPCION\n";
-                    print $fh_out "1|Paracetamol 500mg|50.00|100|Caja 20 tabletas|Analgesico base.\n";
+                    print $fh_out "id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo\n";
+                    print $fh_out "1|Paracetamol 500mg|50.00|100|Caja 20 tabletas|Analgesico base.|5\n";
                 }
                 close $fh_out;
             }

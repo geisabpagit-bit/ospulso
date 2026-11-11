@@ -78,7 +78,8 @@ if ($accion eq 'get_catalogo_org') {
             next if /^\s*$/;
             my @c = split /\|/, $_, -1;
             push @p, { id => $c[0], nombre => $c[1], precio => $c[2]+0,
-                        cantidad => $c[3]||0, presentacion => $c[4]||'', descripcion => $c[5]||'' };
+                        cantidad => ($c[3] // 0)+0, presentacion => $c[4]||'', descripcion => $c[5]||'',
+                        stock_minimo => (defined $c[6] && $c[6] ne '') ? ($c[6]+0) : 5 };
         }
         close $fh;
     }
@@ -116,8 +117,10 @@ if ($accion eq 'get_catalogo_org') {
         print encode_json({ status => 'ok', id => $new_id });
 
     } elsif ($tipo eq 'producto') {
-        my $cantidad     = $q->param('cantidad')     || '0';
+        my $cantidad     = $q->param('cantidad')     // '0';
         my $presentacion = $q->param('presentacion') || '';
+        my $stock_minimo = $q->param('stock_minimo') // '5';
+        $stock_minimo = '5' if $stock_minimo eq '';
         my $file = $rutas->{productos};
         my $max_id = 0;
         open(my $fh, '<:encoding(UTF-8)', $file);
@@ -128,7 +131,7 @@ if ($accion eq 'get_catalogo_org') {
 
         open(my $fh_out, '>>:encoding(UTF-8)', $file) or die $!;
         flock($fh_out, LOCK_EX);
-        print $fh_out "$new_id|$nombre|$precio|$cantidad|$presentacion|$desc\n";
+        print $fh_out "$new_id|$nombre|$precio|$cantidad|$presentacion|$desc|$stock_minimo\n";
         close $fh_out;
         print encode_json({ status => 'ok', id => $new_id });
     }
@@ -164,9 +167,11 @@ if ($accion eq 'get_catalogo_org') {
             if ($tipo eq 'servicio') {
                 push @lines, "$id|$nombre|$precio|$desc\n";
             } else {
-                my $cantidad     = $q->param('cantidad')     // $c[3];
-                my $presentacion = $q->param('presentacion') // $c[4];
-                push @lines, "$id|$nombre|$precio|$cantidad|$presentacion|$desc\n";
+                my $cantidad     = $q->param('cantidad')     // $c[3] // '0';
+                my $presentacion = $q->param('presentacion') // $c[4] // '';
+                my $stock_minimo = $q->param('stock_minimo') // $c[6] // '5';
+                $stock_minimo = '5' if $stock_minimo eq '';
+                push @lines, "$id|$nombre|$precio|$cantidad|$presentacion|$desc|$stock_minimo\n";
             }
         } else {
             push @lines, "$line\n";

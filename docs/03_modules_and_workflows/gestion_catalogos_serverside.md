@@ -18,7 +18,7 @@ Cada tenant opera con su propio conjunto de datos bajo `dat/catalogos_CLUE/<CLUE
 | `categorias_<CLUES>.dat` | Categorías asignadas a un departamento | `ID_CAT\|ID_DEP\|NOMBRE_CATEGORIA` |
 | `catalogo_items_<CLUES>.dat` | Servicios y procedimientos clínicos | `ID_ITEM\|CODIGO_SKU\|ID_CAT\|CONCEPTO\|APLICA_IVA\|INDICACIONES\|TIEMPO_ENTREGA` |
 | `catalogo_precios_<CLUES>.dat` | Matriz de precios por servicio y tarifa | `ID_PRECIO\|ID_ITEM\|TIPO_TARIFA\|PRECIO_PUBLICO\|COSTO_PROVEEDOR\|ID_PROV` |
-| `productos_<CLUES>.dat` | Insumos, medicamentos y farmacia | `ID\|NOMBRE\|PRECIO\|CANTIDAD\|PRESENTACION\|DESCRIPCION` |
+| `productos_<CLUES>.dat` | Insumos, medicamentos y farmacia | `ID\|NOMBRE\|PRECIO\|CANTIDAD\|PRESENTACION\|DESCRIPCION\|STOCK_MINIMO` |
 | `tipos_tarifas_<CLUES>.dat` | Catálogo de tipos de tarifa / condiciones | `ID_TARIFA\|CLAVE\|NOMBRE_TARIFA\|DESCRIPCION\|ACTIVO` |
 
 ---
@@ -80,4 +80,18 @@ Para optimizar el rendimiento y la memoria en el navegador frente a catálogos e
 - **Problema Solucionado**: Los productos físicos (`productos_<CLUES>.dat`) carecen de columnas relacionales `ID_DEP` e `ID_CAT`. Al cargarse en memoria sin departamento (`dep: ''`), cualquier filtrado departamental en el modal de conceptos los excluía de la vista.
 - **Mapeo Virtual en Tiempo de Ejecución**: En `_cargarCatalogoRecibo()`, los productos se registran bajo el departamento virtual `FARMACIA` (*"Farmacia / Insumos"*) y categoría `FARMACIA_CAT` (*"Medicamentos y Materiales"*).
 - **Compatibilidad e Inmutabilidad**: Esto permite que el personal de caja filtre exclusivamente los medicamentos y materiales sin alterar la estructura física ni el contenido plano de `productos_<CLUES>.dat`, conservando la total compatibilidad con cotizaciones y recibos históricos.
+
+---
+
+## 8. Control Transaccional de Inventario, 7ª Columna (`stock_minimo`) y Bloqueo de Venta (P4)
+- **Esquema Extendido de 7 Columnas**: Todos los archivos de productos (`dat/productos.dat`, `dat/productos_<ID_ORG>.dat` y `dat/catalogos_CLUE/<CLUES>/productos_<CLUES>.dat`) operan bajo la estructura de 7 columnas:
+  `id|nombre|precio|cantidad|presentacion|descripcion|stock_minimo`.
+- **Aprovisionamiento Automático en Alta de Organizaciones (`utils/catalogo_org_utils.pl`)**: Al crear una nueva organización mediante `crear_catalogo_org_desde_global()`, tanto el clonado desde `dat/productos.dat` como la inicialización por defecto garantizan la presencia de la cabecera y la 7ª columna `stock_minimo` (valor por defecto `5`).
+- **CRUD Multi-Tenant Unificado**:
+  - **Organizaciones con CLUES**: `views/manage_catalogo_universal.pl` y `api/crud_catalogo_universal_api.pl` (`save_producto`) gestionan y visualizan la columna `stock_minimo` junto con indicadores dinámicos de existencias (Agotado, Stock Bajo, Stock Normal).
+  - **Organizaciones 2D (Sin CLUES)**: `views/manage_productos.pl`, `api/crud_productos_org_api.pl` y `api/catalogo_org_api.pl` capturan, actualizan y evalúan el umbral personalizado `stock_minimo` de cada insumo.
+- **Bloqueo Estricto y Descuento Atómico en Caja Rápida (`views/generar_recibo.pl` y `api/guardar_recibo_rapido.pl`)**:
+  - En el modal de conceptos, los productos con `stock <= 0` se muestran con etiqueta *"Agotado (0 disp.)"* y su botón de adición queda estrictamente bloqueado (`disabled`). Asimismo, se impide agregar al carrito una cantidad mayor a las existencias disponibles.
+  - Al confirmar la emisión del recibo, `api/guardar_recibo_rapido.pl` abre el archivo de productos con bloqueo exclusivo `flock(LOCK_EX)`, verifica existencias reales en disco, rechaza la transacción si el stock es insuficiente o cero, descuenta las unidades vendidas y retorna alertas preventivas (`alertas_stock`) cuando el inventario resultante es menor o igual a `stock_minimo`.
+
 

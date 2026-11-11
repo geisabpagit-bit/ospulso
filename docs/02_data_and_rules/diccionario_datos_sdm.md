@@ -190,6 +190,19 @@ Formato flat-file: `llave=valor`.
 | `DESCRIPCION` | String | Descripción operativa | `Atención de Urgencias` |
 | `ACTIVO` | Char(1) | Estado operativo (`1`/`0`) | `1` |
 
+### 4.6 `productos.dat`, `productos_<ID_NEGOCIO>.dat` y `productos_<CLUES>.dat`
+Catálogo e inventario físico de medicamentos, materiales e insumos (tanto para organizaciones 3NF con CLUES como para consultorios 2D). Delimitador: `|`.
+
+| Campo | Nombre | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | `id` | Int (PK) | Identificador único del producto | `1` |
+| 2 | `nombre` | String | Nombre comercial o sustancia activa | `Paracetamol 500mg` |
+| 3 | `precio` | Decimal | Precio unitario de venta al público | `50.00` |
+| 4 | `cantidad` | Int | Existencias actuales en inventario (Stock disponible) | `200` |
+| 5 | `presentacion` | String | Presentación física o empaque | `Caja con 20 tabletas de 500mg` |
+| 6 | `descripcion` | String | Descripción o indicación general | `Eficaz para dolor y fiebre.` |
+| 7 | `stock_minimo` | Int | Umbral mínimo de existencias para alerta de reabastecimiento | `5` |
+
 ---
 
 ## 5. Archivos de Control Financiero y Recibos (`dat/`)
