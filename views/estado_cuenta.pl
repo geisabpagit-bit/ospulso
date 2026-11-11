@@ -79,15 +79,17 @@ render_header(
 
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
 my $negocio = { nombre => 'SDM Dental', domicilio => '', telefono => '', email => '' };
+my $id_emp_actual = $session_data->{id_empresa} || '1';
 my $reg_neg = leer_tabla($archivo_negocios, '\|');
 foreach (@$reg_neg) { 
-    if ($_->[0] eq '1') { 
+    if ($_->[0] eq $id_emp_actual || $_->[0] eq '1') { 
         $negocio = { 
             nombre => $_->[1], 
             domicilio => $_->[6], 
             telefono => $_->[7], 
             email => $_->[8] 
-        }; last; 
+        };
+        last if $_->[0] eq $id_emp_actual;
     } 
 }
 
@@ -199,7 +201,7 @@ print <<HTML;
                         <div class="position-relative mb-4" style="height: 180px; width: 100%;">
                             <canvas id="pieCotizaciones"></canvas>
                             <div class="position-absolute top-50 start-50 translate-middle text-center w-100" style="pointer-events: none; margin-top: 2px;">
-                                <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValCotizaciones" style="font-size: 1.1rem;">$0</h5>
+                                <h5 class="fw-bold text-dark m-0 plus-jakarta" id="pieCenterValCotizaciones" style="font-size: 1.1rem;">\$0</h5>
                                 <span class="text-muted fw-bold" style="font-size: 0.7rem; text-transform: uppercase;">Total</span>
                             </div>
                         </div>
@@ -209,7 +211,7 @@ print <<HTML;
                                 <div style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(to bottom, #FCD34D, #F59E0B, #B45309); box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.2); margin-right: 8px; flex-shrink: 0;"></div>
                                 <div class="d-flex align-items-baseline gap-1">
                                     <span class="text-muted" style="font-size: 0.7rem;">Cotizaciones</span>
-                                    <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legCotizaciones">$0</span>
+                                    <span class="fw-bold plus-jakarta" style="font-size: 0.9rem; color: var(--md-blue-deep);" id="legCotizaciones">\$0</span>
                                 </div>
                             </div>
                         </div>
@@ -282,10 +284,10 @@ print <<HTML;
     </button>
 </nav>
 <!-- MODALES (BOOTSTRAP 5) -->
-EOF
+HTML
 require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'modal_carrito_universal.pl');
 partials::consultas::modal_carrito_universal::render();
-print <<"EOF";
+print <<HTML;
 <div class="modal fade" id="modalAbono" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content p-2">
