@@ -105,20 +105,23 @@ if (-e $config_file && open(my $cf, '<:utf8', $config_file)) {
     close($cf);
 }
 
-if (!$has_portal_paciente && ($id_paciente eq $nombre_empleado || $id_paciente !~ /^EMP-|^PRIV-/)) {
-    # Es un nombre nuevo (tag free-text)
-    my $new_id = 'PRIV-' . time() . int(rand(1000));
-    my $priv_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $org_clues, "pacientes_privados_${org_clues}.dat");
-    my $header_exists = (-e $priv_file) ? 1 : 0;
-    if (open(my $fhp, '>>:encoding(UTF-8)', $priv_file)) {
-        flock($fhp, 2);
-        if (!$header_exists) {
-            print $fhp "ID_PACIENTE|NOMBRE_COMPLETO|FECHA_REGISTRO\n";
+if ($org_clues ne '' && !$has_portal_paciente && $id_paciente ne 'PAC-GENERICO' && ($id_paciente eq $nombre_empleado || $id_paciente !~ /^EMP-|^PRIV-/)) {
+    # Es un nombre nuevo (tag free-text) exclusivo de organizaciones con directorio CLUE
+    my $clue_dir = File::Spec->catdir($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $org_clues);
+    if (-d $clue_dir) {
+        my $new_id = 'PRIV-' . time() . int(rand(1000));
+        my $priv_file = File::Spec->catfile($clue_dir, "pacientes_privados_${org_clues}.dat");
+        my $header_exists = (-e $priv_file) ? 1 : 0;
+        if (open(my $fhp, '>>:encoding(UTF-8)', $priv_file)) {
+            flock($fhp, 2);
+            if (!$header_exists) {
+                print $fhp "ID_PACIENTE|NOMBRE_COMPLETO|FECHA_REGISTRO\n";
+            }
+            print $fhp "$new_id|$nombre_empleado|$hoy_fecha\n";
+            close($fhp);
         }
-        print $fhp "$new_id|$nombre_empleado|$hoy_fecha\n";
-        close($fhp);
+        $id_paciente = $new_id;
     }
-    $id_paciente = $new_id;
 }
 
 # 1. Validar y descontar stock de productos de forma atómica antes de emitir folio
