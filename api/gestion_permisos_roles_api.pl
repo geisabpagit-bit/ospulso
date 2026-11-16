@@ -34,6 +34,7 @@ if ($accion eq 'get_matrix') {
     my @modulos = (
         { id => 'pacientes',          nombre => 'Expediente Clínico / Pacientes', icono => 'bi-people-fill' },
         { id => 'agenda',             nombre => 'Agenda Médica y Citas',           icono => 'bi-calendar-event-fill' },
+        { id => 'agenda_espacios',    nombre => 'Agenda de Renta de Espacios',     icono => 'bi-door-open-fill' },
         { id => 'quirofano',          nombre => 'Tablero Quirófano / Hospital',    icono => 'bi-heart-pulse-fill' },
         { id => 'finanzas',           nombre => 'Finanzas y Caja Rápida',         icono => 'bi-cash-stack' },
         { id => 'servicios',          nombre => 'Catálogo de Servicios',           icono => 'bi-medical-services' },

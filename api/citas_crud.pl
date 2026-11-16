@@ -579,6 +579,66 @@ sub detectar_colisiones {
             }
         }
     }
+
+    # --- VALIDACIÓN TRANSVERSAL ANTICOLISIÓN CONTRA AGENDA DE RENTA DE ESPACIOS ---
+    if ($consultorio && $consultorio ne 'Virtual') {
+        my $file_rentas = "$dirname/../dat/rentas_espacios.dat";
+        if (-e $file_rentas && open my $fhr, '<:encoding(UTF-8)', $file_rentas) {
+            my $norm_esp = sub {
+                my ($s) = @_;
+                return '' unless defined $s;
+                $s = lc($s);
+                $s =~ s/[áàäâ]/a/g; $s =~ s/[éèëê]/e/g; $s =~ s/[íìïî]/i/g; $s =~ s/[óòöô]/o/g; $s =~ s/[úùüû]/u/g; $s =~ s/ñ/n/g;
+                $s =~ s/[^a-z0-9]/ /g;
+                $s =~ s/\bquirofanos?\b/qx/g;
+                $s =~ s/\bconsultorios?\b/cons/g;
+                $s =~ s/\s+/ /g;
+                $s =~ s/^\s+|\s+$//g;
+                return $s;
+            };
+            my $target_esp_norm = $norm_esp->($consultorio);
+            my $my_org = $session_data->{id_empresa} // '0';
+            my $cnt_r = 0;
+            while (my $lr = <$fhr>) {
+                $cnt_r++;
+                $lr =~ s/\R//g;
+                next if $cnt_r == 1 || $lr =~ /^\s*$/ || $lr =~ /^id_renta\|/i;
+                my @rf = split(/\|/, $lr, -1);
+                next unless scalar(@rf) >= 14;
+                my $r_id_arr = $rf[1] // '';
+                my $r_nom    = $rf[2] // 'Arrendatario';
+                my $r_fec    = $rf[5] // '';
+                my $r_hi     = $rf[6] // '';
+                my $r_hf     = $rf[7] // '';
+                my $r_suc    = $rf[8] // '';
+                my $r_esp    = $rf[9] // '';
+                my $r_est    = $rf[13] // 'Reservada';
+                my $r_neg    = $rf[17] // '';
+
+                next if $r_fec ne $fec;
+                next if $r_est =~ /^(Cancelada|No realizada)$/i;
+                next if $r_neg ne '' && $my_org ne '0' && $r_neg ne $my_org;
+                next if ($sucursal && $r_suc && $r_suc ne $sucursal);
+
+                if ($norm_esp->($r_esp) eq $target_esp_norm) {
+                    # Si quien renta el espacio es el mismo médico de la cita, se le permite agendar a sus pacientes en su bloque rentado
+                    next if ($id_m && $r_id_arr && $r_id_arr ne 'EXTERNO' && $r_id_arr eq $id_m);
+
+                    my ($rhi_h, $rhi_m) = split(/:/, $r_hi);
+                    my $rhi_min = ($rhi_h // 0) * 60 + ($rhi_m // 0);
+                    my ($rhf_h, $rhf_m) = split(/:/, $r_hf);
+                    my $rhf_min = ($rhf_h // 0) * 60 + ($rhf_m // 0);
+
+                    if ($hi_min < $rhf_min && $hf_min > $rhi_min) {
+                        close $fhr;
+                        return (0, "El espacio ($consultorio) se encuentra reservado en la Agenda de Espacios por $r_nom ($r_hi - $r_hf).");
+                    }
+                }
+            }
+            close $fhr;
+        }
+    }
+
     return (1, "OK");
 }
 

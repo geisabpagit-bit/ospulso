@@ -470,6 +470,7 @@ print <<HTML;
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="DICOM" id="cap11"><label class="form-check-label small fw-bold text-primary" for="cap11">DICOM</label></div></div>
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Exportación CSV" id="cap12"><label class="form-check-label small fw-bold text-primary" for="cap12">Exportación CSV</label></div></div>
                                 <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="API REST" id="cap13"><label class="form-check-label small fw-bold text-primary" for="cap13">API REST</label></div></div>
+                                <div class="col-sm-4 col-6"><div class="form-check m-0"><input class="form-check-input" type="checkbox" name="capacidades[]" value="Renta de Espacios" id="cap14"><label class="form-check-label small fw-bold text-primary" for="cap14"><i class="bi bi-door-open-fill text-teal me-1"></i>Renta de Espacios</label></div></div>
                             </div>
                         </div>
                     </div>
@@ -884,17 +885,21 @@ print <<'JS';
     document.querySelector('select[name="tipo_organizacion"]').addEventListener('change', function() {
         const val = this.value;
         const chk = document.getElementById('saas_maneja_hospitalizacion');
+        const chkRenta = document.getElementById('cap14');
         const bMed = document.getElementById('bloqueMedicoConsultorio');
         if (val === 'Consultorio Individual') {
             chk.checked = false;
             chk.disabled = true;
+            if (chkRenta) { chkRenta.checked = false; chkRenta.disabled = true; }
             if (bMed) bMed.classList.remove('d-none');
         } else if (val === 'Consultorio Compartido') {
             chk.checked = false;
             chk.disabled = true;
+            if (chkRenta) { chkRenta.disabled = false; }
             if (bMed) bMed.classList.add('d-none');
         } else {
             chk.disabled = false;
+            if (chkRenta) { chkRenta.disabled = false; }
             if (bMed) bMed.classList.add('d-none');
         }
     });

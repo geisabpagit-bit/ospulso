@@ -225,7 +225,7 @@ HTML
 
     require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
 
-    my @modulos_evaluar = ('pacientes', 'agenda', 'quirofano', 'finanzas', 'servicios', 'productos', 'usuarios', 'gestion_permisos', 'reportes', 'gestion_catalogos', 'tecnico', 'reset_datos_org', 'clinicas');
+    my @modulos_evaluar = ('pacientes', 'agenda', 'agenda_espacios', 'quirofano', 'finanzas', 'servicios', 'productos', 'usuarios', 'gestion_permisos', 'reportes', 'gestion_catalogos', 'tecnico', 'reset_datos_org', 'clinicas');
     my %is_allowed = ();
 
     # Evaluar permisos de lectura (R) por módulo incluyendo excepciones por usuario ($id_usuario_sesion)
@@ -254,6 +254,7 @@ HTML
         $is_allowed{finanzas}        = 0;
         $is_allowed{pacientes}       = 0;
         $is_allowed{agenda}          = 0;
+        $is_allowed{agenda_espacios} = 0;
         $is_allowed{quirofano}       = 0;
         $is_allowed{clinicas}        = 0;
         $is_allowed{usuarios}        = 0;
@@ -328,6 +329,13 @@ HTML
         $is_allowed{quirofano} = 0;
     }
 
+    # --- GOBERNANZA SAAS: CAPACIDAD RENTA DE ESPACIOS ---
+    # REGLA: La Agenda de Espacios solo es visible si la organización tiene marcada la capacidad "Renta de Espacios"
+    my $has_renta_espacios = ($capacidades{'Renta de Espacios'}) ? 1 : 0;
+    if (!$has_renta_espacios) {
+        $is_allowed{agenda_espacios} = 0;
+    }
+
     # 1. Dashboard
     my $dash_active = ($pagina_actual eq 'dashboard') ? 'active' : '';
     print qq{
@@ -348,8 +356,52 @@ HTML
         };
     }
 
-    # 3. Agenda Dinámica (Flat Link)
-    if ($is_allowed{agenda}) {
+    # 3. Agendas (Bifurcación Dinámica por Capacidad SaaS "Renta de Espacios")
+    if ($has_renta_espacios && ($is_allowed{agenda} || $is_allowed{agenda_espacios})) {
+        my $ag_has_active = ($pagina_actual eq 'agenda' || $pagina_actual eq 'agenda_espacios') ? 1 : 0;
+        my $ag_show = $ag_has_active ? 'show' : '';
+        my $ag_collapsed = $ag_has_active ? '' : 'collapsed';
+        my $ag_aria = $ag_has_active ? 'true' : 'false';
+        my $ag_badge = $ag_has_active ? '<span class="active-dot ms-auto"></span>' : '';
+        my $style = $module_styles{agenda};
+
+        my $link_ag_pacientes = '';
+        if ($is_allowed{agenda}) {
+            my $act_pac = ($pagina_actual eq 'agenda') ? 'active' : '';
+            $link_ag_pacientes = qq{
+                        <a href="../views/agenda_main.pl" class="sub-link $act_pac w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Agenda Pacientes">
+                            <i class="bi bi-people-fill text-primary me-2"></i><span class="sidebar-text fw-bold">Pacientes</span>
+                        </a>
+            };
+        }
+
+        my $link_ag_espacios = '';
+        if ($is_allowed{agenda_espacios}) {
+            my $act_esp = ($pagina_actual eq 'agenda_espacios') ? 'active' : '';
+            $link_ag_espacios = qq{
+                        <a href="../views/agenda_espacios.pl" class="sub-link $act_esp w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Agenda Espacios">
+                            <i class="bi bi-door-open-fill text-teal me-2"></i><span class="sidebar-text fw-bold">Espacios</span>
+                        </a>
+            };
+        }
+
+        print qq{
+            <!-- Agendas (Pacientes & Espacios) -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-agendas">
+                    <button class="accordion-button $ag_collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-agendas" aria-expanded="$ag_aria" aria-controls="c-agendas" data-sidebar-title="Agendas">
+                        <span class="material-icons" style="color: $style->{color}; font-size:1.2rem;">$style->{icon}</span> <span class="sidebar-text ms-2">Agendas</span>$ag_badge
+                    </button>
+                </h2>
+                <div id="c-agendas" class="accordion-collapse collapse $ag_show" aria-labelledby="h-agendas">
+                    <div class="accordion-body pb-0 pt-1">
+                        $link_ag_pacientes
+                        $link_ag_espacios
+                    </div>
+                </div>
+            </div>
+        };
+    } elsif ($is_allowed{agenda}) {
         my $m = $menu_registry{agenda};
         my $style = $module_styles{agenda};
         my $active_class = ($pagina_actual eq 'agenda') ? 'active' : '';
@@ -371,7 +423,7 @@ HTML
     }
 
     # Separador después de Pacientes / Agenda Dinámica / Quirófano
-    if ($is_allowed{pacientes} || $is_allowed{agenda} || $is_allowed{quirofano}) {
+    if ($is_allowed{pacientes} || $is_allowed{agenda} || $is_allowed{agenda_espacios} || $is_allowed{quirofano}) {
         print qq{<hr class="my-2 opacity-25 sidebar-separator">};
     }
 

@@ -206,11 +206,14 @@ sub obtener_matriz_permisos_org {
                 next unless length($m);
                 # En fallback base, si un módulo está asignado al rol, tiene permisos completos
                 $matriz{$rol_name}{$m} = { C => 1, R => 1, U => 1, D => 1 };
+                if ($m eq 'agenda') {
+                    $matriz{$rol_name}{'agenda_espacios'} = { C => 1, R => 1, U => 1, D => 1 };
+                }
             }
 
             # Garantizar acceso Administrador Organizacion y Administrador Global
             if ($rol_name =~ /Administrador/i) {
-                foreach my $m_admin ('pacientes', 'agenda', 'quirofano', 'finanzas', 'servicios', 'productos', 'usuarios', 'reportes', 'gestion_catalogos', 'tecnico', 'reset_datos_org') {
+                foreach my $m_admin ('pacientes', 'agenda', 'agenda_espacios', 'quirofano', 'finanzas', 'servicios', 'productos', 'usuarios', 'reportes', 'gestion_catalogos', 'tecnico', 'reset_datos_org') {
                     $matriz{$rol_name}{$m_admin} = { C => 1, R => 1, U => 1, D => 1 };
                 }
             }
@@ -239,7 +242,7 @@ sub guardar_matriz_permisos_org {
 
     # LOCKOUT PROTECTION: Garantizar que Administrador Organizacion y Administrador Global conserven CRUD en usuarios y gestion_permisos
     foreach my $adm_role ('Administrador Organizacion', 'Administrador Global') {
-        foreach my $critical_mod ('usuarios', 'gestion_permisos', 'pacientes', 'agenda') {
+        foreach my $critical_mod ('usuarios', 'gestion_permisos', 'pacientes', 'agenda', 'agenda_espacios') {
             $matriz_ref->{$adm_role}{$critical_mod} = { C => 1, R => 1, U => 1, D => 1 };
         }
     }
@@ -280,7 +283,7 @@ sub tiene_permiso_modulo {
     # pero NO a datos clínicos y financieros privados de organizaciones (Segregación Multi-Tenant NOM-004)
     # ni a la gestión operativa interna de clínicas/organizaciones (clínicas, usuarios, servicios, productos, reset org).
     if ($role eq 'Administrador Global') {
-        if ($modulo eq 'finanzas' || $modulo eq 'pacientes' || $modulo eq 'agenda' || $modulo eq 'quirofano' ||
+        if ($modulo eq 'finanzas' || $modulo eq 'pacientes' || $modulo eq 'agenda' || $modulo eq 'agenda_espacios' || $modulo eq 'quirofano' ||
             $modulo eq 'clinicas' || $modulo eq 'usuarios' || $modulo eq 'servicios' || $modulo eq 'productos' || $modulo eq 'reset_datos_org') {
             return 0;
         }
@@ -288,7 +291,7 @@ sub tiene_permiso_modulo {
     }
 
     # Administrador Organizacion en modulos de gestion y usuarios siempre posee acceso completo (Lockout protection)
-    if ($role eq 'Administrador Organizacion' && ($modulo eq 'usuarios' || $modulo eq 'gestion_permisos')) {
+    if ($role eq 'Administrador Organizacion' && ($modulo eq 'usuarios' || $modulo eq 'gestion_permisos' || $modulo eq 'agenda' || $modulo eq 'agenda_espacios')) {
         return 1;
     }
 
@@ -305,6 +308,11 @@ sub tiene_permiso_modulo {
     
     if (exists $matriz->{$role} && exists $matriz->{$role}{$modulo}) {
         return int($matriz->{$role}{$modulo}{$accion} // 0);
+    }
+
+    # Fallback de herencia: si se consulta 'agenda_espacios' y la matriz personalizada aún no lo tiene explícito, heredar de 'agenda'
+    if ($modulo eq 'agenda_espacios' && exists $matriz->{$role} && exists $matriz->{$role}{'agenda'}) {
+        return int($matriz->{$role}{'agenda'}{$accion} // 0);
     }
 
     return 0;
