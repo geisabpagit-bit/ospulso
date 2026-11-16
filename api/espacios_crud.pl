@@ -333,6 +333,9 @@ sub crear_renta {
         return;
     }
 
+    my ($ok_f, $msg_f) = validar_no_pasado($fec, $hi);
+    unless ($ok_f) { responder_json(0, $msg_f); return; }
+
     my ($ok_h, $msg_h) = validar_horario_sucursal($fec, $hi, $hf, $sucursal);
     unless ($ok_h) { responder_json(0, $msg_h); return; }
 
@@ -411,6 +414,23 @@ sub actualizar_renta {
 
     unless ($id_r)   { responder_json(0, "ID de reserva requerido."); return; }
     unless ($motivo) { responder_json(0, "El campo Uso / Procedimiento es obligatorio."); return; }
+
+    my $found_prev;
+    foreach my $x (@$arr) {
+        if ($x->{id_renta} eq $id_r) { $found_prev = $x; last; }
+    }
+    unless ($found_prev) {
+        responder_json(0, "No se encontró el registro de la reserva.");
+        return;
+    }
+
+    # Si es una reprogramación de fecha u hora (y no un simple cambio de estatus como 'En Uso' o 'Finalizada'), validar que no sea en el pasado
+    my $cambio_horario = (($fec && $fec ne ($found_prev->{fecha} // '')) || ($hi && $hi ne ($found_prev->{hora_ini} // '')));
+    my $est_nuevo = $query->param('estado') // '';
+    if ($cambio_horario || $est_nuevo !~ /^(En Uso|Finalizada|Cancelada|No realizada)$/i) {
+        my ($ok_f, $msg_f) = validar_no_pasado($fec || $found_prev->{fecha}, $hi || $found_prev->{hora_ini});
+        unless ($ok_f) { responder_json(0, $msg_f); return; }
+    }
 
     my ($ok_h, $msg_h) = validar_horario_sucursal($fec, $hi, $hf, $sucursal);
     unless ($ok_h) { responder_json(0, $msg_h); return; }
@@ -495,6 +515,23 @@ sub eliminar_renta {
 # ==========================================================
 # VALIDACIÓN HORARIA Y MOTOR ANTICOLISIÓN BIDIRECCIONAL
 # ==========================================================
+
+sub validar_no_pasado {
+    my ($fec, $hi) = @_;
+    return (0, "Fecha y hora de inicio requeridas.") unless ($fec && $hi);
+
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
+    my $hoy_iso  = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
+    my $hora_now = sprintf("%02d:%02d", $hour, $min);
+
+    if ($fec lt $hoy_iso) {
+        return (0, "Regla Anticolisión Temporal: No está permitido reservar espacios en una fecha pasada ($fec).");
+    }
+    if ($fec eq $hoy_iso && $hi lt $hora_now) {
+        return (0, "Regla Anticolisión Temporal: No está permitido reservar un espacio en un horario anterior al actual ($hi < $hora_now hrs).");
+    }
+    return (1, "OK");
+}
 
 sub validar_horario_sucursal {
     my ($fec, $hi, $hf, $suc) = @_;

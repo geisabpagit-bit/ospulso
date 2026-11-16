@@ -689,10 +689,24 @@ print <<HTML;
                                 <div class="h-100 d-flex flex-column p-2.5 rounded-3" style="background-color: #f8fafc; border: 1px solid rgba(25, 183, 165, 0.28);">
                                     <div class="mb-2">
                                         <div class="d-flex align-items-center justify-content-between mb-1">
-                                            <label class="form-label-compact m-0">Duración del Bloque de Renta</label>
-                                            <span class="text-muted" style="font-size: 0.68rem;">Tiempo de ocupación</span>
+                                            <label class="form-label-compact m-0"><i class="bi bi-sliders text-teal me-1"></i>Duración del Bloque de Renta</label>
+                                            <span class="badge bg-navy text-white px-2 py-0.5 fw-bold" id="lbl_slider_duracion_badge" style="font-size: 0.70rem;">1 hr (60 min)</span>
                                         </div>
-                                        <div class="d-flex gap-1.5 dur-bar-premium w-100" id="btn-group-duracion"></div>
+
+                                        <!-- Slider Táctil de Duración (30 min hasta Resto del Día) -->
+                                        <div class="px-2 py-1.5 bg-white rounded-3 border shadow-2xs mb-1.5">
+                                            <input type="range" class="form-range m-0" id="slider_duracion_renta" min="30" max="480" step="30" value="60" oninput="window.onDuracionSliderChange(this.value)">
+                                            <div class="d-flex justify-content-between text-muted fw-semibold" style="font-size: 0.62rem; margin-top: -2px;">
+                                                <span>30m</span>
+                                                <span>2h</span>
+                                                <span>4h (Turno)</span>
+                                                <span>6h</span>
+                                                <span id="lbl_slider_max_mark">8h+ / Cierre</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Píldoras de Acceso Rápido + Resto del Día + Día Completo -->
+                                        <div class="d-flex gap-1 dur-bar-premium w-100" id="btn-group-duracion"></div>
 
                                         <div id="bloqueo-horario-avena" class="bloqueo-avena-card d-none mt-2 p-2 rounded-3 animate__animated animate__fadeIn">
                                             <div class="d-flex align-items-center justify-content-between">

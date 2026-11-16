@@ -762,12 +762,15 @@ $(document).ready(function() {
         if (typeof abrirModalAjustes === 'function') setTimeout(abrirModalAjustes, 300);
     }
 
-    // Selector Duración (Diamond Edition Refactor)
+    // Selector Duración (Diamond Edition Refactor + Slider Sync)
     $(document).on('click', '.btn-dur', function() {
         $(".btn-dur").removeClass('active dur-avena-active');
-        $(this).addClass('active');
+        $(this).addClass('active dur-avena-active');
         const val = $(this).attr('data-v');
         duracionCita = isNaN(val) ? val : parseInt(val);
+        if (typeof window.sincronizarSliderDuracionUI === 'function') {
+            window.sincronizarSliderDuracionUI(duracionCita);
+        }
         
         // Limpieza estricta de horas para evitar arrastrar slots de otras duraciones
         $("#f_hi").val('');
@@ -778,14 +781,25 @@ $(document).ready(function() {
         renderSlots($("#f_fecha").val());
     });
 
-    // Actualización reactiva al cambiar la fecha en el modal de citas
+    // Actualización reactiva al cambiar la fecha en el modal de reserva (con bloqueo de fechas pasadas)
     $(document).on('change', '#f_fecha', function() {
+        const hoyIso = getISO(new Date());
+        if (this.value && this.value < hoyIso) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Fecha Pasada No Permitida',
+                text: 'No se puede reservar un espacio antes de la fecha y hora actual.',
+                customClass: { popup: 'rounded-4' }
+            });
+            this.value = hoyIso;
+        }
         const nuevaFecha = this.value;
+        renderSlots(nuevaFecha);
         const hi = $("#f_hi").val();
         const hf = $("#f_hf").val();
         const accion = $("#f_accion").val();
         if (hi && hf) {
-            const lbl = (accion === 'update') ? 'GESTIÓN DE CITAS / EDITAR CITA' : 'GESTIÓN DE CITAS / NUEVA CITA';
+            const lbl = (accion === 'update') ? 'RESERVA DE ESPACIO / EDITAR RESERVA' : 'RESERVA DE ESPACIO / NUEVO ARRENDAMIENTO';
             actualizarResaltadoModalCita(nuevaFecha, hi, hf, lbl);
         }
     });
@@ -983,23 +997,98 @@ function loadContext() {
     cargarEventosYConfig(idMed);
 }
 
+function formatDuracionLabel(val) {
+    if (val === 'all') return 'Día Completo';
+    if (val === 'rest') return 'Hasta el Cierre (Resto)';
+    const mins = parseInt(val, 10) || 60;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h > 0 && m > 0) return `${h}h ${m}m (${mins} min)`;
+    if (h > 0) return `${h} hr${h > 1 ? 's' : ''} (${mins} min)`;
+    return `${mins} min`;
+}
+
+window.sincronizarSliderDuracionUI = function(val) {
+    const slider = document.getElementById('slider_duracion_renta');
+    const badge  = document.getElementById('lbl_slider_duracion_badge');
+    if (badge) {
+        badge.textContent = formatDuracionLabel(val);
+    }
+    if (slider) {
+        const maxVal = parseInt(slider.max, 10) || 480;
+        if (val === 'all' || val === 'rest') {
+            slider.value = maxVal;
+        } else {
+            const num = parseInt(val, 10) || 60;
+            slider.value = Math.min(maxVal, Math.max(parseInt(slider.min, 10) || 30, num));
+        }
+    }
+};
+
+window.onDuracionSliderChange = function(rawVal) {
+    const slider = document.getElementById('slider_duracion_renta');
+    const maxVal = slider ? (parseInt(slider.max, 10) || 480) : 480;
+    const numVal = parseInt(rawVal, 10) || 60;
+
+    $(".btn-dur").removeClass('active dur-avena-active');
+
+    if (numVal >= maxVal) {
+        // El extremo derecho del slider activa el modo "Hasta el Cierre (Resto del Día)"
+        duracionCita = 'rest';
+        $('.btn-dur[data-v="rest"]').addClass('active dur-avena-active');
+    } else {
+        duracionCita = numVal;
+        const matchBtn = $(`.btn-dur[data-v="${numVal}"]`);
+        if (matchBtn.length) matchBtn.addClass('active dur-avena-active');
+    }
+
+    window.sincronizarSliderDuracionUI(duracionCita);
+
+    // Si ya había una hora de inicio seleccionada, recalcular dinámicamente la hora de fin si sigue siendo válida
+    const curHi = $("#f_hi").val();
+    const curFecha = $("#f_fecha").val();
+    if (curHi && curFecha) {
+        const lEnd = agendaConfig.laborEnd || '21:00';
+        const [leH, leM] = lEnd.split(':').map(Number);
+        const endMinJornada = ((leH || 21) * 60) + (leM || 0);
+        const [h1, m1] = curHi.split(':').map(Number);
+        const startMin = h1 * 60 + m1;
+
+        let newEndMin = (duracionCita === 'rest') ? endMinJornada : (startMin + duracionCita);
+        if (newEndMin > endMinJornada) newEndMin = endMinJornada;
+
+        const hE = Math.floor(newEndMin / 60).toString().padStart(2, '0');
+        const mE = (newEndMin % 60).toString().padStart(2, '0');
+        const newHf = (newEndMin >= 1440) ? '23:59' : `${hE}:${mE}`;
+        $("#f_hf").val(newHf);
+        const accion = $("#f_accion").val();
+        const lbl = (accion === 'update') ? 'RESERVA DE ESPACIO / EDITAR RESERVA' : 'RESERVA DE ESPACIO / NUEVO ARRENDAMIENTO';
+        actualizarResaltadoModalCita(curFecha, curHi, newHf, lbl);
+    }
+
+    renderSlots(curFecha);
+};
+
 function renderDuracionButtons() {
     const int = parseInt(agendaConfig.intervalo_minutos) || 30;
     const g = $("#btn-group-duracion");
     g.empty();
-    
-    let l1 = int + 'm';
-    if(int === 60) l1 = '1h';
-    let val2 = int * 2;
-    let l2 = val2 + 'm';
-    if(val2 === 60) l2 = '1h';
-    else if(val2 === 90) l2 = '1h 30m';
-    else if(val2 === 120) l2 = '2h';
-    
-    g.append(`<button type="button" class="btn btn-dur active" data-v="${int}">${l1}</button>`);
-    g.append(`<button type="button" class="btn btn-dur" data-v="${val2}">${l2}</button>`);
-    g.append(`<button type="button" class="btn btn-dur" data-v="rest">RESTO</button>`);
-    g.append(`<button type="button" class="btn btn-dur" data-v="all">DÍA</button>`);
+
+    // Configurar límites del slider según la jornada de la sucursal
+    const slider = document.getElementById('slider_duracion_renta');
+    if (slider) {
+        slider.min = int;
+        slider.step = int;
+        slider.max = 510; // 30..480 min (8 hrs) y 510 = Hasta el Cierre (Resto)
+    }
+
+    g.append(`<button type="button" class="btn btn-dur" data-v="60">1h</button>`);
+    g.append(`<button type="button" class="btn btn-dur" data-v="120">2h</button>`);
+    g.append(`<button type="button" class="btn btn-dur" data-v="240">4h (Turno)</button>`);
+    g.append(`<button type="button" class="btn btn-dur" data-v="rest" title="Reservar desde la hora elegida hasta el cierre de la sede">HASTA CIERRE</button>`);
+    g.append(`<button type="button" class="btn btn-dur" data-v="all" title="Reservar toda la jornada del día">DÍA COMPLETO</button>`);
+
+    window.sincronizarSliderDuracionUI(duracionCita);
 }
 
 
@@ -3067,7 +3156,8 @@ function renderSlots(date) {
         return;
     }
 
-    const interval = isNaN(duracionCita) ? 30 : duracionCita;
+    const interval = isNaN(duracionCita) ? (parseInt(agendaConfig.intervalo_minutos) || 30) : duracionCita;
+    const stepGrid = (duracionCita === 'rest') ? (parseInt(agendaConfig.intervalo_minutos) || 30) : Math.min(interval, 60);
     const lStart = agendaConfig.laborStart || '09:00';
     const lEnd = agendaConfig.laborEnd || '20:00';
     const [lsH, lsM] = lStart.split(':').map(Number);
@@ -3081,7 +3171,10 @@ function renderSlots(date) {
 
     let viableRestSlots = 0;
 
-    for (let curMin = startMin; curMin < endMin; curMin += interval) {
+    for (let curMin = startMin; curMin < endMin; curMin += stepGrid) {
+        if (duracionCita !== 'rest' && (curMin + interval) > endMin) {
+            continue;
+        }
         const h = Math.floor(curMin / 60);
         const m = curMin % 60;
         const hh = h.toString().padStart(2,'0'); 
@@ -3089,8 +3182,13 @@ function renderSlots(date) {
         const hhmm = `${hh}:${mm}`;
         
         let hhmmE;
+        let restHoursLabel = '';
         if (duracionCita === 'rest') {
             hhmmE = (endMin === 1440) ? '23:59' : lEnd;
+            const remMin = endMin - curMin;
+            const rH = Math.floor(remMin / 60);
+            const rM = remMin % 60;
+            restHoursLabel = rM > 0 ? `${rH}h ${rM}m` : `${rH}h`;
         } else {
             let tM = curMin + interval; 
             const hE = Math.floor(tM / 60).toString().padStart(2,'0'); 
@@ -3119,13 +3217,15 @@ function renderSlots(date) {
                 }
             }
 
-            const canBypassLunch = (duracionCita === 'rest');
+            const canBypassLunch = (duracionCita === 'rest' || interval >= 120);
             const isBlocked = isP || (isL && !canBypassLunch) || isB;
             if (!isBlocked && duracionCita === 'rest') {
                 viableRestSlots++;
             }
 
-            const btnText = duracionCita === 'rest' ? `${hhmm} ➔ FIN` : hhmm;
+            const btnText = duracionCita === 'rest'
+                ? `<span class="d-block fw-bold" style="font-size:0.74rem;">${hhmm} ➔ ${hhmmE}</span><small class="d-block opacity-75" style="font-size:0.60rem;">(${restHoursLabel} hasta cierre)</small>`
+                : (interval >= 120 ? `<span class="d-block fw-bold" style="font-size:0.74rem;">${hhmm} - ${hhmmE}</span>` : hhmm);
             let btn;
 
             if (duracionCita === 'rest' && isB && conflictApt) {
@@ -3219,16 +3319,26 @@ window.abrirModalNuevaRenta = function(f, h, espacioPre) {
 
 function abrirModalNuevaCita(f, h, espacioPre) {
     const isGlobal = !f && !h;
+    const hoyIso = getISO(new Date());
     let targetF = f;
-    if (!targetF) {
-        targetF = getNextAvailableDate(getISO(new Date()));
+    if (!targetF || targetF < hoyIso) {
+        if (f && f < hoyIso) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Fecha Pasada No Permitida',
+                text: 'No se puede reservar un espacio antes de la fecha y hora actual.',
+                customClass: { popup: 'rounded-4' }
+            });
+            return;
+        }
+        targetF = getNextAvailableDate(hoyIso);
     }
 
     if (!isGlobal && h && !isFuture(targetF, h)) {
         Swal.fire({
-            icon: 'info',
-            title: 'Horario No Disponible',
-            text: 'No se pueden reservar espacios en horarios que ya han pasado.',
+            icon: 'warning',
+            title: 'Horario Pasado No Disponible',
+            text: 'No se puede reservar un espacio antes de la fecha y hora actual.',
             customClass: { popup: 'rounded-4' }
         });
         return;
@@ -3236,7 +3346,12 @@ function abrirModalNuevaCita(f, h, espacioPre) {
 
     $("#f_id_cita, #f_id_cita_alias").val('');
     $("#f_accion").val('create');
-    $("#f_fecha").val(targetF);
+    $("#f_fecha").attr('min', hoyIso).val(targetF);
+
+    if (duracionCita === 30) duracionCita = 60; // Por defecto 1 hora en renta de espacios
+    if (typeof window.sincronizarSliderDuracionUI === 'function') {
+        window.sincronizarSliderDuracionUI(duracionCita);
+    }
 
     if (h) {
         $("#f_hi").val(h);
@@ -3374,14 +3489,18 @@ function abrirModalCita(id, isReadonly) {
         actualizarResaltadoModalCita(fecha, hi, hf, 'RESERVA DE ESPACIO / EDITAR RESERVA');
     }
 
-    let durMin = 30;
+    let durMin = 60;
     if (hi && hf) {
         const [h1, m1] = hi.split(':').map(Number);
         const [h2, m2] = hf.split(':').map(Number);
         durMin = (h2 * 60 + m2) - (h1 * 60 + m1);
-        if (isNaN(durMin) || durMin <= 0) durMin = 30;
+        if (isNaN(durMin) || durMin <= 0) durMin = 60;
     }
     duracionCita = durMin;
+    if (typeof window.sincronizarSliderDuracionUI === 'function') {
+        window.sincronizarSliderDuracionUI(duracionCita);
+    }
+    $("#f_fecha").attr('min', getISO(new Date()));
 
     renderSlots(fecha);
     const m = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCita'));

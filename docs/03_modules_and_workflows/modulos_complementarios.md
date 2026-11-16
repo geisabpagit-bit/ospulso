@@ -267,6 +267,12 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   2. **Estados de Reserva**: `Reservada` (#0A2A66), `Confirmada / Pagada` (#10b981), `En Uso` (#059669), `Finalizada` (#19B7A5), `No realizada` (#ef4444 - auto-saneamiento al expirar sin uso) y `Cancelada` (#dc2626).
   3. **Integración Financiera**: El cobro de una renta de espacio genera su recibo correspondiente en `dat/folios_recibos_privados.dat` y movimiento en `dat/estado_cuenta.dat`, preservando la integridad contable al centavo.
   4. **Entrada Híbrida con Autocomplete de Arrendatarios (`#f_paciente` / `#dropdown_autocomplete_medicos`)**: En el modal `#modalCita` de `views/agenda_espacios.pl`, el campo *"Nombre del Médico / Arrendatario"* opera de forma híbrida: permite escribir libremente el nombre de cualquier arrendatario externo o filtrar/seleccionar en tiempo real de la lista de médicos dados de alta como colaboradores activos en la organización (`window.medicosActivosList`), mostrando su rol quirúrgico y sincronizando automáticamente el selector `#f_medico_select`.
+  5. **Slider Interactivo de Duración del Bloque de Renta y UX para "Hasta el Cierre (Resto)" (`#slider_duracion_renta`)**:
+     - Se incorpora un control deslizante táctil (`input[type="range"]`) graduado en bloques de 30 minutos (desde 30 min hasta 8 hrs y tope derecho *"Hasta el Cierre"*), sincronizado bidireccionalmente con las píldoras rápidas (`1h`, `2h`, `4h (Turno)`, `HASTA CIERRE`, `DÍA COMPLETO`) y el indicador dinámico `#lbl_slider_duracion_badge`.
+     - Al elegir la modalidad **Hasta Cierre (`rest`)** o deslizar el slider al extremo derecho, los botones de horario muestran de forma explícita la hora de inicio, la hora exacta de cierre de la sucursal y las horas efectivas que comprende el bloque (ej. `14:00 ➔ 21:00 (7h hasta cierre)`), recalculando en tiempo real el bloqueo horario en amarillo avena.
+  6. **Cerrojo Anticolisión Temporal (Prohibición de Reservas en el Pasado)**:
+     - Tanto el frontend (`js/agenda_espacios_spa.js`) como el backend (`validar_no_pasado` en `api/espacios_crud.pl`) bloquean cualquier intento de crear o mover una reserva hacia una fecha u hora anterior al momento actual.
+
 
 
 

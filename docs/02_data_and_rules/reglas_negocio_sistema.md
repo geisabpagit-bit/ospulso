@@ -174,6 +174,11 @@
 4. **Regla Inviolable Anticolisión Transversal**:
    - Ningún consultorio o quirófano puede reservarse en `dat/rentas_espacios.dat` si presenta intersección horaria en la misma fecha y sucursal con otra renta activa o con una cita/cirugía activa en `dat/citas.dat` (salvo que la cita pertenezca al mismo médico titular del bloque rentado).
    - Las reservas con estado `Cancelada` o `No realizada` liberan inmediatamente el recurso físico en ambas agendas.
+5. **Bloqueo Estricto de Fechas y Horas Pasadas (Anticolisión Temporal)**:
+   - Queda estrictamente prohibido crear o reprogramar una reserva de espacio antes de la fecha y hora actual (`fecha < hoy` o `fecha == hoy && hora_ini < hora_actual`).
+   - La restricción se aplica en doble capa: en el frontend (`#f_fecha` con atributo `min`, deshabilitación de slots pasados, validación en `saveCita` y `dropS` / `dropManualDrag`) y de forma inviolable en el backend (`validar_no_pasado` dentro de `api/espacios_crud.pl`).
+   - Se exceptúan únicamente las transiciones de estado operativas (`En Uso`, `Finalizada`, `Cancelada`) sobre reservas ya creadas cuya hora de inicio acaba de cumplirse.
+
 
 
 
