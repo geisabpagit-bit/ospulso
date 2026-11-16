@@ -102,6 +102,7 @@ Para optimizar el rendimiento y la memoria en el navegador frente a catálogos e
 ## 9. Matriz Multi-Tarifa para Convenio Municipio por Día y Turno (`MUNICIPIO` y `MUNICIPIO_*`)
 - **Identificación Dinámica por Prefijo (`^MUNICIPIO`)**:
   - Toda tarifa registrada en `tipos_tarifas_<CLUES>.dat` cuya clave sea `MUNICIPIO` o inicie con `MUNICIPIO_` (ej. `MUNICIPIO_LUN_VIE`, `MUNICIPIO_SAB_MAT`, `MUNICIPIO_SAB_VESP`, `MUNICIPIO_DOM_FEST`, `MUNICIPIO_URGENCIAS`) es reconocida automáticamente como tarifa aplicable al esquema **Convenio Municipio**.
+  - `utils/catalogo_org_utils.pl` (`get_catalogo_universal`) ejecuta un auto-sembrado idempotente y no destructivo sobre `tipos_tarifas_<CLUES>.dat`, garantizando que tras un `hot_deploy.sh` en producción (el cual respalda y restaura íntegramente `/dat`), las 5 tarifas base `MUNICIPIO_*` se agreguen automáticamente sin sobrescribir ni alterar ningún `.dat` existente.
   - En el formulario de creación/edición de Tipos de Tarifa en `views/manage_catalogo_universal.pl`, el selector **Esquema / Ámbito** (`Privado / General` vs `Convenio Municipio`) aplica y valida automáticamente el prefijo `MUNICIPIO_` en la clave interna.
 - **Múltiples Tarifas de Municipio en la Matriz del Servicio (`views/manage_catalogo_universal.pl`)**:
   - Tanto en **Consultas** (`ID_DEP = 1`) como en el resto de departamentos (**Imagenología / Rayos X**, **Laboratorio**, **Servicios**), un mismo concepto puede asociar múltiples tarifas de Municipio según el día u horario.

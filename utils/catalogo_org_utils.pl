@@ -372,14 +372,19 @@ sub get_catalogo_universal {
         close $fh;
     }
 
-    # Leer Tipos de Tarifas
+    # Leer Tipos de Tarifas (con auto-sembrado idempotente no destructivo de tarifas MUNICIPIO_* post hot_deploy)
     my @tipos_tarifas;
     if (exists $rutas->{tipos_tarifas} && -e $rutas->{tipos_tarifas}) {
+        my %claves_existentes;
+        my $max_id_tar = 0;
         open(my $fh, '<:encoding(UTF-8)', $rutas->{tipos_tarifas});
         <$fh>; # saltar header
         while (<$fh>) {
             chomp; next if /^\s*$/;
             my @c = split /\|/, $_, -1;
+            my $id_num = ($c[0] && $c[0] =~ /^\d+$/) ? int($c[0]) : 0;
+            $max_id_tar = $id_num if $id_num > $max_id_tar;
+            $claves_existentes{uc($c[1] // '')} = 1;
             push @tipos_tarifas, {
                 id_tarifa     => $c[0],
                 clave         => $c[1],
@@ -389,6 +394,33 @@ sub get_catalogo_universal {
             };
         }
         close $fh;
+
+        my @tarifas_mun_base = (
+            [ 'MUNICIPIO_LUN_VIE',   'MUNICIPIO - LUNES A VIERNES',      'Convenio Municipio Horario Ordinario Lunes a Viernes' ],
+            [ 'MUNICIPIO_SAB_MAT',   'MUNICIPIO - SÁBADOS MATUTINO',     'Convenio Municipio Sábado Turno Matutino' ],
+            [ 'MUNICIPIO_SAB_VESP',  'MUNICIPIO - SÁBADOS VESPERTINO',   'Convenio Municipio Sábado Turno Vespertino' ],
+            [ 'MUNICIPIO_DOM_FEST',  'MUNICIPIO - DOMINGOS Y FESTIVOS',  'Convenio Municipio Guardia Domingo y Día Festivo' ],
+            [ 'MUNICIPIO_URGENCIAS', 'MUNICIPIO - URGENCIAS / NOCTURNO', 'Convenio Municipio Atención Urgencias o Nocturno' ]
+        );
+        my @faltantes = grep { !$claves_existentes{$_->[0]} } @tarifas_mun_base;
+        if (@faltantes) {
+            if (open(my $fh_app, '>>:raw :encoding(UTF-8)', $rutas->{tipos_tarifas})) {
+                flock($fh_app, LOCK_EX);
+                foreach my $tm (@faltantes) {
+                    $max_id_tar++;
+                    print $fh_app "$max_id_tar|$tm->[0]|$tm->[1]|$tm->[2]|1\n";
+                    push @tipos_tarifas, {
+                        id_tarifa     => $max_id_tar,
+                        clave         => $tm->[0],
+                        nombre_tarifa => $tm->[1],
+                        descripcion   => $tm->[2],
+                        activo        => 1
+                    };
+                }
+                flock($fh_app, LOCK_UN);
+                close $fh_app;
+            }
+        }
     }
 
     return {
