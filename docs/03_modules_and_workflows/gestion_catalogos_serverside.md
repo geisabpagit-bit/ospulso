@@ -97,4 +97,18 @@ Para optimizar el rendimiento y la memoria en el navegador frente a catálogos e
     2. **Wizard Clínico SOAP Paso Caja (`views/partials/consultas/step_caja_privado.pl` -> `api/cerrar_consulta_privado.pl`)**: Valida stock en `#modalCargoConsultas` y descuenta atómicamente de `productos_<ID_ORG>.dat` al cerrar la consulta médica.
     3. **Estado de Cuenta / Carrito Universal (`views/estado_cuenta.pl`, `js/estado_cuenta_spa.js` -> `api/estado_cuenta_api.pl` `accion=add_cargo`)**: Renderiza limpiamente `views/partials/consultas/modal_carrito_universal.pl` (sin fugas de heredoc), valida existencias en el modal de Nueva Orden de Servicio y descuenta atómicamente el inventario antes de registrar el cargo en `estado_cuenta.dat`.
 
+---
+
+## 9. Matriz Multi-Tarifa para Convenio Municipio por Día y Turno (`MUNICIPIO` y `MUNICIPIO_*`)
+- **Identificación Dinámica por Prefijo (`^MUNICIPIO`)**:
+  - Toda tarifa registrada en `tipos_tarifas_<CLUES>.dat` cuya clave sea `MUNICIPIO` o inicie con `MUNICIPIO_` (ej. `MUNICIPIO_LUN_VIE`, `MUNICIPIO_SAB_MAT`, `MUNICIPIO_SAB_VESP`, `MUNICIPIO_DOM_FEST`, `MUNICIPIO_URGENCIAS`) es reconocida automáticamente como tarifa aplicable al esquema **Convenio Municipio**.
+  - En el formulario de creación/edición de Tipos de Tarifa en `views/manage_catalogo_universal.pl`, el selector **Esquema / Ámbito** (`Privado / General` vs `Convenio Municipio`) aplica y valida automáticamente el prefijo `MUNICIPIO_` en la clave interna.
+- **Múltiples Tarifas de Municipio en la Matriz del Servicio (`views/manage_catalogo_universal.pl`)**:
+  - Tanto en **Consultas** (`ID_DEP = 1`) como en el resto de departamentos (**Imagenología / Rayos X**, **Laboratorio**, **Servicios**), un mismo concepto puede asociar múltiples tarifas de Municipio según el día u horario.
+  - El botón rápido **`+ Municipio`** agrega secuencialmente las tarifas de Municipio activas aún no incluidas en la matriz del servicio.
+- **Selección en Caja Rápida (`views/generar_recibo.pl`) e Impresión (`api/imprimir_recibo_publico.pl`)**:
+  - Al atender a un empleado de Municipio (`pacienteTipoActual === 'estado'`), el selector `#containerTarifaConsulta` se habilita para elegir la tarifa de consulta de Municipio correspondiente al día/turno, y el catálogo modal (`#modalConceptosRecibo`) junto con el carrito despliegan el `<select>` interactivo de tarifas de Municipio para estudios adicionales (ej. Rayos X en Sábado Matutino o Vespertino).
+  - En `api/imprimir_recibo_publico.pl`, los precios unitarios/subtotales de la tarifa seleccionada (tanto de Consultas como de otros departamentos) y el Total se imprimen exclusivamente cuando la dependencia es **DIF**, manteniéndose ocultos en el papel impreso para el resto de dependencias municipales.
+
+
 

@@ -930,9 +930,12 @@ foreach my $c (@cargos) {
 
     my $precio_col_html = '';
     # En recibos públicos normales no se muestran cantidades.
-    # Excepción cliente: Sólo si la dependencia es "DIF", sí se muestran monto por concepto y total.
+    # Excepción cliente: Sólo si la dependencia es "DIF", sí se muestran monto por concepto (Consultas y otros departamentos) y total.
     if ($es_dif) {
         my $monto_num = $c->{subtotal} || $c->{precio} || 0;
+        if ($monto_num == 0 && scalar(@cargos) == 1 && ($recibo->{total_cargos} || 0) > 0) {
+            $monto_num = $recibo->{total_cargos};
+        }
         my $subtotal_fmt = formato_moneda($monto_num);
         $precio_col_html = qq{<span style="font-size: 10px; font-weight: bold; color: #1e293b;">$subtotal_fmt</span>};
     } elsif (!$c->{cubierto_convenio} && defined $c->{precio_paciente} && $c->{precio_paciente} > 0 && $recibo->{total_abonos} && $recibo->{total_abonos} > 0) {
@@ -1027,10 +1030,9 @@ if (@indicaciones_lista) {
 
 my $bloque_totales_html = '';
 if ($es_dif) {
-    my $total_dif = $recibo->{total_cargos} || 0;
-    if (!$total_dif) {
-        foreach my $c (@cargos) { $total_dif += ($c->{subtotal} || $c->{precio} || 0); }
-    }
+    my $total_dif = 0;
+    foreach my $c (@cargos) { $total_dif += ($c->{subtotal} || $c->{precio} || 0); }
+    $total_dif = ($recibo->{total_cargos} || 0) if $total_dif == 0;
     $bloque_totales_html .= qq{
         <div style="margin-bottom: 4px; font-size: 12px; font-weight: bold; color: #0A2A66;">
             <span>Total : @{[ formato_moneda($total_dif) ]}</span>

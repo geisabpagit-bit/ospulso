@@ -14,3 +14,9 @@ ID_TARIFA|CLAVE|NOMBRE_TARIFA|DESCRIPCION|ACTIVO
 13|CT_CONS_GRAL_LV|Consulta Gral Lunes a Viernes||1
 14|CT_CONS_GRAL_SAB_MAT|Consulta Gral Sabados Matutina||1
 15|CT_CONS_GRAL_SAB_VESP|Consulta Gral Sabado Vespertina||1
+16|MUNICIPIO_LUN_VIE|MUNICIPIO - LUNES A VIERNES|Convenio Municipio Horario Ordinario Lunes a Viernes|1
+17|MUNICIPIO_SAB_MAT|MUNICIPIO - SÁBADOS MATUTINO|Convenio Municipio Sábado Turno Matutino|1
+18|MUNICIPIO_SAB_VESP|MUNICIPIO - SÁBADOS VESPERTINO|Convenio Municipio Sábado Turno Vespertino|1
+19|MUNICIPIO_DOM_FEST|MUNICIPIO - DOMINGOS Y FESTIVOS|Convenio Municipio Guardia Domingo y Día Festivo|1
+20|MUNICIPIO_URGENCIAS|MUNICIPIO - URGENCIAS / NOCTURNO|Convenio Municipio Atención Urgencias o Nocturno|1
+16|MUNICIPIO_FUERA_DE_HORARIO|Municipio Fuera de Horario, Domingos y Días Festivos||1

@@ -114,17 +114,18 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
 
 ## 3. Matriz Multi-Tarifa por Organización (`tipos_tarifas_<CLUES>.dat`)
 
-1. **Definición Dinámica de Precios**:
+1. **Definición Dinámica de Precios (Privado y Convenio Municipio)**:
    Cada concepto del catálogo universal (`catalogo_items_<CLUES>.dat`) puede asociar múltiples esquemas de precio en `catalogo_precios_<CLUES>.dat`:
    - `ESTANDAR`: Tarifa comercial base para público general.
-   - `MUNICIPIO`: Tarifa convenida para beneficiarios de gobierno o sindicato.
-   - `URGENCIAS`: Recargo por atención de urgencias fuera de horario.
-   - `DOMINGOS_Y_FESTIVOS`: Recargo dominical / festivo.
+   - `MUNICIPIO` y variantes con prefijo `MUNICIPIO_*` (`MUNICIPIO_LUN_VIE`, `MUNICIPIO_SAB_MAT`, `MUNICIPIO_SAB_VESP`, `MUNICIPIO_DOM_FEST`, `MUNICIPIO_URGENCIAS`): Tarifas convenidas para beneficiarios de gobierno/municipio diferenciadas por día y turno, aplicables tanto a **Consultas** como a **Imagenología (Rayos X), Laboratorio y Servicios**.
+   - `URGENCIAS`: Recargo por atención de urgencias fuera de horario (privado).
+   - `DOMINGOS_Y_FESTIVOS`: Recargo dominical / festivo (privado).
    - `PAQUETE_TODO_INCLUIDO`: Precio paquete para intervenciones o estudios complejos.
 
 2. **Selección y Reevaluación Dinámica en Recibos**:
-   - En **Caja Rápida** (`views/generar_recibo.pl`), el usuario puede seleccionar libremente la tarifa aplicable por cada concepto agregado al carrito.
-   - El sistema reevalúa unitarios, subtotales, IVA y total global en tiempo real sin romper el acumulado contable.
+   - En **Caja Rápida** (`views/generar_recibo.pl`), el usuario puede seleccionar libremente la tarifa aplicable por cada concepto agregado al carrito, tanto para pacientes privados (tarifas `!= MUNICIPIO*`) como para empleados del Municipio (tarifas `MUNICIPIO` y `MUNICIPIO_*` en `#selTarifaConsulta`, en `#modalConceptosRecibo` y en las tarjetas del carrito).
+   - En `api/guardar_recibo_rapido.pl`, los conceptos de Municipio conservan el importe real de la tarifa elegida (`cubierto_convenio = 1`, `precio_paciente = 0`), asentando la suma en `TOTAL_CARGOS` de `folios_recibos_publicos.dat`.
+   - En `api/imprimir_recibo_publico.pl`, los importes de cada concepto (Consultas y otros departamentos como Imagenología / Rayos X) y el total se exponen e imprimen únicamente cuando la dependencia del trabajador es **DIF**, permaneciendo ocultos en el recibo impreso para el resto de dependencias municipales.
 
 ---
 

@@ -452,6 +452,12 @@ print <<'JS';
         return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val || 0);
     }
 
+    function esTarifaMunicipio(clave) {
+        if (!clave) return false;
+        const c = String(clave).trim().toUpperCase();
+        return (c === 'MUNICIPIO' || c.startsWith('MUNICIPIO_'));
+    }
+
     let cartItems = [];
     let consecutivoId = 1;
     let pacienteSeleccionado = null;
@@ -473,9 +479,9 @@ print <<'JS';
             });
             if (itemsDep.length === 0) return false;
             if (esEstado) {
-                return itemsDep.some(it => (it.precios || []).some(p => p.tipo_tarifa === 'MUNICIPIO' && parseFloat(p.precio_publico) > 0));
+                return itemsDep.some(it => (it.precios || []).some(p => esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0));
             } else {
-                return itemsDep.some(it => (it.precios || []).some(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0) || (it.precios || []).some(p => parseFloat(p.precio_publico) > 0));
+                return itemsDep.some(it => (it.precios || []).some(p => !esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0) || (it.precios || []).some(p => parseFloat(p.precio_publico) > 0));
             }
         });
         
@@ -510,7 +516,7 @@ print <<'JS';
         if (String(depId) === '1') {
             if (contEspe) contEspe.style.display = '';
             if (contMed) contMed.style.display = '';
-            if (contTarifa && pacienteTipoActual !== 'estado') contTarifa.style.display = '';
+            if (contTarifa) contTarifa.style.display = '';
             if (selMed) selMed.setAttribute('required', 'required');
             _poblarEspecialidades('1');
         } else {
@@ -548,14 +554,14 @@ print <<'JS';
                 if (itemsDeEspecialidad.length === 0) return false;
 
                 if (esEstado) {
-                    // Para Municipio/Convenio: Al menos un médico debe tener tarifa MUNICIPIO > 0
+                    // Para Municipio/Convenio: Al menos un médico debe tener tarifa de ámbito MUNICIPIO > 0
                     return itemsDeEspecialidad.some(it => 
-                        (it.precios || []).some(p => p.tipo_tarifa === 'MUNICIPIO' && parseFloat(p.precio_publico) > 0)
+                        (it.precios || []).some(p => esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0)
                     );
                 } else {
-                    // Para Paciente Privado: Al menos un médico debe tener tarifa privada (ESTANDAR u otra != MUNICIPIO) > 0
+                    // Para Paciente Privado: Al menos un médico debe tener tarifa privada (!esTarifaMunicipio) > 0
                     return itemsDeEspecialidad.some(it => 
-                        (it.precios || []).some(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0)
+                        (it.precios || []).some(p => !esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0)
                     );
                 }
             }
@@ -603,9 +609,9 @@ print <<'JS';
         let itemsCat = (window.RAW_CATALOGO.items || []).filter(it => {
             if (String(it.id_cat) !== String(catId)) return false;
             if (esEstado) {
-                return (it.precios || []).some(p => p.tipo_tarifa === 'MUNICIPIO' && parseFloat(p.precio_publico) > 0);
+                return (it.precios || []).some(p => esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0);
             } else {
-                return (it.precios || []).some(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0);
+                return (it.precios || []).some(p => !esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0);
             }
         });
         
@@ -625,8 +631,11 @@ print <<'JS';
         
         let html = '<option value="">-- Selecciona Médico --</option>';
         itemsCat.forEach(it => {
-            let pMunObj = (it.precios || []).find(p => p.tipo_tarifa === 'MUNICIPIO');
-            let pEstObj = (it.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (it.precios || [])[0];
+            let pMunObj = (it.precios || []).find(p => p.tipo_tarifa === 'MUNICIPIO' && parseFloat(p.precio_publico) > 0)
+                       || (it.precios || []).find(p => esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0);
+            let pEstObj = (it.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR' && parseFloat(p.precio_publico) > 0)
+                       || (it.precios || []).find(p => !esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0)
+                       || (it.precios || [])[0];
             let pMun = pMunObj ? parseFloat(pMunObj.precio_publico || 0) : 0;
             let pEst = pEstObj ? parseFloat(pEstObj.precio_publico || 0) : 0;
             let precioActivo = esEstado ? (pMun || pEst) : pEst;
@@ -675,29 +684,48 @@ print <<'JS';
                 conceptoFinal = `Consulta - ${espTexto}`;
             }
 
-            // Poblar selector de tarifas para paciente privado en consultas
+            // Poblar selector de tarifas de consulta (tanto Paciente Privado como Convenio Municipio)
             const contOtra = document.getElementById('containerTarifaOtra');
             const iptOtra = document.getElementById('iptTarifaOtra');
             if (contOtra) contOtra.style.display = 'none';
             if (iptOtra) iptOtra.value = '';
 
-            if (!esEstado && contTarifa && selTarifa && window.RAW_CATALOGO && window.RAW_CATALOGO.items) {
+            if (contTarifa && selTarifa && window.RAW_CATALOGO && window.RAW_CATALOGO.items) {
                 contTarifa.style.display = '';
                 const itObj = (window.RAW_CATALOGO.items || []).find(it => String(it.id_item) === String(itemId));
-                let preciosPrivados = (itObj && itObj.precios) ? itObj.precios.filter(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0) : [];
-                
+                const tarifasMeta = (window.RAW_CATALOGO && window.RAW_CATALOGO.tipos_tarifas) ? window.RAW_CATALOGO.tipos_tarifas : [];
                 let optHtml = '';
-                if (preciosPrivados.length > 0) {
-                    const tarifasMeta = (window.RAW_CATALOGO && window.RAW_CATALOGO.tipos_tarifas) ? window.RAW_CATALOGO.tipos_tarifas : [];
-                    preciosPrivados.forEach(p => {
-                        let metaObj = tarifasMeta.find(tm => tm.clave === p.tipo_tarifa);
-                        let labelTarifa = (metaObj && metaObj.nombre_tarifa) ? metaObj.nombre_tarifa : p.tipo_tarifa.replace(/_/g, ' ');
-                        optHtml += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}">${labelTarifa} (${formatCurrency(p.precio_publico)})</option>`;
-                    });
+
+                if (esEstado) {
+                    let preciosMun = (itObj && itObj.precios)
+                        ? itObj.precios.filter(p => esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0)
+                        : [];
+                    if (preciosMun.length > 0) {
+                        preciosMun.forEach(p => {
+                            let metaObj = tarifasMeta.find(tm => tm.clave === p.tipo_tarifa);
+                            let labelTarifa = (metaObj && metaObj.nombre_tarifa) ? metaObj.nombre_tarifa : p.tipo_tarifa.replace(/_/g, ' ');
+                            optHtml += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}">${escapeHtml(labelTarifa)} (${formatCurrency(p.precio_publico)})</option>`;
+                        });
+                    } else {
+                        let fallbackMun = pMun || pEst;
+                        optHtml = `<option value="MUNICIPIO" data-precio="${fallbackMun}">MUNICIPIO (${formatCurrency(fallbackMun)})</option>`;
+                    }
                 } else {
-                    optHtml = `<option value="ESTANDAR" data-precio="${pEst}">ESTÁNDAR (${formatCurrency(pEst)})</option>`;
+                    let preciosPrivados = (itObj && itObj.precios)
+                        ? itObj.precios.filter(p => !esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0)
+                        : [];
+                    if (preciosPrivados.length > 0) {
+                        preciosPrivados.forEach(p => {
+                            let metaObj = tarifasMeta.find(tm => tm.clave === p.tipo_tarifa);
+                            let labelTarifa = (metaObj && metaObj.nombre_tarifa) ? metaObj.nombre_tarifa : p.tipo_tarifa.replace(/_/g, ' ');
+                            optHtml += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}">${escapeHtml(labelTarifa)} (${formatCurrency(p.precio_publico)})</option>`;
+                        });
+                    } else {
+                        optHtml = `<option value="ESTANDAR" data-precio="${pEst}">ESTÁNDAR (${formatCurrency(pEst)})</option>`;
+                    }
+                    optHtml += `<option value="OTRA" data-precio="0">Otra (Tarifa Personalizada)</option>`;
                 }
-                optHtml += `<option value="OTRA" data-precio="0">Otra (Tarifa Personalizada)</option>`;
+
                 selTarifa.innerHTML = optHtml;
                 let primerOpt = selTarifa.options[0];
                 if (primerOpt) {
@@ -754,10 +782,12 @@ print <<'JS';
             nuevoPrecio = parseFloat(opt.getAttribute('data-precio')) || 0;
         }
 
+        let esEstado = (pacienteTipoActual === 'estado');
         let consultaItem = cartItems.find(it => it.is_consulta_principal);
         if (consultaItem) {
             consultaItem.precio = nuevoPrecio;
-            consultaItem.precio_paciente = nuevoPrecio;
+            consultaItem.precio_paciente = esEstado ? 0 : nuevoPrecio;
+            consultaItem.cubierto_convenio = esEstado ? 1 : 0;
             consultaItem.tipo_tarifa = nuevaTarifa;
             renderCart();
         }
@@ -769,10 +799,12 @@ print <<'JS';
         let val = parseFloat(iptOtra.value) || 0;
         if (val < 0) val = 0;
 
+        let esEstado = (pacienteTipoActual === 'estado');
         let consultaItem = cartItems.find(it => it.is_consulta_principal);
         if (consultaItem && consultaItem.tipo_tarifa === 'OTRA') {
             consultaItem.precio = val;
-            consultaItem.precio_paciente = val;
+            consultaItem.precio_paciente = esEstado ? 0 : val;
+            consultaItem.cubierto_convenio = esEstado ? 1 : 0;
             renderCart();
         }
     }
@@ -978,7 +1010,17 @@ print <<'JS';
             modalCartItems.forEach(it => {
                 let master = masterCatalogoRecibo.find(m => m.id === it.id);
                 if (master) {
-                    it.precio = esEstado ? (master.precio_municipio || master.precio_estandar || 0) : (master.precio_estandar || 0);
+                    let tarifas = getTarifasAplicables(master);
+                    if (tarifas && tarifas.length > 0) {
+                        let actualValida = tarifas.find(t => t.tipo_tarifa === it.tipo_tarifa);
+                        let elegida = actualValida || tarifas[0];
+                        it.tipo_tarifa = elegida.tipo_tarifa;
+                        it.precio = parseFloat(elegida.precio_publico) || (esEstado ? (master.precio_municipio || master.precio_estandar || 0) : (master.precio_estandar || 0));
+                    } else {
+                        it.precio = esEstado ? (master.precio_municipio || master.precio_estandar || 0) : (master.precio_estandar || 0);
+                    }
+                    it.cubierto_convenio = esEstado ? 1 : 0;
+                    it.precio_paciente = esEstado ? 0 : it.precio;
                 }
             });
             if (typeof _renderizarCarritoModalRecibo === 'function') _renderizarCarritoModalRecibo();
@@ -988,23 +1030,40 @@ print <<'JS';
         if (cartItems && cartItems.length > 0) {
             cartItems.forEach(it => {
                 if (it.is_consulta_principal) {
-                    const selMed = document.getElementById('selMedico');
-                    const opt = selMed ? selMed.options[selMed.selectedIndex] : null;
-                    if (opt && opt.value) {
-                        let pMun = parseFloat(opt.getAttribute('data-precio-mun')) || 0;
-                        let pEst = parseFloat(opt.getAttribute('data-precio-est')) || 0;
-                        let pActivo = esEstado ? (pMun || pEst) : pEst;
+                    const selTarifa = document.getElementById('selTarifaConsulta');
+                    const optTar = (selTarifa && selTarifa.selectedIndex >= 0) ? selTarifa.options[selTarifa.selectedIndex] : null;
+                    if (optTar && optTar.value) {
+                        let pActivo = parseFloat(optTar.getAttribute('data-precio')) || 0;
+                        it.tipo_tarifa = optTar.value;
                         it.precio = pActivo;
                         it.precio_paciente = esEstado ? 0 : pActivo;
                         it.cubierto_convenio = esEstado ? 1 : 0;
+                    } else {
+                        const selMed = document.getElementById('selMedico');
+                        const opt = selMed ? selMed.options[selMed.selectedIndex] : null;
+                        if (opt && opt.value) {
+                            let pMun = parseFloat(opt.getAttribute('data-precio-mun')) || 0;
+                            let pEst = parseFloat(opt.getAttribute('data-precio-est')) || 0;
+                            let pActivo = esEstado ? (pMun || pEst) : pEst;
+                            it.precio = pActivo;
+                            it.precio_paciente = esEstado ? 0 : pActivo;
+                            it.cubierto_convenio = esEstado ? 1 : 0;
+                        }
                     }
                 } else {
                     let master = masterCatalogoRecibo.find(m => m.id === it.id);
                     if (master) {
-                        it.precio = esEstado ? (master.precio_municipio || master.precio_estandar || 0) : (master.precio_estandar || 0);
-                        if (esEstado && it.cubierto_convenio) {
-                            it.precio_paciente = 0;
+                        let tarifas = getTarifasAplicables(master);
+                        if (tarifas && tarifas.length > 0) {
+                            let actualValida = tarifas.find(t => t.tipo_tarifa === it.tipo_tarifa);
+                            let elegida = actualValida || tarifas[0];
+                            it.tipo_tarifa = elegida.tipo_tarifa;
+                            it.precio = parseFloat(elegida.precio_publico) || (esEstado ? (master.precio_municipio || master.precio_estandar || 0) : (master.precio_estandar || 0));
+                        } else {
+                            it.precio = esEstado ? (master.precio_municipio || master.precio_estandar || 0) : (master.precio_estandar || 0);
                         }
+                        it.cubierto_convenio = esEstado ? 1 : 0;
+                        it.precio_paciente = esEstado ? 0 : it.precio;
                     }
                 }
             });
@@ -1053,10 +1112,14 @@ print <<'JS';
                         return; // Omitir del catálogo del modal del carrito
                     }
 
-                    var pEst = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR') || (c.precios || [])[0];
-                    var pMun = (c.precios || []).find(p => p.tipo_tarifa === 'MUNICIPIO');
+                    var pEst = (c.precios || []).find(p => p.tipo_tarifa === 'ESTANDAR' && parseFloat(p.precio_publico) > 0)
+                            || (c.precios || []).find(p => !esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0)
+                            || (c.precios || [])[0];
+                    var pMunPos = (c.precios || []).find(p => p.tipo_tarifa === 'MUNICIPIO' && parseFloat(p.precio_publico) > 0)
+                               || (c.precios || []).find(p => esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0);
+                    var pMunAny = pMunPos || (c.precios || []).find(p => esTarifaMunicipio(p.tipo_tarifa));
                     var precioEst = pEst ? parseFloat(pEst.precio_publico || 0) : 0;
-                    var precioMun = pMun ? parseFloat(pMun.precio_publico || 0) : precioEst;
+                    var precioMun = pMunAny ? parseFloat(pMunAny.precio_publico || 0) : precioEst;
                     var esEstado = (pacienteTipoActual === 'estado');
                     
                     masterCatalogoRecibo.push({
@@ -1153,10 +1216,11 @@ print <<'JS';
         let precios = item.precios || item.precios_disponibles || [];
         let esEstado = (pacienteTipoActual === 'estado');
         if (esEstado) {
-            let pMun = precios.filter(p => p.tipo_tarifa === 'MUNICIPIO');
+            let pMun = precios.filter(p => esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0);
             if (pMun.length > 0) return pMun;
+            return [{ tipo_tarifa: 'MUNICIPIO', precio_publico: item.precio_municipio || item.precio || 0 }];
         }
-        let pPrivados = precios.filter(p => p.tipo_tarifa !== 'MUNICIPIO' && parseFloat(p.precio_publico) > 0);
+        let pPrivados = precios.filter(p => !esTarifaMunicipio(p.tipo_tarifa) && parseFloat(p.precio_publico) > 0);
         if (pPrivados.length > 0) return pPrivados;
         return [{ tipo_tarifa: 'ESTANDAR', precio_publico: item.precio || item.precio_estandar || 0 }];
     }
@@ -1365,6 +1429,7 @@ print <<'JS';
         }
 
         let ex = modalCartItems.find(x => x.id === item.id && x.tipo_tarifa === selectedTarifaClave);
+        let esEstado = (pacienteTipoActual === 'estado');
         if (ex) {
             ex.cantidad++;
         } else {
@@ -1376,6 +1441,8 @@ print <<'JS';
                 stock_minimo: item.stock_minimo,
                 nombre: item.nombre,
                 precio: selectedPrecio,
+                precio_paciente: esEstado ? 0 : selectedPrecio,
+                cubierto_convenio: esEstado ? 1 : 0,
                 tipo_tarifa: selectedTarifaClave,
                 precios_disponibles: item.precios || [],
                 indicaciones: item.indicaciones || '',
@@ -1469,8 +1536,12 @@ print <<'JS';
         if (!modalCartItems[idx]) return;
         const opt = selectElem.options[selectElem.selectedIndex];
         if (!opt) return;
+        let esEstado = (pacienteTipoActual === 'estado');
+        let nPrec = parseFloat(opt.getAttribute('data-precio')) || modalCartItems[idx].precio;
         modalCartItems[idx].tipo_tarifa = selectElem.value;
-        modalCartItems[idx].precio = parseFloat(opt.getAttribute('data-precio')) || modalCartItems[idx].precio;
+        modalCartItems[idx].precio = nPrec;
+        modalCartItems[idx].precio_paciente = esEstado ? 0 : nPrec;
+        modalCartItems[idx].cubierto_convenio = esEstado ? 1 : 0;
         _renderizarCarritoModalRecibo();
     }
 
@@ -1563,16 +1634,17 @@ print <<'JS';
             let tarifas = getTarifasAplicables(masterTemp);
 
             let subtexto = '';
-            if (isCubierto) {
-                subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">Convenio Municipio</small>`;
-            } else if (tarifas.length > 1 && !item.is_consulta_principal) {
+            if (tarifas.length > 1 && !item.is_consulta_principal) {
                 let opts = '';
                 tarifas.forEach(p => {
                     let sel = (p.tipo_tarifa === item.tipo_tarifa) ? 'selected' : '';
                     let label = getTarifaNombre(p.tipo_tarifa);
                     opts += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}" ${sel}>${escapeHtml(label)} (${formatCurrency(p.precio_publico)})</option>`;
                 });
-                subtexto = `<select class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-0.5 mt-0.5" style="font-size:0.7rem; max-width:185px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" onchange="updateCartItemTarifa(${idx}, this)">${opts}</select>`;
+                subtexto = `<select class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-0.5 mt-0.5" style="font-size:0.7rem; max-width:210px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" onchange="updateCartItemTarifa(${idx}, this)">${opts}</select>`;
+            } else if (isCubierto) {
+                let labelT = item.tipo_tarifa ? ` [${getTarifaNombre(item.tipo_tarifa)}]` : '';
+                subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">Convenio Municipio${escapeHtml(labelT)} (${formatCurrency(item.precio)})</small>`;
             } else {
                 let labelT = item.tipo_tarifa ? ` [${getTarifaNombre(item.tipo_tarifa)}]` : '';
                 subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u${escapeHtml(labelT)}</small>`;
@@ -1619,12 +1691,12 @@ print <<'JS';
         if (!cartItems[idx]) return;
         const opt = selectElem.options[selectElem.selectedIndex];
         if (!opt) return;
+        let esEstado = (pacienteTipoActual === 'estado');
         cartItems[idx].tipo_tarifa = selectElem.value;
         let nPrec = parseFloat(opt.getAttribute('data-precio')) || cartItems[idx].precio;
         cartItems[idx].precio = nPrec;
-        if (cartItems[idx].precio_paciente !== undefined && pacienteTipoActual !== 'estado') {
-            cartItems[idx].precio_paciente = nPrec;
-        }
+        cartItems[idx].precio_paciente = esEstado ? 0 : nPrec;
+        cartItems[idx].cubierto_convenio = esEstado ? 1 : 0;
         renderCart();
     }
     

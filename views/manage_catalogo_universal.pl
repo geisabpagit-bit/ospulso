@@ -793,14 +793,27 @@ print <<'JS';
                 generarNomenclaturaSku(false);
             }
 
+            function esTarifaMunicipio(clave) {
+                if (!clave) return false;
+                const c = String(clave).trim().toUpperCase();
+                return (c === 'MUNICIPIO' || c.startsWith('MUNICIPIO_'));
+            }
+
             const TIPOS_TARIFAS_DISPONIBLES = (window.CATALOGO_TIPOS_TARIFAS && window.CATALOGO_TIPOS_TARIFAS.length > 0)
-                ? window.CATALOGO_TIPOS_TARIFAS.filter(t => t.activo != 0).map(t => ({
-                    id: t.clave,
-                    label: `${t.clave} - ${t.nombre_tarifa || t.clave}`
-                  }))
+                ? window.CATALOGO_TIPOS_TARIFAS.filter(t => t.activo != 0).map(t => {
+                    const claveUp = String(t.clave || '').trim().toUpperCase();
+                    const nomUp = String(t.nombre_tarifa || t.clave || '').trim();
+                    const labelFinal = nomUp.toUpperCase().startsWith(claveUp) ? nomUp : `${t.clave} - ${nomUp}`;
+                    return {
+                        id: t.clave,
+                        label: labelFinal
+                    };
+                  })
                 : [
                     { id: 'ESTANDAR', label: 'ESTÁNDAR (Público General / Base)' },
                     { id: 'MUNICIPIO', label: 'MUNICIPIO (Convenio Sindical / Estatal)' },
+                    { id: 'MUNICIPIO_SAB_MAT', label: 'MUNICIPIO - SÁBADOS MATUTINO' },
+                    { id: 'MUNICIPIO_SAB_VESP', label: 'MUNICIPIO - SÁBADOS VESPERTINO' },
                     { id: 'URGENCIAS', label: 'URGENCIAS (Tarifa de Urgencias)' }
                   ];
 
@@ -866,11 +879,34 @@ print <<'JS';
 
             function agregarTarifaRapidaMunicipio() {
                 const tiposActuales = Array.from(document.querySelectorAll('#tbodyTarifas .tarifa-tipo')).map(el => el.value);
-                if (tiposActuales.includes('MUNICIPIO')) {
-                    Swal.fire('Información', 'La tarifa MUNICIPIO ya está agregada en la matriz.', 'info');
+                const tarifasMunDisponibles = TIPOS_TARIFAS_DISPONIBLES.filter(t => esTarifaMunicipio(t.id) && !tiposActuales.includes(t.id));
+                if (tarifasMunDisponibles.length === 0) {
+                    Swal.fire('Información', 'Todas las tarifas de Convenio Municipio disponibles ya fueron agregadas en la matriz. Puedes dar de alta más horarios de Municipio en la pestaña "Tipos de Tarifa".', 'info');
                     return;
                 }
-                renderFilaTarifa('MUNICIPIO', '', '0.00', true);
+                renderFilaTarifa(tarifasMunDisponibles[0].id, '', '0.00', true);
+            }
+
+            function onAmbitoTipoTarifaChange(ambito) {
+                const inputClave = document.getElementById('input_clave_tarifa');
+                const inputNombre = document.getElementById('input_nombre_tarifa');
+                if (!inputClave || inputClave.readOnly) return;
+                let valClave = inputClave.value.trim().toUpperCase();
+                if (ambito === 'MUNICIPIO') {
+                    if (!valClave.startsWith('MUNICIPIO')) {
+                        inputClave.value = valClave ? ('MUNICIPIO_' + valClave) : 'MUNICIPIO_';
+                    }
+                    if (inputNombre && !inputNombre.value.trim().toUpperCase().startsWith('MUNICIPIO')) {
+                        inputNombre.value = inputNombre.value.trim() ? ('MUNICIPIO - ' + inputNombre.value.trim()) : 'MUNICIPIO - ';
+                    }
+                } else {
+                    if (valClave === 'MUNICIPIO_') {
+                        inputClave.value = '';
+                    }
+                    if (inputNombre && inputNombre.value.trim() === 'MUNICIPIO -') {
+                        inputNombre.value = '';
+                    }
+                }
             }
 
             async function abrirFormulario(tipo, ...args) {
@@ -985,6 +1021,7 @@ print <<'JS';
                     const descripcion   = args[3] || '';
                     const activo        = (args[4] !== undefined) ? args[4] : 1;
                     const esProtegido   = ['ESTANDAR', 'MUNICIPIO', 'URGENCIAS'].includes(clave.toUpperCase());
+                    const esMunActual   = esTarifaMunicipio(clave);
 
                     title.innerHTML = `<i class="bi bi-cash-coin me-2"></i>${id ? 'Editar' : 'Nuevo'} Tipo de Tarifa`;
                     body.innerHTML = `
@@ -992,16 +1029,24 @@ print <<'JS';
                             <input type="hidden" name="action" value="save_tipo_tarifa">
                             <input type="hidden" name="id" value="${id}">
                             <div class="row g-3 mb-3">
-                                <div class="col-12 col-md-4">
-                                    <label class="form-label fw-bold small text-muted">Clave Interna (Código Único)</label>
-                                    <input type="text" class="form-control text-uppercase font-monospace fw-bold" name="clave" value="${escapeHtml(clave)}" ${esProtegido ? 'readonly' : ''} oninput="this.value = this.value.toUpperCase().replace(/\\s+/g, '_')" placeholder="Ej: URGENCIAS, INAPAM" required>
-                                    ${esProtegido ? '<small class="text-muted"><i class="bi bi-shield-lock text-primary me-1"></i>Clave de sistema protegida</small>' : '<small class="text-muted">Alfanumérico y guión bajo (sin espacios)</small>'}
-                                </div>
-                                <div class="col-12 col-md-5">
-                                    <label class="form-label fw-bold small text-muted">Nombre Legible de la Tarifa</label>
-                                    <input type="text" class="form-control fw-semibold" name="nombre_tarifa" value="${escapeHtml(nombre_tarifa)}" placeholder="Ej: Urgencias, Descuento Tercera Edad" required>
+                                <div class="col-12 col-md-3">
+                                    <label class="form-label fw-bold small text-muted">Esquema / Ámbito</label>
+                                    <select class="form-select" id="sel_ambito_tarifa" onchange="onAmbitoTipoTarifaChange(this.value)" ${esProtegido ? 'disabled' : ''}>
+                                        <option value="PRIVADO" ${!esMunActual ? 'selected' : ''}>Privado / General</option>
+                                        <option value="MUNICIPIO" ${esMunActual ? 'selected' : ''}>Convenio Municipio</option>
+                                    </select>
+                                    <small class="text-muted">Define si aplica a Privados o a Municipio</small>
                                 </div>
                                 <div class="col-12 col-md-3">
+                                    <label class="form-label fw-bold small text-muted">Clave Interna (Código Único)</label>
+                                    <input type="text" class="form-control text-uppercase font-monospace fw-bold" id="input_clave_tarifa" name="clave" value="${escapeHtml(clave)}" ${esProtegido ? 'readonly' : ''} oninput="this.value = this.value.toUpperCase().replace(/\\s+/g, '_')" placeholder="Ej: MUNICIPIO_SAB_MAT" required>
+                                    ${esProtegido ? '<small class="text-muted"><i class="bi bi-shield-lock text-primary me-1"></i>Clave de sistema protegida</small>' : '<small class="text-muted">Prefijo <b>MUNICIPIO_</b> para convenio</small>'}
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label fw-bold small text-muted">Nombre Legible de la Tarifa</label>
+                                    <input type="text" class="form-control fw-semibold" id="input_nombre_tarifa" name="nombre_tarifa" value="${escapeHtml(nombre_tarifa)}" placeholder="Ej: MUNICIPIO - SÁBADOS MATUTINO" required>
+                                </div>
+                                <div class="col-12 col-md-2">
                                     <label class="form-label fw-bold small text-muted">Estado</label>
                                     <select class="form-select" name="activo">
                                         <option value="1" ${activo == 1 ? 'selected' : ''}>Activa</option>
@@ -1010,7 +1055,7 @@ print <<'JS';
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-bold small text-muted">Descripción / Criterio de Aplicación</label>
-                                    <input type="text" class="form-control" name="descripcion" value="${escapeHtml(descripcion)}" placeholder="Descripción o condiciones especiales para aplicar esta tarifa">
+                                    <input type="text" class="form-control" name="descripcion" value="${escapeHtml(descripcion)}" placeholder="Descripción o condiciones de día/horario para aplicar esta tarifa">
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end gap-2">
@@ -1221,6 +1266,21 @@ print <<'JS';
                 const form = e.target;
                 const fd = new FormData(form);
 
+                if (tipo === 'tipo_tarifa') {
+                    const selAmbito = document.getElementById('sel_ambito_tarifa');
+                    let claveVal = String(fd.get('clave') || '').trim().toUpperCase().replace(/\s+/g, '_');
+                    if (selAmbito && selAmbito.value === 'MUNICIPIO') {
+                        if (claveVal !== 'MUNICIPIO' && !claveVal.startsWith('MUNICIPIO_')) {
+                            claveVal = 'MUNICIPIO_' + claveVal;
+                        }
+                        if (claveVal === 'MUNICIPIO_') {
+                            Swal.fire('Atención', 'Ingresa un sufijo descriptivo para la clave de la tarifa de Municipio (ej. MUNICIPIO_SAB_MAT).', 'warning');
+                            return;
+                        }
+                        fd.set('clave', claveVal);
+                    }
+                }
+
                 if (tipo === 'producto') {
                     const precioVal = parseFloat(fd.get('precio'));
                     if (isNaN(precioVal) || precioVal <= 0) {
@@ -1235,6 +1295,7 @@ print <<'JS';
                     let tieneEstandar = false;
                     let tieneInvalido = false;
                     let tieneAlMenosUnPositivo = false;
+                    let tarifaDuplicada = '';
                     const tiposSet = new Set();
 
                     filas.forEach(f => {
@@ -1251,8 +1312,7 @@ print <<'JS';
                         }
                         if (tTipo === 'ESTANDAR') tieneEstandar = true;
                         if (tiposSet.has(tTipo)) {
-                            Swal.fire('Atención', `La tarifa ${tTipo} está duplicada en la matriz. Cada tipo debe ser único.`, 'warning');
-                            return;
+                            tarifaDuplicada = tTipo;
                         }
                         tiposSet.add(tTipo);
 
@@ -1262,6 +1322,11 @@ print <<'JS';
                             costo: tCosto
                         });
                     });
+
+                    if (tarifaDuplicada) {
+                        Swal.fire('Atención', `La tarifa ${tarifaDuplicada} está duplicada en la matriz. Cada tipo debe ser único.`, 'warning');
+                        return;
+                    }
 
                     if (!tieneEstandar) {
                         Swal.fire('Atención', 'La tarifa ESTÁNDAR (Público General / Base) es obligatoria.', 'warning');

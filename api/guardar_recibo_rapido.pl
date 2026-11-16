@@ -215,19 +215,22 @@ unless (-s $folios_file) {
     close $fh_f2;
 }
 
-# Función auxiliar para resolver costo de convenio de consulta médica por catálogo de la organización
+# Función auxiliar para resolver costo de convenio de consulta o servicio por catálogo de la organización
 sub resolver_costo_convenio_medico {
-    my ($clues, $id_med) = @_;
+    my ($clues, $id_med, $tarifa_req) = @_;
     return 550.0 unless ($clues && $id_med);
+    $tarifa_req = uc($tarifa_req || 'MUNICIPIO');
 
     my $cat_items_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "catalogo_items_${clues}.dat");
     my $cat_prec_file  = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "catalogo_precios_${clues}.dat");
     my $med_file       = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "medicos_${clues}.dat");
     my $esp_file       = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $clues, "especialidades_${clues}.dat");
 
-    # 1. Si $id_med ya es un ID_ITEM directo en catalogo_precios, buscar su tarifa MUNICIPIO
+    # 1. Si $id_med ya es un ID_ITEM directo en catalogo_precios, buscar su tarifa solicitada o MUNICIPIO
     if (-e $cat_prec_file && open(my $fp_dir, '<:utf8', $cat_prec_file)) {
+        my $p_exacta = 0;
         my $p_mun = 0;
+        my $p_mun_var = 0;
         my $p_fall = 0;
         while (my $lp = <$fp_dir>) {
             chomp $lp;
@@ -236,17 +239,23 @@ sub resolver_costo_convenio_medico {
                 my $tarifa = uc($f[2] || '');
                 my $p = $f[3] || 0;
                 $p =~ s/[^\d\.]//g;
-                if ($tarifa eq 'MUNICIPIO' && $p > 0) {
-                    $p_mun = $p;
+                if ($tarifa eq $tarifa_req && $p > 0) {
+                    $p_exacta = $p;
                     last;
+                } elsif ($tarifa eq 'MUNICIPIO' && $p > 0) {
+                    $p_mun = $p;
+                } elsif ($tarifa =~ /^MUNICIPIO_/ && $p > 0 && !$p_mun_var) {
+                    $p_mun_var = $p;
                 } elsif ($p > 0 && !$p_fall) {
                     $p_fall = $p;
                 }
             }
         }
         close($fp_dir);
-        return $p_mun if ($p_mun > 0);
-        return $p_fall if ($p_fall > 0);
+        return $p_exacta  if ($p_exacta > 0);
+        return $p_mun     if ($p_mun > 0);
+        return $p_mun_var if ($p_mun_var > 0);
+        return $p_fall    if ($p_fall > 0);
     }
 
     # 2. Si $id_med es ID de médico legacy, resolver por match de médico
@@ -308,7 +317,9 @@ sub resolver_costo_convenio_medico {
     }
 
     if ($target_item && -e $cat_prec_file && open(my $fp, '<:utf8', $cat_prec_file)) {
+        my $precio_exacto = 0;
         my $precio_mun = 0;
+        my $precio_mun_var = 0;
         my $precio_fallback = 0;
         while (my $lp = <$fp>) {
             chomp $lp;
@@ -317,16 +328,22 @@ sub resolver_costo_convenio_medico {
                 my $tarifa = uc($f[2] || '');
                 my $p = $f[3] || 0;
                 $p =~ s/[^\d\.]//g;
-                if ($tarifa eq 'MUNICIPIO' && $p > 0) {
-                    $precio_mun = $p;
+                if ($tarifa eq $tarifa_req && $p > 0) {
+                    $precio_exacto = $p;
                     last;
+                } elsif ($tarifa eq 'MUNICIPIO' && $p > 0) {
+                    $precio_mun = $p;
+                } elsif ($tarifa =~ /^MUNICIPIO_/ && $p > 0 && !$precio_mun_var) {
+                    $precio_mun_var = $p;
                 } elsif ($p > 0 && !$precio_fallback) {
                     $precio_fallback = $p;
                 }
             }
         }
         close($fp);
-        return $precio_mun if ($precio_mun > 0);
+        return $precio_exacto   if ($precio_exacto > 0);
+        return $precio_mun      if ($precio_mun > 0);
+        return $precio_mun_var  if ($precio_mun_var > 0);
         return $precio_fallback if ($precio_fallback > 0);
     }
 
@@ -338,11 +355,12 @@ my $total_cargos_calculado = 0;
 foreach my $it (@$caja_items) {
     if ($is_estado) {
         if (!defined $it->{precio} || $it->{precio} == 0) {
-            my $costo_convenio = resolver_costo_convenio_medico($org_clues, $id_medico);
+            my $id_ref = $it->{id_item} || $it->{id} || $id_medico;
+            my $costo_convenio = resolver_costo_convenio_medico($org_clues, $id_ref, $it->{tipo_tarifa});
             $it->{precio} = $costo_convenio;
-            $it->{cubierto_convenio} = 1;
-            $it->{precio_paciente} = 0;
         }
+        $it->{cubierto_convenio} = 1 unless defined $it->{cubierto_convenio};
+        $it->{precio_paciente} = 0 unless defined $it->{precio_paciente};
     }
     my $cant = $it->{cantidad} || 1;
     $total_cargos_calculado += ($it->{precio} || 0) * $cant;

@@ -126,6 +126,11 @@ sub obtener_rutas_por_clue {
             print $fht "10|SABADO_TARDE_DOMINGO_FESTIVO|SÁBADO TARDE / DOMINGO / FESTIVO|Guardia Fin de Semana y Festivo|1\n";
             print $fht "11|PAQUETE_TODO_INCLUIDO|PAQUETE TODO INCLUIDO|Paquete Integral Quirúrgico / Procedimiento|1\n";
             print $fht "12|PAQUETE_SOLO_CLINICA|PAQUETE SOLO CLÍNICA|Paquete Quirúrgico sin Honorarios Médicos|1\n";
+            print $fht "16|MUNICIPIO_LUN_VIE|MUNICIPIO - LUNES A VIERNES|Convenio Municipio Horario Ordinario Lunes a Viernes|1\n";
+            print $fht "17|MUNICIPIO_SAB_MAT|MUNICIPIO - SÁBADOS MATUTINO|Convenio Municipio Sábado Turno Matutino|1\n";
+            print $fht "18|MUNICIPIO_SAB_VESP|MUNICIPIO - SÁBADOS VESPERTINO|Convenio Municipio Sábado Turno Vespertino|1\n";
+            print $fht "19|MUNICIPIO_DOM_FEST|MUNICIPIO - DOMINGOS Y FESTIVOS|Convenio Municipio Guardia Domingo y Día Festivo|1\n";
+            print $fht "20|MUNICIPIO_URGENCIAS|MUNICIPIO - URGENCIAS / NOCTURNO|Convenio Municipio Atención Urgencias o Nocturno|1\n";
             close($fht);
         }
     }
