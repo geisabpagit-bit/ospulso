@@ -350,7 +350,8 @@ sub resolver_costo_convenio_medico {
     return 550.0;
 }
 
-# Calcular cargos y enriquecer items
+# Calcular cargos y enriquecer items (Modelo A de IVA por concepto gravado)
+my $caja_con_iva = $q->param('caja_con_iva') ? 1 : 0;
 my $total_cargos_calculado = 0;
 foreach my $it (@$caja_items) {
     if ($is_estado) {
@@ -363,8 +364,13 @@ foreach my $it (@$caja_items) {
         $it->{precio_paciente} = 0 unless defined $it->{precio_paciente};
     }
     my $cant = $it->{cantidad} || 1;
-    $total_cargos_calculado += ($it->{precio} || 0) * $cant;
+    my $base_sub = ($it->{precio} || 0) * $cant;
+    my $es_gravado = (!$is_estado && $caja_con_iva && ($it->{aplica_iva} || ($it->{iva_monto} && $it->{iva_monto} > 0))) ? 1 : 0;
+    my $iva_it = $es_gravado ? (sprintf("%.2f", $base_sub * 0.16) + 0) : 0;
+    $it->{iva_monto} = $iva_it;
+    $total_cargos_calculado += ($base_sub + $iva_it);
 }
+$total_cargos_calculado = sprintf("%.2f", $total_cargos_calculado) + 0;
 
 my $total_cargos_final = ($total_cargos_calculado > 0) ? $total_cargos_calculado : ($caja_monto_abono || 0);
 my $total_abonos_final = $is_estado ? ($caja_monto_abono || 0) : ($caja_monto_abono || $total_cargos_final);
@@ -444,13 +450,15 @@ my $idx_dir = 100;
 foreach my $it (@$caja_items) {
     my $id_mov = 'MOV-' . time() . '-' . $idx_dir++;
     my $sub = ($it->{precio} || 0) * ($it->{cantidad} || 1);
+    my $iva_it = ($it->{iva_monto} || 0) + 0;
+    my $tot_it = sprintf("%.2f", $sub + $iva_it) + 0;
     my $nota_cargo = "Cargo Walk-in | Paciente: " . ($nombre_empleado || $id_paciente);
     if ($concepto_recibo) {
         $nota_cargo .= " | Concepto: $concepto_recibo";
     }
     my $linea_cargo = join('|',
         $folio_impreso, $id_mov, $id_paciente, 'Cargo', $it->{nombre},
-        $sub, 0, $sub, $hoy_fecha, $id_medico,
+        $sub, $iva_it, $tot_it, $hoy_fecha, $id_medico,
         $nota_cargo, ($nombre_empleado || '')
     );
     utils::db_manager::guardar_registro($fin_file, $linea_cargo);

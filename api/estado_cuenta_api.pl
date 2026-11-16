@@ -347,10 +347,12 @@ if ($accion eq 'get_catalogo') {
     open(my $fh, ">>:encoding(UTF-8)", $ec_file);
     foreach my $it (@$items) {
         my $base = $it->{precio} * ($it->{cantidad} || 1);
-        # Usa el flag global o el específico del ítem (para el nuevo catálogo universal)
-        my $item_iva_f = defined $it->{aplica_iva} ? $it->{aplica_iva} : $iva_f;
-        my $iva = $item_iva_f ? ($base * 0.16) : 0;
-        my $total = $base + $iva; $id_mov++;
+        # Modelo A: Si el switch de IVA ($iva_f) está activo, aplica 16% solo a conceptos que gravan IVA (aplica_iva == 1 o sin flag explícito)
+        my $grava_item = (!defined $it->{aplica_iva} || $it->{aplica_iva} == 1) ? 1 : 0;
+        my $item_iva_f = ($iva_f && $grava_item) ? 1 : 0;
+        my $iva = $item_iva_f ? (sprintf("%.2f", $base * 0.16) + 0) : 0;
+        my $total = sprintf("%.2f", $base + $iva) + 0;
+        $id_mov++;
         # ID_OS|ID_MOV|ID_PAC|TIPO|CONCEPTO|BASE|IVA|TOTAL|FECHA|ID_MED|NOTAS|ALIAS
         print $fh "$id_os|$id_mov|$id_p|Cargo|$it->{nombre}|$base|$iva|$total|$f|$id_m_req|$aplica_para|$alias_os\n";
     }

@@ -409,8 +409,8 @@ print <<"HTML";
                 
                 <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
                     <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="chkIva" onchange="renderCart()">
-                        <label class="form-check-label fw-bold" style="cursor: pointer;" for="chkIva">Tax (IVA 16%)</label>
+                        <input class="form-check-input" type="checkbox" id="chkIva" onchange="onToggleIvaManual()">
+                        <label class="form-check-label fw-bold" style="cursor: pointer;" for="chkIva">Tax (IVA 16% <span class="text-muted fw-normal" style="font-size:0.7rem;">sobre conceptos gravados</span>)</label>
                     </div>
                     <span class="fw-bold text-dark fs-6" id="taxAmountText">\$0.00</span>
                 </div>
@@ -462,6 +462,24 @@ print <<'JS';
     let consecutivoId = 1;
     let pacienteSeleccionado = null;
     let cargoSeleccionadoManual = null;
+    let ivaManualOverride = false;
+
+    function onToggleIvaManual() {
+        ivaManualOverride = true;
+        renderCart();
+    }
+
+    function _sincronizarSwitchIvaSegunCarrito() {
+        const chk = document.getElementById('chkIva');
+        if (!chk) return;
+        const hayGravados = (pacienteTipoActual !== 'estado') && cartItems.some(it => parseInt(it.aplica_iva, 10) === 1);
+        if (!hayGravados) {
+            chk.checked = false;
+            ivaManualOverride = false;
+        } else if (!ivaManualOverride) {
+            chk.checked = true;
+        }
+    }
 
     function _poblarDepartamentosSegunPaciente() {
         if (!window.RAW_CATALOGO || !window.RAW_CATALOGO.departamentos) return;
@@ -736,6 +754,11 @@ print <<'JS';
                 contTarifa.style.display = 'none';
             }
             
+            const itObjConsulta = (window.RAW_CATALOGO && window.RAW_CATALOGO.items)
+                ? (window.RAW_CATALOGO.items || []).find(it => String(it.id_item) === String(itemId))
+                : null;
+            const aplicaIvaConsulta = (itObjConsulta && parseInt(itObjConsulta.aplica_iva, 10) === 1) ? 1 : 0;
+
             cartItems.unshift({
                 id: itemId,
                 id_item: itemId,
@@ -747,6 +770,7 @@ print <<'JS';
                 precio: precioActivo,
                 precio_paciente: esEstado ? 0 : precioActivo,
                 cubierto_convenio: esEstado ? 1 : 0,
+                aplica_iva: aplicaIvaConsulta,
                 cantidad: 1,
                 tipo_tarifa: tarifaSeleccionada,
                 is_consulta_principal: true
@@ -756,6 +780,7 @@ print <<'JS';
             const contOtra = document.getElementById('containerTarifaOtra');
             if (contOtra) contOtra.style.display = 'none';
         }
+        _sincronizarSwitchIvaSegunCarrito();
         renderCart();
     }
 
@@ -1128,6 +1153,7 @@ print <<'JS';
                         precio_estandar: precioEst,
                         precio_municipio: precioMun,
                         precio: esEstado ? precioMun : precioEst,
+                        aplica_iva: (parseInt(c.aplica_iva, 10) === 1) ? 1 : 0,
                         precios: c.precios || [],
                         indicaciones: c.indicaciones || '',
                         cat: c.id_cat,
@@ -1152,6 +1178,7 @@ print <<'JS';
                             precio_estandar: precioP,
                             precio_municipio: precioP,
                             precio: precioP,
+                            aplica_iva: 0,
                             precios: [{ tipo_tarifa: 'ESTANDAR', precio_publico: precioP }],
                             indicaciones: p.descripcion || '',
                             cat: 'FARMACIA_CAT',
@@ -1371,8 +1398,12 @@ print <<'JS';
                         <i class="bi bi-plus" style="font-size:1.1rem;"></i>
                    </button>`;
 
+            let ivaBadgeModalHtml = (parseInt(it.aplica_iva, 10) === 1)
+                ? `<span class="badge ms-1" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:0.62rem;">+IVA 16%</span>`
+                : '';
+
             tr.innerHTML = `
-                <td class="ps-3 fw-bold small text-dark align-middle">${escapeHtml(it.nombre)} ${stockBadgeHtml}</td>
+                <td class="ps-3 fw-bold small text-dark align-middle">${escapeHtml(it.nombre)} ${ivaBadgeModalHtml} ${stockBadgeHtml}</td>
                 <td class="text-end align-middle px-2">${colPrecioHtml}</td>
                 <td class="text-center align-middle">${btnActionHtml}</td>
             `;
@@ -1443,6 +1474,7 @@ print <<'JS';
                 precio: selectedPrecio,
                 precio_paciente: esEstado ? 0 : selectedPrecio,
                 cubierto_convenio: esEstado ? 1 : 0,
+                aplica_iva: (parseInt(item.aplica_iva, 10) === 1) ? 1 : 0,
                 tipo_tarifa: selectedTarifaClave,
                 precios_disponibles: item.precios || [],
                 indicaciones: item.indicaciones || '',
@@ -1462,10 +1494,14 @@ print <<'JS';
             Swal.fire('Atención', 'Ingresa el nombre del concepto.', 'warning');
             return;
         }
+        let esEstado = (pacienteTipoActual === 'estado');
         modalCartItems.push({
             id: 'MAN-' + Date.now(),
             nombre: nombre,
             precio: precio,
+            precio_paciente: esEstado ? 0 : precio,
+            cubierto_convenio: esEstado ? 1 : 0,
+            aplica_iva: 1,
             cantidad: 1
         });
         nomIn.value = '';
@@ -1569,6 +1605,7 @@ print <<'JS';
 
     function guardarConceptosModalRecibo() {
         cartItems = JSON.parse(JSON.stringify(modalCartItems));
+        _sincronizarSwitchIvaSegunCarrito();
         renderCart();
         const el = document.getElementById('modalConceptosRecibo');
         if (el) {
@@ -1579,6 +1616,7 @@ print <<'JS';
 
     function removeConcepto(idx) {
         cartItems.splice(idx, 1);
+        _sincronizarSwitchIvaSegunCarrito();
         renderCart();
     }
 
@@ -1617,21 +1655,36 @@ print <<'JS';
 
         let html = '';
         let totalCobrar = 0;
+        let baseGravableCobrar = 0;
         let totalConvenio = 0;
         
         cartItems.forEach((item, idx) => {
             let isCubierto = (pacienteTipoActual === 'estado' && (item.cubierto_convenio || item.precio_paciente === 0));
+            let masterObj = masterCatalogoRecibo.find(m => m.id === item.id);
+            if (item.aplica_iva === undefined && masterObj && masterObj.aplica_iva !== undefined) {
+                item.aplica_iva = masterObj.aplica_iva;
+            }
+            const gravaIva = (parseInt(item.aplica_iva, 10) === 1);
             const sub = (item.precio || 0) * (item.cantidad || 1);
             if (isCubierto) {
                 totalConvenio += sub;
             } else {
-                totalCobrar += ((item.precio_paciente !== undefined ? item.precio_paciente : item.precio) * (item.cantidad || 1));
+                const subCobrar = ((item.precio_paciente !== undefined ? item.precio_paciente : item.precio) * (item.cantidad || 1));
+                totalCobrar += subCobrar;
+                if (gravaIva) {
+                    baseGravableCobrar += subCobrar;
+                }
             }
             
-            let masterObj = masterCatalogoRecibo.find(m => m.id === item.id);
             let preciosArr = item.precios_disponibles || (masterObj ? masterObj.precios : []);
             let masterTemp = masterObj ? Object.assign({}, masterObj, { precios: preciosArr }) : { precios: preciosArr };
             let tarifas = getTarifasAplicables(masterTemp);
+
+            let badgeIvaItem = (!isCubierto)
+                ? (gravaIva
+                    ? `<span class="badge ms-1" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:0.6rem;">+IVA 16%</span>`
+                    : `<span class="badge bg-light text-secondary border ms-1" style="font-size:0.6rem;">Exento 0%</span>`)
+                : '';
 
             let subtexto = '';
             if (tarifas.length > 1 && !item.is_consulta_principal) {
@@ -1641,13 +1694,13 @@ print <<'JS';
                     let label = getTarifaNombre(p.tipo_tarifa);
                     opts += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}" ${sel}>${escapeHtml(label)} (${formatCurrency(p.precio_publico)})</option>`;
                 });
-                subtexto = `<select class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-0.5 mt-0.5" style="font-size:0.7rem; max-width:210px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" onchange="updateCartItemTarifa(${idx}, this)">${opts}</select>`;
+                subtexto = `<div class="d-flex align-items-center flex-wrap gap-1"><select class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-0.5 mt-0.5" style="font-size:0.7rem; max-width:210px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" onchange="updateCartItemTarifa(${idx}, this)">${opts}</select>${badgeIvaItem}</div>`;
             } else if (isCubierto) {
                 let labelT = item.tipo_tarifa ? ` [${getTarifaNombre(item.tipo_tarifa)}]` : '';
                 subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">Convenio Municipio${escapeHtml(labelT)} (${formatCurrency(item.precio)})</small>`;
             } else {
                 let labelT = item.tipo_tarifa ? ` [${getTarifaNombre(item.tipo_tarifa)}]` : '';
-                subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u${escapeHtml(labelT)}</small>`;
+                subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u${escapeHtml(labelT)}${badgeIvaItem}</small>`;
             }
 
             let badgePrecio = isCubierto ?
@@ -1677,7 +1730,7 @@ print <<'JS';
         
         let iva = 0;
         if ($('#chkIva').length && $('#chkIva').is(':checked')) {
-            iva = totalCobrar * 0.16;
+            iva = baseGravableCobrar * 0.16;
         }
         
         let totalIvaText = iva > 0 ? formatCurrency(iva) : '$0.00';
@@ -1757,19 +1810,25 @@ print <<'JS';
         }
         
         let totalCobro = 0;
+        let baseGravable = 0;
         let isEstado = (tipo === 'estado');
         cartItems.forEach(it => {
+            let subIt = 0;
             if (isEstado) {
                 let pp = (it.precio_paciente !== undefined) ? it.precio_paciente : (it.cubierto_convenio ? 0 : it.precio);
-                totalCobro += (pp * (it.cantidad || 1));
+                subIt = (pp * (it.cantidad || 1));
             } else {
-                totalCobro += ((it.precio || 0) * (it.cantidad || 1));
+                subIt = ((it.precio || 0) * (it.cantidad || 1));
+            }
+            totalCobro += subIt;
+            if (parseInt(it.aplica_iva, 10) === 1) {
+                baseGravable += subIt;
             }
         });
 
         let iva = 0;
-        if ($('#chkIva').length && $('#chkIva').is(':checked') && totalCobro > 0) {
-            iva = totalCobro * 0.16;
+        if ($('#chkIva').length && $('#chkIva').is(':checked') && baseGravable > 0) {
+            iva = baseGravable * 0.16;
             totalCobro += iva;
         }
         const metodo = $('#selMetodoPago').val();
@@ -1881,19 +1940,30 @@ print <<'JS';
         }
 
         let totalCobroVentanilla = 0;
+        let baseGravableVentanilla = 0;
+        let chkIvaActivo = ($('#chkIva').length && $('#chkIva').is(':checked')) ? 1 : 0;
+
         cartItems.forEach(it => {
+            let subIt = 0;
             if (tipo === 'estado') {
                 if (!it.cubierto_convenio && it.precio_paciente > 0) {
-                    totalCobroVentanilla += (it.precio_paciente * (it.cantidad || 1));
+                    subIt = (it.precio_paciente * (it.cantidad || 1));
                 }
             } else {
-                totalCobroVentanilla += ((it.precio || 0) * (it.cantidad || 1));
+                subIt = ((it.precio || 0) * (it.cantidad || 1));
+            }
+            const grava = (parseInt(it.aplica_iva, 10) === 1);
+            const ivaIt = (chkIvaActivo && grava && subIt > 0) ? Number((subIt * 0.16).toFixed(2)) : 0;
+            it.iva_monto = ivaIt;
+            totalCobroVentanilla += subIt;
+            if (grava) {
+                baseGravableVentanilla += subIt;
             }
         });
 
         let con_iva = 0;
-        if ($('#chkIva').length && $('#chkIva').is(':checked') && totalCobroVentanilla > 0) {
-            totalCobroVentanilla += (totalCobroVentanilla * 0.16);
+        if (chkIvaActivo && baseGravableVentanilla > 0) {
+            totalCobroVentanilla = Number((totalCobroVentanilla + (baseGravableVentanilla * 0.16)).toFixed(2));
             con_iva = 1;
         }
         

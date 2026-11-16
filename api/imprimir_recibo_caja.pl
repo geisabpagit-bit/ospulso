@@ -447,11 +447,13 @@ if ($recibo->{items_json} && $recibo->{items_json} ne '[]') {
             my $prec = $it->{precio} // $it->{monto} // 0;
             my $cant = $it->{cantidad} // 1;
             my $subt = $it->{subtotal} // ($prec * $cant);
+            my $iva_m = ($it->{iva_monto} // 0) + 0;
             push @cargos, {
-                concepto => $name,
-                precio   => $prec,
-                cantidad => $cant,
-                subtotal => $subt
+                concepto  => $name,
+                precio    => $prec,
+                cantidad  => $cant,
+                subtotal  => $subt,
+                iva_monto => $iva_m
             };
         }
     };
@@ -869,12 +871,27 @@ if (@indicaciones_lista) {
     };
 }
 
+my $total_iva_recibo = 0;
+my $total_subtotal_base = 0;
+foreach my $c (@cargos) {
+    $total_subtotal_base += ($c->{subtotal} || 0);
+    $total_iva_recibo += ($c->{iva_monto} || 0);
+}
+my $desglose_iva_html = '';
+if ($total_iva_recibo > 0) {
+    $desglose_iva_html = qq{
+        <div style="font-size: 10.5px; margin-bottom: 2px; color: #334155;">Subtotal : @{[ formato_moneda($total_subtotal_base) ]}</div>
+        <div style="font-size: 10.5px; margin-bottom: 4px; color: #334155;">IVA (16%) : @{[ formato_moneda($total_iva_recibo) ]}</div>
+    };
+}
+
 print <<HTML;
                     </table>
                 </td>
             </tr>
             <tr>
                 <td colspan="3" style="text-align: right; vertical-align: middle; padding: 10px 14px;">
+                    $desglose_iva_html
                     <div style="font-size: 12px; margin-bottom: 6px; font-weight: bold; color: #000;">Total : @{[ formato_moneda($recibo->{total_cargos}) ]}</div>
                     $abono_saldo_html
                     $indicaciones_html

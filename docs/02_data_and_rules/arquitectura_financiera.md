@@ -127,6 +127,11 @@ Ambos canales convergen en el flujo de caja operativo del tenant.
    - En `api/guardar_recibo_rapido.pl`, los conceptos de Municipio conservan el importe real de la tarifa elegida (`cubierto_convenio = 1`, `precio_paciente = 0`), asentando la suma en `TOTAL_CARGOS` de `folios_recibos_publicos.dat`.
    - En `api/imprimir_recibo_publico.pl`, los importes de cada concepto (Consultas y otros departamentos como Imagenología / Rayos X) y el total se exponen e imprimen únicamente cuando la dependencia del trabajador es **DIF**, permaneciendo ocultos en el recibo impreso para el resto de dependencias municipales.
 
+3. **Gobernanza de `% Régimen IVA` (`aplica_iva` — Modelo A)**:
+   - El campo `aplica_iva` (`0` = Exento 0%, `1` = Grava IVA 16%) de `catalogo_items_<CLUES>.dat` gobierna qué conceptos integran la base gravable en `views/generar_recibo.pl` y `js/estado_cuenta_spa.js`.
+   - Al activarse el switch de IVA (`#chkIva` o `#checkFactura`, el cual se auto-activa al incluir al menos un ítem con `aplica_iva == 1`), el 16% se calcula **exclusivamente sobre los conceptos con `aplica_iva == 1`**, manteniendo intactos sin impuesto los conceptos médicos exentos (`aplica_iva == 0`).
+   - `api/guardar_recibo_rapido.pl` persiste `iva_monto` por ítem, sincroniza `TOTAL_CARGOS` con `TOTAL_ABONOS` en `folios_recibos_privados.dat`, asienta `MONTO_BASE|IVA|TOTAL` en `estado_cuenta.dat` y `api/imprimir_recibo_caja.pl` imprime el desglose de `Subtotal`, `IVA (16%)` y `Total`.
+
 ---
 
 ## 4. Estándar de Reporte "Resumen Ejecutivo de Caja" (`views/finanzas.pl`)

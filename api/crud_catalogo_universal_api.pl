@@ -680,6 +680,11 @@ elsif ($action eq 'datatable_servicios') {
         if ($item->{indicaciones} && $item->{indicaciones} ne 'Sin preparación previa') {
             $extra_info .= "<div class='text-muted small text-truncate' style='max-width: 320px; font-size: 0.72rem;' title='$item->{indicaciones}'><i class='bi bi-info-circle me-1 text-primary'></i>$item->{indicaciones}</div>";
         }
+        if ($item->{aplica_iva}) {
+            $extra_info .= "<span class='badge me-1' style='background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-size: 0.65rem;'><i class='bi bi-percent me-0.5'></i>Grava IVA (16%)</span>";
+        } else {
+            $extra_info .= "<span class='badge bg-light text-secondary border me-1' style='font-size: 0.65rem;'>Exento (0%)</span>";
+        }
         if ($item->{tiempo_entrega} && $item->{tiempo_entrega} ne 'Inmediato') {
             $extra_info .= "<span class='badge bg-light text-secondary border' style='font-size: 0.65rem;'><i class='bi bi-clock me-1'></i>$item->{tiempo_entrega}</span>";
         }

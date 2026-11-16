@@ -664,7 +664,7 @@ function agregarCargoManual() {
     const n = document.getElementById('manual_nombre'), p = document.getElementById('manual_precio');
     if(!n.value || !p.value) return Swal.fire("Aviso", "Indique descripción y precio", "warning");
     const id = 'MAN-'+Date.now();
-    carritoApp.push({ id, nombre: n.value, precio: parseFloat(p.value), cantidad: 1 });
+    carritoApp.push({ id, nombre: n.value, precio: parseFloat(p.value), aplica_iva: 1, cantidad: 1 });
     n.value = ''; p.value = ''; refrescarGUICarrito();
 }
 
@@ -688,8 +688,12 @@ function agregarAlCarrito(id) {
             is_producto: isProd ? 1 : 0,
             stock_max: stockMax,
             precio: parseFloat(it.precio),
+            aplica_iva: (it.aplica_iva !== undefined) ? (parseInt(it.aplica_iva, 10) ? 1 : 0) : 1,
             cantidad: 1
         });
+        if (parseInt(it.aplica_iva, 10) === 1 && document.getElementById('checkFactura')) {
+            document.getElementById('checkFactura').checked = true;
+        }
     }
     refrescarGUICarrito();
 }
@@ -698,13 +702,20 @@ function refrescarGUICarrito() {
     const uli = document.getElementById('listaCarrito'); if(!uli) return;
     uli.innerHTML = carritoApp.length === 0 ? '<div class="text-center p-10 text-slate-300 font-bold small">El carrito está vacío.</div>' : '';
     let total = 0;
+    let baseGravable = 0;
     carritoApp.forEach((c, i) => {
-        const st = c.precio * c.cantidad; total += st;
+        const st = c.precio * c.cantidad;
+        total += st;
+        const grava = (c.aplica_iva === undefined || parseInt(c.aplica_iva, 10) === 1);
+        if (grava) baseGravable += st;
+        const badgeIva = grava
+            ? `<span class="badge ms-1" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:0.6rem;">+IVA 16%</span>`
+            : `<span class="badge bg-light text-secondary border ms-1" style="font-size:0.6rem;">Exento 0%</span>`;
         uli.insertAdjacentHTML('beforeend', `
             <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
                 <div class="lh-sm flex-grow-1">
                     <span class="fw-black text-slate-800 d-block mb-1 text-xs uppercase">${c.nombre}</span>
-                    <small class="text-slate-400 fw-bold">${formatter.format(c.precio)} c/u</small>
+                    <small class="text-slate-400 fw-bold">${formatter.format(c.precio)} c/u ${badgeIva}</small>
                 </div>
                 <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-3 flex-wrap">
                     <div class="d-flex align-items-center gap-2 bg-white rounded-pill px-2 py-1 border shadow-sm">
@@ -720,7 +731,7 @@ function refrescarGUICarrito() {
             </div>`);
     });
     
-    const iva = document.getElementById('checkFactura') && document.getElementById('checkFactura').checked ? (total * 0.16) : 0;
+    const iva = document.getElementById('checkFactura') && document.getElementById('checkFactura').checked ? (baseGravable * 0.16) : 0;
     const tv = document.getElementById('carritoTotal');
     if (tv) tv.innerText = formatter.format(total + iva);
 }

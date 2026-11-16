@@ -110,5 +110,21 @@ Para optimizar el rendimiento y la memoria en el navegador frente a catálogos e
   - Al atender a un empleado de Municipio (`pacienteTipoActual === 'estado'`), el selector `#containerTarifaConsulta` se habilita para elegir la tarifa de consulta de Municipio correspondiente al día/turno, y el catálogo modal (`#modalConceptosRecibo`) junto con el carrito despliegan el `<select>` interactivo de tarifas de Municipio para estudios adicionales (ej. Rayos X en Sábado Matutino o Vespertino).
   - En `api/imprimir_recibo_publico.pl`, los precios unitarios/subtotales de la tarifa seleccionada (tanto de Consultas como de otros departamentos) y el Total se imprimen exclusivamente cuando la dependencia es **DIF**, manteniéndose ocultos en el papel impreso para el resto de dependencias municipales.
 
+---
+
+## 10. Gobernanza del Campo `% Régimen IVA` (`aplica_iva` — Modelo A)
+- **Definición en Catálogo Universal (`catalogo_items_<CLUES>.dat`, col 4 `APLICA_IVA`)**:
+  - `0` (*Exento - Tasa 0% Médico*): Consultas médicas y actos clínicos exentos conforme al Art. 15 LIVA.
+  - `1` (*Grava IVA 16%*): Estudios, procedimientos o servicios gravados.
+  - La tabla DataTables de `views/manage_catalogo_universal.pl` (`api/crud_catalogo_universal_api.pl` `action=datatable_servicios`) exhibe un badge explícito (`Grava IVA (16%)` en ámbar vs `Exento (0%)` en gris) junto a cada concepto.
+- **Aplicación Selectiva en Caja Rápida (`views/generar_recibo.pl` -> `api/guardar_recibo_rapido.pl` -> `api/imprimir_recibo_caja.pl`)**:
+  - Cada ítem cargado en `masterCatalogoRecibo` y en `cartItems` conserva su bandera `aplica_iva` (`0` o `1`) y muestra la etiqueta `+IVA 16%` o `Exento 0%`.
+  - Cuando se agrega al carrito de un paciente privado al menos un concepto con `aplica_iva == 1`, el switch `#chkIva` (*Tax IVA 16% sobre conceptos gravados*) se activa automáticamente (permitiendo al cajero conmutarlo manualmente si lo requiere).
+  - Con `#chkIva` activo, el 16% de IVA se calcula **exclusivamente sobre la base gravable** (`aplica_iva == 1`), respetando en `$0.00` de impuesto los conceptos exentos (`aplica_iva == 0`) aunque coexistan en el mismo recibo.
+  - `api/guardar_recibo_rapido.pl` recibe `caja_con_iva`, calcula `iva_monto` por concepto gravado, cuadra `TOTAL_CARGOS` y `TOTAL_ABONOS` en `folios_recibos_privados.dat`, registra `MONTO_BASE`, `IVA` y `TOTAL` en `dat/estado_cuenta.dat`, y `api/imprimir_recibo_caja.pl` desglosa `Subtotal`, `IVA (16%)` y `Total`.
+- **Sincronización en Estado de Cuenta (`js/estado_cuenta_spa.js` -> `api/estado_cuenta_api.pl`)**:
+  - Tanto la vista previa del carrito (`refrescarGUICarrito()`) como `accion=add_cargo` en `api/estado_cuenta_api.pl` aplican el 16% únicamente sobre los ítems con `aplica_iva == 1` cuando `#checkFactura` está activo, garantizando cuadre exacto entre pantalla y base de datos.
+
+
 
 
