@@ -309,6 +309,31 @@ Registro transaccional de citas médicas agendadas. Delimitador: `|`.
 | 11 | `ID_NEGOCIO` | String (FK) | Tenant / Organización | `1` |
 | 12 | `ELABORADO_POR` | String (FK) | Usuario creador | `recepcionista1` |
 
+### 7.3 `rentas_espacios.dat`
+Registro transaccional de reservas y arrendamiento de espacios físicos (consultorios y quirófanos) por hora, turno o jornada completa. Delimitador: `|`.
+
+| Campo | Nombre | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | `id_renta` | String (PK) | Identificador único de la reserva (`REN-<timestamp>`) | `REN-1791200450` |
+| 2 | `id_arrendatario` | String (FK) | ID de usuario/médico interno o clave de arrendatario externo | `190726041` |
+| 3 | `nombre_arrendatario` | String | Nombre completo del médico o profesional que renta el espacio | `Dr. Carlos Méndez` |
+| 4 | `telefono_arrendatario` | String | Teléfono de contacto directo del arrendatario | `5512345678` |
+| 5 | `correo_arrendatario` | String | Correo electrónico para notificaciones de reserva | `cmendez@correo.com` |
+| 6 | `fecha` | Date | Fecha reservada (`YYYY-MM-DD`) | `2026-11-20` |
+| 7 | `hora_ini` | Time | Hora de inicio de la renta (`HH:MM`) | `09:00` |
+| 8 | `hora_fin` | Time | Hora de fin de la renta (`HH:MM`) | `13:00` |
+| 9 | `sucursal` | String (FK) | ID de la sucursal física en `negocios.dat` | `965257` |
+| 10 | `espacio` | String | Nombre canónico del espacio (`Consultorio 1..N`, `Quirófano 1..M`) | `Quirófano 1` |
+| 11 | `tipo_espacio` | String | Categoría del recurso (`Consultorio` o `Quirofano`) | `Quirofano` |
+| 12 | `motivo` | String | Uso previsto, procedimiento o especialidad (Obligatorio) | `Cirugía Ambulatoria Oftalmología` |
+| 13 | `notas` | String | Requerimientos de equipamiento o notas administrativas | `Requiere microscopio quirúrgico` |
+| 14 | `estado` | String | `Reservada`, `Confirmada`, `En Uso`, `Finalizada`, `No realizada`, `Cancelada` | `Confirmada` |
+| 15 | `monto_renta` | Decimal | Importe pactado por el bloque de arrendamiento | `3500.00` |
+| 16 | `pagado` | Char(1) | Indicador de liquidación en caja (`1` = Pagado, `0` = Pendiente) | `1` |
+| 17 | `folio_recibo` | String (FK) | Folio del recibo en `folios_recibos_privados.dat` si fue cobrado | `REC-001290` |
+| 18 | `id_negocio` | String (FK) | ID de la organización matriz (Tenant) | `104520` |
+| 19 | `elaborado_por` | String (FK) | Usuario que registró la reserva | `recepcion1` |
+
 ---
 
 ## 8. Archivos Financieros de Consultorio y Tratamientos (`dat/`)

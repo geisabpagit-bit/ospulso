@@ -231,5 +231,42 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   - Elimina automáticamente del 4º en adelante (`$i >= 3`), garantizando que jamás se borren todos los respaldos por antigüedad y manteniendo el almacén acotado.
   - **Inmunidad de Respaldos Manuales**: Los respaldos creados manualmente por el usuario (`ospulso_backup_*.zip`) quedan 100% excluidos de la purga automática y solo pueden eliminarse a petición expresa del Administrador Global.
 
+---
+
+### 2.11 Agenda de Renta de Espacios (`views/agenda_espacios.pl`, `api/espacios_crud.pl`, `js/agenda_espacios_spa.js`)
+- **Propósito**: Subsistema especializado para la administración, programación y control de arrendamiento de espacios físicos clínicos (**Consultorios** y **Quirófanos** por hora, bloque, turno o jornada completa) a profesionales internos o externos, operando en sincronía y aislamiento anticolisión con la Agenda Clínica de Pacientes (`views/agenda_main.pl`).
+- **Gobernanza de Capacidades SaaS (`Renta de Espacios`)**:
+  1. **Activación Comercial (`views/crm_ventas.pl` & `api/crud_organizaciones_api.pl`)**: Se integra en la sección *"D. Capacidades SaaS Requeridas"* la casilla de verificación `name="capacidades[]" value="Renta de Espacios" id="cap14"`. Al guardarse, persiste en `dat/negocios_config.dat` como `<ID_ORG>|CAPACIDAD|Renta de Espacios`.
+  2. **Restricción de Visibilidad**: El módulo `agenda_espacios` es estrictamente exclusivo para organizaciones que cuenten con la capacidad `Renta de Espacios` activa. Si la capacidad no está habilitada, la vista bloquea cualquier acceso directo mediante `render_acceso_denegado`.
+- **Bifurcación Dinámica en Menú Lateral (`utils/sub_sidebar.pl`) & Gobernanza RBAC**:
+  1. **Sin Capacidad `Renta de Espacios` (Comportamiento Estándar)**: El menú lateral conserva intacto el enlace plano original *"Agenda Dinámica"* (`views/agenda_main.pl`).
+  2. **Con Capacidad `Renta de Espacios` Activa**: El ítem plano se transforma dinámicamente en un **Acordeón Desplegable** titulado **"Agendas"** (`#h-agendas` / `#c-agendas`, con icono `calendar_month`), el cual despliega dos sub-ítems subordinados:
+     - **Pacientes** $\rightarrow$ `views/agenda_main.pl` (Agenda clínica de citas de pacientes).
+     - **Espacios** $\rightarrow$ `views/agenda_espacios.pl` (Agenda de renta de consultorios y quirófanos).
+  3. **Respeto Estricto de RBAC**: Ambos sub-ítems evalúan individualmente `utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, $mod, 'R', $id_usuario_sesion)` (donde `$mod` es `'agenda'` para Pacientes y `'agenda_espacios'` para Espacios), respetando la matriz de roles (`permisos_roles_*.dat`), excepciones por usuario (`permisos_usuarios_*.dat`) y el bloqueo absoluto para `Administrador Global` (NOM-004).
+- **Homologación UI/UX y Motor Visual (Base `agenda_main.pl`)**:
+  1. **Reutilización de Estándares**: Hereda al 100% la gobernanza de viewport (`body.agenda-page-layout`, `css/agenda_diamond.css`, `css/ospulso_master_v2.css` y `css/sdm_mobile_standards.css`), evitando cualquier scroll parásito de ventana.
+  2. **Vistas Interactivas y Reportes**:
+     - *Vista Diaria Matricial (`#view-dia`)*: Columnas dinámicas por cada Consultorio y Quirófano configurado en la sucursal activa.
+     - *Vista Semanal Smart (`#view-semana-smart`)*: Carrusel de 7 días (Lunes a Domingo) con tarjetas Hero para rentas de jornada completa y bloques multi-slot.
+     - *Vista Mensual Grid (`#view-calendario`)*: Cuadrícula mensual desktop y vista compacta móvil.
+     - *Tríada de Reportes DataTables (`#diaReporteTable`, `#agendaTable`, `#mesTable`)*: Reporte Diario, Semanal y Mensual con paginación estándar de 10 registros, exportación e impresión controlada independiente vía `api/imprimir_reporte_espacios_api.pl` con barra `.no-print`.
+  3. **Filtros Reactivos en Toolbar**: Selector de Sucursal, Selector Multi-Check de Espacios Físicos (`Consultorio 1..N`, `Quirófano 1..M` obtenidos desde la configuración de `views/manage_clinicas.pl`), Selector Multi-Check de Arrendatarios/Médicos y Modal de Ajustes de Horario de Sucursal (`#modalAjustes`).
+- **Inventario Dinámico de Espacios desde Gestión de Sucursales (`views/manage_clinicas.pl`)**:
+  1. Consume la configuración real de cada sede registrada en `dat/negocios.dat` y `dat/negocios_config.dat` (`CONSULTORIOS` y `QUIROFANOS`).
+  2. Genera dinámicamente las unidades físicas seleccionables y filtrables (`Consultorio 1` hasta `Consultorio N`, y `Quirófano 1` hasta `Quirófano M` cuando la sucursal dispone de quirófanos). En renta de espacios físicos se omite el recurso `"Virtual"`.
+- **Motor Anticolisión Bidireccional (Cross-Check Pacientes $\leftrightarrow$ Espacios)**:
+  1. **Fórmula Canónica de Intersección Horaria**: Dos bloques $[Start_A, End_A)$ y $[Start_B, End_B)$ en la misma `fecha`, `sucursal` y `espacio` (normalizados mediante `normalizarTextoEspacio` / `normalizar_espacio_perl`) colisionan si y solo si:
+     $$\text{Min}(Start_A) < \text{Min}(End_B) \quad \land \quad \text{Min}(End_A) > \text{Min}(Start_B)$$
+  2. **Doble Fuente de Validación**:
+     - Al crear o actualizar una reserva en `api/espacios_crud.pl`, el motor verifica que el espacio físico no esté ocupado en `dat/rentas_espacios.dat` (excluyendo estados `Cancelada` y `No realizada`) **Y** verifica simultáneamente en `dat/citas.dat` que no exista una consulta o cirugía de pacientes programada en ese mismo consultorio/quirófano y horario.
+     - De forma recíproca, `api/citas_crud.pl` valida contra `dat/rentas_espacios.dat` para impedir que se agende una consulta médica en un consultorio o quirófano que ha sido reservado/bloqueado para renta externa a otro titular, o bien permite vincular las citas si corresponden al mismo médico arrendatario durante su bloque activo.
+     - En las vistas de calendario, los bloques ocupados por la otra agenda se proyectan visualmente como franjas bloqueadas (`Ocupado por Consulta/Cirugía` o `Reservado en Renta de Espacio`) para ofrecer transparencia total al operador.
+- **Ciclo de Vida CRUD de Reserva de Espacios y Estados Canónicos**:
+  1. **Operaciones CRUD (`api/espacios_crud.pl`)**: Soporta `create`, `update`, `delete`, `get_events`, `get_recursos`, `get_form_metadata` y `cobrar_renta`.
+  2. **Estados de Reserva**: `Reservada` (#0A2A66), `Confirmada / Pagada` (#10b981), `En Uso` (#059669), `Finalizada` (#19B7A5), `No realizada` (#ef4444 - auto-saneamiento al expirar sin uso) y `Cancelada` (#dc2626).
+  3. **Integración Financiera**: El cobro de una renta de espacio genera su recibo correspondiente en `dat/folios_recibos_privados.dat` y movimiento en `dat/estado_cuenta.dat`, preservando la integridad contable al centavo.
+
+
 
 

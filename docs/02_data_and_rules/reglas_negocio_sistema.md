@@ -159,4 +159,21 @@
      - **Catálogos y Mantenimiento** (`administracion_catalogo.pl`).
      - **Gestión de Catálogos** (`gestion_catalogos.pl`).
 
+---
+
+## 14. Gobernanza de Agenda de Espacios (Renta de Consultorios y Quirófanos)
+
+1. **Activación por Capacidad SaaS (`Renta de Espacios`)**:
+   - La Agenda de Espacios (`views/agenda_espacios.pl`) únicamente se habilita para organizaciones que posean la capacidad `Renta de Espacios` registrada en `dat/negocios_config.dat` (`<ID_ORG>|CAPACIDAD|Renta de Espacios`), configurable desde `views/crm_ventas.pl`.
+2. **Estructura Condicional del Menú Lateral (`utils/sub_sidebar.pl`)**:
+   - **Organización CON `Renta de Espacios`**: Se reemplaza el enlace directo de Agenda por el grupo desplegable **"Agendas"**, conteniendo los sub-ítems **"Pacientes"** (`views/agenda_main.pl`) y **"Espacios"** (`views/agenda_espacios.pl`).
+   - **Organización SIN `Renta de Espacios`**: Se conserva intacto el menú original sin desplegable adicional.
+   - En ambos escenarios se aplica rigurosamente la evaluación RBAC (`tiene_permiso_modulo`) para el rol activo y posibles excepciones por usuario.
+3. **Fuente Canónica de Inventario Físico**:
+   - Los espacios disponibles para arrendamiento se generan dinámicamente a partir del total de `CONSULTORIOS` y `QUIROFANOS` configurados por sucursal en `views/manage_clinicas.pl` (`dat/negocios_config.dat`).
+4. **Regla Inviolable Anticolisión Transversal**:
+   - Ningún consultorio o quirófano puede reservarse en `dat/rentas_espacios.dat` si presenta intersección horaria en la misma fecha y sucursal con otra renta activa o con una cita/cirugía activa en `dat/citas.dat` (salvo que la cita pertenezca al mismo médico titular del bloque rentado).
+   - Las reservas con estado `Cancelada` o `No realizada` liberan inmediatamente el recurso físico en ambas agendas.
+
+
 
