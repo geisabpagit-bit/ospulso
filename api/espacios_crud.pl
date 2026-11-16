@@ -808,7 +808,7 @@ sub obtener_metadatos_formulario {
             next unless ($u_biz eq $my_org || ($my_org eq '0' && ($u_biz eq '0' || $u_biz eq '')));
             my $es_med = ($f[5] =~ /(?:^|,)Medico(?:,|$)/) || ($f[5] =~ /Administrador/ && defined $f[7] && $f[7] ne '' && $f[7] ne '0');
             if ($f[4] == 1 && $es_med) {
-                push @medicos, { id => $f[0], nombre => $f[1], correo => $f[2] // '' };
+                push @medicos, { id => $f[0], nombre => $f[1], correo => $f[2] // '', rol_quirurgico => $f[12] // '' };
             }
         }
         close $fh;

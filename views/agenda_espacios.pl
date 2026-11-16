@@ -97,10 +97,16 @@ my $usuarios = leer_tabla($archivo_usuarios, '!');
 my @medicos;
 if ($usuarios) {
     foreach my $u (@$usuarios) {
+        next unless defined $u->[4] && $u->[4] eq '1'; # Solo colaboradores activos
         my $es_medico = ($u->[5] =~ /(?:^|,)Medico(?:,|$)/) ||
                         ($u->[5] =~ /Administrador/ && defined $u->[7] && $u->[7] ne '' && $u->[7] ne '0');
         if ($es_medico && ($u->[6] =~ /^$id_negocio:/ || ($id_negocio eq '0' && $u->[6] =~ /^0:/))) {
-            push @medicos, { id => $u->[0], nombre => $u->[1], correo => $u->[2] // '' };
+            push @medicos, {
+                id             => $u->[0],
+                nombre         => $u->[1],
+                correo         => $u->[2] // '',
+                rol_quirurgico => $u->[12] // ''
+            };
         }
     }
 }
@@ -207,6 +213,7 @@ render_header(
 my %map_medicos = map { $_->{id} => $_->{nombre} } @medicos;
 $map_medicos{'EXTERNO'} = 'Arrendatario Externo';
 my $json_catalogo_medicos = encode_json(\%map_medicos);
+my $json_lista_medicos = encode_json(\@medicos);
 
 print <<HTML;
     <!-- Datos de Configuración mediante atributos DOM data-* -->
@@ -220,6 +227,7 @@ print <<HTML;
     <input type="hidden" id="agenda_es_consultorio" value="0">
     <input type="hidden" id="agenda_tipo_organizacion" value="$tipo_organizacion">
     <script type="application/json" id="json_medicos_catalogo">$json_catalogo_medicos</script>
+    <script type="application/json" id="json_medicos_activos_list">$json_lista_medicos</script>
 
     <!-- DataTables & Estilos Master de Agenda -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
@@ -629,10 +637,14 @@ print <<HTML;
                                         <input type="date" name="fecha" id="f_fecha" class="form-control form-control-compact" onchange="renderSlots(this.value)">
                                     </div>
 
-                                    <!-- Fila 3: Nombre del Arrendatario y Teléfono -->
+                                    <!-- Fila 3: Nombre del Arrendatario (Híbrido Libre + Autocomplete Colaboradores Activos) y Teléfono -->
                                     <div class="col-md-6">
-                                        <label class="form-label-compact" for="f_paciente">Nombre del Médico / Arrendatario <span class="text-danger">*</span></label>
-                                        <input type="text" name="nombre_arrendatario" id="f_paciente" class="form-control form-control-compact" placeholder="Ej: Dr. Carlos Méndez..." required>
+                                        <label class="form-label-compact" for="f_paciente">Nombre del Médico / Arrendatario <span class="text-danger">*</span> <span class="text-muted fw-normal" style="font-size:0.65rem;">(Libre o buscar colaborador)</span></label>
+                                        <div class="position-relative" id="wrapper_autocomplete_arrendatario">
+                                            <input type="text" name="nombre_arrendatario" id="f_paciente" class="form-control form-control-compact pe-4" placeholder="Escribe libremente o busca médico activo..." autocomplete="off" required>
+                                            <i class="bi bi-search position-absolute end-0 top-50 translate-middle-y me-2.5 text-teal" style="font-size: 0.8rem; cursor: pointer;" onclick="window.mostrarSugerenciasMedicosActivos(true)" title="Ver médicos colaboradores activos"></i>
+                                            <div id="dropdown_autocomplete_medicos" class="dropdown-menu w-100 shadow-lg border rounded-3 p-1 mt-1" style="max-height: 220px; overflow-y: auto; z-index: 106500; display: none;"></div>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label-compact" for="f_telefono_arrendatario">Teléfono de Contacto</label>
@@ -858,7 +870,11 @@ print <<'JS';
         document.body.classList.add('agenda-page-layout');
         try {
             window.medicosCatalogo = JSON.parse(document.getElementById('json_medicos_catalogo')?.textContent || '{}');
-        } catch(e) { window.medicosCatalogo = {}; }
+            window.medicosActivosList = JSON.parse(document.getElementById('json_medicos_activos_list')?.textContent || '[]');
+        } catch(e) {
+            window.medicosCatalogo = {};
+            window.medicosActivosList = [];
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             var fSucursal = document.getElementById('f_sucursal');
@@ -937,3 +953,4 @@ HTML
 
 render_bottom_nav('agenda_espacios');
 1;
+

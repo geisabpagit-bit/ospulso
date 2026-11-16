@@ -34,6 +34,7 @@ my $rol         = decode_utf8($q->param('rol')         // '');
 my $id_sucursal = decode_utf8($q->param('id_sucursal') // '');
 my $id_espe     = decode_utf8($q->param('id_espe')     // '0');
 my $id_subespe  = decode_utf8($q->param('id_subespe')  // '0');
+my $rol_quirurgico = decode_utf8($q->param('rol_quirurgico') // 'No aplica');
 
 $nombre =~ s/^\s+|\s+$//g;
 $correo =~ s/^\s+|\s+$//g;
@@ -78,9 +79,13 @@ if ($sd->{role} eq 'Administrador Organizacion' && $roles_prohibidos_org{$rol}) 
 }
 
 if ($rol ne 'Medico') {
-    $id_espe    = '0';
-    $id_subespe = '0';
+    $id_espe        = '0';
+    $id_subespe     = '0';
+    $rol_quirurgico = 'No aplica';
 }
+$rol_quirurgico =~ s/!/ /g;
+$rol_quirurgico =~ s/^\s+|\s+$//g;
+$rol_quirurgico = 'No aplica' if $rol_quirurgico eq '';
 
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
@@ -131,7 +136,7 @@ my $id_nuevo = int(rand(999999999)) + 100000000;
 my $hash = sha256_hex($clave);
 my $extra_multi_tenant = "$id_org_matriz:$id_sucursal"; # EL BLINDAJE
 
-# Canónico de 12 Columnas
+# Canónico de 13 Columnas (incluyendo ROL_QUIRURGICO en columna 13 / índice 12)
 my $registro_usuario = join("!", 
     $id_nuevo, 
     $nombre, 
@@ -144,7 +149,8 @@ my $registro_usuario = join("!",
     $id_subespe // '0',
     '', # CEDULA
     '', # DOMICILIO
-    ''  # FIRMA_URL
+    '', # FIRMA_URL
+    $rol_quirurgico // 'No aplica'
 );
 
 eval {

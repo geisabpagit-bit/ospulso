@@ -226,3 +226,13 @@ En la vista de Gestión de Personal (`views/administracion_usuarios.pl`), cuando
   1. Al cambiar la "Especialidad Médica" (`#form_id_espe`), se desencadena `actualizarSubespecialidades(idEspe, '0')`.
   2. La lista de "Sub-Especialidad" (`#form_id_subespe`) se vacía y se reconstruye reactivamente únicamente con los ítems subordinados a dicha especialidad (`subs.filter(s => s.id_espe === idEspe)`), manteniendo siempre la opción por defecto `General / Ninguna`.
   3. Al seleccionar un médico del catálogo institucional (`seleccionarMedicoCatalogo`), se recupera su atributo `data-espe`, asignando la especialidad y actualizando de inmediato la cascada de subespecialidades dependientes.
+
+### 10.4 Clasificación de Participación Quirúrgica en Alta y Edición de Médicos
+- En `views/administracion_usuarios.pl`, cuando el rol seleccionado es **Médico** (`cambiarRol('Medico')`), se despliega dinámicamente el selector `#form_rol_quirurgico` (**Participación en Cirugía**) con las opciones:
+  1. `No aplica (Solo Consulta)`
+  2. `Realiza Cirugías (Cirujano Titular)`
+  3. `Ayudante de Cirugía (Primer / Segundo Ayudante)`
+  4. `Ambos (Cirujano Titular y Ayudante)`
+- Si se selecciona otro rol operativo (ej. `Recepcionista`), el selector se oculta automáticamente y su valor se restablece a `No aplica`.
+- El atributo se persiste en la columna 13 (`ROL_QUIRURGICO`, índice 12) de `dat/usuarios.dat` a través de `api/alta_usuario_api.pl` y `api/editar_usuario_api.pl`, y se despliega como badge distintivo en el directorio de colaboradores activos y en el autocompletado de la Agenda de Espacios.
+

@@ -266,6 +266,8 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   1. **Operaciones CRUD (`api/espacios_crud.pl`)**: Soporta `create`, `update`, `delete`, `get_events`, `get_recursos`, `get_form_metadata` y `cobrar_renta`.
   2. **Estados de Reserva**: `Reservada` (#0A2A66), `Confirmada / Pagada` (#10b981), `En Uso` (#059669), `Finalizada` (#19B7A5), `No realizada` (#ef4444 - auto-saneamiento al expirar sin uso) y `Cancelada` (#dc2626).
   3. **Integración Financiera**: El cobro de una renta de espacio genera su recibo correspondiente en `dat/folios_recibos_privados.dat` y movimiento en `dat/estado_cuenta.dat`, preservando la integridad contable al centavo.
+  4. **Entrada Híbrida con Autocomplete de Arrendatarios (`#f_paciente` / `#dropdown_autocomplete_medicos`)**: En el modal `#modalCita` de `views/agenda_espacios.pl`, el campo *"Nombre del Médico / Arrendatario"* opera de forma híbrida: permite escribir libremente el nombre de cualquier arrendatario externo o filtrar/seleccionar en tiempo real de la lista de médicos dados de alta como colaboradores activos en la organización (`window.medicosActivosList`), mostrando su rol quirúrgico y sincronizando automáticamente el selector `#f_medico_select`.
+
 
 
 

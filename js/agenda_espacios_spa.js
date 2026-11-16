@@ -1,4 +1,4 @@
-﻿document.addEventListener('spa:contentLoaded', function() {
+document.addEventListener('spa:contentLoaded', function() {
     if (document.querySelector('.main-container-agenda')) {
         if (typeof initClock === 'function') initClock();
         if (typeof loadFormMetadata === 'function') loadFormMetadata();
@@ -806,54 +806,98 @@ $(document).ready(function() {
 });
 
 /**
- * Autocompletado para el campo de paciente en el modal de citas
+ * Autocompletado Híbrido para el campo "Nombre del Médico / Arrendatario" (#f_paciente)
+ * Permite capturar cualquier nombre libremente O buscar y seleccionar de los médicos dados de alta como colaboradores activos.
  */
 function setupAutocomplete() {
-    if ($.fn.autocomplete) {
-        $("#f_paciente").autocomplete({
-            appendTo: "#modalCita",
-            source: function(request, response) {
-                const idMed = $("#f_medico").val();
-                console.info("Autocomplete -> Buscando:", request.term, "Médico:", idMed);
-                
-                if ($("#f_accion").val() !== 'create') {
-                    console.warn("Autocomplete bloqueado: No es modo creación.");
-                    response([]);
-                    return;
-                }
+    const inputEl = document.getElementById('f_paciente');
+    const menuEl  = document.getElementById('dropdown_autocomplete_medicos');
+    if (!inputEl || !menuEl) return;
 
-                $.ajax({
-                    url: "../api/autocomplete_pacientes.pl",
-                    dataType: "json",
-                    data: { term: request.term, id_medico: idMed },
-                    success: function(data) {
-                        console.info("Autocomplete -> Respuesta recibida:", data.length, "pacientes.");
-                        response(data);
-                    },
-                    error: function(xhr) {
-                        console.error("Autocomplete -> Error en servidor:", xhr.statusText);
-                    }
-                });
-            },
-            minLength: 2,
-            open: function(event, ui) {
-                $(this).autocomplete('widget').css({
-                    'z-index': '106000',
-                    'max-height': '260px',
-                    'overflow-y': 'auto',
-                    'background': '#ffffff',
-                    'border-radius': '12px',
-                    'box-shadow': '0 12px 30px rgba(0,0,0,0.18)'
-                });
-            },
-            select: function(event, ui) {
-                console.info("Autocomplete -> Seleccionado:", ui.item.value, "ID:", ui.item.id);
-                $("#f_id_paciente").val(ui.item.id);
-                $("#f_paciente").val(ui.item.value);
-                return false;
+    window.mostrarSugerenciasMedicosActivos = function(mostrarTodos = false) {
+        const list = Array.isArray(window.medicosActivosList) ? window.medicosActivosList : [];
+        const q = (inputEl.value || '').trim().toLowerCase();
+
+        // Sincronizar con el selector #f_medico_select si el texto coincide exactamente con un médico interno
+        const exactMatch = list.find(m => (m.nombre || '').toLowerCase() === q);
+        const selMed = document.getElementById('f_medico_select');
+        if (selMed) {
+            if (exactMatch) {
+                selMed.value = exactMatch.id;
+            } else {
+                selMed.value = 'EXTERNO';
             }
+        }
+
+        const filtered = list.filter(m => {
+            if (mostrarTodos || !q) return true;
+            const nom = (m.nombre || '').toLowerCase();
+            const cor = (m.correo || '').toLowerCase();
+            const qx  = (m.rol_quirurgico || '').toLowerCase();
+            return nom.includes(q) || cor.includes(q) || qx.includes(q);
         });
-    }
+
+        if (filtered.length === 0) {
+            if (q.length > 0) {
+                menuEl.innerHTML = `
+                    <div class="px-3 py-2 small text-muted d-flex align-items-center justify-content-between">
+                        <span><i class="bi bi-person-plus text-teal me-1.5"></i>Se registrará como arrendatario externo: <strong class="text-navy">${q}</strong></span>
+                        <span class="badge bg-light text-secondary border">Libre</span>
+                    </div>
+                `;
+                menuEl.style.display = 'block';
+            } else {
+                menuEl.style.display = 'none';
+            }
+            return;
+        }
+
+        let html = `<div class="px-2.5 py-1 text-uppercase fw-bold text-muted border-bottom" style="font-size: 0.65rem; letter-spacing: 0.5px;">Médicos Colaboradores Activos (${filtered.length})</div>`;
+        filtered.forEach(m => {
+            const qxTag = (m.rol_quirurgico && m.rol_quirurgico !== 'No aplica')
+                ? `<span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-auto" style="font-size:0.62rem;">${m.rol_quirurgico}</span>`
+                : `<span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-auto" style="font-size:0.62rem;">Colaborador</span>`;
+            const safeNom = (m.nombre || '').replace(/"/g, '&quot;');
+            html += `
+                <button type="button" class="dropdown-item d-flex align-items-center justify-content-between gap-2 rounded-2 px-2.5 py-1.5 small"
+                        onclick="window.seleccionarMedicoAutocomplete('${m.id}', '${safeNom}')">
+                    <div class="text-truncate">
+                        <i class="bi bi-person-check-fill text-teal me-1.5"></i>
+                        <span class="fw-bold text-navy">${m.nombre}</span>
+                    </div>
+                    ${qxTag}
+                </button>
+            `;
+        });
+        menuEl.innerHTML = html;
+        menuEl.style.display = 'block';
+    };
+
+    window.seleccionarMedicoAutocomplete = function(idMed, nombreMed) {
+        inputEl.value = nombreMed;
+        const selMed = document.getElementById('f_medico_select');
+        if (selMed) {
+            selMed.value = idMed;
+        }
+        menuEl.style.display = 'none';
+    };
+
+    inputEl.addEventListener('input', function() {
+        window.mostrarSugerenciasMedicosActivos(false);
+    });
+
+    inputEl.addEventListener('focus', function() {
+        if ((Array.isArray(window.medicosActivosList) && window.medicosActivosList.length > 0)) {
+            window.mostrarSugerenciasMedicosActivos(inputEl.value.trim() === '');
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        const wrapper = document.getElementById('wrapper_autocomplete_arrendatario');
+        if (wrapper && !wrapper.contains(e.target)) {
+            menuEl.style.display = 'none';
+        }
+    });
 }
 
 // Aliases para compatibilidad con versiones previas de citas.pl
@@ -863,51 +907,34 @@ function navigateToday() { goToday(); }
 function loadFormMetadata() {
     $.get('../api/espacios_crud.pl', { accion: 'get_form_metadata' }, function(res) {
         if (res.ok) {
-            const currentMedId = $("#f_medico").val() || '2';
-            
-            // Profesionales
-            if (res.medicos && res.medicos.length > 0) {
-                // Ordenar alfabéticamente
-                res.medicos.sort((a, b) => a.nombre.localeCompare(b.nombre));
-                
+            if (res.medicos && Array.isArray(res.medicos)) {
+                res.medicos.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+                window.medicosActivosList = res.medicos;
+
                 const selMed = $("#f_medico_select");
-                selMed.empty();
-                
-                // Mover el current al inicio
-                let defaultMed = res.medicos.find(m => String(m.id) === String(currentMedId));
-                if (defaultMed) {
-                    selMed.append(`<option value="${defaultMed.id}" selected>${defaultMed.nombre} (Actual)</option>`);
+                if (selMed.length) {
+                    const currentVal = selMed.val() || 'EXTERNO';
+                    selMed.empty();
+                    selMed.append('<option value="EXTERNO">-- Profesional / Arrendatario Externo --</option>');
+                    res.medicos.forEach(m => {
+                        const qxSuffix = (m.rol_quirurgico && m.rol_quirurgico !== 'No aplica') ? ` • ${m.rol_quirurgico}` : ' (Interno)';
+                        selMed.append(`<option value="${m.id}">${m.nombre}${qxSuffix}</option>`);
+                        if (window.medicosCatalogo) window.medicosCatalogo[m.id] = m.nombre;
+                    });
+                    selMed.val(currentVal);
                 }
-                
-                res.medicos.forEach(m => {
-                    if (String(m.id) !== String(currentMedId)) {
-                        selMed.append(`<option value="${m.id}">${m.nombre}</option>`);
-                    }
-                });
             }
-            
-            // Sucursales
+
             if (res.sucursales && res.sucursales.length > 0) {
                 const selSuc = $("#f_sucursal");
+                const curSuc = selSuc.val();
                 selSuc.empty();
                 res.sucursales.forEach(s => {
                     let text = s.nombre;
                     if (s.tipo === 'Matriz' && !res.es_consultorio_ind) text += ' (Matriz)';
                     selSuc.append(`<option value="${s.id}">${text}</option>`);
                 });
-            }
-
-            // Sincronizar catálogo canónico de estados si viene del backend
-            if (res.estados && res.estados.length > 0) {
-                const selEst = $("#f_estado");
-                if (selEst.length) {
-                    const currentVal = selEst.val();
-                    selEst.empty();
-                    res.estados.forEach(e => {
-                        selEst.append(`<option value="${e.nombre}">${e.nombre}</option>`);
-                    });
-                    if (currentVal) selEst.val(currentVal);
-                }
+                if (curSuc) selSuc.val(curSuc);
             }
         }
     });

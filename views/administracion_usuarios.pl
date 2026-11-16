@@ -250,6 +250,8 @@ if ($regs_usuarios) {
         my ($org_id, $suc_id) = split(/:/, $extra);
         my $id_espe = $r->[7] // '0';
         my $id_subespe = $r->[8] // '0';
+        my $rol_quirurgico = $r->[12] // 'No aplica';
+        $rol_quirurgico = 'No aplica' if $rol_quirurgico eq '';
         my $u_id = $r->[0];
         my $has_ovr = (exists $mapa_overrides_org->{$u_id} && ref($mapa_overrides_org->{$u_id}) eq 'HASH' && keys %{$mapa_overrides_org->{$u_id}}) ? 1 : 0;
         
@@ -264,6 +266,7 @@ if ($regs_usuarios) {
                 sucursal => $sucursales_hash{$suc_id} || 'No Asignada',
                 id_espe => $id_espe,
                 id_subespe => $id_subespe,
+                rol_quirurgico => $rol_quirurgico,
                 espe_nombre => $espe_hash{$id_espe} || 'General / Ninguna',
                 subespe_nombre => $subespe_hash{$id_subespe} || '',
                 has_overrides => $has_ovr
@@ -381,7 +384,7 @@ print <<HTML;
                                 </div>
                                 <div class="invalid-feedback d-block d-none" id="passwordMismatchError">Las contraseñas no coinciden.</div>
                             </div>
-                            <div class="col-12 col-md-6" id="box_espe">
+                            <div class="col-12 col-md-4" id="box_espe">
                                 <label class="form-label small fw-bold text-muted"><i class="bi bi-patch-check-fill text-primary me-1"></i>Especialidad Médica</label>
                                 <select class="form-select form-select-sm shadow-sm" id="form_id_espe" name="id_espe" onchange="actualizarSubespecialidades(this.value, '0')">
                                     <option value="0">General / Ninguna</option>
@@ -394,10 +397,19 @@ foreach my $esp (@lista_espe) {
 print <<HTML;
                                 </select>
                             </div>
-                            <div class="col-12 col-md-6" id="box_subespe">
+                            <div class="col-12 col-md-4" id="box_subespe">
                                 <label class="form-label small fw-bold text-muted"><i class="bi bi-award-fill text-info me-1"></i>Sub-Especialidad</label>
                                 <select class="form-select form-select-sm shadow-sm" id="form_id_subespe" name="id_subespe">
                                     <option value="0">General / Ninguna</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-4" id="box_rol_quirurgico">
+                                <label class="form-label small fw-bold text-muted"><i class="bi bi-scissors text-danger me-1"></i>Participación en Cirugía</label>
+                                <select class="form-select form-select-sm shadow-sm border-danger border-opacity-25 fw-semibold" id="form_rol_quirurgico" name="rol_quirurgico">
+                                    <option value="No aplica">No aplica (Solo Consulta)</option>
+                                    <option value="Realiza Cirugías">Realiza Cirugías (Cirujano Titular)</option>
+                                    <option value="Ayudante de Cirugía">Ayudante de Cirugía (Primer / Segundo Ayudante)</option>
+                                    <option value="Cirujano y Ayudante">Ambos (Cirujano Titular y Ayudante)</option>
                                 </select>
                             </div>
                         </div>
@@ -452,6 +464,9 @@ HTML
 if (@mi_personal) {
     foreach my $per (@mi_personal) {
         my $badge_espe = ($$per{rol} eq 'Medico') ? qq{<span class="badge bg-info text-white ms-1 px-2.5 py-1.5 rounded-pill">$$per{espe_nombre}</span>} : '';
+        my $badge_qx = ($$per{rol} eq 'Medico' && $$per{rol_quirurgico} && $$per{rol_quirurgico} ne 'No aplica')
+            ? qq{<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 ms-1 px-2.5 py-1 rounded-pill" style="font-size:0.70rem;"><i class="bi bi-scissors me-1"></i>$$per{rol_quirurgico}</span>}
+            : '';
         my $badge_ovr = $$per{has_overrides} ? qq{<span class="badge bg-warning text-dark ms-1 px-2 py-1 rounded-pill" style="font-size:0.68rem;" title="Tiene facultades y excepciones personalizadas"><i class="bi bi-lightning-charge-fill me-1"></i>Excepción</span>} : '';
         my $rol_badge_html = get_rol_badge($$per{rol});
         print <<HTML;
@@ -470,6 +485,7 @@ if (@mi_personal) {
                                             <td>
                                                 $rol_badge_html
                                                 $badge_espe
+                                                $badge_qx
                                                 $badge_ovr
                                             </td>
                                             <td class="text-muted small fw-bold">$$per{sucursal}</td>
@@ -481,7 +497,7 @@ if (@mi_personal) {
                                                     <button onclick="confirmEnviarReset('$$per{correo}', '$$per{nombre}')" class="btn p-0 border-0 btn-expediente" title="Enviar Restablecimiento">
                                                         <div class="icon-container-acrylic text-warning border-warning border-opacity-25" style="background: rgba(255, 193, 7, 0.05);"><i class="bi bi-envelope-at"></i></div>
                                                     </button>
-                                                    <button onclick="abrirFormEditar('$$per{id}', '$$per{nombre}', '$$per{correo}', '$$per{rol}', '$$per{id_suc}', '$$per{id_espe}', '$$per{id_subespe}')" class="btn p-0 border-0 btn-expediente" title="Editar">
+                                                    <button onclick="abrirFormEditar('$$per{id}', '$$per{nombre}', '$$per{correo}', '$$per{rol}', '$$per{id_suc}', '$$per{id_espe}', '$$per{id_subespe}', '$$per{rol_quirurgico}')" class="btn p-0 border-0 btn-expediente" title="Editar">
                                                         <div class="icon-container-acrylic text-primary"><i class="bi bi-pencil-square"></i></div>
                                                     </button>
                                                     <button onclick="confirmDesactivar('$$per{id}')" class="btn p-0 border-0 action-btn-delete" title="Desactivar">
@@ -752,8 +768,10 @@ print <<'JS';
         const selectNombre = document.getElementById('form_nombre_select');
         const boxEspe = document.getElementById('box_espe');
         const boxSubespe = document.getElementById('box_subespe');
+        const boxRolQx = document.getElementById('box_rol_quirurgico');
         const selectEspe = document.getElementById('form_id_espe');
         const selectSubespe = document.getElementById('form_id_subespe');
+        const selectRolQx = document.getElementById('form_rol_quirurgico');
 
         if (rol === 'Medico') {
             if (boxCatalogo && selectNombre && selectNombre.options.length > 1) {
@@ -771,6 +789,7 @@ print <<'JS';
             }
             if (boxEspe) boxEspe.classList.remove('d-none');
             if (boxSubespe) boxSubespe.classList.remove('d-none');
+            if (boxRolQx) boxRolQx.classList.remove('d-none');
         } else {
             // Recepcionista: campo libre para el nombre, ocultar catálogo de médicos
             if (boxCatalogo) {
@@ -780,11 +799,13 @@ print <<'JS';
             boxLibre.classList.remove('d-none');
             inputNombre.required = true;
             
-            // Ocultar y omitir especialidad médica y subespecialidad
+            // Ocultar y omitir especialidad médica, subespecialidad y rol quirúrgico
             if (boxEspe) boxEspe.classList.add('d-none');
             if (boxSubespe) boxSubespe.classList.add('d-none');
+            if (boxRolQx) boxRolQx.classList.add('d-none');
             if (selectEspe) selectEspe.value = '0';
             if (selectSubespe) selectSubespe.value = '0';
+            if (selectRolQx) selectRolQx.value = 'No aplica';
         }
     };
 
@@ -844,6 +865,9 @@ print <<'JS';
         formRol.value = 'Medico';
         document.getElementById('form_id_sucursal').value = '';
         document.getElementById('form_id_espe').value = '0';
+        if (document.getElementById('form_rol_quirurgico')) {
+            document.getElementById('form_rol_quirurgico').value = 'No aplica';
+        }
         actualizarSubespecialidades('0', '0');
         
         const selectNombre = document.getElementById('form_nombre_select');
@@ -864,7 +888,7 @@ print <<'JS';
         window.scrollTo({ top: offset, behavior: 'smooth' });
     };
 
-    window.abrirFormEditar = function(id, nombre, correo, rol, id_sucursal, id_espe, id_subespe) {
+    window.abrirFormEditar = function(id, nombre, correo, rol, id_sucursal, id_espe, id_subespe, rol_quirurgico) {
         document.getElementById('form_action').value = 'update';
         document.getElementById('form_id_usuario').value = id;
         document.getElementById('form_nombre').value = nombre;
@@ -893,6 +917,9 @@ print <<'JS';
         formRol.value = rol;
         document.getElementById('form_id_sucursal').value = id_sucursal;
         document.getElementById('form_id_espe').value = id_espe || '0';
+        if (document.getElementById('form_rol_quirurgico')) {
+            document.getElementById('form_rol_quirurgico').value = rol_quirurgico || 'No aplica';
+        }
         actualizarSubespecialidades(id_espe || '0', id_subespe || '0');
         
         const selectNombre = document.getElementById('form_nombre_select');

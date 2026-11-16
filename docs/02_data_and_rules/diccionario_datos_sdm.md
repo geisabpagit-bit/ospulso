@@ -19,6 +19,7 @@ Almacena las cuentas de usuario, credenciales y vinculación organizacional. Del
 | 10 | `cedula` | String | Cédula profesional oficial |
 | 11 | `domicilio` | String | Dirección del consultorio o establecimiento |
 | 12 | `firma_url` | String | Nombre o ruta del archivo de firma digitalizada |
+| 13 | `rol_quirurgico` | String | Participación quirúrgica del médico (`No aplica`, `Realiza Cirugías`, `Ayudante de Cirugía`, `Cirujano y Ayudante`) |
 
 ### 1.2 `perfiles.dat`
 Almacena información complementaria y extendida del perfil de usuario. Delimitador: `!`.

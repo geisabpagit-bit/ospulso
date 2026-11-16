@@ -36,6 +36,7 @@ my $rol             = decode_utf8($q->param('rol')             // '');
 my $id_sucursal     = decode_utf8($q->param('id_sucursal')     // '');
 my $id_espe         = decode_utf8($q->param('id_espe')         // '0');
 my $id_subespe      = decode_utf8($q->param('id_subespe')      // '0');
+my $rol_quirurgico  = decode_utf8($q->param('rol_quirurgico')  // 'No aplica');
 
 $nombre          =~ s/^\s+|\s+$//g;
 $correo          =~ s/^\s+|\s+$//g;
@@ -80,9 +81,13 @@ if ($sd->{role} eq 'Administrador Organizacion' && $roles_prohibidos_org{$rol}) 
 }
 
 if ($rol ne 'Medico') {
-    $id_espe    = '0';
-    $id_subespe = '0';
+    $id_espe        = '0';
+    $id_subespe     = '0';
+    $rol_quirurgico = 'No aplica';
 }
+$rol_quirurgico =~ s/!/ /g;
+$rol_quirurgico =~ s/^\s+|\s+$//g;
+$rol_quirurgico = 'No aplica' if $rol_quirurgico eq '';
 
 my $archivo_usuarios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'usuarios.dat');
 my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios.dat');
@@ -90,7 +95,9 @@ my $archivo_negocios = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios
 # 1. Validar que la sucursal pertenezca a la Organización
 my $regs_negocios = leer_tabla($archivo_negocios, '\|');
 my $sucursal_valida = 0;
-if ($regs_negocios) {
+if ($id_sucursal eq '0') {
+    $sucursal_valida = 1;
+} elsif ($regs_negocios) {
     foreach my $r (@$regs_negocios) {
         if ($r->[0] eq $id_sucursal && $r->[2] eq $id_org_matriz) {
             $sucursal_valida = 1;
@@ -175,6 +182,7 @@ if ($regs_usuarios) {
             $r->[9]  //= '';
             $r->[10] //= '';
             $r->[11] //= '';
+            $r->[12] = $rol_quirurgico;
 
             if ($clave ne '') {
                 $r->[3] = sha256_hex($clave);
@@ -182,7 +190,8 @@ if ($regs_usuarios) {
             $encontrado = 1;
         }
         my @cols = map { $_ // '' } @$r;
-        push @nuevas_lineas, join("!", @cols[0..11]);
+        $cols[12] //= '';
+        push @nuevas_lineas, join("!", @cols[0..12]);
     }
 }
 
@@ -192,7 +201,7 @@ if (!$encontrado) {
 }
 
 eval {
-    my $header = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL";
+    my $header = "id!nombre!correo!clave!activo!rol!ID_negocio!ID_ESPE!ID_SUBESPE!CEDULA!DOMICILIO!FIRMA_URL!ROL_QUIRURGICO";
     actualizar_archivo($archivo_usuarios, $header, \@nuevas_lineas);
 };
 
