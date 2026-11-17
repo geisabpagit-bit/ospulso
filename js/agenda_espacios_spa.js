@@ -3992,8 +3992,8 @@ function cambiarAmbitoAjustes(tipo) {
         $("#adj_ambito_help_text span").html("Define el <strong>horario general de apertura</strong> de la sede física (rige la cuadrícula visible de Consultorios y Quirófanos).");
         $("#lbl_adj_h_ini").text("Apertura de Sede");
         $("#lbl_adj_h_fin").text("Cierre de Sede");
-        $("#lbl_adj_dias").text("Días de Apertura de la Sede");
-        $("#lbl_adj_festivos").text("Días Inhábiles / Asuetos de la Sede");
+        $("#lbl_adj_dias").html('<span class="apertura-rank-pill">04</span> Días Hábiles de Renta en la Sede');
+        $("#lbl_adj_festivos").html('<span class="apertura-rank-pill">06</span> Días Inhábiles / Mantenimiento');
         
         const curSuc = $("#adj_sucursal_select").val() || $("#f_sucursal").val() || '1';
         if ($("#adj_sucursal_select").length) {
@@ -4004,11 +4004,11 @@ function cambiarAmbitoAjustes(tipo) {
         $("#adj_sucursal_wrapper").addClass('d-none');
         $("#adj_medico_wrapper").removeClass('d-none');
         $("#adj_cancel_hours_wrapper").removeClass('d-none');
-        $("#adj_ambito_help_text span").html("Define el <strong>horario de consulta individual</strong> del profesional seleccionado.");
+        $("#adj_ambito_help_text span").html("Define el horario de consulta individual del profesional seleccionado.");
         $("#lbl_adj_h_ini").text("Inicio de Consulta");
         $("#lbl_adj_h_fin").text("Fin de Consulta");
-        $("#lbl_adj_dias").text("Días Laborales del Médico");
-        $("#lbl_adj_festivos").text("Vacaciones / Inasistencias del Médico");
+        $("#lbl_adj_dias").html('<span class="apertura-rank-pill">04</span> Días Laborales del Médico');
+        $("#lbl_adj_festivos").html('<span class="apertura-rank-pill">06</span> Vacaciones / Inasistencias del Médico');
         
         const curMed = $("#adj_medico_select").val() || $("#f_medico").val() || '2';
         if ($("#adj_medico_select").length) {

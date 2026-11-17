@@ -761,105 +761,186 @@ print <<HTML;
         </div>
     </div>
 
-    <!-- MODAL AJUSTES DE HORARIO DE LA SUCURSAL -->
-    <div class="modal fade modal-diamond" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                <div class="modal-header py-3 px-4 border-bottom bg-white d-flex align-items-center justify-content-between">
-                    <h5 class="modal-title fw-bold text-navy d-flex align-items-center mb-0" style="font-size: 1.05rem;">
-                        <i class="bi bi-clock-history text-teal me-2 fs-5"></i> HORARIO DE APERTURA DE ESPACIOS
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- MODAL AJUSTES DE HORARIO DE LA SUCURSAL (VERSIÓN PREMIUM PLANA Y ANCHA) -->
+    <div class="modal fade modal-apertura-premium" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content card-mobile-flush">
+                <div class="modal-header d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2.5">
+                        <div class="apertura-header-icon">
+                            <i class="bi bi-clock-history" style="font-size: 1rem;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title m-0">HORARIO DE APERTURA DE ESPACIOS</h5>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4 bg-light">
-                    <form id="formAjustes">
-                        <div class="row g-3">
-                            <input type="hidden" name="adj_tipo_ambito" id="adj_ambito_sucursal" value="sucursal">
-                            <div class="col-12" id="adj_sucursal_wrapper">
-                                <div class="form-floating mb-1">
-                                    <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_sucursal_select" onchange="cargarAjustesSucursal(this.value)">
+
+                <div class="modal-body">
+                    <form id="formAjustes" class="m-0">
+                        <input type="hidden" name="adj_tipo_ambito" id="adj_ambito_sucursal" value="sucursal">
+
+                        <!-- NIVEL 1: IDENTIFICACIÓN DE SEDE E INTERVALO DE CUADRÍCULA -->
+                        <div class="apertura-top-bar">
+                            <div class="row g-2.5 align-items-end">
+                                <div class="col-md-7" id="adj_sucursal_wrapper">
+                                    <label class="apertura-field-label" for="adj_sucursal_select">
+                                        <span class="apertura-rank-pill me-1">01</span> Sucursal / Sede Física
+                                    </label>
+                                    <select class="form-select" id="adj_sucursal_select" onchange="cargarAjustesSucursal(this.value)">
                                         $html_sucursal
                                     </select>
-                                    <label class="text-muted fw-bold small text-uppercase">Sucursal / Sede Física</label>
                                 </div>
-                            </div>
-
-                            <div class="col-6">
-                                <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3 fw-bold" id="adj_h_ini" name="h_ini" required>
-                                    <label class="text-muted fw-bold small text-uppercase">Apertura Sede</label>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3 fw-bold" id="adj_h_fin" name="h_fin" required>
-                                    <label class="text-muted fw-bold small text-uppercase">Cierre Sede</label>
-                                </div>
-                            </div>
-
-                            <div class="col-12 mt-1 mb-1">
-                                <div class="form-check form-switch p-2 ps-5 bg-white rounded-3 border shadow-2xs d-flex align-items-center">
-                                    <input class="form-check-input ms-n5 me-2" type="checkbox" role="switch" id="adj_sin_comida" onchange="toggleComidaAjustes(this.checked)">
-                                    <label class="form-check-label small fw-bold text-navy" for="adj_sin_comida" style="cursor: pointer;">
-                                        <i class="bi bi-cup-hot text-teal me-1"></i> Omitir horario de comida (Horario continuo / 24 hrs)
+                                <div class="col-md-5">
+                                    <label class="apertura-field-label" for="adj_int">
+                                        <span class="apertura-rank-pill me-1">02</span> Intervalo de Cuadrícula
                                     </label>
-                                </div>
-                            </div>
-                            <div class="col-6" id="wrapper_adj_c_ini">
-                                <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_ini" name="c_ini" value="14:00">
-                                    <label class="text-muted fw-bold small text-uppercase">Inicio Receso</label>
-                                </div>
-                            </div>
-                            <div class="col-6" id="wrapper_adj_c_fin">
-                                <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_fin" name="c_fin" value="15:00">
-                                    <label class="text-muted fw-bold small text-uppercase">Fin Receso</label>
-                                </div>
-                            </div>
-
-                            <div class="col-12 mt-3">
-                                <label class="small fw-bold text-muted mb-2 d-block text-uppercase">Días Hábiles de Renta en la Sede</label>
-                                <div class="d-flex flex-wrap gap-2 mb-2 p-3 bg-white rounded-3 shadow-sm border">
-                                    <div class="form-check form-check-inline m-0 me-2"><input class="form-check-input adj-dia" type="checkbox" value="1" id="d1"><label class="form-check-label small fw-bold" for="d1">Lun</label></div>
-                                    <div class="form-check form-check-inline m-0 me-2"><input class="form-check-input adj-dia" type="checkbox" value="2" id="d2"><label class="form-check-label small fw-bold" for="d2">Mar</label></div>
-                                    <div class="form-check form-check-inline m-0 me-2"><input class="form-check-input adj-dia" type="checkbox" value="3" id="d3"><label class="form-check-label small fw-bold" for="d3">Mié</label></div>
-                                    <div class="form-check form-check-inline m-0 me-2"><input class="form-check-input adj-dia" type="checkbox" value="4" id="d4"><label class="form-check-label small fw-bold" for="d4">Jue</label></div>
-                                    <div class="form-check form-check-inline m-0 me-2"><input class="form-check-input adj-dia" type="checkbox" value="5" id="d5"><label class="form-check-label small fw-bold" for="d5">Vie</label></div>
-                                    <div class="form-check form-check-inline m-0 me-2"><input class="form-check-input adj-dia" type="checkbox" value="6" id="d6"><label class="form-check-label small fw-bold" for="d6">Sáb</label></div>
-                                    <div class="form-check form-check-inline m-0 me-2"><input class="form-check-input adj-dia" type="checkbox" value="7" id="d7"><label class="form-check-label small fw-bold" for="d7">Dom</label></div>
-                                </div>
-                            </div>
-
-                            <div class="col-12 mt-2">
-                                <div class="form-floating mb-2">
-                                    <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_int" name="int">
+                                    <select class="form-select" id="adj_int" name="int">
                                         <option value="15">15 minutos</option>
                                         <option value="30" selected>30 minutos</option>
                                         <option value="60">60 minutos</option>
                                     </select>
-                                    <label class="text-muted fw-bold small text-uppercase">Intervalo de Cuadrícula</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NIVELES 2 A 5: DISTRIBUCIÓN EN DOS COLUMNAS SIN SCROLL NI ENCIMAMIENTOS -->
+                        <div class="row g-2.5 align-items-stretch">
+                            <!-- COLUMNA IZQUIERDA: HORARIO PRINCIPAL Y DÍAS HÁBILES -->
+                            <div class="col-lg-6 d-flex flex-column gap-2.5">
+                                <!-- GRUPO 03: JORNADA DE APERTURA Y CIERRE -->
+                                <div class="apertura-group-card">
+                                    <div class="apertura-group-header">
+                                        <span class="apertura-group-title">
+                                            <span class="apertura-rank-pill">03</span> Jornada de Apertura y Cierre
+                                        </span>
+                                        <i class="bi bi-door-open text-teal"></i>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="apertura-field-label" for="adj_h_ini">Apertura Sede</label>
+                                            <input type="time" class="form-control" id="adj_h_ini" name="h_ini" required>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="apertura-field-label" for="adj_h_fin">Cierre Sede</label>
+                                            <input type="time" class="form-control" id="adj_h_fin" name="h_fin" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- GRUPO 04: DÍAS HÁBILES DE RENTA EN LA SEDE -->
+                                <div class="apertura-group-card">
+                                    <div class="apertura-group-header">
+                                        <span class="apertura-group-title" id="lbl_adj_dias">
+                                            <span class="apertura-rank-pill">04</span> Días Hábiles de Renta en la Sede
+                                        </span>
+                                        <i class="bi bi-calendar-week text-teal"></i>
+                                    </div>
+                                    <div class="apertura-days-grid">
+                                        <div class="apertura-day-item">
+                                            <input class="adj-dia" type="checkbox" value="1" id="d1">
+                                            <label class="apertura-day-label" for="d1">Lun</label>
+                                        </div>
+                                        <div class="apertura-day-item">
+                                            <input class="adj-dia" type="checkbox" value="2" id="d2">
+                                            <label class="apertura-day-label" for="d2">Mar</label>
+                                        </div>
+                                        <div class="apertura-day-item">
+                                            <input class="adj-dia" type="checkbox" value="3" id="d3">
+                                            <label class="apertura-day-label" for="d3">Mié</label>
+                                        </div>
+                                        <div class="apertura-day-item">
+                                            <input class="adj-dia" type="checkbox" value="4" id="d4">
+                                            <label class="apertura-day-label" for="d4">Jue</label>
+                                        </div>
+                                        <div class="apertura-day-item">
+                                            <input class="adj-dia" type="checkbox" value="5" id="d5">
+                                            <label class="apertura-day-label" for="d5">Vie</label>
+                                        </div>
+                                        <div class="apertura-day-item">
+                                            <input class="adj-dia" type="checkbox" value="6" id="d6">
+                                            <label class="apertura-day-label" for="d6">Sáb</label>
+                                        </div>
+                                        <div class="apertura-day-item">
+                                            <input class="adj-dia" type="checkbox" value="7" id="d7">
+                                            <label class="apertura-day-label" for="d7">Dom</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="col-12 mt-2">
-                                <label class="small fw-bold text-muted mb-2 d-block text-uppercase">Días Inhábiles / Mantenimiento</label>
-                                <div class="input-group mb-2 shadow-sm rounded-3">
-                                    <input type="date" class="form-control border-0" id="adj_fest_picker">
-                                    <button type="button" class="btn btn-teal text-white px-3 fw-bold border-0" onclick="var f = document.getElementById('adj_fest'); var p = document.getElementById('adj_fest_picker'); if(p.value){ f.value = f.value ? f.value + ',' + p.value : p.value; p.value = ''; }"><i class="bi bi-plus-lg"></i> Agregar</button>
+                            <!-- COLUMNA DERECHA: CONTINUIDAD / RECESO Y MANTENIMIENTO -->
+                            <div class="col-lg-6 d-flex flex-column gap-2.5">
+                                <!-- GRUPO 05: CONTINUIDAD OPERATIVA Y RECESO -->
+                                <div class="apertura-group-card">
+                                    <div class="apertura-group-header">
+                                        <span class="apertura-group-title">
+                                            <span class="apertura-rank-pill">05</span> Continuidad y Receso Operativo
+                                        </span>
+                                        <i class="bi bi-cup-hot text-teal"></i>
+                                    </div>
+                                    <div class="apertura-switch-box mb-2">
+                                        <label class="m-0 text-navy" for="adj_sin_comida" style="font-size: 0.80rem; cursor: pointer;">
+                                            Omitir horario de comida (Horario continuo / 24 hrs)
+                                        </label>
+                                        <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                                            <input class="form-check-input m-0" type="checkbox" role="switch" id="adj_sin_comida" onchange="toggleComidaAjustes(this.checked)">
+                                        </div>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6" id="wrapper_adj_c_ini">
+                                            <label class="apertura-field-label" for="adj_c_ini">Inicio Receso</label>
+                                            <input type="time" class="form-control" id="adj_c_ini" name="c_ini" value="14:00">
+                                        </div>
+                                        <div class="col-6" id="wrapper_adj_c_fin">
+                                            <label class="apertura-field-label" for="adj_c_fin">Fin Receso</label>
+                                            <input type="time" class="form-control" id="adj_c_fin" name="c_fin" value="15:00">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-floating">
-                                    <input type="text" class="form-control shadow-sm border-0 rounded-3" id="adj_fest" name="festivos" placeholder="YYYY-MM-DD, ...">
-                                    <label class="text-muted fw-bold small text-uppercase">Fechas Seleccionadas</label>
+
+                                <!-- GRUPO 06: DÍAS INHÁBILES / MANTENIMIENTO -->
+                                <div class="apertura-group-card">
+                                    <div class="apertura-group-header">
+                                        <span class="apertura-group-title" id="lbl_adj_festivos">
+                                            <span class="apertura-rank-pill">06</span> Días Inhábiles / Mantenimiento
+                                        </span>
+                                        <i class="bi bi-calendar-x text-teal"></i>
+                                    </div>
+                                    <div class="row g-2 align-items-end mb-2">
+                                        <div class="col-7">
+                                            <label class="apertura-field-label" for="adj_fest_picker">Seleccionar Fecha</label>
+                                            <input type="date" class="form-control" id="adj_fest_picker">
+                                        </div>
+                                        <div class="col-5">
+                                            <button type="button" class="btn-apertura-teal w-100" onclick="var f = document.getElementById('adj_fest'); var p = document.getElementById('adj_fest_picker'); if(p.value){ var cur = f.value ? f.value.split(',').map(function(x){return x.trim();}).filter(Boolean) : []; if(cur.indexOf(p.value) === -1){ cur.push(p.value); } f.value = cur.join(', '); p.value = ''; }">
+                                                <i class="bi bi-plus-lg"></i> Agregar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="apertura-field-label" for="adj_fest">Fechas Seleccionadas</label>
+                                        <input type="text" class="form-control" id="adj_fest" name="festivos" placeholder="YYYY-MM-DD, YYYY-MM-DD...">
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer bg-light border-0 pt-0">
-                    <button type="button" onclick="guardarAjustes()" class="btn btn-navy w-100 py-3 fw-bold shadow-sm border-0 rounded-3 text-uppercase" style="font-size: 0.88rem; letter-spacing: 0.5px;">
-                        <i class="bi bi-save me-2"></i> Guardar Horario de la Sede
-                    </button>
+
+                <div class="modal-footer d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
+                    <span class="text-muted d-none d-md-inline" style="font-size: 0.76rem;">
+                        <i class="bi bi-shield-check text-teal me-1"></i> Configuración aplicada a todos los espacios físicos de la sede
+                    </span>
+                    <div class="d-flex align-items-center gap-2 ms-sm-auto w-100 w-sm-auto justify-content-end">
+                        <button type="button" class="btn-apertura-cancel btn-mobile-standard" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="button" onclick="guardarAjustes()" class="btn-apertura-save btn-mobile-standard">
+                            <i class="bi bi-check2-circle me-1"></i> Guardar Horario de la Sede
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

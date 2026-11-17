@@ -279,6 +279,10 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   6. **Cerrojo Anticolisión Temporal y Omisión de Bloques Pasados en Modal**:
      - Tanto el frontend (`js/agenda_espacios_spa.js`) como el backend (`validar_no_pasado` en `api/espacios_crud.pl`) bloquean cualquier intento de crear o mover una reserva hacia una fecha u hora anterior al momento actual.
      - En el modal **RESERVA DE ESPACIO / NUEVO ARRENDAMIENTO** (`renderSlots`), los recuadros de horario anteriores a la hora actual (`isP && !isCurrentSlot`) **no se renderizan** en la cuadrícula `#slots-container`, mostrando únicamente los horarios futuros disponibles a partir de la hora actual.
+  7. **Modal Premium "HORARIO DE APERTURA DE ESPACIOS" (`#modalAjustes` / `.modal-apertura-premium`)**:
+     - Refactorizado en formato ancho de dos columnas (`modal-lg`, `840px`) para eliminar el uso de scrolls verticales en escritorio y adaptarse de forma responsiva en dispositivos móviles (`.card-mobile-flush`, `.btn-mobile-standard`).
+     - Jerarquizado visualmente en 6 grupos numerados por rango de importancia (`01 Sucursal / Sede Física`, `02 Intervalo de Cuadrícula`, `03 Jornada de Apertura y Cierre`, `04 Días Hábiles de Renta en la Sede`, `05 Continuidad y Receso Operativo`, `06 Días Inhábiles / Mantenimiento`).
+     - Diseño 100% plano sin degradados (`#0A2A66` y `#19B7A5` sólidos), sin uso de negritas (`font-weight: 400`), conservando la tipografía mandante (`var(--font-sans)`) y con etiquetas superiores dedicadas (`.apertura-field-label`) que eliminan cualquier colisión o encimamiento con los valores de los controles.
 
 
 
