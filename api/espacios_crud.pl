@@ -123,7 +123,9 @@ sub cargar_agenda_config_sucursal {
         cancel_hours => 24,
         festivos => '',
         festivos_global => '',
-        festivos_sucursal => ''
+        festivos_sucursal => '',
+        espacios_bloqueados => '',
+        espacios_bloqueados_list => []
     );
 
     if (-e $CONFIG_FILE) {
@@ -153,6 +155,11 @@ sub cargar_agenda_config_sucursal {
     my @limpios = grep { $_ && !$seen{$_}++ } map { s/^\s+|\s+$//g; $_ } @unificados;
     $c{festivos} = join(',', @limpios);
 
+    if ($c{espacios_bloqueados}) {
+        my @bloq = grep { $_ ne '' } map { s/^\s+|\s+$//g; $_ } split(/,/, $c{espacios_bloqueados});
+        $c{espacios_bloqueados_list} = \@bloq;
+    }
+
     return %c;
 }
 
@@ -174,6 +181,7 @@ sub _parse_config_file {
             elsif ($key eq 'intervalo_minutos') { $ref->{intervalo_minutos} = $val; }
             elsif ($key eq 'cancel_hours') { $ref->{cancel_hours} = $val; }
             elsif ($key eq 'festivos') { $ref->{festivos} = $val; }
+            elsif ($key eq 'espacios_bloqueados') { $ref->{espacios_bloqueados} = $val; }
         }
         close $fh;
     }
@@ -583,6 +591,13 @@ sub detectar_colisiones_espacio {
     my $hf_min = ($hf_h // 0) * 60 + ($hf_m // 0);
 
     my %conf_s = cargar_agenda_config_sucursal($sucursal);
+    if ($conf_s{espacios_bloqueados_list} && ref($conf_s{espacios_bloqueados_list}) eq 'ARRAY') {
+        foreach my $eb (@{$conf_s{espacios_bloqueados_list}}) {
+            if (normalizar_espacio_perl($eb) eq $esp_norm) {
+                return (0, "El espacio físico ($espacio) se encuentra bloqueado en la Configuración de Espacios de la sucursal.");
+            }
+        }
+    }
     my $es_dia_completo = ($hi le $conf_s{laborStart} && $hf ge $conf_s{laborEnd}) ? 1 : 0;
 
     # 1. VERIFICAR CONTRA OTRAS RENTAS EN rentas_espacios.dat
@@ -1021,6 +1036,8 @@ sub guardar_config_agenda {
     my $int = $q->param('int') // '30';
     my $cancel_hours = $q->param('cancel_hours') // '24';
     my $festivos = $q->param('festivos') // '';
+    my $espacios_bloq = $q->param('espacios_bloqueados') // '';
+    $espacios_bloq =~ s/\R//g;
 
     if (open my $fh, '>:encoding(UTF-8)', $file) {
         print $fh "horario_inicio=$h_ini\n";
@@ -1031,6 +1048,7 @@ sub guardar_config_agenda {
         print $fh "dias_habiles=$d_hab\n";
         print $fh "cancel_hours=$cancel_hours\n";
         print $fh "festivos=$festivos\n";
+        print $fh "espacios_bloqueados=$espacios_bloq\n";
         close $fh;
 
         print $q->header(-type => 'application/json', -charset => 'utf-8');

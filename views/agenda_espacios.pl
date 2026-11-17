@@ -136,19 +136,18 @@ if (scalar(@medicos) > 0) {
     }
     my $cnt_med = scalar(@medicos) + 1;
     $html_filtro_medicos_toolbar = qq{
-        <div class="d-none d-lg-block dropdown" id="wrapper_filtro_medicos_toolbar" style="position: relative; z-index: 106000;">
-            <button class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-flex align-items-center justify-content-between px-3 text-navy dropdown-toggle" 
+        <div class="dropdown" id="wrapper_filtro_medicos_toolbar" style="position: relative; z-index: 106000;">
+            <button class="tier2-direct-select-btn dropdown-toggle" 
                     type="button" 
                     id="btn_filtro_medico_dropdown" 
                     data-bs-toggle="dropdown" 
                     data-bs-auto-close="outside" 
                     data-bs-popper-config='{"strategy":"fixed"}'
                     aria-expanded="false" 
-                    style="height:42px; font-size:0.80rem; min-width: 190px; max-width: 250px;" 
-                    title="Filtrar por Arrendatarios / Profesionales">
+                    title="Filtrar directamente por Médicos / Arrendatarios">
                 <span class="d-flex align-items-center gap-1.5 text-truncate" id="filtro_medico_btn_label">
                     <i class="bi bi-people-fill text-primary"></i>
-                    <span class="text-truncate">Arrendatarios ($cnt_med)</span>
+                    <span class="text-truncate">Médicos ($cnt_med)</span>
                 </span>
             </button>
             <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_medico_menu" aria-labelledby="btn_filtro_medico_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 106000 !important;">
@@ -245,149 +244,174 @@ utils::sub_sidebar::render_sidebar(
 
 print <<HTML;
     <div class="main-container-agenda container-mobile-flush">
-        <header class="agenda-header sticky-top animate__animated animate__fadeInDown">
-            <div class="container-fluid">
-                <div class="d-flex align-items-center justify-content-between gap-2 py-2 w-100 flex-nowrap" style="overflow: visible !important;">
-                    
-                    <!-- BLOQUE 1: NAVEGACIÓN TEMPORAL Y MODOS DE VISUALIZACIÓN -->
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                        <span class="badge bg-navy text-white px-2.5 py-2 rounded-3 d-none d-xl-inline-flex align-items-center gap-1.5 shadow-2xs" style="height:42px; font-size:0.76rem;">
-                            <i class="bi bi-door-open-fill text-teal"></i> RENTA DE ESPACIOS
-                        </span>
-
-                        <button onclick="goToday()" class="btn btn-navy fw-black rounded-3 px-3 shadow-sm text-uppercase" style="font-size:0.75rem; height:42px;">HOY</button>
-                        
-                        <div class="d-none d-md-flex align-items-center date-nav-pill shadow-sm">
-                            <button onclick="moveDate(-1)" class="btn btn-link text-navy p-1" title="Anterior"><i class="bi bi-chevron-left"></i></button>
-                            <h1 class="h6 mb-0 fw-black text-navy text-uppercase tracking-tight mx-2 text-nowrap" id="current-date-label-desktop" style="min-width: 170px; text-align: center; font-size: 0.82rem;">
-                                CARGANDO...
-                            </h1>
-                            <button onclick="moveDate(1)" class="btn btn-link text-navy p-1" title="Siguiente"><i class="bi bi-chevron-right"></i></button>
-                        </div>
-
-                        <div class="vr mx-1 opacity-25 d-none d-lg-block" style="height: 26px;"></div>
-
-                        <!-- Modos de Vista Principal -->
-                        <div class="nav-pill-group shadow-sm">
-                            <button onclick="switchView('dia')" class="btn-view-toggle active" id="btn-v-dia" title="Vista Diaria por Consultorios y Quirófanos"><i class="bi bi-calendar-event"></i></button>
-                            <button onclick="switchView('semana_smart')" class="btn-view-toggle" id="btn-v-semana-smart" title="Vista Semanal Smart de Espacios"><i class="bi bi-calendar-week"></i></button>
-                            <button onclick="switchView('calendario')" class="btn-view-toggle" id="btn-v-calendario" title="Vista Mensual Grid"><i class="bi bi-grid-3x3"></i></button>
-                        </div>
-
-                        <!-- Reportes Operativos DataTables (Diario, Semanal y Mensual) -->
-                        <div class="nav-pill-group shadow-sm d-none d-xl-flex">
-                            <button onclick="switchView('dia_reporte')" class="btn-report-toggle" id="btn-r-dia-reporte" title="Reporte Diario de Espacios"><i class="bi bi-file-earmark-ruled"></i></button>
-                            <button onclick="switchView('semana')" class="btn-report-toggle" id="btn-r-semana" title="Reporte Semanal de Espacios"><i class="bi bi-file-earmark-text"></i></button>
-                            <button onclick="switchView('mes')" class="btn-report-toggle" id="btn-r-mes" title="Reporte Mensual de Espacios"><i class="bi bi-file-earmark-bar-graph"></i></button>
-                        </div>
+        <header class="agenda-header-two-tier animate__animated animate__fadeInDown">
+            <!-- NIVEL 1 (CABECERA NAVY CONTEXTUAL + ACCIÓN PRIORITARIA DE MOSTRADOR) -->
+            <div class="agenda-toolbar-tier1">
+                <div class="container-fluid px-1 px-md-2 d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <div class="tier1-context-title">
+                        <i class="bi bi-door-open-fill" style="color: #19B7A5; font-size: 1rem;"></i>
+                        <span>Renta de Espacios Clínicos</span>
+                        <span class="opacity-50">•</span>
+                        <span class="tier1-enabled-badge" id="lbl_header_espacios_habilitados">Cargando espacios...</span>
                     </div>
 
-                    <!-- BLOQUE 2: FILTROS OPERATIVOS, NUEVA RESERVA Y UTILIDADES -->
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
-                        <button type="button" onclick="window.abrirModalNuevaRenta()" class="btn btn-teal text-white fw-bold rounded-3 px-3 shadow-sm d-flex align-items-center gap-1.5" style="height:42px; font-size:0.80rem; background-color: var(--md-teal-clinical, #19B7A5);">
-                            <i class="bi bi-plus-circle-fill"></i>
-                            <span class="d-none d-sm-inline">Reservar Espacio</span>
+                    <div class="d-flex align-items-center gap-2 ms-auto">
+                        <button type="button" onclick="window.abrirModalNuevaRenta()" class="btn-tier1-reservar">
+                            <i class="bi bi-plus-lg"></i>
+                            <span>Reservar Espacio</span>
                         </button>
-
-                        <!-- Filtro Arrendatarios -->
-                        $html_filtro_medicos_toolbar
-
-                        <!-- Filtro Espacios Físicos (Consultorios y Quirófanos de Gestión de Sucursales) -->
-                        <div class="d-none d-lg-block dropdown" id="wrapper_filtro_recurso_toolbar" style="position: relative; z-index: 106000;">
-                            <button class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-flex align-items-center justify-content-between px-3 text-navy dropdown-toggle" 
-                                    type="button" 
-                                    id="btn_filtro_recurso_dropdown" 
-                                    data-bs-toggle="dropdown" 
-                                    data-bs-auto-close="outside" 
-                                    data-bs-popper-config='{"strategy":"fixed"}'
-                                    aria-expanded="false" 
-                                    style="height:42px; font-size:0.80rem; min-width: 190px; max-width: 250px;" 
-                                    title="Filtrar por Consultorios y Quirófanos">
-                                <span class="d-flex align-items-center gap-1.5 text-truncate" id="filtro_recurso_btn_label">
-                                    <i class="bi bi-door-open-fill text-teal"></i>
-                                    <span class="text-truncate">Todos los Espacios</span>
-                                </span>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_recurso_menu" aria-labelledby="btn_filtro_recurso_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 106000 !important;">
-                                <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom mb-2">
-                                    <span class="fw-black text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px;">Consultorios y Quirófanos</span>
-                                    <div class="d-flex align-items-center gap-1.5">
-                                        <button type="button" class="btn btn-link btn-sm p-0 text-primary fw-bold text-decoration-none" onclick="window.seleccionarTodosEspacios(true)" style="font-size:0.72rem;">Marcar todos</button>
-                                        <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
-                                        <button type="button" class="btn btn-link btn-sm p-0 text-secondary fw-semibold text-decoration-none" onclick="window.seleccionarTodosEspacios(false)" style="font-size:0.72rem;">Desmarcar</button>
-                                    </div>
-                                </div>
-                                <div id="lista_checkboxes_recursos" class="d-flex flex-column gap-1">
-                                    <div class="text-center py-2 text-muted small">Cargando espacios...</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Toggle Mini Calendario Lateral -->
-                        <button type="button" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-none d-lg-inline-flex align-items-center justify-content-center" id="btn-toggle-side-cal" onclick="toggleSideCalendar()" style="height:42px; width:42px; padding:0;" title="Mostrar/Ocultar Minicalendario Lateral">
-                            <i class="bi bi-layout-sidebar-inset text-teal" style="font-size:1.05rem;"></i>
+                        <button type="button" onclick="abrirModalAjustes()" class="btn-tier1-config" title="Configuracion de Espacios">
+                            <i class="bi bi-gear-fill"></i>
+                            <span class="d-none d-sm-inline">Configuración</span>
                         </button>
-
-                        <div class="vr mx-1 opacity-25 d-none d-md-block" style="height: 26px;"></div>
-
-                        <!-- Leyenda de Estados y Colores -->
-                        <div class="dropdown">
-                            <button class="btn btn-light fw-medium rounded-3 shadow-sm border bg-white px-2.5 d-flex align-items-center gap-1.5" type="button" id="dropdownLeyendaColores" data-bs-toggle="dropdown" aria-expanded="false" style="height:42px;" title="Significado de Estados de Renta">
-                                <i class="bi bi-palette" style="font-size:1.05rem; color: var(--md-teal-clinical, #19B7A5) !important;"></i>
-                                <span class="small d-none d-xl-inline text-secondary">Estados</span>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end shadow-lg p-3 border-0 rounded-4" style="min-width: 280px; z-index: 105200;" aria-labelledby="dropdownLeyendaColores">
-                                <h6 class="fw-semibold text-navy small mb-2.5 d-flex align-items-center gap-1.5">
-                                    <i class="bi bi-info-circle" style="color: var(--md-teal-clinical, #19B7A5);"></i> Estados de Renta de Espacio
-                                </h6>
-                                <div class="d-flex flex-column gap-2 small">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #991B1B;"></span>
-                                        <span class="fw-medium text-dark">Reservada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Rojo oscuro</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #EAB308;"></span>
-                                        <span class="fw-medium text-dark">Confirmada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Amarillo</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #059669;"></span>
-                                        <span class="fw-medium text-dark">En Uso</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Verde actual</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #064E3B;"></span>
-                                        <span class="fw-medium text-dark">Finalizada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Verde muy oscuro</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #0284C7;"></span>
-                                        <span class="fw-medium text-dark">Ocupado (Pacientes)</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Azul Health</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #64748B;"></span>
-                                        <span class="fw-medium text-dark text-decoration-line-through">No realizada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Tachada</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Botón Ajustes de Jornada de Sucursal -->
-                        <button onclick="abrirModalAjustes()" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white" style="height:42px; width:42px; padding:0;" title="Ajustes de Horario de la Sede"><i class="bi bi-gear-fill"></i></button>
                     </div>
                 </div>
+            </div>
 
-                <!-- ROW 2 (Solo Móvil): NAVEGACIÓN DE FECHA -->
-                <div class="d-flex d-md-none justify-content-center pb-2">
-                    <div class="d-flex align-items-center justify-content-between date-nav-pill w-100 mx-0">
-                        <button onclick="moveDate(-1)" class="btn btn-link text-navy p-2"><i class="bi bi-chevron-left"></i></button>
-                        <h1 class="h6 mb-0 fw-black text-navy text-uppercase tracking-tight mx-2" id="current-date-label-mobile" style="text-align: center;">
-                            CARGANDO...
-                        </h1>
-                        <button onclick="moveDate(1)" class="btn btn-link text-navy p-2"><i class="bi bi-chevron-right"></i></button>
+            <!-- NIVEL 2 (BANDEJA OPERATIVA BLANCA: NAVEGACIÓN TEMPORAL + VISTAS + SELECTORES DIRECTOS) -->
+            <div class="agenda-toolbar-tier2">
+                <div class="container-fluid px-1 px-md-2">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 w-100">
+                        <!-- IZQUIERDA: NAVEGACIÓN TEMPORAL, VISTAS DE CALENDARIO Y REPORTES & EXPORT -->
+                        <div class="d-flex align-items-center flex-wrap gap-1.5">
+                            <button onclick="goToday()" class="btn rounded-3 px-2.5 text-uppercase" style="height: 36px; font-size: 0.74rem; background-color: #0A2A66; color: #ffffff; border: 1px solid #0A2A66;">HOY</button>
+
+                            <div class="d-none d-md-flex align-items-center date-nav-pill" style="height: 36px;">
+                                <button onclick="moveDate(-1)" class="btn btn-link text-navy p-1" title="Anterior"><i class="bi bi-chevron-left"></i></button>
+                                <h1 class="h6 mb-0 text-navy text-uppercase tracking-tight mx-2 text-nowrap" id="current-date-label-desktop" style="min-width: 155px; text-align: center; font-size: 0.78rem;">
+                                    CARGANDO...
+                                </h1>
+                                <button onclick="moveDate(1)" class="btn btn-link text-navy p-1" title="Siguiente"><i class="bi bi-chevron-right"></i></button>
+                            </div>
+
+                            <!-- Conmutador de Vistas de Calendario (Día, Semana, Mes) -->
+                            <div class="nav-pill-group" style="height: 36px; padding: 2px;">
+                                <button onclick="switchView('dia')" class="btn-view-toggle active" id="btn-v-dia" title="Vista Diaria por Consultorios y Quirófanos" style="padding: 5px 10px;"><i class="bi bi-calendar-event"></i></button>
+                                <button onclick="switchView('semana_smart')" class="btn-view-toggle" id="btn-v-semana-smart" title="Vista Semanal Smart de Espacios" style="padding: 5px 10px;"><i class="bi bi-calendar-week"></i></button>
+                                <button onclick="switchView('calendario')" class="btn-view-toggle" id="btn-v-calendario" title="Vista Mensual Grid" style="padding: 5px 10px;"><i class="bi bi-grid-3x3"></i></button>
+                            </div>
+
+                            <!-- Menú Compacto Reportes & Export (Ahorra espacio horizontal en laptops/tablets) -->
+                            <div class="dropdown">
+                                <button class="tier2-direct-select-btn dropdown-toggle" type="button" id="dropdownReportesExport" data-bs-toggle="dropdown" aria-expanded="false" title="Reportes Tabulares e Impresión">
+                                    <i class="bi bi-file-earmark-bar-graph text-teal"></i>
+                                    <span>Reportes &amp; Export</span>
+                                </button>
+                                <div class="dropdown-menu shadow-lg p-2 border-0 rounded-4" aria-labelledby="dropdownReportesExport" style="min-width: 220px; z-index: 105200;">
+                                    <div class="px-2 py-1 text-muted text-uppercase border-bottom mb-1" style="font-size: 0.68rem;">Tablas Operativas</div>
+                                    <button type="button" onclick="switchView('dia_reporte')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-dia-reporte">
+                                        <i class="bi bi-file-earmark-ruled text-primary"></i> Reporte Diario
+                                    </button>
+                                    <button type="button" onclick="switchView('semana')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-semana">
+                                        <i class="bi bi-file-earmark-text text-teal"></i> Reporte Semanal
+                                    </button>
+                                    <button type="button" onclick="switchView('mes')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-mes">
+                                        <i class="bi bi-file-earmark-bar-graph text-navy"></i> Reporte Mensual
+                                    </button>
+                                    <div class="dropdown-divider my-1"></div>
+                                    <button type="button" onclick="window.abrirReportePersonalizado(currentView)" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2">
+                                        <i class="bi bi-printer-fill text-teal"></i> Imprimir Reporte Oficial
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DERECHA: SELECTORES INDEPENDIENTES DIRECTOS (MÉDICOS, ESPACIOS, ESTADOS) -->
+                        <div class="d-flex align-items-center flex-wrap gap-1.5 ms-auto">
+                            <!-- Selector Directo 1: Médicos / Arrendatarios -->
+                            $html_filtro_medicos_toolbar
+
+                            <!-- Selector Directo 2: Espacios Físicos (Consultorios y Quirófanos) -->
+                            <div class="dropdown" id="wrapper_filtro_recurso_toolbar" style="position: relative; z-index: 106000;">
+                                <button class="tier2-direct-select-btn dropdown-toggle" 
+                                        type="button" 
+                                        id="btn_filtro_recurso_dropdown" 
+                                        data-bs-toggle="dropdown" 
+                                        data-bs-auto-close="outside" 
+                                        data-bs-popper-config='{"strategy":"fixed"}'
+                                        aria-expanded="false" 
+                                        title="Filtrar directamente por Consultorios y Quirófanos">
+                                    <span class="d-flex align-items-center gap-1.5 text-truncate" id="filtro_recurso_btn_label">
+                                        <i class="bi bi-door-open-fill text-teal"></i>
+                                        <span class="text-truncate">Espacios</span>
+                                    </span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_recurso_menu" aria-labelledby="btn_filtro_recurso_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 106000 !important;">
+                                    <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom mb-2">
+                                        <span class="text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px;">Consultorios y Quirófanos</span>
+                                        <div class="d-flex align-items-center gap-1.5">
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-primary text-decoration-none" onclick="window.seleccionarTodosEspacios(true)" style="font-size:0.72rem;">Marcar todos</button>
+                                            <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-secondary text-decoration-none" onclick="window.seleccionarTodosEspacios(false)" style="font-size:0.72rem;">Desmarcar</button>
+                                        </div>
+                                    </div>
+                                    <div id="lista_checkboxes_recursos" class="d-flex flex-column gap-1">
+                                        <div class="text-center py-2 text-muted small">Cargando espacios...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Selector Directo 3: Leyenda de Estados -->
+                            <div class="dropdown">
+                                <button class="tier2-direct-select-btn" type="button" id="dropdownLeyendaColores" data-bs-toggle="dropdown" aria-expanded="false" title="Significado de Estados de Renta">
+                                    <i class="bi bi-palette" style="color: var(--md-teal-clinical, #19B7A5) !important;"></i>
+                                    <span>Estados</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg p-3 border-0 rounded-4" style="min-width: 280px; z-index: 105200;" aria-labelledby="dropdownLeyendaColores">
+                                    <h6 class="text-navy small mb-2.5 d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-info-circle" style="color: var(--md-teal-clinical, #19B7A5);"></i> Estados de Renta de Espacio
+                                    </h6>
+                                    <div class="d-flex flex-column gap-2 small">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #991B1B;"></span>
+                                            <span class="text-dark">Reservada</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Rojo oscuro</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #EAB308;"></span>
+                                            <span class="text-dark">Confirmada</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Amarillo</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #059669;"></span>
+                                            <span class="text-dark">En Uso</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Verde actual</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #064E3B;"></span>
+                                            <span class="text-dark">Finalizada</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Verde muy oscuro</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #0284C7;"></span>
+                                            <span class="text-dark">Ocupado (Pacientes)</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Azul Health</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #64748B;"></span>
+                                            <span class="text-dark text-decoration-line-through">No realizada</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Tachada</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Toggle Mini Calendario Lateral -->
+                            <button type="button" class="tier2-direct-select-btn d-none d-lg-inline-flex justify-content-center" id="btn-toggle-side-cal" onclick="toggleSideCalendar()" style="width: 36px; padding: 0;" title="Mostrar/Ocultar Minicalendario Lateral">
+                                <i class="bi bi-layout-sidebar-inset text-teal"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Navegación de Fecha para Móvil (< 768px) -->
+                    <div class="d-flex d-md-none justify-content-center pt-2">
+                        <div class="d-flex align-items-center justify-content-between date-nav-pill w-100 mx-0">
+                            <button onclick="moveDate(-1)" class="btn btn-link text-navy p-1.5"><i class="bi bi-chevron-left"></i></button>
+                            <h1 class="h6 mb-0 text-navy text-uppercase tracking-tight mx-2" id="current-date-label-mobile" style="text-align: center; font-size: 0.80rem;">
+                                CARGANDO...
+                            </h1>
+                            <button onclick="moveDate(1)" class="btn btn-link text-navy p-1.5"><i class="bi bi-chevron-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -761,17 +785,17 @@ print <<HTML;
         </div>
     </div>
 
-    <!-- MODAL AJUSTES DE HORARIO DE LA SUCURSAL (VERSIÓN PREMIUM PLANA Y ANCHA) -->
+    <!-- MODAL CONFIGURACION DE ESPACIOS (ESTILO TABLERO FINANCIERO EJECUTIVO, 2 COLUMNAS DESKTOP / 1 MÓVIL) -->
     <div class="modal fade modal-apertura-premium" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content card-mobile-flush">
                 <div class="modal-header d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-2.5">
                         <div class="apertura-header-icon">
-                            <i class="bi bi-clock-history" style="font-size: 1rem;"></i>
+                            <i class="bi bi-sliders" style="font-size: 1rem;"></i>
                         </div>
                         <div>
-                            <h5 class="modal-title m-0">HORARIO DE APERTURA DE ESPACIOS</h5>
+                            <h5 class="modal-title m-0">Configuracion de Espacios</h5>
                         </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -780,60 +804,68 @@ print <<HTML;
                 <div class="modal-body">
                     <form id="formAjustes" class="m-0">
                         <input type="hidden" name="adj_tipo_ambito" id="adj_ambito_sucursal" value="sucursal">
+                        <input type="hidden" name="int" id="adj_int" value="30">
+                        <input type="hidden" name="espacios_bloqueados" id="adj_espacios_bloqueados" value="">
 
-                        <!-- NIVEL 1: IDENTIFICACIÓN DE SEDE E INTERVALO DE CUADRÍCULA -->
+                        <!-- SECCIÓN SUPERIOR: SEDE FÍSICA Y SLIDER DE INTERVALOS DE TIEMPO -->
                         <div class="apertura-top-bar">
-                            <div class="row g-2.5 align-items-end">
-                                <div class="col-md-7" id="adj_sucursal_wrapper">
+                            <div class="row g-2.5 align-items-center">
+                                <div class="col-lg-6" id="adj_sucursal_wrapper">
                                     <label class="apertura-field-label" for="adj_sucursal_select">
-                                        <span class="apertura-rank-pill me-1">01</span> Sucursal / Sede Física
+                                        Sucursal / Sede Física
                                     </label>
                                     <select class="form-select" id="adj_sucursal_select" onchange="cargarAjustesSucursal(this.value)">
                                         $html_sucursal
                                     </select>
                                 </div>
-                                <div class="col-md-5">
-                                    <label class="apertura-field-label" for="adj_int">
-                                        <span class="apertura-rank-pill me-1">02</span> Intervalo de Cuadrícula
-                                    </label>
-                                    <select class="form-select" id="adj_int" name="int">
-                                        <option value="15">15 minutos</option>
-                                        <option value="30" selected>30 minutos</option>
-                                        <option value="60">60 minutos</option>
-                                    </select>
+                                <div class="col-lg-6">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label class="apertura-field-label m-0" for="slider_adj_int">
+                                            Intervalo de Cuadrícula de Tiempo
+                                        </label>
+                                        <span class="badge px-2 py-0.5" id="lbl_adj_int_badge" style="background-color: #0A2A66; color: #ffffff; font-size: 0.70rem;">30 minutos</span>
+                                    </div>
+                                    <div class="apertura-slider-box">
+                                        <input type="range" class="form-range m-0" id="slider_adj_int" min="0" max="2" step="1" value="1" oninput="window.onSliderIntervaloChange(this.value)">
+                                        <div class="apertura-slider-marks">
+                                            <span id="mark_int_15" onclick="window.setIntervaloPorValor(15)">15 minutos</span>
+                                            <span id="mark_int_30" class="active-mark" onclick="window.setIntervaloPorValor(30)">30 minutos</span>
+                                            <span id="mark_int_60" onclick="window.setIntervaloPorValor(60)">60 minutos</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- NIVELES 2 A 5: DISTRIBUCIÓN EN DOS COLUMNAS SIN SCROLL NI ENCIMAMIENTOS -->
+                        <!-- DISTRIBUCIÓN EN 2 COLUMNAS PARA DESKTOP (col-lg-6) Y 1 COLUMNA EN MENORES -->
                         <div class="row g-2.5 align-items-stretch">
-                            <!-- COLUMNA IZQUIERDA: HORARIO PRINCIPAL Y DÍAS HÁBILES -->
-                            <div class="col-lg-6 d-flex flex-column gap-2.5">
-                                <!-- GRUPO 03: JORNADA DE APERTURA Y CIERRE -->
+                            <!-- COLUMNA IZQUIERDA: HORARIO DE APERTURA, DÍAS HÁBILES Y RECESO -->
+                            <div class="col-12 col-lg-6 d-flex flex-column gap-2.5">
+                                <!-- GRUPO: JORNADA DE APERTURA Y CIERRE -->
                                 <div class="apertura-group-card">
                                     <div class="apertura-group-header">
                                         <span class="apertura-group-title">
-                                            <span class="apertura-rank-pill">03</span> Jornada de Apertura y Cierre
+                                            Jornada de Apertura y Cierre
                                         </span>
                                         <i class="bi bi-door-open text-teal"></i>
                                     </div>
                                     <div class="row g-2">
                                         <div class="col-6">
-                                            <label class="apertura-field-label" for="adj_h_ini">Apertura Sede</label>
+                                            <label class="apertura-field-label" id="lbl_adj_h_ini" for="adj_h_ini">Apertura Sede</label>
                                             <input type="time" class="form-control" id="adj_h_ini" name="h_ini" required>
                                         </div>
                                         <div class="col-6">
-                                            <label class="apertura-field-label" for="adj_h_fin">Cierre Sede</label>
+                                            <label class="apertura-field-label" id="lbl_adj_h_fin" for="adj_h_fin">Cierre Sede</label>
                                             <input type="time" class="form-control" id="adj_h_fin" name="h_fin" required>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- GRUPO 04: DÍAS HÁBILES DE RENTA EN LA SEDE -->
+                                <!-- GRUPO: DÍAS HÁBILES DE RENTA EN LA SEDE -->
                                 <div class="apertura-group-card">
                                     <div class="apertura-group-header">
                                         <span class="apertura-group-title" id="lbl_adj_dias">
-                                            <span class="apertura-rank-pill">04</span> Días Hábiles de Renta en la Sede
+                                            Días Hábiles de Renta en la Sede
                                         </span>
                                         <i class="bi bi-calendar-week text-teal"></i>
                                     </div>
@@ -868,20 +900,17 @@ print <<HTML;
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- COLUMNA DERECHA: CONTINUIDAD / RECESO Y MANTENIMIENTO -->
-                            <div class="col-lg-6 d-flex flex-column gap-2.5">
-                                <!-- GRUPO 05: CONTINUIDAD OPERATIVA Y RECESO -->
+                                <!-- GRUPO: CONTINUIDAD OPERATIVA Y RECESO -->
                                 <div class="apertura-group-card">
                                     <div class="apertura-group-header">
                                         <span class="apertura-group-title">
-                                            <span class="apertura-rank-pill">05</span> Continuidad y Receso Operativo
+                                            Continuidad y Receso Operativo
                                         </span>
                                         <i class="bi bi-cup-hot text-teal"></i>
                                     </div>
                                     <div class="apertura-switch-box mb-2">
-                                        <label class="m-0 text-navy" for="adj_sin_comida" style="font-size: 0.80rem; cursor: pointer;">
+                                        <label class="m-0 text-navy" for="adj_sin_comida" style="font-size: 0.78rem; cursor: pointer;">
                                             Omitir horario de comida (Horario continuo / 24 hrs)
                                         </label>
                                         <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
@@ -899,12 +928,38 @@ print <<HTML;
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                <!-- GRUPO 06: DÍAS INHÁBILES / MANTENIMIENTO -->
+                            <!-- COLUMNA DERECHA: BLOQUEO DE ESPACIOS FÍSICOS Y DÍAS INHÁBILES -->
+                            <div class="col-12 col-lg-6 d-flex flex-column gap-2.5">
+                                <!-- GRUPO: BLOQUEO DE ESPACIOS CON OPCIONES DE MARCAR Y DESMARCAR -->
+                                <div class="apertura-group-card">
+                                    <div class="apertura-group-header">
+                                        <span class="apertura-group-title">
+                                            <i class="bi bi-lock text-teal"></i> Bloqueo de Espacios
+                                        </span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <button type="button" class="btn-apertura-mini" onclick="window.marcarBloqueoTodosEspacios(true)" title="Marcar todos los espacios para bloqueo">
+                                                Marcar todos
+                                            </button>
+                                            <button type="button" class="btn-apertura-mini" onclick="window.marcarBloqueoTodosEspacios(false)" title="Desmarcar todos (liberar espacios)">
+                                                Desmarcar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="text-muted mb-1.5" style="font-size: 0.72rem;">
+                                        Marca los consultorios o quirófanos que deseas bloquear temporalmente para impedir nuevas reservas:
+                                    </div>
+                                    <div id="lista_bloqueo_espacios_modal" class="apertura-espacios-lock-grid">
+                                        <div class="text-muted small py-2">Cargando inventario de espacios...</div>
+                                    </div>
+                                </div>
+
+                                <!-- GRUPO: DÍAS INHÁBILES / MANTENIMIENTO -->
                                 <div class="apertura-group-card">
                                     <div class="apertura-group-header">
                                         <span class="apertura-group-title" id="lbl_adj_festivos">
-                                            <span class="apertura-rank-pill">06</span> Días Inhábiles / Mantenimiento
+                                            Días Inhábiles / Mantenimiento
                                         </span>
                                         <i class="bi bi-calendar-x text-teal"></i>
                                     </div>
@@ -914,7 +969,7 @@ print <<HTML;
                                             <input type="date" class="form-control" id="adj_fest_picker">
                                         </div>
                                         <div class="col-5">
-                                            <button type="button" class="btn-apertura-teal w-100" onclick="var f = document.getElementById('adj_fest'); var p = document.getElementById('adj_fest_picker'); if(p.value){ var cur = f.value ? f.value.split(',').map(function(x){return x.trim();}).filter(Boolean) : []; if(cur.indexOf(p.value) === -1){ cur.push(p.value); } f.value = cur.join(', '); p.value = ''; }">
+                                            <button type="button" class="btn-apertura-navy w-100" onclick="var f = document.getElementById('adj_fest'); var p = document.getElementById('adj_fest_picker'); if(p.value){ var cur = f.value ? f.value.split(',').map(function(x){return x.trim();}).filter(Boolean) : []; if(cur.indexOf(p.value) === -1){ cur.push(p.value); } f.value = cur.join(', '); p.value = ''; }">
                                                 <i class="bi bi-plus-lg"></i> Agregar
                                             </button>
                                         </div>
@@ -930,15 +985,15 @@ print <<HTML;
                 </div>
 
                 <div class="modal-footer d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
-                    <span class="text-muted d-none d-md-inline" style="font-size: 0.76rem;">
-                        <i class="bi bi-shield-check text-teal me-1"></i> Configuración aplicada a todos los espacios físicos de la sede
+                    <span class="text-muted d-none d-md-inline" style="font-size: 0.74rem;">
+                        <i class="bi bi-shield-check text-teal me-1"></i> Configuración aplicada a la sede seleccionada
                     </span>
                     <div class="d-flex align-items-center gap-2 ms-sm-auto w-100 w-sm-auto justify-content-end">
                         <button type="button" class="btn-apertura-cancel btn-mobile-standard" data-bs-dismiss="modal">
                             Cancelar
                         </button>
                         <button type="button" onclick="guardarAjustes()" class="btn-apertura-save btn-mobile-standard">
-                            <i class="bi bi-check2-circle me-1"></i> Guardar Horario de la Sede
+                            <i class="bi bi-check2-circle me-1"></i> Guardar Configuración
                         </button>
                     </div>
                 </div>
@@ -1003,6 +1058,9 @@ print <<'JS';
                             }
                             if (typeof window.poblarFiltroRecursosToolbar === 'function') {
                                 window.poblarFiltroRecursosToolbar(data);
+                            }
+                            if (typeof window.actualizarHeaderEspaciosHabilitados === 'function') {
+                                window.actualizarHeaderEspaciosHabilitados();
                             }
                             if (typeof currentView !== 'undefined' && currentView === 'dia' && typeof renderTimeline === 'function') {
                                 renderTimeline();

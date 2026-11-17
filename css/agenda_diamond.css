@@ -961,26 +961,28 @@
 }
 
 /* ==========================================================================
-   MODAL PREMIUM: HORARIO DE APERTURA DE ESPACIOS (.modal-apertura-premium)
-   Diseño plano (sin degradados), tipografía mandante (var(--font-sans)),
-   sin negritas (font-weight: 400), cero encimamientos y sin scroll en desktop.
+   MODAL PREMIUM: CONFIGURACION DE ESPACIOS (.modal-apertura-premium)
+   Estilos homologados con el Tablero Financiero Ejecutivo:
+   - 2 columnas en desktop, 1 columna en resoluciones menores.
+   - Grupos delimitados con bordes grises estilo groove muy suaves.
+   - Título y botones SIEMPRE en letras blancas (#ffffff) y fondo azul marino (#0A2A66).
    ========================================================================== */
 .modal-apertura-premium {
     font-family: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif) !important;
 }
 
 .modal-apertura-premium .modal-dialog {
-    max-width: 840px !important;
+    max-width: 880px !important;
     width: calc(100% - 1.5rem);
-    margin: 1rem auto;
+    margin: 0.85rem auto;
 }
 
 .modal-apertura-premium .modal-content {
     background-color: #ffffff !important;
     background-image: none !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 16px !important;
-    box-shadow: 0 20px 40px rgba(10, 42, 102, 0.14) !important;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 20px 40px rgba(10, 42, 102, 0.16) !important;
     max-height: none !important;
     overflow: hidden !important;
 }
@@ -991,16 +993,17 @@
 }
 
 .modal-apertura-premium .modal-header {
-    background: #0A2A66 !important;
+    background-color: #0A2A66 !important;
     background-image: none !important;
+    color: #ffffff !important;
     border-bottom: 2px solid #19B7A5 !important;
-    padding: 0.85rem 1.35rem !important;
+    padding: 0.8rem 1.25rem !important;
     border-radius: 0 !important;
 }
 
 .modal-apertura-premium .modal-title {
-    font-size: 0.96rem !important;
-    letter-spacing: 0.35px !important;
+    font-size: 1rem !important;
+    letter-spacing: 0.25px !important;
     color: #ffffff !important;
     line-height: 1.3 !important;
 }
@@ -1009,8 +1012,8 @@
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    background-color: rgba(25, 183, 165, 0.22);
-    border: 1px solid #19B7A5;
+    background-color: #0A2A66;
+    border: 1px solid rgba(255, 255, 255, 0.35);
     color: #ffffff;
     display: inline-flex;
     align-items: center;
@@ -1021,24 +1024,25 @@
 .modal-apertura-premium .modal-body {
     background-color: #f8fafc !important;
     background-image: none !important;
-    padding: 1.1rem 1.35rem !important;
+    padding: 1rem 1.25rem !important;
     overflow-y: visible !important;
 }
 
+/* Grupos delimitados con bordes grises estilo groove muy suaves (Estilo Tablero Financiero Ejecutivo) */
+.modal-apertura-premium .apertura-top-bar,
+.modal-apertura-premium .apertura-group-card {
+    background-color: #ffffff !important;
+    border: 2px groove #e2e8f0 !important;
+    border-radius: 14px !important;
+    padding: 0.8rem 1rem !important;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.03) !important;
+}
+
 .modal-apertura-premium .apertura-top-bar {
-    background-color: #ffffff;
-    border: 1px solid #dbe3ec;
-    border-left: 4px solid #0A2A66;
-    border-radius: 12px;
-    padding: 0.8rem 1rem;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.75rem;
 }
 
 .modal-apertura-premium .apertura-group-card {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 0.85rem 1rem;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -1049,32 +1053,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 0.55rem;
-    margin-bottom: 0.65rem;
+    padding-bottom: 0.45rem;
+    margin-bottom: 0.6rem;
     border-bottom: 1px solid #f1f5f9;
 }
 
 .modal-apertura-premium .apertura-group-title {
     font-size: 0.80rem;
     color: #0A2A66;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.25px;
     text-transform: uppercase;
     display: flex;
     align-items: center;
     gap: 0.45rem;
     margin: 0;
-}
-
-.modal-apertura-premium .apertura-rank-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #0A2A66;
-    color: #ffffff;
-    font-size: 0.68rem;
-    padding: 0.12rem 0.45rem;
-    border-radius: 5px;
-    letter-spacing: 0.4px;
 }
 
 .modal-apertura-premium .apertura-field-label {
@@ -1083,22 +1075,22 @@
     color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.25px;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.28rem;
     line-height: 1.25;
 }
 
 .modal-apertura-premium .form-control,
 .modal-apertura-premium .form-select {
-    height: 38px !important;
-    min-height: 38px !important;
-    padding: 0.38rem 0.75rem !important;
-    font-size: 0.86rem !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0.35rem 0.7rem !important;
+    font-size: 0.85rem !important;
     color: #0f172a !important;
     background-color: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
     box-shadow: none !important;
-    line-height: 1.35 !important;
+    line-height: 1.3 !important;
 }
 
 .modal-apertura-premium .form-control:focus,
@@ -1113,11 +1105,38 @@
     border-color: #e2e8f0 !important;
 }
 
-/* Selector de Días Hábiles en Cuadrícula Uniforme (Sin Encimamientos) */
+/* Slider de Intervalos de Cuadrícula (15, 30, 60 min) */
+.modal-apertura-premium .apertura-slider-box {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.38rem 0.75rem 0.3rem 0.75rem;
+}
+
+.modal-apertura-premium .apertura-slider-marks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.70rem;
+    color: #64748b;
+    margin-top: -2px;
+}
+
+.modal-apertura-premium .apertura-slider-marks span {
+    cursor: pointer;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.modal-apertura-premium .apertura-slider-marks span.active-mark {
+    background-color: #0A2A66;
+    color: #ffffff;
+}
+
+/* Selector de Días Hábiles en Cuadrícula Uniforme */
 .modal-apertura-premium .apertura-days-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 0.4rem;
+    gap: 0.35rem;
 }
 
 .modal-apertura-premium .apertura-day-item {
@@ -1136,20 +1155,20 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 40px;
+    height: 36px;
     border-radius: 8px;
     border: 1px solid #cbd5e1;
     background-color: #f8fafc;
     color: #475569;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     cursor: pointer;
     user-select: none;
     transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .modal-apertura-premium .apertura-day-label:hover {
-    border-color: #19B7A5;
-    background-color: #f0fdfa;
+    border-color: #0A2A66;
+    background-color: #f1f5f9;
     color: #0A2A66;
 }
 
@@ -1159,12 +1178,43 @@
     color: #ffffff;
 }
 
+/* Cuadrícula de Bloqueo de Espacios Físicos (Consultorios y Quirófanos) */
+.modal-apertura-premium .apertura-espacios-lock-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 0.4rem;
+    max-height: 112px;
+    overflow-y: auto;
+    padding: 2px;
+}
+
+.modal-apertura-premium .espacio-lock-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.55rem;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-size: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+}
+
+.modal-apertura-premium .espacio-lock-chip.is-locked {
+    background-color: #fef2f2;
+    border-color: #fca5a5;
+    color: #991b1b;
+}
+
 /* Switch de Horario Continuo */
 .modal-apertura-premium .apertura-switch-box {
     background-color: #f8fafc;
     border: 1px solid #dbe3ec;
     border-radius: 8px;
-    padding: 0.48rem 0.75rem;
+    padding: 0.42rem 0.75rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1172,80 +1222,78 @@
 }
 
 .modal-apertura-premium .apertura-switch-box .form-check-input {
-    width: 2.35rem;
-    height: 1.2rem;
+    width: 2.25rem;
+    height: 1.15rem;
     margin: 0;
     cursor: pointer;
     flex-shrink: 0;
 }
 
 .modal-apertura-premium .apertura-switch-box .form-check-input:checked {
-    background-color: #19B7A5;
-    border-color: #19B7A5;
+    background-color: #0A2A66;
+    border-color: #0A2A66;
 }
 
-/* Botones Planos (Cero Degradados) */
-.modal-apertura-premium .btn-apertura-teal {
-    background-color: #19B7A5 !important;
-    background-image: none !important;
-    color: #ffffff !important;
-    border: 1px solid #19B7A5 !important;
-    border-radius: 8px !important;
-    height: 38px !important;
-    padding: 0 0.9rem !important;
-    font-size: 0.82rem !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    white-space: nowrap;
-}
-
-.modal-apertura-premium .btn-apertura-teal:hover {
-    background-color: #149686 !important;
-    border-color: #149686 !important;
-    color: #ffffff !important;
-}
-
-.modal-apertura-premium .btn-apertura-save {
+/* Regla Estricta: TODOS los botones del modal en letras blancas (#ffffff) y fondo azul marino (#0A2A66) SIEMPRE */
+.modal-apertura-premium .btn-apertura-navy,
+.modal-apertura-premium .btn-apertura-teal,
+.modal-apertura-premium .btn-apertura-save,
+.modal-apertura-premium .btn-apertura-cancel,
+.modal-apertura-premium .btn-apertura-mini {
     background-color: #0A2A66 !important;
     background-image: none !important;
     color: #ffffff !important;
     border: 1px solid #0A2A66 !important;
     border-radius: 8px !important;
-    padding: 0.55rem 1.35rem !important;
-    font-size: 0.84rem !important;
-    letter-spacing: 0.3px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    text-decoration: none !important;
 }
 
-.modal-apertura-premium .btn-apertura-save:hover {
+.modal-apertura-premium .btn-apertura-navy:hover,
+.modal-apertura-premium .btn-apertura-teal:hover,
+.modal-apertura-premium .btn-apertura-save:hover,
+.modal-apertura-premium .btn-apertura-cancel:hover,
+.modal-apertura-premium .btn-apertura-mini:hover,
+.modal-apertura-premium .btn-apertura-navy:focus,
+.modal-apertura-premium .btn-apertura-save:focus,
+.modal-apertura-premium .btn-apertura-cancel:focus {
     background-color: #0d3580 !important;
     border-color: #0d3580 !important;
     color: #ffffff !important;
 }
 
-.modal-apertura-premium .btn-apertura-cancel {
-    background-color: #ffffff !important;
-    background-image: none !important;
-    color: #475569 !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    padding: 0.55rem 1.15rem !important;
-    font-size: 0.84rem !important;
+.modal-apertura-premium .btn-apertura-teal,
+.modal-apertura-premium .btn-apertura-navy {
+    height: 36px !important;
+    padding: 0 0.85rem !important;
+    font-size: 0.80rem !important;
 }
 
-.modal-apertura-premium .btn-apertura-cancel:hover {
-    background-color: #f1f5f9 !important;
-    color: #0f172a !important;
+.modal-apertura-premium .btn-apertura-mini {
+    height: 24px !important;
+    padding: 0 0.55rem !important;
+    font-size: 0.68rem !important;
+    border-radius: 6px !important;
+}
+
+.modal-apertura-premium .btn-apertura-save,
+.modal-apertura-premium .btn-apertura-cancel {
+    padding: 0.5rem 1.2rem !important;
+    font-size: 0.82rem !important;
+    letter-spacing: 0.25px !important;
 }
 
 .modal-apertura-premium .modal-footer {
     background-color: #ffffff !important;
     border-top: 1px solid #e2e8f0 !important;
-    padding: 0.75rem 1.35rem !important;
+    padding: 0.7rem 1.25rem !important;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 991.98px) {
     .modal-apertura-premium .modal-dialog {
         width: calc(100% - 0.75rem);
         margin: 0.35rem auto;
@@ -1258,12 +1306,117 @@
         padding: 0.75rem !important;
         overflow-y: auto !important;
     }
-    .modal-apertura-premium .apertura-top-bar,
-    .modal-apertura-premium .apertura-group-card {
-        padding: 0.7rem 0.75rem;
-    }
+}
+
+@media (max-width: 575.98px) {
     .modal-apertura-premium .apertura-days-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
+
+/* ==========================================================================
+   BARRA DE HERRAMIENTAS EN DOS NIVELES (OPCIÓN 2: NIVEL CONTEXTUAL + BARRA OPERATIVA)
+   Nivel 1: Cabecera Navy (Contexto + Acción Prioritaria "+ Reservar Espacio")
+   Nivel 2: Bandeja Operativa Blanca (Navegación Temporal + Vistas + Selectores Directos)
+   ========================================================================== */
+.agenda-header-two-tier {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    background-color: #ffffff;
+    box-shadow: 0 4px 14px rgba(10, 42, 102, 0.06);
+}
+
+.agenda-toolbar-tier1 {
+    background-color: #0A2A66;
+    color: #ffffff;
+    padding: 0.45rem 1rem;
+    border-bottom: 1.5px solid #19B7A5;
+}
+
+.agenda-toolbar-tier1 .tier1-context-title {
+    font-size: 0.84rem;
+    color: #ffffff;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.agenda-toolbar-tier1 .tier1-enabled-badge {
+    background-color: rgba(25, 183, 165, 0.22);
+    border: 1px solid #19B7A5;
+    color: #ffffff;
+    font-size: 0.73rem;
+    padding: 0.18rem 0.6rem;
+    border-radius: 50px;
+    white-space: nowrap;
+}
+
+.agenda-toolbar-tier1 .btn-tier1-reservar {
+    background-color: #19B7A5;
+    color: #ffffff;
+    border: 1px solid #19B7A5;
+    border-radius: 8px;
+    padding: 0.38rem 0.95rem;
+    font-size: 0.80rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.agenda-toolbar-tier1 .btn-tier1-reservar:hover {
+    background-color: #149686;
+    border-color: #149686;
+    color: #ffffff;
+}
+
+.agenda-toolbar-tier1 .btn-tier1-config {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 8px;
+    padding: 0.38rem 0.75rem;
+    font-size: 0.78rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.agenda-toolbar-tier1 .btn-tier1-config:hover {
+    background-color: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+}
+
+.agenda-toolbar-tier2 {
+    background-color: #ffffff;
+    padding: 0.45rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.agenda-toolbar-tier2 .tier2-direct-select-btn {
+    height: 36px;
+    font-size: 0.78rem;
+    padding: 0 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background-color: #ffffff;
+    color: #0A2A66;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
+    white-space: nowrap;
+}
+
+.agenda-toolbar-tier2 .tier2-direct-select-btn:hover {
+    background-color: #f8fafc;
+    border-color: #19B7A5;
+}
+
 

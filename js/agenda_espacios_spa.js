@@ -978,6 +978,9 @@ function cargarEventosYConfig(idMed) {
                 agendaConfig = res.config;
                 duracionCita = parseInt(agendaConfig.intervalo_minutos) || 30;
                 renderDuracionButtons();
+                if (typeof window.actualizarHeaderEspaciosHabilitados === 'function') {
+                    window.actualizarHeaderEspaciosHabilitados();
+                }
             }
             syncUI();
         }
@@ -1117,8 +1120,8 @@ function switchView(v) {
     $(".agenda-view-container").addClass('d-none');
     $(`#view-${v.replace('_','-')}`).removeClass('d-none');
 
-    // Gestión de controles de toolbar según la vista activa:
-    $("#wrapper_filtro_recurso_toolbar").removeClass('d-none').addClass('d-none d-lg-block');
+    // Gestión de controles de toolbar según la vista activa (Nivel 2 siempre mantiene visibles los selectores directos):
+    $("#wrapper_filtro_recurso_toolbar").removeClass('d-none d-lg-block');
     if (v === 'dia') {
         $("#btn-toggle-side-cal").removeClass('d-lg-none').addClass('d-lg-inline-flex');
     } else {
@@ -1275,9 +1278,9 @@ window.actualizarLabelFiltroRecursos = function() {
     if (!labelSpan.length) return;
 
     if (marcados === total && total > 0) {
-        labelSpan.html('<i class="bi bi-door-open-fill text-teal"></i> <span class="text-truncate">Todos los Espacios (' + total + ')</span>');
+        labelSpan.html('<i class="bi bi-door-open-fill text-teal"></i> <span class="text-truncate">Espacios (' + total + ')</span>');
     } else if (marcados === 0) {
-        labelSpan.html('<i class="bi bi-dash-circle text-danger"></i> <span class="text-truncate">Sin Espacios (0/' + total + ')</span>');
+        labelSpan.html('<i class="bi bi-dash-circle text-danger"></i> <span class="text-truncate">Espacios (0/' + total + ')</span>');
     } else {
         labelSpan.html('<i class="bi bi-funnel-fill text-teal"></i> <span class="text-truncate">Espacios (' + marcados + '/' + total + ')</span>');
     }
@@ -1352,9 +1355,9 @@ window.actualizarLabelFiltroMedicos = function() {
     if (!labelSpan.length) return;
 
     if (marcados === total && total > 0) {
-        labelSpan.html('<i class="bi bi-people-fill text-primary"></i> <span class="text-truncate">Todos los Médicos (' + total + ')</span>');
+        labelSpan.html('<i class="bi bi-people-fill text-primary"></i> <span class="text-truncate">Médicos (' + total + ')</span>');
     } else if (marcados === 0) {
-        labelSpan.html('<i class="bi bi-dash-circle text-danger"></i> <span class="text-truncate">Sin Médicos (0/' + total + ')</span>');
+        labelSpan.html('<i class="bi bi-dash-circle text-danger"></i> <span class="text-truncate">Médicos (0/' + total + ')</span>');
     } else {
         labelSpan.html('<i class="bi bi-funnel-fill text-primary"></i> <span class="text-truncate">Médicos (' + marcados + '/' + total + ')</span>');
     }
@@ -1559,8 +1562,63 @@ window.aplicarPreferenciaSideCalendar = function() {
     }
 };
 
+window.esEspacioBloqueado = function(espacioStr) {
+    if (!espacioStr || !agendaConfig || !Array.isArray(agendaConfig.espacios_bloqueados_list)) return false;
+    const normTarget = normalizarTextoEspacio(espacioStr);
+    if (!normTarget) return false;
+    return agendaConfig.espacios_bloqueados_list.some(eb => normalizarTextoEspacio(eb) === normTarget);
+};
+
+window.actualizarHeaderEspaciosHabilitados = function() {
+    const rec = window.sucursalRecursos || {};
+    let totalCons = parseInt(rec.consultorios) || 0;
+    let totalQx = parseInt(rec.quirofanos) || 0;
+    if (rec.sucursales && rec.sucursales.length > 0 && !totalCons && !totalQx) {
+        rec.sucursales.forEach(s => {
+            totalCons += (parseInt(s.consultorios) || 0);
+            totalQx += (parseInt(s.quirofanos) || 0);
+        });
+    }
+    const totalEspacios = Math.max(1, totalCons + totalQx);
+    const bloqueadosArr = (agendaConfig && Array.isArray(agendaConfig.espacios_bloqueados_list)) ? agendaConfig.espacios_bloqueados_list : [];
+    const numBloqueados = bloqueadosArr.length;
+    const habilitados = Math.max(0, totalEspacios - numBloqueados);
+
+    const badgeHeader = document.getElementById('lbl_header_espacios_habilitados');
+    if (badgeHeader) {
+        if (numBloqueados > 0) {
+            badgeHeader.textContent = `${habilitados} Habilitados • ${numBloqueados} Bloqueados`;
+        } else {
+            badgeHeader.textContent = `${habilitados} Habilitados`;
+        }
+    }
+
+    // Actualizar opciones bloqueadas en el select #f_consultorio del modal de reserva
+    const fCons = document.getElementById('f_consultorio');
+    if (fCons) {
+        Array.from(fCons.options).forEach(opt => {
+            if (!opt.value) return;
+            const baseLabel = opt.value;
+            const locked = window.esEspacioBloqueado(baseLabel);
+            opt.disabled = locked;
+            opt.textContent = locked ? `${baseLabel} (Bloqueado)` : baseLabel;
+        });
+    }
+};
+
 window.handleMatrixSlotClick = function(event, fecha, hora, recursoId, recursoTipo) {
     if (event) event.stopPropagation();
+
+    if (window.esEspacioBloqueado(recursoId)) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Espacio Físico Bloqueado',
+            text: 'Este consultorio o quirófano se encuentra bloqueado en Configuración de Espacios. Desmárcalo en Configuración si deseas habilitar nuevas reservas.',
+            confirmButtonColor: '#0A2A66',
+            customClass: { popup: 'rounded-4' }
+        });
+        return;
+    }
 
     // Validar si la fecha/hora ya transcurrió
     if (!isFuture(fecha, hora)) {
@@ -2208,15 +2266,21 @@ function renderTimeline() {
 
     colsToRender.forEach(col => {
         const isQuirofano = (col.tipo === 'quirofano');
+        const isColLocked = window.esEspacioBloqueado(col.titulo) || window.esEspacioBloqueado(col.id);
         const headerClass = isQuirofano ? 'dia-col-quirofano' : 'dia-col-consultorio';
-        const icon = isQuirofano 
-            ? '<i class="bi bi-scissors me-1" style="color:#7C3AED;"></i>' 
-            : '<i class="bi bi-door-closed-fill me-1" style="color:var(--md-teal-clinical, #19B7A5);"></i>';
+        const icon = isColLocked
+            ? '<i class="bi bi-lock-fill me-1 text-danger"></i>'
+            : (isQuirofano 
+                ? '<i class="bi bi-scissors me-1" style="color:#7C3AED;"></i>' 
+                : '<i class="bi bi-door-closed-fill me-1" style="color:var(--md-teal-clinical, #19B7A5);"></i>');
 
         // En la píldora va el icono + etiqueta + número (Consultorio 1 / Quirófano 1)
         const typeBadge = isQuirofano 
             ? `<span class="dia-th-badge dia-th-badge-quirofano">${icon}${col.titulo}</span>` 
             : `<span class="dia-th-badge dia-th-badge-consultorio">${icon}${col.titulo}</span>`;
+        const subtitleHtml = isColLocked
+            ? `<span class="badge bg-danger text-white" style="font-size: 0.65rem;">BLOQUEADO</span>`
+            : col.subtitulo;
 
         tableHtml += `
             <th class="${headerClass} text-center">
@@ -2225,7 +2289,7 @@ function renderTimeline() {
                         ${typeBadge}
                     </div>
                     <div class="dia-th-title fw-black text-navy text-truncate w-100 px-1" title="${col.subtitulo}" style="color: #0A2A66 !important; font-size: 0.88rem; font-weight: 800;">
-                        ${col.subtitulo}
+                        ${subtitleHtml}
                     </div>
                 </div>
             </th>
@@ -3989,11 +4053,10 @@ function cambiarAmbitoAjustes(tipo) {
         $("#adj_sucursal_wrapper").removeClass('d-none');
         $("#adj_medico_wrapper").addClass('d-none');
         $("#adj_cancel_hours_wrapper").addClass('d-none');
-        $("#adj_ambito_help_text span").html("Define el <strong>horario general de apertura</strong> de la sede física (rige la cuadrícula visible de Consultorios y Quirófanos).");
-        $("#lbl_adj_h_ini").text("Apertura de Sede");
-        $("#lbl_adj_h_fin").text("Cierre de Sede");
-        $("#lbl_adj_dias").html('<span class="apertura-rank-pill">04</span> Días Hábiles de Renta en la Sede');
-        $("#lbl_adj_festivos").html('<span class="apertura-rank-pill">06</span> Días Inhábiles / Mantenimiento');
+        $("#lbl_adj_h_ini").text("Apertura Sede");
+        $("#lbl_adj_h_fin").text("Cierre Sede");
+        $("#lbl_adj_dias").text("Días Hábiles de Renta en la Sede");
+        $("#lbl_adj_festivos").text("Días Inhábiles / Mantenimiento");
         
         const curSuc = $("#adj_sucursal_select").val() || $("#f_sucursal").val() || '1';
         if ($("#adj_sucursal_select").length) {
@@ -4004,11 +4067,10 @@ function cambiarAmbitoAjustes(tipo) {
         $("#adj_sucursal_wrapper").addClass('d-none');
         $("#adj_medico_wrapper").removeClass('d-none');
         $("#adj_cancel_hours_wrapper").removeClass('d-none');
-        $("#adj_ambito_help_text span").html("Define el horario de consulta individual del profesional seleccionado.");
         $("#lbl_adj_h_ini").text("Inicio de Consulta");
         $("#lbl_adj_h_fin").text("Fin de Consulta");
-        $("#lbl_adj_dias").html('<span class="apertura-rank-pill">04</span> Días Laborales del Médico');
-        $("#lbl_adj_festivos").html('<span class="apertura-rank-pill">06</span> Vacaciones / Inasistencias del Médico');
+        $("#lbl_adj_dias").text("Días Laborales del Médico");
+        $("#lbl_adj_festivos").text("Vacaciones / Inasistencias del Médico");
         
         const curMed = $("#adj_medico_select").val() || $("#f_medico").val() || '2';
         if ($("#adj_medico_select").length) {
@@ -4017,6 +4079,106 @@ function cambiarAmbitoAjustes(tipo) {
         cargarAjustesMedico(curMed);
     }
 }
+
+window.onSliderIntervaloChange = function(stepVal) {
+    const mapSteps = { '0': 15, '1': 30, '2': 60 };
+    const minutos = mapSteps[String(stepVal)] || 30;
+    window.setIntervaloPorValor(minutos, false);
+};
+
+window.setIntervaloPorValor = function(minutos, moveSlider = true) {
+    const minNum = parseInt(minutos, 10) || 30;
+    const validMin = (minNum <= 15) ? 15 : (minNum >= 60 ? 60 : 30);
+    $("#adj_int").val(String(validMin));
+    $("#lbl_adj_int_badge").text(`${validMin} minutos`);
+
+    $("#mark_int_15, #mark_int_30, #mark_int_60").removeClass('active-mark');
+    $(`#mark_int_${validMin}`).addClass('active-mark');
+
+    if (moveSlider) {
+        const stepIdx = (validMin === 15) ? 0 : (validMin === 60 ? 2 : 1);
+        $("#slider_adj_int").val(stepIdx);
+    }
+};
+
+window.renderizarListaBloqueoEspaciosModal = function(idSuc, bloqueadosStr) {
+    const cont = $("#lista_bloqueo_espacios_modal");
+    if (!cont.length) return;
+
+    const bloqueadosList = (bloqueadosStr || '')
+        .split(',')
+        .map(s => normalizarTextoEspacio(s))
+        .filter(Boolean);
+
+    const poblarCheckboxes = function(consCount, qxCount) {
+        let html = '';
+        const cNum = Math.max(1, parseInt(consCount) || 1);
+        const qNum = Math.max(0, parseInt(qxCount) || 0);
+
+        for (let i = 1; i <= cNum; i++) {
+            const label = `Consultorio ${i}`;
+            const isLocked = bloqueadosList.includes(normalizarTextoEspacio(label));
+            html += `
+                <label class="espacio-lock-chip ${isLocked ? 'is-locked' : ''}">
+                    <input type="checkbox" class="form-check-input m-0 chk-bloqueo-espacio" value="${label}" ${isLocked ? 'checked' : ''} onchange="window.onCambioBloqueoEspacio()">
+                    <i class="bi ${isLocked ? 'bi-lock-fill text-danger' : 'bi-door-open text-teal'}"></i>
+                    <span class="text-truncate">${label}</span>
+                </label>
+            `;
+        }
+        for (let i = 1; i <= qNum; i++) {
+            const label = `Quirófano ${i}`;
+            const isLocked = bloqueadosList.includes(normalizarTextoEspacio(label));
+            html += `
+                <label class="espacio-lock-chip ${isLocked ? 'is-locked' : ''}">
+                    <input type="checkbox" class="form-check-input m-0 chk-bloqueo-espacio" value="${label}" ${isLocked ? 'checked' : ''} onchange="window.onCambioBloqueoEspacio()">
+                    <i class="bi ${isLocked ? 'bi-lock-fill text-danger' : 'bi-scissors text-primary'}"></i>
+                    <span class="text-truncate">${label}</span>
+                </label>
+            `;
+        }
+        cont.html(html);
+        window.onCambioBloqueoEspacio();
+    };
+
+    const rec = window.sucursalRecursos;
+    if (rec && rec.sucursales && rec.sucursales.length > 0) {
+        const sucObj = rec.sucursales.find(s => String(s.id) === String(idSuc)) || rec.sucursales[0];
+        poblarCheckboxes(sucObj.consultorios, sucObj.quirofanos);
+    } else if (rec && rec.consultorios) {
+        poblarCheckboxes(rec.consultorios, rec.quirofanos);
+    } else {
+        $.get('../api/espacios_crud.pl', { accion: 'get_recursos', id_sucursal: idSuc }, function(data) {
+            if (data && data.ok) {
+                window.sucursalRecursos = data;
+                poblarCheckboxes(data.consultorios, data.quirofanos);
+            }
+        });
+    }
+};
+
+window.onCambioBloqueoEspacio = function() {
+    const bloqueados = [];
+    $(".chk-bloqueo-espacio").each(function() {
+        const chip = $(this).closest('.espacio-lock-chip');
+        const icon = chip.find('i.bi');
+        const isQx = ($(this).val() || '').toLowerCase().includes('quir');
+        if (this.checked) {
+            bloqueados.push($(this).val());
+            chip.addClass('is-locked');
+            icon.attr('class', 'bi bi-lock-fill text-danger');
+        } else {
+            chip.removeClass('is-locked');
+            icon.attr('class', isQx ? 'bi bi-scissors text-primary' : 'bi bi-door-open text-teal');
+        }
+    });
+    $("#adj_espacios_bloqueados").val(bloqueados.join(','));
+};
+
+window.marcarBloqueoTodosEspacios = function(marcar) {
+    $(".chk-bloqueo-espacio").prop('checked', !!marcar);
+    window.onCambioBloqueoEspacio();
+};
 
 function toggleComidaAjustes(sinComida) {
     if (sinComida) {
@@ -4048,9 +4210,11 @@ function cargarAjustesSucursal(idSuc) {
                 $("#adj_c_fin").val(cfg.lunchEnd || '15:00');
             }
 
-            $("#adj_int").val(cfg.intervalo_minutos || '30');
+            window.setIntervaloPorValor(cfg.intervalo_minutos || 30, true);
             $("#adj_cancel_hours").val(cfg.cancel_hours || '24');
-            $("#adj_fest").val(cfg.festivos_medico || '');
+            $("#adj_fest").val(cfg.festivos_sucursal || cfg.festivos || '');
+            $("#adj_espacios_bloqueados").val(cfg.espacios_bloqueados || '');
+            window.renderizarListaBloqueoEspaciosModal(idSuc, cfg.espacios_bloqueados || '');
             
             $(".adj-dia").prop('checked', false);
             if (cfg.workDays && Array.isArray(cfg.workDays)) {
@@ -4148,6 +4312,7 @@ function guardarAjustes() {
         c_fin: c_fin,
         int: $("#adj_int").val(),
         festivos: $("#adj_fest").val(),
+        espacios_bloqueados: $("#adj_espacios_bloqueados").val() || '',
         dias: dias.join(',')
     };
 

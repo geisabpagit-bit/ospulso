@@ -251,7 +251,9 @@ Este documento agrupa la especificación de los módulos complementarios y espec
      - *Vista Semanal Smart (`#view-semana-smart`)*: Carrusel de 7 días (Lunes a Domingo) con tarjetas Hero para rentas de jornada completa y bloques multi-slot.
      - *Vista Mensual Grid (`#view-calendario`)*: Cuadrícula mensual desktop y vista compacta móvil.
      - *Tríada de Reportes DataTables (`#diaReporteTable`, `#agendaTable`, `#mesTable`)*: Reporte Diario, Semanal y Mensual con paginación estándar de 10 registros, exportación e impresión controlada independiente vía `api/imprimir_reporte_espacios_api.pl` con barra `.no-print`.
-  3. **Filtros Reactivos en Toolbar**: Selector de Sucursal, Selector Multi-Check de Espacios Físicos (`Consultorio 1..N`, `Quirófano 1..M` obtenidos desde la configuración de `views/manage_clinicas.pl`), Selector Multi-Check de Arrendatarios/Médicos y Modal de Ajustes de Horario de Sucursal (`#modalAjustes`).
+  3. **Barra de Herramientas en Dos Niveles (`Opción 2: Nivel Contextual + Barra Operativa` en `.agenda-header-two-tier`)**:
+     - **Nivel 1 (Cabecera Navy `.agenda-toolbar-tier1`)**: Mantiene fijo el contexto operativo de la sucursal (`Renta de Espacios Clínicos • X Habilitados`, descontando en tiempo real los espacios bloqueados) y aloja en primer plano de impacto visual el botón prioritario **`+ Reservar Espacio`** junto con el acceso a **`Configuración`**.
+     - **Nivel 2 (Bandeja Operativa Blanca `.agenda-toolbar-tier2`)**: Reservado a la navegación temporal (`HOY`, selector de fecha `< FECHA >`, las 3 vistas de calendario y el menú compacto `Reportes & Export`) y a los **selectores de búsqueda independientes directos** (`Médicos (N)`, `Espacios (N)`, `Estados`), evitando submenús intermedios y previniendo recortes o scrolls horizontales en monitores compactos (`1366×768 px`) o pantallas divididas.
 - **Inventario Dinámico de Espacios desde Gestión de Sucursales (`views/manage_clinicas.pl`)**:
   1. Consume la configuración real de cada sede registrada en `dat/negocios.dat` y `dat/negocios_config.dat` (`CONSULTORIOS` y `QUIROFANOS`).
   2. Genera dinámicamente las unidades físicas seleccionables y filtrables (`Consultorio 1` hasta `Consultorio N`, y `Quirófano 1` hasta `Quirófano M` cuando la sucursal dispone de quirófanos). En renta de espacios físicos se omite el recurso `"Virtual"`.
@@ -279,10 +281,12 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   6. **Cerrojo Anticolisión Temporal y Omisión de Bloques Pasados en Modal**:
      - Tanto el frontend (`js/agenda_espacios_spa.js`) como el backend (`validar_no_pasado` en `api/espacios_crud.pl`) bloquean cualquier intento de crear o mover una reserva hacia una fecha u hora anterior al momento actual.
      - En el modal **RESERVA DE ESPACIO / NUEVO ARRENDAMIENTO** (`renderSlots`), los recuadros de horario anteriores a la hora actual (`isP && !isCurrentSlot`) **no se renderizan** en la cuadrícula `#slots-container`, mostrando únicamente los horarios futuros disponibles a partir de la hora actual.
-  7. **Modal Premium "HORARIO DE APERTURA DE ESPACIOS" (`#modalAjustes` / `.modal-apertura-premium`)**:
-     - Refactorizado en formato ancho de dos columnas (`modal-lg`, `840px`) para eliminar el uso de scrolls verticales en escritorio y adaptarse de forma responsiva en dispositivos móviles (`.card-mobile-flush`, `.btn-mobile-standard`).
-     - Jerarquizado visualmente en 6 grupos numerados por rango de importancia (`01 Sucursal / Sede Física`, `02 Intervalo de Cuadrícula`, `03 Jornada de Apertura y Cierre`, `04 Días Hábiles de Renta en la Sede`, `05 Continuidad y Receso Operativo`, `06 Días Inhábiles / Mantenimiento`).
-     - Diseño 100% plano sin degradados (`#0A2A66` y `#19B7A5` sólidos), sin uso de negritas (`font-weight: 400`), conservando la tipografía mandante (`var(--font-sans)`) y con etiquetas superiores dedicadas (`.apertura-field-label`) que eliminan cualquier colisión o encimamiento con los valores de los controles.
+  7. **Modal "Configuracion de Espacios" (`#modalAjustes` / `.modal-apertura-premium`)**:
+     - Título oficial **`Configuracion de Espacios`** con distribución de **2 columnas en desktop (`col-lg-6`) y 1 columna en resoluciones menores (`< 992px`)**.
+     - Homologado con los estilos de tarjetas del **Tablero Financiero Ejecutivo**, delimitando cada grupo con **bordes grises estilo `groove` muy suaves** (`border: 2px groove #e2e8f0; border-radius: 14px;`), sin numerales en las etiquetas de los campos.
+     - El título y todos los botones de acción (`Marcar todos`, `Desmarcar`, `Agregar`, `Cancelar`, `Guardar Configuración`) se presentan **siempre con letras blancas (`#ffffff`) y fondo azul marino (`#0A2A66`)**.
+     - **Slider de Intervalo de Cuadrícula (`#slider_adj_int`)**: Control deslizante interactivo para seleccionar entre los intervalos operativos (`15 minutos`, `30 minutos`, `60 minutos`).
+     - **Funcionalidad de Bloqueo de Espacios Físicos (`#lista_bloqueo_espacios_modal` / `espacios_bloqueados`)**: Permite marcar o desmarcar individualmente o en bloque (`Marcar todos` / `Desmarcar`) los Consultorios y Quirófanos de la sede para bloquearlos temporalmente, persistiendo en `dat/agenda_config_sucursal_<ID>.dat` y bloqueando cualquier intento de reserva tanto en frontend como en backend (`detectar_colisiones_espacio`).
 
 
 
