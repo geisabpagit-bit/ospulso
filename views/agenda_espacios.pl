@@ -136,13 +136,13 @@ if (scalar(@medicos) > 0) {
     }
     my $cnt_med = scalar(@medicos) + 1;
     $html_filtro_medicos_toolbar = qq{
-        <div class="dropdown" id="wrapper_filtro_medicos_toolbar" style="position: relative; z-index: 106000;">
-            <button class="tier2-direct-select-btn dropdown-toggle" 
+        <div class="dropdown" id="wrapper_filtro_medicos_toolbar" style="position: relative; z-index: 1065;">
+            <button class="tier2-executive-select-btn dropdown-toggle" 
                     type="button" 
                     id="btn_filtro_medico_dropdown" 
                     data-bs-toggle="dropdown" 
+                    data-bs-display="static"
                     data-bs-auto-close="outside" 
-                    data-bs-popper-config='{"strategy":"fixed"}'
                     aria-expanded="false" 
                     title="Filtrar directamente por Médicos / Arrendatarios">
                 <span class="d-flex align-items-center gap-1.5 text-truncate" id="filtro_medico_btn_label">
@@ -150,13 +150,13 @@ if (scalar(@medicos) > 0) {
                     <span class="text-truncate">Médicos ($cnt_med)</span>
                 </span>
             </button>
-            <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_medico_menu" aria-labelledby="btn_filtro_medico_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 106000 !important;">
+            <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_medico_menu" aria-labelledby="btn_filtro_medico_dropdown" style="min-width: 280px; max-height: 360px; overflow-y: auto; z-index: 107000 !important;">
                 <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom mb-2">
-                    <span class="fw-black text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px;">Arrendatarios / Médicos</span>
+                    <span class="text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px; font-weight:700;">Arrendatarios / Médicos</span>
                     <div class="d-flex align-items-center gap-1.5">
-                        <button type="button" class="btn btn-link btn-sm p-0 text-primary fw-bold text-decoration-none" onclick="window.seleccionarTodosMedicos(true)" style="font-size:0.72rem;">Marcar todos</button>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" onclick="window.seleccionarTodosMedicos(true)" style="font-size:0.72rem; color: #19B7A5;">Marcar todos</button>
                         <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
-                        <button type="button" class="btn btn-link btn-sm p-0 text-secondary fw-semibold text-decoration-none" onclick="window.seleccionarTodosMedicos(false)" style="font-size:0.72rem;">Desmarcar</button>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-secondary text-decoration-none" onclick="window.seleccionarTodosMedicos(false)" style="font-size:0.72rem;">Desmarcar</button>
                     </div>
                 </div>
                 <div id="lista_checkboxes_medicos" class="d-flex flex-column gap-1">
@@ -244,20 +244,22 @@ utils::sub_sidebar::render_sidebar(
 
 print <<HTML;
     <div class="main-container-agenda container-mobile-flush">
-        <header class="agenda-header-two-tier animate__animated animate__fadeInDown">
+        <header class="agenda-header agenda-header-two-tier">
             <!-- NIVEL 1 (CABECERA NAVY CONTEXTUAL + ACCIÓN PRIORITARIA DE MOSTRADOR) -->
             <div class="agenda-toolbar-tier1">
                 <div class="container-fluid px-1 px-md-2 d-flex align-items-center justify-content-between gap-2 flex-wrap">
                     <div class="tier1-context-title">
-                        <i class="bi bi-door-open-fill" style="color: #19B7A5; font-size: 1rem;"></i>
+                        <span class="tier1-context-icon">
+                            <i class="bi bi-door-open-fill"></i>
+                        </span>
                         <span>Renta de Espacios Clínicos</span>
                         <span class="opacity-50">•</span>
                         <span class="tier1-enabled-badge" id="lbl_header_espacios_habilitados">Cargando espacios...</span>
                     </div>
 
                     <div class="d-flex align-items-center gap-2 ms-auto">
-                        <button type="button" onclick="window.abrirModalNuevaRenta()" class="btn-tier1-reservar">
-                            <i class="bi bi-plus-lg"></i>
+                        <button type="button" onclick="window.abrirModalNuevaRenta()" class="btn-tier1-reservar" title="Reservar un nuevo espacio clínico">
+                            <i class="bi bi-plus-circle-fill"></i>
                             <span>Reservar Espacio</span>
                         </button>
                         <button type="button" onclick="abrirModalAjustes()" class="btn-tier1-config" title="Configuracion de Espacios">
@@ -273,32 +275,46 @@ print <<HTML;
                 <div class="container-fluid px-1 px-md-2">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 w-100">
                         <!-- IZQUIERDA: NAVEGACIÓN TEMPORAL, VISTAS DE CALENDARIO Y REPORTES & EXPORT -->
-                        <div class="d-flex align-items-center flex-wrap gap-1.5">
-                            <button onclick="goToday()" class="btn rounded-3 px-2.5 text-uppercase" style="height: 36px; font-size: 0.74rem; background-color: #0A2A66; color: #ffffff; border: 1px solid #0A2A66;">HOY</button>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <button onclick="goToday()" class="btn-tier2-today text-uppercase" title="Ir al Día de Hoy">HOY</button>
 
-                            <div class="d-none d-md-flex align-items-center date-nav-pill" style="height: 36px;">
-                                <button onclick="moveDate(-1)" class="btn btn-link text-navy p-1" title="Anterior"><i class="bi bi-chevron-left"></i></button>
-                                <h1 class="h6 mb-0 text-navy text-uppercase tracking-tight mx-2 text-nowrap" id="current-date-label-desktop" style="min-width: 155px; text-align: center; font-size: 0.78rem;">
+                            <div class="d-none d-md-flex align-items-center tier2-date-nav">
+                                <button onclick="moveDate(-1)" class="tier2-date-chevron" title="Día Anterior"><i class="bi bi-chevron-left"></i></button>
+                                <h1 class="h6 mb-0 text-navy text-uppercase tracking-tight text-nowrap tier2-date-label" id="current-date-label-desktop">
                                     CARGANDO...
                                 </h1>
-                                <button onclick="moveDate(1)" class="btn btn-link text-navy p-1" title="Siguiente"><i class="bi bi-chevron-right"></i></button>
+                                <button onclick="moveDate(1)" class="tier2-date-chevron" title="Día Siguiente"><i class="bi bi-chevron-right"></i></button>
                             </div>
 
                             <!-- Conmutador de Vistas de Calendario (Día, Semana, Mes) -->
-                            <div class="nav-pill-group" style="height: 36px; padding: 2px;">
-                                <button onclick="switchView('dia')" class="btn-view-toggle active" id="btn-v-dia" title="Vista Diaria por Consultorios y Quirófanos" style="padding: 5px 10px;"><i class="bi bi-calendar-event"></i></button>
-                                <button onclick="switchView('semana_smart')" class="btn-view-toggle" id="btn-v-semana-smart" title="Vista Semanal Smart de Espacios" style="padding: 5px 10px;"><i class="bi bi-calendar-week"></i></button>
-                                <button onclick="switchView('calendario')" class="btn-view-toggle" id="btn-v-calendario" title="Vista Mensual Grid" style="padding: 5px 10px;"><i class="bi bi-grid-3x3"></i></button>
+                            <div class="tier2-view-group">
+                                <button onclick="switchView('dia')" class="btn-view-toggle active" id="btn-v-dia" title="Vista Diaria por Consultorios y Quirófanos">
+                                    <i class="bi bi-calendar-event me-1"></i><span class="d-none d-xl-inline">Día</span>
+                                </button>
+                                <button onclick="switchView('semana_smart')" class="btn-view-toggle" id="btn-v-semana-smart" title="Vista Semanal Smart de Espacios">
+                                    <i class="bi bi-calendar-week me-1"></i><span class="d-none d-xl-inline">Semana</span>
+                                </button>
+                                <button onclick="switchView('calendario')" class="btn-view-toggle" id="btn-v-calendario" title="Vista Mensual Grid">
+                                    <i class="bi bi-grid-3x3 me-1"></i><span class="d-none d-xl-inline">Mes</span>
+                                </button>
                             </div>
 
                             <!-- Menú Compacto Reportes & Export (Ahorra espacio horizontal en laptops/tablets) -->
-                            <div class="dropdown">
-                                <button class="tier2-direct-select-btn dropdown-toggle" type="button" id="dropdownReportesExport" data-bs-toggle="dropdown" aria-expanded="false" title="Reportes Tabulares e Impresión">
-                                    <i class="bi bi-file-earmark-bar-graph text-teal"></i>
-                                    <span>Reportes &amp; Export</span>
+                            <div class="dropdown" style="position: relative; z-index: 1065;">
+                                <button class="tier2-executive-select-btn dropdown-toggle" 
+                                        type="button" 
+                                        id="dropdownReportesExport" 
+                                        data-bs-toggle="dropdown" 
+                                        data-bs-display="static" 
+                                        aria-expanded="false" 
+                                        title="Reportes Tabulares e Impresión">
+                                    <span class="d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-file-earmark-bar-graph text-teal"></i>
+                                        <span>Reportes &amp; Export</span>
+                                    </span>
                                 </button>
-                                <div class="dropdown-menu shadow-lg p-2 border-0 rounded-4" aria-labelledby="dropdownReportesExport" style="min-width: 220px; z-index: 105200;">
-                                    <div class="px-2 py-1 text-muted text-uppercase border-bottom mb-1" style="font-size: 0.68rem;">Tablas Operativas</div>
+                                <div class="dropdown-menu shadow-lg p-2.5 border-0 rounded-4" aria-labelledby="dropdownReportesExport" style="min-width: 230px; z-index: 107000;">
+                                    <div class="px-2 py-1 text-navy text-uppercase border-bottom mb-1" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Tablas Operativas</div>
                                     <button type="button" onclick="switchView('dia_reporte')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-dia-reporte">
                                         <i class="bi bi-file-earmark-ruled text-primary"></i> Reporte Diario
                                     </button>
@@ -317,18 +333,18 @@ print <<HTML;
                         </div>
 
                         <!-- DERECHA: SELECTORES INDEPENDIENTES DIRECTOS (MÉDICOS, ESPACIOS, ESTADOS) -->
-                        <div class="d-flex align-items-center flex-wrap gap-1.5 ms-auto">
+                        <div class="d-flex align-items-center flex-wrap gap-2 ms-auto">
                             <!-- Selector Directo 1: Médicos / Arrendatarios -->
                             $html_filtro_medicos_toolbar
 
                             <!-- Selector Directo 2: Espacios Físicos (Consultorios y Quirófanos) -->
-                            <div class="dropdown" id="wrapper_filtro_recurso_toolbar" style="position: relative; z-index: 106000;">
-                                <button class="tier2-direct-select-btn dropdown-toggle" 
+                            <div class="dropdown" id="wrapper_filtro_recurso_toolbar" style="position: relative; z-index: 1065;">
+                                <button class="tier2-executive-select-btn dropdown-toggle" 
                                         type="button" 
                                         id="btn_filtro_recurso_dropdown" 
                                         data-bs-toggle="dropdown" 
+                                        data-bs-display="static" 
                                         data-bs-auto-close="outside" 
-                                        data-bs-popper-config='{"strategy":"fixed"}'
                                         aria-expanded="false" 
                                         title="Filtrar directamente por Consultorios y Quirófanos">
                                     <span class="d-flex align-items-center gap-1.5 text-truncate" id="filtro_recurso_btn_label">
@@ -336,11 +352,11 @@ print <<HTML;
                                         <span class="text-truncate">Espacios</span>
                                     </span>
                                 </button>
-                                <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_recurso_menu" aria-labelledby="btn_filtro_recurso_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 106000 !important;">
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_recurso_menu" aria-labelledby="btn_filtro_recurso_dropdown" style="min-width: 280px; max-height: 360px; overflow-y: auto; z-index: 107000 !important;">
                                     <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom mb-2">
-                                        <span class="text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px;">Consultorios y Quirófanos</span>
+                                        <span class="text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px; font-weight: 700;">Consultorios y Quirófanos</span>
                                         <div class="d-flex align-items-center gap-1.5">
-                                            <button type="button" class="btn btn-link btn-sm p-0 text-primary text-decoration-none" onclick="window.seleccionarTodosEspacios(true)" style="font-size:0.72rem;">Marcar todos</button>
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" onclick="window.seleccionarTodosEspacios(true)" style="font-size:0.72rem; color: #19B7A5;">Marcar todos</button>
                                             <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
                                             <button type="button" class="btn btn-link btn-sm p-0 text-secondary text-decoration-none" onclick="window.seleccionarTodosEspacios(false)" style="font-size:0.72rem;">Desmarcar</button>
                                         </div>
@@ -352,44 +368,52 @@ print <<HTML;
                             </div>
 
                             <!-- Selector Directo 3: Leyenda de Estados -->
-                            <div class="dropdown">
-                                <button class="tier2-direct-select-btn" type="button" id="dropdownLeyendaColores" data-bs-toggle="dropdown" aria-expanded="false" title="Significado de Estados de Renta">
-                                    <i class="bi bi-palette" style="color: var(--md-teal-clinical, #19B7A5) !important;"></i>
-                                    <span>Estados</span>
+                            <div class="dropdown" style="position: relative; z-index: 1065;">
+                                <button class="tier2-executive-select-btn dropdown-toggle" 
+                                        type="button" 
+                                        id="dropdownLeyendaColores" 
+                                        data-bs-toggle="dropdown" 
+                                        data-bs-display="static" 
+                                        aria-expanded="false" 
+                                        title="Significado de Estados de Renta">
+                                    <span class="d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-palette" style="color: var(--md-teal-clinical, #19B7A5) !important;"></i>
+                                        <span>Estados</span>
+                                    </span>
                                 </button>
-                                <div class="dropdown-menu dropdown-menu-end shadow-lg p-3 border-0 rounded-4" style="min-width: 280px; z-index: 105200;" aria-labelledby="dropdownLeyendaColores">
-                                    <h6 class="text-navy small mb-2.5 d-flex align-items-center gap-1.5">
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg p-3 border-0 rounded-4" style="min-width: 280px; z-index: 107000;" aria-labelledby="dropdownLeyendaColores">
+                                    <h6 class="text-navy small mb-2.5 d-flex align-items-center gap-1.5 fw-bold" style="letter-spacing: 0.25px;">
                                         <i class="bi bi-info-circle" style="color: var(--md-teal-clinical, #19B7A5);"></i> Estados de Renta de Espacio
                                     </h6>
                                     <div class="d-flex flex-column gap-2 small">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #991B1B;"></span>
-                                            <span class="text-dark">Reservada</span>
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #991B1B;"></span>
+                                            <span class="text-dark fw-medium">Reservada</span>
                                             <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Rojo oscuro</span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #EAB308;"></span>
-                                            <span class="text-dark">Confirmada</span>
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #EAB308;"></span>
+                                            <span class="text-dark fw-medium">Confirmada</span>
                                             <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Amarillo</span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #059669;"></span>
-                                            <span class="text-dark">En Uso</span>
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #059669;"></span>
+                                            <span class="text-dark fw-medium">En Uso</span>
                                             <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Verde actual</span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #064E3B;"></span>
-                                            <span class="text-dark">Finalizada</span>
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #064E3B;"></span>
+                                            <span class="text-dark fw-medium">Finalizada</span>
                                             <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Verde muy oscuro</span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #0284C7;"></span>
-                                            <span class="text-dark">Ocupado (Pacientes)</span>
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #0284C7;"></span>
+                                            <span class="text-dark fw-medium">Ocupado (Pacientes)</span>
                                             <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Azul Health</span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #64748B;"></span>
-                                            <span class="text-dark text-decoration-line-through">No realizada</span>
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #64748B;"></span>
+                                            <span class="text-dark text-decoration-line-through fw-medium">No realizada</span>
                                             <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Tachada</span>
                                         </div>
                                     </div>
@@ -397,20 +421,20 @@ print <<HTML;
                             </div>
 
                             <!-- Toggle Mini Calendario Lateral -->
-                            <button type="button" class="tier2-direct-select-btn d-none d-lg-inline-flex justify-content-center" id="btn-toggle-side-cal" onclick="toggleSideCalendar()" style="width: 36px; padding: 0;" title="Mostrar/Ocultar Minicalendario Lateral">
-                                <i class="bi bi-layout-sidebar-inset text-teal"></i>
+                            <button type="button" class="tier2-icon-circle-btn d-none d-lg-inline-flex" id="btn-toggle-side-cal" onclick="toggleSideCalendar()" title="Mostrar/Ocultar Minicalendario Lateral">
+                                <i class="bi bi-layout-sidebar-inset text-teal" style="font-size: 0.95rem;"></i>
                             </button>
                         </div>
                     </div>
 
                     <!-- Navegación de Fecha para Móvil (< 768px) -->
                     <div class="d-flex d-md-none justify-content-center pt-2">
-                        <div class="d-flex align-items-center justify-content-between date-nav-pill w-100 mx-0">
-                            <button onclick="moveDate(-1)" class="btn btn-link text-navy p-1.5"><i class="bi bi-chevron-left"></i></button>
-                            <h1 class="h6 mb-0 text-navy text-uppercase tracking-tight mx-2" id="current-date-label-mobile" style="text-align: center; font-size: 0.80rem;">
+                        <div class="d-flex align-items-center justify-content-between tier2-date-nav w-100 mx-0">
+                            <button onclick="moveDate(-1)" class="tier2-date-chevron"><i class="bi bi-chevron-left"></i></button>
+                            <h1 class="h6 mb-0 text-navy text-uppercase tracking-tight mx-2 tier2-date-label" id="current-date-label-mobile" style="text-align: center; font-size: 0.80rem;">
                                 CARGANDO...
                             </h1>
-                            <button onclick="moveDate(1)" class="btn btn-link text-navy p-1.5"><i class="bi bi-chevron-right"></i></button>
+                            <button onclick="moveDate(1)" class="tier2-date-chevron"><i class="bi bi-chevron-right"></i></button>
                         </div>
                     </div>
                 </div>

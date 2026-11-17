@@ -1325,8 +1325,9 @@ body.agenda-page-layout .main-container-agenda {
     overflow: hidden !important;
 }
 
-body.agenda-page-layout .agenda-header {
-    z-index: 1050 !important;
+body.agenda-page-layout .agenda-header,
+body.agenda-page-layout .agenda-header-two-tier {
+    z-index: 1060 !important;
     flex-shrink: 0 !important;
     position: relative !important;
     top: 0 !important;
