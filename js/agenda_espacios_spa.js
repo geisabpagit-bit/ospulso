@@ -63,91 +63,91 @@ function normalizarTextoEspacio(txt) {
 const ESTADOS_CITAS_CONFIG = {
     'reservada': {
         clave: 'Reservada',
-        color: '#0A2A66',
-        bgCard: '#f0f4f8',
-        textColor: '#0A2A66',
-        badgeClass: 'bg-navy text-white',
-        border: '#0A2A66'
+        color: '#991B1B',
+        bgCard: '#FEF2F2',
+        textColor: '#991B1B',
+        badgeClass: 'bg-danger text-white',
+        border: '#991B1B'
     },
     'programada': {
         clave: 'Reservada',
-        color: '#0A2A66',
-        bgCard: '#f0f4f8',
-        textColor: '#0A2A66',
-        badgeClass: 'bg-navy text-white',
-        border: '#0A2A66'
+        color: '#991B1B',
+        bgCard: '#FEF2F2',
+        textColor: '#991B1B',
+        badgeClass: 'bg-danger text-white',
+        border: '#991B1B'
     },
     'confirmada': {
         clave: 'Confirmada',
-        color: '#10b981',
-        bgCard: '#ecfdf5',
-        textColor: '#065f46',
-        badgeClass: 'bg-success text-white',
-        border: '#10b981'
+        color: '#EAB308',
+        bgCard: '#FEF9C3',
+        textColor: '#854D0E',
+        badgeClass: 'bg-warning text-dark',
+        border: '#EAB308'
     },
     'en uso': {
         clave: 'En Uso',
         color: '#059669',
-        bgCard: '#dcfce7',
+        bgCard: '#DCFCE7',
         textColor: '#166534',
-        badgeClass: 'bg-teal text-white',
-        border: '#86efac'
+        badgeClass: 'bg-success text-white',
+        border: '#059669'
     },
     'en consulta': {
         clave: 'En Uso',
         color: '#059669',
-        bgCard: '#dcfce7',
+        bgCard: '#DCFCE7',
         textColor: '#166534',
-        badgeClass: 'bg-teal text-white',
-        border: '#86efac'
+        badgeClass: 'bg-success text-white',
+        border: '#059669'
     },
     'consulta en proceso': {
         clave: 'En Uso',
         color: '#059669',
-        bgCard: '#dcfce7',
+        bgCard: '#DCFCE7',
         textColor: '#166534',
-        badgeClass: 'bg-teal text-white',
-        border: '#86efac'
+        badgeClass: 'bg-success text-white',
+        border: '#059669'
     },
     'finalizada': {
         clave: 'Finalizada',
-        color: '#19B7A5',
-        bgCard: '#e6fffa',
-        textColor: '#0d7468',
-        badgeClass: 'bg-teal text-white',
-        border: '#19B7A5'
+        color: '#064E3B',
+        bgCard: '#D1FAE5',
+        textColor: '#064E3B',
+        badgeClass: 'bg-dark text-white',
+        border: '#064E3B'
     },
     'atendida': {
         clave: 'Finalizada',
-        color: '#19B7A5',
-        bgCard: '#e6fffa',
-        textColor: '#0d7468',
-        badgeClass: 'bg-teal text-white',
-        border: '#19B7A5'
+        color: '#064E3B',
+        bgCard: '#D1FAE5',
+        textColor: '#064E3B',
+        badgeClass: 'bg-dark text-white',
+        border: '#064E3B'
     },
     'ocupado (pacientes)': {
         clave: 'Ocupado (Pacientes)',
-        color: '#64748b',
-        bgCard: '#f1f5f9',
-        textColor: '#334155',
-        badgeClass: 'bg-secondary text-white',
-        border: '#94a3b8'
+        color: '#0284C7',
+        bgCard: '#E0F2FE',
+        textColor: '#0369A1',
+        badgeClass: 'bg-info text-white',
+        border: '#0284C7'
     },
     'no realizada': {
         clave: 'No realizada',
-        color: '#ef4444',
-        bgCard: '#fff5f5',
-        textColor: '#991b1b',
-        badgeClass: 'bg-danger text-white badge-no-realizada',
-        border: '#fecaca'
+        color: '#64748B',
+        bgCard: '#F1F5F9',
+        textColor: '#475569',
+        badgeClass: 'bg-secondary text-white text-decoration-line-through badge-no-realizada',
+        border: '#94A3B8'
     },
     'cancelada': {
         clave: 'Cancelada',
-        color: '#dc2626',
-        bgCard: '#fee2e2',
-        textColor: '#991b1b',
-        badgeClass: 'bg-danger text-white',
-        border: '#fca5a5'
+        color: '#DC2626',
+        bgCard: '#FEE2E2',
+        textColor: '#991B1B',
+        badgeClass: 'bg-danger text-white text-decoration-line-through',
+        border: '#FCA5A5'
     }
 };
 
@@ -505,12 +505,12 @@ function renderSmartSlots(date) {
                         `;
                     } else if (esAtendida) {
                         slotClass = 'slot-busy slot-atendida';
-                        slotStyle += ' background-color: #e6fffa !important; border-color: #19B7A5 !important; color: #0d7468 !important;';
-                        slotTitle = `Cita Atendida: ${aptInSlot.title}`;
+                        slotStyle += ' background-color: #D1FAE5 !important; border-color: #064E3B !important; color: #064E3B !important;';
+                        slotTitle = `Renta Finalizada: ${aptInSlot.title}`;
                         slotContent = `
                             <div class="d-flex align-items-center justify-content-between w-100">
                                 <span class="fw-bold">${aHi !== hhmmF ? `${aHi}-${aHf}` : hhmm}</span>
-                                <span class="badge bg-teal text-white" style="font-size:0.55rem;">ATENDIDA</span>
+                                <span class="badge text-white" style="font-size:0.55rem; background-color:#064E3B !important;">FINALIZADA</span>
                             </div>
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
@@ -520,7 +520,7 @@ function renderSmartSlots(date) {
                     } else if (esCancelada) {
                         slotClass = 'slot-busy slot-cancelada opacity-50';
                         slotStyle += ' background-color: #fee2e2 !important; border-color: #fca5a5 !important; text-decoration: line-through;';
-                        slotTitle = `Cita Cancelada: ${aptInSlot.title}`;
+                        slotTitle = `Reserva Cancelada: ${aptInSlot.title}`;
                         slotContent = `
                             <div class="d-flex align-items-center justify-content-between w-100">
                                 <span>${hhmm}</span>
@@ -529,38 +529,47 @@ function renderSmartSlots(date) {
                             <span class="d-block text-truncate mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
                         `;
                     } else if (esNoRealizada) {
-                        // Cita en el pasado no realizada: habilitar Tomar Cita y Re-agendar
                         slotClass = 'slot-busy slot-no-realizada';
-                        slotStyle += ' background-color: #fff5f5 !important; border: 1.5px solid #ef4444 !important; color: #991b1b !important;';
-                        slotTitle = `Cita No Realizada: ${aptInSlot.title}`;
+                        slotStyle += ' background-color: #F1F5F9 !important; border: 1.5px solid #94A3B8 !important; color: #475569 !important; text-decoration: line-through;';
+                        slotTitle = `No Realizada (Tachada): ${aptInSlot.title}`;
                         slotContent = `
                             <div class="d-flex align-items-center justify-content-between w-100">
-                                <span class="fw-bold text-danger">${aHi !== hhmmF ? `${aHi}-${aHf}` : hhmm}</span>
-                                <span class="badge bg-danger text-white" style="font-size:0.55rem;">NO REALIZADA</span>
+                                <span class="fw-bold text-secondary text-decoration-line-through">${aHi !== hhmmF ? `${aHi}-${aHf}` : hhmm}</span>
+                                <span class="badge bg-secondary text-white text-decoration-line-through" style="font-size:0.55rem;">NO REALIZADA</span>
                             </div>
-                            <span class="d-block text-truncate fw-bold mt-1 text-dark" style="font-size:0.68rem;">${aptInSlot.title}</span>
+                            <span class="d-block text-truncate fw-bold mt-1 text-secondary text-decoration-line-through" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
-                                <button type="button" class="btn btn-sm btn-success text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${aptInSlot.id}', '${aptInSlot.extendedProps?.id_paciente}')" title="Tomar Cita Ahora"><i class="bi bi-play-fill"></i> Tomar</button>
                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}')" title="Re-agendar"><i class="bi bi-pencil-square"></i></button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${aptInSlot.id}')" title="Ver Detalle Rápido"><i class="bi bi-eye"></i></button>
                             </div>
                         `;
+                    } else if (res.esBloqueoPacientes || aptInSlot.extendedProps?.es_bloqueo_pacientes) {
+                        slotClass = 'slot-busy';
+                        slotStyle += ' background-color: #E0F2FE !important; border: 1.5px solid #0284C7 !important; color: #0369A1 !important;';
+                        slotTitle = `Ocupado (Pacientes): ${aptInSlot.title}`;
+                        slotContent = `
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <span class="fw-bold">${aHi !== hhmmF ? `${aHi}-${aHf}` : hhmm}</span>
+                                <span class="badge text-white" style="font-size:0.55rem; background-color:#0284C7 !important;">PACIENTES</span>
+                            </div>
+                            <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
+                        `;
                     } else {
-                        // Cita programada / confirmada / sala de espera (presente o futura)
-                        const bgProg = (stLow.includes('sala de espera')) ? '#fef3c7' : '#e0f2fe';
-                        const borderProg = (stLow.includes('sala de espera')) ? '#f59e0b' : '#38bdf8';
-                        const textProg = (stLow.includes('sala de espera')) ? '#92400e' : '#0369a1';
+                        const esConf = stLow.includes('confirmada');
+                        const bgProg = esConf ? '#FEF9C3' : '#FEF2F2';
+                        const borderProg = esConf ? '#EAB308' : '#991B1B';
+                        const textProg = esConf ? '#854D0E' : '#991B1B';
+                        const badgeBg = esConf ? 'background-color:#EAB308 !important; color:#1e293b !important;' : 'background-color:#991B1B !important; color:#ffffff !important;';
                         slotClass = 'slot-busy';
                         slotStyle += ` background-color: ${bgProg} !important; border: 1.5px solid ${borderProg} !important; color: ${textProg} !important;`;
                         slotTitle = `${st}: ${aptInSlot.title}`;
                         slotContent = `
                             <div class="d-flex align-items-center justify-content-between w-100">
                                 <span class="fw-bold">${aHi !== hhmmF ? `${aHi}-${aHf}` : hhmm}</span>
-                                <span class="badge bg-primary text-white" style="font-size:0.55rem;">${st.toUpperCase()}</span>
+                                <span class="badge" style="font-size:0.55rem; ${badgeBg}">${st.toUpperCase()}</span>
                             </div>
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
-                                <button type="button" class="btn btn-sm btn-success text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem;" onclick="event.stopPropagation(); window.tomarCitaDirecto('${aptInSlot.id}', '${aptInSlot.extendedProps?.id_paciente}')" title="Tomar Cita"><i class="bi bi-play-fill"></i> Tomar</button>
                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}')" title="Editar / Re-agendar"><i class="bi bi-pencil-square"></i></button>
                             </div>
                         `;
@@ -1641,26 +1650,27 @@ window.openAppointmentQuickDetail = function(id) {
     const dotEl = $('#quickModalDot');
     const estatusEl = $('#quickModalEstatus');
 
-    let bgHeader = '#0A2A66';
-    let dotColor = '#19B7A5';
+    let bgHeader = '#991B1B';
+    let dotColor = '#FCA5A5';
 
-    if (res.esEnConsulta) {
-        bgHeader = '#16a34a'; dotColor = '#86efac';
-    } else if (stLow.includes('sala de espera')) {
-        bgHeader = '#d97706'; dotColor = '#fde68a';
+    if (res.esBloqueoPacientes || a.extendedProps.es_bloqueo_pacientes) {
+        bgHeader = '#0284C7'; dotColor = '#BAE6FD';
+    } else if (res.esEnConsulta) {
+        bgHeader = '#059669'; dotColor = '#86EFAC';
     } else if (res.esAtendida) {
-        bgHeader = '#0d9488'; dotColor = '#5eead4';
+        bgHeader = '#064E3B'; dotColor = '#6EE7B7';
     } else if (res.esNoRealizada) {
-        bgHeader = '#dc2626'; dotColor = '#fca5a5';
+        bgHeader = '#64748B'; dotColor = '#CBD5E1';
     } else if (stLow.includes('confirmada')) {
-        bgHeader = '#2563eb'; dotColor = '#93c5fd';
+        bgHeader = '#CA8A04'; dotColor = '#FEF08A';
     } else if (stLow.includes('cancelada')) {
-        bgHeader = '#475569'; dotColor = '#cbd5e1';
+        bgHeader = '#475569'; dotColor = '#CBD5E1';
     }
 
     headerEl.css('background-color', bgHeader);
     dotEl.css('background-color', dotColor);
-    estatusEl.text(res.clave || status.toUpperCase());
+    estatusEl.text(res.clave || status.toUpperCase())
+             .css('text-decoration', (res.esNoRealizada || stLow.includes('cancelada')) ? 'line-through' : 'none');
 
     // 2. Nombre del Arrendatario y Folio
     const pacNom = a.title || a.extendedProps.nombre_arrendatario || a.extendedProps.paciente || 'Arrendatario';
@@ -1834,7 +1844,7 @@ window.cambiarEstadoRentaRapido = function(idRenta, nuevoEstado) {
     }, 'json');
 };
 
-// Generador de Tarjeta Matriz para Cita
+// Generador de Tarjeta Matriz para Reserva de Espacio
 function renderMatrixAptCard(a, interval, maxSlots = 1) {
     const startH = a.start.split('T')[1].substring(0, 5);
     const endH = a.end.split('T')[1].substring(0, 5);
@@ -1844,25 +1854,31 @@ function renderMatrixAptCard(a, interval, maxSlots = 1) {
     const stLow = status.toLowerCase();
 
     let statusClass = 'status-programada';
-    let statusBg = '#0A2A66';
-    if (res.esEnConsulta) {
+    let statusBg = '#991B1B';
+    let statusTextCol = '#ffffff';
+    let cardCustomStyle = `border-left: 4px solid ${res.color} !important; background-color: ${res.bgCard} !important;`;
+    let textStrikeStyle = '';
+
+    if (res.esBloqueoPacientes || a.extendedProps.es_bloqueo_pacientes) {
+        statusBg = '#0284C7';
+    } else if (res.esEnConsulta) {
         statusClass = 'status-en-consulta';
-        statusBg = '#16a34a';
-    } else if (stLow.includes('sala de espera')) {
-        statusClass = 'status-sala-espera';
-        statusBg = '#d97706';
+        statusBg = '#059669';
     } else if (res.esAtendida) {
         statusClass = 'status-atendida';
-        statusBg = '#19B7A5';
+        statusBg = '#064E3B';
     } else if (res.esNoRealizada) {
         statusClass = 'status-no-realizada';
-        statusBg = '#dc2626';
+        statusBg = '#64748B';
+        textStrikeStyle = 'text-decoration: line-through;';
     } else if (stLow.includes('confirmada')) {
         statusClass = 'status-confirmada';
-        statusBg = '#2563eb';
+        statusBg = '#EAB308';
+        statusTextCol = '#1e293b';
     } else if (stLow.includes('cancelada')) {
         statusClass = 'status-cancelada';
         statusBg = '#64748b';
+        textStrikeStyle = 'text-decoration: line-through;';
     }
 
     const pagado = a.extendedProps.pagado === 1 || a.extendedProps.pagado === '1' || a.extendedProps.pagado === true;
@@ -1872,26 +1888,26 @@ function renderMatrixAptCard(a, interval, maxSlots = 1) {
 
     return `
         <div class="dia-matrix-apt-card ${statusClass} animate__animated animate__fadeIn"
-             style="${cardHeightStyle}"
+             style="${cardHeightStyle} ${cardCustomStyle}"
              onclick="event.stopPropagation(); openAppointmentQuickDetail('${a.id}')"
              title="Clic para inspección rápida">
             <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="apt-time-badge">
+                <span class="apt-time-badge" style="${textStrikeStyle}">
                     <i class="bi bi-clock me-1"></i>${startH} - ${endH}
                 </span>
-                <span class="badge rounded-pill px-2 py-0.5 text-uppercase fw-bold" style="font-size:0.62rem; background:${statusBg}; color:#fff;">
+                <span class="badge rounded-pill px-2 py-0.5 text-uppercase fw-bold" style="font-size:0.62rem; background:${statusBg}; color:${statusTextCol}; ${textStrikeStyle}">
                     ${status}
                 </span>
             </div>
-            <div class="apt-patient-name text-truncate" title="${a.title}">
+            <div class="apt-patient-name text-truncate" style="${textStrikeStyle}" title="${a.title}">
                 <i class="bi bi-person-fill me-1 opacity-75"></i>${a.title}
             </div>
-            <div class="apt-motif text-truncate" title="${a.extendedProps.motivo || 'Consulta'}">
-                ${a.extendedProps.motivo || 'Consulta Médica'}
+            <div class="apt-motif text-truncate" style="${textStrikeStyle}" title="${a.extendedProps.motivo || 'Renta de Espacio'}">
+                ${a.extendedProps.motivo || 'Renta de Espacio'}
             </div>
             <div class="d-flex align-items-center justify-content-between mt-auto pt-1 border-top border-light-subtle" style="font-size:0.68rem;">
                 <span class="text-secondary text-truncate" style="max-width: 75%;">
-                    <i class="bi bi-person-badge me-0.5 opacity-75"></i>${a.extendedProps.medico || a.extendedProps.doctor || 'Médico'}
+                    <i class="bi bi-door-open me-0.5 opacity-75"></i>${a.extendedProps.espacio || a.extendedProps.consultorio || 'Espacio'}
                 </span>
                 ${pagado ? '<i class="bi bi-check-circle-fill text-success" title="Pagado"></i>' : '<i class="bi bi-clock-history text-warning" title="Pendiente de pago"></i>'}
             </div>
@@ -2623,9 +2639,9 @@ function renderGrid() {
                     return `
                     <div class="mini-apt-pro d-flex justify-content-between align-items-center mb-1 ${a.id == manualDragId ? 'is-dragging-manual':''} ${isPast ? 'is-past-apt':''}" 
                          onclick="event.stopPropagation(); ${itemClick}"
-                         style="background:${bgColor} !important; color:${textColor} !important; ${res.esCancelada ? 'text-decoration:line-through; opacity:0.6;' : ''} cursor:pointer; border-radius:6px; padding:2px 6px;"
+                         style="background:${bgColor} !important; color:${st.toLowerCase().includes('confirmada') ? '#1e293b' : textColor} !important; ${(res.esCancelada || res.esNoRealizada) ? 'text-decoration:line-through; opacity:0.85;' : ''} cursor:pointer; border-radius:6px; padding:2px 6px;"
                          title="Estado: ${st} | ${a.title} (${aHi} - ${aHf})">
-                        <span class="text-truncate fw-bold" style="font-size:0.62rem;">${aHi} ${a.title.split(' ')[0]}</span>
+                        <span class="text-truncate fw-bold ${(res.esCancelada || res.esNoRealizada) ? 'text-decoration-line-through' : ''}" style="font-size:0.62rem;">${aHi} ${a.title.split(' ')[0]}</span>
                         <div class="d-flex gap-1 align-items-center">
                             ${actionIcons}
                         </div>
@@ -2710,17 +2726,20 @@ function renderMobileDayList() {
         const status = res.clave;
         const color = res.color;
         
+        const strikeMobile = (res.esNoRealizada || res.esCancelada) ? 'text-decoration: line-through; opacity: 0.78;' : '';
+        const badgeTextColor = (status === 'confirmada' || status === 'confirmado' || status === 'pagada') ? '#854D0E' : color;
+        
         const card = $(`
-            <div class="mob-apt-card" style="border-left-color: ${color}" onclick="openAppointmentQuickDetail('${a.id}')">
+            <div class="mob-apt-card" style="border-left-color: ${color}; ${strikeMobile}" onclick="openAppointmentQuickDetail('${a.id}')">
                 <div class="mob-apt-time-box">
                     <span class="mob-apt-time-start">${hi}</span>
                     <span class="mob-apt-time-end">${hf}</span>
                 </div>
                 <div class="mob-apt-details">
-                    <div class="mob-apt-paciente">${a.title}</div>
+                    <div class="mob-apt-paciente" style="${strikeMobile}">${a.title}</div>
                     <div class="mob-apt-motivo">${a.extendedProps.motivo || 'Sin motivo'}</div>
                     <div class="mt-2">
-                        <span class="badge rounded-pill" style="background:${color}20; color:${color}; font-size:0.6rem; border:1px solid ${color}40">
+                        <span class="badge rounded-pill" style="background:${color}20; color:${badgeTextColor}; font-size:0.6rem; border:1px solid ${color}40; ${strikeMobile}">
                             ${status.toUpperCase()}
                         </span>
                     </div>
@@ -3116,23 +3135,33 @@ function renderSlots(date) {
     const laborStartMin = s * 60;
     const laborEndMin = e * 60;
 
-    // Si es "Todo el día", verificamos colisión global estricta
+    // Si es "Todo el día", verificamos colisión global estricta y que esté en horario futuro
     if (duracionCita === 'all') {
-        const hhmmS = agendaConfig.laborStart || '09:00';
+        let hhmmS = agendaConfig.laborStart || '09:00';
         const hhmmE = agendaConfig.laborEnd || '20:00';
+        if (!isFuture(date, hhmmS)) {
+            const now = new Date();
+            if (date === getISO(now)) {
+                let nextMin = now.getHours() * 60 + (now.getMinutes() < 30 ? 30 : 60);
+                const hN = Math.floor(nextMin / 60).toString().padStart(2, '0');
+                const mN = (nextMin % 60).toString().padStart(2, '0');
+                hhmmS = (nextMin >= 1440) ? '23:59' : `${hN}:${mN}`;
+            }
+        }
+        const isPastDay = !isFuture(date, hhmmS) || hhmmS >= hhmmE;
         
-        // Bloqueo total si existe CUALQUIER cita en el día para este médico o recurso
-        const isB = dayApps.length > 0;
+        // Bloqueo total si existe CUALQUIER cita en el día para este médico o recurso o si ya pasó el horario
+        const isB = dayApps.length > 0 || isPastDay;
 
         if (!isB) {
-            const btn = $(`<button type="button" class="btn btn-slot btn-slot-full w-100 py-3 mb-2 fw-medium animate__animated animate__fadeIn">TODO EL DÍA (${hhmmS} - ${hhmmE})</button>`);
+            const btn = $(`<button type="button" class="btn btn-slot btn-slot-full w-100 py-3 mb-2 fw-medium animate__animated animate__fadeIn">JORNADA DISPONIBLE (${hhmmS} - ${hhmmE})</button>`);
             btn.click(function() {
                 $(".btn-slot").removeClass("active dur-avena-slot");
                 $(this).addClass("active dur-avena-slot");
                 $("#f_hi").val(hhmmS);
                 $("#f_hf").val(hhmmE);
                 const accion = $("#f_accion").val();
-                const lbl = (accion === 'update') ? 'GESTIÓN DE CITAS / EDITAR CITA' : 'GESTIÓN DE CITAS / NUEVA CITA';
+                const lbl = (accion === 'update') ? 'RESERVA DE ESPACIO / EDITAR RESERVA' : 'RESERVA DE ESPACIO / NUEVO ARRENDAMIENTO';
                 actualizarResaltadoModalCita($("#f_fecha").val(), hhmmS, hhmmE, lbl);
             });
             cont.append(btn);
@@ -3196,8 +3225,12 @@ function renderSlots(date) {
             hhmmE = (tM >= 1440) ? '23:59' : `${hE}:${mE}`;
         }
         
-        // Verificamos si el slot está en el pasado
+        // Verificamos si el slot está en el pasado: en Renta de Espacios NO se renderizan los recuadros anteriores a la hora actual
+        const isCurrentSlot = ($("#f_hi").val() === hhmm);
         const isP = !isFuture(date, hhmm);
+        if (isP && !isCurrentSlot) {
+            continue;
+        }
         let isL = false;
         if (ls && le && ls !== le) {
             isL = (hhmm < le && hhmmE > ls);
@@ -3265,12 +3298,26 @@ function renderSlots(date) {
                     $("#f_hi").val(hhmm); 
                     $("#f_hf").val(hhmmE); 
                     const accion = $("#f_accion").val();
-                    const lbl = (accion === 'update') ? 'GESTIÓN DE CITAS / EDITAR CITA' : 'GESTIÓN DE CITAS / NUEVA CITA';
+                    const lbl = (accion === 'update') ? 'RESERVA DE ESPACIO / EDITAR RESERVA' : 'RESERVA DE ESPACIO / NUEVO ARRENDAMIENTO';
                     actualizarResaltadoModalCita($("#f_fecha").val(), hhmm, hhmmE, lbl);
                 });
             }
 
             cont.append(btn);
+    }
+
+    if (cont.children().length === 0) {
+        cont.append(`
+            <div class="slot-alert-banner slot-alert-banner-warning mb-2 animate__animated animate__fadeIn">
+                <div class="d-flex align-items-center justify-content-center gap-1.5 fw-semibold mb-1" style="font-size: 0.82rem; color: #b45309;">
+                    <i class="bi bi-clock-history text-warning"></i> SIN HORARIOS FUTUROS DISPONIBLES HOY
+                </div>
+                <div style="font-size: 0.76rem; line-height: 1.45; color: #78350f;">
+                    Los bloques de tiempo para esta fecha y duración ya han transcurrido. Seleccione una duración menor o elija una fecha posterior.
+                </div>
+            </div>
+        `);
+        return;
     }
 
     // Si en 'rest' no hubo ningún slot viable en todo el día, anteponer banner explicativo
@@ -3778,10 +3825,14 @@ function renderTable(type) {
         const h = a.start.split('T')[1].substring(0, 5);
         const hFin = (a.end && a.end.includes('T')) ? a.end.split('T')[1].substring(0, 5) : '';
         const hDisplay = hFin ? `${h} - ${hFin}` : h;
-        const st = a.extendedProps?.estado || 'Programada';
-        const esProc = st.toLowerCase().includes('consulta') || st.toLowerCase().includes('proceso');
-        const stBadgeCls = (st==='Atendida'||st==='atendida') ? 'bg-teal text-white' : (esProc ? 'bg-teal text-white' : (st==='En Sala de Espera' ? 'bg-warning text-dark' : (st==='No realizada'||st==='Cancelada' ? 'bg-danger text-white' : 'bg-primary text-white')));
-        const stBadgeStyle = (st==='Atendida'||st==='atendida') ? 'background-color: #19B7A5 !important;' : (esProc ? 'background-color: #059669 !important;' : '');
+        const st = a.extendedProps?.estado || 'Reservada';
+        const resSt = resolverEstadoCita(st, f, hFin);
+        const stKey = resSt.clave;
+        let stBadgeStyle = `background-color: ${resSt.color} !important; color: ${stKey.toLowerCase().includes('confirmada') ? '#1e293b' : '#ffffff'} !important;`;
+        if (resSt.esNoRealizada || resSt.esCancelada) {
+            stBadgeStyle += ' text-decoration: line-through;';
+        }
+        const stBadgeCls = (resSt.esNoRealizada || resSt.esCancelada) ? 'text-decoration-line-through' : '';
 
         let mNom = a.extendedProps?.medico || a.extendedProps?.doctor || '';
         if (!mNom || mNom === 'Profesional Asignado') {

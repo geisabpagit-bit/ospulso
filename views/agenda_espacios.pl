@@ -342,34 +342,34 @@ print <<HTML;
                                 </h6>
                                 <div class="d-flex flex-column gap-2 small">
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #0A2A66;"></span>
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #991B1B;"></span>
                                         <span class="fw-medium text-dark">Reservada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Apartada</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Rojo oscuro</span>
                                     </div>
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #10b981;"></span>
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #EAB308;"></span>
                                         <span class="fw-medium text-dark">Confirmada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Confirmada / Pagada</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Amarillo</span>
                                     </div>
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #059669;"></span>
                                         <span class="fw-medium text-dark">En Uso</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Ocupación activa</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Verde actual</span>
                                     </div>
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #19B7A5;"></span>
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #064E3B;"></span>
                                         <span class="fw-medium text-dark">Finalizada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Entregado</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Verde muy oscuro</span>
                                     </div>
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #64748b;"></span>
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #0284C7;"></span>
                                         <span class="fw-medium text-dark">Ocupado (Pacientes)</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Bloqueo clínico</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Azul Health</span>
                                     </div>
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #ef4444;"></span>
-                                        <span class="fw-medium text-dark">No realizada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Expirada</span>
+                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #64748B;"></span>
+                                        <span class="fw-medium text-dark text-decoration-line-through">No realizada</span>
+                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Tachada</span>
                                     </div>
                                 </div>
                             </div>

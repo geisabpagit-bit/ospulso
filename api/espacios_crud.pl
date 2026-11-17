@@ -706,11 +706,10 @@ sub enviar_eventos_oficial {
         }
 
         my $es_pagado = ($r->{pagado} eq '1' || $r->{estado} =~ /^(Finalizada|Atendida|Confirmada \(Pagada\))$/i) ? 1 : 0;
-        my $color = ($r->{estado} eq 'No realizada') ? '#ef4444' :
+        my $color = ($r->{estado} eq 'No realizada') ? '#64748B' :
                     ($r->{estado} =~ /^(En Uso|En consulta|Consulta en proceso)$/i) ? '#059669' :
-                    ($r->{estado} =~ /^(Finalizada|Atendida)$/i) ? '#19B7A5' :
-                    ($r->{estado} =~ /^Confirmada/i) ? '#10b981' :
-                    (($r->{espacio} && $r->{espacio} =~ /quir/i) ? '#dc3545' : '#0A2A66');
+                    ($r->{estado} =~ /^(Finalizada|Atendida)$/i) ? '#064E3B' :
+                    ($r->{estado} =~ /^Confirmada/i) ? '#EAB308' : '#991B1B';
 
         push @eventos, {
             id => $r->{id_renta},
@@ -775,7 +774,7 @@ sub enviar_eventos_oficial {
                 title => "Ocupado (Cita: $nom_med)",
                 start => "${c_fec}T${c_hi}:00",
                 end   => "${c_fec}T${c_hf}:00",
-                color => '#64748b',
+                color => '#0284C7',
                 extendedProps => {
                     es_renta              => 0,
                     es_bloqueo_pacientes  => 1,

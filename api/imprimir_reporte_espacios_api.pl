@@ -401,22 +401,34 @@ if (@rentas_filtradas == 0) {
     foreach my $r (@rentas_filtradas) {
         my $h_disp = ($r->{hora_fin}) ? "$r->{hora_ini} - $r->{hora_fin}" : $r->{hora_ini};
         my $st = $r->{estado};
-        my $badge_cls = ($st =~ /^(Finalizada|Atendida)$/i) ? 'bg-success text-white' :
-                        ($st =~ /^(En Uso)$/i) ? 'bg-info text-white' : 'bg-primary text-white';
+        my $badge_style = 'background-color: #991B1B; color: #ffffff;';
+        my $row_strike = '';
+        if ($st =~ /^(Confirmada|Pagada)$/i) {
+            $badge_style = 'background-color: #EAB308; color: #1E293B; border: 1px solid #CA8A04;';
+        } elsif ($st =~ /^(En Uso|En consulta|Consulta en proceso)$/i) {
+            $badge_style = 'background-color: #059669; color: #ffffff;';
+        } elsif ($st =~ /^(Finalizada|Atendida)$/i) {
+            $badge_style = 'background-color: #064E3B; color: #ffffff;';
+        } elsif ($st =~ /^(Ocupado|Ocupada)/i) {
+            $badge_style = 'background-color: #0284C7; color: #ffffff;';
+        } elsif ($st =~ /^(No realizada|Cancelada|Vencida)$/i) {
+            $badge_style = 'background-color: #64748B; color: #ffffff; text-decoration: line-through;';
+            $row_strike  = 'text-decoration: line-through; opacity: 0.78;';
+        }
 
         print qq{
-            <tr>
+            <tr style="$row_strike">
                 <td class="fw-bold text-nowrap px-3">$r->{fecha}</td>
                 <td class="text-nowrap px-2"><span class="badge bg-light text-dark border px-2 py-1">$h_disp</span></td>
                 <td class="px-3">
-                    <strong style="color: var(--md-blue-deep);">$r->{paciente}</strong>
+                    <strong style="color: var(--md-blue-deep); $row_strike">$r->{paciente}</strong>
                     <small class="text-muted d-block" style="font-size:0.75rem;">$r->{id}</small>
                 </td>
                 <td class="text-muted px-2" style="max-width: 180px;">$r->{motivo}</td>
                 <td class="fw-bold text-success px-2">\$$r->{monto}</td>
                 <td class="px-2"><span class="badge bg-light text-secondary border px-2 py-1">$r->{espacio}</span></td>
                 <td class="text-center px-2">
-                    <span class="badge $badge_cls px-2 py-1" style="font-size: 0.72rem;">\U$st</span>
+                    <span class="badge px-2.5 py-1" style="font-size: 0.72rem; $badge_style">\U$st</span>
                 </td>
             </tr>
         };
