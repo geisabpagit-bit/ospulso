@@ -4083,24 +4083,52 @@ function cambiarAmbitoAjustes(tipo) {
 window.onSliderIntervaloChange = function(stepVal) {
     const mapSteps = { '0': 15, '1': 30, '2': 60 };
     const minutos = mapSteps[String(stepVal)] || 30;
-    window.setIntervaloPorValor(minutos, false);
+    window.updateIntervalModal(minutos);
 };
 
 window.setIntervaloPorValor = function(minutos, moveSlider = true) {
-    const minNum = parseInt(minutos, 10) || 30;
-    const validMin = (minNum <= 15) ? 15 : (minNum >= 60 ? 60 : 30);
-    $("#adj_int").val(String(validMin));
-    $("#lbl_adj_int_badge").text(`${validMin} minutos`);
-
-    $("#mark_int_15, #mark_int_30, #mark_int_60").removeClass('active-mark');
-    $(`#mark_int_${validMin}`).addClass('active-mark');
-
-    if (moveSlider) {
-        const stepIdx = (validMin === 15) ? 0 : (validMin === 60 ? 2 : 1);
-        $("#slider_adj_int").val(stepIdx);
-    }
+    window.updateIntervalModal(minutos);
 };
 
+window.updateIntervalModal = function(val) {
+    val = parseInt(val, 10) || 30;
+    const validVal = (val <= 20) ? 15 : (val >= 45 ? 60 : 30);
+    $("#badgeIntervalo, #lbl_adj_int_badge").text(`${validVal} minutos`);
+    $("#sliderInterval").val(validVal);
+    $("#adj_int").val(String(validVal));
+    $(`#int${validVal}`).prop('checked', true);
+
+    const stepIdx = (validVal === 15) ? 0 : (validVal === 60 ? 2 : 1);
+    $("#slider_adj_int").val(stepIdx);
+    $("#mark_int_15, #mark_int_30, #mark_int_60").removeClass('active-mark');
+    $(`#mark_int_${validVal}`).addClass('active-mark');
+};
+
+window.handleSliderIntervalModal = function(val) {
+    val = parseInt(val, 10) || 30;
+    let target = 30;
+    if (val <= 22) target = 15;
+    else if (val <= 45) target = 30;
+    else target = 60;
+    window.updateIntervalModal(target);
+};
+
+/* --- CONTROLADORES DE DÍAS HÁBILES (PÍLDORAS TÁCTILES) --- */
+window.toggleDiaPill = function(btn, dayNum) {
+    const chk = $(`#d${dayNum}`);
+    const nowChecked = !chk.is(':checked');
+    chk.prop('checked', nowChecked);
+    if (nowChecked) $(btn).addClass('active');
+    else $(btn).removeClass('active');
+    window.actualizarBadgeDiasActivos();
+};
+
+window.actualizarBadgeDiasActivos = function() {
+    const total = $('.btn-day-pill.active').length;
+    $('#badgeDiasActivos').text(`${total} Día${total === 1 ? '' : 's'} Activo${total === 1 ? '' : 's'}`);
+};
+
+/* --- CONTROLADORES DE BLOQUEO DE ESPACIOS FÍSICOS (.space-item-card) --- */
 window.renderizarListaBloqueoEspaciosModal = function(idSuc, bloqueadosStr) {
     const cont = $("#lista_bloqueo_espacios_modal");
     if (!cont.length) return;
@@ -4110,7 +4138,7 @@ window.renderizarListaBloqueoEspaciosModal = function(idSuc, bloqueadosStr) {
         .map(s => normalizarTextoEspacio(s))
         .filter(Boolean);
 
-    const poblarCheckboxes = function(consCount, qxCount) {
+    const poblarCards = function(consCount, qxCount) {
         let html = '';
         const cNum = Math.max(1, parseInt(consCount) || 1);
         const qNum = Math.max(0, parseInt(qxCount) || 0);
@@ -4119,73 +4147,161 @@ window.renderizarListaBloqueoEspaciosModal = function(idSuc, bloqueadosStr) {
             const label = `Consultorio ${i}`;
             const isLocked = bloqueadosList.includes(normalizarTextoEspacio(label));
             html += `
-                <label class="espacio-lock-chip ${isLocked ? 'is-locked' : ''}">
-                    <input type="checkbox" class="form-check-input m-0 chk-bloqueo-espacio" value="${label}" ${isLocked ? 'checked' : ''} onchange="window.onCambioBloqueoEspacio()">
-                    <i class="bi ${isLocked ? 'bi-lock-fill text-danger' : 'bi-door-open text-teal'}"></i>
-                    <span class="text-truncate">${label}</span>
-                </label>
+                <div class="col-12 col-sm-6">
+                    <div class="space-item-card ${isLocked ? 'is-blocked' : ''}" onclick="window.toggleSpaceCard(this)">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input m-0 chk-bloqueo-espacio" type="checkbox" value="${label}" ${isLocked ? 'checked' : ''} onclick="event.stopPropagation(); window.syncSpaceCardState(this)">
+                            <span class="small fw-semibold text-truncate">${label}</span>
+                        </div>
+                        <span class="badge ${isLocked ? 'text-danger-emphasis bg-danger-subtle border border-danger-subtle' : 'text-secondary bg-light border'} small py-0.5 px-1.5">
+                            <i class="bi ${isLocked ? 'bi-lock-fill me-1' : 'bi-door-open me-1'}"></i>${isLocked ? 'Bloqueado' : 'Libre'}
+                        </span>
+                    </div>
+                </div>
             `;
         }
         for (let i = 1; i <= qNum; i++) {
             const label = `Quirófano ${i}`;
             const isLocked = bloqueadosList.includes(normalizarTextoEspacio(label));
             html += `
-                <label class="espacio-lock-chip ${isLocked ? 'is-locked' : ''}">
-                    <input type="checkbox" class="form-check-input m-0 chk-bloqueo-espacio" value="${label}" ${isLocked ? 'checked' : ''} onchange="window.onCambioBloqueoEspacio()">
-                    <i class="bi ${isLocked ? 'bi-lock-fill text-danger' : 'bi-scissors text-primary'}"></i>
-                    <span class="text-truncate">${label}</span>
-                </label>
+                <div class="col-12 col-sm-6">
+                    <div class="space-item-card ${isLocked ? 'is-blocked' : ''}" onclick="window.toggleSpaceCard(this)">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input m-0 chk-bloqueo-espacio" type="checkbox" value="${label}" ${isLocked ? 'checked' : ''} onclick="event.stopPropagation(); window.syncSpaceCardState(this)">
+                            <span class="small fw-semibold text-truncate">${label}</span>
+                        </div>
+                        <span class="badge ${isLocked ? 'text-danger-emphasis bg-danger-subtle border border-danger-subtle' : 'text-primary bg-primary-subtle border border-primary-subtle'} small py-0.5 px-1.5">
+                            <i class="bi ${isLocked ? 'bi-lock-fill me-1' : 'bi-scissors me-1'}"></i>${isLocked ? 'Bloqueado' : 'Quirúrgico'}
+                        </span>
+                    </div>
+                </div>
             `;
         }
         cont.html(html);
-        window.onCambioBloqueoEspacio();
+        window.actualizarEspaciosBloqueadosHidden();
     };
 
     const rec = window.sucursalRecursos;
     if (rec && rec.sucursales && rec.sucursales.length > 0) {
         const sucObj = rec.sucursales.find(s => String(s.id) === String(idSuc)) || rec.sucursales[0];
-        poblarCheckboxes(sucObj.consultorios, sucObj.quirofanos);
+        poblarCards(sucObj.consultorios, sucObj.quirofanos);
     } else if (rec && rec.consultorios) {
-        poblarCheckboxes(rec.consultorios, rec.quirofanos);
+        poblarCards(rec.consultorios, rec.quirofanos);
     } else {
         $.get('../api/espacios_crud.pl', { accion: 'get_recursos', id_sucursal: idSuc }, function(data) {
             if (data && data.ok) {
                 window.sucursalRecursos = data;
-                poblarCheckboxes(data.consultorios, data.quirofanos);
+                poblarCards(data.consultorios, data.quirofanos);
             }
         });
     }
 };
 
-window.onCambioBloqueoEspacio = function() {
-    const bloqueados = [];
-    $(".chk-bloqueo-espacio").each(function() {
-        const chip = $(this).closest('.espacio-lock-chip');
-        const icon = chip.find('i.bi');
-        const isQx = ($(this).val() || '').toLowerCase().includes('quir');
-        if (this.checked) {
-            bloqueados.push($(this).val());
-            chip.addClass('is-locked');
-            icon.attr('class', 'bi bi-lock-fill text-danger');
-        } else {
-            chip.removeClass('is-locked');
-            icon.attr('class', isQx ? 'bi bi-scissors text-primary' : 'bi bi-door-open text-teal');
+window.toggleSpaceCard = function(card) {
+    const chk = card.querySelector('.chk-bloqueo-espacio');
+    if (chk) {
+        chk.checked = !chk.checked;
+        window.syncSpaceCardState(chk);
+    }
+};
+
+window.syncSpaceCardState = function(checkbox) {
+    const card = checkbox.closest('.space-item-card');
+    if (!card) return;
+    const badge = card.querySelector('.badge');
+    const isQx = (checkbox.value || card.innerText || '').toLowerCase().includes('quir');
+    if (checkbox.checked) {
+        card.classList.add('is-blocked');
+        if (badge) {
+            badge.className = 'badge text-danger-emphasis bg-danger-subtle border border-danger-subtle small py-0.5 px-1.5';
+            badge.innerHTML = '<i class="bi bi-lock-fill me-1"></i>Bloqueado';
         }
+    } else {
+        card.classList.remove('is-blocked');
+        if (badge) {
+            if (isQx) {
+                badge.className = 'badge text-primary bg-primary-subtle border border-primary-subtle small py-0.5 px-1.5';
+                badge.innerHTML = '<i class="bi bi-scissors me-1"></i>Quirúrgico';
+            } else {
+                badge.className = 'badge text-secondary bg-light border small py-0.5 px-1.5';
+                badge.innerHTML = '<i class="bi bi-door-open me-1"></i>Libre';
+            }
+        }
+    }
+    window.actualizarEspaciosBloqueadosHidden();
+};
+
+window.actualizarEspaciosBloqueadosHidden = function() {
+    const bloqueados = [];
+    $(".chk-bloqueo-espacio:checked").each(function() {
+        bloqueados.push($(this).val());
     });
     $("#adj_espacios_bloqueados").val(bloqueados.join(','));
 };
 
 window.marcarBloqueoTodosEspacios = function(marcar) {
-    $(".chk-bloqueo-espacio").prop('checked', !!marcar);
-    window.onCambioBloqueoEspacio();
+    $(".chk-bloqueo-espacio").each(function() {
+        this.checked = !!marcar;
+        window.syncSpaceCardState(this);
+    });
+};
+
+/* --- CONTROLADORES DE DÍAS INHÁBILES / MANTENIMIENTO CON TAGS DINÁMICOS --- */
+window.agregarFechaInhabil = function() {
+    const picker = document.getElementById('adj_fest_picker');
+    const select = document.getElementById('selectMotivoInhabil');
+    const hiddenFest = document.getElementById('adj_fest');
+    if (!picker || !picker.value) return;
+
+    const fecha = picker.value;
+    let cur = hiddenFest.value ? hiddenFest.value.split(',').map(x => x.trim()).filter(Boolean) : [];
+    if (!cur.includes(fecha)) {
+        cur.push(fecha);
+        hiddenFest.value = cur.join(', ');
+    }
+    window.renderizarTagsFechasInhabiles(hiddenFest.value);
+    picker.value = '';
+};
+
+window.eliminarFechaInhabil = function(fecha) {
+    const hiddenFest = document.getElementById('adj_fest');
+    if (!hiddenFest) return;
+    let cur = hiddenFest.value ? hiddenFest.value.split(',').map(x => x.trim()).filter(Boolean) : [];
+    cur = cur.filter(f => f !== fecha);
+    hiddenFest.value = cur.join(', ');
+    window.renderizarTagsFechasInhabiles(hiddenFest.value);
+};
+
+window.renderizarTagsFechasInhabiles = function(festivosStr) {
+    const cont = document.getElementById('contenedorTagsFechas');
+    if (!cont) return;
+    const list = (festivosStr || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (!list.length) {
+        cont.innerHTML = '<span class="text-muted small py-1" style="font-size: 0.72rem;">Sin días inhábiles registrados.</span>';
+        return;
+    }
+    let html = '';
+    list.forEach(f => {
+        html += `
+            <span class="date-tag date-tag-amber">
+                <i class="bi bi-circle-fill text-warning" style="font-size: 0.45rem;"></i>
+                <span>${f}</span>
+                <button type="button" class="remove-btn" onclick="window.eliminarFechaInhabil('${f}')">&times;</button>
+            </span>
+        `;
+    });
+    cont.innerHTML = html;
 };
 
 function toggleComidaAjustes(sinComida) {
+    const recesoDiv = document.getElementById('recesoFields');
+    if (recesoDiv) {
+        recesoDiv.style.opacity = sinComida ? '0.35' : '1';
+        recesoDiv.style.pointerEvents = sinComida ? 'none' : 'auto';
+    }
     if (sinComida) {
-        $("#wrapper_adj_c_ini, #wrapper_adj_c_fin").addClass('opacity-50');
         $("#adj_c_ini, #adj_c_fin").prop('disabled', true);
     } else {
-        $("#wrapper_adj_c_ini, #wrapper_adj_c_fin").removeClass('opacity-50');
         $("#adj_c_ini, #adj_c_fin").prop('disabled', false);
         if (!$("#adj_c_ini").val()) $("#adj_c_ini").val('14:00');
         if (!$("#adj_c_fin").val()) $("#adj_c_fin").val('15:00');
@@ -4210,21 +4326,25 @@ function cargarAjustesSucursal(idSuc) {
                 $("#adj_c_fin").val(cfg.lunchEnd || '15:00');
             }
 
-            window.setIntervaloPorValor(cfg.intervalo_minutos || 30, true);
+            window.updateIntervalModal(cfg.intervalo_minutos || 30);
             $("#adj_cancel_hours").val(cfg.cancel_hours || '24');
-            $("#adj_fest").val(cfg.festivos_sucursal || cfg.festivos || '');
+            const festStr = cfg.festivos_sucursal || cfg.festivos || '';
+            $("#adj_fest").val(festStr);
+            window.renderizarTagsFechasInhabiles(festStr);
             $("#adj_espacios_bloqueados").val(cfg.espacios_bloqueados || '');
             window.renderizarListaBloqueoEspaciosModal(idSuc, cfg.espacios_bloqueados || '');
             
             $(".adj-dia").prop('checked', false);
+            $(".btn-day-pill").removeClass('active');
             if (cfg.workDays && Array.isArray(cfg.workDays)) {
                 cfg.workDays.forEach(d => {
-                    $(`#d${d}`).prop('checked', true);
-                    if (d == 7 || d == 0) {
-                        $("#d7, #d0").prop('checked', true);
-                    }
+                    let dNum = parseInt(d);
+                    if (dNum === 0) dNum = 7;
+                    $(`#d${dNum}`).prop('checked', true);
+                    $(`.btn-day-pill[data-day="${dNum}"]`).addClass('active');
                 });
             }
+            window.actualizarBadgeDiasActivos();
         }
     });
 }

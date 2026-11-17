@@ -285,13 +285,14 @@ Este documento agrupa la especificación de los módulos complementarios y espec
   6. **Cerrojo Anticolisión Temporal y Omisión de Bloques Pasados en Modal**:
      - Tanto el frontend (`js/agenda_espacios_spa.js`) como el backend (`validar_no_pasado` en `api/espacios_crud.pl`) bloquean cualquier intento de crear o mover una reserva hacia una fecha u hora anterior al momento actual.
      - En el modal **RESERVA DE ESPACIO / NUEVO ARRENDAMIENTO** (`renderSlots`), los recuadros de horario anteriores a la hora actual (`isP && !isCurrentSlot`) **no se renderizan** en la cuadrícula `#slots-container`, mostrando únicamente los horarios futuros disponibles a partir de la hora actual.
-  7. **Modal "Configuracion de Espacios" (`#modalAjustes` / `.modal-apertura-premium`)**:
-     - Título oficial **`Configuracion de Espacios`** con distribución de **2 columnas en desktop (`col-lg-6`) y 1 columna en resoluciones menores (`< 992px`)**.
-     - Homologado con los estilos de tarjetas del **Tablero Financiero Ejecutivo**, delimitando cada grupo con **bordes grises estilo `groove` muy suaves** (`border: 2px groove #e2e8f0; border-radius: 14px;`), sin numerales en las etiquetas de los campos.
-     - El título y todos los botones de acción (`Marcar todos`, `Desmarcar`, `Agregar`, `Cancelar`, `Guardar Configuración`) se presentan **siempre con letras blancas (`#ffffff`) y fondo azul marino (`#0A2A66`)**.
-     - **Slider de Intervalo de Cuadrícula (`#slider_adj_int`)**: Control deslizante interactivo para seleccionar entre los intervalos operativos (`15 minutos`, `30 minutos`, `60 minutos`).
-     - **Funcionalidad de Bloqueo de Espacios Físicos (`#lista_bloqueo_espacios_modal` / `espacios_bloqueados`)**: Permite marcar o desmarcar individualmente o en bloque (`Marcar todos` / `Desmarcar`) los Consultorios y Quirófanos de la sede para bloquearlos temporalmente, persistiendo en `dat/agenda_config_sucursal_<ID>.dat` y bloqueando cualquier intento de reserva tanto en frontend como en backend (`detectar_colisiones_espacio`).
-
+  7. **Modal "Configuración de Agenda & Disponibilidad de Sede" (`#modalAjustes` / `.modal-apertura-premium`)**:
+     - **Arquitectura Visual (Bootstrap 5.3 + Diamond Suite)**: Distribución en **2 columnas en desktop (`col-lg-6`) y 1 columna en resoluciones móviles (`< 992px`)**.
+     - **Cabecera Contextual**: Ícono insignia `.icon-header-badge`, título de sede, badge `.badge-pill-teal` de *Parámetros de Sede* y subtítulo orientativo.
+     - **Sede Activa en Exclusiva**: Tarjeta `.field-card` con indicador hospitalario, nombre dinámico de la sede física activa en la sesión y badge verde `Activa` (con campo oculto para sincronización automática).
+     - **Días Hábiles en Píldoras Interactivas (`.btn-day-pill`)**: 7 selectores táctiles verticales (Lun a Dom) con micro-dot luminoso y badge de conteo en tiempo real (*"X Días Activos"*).
+     - **Sincronización Dual de Intervalos**: Grupo segmentado de botones (`15 min`, `30 min`, `60 min`) acoplado bidireccionalmente al control deslizante `range` y badge informativo.
+     - **Tarjetas Semánticas de Espacios Físicos (`.space-item-card`)**: Estado visual diferenciado para Consultorios libres (`Libre`), Quirófanos (`Quirúrgico`) y unidades bloqueadas (`is-blocked` con badge rojo de candado `Bloqueado`), con botones rápidos de `Marcar todos` y `Desmarcar`.
+     - **Días Inhábiles y Mantenimiento Dinámicos**: Selector de fecha con categoría (*Mantenimiento*, *Feriado Oficial*, *Fumigación*) y renderizado en nube de tags (`.date-tag-amber` / `.date-tag-rose`) removibles.
 
 
 
