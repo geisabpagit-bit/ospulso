@@ -73,6 +73,7 @@ elsif ($accion eq 'get_form_metadata')         { obtener_metadatos_formulario($q
 elsif ($accion eq 'get_recursos')              { obtener_recursos_sucursal($q); }
 elsif ($accion eq 'get_events')                { enviar_eventos_oficial($rentas); }
 elsif ($accion eq 'cobrar_renta')              { cobrar_renta_recepcion($rentas, $q); }
+elsif ($accion eq 'test')                      { }
 else                                           { responder_json(0, "Acción no reconocida: $accion"); }
 
 # ==========================================================
@@ -262,11 +263,28 @@ sub guardar_rentas {
     close $fh;
 }
 
+sub obtener_ahora_local {
+    my ($hoy_iso, $hora_now, $fecha_hora_full);
+    eval {
+        require DateTime;
+        my $dt = DateTime->now(time_zone => 'America/Mexico_City');
+        $hoy_iso         = $dt->strftime("%Y-%m-%d");
+        $hora_now        = $dt->strftime("%H:%M");
+        $fecha_hora_full = $dt->strftime("%Y-%m-%d %H:%M:%S");
+    };
+    if ($@ || !$hoy_iso) {
+        # Fallback restando 6 horas (UTC-6) a gmtime si DateTime no estuviese disponible
+        my @t = gmtime(time - 6 * 3600);
+        $hoy_iso         = sprintf("%04d-%02d-%02d", $t[5] + 1900, $t[4] + 1, $t[3]);
+        $hora_now        = sprintf("%02d:%02d", $t[2], $t[1]);
+        $fecha_hora_full = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $t[0]);
+    }
+    return ($hoy_iso, $hora_now, $fecha_hora_full);
+}
+
 sub auto_actualizar_rentas_vencidas {
     my ($arr) = @_;
-    my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
-    my $hoy = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
-    my $hora_actual = sprintf("%02d:%02d", $hour, $min);
+    my ($hoy, $hora_actual) = obtener_ahora_local();
 
     my $cambios = 0;
     foreach my $r (@$arr) {
@@ -367,7 +385,7 @@ sub verificar_disponibilidad_rango {
         my $dia_nom = $nombres_dias[$iso_wday] // '';
 
         # 1. Validar no pasado
-        my ($ok_p, $msg_p) = validar_no_pasado($f_item, $hi || '08:00');
+        my ($ok_p, $msg_p) = validar_no_pasado($f_item, $hi || '08:00', $hf);
         unless ($ok_p) {
             push @detalles, { fecha => $f_item, dia_semana => $dia_nom, disponible => 0, motivo => $msg_p };
             $conflictos++;
@@ -483,7 +501,7 @@ sub crear_renta {
 
         # Validar rigurosamente cada día del rango contra colisiones, feriados y pasado
         foreach my $f_item (@fechas) {
-            my ($ok_f, $msg_f) = validar_no_pasado($f_item, $hi);
+            my ($ok_f, $msg_f) = validar_no_pasado($f_item, $hi, $hf);
             unless ($ok_f) { responder_json(0, "Conflicto en rango ($f_item): $msg_f"); return; }
 
             my ($ok_h, $msg_h) = validar_horario_sucursal($f_item, $hi, $hf, $sucursal);
@@ -548,7 +566,7 @@ sub crear_renta {
     # ==========================================================
     # CASO B: RESERVA DE DÍA ÚNICO (CANÓNICO)
     # ==========================================================
-    my ($ok_f, $msg_f) = validar_no_pasado($fec, $hi);
+    my ($ok_f, $msg_f) = validar_no_pasado($fec, $hi, $hf);
     unless ($ok_f) { responder_json(0, $msg_f); return; }
 
     my ($ok_h, $msg_h) = validar_horario_sucursal($fec, $hi, $hf, $sucursal);
@@ -633,7 +651,7 @@ sub actualizar_renta {
     my $cambio_horario = (($fec && $fec ne ($found_prev->{fecha} // '')) || ($hi && $hi ne ($found_prev->{hora_ini} // '')));
     my $est_nuevo = $query->param('estado') // '';
     if ($cambio_horario || $est_nuevo !~ /^(En Uso|Finalizada|Cancelada|No realizada)$/i) {
-        my ($ok_f, $msg_f) = validar_no_pasado($fec || $found_prev->{fecha}, $hi || $found_prev->{hora_ini});
+        my ($ok_f, $msg_f) = validar_no_pasado($fec || $found_prev->{fecha}, $hi || $found_prev->{hora_ini}, $hf || $found_prev->{hora_fin});
         unless ($ok_f) { responder_json(0, $msg_f); return; }
     }
 
@@ -759,19 +777,37 @@ sub eliminar_renta {
 # ==========================================================
 
 sub validar_no_pasado {
-    my ($fec, $hi) = @_;
+    my ($fec, $hi, $hf) = @_;
     return (0, "Fecha y hora de inicio requeridas.") unless ($fec && $hi);
 
-    my ($sec,$min,$hour,$mday,$mon,$year) = localtime(time);
-    my $hoy_iso  = sprintf("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
-    my $hora_now = sprintf("%02d:%02d", $hour, $min);
+    my ($hoy_iso, $hora_now) = obtener_ahora_local();
 
+    # Limpiar espacios
+    $fec =~ s/^\s+|\s+$//g;
+    $hi  =~ s/^\s+|\s+$//g;
+    $hf  =~ s/^\s+|\s+$//g if defined $hf;
+
+    # Truncar a HH:MM si viene con segundos
+    $hi = substr($hi, 0, 5) if length($hi) > 5;
+    $hf = substr($hf, 0, 5) if defined $hf && length($hf) > 5;
+
+    # 1. Validación de fecha: estrictamente anterior al día de hoy
     if ($fec lt $hoy_iso) {
         return (0, "Regla Anticolisión Temporal: No está permitido reservar espacios en una fecha pasada ($fec).");
     }
-    if ($fec eq $hoy_iso && $hi lt $hora_now) {
-        return (0, "Regla Anticolisión Temporal: No está permitido reservar un espacio en un horario anterior al actual ($hi < $hora_now hrs).");
+
+    # 2. Validación horaria para el día en curso:
+    # La regla aplica únicamente para horarios menores a la fecha y hora actual.
+    # Si se cuenta con hora de término ($hf), el bloque solo se bloquea si ya concluyó ($hf <= $hora_now).
+    # Si no se tiene hora de término, se evalúa contra la hora de inicio ($hi < $hora_now).
+    if ($fec eq $hoy_iso) {
+        if ($hf && $hf le $hora_now) {
+            return (0, "Regla Anticolisión Temporal: No está permitido reservar un espacio en un horario anterior al actual (Fin $hf <= $hora_now hrs).");
+        } elsif (!$hf && $hi lt $hora_now) {
+            return (0, "Regla Anticolisión Temporal: No está permitido reservar un espacio en un horario anterior al actual ($hi < $hora_now hrs).");
+        }
     }
+
     return (1, "OK");
 }
 
@@ -1315,9 +1351,7 @@ sub cobrar_renta_recepcion {
     }
     unless ($renta_obj) { responder_json(0, "Reserva de espacio no encontrada."); return; }
 
-    my ($sec,$min,$hour,$mday,$mon,$year) = localtime();
-    my $fecha_iso = sprintf("%04d-%02d-%02d", $year+1900, $mon+1, $mday);
-    my $hora_iso  = sprintf("%02d:%02d", $hour, $min);
+    my ($fecha_iso, $hora_iso) = obtener_ahora_local();
 
     # Folio consecutivo privado
     my $folio_num = 1;

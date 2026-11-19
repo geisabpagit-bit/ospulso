@@ -2949,13 +2949,16 @@ function saveCita() {
         fecha = fIni;
 
         if (!isFuture(fecha, hi)) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Fecha Inicio Pasada',
-                text: 'La fecha y hora de inicio del rango no pueden ser anteriores al momento actual.',
-                customClass: { popup: 'rounded-4' }
-            });
-            return;
+            const curHf = $("#f_hf").val();
+            if (!curHf || !isFuture(fecha, curHf)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Fecha Inicio Pasada',
+                    text: 'La fecha y hora de inicio del rango no pueden ser anteriores al momento actual.',
+                    customClass: { popup: 'rounded-4' }
+                });
+                return;
+            }
         }
     } else {
         const curId = $("#f_id_cita").val() || "";
@@ -2988,13 +2991,16 @@ function saveCita() {
             const curM = now.getMinutes().toString().padStart(2, '0');
             $("#f_hi").val(`${curH}:${curM}`);
         } else if (!isFuture(fecha, hi)) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Acción No Permitida',
-                text: 'No es posible reservar o modificar espacios en una fecha u horario anterior al actual.',
-                customClass: { popup: 'rounded-4' }
-            });
-            return;
+            const curHf = $("#f_hf").val();
+            if (!curHf || !isFuture(fecha, curHf)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Acción No Permitida',
+                    text: 'No es posible reservar o modificar espacios en una fecha u horario anterior al actual.',
+                    customClass: { popup: 'rounded-4' }
+                });
+                return;
+            }
         }
 
         const hf = $("#f_hf").val();
