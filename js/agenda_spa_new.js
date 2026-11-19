@@ -2630,8 +2630,20 @@ function renderSideCalendar() {
         html += `<div class="text-center small fw-bold text-muted side-cal-head-day">${d}</div>`;
     });
     
-    for(let i=0; i<fd; i++) html += '<div></div>';
+    // 1. Días del mes anterior
+    const prevMonthLastDay = new Date(y, m, 0).getDate();
+    for(let i = fd - 1; i >= 0; i--) {
+        const dNum = prevMonthLastDay - i;
+        const prevDate = new Date(y, m - 1, dNum);
+        const iso = getISO(prevDate);
+        const hasApts = appointments.some(a => a.start && a.start.startsWith(iso));
+        const hasAptsClass = hasApts ? 'has-apts' : '';
+        html += `<div class="side-cal-day other-month ${hasAptsClass}" onclick="goDay('${iso}')" title="${dNum} (Mes anterior)">
+            <span>${dNum}</span>
+        </div>`;
+    }
     
+    // 2. Días del mes actual
     const todayIso = getISO(new Date());
     for(let d=1; d<=days; d++) {
         const iso = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
@@ -2650,6 +2662,19 @@ function renderSideCalendar() {
         }
         
         html += `<div class="side-cal-day ${isActive ? 'active' : ''} ${isToday ? 'is-today' : ''} ${holiday ? 'holiday' : ''} ${isWeekend ? 'weekend' : ''} ${hasAptsClass}" ${onclickAttr}>
+            <span>${d}</span>
+        </div>`;
+    }
+
+    // 3. Días del mes posterior para completar la cuadrícula semanal
+    const totalCells = fd + days;
+    const remainingDays = (7 - (totalCells % 7)) % 7;
+    for(let d = 1; d <= remainingDays; d++) {
+        const nextDate = new Date(y, m + 1, d);
+        const iso = getISO(nextDate);
+        const hasApts = appointments.some(a => a.start && a.start.startsWith(iso));
+        const hasAptsClass = hasApts ? 'has-apts' : '';
+        html += `<div class="side-cal-day other-month ${hasAptsClass}" onclick="goDay('${iso}')" title="${d} (Mes siguiente)">
             <span>${d}</span>
         </div>`;
     }
@@ -2701,20 +2726,41 @@ function renderGrid() {
     // Titulos de dias con fondo azul marino corporativo y letras blancas (Req 3.1)
     ['LUN','MAR','MIE','JUE','VIE','SAB','DOM'].forEach(d => container.append(`<div class="cal-grid-header-day">${d}</div>`));
     
-    for (let i=0; i<fd; i++) container.append('<div class="bg-white opacity-25"></div>');
-    for (let d=1; d<=days; d++) {
-        const iso = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
+    function buildCellHtml(dateObj, isCurrentMonth, monthLabel = '') {
+        const iso = getISO(dateObj);
+        const d = dateObj.getDate();
         const holiday = isHoliday(iso); 
-        const dayApts = getFilteredAppointments().filter(a => a.start.startsWith(iso));
+        const dayApts = getFilteredAppointments().filter(a => a.start && a.start.startsWith(iso));
         const isWork = isWorkDay(iso);
-        const bgColor = holiday ? '#fee2e2' : (isWork ? 'white' : '#f8fafc');
+        const isToday = (iso === getISO(new Date()));
+
+        const cellClass = isCurrentMonth ? 'calendar-cell' : 'calendar-cell calendar-cell-other-month';
+        const bgColor = isCurrentMonth 
+            ? (holiday ? '#fee2e2' : (isWork ? 'white' : '#f8fafc'))
+            : (holiday ? '#fee2e2' : (isWork ? '#f8fafc' : '#f1f5f9'));
         const borderColor = holiday ? 'border-top:3px solid #ef4444' : (!isWork ? 'border-top:3px solid #cbd5e1' : '');
 
-        container.append(`
-            <div class="p-2 calendar-cell" ondragover="event.preventDefault()" ondrop="dropS(event, '${iso}')" onclick="handleSlotClick(event, '${iso}', '')" style="background:${bgColor}; min-height:115px; ${borderColor}">
+        let dayNumHtml = '';
+        if (isToday) {
+            dayNumHtml = `<span class="badge bg-primary rounded-pill px-2 text-white">${d}</span>`;
+        } else if (!isCurrentMonth) {
+            dayNumHtml = `<span class="other-month-day-num">${d}</span>`;
+        } else {
+            dayNumHtml = `<span class="text-navy">${d}</span>`;
+        }
+
+        let badgeHtml = '';
+        if (holiday) {
+            badgeHtml = '<small class="text-danger fw-bold" style="font-size:0.55rem">FESTIVO</small>';
+        } else if (monthLabel) {
+            badgeHtml = `<span class="other-month-badge">${monthLabel}</span>`;
+        }
+
+        return `
+            <div class="p-2 ${cellClass}" ondragover="event.preventDefault()" ondrop="dropS(event, '${iso}')" onclick="handleSlotClick(event, '${iso}', '')" style="background:${bgColor}; min-height:115px; ${borderColor}">
                 <div class="d-flex justify-content-between align-items-start fw-bold small mb-1">
-                    <span class="${iso===getISO(new Date()) ? 'badge bg-primary rounded-pill px-2 text-white' : 'text-navy'}">${d}</span>
-                    ${holiday ? '<small class="text-danger fw-bold" style="font-size:0.55rem">FESTIVO</small>' : ''}
+                    ${dayNumHtml}
+                    ${badgeHtml}
                 </div>
                 ${dayApts.slice(0,3).map(a => {
                     const aHi = a.start.split('T')[1].substring(0, 5);
@@ -2774,7 +2820,33 @@ function renderGrid() {
                 }).join('')}
                 ${dayApts.length > 3 ? `<div class="text-center mt-1"><span class="badge rounded-pill bg-light text-navy border fw-bold cursor-pointer" style="font-size:0.55rem;" onclick="event.stopPropagation(); goDay('${iso}')">+${dayApts.length - 3} más</span></div>` : ''}
             </div>
-        `);
+        `;
+    }
+
+    // 1. Días del mes anterior
+    const prevMonthLastDay = new Date(y, m, 0).getDate();
+    for (let i = fd - 1; i >= 0; i--) {
+        const dNum = prevMonthLastDay - i;
+        const dateObj = new Date(y, m - 1, dNum);
+        const isFirst = (i === fd - 1);
+        const label = isFirst ? dateObj.toLocaleDateString('es-ES', { month: 'short' }) : '';
+        container.append(buildCellHtml(dateObj, false, label));
+    }
+
+    // 2. Días del mes en curso
+    for (let d = 1; d <= days; d++) {
+        const dateObj = new Date(y, m, d);
+        container.append(buildCellHtml(dateObj, true, ''));
+    }
+
+    // 3. Días del mes posterior para completar la cuadrícula semanal
+    const totalCells = fd + days;
+    const remainingDays = (7 - (totalCells % 7)) % 7;
+    for (let d = 1; d <= remainingDays; d++) {
+        const dateObj = new Date(y, m + 1, d);
+        const isFirst = (d === 1);
+        const label = isFirst ? dateObj.toLocaleDateString('es-ES', { month: 'short' }) : '';
+        container.append(buildCellHtml(dateObj, false, label));
     }
 }
 
@@ -2802,23 +2874,66 @@ function renderMobileMiniGrid() {
         grid.append(`<div class="cal-grid-header-day-mobile">${d}</div>`);
     });
 
-    // Celdas vacías
-    for (let i = 0; i < fd; i++) grid.append('<div></div>');
+    // 1. Días del mes anterior
+    const prevMonthLastDay = new Date(y, m, 0).getDate();
+    for (let i = fd - 1; i >= 0; i--) {
+        const dNum = prevMonthLastDay - i;
+        const dateObj = new Date(y, m - 1, dNum);
+        const iso = getISO(dateObj);
+        const dayOfWeek = dateObj.getDay();
+        const holiday = isHoliday(iso);
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const hasApts = getFilteredAppointments().some(a => a.start && a.start.startsWith(iso));
+        const isActive = (iso === selectedISO);
+        const isToday = (iso === todayISO);
 
-    // Días del mes
+        const dayEl = $(`
+            <div class="mini-grid-day other-month ${isActive ? 'active' : ''} ${holiday ? 'holiday' : ''} ${isWeekend ? 'weekend' : ''} ${hasApts ? 'has-apts' : ''}" 
+                 onclick="selectMobileDate('${iso}')" title="${dNum} (Mes anterior)">
+                ${dNum}
+                ${isToday && !isActive ? '<div style="position:absolute; top:4px; right:4px; width:5px; height:5px; background:var(--sdm-accent); border-radius:50%;"></div>' : ''}
+            </div>
+        `);
+        grid.append(dayEl);
+    }
+
+    // 2. Días del mes actual
     for (let d = 1; d <= days; d++) {
         const dateObj = new Date(y, m, d);
         const iso = getISO(dateObj);
         const dayOfWeek = dateObj.getDay(); // 0=Dom, 6=Sab
         const holiday = isHoliday(iso);
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        const hasApts = getFilteredAppointments().some(a => a.start.startsWith(iso));
+        const hasApts = getFilteredAppointments().some(a => a.start && a.start.startsWith(iso));
         const isActive = iso === selectedISO;
         const isToday = iso === todayISO;
 
         const dayEl = $(`
             <div class="mini-grid-day ${isActive ? 'active' : ''} ${holiday ? 'holiday' : ''} ${isWeekend ? 'weekend' : ''} ${hasApts ? 'has-apts' : ''}" 
                  onclick="selectMobileDate('${iso}')">
+                ${d}
+                ${isToday && !isActive ? '<div style="position:absolute; top:4px; right:4px; width:5px; height:5px; background:var(--sdm-accent); border-radius:50%;"></div>' : ''}
+            </div>
+        `);
+        grid.append(dayEl);
+    }
+
+    // 3. Días del mes posterior para completar la cuadrícula semanal
+    const totalCells = fd + days;
+    const remainingDays = (7 - (totalCells % 7)) % 7;
+    for (let d = 1; d <= remainingDays; d++) {
+        const dateObj = new Date(y, m + 1, d);
+        const iso = getISO(dateObj);
+        const dayOfWeek = dateObj.getDay();
+        const holiday = isHoliday(iso);
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const hasApts = getFilteredAppointments().some(a => a.start && a.start.startsWith(iso));
+        const isActive = (iso === selectedISO);
+        const isToday = (iso === todayISO);
+
+        const dayEl = $(`
+            <div class="mini-grid-day other-month ${isActive ? 'active' : ''} ${holiday ? 'holiday' : ''} ${isWeekend ? 'weekend' : ''} ${hasApts ? 'has-apts' : ''}" 
+                 onclick="selectMobileDate('${iso}')" title="${d} (Mes siguiente)">
                 ${d}
                 ${isToday && !isActive ? '<div style="position:absolute; top:4px; right:4px; width:5px; height:5px; background:var(--sdm-accent); border-radius:50%;"></div>' : ''}
             </div>

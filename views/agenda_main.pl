@@ -256,11 +256,36 @@ print <<HTML;
                             <button onclick="switchView('calendario')" class="btn-view-toggle" id="btn-v-calendario" title="Vista Mensual Grid"><i class="bi bi-grid-3x3"></i></button>
                         </div>
 
-                        <!-- Reportes Operativos (Diario, Semanal y Mensual) -->
-                        <div class="nav-pill-group shadow-sm d-none d-xl-flex">
-                            <button onclick="switchView('dia_reporte')" class="btn-report-toggle" id="btn-r-dia-reporte" title="Reporte Diario (Citas del Día Activo)"><i class="bi bi-file-earmark-ruled"></i></button>
-                            <button onclick="switchView('semana')" class="btn-report-toggle" id="btn-r-semana" title="Reporte Semanal"><i class="bi bi-file-earmark-text"></i></button>
-                            <button onclick="switchView('mes')" class="btn-report-toggle" id="btn-r-mes" title="Reporte Mensual"><i class="bi bi-file-earmark-bar-graph"></i></button>
+                        <!-- Menú Compacto Reportes & Export (Homogeneizado con Agenda Espacios) -->
+                        <div class="dropdown" style="position: relative; z-index: 1065;">
+                            <button class="tier2-executive-select-btn dropdown-toggle" 
+                                    type="button" 
+                                    id="dropdownReportesExport" 
+                                    data-bs-toggle="dropdown" 
+                                    data-bs-display="static" 
+                                    aria-expanded="false" 
+                                    title="Reportes Tabulares e Impresión">
+                                <span class="d-flex align-items-center gap-1.5">
+                                    <i class="bi bi-file-earmark-bar-graph text-teal"></i>
+                                    <span>Reportes &amp; Export</span>
+                                </span>
+                            </button>
+                            <div class="dropdown-menu shadow-lg p-2.5 border-0 rounded-4" aria-labelledby="dropdownReportesExport" style="min-width: 230px; z-index: 107000;">
+                                <div class="px-2 py-1 text-navy text-uppercase border-bottom mb-1" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Tablas Operativas</div>
+                                <button type="button" onclick="switchView('dia_reporte')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-dia-reporte">
+                                    <i class="bi bi-file-earmark-ruled text-primary"></i> Reporte Diario
+                                </button>
+                                <button type="button" onclick="switchView('semana')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-semana">
+                                    <i class="bi bi-file-earmark-text text-teal"></i> Reporte Semanal
+                                </button>
+                                <button type="button" onclick="switchView('mes')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-mes">
+                                    <i class="bi bi-file-earmark-bar-graph text-navy"></i> Reporte Mensual
+                                </button>
+                                <div class="dropdown-divider my-1"></div>
+                                <button type="button" onclick="window.abrirReportePersonalizado(currentView)" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2">
+                                    <i class="bi bi-printer-fill text-teal"></i> Imprimir Reporte Oficial
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -891,7 +916,7 @@ print <<HTML;
 
     <!-- MODAL AJUSTES DE HORARIO Y JORNADA -->
     <div class="modal fade modal-diamond" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered" style="zoom: 0.75;">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
                 <div class="modal-header py-3 px-4 border-bottom bg-white d-flex align-items-center justify-content-between">
                     <h5 class="modal-title fw-bold text-navy d-flex align-items-center mb-0" style="font-size: 1.05rem;">

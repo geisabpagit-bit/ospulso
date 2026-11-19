@@ -319,7 +319,18 @@ Este documento agrupa la especificación de los módulos complementarios y espec
      - **Gradiente Dinámico Pasado vs Futuro**: Las franjas horarias previas al momento actual adoptan la clase `.slot-past-dynamic` con tonalidad atenuada, mientras que el slot activo resalta sutilmente con `.slot-current-dynamic`, generando un contraste claro e intuitivo entre lo ya acontecido y la jornada por delante.
      - **Diseño Responsivo y Modo Oscuro**: Totalmente adaptado para pantallas móviles y de escritorio, optimizado para alto contraste y esquemas oscuros.
 
-
-
-
+   11. **Paridad Total y Homogeneización de Celdas de Días Adyacentes en Vista Mensual y Barra Operativa (`views/agenda_espacios.pl`, `views/agenda_main.pl`, `js/agenda_espacios_spa.js`, `js/agenda_spa_new.js`, `css/ospulso_master_v2.css`)**:
+      - **Eliminación Total de Bloques Grises Vacíos**: Se sustituyen los contenedores opacos y deshabilitados por celdas reales y plenamente operativas para los días del mes anterior (hasta completar el offset inicial fd) y los días del mes posterior (hasta cerrar la cuadrícula semanal de 7 columnas).
+      - **Identidad Visual Distintiva (.calendar-cell-other-month)**: Las celdas de días pertenecientes a meses adyacentes aplican un fondo sutilmente tramado (`background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px)` con `background-size: 8px 8px`), número de día en tono pizarra atenuado (`.other-month-day-num`), badge con el nombre abreviado del mes (`.other-month-badge`, ej. `oct`, `dic`) y borde hover teal interactivo (`outline: 2px dashed #0d9488`).
+      - **Paridad Operativa y Funcional al 100%**:
+        - *Renderizado de Citas*: Se visualizan todas las citas o reservas programadas en esos días con sus respectivos colores de estado, etiquetas horarias e iconos de acción.
+        - *Reserva / Agendamiento Directo*: Al hacer clic sobre cualquier día adyacente (`handleSlotClick(event, iso)`), se abre el modal de agendamiento precargando automáticamente la fecha exacta seleccionada.
+        - *Drag and Drop*: Soporte nativo para soltar citas (`dropS(event, iso)`) entre días del mes en curso y días de meses colindantes.
+        - *Navegación al Día*: Clic en el badge de citas o días para saltar directamente a la vista diaria (`goDay(iso)`).
+      - **Sincronización en Mini-Calendario Lateral y Vista Móvil**:
+        - En el mini-calendario lateral (`renderSideCalendar`), los días adyacentes muestran sus números en tono tenue y permiten navegación directa con clic.
+        - En la vista móvil compacta (`renderMobileMiniGrid`), se incorporan las celdas `.mini-grid-day.other-month` con soporte táctil, indicador de festivos y conteo de citas.
+      - **Homogeneización de la Barra de Herramientas y Modales entre Agendas**:
+        - Se estandariza el menú desplegable compacto `Reportes & Export` (`#dropdownReportesExport`) en `views/agenda_main.pl` idéntico a `views/agenda_espacios.pl`, consolidando los reportes Diario, Semanal, Mensual e Impresión Oficial en un solo componente elegante que ahorra más de 150px horizontales.
+        - Se calibra el modal de ajustes de horarios y jornada (`#modalAjustes .modal-dialog`) con `style="zoom: 0.75;"` en ambas agendas, asegurando una visualización impecable sin desbordamientos en cualquier resolución de pantalla.
 
