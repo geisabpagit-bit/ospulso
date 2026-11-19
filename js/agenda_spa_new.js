@@ -717,10 +717,14 @@ function actualizarResaltadoModalCita(fecha, hi, hf, label) {
 
     // 3. Resaltar en el selector de duración el botón correspondiente en tono amarillo avena
     $(".btn-dur").removeClass('dur-avena-active');
-    const $matchingBtn = $(`.btn-dur[data-v="${durMin}"]`);
+    const targetVal = (duracionCita === 'rest' || duracionCita === 'all') ? duracionCita : durMin;
+    const $matchingBtn = $(`.btn-dur[data-v="${targetVal}"]`);
     if ($matchingBtn.length) {
         $(".btn-dur").removeClass('active');
         $matchingBtn.addClass('active dur-avena-active');
+    }
+    if (typeof window.sincronizarSliderDuracionUI === 'function') {
+        window.sincronizarSliderDuracionUI(targetVal);
     }
 }
 
@@ -737,14 +741,37 @@ $(document).ready(function() {
     // Selector Duración (Diamond Edition Refactor)
     $(document).on('click', '.btn-dur', function() {
         $(".btn-dur").removeClass('active dur-avena-active');
-        $(this).addClass('active');
+        $(this).addClass('active dur-avena-active');
         const val = $(this).attr('data-v');
-        duracionCita = isNaN(val) ? val : parseInt(val);
+        duracionCita = isNaN(val) ? val : parseInt(val, 10);
         
-        // Limpieza estricta de horas para evitar arrastrar slots de otras duraciones
-        $("#f_hi").val('');
-        $("#f_hf").val('');
-        $("#bloqueo-horario-avena").addClass('d-none');
+        if (typeof window.sincronizarSliderDuracionUI === 'function') {
+            window.sincronizarSliderDuracionUI(duracionCita);
+        }
+
+        // Si ya hay una hora de inicio seleccionada, recalculamos dinámicamente la hora de fin
+        const curHi = $("#f_hi").val();
+        const curFecha = $("#f_fecha").val();
+        if (curHi && curFecha) {
+            const lEnd = agendaConfig.laborEnd || '20:00';
+            const [leH, leM] = lEnd.split(':').map(Number);
+            const endMinJornada = ((leH || 20) * 60) + (leM || 0);
+            const [h1, m1] = curHi.split(':').map(Number);
+            const startMin = h1 * 60 + m1;
+
+            let newEndMin = (duracionCita === 'rest') ? endMinJornada : (startMin + (typeof duracionCita === 'number' ? duracionCita : 30));
+            if (newEndMin > endMinJornada) newEndMin = endMinJornada;
+
+            const hE = Math.floor(newEndMin / 60).toString().padStart(2, '0');
+            const mE = (newEndMin % 60).toString().padStart(2, '0');
+            const newHf = (newEndMin >= 1440) ? '23:59' : `${hE}:${mE}`;
+            $("#f_hf").val(newHf);
+            const accion = $("#f_accion").val();
+            const lbl = (accion === 'update') ? 'GESTIÓN DE CITAS / EDITAR CITA' : 'GESTIÓN DE CITAS / NUEVA CITA';
+            actualizarResaltadoModalCita(curFecha, curHi, newHf, lbl);
+        } else {
+            $("#bloqueo-horario-avena").addClass('d-none');
+        }
         
         console.info("Duración Seleccionada:", duracionCita);
         renderSlots($("#f_fecha").val());
@@ -928,23 +955,100 @@ function loadContext() {
     cargarEventosYConfig(idMed);
 }
 
+function formatDuracionLabel(val) {
+    if (val === 'all') return 'Día Completo';
+    if (val === 'rest') return 'Hasta el Cierre (Resto)';
+    const mins = parseInt(val, 10) || 30;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h > 0 && m > 0) return `${h}h ${m}m (${mins} min)`;
+    if (h > 0) return `${h} hr${h > 1 ? 's' : ''} (${mins} min)`;
+    return `${mins} min`;
+}
+
+window.sincronizarSliderDuracionUI = function(val) {
+    const slider = document.getElementById('slider_duracion_renta') || document.getElementById('slider_duracion_cita');
+    const badge  = document.getElementById('lbl_slider_duracion_badge');
+    if (badge) {
+        badge.textContent = formatDuracionLabel(val);
+    }
+    if (slider) {
+        const maxVal = parseInt(slider.max, 10) || 240;
+        if (val === 'all' || val === 'rest') {
+            slider.value = maxVal;
+        } else {
+            const num = parseInt(val, 10) || 30;
+            slider.value = Math.min(maxVal, Math.max(parseInt(slider.min, 10) || 15, num));
+        }
+    }
+};
+
+window.onDuracionSliderChange = function(rawVal) {
+    const slider = document.getElementById('slider_duracion_renta') || document.getElementById('slider_duracion_cita');
+    const maxVal = slider ? (parseInt(slider.max, 10) || 240) : 240;
+    const numVal = parseInt(rawVal, 10) || 30;
+
+    $(".btn-dur").removeClass('active dur-avena-active');
+
+    if (numVal >= maxVal) {
+        duracionCita = 'rest';
+        $('.btn-dur[data-v="rest"]').addClass('active dur-avena-active');
+    } else {
+        duracionCita = numVal;
+        const matchBtn = $(`.btn-dur[data-v="${numVal}"]`);
+        if (matchBtn.length) matchBtn.addClass('active dur-avena-active');
+    }
+
+    window.sincronizarSliderDuracionUI(duracionCita);
+
+    // Si ya había una hora de inicio seleccionada, recalcular dinámicamente la hora de fin si sigue siendo válida
+    const curHi = $("#f_hi").val();
+    const curFecha = $("#f_fecha").val();
+    if (curHi && curFecha) {
+        const lEnd = agendaConfig.laborEnd || '20:00';
+        const [leH, leM] = lEnd.split(':').map(Number);
+        const endMinJornada = ((leH || 20) * 60) + (leM || 0);
+        const [h1, m1] = curHi.split(':').map(Number);
+        const startMin = h1 * 60 + m1;
+
+        let newEndMin = (duracionCita === 'rest') ? endMinJornada : (startMin + (typeof duracionCita === 'number' ? duracionCita : 30));
+        if (newEndMin > endMinJornada) newEndMin = endMinJornada;
+
+        const hE = Math.floor(newEndMin / 60).toString().padStart(2, '0');
+        const mE = (newEndMin % 60).toString().padStart(2, '0');
+        const newHf = (newEndMin >= 1440) ? '23:59' : `${hE}:${mE}`;
+        $("#f_hf").val(newHf);
+        const accion = $("#f_accion").val();
+        const lbl = (accion === 'update') ? 'GESTIÓN DE CITAS / EDITAR CITA' : 'GESTIÓN DE CITAS / NUEVA CITA';
+        actualizarResaltadoModalCita(curFecha, curHi, newHf, lbl);
+    }
+
+    renderSlots(curFecha);
+};
+
 function renderDuracionButtons() {
     const int = parseInt(agendaConfig.intervalo_minutos) || 30;
     const g = $("#btn-group-duracion");
     g.empty();
-    
-    let l1 = int + 'm';
-    if(int === 60) l1 = '1h';
-    let val2 = int * 2;
-    let l2 = val2 + 'm';
-    if(val2 === 60) l2 = '1h';
-    else if(val2 === 90) l2 = '1h 30m';
-    else if(val2 === 120) l2 = '2h';
-    
-    g.append(`<button type="button" class="btn btn-dur active" data-v="${int}">${l1}</button>`);
-    g.append(`<button type="button" class="btn btn-dur" data-v="${val2}">${l2}</button>`);
-    g.append(`<button type="button" class="btn btn-dur" data-v="rest">RESTO</button>`);
-    g.append(`<button type="button" class="btn btn-dur" data-v="all">DÍA</button>`);
+
+    // Configurar límites del slider según la jornada clínica
+    const slider = document.getElementById('slider_duracion_renta') || document.getElementById('slider_duracion_cita');
+    if (slider) {
+        slider.min = (int <= 15) ? 15 : int;
+        slider.step = (int <= 15) ? 15 : (int <= 30 ? 15 : 30);
+        slider.max = 240; // 15..210 min y 240 = Hasta Cierre / Resto
+    }
+
+    // Píldoras de Acceso Rápido
+    const presets = [15, 30, 45, 60, 90, 120];
+    presets.forEach(p => {
+        let label = (p < 60) ? `${p}m` : (p === 60 ? '1h' : (p === 90 ? '1h 30m' : `${Math.floor(p/60)}h`));
+        g.append(`<button type="button" class="btn btn-dur" data-v="${p}">${label}</button>`);
+    });
+    g.append(`<button type="button" class="btn btn-dur" data-v="rest" title="Atender continuo hasta el cierre del día">HASTA CIERRE</button>`);
+    g.append(`<button type="button" class="btn btn-dur" data-v="all" title="Reservar toda la jornada del día">DÍA COMPLETO</button>`);
+
+    window.sincronizarSliderDuracionUI(duracionCita);
 }
 
 
@@ -3618,8 +3722,13 @@ function abrirModalNuevaCita(f, h, idP, nomP) {
     
     $("#modalCitaTitle").html('<span class="fw-semibold">GESTIÓN DE CITAS / NUEVA CITA</span>');
     $("#bloqueo-horario-avena").addClass('d-none');
-    $(".btn-dur").removeClass('dur-avena-active');
+    $(".btn-dur").removeClass('dur-avena-active active');
     $(".btn-slot").removeClass('dur-avena-slot');
+    duracionCita = parseInt(agendaConfig.intervalo_minutos) || 30;
+    if (typeof window.sincronizarSliderDuracionUI === 'function') {
+        window.sincronizarSliderDuracionUI(duracionCita);
+    }
+    $(`.btn-dur[data-v="${duracionCita}"]`).addClass('active dur-avena-active');
     
     // Inyectar datos de paciente si vienen por parámetro o variables globales
     if (!idP && window.idPacientePre) idP = window.idPacientePre;
@@ -3797,6 +3906,11 @@ function abrirModalCita(id, isReadonly) {
         if (isNaN(durMin) || durMin <= 0) durMin = 30;
     }
     duracionCita = durMin;
+    if (typeof window.sincronizarSliderDuracionUI === 'function') {
+        window.sincronizarSliderDuracionUI(duracionCita);
+    }
+    $(".btn-dur").removeClass('dur-avena-active active');
+    $(`.btn-dur[data-v="${durMin}"]`).addClass('active dur-avena-active');
 
     renderSlots(fecha);
     const m = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCita'));

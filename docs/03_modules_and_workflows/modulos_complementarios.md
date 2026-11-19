@@ -340,3 +340,19 @@ Este documento agrupa la especificación de los módulos complementarios y espec
           - Se refactoriza la estructura y estilos adoptando la clase `.modal-apertura-premium`, cabecera con `.modal-top-bar`, `.icon-header-badge` y píldora descriptiva `.badge-pill-teal`.
           - *Arquitectura en 2 Columnas*: Columna izquierda para Jornada (Apertura/Cierre con `.field-card`), Días Hábiles en píldoras interactivas táctiles (`.btn-day-pill` con micro-dot luminoso y badge de conteo `#badgeDiasActivos`), y Continuidad con interruptor para omitir horario de comida (`#recesoFields`). Columna derecha con selector dual de intervalo (botones segmentados de 15, 30, 45, 60 min + slider interactivo), límite de cancelación para pacientes y gestión dinámica de fechas inhábiles con nube de tags ámbar (`.date-tag-amber`) y selector de motivos (Feriado, Vacaciones, Mantenimiento).
           - *Pie de Modal Blindado*: Muestra el disclaimer de la Norma Oficial Mexicana NOM-004 junto a los botones de acción estándar (`Cancelar` y botón primario `.btn-osp-navy`).
+    12. **Homogeneización del Modal de Gestión de Citas con Slider de Duración Estimada (`#modalCita` en `views/agenda_main.pl` y `js/agenda_spa_new.js`)**:
+       - **Paridad de Diseño y Estilos con Reserva de Espacios (`views/agenda_espacios.pl`)**: Se refactoriza el modal `#modalCita` adoptando el diseño de dos columnas, proporciones áureas (7 cols izquierda / 5 cols derecha) y paleta clínica Teal/Navy (`.modal-diamond`, `.modal-xl`).
+       - **Panel Izquierdo (Ficha Clínica de la Cita)**:
+         - *Fila 1*: Búsqueda predictiva de Paciente con lupa teal interactiva (`#f_paciente`, `#f_id_paciente`) y selector de Fecha de Cita (`#f_fecha`).
+         - *Fila 2*: Motivo/Especialidad (`#f_motivo`) y Profesional Asignado (`#f_medico_select`, `$html_medicos`).
+         - *Fila 3*: Sucursal/Sede Física (`#f_sucursal`) y Consultorio Asignado (`#f_consultorio`).
+         - *Fila 4*: Estado de la Cita (`#f_estado` sincronizado con `catalogo_estados_citas.dat`) y Prioridad (`#f_prioridad`).
+         - *Fila 5*: Color identificador del bloque (`#f_color`) en tarjeta blanca con borde suave y picker estilizado.
+         - *Badge de Pago*: Leyenda institucional de Consulta Pagada en Recepción (`#leyenda-cita-pagada`).
+       - **Panel Derecho (Duración Estimada Táctil & Anticolisión)**:
+         - *Cabecera con Badge Activo*: Etiqueta con icono de slider teal y badge navy superior (`#lbl_slider_duracion_badge`) que refleja dinámicamente la duración en tiempo real (ej. `30 min`, `1 hr (60 min)`, `Día Completo`).
+         - *Slider Táctil de Duración (`#slider_duracion_renta` / `#slider_duracion_cita`)*: Control deslizante con escala de 15m a 240m (4h), marcas visuales inferiores (`15m`, `30m`, `1h`, `2h`, `Resto / Cierre`) y enlace bidireccional reactivo (`window.onDuracionSliderChange`).
+         - *Píldoras de Acceso Rápido (`#btn-group-duracion`)*: Botones segmentados premium (15m, 30m, 45m, 1h, 1h 30m, 2h, HASTA CIERRE, DÍA COMPLETO) que activan el estilo activo con borde ámbar suave `.dur-avena-active`.
+         - *Bloqueo de Horario Estimado (`#bloqueo-horario-avena`)*: Tarjeta suave en amarillo avena que muestra el intervalo exacto bloqueado (`#bloqueo-horario-rango`, ej. `09:30 - 10:00 hrs (30 min)`) y el detalle informativo.
+         - *Cuadrícula de Horarios Anticolisión (`#slots-container`)*: Lista de slots sincronizada con la jornada clínica y validación estricta de solapamientos con citas médicas y reservas de espacios físicos.
+       - **Footer Estandarizado**: Botón Eliminar (`#btn-del-cita`) a la izquierda, y en la derecha: Cancelar, Cobrar en Recepción (`#btn-cobrar-recepcion`), Tomar Cita (`#btn-tomar-cita` con icono de verificación esmeralda) y Guardar Cita (`saveCita()` con `.btn-teal-primary`).

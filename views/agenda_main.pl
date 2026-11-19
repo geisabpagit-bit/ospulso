@@ -770,7 +770,7 @@ print <<HTML;
         </div>
     </div>
 
-    <!-- MODAL CITAS (Diseño Clínico Minimalista Teal - Zero Scroll & Ajuste Perfecto) -->
+    <!-- MODAL CRUD DE GESTIÓN DE CITAS (DIAMOND EDITION - 2 COLUMNAS + SLIDER DURACIÓN) -->
     <div class="modal fade modal-diamond" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
         <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 1040px;">
             <div class="modal-content">
@@ -797,26 +797,26 @@ print <<HTML;
                         <input type="hidden" name="hora_fin" id="f_hf">
 
                         <div class="row g-3 align-items-stretch">
-                            <!-- PANEL IZQUIERDO: FORMULARIO PRINCIPAL (7 COLS) -->
+                            <!-- PANEL IZQUIERDO: DATOS DE LA CITA CLÍNICA (7 COLS) -->
                             <div class="col-lg-7 d-flex flex-column justify-content-between">
                                 <div class="row g-2">
                                     <!-- Fila 1: Paciente y Fecha -->
                                     <div class="col-md-6">
-                                        <label class="form-label-compact" for="f_paciente">Paciente <span class="text-muted fw-normal">(búsqueda automática)</span></label>
+                                        <label class="form-label-compact" for="f_paciente">Paciente <span class="text-danger">*</span> <span class="text-muted fw-normal" style="font-size:0.65rem;">(Búsqueda automática)</span></label>
                                         <div class="position-relative">
-                                            <input type="text" id="f_paciente" class="form-control form-control-compact pe-4" placeholder="Nombre del paciente..." required>
-                                            <i class="bi bi-search position-absolute end-0 top-50 translate-middle-y me-2.5 text-muted" style="font-size: 0.8rem;"></i>
+                                            <input type="text" id="f_paciente" class="form-control form-control-compact pe-4" placeholder="Nombre o apellidos..." required>
+                                            <i class="bi bi-search position-absolute end-0 top-50 translate-middle-y me-2.5 text-teal" style="font-size: 0.8rem; cursor: pointer;"></i>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label-compact" for="f_fecha">Fecha de la Cita</label>
+                                        <label class="form-label-compact" for="f_fecha">Fecha de la Cita <span class="text-danger">*</span></label>
                                         <input type="date" name="fecha" id="f_fecha" class="form-control form-control-compact" onchange="renderSlots(this.value)">
                                     </div>
 
                                     <!-- Fila 2: Motivo y Profesional -->
                                     <div class="$class_col_motivo" id="col_motivo">
-                                        <label class="form-label-compact" for="f_motivo">Motivo / Observaciones <span class="text-danger">*</span></label>
-                                        <input type="text" name="motivo" id="f_motivo" class="form-control form-control-compact" placeholder="Detalles de la cita..." required>
+                                        <label class="form-label-compact" for="f_motivo">Motivo / Especialidad <span class="text-danger">*</span></label>
+                                        <input type="text" name="motivo" id="f_motivo" class="form-control form-control-compact" placeholder="Ej: Consulta general / Valoración..." required>
                                     </div>
                                     <div class="$class_col_medico" id="col_medico_select">
                                         <label class="form-label-compact" for="f_medico_select">Profesional Asignado</label>
@@ -827,61 +827,82 @@ print <<HTML;
 
                                     <!-- Fila 3: Sucursal y Lugar/Consultorio -->
                                     <div class="col-md-6">
-                                        <label class="form-label-compact" for="f_sucursal">Sucursal</label>
+                                        <label class="form-label-compact" for="f_sucursal">Sucursal / Sede Física</label>
                                         <select name="sucursal" id="f_sucursal" class="form-select form-control-compact">
                                             $html_sucursal
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label-compact" for="f_consultorio">Lugar / Consultorio</label>
-                                        <select name="consultorio" id="f_consultorio" class="form-select form-control-compact">
+                                        <label class="form-label-compact" for="f_consultorio">Lugar / Consultorio Asignado</label>
+                                        <select name="consultorio" id="f_consultorio" class="form-select form-control-compact fw-bold text-navy">
                                             <option value="Virtual">Cargando...</option>
                                         </select>
                                     </div>
 
                                     <!-- Fila 4: Estado y Prioridad -->
                                     <div class="col-md-6">
-                                        <label class="form-label-compact" for="f_estado">Estado</label>
+                                        <label class="form-label-compact" for="f_estado">Estado de la Cita</label>
                                         <select name="estado" id="f_estado" class="form-select form-control-compact">
                                             <option value="Programada">Programada</option>
                                             <option value="Confirmada">Confirmada</option>
                                             <option value="En Sala de Espera">En Sala de Espera</option>
-                                            <option value="Consulta en proceso">Consulta en proceso</option>
                                             <option value="En consulta">En consulta</option>
                                             <option value="Atendida">Atendida</option>
-                                            <option value="No realizada">No realizada</option>
                                             <option value="Cancelada">Cancelada</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label-compact" for="f_prioridad">Prioridad</label>
+                                        <label class="form-label-compact" for="f_prioridad">Prioridad / Nivel de Atención</label>
                                         <select name="prioridad" id="f_prioridad" class="form-select form-control-compact">
-                                            <option value="Baja">Baja</option>
-                                            <option value="Normal" selected>Normal</option>
-                                            <option value="Alta">Alta</option>
-                                            <option value="Urgente">Urgente</option>
+                                            <option value="Normal">Normal</option>
+                                            <option value="Media">Media</option>
+                                            <option value="Alta">Alta (Urgente)</option>
                                         </select>
+                                    </div>
+
+                                    <!-- Fila 5: Color Identificador -->
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-1.5 rounded-2 bg-white border shadow-2xs">
+                                            <span class="small fw-semibold text-navy" style="font-size:0.74rem;">
+                                                <i class="bi bi-palette text-teal me-1"></i>Color Identificador del Bloque:
+                                            </span>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="color" name="color" id="f_color" class="form-control form-control-color border shadow-2xs" value="#3b82f6" style="width: 32px; height: 26px; padding: 2px;" title="Elige un color para la cita">
+                                                <span class="text-muted" style="font-size: 0.68rem;">Personalizado</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Leyenda de Cita Pagada en Recepción si aplica -->
+                                <!-- Alerta Informativa de Pago en Recepción si aplica -->
                                 <div id="leyenda-cita-pagada" class="badge text-success px-3 py-2 rounded-2 d-none mt-2 text-start" style="font-size: 0.8rem; font-weight: 500; background-color: #f0fdf4; border: 1px solid #bbf7d0;">
                                     <i class="bi bi-check-circle-fill me-1 text-success"></i> Consulta Pagada en Recepción
                                 </div>
                             </div>
 
-                            <!-- PANEL DERECHO: DURACIÓN Y SLOTS DE HORARIOS (5 COLS) -->
+                            <!-- PANEL DERECHO: DURACIÓN Y SLOTS ANTICOLISIÓN (5 COLS) -->
                             <div class="col-lg-5">
                                 <div class="h-100 d-flex flex-column p-2.5 rounded-3" style="background-color: #f8fafc; border: 1px solid rgba(25, 183, 165, 0.28);">
-                                    <!-- Selector de Duración -->
                                     <div class="mb-2">
                                         <div class="d-flex align-items-center justify-content-between mb-1">
-                                            <label class="form-label-compact m-0">Duración Estimada</label>
-                                            <span class="text-muted" style="font-size: 0.68rem;">Tiempo de atención</span>
+                                            <label class="form-label-compact m-0"><i class="bi bi-sliders text-teal me-1"></i>Duración Estimada de Cita</label>
+                                            <span class="badge bg-navy text-white px-2 py-0.5 fw-bold" id="lbl_slider_duracion_badge" style="font-size: 0.70rem;">30 min</span>
                                         </div>
-                                        <div class="d-flex gap-1.5 dur-bar-premium w-100" id="btn-group-duracion">
-                                            <!-- Generado dinámicamente por JS -->
+
+                                        <!-- Slider Táctil de Duración (15 min hasta Resto del Día) -->
+                                        <div class="px-2 py-1.5 bg-white rounded-3 border shadow-2xs mb-1.5">
+                                            <input type="range" class="form-range m-0" id="slider_duracion_renta" min="15" max="240" step="15" value="30" oninput="window.onDuracionSliderChange(this.value)">
+                                            <div class="d-flex justify-content-between text-muted fw-semibold" style="font-size: 0.62rem; margin-top: -2px;">
+                                                <span>15m</span>
+                                                <span>30m</span>
+                                                <span>1h</span>
+                                                <span>2h</span>
+                                                <span id="lbl_slider_max_mark">Resto / Cierre</span>
+                                            </div>
                                         </div>
+
+                                        <!-- Píldoras de Acceso Rápido + Resto del Día + Día Completo -->
+                                        <div class="d-flex gap-1 dur-bar-premium w-100" id="btn-group-duracion"></div>
 
                                         <!-- Bloqueo de Horario Estimado (Amarillo Avena Suave) -->
                                         <div id="bloqueo-horario-avena" class="bloqueo-avena-card d-none mt-2 p-2 rounded-3 animate__animated animate__fadeIn">
@@ -901,15 +922,12 @@ print <<HTML;
                                         </div>
                                     </div>
 
-                                    <!-- Horarios Disponibles -->
                                     <div class="d-flex flex-column flex-grow-1">
                                         <div class="d-flex align-items-center justify-content-between mb-1">
-                                            <label class="form-label-compact m-0">Horarios Disponibles</label>
-                                            <span class="text-muted" style="font-size: 0.68rem;"><i class="bi bi-clock me-1"></i>Bloque asignado</span>
+                                            <label class="form-label-compact m-0">Horarios Disponibles (Anticolisión)</label>
+                                            <span class="text-muted" style="font-size: 0.68rem;"><i class="bi bi-shield-check text-teal me-1"></i>Sincronizado con Agenda</span>
                                         </div>
-                                        <div id="slots-container" class="slot-grid-compact flex-grow-1" style="height: 185px; max-height: 195px; overflow-y: auto;">
-                                            <!-- Generado dinámicamente por JS -->
-                                        </div>
+                                        <div id="slots-container" class="slot-grid-compact flex-grow-1" style="height: 185px; max-height: 195px; overflow-y: auto;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -941,7 +959,7 @@ print <<HTML;
         </div>
     </div>
 
-    <!-- MODAL AJUSTES DE HORARIO Y JORNADA (VARIANTE PREMIUM BOOTSTRAP 5.3 + SEDE / MÉDICO) -->
+        <!-- MODAL AJUSTES DE HORARIO Y JORNADA (VARIANTE PREMIUM BOOTSTRAP 5.3 + SEDE / MÉDICO) -->
     <div class="modal fade modal-apertura-premium" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
         <div class="modal-dialog modal-dialog-centered modal-lg" style="zoom: 0.75;">
             <div class="modal-content card-mobile-flush custom-modal-card">
