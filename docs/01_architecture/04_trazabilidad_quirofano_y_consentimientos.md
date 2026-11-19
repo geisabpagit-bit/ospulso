@@ -190,3 +190,26 @@ Vista médica legal diseñada para archivo físico o exportación a PDF, que inc
 7. Criterios de Recuperación Post-Anestésica UCPA (Escala de Aldrete de 0 a 10 puntos) con dictamen de egreso.
 8. Espacios reglamentarios de firma y cédula profesional para Cirujano Titular y Médico Anestesiólogo.
 
+---
+
+## 8. Módulo Quirúrgico Integral: Wizard de 6 Pasos, Catálogo 3NF y Semaforización de 8 Actores
+
+### 8.1 Navegación Lateral (`utils/sub_sidebar.pl`)
+El módulo Quirófano se organiza como un acordeón colapsable en el menú lateral izquierdo con dos vistas:
+- **Tablero** (`views/quirofano_kanban.pl`): Tablero Kanban de 5 columnas en vivo con tarjetas enriquecidas (badge `PROGRAMADA` vs `URGENCIAS`, tira de 8 semáforos miniatura, acumulado de insumos 3NF y botón para retomar el Wizard en el paso exacto).
+- **Nuevo Ingreso** (`views/quirofano_ingreso.pl`): Wizard guiado de 6 pasos con panel lateral de monitoreo de actores en tiempo real.
+
+### 8.2 Arquitectura de Datos del Catálogo Universal de Insumos (Estricto 3NF)
+1. `dat/quirofano/categorias_insumo.dat`: `id_categoria|tenant_id|nombre|activo|created_at|updated_at|created_by`
+2. `dat/quirofano/unidades_medida.dat`: `id_unidad|clave|descripcion|created_at|updated_at|created_by`
+3. `dat/quirofano/catalogo_insumos.dat`: `id_insumo|tenant_id|codigo_sku|nombre|id_categoria|id_unidad|precio_unitario|stock_actual|activo|created_at|updated_at|created_by`
+4. `dat/quirofano/consumo_insumos.dat`: `id_consumo|tenant_id|id_cirugia|id_insumo|etapa_clinica|cantidad|precio_unitario_snapshot|subtotal|registrado_por|fecha_hora`
+5. `dat/quirofano/tramites_ingreso.dat`: `id_tramite|tenant_id|id_cirugia|contrato_firmado|consentimiento_informado_firmado|nombre_firmante|parentesco_firmante|fecha_firma_consentimiento|deposito_monto|deposito_pagado|folio_recibo_caja|created_at|updated_at|created_by`
+6. `dat/quirofano/recetas_alta.dat`: `id_receta|tenant_id|id_cirugia|diagnostico_egreso_cie10|indicaciones_generales|medicamentos_json|fecha_emision|hash_firma_electronica|created_at|updated_at|created_by`
+
+### 8.3 Máquina de Estados y Bifurcación (`api/quirofano_wizard_api.pl`)
+- **Cirugía Programada (`PROGRAMADA`)**: Verifica disponibilidad anticolisión en `dat/rentas_espacios.dat`. Registra reserva de sala y cita en `dat/citas.dat`. Ingresa a la columna `Programada` y bloquea el avance a `Pre-Operatorio` hasta que Recepción registre Contrato + Consentimiento Informado y Caja confirme el Depósito de Ingreso ($5,000.00 MXN con folio en `dat/folios_recibos_privados.dat`).
+- **Cirugía de Urgencias (`URGENCIAS`)**: Aplica bloqueo prioritario en `dat/rentas_espacios.dat`, ingresa directamente a la columna `Pre-Operatorio` y activa el **Flujo en Paralelo** (Enfermería y Quirófano avanzan sin bloqueo mientras los semáforos de Recepción y Caja permanecen en **Rojo pulsante** hasta que el familiar concluye el trámite).
+- **Corte de Caja, Receta CIE-10 y Pase de Salida (`views/imprimir_alta_quirurgica.pl`)**: En el Paso 6 calcula `Insumos 3NF (PRE_OP + QUIROFANO + RECUPERACION) + Renta de Sala - Depósito ($5,000.00) = Saldo a Liquidar`, inyecta movimiento a `dat/estado_cuenta.dat`, emite el Pase de Salida y traslada la tarjeta a `Alta / Traslado`.
+
+

@@ -1,0 +1,3 @@
+id_tramite|tenant_id|id_cirugia|contrato_firmado|consentimiento_informado_firmado|nombre_firmante|parentesco_firmante|fecha_firma_consentimiento|deposito_monto|deposito_pagado|folio_recibo_caja|created_at|updated_at|created_by
+TRM-QX-01|723800|CIR-SEED-PROG-01|1|1|Israel Garay hernandez|Titular / Paciente|2026-11-19 14:00:00|5000.00|1|RC-1795119001-101|2026-11-19 14:00:00|2026-11-19 14:05:00|israel.garays@gmail.com
+TRM-QX-02|723800|CIR-SEED-URG-02|0|0|Roberto Hernández (Esposo)|Cónyuge||5000.00|0||2026-11-19 14:10:00|2026-11-19 14:10:00|israel.garays@gmail.com

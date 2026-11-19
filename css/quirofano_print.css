@@ -1,0 +1,224 @@
+/* ==========================================================================
+   OSPULSO - ESTILOS DE IMPRESIÓN OFICIAL (ALTA QUIRÚRGICA, RECETA Y PASE)
+   ========================================================================== */
+
+body.qx-print-body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #0f172a;
+    background: #f1f5f9;
+    margin: 0;
+    padding: 20px;
+}
+
+.no-print-bar {
+    max-width: 820px;
+    margin: 0 auto 15px auto;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-print {
+    background: #0A2A66;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-close-win {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.print-sheet {
+    max-width: 820px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 28px 34px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2.5px solid #0A2A66;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.org-title {
+    margin: 0;
+    font-size: 18px;
+    color: #0A2A66;
+}
+
+.org-sub {
+    margin: 3px 0 0 0;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.folio-box {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.print-section {
+    margin-bottom: 16px;
+}
+
+.sec-title {
+    font-size: 12px;
+    background: #0A2A66;
+    color: #ffffff;
+    padding: 5px 10px;
+    margin: 0 0 8px 0;
+    border-radius: 4px;
+    letter-spacing: 0.4px;
+}
+
+.info-grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.info-grid td {
+    border: 1px solid #e2e8f0;
+    padding: 6px 8px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+}
+
+.data-table th {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.data-table td {
+    border: 1px solid #e2e8f0;
+    padding: 6px 8px;
+}
+
+.badge {
+    background: #e2e8f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.indicaciones-box {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 11.5px;
+}
+
+.hash-box {
+    margin-top: 6px;
+    font-size: 10.5px;
+    color: #475569;
+}
+
+.totals-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.totals-table {
+    width: 340px;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.totals-table td {
+    padding: 4px 8px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: right;
+}
+
+.totals-table tr.grand-total td {
+    font-size: 14px;
+    font-weight: bold;
+    color: #0A2A66;
+    border-top: 2px solid #0A2A66;
+    background: #f0f9ff;
+}
+
+.signatures-row {
+    display: flex;
+    justify-content: space-around;
+    margin: 34px 0 20px 0;
+    text-align: center;
+    font-size: 12px;
+}
+
+.sig-block {
+    width: 240px;
+}
+
+.sig-line {
+    border-bottom: 1px solid #334155;
+    margin-bottom: 6px;
+    height: 25px;
+}
+
+.pase-salida-box {
+    border: 2px dashed #0A2A66;
+    background: #f8fafc;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 16px;
+}
+
+.d-flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pase-folio {
+    background: #10b981;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+@media print {
+    body.qx-print-body {
+        background: #ffffff;
+        padding: 0;
+    }
+    .no-print-bar {
+        display: none !important;
+    }
+    .print-sheet {
+        box-shadow: none;
+        padding: 10px;
+    }
+}

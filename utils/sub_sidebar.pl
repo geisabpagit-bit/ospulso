@@ -414,11 +414,34 @@ HTML
     
     # 4. Quirófano / Hospitalización (RBAC y Excepciones Activas)
     if ($is_allowed{quirofano}) {
-        my $active_quirofano = ($pagina_actual eq 'quirofano_kanban') ? 'active' : '';
+        my $qx_has_active = ($pagina_actual eq 'quirofano_kanban' || $pagina_actual eq 'quirofano_ingreso') ? 1 : 0;
+        my $qx_show = $qx_has_active ? 'show' : '';
+        my $qx_collapsed = $qx_has_active ? '' : 'collapsed';
+        my $qx_aria = $qx_has_active ? 'true' : 'false';
+        my $qx_badge = $qx_has_active ? '<span class="active-dot ms-auto"></span>' : '';
+
+        my $act_tablero = ($pagina_actual eq 'quirofano_kanban') ? 'active' : '';
+        my $act_ingreso = ($pagina_actual eq 'quirofano_ingreso') ? 'active' : '';
+
         print qq{
-            <a href="../views/quirofano_kanban.pl" class="sub-link $active_quirofano w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Tablero Quirófano">
-                <i class="bi bi-heart-pulse-fill me-2 text-danger" style="font-size:1.2rem;"></i> <span class="sidebar-text">Tablero Quirófano</span>
-            </a>
+            <!-- Quirofano (Tablero & Nuevo Ingreso) -->
+            <div class="accordion-item bg-transparent border-0 mb-1">
+                <h2 class="accordion-header" id="h-quirofano">
+                    <button class="accordion-button $qx_collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-quirofano" aria-expanded="$qx_aria" aria-controls="c-quirofano" data-sidebar-title="Quirofano">
+                        <i class="bi bi-heart-pulse-fill text-danger" style="font-size:1.2rem;"></i> <span class="sidebar-text ms-2">Quirofano</span>$qx_badge
+                    </button>
+                </h2>
+                <div id="c-quirofano" class="accordion-collapse collapse $qx_show" aria-labelledby="h-quirofano">
+                    <div class="accordion-body pb-0 pt-1">
+                        <a href="../views/quirofano_kanban.pl" class="sub-link $act_tablero w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Tablero">
+                            <i class="bi bi-kanban-fill text-danger me-2"></i><span class="sidebar-text fw-bold">Tablero</span>
+                        </a>
+                        <a href="../views/quirofano_ingreso.pl" class="sub-link $act_ingreso w-100 text-start text-decoration-none d-flex align-items-center mb-1" data-sidebar-title="Nuevo Ingreso">
+                            <i class="bi bi-plus-square-fill text-teal me-2"></i><span class="sidebar-text fw-bold">Nuevo Ingreso</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
         };
     }
 

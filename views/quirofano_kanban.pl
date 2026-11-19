@@ -105,13 +105,22 @@ foreach my $m (@medicos) {
 render_header(
     titulo => 'Tablero de Quirófano (Kanban)',
     role => $role,
-    usuario => $usuario
+    usuario => $usuario,
+    skip_header => 1
+);
+
+utils::sub_sidebar::render_sidebar(
+    usuario       => $usuario,
+    role          => $role,
+    id_medico     => $id_usuario_sesion,
+    pagina_actual => 'quirofano_kanban'
 );
 
 print <<"HTML";
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2\@4.1.0-rc.0/dist/css/select2.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme\@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 <link rel="stylesheet" href="../css/sdm_mobile_standards.css" />
+<link rel="stylesheet" href="../css/quirofano_wizard.css" />
 <script src="https://cdn.jsdelivr.net/npm/sortablejs\@latest/Sortable.min.js"></script>
 
 <style>
@@ -413,8 +422,8 @@ print <<"HTML";
                 <i class="bi bi-calendar-event text-primary me-2"></i>
                 <span id="lblFechaHoy" class="fw-bold text-primary"></span>
             </span>
-            <a href="agenda_main.pl" class="btn btn-sm btn-outline-primary btn-mobile-standard shadow-sm d-flex align-items-center fw-semibold">
-                <i class="bi bi-calendar-plus me-1.5"></i> Programar Cirugía
+            <a href="quirofano_ingreso.pl" class="btn btn-sm btn-primary btn-mobile-standard shadow-sm d-flex align-items-center fw-bold">
+                <i class="bi bi-plus-circle-fill me-1.5"></i> + Programar Cirugía (Wizard)
             </a>
             <button class="btn btn-sm btn-light border text-muted shadow-sm d-flex align-items-center" onclick="cargarTablero(fechaActualSeleccionada)" title="Refrescar datos">
                 <i class="bi bi-arrow-clockwise"></i>
@@ -1133,15 +1142,52 @@ print <<'JS';
                 cirugiasCargadas.forEach(c => {
                     const anestesiaHtml = c.nombre_anestesio ? `<div class="text-truncate mt-0.5" title="Anestesiólogo: ${c.nombre_anestesio}"><i class="bi bi-lungs text-info me-1"></i>${c.nombre_anestesio}</div>` : '';
                     const salaLabel = c.sala ? c.sala : 'Sin Sala';
-                    const salaHtml = `<span class="badge bg-light text-dark border px-2 py-0.5 fw-bold" style="font-size: 0.72rem;">${salaLabel}</span>`;
+                    const salaHtml = `<span class="badge bg-light text-dark border px-2 py-0.5 fw-bold" style="font-size: 0.7rem;">${salaLabel}</span>`;
                     const iniciales = obtenerIniciales(c.nombre_paciente);
-                    
-                    const searchIndex = `${c.nombre_paciente || ''} ${c.procedimiento || ''} ${c.nombre_medico || ''} ${c.sala || ''} ${c.notas || ''}`.toLowerCase();
+                    const tipoCir = (c.tipo_cirugia || 'PROGRAMADA').toUpperCase();
+                    const tipoBadge = tipoCir === 'URGENCIAS'
+                        ? `<span class="badge bg-danger text-white px-1.5 py-0.5 fw-bold" style="font-size:0.65rem;"><i class="bi bi-lightning-charge-fill me-0.5"></i>URGENCIAS</span>`
+                        : `<span class="badge bg-info-subtle text-primary border border-info-subtle px-1.5 py-0.5 fw-bold" style="font-size:0.65rem;">PROGRAMADA</span>`;
+
+                    const sem = c.semaforos || {};
+                    const actorsOrder = [
+                        { k: 'agenda_espacios', n: 'Agenda Espacios' },
+                        { k: 'agenda_paciente', n: 'Agenda Paciente' },
+                        { k: 'recepcion_consentimiento', n: 'Recepción/Consent.' },
+                        { k: 'caja', n: 'Caja Depósito' },
+                        { k: 'enfermeria', n: 'Enfermería Pre-Op' },
+                        { k: 'quirofano', n: 'Quirófano' },
+                        { k: 'recuperacion', n: 'Recuperación' },
+                        { k: 'alta_receta', n: 'Alta/Receta' }
+                    ];
+                    const hasRedAlert = (sem.recepcion_consentimiento === 'ROJO' || sem.caja === 'ROJO');
+                    const dotsHtml = actorsOrder.map(a => {
+                        const st = (sem[a.k] || 'GRIS').toUpperCase();
+                        let cls = 'dot-gris';
+                        if (st === 'VERDE') cls = 'dot-verde';
+                        else if (st === 'AMBAR') cls = 'dot-ambar';
+                        else if (st === 'ROJO') cls = 'dot-rojo';
+                        return `<span class="kanban-mini-dot ${cls}" title="${a.n}: ${st}"></span>`;
+                    }).join('');
+
+                    const alertParaleloHtml = hasRedAlert
+                        ? `<div class="mt-1 px-2 py-0.5 rounded bg-danger-subtle text-danger fw-bold d-flex align-items-center justify-content-between" style="font-size:0.66rem;">
+                               <span><i class="bi bi-exclamation-triangle-fill me-1"></i>Recepción/Caja en Paralelo Pendiente</span>
+                           </div>`
+                        : '';
+
+                    const pasoWiz = c.paso_actual_wizard || 1;
+                    const totalIns = Number(c.total_insumos_3nf || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const searchIndex = `${c.id_cirugia || ''} ${c.nombre_paciente || ''} ${c.procedimiento || ''} ${c.nombre_medico || ''} ${c.sala || ''} ${c.notas || ''} ${tipoCir}`.toLowerCase();
                     
                     const card = `
                         <div class="kanban-card" data-id="${c.id_cirugia}" data-medico-id="${c.id_medico || ''}" data-search="${searchIndex.replace(/"/g, '&quot;')}" onclick="abrirModalDetalleCirugia('${c.id_cirugia}')">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-muted fw-bold" style="font-size:0.68rem;">#${c.id_cirugia}</span>
+                                ${tipoBadge}
+                            </div>
                             <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.72rem;">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.7rem;">
                                     <i class="bi bi-clock me-1"></i>${c.hora || '00:00'}
                                 </span>
                                 ${salaHtml}
@@ -1150,14 +1196,32 @@ print <<'JS';
                             <div class="d-flex align-items-center gap-2 mb-1.5">
                                 <div class="avatar-monogram" title="${c.nombre_paciente}">${iniciales}</div>
                                 <div class="overflow-hidden">
-                                    <h6 class="fw-bold mb-0 text-dark text-truncate" style="font-size: 0.88rem;" title="${c.nombre_paciente}">${c.nombre_paciente}</h6>
-                                    <div class="text-primary fw-semibold text-truncate" style="font-size: 0.76rem;" title="${c.procedimiento || 'Procedimiento'}">${c.procedimiento || 'Cirugía Programada'}</div>
+                                    <h6 class="fw-bold mb-0 text-dark text-truncate" style="font-size: 0.86rem;" title="${c.nombre_paciente}">${c.nombre_paciente}</h6>
+                                    <div class="text-primary fw-semibold text-truncate" style="font-size: 0.75rem;" title="${c.procedimiento || 'Procedimiento'}">${c.procedimiento || 'Cirugía'}</div>
                                 </div>
                             </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                <div class="kanban-mini-semaphores" title="Semáforos de 8 actores en tiempo real">
+                                    ${dotsHtml}
+                                </div>
+                                <span class="badge bg-light text-primary border fw-bold" style="font-size:0.7rem;" title="Insumos 3NF Acumulados">
+                                    <i class="bi bi-box-seam me-0.5"></i>\$${totalIns}
+                                </span>
+                            </div>
+                            ${alertParaleloHtml}
                             
-                            <div class="small text-muted border-top pt-1.5 mt-1" style="font-size: 0.73rem;">
+                            <div class="small text-muted border-top pt-1.5 mt-1.5" style="font-size: 0.72rem;">
                                 <div class="text-truncate" title="Cirujano: ${c.nombre_medico}"><i class="bi bi-person-badge text-secondary me-1"></i>${c.nombre_medico}</div>
                                 ${anestesiaHtml}
+                                <div class="mt-1.5 d-flex gap-1">
+                                    <a href="quirofano_ingreso.pl?id_cirugia=${encodeURIComponent(c.id_cirugia)}&step=${pasoWiz}"
+                                       onclick="event.stopPropagation();"
+                                       class="btn btn-sm btn-outline-primary w-100 py-0.5 fw-bold"
+                                       style="font-size:0.71rem; border-radius:6px;">
+                                        <i class="bi bi-magic me-1"></i>Retomar Wizard (Paso ${pasoWiz})
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -1728,6 +1792,7 @@ print <<'JS';
 JS
 
 # Render Footer
+utils::sub_sidebar::render_sidebar_footer();
 render_bottom_nav('hospital');
 print "</body></html>\n";
 1;

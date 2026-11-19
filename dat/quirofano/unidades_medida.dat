@@ -1,0 +1,7 @@
+id_unidad|clave|descripcion|created_at|updated_at|created_by
+UNI-01|PZA|Pieza individual|2026-11-19 14:30:00|2026-11-19 14:30:00|system
+UNI-02|AMP|Ampolleta o frasco ámpula|2026-11-19 14:30:00|2026-11-19 14:30:00|system
+UNI-03|HR|Hora de servicio o uso de sala|2026-11-19 14:30:00|2026-11-19 14:30:00|system
+UNI-04|KIT|Kit o paquete estéril completo|2026-11-19 14:30:00|2026-11-19 14:30:00|system
+UNI-05|ML|Mililitro|2026-11-19 14:30:00|2026-11-19 14:30:00|system
+UNI-06|EVENTO|Evento o procedimiento único|2026-11-19 14:30:00|2026-11-19 14:30:00|system

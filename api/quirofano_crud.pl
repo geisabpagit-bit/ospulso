@@ -84,21 +84,52 @@ if ($action eq 'read') {
             
             # Si el paciente es del estado, mostramos su nombre tal cual en caso de no estar en dat/pacientes
             my $nombre_pac = $pacientes{$c[2]} // $c[2];
-            
+            my $dossier = cargar_dossier_quirurgico($c[0]) || {};
+            my $tipo_cir = $c[11] || $dossier->{tipo_cirugia} || 'PROGRAMADA';
+            my $id_renta = $c[12] || $dossier->{id_sala_renta} || '';
+            my $folio_exp = $c[13] || $dossier->{expediente_fisico_folio} || '';
+
+            my $tramites = $dossier->{tramites_ingreso} || {};
+            my $contrato_ok = $tramites->{contrato_firmado} ? 1 : 0;
+            my $consent_ok  = ($tramites->{consentimiento_informado_firmado} || ($dossier->{checklist_preop} && $dossier->{checklist_preop}->{consentimiento_firmado})) ? 1 : 0;
+            my $deposito_ok = $tramites->{deposito_pagado} ? 1 : 0;
+
+            my $consumos_3nf = $dossier->{consumos_3nf} || [];
+            my $total_insumos = 0;
+            foreach my $it (@$consumos_3nf) {
+                $total_insumos += ($it->{subtotal} || 0);
+            }
+            if ($total_insumos == 0 && $dossier->{liquidacion_insumos} && $dossier->{liquidacion_insumos}->{subtotal_insumos_3nf}) {
+                $total_insumos = $dossier->{liquidacion_insumos}->{subtotal_insumos_3nf};
+            }
+
+            my $semaforos = calcular_semaforos_dossier($c[6], $tipo_cir, $dossier);
+            my $paso_wiz  = determinar_paso_wizard($c[6], $tipo_cir, $dossier);
+
             push @registros, {
-                id_cirugia       => $c[0],
-                id_paciente      => $c[2],
-                nombre_paciente  => $nombre_pac,
-                id_medico        => $c[3],
-                nombre_medico    => $medicos{$c[3]} // 'Desconocido',
-                fecha            => $c[4],
-                hora             => $c[5],
-                estado           => $c[6],
-                sala             => $c[7],
-                procedimiento    => $c[8],
-                id_anestesiologo => $c[9],
-                nombre_anestesio => $c[9] ? ($medicos{$c[9]} // '') : '',
-                notas            => $c[10] // ''
+                id_cirugia              => $c[0],
+                id_paciente             => $c[2],
+                nombre_paciente         => $nombre_pac,
+                id_medico               => $c[3],
+                nombre_medico           => $medicos{$c[3]} // 'Desconocido',
+                fecha                   => $c[4],
+                hora                    => $c[5],
+                estado                  => $c[6],
+                sala                    => $c[7],
+                procedimiento           => $c[8],
+                id_anestesiologo        => $c[9],
+                nombre_anestesio        => $c[9] ? ($medicos{$c[9]} // '') : '',
+                notas                   => $c[10] // '',
+                tipo_cirugia            => $tipo_cir,
+                id_sala_renta           => $id_renta,
+                expediente_fisico_folio => $folio_exp,
+                contrato_firmado        => $contrato_ok,
+                consentimiento_firmado  => $consent_ok,
+                deposito_pagado         => $deposito_ok,
+                folio_recibo_caja       => $tramites->{folio_recibo_caja} || '',
+                total_insumos_3nf       => sprintf("%.2f", $total_insumos),
+                semaforos               => $semaforos,
+                paso_actual_wizard      => $paso_wiz
             };
         }
         close $fh;
@@ -115,6 +146,9 @@ elsif ($action eq 'create') {
     my $procedimiento = $q->param('procedimiento') || '';
     my $id_anest = $q->param('id_anestesiologo') || '';
     my $notas = $q->param('notas') || '';
+    my $tipo_cirugia = $q->param('tipo_cirugia') || 'PROGRAMADA';
+    my $id_renta = $q->param('id_sala_renta') || '';
+    my $folio_exp = $q->param('expediente_fisico_folio') || ('EXP-FIS-' . int(rand(8999)+1000));
     
     $sala =~ s/\|/ /g;
     $procedimiento =~ s/\|/ /g;
@@ -125,11 +159,12 @@ elsif ($action eq 'create') {
         exit;
     }
     
+    my $estado_inicial = ($tipo_cirugia eq 'URGENCIAS') ? 'Pre-Operatorio' : 'Programada';
     my $id_cir = 'CIR-' . time() . '-' . int(rand(1000));
-    my $linea = join('|', $id_cir, $id_org, $id_paciente, $id_medico, $fecha, $hora, 'Programada', $sala, $procedimiento, $id_anest, $notas);
+    my $linea = join('|', $id_cir, $id_org, $id_paciente, $id_medico, $fecha, $hora, $estado_inicial, $sala, $procedimiento, $id_anest, $notas, $tipo_cirugia, $id_renta, $folio_exp);
     
     utils::db_manager::guardar_registro($file, $linea);
-    print encode_json({ ok => JSON::true, id_cirugia => $id_cir });
+    print encode_json({ ok => JSON::true, id_cirugia => $id_cir, estado => $estado_inicial });
     exit;
 }
 elsif ($action eq 'update_status') {
@@ -141,8 +176,11 @@ elsif ($action eq 'update_status') {
         exit;
     }
     
+    my $dossier = cargar_dossier_quirurgico($id_cirugia) || {};
     my @lines;
     my $found = 0;
+    my $blocked_msg = '';
+
     if (open my $fh, '<:encoding(UTF-8)', $file) {
         my $cabecera = <$fh>;
         chomp $cabecera if defined $cabecera;
@@ -151,15 +189,41 @@ elsif ($action eq 'update_status') {
             chomp $l;
             my @c = split /\|/, $l, -1;
             if ($c[0] eq $id_cirugia && ($c[1] eq $id_org || $id_org eq 'ORG-000')) {
-                $c[6] = $nuevo_estado;
-                $l = join('|', @c);
-                $found = 1;
+                my $tipo_cir = $c[11] || $dossier->{tipo_cirugia} || 'PROGRAMADA';
+                # Regla de Bloqueo Secuencial para Cirugía Programada
+                if ($tipo_cir eq 'PROGRAMADA' && $nuevo_estado ne 'Programada') {
+                    my $trm = $dossier->{tramites_ingreso} || {};
+                    my $c_ok = $trm->{contrato_firmado} ? 1 : 0;
+                    my $i_ok = ($trm->{consentimiento_informado_firmado} || ($dossier->{checklist_preop} && $dossier->{checklist_preop}->{consentimiento_firmado})) ? 1 : 0;
+                    my $d_ok = $trm->{deposito_pagado} ? 1 : 0;
+                    if (!$c_ok || !$i_ok || !$d_ok) {
+                        $blocked_msg = 'BLOQUEO DE SEGURIDAD (CIRUGÍA PROGRAMADA): No puede pasar a ' . $nuevo_estado . ' hasta que Recepción registre Contrato + Consentimiento Informado y Caja confirme el Depósito de Ingreso ($5,000.00). Complete el Paso 2 del Wizard.';
+                    }
+                }
+                if (!$blocked_msg) {
+                    $c[6] = $nuevo_estado;
+                    $l = join('|', @c);
+                    $found = 1;
+                }
             }
             push @lines, $l;
         }
         close $fh;
+
+        if ($blocked_msg) {
+            print encode_json({ ok => JSON::false, blocked => JSON::true, msg => $blocked_msg });
+            exit;
+        }
+
         if ($found) {
             utils::db_manager::actualizar_archivo($file, $cabecera, \@lines);
+            if ($dossier && $dossier->{id_cirugia}) {
+                $dossier->{estado} = $nuevo_estado;
+                my $tipo_c = $dossier->{tipo_cirugia} || 'PROGRAMADA';
+                $dossier->{semaforos} = calcular_semaforos_dossier($nuevo_estado, $tipo_c, $dossier);
+                $dossier->{paso_actual_wizard} = determinar_paso_wizard($nuevo_estado, $tipo_c, $dossier);
+                guardar_dossier_quirurgico($id_cirugia, $dossier);
+            }
             print encode_json({ ok => JSON::true });
         } else {
             print encode_json({ ok => JSON::false, msg => 'Cirugía no encontrada o acceso denegado.' });
@@ -553,6 +617,90 @@ sub guardar_dossier_quirurgico {
         return 1;
     }
     return 0;
+}
+
+sub calcular_semaforos_dossier {
+    my ($estado, $tipo_cir, $dossier) = @_;
+    $estado ||= 'Programada';
+    $tipo_cir ||= 'PROGRAMADA';
+    $dossier ||= {};
+
+    my $trm = $dossier->{tramites_ingreso} || {};
+    my $chk = $dossier->{checklist_preop} || {};
+    my $trn = $dossier->{transoperatorio} || {};
+    my $ucp = $dossier->{recuperacion_ucpa} || {};
+    my $rec = $dossier->{receta_alta} || {};
+    my $liq = $dossier->{liquidacion_insumos} || {};
+
+    my $contrato_ok = $trm->{contrato_firmado} ? 1 : 0;
+    my $consent_ok  = ($trm->{consentimiento_informado_firmado} || $chk->{consentimiento_firmado}) ? 1 : 0;
+    my $deposito_ok = $trm->{deposito_pagado} ? 1 : 0;
+
+    my %sem = (
+        agenda_espacios          => 'VERDE',
+        agenda_paciente          => 'VERDE',
+        recepcion_consentimiento => ($contrato_ok && $consent_ok) ? 'VERDE' : ($tipo_cir eq 'URGENCIAS' ? 'ROJO' : 'AMBAR'),
+        caja                     => $deposito_ok ? 'VERDE' : ($tipo_cir eq 'URGENCIAS' ? 'ROJO' : 'AMBAR'),
+        enfermeria               => 'GRIS',
+        quirofano                => 'GRIS',
+        recuperacion             => 'GRIS',
+        alta_receta              => 'GRIS'
+    );
+
+    if ($estado eq 'Programada') {
+        if ($contrato_ok && $consent_ok && $deposito_ok) {
+            $sem{enfermeria} = 'AMBAR';
+        }
+    } elsif ($estado eq 'Pre-Operatorio') {
+        my $preop_done = ($chk->{identidad_verificada} && $chk->{via_permeable}) ? 1 : 0;
+        $sem{enfermeria} = $preop_done ? 'VERDE' : 'AMBAR';
+        $sem{quirofano}  = $preop_done ? 'AMBAR' : 'GRIS';
+    } elsif ($estado =~ /Quir[oó]fano/i) {
+        $sem{enfermeria} = 'VERDE';
+        my $qx_done = ($trn->{hora_incision} && $trn->{hora_cierre}) ? 1 : 0;
+        $sem{quirofano} = $qx_done ? 'VERDE' : 'AMBAR';
+        $sem{recuperacion} = $qx_done ? 'AMBAR' : 'GRIS';
+    } elsif ($estado =~ /Recuperaci[oó]n/i) {
+        $sem{enfermeria}   = 'VERDE';
+        $sem{quirofano}    = 'VERDE';
+        my $ucpa_done = ($ucp->{aprobado_alta} || ($ucp->{aldrete_total} && $ucp->{aldrete_total} >= 9)) ? 1 : 0;
+        $sem{recuperacion} = $ucpa_done ? 'VERDE' : 'AMBAR';
+        $sem{alta_receta}  = 'AMBAR';
+    } elsif ($estado =~ /Alta/i) {
+        $sem{enfermeria}   = 'VERDE';
+        $sem{quirofano}    = 'VERDE';
+        $sem{recuperacion} = 'VERDE';
+        my $alta_done = ($rec->{pase_salida_emitido} || $liq->{corte_liquidado} || $liq->{registrado_en_caja}) ? 1 : 0;
+        $sem{alta_receta}  = $alta_done ? 'VERDE' : 'AMBAR';
+    }
+
+    return \%sem;
+}
+
+sub determinar_paso_wizard {
+    my ($estado, $tipo_cir, $dossier) = @_;
+    $estado ||= 'Programada';
+    $tipo_cir ||= 'PROGRAMADA';
+    $dossier ||= {};
+
+    my $trm = $dossier->{tramites_ingreso} || {};
+    my $chk = $dossier->{checklist_preop} || {};
+    my $contrato_ok = $trm->{contrato_firmado} ? 1 : 0;
+    my $consent_ok  = ($trm->{consentimiento_informado_firmado} || $chk->{consentimiento_firmado}) ? 1 : 0;
+    my $deposito_ok = $trm->{deposito_pagado} ? 1 : 0;
+
+    if ($estado eq 'Programada') {
+        return ($contrato_ok && $consent_ok && $deposito_ok) ? 3 : 2;
+    } elsif ($estado eq 'Pre-Operatorio') {
+        return 3;
+    } elsif ($estado =~ /Quir[oó]fano/i) {
+        return 4;
+    } elsif ($estado =~ /Recuperaci[oó]n/i) {
+        return 5;
+    } elsif ($estado =~ /Alta/i) {
+        return 6;
+    }
+    return $dossier->{paso_actual_wizard} || 1;
 }
 
 1;
