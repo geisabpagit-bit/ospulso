@@ -965,7 +965,7 @@ function switchView(v) {
     $(`#view-${v.replace('_','-')}`).removeClass('d-none');
 
     // Gestión de controles de toolbar según la vista activa:
-    $("#wrapper_filtro_recurso_toolbar").removeClass('d-none').addClass('d-none d-lg-block');
+    $("#wrapper_filtro_recurso_toolbar").removeClass('d-none d-lg-block');
     if (v === 'dia') {
         $("#btn-toggle-side-cal").removeClass('d-lg-none').addClass('d-lg-inline-flex');
     } else {
@@ -1019,11 +1019,22 @@ function renderHeaders() {
     const finalTitle = title.toUpperCase();
     $("#current-date-label-desktop, #current-date-label-mobile").text(finalTitle);
     
+    // Actualizar badge de contexto en cabecera Nivel 1 (Paridad UI con Renta de Espacios)
+    const badgeHeader = document.getElementById('lbl_header_citas_activas');
+    if (badgeHeader) {
+        const totalApts = (typeof appointments !== 'undefined' && Array.isArray(appointments)) ? appointments.length : 0;
+        const todayIso = getISO(new Date());
+        const aptsHoy = (typeof appointments !== 'undefined' && Array.isArray(appointments)) 
+            ? appointments.filter(a => a.start && a.start.startsWith(todayIso)).length 
+            : 0;
+        badgeHeader.textContent = `${aptsHoy} Citas Hoy • ${totalApts} Registradas`;
+    }
+
     // Ocultar botón nueva cita en fechas pasadas
     if (sel < today) {
-        $(".btn-navy:contains('NUEVA CITA'), #btn-nueva-cita").addClass('d-none');
+        $(".btn-navy:contains('NUEVA CITA'), #btn-nueva-cita, .btn-tier1-reservar").addClass('d-none');
     } else {
-        $(".btn-navy:contains('NUEVA CITA'), #btn-nueva-cita").removeClass('d-none');
+        $(".btn-navy:contains('NUEVA CITA'), #btn-nueva-cita, .btn-tier1-reservar").removeClass('d-none');
     }
 }
 
@@ -3571,6 +3582,7 @@ function getNextAvailableDate(startIso) {
     return startIso;
 }
 
+window.abrirModalNuevaCita = abrirModalNuevaCita;
 function abrirModalNuevaCita(f, h, idP, nomP) {
     const isGlobal = !f && !h;
     let targetF = f;

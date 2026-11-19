@@ -333,4 +333,6 @@ Este documento agrupa la especificación de los módulos complementarios y espec
       - **Homogeneización de la Barra de Herramientas y Modales entre Agendas**:
         - Se estandariza el menú desplegable compacto `Reportes & Export` (`#dropdownReportesExport`) en `views/agenda_main.pl` idéntico a `views/agenda_espacios.pl`, consolidando los reportes Diario, Semanal, Mensual e Impresión Oficial en un solo componente elegante que ahorra más de 150px horizontales.
         - Se calibra el modal de ajustes de horarios y jornada (`#modalAjustes .modal-dialog`) con `style="zoom: 0.75;"` en ambas agendas, asegurando una visualización impecable sin desbordamientos en cualquier resolución de pantalla.
-
+        - **Arquitectura de Barra de Herramientas en 2 Filas (Two-Tier Toolbar)**: Se refactoriza `views/agenda_main.pl` adoptando la estructura de dos niveles (`.agenda-header-two-tier`):
+          - *Nivel 1 (Cabecera Navy Contextual)*: Muestra el título del módulo (`Agenda Médica & Pacientes`), el contador dinámico de citas (`#lbl_header_citas_activas`), el botón de acción principal (`+ Nueva Cita` con `.btn-tier1-reservar`) y acceso rápido a ajustes (`.btn-tier1-config`).
+          - *Nivel 2 (Bandeja Operativa Blanca)*: Organiza la navegación temporal (`HOY`, botón `Ahora` con timeline live, selector de fechas), conmutadores de vistas (`Día`, `Semana`, `Mes`), el menú compacto `Reportes & Export`, y los selectores directos ejecutivos (`.tier2-executive-select-btn` para Médicos, Espacios, Estados y alternador de minicalendario lateral).

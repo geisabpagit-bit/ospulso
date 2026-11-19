@@ -109,29 +109,28 @@ if ($es_solo_admin_o_recep && scalar(@medicos) > 0) {
     }
     my $cnt_med = scalar(@medicos);
     $html_filtro_medicos_toolbar = qq{
-        <div class="d-none d-lg-block dropdown" id="wrapper_filtro_medicos_toolbar" style="position: relative; z-index: 106000;">
-            <button class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-flex align-items-center justify-content-between px-3 text-navy dropdown-toggle" 
+        <div class="dropdown" id="wrapper_filtro_medicos_toolbar" style="position: relative; z-index: 1065;">
+            <button class="tier2-executive-select-btn dropdown-toggle" 
                     type="button" 
                     id="btn_filtro_medico_dropdown" 
                     data-bs-toggle="dropdown" 
+                    data-bs-display="static" 
                     data-bs-auto-close="outside" 
-                    data-bs-popper-config='{"strategy":"fixed"}'
                     aria-expanded="false" 
-                    style="height:42px; font-size:0.80rem; min-width: 190px; max-width: 250px;" 
                     title="Filtrar por Médicos / Profesionales">
                 <span class="d-flex align-items-center gap-1.5 text-truncate" id="filtro_medico_btn_label">
                     <i class="bi bi-people-fill text-primary"></i>
-                    <span class="text-truncate">Todos los Médicos ($cnt_med)</span>
+                    <span class="text-truncate">Médicos ($cnt_med)</span>
                 </span>
             </button>
-            <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_medico_menu" aria-labelledby="btn_filtro_medico_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 106000 !important;">
+            <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_medico_menu" aria-labelledby="btn_filtro_medico_dropdown" style="min-width: 280px; max-height: 360px; overflow-y: auto; z-index: 107000 !important;">
                 <!-- Encabezado de Acciones Rápidas -->
                 <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom mb-2">
-                    <span class="fw-black text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px;">Médicos Clínicos</span>
+                    <span class="text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px; font-weight:700;">Médicos Clínicos</span>
                     <div class="d-flex align-items-center gap-1.5">
-                        <button type="button" class="btn btn-link btn-sm p-0 text-primary fw-bold text-decoration-none" onclick="window.seleccionarTodosMedicos(true)" style="font-size:0.72rem;">Marcar todos</button>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" onclick="window.seleccionarTodosMedicos(true)" style="font-size:0.72rem; color: #19B7A5;">Marcar todos</button>
                         <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
-                        <button type="button" class="btn btn-link btn-sm p-0 text-secondary fw-semibold text-decoration-none" onclick="window.seleccionarTodosMedicos(false)" style="font-size:0.72rem;">Desmarcar</button>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-secondary text-decoration-none" onclick="window.seleccionarTodosMedicos(false)" style="font-size:0.72rem;">Desmarcar</button>
                     </div>
                 </div>
                 <!-- Lista de Checkboxes Dinámica de Médicos -->
@@ -213,6 +212,7 @@ print <<HTML;
     <!-- DataTables CSS Core (Carga Paralela) -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="../css/sdm_mobile_standards.css?v=1.0">
     <link rel="stylesheet" href="../css/agenda_diamond.css?v=4.3.2">
 HTML
 
@@ -224,181 +224,208 @@ utils::sub_sidebar::render_sidebar(
 );
 
 print <<HTML;
-    <div class="main-container-agenda">
-        <header class="agenda-header sticky-top animate__animated animate__fadeInDown">
-            <div class="container-fluid">
-                <!-- ROW 1: TOOLS AND ACTIONS (ORGANIZACIÓN JERÁRQUICA) -->
-                <div class="d-flex align-items-center justify-content-between gap-2 py-2 w-100 flex-nowrap" style="overflow: visible !important;">
-                    
-                    <!-- BLOQUE 1: NAVEGACIÓN TEMPORAL Y MODOS DE VISUALIZACIÓN (IZQUIERDA) -->
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                        <!-- Navegación Temporal -->
-                        <button onclick="goToday()" class="btn btn-navy fw-black rounded-3 px-3 shadow-sm text-uppercase" style="font-size:0.75rem; height:42px;">HOY</button>
-                        <button type="button" onclick="window.scrollToLiveTimeline(true)" class="btn-timeline-now text-nowrap d-none d-sm-inline-flex" id="btn-snap-now-toolbar" title="Centrar línea de tiempo en vivo (Ahora)" style="height:42px;">
-                            <span class="timeline-live-dot" style="width:6px; height:6px; background:#dc2626;"></span>
-                            <span>Ahora</span>
-                        </button>
-                        
-                        <div class="d-none d-md-flex align-items-center date-nav-pill shadow-sm">
-                            <button onclick="moveDate(-1)" class="btn btn-link text-navy p-1" title="Día Anterior"><i class="bi bi-chevron-left"></i></button>
-                            <h1 class="h6 mb-0 fw-black text-navy text-uppercase tracking-tight mx-2 text-nowrap" id="current-date-label-desktop" style="min-width: 170px; text-align: center; font-size: 0.82rem;">
-                                CARGANDO...
-                            </h1>
-                            <button onclick="moveDate(1)" class="btn btn-link text-navy p-1" title="Día Siguiente"><i class="bi bi-chevron-right"></i></button>
-                        </div>
-
-                        <div class="vr mx-1 opacity-25 d-none d-lg-block" style="height: 26px;"></div>
-
-                        <!-- Modos de Vista Principal -->
-                        <div class="nav-pill-group shadow-sm">
-                            <button onclick="switchView('dia')" class="btn-view-toggle active" id="btn-v-dia" title="Vista Diaria (Consultorios y Quirófanos)"><i class="bi bi-calendar-event"></i></button>
-                            <button onclick="switchView('semana_smart')" class="btn-view-toggle" id="btn-v-semana-smart" title="Vista Semanal Smart"><i class="bi bi-calendar-week"></i></button>
-                            <button onclick="switchView('calendario')" class="btn-view-toggle" id="btn-v-calendario" title="Vista Mensual Grid"><i class="bi bi-grid-3x3"></i></button>
-                        </div>
-
-                        <!-- Menú Compacto Reportes & Export (Homogeneizado con Agenda Espacios) -->
-                        <div class="dropdown" style="position: relative; z-index: 1065;">
-                            <button class="tier2-executive-select-btn dropdown-toggle" 
-                                    type="button" 
-                                    id="dropdownReportesExport" 
-                                    data-bs-toggle="dropdown" 
-                                    data-bs-display="static" 
-                                    aria-expanded="false" 
-                                    title="Reportes Tabulares e Impresión">
-                                <span class="d-flex align-items-center gap-1.5">
-                                    <i class="bi bi-file-earmark-bar-graph text-teal"></i>
-                                    <span>Reportes &amp; Export</span>
-                                </span>
-                            </button>
-                            <div class="dropdown-menu shadow-lg p-2.5 border-0 rounded-4" aria-labelledby="dropdownReportesExport" style="min-width: 230px; z-index: 107000;">
-                                <div class="px-2 py-1 text-navy text-uppercase border-bottom mb-1" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Tablas Operativas</div>
-                                <button type="button" onclick="switchView('dia_reporte')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-dia-reporte">
-                                    <i class="bi bi-file-earmark-ruled text-primary"></i> Reporte Diario
-                                </button>
-                                <button type="button" onclick="switchView('semana')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-semana">
-                                    <i class="bi bi-file-earmark-text text-teal"></i> Reporte Semanal
-                                </button>
-                                <button type="button" onclick="switchView('mes')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-mes">
-                                    <i class="bi bi-file-earmark-bar-graph text-navy"></i> Reporte Mensual
-                                </button>
-                                <div class="dropdown-divider my-1"></div>
-                                <button type="button" onclick="window.abrirReportePersonalizado(currentView)" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2">
-                                    <i class="bi bi-printer-fill text-teal"></i> Imprimir Reporte Oficial
-                                </button>
-                            </div>
-                        </div>
+    <div class="main-container-agenda container-mobile-flush">
+        <header class="agenda-header agenda-header-two-tier">
+            <!-- NIVEL 1 (CABECERA NAVY CONTEXTUAL + ACCIÓN PRIORITARIA DE CITAS) -->
+            <div class="agenda-toolbar-tier1">
+                <div class="container-fluid px-1 px-md-2 d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <div class="tier1-context-title">
+                        <span class="tier1-context-icon">
+                            <i class="bi bi-calendar2-check-fill"></i>
+                        </span>
+                        <span>Agenda Médica &amp; Pacientes</span>
+                        <span class="opacity-50">•</span>
+                        <span class="tier1-enabled-badge" id="lbl_header_citas_activas">Cargando citas...</span>
                     </div>
 
-                    <!-- BLOQUE 2: FILTROS OPERATIVOS Y UTILIDADES (DERECHA) -->
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
-                        <!-- Filtro Médicos -->
-                        $html_filtro_medicos_toolbar
-
-                        <!-- Filtro Espacios Físicos (Selector Multi-Check con Checkboxes y Popper Fixed) -->
-                        <div class="d-none d-lg-block dropdown" id="wrapper_filtro_recurso_toolbar" style="position: relative; z-index: 106000;">
-                            <button class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-flex align-items-center justify-content-between px-3 text-navy dropdown-toggle" 
-                                    type="button" 
-                                    id="btn_filtro_recurso_dropdown" 
-                                    data-bs-toggle="dropdown" 
-                                    data-bs-auto-close="outside" 
-                                    data-bs-popper-config='{"strategy":"fixed"}'
-                                    aria-expanded="false" 
-                                    style="height:42px; font-size:0.80rem; min-width: 190px; max-width: 250px;" 
-                                    title="Filtrar por Consultorios y Quirófanos">
-                                <span class="d-flex align-items-center gap-1.5 text-truncate" id="filtro_recurso_btn_label">
-                                    <i class="bi bi-door-open-fill text-teal"></i>
-                                    <span class="text-truncate">Todos los Espacios</span>
-                                </span>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_recurso_menu" aria-labelledby="btn_filtro_recurso_dropdown" style="min-width: 270px; max-height: 420px; overflow-y: auto; z-index: 106000 !important;">
-                                <!-- Encabezado de Acciones Rápidas -->
-                                <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom mb-2">
-                                    <span class="fw-black text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px;">Espacios Físicos</span>
-                                    <div class="d-flex align-items-center gap-1.5">
-                                        <button type="button" class="btn btn-link btn-sm p-0 text-primary fw-bold text-decoration-none" onclick="window.seleccionarTodosEspacios(true)" style="font-size:0.72rem;">Marcar todos</button>
-                                        <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
-                                        <button type="button" class="btn btn-link btn-sm p-0 text-secondary fw-semibold text-decoration-none" onclick="window.seleccionarTodosEspacios(false)" style="font-size:0.72rem;">Desmarcar</button>
-                                    </div>
-                                </div>
-                                <!-- Lista de Checkboxes Dinámica -->
-                                <div id="lista_checkboxes_recursos" class="d-flex flex-column gap-1">
-                                    <div class="text-center py-2 text-muted small">Cargando espacios...</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Toggle Mini Calendario Lateral -->
-                        <button type="button" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white d-none d-lg-inline-flex align-items-center justify-content-center" id="btn-toggle-side-cal" onclick="toggleSideCalendar()" style="height:42px; width:42px; padding:0;" title="Mostrar/Ocultar Minicalendario Lateral">
-                            <i class="bi bi-layout-sidebar-inset text-teal" style="font-size:1.05rem;"></i>
+                    <div class="d-flex align-items-center gap-2 ms-auto">
+                        <button type="button" onclick="window.abrirModalNuevaCita()" class="btn-tier1-reservar" id="btn-nueva-cita" title="Agendar una nueva cita médica">
+                            <i class="bi bi-plus-circle-fill"></i>
+                            <span>Nueva Cita</span>
                         </button>
-
-                        <div class="vr mx-1 opacity-25 d-none d-md-block" style="height: 26px;"></div>
-
-                        <!-- Leyenda de Estados y Colores -->
-                        <div class="dropdown">
-                            <button class="btn btn-light fw-medium rounded-3 shadow-sm border bg-white px-2.5 d-flex align-items-center gap-1.5" type="button" id="dropdownLeyendaColores" data-bs-toggle="dropdown" aria-expanded="false" style="height:42px;" title="Significado de Colores de la Agenda">
-                                <i class="bi bi-palette" style="font-size:1.05rem; color: var(--md-teal-clinical, #19B7A5) !important;"></i>
-                                <span class="small d-none d-xl-inline text-secondary">Estados</span>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end shadow-lg p-3 border-0 rounded-4" style="min-width: 270px; z-index: 105200;" aria-labelledby="dropdownLeyendaColores">
-                                <h6 class="fw-semibold text-navy small mb-2.5 d-flex align-items-center gap-1.5">
-                                    <i class="bi bi-info-circle" style="color: var(--md-teal-clinical, #19B7A5);"></i> Significado de Estados
-                                </h6>
-                                <div class="d-flex flex-column gap-2 small">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #0A2A66;"></span>
-                                        <span class="fw-medium text-dark">Programada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Agendada</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #10b981;"></span>
-                                        <span class="fw-medium text-dark">Confirmada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Confirmada</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #f59e0b;"></span>
-                                        <span class="fw-medium text-dark">En Sala de Espera</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">En recepción</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #059669;"></span>
-                                        <span class="fw-medium text-dark">Consulta en Proceso</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Atención activa</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #19B7A5;"></span>
-                                        <span class="fw-medium text-dark">Atendida</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Finalizada</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #ef4444;"></span>
-                                        <span class="fw-medium text-dark">No realizada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">No asistió</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="rounded-circle d-inline-block" style="width: 12px; height: 12px; background-color: #dc2626;"></span>
-                                        <span class="fw-medium text-dark">Cancelada</span>
-                                        <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Anulada</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <!-- Botón Ajustes de Jornada -->
-                        <button onclick="abrirModalAjustes()" class="btn btn-light fw-bold rounded-3 shadow-sm border bg-white" style="height:42px; width:42px; padding:0;" title="Ajustes de Jornada"><i class="bi bi-gear-fill"></i></button>
+                        <button type="button" onclick="abrirModalAjustes()" class="btn-tier1-config" title="Ajustes de Jornada y Horarios">
+                            <i class="bi bi-gear-fill"></i>
+                            <span class="d-none d-sm-inline">Configuración</span>
+                        </button>
                     </div>
-
                 </div>
+            </div>
 
-                <!-- ROW 2 (Solo Móvil): NAVEGACIÓN DE FECHA -->
-                <div class="d-flex d-md-none justify-content-center pb-2">
-                    <div class="d-flex align-items-center justify-content-between date-nav-pill w-100 mx-0">
-                        <button onclick="moveDate(-1)" class="btn btn-link text-navy p-2"><i class="bi bi-chevron-left"></i></button>
-                        <h1 class="h6 mb-0 fw-black text-navy text-uppercase tracking-tight mx-2" id="current-date-label-mobile" style="text-align: center;">
-                            CARGANDO...
-                        </h1>
-                        <button onclick="moveDate(1)" class="btn btn-link text-navy p-2"><i class="bi bi-chevron-right"></i></button>
+            <!-- NIVEL 2 (BANDEJA OPERATIVA BLANCA: NAVEGACIÓN TEMPORAL + VISTAS + SELECTORES DIRECTOS) -->
+            <div class="agenda-toolbar-tier2">
+                <div class="container-fluid px-1 px-md-2">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 w-100">
+                        <!-- IZQUIERDA: NAVEGACIÓN TEMPORAL, VISTAS DE CALENDARIO Y REPORTES & EXPORT -->
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <button onclick="goToday()" class="btn-tier2-today text-uppercase" title="Ir al Día de Hoy">HOY</button>
+                            <button type="button" onclick="window.scrollToLiveTimeline(true)" class="btn-timeline-now text-nowrap d-none d-sm-inline-flex" id="btn-snap-now-toolbar" title="Centrar línea de tiempo en vivo (Ahora)">
+                                <span class="timeline-live-dot" style="width:6px; height:6px; background:#dc2626;"></span>
+                                <span>Ahora</span>
+                            </button>
+
+                            <div class="d-none d-md-flex align-items-center tier2-date-nav">
+                                <button onclick="moveDate(-1)" class="tier2-date-chevron" title="Día Anterior"><i class="bi bi-chevron-left"></i></button>
+                                <h1 class="h6 mb-0 text-navy text-uppercase tracking-tight text-nowrap tier2-date-label" id="current-date-label-desktop">
+                                    CARGANDO...
+                                </h1>
+                                <button onclick="moveDate(1)" class="tier2-date-chevron" title="Día Siguiente"><i class="bi bi-chevron-right"></i></button>
+                            </div>
+
+                            <!-- Conmutador de Vistas de Calendario (Día, Semana, Mes) -->
+                            <div class="tier2-view-group">
+                                <button onclick="switchView('dia')" class="btn-view-toggle active" id="btn-v-dia" title="Vista Diaria (Consultorios y Quirófanos)">
+                                    <i class="bi bi-calendar-event me-1"></i><span class="d-none d-xl-inline">Día</span>
+                                </button>
+                                <button onclick="switchView('semana_smart')" class="btn-view-toggle" id="btn-v-semana-smart" title="Vista Semanal Smart">
+                                    <i class="bi bi-calendar-week me-1"></i><span class="d-none d-xl-inline">Semana</span>
+                                </button>
+                                <button onclick="switchView('calendario')" class="btn-view-toggle" id="btn-v-calendario" title="Vista Mensual Grid">
+                                    <i class="bi bi-grid-3x3 me-1"></i><span class="d-none d-xl-inline">Mes</span>
+                                </button>
+                            </div>
+
+                            <!-- Menú Compacto Reportes & Export -->
+                            <div class="dropdown" style="position: relative; z-index: 1065;">
+                                <button class="tier2-executive-select-btn dropdown-toggle" 
+                                        type="button" 
+                                        id="dropdownReportesExport" 
+                                        data-bs-toggle="dropdown" 
+                                        data-bs-display="static" 
+                                        aria-expanded="false" 
+                                        title="Reportes Tabulares e Impresión">
+                                    <span class="d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-file-earmark-bar-graph text-teal"></i>
+                                        <span>Reportes &amp; Export</span>
+                                    </span>
+                                </button>
+                                <div class="dropdown-menu shadow-lg p-2.5 border-0 rounded-4" aria-labelledby="dropdownReportesExport" style="min-width: 230px; z-index: 107000;">
+                                    <div class="px-2 py-1 text-navy text-uppercase border-bottom mb-1" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">Tablas Operativas</div>
+                                    <button type="button" onclick="switchView('dia_reporte')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-dia-reporte">
+                                        <i class="bi bi-file-earmark-ruled text-primary"></i> Reporte Diario
+                                    </button>
+                                    <button type="button" onclick="switchView('semana')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-semana">
+                                        <i class="bi bi-file-earmark-text text-teal"></i> Reporte Semanal
+                                    </button>
+                                    <button type="button" onclick="switchView('mes')" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2 btn-report-toggle" id="btn-r-mes">
+                                        <i class="bi bi-file-earmark-bar-graph text-navy"></i> Reporte Mensual
+                                    </button>
+                                    <div class="dropdown-divider my-1"></div>
+                                    <button type="button" onclick="window.abrirReportePersonalizado(currentView)" class="dropdown-item rounded-2 py-1.5 small d-flex align-items-center gap-2">
+                                        <i class="bi bi-printer-fill text-teal"></i> Imprimir Reporte Oficial
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DERECHA: SELECTORES INDEPENDIENTES DIRECTOS (MÉDICOS, ESPACIOS, ESTADOS, SIDE-CAL) -->
+                        <div class="d-flex align-items-center flex-wrap gap-2 ms-auto">
+                            <!-- Selector Directo 1: Médicos -->
+                            $html_filtro_medicos_toolbar
+
+                            <!-- Selector Directo 2: Espacios Físicos (Consultorios y Quirófanos) -->
+                            <div class="dropdown" id="wrapper_filtro_recurso_toolbar" style="position: relative; z-index: 1065;">
+                                <button class="tier2-executive-select-btn dropdown-toggle" 
+                                        type="button" 
+                                        id="btn_filtro_recurso_dropdown" 
+                                        data-bs-toggle="dropdown" 
+                                        data-bs-display="static" 
+                                        data-bs-auto-close="outside" 
+                                        aria-expanded="false" 
+                                        title="Filtrar por Consultorios y Quirófanos">
+                                    <span class="d-flex align-items-center gap-1.5 text-truncate" id="filtro_recurso_btn_label">
+                                        <i class="bi bi-door-open-fill text-teal"></i>
+                                        <span class="text-truncate">Espacios</span>
+                                    </span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg p-2.5 border-0 rounded-4" id="dropdown_filtro_recurso_menu" aria-labelledby="btn_filtro_recurso_dropdown" style="min-width: 280px; max-height: 360px; overflow-y: auto; z-index: 107000 !important;">
+                                    <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom mb-2">
+                                        <span class="text-navy small text-uppercase" style="font-size:0.72rem; letter-spacing:0.5px; font-weight: 700;">Consultorios y Quirófanos</span>
+                                        <div class="d-flex align-items-center gap-1.5">
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" onclick="window.seleccionarTodosEspacios(true)" style="font-size:0.72rem; color: #19B7A5;">Marcar todos</button>
+                                            <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-secondary text-decoration-none" onclick="window.seleccionarTodosEspacios(false)" style="font-size:0.72rem;">Desmarcar</button>
+                                        </div>
+                                    </div>
+                                    <div id="lista_checkboxes_recursos" class="d-flex flex-column gap-1">
+                                        <div class="text-center py-2 text-muted small">Cargando espacios...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Selector Directo 3: Leyenda de Estados y Colores -->
+                            <div class="dropdown" style="position: relative; z-index: 1065;">
+                                <button class="tier2-executive-select-btn dropdown-toggle" 
+                                        type="button" 
+                                        id="dropdownLeyendaColores" 
+                                        data-bs-toggle="dropdown" 
+                                        data-bs-display="static" 
+                                        aria-expanded="false" 
+                                        title="Significado de Estados y Colores">
+                                    <span class="d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-palette" style="color: var(--md-teal-clinical, #19B7A5) !important;"></i>
+                                        <span>Estados</span>
+                                    </span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg p-3 border-0 rounded-4" style="min-width: 280px; z-index: 107000;" aria-labelledby="dropdownLeyendaColores">
+                                    <h6 class="text-navy small mb-2.5 d-flex align-items-center gap-1.5 fw-bold" style="letter-spacing: 0.25px;">
+                                        <i class="bi bi-info-circle" style="color: var(--md-teal-clinical, #19B7A5);"></i> Estados de Citas Médicas
+                                    </h6>
+                                    <div class="d-flex flex-column gap-2 small">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #0A2A66;"></span>
+                                            <span class="text-dark fw-medium">Programada</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Agendada</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #10b981;"></span>
+                                            <span class="text-dark fw-medium">Confirmada</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Confirmada</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #f59e0b;"></span>
+                                            <span class="text-dark fw-medium">En Sala de Espera</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">En recepción</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #059669;"></span>
+                                            <span class="text-dark fw-medium">Consulta en Proceso</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Atención activa</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #19B7A5;"></span>
+                                            <span class="text-dark fw-medium">Atendida</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Finalizada</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #ef4444;"></span>
+                                            <span class="text-dark fw-medium">No realizada</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">No asistió</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-circle d-inline-block shadow-2xs" style="width: 12px; height: 12px; background-color: #dc2626;"></span>
+                                            <span class="text-dark fw-medium">Cancelada</span>
+                                            <span class="text-muted ms-auto text-end" style="font-size: 0.72rem;">Anulada</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Toggle Mini Calendario Lateral -->
+                            <button type="button" class="tier2-icon-circle-btn d-none d-lg-inline-flex" id="btn-toggle-side-cal" onclick="toggleSideCalendar()" title="Mostrar/Ocultar Minicalendario Lateral">
+                                <i class="bi bi-layout-sidebar-inset text-teal" style="font-size: 0.95rem;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Navegación de Fecha para Móvil (< 768px) -->
+                    <div class="d-flex d-md-none justify-content-center pt-2">
+                        <div class="d-flex align-items-center justify-content-between tier2-date-nav w-100 mx-0">
+                            <button onclick="moveDate(-1)" class="tier2-date-chevron"><i class="bi bi-chevron-left"></i></button>
+                            <span class="h6 mb-0 text-navy text-uppercase tracking-tight text-nowrap tier2-date-label" id="current-date-label-mobile">
+                                CARGANDO...
+                            </span>
+                            <button onclick="moveDate(1)" class="tier2-date-chevron"><i class="bi bi-chevron-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
