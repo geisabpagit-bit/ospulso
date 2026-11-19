@@ -817,7 +817,7 @@ print <<HTML;
 
     <!-- MODAL CONFIGURACION OPERATIVA DE ESPACIOS (VARIANTE PREMIUM BOOTSTRAP 5.3 + SEDE ACTIVA) -->
     <div class="modal fade modal-apertura-premium" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-lg" style="zoom: 0.75;">
             <div class="modal-content card-mobile-flush custom-modal-card">
                 <!-- Modal Top Bar -->
                 <div class="modal-top-bar d-flex align-items-center justify-content-between">

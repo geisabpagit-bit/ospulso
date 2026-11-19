@@ -975,9 +975,11 @@
 }
 
 .modal-apertura-premium .modal-dialog {
-    max-width: 960px !important;
+    max-width: 1040px !important;
     width: calc(100% - 1.5rem);
-    margin: 1rem auto;
+    margin: 0.5rem auto;
+    zoom: 0.75;
+    -webkit-transform-origin: top center;
 }
 
 .modal-apertura-premium .modal-content {
@@ -987,6 +989,8 @@
     border-radius: 1.25rem !important;
     box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.25) !important;
     overflow: hidden !important;
+    max-height: calc(100vh / 0.75 - 1.5rem);
+    overflow-y: auto !important;
 }
 
 .modal-apertura-premium .modal-top-bar {
