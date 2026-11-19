@@ -760,6 +760,10 @@ function actualizarResaltadoModalCita(fecha, hi, hf, label) {
         $(".btn-dur").removeClass('active');
         $matchingBtn.addClass('active dur-avena-active');
     }
+
+    if ($('#f_es_rango').val() === '1' && typeof window.verificarDisponibilidadRango === 'function') {
+        window.verificarDisponibilidadRango();
+    }
 }
 
 $(document).ready(function() {
@@ -1789,6 +1793,20 @@ window.openAppointmentQuickDetail = function(id) {
     $('#quickModalPaciente').text(pacNom).attr('title', pacNom);
     const expNum = a.id || '---';
     $('#quickModalExpediente').text(`${expNum}`);
+
+    // Badge y tooltip de Serie por Rango de Fechas
+    const notasStr = (a.extendedProps.notas || '');
+    const mRango = notasStr.match(/\[Rango:\s*([^|\]]+)(?:\|\s*Grupo:\s*([^|\]]+))?(?:\|\s*([^\]]+))?\]/);
+    if (mRango) {
+        const detalleRango = mRango[3] ? mRango[3].trim() : 'Serie';
+        const fechasRango = mRango[1] ? mRango[1].trim() : '';
+        $('#quickModalRangoBadge')
+            .removeClass('d-none')
+            .html(`<i class="bi bi-calendar-range me-1"></i>${detalleRango}`)
+            .attr('title', `Rango: ${fechasRango} (${mRango[2] ? mRango[2].trim() : ''})`);
+    } else {
+        $('#quickModalRangoBadge').addClass('d-none');
+    }
 
     // 3. Teléfono de Contacto
     const tel = (a.extendedProps.telefono || '').trim();
@@ -2877,8 +2895,9 @@ function selectMobileDate(iso) {
 
 function saveCita() {
     const f = $("#formCita");
+    const esRango = $("#f_es_rango").val() === '1';
     const hi = $("#f_hi").val();
-    const fecha = $("#f_fecha").val();
+    let fecha = $("#f_fecha").val();
     const nomArr = ($("#f_paciente").val() || '').trim();
     const motivoVal = ($("#f_motivo").val() || '').trim();
     const curConsultorio = String($("#f_consultorio").val() || "");
@@ -2915,79 +2934,104 @@ function saveCita() {
         return;
     }
 
-    const curId = $("#f_id_cita").val() || "";
-    const curSucursal = String($("#f_sucursal").val() || "");
-    const normCurCons = normalizarTextoEspacio(curConsultorio);
-
-    const dayApps = appointments.filter(a => {
-        const sameDay = a.start.startsWith(fecha);
-        const differentId = String(a.id) !== curId;
-        const aSuc = String(a.extendedProps?.sucursal || "");
-        const aCons = normalizarTextoEspacio(a.extendedProps?.espacio || a.extendedProps?.consultorio || "");
-        const isSameResource = (!curSucursal || !aSuc || aSuc === curSucursal) && (aCons === normCurCons);
-        return sameDay && differentId && isSameResource;
-    });
-
-    if (duracionCita === 'all' && dayApps.length > 0) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Día Completo No Disponible',
-            html: `No se puede reservar el día completo porque el espacio <strong>${curConsultorio}</strong> ya cuenta con <strong>${dayApps.length}</strong> evento(s) en esta fecha.`,
-            confirmButtonText: 'Entendido',
-            customClass: { popup: 'rounded-4' }
-        });
-        return;
-    }
-
-    if (fecha === getISO(new Date()) && duracionCita === 'all') {
-        const now = new Date();
-        const curH = now.getHours().toString().padStart(2, '0');
-        const curM = now.getMinutes().toString().padStart(2, '0');
-        $("#f_hi").val(`${curH}:${curM}`);
-    } else if (!isFuture(fecha, hi)) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Acción No Permitida',
-            text: 'No es posible reservar o modificar espacios en una fecha u horario anterior al actual.',
-            customClass: { popup: 'rounded-4' }
-        });
-        return;
-    }
-
-    const hf = $("#f_hf").val();
-    let collisionApt = null;
-    const hasCollision = dayApps.some(a => {
-        const aT = a.start.split('T')[1] || '';
-        const aHi = aT.substring(0,5).padStart(5, '0');
-        const aHf = (a.end.split('T')[1] || '').substring(0,5).padStart(5, '0');
-        if (hi < aHf && hf > aHi) {
-            collisionApt = a;
-            return true;
+    if (esRango) {
+        const fIni = $("#f_fecha_rango_ini").val();
+        const fFin = $("#f_fecha_fin").val();
+        if (!fIni || !fFin) {
+            Swal.fire({ icon: 'warning', title: 'Rango Incompleto', text: 'Especifique la fecha de inicio y la fecha de fin del rango.', customClass: { popup: 'rounded-4' } });
+            return;
         }
-        return false;
-    });
+        if (fFin < fIni) {
+            Swal.fire({ icon: 'warning', title: 'Rango Inválido', text: 'La fecha fin no puede ser anterior a la fecha de inicio.', customClass: { popup: 'rounded-4' } });
+            return;
+        }
+        $("#f_fecha").val(fIni);
+        fecha = fIni;
 
-    if (hasCollision && collisionApt) {
-        const aT = collisionApt.start.split('T')[1] || '';
-        const aHi = aT.substring(0,5).padStart(5, '0');
-        const aHf = (collisionApt.end.split('T')[1] || '').substring(0,5).padStart(5, '0');
-        const pacNombre = collisionApt.title || 'Reserva existente';
+        if (!isFuture(fecha, hi)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Fecha Inicio Pasada',
+                text: 'La fecha y hora de inicio del rango no pueden ser anteriores al momento actual.',
+                customClass: { popup: 'rounded-4' }
+            });
+            return;
+        }
+    } else {
+        const curId = $("#f_id_cita").val() || "";
+        const curSucursal = String($("#f_sucursal").val() || "");
+        const normCurCons = normalizarTextoEspacio(curConsultorio);
 
-        Swal.fire({
-            icon: 'error',
-            title: 'Colisión de Espacio Detectada',
-            html: `El espacio <strong>${curConsultorio}</strong> ya se encuentra ocupado en ese horario (<strong>${aHi} - ${aHf}</strong>: ${pacNombre}).<br><br>Por favor selecciona otro horario o espacio libre.`,
-            customClass: { popup: 'rounded-4' }
+        const dayApps = appointments.filter(a => {
+            const sameDay = a.start.startsWith(fecha);
+            const differentId = String(a.id) !== curId;
+            const aSuc = String(a.extendedProps?.sucursal || "");
+            const aCons = normalizarTextoEspacio(a.extendedProps?.espacio || a.extendedProps?.consultorio || "");
+            const isSameResource = (!curSucursal || !aSuc || aSuc === curSucursal) && (aCons === normCurCons);
+            return sameDay && differentId && isSameResource;
         });
-        return;
+
+        if (duracionCita === 'all' && dayApps.length > 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Día Completo No Disponible',
+                html: `No se puede reservar el día completo porque el espacio <strong>${curConsultorio}</strong> ya cuenta con <strong>${dayApps.length}</strong> evento(s) en esta fecha.`,
+                confirmButtonText: 'Entendido',
+                customClass: { popup: 'rounded-4' }
+            });
+            return;
+        }
+
+        if (fecha === getISO(new Date()) && duracionCita === 'all') {
+            const now = new Date();
+            const curH = now.getHours().toString().padStart(2, '0');
+            const curM = now.getMinutes().toString().padStart(2, '0');
+            $("#f_hi").val(`${curH}:${curM}`);
+        } else if (!isFuture(fecha, hi)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Acción No Permitida',
+                text: 'No es posible reservar o modificar espacios en una fecha u horario anterior al actual.',
+                customClass: { popup: 'rounded-4' }
+            });
+            return;
+        }
+
+        const hf = $("#f_hf").val();
+        let collisionApt = null;
+        const hasCollision = dayApps.some(a => {
+            const aT = a.start.split('T')[1] || '';
+            const aHi = aT.substring(0,5).padStart(5, '0');
+            const aHf = (a.end.split('T')[1] || '').substring(0,5).padStart(5, '0');
+            if (hi < aHf && hf > aHi) {
+                collisionApt = a;
+                return true;
+            }
+            return false;
+        });
+
+        if (hasCollision && collisionApt) {
+            const aT = collisionApt.start.split('T')[1] || '';
+            const aHi = aT.substring(0,5).padStart(5, '0');
+            const aHf = (collisionApt.end.split('T')[1] || '').substring(0,5).padStart(5, '0');
+            const pacNombre = collisionApt.title || 'Reserva existente';
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Colisión de Espacio Detectada',
+                html: `El espacio <strong>${curConsultorio}</strong> ya se encuentra ocupado en ese horario (<strong>${aHi} - ${aHf}</strong>: ${pacNombre}).<br><br>Por favor selecciona otro horario o espacio libre.`,
+                customClass: { popup: 'rounded-4' }
+            });
+            return;
+        }
     }
 
     const dataStr = f.serialize();
 
     $.post('../api/espacios_crud.pl', dataStr, function(res) {
         if (res && res.ok) {
-            if (typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'success', title: 'Espacio Reservado' });
-            else Swal.fire({ icon: 'success', title: 'Éxito', text: res.msg || 'Reserva Guardada', timer: 1500, showConfirmButton: false });
+            if (typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'success', title: esRango ? 'Rango Reservado' : 'Espacio Reservado' });
+            else Swal.fire({ icon: 'success', title: 'Éxito', text: res.msg || 'Reserva Guardada', timer: 1800, showConfirmButton: false });
 
             const modalEl = document.getElementById('modalCita');
             const modalIns = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
@@ -2997,10 +3041,10 @@ function saveCita() {
                 loadContext();
             }
         } else {
-            Swal.fire({ icon: 'error', title: 'Conflicto o Error', text: (res ? res.msg : 'Error de conexión con el servidor') });
+            Swal.fire({ icon: 'error', title: 'Conflicto o Error', text: (res ? res.msg : 'Error de conexión con el servidor'), customClass: { popup: 'rounded-4' } });
         }
     }, 'json').fail(function() {
-        Swal.fire({ icon: 'error', title: 'Error Crítico', text: 'No se pudo comunicar con el servidor.' });
+        Swal.fire({ icon: 'error', title: 'Error Crítico', text: 'No se pudo comunicar con el servidor.', customClass: { popup: 'rounded-4' } });
     });
 }
 
@@ -3478,6 +3522,218 @@ window.onCambioTipoArrendatario = function(val) {
     }
 };
 
+/* ==========================================================================
+   GESTIÓN DE RESERVAS EN RANGO DE FECHAS (MULTI-DÍA)
+   ========================================================================== */
+
+window.toggleModalidadFechaRenta = function(modo) {
+    const isRango = (modo === 'rango');
+    $('#f_es_rango').val(isRango ? '1' : '0');
+
+    if (isRango) {
+        $('#wrapper_fecha_unica').addClass('d-none');
+        $('#wrapper_fecha_rango').removeClass('d-none');
+        $('#lbl_tarifa_rango_tipo').removeClass('d-none');
+        $('#lbl_calculo_total_rango').removeClass('d-none');
+
+        const curF = $('#f_fecha').val() || getISO(new Date());
+        if (!$('#f_fecha_rango_ini').val()) {
+            $('#f_fecha_rango_ini').val(curF);
+        }
+        if (!$('#f_fecha_fin').val() || $('#f_fecha_fin').val() < $('#f_fecha_rango_ini').val()) {
+            const [y, m, d] = ($('#f_fecha_rango_ini').val() || curF).split('-').map(Number);
+            const finDate = new Date(y, m - 1, d + 4);
+            $('#f_fecha_fin').val(getISO(finDate));
+        }
+        window.onFechasRangoChange();
+    } else {
+        $('#wrapper_fecha_unica').removeClass('d-none');
+        $('#wrapper_fecha_rango').addClass('d-none');
+        $('#lbl_tarifa_rango_tipo').addClass('d-none');
+        $('#lbl_calculo_total_rango').addClass('d-none');
+
+        const fIni = $('#f_fecha_rango_ini').val();
+        if (fIni) $('#f_fecha').val(fIni);
+        renderSlots($('#f_fecha').val());
+    }
+};
+
+window.toggleDiaRango = function(btn) {
+    $(btn).toggleClass('active');
+    window.actualizarDiasSemanaRangoHidden();
+};
+
+window.seleccionarDiasSemanaRango = function(tipo) {
+    if (tipo === 'todos') {
+        $('.btn-dia-rango').addClass('active');
+    } else if (tipo === 'laborables') {
+        $('.btn-dia-rango').each(function() {
+            const w = parseInt($(this).data('wday'));
+            if (w >= 1 && w <= 5) $(this).addClass('active');
+            else $(this).removeClass('active');
+        });
+    }
+    window.actualizarDiasSemanaRangoHidden();
+};
+
+window.actualizarDiasSemanaRangoHidden = function() {
+    const dias = [];
+    $('.btn-dia-rango.active').each(function() {
+        dias.push($(this).data('wday'));
+    });
+    $('#f_dias_semana_rango').val(dias.join(','));
+    window.onFechasRangoChange();
+};
+
+window.toggleTipoTarifaRango = function() {
+    const cur = $('#f_tipo_tarifa_rango').val() || 'por_dia';
+    const next = (cur === 'por_dia') ? 'total' : 'por_dia';
+    $('#f_tipo_tarifa_rango').val(next);
+    $('#lbl_tarifa_rango_tipo').html(next === 'por_dia' ? 'Por día <i class="bi bi-arrow-repeat"></i>' : 'Total del rango <i class="bi bi-arrow-repeat"></i>');
+    window.onMontoRentaChange();
+};
+
+window.onMontoRentaChange = function() {
+    const esRango = $('#f_es_rango').val() === '1';
+    if (!esRango) {
+        $('#lbl_calculo_total_rango').addClass('d-none');
+        return;
+    }
+    const dias = window.calcularDiasSeleccionadosRango();
+    const numDias = dias.length;
+    const monto = parseFloat($('#f_monto_renta').val() || 0);
+    const tipo = $('#f_tipo_tarifa_rango').val() || 'por_dia';
+
+    if (numDias > 0) {
+        $('#lbl_calculo_total_rango').removeClass('d-none');
+        if (tipo === 'por_dia') {
+            const total = (numDias * monto).toFixed(2);
+            $('#lbl_calculo_total_rango').html(`<span class="text-navy fw-bold">${numDias} días</span> × $${monto.toFixed(2)} = <span class="text-success fw-bold">Total: $${total} MXN</span>`);
+        } else {
+            const porDia = (numDias > 0 ? monto / numDias : 0).toFixed(2);
+            $('#lbl_calculo_total_rango').html(`Total: $${monto.toFixed(2)} ÷ <span class="text-navy fw-bold">${numDias} días</span> = <span class="text-success fw-bold">$${porDia} / día</span>`);
+        }
+    } else {
+        $('#lbl_calculo_total_rango').addClass('d-none');
+    }
+};
+
+window.calcularDiasSeleccionadosRango = function() {
+    const fIni = $('#f_fecha_rango_ini').val();
+    const fFin = $('#f_fecha_fin').val();
+    if (!fIni || !fFin || fFin < fIni) return [];
+
+    const diasSemanaStr = $('#f_dias_semana_rango').val() || '1,2,3,4,5,6,7';
+    const permitidos = diasSemanaStr.split(',').map(Number);
+
+    const res = [];
+    const [y1, m1, d1] = fIni.split('-').map(Number);
+    const [y2, m2, d2] = fFin.split('-').map(Number);
+    let cur = new Date(y1, m1 - 1, d1);
+    const fin = new Date(y2, m2 - 1, d2);
+
+    let count = 0;
+    while (cur <= fin && count < 120) {
+        count++;
+        let w = cur.getDay(); // 0=Dom, 1=Lun, ..., 6=Sab
+        let isoW = (w === 0) ? 7 : w;
+        if (permitidos.includes(isoW)) {
+            res.push(getISO(cur));
+        }
+        cur.setDate(cur.getDate() + 1);
+    }
+    return res;
+};
+
+window.onFechasRangoChange = function() {
+    const fIni = $('#f_fecha_rango_ini').val();
+    const fFin = $('#f_fecha_fin').val();
+    if (!fIni) return;
+
+    $('#f_fecha').val(fIni);
+    renderSlots(fIni);
+
+    const dias = window.calcularDiasSeleccionadosRango();
+    const lblConteo = $('#lbl_conteo_dias_rango');
+    if (dias.length > 0) {
+        lblConteo.html(`<i class="bi bi-calendar-check text-teal me-1"></i><strong class="text-navy">${dias.length} día(s)</strong> seleccionados (${fIni} al ${fFin})`);
+    } else if (fFin && fFin < fIni) {
+        lblConteo.html(`<i class="bi bi-exclamation-triangle text-danger me-1"></i><span class="text-danger fw-semibold">Fecha fin anterior a fecha inicio</span>`);
+    } else {
+        lblConteo.html(`<i class="bi bi-info-circle text-muted me-1"></i>Sin días seleccionados`);
+    }
+
+    window.onMontoRentaChange();
+    window.verificarDisponibilidadRango();
+};
+
+let debounceVerificarRangoTimer = null;
+window.verificarDisponibilidadRango = function() {
+    if (debounceVerificarRangoTimer) clearTimeout(debounceVerificarRangoTimer);
+    debounceVerificarRangoTimer = setTimeout(() => {
+        const esRango = $('#f_es_rango').val() === '1';
+        if (!esRango) return;
+
+        const fIni = $('#f_fecha_rango_ini').val();
+        const fFin = $('#f_fecha_fin').val();
+        const hi = $('#f_hi').val();
+        const hf = $('#f_hf').val();
+        const suc = $('#f_sucursal').val();
+        const esp = $('#f_consultorio').val();
+        const idMed = $('#f_medico_select').val();
+        const diasSemana = $('#f_dias_semana_rango').val() || '1,2,3,4,5,6,7';
+
+        if (!fIni || !fFin || fFin < fIni) return;
+
+        const statusBadge = $('#lbl_status_anticolision_rango');
+        const listaConflictos = $('#lista_conflictos_rango');
+        statusBadge.attr('class', 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle')
+                   .html('<span class="spinner-border spinner-border-sm me-1" style="width:0.7rem; height:0.7rem;"></span>Verificando disponibilidad...');
+
+        $.get('../api/espacios_crud.pl', {
+            accion: 'check_range_availability',
+            fecha_ini: fIni,
+            fecha_fin: fFin,
+            hora_ini: hi,
+            hora_fin: hf,
+            sucursal: suc,
+            espacio: esp,
+            id_arrendatario: idMed,
+            dias_semana_rango: diasSemana
+        }, function(res) {
+            if (res && res.ok) {
+                if (res.dias_conflicto === 0 && res.total_dias > 0) {
+                    statusBadge.attr('class', 'badge bg-success-subtle text-success-emphasis border border-success-subtle')
+                               .html(`<i class="bi bi-check-circle-fill me-1"></i>${res.total_dias} de ${res.total_dias} días disponibles`);
+                    listaConflictos.addClass('d-none').empty();
+                } else if (res.dias_conflicto > 0) {
+                    statusBadge.attr('class', 'badge bg-danger-subtle text-danger-emphasis border border-danger-subtle')
+                               .html(`<i class="bi bi-exclamation-octagon-fill me-1"></i>${res.dias_conflicto} conflicto(s)`);
+
+                    const conflictos = (res.detalles || []).filter(d => !d.disponible);
+                    let htmlConf = '<div class="alert alert-danger py-1 px-2 mb-0 mt-1" style="font-size:0.68rem; max-height:80px; overflow-y:auto;">';
+                    htmlConf += '<div class="fw-bold mb-0.5"><i class="bi bi-shield-exclamation me-1"></i>Conflictos encontrados:</div>';
+                    conflictos.forEach(c => {
+                        htmlConf += `<div>• <strong>${c.fecha} (${c.dia_semana}):</strong> ${c.motivo}</div>`;
+                    });
+                    htmlConf += '</div>';
+                    listaConflictos.removeClass('d-none').html(htmlConf);
+                } else {
+                    statusBadge.attr('class', 'badge bg-light text-secondary border')
+                               .html(`0 días en rango`);
+                    listaConflictos.addClass('d-none').empty();
+                }
+            } else {
+                statusBadge.attr('class', 'badge bg-light text-secondary border')
+                           .html('Sin verificar');
+                listaConflictos.addClass('d-none').empty();
+            }
+        }, 'json').fail(function() {
+            statusBadge.attr('class', 'badge bg-light text-muted border').html('Error de verificación');
+        });
+    }, 250);
+};
+
 window.abrirModalNuevaRenta = function(f, h, espacioPre) {
     abrirModalNuevaCita(f, h, espacioPre);
 };
@@ -3512,6 +3768,15 @@ function abrirModalNuevaCita(f, h, espacioPre) {
     $("#f_id_cita, #f_id_cita_alias").val('');
     $("#f_accion").val('create');
     $("#f_fecha").attr('min', hoyIso).val(targetF);
+
+    // Inicializar modalidad de fecha en 'Día Único'
+    if (typeof window.toggleModalidadFechaRenta === 'function') {
+        window.toggleModalidadFechaRenta('unica');
+    }
+    $('#box_modalidad_reserva').removeClass('d-none');
+    $('#mod_fecha_unica').prop('checked', true);
+    $('#f_fecha_rango_ini').val(targetF);
+    $('#f_fecha_fin').val('');
 
     if (duracionCita === 30) duracionCita = 60; // Por defecto 1 hora en renta de espacios
     if (typeof window.sincronizarSliderDuracionUI === 'function') {
@@ -3580,6 +3845,12 @@ function abrirModalCita(id, isReadonly) {
     const hf = a.end.split('T')[1].substring(0,5);
     const fecha = a.start.split('T')[0];
     const est = (a.extendedProps.estado || 'Reservada').trim().toLowerCase();
+
+    // Al editar una reserva existente, forzar modalidad 'Día Único'
+    if (typeof window.toggleModalidadFechaRenta === 'function') {
+        window.toggleModalidadFechaRenta('unica');
+    }
+    $('#box_modalidad_reserva').addClass('d-none');
 
     $("#f_id_cita, #f_id_cita_alias").val(a.id);
     $("#f_accion").val('update');
@@ -3836,8 +4107,72 @@ function delCita(id) {
             return;
         }
     }
+
+    const notas = (a && a.extendedProps && a.extendedProps.notas) ? a.extendedProps.notas : '';
+    const esSerieRango = notas.includes('Grupo: GRP-');
+
+    if (esSerieRango) {
+        Swal.fire({
+            title: 'Reserva en Rango Multi-Día',
+            text: 'Esta reserva forma parte de una serie de varios días. ¿Deseas eliminar únicamente este día o cancelar la serie completa del rango?',
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: '#d33',
+            denyButtonColor: '#b91c1c',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: '<i class="bi bi-trash me-1"></i> Solo este día',
+            denyButtonText: '<i class="bi bi-calendar-x me-1"></i> Toda la serie del rango',
+            cancelButtonText: 'Cancelar',
+            customClass: { popup: 'rounded-4' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Eliminar solo este día
+                $.post('../api/espacios_crud.pl', { accion: 'delete', id_cita: targetId, eliminar_grupo: 0 }, function(res) {
+                    if (res && !res.ok) {
+                        Swal.fire({ icon: 'error', title: 'Error', text: res.msg, customClass: { popup: 'rounded-4' } });
+                    } else {
+                        const modalEl = document.getElementById('modalCita');
+                        if (modalEl) {
+                            const inst = bootstrap.Modal.getInstance(modalEl);
+                            if (inst) inst.hide();
+                        }
+                        const qEl = document.getElementById('appointmentQuickModal');
+                        if (qEl) {
+                            const instQ = bootstrap.Modal.getInstance(qEl);
+                            if (instQ) instQ.hide();
+                        }
+                        loadContext();
+                    }
+                }, 'json');
+            } else if (result.isDenied) {
+                // Eliminar toda la serie del rango
+                $.post('../api/espacios_crud.pl', { accion: 'delete', id_cita: targetId, eliminar_grupo: 1 }, function(res) {
+                    if (res && !res.ok) {
+                        Swal.fire({ icon: 'error', title: 'Error', text: res.msg, customClass: { popup: 'rounded-4' } });
+                    } else {
+                        const modalEl = document.getElementById('modalCita');
+                        if (modalEl) {
+                            const inst = bootstrap.Modal.getInstance(modalEl);
+                            if (inst) inst.hide();
+                        }
+                        const qEl = document.getElementById('appointmentQuickModal');
+                        if (qEl) {
+                            const instQ = bootstrap.Modal.getInstance(qEl);
+                            if (instQ) instQ.hide();
+                        }
+                        Swal.fire({ icon: 'success', title: 'Serie Cancelada', text: res.msg, timer: 1600, showConfirmButton: false });
+                        loadContext();
+                    }
+                }, 'json');
+            }
+        });
+        return;
+    }
+
+    // Flujo normal de reserva de día único
     Swal.fire({ 
-        title: '¿Eliminar cita?', 
+        title: '¿Eliminar reserva?', 
         text: "Esta acción no se puede deshacer.",
         icon: 'warning', 
         showCancelButton: true, 
@@ -3850,6 +4185,16 @@ function delCita(id) {
             if (res && !res.ok) {
                 Swal.fire({ icon: 'error', title: 'No se pudo eliminar', text: res.msg, customClass: { popup: 'rounded-4' } });
             } else {
+                const modalEl = document.getElementById('modalCita');
+                if (modalEl) {
+                    const inst = bootstrap.Modal.getInstance(modalEl);
+                    if (inst) inst.hide();
+                }
+                const qEl = document.getElementById('appointmentQuickModal');
+                if (qEl) {
+                    const instQ = bootstrap.Modal.getInstance(qEl);
+                    if (instQ) instQ.hide();
+                }
                 loadContext();
             }
         }, 'json');

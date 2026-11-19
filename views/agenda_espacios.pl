@@ -560,6 +560,7 @@ print <<HTML;
                                     <div class="text-truncate">
                                         <div id="quickModalPaciente" class="fw-black text-truncate text-navy" style="font-size: 1.02rem; line-height: 1.2;">Arrendatario</div>
                                         <span id="quickModalExpediente" class="badge bg-light text-secondary border px-1.5 py-0.5 fw-semibold" style="font-size: 0.68rem;">Folio #---</span>
+                                        <span id="quickModalRangoBadge" class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-1.5 py-0.5 fw-semibold d-none" style="font-size: 0.68rem;"><i class="bi bi-calendar-range me-1"></i>Serie Multi-Día</span>
                                     </div>
                                 </div>
 
@@ -662,11 +663,35 @@ print <<HTML;
                         <input type="hidden" name="accion" id="f_accion" value="create">
                         <input type="hidden" name="hora_ini" id="f_hi">
                         <input type="hidden" name="hora_fin" id="f_hf">
+                        <input type="hidden" name="es_rango" id="f_es_rango" value="0">
+                        <input type="hidden" name="dias_semana_rango" id="f_dias_semana_rango" value="1,2,3,4,5,6,7">
+                        <input type="hidden" name="tipo_tarifa_rango" id="f_tipo_tarifa_rango" value="por_dia">
 
                         <div class="row g-3 align-items-stretch">
                             <!-- PANEL IZQUIERDO: DATOS DEL ESPACIO Y ARRENDATARIO (7 COLS) -->
                             <div class="col-lg-7 d-flex flex-column justify-content-between">
                                 <div class="row g-2">
+                                    <!-- Selector de Modalidad: Día Único vs Rango de Fechas -->
+                                    <div class="col-12" id="box_modalidad_reserva">
+                                        <div class="d-flex flex-wrap align-items-center justify-content-between p-2 rounded-3 border bg-white shadow-2xs mb-1">
+                                            <div class="d-flex align-items-center gap-1.5">
+                                                <i class="bi bi-calendar-range text-teal fs-6"></i>
+                                                <span class="small fw-bold text-navy" style="font-size: 0.76rem;">Modalidad de Reserva:</span>
+                                            </div>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <input type="radio" class="btn-check" name="modalidad_fecha" id="mod_fecha_unica" value="unica" checked onchange="window.toggleModalidadFechaRenta('unica')">
+                                                <label class="btn btn-outline-primary py-0.5 px-3 fw-semibold" for="mod_fecha_unica" style="font-size:0.72rem;">
+                                                    <i class="bi bi-calendar-day me-1"></i>Día Único
+                                                </label>
+
+                                                <input type="radio" class="btn-check" name="modalidad_fecha" id="mod_fecha_rango" value="rango" onchange="window.toggleModalidadFechaRenta('rango')">
+                                                <label class="btn btn-outline-primary py-0.5 px-3 fw-semibold" for="mod_fecha_rango" style="font-size:0.72rem;">
+                                                    <i class="bi bi-calendar-week me-1"></i>Rango de Fechas
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- Fila 1: Sucursal y Espacio Físico -->
                                     <div class="col-md-6">
                                         <label class="form-label-compact" for="f_sucursal">Sucursal / Sede Física <span class="text-danger">*</span></label>
@@ -688,9 +713,59 @@ print <<HTML;
                                             $html_medicos
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" id="wrapper_fecha_unica">
                                         <label class="form-label-compact" for="f_fecha">Fecha de Reserva <span class="text-danger">*</span></label>
                                         <input type="date" name="fecha" id="f_fecha" class="form-control form-control-compact" onchange="renderSlots(this.value)">
+                                    </div>
+
+                                    <!-- Panel Desplegable para Rango de Fechas -->
+                                    <div class="col-12 d-none" id="wrapper_fecha_rango">
+                                        <div class="p-2.5 rounded-3 border shadow-2xs" style="background-color: #f0fdfa; border-color: rgba(25, 183, 165, 0.3) !important;">
+                                            <div class="row g-2">
+                                                <div class="col-md-6">
+                                                    <label class="form-label-compact fw-bold text-navy" for="f_fecha_rango_ini">
+                                                        <i class="bi bi-calendar-event text-teal me-1"></i>Fecha Inicio <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input type="date" id="f_fecha_rango_ini" class="form-control form-control-compact bg-white" onchange="window.onFechasRangoChange()">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label-compact fw-bold text-navy" for="f_fecha_fin">
+                                                        <i class="bi bi-calendar-check text-teal me-1"></i>Fecha Fin (Límite del Rango) <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input type="date" name="fecha_fin" id="f_fecha_fin" class="form-control form-control-compact bg-white" onchange="window.onFechasRangoChange()">
+                                                </div>
+                                                <div class="col-12 mt-1.5">
+                                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-1">
+                                                        <span class="small fw-bold text-navy" style="font-size:0.70rem;">
+                                                            <i class="bi bi-funnel me-1 text-teal"></i>Días a aplicar dentro del rango:
+                                                        </span>
+                                                        <div class="d-flex align-items-center gap-1.5">
+                                                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" onclick="window.seleccionarDiasSemanaRango('todos')" style="font-size:0.68rem; color:#19B7A5;">Todos</button>
+                                                            <span class="text-muted" style="font-size:0.65rem;">•</span>
+                                                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" onclick="window.seleccionarDiasSemanaRango('laborables')" style="font-size:0.68rem; color:#0284c7;">Lun a Vie</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex gap-1 mt-1" id="dias_semana_pills">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 active btn-dia-rango" data-wday="1" onclick="window.toggleDiaRango(this)">Lun</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 active btn-dia-rango" data-wday="2" onclick="window.toggleDiaRango(this)">Mar</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 active btn-dia-rango" data-wday="3" onclick="window.toggleDiaRango(this)">Mié</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 active btn-dia-rango" data-wday="4" onclick="window.toggleDiaRango(this)">Jue</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 active btn-dia-rango" data-wday="5" onclick="window.toggleDiaRango(this)">Vie</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 active btn-dia-rango" data-wday="6" onclick="window.toggleDiaRango(this)">Sáb</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 active btn-dia-rango" data-wday="7" onclick="window.toggleDiaRango(this)">Dom</button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 mt-1.5">
+                                                    <div id="box_diagnostico_rango" class="d-flex flex-wrap align-items-center justify-content-between gap-1 p-1.5 rounded-2 bg-white border" style="font-size:0.72rem;">
+                                                        <span id="lbl_conteo_dias_rango" class="fw-semibold text-navy">
+                                                            <i class="bi bi-info-circle text-teal me-1"></i>Indique fecha de inicio y fin
+                                                        </span>
+                                                        <span id="lbl_status_anticolision_rango" class="badge bg-light text-secondary border">Sin verificar</span>
+                                                    </div>
+                                                    <div id="lista_conflictos_rango" class="mt-1 d-none"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <!-- Fila 3: Nombre del Arrendatario (Híbrido Libre + Autocomplete Colaboradores Activos) y Teléfono -->
@@ -713,8 +788,12 @@ print <<HTML;
                                         <input type="text" name="motivo" id="f_motivo" class="form-control form-control-compact" placeholder="Ej: Renta por turno / Cirugía ambulatoria..." required>
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label-compact" for="f_monto_renta">Monto Renta (\$ MXN)</label>
-                                        <input type="number" step="0.01" min="0" name="monto_renta" id="f_monto_renta" class="form-control form-control-compact fw-bold text-success" value="0.00" placeholder="0.00">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <label class="form-label-compact" for="f_monto_renta">Monto Renta (\$ MXN)</label>
+                                            <span id="lbl_tarifa_rango_tipo" class="badge text-primary bg-primary-subtle border border-primary-subtle d-none" style="font-size:0.62rem; cursor:pointer;" onclick="window.toggleTipoTarifaRango()" title="Clic para alternar entre Por Día y Total del Rango">Por día <i class="bi bi-arrow-repeat"></i></span>
+                                        </div>
+                                        <input type="number" step="0.01" min="0" name="monto_renta" id="f_monto_renta" class="form-control form-control-compact fw-bold text-success" value="0.00" placeholder="0.00" oninput="window.onMontoRentaChange()">
+                                        <div id="lbl_calculo_total_rango" class="small text-muted mt-0.5 d-none" style="font-size:0.68rem; font-weight:600;"></div>
                                     </div>
 
                                     <!-- Fila 5: Estado y Notas de Equipamiento -->

@@ -62,16 +62,18 @@ unless (-e $ARCHIVO) {
 my $rentas = cargar_rentas();
 auto_actualizar_rentas_vencidas($rentas);
 
-if    ($accion eq 'create')            { crear_renta($rentas, $q); }
-elsif ($accion eq 'update')            { actualizar_renta($rentas, $q); }
-elsif ($accion eq 'delete')            { eliminar_renta($rentas, $q); }
-elsif ($accion eq 'save_config')       { guardar_config_agenda($q); }
-elsif ($accion eq 'get_config')        { obtener_config_agenda($q); }
-elsif ($accion eq 'get_form_metadata') { obtener_metadatos_formulario($q); }
-elsif ($accion eq 'get_recursos')      { obtener_recursos_sucursal($q); }
-elsif ($accion eq 'get_events')        { enviar_eventos_oficial($rentas); }
-elsif ($accion eq 'cobrar_renta')      { cobrar_renta_recepcion($rentas, $q); }
-else                                   { responder_json(0, "Acción no reconocida: $accion"); }
+if    ($accion eq 'create')                    { crear_renta($rentas, $q); }
+elsif ($accion eq 'update')                    { actualizar_renta($rentas, $q); }
+elsif ($accion eq 'delete')                    { eliminar_renta($rentas, $q); }
+elsif ($accion eq 'check_range_availability' || 
+       $accion eq 'verificar_rango')           { verificar_disponibilidad_rango($rentas, $q); }
+elsif ($accion eq 'save_config')               { guardar_config_agenda($q); }
+elsif ($accion eq 'get_config')                { obtener_config_agenda($q); }
+elsif ($accion eq 'get_form_metadata')         { obtener_metadatos_formulario($q); }
+elsif ($accion eq 'get_recursos')              { obtener_recursos_sucursal($q); }
+elsif ($accion eq 'get_events')                { enviar_eventos_oficial($rentas); }
+elsif ($accion eq 'cobrar_renta')              { cobrar_renta_recepcion($rentas, $q); }
+else                                           { responder_json(0, "Acción no reconocida: $accion"); }
 
 # ==========================================================
 # SUBRUTINAS DE CONFIGURACIÓN Y GOBERNANZA
@@ -297,6 +299,117 @@ sub auto_actualizar_rentas_vencidas {
 # OPERACIONES CRUD CON VALIDACIÓN ANTICOLISIÓN BIDIRECCIONAL
 # ==========================================================
 
+sub obtener_fechas_rango {
+    my ($f_ini, $f_fin, $dias_semana_str) = @_;
+    return (0, undef, "Fecha de inicio requerida.") unless $f_ini;
+    $f_fin = $f_ini if (!defined $f_fin || $f_fin eq '');
+    return (0, undef, "La fecha de fin ($f_fin) no puede ser anterior a la fecha de inicio ($f_ini).") if $f_fin lt $f_ini;
+
+    my %dias_permitidos = map { $_ => 1 } split(/,/, $dias_semana_str // '1,2,3,4,5,6,7');
+
+    use Time::Piece;
+    my $t_ini = eval { Time::Piece->strptime($f_ini, "%Y-%m-%d") };
+    my $t_fin = eval { Time::Piece->strptime($f_fin, "%Y-%m-%d") };
+    return (0, undef, "Formato de fechas inválido (debe ser YYYY-MM-DD).") if $@ || !$t_ini || !$t_fin;
+
+    my @fechas;
+    my $t_cur = $t_ini;
+    my $iter = 0;
+    while ($t_cur <= $t_fin && $iter < 120) {
+        $iter++;
+        my $wday = $t_cur->wday; # 1=Dom, 2=Lun, ..., 7=Sab
+        my $iso_wday = ($wday == 1) ? 7 : $wday - 1; # 1=Lun ... 7=Dom
+        if ($dias_permitidos{$iso_wday}) {
+            push @fechas, $t_cur->strftime("%Y-%m-%d");
+        }
+        $t_cur += 86400; # 1 día
+    }
+
+    if ($iter >= 120) {
+        return (0, undef, "El rango de fechas no puede exceder los 120 días por operación.");
+    }
+    return (1, \@fechas, "OK");
+}
+
+sub verificar_disponibilidad_rango {
+    my ($arr, $query) = @_;
+    my $f_ini       = $query->param('fecha') // $query->param('fecha_ini') // '';
+    my $f_fin       = $query->param('fecha_fin') // $f_ini;
+    my $hi          = $query->param('hora_ini') // '';
+    my $hf          = $query->param('hora_fin') // '';
+    my $sucursal    = $query->param('sucursal') // $id_empresa_sesion;
+    my $espacio     = $query->param('espacio') // $query->param('consultorio') // '';
+    my $id_arr      = $query->param('id_arrendatario') // '';
+    my $dias_semana = $query->param('dias_semana_rango') // '1,2,3,4,5,6,7';
+    my $exclude_id  = $query->param('exclude_id') // '';
+
+    my ($ok_r, $fechas_ref, $msg_r) = obtener_fechas_rango($f_ini, $f_fin, $dias_semana);
+    unless ($ok_r) {
+        responder_json(0, $msg_r);
+        return;
+    }
+
+    my @fechas = @$fechas_ref;
+    my @detalles;
+    my $disponibles = 0;
+    my $conflictos = 0;
+
+    my @nombres_dias = ('', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo');
+
+    use Time::Piece;
+    foreach my $f_item (@fechas) {
+        my $t = eval { Time::Piece->strptime($f_item, "%Y-%m-%d") };
+        my $iso_wday = 1;
+        if ($t) {
+            my $w = $t->wday;
+            $iso_wday = ($w == 1) ? 7 : $w - 1;
+        }
+        my $dia_nom = $nombres_dias[$iso_wday] // '';
+
+        # 1. Validar no pasado
+        my ($ok_p, $msg_p) = validar_no_pasado($f_item, $hi || '08:00');
+        unless ($ok_p) {
+            push @detalles, { fecha => $f_item, dia_semana => $dia_nom, disponible => 0, motivo => $msg_p };
+            $conflictos++;
+            next;
+        }
+
+        # 2. Validar horario sucursal si hay hi y hf
+        if ($hi && $hf) {
+            my ($ok_h, $msg_h) = validar_horario_sucursal($f_item, $hi, $hf, $sucursal);
+            unless ($ok_h) {
+                push @detalles, { fecha => $f_item, dia_semana => $dia_nom, disponible => 0, motivo => $msg_h };
+                $conflictos++;
+                next;
+            }
+
+            # 3. Detectar colisiones
+            if ($espacio && $espacio ne 'Virtual') {
+                my ($ok_c, $msg_c) = detectar_colisiones_espacio($arr, $f_item, $hi, $hf, $sucursal, $espacio, $exclude_id, $id_arr);
+                unless ($ok_c) {
+                    push @detalles, { fecha => $f_item, dia_semana => $dia_nom, disponible => 0, motivo => $msg_c };
+                    $conflictos++;
+                    next;
+                }
+            }
+        }
+
+        push @detalles, { fecha => $f_item, dia_semana => $dia_nom, disponible => 1, motivo => "Disponible" };
+        $disponibles++;
+    }
+
+    print "Content-Type: application/json; charset=UTF-8\n\n";
+    binmode STDOUT, ":raw";
+    print encode_json({
+        ok => 1,
+        total_dias => scalar(@fechas),
+        dias_disponibles => $disponibles,
+        dias_conflicto => $conflictos,
+        detalles => \@detalles
+    });
+    exit;
+}
+
 sub crear_renta {
     my ($arr, $query) = @_;
     unless (utils::permisos_utils::tiene_permiso_modulo($id_empresa_sesion, $role_sesion, 'agenda_espacios', 'C', $id_usuario_sesion)) {
@@ -314,6 +427,11 @@ sub crear_renta {
     my $tel_arr  = $query->param('telefono_arrendatario') // '';
     my $cor_arr  = $query->param('correo_arrendatario') // '';
     my $monto    = $query->param('monto_renta') // '0.00';
+
+    my $es_rango     = $query->param('es_rango') // '0';
+    my $fec_fin      = $query->param('fecha_fin') // $fec;
+    my $dias_semana  = $query->param('dias_semana_rango') // '1,2,3,4,5,6,7';
+    my $tipo_tarifa  = $query->param('tipo_tarifa_rango') // 'por_dia';
 
     $motivo  =~ s/^\s+|\s+$//g;
     $espacio =~ s/^\s+|\s+$//g;
@@ -341,15 +459,6 @@ sub crear_renta {
         return;
     }
 
-    my ($ok_f, $msg_f) = validar_no_pasado($fec, $hi);
-    unless ($ok_f) { responder_json(0, $msg_f); return; }
-
-    my ($ok_h, $msg_h) = validar_horario_sucursal($fec, $hi, $hf, $sucursal);
-    unless ($ok_h) { responder_json(0, $msg_h); return; }
-
-    my ($ok_c, $msg_c) = detectar_colisiones_espacio($arr, $fec, $hi, $hf, $sucursal, $espacio, undef, $id_arr);
-    unless ($ok_c) { responder_json(0, $msg_c); return; }
-
     my $estado_sol = $query->param('estado') // 'Reservada';
     $estado_sol =~ s/^\s+|\s+$//g;
     if ($estado_sol =~ /^(Cancelada|No realizada|Finalizada|Atendida)$/i) {
@@ -359,6 +468,94 @@ sub crear_renta {
     my $estado_final = ($estado_sol eq 'Confirmada' || $estado_sol eq 'En Uso') ? $estado_sol : 'Reservada';
     my $tipo_espacio = ($espacio =~ /Quir[oó]fano/i) ? 'Quirofano' : 'Consultorio';
     $monto = sprintf("%.2f", ($monto =~ /^[0-9.]+$/ ? $monto + 0 : 0));
+
+    # ==========================================================
+    # CASO A: RESERVA EN RANGO DE FECHAS (MULTI-DÍA)
+    # ==========================================================
+    if ($es_rango eq '1' || ($fec_fin ne '' && $fec_fin gt $fec)) {
+        my ($ok_r, $fechas_ref, $msg_r) = obtener_fechas_rango($fec, $fec_fin, $dias_semana);
+        unless ($ok_r) { responder_json(0, $msg_r); return; }
+        my @fechas = @$fechas_ref;
+        unless (scalar(@fechas) > 0) {
+            responder_json(0, "No se encontraron fechas válidas dentro del rango especificado con los días de semana activos.");
+            return;
+        }
+
+        # Validar rigurosamente cada día del rango contra colisiones, feriados y pasado
+        foreach my $f_item (@fechas) {
+            my ($ok_f, $msg_f) = validar_no_pasado($f_item, $hi);
+            unless ($ok_f) { responder_json(0, "Conflicto en rango ($f_item): $msg_f"); return; }
+
+            my ($ok_h, $msg_h) = validar_horario_sucursal($f_item, $hi, $hf, $sucursal);
+            unless ($ok_h) { responder_json(0, "Horario no operativo en rango ($f_item): $msg_h"); return; }
+
+            my ($ok_c, $msg_c) = detectar_colisiones_espacio($arr, $f_item, $hi, $hf, $sucursal, $espacio, undef, $id_arr);
+            unless ($ok_c) { responder_json(0, "Colisión en rango ($f_item): $msg_c"); return; }
+        }
+
+        my $num_dias = scalar(@fechas);
+        my $id_grupo = "GRP-" . time() . "-" . int(rand(900) + 100);
+        my $monto_por_dia = ($tipo_tarifa eq 'total') ? sprintf("%.2f", $monto / $num_dias) : sprintf("%.2f", $monto);
+
+        my @ids_creados;
+        for (my $i = 0; $i < $num_dias; $i++) {
+            my $f_item = $fechas[$i];
+            my $new_id = "REN-" . time() . "-" . int(rand(900) + 100) . "-" . ($i + 1);
+            my $tag_rango = "[Rango: $fec al $fec_fin | Grupo: $id_grupo | Día " . ($i + 1) . " de $num_dias]";
+            my $notas_item = $notas ? "$notas | $tag_rango" : $tag_rango;
+
+            my $nueva_renta = {
+                id_renta              => $new_id,
+                id_arrendatario       => $id_arr || 'EXTERNO',
+                nombre_arrendatario   => $nom_arr,
+                telefono_arrendatario => $tel_arr,
+                correo_arrendatario   => $cor_arr,
+                fecha                 => $f_item,
+                hora_ini              => $hi,
+                hora_fin              => $hf,
+                sucursal              => $sucursal,
+                espacio               => $espacio,
+                tipo_espacio          => $tipo_espacio,
+                motivo                => $motivo,
+                notas                 => $notas_item,
+                estado                => $estado_final,
+                monto_renta           => $monto_por_dia,
+                pagado                => '0',
+                folio_recibo          => '',
+                id_negocio            => $id_empresa_sesion,
+                elaborado_por         => $session_data->{uid} // $session_data->{usuario} // ''
+            };
+
+            push @$arr, $nueva_renta;
+            push @ids_creados, $new_id;
+            sincronizar_renta_con_quirofano($nueva_renta, 0);
+        }
+
+        guardar_rentas($arr);
+
+        print "Content-Type: application/json; charset=UTF-8\n\n";
+        binmode STDOUT, ":raw";
+        print encode_json({
+            ok => 1,
+            msg => "Se reservaron exitosamente $num_dias días en el rango del $fec al $fec_fin para $nom_arr.",
+            id_grupo => $id_grupo,
+            total_dias => $num_dias,
+            ids_rentas => \@ids_creados
+        });
+        exit;
+    }
+
+    # ==========================================================
+    # CASO B: RESERVA DE DÍA ÚNICO (CANÓNICO)
+    # ==========================================================
+    my ($ok_f, $msg_f) = validar_no_pasado($fec, $hi);
+    unless ($ok_f) { responder_json(0, $msg_f); return; }
+
+    my ($ok_h, $msg_h) = validar_horario_sucursal($fec, $hi, $hf, $sucursal);
+    unless ($ok_h) { responder_json(0, $msg_h); return; }
+
+    my ($ok_c, $msg_c) = detectar_colisiones_espacio($arr, $fec, $hi, $hf, $sucursal, $espacio, undef, $id_arr);
+    unless ($ok_c) { responder_json(0, $msg_c); return; }
 
     my $new_id = "REN-" . time() . "-" . int(rand(900) + 100);
     my $nueva_renta = {
@@ -496,27 +693,64 @@ sub eliminar_renta {
     }
 
     my $target = $query->param('id_renta') // $query->param('id_cita') // '';
+    my $eliminar_grupo = $query->param('eliminar_grupo') // '0';
+
+    my $target_obj;
+    foreach my $r (@$arr) {
+        if ($r->{id_renta} eq $target) { $target_obj = $r; last; }
+    }
+    unless ($target_obj) {
+        responder_json(0, "No se localizó la reserva especificada.");
+        return;
+    }
+
+    my $grupo_id = '';
+    if (($target_obj->{notas} // '') =~ /Grupo:\s*(GRP-[0-9\-]+)/) {
+        $grupo_id = $1;
+    }
+
     my @filtrados;
-    my $eliminado;
+    my @eliminados;
 
     foreach my $r (@$arr) {
-        if ($r->{id_renta} eq $target) {
-            if (($r->{estado} // '') =~ /^(Finalizada|Atendida)$/i || ($r->{pagado} // '0') eq '1') {
-                responder_json(0, "La reserva ya fue Finalizada o Cobrada y no se puede eliminar.");
-                return;
+        my $es_match = 0;
+        if ($eliminar_grupo eq '1' && $grupo_id) {
+            if (($r->{notas} // '') =~ /Grupo:\s*\Q$grupo_id\E/) {
+                $es_match = 1;
             }
-            $eliminado = $r;
+        } elsif ($r->{id_renta} eq $target) {
+            $es_match = 1;
+        }
+
+        if ($es_match) {
+            if (($r->{estado} // '') =~ /^(Finalizada|Atendida)$/i || ($r->{pagado} // '0') eq '1') {
+                if ($eliminar_grupo eq '1') {
+                    # Si forma parte de la serie pero ya fue liquidada o finalizada, la conservamos
+                    push @filtrados, $r;
+                    next;
+                } else {
+                    responder_json(0, "La reserva ya fue Finalizada o Cobrada y no se puede eliminar.");
+                    return;
+                }
+            }
+            push @eliminados, $r;
         } else {
             push @filtrados, $r;
         }
     }
 
-    if ($eliminado) {
+    if (scalar(@eliminados) > 0) {
         guardar_rentas(\@filtrados);
-        sincronizar_renta_con_quirofano($eliminado, 1);
-        responder_json(1, "Reserva de espacio eliminada correctamente.");
+        foreach my $el (@eliminados) {
+            sincronizar_renta_con_quirofano($el, 1);
+        }
+        my $num_del = scalar(@eliminados);
+        my $msg = ($num_del > 1) 
+            ? "Se eliminaron exitosamente $num_del reservas pertenecientes a la serie del rango."
+            : "Reserva de espacio eliminada correctamente.";
+        responder_json(1, $msg);
     } else {
-        responder_json(0, "No se localizó la reserva especificada.");
+        responder_json(0, "No se pudo eliminar la reserva solicitada.");
     }
 }
 
@@ -1226,10 +1460,14 @@ sub obtener_datos_medico_org {
 }
 
 sub responder_json {
-    my ($ok, $msg) = @_;
+    my ($ok, $msg, $extra) = @_;
     print "Content-Type: application/json; charset=UTF-8\n\n";
     binmode STDOUT, ":raw";
-    print encode_json({ ok => $ok, msg => $msg });
+    my $payload = { ok => $ok, msg => $msg };
+    if ($extra && ref($extra) eq 'HASH') {
+        $payload->{$_} = $extra->{$_} for keys %$extra;
+    }
+    print encode_json($payload);
     exit;
 }
 
