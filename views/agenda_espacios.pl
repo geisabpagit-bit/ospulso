@@ -801,9 +801,6 @@ print <<HTML;
                                             </div>
                                         </div>
                                     </div>
-                                            </div>
-                                        </div>
-                                    </div>
 
                                     <!-- Fila 3: Nombre del Arrendatario (Híbrido Libre + Autocomplete Colaboradores Activos) y Teléfono -->
                                     <div class="col-md-6">
