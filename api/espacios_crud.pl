@@ -454,8 +454,12 @@ sub crear_renta {
     $motivo  =~ s/^\s+|\s+$//g;
     $espacio =~ s/^\s+|\s+$//g;
     $nom_arr =~ s/^\s+|\s+$//g;
-    $notas   =~ s/\|/ /g;
-    $motivo  =~ s/\|/ /g;
+    $notas   =~ s/\|/ - /g;
+    $motivo  =~ s/\|/ - /g;
+    $nom_arr =~ s/\|/ /g;
+    $tel_arr =~ s/\|/ /g;
+    $cor_arr =~ s/\|/ /g;
+    $espacio =~ s/\|/ /g;
 
     unless ($espacio && $espacio ne 'Virtual') {
         responder_json(0, "Debe seleccionar un Consultorio o Quirófano físico válido.");
@@ -519,8 +523,8 @@ sub crear_renta {
         for (my $i = 0; $i < $num_dias; $i++) {
             my $f_item = $fechas[$i];
             my $new_id = "REN-" . time() . "-" . int(rand(900) + 100) . "-" . ($i + 1);
-            my $tag_rango = "[Rango: $fec al $fec_fin | Grupo: $id_grupo | Día " . ($i + 1) . " de $num_dias]";
-            my $notas_item = $notas ? "$notas | $tag_rango" : $tag_rango;
+            my $tag_rango = "[Rango: $fec al $fec_fin - Grupo: $id_grupo - Día " . ($i + 1) . " de $num_dias]";
+            my $notas_item = $notas ? "$notas - $tag_rango" : $tag_rango;
 
             my $nueva_renta = {
                 id_renta              => $new_id,
@@ -634,6 +638,12 @@ sub actualizar_renta {
     $motivo  =~ s/^\s+|\s+$//g;
     $espacio =~ s/^\s+|\s+$//g;
     $nom_arr =~ s/^\s+|\s+$//g;
+    $notas   =~ s/\|/ - /g;
+    $motivo  =~ s/\|/ - /g;
+    $nom_arr =~ s/\|/ /g;
+    $tel_arr =~ s/\|/ /g;
+    $cor_arr =~ s/\|/ /g;
+    $espacio =~ s/\|/ /g;
 
     unless ($id_r)   { responder_json(0, "ID de reserva requerido."); return; }
     unless ($motivo) { responder_json(0, "El campo Uso / Procedimiento es obligatorio."); return; }

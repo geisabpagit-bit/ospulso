@@ -1,2 +1,5 @@
 id_renta|id_arrendatario|nombre_arrendatario|telefono_arrendatario|correo_arrendatario|fecha|hora_ini|hora_fin|sucursal|espacio|tipo_espacio|motivo|notas|estado|monto_renta|pagado|folio_recibo|id_negocio|elaborado_por
 REN-1794830044-575|EXTERNO|dr teyex|||2026-11-17|00:00|23:59|965257|Consultorio 2|Consultorio|resta por hora||Finalizada|5000.00|1|RC-1794830166-374|723800|israel.garays@gmail.com
+REN-1795109087-918|782490682|DR SAID MONTOYA|||2026-11-19|11:30|14:30|965257|Consultorio 1|Consultorio|renta 1||Reservada|555.00|0||723800|israel.garays@gmail.com
+REN-1795109208-444-1|782490682|DR SAID MONTOYA|||2026-11-19|14:30|23:59|965257|Consultorio 1|Consultorio|renta mismo doctor|[Rango: 2026-11-19 al 2026-11-20 - Grupo: GRP-1795109208-225 - Día 1 de 2]|Reservada|5000.00|0||723800|israel.garays@gmail.com
+REN-1795109208-710-2|782490682|DR SAID MONTOYA|||2026-11-20|14:30|23:59|965257|Consultorio 1|Consultorio|renta mismo doctor|[Rango: 2026-11-19 al 2026-11-20 - Grupo: GRP-1795109208-225 - Día 2 de 2]|Reservada|5000.00|0||723800|israel.garays@gmail.com

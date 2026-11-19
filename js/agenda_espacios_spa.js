@@ -1334,10 +1334,16 @@ window.inicializarFiltroMedicos = function() {
         
         // Intentar restaurar desde memoria persistente
         const guardado = window.recuperarFiltroMemoria('medicos');
-        if (guardado !== null) {
-            // Filtrar IDs guardados para asegurar que existan actualmente
-            window.medicosChecked = guardado.filter(id => allIds.includes(String(id)));
-        } else if (window.medicosChecked === null) {
+        if (guardado !== null && Array.isArray(guardado) && guardado.length > 0) {
+            const guardadoValidos = guardado.filter(id => allIds.includes(String(id)));
+            // Si guardado solo tenía 'EXTERNO' pero ahora existen médicos internos registrados,
+            // marcar todos por defecto para garantizar visibilidad de las reservas de la clínica
+            if (guardadoValidos.length < allIds.length && guardadoValidos.length === 1 && guardadoValidos[0] === 'EXTERNO') {
+                window.medicosChecked = [...allIds];
+            } else {
+                window.medicosChecked = (guardadoValidos.length > 0) ? guardadoValidos : [...allIds];
+            }
+        } else {
             window.medicosChecked = [...allIds];
         }
 
@@ -1407,15 +1413,25 @@ function getFilteredAppointments(customList) {
 
     // 1. Filtrado interactivo por Médicos
     if (window.medicosChecked !== null && Array.isArray(window.medicosChecked)) {
-        list = list.filter(a => {
-            const mId = String(a.extendedProps?.id_medico || '');
-            return window.medicosChecked.includes(mId);
-        });
+        const totalMed = window.todosLosMedicosIds ? window.todosLosMedicosIds.length : 0;
+        // Si todos están marcados o no hay IDs definidos, no filtrar por médico
+        if (totalMed > 0 && window.medicosChecked.length < totalMed) {
+            if (window.medicosChecked.length === 0) {
+                return []; // Usuario desmarcó conscientemente todos los médicos
+            }
+            list = list.filter(a => {
+                const mId = String(a.extendedProps?.id_medico || a.extendedProps?.id_arrendatario || '');
+                const mNom = String(a.extendedProps?.medico || a.extendedProps?.nombre_arrendatario || '');
+                return window.medicosChecked.includes(mId) || 
+                       (mId !== 'EXTERNO' && window.medicosChecked.includes(mNom));
+            });
+        }
     } else {
         const medFiltro = $('#filtro_medico_toolbar').val() || $('#f_medico').val();
         if (medFiltro && medFiltro !== 'all') {
             list = list.filter(a => 
                 String(a.extendedProps?.id_medico) === String(medFiltro) || 
+                String(a.extendedProps?.id_arrendatario) === String(medFiltro) ||
                 String(a.extendedProps?.medico) === String(medFiltro)
             );
         }
@@ -1429,7 +1445,7 @@ function getFilteredAppointments(customList) {
         const total = window.todosLosRecursosIds ? window.todosLosRecursosIds.length : 0;
         if (total > 0 && window.recursosChecked.length < total) {
             list = list.filter(a => {
-                const cVal = (a.extendedProps?.consultorio || a.extendedProps?.recurso || a.extendedProps?.lugar || '').trim();
+                const cVal = (a.extendedProps?.consultorio || a.extendedProps?.espacio || a.extendedProps?.recurso || a.extendedProps?.lugar || '').trim();
                 const normCVal = normalizarTextoEspacio(cVal); // ej: "qx 1" o "cons 1"
                 const aSucId = String(a.extendedProps?.sucursal || a.extendedProps?.id_sucursal || a.extendedProps?.id_negocio || '').trim();
                 
@@ -1796,7 +1812,7 @@ window.openAppointmentQuickDetail = function(id) {
 
     // Badge y tooltip de Serie por Rango de Fechas
     const notasStr = (a.extendedProps.notas || '');
-    const mRango = notasStr.match(/\[Rango:\s*([^|\]]+)(?:\|\s*Grupo:\s*([^|\]]+))?(?:\|\s*([^\]]+))?\]/);
+    const mRango = notasStr.match(/\[Rango:\s*([^|\-\]]+)(?:[|\-]\s*Grupo:\s*([^|\-\]]+))?(?:[|\-]\s*([^\]]+))?\]/);
     if (mRango) {
         const detalleRango = mRango[3] ? mRango[3].trim() : 'Serie';
         const fechasRango = mRango[1] ? mRango[1].trim() : '';
@@ -3036,6 +3052,14 @@ function saveCita() {
 
     $.post('../api/espacios_crud.pl', dataStr, function(res) {
         if (res && res.ok) {
+            const idMedCreado = String($("#f_medico_select").val() || '');
+            if (idMedCreado && Array.isArray(window.medicosChecked) && !window.medicosChecked.includes(idMedCreado)) {
+                window.medicosChecked.push(idMedCreado);
+                $(`.chk-medico-item[value="${idMedCreado}"]`).prop('checked', true);
+                window.guardarFiltroMemoria('medicos');
+                window.actualizarLabelFiltroMedicos();
+            }
+
             if (typeof CrystalToast !== 'undefined') CrystalToast.fire({ icon: 'success', title: esRango ? 'Rango Reservado' : 'Espacio Reservado' });
             else Swal.fire({ icon: 'success', title: 'Éxito', text: res.msg || 'Reserva Guardada', timer: 1800, showConfirmButton: false });
 
