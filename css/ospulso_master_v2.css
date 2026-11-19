@@ -1739,6 +1739,289 @@ body.agenda-page-layout .agenda-view-container.d-none {
     animation: fadeInUp 0.25s ease;
 }
 
+/* ==========================================================================
+   LÍNEA DE TIEMPO EN VIVO (TIMELINE LIVE) Y ELEMENTOS UX
+   ========================================================================== */
+.dia-matrix-responsive {
+    position: relative !important;
+}
+
+.dia-live-timeline-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 2px;
+    background: #FF0000;
+    background: linear-gradient(90deg, #ff0000 0%, #ff2a2a 60%, rgba(255, 0, 0, 0.85) 100%);
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.85), 0 0 18px rgba(255, 0, 0, 0.45);
+    pointer-events: none;
+    z-index: 22;
+    transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timeline-live-time-pill {
+    position: absolute;
+    left: 4px;
+    top: -11px;
+    background: #FF0000;
+    color: #ffffff !important;
+    font-weight: 800;
+    font-size: 0.68rem;
+    line-height: 1;
+    padding: 3.5px 7px;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(255, 0, 0, 0.5), 0 0 0 1.5px #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    pointer-events: auto;
+    user-select: none;
+    z-index: 24;
+}
+
+.timeline-live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    display: inline-block;
+    box-shadow: 0 0 4px #ffffff;
+    animation: pulse-live-dot 1.5s infinite;
+}
+
+@keyframes pulse-live-dot {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.35;
+        transform: scale(0.7);
+    }
+}
+
+.timeline-live-triangle {
+    position: absolute;
+    left: 56px;
+    top: -4px;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 7px solid #FF0000;
+    pointer-events: none;
+    filter: drop-shadow(0 0 2px rgba(255, 0, 0, 0.6));
+}
+
+.timeline-live-next-badge {
+    position: absolute;
+    left: 70px;
+    top: -12px;
+    background: rgba(10, 42, 102, 0.94);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    pointer-events: auto;
+    white-space: nowrap;
+    max-width: calc(100% - 85px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 23;
+    transition: all 0.2s ease;
+}
+
+.timeline-live-next-badge:hover {
+    background: #0A2A66;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+/* Mini-Mapa del Día */
+.timeline-day-minimap {
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 6px 14px;
+    user-select: none;
+    position: relative;
+    z-index: 10;
+}
+
+.minimap-track {
+    width: 100%;
+    height: 10px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    position: relative;
+    overflow: visible;
+    cursor: pointer;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+}
+
+.minimap-past-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 999px 0 0 999px;
+    pointer-events: none;
+    transition: width 0.4s ease;
+}
+
+.minimap-marker {
+    position: absolute;
+    top: -4px;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
+    background: #FF0000;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.7);
+    cursor: pointer;
+    z-index: 6;
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.minimap-marker-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ffffff;
+}
+
+.minimap-marker::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1.5px solid #FF0000;
+    opacity: 0.7;
+    animation: minimap-pulse 2s infinite;
+}
+
+@keyframes minimap-pulse {
+    0% { transform: scale(0.9); opacity: 0.8; }
+    50% { transform: scale(1.4); opacity: 0; }
+    100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.minimap-events-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.minimap-event-block {
+    position: absolute;
+    top: 1px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--md-teal-clinical, #19B7A5);
+    opacity: 0.8;
+}
+
+/* Botón "Ir a Ahora" Snap-To-Now */
+.btn-timeline-now {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 999px;
+    padding: 3px 9px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    line-height: 1.2;
+}
+
+.btn-timeline-now:hover {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.28);
+}
+
+/* Progreso de Citas en Curso */
+.apt-progress-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3.5px;
+    background: rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border-radius: 0 0 4px 4px;
+}
+
+.apt-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.5);
+    transition: width 0.4s ease;
+}
+
+/* Pulso para Citas Inminentes (< 15 minutos) */
+.apt-imminent-pulse {
+    animation: imminent-card-pulse 2s infinite !important;
+}
+
+@keyframes imminent-card-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45);
+        border-color: #F59E0B !important;
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.25);
+        border-color: #D97706 !important;
+    }
+}
+
+/* Sombreado de Slots Pasados vs Actuales */
+.slot-past-dynamic {
+    background-color: #fbfbfb !important;
+    opacity: 0.88;
+}
+
+.slot-current-dynamic {
+    background-color: rgba(254, 242, 242, 0.4) !important;
+    border-left: 2px solid rgba(255, 0, 0, 0.4) !important;
+}
+
+/* Modo oscuro y soporte de alto contraste */
+@media (prefers-color-scheme: dark) {
+    .dia-live-timeline-line {
+        box-shadow: 0 0 10px #ff3333, 0 0 22px rgba(255, 51, 51, 0.6);
+    }
+    .timeline-live-next-badge {
+        background: rgba(13, 34, 56, 0.95);
+        border-color: rgba(255, 255, 255, 0.35);
+    }
+    .timeline-day-minimap {
+        background: #111827;
+        border-color: #1f2937;
+    }
+    .minimap-track {
+        background: #374151;
+    }
+}
+
 /* Modal Rápido de Detalle */
 #appointmentQuickModal .modal-content {
     border: none !important;

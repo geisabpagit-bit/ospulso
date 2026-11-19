@@ -283,6 +283,10 @@ print <<HTML;
                         <!-- IZQUIERDA: NAVEGACIÓN TEMPORAL, VISTAS DE CALENDARIO Y REPORTES & EXPORT -->
                         <div class="d-flex align-items-center flex-wrap gap-2">
                             <button onclick="goToday()" class="btn-tier2-today text-uppercase" title="Ir al Día de Hoy">HOY</button>
+                            <button type="button" onclick="window.scrollToLiveTimeline(true)" class="btn-timeline-now text-nowrap d-none d-sm-inline-flex" id="btn-snap-now-toolbar" title="Centrar línea de tiempo en vivo (Ahora)">
+                                <span class="timeline-live-dot" style="width:6px; height:6px; background:#dc2626;"></span>
+                                <span>Ahora</span>
+                            </button>
 
                             <div class="d-none d-md-flex align-items-center tier2-date-nav">
                                 <button onclick="moveDate(-1)" class="tier2-date-chevron" title="Día Anterior"><i class="bi bi-chevron-left"></i></button>

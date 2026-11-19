@@ -726,6 +726,7 @@ function actualizarResaltadoModalCita(fecha, hi, hf, label) {
 
 $(document).ready(function() {
     initClock();
+    if (typeof window.initLiveTimeline === 'function') window.initLiveTimeline();
     loadFormMetadata();
     loadContext();
     
@@ -1699,18 +1700,54 @@ function renderMatrixAptCard(a, interval, maxSlots = 1) {
         ? `height: 100%; min-height: ${(maxSlots * 56) - 10}px;` 
         : `min-height: 48px; height: 100%;`;
 
+    // Evaluación en tiempo real de citas en curso e inminentes
+    const todayIso = getISO(new Date());
+    const isTodayApt = (aDate === todayIso);
+    let isEnCurso = false;
+    let progressPct = 0;
+    let imminentClass = '';
+
+    if (isTodayApt && !stLow.includes('cancelada') && !stLow.includes('no realizada')) {
+        const nowObj = new Date();
+        const startMs = new Date(a.start).getTime();
+        const endMs = new Date(a.end).getTime();
+        const nowMs = nowObj.getTime();
+        if (nowMs >= startMs && nowMs <= endMs) {
+            isEnCurso = true;
+            progressPct = Math.min(100, Math.max(0, ((nowMs - startMs) / (endMs - startMs)) * 100));
+        } else if (startMs > nowMs && (startMs - nowMs) <= 15 * 60 * 1000) {
+            imminentClass = 'apt-imminent-pulse';
+        }
+    }
+
+    const enCursoBadge = isEnCurso ? `
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-1.5 py-0.5 rounded-pill d-inline-flex align-items-center gap-1" style="font-size:0.60rem;" title="En curso (${Math.round(progressPct)}% completado)">
+            <span class="timeline-live-dot" style="width:5px; height:5px; background:#10b981;"></span>
+            <span>${Math.round(progressPct)}%</span>
+        </span>
+    ` : '';
+
+    const progressBarHtml = isEnCurso ? `
+        <div class="apt-progress-container" title="Progreso del tiempo: ${Math.round(progressPct)}%">
+            <div class="apt-progress-bar" style="width: ${progressPct}%;"></div>
+        </div>
+    ` : '';
+
     return `
-        <div class="dia-matrix-apt-card ${statusClass} animate__animated animate__fadeIn"
+        <div class="dia-matrix-apt-card ${statusClass} ${imminentClass} animate__animated animate__fadeIn"
              style="${cardHeightStyle}"
              onclick="event.stopPropagation(); openAppointmentQuickDetail('${a.id}')"
              title="Clic para inspección rápida">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="apt-time-badge">
+            <div class="d-flex justify-content-between align-items-center mb-1 gap-1">
+                <span class="apt-time-badge text-nowrap">
                     <i class="bi bi-clock me-1"></i>${startH} - ${endH}
                 </span>
-                <span class="badge rounded-pill px-2 py-0.5 text-uppercase fw-bold" style="font-size:0.62rem; background:${statusBg}; color:#fff;">
-                    ${status}
-                </span>
+                <div class="d-flex align-items-center gap-1">
+                    ${enCursoBadge}
+                    <span class="badge rounded-pill px-2 py-0.5 text-uppercase fw-bold text-nowrap" style="font-size:0.62rem; background:${statusBg}; color:#fff;">
+                        ${status}
+                    </span>
+                </div>
             </div>
             <div class="apt-patient-name text-truncate" title="${a.title}">
                 <i class="bi bi-person-fill me-1 opacity-75"></i>${a.title}
@@ -1724,6 +1761,7 @@ function renderMatrixAptCard(a, interval, maxSlots = 1) {
                 </span>
                 ${pagado ? '<i class="bi bi-check-circle-fill text-success" title="Pagado"></i>' : '<i class="bi bi-clock-history text-warning" title="Pendiente de pago"></i>'}
             </div>
+            ${progressBarHtml}
         </div>
     `;
 }
@@ -2008,9 +2046,56 @@ function renderTimeline() {
     const holiday = isHoliday(iso);
 
     // 4. CONSTRUCCIÓN DE LA MATRIZ TABLE
+    const isTodayView = (iso === todayIso);
+    const nowTimeObj = new Date();
+    const nowTotalMin = nowTimeObj.getHours() * 60 + nowTimeObj.getMinutes();
+
     let tableHtml = `
         <div class="dia-matrix-card card shadow-sm border-0 rounded-4 overflow-hidden animate__animated animate__fadeIn">
-            <div class="dia-matrix-responsive">
+            <!-- MINI-MAPA INTELIGENTE DEL DÍA -->
+            <div class="timeline-day-minimap d-flex align-items-center justify-content-between" id="timeline-day-minimap">
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <span class="badge ${isTodayView ? 'bg-danger text-white' : 'bg-secondary text-white'} rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-2xs" style="font-size:0.68rem; font-weight:800; letter-spacing: 0.3px;">
+                        <span class="timeline-live-dot" style="width:6px; height:6px; background:#ffffff;"></span>
+                        <span>${isTodayView ? 'HOY EN VIVO' : 'HISTORIAL'}</span>
+                    </span>
+                    <span class="minimap-time-range text-muted fw-bold d-none d-md-inline" style="font-size:0.70rem;">
+                        <i class="bi bi-clock me-1"></i>${lStart} - ${lEnd}
+                    </span>
+                </div>
+                <div class="minimap-track-container position-relative flex-grow-1 mx-2 mx-md-3" onclick="window.handleMinimapClick(event)" title="Haz clic en la barra para desplazarte rápidamente a esa hora">
+                    <div class="minimap-track">
+                        <div class="minimap-past-fill" id="minimap-past-fill"></div>
+                        <div class="minimap-events-layer" id="minimap-events-layer"></div>
+                        <div class="minimap-marker ${isTodayView ? '' : 'd-none'}" id="minimap-marker" title="Momento actual">
+                            <span class="minimap-marker-dot"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <span class="badge bg-white border text-navy fw-bold d-none d-sm-inline-flex align-items-center gap-1 shadow-2xs" id="minimap-now-clock" style="font-size:0.72rem; color: #0A2A66;">
+                        <i class="bi bi-clock-fill text-danger me-1"></i><span id="minimap-clock-val">--:--</span>
+                    </span>
+                    <button type="button" class="btn btn-timeline-now" onclick="window.scrollToLiveTimeline(true)" title="Centrar matriz en hora actual (Ahora)">
+                        <i class="bi bi-crosshair"></i>
+                        <span>Ir a Ahora</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="dia-matrix-responsive position-relative">
+                <!-- LÍNEA DE TIEMPO EN VIVO (RED TIMELINE INDICATOR) -->
+                <div id="dia-live-timeline-line" class="dia-live-timeline-line d-none">
+                    <div class="timeline-live-time-pill" id="timeline-live-time-pill" title="Hora actual">
+                        <span class="timeline-live-dot"></span>
+                        <span id="timeline-live-time-text">--:--</span>
+                    </div>
+                    <div class="timeline-live-triangle"></div>
+                    <div class="timeline-live-next-badge" id="timeline-live-next-badge" title="Próximo evento programado">
+                        <i class="bi bi-bell-fill text-warning"></i>
+                        <span id="timeline-live-next-text">Calculando...</span>
+                    </div>
+                </div>
                 <table class="dia-matrix-table">
                     <thead>
                         <tr>
@@ -2089,7 +2174,10 @@ function renderTimeline() {
                     return (aptStartMin >= slotStartMin && aptStartMin < slotEndMin);
                 });
 
-                const cellClass = (isP || holiday) ? 'slot-past' : '';
+                const isPastSlot = isTodayView && (slotEndMin <= nowTotalMin);
+                const isCurrentSlot = isTodayView && (nowTotalMin >= slotStartMin && nowTotalMin < slotEndMin);
+                const dynamicSlotClass = isCurrentSlot ? 'slot-current-dynamic' : (isPastSlot ? 'slot-past-dynamic' : '');
+                const cellClass = (isP || holiday || isPastSlot) ? `slot-past ${dynamicSlotClass}` : dynamicSlotClass;
 
                 if (aptsStartingHere.length > 0) {
                     // Calcular la máxima duración en slots para aplicar rowspan exacto
@@ -2141,7 +2229,231 @@ function renderTimeline() {
 
     cont.html(tableHtml);
     initMatrixScrollEdgeDetector();
+    if (typeof window.updateLiveTimeline === 'function') window.updateLiveTimeline();
 }
+
+// ==========================================================================
+// MOTOR DE LÍNEA DE TIEMPO EN VIVO (TIMELINE LIVE ENGINE)
+// ==========================================================================
+
+window.initLiveTimeline = function() {
+    if (window._liveTimelineInterval) {
+        clearInterval(window._liveTimelineInterval);
+    }
+    // Actualizar cada 15 segundos para máxima fluidez y precisión
+    window._liveTimelineInterval = setInterval(() => {
+        if (typeof currentView !== 'undefined' && currentView === 'dia') {
+            window.updateLiveTimeline();
+        }
+    }, 15000);
+
+    window.addEventListener('resize', () => {
+        if (typeof currentView !== 'undefined' && currentView === 'dia') {
+            window.updateLiveTimeline();
+        }
+    });
+};
+
+window.updateLiveTimeline = function() {
+    if (typeof currentView === 'undefined' || currentView !== 'dia') return;
+    
+    const scroller = document.querySelector('.dia-matrix-responsive');
+    const table = document.querySelector('.dia-matrix-table');
+    const line = document.getElementById('dia-live-timeline-line');
+    const pill = document.getElementById('timeline-live-time-text');
+    const nextBadge = document.getElementById('timeline-live-next-badge');
+    const nextText = document.getElementById('timeline-live-next-text');
+    const minimapMarker = document.getElementById('minimap-marker');
+    const minimapPastFill = document.getElementById('minimap-past-fill');
+    const minimapClock = document.getElementById('minimap-clock-val');
+    const minimapEventsLayer = document.getElementById('minimap-events-layer');
+
+    if (!scroller || !table || !line) return;
+
+    const now = new Date();
+    const todayIso = getISO(now);
+    const isToday = (getISO(selectedDate) === todayIso);
+
+    // Formatear reloj digital HH:MM
+    const nowH = now.getHours();
+    const nowM = now.getMinutes();
+    const nowS = now.getSeconds();
+    const nowTimeStr = `${String(nowH).padStart(2, '0')}:${String(nowM).padStart(2, '0')}`;
+
+    if (minimapClock) minimapClock.textContent = nowTimeStr;
+    if (pill) pill.textContent = nowTimeStr;
+
+    // Si NO es el día de hoy, ocultar línea de tiempo en vivo
+    if (!isToday) {
+        line.classList.add('d-none');
+        if (minimapMarker) minimapMarker.classList.add('d-none');
+        if (minimapPastFill) minimapPastFill.style.width = '0%';
+        return;
+    }
+
+    // Configuración de límites del día en minutos
+    const lStart = (typeof agendaConfig !== 'undefined' && agendaConfig.laborStart) || '08:00';
+    const lEnd = (typeof agendaConfig !== 'undefined' && agendaConfig.laborEnd) || '20:00';
+    const [lsH, lsM] = lStart.split(':').map(Number);
+    const [leH, leM] = lEnd.split(':').map(Number);
+    
+    let startMin = (lsH || 0) * 60 + (lsM || 0);
+    let endMin = (leH || 0) * 60 + (leM || 0);
+    if (endMin <= startMin || (leH === 23 && leM >= 50) || lEnd === '23:59' || lEnd === '24:00') {
+        endMin = 1440;
+    }
+
+    const totalMinutes = Math.max(1, endMin - startMin);
+    const currentTotalMin = nowH * 60 + nowM + (nowS / 60);
+    const elapsedMinutes = currentTotalMin - startMin;
+
+    // Calcular posición porcentual (0 a 1)
+    const rawPct = elapsedMinutes / totalMinutes;
+    const clampedPct = Math.min(1, Math.max(0, rawPct));
+    const pct100 = (clampedPct * 100).toFixed(2);
+
+    // Actualizar Mini-Mapa
+    if (minimapMarker) {
+        minimapMarker.classList.remove('d-none');
+        minimapMarker.style.left = `${pct100}%`;
+    }
+    if (minimapPastFill) {
+        minimapPastFill.style.width = `${pct100}%`;
+    }
+
+    // Renderizar bloques de eventos en el mini-mapa si aún no están
+    if (minimapEventsLayer && !minimapEventsLayer.hasChildNodes()) {
+        const dayApts = (typeof getFilteredAppointments === 'function') 
+            ? getFilteredAppointments().filter(a => a.start && a.start.startsWith(todayIso)) 
+            : [];
+        let evHtml = '';
+        dayApts.forEach(a => {
+            const aHi = a.start.split('T')[1]?.substring(0, 5) || '00:00';
+            const aHf = a.end.split('T')[1]?.substring(0, 5) || '00:00';
+            const [sh, sm] = aHi.split(':').map(Number);
+            const [eh, em] = aHf.split(':').map(Number);
+            const aStartMin = sh * 60 + sm;
+            const aEndMin = eh * 60 + em;
+            const evLeftPct = Math.min(100, Math.max(0, ((aStartMin - startMin) / totalMinutes) * 100));
+            const evWidthPct = Math.min(100 - evLeftPct, Math.max(1.5, ((aEndMin - aStartMin) / totalMinutes) * 100));
+            evHtml += `<div class="minimap-event-block" style="left:${evLeftPct}%; width:${evWidthPct}%;" title="${a.title} (${aHi} - ${aHf})"></div>`;
+        });
+        minimapEventsLayer.innerHTML = evHtml;
+    }
+
+    // Ubicación en la tabla de la matriz
+    const tbody = table.querySelector('tbody');
+    if (!tbody) {
+        line.classList.add('d-none');
+        return;
+    }
+
+    const tbodyTop = tbody.offsetTop;
+    const tbodyHeight = tbody.offsetHeight;
+
+    // Si estamos dentro del rango del horario operativo
+    if (currentTotalMin >= startMin && currentTotalMin <= endMin) {
+        line.classList.remove('d-none');
+        const topPx = tbodyTop + (rawPct * tbodyHeight);
+        line.style.top = `${Math.round(topPx)}px`;
+    } else if (currentTotalMin < startMin) {
+        // Antes de la apertura: posicionar al inicio con etiqueta
+        line.classList.remove('d-none');
+        line.style.top = `${tbodyTop}px`;
+    } else {
+        // Después del cierre de jornada
+        line.classList.add('d-none');
+    }
+
+    // Calcular próximo evento o evento en curso
+    const dayApts = (typeof getFilteredAppointments === 'function') 
+        ? getFilteredAppointments().filter(a => a.start && a.start.startsWith(todayIso)) 
+        : [];
+
+    const nowMs = now.getTime();
+    let activeApt = null;
+    let nextApt = null;
+    let minDiffToNext = Infinity;
+
+    dayApts.forEach(a => {
+        const startMs = new Date(a.start).getTime();
+        const endMs = new Date(a.end).getTime();
+        if (nowMs >= startMs && nowMs <= endMs) {
+            if (!activeApt) activeApt = a;
+        } else if (startMs > nowMs) {
+            const diffMin = Math.round((startMs - nowMs) / 60000);
+            if (diffMin < minDiffToNext) {
+                minDiffToNext = diffMin;
+                nextApt = a;
+            }
+        }
+    });
+
+    if (nextBadge && nextText) {
+        if (activeApt) {
+            const endH = activeApt.end.split('T')[1].substring(0, 5);
+            const leftMin = Math.max(1, Math.round((new Date(activeApt.end).getTime() - nowMs) / 60000));
+            nextBadge.innerHTML = `<i class="bi bi-play-circle-fill text-success"></i><span>En curso: <strong>${activeApt.title}</strong> (termina ${endH}, restan ${leftMin}m)</span>`;
+            nextBadge.classList.remove('d-none');
+        } else if (nextApt) {
+            const startH = nextApt.start.split('T')[1].substring(0, 5);
+            nextBadge.innerHTML = `<i class="bi bi-bell-fill text-warning"></i><span>Próximo: <strong>${nextApt.title}</strong> a las ${startH} (en ${minDiffToNext}m)</span>`;
+            nextBadge.classList.remove('d-none');
+        } else {
+            nextBadge.innerHTML = `<i class="bi bi-check2-circle text-teal"></i><span>Sin más eventos pendientes hoy</span>`;
+            nextBadge.classList.remove('d-none');
+        }
+    }
+};
+
+window.scrollToLiveTimeline = function(smooth = true) {
+    const todayIso = getISO(new Date());
+    if (getISO(selectedDate) !== todayIso) {
+        goToday();
+        setTimeout(() => {
+            window.scrollToLiveTimeline(smooth);
+        }, 350);
+        return;
+    }
+
+    const scroller = document.querySelector('.dia-matrix-responsive');
+    const line = document.getElementById('dia-live-timeline-line');
+    if (!scroller || !line) return;
+
+    // Centrar la línea en el tercio superior o centro de la pantalla
+    const targetScroll = Math.max(0, line.offsetTop - (scroller.clientHeight / 3));
+    scroller.scrollTo({
+        top: targetScroll,
+        behavior: smooth ? 'smooth' : 'auto'
+    });
+
+    // Pequeño realce visual temporal (halo flash)
+    line.style.boxShadow = '0 0 24px #ff0000, 0 0 40px rgba(255, 0, 0, 0.8)';
+    setTimeout(() => {
+        line.style.boxShadow = '';
+    }, 1200);
+};
+
+window.handleMinimapClick = function(event) {
+    const track = event.currentTarget.querySelector('.minimap-track');
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickPct = Math.min(1, Math.max(0, clickX / rect.width));
+
+    const scroller = document.querySelector('.dia-matrix-responsive');
+    const table = document.querySelector('.dia-matrix-table');
+    if (!scroller || !table) return;
+
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+
+    const targetTop = tbody.offsetTop + (clickPct * tbody.offsetHeight) - (scroller.clientHeight / 3);
+    scroller.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: 'smooth'
+    });
+};
 
 // --- DETECTOR INTELIGENTE DE LÍMITES DE SCROLL (INFINITE DAY OVER-SCROLL) ---
 let isChangingDayScroll = false;
