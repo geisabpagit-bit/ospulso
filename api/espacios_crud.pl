@@ -318,7 +318,8 @@ sub auto_actualizar_rentas_vencidas {
 # ==========================================================
 
 sub obtener_fechas_rango {
-    my ($f_ini, $f_fin, $dias_semana_str) = @_;
+    my ($f_ini, $f_fin, $dias_semana_str, $tipo_cobertura) = @_;
+    $tipo_cobertura //= 'continuo';
     return (0, undef, "Fecha de inicio requerida.") unless $f_ini;
     $f_fin = $f_ini if (!defined $f_fin || $f_fin eq '');
     return (0, undef, "La fecha de fin ($f_fin) no puede ser anterior a la fecha de inicio ($f_ini).") if $f_fin lt $f_ini;
@@ -337,7 +338,7 @@ sub obtener_fechas_rango {
         $iter++;
         my $wday = $t_cur->wday; # 1=Dom, 2=Lun, ..., 7=Sab
         my $iso_wday = ($wday == 1) ? 7 : $wday - 1; # 1=Lun ... 7=Dom
-        if ($dias_permitidos{$iso_wday}) {
+        if ($tipo_cobertura eq 'continuo' || $dias_permitidos{$iso_wday}) {
             push @fechas, $t_cur->strftime("%Y-%m-%d");
         }
         $t_cur += 86400; # 1 día
@@ -351,23 +352,25 @@ sub obtener_fechas_rango {
 
 sub verificar_disponibilidad_rango {
     my ($arr, $query) = @_;
-    my $f_ini       = $query->param('fecha') // $query->param('fecha_ini') // '';
-    my $f_fin       = $query->param('fecha_fin') // $f_ini;
-    my $hi          = $query->param('hora_ini') // '';
-    my $hf          = $query->param('hora_fin') // '';
-    my $sucursal    = $query->param('sucursal') // $id_empresa_sesion;
-    my $espacio     = $query->param('espacio') // $query->param('consultorio') // '';
-    my $id_arr      = $query->param('id_arrendatario') // '';
-    my $dias_semana = $query->param('dias_semana_rango') // '1,2,3,4,5,6,7';
-    my $exclude_id  = $query->param('exclude_id') // '';
+    my $f_ini          = $query->param('fecha') // $query->param('fecha_ini') // '';
+    my $f_fin          = $query->param('fecha_fin') // $f_ini;
+    my $hi             = $query->param('hora_ini') // '';
+    my $hf             = $query->param('hora_fin') // '';
+    my $sucursal       = $query->param('sucursal') // $id_empresa_sesion;
+    my $espacio        = $query->param('espacio') // $query->param('consultorio') // '';
+    my $id_arr         = $query->param('id_arrendatario') // '';
+    my $dias_semana    = $query->param('dias_semana_rango') // '1,2,3,4,5,6,7';
+    my $tipo_cobertura = $query->param('tipo_cobertura_rango') // 'continuo';
+    my $exclude_id     = $query->param('exclude_id') // '';
 
-    my ($ok_r, $fechas_ref, $msg_r) = obtener_fechas_rango($f_ini, $f_fin, $dias_semana);
+    my ($ok_r, $fechas_ref, $msg_r) = obtener_fechas_rango($f_ini, $f_fin, $dias_semana, $tipo_cobertura);
     unless ($ok_r) {
         responder_json(0, $msg_r);
         return;
     }
 
     my @fechas = @$fechas_ref;
+    my $num_dias = scalar(@fechas);
     my @detalles;
     my $disponibles = 0;
     my $conflictos = 0;
@@ -375,7 +378,8 @@ sub verificar_disponibilidad_rango {
     my @nombres_dias = ('', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo');
 
     use Time::Piece;
-    foreach my $f_item (@fechas) {
+    for (my $i = 0; $i < $num_dias; $i++) {
+        my $f_item = $fechas[$i];
         my $t = eval { Time::Piece->strptime($f_item, "%Y-%m-%d") };
         my $iso_wday = 1;
         if ($t) {
@@ -384,35 +388,57 @@ sub verificar_disponibilidad_rango {
         }
         my $dia_nom = $nombres_dias[$iso_wday] // '';
 
+        my ($day_hi, $day_hf);
+        if ($tipo_cobertura eq 'continuo') {
+            if ($num_dias == 1) {
+                $day_hi = $hi;
+                $day_hf = $hf;
+            } elsif ($i == 0) {
+                $day_hi = $hi;
+                $day_hf = '23:59';
+            } elsif ($i == $num_dias - 1) {
+                $day_hi = '00:00';
+                $day_hf = $hf;
+            } else {
+                $day_hi = '00:00';
+                $day_hf = '23:59';
+            }
+        } else {
+            $day_hi = $hi;
+            $day_hf = $hf;
+        }
+
         # 1. Validar no pasado
-        my ($ok_p, $msg_p) = validar_no_pasado($f_item, $hi || '08:00', $hf);
+        my ($ok_p, $msg_p) = validar_no_pasado($f_item, $day_hi || '08:00', $day_hf);
         unless ($ok_p) {
-            push @detalles, { fecha => $f_item, dia_semana => $dia_nom, disponible => 0, motivo => $msg_p };
+            push @detalles, { fecha => $f_item, dia_semana => $dia_nom, horas => "$day_hi-$day_hf", disponible => 0, motivo => $msg_p };
             $conflictos++;
             next;
         }
 
-        # 2. Validar horario sucursal si hay hi y hf
-        if ($hi && $hf) {
-            my ($ok_h, $msg_h) = validar_horario_sucursal($f_item, $hi, $hf, $sucursal);
-            unless ($ok_h) {
-                push @detalles, { fecha => $f_item, dia_semana => $dia_nom, disponible => 0, motivo => $msg_h };
-                $conflictos++;
-                next;
+        # 2. Validar horario sucursal si hay hi y hf (solo aplica para recurrente)
+        if ($day_hi && $day_hf) {
+            if ($tipo_cobertura eq 'recurrente') {
+                my ($ok_h, $msg_h) = validar_horario_sucursal($f_item, $day_hi, $day_hf, $sucursal);
+                unless ($ok_h) {
+                    push @detalles, { fecha => $f_item, dia_semana => $dia_nom, horas => "$day_hi-$day_hf", disponible => 0, motivo => $msg_h };
+                    $conflictos++;
+                    next;
+                }
             }
 
             # 3. Detectar colisiones
             if ($espacio && $espacio ne 'Virtual') {
-                my ($ok_c, $msg_c) = detectar_colisiones_espacio($arr, $f_item, $hi, $hf, $sucursal, $espacio, $exclude_id, $id_arr);
+                my ($ok_c, $msg_c) = detectar_colisiones_espacio($arr, $f_item, $day_hi, $day_hf, $sucursal, $espacio, $exclude_id, $id_arr);
                 unless ($ok_c) {
-                    push @detalles, { fecha => $f_item, dia_semana => $dia_nom, disponible => 0, motivo => $msg_c };
+                    push @detalles, { fecha => $f_item, dia_semana => $dia_nom, horas => "$day_hi-$day_hf", disponible => 0, motivo => $msg_c };
                     $conflictos++;
                     next;
                 }
             }
         }
 
-        push @detalles, { fecha => $f_item, dia_semana => $dia_nom, disponible => 1, motivo => "Disponible" };
+        push @detalles, { fecha => $f_item, dia_semana => $dia_nom, horas => "$day_hi-$day_hf", disponible => 1, motivo => "Disponible" };
         $disponibles++;
     }
 
@@ -421,6 +447,7 @@ sub verificar_disponibilidad_rango {
     print encode_json({
         ok => 1,
         total_dias => scalar(@fechas),
+        tipo_cobertura => $tipo_cobertura,
         dias_disponibles => $disponibles,
         dias_conflicto => $conflictos,
         detalles => \@detalles
@@ -495,35 +522,86 @@ sub crear_renta {
     # CASO A: RESERVA EN RANGO DE FECHAS (MULTI-DÍA)
     # ==========================================================
     if ($es_rango eq '1' || ($fec_fin ne '' && $fec_fin gt $fec)) {
-        my ($ok_r, $fechas_ref, $msg_r) = obtener_fechas_rango($fec, $fec_fin, $dias_semana);
+        my $tipo_cobertura = $query->param('tipo_cobertura_rango') // 'continuo';
+        my ($ok_r, $fechas_ref, $msg_r) = obtener_fechas_rango($fec, $fec_fin, $dias_semana, $tipo_cobertura);
         unless ($ok_r) { responder_json(0, $msg_r); return; }
         my @fechas = @$fechas_ref;
         unless (scalar(@fechas) > 0) {
-            responder_json(0, "No se encontraron fechas válidas dentro del rango especificado con los días de semana activos.");
+            responder_json(0, "No se encontraron fechas válidas dentro del rango especificado.");
             return;
         }
 
+        my $num_dias = scalar(@fechas);
+
         # Validar rigurosamente cada día del rango contra colisiones, feriados y pasado
-        foreach my $f_item (@fechas) {
-            my ($ok_f, $msg_f) = validar_no_pasado($f_item, $hi, $hf);
+        for (my $i = 0; $i < $num_dias; $i++) {
+            my $f_item = $fechas[$i];
+            my ($day_hi, $day_hf);
+            if ($tipo_cobertura eq 'continuo') {
+                if ($num_dias == 1) {
+                    $day_hi = $hi;
+                    $day_hf = $hf;
+                } elsif ($i == 0) {
+                    $day_hi = $hi;
+                    $day_hf = '23:59';
+                } elsif ($i == $num_dias - 1) {
+                    $day_hi = '00:00';
+                    $day_hf = $hf;
+                } else {
+                    $day_hi = '00:00';
+                    $day_hf = '23:59';
+                }
+            } else {
+                $day_hi = $hi;
+                $day_hf = $hf;
+            }
+
+            my ($ok_f, $msg_f) = validar_no_pasado($f_item, $day_hi, $day_hf);
             unless ($ok_f) { responder_json(0, "Conflicto en rango ($f_item): $msg_f"); return; }
 
-            my ($ok_h, $msg_h) = validar_horario_sucursal($f_item, $hi, $hf, $sucursal);
-            unless ($ok_h) { responder_json(0, "Horario no operativo en rango ($f_item): $msg_h"); return; }
+            if ($tipo_cobertura eq 'recurrente') {
+                my ($ok_h, $msg_h) = validar_horario_sucursal($f_item, $day_hi, $day_hf, $sucursal);
+                unless ($ok_h) { responder_json(0, "Horario no operativo en rango ($f_item): $msg_h"); return; }
+            }
 
-            my ($ok_c, $msg_c) = detectar_colisiones_espacio($arr, $f_item, $hi, $hf, $sucursal, $espacio, undef, $id_arr);
-            unless ($ok_c) { responder_json(0, "Colisión en rango ($f_item): $msg_c"); return; }
+            my ($ok_c, $msg_c) = detectar_colisiones_espacio($arr, $f_item, $day_hi, $day_hf, $sucursal, $espacio, undef, $id_arr);
+            unless ($ok_c) { responder_json(0, "Colisión en rango ($f_item $day_hi-$day_hf): $msg_c"); return; }
         }
 
-        my $num_dias = scalar(@fechas);
         my $id_grupo = "GRP-" . time() . "-" . int(rand(900) + 100);
         my $monto_por_dia = ($tipo_tarifa eq 'total') ? sprintf("%.2f", $monto / $num_dias) : sprintf("%.2f", $monto);
 
         my @ids_creados;
         for (my $i = 0; $i < $num_dias; $i++) {
             my $f_item = $fechas[$i];
+            my ($day_hi, $day_hf, $rol_dia);
+            if ($tipo_cobertura eq 'continuo') {
+                if ($num_dias == 1) {
+                    $day_hi = $hi;
+                    $day_hf = $hf;
+                    $rol_dia = "Único";
+                } elsif ($i == 0) {
+                    $day_hi = $hi;
+                    $day_hf = '23:59';
+                    $rol_dia = "Inicio";
+                } elsif ($i == $num_dias - 1) {
+                    $day_hi = '00:00';
+                    $day_hf = $hf;
+                    $rol_dia = "Entrega";
+                } else {
+                    $day_hi = '00:00';
+                    $day_hf = '23:59';
+                    $rol_dia = "Completo";
+                }
+            } else {
+                $day_hi = $hi;
+                $day_hf = $hf;
+                $rol_dia = "Turno";
+            }
+
             my $new_id = "REN-" . time() . "-" . int(rand(900) + 100) . "-" . ($i + 1);
-            my $tag_rango = "[Rango: $fec al $fec_fin - Grupo: $id_grupo - Día " . ($i + 1) . " de $num_dias]";
+            my $tipo_tag = ($tipo_cobertura eq 'continuo') ? 'Continuo' : 'Recurrente';
+            my $tag_rango = "[Rango $tipo_tag: $fec al $fec_fin - Grupo: $id_grupo - Día " . ($i + 1) . " de $num_dias ($rol_dia)]";
             my $notas_item = $notas ? "$notas - $tag_rango" : $tag_rango;
 
             my $nueva_renta = {
@@ -533,8 +611,8 @@ sub crear_renta {
                 telefono_arrendatario => $tel_arr,
                 correo_arrendatario   => $cor_arr,
                 fecha                 => $f_item,
-                hora_ini              => $hi,
-                hora_fin              => $hf,
+                hora_ini              => $day_hi,
+                hora_fin              => $day_hf,
                 sucursal              => $sucursal,
                 espacio               => $espacio,
                 tipo_espacio          => $tipo_espacio,
@@ -559,8 +637,9 @@ sub crear_renta {
         binmode STDOUT, ":raw";
         print encode_json({
             ok => 1,
-            msg => "Se reservaron exitosamente $num_dias días en el rango del $fec al $fec_fin para $nom_arr.",
+            msg => "Se reservaron exitosamente $num_dias días ($tipo_cobertura) en el rango del $fec al $fec_fin para $nom_arr.",
             id_grupo => $id_grupo,
+            tipo_cobertura => $tipo_cobertura,
             total_dias => $num_dias,
             ids_rentas => \@ids_creados
         });

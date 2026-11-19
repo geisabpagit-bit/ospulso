@@ -3648,10 +3648,30 @@ window.onMontoRentaChange = function() {
     }
 };
 
+window.toggleTipoCoberturaRango = function(tipo) {
+    const isContinuo = (tipo === 'continuo');
+    $('#f_tipo_cobertura_rango').val(isContinuo ? 'continuo' : 'recurrente');
+    if (isContinuo) {
+        $('#wrapper_dias_semana_pills').addClass('d-none');
+        $('#lbl_info_tipo_cobertura')
+            .attr('style', 'font-size:0.68rem; background-color: #ecfeff; border-color: #cffafe !important;')
+            .html('<i class="bi bi-info-circle-fill text-primary me-1"></i><strong>Bloque Continuo (24h+):</strong> El espacio se reservará día y noche ininterrumpidamente desde la hora de inicio del primer día hasta la hora de entrega del último día.');
+    } else {
+        $('#wrapper_dias_semana_pills').removeClass('d-none');
+        $('#lbl_info_tipo_cobertura')
+            .attr('style', 'font-size:0.68rem; background-color: #f8fafc; border-color: #e2e8f0 !important;')
+            .html('<i class="bi bi-repeat text-teal me-1"></i><strong>Turnos Recurrentes:</strong> El espacio se ocupará de forma idéntica en el mismo horario cada día seleccionado (las mañanas/noches intermedias quedan libres).');
+    }
+    window.onFechasRangoChange();
+};
+
 window.calcularDiasSeleccionadosRango = function() {
     const fIni = $('#f_fecha_rango_ini').val();
     const fFin = $('#f_fecha_fin').val();
     if (!fIni || !fFin || fFin < fIni) return [];
+
+    const tipoCob = $('#f_tipo_cobertura_rango').val() || 'continuo';
+    const esContinuo = (tipoCob === 'continuo');
 
     const diasSemanaStr = $('#f_dias_semana_rango').val() || '1,2,3,4,5,6,7';
     const permitidos = diasSemanaStr.split(',').map(Number);
@@ -3667,7 +3687,7 @@ window.calcularDiasSeleccionadosRango = function() {
         count++;
         let w = cur.getDay(); // 0=Dom, 1=Lun, ..., 6=Sab
         let isoW = (w === 0) ? 7 : w;
-        if (permitidos.includes(isoW)) {
+        if (esContinuo || permitidos.includes(isoW)) {
             res.push(getISO(cur));
         }
         cur.setDate(cur.getDate() + 1);
@@ -3729,7 +3749,8 @@ window.verificarDisponibilidadRango = function() {
             sucursal: suc,
             espacio: esp,
             id_arrendatario: idMed,
-            dias_semana_rango: diasSemana
+            dias_semana_rango: diasSemana,
+            tipo_cobertura_rango: $('#f_tipo_cobertura_rango').val() || 'continuo'
         }, function(res) {
             if (res && res.ok) {
                 if (res.dias_conflicto === 0 && res.total_dias > 0) {
@@ -3807,6 +3828,10 @@ function abrirModalNuevaCita(f, h, espacioPre) {
     $('#mod_fecha_unica').prop('checked', true);
     $('#f_fecha_rango_ini').val(targetF);
     $('#f_fecha_fin').val('');
+    $('#cob_rango_continuo').prop('checked', true);
+    if (typeof window.toggleTipoCoberturaRango === 'function') {
+        window.toggleTipoCoberturaRango('continuo');
+    }
 
     if (duracionCita === 30) duracionCita = 60; // Por defecto 1 hora en renta de espacios
     if (typeof window.sincronizarSliderDuracionUI === 'function') {

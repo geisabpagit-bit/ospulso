@@ -721,7 +721,34 @@ print <<HTML;
                                     <!-- Panel Desplegable para Rango de Fechas -->
                                     <div class="col-12 d-none" id="wrapper_fecha_rango">
                                         <div class="p-2.5 rounded-3 border shadow-2xs" style="background-color: #f0fdfa; border-color: rgba(25, 183, 165, 0.3) !important;">
+                                            <input type="hidden" name="tipo_cobertura_rango" id="f_tipo_cobertura_rango" value="continuo">
                                             <div class="row g-2">
+                                                <!-- Sub-selector de Modalidad del Rango: Continuo vs Recurrente -->
+                                                <div class="col-12">
+                                                    <div class="d-flex flex-wrap align-items-center justify-content-between p-1.5 rounded-2 bg-white border gap-1">
+                                                        <span class="small fw-bold text-navy" style="font-size:0.72rem;">
+                                                            <i class="bi bi-clock-history text-teal me-1"></i>Tipo de Cobertura:
+                                                        </span>
+                                                        <div class="btn-group btn-group-sm" role="group">
+                                                            <input type="radio" class="btn-check" name="rad_tipo_cobertura_rango" id="cob_rango_continuo" value="continuo" checked onchange="window.toggleTipoCoberturaRango('continuo')">
+                                                            <label class="btn btn-outline-primary py-0.5 px-2.5 fw-bold" for="cob_rango_continuo" style="font-size:0.68rem;" title="Renta continua ininterrumpida día y noche desde el inicio hasta la hora de entrega final (sin huecos intermedios)">
+                                                                <i class="bi bi-infinity me-1"></i>Bloque Continuo (24h+)
+                                                            </label>
+
+                                                            <input type="radio" class="btn-check" name="rad_tipo_cobertura_rango" id="cob_rango_recurrente" value="recurrente" onchange="window.toggleTipoCoberturaRango('recurrente')">
+                                                            <label class="btn btn-outline-primary py-0.5 px-2.5 fw-bold" for="cob_rango_recurrente" style="font-size:0.68rem;" title="Mismo horario de atención repetido en cada día seleccionado (las mañanas/noches quedan libres)">
+                                                                <i class="bi bi-repeat me-1"></i>Mismo Horario por Día
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12 mt-0.5">
+                                                    <div id="lbl_info_tipo_cobertura" class="small p-1.5 rounded-2 border text-navy" style="font-size:0.68rem; background-color: #ecfeff; border-color: #cffafe !important;">
+                                                        <i class="bi bi-info-circle-fill text-primary me-1"></i><strong>Bloque Continuo (24h+):</strong> El espacio se reservará día y noche ininterrumpidamente desde la hora de inicio del primer día hasta la hora de entrega del último día.
+                                                    </div>
+                                                </div>
+
                                                 <div class="col-md-6">
                                                     <label class="form-label-compact fw-bold text-navy" for="f_fecha_rango_ini">
                                                         <i class="bi bi-calendar-event text-teal me-1"></i>Fecha Inicio <span class="text-danger">*</span>
@@ -734,7 +761,9 @@ print <<HTML;
                                                     </label>
                                                     <input type="date" name="fecha_fin" id="f_fecha_fin" class="form-control form-control-compact bg-white" onchange="window.onFechasRangoChange()">
                                                 </div>
-                                                <div class="col-12 mt-1.5">
+
+                                                <!-- Selector de días de la semana (solo visible en modo Recurrente) -->
+                                                <div class="col-12 mt-1.5 d-none" id="wrapper_dias_semana_pills">
                                                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-1">
                                                         <span class="small fw-bold text-navy" style="font-size:0.70rem;">
                                                             <i class="bi bi-funnel me-1 text-teal"></i>Días a aplicar dentro del rango:
@@ -755,6 +784,7 @@ print <<HTML;
                                                         <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 active btn-dia-rango" data-wday="7" onclick="window.toggleDiaRango(this)">Dom</button>
                                                     </div>
                                                 </div>
+
                                                 <div class="col-12 mt-1.5">
                                                     <div id="box_diagnostico_rango" class="d-flex flex-wrap align-items-center justify-content-between gap-1 p-1.5 rounded-2 bg-white border" style="font-size:0.72rem;">
                                                         <span id="lbl_conteo_dias_rango" class="fw-semibold text-navy">
@@ -764,6 +794,9 @@ print <<HTML;
                                                     </div>
                                                     <div id="lista_conflictos_rango" class="mt-1 d-none"></div>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                             </div>
                                         </div>
                                     </div>
