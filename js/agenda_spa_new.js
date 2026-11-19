@@ -4268,12 +4268,94 @@ function cambiarAmbitoAjustes(tipo) {
     }
 }
 
+/* --- CONTROLADORES DE MODAL AJUSTES PREMIUM --- */
+window.updateIntervalModal = function(val) {
+    val = parseInt(val, 10) || 30;
+    const validVal = (val <= 20) ? 15 : (val <= 35 ? 30 : (val <= 50 ? 45 : 60));
+    $("#badgeIntervalo").text(`${validVal} minutos`);
+    $("#sliderInterval").val(validVal);
+    $("#adj_int").val(String(validVal));
+    $(`#int${validVal}`).prop('checked', true);
+};
+
+window.handleSliderIntervalModal = function(val) {
+    val = parseInt(val, 10) || 30;
+    let target = 30;
+    if (val <= 20) target = 15;
+    else if (val <= 35) target = 30;
+    else if (val <= 50) target = 45;
+    else target = 60;
+    window.updateIntervalModal(target);
+};
+
+window.toggleDiaPill = function(btn, dayNum) {
+    const chk = $(`#d${dayNum}`);
+    const nowChecked = !chk.is(':checked');
+    chk.prop('checked', nowChecked);
+    if (nowChecked) $(btn).addClass('active');
+    else $(btn).removeClass('active');
+    window.actualizarBadgeDiasActivos();
+};
+
+window.actualizarBadgeDiasActivos = function() {
+    const total = $('.btn-day-pill.active').length;
+    $('#badgeDiasActivos').text(`${total} Día${total === 1 ? '' : 's'} Activo${total === 1 ? '' : 's'}`);
+};
+
+window.agregarFechaInhabil = function() {
+    const picker = document.getElementById('adj_fest_picker');
+    const hiddenFest = document.getElementById('adj_fest');
+    if (!picker || !picker.value) return;
+
+    const fecha = picker.value;
+    let cur = hiddenFest.value ? hiddenFest.value.split(',').map(x => x.trim()).filter(Boolean) : [];
+    if (!cur.includes(fecha)) {
+        cur.push(fecha);
+        hiddenFest.value = cur.join(', ');
+    }
+    window.renderizarTagsFechasInhabiles(hiddenFest.value);
+    picker.value = '';
+};
+
+window.eliminarFechaInhabil = function(fecha) {
+    const hiddenFest = document.getElementById('adj_fest');
+    if (!hiddenFest) return;
+    let cur = hiddenFest.value ? hiddenFest.value.split(',').map(x => x.trim()).filter(Boolean) : [];
+    cur = cur.filter(f => f !== fecha);
+    hiddenFest.value = cur.join(', ');
+    window.renderizarTagsFechasInhabiles(hiddenFest.value);
+};
+
+window.renderizarTagsFechasInhabiles = function(festivosStr) {
+    const cont = document.getElementById('contenedorTagsFechas');
+    if (!cont) return;
+    const list = (festivosStr || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (!list.length) {
+        cont.innerHTML = '<span class="text-muted small py-1" style="font-size: 0.72rem;">Sin días inhábiles registrados.</span>';
+        return;
+    }
+    let html = '';
+    list.forEach(f => {
+        html += `
+            <span class="date-tag date-tag-amber">
+                <i class="bi bi-circle-fill text-warning" style="font-size: 0.45rem;"></i>
+                <span>${f}</span>
+                <button type="button" class="remove-btn" onclick="window.eliminarFechaInhabil('${f}')">&times;</button>
+            </span>
+        `;
+    });
+    cont.innerHTML = html;
+};
+
 function toggleComidaAjustes(sinComida) {
+    const recesoDiv = document.getElementById('recesoFields');
+    if (recesoDiv) {
+        recesoDiv.style.opacity = sinComida ? '0.35' : '1';
+        recesoDiv.style.pointerEvents = sinComida ? 'none' : 'auto';
+    }
     if (sinComida) {
-        $("#wrapper_adj_c_ini, #wrapper_adj_c_fin").addClass('opacity-50');
         $("#adj_c_ini, #adj_c_fin").prop('disabled', true);
     } else {
-        $("#wrapper_adj_c_ini, #wrapper_adj_c_fin").removeClass('opacity-50');
         $("#adj_c_ini, #adj_c_fin").prop('disabled', false);
         if (!$("#adj_c_ini").val()) $("#adj_c_ini").val('14:00');
         if (!$("#adj_c_fin").val()) $("#adj_c_fin").val('15:00');
@@ -4298,19 +4380,25 @@ function cargarAjustesSucursal(idSuc) {
                 $("#adj_c_fin").val(cfg.lunchEnd || '15:00');
             }
 
-            $("#adj_int").val(cfg.intervalo_minutos || '30');
+            window.updateIntervalModal(cfg.intervalo_minutos || 30);
             $("#adj_cancel_hours").val(cfg.cancel_hours || '24');
-            $("#adj_fest").val(cfg.festivos_medico || '');
+            const festStr = cfg.festivos_sucursal || cfg.festivos || '';
+            $("#adj_fest").val(festStr);
+            window.renderizarTagsFechasInhabiles(festStr);
             
             $(".adj-dia").prop('checked', false);
+            $(".btn-day-pill").removeClass('active');
             if (cfg.workDays && Array.isArray(cfg.workDays)) {
                 cfg.workDays.forEach(d => {
                     $(`#d${d}`).prop('checked', true);
+                    $(`.btn-day-pill[data-day="${d}"]`).addClass('active');
                     if (d == 7 || d == 0) {
                         $("#d7, #d0").prop('checked', true);
+                        $('.btn-day-pill[data-day="7"]').addClass('active');
                     }
                 });
             }
+            window.actualizarBadgeDiasActivos();
         }
     });
 }
@@ -4331,19 +4419,25 @@ function cargarAjustesMedico(idMed) {
                 $("#adj_c_fin").val(cfg.lunchEnd || '16:00');
             }
 
-            $("#adj_int").val(cfg.intervalo_minutos || '30');
+            window.updateIntervalModal(cfg.intervalo_minutos || 30);
             $("#adj_cancel_hours").val(cfg.cancel_hours || '24');
-            $("#adj_fest").val(cfg.festivos_medico || '');
+            const festStr = cfg.festivos_medico || '';
+            $("#adj_fest").val(festStr);
+            window.renderizarTagsFechasInhabiles(festStr);
             
             $(".adj-dia").prop('checked', false);
+            $(".btn-day-pill").removeClass('active');
             if (cfg.workDays && Array.isArray(cfg.workDays)) {
                 cfg.workDays.forEach(d => {
                     $(`#d${d}`).prop('checked', true);
+                    $(`.btn-day-pill[data-day="${d}"]`).addClass('active');
                     if (d == 7 || d == 0) {
                         $("#d7, #d0").prop('checked', true);
+                        $('.btn-day-pill[data-day="7"]').addClass('active');
                     }
                 });
             }
+            window.actualizarBadgeDiasActivos();
         }
     });
 }

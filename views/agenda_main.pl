@@ -941,169 +941,248 @@ print <<HTML;
         </div>
     </div>
 
-    <!-- MODAL AJUSTES DE HORARIO Y JORNADA -->
-    <div class="modal fade modal-diamond" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
-        <div class="modal-dialog modal-dialog-centered" style="zoom: 0.75;">
-            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                <div class="modal-header py-3 px-4 border-bottom bg-white d-flex align-items-center justify-content-between">
-                    <h5 class="modal-title fw-bold text-navy d-flex align-items-center mb-0" style="font-size: 1.05rem;">
-                        <i class="bi bi-clock-history text-teal me-2 fs-5"></i> AJUSTES DE HORARIOS Y JORNADA
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- MODAL AJUSTES DE HORARIO Y JORNADA (VARIANTE PREMIUM BOOTSTRAP 5.3 + SEDE / MÉDICO) -->
+    <div class="modal fade modal-apertura-premium" id="modalAjustes" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" style="zoom: 0.75;">
+            <div class="modal-content card-mobile-flush custom-modal-card">
+                <!-- Modal Top Bar -->
+                <div class="modal-top-bar d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-header-badge shadow-sm">
+                            <i class="bi bi-sliders2"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <h5 class="fw-bold mb-0 text-navy">Configuración de Agenda &amp; Horarios de Atención</h5>
+                                <span class="badge-pill-teal"><i class="bi bi-check-circle-fill me-1"></i>Parámetros Operativos</span>
+                            </div>
+                            <p class="text-secondary small mb-0 mt-0.5" style="font-size: 0.76rem;">Define horarios de apertura, jornadas de consulta médica, recesos, intervalos de citas y días inhábiles.</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-sm p-2" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <div class="modal-body p-4 bg-light">
-                    <form id="formAjustes">
-                        <div class="row g-3">
-                            <!-- SELECTOR DE ÁMBITO: SUCURSAL VS MÉDICO -->
-                            <div class="col-12 mb-1">
-                                <label class="small fw-bold text-muted mb-1.5 d-block text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Ámbito a Configurar</label>
-                                <div class="btn-group w-100 shadow-2xs p-1 bg-white rounded-3 border" role="group">
-                                    <input type="radio" class="btn-check" name="adj_tipo_ambito" id="adj_ambito_sucursal" value="sucursal" autocomplete="off" checked onchange="cambiarAmbitoAjustes('sucursal')">
-                                    <label class="btn btn-sm rounded-2 fw-bold d-flex align-items-center justify-content-center gap-1.5 py-2 text-uppercase" for="adj_ambito_sucursal" style="font-size: 0.76rem;">
-                                        <i class="bi bi-building"></i> Horario de Sucursal
-                                    </label>
 
-                                    <input type="radio" class="btn-check" name="adj_tipo_ambito" id="adj_ambito_medico" value="medico" autocomplete="off" onchange="cambiarAmbitoAjustes('medico')">
-                                    <label class="btn btn-sm rounded-2 fw-bold d-flex align-items-center justify-content-center gap-1.5 py-2 text-uppercase" for="adj_ambito_medico" style="font-size: 0.76rem;">
-                                        <i class="bi bi-person-badge"></i> Horario por Médico
-                                    </label>
-                                </div>
-                                <div class="p-2 mt-2 rounded-2 border bg-white small text-secondary" id="adj_ambito_help_text" style="font-size: 0.74rem;">
-                                    <i class="bi bi-info-circle-fill text-teal me-1"></i>
-                                    <span>Define el <strong>horario general de apertura</strong> de la sede física (rige la cuadrícula visible de Consultorios y Quirófanos).</span>
-                                </div>
-                            </div>
+                <!-- Modal Body (2 Columnas) -->
+                <div class="p-3 p-md-4">
+                    <form id="formAjustes" class="m-0" onsubmit="event.preventDefault(); guardarAjustes();">
+                        <input type="hidden" name="int" id="adj_int" value="30">
+                        <input type="hidden" id="adj_fest" name="festivos" value="">
 
-                            <!-- SELECTOR DE SUCURSAL (Visible en ámbito sucursal) -->
-                            <div class="col-12" id="adj_sucursal_wrapper">
-                                <div class="form-floating mb-1">
-                                    <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_sucursal_select" onchange="cargarAjustesSucursal(this.value)">
-                                        $html_sucursal
-                                    </select>
-                                    <label class="text-muted fw-bold small text-uppercase">Sucursal / Sede Física</label>
-                                </div>
-                            </div>
+                        <!-- SELECTOR DE ÁMBITO: SUCURSAL VS MÉDICO -->
+                        <div class="mb-3 p-2.5 bg-light rounded-3 border">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-12 col-md-5">
+                                    <label class="section-label mb-1"><i class="bi bi-diagram-3-fill text-muted"></i> Ámbito a Configurar</label>
+                                    <div class="btn-group w-100 shadow-2xs p-0.5 bg-white rounded-3 border" role="group">
+                                        <input type="radio" class="btn-check" name="adj_tipo_ambito" id="adj_ambito_sucursal" value="sucursal" autocomplete="off" checked onchange="cambiarAmbitoAjustes('sucursal')">
+                                        <label class="btn btn-sm rounded-2 fw-bold d-flex align-items-center justify-content-center gap-1.5 py-1.5 text-uppercase" for="adj_ambito_sucursal" style="font-size: 0.75rem;">
+                                            <i class="bi bi-building"></i> Sede Física
+                                        </label>
 
-                            <!-- SELECTOR DE MÉDICO (Visible en ámbito médico) -->
-                            <div class="col-12 d-none" id="adj_medico_wrapper">
-                                <div class="form-floating mb-1">
-                                    <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_medico_select" onchange="cargarAjustesMedico(this.value)">
-                                        $html_medicos
-                                    </select>
-                                    <label class="text-muted fw-bold small text-uppercase">Médico / Profesional a Configurar</label>
-                                </div>
-                            </div>
-
-                            <!-- RANGO HORARIO JORNADA -->
-                            <div class="col-6">
-                                <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3 fw-bold" id="adj_h_ini" name="h_ini" required>
-                                    <label class="text-muted fw-bold small text-uppercase" id="lbl_adj_h_ini">Apertura / Inicio</label>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3 fw-bold" id="adj_h_fin" name="h_fin" required>
-                                    <label class="text-muted fw-bold small text-uppercase" id="lbl_adj_h_fin">Cierre / Fin</label>
-                                </div>
-                            </div>
-
-                            <!-- RECESO / COMIDA -->
-                            <div class="col-12 mt-1 mb-1">
-                                <div class="form-check form-switch p-2 ps-5 bg-white rounded-3 border shadow-2xs d-flex align-items-center">
-                                    <input class="form-check-input ms-n5 me-2" type="checkbox" role="switch" id="adj_sin_comida" onchange="toggleComidaAjustes(this.checked)">
-                                    <label class="form-check-label small fw-bold text-navy" for="adj_sin_comida" style="cursor: pointer;">
-                                        <i class="bi bi-cup-hot text-teal me-1"></i> Omitir horario de comida (Horario continuo / 24 hrs)
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-6" id="wrapper_adj_c_ini">
-                                <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_ini" name="c_ini" value="14:00">
-                                    <label class="text-muted fw-bold small text-uppercase">Inicio Receso / Comida</label>
-                                </div>
-                            </div>
-                            <div class="col-6" id="wrapper_adj_c_fin">
-                                <div class="form-floating mb-2">
-                                    <input type="time" class="form-control shadow-sm border-0 rounded-3" id="adj_c_fin" name="c_fin" value="15:00">
-                                    <label class="text-muted fw-bold small text-uppercase">Fin Receso / Comida</label>
-                                </div>
-                            </div>
-
-                            <!-- DÍAS LABORALES -->
-                            <div class="col-12 mt-3">
-                                <label class="small fw-bold text-muted mb-2 d-block text-uppercase" id="lbl_adj_dias">Días de Apertura de la Sede</label>
-                                <div class="d-flex flex-wrap gap-2 mb-2 p-3 bg-white rounded-3 shadow-sm border">
-                                    <div class="form-check form-check-inline m-0 me-2">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="1" id="d1"> <label class="form-check-label small fw-bold" for="d1">Lun</label>
+                                        <input type="radio" class="btn-check" name="adj_tipo_ambito" id="adj_ambito_medico" value="medico" autocomplete="off" onchange="cambiarAmbitoAjustes('medico')">
+                                        <label class="btn btn-sm rounded-2 fw-bold d-flex align-items-center justify-content-center gap-1.5 py-1.5 text-uppercase" for="adj_ambito_medico" style="font-size: 0.75rem;">
+                                            <i class="bi bi-person-badge"></i> Por Médico
+                                        </label>
                                     </div>
-                                    <div class="form-check form-check-inline m-0 me-2">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="2" id="d2"> <label class="form-check-label small fw-bold" for="d2">Mar</label>
+                                </div>
+                                <div class="col-12 col-md-7">
+                                    <!-- SELECTOR DE SUCURSAL (Visible en ámbito sucursal) -->
+                                    <div id="adj_sucursal_wrapper">
+                                        <label class="section-label mb-1"><i class="bi bi-geo-alt-fill text-muted"></i> Sucursal / Sede Física</label>
+                                        <select class="form-select form-select-sm fw-bold border bg-white" id="adj_sucursal_select" onchange="cargarAjustesSucursal(this.value)">
+                                            $html_sucursal
+                                        </select>
                                     </div>
-                                    <div class="form-check form-check-inline m-0 me-2">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="3" id="d3"> <label class="form-check-label small fw-bold" for="d3">Mié</label>
+                                    <!-- SELECTOR DE MÉDICO (Visible en ámbito médico) -->
+                                    <div id="adj_medico_wrapper" class="d-none">
+                                        <label class="section-label mb-1"><i class="bi bi-person-fill text-primary"></i> Médico / Profesional</label>
+                                        <select class="form-select form-select-sm fw-bold border bg-white" id="adj_medico_select" onchange="cargarAjustesMedico(this.value)">
+                                            $html_medicos
+                                        </select>
                                     </div>
-                                    <div class="form-check form-check-inline m-0 me-2">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="4" id="d4"> <label class="form-check-label small fw-bold" for="d4">Jue</label>
-                                    </div>
-                                    <div class="form-check form-check-inline m-0 me-2">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="5" id="d5"> <label class="form-check-label small fw-bold" for="d5">Vie</label>
-                                    </div>
-                                    <div class="form-check form-check-inline m-0 me-2">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="6" id="d6"> <label class="form-check-label small fw-bold" for="d6">Sáb</label>
-                                    </div>
-                                    <div class="form-check form-check-inline m-0 me-2">
-                                        <input class="form-check-input adj-dia" type="checkbox" value="7" id="d7"> <label class="form-check-label small fw-bold" for="d7">Dom</label>
+                                </div>
+                                <div class="col-12">
+                                    <div class="px-2 py-1 rounded-2 border bg-white small text-secondary d-flex align-items-center gap-1.5" id="adj_ambito_help_text" style="font-size: 0.72rem;">
+                                        <i class="bi bi-info-circle-fill text-teal"></i>
+                                        <span>Define el <strong>horario general de apertura</strong> de la sede física (rige la cuadrícula visible de Consultorios y Quirófanos).</span>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- INTERVALO DE SLOTS -->
-                            <div class="col-12 mt-2">
-                                <div class="form-floating mb-2">
-                                    <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_int" name="int">
-                                        <option value="15">15 minutos</option>
-                                        <option value="30" selected>30 minutos</option>
-                                        <option value="45">45 minutos</option>
-                                        <option value="60">60 minutos</option>
-                                    </select>
-                                    <label class="text-muted fw-bold small text-uppercase">Duración Base de Slot</label>
+                        <div class="row g-3 g-md-4">
+                            <!-- COLUMNA IZQUIERDA -->
+                            <div class="col-12 col-lg-6 d-flex flex-column gap-3">
+                                <!-- Jornada de Apertura y Cierre -->
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <label class="section-label mb-0"><i class="bi bi-clock-fill text-muted"></i> Horario de Jornada</label>
+                                        <span class="text-secondary" style="font-size: 0.74rem;" id="lbl_adj_jornada_sub">Apertura y Cierre</span>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="field-card">
+                                                <label class="text-muted small d-block mb-1" id="lbl_adj_h_ini" style="font-size: 0.72rem; font-weight: 600;">Apertura Sede</label>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="time" class="form-control border-0 p-0 fw-bold fs-6 text-dark" id="adj_h_ini" name="h_ini" required value="07:00">
+                                                    <span class="input-group-text bg-transparent border-0 text-muted p-0"><i class="bi bi-clock"></i></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="field-card">
+                                                <label class="text-muted small d-block mb-1" id="lbl_adj_h_fin" style="font-size: 0.72rem; font-weight: 600;">Cierre Sede</label>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="time" class="form-control border-0 p-0 fw-bold fs-6 text-dark" id="adj_h_fin" name="h_fin" required value="21:00">
+                                                    <span class="input-group-text bg-transparent border-0 text-muted p-0"><i class="bi bi-clock"></i></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Días Hábiles en Píldoras Interactivas -->
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <label class="section-label mb-0" id="lbl_adj_dias"><i class="bi bi-calendar-week-fill text-muted"></i> Días Hábiles</label>
+                                        <span class="badge rounded-pill px-2.5 py-1 fw-bold" id="badgeDiasActivos" style="color: #009e95; background: #e6f9f8; font-size: 0.72rem;">6 Días Activos</span>
+                                    </div>
+                                    <div class="row g-1 text-center" id="diasContainer">
+                                        <div class="col">
+                                            <button type="button" class="btn-day-pill active" data-day="1" onclick="window.toggleDiaPill(this, 1)"><span>Lun</span><span class="dot"></span></button>
+                                            <input class="adj-dia d-none" type="checkbox" value="1" id="d1" checked>
+                                        </div>
+                                        <div class="col">
+                                            <button type="button" class="btn-day-pill active" data-day="2" onclick="window.toggleDiaPill(this, 2)"><span>Mar</span><span class="dot"></span></button>
+                                            <input class="adj-dia d-none" type="checkbox" value="2" id="d2" checked>
+                                        </div>
+                                        <div class="col">
+                                            <button type="button" class="btn-day-pill active" data-day="3" onclick="window.toggleDiaPill(this, 3)"><span>Mié</span><span class="dot"></span></button>
+                                            <input class="adj-dia d-none" type="checkbox" value="3" id="d3" checked>
+                                        </div>
+                                        <div class="col">
+                                            <button type="button" class="btn-day-pill active" data-day="4" onclick="window.toggleDiaPill(this, 4)"><span>Jue</span><span class="dot"></span></button>
+                                            <input class="adj-dia d-none" type="checkbox" value="4" id="d4" checked>
+                                        </div>
+                                        <div class="col">
+                                            <button type="button" class="btn-day-pill active" data-day="5" onclick="window.toggleDiaPill(this, 5)"><span>Vie</span><span class="dot"></span></button>
+                                            <input class="adj-dia d-none" type="checkbox" value="5" id="d5" checked>
+                                        </div>
+                                        <div class="col">
+                                            <button type="button" class="btn-day-pill active" data-day="6" onclick="window.toggleDiaPill(this, 6)"><span>Sáb</span><span class="dot"></span></button>
+                                            <input class="adj-dia d-none" type="checkbox" value="6" id="d6" checked>
+                                        </div>
+                                        <div class="col">
+                                            <button type="button" class="btn-day-pill" data-day="7" onclick="window.toggleDiaPill(this, 7)"><span>Dom</span><span class="dot"></span></button>
+                                            <input class="adj-dia d-none" type="checkbox" value="7" id="d7">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Continuidad y Receso Operativo -->
+                                <div class="field-card bg-light-subtle">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <label class="section-label mb-0 text-dark"><i class="bi bi-cup-hot-fill text-warning me-1"></i> Continuidad y Receso Operativo</label>
+                                            <p class="text-secondary small mb-0 mt-0.5" style="font-size: 0.74rem;">Omitir horario de comida (Horario continuo)</p>
+                                        </div>
+                                        <div class="form-check form-switch fs-5 mb-0">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="adj_sin_comida" checked onchange="toggleComidaAjustes(this.checked)">
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mt-2 pt-2 border-top" id="recesoFields" style="opacity: 0.35; pointer-events: none;">
+                                        <div class="col-6" id="wrapper_adj_c_ini">
+                                            <div class="bg-white p-2 rounded border">
+                                                <small class="text-muted d-block" style="font-size: 0.7rem; font-weight: 600;">INICIO RECESO</small>
+                                                <input type="time" class="form-control form-control-sm border-0 p-0 fw-semibold" id="adj_c_ini" name="c_ini" value="14:00">
+                                            </div>
+                                        </div>
+                                        <div class="col-6" id="wrapper_adj_c_fin">
+                                            <div class="bg-white p-2 rounded border">
+                                                <small class="text-muted d-block" style="font-size: 0.7rem; font-weight: 600;">FIN RECESO</small>
+                                                <input type="time" class="form-control form-control-sm border-0 p-0 fw-semibold" id="adj_c_fin" name="c_fin" value="15:00">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- LÍMITE DE CANCELACIÓN (Visible para médicos / pacientes) -->
-                            <div class="col-12 mt-2" id="adj_cancel_hours_wrapper">
-                                <div class="form-floating mb-2">
-                                    <select class="form-select shadow-sm border-0 rounded-3 fw-bold" id="adj_cancel_hours" name="cancel_hours">
-                                        <option value="0">Sin Límite (0 hrs)</option>
-                                        <option value="12">12 Horas previas</option>
-                                        <option value="24" selected>24 Horas previas</option>
-                                        <option value="48">48 Horas previas</option>
-                                        <option value="72">72 Horas previas</option>
-                                    </select>
-                                    <label class="text-muted fw-bold small text-uppercase">Límite Cancelación (Paciente)</label>
-                                </div>
-                            </div>
+                            <!-- COLUMNA DERECHA -->
+                            <div class="col-12 col-lg-6 d-flex flex-column gap-3">
+                                <!-- Intervalo de Citas y Ranuras -->
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <label class="section-label mb-0"><i class="bi bi-grid-3x3-gap-fill text-muted"></i> Intervalo de Ranuras de Cita</label>
+                                        <span class="badge text-white px-2.5 py-1 rounded" id="badgeIntervalo" style="background-color: #0A2A66; font-size: 0.75rem; font-weight: 700;">30 minutos</span>
+                                    </div>
+                                    <div class="btn-group w-100 interval-btn-group" role="group">
+                                        <input type="radio" class="btn-check" name="intervalRadio" id="int15" autocomplete="off" onchange="window.updateIntervalModal(15)">
+                                        <label class="btn btn-outline-secondary" for="int15">15 min</label>
 
-                            <!-- FESTIVOS / DIAS INHABILES -->
-                            <div class="col-12 mt-2">
-                                <label class="small fw-bold text-muted mb-2 d-block text-uppercase" id="lbl_adj_festivos">Días Inhábiles / Asuetos de la Sede</label>
-                                <div class="input-group mb-2 shadow-sm rounded-3">
-                                    <input type="date" class="form-control border-0" id="adj_fest_picker">
-                                    <button type="button" class="btn btn-teal text-white px-3 fw-bold border-0" onclick="var f = document.getElementById('adj_fest'); var p = document.getElementById('adj_fest_picker'); if(p.value){ f.value = f.value ? f.value + ',' + p.value : p.value; p.value = ''; }"><i class="bi bi-plus-lg"></i> Agregar</button>
+                                        <input type="radio" class="btn-check" name="intervalRadio" id="int30" autocomplete="off" checked onchange="window.updateIntervalModal(30)">
+                                        <label class="btn btn-outline-secondary" for="int30">30 min</label>
+
+                                        <input type="radio" class="btn-check" name="intervalRadio" id="int45" autocomplete="off" onchange="window.updateIntervalModal(45)">
+                                        <label class="btn btn-outline-secondary" for="int45">45 min</label>
+
+                                        <input type="radio" class="btn-check" name="intervalRadio" id="int60" autocomplete="off" onchange="window.updateIntervalModal(60)">
+                                        <label class="btn btn-outline-secondary" for="int60">60 min</label>
+                                    </div>
+                                    <input type="range" class="form-range mt-2" min="15" max="60" step="15" value="30" id="sliderInterval" oninput="window.handleSliderIntervalModal(this.value)">
                                 </div>
-                                <div class="form-floating">
-                                    <input type="text" class="form-control shadow-sm border-0 rounded-3" id="adj_fest" name="festivos" placeholder="YYYY-MM-DD, ...">
-                                    <label class="text-muted fw-bold small text-uppercase">Fechas Seleccionadas</label>
+
+                                <!-- LÍMITE DE CANCELACIÓN (Visible para médicos / pacientes) -->
+                                <div id="adj_cancel_hours_wrapper" class="d-none">
+                                    <label class="section-label mb-1"><i class="bi bi-hourglass-split text-muted"></i> Límite de Cancelación Anticipada (Pacientes)</label>
+                                    <div class="field-card">
+                                        <select class="form-select form-select-sm border-0 fw-bold p-0" id="adj_cancel_hours" name="cancel_hours">
+                                            <option value="0">Sin Límite (Permitir cancelación en cualquier momento)</option>
+                                            <option value="12">12 Horas previas a la cita</option>
+                                            <option value="24" selected>24 Horas previas a la cita</option>
+                                            <option value="48">48 Horas previas a la cita</option>
+                                            <option value="72">72 Horas previas a la cita</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Días Inhábiles / Asuetos / Vacaciones con Tags Dinámicos -->
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label class="section-label mb-0" id="lbl_adj_festivos"><i class="bi bi-calendar-x-fill text-muted"></i> Días Inhábiles / Asuetos</label>
+                                        <span class="text-secondary" style="font-size: 0.72rem;">Sin servicio</span>
+                                    </div>
+                                    <div class="input-group input-group-sm mb-2">
+                                        <input type="date" class="form-control" id="adj_fest_picker">
+                                        <select class="form-select" id="selectMotivoInhabil" style="max-width: 140px;">
+                                            <option value="Feriado">Feriado Oficial</option>
+                                            <option value="Vacaciones">Vacaciones</option>
+                                            <option value="Mantenimiento">Mantenimiento</option>
+                                        </select>
+                                        <button class="btn fw-bold" type="button" onclick="window.agregarFechaInhabil()" style="color: #009e95; border-color: #00c0b5; background-color: #e6f9f8;">
+                                            <i class="bi bi-plus-lg me-1"></i>Agregar
+                                        </button>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-1.5" id="contenedorTagsFechas"></div>
                                 </div>
                             </div>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer bg-light border-0 pt-0">
-                    <button type="button" onclick="guardarAjustes()" class="btn btn-navy w-100 py-3 fw-bold shadow-sm border-0 rounded-3 text-uppercase" style="font-size: 0.88rem; letter-spacing: 0.5px;">
-                        <i class="bi bi-save me-2"></i> Guardar Configuración de Horario
-                    </button>
+
+                <!-- Modal Footer -->
+                <div class="bg-light px-4 py-3 border-top d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-2 text-muted small">
+                        <i class="bi bi-shield-check text-success fs-5"></i>
+                        <span style="font-size: 0.76rem;">Configuración clínica sincronizada • <strong class="text-dark">Norma Oficial Mexicana NOM-004</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 w-100 w-sm-auto justify-content-end">
+                        <button type="button" class="btn btn-light border text-secondary fw-semibold px-4 py-2" data-bs-dismiss="modal" style="border-radius: 0.75rem; font-size: 0.85rem;">
+                            Cancelar
+                        </button>
+                        <button type="button" class="btn btn-osp-navy" onclick="guardarAjustes()">
+                            <i class="bi bi-check2-circle"></i> Guardar Configuración
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
