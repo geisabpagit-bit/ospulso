@@ -6,4 +6,4 @@ intervalo_minutos=30
 dias_habiles=1,2,3,4,5,6,7
 cancel_hours=24
 festivos=
-espacios_bloqueados=Consultorio 1,Consultorio 3,Consultorio 6,Consultorio 8
+espacios_bloqueados=

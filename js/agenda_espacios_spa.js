@@ -981,6 +981,9 @@ function cargarEventosYConfig(idMed) {
                 if (typeof window.actualizarHeaderEspaciosHabilitados === 'function') {
                     window.actualizarHeaderEspaciosHabilitados();
                 }
+                if (typeof window.poblarFiltroRecursosToolbar === 'function' && window.sucursalRecursos) {
+                    window.poblarFiltroRecursosToolbar(window.sucursalRecursos);
+                }
             }
             syncUI();
         }
@@ -1260,6 +1263,21 @@ window.seleccionarTodosEspacios = function(marcar) {
     renderView();
 };
 
+window.seleccionarSoloHabilitados = function() {
+    const soloHabilitados = [];
+    $('.chk-recurso-item').each(function() {
+        const val = $(this).val();
+        const isLocked = window.esEspacioBloqueado(val);
+        const shouldCheck = !isLocked;
+        $(this).prop('checked', shouldCheck);
+        if (shouldCheck) soloHabilitados.push(val);
+    });
+    window.recursosChecked = soloHabilitados;
+    window.guardarFiltroMemoria('recursos');
+    window.actualizarLabelFiltroRecursos();
+    renderView();
+};
+
 window.onRecursoCheckChange = function() {
     const marcados = [];
     $('.chk-recurso-item:checked').each(function() {
@@ -1272,17 +1290,29 @@ window.onRecursoCheckChange = function() {
 };
 
 window.actualizarLabelFiltroRecursos = function() {
-    const total = window.todosLosRecursosIds.length;
+    const total = window.todosLosRecursosIds ? window.todosLosRecursosIds.length : 0;
     const marcados = (window.recursosChecked !== null) ? window.recursosChecked.length : total;
     const labelSpan = $('#filtro_recurso_btn_label');
     if (!labelSpan.length) return;
 
+    let bloqueadosTotal = 0;
+    if (window.todosLosRecursosIds && window.todosLosRecursosIds.length > 0) {
+        window.todosLosRecursosIds.forEach(id => {
+            if (window.esEspacioBloqueado(id)) bloqueadosTotal++;
+        });
+    }
+    const habilitadosTotal = Math.max(0, total - bloqueadosTotal);
+
     if (marcados === total && total > 0) {
-        labelSpan.html('<i class="bi bi-door-open-fill text-teal"></i> <span class="text-truncate">Espacios (' + total + ')</span>');
+        if (bloqueadosTotal > 0) {
+            labelSpan.html(`<i class="bi bi-door-open-fill text-teal"></i> <span class="text-truncate">Espacios (${habilitadosTotal} Hab • ${bloqueadosTotal} Bloq)</span>`);
+        } else {
+            labelSpan.html(`<i class="bi bi-door-open-fill text-teal"></i> <span class="text-truncate">Espacios (${total})</span>`);
+        }
     } else if (marcados === 0) {
-        labelSpan.html('<i class="bi bi-dash-circle text-danger"></i> <span class="text-truncate">Espacios (0/' + total + ')</span>');
+        labelSpan.html(`<i class="bi bi-dash-circle text-danger"></i> <span class="text-truncate">Espacios (0/${total})</span>`);
     } else {
-        labelSpan.html('<i class="bi bi-funnel-fill text-teal"></i> <span class="text-truncate">Espacios (' + marcados + '/' + total + ')</span>');
+        labelSpan.html(`<i class="bi bi-funnel-fill text-teal"></i> <span class="text-truncate">Espacios (${marcados}/${total})</span>`);
     }
 };
 
@@ -1445,12 +1475,17 @@ window.poblarFiltroRecursosToolbar = function(data) {
         html += '<div class="px-2 pt-1 pb-0.5 text-muted fw-bold text-uppercase" style="font-size:0.65rem; letter-spacing:0.5px;">Consultorios</div>';
         for (let i = 1; i <= numCons; i++) {
             const idVal = `consultorio_${i}`;
+            const label = `Consultorio ${i}`;
+            const isLocked = window.esEspacioBloqueado(label) || window.esEspacioBloqueado(idVal);
             allIds.push(idVal);
             html += `
-                <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5">
+                <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5 ${isLocked ? 'bg-danger-subtle bg-opacity-25' : ''}">
                     <input type="checkbox" class="form-check-input mt-0 chk-recurso-item" value="${idVal}" onchange="window.onRecursoCheckChange()">
-                    <i class="bi bi-door-closed-fill text-teal" style="font-size:0.95rem;"></i>
-                    <span class="fw-semibold text-navy small">Consultorio ${i}</span>
+                    <i class="bi ${isLocked ? 'bi-lock-fill text-danger' : 'bi-door-closed-fill text-teal'}" style="font-size:0.95rem;"></i>
+                    <span class="fw-semibold ${isLocked ? 'text-danger-emphasis' : 'text-navy'} small">${label}</span>
+                    ${isLocked 
+                        ? '<span class="badge text-danger-emphasis bg-danger-subtle border border-danger-subtle ms-auto" style="font-size:0.62rem; padding:0.18rem 0.45rem;"><i class="bi bi-lock-fill me-0.5"></i>Bloqueado</span>' 
+                        : '<span class="badge text-success-emphasis bg-success-subtle border border-success-subtle ms-auto" style="font-size:0.62rem; padding:0.18rem 0.45rem;">Habilitado</span>'}
                 </label>
             `;
         }
@@ -1459,12 +1494,17 @@ window.poblarFiltroRecursosToolbar = function(data) {
             html += '<div class="px-2 pt-2 pb-0.5 text-muted fw-bold text-uppercase border-top mt-1" style="font-size:0.65rem; letter-spacing:0.5px;">Quirófanos</div>';
             for (let i = 1; i <= numQx; i++) {
                 const idVal = `quirofano_${i}`;
+                const label = `Quirófano ${i}`;
+                const isLocked = window.esEspacioBloqueado(label) || window.esEspacioBloqueado(idVal);
                 allIds.push(idVal);
                 html += `
-                    <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5">
+                    <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5 ${isLocked ? 'bg-danger-subtle bg-opacity-25' : ''}">
                         <input type="checkbox" class="form-check-input mt-0 chk-recurso-item" value="${idVal}" onchange="window.onRecursoCheckChange()">
-                        <i class="bi bi-scissors" style="font-size:0.95rem; color:#7C3AED;"></i>
-                        <span class="fw-semibold text-navy small">Quirófano ${i}</span>
+                        <i class="bi ${isLocked ? 'bi-lock-fill text-danger' : 'bi-scissors'}" style="font-size:0.95rem; color:${isLocked ? '#dc2626' : '#7C3AED'};"></i>
+                        <span class="fw-semibold ${isLocked ? 'text-danger-emphasis' : 'text-navy'} small">${label}</span>
+                        ${isLocked 
+                            ? '<span class="badge text-danger-emphasis bg-danger-subtle border border-danger-subtle ms-auto" style="font-size:0.62rem; padding:0.18rem 0.45rem;"><i class="bi bi-lock-fill me-0.5"></i>Bloqueado</span>' 
+                            : '<span class="badge text-primary bg-primary-subtle border border-primary-subtle ms-auto" style="font-size:0.62rem; padding:0.18rem 0.45rem;">Quirúrgico</span>'}
                     </label>
                 `;
             }
@@ -1481,23 +1521,33 @@ window.poblarFiltroRecursosToolbar = function(data) {
             html += `<div class="px-2 pb-0.5 text-navy fw-black text-uppercase ${borderTop}" style="font-size:0.68rem; letter-spacing:0.5px;">🏢 ${sNom}</div>`;
             for (let i = 1; i <= numCons; i++) {
                 const idVal = `suc_${sId}_consultorio_${i}`;
+                const label = `Consultorio ${i}`;
+                const isLocked = window.esEspacioBloqueado(label) || window.esEspacioBloqueado(idVal);
                 allIds.push(idVal);
                 html += `
-                    <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5">
+                    <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5 ${isLocked ? 'bg-danger-subtle bg-opacity-25' : ''}">
                         <input type="checkbox" class="form-check-input mt-0 chk-recurso-item" value="${idVal}" onchange="window.onRecursoCheckChange()">
-                        <i class="bi bi-door-closed-fill text-teal" style="font-size:0.95rem;"></i>
-                        <span class="fw-semibold text-navy small">Consultorio ${i}</span>
+                        <i class="bi ${isLocked ? 'bi-lock-fill text-danger' : 'bi-door-closed-fill text-teal'}" style="font-size:0.95rem;"></i>
+                        <span class="fw-semibold ${isLocked ? 'text-danger-emphasis' : 'text-navy'} small">${label}</span>
+                        ${isLocked 
+                            ? '<span class="badge text-danger-emphasis bg-danger-subtle border border-danger-subtle ms-auto" style="font-size:0.62rem; padding:0.18rem 0.45rem;"><i class="bi bi-lock-fill me-0.5"></i>Bloqueado</span>' 
+                            : '<span class="badge text-success-emphasis bg-success-subtle border border-success-subtle ms-auto" style="font-size:0.62rem; padding:0.18rem 0.45rem;">Habilitado</span>'}
                     </label>
                 `;
             }
             for (let i = 1; i <= numQx; i++) {
                 const idVal = `suc_${sId}_quirofano_${i}`;
+                const label = `Quirófano ${i}`;
+                const isLocked = window.esEspacioBloqueado(label) || window.esEspacioBloqueado(idVal);
                 allIds.push(idVal);
                 html += `
-                    <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5">
+                    <label class="dropdown-item d-flex align-items-center gap-2 rounded-2 px-2 py-1.5 cursor-pointer user-select-none mb-0.5 ${isLocked ? 'bg-danger-subtle bg-opacity-25' : ''}">
                         <input type="checkbox" class="form-check-input mt-0 chk-recurso-item" value="${idVal}" onchange="window.onRecursoCheckChange()">
-                        <i class="bi bi-scissors" style="font-size:0.95rem; color:#7C3AED;"></i>
-                        <span class="fw-semibold text-navy small">Quirófano ${i}</span>
+                        <i class="bi ${isLocked ? 'bi-lock-fill text-danger' : 'bi-scissors'}" style="font-size:0.95rem; color:${isLocked ? '#dc2626' : '#7C3AED'};"></i>
+                        <span class="fw-semibold ${isLocked ? 'text-danger-emphasis' : 'text-navy'} small">${label}</span>
+                        ${isLocked 
+                            ? '<span class="badge text-danger-emphasis bg-danger-subtle border border-danger-subtle ms-auto" style="font-size:0.62rem; padding:0.18rem 0.45rem;"><i class="bi bi-lock-fill me-0.5"></i>Bloqueado</span>' 
+                            : '<span class="badge text-primary bg-primary-subtle border border-primary-subtle ms-auto" style="font-size:0.62rem; padding:0.18rem 0.45rem;">Quirúrgico</span>'}
                     </label>
                 `;
             }
@@ -1566,7 +1616,11 @@ window.esEspacioBloqueado = function(espacioStr) {
     if (!espacioStr || !agendaConfig || !Array.isArray(agendaConfig.espacios_bloqueados_list)) return false;
     const normTarget = normalizarTextoEspacio(espacioStr);
     if (!normTarget) return false;
-    return agendaConfig.espacios_bloqueados_list.some(eb => normalizarTextoEspacio(eb) === normTarget);
+    return agendaConfig.espacios_bloqueados_list.some(eb => {
+        const normEb = normalizarTextoEspacio(eb);
+        if (!normEb) return false;
+        return normEb === normTarget || normTarget.endsWith(normEb) || normEb.endsWith(normTarget);
+    });
 };
 
 window.actualizarHeaderEspaciosHabilitados = function() {
@@ -4465,6 +4519,22 @@ function guardarAjustes() {
             Swal.fire(swalConfig).then(() => {
                 const bootstrapModal = bootstrap.Modal.getInstance(document.getElementById('modalAjustes'));
                 if (bootstrapModal) bootstrapModal.hide();
+
+                // Sincronizar inmediatamente memoria local de agendaConfig y re-renderizar filtro de toolbar
+                if (!agendaConfig) agendaConfig = {};
+                agendaConfig.espacios_bloqueados = data.espacios_bloqueados || '';
+                agendaConfig.espacios_bloqueados_list = (data.espacios_bloqueados || '')
+                    .split(',')
+                    .map(s => normalizarTextoEspacio(s))
+                    .filter(Boolean);
+
+                if (typeof window.poblarFiltroRecursosToolbar === 'function' && window.sucursalRecursos) {
+                    window.poblarFiltroRecursosToolbar(window.sucursalRecursos);
+                }
+                if (typeof window.actualizarHeaderEspaciosHabilitados === 'function') {
+                    window.actualizarHeaderEspaciosHabilitados();
+                }
+
                 if (typeof loadContext === 'function') {
                     loadContext(); // Recargar para aplicar cambios visualmente
                 } else if (typeof cargarCitas === 'function') {

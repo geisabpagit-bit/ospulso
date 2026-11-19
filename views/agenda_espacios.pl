@@ -364,6 +364,8 @@ print <<HTML;
                                         <div class="d-flex align-items-center gap-1.5">
                                             <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" onclick="window.seleccionarTodosEspacios(true)" style="font-size:0.72rem; color: #19B7A5;">Marcar todos</button>
                                             <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" onclick="window.seleccionarSoloHabilitados()" style="font-size:0.72rem; color: #0284c7;" title="Filtrar únicamente espacios libres y operativos">Solo habilitados</button>
+                                            <span class="text-muted opacity-50" style="font-size:0.70rem;">•</span>
                                             <button type="button" class="btn btn-link btn-sm p-0 text-secondary text-decoration-none" onclick="window.seleccionarTodosEspacios(false)" style="font-size:0.72rem;">Desmarcar</button>
                                         </div>
                                     </div>

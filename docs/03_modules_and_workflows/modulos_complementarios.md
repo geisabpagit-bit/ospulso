@@ -293,6 +293,11 @@ Este documento agrupa la especificación de los módulos complementarios y espec
      - **Sincronización Dual de Intervalos**: Grupo segmentado de botones (`15 min`, `30 min`, `60 min`) acoplado bidireccionalmente al control deslizante `range` y badge informativo.
      - **Tarjetas Semánticas de Espacios Físicos (`.space-item-card`)**: Estado visual diferenciado para Consultorios libres (`Libre`), Quirófanos (`Quirúrgico`) y unidades bloqueadas (`is-blocked` con badge rojo de candado `Bloqueado`), con botones rápidos de `Marcar todos` y `Desmarcar`.
      - **Días Inhábiles y Mantenimiento Dinámicos**: Selector de fecha con categoría (*Mantenimiento*, *Feriado Oficial*, *Fumigación*) y renderizado en nube de tags (`.date-tag-amber` / `.date-tag-rose`) removibles.
+  8. **Sincronización de Espacios Bloqueados con la Barra de Herramientas (`views/agenda_espacios.pl` & `js/agenda_espacios_spa.js`)**:
+     - **Reflejo Visual Inmediato en Toolbar**: En el dropdown de Espacios Físicos (`#lista_checkboxes_recursos`), cada consultorio o quirófano bloqueado en configuración muestra su icono de candado rojo, texto contrastado y badge semántico `<span class="badge text-danger-emphasis bg-danger-subtle border border-danger-subtle">Bloqueado</span>` sobre fondo resaltado, distinguiéndose claramente de las unidades `Habilitado` o `Quirúrgico`.
+     - **Acción Rápida 'Solo habilitados'**: Se incorpora en la cabecera del selector el botón `Solo habilitados` (`window.seleccionarSoloHabilitados()`) para marcar con un solo clic exclusivamente los espacios físicos operativos, facilitando una visualización limpia sin consultorios fuera de servicio.
+     - **Sincronización de Contadores**: El botón de la barra operativa (`#filtro_recurso_btn_label`) y el badge del Nivel 1 (`#lbl_header_espacios_habilitados`) reflejan la proporción exacta en tiempo real (ej. `Espacios (8 Hab • 2 Bloq)` y `8 Habilitados • 2 Bloqueados`).
+     - **Reactividad al Guardar sin Refresh**: Al guardar los cambios en `#modalAjustes` (`guardarAjustes()`), el sistema actualiza de forma reactiva `agendaConfig.espacios_bloqueados_list`, re-popula `#lista_checkboxes_recursos` y refresca la cuadrícula diaria sin requerir recargar el navegador.
 
 
 
