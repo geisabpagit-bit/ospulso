@@ -178,6 +178,61 @@
    - Queda estrictamente prohibido crear o reprogramar una reserva de espacio antes de la fecha y hora actual (`fecha < hoy` o `fecha == hoy && hora_ini < hora_actual`).
    - La restricción se aplica en doble capa: en el frontend (`#f_fecha` con atributo `min`, deshabilitación de slots pasados, validación en `saveCita` y `dropS` / `dropManualDrag`) y de forma inviolable en el backend (`validar_no_pasado` dentro de `api/espacios_crud.pl`).
    - Se exceptúan únicamente las transiciones de estado operativas (`En Uso`, `Finalizada`, `Cancelada`) sobre reservas ya creadas cuya hora de inicio acaba de cumplirse.
+6. **Modalidades de Cobertura en Rango de Fechas (Continuo vs Recurrente)**:
+   - **Escenario 1: Bloque Continuo (24h+)**:
+     - *Definición Operativa*: El profesional o arrendatario aparta el consultorio o quirófano ininterrumpidamente día y noche desde la fecha y hora de entrega inicial hasta la fecha y hora de devolución final (sin huecos intermedios).
+     - *Impacto en Cuadrícula*: En la fecha de inicio se bloquea desde la hora de arranque hasta el final de la jornada; en los días intermedios el espacio se bloquea las 24 horas del día de forma total; y en la fecha final se bloquea desde la apertura hasta la hora de entrega final.
+     - *Detección de Colisión*: Cualquier evento preexistente de citas o espacios en cualquiera de los días u horas del intervalo completo dispara una alerta impidiendo el guardado.
+   - **Escenario 2: Mismo Horario por Día (Renta Recurrente por Turno)**:
+     - *Definición Operativa*: El profesional contrata el espacio únicamente dentro de una franja de horario específica fija (ej. 09:00 a 14:00 hrs) repetida a lo largo de un rango de fechas (ej. Lunes a Viernes).
+     - *Impacto en Cuadrícula*: Las mañanas tempranas, tardes o noches de cada uno de los días del rango permanecen plenamente libres y disponibles para otros turnos, médicos colaboradores o pacientes ambulatorios.
+     - *Cálculo de Tarifa*: Soporta modalidad "Por Día" ($n 	imes \text{tarifa\_diaria}$) o "Total del Rango" (tarifa plana global por el paquete de días).
+
+---
+
+## 15. Gobernanza de la Línea de Tiempo en Vivo (Timeline Live) y Elementos UX en Agenda
+
+1. **Línea de Tiempo en Tiempo Real (#FF0000)**:
+   - Toda vista diaria matricial de agenda (clínica o de espacios) debe proyectar una línea horizontal de 2px en rojo vivo (`#FF0000`) con halo resplandeciente (`box-shadow`), ubicada en `z-index: 22` con `pointer-events: none`.
+   - Se posiciona verticalmente según la fórmula matemática exacta:
+     $$\text{posición} = \text{tbody.offsetTop} + \left(\frac{(\text{hora} \times 60 + \text{minuto} + \text{segundo}/60) - \text{inicio\_jornada}}{\text{minutos\_totales\_jornada}}\right) \times \text{tbody.offsetHeight}$$
+   - Se recalcula automáticamente cada 15 segundos y al redimensionar la ventana con transición suave.
+2. **Visibilidad Contextual y Segregación por Fecha**:
+   - La línea roja y el marcador del mini-mapa se activan **única y exclusivamente** cuando la fecha visualizada coincide con el día de hoy del sistema (`selectedDate === today`).
+   - Al navegar a fechas pasadas o futuras, la línea y el marcador se ocultan de forma automática sin alterar la grilla.
+3. **Etiqueta Flotante y Estado de Próximo Evento**:
+   - En la columna horaria izquierda se proyecta un pill rojo con animación de punto blanco pulsante (`.timeline-live-time-pill`).
+   - Sobre la línea roja flota una etiqueta interactiva (`.timeline-live-next-badge`) que diagnostica en tiempo real:
+     - Si hay un evento en curso: `"En curso: [Título] (restan X min)"`.
+     - Si hay un evento futuro programado para hoy: `"Próximo: [Título] a las HH:MM (en X min)"`.
+     - Si no hay más citas en el día: `"Sin más eventos pendientes hoy"`.
+4. **Mini-Mapa del Día y Snap-To-Now**:
+   - En la cabecera de la matriz se renderiza el mini-mapa del día (`.timeline-day-minimap`) con barra de progreso del tiempo transcurrido (`.minimap-past-fill`), bloques de citas programadas (`.minimap-event-block`) y marcador circular rojo pulsante (`.minimap-marker`).
+   - El botón **"Ir a Ahora"** (`#btn-snap-now-toolbar` / `.btn-timeline-now`) retorna al usuario a la fecha actual si está en otro día y enfoca suavemente la pantalla sobre la línea de tiempo viva con un destello visual de confirmación.
+5. **Progreso Dinámico y Pulso de Anticipación**:
+   - Toda cita o renta que se encuentre transcurriendo en el momento exacto proyecta una barra de progreso inferior animada en verde esmeralda (`.apt-progress-bar`).
+   - Todo evento que inicie dentro de los próximos 15 minutos despliega un halo de pulso suave en tono ámbar/dorado (`.apt-imminent-pulse`).
+
+---
+
+## 16. Paridad y Homogeneización de la Suite de Agendas (Médica & Espacios)
+
+1. **Paridad Total de Celdas de Días Adyacentes en Vista Mensual**:
+   - Queda estrictamente prohibido renderizar contenedores vacíos, grises o deshabilitados en los días pertenecientes al mes anterior o posterior que completan la grilla mensual.
+   - Las celdas adyacentes (`.calendar-cell-other-month`) deben portar tramado radial sutil, número de día tenue, badge abreviado del mes (`.other-month-badge`) y soportar 100% de operatividad: visualización de citas, clic para agendar (`handleSlotClick`), arrastre drag & drop entre meses (`dropS`) y salto directo a la vista diaria (`goDay`).
+2. **Arquitectura de Barra de Herramientas en Dos Niveles (Two-Tier Toolbar)**:
+   - Ambas agendas estructuran su toolbar en:
+     - **Nivel 1 (Cabecera Navy Contextual `.agenda-toolbar-tier1`)**: Título formal del módulo, contadores en tiempo real (citas activas o espacios habilitados/bloqueados), botón de acción primario (`+ Nueva Cita` o `Reservar Espacio`) y botón de configuración rápida.
+     - **Nivel 2 (Bandeja Operativa Blanca `.agenda-toolbar-tier2`)**: Controles de navegación de fecha (`HOY`, `Ahora` con timeline live, selector de fecha), botones de vista (`Día`, `Semana`, `Mes`), menú compacto `Reportes & Export` (`#dropdownReportesExport`) y selectores ejecutivos (Médicos, Espacios, Estados y alternador de mini-calendario lateral).
+3. **Modal de Configuración y Ajustes Operativos Premium (`#modalAjustes` / `.modal-apertura-premium`)**:
+   - Diseño unificado de dos columnas (`zoom: 0.75`), cabecera corporativa con icono y badge teal.
+   - Columna izquierda: Horarios de apertura/cierre en `.field-card`, días de atención en píldoras `.btn-day-pill` con micro-dot luminoso y switch reactivo para omitir horario de comida sin recarga de página.
+   - Columna derecha: Intervalo con selector segmentado y slider táctil, límite de cancelación de citas y administración de días inhábiles en tags ámbar (`.date-tag-amber`) con motivos configurables y pie con aviso legal de cumplimiento de la Norma Oficial Mexicana NOM-004.
+4. **Modal de Gestión de Citas y Reservas (`#modalCita` / `.modal-diamond`)**:
+   - Diseño canónico de 2 columnas (7 cols ficha izquierda / 5 cols duración y anticolisión derecha).
+   - Columna izquierda: Datos del paciente/arrendatario con búsqueda predictiva, fecha, motivo/especialidad, profesional, sede, consultorio, estado, prioridad y color de cita.
+   - Columna derecha: Sección de duración con badge superior interactivo (`#lbl_slider_duracion_badge`), slider táctil continuo (`#slider_duracion_renta`), píldoras segmentadas rápidas (`#btn-group-duracion`), tarjeta amarilla avena de bloqueo (`#bloqueo-horario-avena`) con candado e intervalo, y contenedor de horarios disponibles anticolisión sincronizado con pacientes y espacios físicos.
+
 
 
 

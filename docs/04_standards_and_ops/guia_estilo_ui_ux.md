@@ -203,6 +203,88 @@ Todas las tarjetas KPI superiores exhibidas en el Dashboard Principal (`views/in
    - **Cabeceras Sin Negritas (`thead th`)**: Se establece de forma canónica `font-weight: 500 !important;` en tamaño `0.75rem`, erradicando negritas agresivas y unificando el color con `var(--md-text-secondary, #486581)` y fondo clínico `#F8FBFF`.
    - **Cuerpo (`tbody td`)**: Tipografía en `0.8125rem` (13px), `font-weight: 400`, color `#102A43` y espaciado consistente.
 
+### 6.6 Arquitectura de Barra de Herramientas en Dos Niveles (Two-Tier Toolbar)
+
+Ambas agendas (`views/agenda_main.pl` y `views/agenda_espacios.pl`) adoptan el estándar de dos filas (`.agenda-header-two-tier`) para desacoplar el contexto institucional de los controles operativos diarios:
+
+1. **Nivel 1 (Cabecera Navy Contextual `.agenda-toolbar-tier1`)**:
+   - Fondo institucional azul profundo `var(--md-blue-deep, #0A2A66)` con borde inferior teal clínico `var(--md-teal-clinical, #19B7A5)`.
+   - **Contexto y Métricas en Tiempo Real**: Despliega el título del módulo (`Agenda Médica & Pacientes` o `Renta de Espacios Clínicos`) junto al badge de métricas dinámicas (`#lbl_header_citas_activas` o `#lbl_header_espacios_habilitados`).
+   - **Botón de Acción Primario (`.btn-tier1-reservar`)**: Botón verde esmeralda institucional (`#10b981` / `.btn-emerald`) que dispara la creación de citas o reservas.
+   - **Botón de Ajustes Rápidos (`.btn-tier1-config`)**: Abre la configuración de jornada y apertura (`#modalAjustes`).
+2. **Nivel 2 (Bandeja Operativa Blanca `.agenda-toolbar-tier2`)**:
+   - Fondo blanco con sombra sutil y borde inferior `#e2e8f0`.
+   - **Navegación Temporal**: Botón `HOY`, botón interactivo `Ahora` (Timeline Live Snap-To-Now) con dot animado, y controles de desplazamiento temporal `< MES AÑO >`.
+   - **Conmutador de Vistas**: Botones segmentados (`Día`, `Semana`, `Mes`) con estado activo en azul marino contrastado.
+   - **Menú Compacto de Reportes (`#dropdownReportesExport`)**: Consolida en un dropdown tipo píldora los accesos a Reporte Diario, Reporte Semanal, Reporte Mensual e Impresión Oficial Hospitalaria, ahorrando más de 150px de espacio horizontal.
+   - **Selectores Ejecutivos Desplegables**: Botones con badge numérico (`.tier2-executive-select-btn`) para filtrar Médicos, Espacios Físicos, Estados de Cita, y el alternador de visibilidad del mini-calendario lateral.
+
+### 6.7 Estándar de Línea de Tiempo en Vivo (Timeline Live) y Elementos UX en Vista Diaria
+
+La vista diaria incorpora un sistema de geolocalización temporal reactiva:
+
+1. **Línea Roja en Vivo (`.timeline-live-indicator`)**:
+   - Línea de 2px de espesor en rojo puro `#FF0000` con halo resplandeciente doble (`box-shadow: 0 0 8px rgba(255,0,0,0.85), 0 0 18px rgba(255,0,0,0.45)`).
+   - Se sitúa en `z-index: 22` con `pointer-events: none` para no obstaculizar la interacción con tarjetas y celdas.
+   - Cálculo vertical matemático suave (`transition: top 0.4s ease`):
+     $$\text{top} = \text{tbody.offsetTop} + \left(\frac{\text{minutos\_transcurridos\_jornada}}{\text{minutos\_totales\_jornada}}\right) \times \text{tbody.offsetHeight}$$
+   - Se actualiza cada 15 segundos y al redimensionar la ventana.
+2. **Etiqueta Flotante con Estado de Próximo Evento**:
+   - En el eje izquierdo: Píldora roja (`.timeline-live-time-pill`) con hora actual exacta (ej. `14:12`) y punto blanco pulsante (`@keyframes pulse-live-dot`).
+   - Flotando sobre la cuadrícula: Badge dinámico (`.timeline-live-next-badge`) que identifica en tiempo real si existe una cita en curso, el tiempo restante o el tiempo previo al próximo evento programado.
+3. **Mini-Mapa del Día (`.timeline-day-minimap`)**:
+   - Situado sobre la matriz horaria, proyecta la jornada completa (`08:00 - 20:00`), un reloj digital sincronizado, sombreado del tiempo transcurrido (`.minimap-past-fill`), bloques de citas (`.minimap-event-block`) y marcador circular rojo pulsante (`.minimap-marker`).
+   - Soporta navegación por clic: al pulsar en cualquier punto del mini-mapa, la grilla realiza un scroll suave automático hacia esa hora específica.
+4. **Botón Snap-To-Now ("Ir a Ahora")**:
+   - Disponible en el toolbar (`#btn-snap-now-toolbar`) y en el mini-mapa (`.btn-timeline-now`). Si el usuario está en otra fecha, regresa automáticamente al día de hoy y centra suavemente la pantalla sobre la línea de tiempo en vivo con un destello de confirmación (`.timeline-snap-flash`).
+5. **Progreso Dinámico y Pulso de Anticipación**:
+   - Las citas en curso proyectan en su base una barra de progreso animada verde esmeralda (`.apt-progress-bar`).
+   - Las citas que comienzan en menos de 15 minutos despliegan un pulso visual perimetral (`.apt-imminent-pulse`).
+
+### 6.8 Celdas de Días Adyacentes en Vista Mensual Grid (`.calendar-cell-other-month`)
+
+Se erradican los bloques grises ciegos en la cuadrícula mensual:
+
+1. **Identidad Visual Distintiva**:
+   - Fondo con micro-trama punteada (`background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px); background-size: 8px 8px; background-color: #f8fafc;`).
+   - Número de día en gris atenuado (`.other-month-day-num`), badge con mes abreviado (`.other-month-badge`, ej. `oct`, `dic`) y borde punteado teal al hacer hover (`outline: 2px dashed #0d9488`).
+2. **Operatividad Total**:
+   - Visualización íntegra de citas con colores de estado.
+   - Clic directo para agendar (`handleSlotClick`) precargando la fecha exacta.
+   - Soporte total para Drag & Drop entre meses (`dropS`).
+   - Navegación al día (`goDay`) mediante clic en el número de día.
+
+### 6.9 Modal de Configuración Operativa Premium (`#modalAjustes` / `.modal-apertura-premium`)
+
+1. **Estructura y Escala Visual**:
+   - Estilo unificado de dos columnas (`zoom: 0.75`), cabecera con `.modal-top-bar`, `.icon-header-badge` y píldora descriptiva `.badge-pill-teal`.
+2. **Columna Izquierda (Jornada y Horarios)**:
+   - Tarjetas `.field-card` para horas de apertura y cierre.
+   - Píldoras táctiles de días hábiles (`.btn-day-pill`) con micro-dot luminoso y badge reactivo de días activos (`#badgeDiasActivos`).
+   - Interruptor reactivo para omitir horario de comida sin recarga de página.
+3. **Columna Derecha (Intervalos y Días Inhábiles)**:
+   - Selector dual de intervalo de atención (botones segmentados + slider interactivo).
+   - Gestión visual de fechas inhábiles con tags ámbar (`.date-tag-amber`), selector de motivo (Feriado, Vacaciones, Mantenimiento) y aviso legal NOM-004.
+
+### 6.10 Modal de Gestión de Citas y Reservas (`#modalCita` / `.modal-diamond`)
+
+1. **Diseño de Dos Columnas Áureas (7 Cols Izquierda / 5 Cols Derecha)**:
+   - Cabecera corporativa con fondo navy, borde teal de 2px y badge contextual de fecha/hora.
+2. **Columna Izquierda (Ficha Clínica / Datos de Reserva)**:
+   - Búsqueda predictiva con autocompletado y lupa teal (`#f_paciente`).
+   - Selectores compactos para médico, sucursal, consultorio, motivo, estado y prioridad.
+   - Selector de color de bloque (`#f_color`) integrado en tarjeta limpia.
+   - Badge semántico para consultas pagadas en recepción (`#leyenda-cita-pagada`).
+3. **Columna Derecha (Duración Estimada Táctil & Anticolisión)**:
+   - **Badge de Duración**: `#lbl_slider_duracion_badge` refleja en tiempo real la duración calculada.
+   - **Slider Táctil Continuo (`#slider_duracion_renta`)**: Rango de 15m a 240m con marcas inferiores y sincronización bidireccional (`window.onDuracionSliderChange`).
+   - **Píldoras Segmentadas Rápidas (`#btn-group-duracion`)**: Opciones de 15m, 30m, 45m, 1h, 1h 30m, 2h, HASTA CIERRE y DÍA COMPLETO con estado activo amarillo avena suave (`.dur-avena-active`).
+   - **Tarjeta de Bloqueo Horario (`#bloqueo-horario-avena`)**: Muestra con candado el rango exacto apartado (`#bloqueo-horario-rango`).
+   - **Cuadrícula Anticolisión (`#slots-container`)**: Horarios disponibles filtrados en tiempo real para evitar solapamientos médicos o de espacios físicos.
+4. **Footer de Acciones**:
+   - Botón `Eliminar Cita` a la izquierda.
+   - Botones `Cancelar`, `Cobrar en Recepción`, `Tomar Cita` (icono de verificación esmeralda) y `Guardar Cita` (botón primario teal) a la derecha.
+
 ---
 
 ## 7. Estándares UI Móviles del Directorio de Pacientes (`views/pacientes.pl`, `css/tabla_pacientes.css`)
